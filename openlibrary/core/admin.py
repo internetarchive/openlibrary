@@ -3,7 +3,6 @@
 
 import calendar
 import datetime
-import couchdb
 import web
 from infogami import config
 from infogami.utils import stats
@@ -75,7 +74,6 @@ def _get_count_docs(ndays):
 
 def get_stats(ndays = 30):
     """Returns the stats for the past `ndays`"""
-    #docs = [couchdb.Document(doc) for doc in _get_count_docs(ndays)]
     docs = _get_count_docs(ndays)
     retval = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
                   bot_edits   = Stats(docs, "bot_edits", "bot_edits"),

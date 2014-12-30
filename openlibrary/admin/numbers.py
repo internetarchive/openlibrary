@@ -172,24 +172,13 @@ def admin_range__loans(**kargs):
     return result[0].count
 
 def admin_total__authors(**kargs):
-    try:
-        db    = kargs['seeds_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__authors"%k)    
-    off1 = db.view("_all_docs", startkey="/authors",   limit=0, stale="ok").offset
-    off2 = db.view("_all_docs", startkey="/authors/Z", limit=0, stale="ok").offset
-    total_authors = off2 - off1
-    return total_authors
-
+    db = kargs['thingdb']
+    return _count_things(db, "/type/author")
 
 def admin_total__subjects(**kargs):
-    try:
-        db    = kargs['seeds_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__subjects"%k)
-    rows = db.view("_all_docs", startkey="a", stale="ok", limit = 0)
-    total_subjects = rows.total_rows - rows.offset
-    return total_subjects
+    # Anand - Dec 2014 - TODO
+    # Earlier implementation that uses couchdb is gone now
+    return 0
 
 
 def admin_total__lists(**kargs):
@@ -211,93 +200,45 @@ def admin_total__lists(**kargs):
 
 
 def admin_total__covers(**kargs):
-    try:
-        db    = kargs['editions_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__covers"%k)    
-    total_covers = db.view("admin/editions_with_covers", stale="ok").rows[0].value
-    return total_covers
-
+    db = kargs['coverdb']
+    return db.query("SELECT count(*) as count FROM cover")[0].count
 
 def admin_total__works(**kargs):
-    try:
-        db    = kargs['works_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__works"%k)    
-    total_works = db.info()["doc_count"]
-    return total_works
-
+    db = kargs['thingdb']
+    return _count_things(db, '/type/work')
 
 def admin_total__editions(**kargs):
-    try:
-        db    = kargs['editions_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__editions"%k)
-    total_editions = db.info()["doc_count"]
-    return total_editions
+    db = kargs['thingdb']
+    return _count_things(db, '/type/edition')
 
+def _count_things(db, type):
+    type_id = db.where("thing", key=type)[0].id
+    result = db.query("SELECT count(*) as count FROM thing WHERE type=$type_id", vars=locals())
+    return result[0].count
+
+def _query_count(db, table, type, property, distinct=False):
+    key_id = db.where(table, type=type, name=property)[0].id
+    if distinct:
+        what = 'count(distinct(thing_id)) as count'
+    else:
+        what = 'count(thing_id) as count'
+    result = db.select(table, what, where='key_id=$key_id', vars=dict(key_id=key_id))
+    return result[0].count
 
 def admin_total__ebooks(**kargs):
-    try:
-        db    = kargs['editions_db']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__ebooks"%k)
-    total_ebooks = db.view("admin/ebooks", stale="ok").rows[0].value
-    return total_ebooks
+    db = kargs['thingdb']
+    return _query_count(db, "edition_str", "/type/edition", "ocaid")
 
 def admin_total__members(**kargs):
-    try:
-        db    = kargs['thingdb']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__members"%k)
-    q1 = "SELECT id as id from thing where key='/type/user'"
-    result = db.query(q1)
-    try:
-        kid = result[0].id 
-    except IndexError:
-        raise InvalidType("No id for type '/type/user in the datbase")
-    q2 = "select count(*) as count from thing where type=%d"% kid
-    result = db.query(q2)
-    count = result[0].count
-    return count
-    
+    db = kargs['thingdb']
+    return _count_things(db, '/type/user')
 
 def admin_delta__ebooks(**kargs):
-    try:
-        editions_db = kargs['editions_db']
-        admin_db    = kargs['admin_db']
-        yesterday   = kargs['start']
-        today       = kargs['end']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_delta__ebooks"%k)
-    current_total = editions_db.view("admin/ebooks", stale="ok").rows[0].value
-    yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
-    try:
-        last_total = admin_db[yesterdays_key]["total_ebooks"]
-        logging.debug("Yesterdays count for total_ebook %s", last_total)
-    except (couchdb.http.ResourceNotFound, KeyError):
-        logging.warn("No total_ebook found for %s. Using 0", yesterdays_key)
-        last_total = 0
-    current_count = current_total - last_total
-    return current_count
+    # Anand - Dec 2014 - TODO
+    # Earlier implementation that uses couchdb is gone now
+    return 0
 
 def admin_delta__subjects(**kargs):
-    try:
-        editions_db = kargs['editions_db']
-        admin_db    = kargs['admin_db']
-        seeds_db    = kargs['seeds_db']
-        yesterday   = kargs['start']
-        today       = kargs['end']
-    except KeyError, k:
-        raise TypeError("%s is a required argument for admin_delta__subjects"%k)
-    rows = seeds_db.view("_all_docs", startkey="a", stale="ok", limit=0)
-    current_total = rows.total_rows - rows.offset
-    yesterdays_key = yesterday.strftime("counts-%Y-%m-%d")
-    try:
-        last_total = admin_db[yesterdays_key]["total_subjects"]
-        logging.debug("Yesterdays count for total_subject %s", last_total)
-    except (couchdb.http.ResourceNotFound, KeyError):
-        logging.warn("No total_subject found for %s. Using 0", yesterdays_key)
-        last_total = 0
-    current_count = current_total - last_total
-    return current_count
+    # Anand - Dec 2014 - TODO
+    # Earlier implementation that uses couchdb is gone now
+    return 0

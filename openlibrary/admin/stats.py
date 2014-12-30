@@ -10,7 +10,6 @@ import datetime
 
 import web
 import yaml
-import couchdb
 
 import numbers
 
@@ -43,21 +42,6 @@ def connect_to_pg(config_file):
     return web.database(dbn="postgres",**conf)
 
 
-def connect_to_couch(config_file):
-    "Connects to the couch databases"
-    f = open(config_file)
-    config = yaml.load(f)
-    f.close()
-    admin_db = config["admin"]["counts_db"]
-    editions_db = config["lists"]["editions_db"]
-    works_db = config["lists"]["works_db"]
-    seeds_db = config["lists"]["seeds_db"]
-    logger.debug(" Admin Database is %s", admin_db)
-    logger.debug(" Editions Database is %s", editions_db)
-    logger.debug(" Works Database is %s", works_db)
-    logger.debug(" Seeds Database is %s", seeds_db)
-    return couchdb.Database(admin_db), couchdb.Database(editions_db), couchdb.Database(works_db), couchdb.Database(seeds_db)
-
 def get_config_info(infobase_config):
     """Parses the config file(s) to get back all the necessary pieces of data.
 
@@ -69,27 +53,15 @@ def get_config_info(infobase_config):
     logroot = config.get("writelog")
     return logroot
     
-def store_data(db, data, date):
+def store_data(data, date):
     uid = "counts-%s"%date
-    logger.debug(" Updating admin_db for %s - %s", uid, data)
-    try:
-        try:
-            vals = db[uid]
-            vals.update(data)
-        except couchdb.http.ResourceNotFound:
-            vals = data
-            db[uid] = vals
-        db.save(vals)
-    except IOError:
-        logger.error("failed to update admin db", exc_info=True)
-
-    # start storing data in store as well, so that we can phase out couch
+    logger.debug(" Updating stats for %s - %s", uid, data)
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
     doc['type'] = 'admin-stats'
     web.ctx.site.store[uid] = doc
 
-def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
+def run_gathering_functions(infobase_db, coverstore_db,
                             start, end, logroot, prefix, key_prefix = None):
     """Runs all the data gathering functions with the given prefix
     inside the numbers module"""
@@ -103,10 +75,6 @@ def run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, w
         try:
             ret = fn(thingdb     = infobase_db,
                      coverdb     = coverstore_db,
-                     seeds_db    = seeds_db,
-                     editions_db = editions_db,
-                     works_db    = works_db,
-                     admin_db    = admin_db,
                      logroot     = logroot,
                      start       = start,
                      end         = end)
@@ -146,7 +114,6 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     try:
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
-        admin_db, editions_db, works_db, seeds_db = connect_to_couch(openlibrary_config)
         logroot = get_config_info(infobase_config)
     except KeyError,k:
         logger.critical("Config file section '%s' missing", k.args[0])
@@ -162,14 +129,14 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     data = {}
 
     logger.info("Gathering total data")
-    data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
+    data.update(run_gathering_functions(infobase_db, coverstore_db,
                                         yesterday, today, logroot,
                                         prefix = "admin_total__", key_prefix = "total"))
     logger.info("Gathering data using difference between totals")
-    data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
+    data.update(run_gathering_functions(infobase_db, coverstore_db,
                                         yesterday, today, logroot,
                                         prefix = "admin_delta__"))
-    store_data(admin_db, data, today.strftime("%Y-%m-%d"))
+    store_data(data, today.strftime("%Y-%m-%d"))
     # Now gather data which can be queried based on date ranges
     # The queries will be from the beginning of today till right now
     # The data will be stored as the counts of the current day.
@@ -179,10 +146,10 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
     data = {}
     for i in range(int(ndays)):
         logger.info(" %s to %s", start, end)
-        data.update(run_gathering_functions(infobase_db, coverstore_db, seeds_db, editions_db, works_db, admin_db,
+        data.update(run_gathering_functions(infobase_db, coverstore_db,
                                             start, end, logroot,
                                             prefix = "admin_range__"))
-        store_data(admin_db, data, start.strftime("%Y-%m-%d"))
+        store_data(data, start.strftime("%Y-%m-%d"))
         end = start
         start = end - datetime.timedelta(days = 1)
     if numbers.sqlitefile:
