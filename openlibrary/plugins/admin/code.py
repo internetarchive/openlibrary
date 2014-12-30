@@ -9,7 +9,6 @@ import urllib, urllib2
 import traceback
 import logging
 
-import couchdb
 import yaml
 
 from infogami import config
@@ -26,7 +25,7 @@ from openlibrary.plugins.upstream import spamcheck
 from openlibrary import accounts
 from openlibrary.core import helpers as h
 
-from openlibrary.plugins.admin import services, support
+from openlibrary.plugins.admin import services
 from openlibrary.core import imports
 from openlibrary.core.waitinglist import Stats as WLStats
 
@@ -655,9 +654,6 @@ def setup():
     register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
 
     register_admin_page('/admin/status', service_status, label = "Open Library services")
-    # register_admin_page('/admin/support', support.cases, label = "All Support cases")
-    # register_admin_page('/admin/support/(all|new|replied|closed)?', support.cases, label = "Filtered Support cases")
-    # register_admin_page('/admin/support/(\d+)', support.case, label = "Support cases")
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/permissions', permissions, label="")
@@ -667,8 +663,6 @@ def setup():
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
 
-    inspect_thing.setup()
-    support.setup()
     import mem
 
     for p in [mem._memory, mem._memory_type, mem._memory_id]:
