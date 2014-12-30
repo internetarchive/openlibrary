@@ -4,7 +4,6 @@ from collections import defaultdict
 import re
 import urllib, urllib2
 
-import couchdb
 import simplejson
 import web
 import logging
