@@ -217,15 +217,20 @@ def _count_things(db, type):
     return result[0].count
 
 def _query_count(db, table, type, property, distinct=False):
-    key_id = db.where(table, type=type, name=property)[0].id
+    type_id = db.where("thing", key=type)[0].id
+    key_id = db.where('property', type=type_id, name=property)[0].id
     if distinct:
         what = 'count(distinct(thing_id)) as count'
     else:
         what = 'count(thing_id) as count'
-    result = db.select(table, what, where='key_id=$key_id', vars=dict(key_id=key_id))
+    result = db.select(table, what=what, where='key_id=$key_id', vars=dict(key_id=key_id))
     return result[0].count
 
 def admin_total__ebooks(**kargs):
+    # Anand - Dec 2014
+    # The following implementaiton is too slow. Disabling for now.
+    return 0
+
     db = kargs['thingdb']
     return _query_count(db, "edition_str", "/type/edition", "ocaid")
 
