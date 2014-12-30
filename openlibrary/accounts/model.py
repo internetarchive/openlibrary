@@ -13,7 +13,6 @@ from infogami import config
 from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 from openlibrary.core import helpers as h
-from openlibrary.core import support
 
 
 def sendmail(to, msg, cc=None):
@@ -131,17 +130,6 @@ class Account(web.storage):
         d = self['created_on'].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
         
-    def get_cases(self):
-        """Returns all support cases filed by this user.
-        """
-        email = self.email
-        username = self.username
-        
-        # XXX-Anand: very inefficient. Optimize it later.
-        cases = support.Support().get_all_cases()
-        cases = [c for c in cases if c.creator_email == email or c.creator_username == username]
-        return cases
-
     def get_recentchanges(self, limit=100, offset=0):
         q = dict(author=self.get_user().key, limit=limit, offset=offset)
         return web.ctx.site.recentchanges(q)
