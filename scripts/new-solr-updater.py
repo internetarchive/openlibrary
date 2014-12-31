@@ -40,11 +40,11 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_config(path):
-    c = yaml.safe_load(open(path))
-
-    # required for update_work module to work
-    config.runtime_config = c
-    return c
+    logger.info("loading config from %s", path)
+    print "***load_config", path
+    config.load(path)
+    config.load_config(path)
+    return config.runtime_config
 
 def read_state_file(path):
     try:
@@ -234,6 +234,7 @@ def main():
         host = web.lstrips(args.ol_url, "http://").strip("/")
         update_work.set_query_host(host)
 
+    logger.info("loading config")
     config = load_config(args.config)
 
     state_file = args.state_file

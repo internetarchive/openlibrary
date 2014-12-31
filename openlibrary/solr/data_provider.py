@@ -91,22 +91,22 @@ class BetterDataProvider(LegacyDataProvider):
 
         self.edition_keys_of_works_cache = {}
 
-        from openlibrary.solr.process_stats import get_ia_db, get_db
-        self.db = get_db()
-        self.ia_db = get_ia_db()
-
         import infogami
         from infogami.utils import delegate
 
         infogami._setup()
         delegate.fakeload()
 
+        from openlibrary.solr.process_stats import get_ia_db, get_db
+        self.db = get_db()
+        self.ia_db = get_ia_db()
+
     def get_metadata(self, identifier):
         """Alternate implementation of ia.get_metadata() that uses IA db directly.
         """
         logger.info("get_metadata %s", identifier)        
         self.preload_metadata([identifier])
-        if identifier in self.metadata_cache:
+        if self.metadata_cache.get(identifier):
             d = web.storage(self.metadata_cache[identifier])
             d.publisher = d.publisher and d.publisher.split(";")
             d.collection = d.collection and d.collection.split(";")
@@ -141,7 +141,9 @@ class BetterDataProvider(LegacyDataProvider):
         #logger.info("get_document %s", key)
         if key not in self.cache:
             self.preload_documents([key])
-        return self.cache.get(key)
+        if key not in self.cache:
+            logger.warn("NOT FOUND %s", key)
+        return self.cache.get(key) or {"key": key, "type": {"key": "/type/delete"}}
 
     def preload_documents(self, keys):
         identifiers = [k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")]
@@ -204,6 +206,8 @@ class BetterDataProvider(LegacyDataProvider):
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/work' and doc.get('authors'):
                 keys.extend(a['author']['key'] for a in doc['authors'])
+            if doc and doc['type']['key'] == '/type/edition' and doc.get('authors'):
+                keys.extend(a['key'] for a in doc['authors'])
         self.preload_documents0(list(set(keys)))
 
     def find_redirects(self, key):
@@ -264,18 +268,5 @@ class BetterDataProvider(LegacyDataProvider):
 
         keys = [k for _keys in self.edition_keys_of_works_cache.values()
                   for k in _keys]
-        print "keys", keys
         self.preload_documents0(keys)
         return
-
-        q = {'type':'/type/edition', 'works': work_keys, '*': None}
-        print q
-        matches = web.ctx.site.things(q, details=True)
-        for doc in matches:
-            key = doc['key']
-            w = doc.get("works")
-            wkey = w and w[0].key
-            if wkey:
-                self.edition_keys_of_works_cache.setdefault(wkey, []).append(key)
-            if key not in self.cache:
-                self.cache[key] = doc
