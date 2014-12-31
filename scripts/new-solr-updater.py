@@ -23,7 +23,7 @@ import socket
 from openlibrary.solr import update_work
 from openlibrary import config
 
-logger = logging.getLogger("solr-updater")
+logger = logging.getLogger("openlibrary.solr-updater")
 
 LOAD_IA_SCANS = False
 COMMIT = True
@@ -40,7 +40,7 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_config(path):
-    logger.info("loading config from %s", path)
+    logger.info("loading config from %s", path)    
     print "***load_config", path
     config.load(path)
     config.load_config(path)
