@@ -103,10 +103,13 @@ def preload(entries):
     preload_metadata(ia_ids)
 
 def preload_metadata(ia_ids):
-    logger.info("preload metadata for %s identifiers", len(ia_ids))
+    logger.info("preload metadata for %s identifiers", len(ia_ids))    
     # ignore already loaded ones
     ia_ids = [id for id in ia_ids if id and id not in metadata_cache]
 
+    if not ia_ids:
+        return
+    
     db = get_ia_db()
     rows = db.query("SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids", vars=locals())
     for row in rows:
@@ -129,7 +132,7 @@ class LoanEntry(web.storage):
         return get_document(self['book'])
 
     def get_subjects(self, type="subject"):
-        w = self.book.works[0]
+        w = self.book and self.book.works[0]
         if w:
             return w.get_subject_links(type)
         else:
@@ -142,9 +145,22 @@ class LoanEntry(web.storage):
         else:
             return []
 
+    def get_title(self):
+        if self.book:
+            title = self.book.title
+        else:
+            title = self.metadata.get('title')
+        return title or "Untitled"
+
+    def get_iaid(self):
+        if self.book_key.startswith("/books/ia:"):
+            return self.book_key[len("/books/ia:"):]
+        else:
+            return self.book and self.book.ocaid
+
     @property
     def metadata(self):
-        return get_metadata(self.book.ocaid)
+        return get_metadata(self.get_iaid())
 
     @property
     def library(self):  
@@ -166,9 +182,9 @@ class LoanEntry(web.storage):
 
 def process(data):
     doc = LoanEntry(data)
-    if not doc.book:
-        logger.error("Book not found for %r. Ignoring this loan", doc['book'])
-        return
+    # if not doc.book:
+    #     logger.error("Book not found for %r. Ignoring this loan", doc['book'])
+    #     return
 
     solrdoc = {
         "key": doc.key,
@@ -176,8 +192,8 @@ def process(data):
         "stats_type_s": "loan",
         "book_key_s": doc.book_key,
         "author_keys_id": doc.get_author_keys(),
-        "title": doc.book.title or "Untitled",
-        "ia": doc.book.ocaid or None,
+        "title": doc.get_title(),
+        "ia": doc.get_iaid(),
         "resource_type_s": doc.resource_type,
         "ia_collections_id": doc.metadata.get("collection", []),
         "sponsor_s": doc.metadata.get("sponsor"),
@@ -211,7 +227,7 @@ def process(data):
     add_subjects("person")
     add_subjects("time")
 
-    year = doc.book.get_publish_year()
+    year = doc.book and doc.book.get_publish_year()
     if year:
         solrdoc['publish_year'] = year
 
