@@ -385,7 +385,10 @@ class SolrProcessor:
                 authors = [resolve(a) for a in authors]
             else:
                 raise AuthorRedirect
-        assert all(a['type']['key'] == '/type/author' for a in authors)
+        ## Consider only the valid authors instead of raising an error.
+        #assert all(a['type']['key'] == '/type/author' for a in authors)
+        authors = [a for a in authors if a['type']['key'] == '/type/author']
+
         return authors
 
     def get_pub_year(self, e):
