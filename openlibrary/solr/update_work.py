@@ -1393,7 +1393,7 @@ def parse_options(args=None):
     parser = OptionParser(args)
     parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
     parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
-    parser.add_option("-o", "--output-file", dest="output_file", default="openlibrary.yml", help="Open Library config file")
+    parser.add_option("-o", "--output-file", dest="output_file", help="Open Library config file")
     parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
     parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
     parser.add_option("--profile", dest="profile", action="store_true", default=False, help="Profile this code to identify the bottlenecks")
