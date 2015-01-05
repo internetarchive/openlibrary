@@ -837,11 +837,17 @@ class authors_autocomplete(delegate.page):
 
         name = solr.escape(i.q) + "*"
         q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
-        data = solr.select(q, q_op="AND", sort="work_count desc")
+        params = {
+            'q_op': 'AND',
+            'sort': 'work_count desc'
+        }
+        if config.get('single_core_solr'):
+            params['fq'] = 'type:author'
+        data = solr.select(q, **params)
         docs = data['docs']
         for d in docs:
-            d.key = "/authors/" + d.key
-
+            if not config.get('single_core_solr'):
+                d.key = "/authors/" + d.key
             if 'top_work' in d:
                 d['works'] = [d.pop('top_work')]
             else:
