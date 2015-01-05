@@ -397,7 +397,7 @@ def work_object(w): # called by works_by_author
         doc = web.ctx.site.store.get("ebooks/" + obj['lending_identifier']) or {}
         obj['checked_out'] = doc.get("borrowed") == "true"
     else:
-        obj['checked_out'] = "false"
+        obj['checked_out'] = False
     
     for f in 'has_fulltext', 'subtitle':
         if w.get(f):
@@ -493,7 +493,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     offset = rows * (page - 1)
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
-        'first_publish_year', 'public_scan_b', 'lending_edition_s',
+        'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'overdrive_s', 'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
