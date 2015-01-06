@@ -26,7 +26,6 @@ screen
 libgeoip-dev
 
 python-dev
-python-pip
 python-lxml
 python-beautifulsoup
 python-babel
@@ -96,16 +95,20 @@ function setup_ol() {
 function setup_nginx() {
     ln -sf $OL_ROOT/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
-    rm /etc/nginx/sites-enabled/default
+    if [ -f /etc/nginx/sites-enabled/default ]; then
+        rm /etc/nginx/sites-enabled/default
+    fi
     sudo /etc/init.d/nginx restart
 }
 
 # pip version 1.5.4 gets into some issues when old version of requests is installed.
 # get the latest version of pip in that case
-if pip --version | grep -q 1.5.4
-then
-    pip install -U pip
-fi
+# if pip --version | grep -q 1.5.4
+# then
+#     pip install -U pip
+# fi
+
+easy_install pip
 
 pip install $PYTHON_PACKAGES
 

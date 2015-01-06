@@ -1397,6 +1397,7 @@ def parse_options(args=None):
     parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
     parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
     parser.add_option("--profile", dest="profile", action="store_true", default=False, help="Profile this code to identify the bottlenecks")
+    parser.add_option("--data-provider", default='default', help="Name of the data provider to use.")
 
     options, args = parser.parse_args()
     return options, args
@@ -1746,7 +1747,7 @@ def main():
     config.load_config(options.config)
 
     global data_provider
-    data_provider = get_data_provider()
+    data_provider = get_data_provider(options.data_provider)
 
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

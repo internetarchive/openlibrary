@@ -18,7 +18,7 @@ def get_data_provider(type="default"):
     if type == "default":
         return BetterDataProvider()
     elif type == "legacy":
-        return LegacyProvider()
+        return LegacyDataProvider()
 
 
 class DataProvider:
