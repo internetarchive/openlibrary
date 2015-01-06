@@ -59,7 +59,7 @@ coverstore_config_file: coverstore.yml
 loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
-dev_instance: True
+#dev_instance: True
 dev_instance_url: http://127.0.0.1:8080/
 
 memcache_servers:
