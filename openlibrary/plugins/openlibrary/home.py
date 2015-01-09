@@ -196,7 +196,7 @@ def format_book_data(book):
         
     overdrive = book.get("identifiers", {}).get('overdrive')
     if overdrive:
-        d.overdrive_url = "http://search.overdrive.com/SearchResults.aspx?ReserveID={%s}" % overdrive
+        d.overdrive_url = "http://www.overdrive.com/search?q={%s}" % overdrive
 
     ia_id = book.get("ocaid")
     if ia_id:
