@@ -47,7 +47,7 @@ distclean:
 venv:
 	@echo "** setting up virtualenv **"
 	mkdir -p var/cache/pip
-	virtualenv --no-site-packages env
+	virtualenv env
 	./env/bin/pip install --download-cache var/cache/pip $(OL_VENDOR)/openlibrary.pybundle
 
 install_solr: 
