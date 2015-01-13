@@ -2,7 +2,7 @@
 
 root=`dirname $0`
 
-# udpate submodules
+# update submodules
 git submodule sync
 git submodule init
 git submodule update
