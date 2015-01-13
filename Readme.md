@@ -4,6 +4,8 @@ Open web page for every book ever published.
 
 This repository contains the code that powers https://openlibrary.org/
 
+[![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary)
+
 ## Code Organization
 
 * openlibrary/core - core openlibrary functionality, imported and used by www
