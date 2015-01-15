@@ -589,7 +589,7 @@ def _get_recent_changes2():
         t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
         return t(c)
 
-    messages = [render(c) for c in changes]
+    messages = [render(c) for c in changes if c.kind != 'update']
     messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
     return messages
     
