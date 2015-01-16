@@ -186,10 +186,7 @@ def get_waitinglist_for_book(book_key):
 def get_waitinglist_size(book_key):
     """Returns size of the waiting list for given book.
     """
-    key = "ebooks" + book_key
-    ebook = web.ctx.site.store.get(key) or {}
-    size = ebook.get("wl_size", 0)
-    return int(size)
+    return len(get_waitinglist_for_book(book_key))
 
 def get_waitinglist_for_user(user_key):
     """Returns the list of records for all the books that a user is waiting for.
