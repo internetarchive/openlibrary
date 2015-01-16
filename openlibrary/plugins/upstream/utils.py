@@ -589,6 +589,7 @@ def _get_recent_changes2():
         t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
         return t(c)
 
+    # Gio: c.kind!='update' allow us to ignore update recent changes on people 
     messages = [render(c) for c in changes if c.kind != 'update']
     messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
     return messages
