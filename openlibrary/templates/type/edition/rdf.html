@@ -14,11 +14,10 @@ $def with (book)
   xmlns:foaf='http://xmlns.com/foaf/0.1/'
 >
     $if book.subtitle:
-        $ title = book.title + " " + book.subtitle
+        $ title = book.title + ": " + book.subtitle
     $else:
         $ title = book.title
 
-    $ bookID = book.key
     $if book.pagination:
         $ pages = book.pagination
     $else:
@@ -39,20 +38,21 @@ $def with (book)
         $elif value:
             <$tag>$value</$tag>
 
-    <rdf:Description rdf:about="http://openlibrary.org$bookID">
+    <rdf:Description rdf:about="http://openlibrary.org$book.key">
         $if work:
-        <rdrel:workManifested rdf:resource="http://openlibrary.org$work.key"/>
+            <rdrel:workManifested rdf:resource="http://openlibrary.org$work.key"/>
+
         <!-- authors -->
         <bibo:authorList rdf:parseType="Collection">
-          $for a in authors:
-              <rdf:Description rdf:about="http://openlibrary.org$a.key">
-                 <rdf:value>$a.name</rdf:value>
-              </rdf:Description>
+        $for a in authors:
+            <rdf:Description rdf:about="http://openlibrary.org$a.key">
+                <foaf:name>$a.name</foaf:name>
+            </rdf:Description>
         </bibo:authorList>
         $if contributors:
             <bibo:contributorList rdf:parseType="Collection">
             $for c in contributors:
-                 <foaf:Person><foaf:name>$c.name</foaf:name></foaf:Person>
+                <foaf:Agent><foaf:name>$c.name</foaf:name></foaf:Agent>
             </bibo:contributorList>
         $:display("dcterms:contributor", book.contributions)
         <!-- bibliographic description -->
@@ -65,20 +65,20 @@ $def with (book)
         $:display("bibo:edition", book.edition_name)
         <!-- subjects -->
         $:display("dc:subject", book.subjects)
-        $for DDC in book.dewey_decimal_class:
-            <dcterms:subject>
-                <rdf:Description>
-                    <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
-                    <rdf:value>$DDC</rdf:value>
-                </rdf:Description>
-            </dcterms:subject>
-        $for LCC in book.lc_classifications:
-             <dcterms:subject>
-                <rdf:Description>
-                    <dcam:memberOf rdf:resource="http://purl.org/dc/terms/LCC"/>
-                    <rdf:value>$LCC</rdf:value>
-                </rdf:Description>
-            </dcterms:subject>
+      $for DDC in book.dewey_decimal_class:
+        <dcterms:subject>
+            <rdf:Description>
+                <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
+                <rdf:value>$DDC</rdf:value>
+            </rdf:Description>
+        </dcterms:subject>
+      $for LCC in book.lc_classifications:
+        <dcterms:subject>
+            <rdf:Description>
+                <dcam:memberOf rdf:resource="http://purl.org/dc/terms/LCC"/>
+                <rdf:value>$LCC</rdf:value>
+            </rdf:Description>
+        </dcterms:subject>
         <!-- description -->
         $:display("dcterms:description", book.description)
         $:display("rdvocab:note", book.notes)
@@ -90,7 +90,11 @@ $def with (book)
         $:display("bibo:lccn", book.lccn)
         $:display("bibo:isbn10", book.isbn_10)
         $:display("bibo:isbn13", book.isbn_13)
-        <!-- administrative -->
-        $:display("dcterms:modified", book.last_modified)
+    </rdf:Description>
+    <!-- administrative -->
+    <rdf:Description rdf:about="">
+        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$book.last_modified.isoformat()</dcterms:modified>
+        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$book.created.isoformat()</dcterms:created>
+        <ov:versionnumber>$book.revision</ov:versionnumber>
     </rdf:Description>
 </rdf:RDF>
