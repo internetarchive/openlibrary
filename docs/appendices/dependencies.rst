@@ -1,8 +1,8 @@
 Dependencies
 ============
 
-The system requires a lot of 3rd party programs as well as a whole
-bunch of python libraries. We have an installation script which you
+The system requires a lot of third-party programs as well as a whole
+bunch of Python libraries. We have an installation script which you
 can run that will setup the entire thing for you but in order to run
 this script, the following packages have to be installed first. 
 
@@ -33,4 +33,4 @@ On Linux, you will also have to install the following dev packages
 
 Some `Python packages`_ are also required, but they will be automatically installed by the installation script.
 
-.. _Python packages: https://github.com/internetarchive/openlibrary/tree/master/requirements.txt
+.. _Python packages: https://github.com/internetarchive/openlibrary/blob/master/requirements.txt

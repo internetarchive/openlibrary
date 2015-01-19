@@ -3,9 +3,9 @@ Feature Flags
 
 Feature flags is a way to have features under development live on production and visible only to admins/beta-users.
 
-The idea of Feature Flags came from Flicker. They manage their development on a single branch using feature flags.
+The idea of feature flags came from Flickr. They manage their development on a single branch using feature flags.
 
-http://code.flickr.com/blog/2009/12/02/flipping-out/
+http://code.flickr.net/2009/12/02/flipping-out/
 
 Using Feature Flags
 -------------------
@@ -19,7 +19,7 @@ To make some part of the template visible only if a feature-flag is enabled::
         $for list in page.get_lists():
             ...
             
-To enable a url only if a feature flag is enabled::
+To enable a URL only if a feature flag is enabled::
 
     class home(delegate.page):
         path = "/"
@@ -44,7 +44,7 @@ In Open Library, the feature flags are specified in the ``openlibrary.yml`` file
             usergroup: beta-users
 
 The value of a feature flag is called a *filter*. A filter can be specified either as its name or as a dict containing its name and parameters. 
-For example, the following 2 example mean the same. ::
+For example, the following two examples mean the same. ::
 
     features: 
         lists: admin
@@ -81,7 +81,7 @@ Available filters are:
     
 **queryparam**
 
-    Enabled only if the url has a specified query parameter. ::
+    Enabled only if the URL has a specified query parameter. ::
     
         debug:
             filter: queryparam

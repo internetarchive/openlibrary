@@ -66,7 +66,7 @@ The custom setup.py commands are implemented in `setup_commands.py`_.
 
 To know more about how to add custom setuptools commands, see:
 
-http://tarekziade.wordpress.com/2007/09/30/extending-setuptools-adding-a-new-command/
+http://ziade.org/2007/09/30/extending-setuptools-adding-a-new-command/
 
 
 
