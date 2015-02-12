@@ -2,6 +2,7 @@
 User-agent: *
 Disallow: /user
 Disallow: /people
+Disallow: /api
 
 Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
