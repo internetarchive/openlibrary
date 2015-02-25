@@ -27,10 +27,37 @@ def main(args):
     if len(args) < 1 or args[0] in ['-h', '--help']:
         print >> sys.stderr, "USAGE: %s configfile [port]" % (sys.argv[0])
         sys.exit(1)
-        
-    from infogami.infobase import server
-    server.start(*args)
     
+    start(*args)
+
+def start(config_file, *args):
+    from infogami.infobase import server
+    server.load_config(config_file)
+
+    # remove config from command line args
+    sys.argv = [sys.argv[0]] + list(args)
+
+    # The web.py runfcgi is using multiplexed=True option for fastcgi server
+    # and that seem to cause some memory leaks. Using a varient of runfcgi
+    # that sets multiplexed=False.
+    if 'fastcgi' in sys.argv:
+        sys.argv.remove('fastcgi')
+        args = sys.argv[1:]
+
+        wsgifunc = server.app.wsgifunc()
+        if args:
+          return runfcgi(wsgifunc, web.validaddr(args[0]))
+        else:
+          return runfcgi(wsgifunc, None)
+    else:
+        server.run()
+
+def runfcgi(func, addr=('localhost', 8000)):
+    """Runs a WSGI function as a FastCGI server."""
+    import flup.server.fcgi as flups
+    # Start fcgi server with multiplexed=False
+    # Noticed memory leaks when running with multiplexed=True.
+    return flups.WSGIServer(func, multiplexed=False, bindAddress=addr, debug=False).run()
 
 def start_gunicorn_server():
     """Starts the infobase server using gunicorn server.
