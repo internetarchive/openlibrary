@@ -26,6 +26,7 @@ class languages(subjects.subjects):
         page.name = get_language_name(key.split("/")[-1])
 
         if page.work_count == 0:
+            web.ctx.status = "404 Not Found"
             return render_template('languages/notfound.tmpl', key)
 
         return render_template("languages/view", page)

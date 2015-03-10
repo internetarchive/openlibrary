@@ -20,6 +20,7 @@ class publishers(subjects.subjects):
         page = subjects.get_subject(key, details=True)
 
         if page.work_count == 0:
+            web.ctx.status = "404 Not Found"
             return render_template('publishers/notfound.tmpl', key)
 
         return render_template("publishers/view", page)
