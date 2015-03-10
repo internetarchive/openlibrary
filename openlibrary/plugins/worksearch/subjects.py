@@ -56,8 +56,8 @@ class subjects(delegate.page):
         page = get_subject(key, details=True)
 
         if page.work_count == 0:
-             web.ctx.status = "404 Not Found"
-             return render_template('subjects/notfound.tmpl', key)
+            web.ctx.status = "404 Not Found"
+            return render_template('subjects/notfound.tmpl', key)
 
         return render_template("subjects", page)
         
