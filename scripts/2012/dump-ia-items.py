@@ -29,7 +29,7 @@ def dump_metadata(db):
     while True:
         rows = db.select("metadata", 
                 what="identifier, boxid, collection, curatestate", 
-                where='mediatype="texts"', 
+                where="mediatype='texts'", 
                 limit=limit, 
                 offset=offset)
         if not rows:
