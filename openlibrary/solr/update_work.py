@@ -1091,6 +1091,9 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 requests.append(DeleteRequest(deletes))
                 requests.append(UpdateRequest(d))
     elif w['type']['key'] == '/type/delete':
+        # Delete the record from solr if the work has been deleted in OL.
+        deletes += [wkey[7:]] # strip /works/ from /works/OL1234W
+
         # In single core solr, we use full path as key, not just the last part
         if is_single_core():
             deletes = ["/works/" + k for k in deletes]
