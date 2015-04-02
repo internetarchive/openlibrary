@@ -408,7 +408,7 @@ def prune_expired_waitingloans():
 def update_all_waitinglists():
     rows = WaitingLoan.query(limit=10000)
     identifiers = set(row['identifier'] for row in rows)
-    for identifier in ['robertfrostbiogr00thom']:
+    for identifier in identifiers:
         try:
             _wl_api.request("loan.sync", identifier=identifier)
             update_waitinglist(identifier)
