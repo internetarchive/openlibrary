@@ -246,6 +246,7 @@ def update_waitinglist(identifier):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
     book = _get_book(identifier)
@@ -407,7 +408,7 @@ def prune_expired_waitingloans():
 def update_all_waitinglists():
     rows = WaitingLoan.query(limit=10000)
     identifiers = set(row['identifier'] for row in rows)
-    for identifier in identifiers:
+    for identifier in ['robertfrostbiogr00thom']:
         try:
             _wl_api.request("loan.sync", identifier=identifier)
             update_waitinglist(identifier)
