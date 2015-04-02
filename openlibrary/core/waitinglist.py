@@ -246,6 +246,7 @@ def update_waitinglist(identifier):
     * When a book is checked out or returned
     * When a person joins or leaves the waiting list
     """
+    _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
     book = _get_book(identifier)
