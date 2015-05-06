@@ -780,7 +780,7 @@ def solr_update(requests, debug=False, index='works', commitWithin=60000):
         if debug:
             logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
         assert isinstance(r, basestring)
-        h1.request('POST', url, r, { 'Content-type': 'text/xml;charset=utf-8'})
+        h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
         if response.reason != 'OK':
