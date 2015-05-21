@@ -676,7 +676,6 @@ def setup():
         'HTML': HTML,
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
-        'get_ab_value': ab.get_ab_value,
         'sum': sum,
         'get_donation_include': get_donation_include
     })

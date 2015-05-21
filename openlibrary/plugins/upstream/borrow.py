@@ -98,7 +98,7 @@ class borrow(delegate.page):
         else:
             have_returned = False
 
-        ab.participate("borrow-layout")
+        #ab.participate("borrow-layout")
         return render_template("borrow", edition, loans, have_returned)
         
     def POST(self, key):
@@ -127,7 +127,8 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             if resource_type == 'bookreader':
-                ab.convert("borrow-layout")
+                #ab.convert("borrow-layout")
+                pass
             
             if user_can_borrow_edition(user, edition, resource_type):
 
