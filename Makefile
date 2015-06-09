@@ -58,11 +58,11 @@ install_solr:
 
 setup_coverstore:
 	@echo "** setting up coverstore **"
-	env/bin/python scripts/setup_dev_instance.py --setup-coverstore
+	$(PYTHON) scripts/setup_dev_instance.py --setup-coverstore
 
 setup_ol: git
 	@echo "** setting up openlibrary webapp **"
-	env/bin/python scripts/setup_dev_instance.py --setup-ol
+	$(PYTHON) scripts/setup_dev_instance.py --setup-ol
 	@# When bootstrapping, PYTHON will not be env/bin/python as env dir won't be there when make is invoked.
 	@# Invoking make again to pick the right PYTHON.
 	make all
@@ -74,7 +74,7 @@ run:
 
 load_sample_data:
 	@echo "loading sample docs from openlibrary.org website"
-	env/bin/python scripts/copydocs.py --list /people/anand/lists/OL1815L
+	$(PYTHON) scripts/copydocs.py --list /people/anand/lists/OL1815L
 	curl http://localhost:8080/_dev/process_ebooks # hack to show books in returncart
 
 destroy:
