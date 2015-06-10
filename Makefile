@@ -70,7 +70,7 @@ setup_ol: git
 bootstrap: venv install_solr setup_coverstore setup_ol
 	
 run:
-	env/bin/python scripts/openlibrary-server conf/openlibrary.yml
+	$(PYTHON) scripts/openlibrary-server conf/openlibrary.yml
 
 load_sample_data:
 	@echo "loading sample docs from openlibrary.org website"
