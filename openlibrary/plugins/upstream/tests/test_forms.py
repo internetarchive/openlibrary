@@ -2,7 +2,7 @@ from .. import forms
 from .. import spamcheck
 
 class TestRegister:
-    def test_leaks(slef):
+    def test_leaks(self):
         f = forms.Register()
         assert f.displayname.value is None 
         f.displayname.value = 'Foo'
