@@ -216,7 +216,7 @@ def get_waitinglist_position(user_key, book_key):
 def join_waitinglist(user_key, book_key):
     """Adds a user to the waiting list of given book.
 
-    It is done by createing a new record in the store.
+    It is done by creating a new record in the store.
     """
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
