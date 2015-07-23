@@ -1105,9 +1105,13 @@ def make_delete_query(keys):
     # Escape ":" in the keys.
     # ":" is a special charater and keys like "ia:foo00bar" will
     # fail if ":" is not escaped
-    keys = [key.replace(":", r"\:") for key in keys]
-    queries = ['<query>key:%s</query>' % key for key in keys]
-    return '<delete>%s</delete>' % ''.join(queries)
+    # keys = [key.replace(":", r"\:") for key in keys]
+    keys = [re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', key) for key in keys]
+    delete_query = Element('delete')
+    for key in keys:
+        query = SubElement(delete_query,'query')
+        query.text = 'key:%s' % key
+    return tostring(delete_query)
 
 def update_author(akey, a=None, handle_redirects=True):
     # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
@@ -1234,7 +1238,7 @@ def solr_select_work(edition_key):
     if not re_edition_key_basename.match(edition_key):
         return None
 
-    edition_key = edition_key.replace(":", r"\:")
+    edition_key = re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', edition_key)
 
     if is_single_core():
         url = 'http://' + get_solr('works') + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
