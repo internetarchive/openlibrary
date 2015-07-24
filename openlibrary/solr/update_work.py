@@ -1,4 +1,4 @@
-import httplib, re, sys
+import httplib, re, sys, os
 from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host, base_url as get_ol_base_url
 from openlibrary.catalog.utils import query as utils_query
 
@@ -29,6 +29,7 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_edition_key = re.compile(r"/books/([^/]+)")
 
 data_provider = None
+_ia_db = None
 
 solr_host = {}
 
@@ -1125,7 +1126,11 @@ def update_author(akey, a=None, handle_redirects=True):
     if not a:
         a = data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
-        return ['<delete><query>key:%s</query></delete>' % author_id] 
+        author_id = re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', author_id)
+        delete_query = Element('delete')
+        query = SubElement(delete_query,'query')
+        query.text = 'key:%s' % author_id
+        return [tostring(delete_query)]
     try:
         assert a['type']['key'] == '/type/author'
     except AssertionError:
@@ -1257,8 +1262,9 @@ def update_keys(keys, commit=True, output_file=None):
     logger.info("BEGIN update_keys")
 
     global data_provider
+    global _ia_db
     if data_provider is None:
-        data_provider = get_data_provider()
+        data_provider = get_data_provider('default',_ia_db)
 
     wkeys = set()
 
@@ -1739,6 +1745,65 @@ def clear_monkeypatch_cache(max_size=10000):
     if _monkeypatch:
         _monkeypatch.clear_cache(max_size=max_size)
 
+def load_configs(config_file):
+    c_host = "http://openlibrary.org/"
+    c_config = config_file
+    c_data_provider = 'default'
+
+    host = web.lstrips(c_host, "http://").strip("/")
+    set_query_host(host)
+
+    # load config
+    config.load(c_config)
+    config.load_config(c_config)
+
+    global data_provider
+    global _ia_db
+    if data_provider == None:
+	data_provider = get_data_provider(c_data_provider,_ia_db)
+
+    return data_provider
+
+
+def do_updates(keys):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+    update_keys(keys, commit=False)
+
+def load_configs(c_host,c_config,c_data_provider):
+    host = web.lstrips(c_host, "http://").strip("/")
+    set_query_host(host)
+
+    # load config
+    config.load(c_config)
+    config.load_config(c_config)
+
+    global conf_file
+    conf_file = c_config
+
+    global _ia_db
+    _ia_db = get_ia_db(config.runtime_config['ia_db']) 
+
+    global data_provider
+    if data_provider == None:
+       data_provider = get_data_provider(c_data_provider,_ia_db)
+
+    return data_provider
+
+
+def do_updates(keys):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+    update_keys(keys, commit=False)
+
+def get_ia_db(settings):
+        host = settings['host']
+        db = settings['db']
+        user = settings['user']
+        pw = os.popen(settings['pw_file']).read().strip()
+        ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
+        return ia_db
+
 def main():
     options, keys = parse_options()
 
@@ -1753,8 +1818,12 @@ def main():
     config.load(options.config)
     config.load_config(options.config)
 
+    global _ia_db
+    _ia_db = get_ia_db(config.runtime_config['ia_db']) 
+
     global data_provider
-    data_provider = get_data_provider(options.data_provider)
+    if data_provider == None:
+        data_provider = get_data_provider(options.data_provider,_ia_db)
 
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -1768,3 +1837,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

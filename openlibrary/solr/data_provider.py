@@ -12,7 +12,11 @@ from openlibrary.core import ia
 
 logger = logging.getLogger("openlibrary.solr.data_provider")
 
-def get_data_provider(type="default"):
+global ia_database
+
+def get_data_provider(type="default",ia_db=''):
+    global ia_database
+    ia_database = ia_db
     """Returns the data provider of given type.
     """
     if type == "default":
@@ -99,7 +103,8 @@ class BetterDataProvider(LegacyDataProvider):
 
         from openlibrary.solr.process_stats import get_ia_db, get_db
         self.db = get_db()
-        self.ia_db = get_ia_db()
+        #self.ia_db = get_ia_db()
+        self.ia_db = ia_database
 
     def get_metadata(self, identifier):
         """Alternate implementation of ia.get_metadata() that uses IA db directly.
