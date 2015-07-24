@@ -27,6 +27,7 @@ logger = logging.getLogger("openlibrary.solr-updater")
 
 LOAD_IA_SCANS = False
 COMMIT = True
+args = {}
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -163,14 +164,18 @@ def is_allowed_itemid(identifier):
     return True            
 
 def update_keys(keys):
+    global args
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])
     update_work.clear_monkeypatch_cache(max_size=10000)
+    print str(args)
+    update_work.load_configs(args.ol_url,args.config,'default')
 
     count = 0
     for chunk in web.group(keys, 100):
         chunk = list(chunk)
         count += len(chunk)
-        update_work.update_keys(chunk, commit=False)
+        update_work.do_updates(chunk)
+    #    update_work.update_keys(chunk, commit=False)
 
     if count:
         logger.info("updated %d documents", count)
@@ -221,6 +226,7 @@ def process_args(args):
     COMMIT = args.commit
 
 def main():
+    global args
     FORMAT = "%(asctime)-15s %(levelname)s %(message)s"
     logging.basicConfig(level=logging.INFO, format=FORMAT)
 
@@ -233,7 +239,8 @@ def main():
     if args.ol_url:
         host = web.lstrips(args.ol_url, "http://").strip("/")
         update_work.set_query_host(host)
-
+    
+    print str(args)
     logger.info("loading config")
     config = load_config(args.config)
 
