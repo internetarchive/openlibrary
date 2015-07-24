@@ -1107,7 +1107,7 @@ def make_delete_query(keys):
     # ":" is a special charater and keys like "ia:foo00bar" will
     # fail if ":" is not escaped
     # keys = [key.replace(":", r"\:") for key in keys]
-    keys = [re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', key) for key in keys]
+    keys = [solr_escape(key) for key in keys]
     delete_query = Element('delete')
     for key in keys:
         query = SubElement(delete_query,'query')
@@ -1126,7 +1126,7 @@ def update_author(akey, a=None, handle_redirects=True):
     if not a:
         a = data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
-        author_id = re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', author_id)
+        author_id = solr_escape(author_id)
         delete_query = Element('delete')
         query = SubElement(delete_query,'query')
         query.text = 'key:%s' % author_id
@@ -1243,7 +1243,7 @@ def solr_select_work(edition_key):
     if not re_edition_key_basename.match(edition_key):
         return None
 
-    edition_key = re.sub('([\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', edition_key)
+    edition_key = solr_escape(edition_key)
 
     if is_single_core():
         url = 'http://' + get_solr('works') + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
@@ -1744,6 +1744,10 @@ def monkeypatch(config_file):
 def clear_monkeypatch_cache(max_size=10000):
     if _monkeypatch:
         _monkeypatch.clear_cache(max_size=max_size)
+
+def solr_escape(query):
+    return re.sub('([\s\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', query)
+
 
 def load_configs(config_file):
     c_host = "http://openlibrary.org/"
