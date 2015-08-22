@@ -29,7 +29,6 @@ from openlibrary import config
 from openlibrary.core import helpers as h
 from openlibrary.solr import update_work
 
-## Defining logger
 logger = logging.getLogger("openlibrary.search-indexer")
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
@@ -38,24 +37,19 @@ formatter = logging.Formatter('%(asctime)s [%(process)s] [%(name)s] [%(levelname
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-## To have a more verbose output
-VERBOSE = True
+DEFAULT_BOOKMARK_FILE ='ol_solr_updates.bookmark'
+BUFFER_READ_SIZE      = 300
+CHUNK_SIZE            = 50
+CHUNKS_NUM            = 100
+DELTA_TIME            = 70000 # delta time to consider to entries synched
+sub_count             = 1
+options               = None
+VERBOSE               = True
 
-## Defining some default and constants
-##
-DEFAULT_BOOKMARK_FILE='ol_solr_updates.bookmark'
-BUFFER_READ_SIZE = 300
-CHUNK_SIZE = 50
-CHUNKS_NUM = 100
-# delta time to consider to entries synched
-DELTA_TIME = 70000
 
-sub_count = 1
-options = None
 
-## This function read the bookmarked day 
-##
 def _get_bookmark(filename):
+    '''Reads the bookmark file and returns the bookmarked day.'''
     try:
         lline = open(filename).readline()
         datestring = lline.rstrip()
@@ -65,8 +59,6 @@ def _get_bookmark(filename):
         print "\nWARNING: bookmark file {0} not found.".format(filename)
         exit(1)
 
-## This function validate a date YYYY-MM-DD
-##
 def _validate_date(datestring):
     try:
         datetime.strptime(datestring, '%Y-%m-%d %H:%M:%S')
@@ -74,10 +66,9 @@ def _validate_date(datestring):
         raise ValueError("\nIncorrect data format, should be YYYY-MM-DD HH:MM:SS")
     return datestring
 
-
-## This function set a bookmark for a date in a file
-##
 def _set_bookmark(filename,timestamp):
+    '''Saves a date in a bookmark file.'''
+    logger.info("Saving in %s timestamp bookmark %s",filename,timestamp)
     try:
         bb = open(filename,'w')
         bb.write(timestamp)
@@ -86,10 +77,8 @@ def _set_bookmark(filename,timestamp):
         print("State file %s is not found.", filename)
         exit(1)
 
-
-## This function start the scan from the bookmark date back for num_days day by day
-##
 def scan_days():
+    '''Starts the scan from the bookmarked date.'''
     num_days = int(options.days)
     logger.info("Scanning %s days",str(options.days))
     book_day = _get_bookmark(options.bookmark_file)
@@ -98,7 +87,6 @@ def scan_days():
         _scan('fwd',book_day,num_days)
     elif options.bwd == True: 
         _scan('bwd',book_day,num_days)
-
 
 def _scan(direction, day, num_days):
     if direction == 'fwd': 
@@ -118,7 +106,6 @@ def _scan(direction, day, num_days):
             search_updates(next_day)
             num_days = int(num_days)-1
 
-
 def _get_next_day(direction, day):
     if direction == 'fwd':
         next_day = (datetime.strptime(day,'%Y-%m-%d %H:%M:%S') + timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
@@ -129,16 +116,14 @@ def _get_next_day(direction, day):
         exit(1)
     return next_day
 
-## This function execute the query search for the item changed recently
-##
 def search_updates(day, database='openlibrary', user='openlibrary', pw=''):
+    '''Executes the query to the OL db searching for the items recently changed.'''
     time.sleep(0.05)
     logger.info('Day %s: searching items...',day)
     db.setup_database(database='openlibrary', user='openlibrary', pw='')
     q = "SELECT key, last_modified FROM thing WHERE (type='17872418' OR type='9887992') AND last_modified >= '"+day+"' AND last_modified < date '"+day+"' + interval '1' day"
     rows = db.longquery(q,vars=locals())
     check_updates(rows,day)
-
 
 def search_updates_hourly(timestamp, database='openlibrary', user='openlibrary', pw=''):
     time.sleep(0.05)
@@ -150,9 +135,6 @@ def search_updates_hourly(timestamp, database='openlibrary', user='openlibrary',
     rows = db.longquery(q,vars=locals())
     check_updates(rows,now_str)
 
-
-
-
 def check_updates(rows,timestamp):
     docs = {}
     to_submit = []
@@ -161,7 +143,7 @@ def check_updates(rows,timestamp):
             k = row['key']
             if ('/works/' in k):
                 try:
-                    # submit the updates if the list is bigger than BUFFER_READ_SIZE
+                    '''Submits the updates if the list is bigger than BUFFER_READ_SIZE'''
                     if (len(to_submit)>BUFFER_READ_SIZE):
                         submit_update_to_solr(to_submit)
                         to_submit = []
@@ -176,19 +158,16 @@ def check_updates(rows,timestamp):
                             solr_last_modified_i = solr_doc[0]['last_modified_i']
                             if ( abs(solr_last_modified_i-db_last_modified_i)>DELTA_TIME):
                                 write_stout('u')
-                                #logger.debug("Item %s has TO BE UPDATED",k)
                                 to_submit.append(k)
                             else:
                                 write_stout('.')
                         else:
                             write_stout('o')
-                            #logger.debug("Item %s NOT ON SOLR",k)
                             to_submit.append(k)
                     elif (doc['type']['key'] == '/type/delete'):
                         res = solr_key_get(k)
                         if (res['numFound'] != 0):
                             write_stout('x')
-                            #logger.debug("Item %s TO BE DELETED",k)
                             to_submit.append(k)
                         else:
                             write_stout(',')
@@ -199,13 +178,10 @@ def check_updates(rows,timestamp):
                     write_stout('E')
                     logger.error('Cannot read %s : %s',str(k),e)
     write_stout('\n')
-    if submit_update_to_solr(to_submit) : _set_bookmark('solr_updates.bookmark',timestamp)
+    if submit_update_to_solr(to_submit) : _set_bookmark(options.bookmark_file,timestamp)
     
-
-
-## This function execute the update queries for evey element in the target list
-##
 def submit_update_to_solr(target):
+    '''Executes the update queries for every element in the taget list.'''
     global sub_count
     seq = int(math.ceil(len(target)/float(CHUNK_SIZE)))
     chunks = [ target[i::seq] for i in xrange(seq) ]
@@ -220,9 +196,8 @@ def submit_update_to_solr(target):
             sub_count = 0
     return 1
 
-## This function force a commit on the solr search engine
-##
 def commit_it():
+    '''Requests to solr to do a commit.'''
     url_solr = "http://"+config.runtime_config['plugin_worksearch']['solr']
     logger.info("Trying to force a COMMIT to solr")
     url = url_solr+"/solr/update/?commit=true"
@@ -234,10 +209,8 @@ def commit_it():
     else:
         logger.warning("Commit to solr FAILED.")
 
-
-## This function grab the target's json data from OL infobase
-## 
 def ol_get(trg):
+    '''Get the target's json data from OL infobase.'''
     url = "https://openlibrary.org"+trg.encode('utf8')+'.json'
     r = requests.get(url)
     if (r.status_code == 200):
@@ -246,22 +219,16 @@ def ol_get(trg):
     else:
         logger.error('Request %s failed',url)
 
-
-
-## This function write a message on stout and flush it
-## used for report and "real time" logging
-##
 def write_stout(msg):
+    ''' Writes a message on stout and flush it.'''
     if(VERBOSE == True or logger.getEffectiveLevel() == 10):
         sys.stdout.write(msg) 
         sys.stdout.flush()
     else:
         pass 
 
-
-## This fucntion convert a date string in an epoch value
-##
 def datetimestr_to_int(datestr):
+    '''Converts a date string in an epoch value.'''
     if isinstance(datestr, dict):
         datestr = datestr['value']
 
@@ -275,10 +242,8 @@ def datetimestr_to_int(datestr):
 
     return int(time.mktime(t.timetuple()))
 
-
-## This function search for the target key in the solr, returning its data
-##
 def solr_key_get(trg):
+    '''Searches for the target key in the solr, returning its data.'''
     url_solr = "http://"+config.runtime_config['plugin_worksearch']['solr']
     url = url_solr+"/solr/select?cache=false&wt=json&q=key:"+trg.encode('utf8')
     r = requests.get(url)
@@ -288,9 +253,8 @@ def solr_key_get(trg):
     else:
         logger.error('Request %s failed - Status Code: %s',url,str(r.status_code))
  
-## This function parse the command line options
-##
 def parse_options():
+    '''Parses the command line options.'''
     parser = argparse.ArgumentParser(description='Script to index the ol-search engine with the missing work from the OL db.')
     parser.add_argument('--server', dest='server', action='store', default='http://openlibrary.org', help='openlibrary website (default: %(default)s)')
     parser.add_argument('--config', dest='config', action='store', default='openlibrary.yml', help='openlibrary yml config file (default: %(default)s)')
@@ -323,15 +287,12 @@ def parse_options():
         print "Setting bookmark date: {0} in the file {1}".format(date_to_bookmark,DEFAULT_BOOKMARK_FILE)
         _set_bookmark(DEFAULT_BOOKMARK_FILE,date_to_bookmark)
         options.bookmark_file=DEFAULT_BOOKMARK_FILE
-
-
     return options
-
 
 def start_daemon():
     logger.info('BEGIN: starting index updater as daemon')
     book_timestamp = _get_bookmark(options.bookmark_file)
-    logger.info("Last Bookmark: %s",book_timestamp)
+    logger.info("Last Bookmark: %s %s",options.bookmark_file,book_timestamp)
     delta_days = datetime.utcnow()-datetime.strptime(book_timestamp,'%Y-%m-%d %H:%M:%S')
     if (delta_days.days >= 1):
         logger.info('Scanning updates for the last %r days',delta_days.days)
@@ -343,13 +304,8 @@ def start_daemon():
         logger.info('...waiting 5 minutes before next search...')
         time.sleep(300)
 
-
-
-## MAIN
-##
 def main():
-    """Command Line interface for search in the OL database and update the search index
-    """
+    '''Command Line interface for search in the OL database and update the solr's search index.'''
     global options
     options = parse_options()
     if not config.runtime_config:
@@ -360,8 +316,6 @@ def main():
         start_daemon()
     else:
         scan_days()
-
-
 
 
 if __name__ == "__main__":
