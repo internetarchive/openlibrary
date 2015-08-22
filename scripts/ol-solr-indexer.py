@@ -178,7 +178,7 @@ def check_updates(rows,timestamp):
                     write_stout('E')
                     logger.error('Cannot read %s : %s',str(k),e)
     write_stout('\n')
-    if submit_update_to_solr(to_submit) : _set_bookmark('solr_updates.bookmark',timestamp)
+    if submit_update_to_solr(to_submit) : _set_bookmark(options.bookmark_file,timestamp)
     
 def submit_update_to_solr(target):
     '''Executes the update queries for every element in the taget list.'''
