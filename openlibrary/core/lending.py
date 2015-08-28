@@ -141,7 +141,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
     The loan records are stored at the Internet Archive. There is no way for
     OL to know when a loan is deleted. To handle that situation, the loan info
-    is stored in the ebook document and the deletion is detecting by comparing
+    is stored in the ebook document and the deletion is detected by comparing
     the current loan id and loan id stored in the ebook.
 
     This function is called whenever the loan is updated.
