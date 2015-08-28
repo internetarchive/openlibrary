@@ -1,6 +1,6 @@
 # Open Library
 
-Open web page for every book ever published.
+One web page for every book ever published.
 
 This repository contains the code that powers https://openlibrary.org/
 
