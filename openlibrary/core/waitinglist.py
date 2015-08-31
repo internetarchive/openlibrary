@@ -170,9 +170,9 @@ class Stats:
         return [WaitingLoan(row) for row in rows]
 
 def get_waitinglist_for_book(book_key):
-    """Returns the lost of  records for the users waiting for given book.
+    """Returns the list of records for the users waiting for the given book.
 
-    This is admin-only feature. Works only if the current user is an admin.
+    This is an admin-only feature. It works only if the current user is an admin.
     """
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
