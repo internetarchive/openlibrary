@@ -13,8 +13,6 @@ from openlibrary.core import helpers as h
 from openlibrary.core import inlibrary
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
-from libraries import LoanStats
-
 class borrow(delegate.page):
     path = "/borrow"
     
@@ -26,7 +24,7 @@ class borrow(delegate.page):
         sort = "random_%d desc" % rand
         is_inlibrary = inlibrary.get_library() is not None
         subject = get_lending_library(web.ctx.site, details=True, inlibrary=is_inlibrary, limit=24, sort=sort)
-        return render_template("borrow/index", subject, stats=LoanStats(), rand=rand, inlibrary=is_inlibrary)
+        return render_template("borrow/index", subject, rand=rand, inlibrary=is_inlibrary)
 
 class borrow(delegate.page):
     path = "/borrow"
@@ -78,7 +76,7 @@ class read(delegate.page):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
         subject = get_readable_books(web.ctx.site, details=True, limit=24, sort=sort)
-        return render_template("borrow/read", subject, stats=LoanStats(), rand=rand)
+        return render_template("borrow/read", subject, rand=rand)
 
 class read(delegate.page):
     path = "/read"
