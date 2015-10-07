@@ -2,8 +2,6 @@ $def with (libraries, pending_libraries)
 
 $var title: Libraries Dashboard
 
-$ loan_stats = get_active_loans_of_libraries()
-
 $def render_libraries(status):
     $ libs = [lib for lib in libraries if lib.status == status]
     <table class="history">
@@ -14,7 +12,7 @@ $def render_libraries(status):
                 <td>
                     $ registered_on = lib.registered_on or lib.created
                         $datestr(registered_on)</td>
-                <td style="text-align: right;">$loan_stats.get(lib.key, 0)</td>
+                <td style="text-align: right;">0</td>
             </tr>
         $if not libs:
             <tr><td><em>None found. Gah!</em></td></tr>
