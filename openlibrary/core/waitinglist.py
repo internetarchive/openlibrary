@@ -227,53 +227,6 @@ def update_waitinglist(identifier):
     _wl_api.request("loan.sync", identifier=identifier)
     return on_waitinglist_update(identifier)
 
-    book = _get_book(identifier)
-    book_key = book.key
-
-    logger.info("BEGIN updating %r", book_key)
-
-    checkedout = lending.is_loaned_out(identifier)
-
-    if checkedout:
-        loans = book.get_loans()
-        # Delete from waiting list if a user has already borrowed this book        
-        for loan in loans:
-            w = WaitingLoan.find(loan['user'], book.ocaid)
-            if w:
-                w.delete()
-
-    wl = get_waitinglist_for_book(book_key)
-
-    # Delete the first entry if it is expired
-    if wl and wl[0].is_expired():
-        wl[0].delete()
-        wl = wl[1:]
-
-    # Mark the first entry in the waiting-list as available if the book
-    # is not checked out.
-    if not checkedout and wl and wl[0]['status'] != 'available':
-        expiry = datetime.datetime.utcnow() + datetime.timedelta(days=1)        
-        wl[0].update(status='available', expiry=expiry.isoformat())
-
-    ebook_key = "ebooks" + book_key
-    ebook = web.ctx.site.store.get(ebook_key) or {}
-
-    # for the end user, a book is not available if it is either
-    # checked out or someone is waiting.
-    not_available = bool(checkedout or wl)
-
-    update_ebook('ebooks' + book_key, 
-        book_key=book_key,
-        borrowed=str(not_available).lower(), # store as string "true" or "false"
-        wl_size=len(wl))
-
-    # Start storing ebooks/$identifier so that we can handle mutliple editions
-    # with same ocaid more effectively.
-    update_ebook('ebooks/' + identifier,
-        borrowed=str(not_available).lower(), # store as string "true" or "false"
-        wl_size=len(wl))
-
-    logger.info("END updating %r", book_key)
 
 def on_waitinglist_update(identifier):
     """Triggered when a waiting list is updated.
@@ -286,14 +239,6 @@ def on_waitinglist_update(identifier):
         # in the waiting list
         if not checkedout:
              sendmail_book_available(book)
-
-def update_ebook(ebook_key, **data):
-    ebook = web.ctx.site.store.get(ebook_key) or {}
-    # update ebook document.
-    ebook2 =dict(ebook, _key=ebook_key, type="ebook")
-    ebook2.update(data)
-    if ebook != ebook2: # save if modified
-        web.ctx.site.store[ebook_key] = dict(ebook2, _rev=None) # force update
 
 
 def sendmail_book_available(book):
@@ -322,31 +267,3 @@ def _get_loan_timestamp_in_days(loan):
     t = datetime.datetime.fromtimestamp(loan['loaned_at'])
     delta = datetime.datetime.utcnow() - t
     return delta.days
-
-def update_all_waitinglists():
-    rows = WaitingLoan.query(limit=10000)
-    identifiers = set(row['identifier'] for row in rows)
-    for identifier in identifiers:
-        try:
-            _wl_api.request("loan.sync", identifier=identifier)
-            update_waitinglist(identifier)
-        except Exception:
-            logger.error("failed to update waitinglist for %s", identifier, exc_info=True)
-
-
-def update_all_ebooks():
-    rows = WaitingLoan.query(limit=10000)
-    identifiers = set(row['identifier'] for row in rows)
-
-    loan_keys = web.ctx.site.store.keys(type='/type/loan', limit=-1)
-
-    for k in loan_keys:
-        id = k[len("loan-"):]
-        # would have already been updated
-        if id in identifiers:
-            continue
-        logger.info("updating ebooks/" + id)
-        update_ebook('ebooks/' + id,
-            borrowed='true',
-            wl_size=0)
-
