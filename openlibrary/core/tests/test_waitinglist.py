@@ -35,7 +35,3 @@ class TestWaitingLoan:
         # ensure that w.dict() is JSON-able
         json.dumps(w.dict())
 
-    def test_prune_expired(self):
-        # prune_expired does nothing now but 'return'
-        assert WaitingLoan.prune_expired() == None
-
