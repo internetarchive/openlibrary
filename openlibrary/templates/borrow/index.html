@@ -1,4 +1,4 @@
-$def with (page, stats, rand=-1, inlibrary=False)
+$def with (page, rand=-1, inlibrary=False)
 
 $var title: $_("Borrow Modern eBooks")
 
@@ -123,48 +123,4 @@ function resetCounts() {
    
 <div class="clearfix"></div> 
 
-<!--
-<div class="head"> 
-    <h2>Loans Per Day</h2> 
-
-    <br />&nbsp;
-    <div class="chart">
-        <div id="loans-per-day" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div> 
-    </div>
-</div> 
-
-<style type="text/css"> 
-div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
-.chartYaxis{width:180px;top:85px;left:-85px;}
-</style>
-
-<script type="text/javascript">
-
-\$(function () {
-    $# \$.plot("#loans-per-day", [$:json_encode(stats.get_loans_per_day())], {
-        series: {
-             bars: {
-                 show: true,
-                 align: "left",
-                 barWidth: 24 * 60 * 60 * 1000,
-                 color: "#35672e",
-                 fillColor: "#35672e",
-             },
-             color: "#35672e"
-        },
-         grid: {
-             hoverable: true,
-             show: true,
-            borderWidth: 1, 
-            borderColor: "#d9d9d9"
-         },
-         xaxis: {
-             mode: "time"
-         }
-    });
-});
-</script>
--->
 </div>

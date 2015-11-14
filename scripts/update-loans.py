@@ -12,7 +12,7 @@ from openlibrary.plugins.upstream import borrow
 web.config.debug = False
 
 def usage():
-    print "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglists]"
+    print "python scripts/openlibrary-server openlibrary.yml runscript scripts/update-loans.py [update-loans | update-waitinglist]"
 
 def main():
     try:
@@ -22,9 +22,6 @@ def main():
 
     if cmd == "update-loans":
         borrow.update_all_loan_status()
-    elif cmd == "update-waitinglists":
-        waitinglist.prune_expired_waitingloans()
-        waitinglist.update_all_waitinglists()
     elif cmd == "update-waitinglist":
         waitinglist.update_waitinglist(sys.argv[2])
     else:
