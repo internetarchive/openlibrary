@@ -633,9 +633,9 @@ def _get_blog_feeds():
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
 def get_donation_include():
-    return urllib2.urlopen("https://archive.org/includes/donate.php").read()
+    return urllib2.urlopen("https://www-will.archive.org/includes/donate.php?ymd=2015-12-01&nojquery").read()
 
-get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
+#get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 
 @public
 def get_blog_feeds():
