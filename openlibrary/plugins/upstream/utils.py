@@ -632,8 +632,18 @@ def _get_blog_feeds():
     
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
-def get_donation_include():
-    return urllib2.urlopen("https://www-will.archive.org/includes/donate.php?ymd=2015-12-01&nojquery").read()
+def get_donation_include(type):
+    url_banner_source = "https://www-will.archive.org/includes/donate.php?ymd=2015-12-01&nojquery"
+    html = ''
+    if (type=='true'):
+        html = urllib2.urlopen(url_banner_source).read()
+    elif (type=='test'):
+        input = web.input()
+        if 'don' in input:
+            dd = input['don']
+            url_banner_source = "https://www-will.archive.org/includes/donate.php?ymd="+dd+"&nojquery"
+            html = urllib2.urlopen(url_banner_source).read();
+    return html
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 

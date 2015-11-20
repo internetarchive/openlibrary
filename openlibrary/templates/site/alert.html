@@ -1,4 +1,10 @@
-$:get_donation_include()
+<!-- <div id="topNotice" style="background-color: #000;"><p><b class="orange">Please Note:</b> Open Library's search engine is having issues. We're working on it, and will update on the <a href="http://blog.openlibrary.org" title="More information & updates on blog.openlibrary">blog</a> if needed.</p></div> -->
+
+$if 'donation-banner' in ctx.features:
+    $:get_donation_include('true')
+
+$if 'donation-banner' not in ctx.features:
+    $:get_donation_include('test')
 
 $if "inlibrary" in ctx.features:
     $ library = get_library()
