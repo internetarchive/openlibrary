@@ -1,6 +1,6 @@
 """Module to manage OL loan stats.
 
-Unlike other parts of openlibrary, this modules talks to the search engine directly.
+Unlike other parts of openlibrary, this modules talks to the database directly.
 """
 import re
 import time
