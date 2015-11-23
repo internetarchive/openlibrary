@@ -1,4 +1,4 @@
-$def with (account, limit=100, paginate=True)
+$def with (account, paginate=True)
 
 $var title: [Admin Center] Edits of $account.displayname
 
@@ -6,6 +6,8 @@ $if paginate:
     $ page = safeint(query_param('page', '1'))
 $else:
     $ page = 1
+
+$ limit = safeint(query_param('limit', '100'))
 
 <div id="contentHead">
     $:render_template("admin/menu")
