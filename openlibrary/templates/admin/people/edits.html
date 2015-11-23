@@ -102,7 +102,6 @@ $def call_template(name, change):
 </div>
 
 </form>
-</div>
 $if paginate:
     <div class="historyPager small sansserif gray">
         $if len(changes) == limit:
@@ -111,3 +110,4 @@ $if paginate:
              &nbsp;|&nbsp;
             <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
+</div>
