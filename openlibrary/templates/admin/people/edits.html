@@ -1,6 +1,13 @@
-$def with (account)
+$def with (account, paginate=True)
 
 $var title: [Admin Center] Edits of $account.displayname
+
+$if paginate:
+    $ page = safeint(query_param('page', '1'))
+$else:
+    $ page = 1
+
+$ limit = safeint(query_param('limit', '100'))
 
 <div id="contentHead">
     $:render_template("admin/menu")
@@ -19,7 +26,7 @@ a.blocked-ip {
 }
 </style>
 
-$ changes = recentchanges(dict(author=account.get_user().key, limit=100, offset=0))
+$ changes = recentchanges(dict(author=account.get_user().key, limit=limit, offset=(page-1) * limit))
 
 $def call_template(name, change):
     $ t = get_template("recentchanges/" + change.kind + "/" + name) or get_template("recentchanges/default/" + name)
@@ -95,4 +102,12 @@ $def call_template(name, change):
 </div>
 
 </form>
+$if paginate:
+    <div class="historyPager small sansserif gray">
+        $if len(changes) == limit:
+            <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
+        $if page > 1:
+             &nbsp;|&nbsp;
+            <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
+    </div>
 </div>
