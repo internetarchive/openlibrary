@@ -23,6 +23,11 @@ def _update_spam_doc(**kwargs):
     
 def is_spam(i=None):
     user = web.ctx.site.get_user()
+
+    # Prevent deleted users from making edits.
+    if user and user.type.key == '/type/delete':
+        return True
+
     email = user and user.get_email() or ""
     if is_spam_email(email):
         return True
