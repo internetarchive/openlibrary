@@ -4,7 +4,7 @@ $if 'donation-banner' in ctx.features:
     $:get_donation_include('true')
 
 $if 'donation-banner' not in ctx.features:
-    $:get_donation_include('test')
+    $:get_donation_include('false')
 
 $if "inlibrary" in ctx.features:
     $ library = get_library()
