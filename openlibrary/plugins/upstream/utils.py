@@ -634,7 +634,7 @@ _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.g
 
 def get_donation_include(type):
     input = web.input()
-    url_banner_source = "https://www-will.archive.org/includes/donate.php?ymd=2015-12-01"
+    url_banner_source = "https://archive.org/includes/donate.php"
     html = ''
     param = ''
     dd = ''
