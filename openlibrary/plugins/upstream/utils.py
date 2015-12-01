@@ -638,6 +638,8 @@ def get_donation_include(type):
     html = ''
     param = ''
     dd = ''
+    if 'will' in input:
+        url_banner_source = "https://www-will.archive.org/includes/donate.php"
     if 'don' in input:
         dd = input['don']
         param = "?ymd="+dd
