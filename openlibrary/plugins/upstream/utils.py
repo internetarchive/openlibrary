@@ -636,16 +636,14 @@ def get_donation_include(type):
     input = web.input()
     url_banner_source = "https://archive.org/includes/donate.php"
     html = ''
-    param = ''
+    param = '?platform=ol'
     dd = ''
     if 'will' in input:
         url_banner_source = "https://www-will.archive.org/includes/donate.php"
     if 'don' in input:
         dd = input['don']
-        param = "?ymd="+dd
+        param = param+"&ymd="+dd
     if (type=='true'):
-        html = urllib2.urlopen(url_banner_source+param).read()
-    elif ((type=='false')and(dd!='')):
         html = urllib2.urlopen(url_banner_source+param).read()
     return html
 
