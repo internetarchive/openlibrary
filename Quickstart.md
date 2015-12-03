@@ -96,3 +96,8 @@
 
 ## :: Logs
 - Logs for the upstart services will be in ```/var/log/upstart/```. The app server logs will be in ```/var/log/upstart/ol-web.log```
+
+
+
+### Credits
+special tanks to [rajbot](https://github.com/rajbot)
