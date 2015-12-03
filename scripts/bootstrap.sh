@@ -78,7 +78,7 @@ function setup_database() {
     else
         echo "pg_user $OL_USER already exists. no need to setup database"
     fi
-}   
+}
 
 function setup_ol() {
     # Download sample dev-instance database from archive.org
@@ -127,9 +127,9 @@ chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
 cd $OL_ROOT && make
 
 cp $OL_ROOT/conf/init/* /etc/init/
-cd $OL_ROOT/conf/init 
+cd $OL_ROOT/conf/init
 for name in ol-*
-do 
+do
 	echo starting ${name//.conf}
 	initctl start ${name//.conf} || initctl restart ${name//.conf}
 done
@@ -139,3 +139,12 @@ then
     cd $OL_ROOT
     sudo -u $OL_USER make reindex-solr
 fi
+
+echo "sudo service nginx restart
+cd /openlibrary/conf/init
+for name in ol-*; do echo starting ${name//.conf}; sudo initctl start ${name//.conf} || sudo initctl restart ${name//.conf}; done" > /etc/init.d/ol-start
+
+chmod +x /etc/init.d/ol-start
+
+echo "/etc/init.d/ol-start
+exit 0" > /etc/rc.local
