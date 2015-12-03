@@ -79,6 +79,7 @@
 
 - A works page is rendered by ```templates/view/work/view.html```. A work is defined by work type.
 
+
 ## :: Memcache
 - Infobase queries get cached in memcache. In the vagrant dev instance, there is a single-node memcache cluster that you can test by connecting to your test instance using ```vagrant ssh``` and then typing:
 
@@ -87,17 +88,82 @@
         Python 2.7.6 (default, Mar 22 2014, 22:59:56)
         [GCC 4.8.2] on linux2
         Type "help", "copyright", "credits" or "license" for more information.
-        import yaml
-        from openlibrary.utils import olmemcache
-        y = yaml.safe_load(open('/openlibrary/conf/openlibrary.yml'))
-        c = olmemcache.Client(y['memcache_servers'])
-        c.get('/authors/OL18319A')
+        >>> import yaml
+        >>> from openlibrary.utils import olmemcache
+        >>> y = yaml.safe_load(open('/openlibrary/conf/openlibrary.yml'))
+        >>> mc = olmemcache.Client(y['memcache_servers'])
+
+  to **GET** the memcached entry:
+
+        >>> mc.get('/authors/OL18319A')
         '{"bio": {"type": "/type/text", "value": "Mark Twain, was an American author and humorist. Twain is noted for his novels Adventures of Huckleberry Finn (1884), which has been called \\"the Great American Novel\\", and The Adventures of Tom Sawyer (1876). He is extensively quoted. Twain was a friend to presidents, artists, industrialists, and European royalty. ([Source][1].)\\r\\n\\r\\n[1]:http://en.wikipedia.org/wiki/Mark_Twain"}, "photograph": "/static/files//697/OL2622189A_photograph_1212404607766697.jpg", "name": "Mark Twain", "marc": ["1 \\u001faTwain, Mark,\\u001fd1835-1910.\\u001e"], "alternate_names": ["Mark TWAIN", "M. Twain", "TWAIN", "Twain", "Twain, Mark (pseud)", "Twain, Mark (Spirit)", "Twain, Mark, 1835-1910", "Mark (Samuel L. Clemens) Twain", "Samuel Langhorne Clemens (Mark Twain)", "Samuel Langhorne Clemens", "mark twain "], "death_date": "21 April 1910", "wikipedia": "http://en.wikipedia.org/wiki/Mark_Twain", "created": {"type": "/type/datetime", "value": "2013-03-28T07:50:47.897206"}, "last_modified": {"type": "/type/datetime", "value": "2013-03-28T07:50:47.897206"}, "latest_revision": 1, "key": "/authors/OL18319A", "birth_date": "30 November 1835", "title": "(pseud)", "personal_name": "Mark Twain", "type": {"key": "/type/author"}, "revision": 1}'
 
+  to **DELETE** a memcached entry:
+
+      >>> mc.delete('/authors/OL18319A')
+
+- You can also find memcached items using the Internet Archive ID (import ```memcache``` instead of ```olmemecache```):
+
+        >>> import yaml
+        >>> import memcache
+        >>> y = yaml.safe_load(open('openlibrary.yml'))
+        >>> mc = memcache.Client(y['memcache_servers'])
+
+        >>> mc.get('ia.get_metadata-"houseofscorpion00farmrich"')
+
 ## :: Logs
-- Logs for the upstart services will be in ```/var/log/upstart/```. The app server logs will be in ```/var/log/upstart/ol-web.log```
+- Logs for the upstart services will be in ```/var/log/upstart/```.
+
+- The app server logs will be in ```/var/log/upstart/ol-web.log```.
+
+
+## :: Database
+- You should never work directly with the database, all the data are indeed managed by OpenLibrary through *infobase*, but, if you are brave and curious, here you can find some useful infos.
+
+- The first thing you have to know is that OpenLibrary is based on a [triplestore](https://en.wikipedia.org/wiki/Triplestore) database running on *Postgres*.
+
+- To connect to the db run:
+
+              psql openlibrary
+
+- All the OL’s entities are stored as things in the ```thing``` table.
+Every raw contains:
+
+              id | key | type | latest_revision | created | last_modified
+              ---+-----+------+-----------------+---------+---------------
+
+- It is useful identify the ```id``` of some particular types: ```/type/author``` ```/type/work``` ```/type/edition``` ```/type/user```
+
+             openlibrary=# SELECT * FROM thing WHERE key='/type/author' OR key='/type/edition' OR key='/type/work' OR key='/type/user';
+
+  this query returns something like:
+
+         id       |      key      | type | latest_revision |          created           |       last_modified        
+         ---------+---------------+------+-----------------+----------------------------+----------------------------
+         17872418 | /type/work    |    1 |              14 | 2008-08-18 22:51:38.685066 | 2010-08-09 23:37:25.678493
+         22       | /type/user    |    1 |               5 | 2008-03-19 16:44:20.354477 | 2009-03-16 06:21:53.030443
+         52       | /type/edition |    1 |              33 | 2008-03-19 16:44:24.216334 | 2009-09-22 10:44:06.178888
+         58       | /type/author  |    1 |              11 | 2008-03-19 16:44:24.216334 | 2009-06-29 12:35:31.346997
+
+    - to count the **authors**:
+
+              openlibrary=# SELECT count(*) as count FROM thing WHERE type='58';
+
+    - to count the **works**:
+
+              openlibrary=# SELECT count(*) as count FROM thing WHERE type='17872418';
+
+    - to count the **editions**:
+
+              openlibrary=# SELECT count(*) as count FROM thing WHERE type='52';
+
+    - to count the **users**:
+
+              openlibrary=# SELECT count(*) as count FROM thing WHERE type='22';
 
 
 
-### Credits
-special tanks to [rajbot](https://github.com/rajbot)
+### Credits and special thanks
+- [rajbot](https://github.com/rajbot)
+- [gdamdam](https://github.com/gdamiola)
+- [anandology](https://github.com/anandology)
