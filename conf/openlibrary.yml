@@ -185,4 +185,7 @@ ia_ignore_prefixes:
     - "imslp-"
     - "nasa_techdoc_"
     - "gov.uscourts."
-    
+
+plugin_recaptcha:
+    public_key: ""
+    private_key: ""
