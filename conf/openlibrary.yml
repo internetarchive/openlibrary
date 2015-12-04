@@ -102,7 +102,6 @@ features:
     superfast: enabled
     publishers: enabled
     languages: enabled
-    donation-banner: disabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
