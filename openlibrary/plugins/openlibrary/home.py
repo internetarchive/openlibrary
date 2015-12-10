@@ -2,15 +2,18 @@
 """
 import random
 import web
+import logging
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, helpers as h
+from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
+
+logger = logging.getLogger("openlibrary.home")
 
 class home(delegate.page):
     path = "/"
@@ -20,8 +23,12 @@ class home(delegate.page):
     
     def GET(self):
         try:
-            stats = admin.get_stats()
+            if 'counts_db' in config.admin:
+                stats = admin.get_stats()
+            else:
+                stats = None
         except Exception:
+            logger.error("Error in getting stats", exc_info=True)
             stats = None
         blog_posts = get_blog_feeds()
         
@@ -42,11 +49,33 @@ def carousel_from_list(key, randomize=False, limit=60):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
+    add_checkedout_status(data)
     return render_template("books/carousel", storify(data), id=id)
     
+def add_checkedout_status(books):
+    """OBSOLETE -- will be deleted.
+    """
+    # This is not very efficient approach.
+    # Todo: Implement the following apprach later.
+    # * Store the borrow status of all books in the list in memcache
+    # * Use that info to add checked_out status
+    # * Invalidate that on any borrow/return
+    for book in books:
+        if book.get("borrow_url"):
+            doc = web.ctx.site.store.get("ebooks" + book['key']) or {}
+            checked_out = doc.get("borrowed") == "true"
+        else:
+            checked_out = False
+        book['checked_out'] = checked_out
+
 @public
 def render_returncart(limit=60, randomize=True):
     data = get_returncart(limit*5)
+
+    # Remove all inlibrary books if we not in a participating library
+    if not inlibrary.get_library():
+        data = [d for d in data if 'inlibrary_borrow_url' not in d]
+    
     if randomize:
         random.shuffle(data)
     data = data[:limit]
@@ -57,12 +86,13 @@ def get_returncart(limit):
         delegate.fakeload()
     
     items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
-    keys = [doc['book_key'] for k, doc in items if 'book_key' in doc]
+    identifiers = [doc['identifier'] for k, doc in items if 'identifier' in doc]
+    keys = web.ctx.site.things({"type": "/type/edition", "ocaid": identifiers})
     books = web.ctx.site.get_many(keys)
-    return [format_book_data(book) for book in books]
+    return [format_book_data(book) for book in books if book.type.key == '/type/edition']
     
-# cache the results of get_returncart in memcache for 15 minutes
-get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=15*60)
+# cache the results of get_returncart in memcache for 60 sec
+get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
 def readonline_carousel(id="read-carousel"):
@@ -72,16 +102,15 @@ def readonline_carousel(id="read-carousel"):
             data = random.sample(data, 120)
         return render_template("books/carousel", storify(data), id=id)
     except Exception:
+        logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
-
-def random_ebooks(limit=1000):
+        
+def random_ebooks(limit=2000):
     solr = search.get_works_solr()
     sort = "edition_count desc"
-    start = random.randint(0, 1000)
     result = solr.select(
         query='has_fulltext:true -public_scan_b:false', 
         rows=limit, 
-        start=start,
         sort=sort,
         fields=[
             'has_fulltext',
@@ -91,10 +120,16 @@ def random_ebooks(limit=1000):
             "cover_edition_key",
             "author_key", "author_name",
         ])
-    
+
     def process_doc(doc):
         d = {}
-        d['url'] = "/works/" + doc['key']
+
+        key = doc['key']
+        # New solr stores the key as /works/OLxxxW
+        if not key.startswith("/works/"):
+            key = "/works/" + key
+
+        d['url'] = key
         d['title'] = doc.get('title', '')
         
         if 'author_key' in doc and 'author_name' in doc:
@@ -103,7 +138,7 @@ def random_ebooks(limit=1000):
         if 'cover_edition_key' in doc:
             d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % doc['cover_edition_key']
             
-        d['read_url'] = "http://www.archive.org/stream/" + doc['ia'][0]
+        d['read_url'] = "//archive.org/stream/" + doc['ia'][0]
         return d
         
     return [process_doc(doc) for doc in result['docs'] if doc.get('ia')]
@@ -161,7 +196,7 @@ def format_book_data(book):
         
     overdrive = book.get("identifiers", {}).get('overdrive')
     if overdrive:
-        d.overdrive_url = "http://search.overdrive.com/SearchResults.aspx?ReserveID={%s}" % overdrive
+        d.overdrive_url = "http://www.overdrive.com/search?q={%s}" % overdrive
 
     ia_id = book.get("ocaid")
     if ia_id:

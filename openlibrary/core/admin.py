@@ -3,18 +3,26 @@
 
 import calendar
 import datetime
-
-import couchdb
-
+import web
 from infogami import config
+from infogami.utils import stats
 
+from . import cache
 
 class Stats:
     def __init__(self, docs, key, total_key):
         self.key = key
         self.docs = docs
-        self.latest = docs[-1].get(key, 0)
-        self.previous = docs[-2].get(key, 0)
+        try:
+            self.latest = docs[-1].get(key, 0)
+        except IndexError:
+            self.latest = 0
+
+        try:
+            self.previous = docs[-2].get(key, 0)
+        except IndexError:
+            self.previous = 0
+
         try:
             # Last available total count
             self.total = (x for x in reversed(docs) if total_key in x).next()[total_key]
@@ -36,7 +44,7 @@ class Stats:
             return calendar.timegm(t.timetuple()) * 1000
 
         if times:
-            return [[_convert_to_milli_timestamp(x.id), x.get(self.key,0)] for x in self.docs[-ndays:]]
+            return [[_convert_to_milli_timestamp(x['_key']), x.get(self.key,0)] for x in self.docs[-ndays:]]
         else:
             return zip(range(0, ndays*5, 5),
                        (x.get(self.key, 0) for x in self.docs[-ndays:])) # The *5 and 5 are for the bar widths
@@ -49,16 +57,24 @@ class Stats:
         """
         return sum(x[1] for x in self.get_counts(ndays))
 
-            
+@cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5*60)
+def _get_count_docs(ndays):
+    """Returns the count docs from admin stats database.
+    
+    This function is memoized to avoid accessing the db for every request.
+    """
+    today = datetime.datetime.utcnow().date()
+    dates = [today-datetime.timedelta(days=i) for i in range(ndays)]
+
+    # we want the dates in reverse order
+    dates = dates[::-1]
+
+    docs = [web.ctx.site.store.get(d.strftime("counts-%Y-%m-%d")) for d in dates]
+    return [d for d in docs if d]
+
 def get_stats(ndays = 30):
     """Returns the stats for the past `ndays`"""
-    admin_db = couchdb.Database(config.admin.counts_db)
-    end      = datetime.datetime.now().strftime("counts-%Y-%m-%d")
-    start    = (datetime.datetime.now() - datetime.timedelta(days = ndays)).strftime("counts-%Y-%m-%d")
-    docs = [x.doc for x in admin_db.view("_all_docs",
-                                         startkey_docid = start,
-                                         endkey_docid   = end,
-                                         include_docs = True)]
+    docs = _get_count_docs(ndays)
     retval = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
                   bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
                   lists       = Stats(docs, "lists", "total_lists"),
@@ -72,5 +88,3 @@ def get_stats(ndays = 30):
                   authors     = Stats(docs, "authors", "total_authors"),
                   subjects    = Stats(docs, "subjects", "total_subjects"))
     return retval
-    
-

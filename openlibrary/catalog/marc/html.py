@@ -1,8 +1,8 @@
 from openlibrary.catalog.marc.fast_parse import get_all_tag_lines, translate, split_line
 import re
 
-trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
-re_html_replace = re.compile('([&<>\n])')
+trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>', '\x1b': '<b>[esc]</b>'}
+re_html_replace = re.compile('([&<>\n\x1b])')
 
 def esc(s):
     return re_html_replace.sub(lambda m: trans[m.group(1)], s)

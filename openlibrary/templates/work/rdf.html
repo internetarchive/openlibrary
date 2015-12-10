@@ -1,0 +1,124 @@
+$def with (work)
+<?xml version="1.0" encoding="utf-8"?>
+<rdf:RDF
+  xmlns:rdf='http://www.w3.org/1999/02/22-rdf-syntax-ns#'
+  xmlns:rdfs='http://www.w3.org/2000/01/rdf-schema#'
+  xmlns:bio='http://purl.org/vocab/bio/0.1/'
+  xmlns:rdg2='http://RDVocab.info/elementsG2/'
+  xmlns:dcterms='http://purl.org/dc/terms/'
+  xmlns:foaf='http://xmlns.com/foaf/0.1/'
+  xmlns:ov='http://open.vocab.org/terms/'
+  xmlns:frbr='http://purl.org/vocab/frbr/core#'
+>
+
+    <!-- combine title and subtitle -->
+
+    $if work.subtitle:
+         $ title = work.title + ": " + work.subtitle
+    $else:
+         $ title = work.title
+
+    <!-- set up URIs for later -->
+
+    $ wuri = "http://openlibrary.org" + work.key + "/"
+    $ wAbout = "http://openlibrary.org" + work.key + "/about/"
+
+
+    <!-- set up xml formatting -->
+
+    $def display(tag, value):
+        $if isinstance(value, list):
+            $for x in value:
+                <$tag>$x</$tag>
+        $elif value:
+            <$tag>$value</$tag>
+    
+    <!-- wrap in frbr:work -->
+    <frbr:Work rdf:about="http://openlibrary.org$wuri">
+
+    <!-- author needs the key plus the display form -->
+    <!-- author role doesn't matter here: all are authors -->
+    <!-- repeatable -->
+
+    
+    $for author in work.authors:
+         <rdf:Description rdf:about="http://openlibrary.org$author.key">
+              <dcterms.creator>$author.name</dcterms:creator>
+              </rdf:Description>
+       
+    <!-- subjects (repeatable)-->
+
+        $display("dcterms:subject", subjects)
+
+    <!-- subject_places (repeatable) -->
+    <!-- ?? could be dcterms:coverage, but then isn't distinguished from subject_times -->
+        $display("dcterms:coverage", subject_places)
+
+    <!-- subject_times (repeatable)-->
+        $display("dcterms:coverage", subject_places)
+
+    <!-- genres (repeatable) -->
+        $display("dcterms:type", genres)
+
+    <!-- description -->
+        $display("dcterms:description", description)
+
+    <!-- table of contents (repeatable) -->
+    <!-- has structure: class/label/title/pagenum-->
+        <!-- dcterms:tableOfContents
+        rdfs:label
+        dcterms:title
+        bibo:pageStart -->
+
+    <!-- Dewey and LC class, from edition template -->
+    <!-- http://openlibrary.org/templates/type/edition/rdf.tmpl -->
+        $for DDC in book.dewey_decimal_class:   
+        <dcterms:subject>
+            <rdf:Description>
+                <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
+                <rdf:value>$DDC</rdf:value>
+            </rdf:Description>
+        </dcterms:subject>
+        $for LCC in book.lc_classifications:
+            <dcterms:subject>
+                <rdf:Description>
+                    <dcam:memberOf rdf:resource="http://purl.org/dc/terms/LCC"/>
+                <rdf:value>$LCC</rdf:value>
+            </rdf:Description>
+        </dcterms:subject>
+
+    <!-- first_sentence-->
+    <!-- ?? ol:first_sentence? -->
+
+    <!-- original_languages (repeatable) -->
+    <!-- ?? -->
+
+    <!-- other_titles (repeatable) -->
+        $display("dcterms:alternative", other_titles)
+
+    <!-- first_publish_date -->
+        $display("dcterms:date", first_publish_date)
+
+    <!-- Links (repeatable) -->
+    <!-- from author.links -->
+          $for link in work.links:
+            <foaf:page>
+                <foaf:Document rdf:about="$link.url">
+                    <rdfs:label>$link.title</rdfs:label>
+                </foaf:Document>
+            </foaf:page>
+
+    <!-- notes -->
+    <!-- ?? -->
+
+    <!-- cover_edition -->
+    <!-- not clear what this refers to -->
+
+    </frbr:Work>
+
+    <!-- administrative -->
+    <rdf:Description rdf:about="$wAbout">
+        <dcterms:modified rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.last_modified</dcterms:modified>
+        <dcterms:created rdf:datatype="http://www.w3.org/2001/XMLSchema#dateTime">$work.created</dcterms:created>
+        <ov:versionnumber>$work.revision</ov:versionnumber>
+    </rdf:Description>

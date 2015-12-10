@@ -1,0 +1,15 @@
+$def with (page)
+<div id="content">
+    <div class="flash-messages">
+    $for flash in get_flash_messages():
+        <div class="$flash.type"><span>$flash.message</span></div>
+        <div class="clearfix"></div>
+    </div>
+    <div id="contentMsg">
+        <div class="alert attn"><span></span></div>
+    </div>
+    <a name="content"></a>
+
+    $:page
+
+</div>

@@ -1,0 +1,10 @@
+#! /bin/bash
+
+DIR=`dirname $0`
+OLROOT=$DIR/../..
+
+cat $DIR/datatables.css
+cat $DIR/diff.css
+cat $DIR/jquery.autocomplete.css
+cat $DIR/master.css
+cat $DIR/wmd.css

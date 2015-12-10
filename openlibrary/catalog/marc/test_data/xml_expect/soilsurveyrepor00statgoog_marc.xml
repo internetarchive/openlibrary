@@ -5,11 +5,7 @@
     "37038470"
   ], 
   "notes": "Serial.\n\nPREMARC/SERLOC merged record", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "S599.I7 A3"
   ], 

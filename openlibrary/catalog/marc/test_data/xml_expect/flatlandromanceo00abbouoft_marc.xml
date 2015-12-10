@@ -5,11 +5,7 @@
   "pagination": "viii p., 1 l.,", 
   "subtitle": "a romance of many dimensions", 
   "title": "Flatland", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "QA699 .A12"
   ], 

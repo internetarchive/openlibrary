@@ -1433,11 +1433,7 @@
   ], 
   "notes": "For mixed voices 1-4 parts with piano accompaniments", 
   "number_of_pages": 572, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publishers": [
     "C. C. Birchard"
   ], 

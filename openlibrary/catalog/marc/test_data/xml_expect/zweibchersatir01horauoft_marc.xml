@@ -13,11 +13,7 @@
   "work_titles": [
     "Satirae"
   ], 
-  "languages": [
-    {
-      "key": "/languages/ger"
-    }
-  ], 
+  "languages": ["ger"],
   "publish_date": "1854", 
   "publish_country": "ge ", 
   "authors": [

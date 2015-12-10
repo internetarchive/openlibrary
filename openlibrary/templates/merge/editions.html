@@ -1,0 +1,68 @@
+$def with (keys, formdata=None)
+
+$var title: $_("Merge Editions")
+
+<div id="contentHead">
+    <h1>$_("Merge Editions")</h1>
+</div>
+
+<div id="contentBody">
+ 
+$if not keys:
+    $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
+    <div class="note">$_("No editions selected.")</div>
+ 
+<ol class="sansserif">
+    <li>Select a &quot;master&quot; record that best represents the edition - 
+        <input type="radio" name="radio" id="radio" checked="checked"/>
+    </li>
+    <li>Select edition records which should be merged with the master
+        - 
+        <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
+    </li>
+    <li>Press MERGE EDITIONS.</li>
+</ol>
+
+<form id="mergeForm" name="mergeForm">
+    <div class="merge" id="include">
+        <div class="entry header">
+            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;"><strong>Master</strong></div>
+            <div class="data input smaller center"><strong>Merge</strong></div>
+            <div class="data record smaller"><strong>Authors</strong></div>
+            <div class="data count">&nbsp;</div>
+        </div>
+
+        $if keys:
+            $ master = formdata and formdata.master or keys[0]
+        $else:
+            $ master = None
+
+        $for k in keys:
+            $ e = get_document('/books/' + k)
+            $if e is None:
+                $continue
+            <div class="entry edition">
+                <div class="data input radio">
+                    $:radio_input(checked=(k==master), name='master', value=k)
+                </div>
+                <div class="data input checkbox">
+                    <input type="checkbox" value="$k" name="merge_key" id="$k" $cond(formdata and k in formdata.selected, 'checked="checked"', '')/>
+                </div>
+                <div class="data record">
+                    <label for="$k">
+                        <span class="name">$e.title</span>
+                        $e.publishers[0], $e.publish_date
+                    </label>
+                </div>
+            </div>
+    </div>
+
+<p>
+<button id="save" class="larger" value="Merge Editions">Merge Editions</button>
+&nbsp;&nbsp;
+<a href="javascript:history.go(-1);" class="small red sansserif">Cancel</a>
+</p>
+
+</form>
+
+</div>

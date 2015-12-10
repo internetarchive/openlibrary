@@ -1,0 +1,72 @@
+$def with (page)
+
+$ advanced = (
+$    ('title', _("Title"),_("")),
+$    ('author', _("Author"),_("")),
+$    ('isbn', "ISBN",_("")),
+$    ('subject', _("Subject"),_("")),
+$    ('place', _("Place"),_("")),
+$    ('person', _("Person"),_("")),
+$    ('publisher', _("Publisher"),_("")),
+$ )
+
+    <h2 class="shift">Site Search</h2>
+    <div class="siteSearch" id="headerSearch">
+        <form method="get" action="/search" class="siteSearch">
+            <fieldset class="home">
+            <legend>Site Search</legend>
+            <label for="qtop" class="hidden">Keyword</label>
+            <input type="text" name="q" id="qtop" size="35"/>
+            <input type="submit" value="$_('Search')"/>
+
+            <div class="searchPlacement">
+                <div class="searchFilter">
+                    <div class="searchOpener">
+                        <a href="javascript:;" id="searchHead">$_("More search options")</a>
+                    </div>
+                    <div class="searchCheckbox">
+                        <input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
+                        <label for="ftokenstop">$_("Show only eBooks")</label>
+                    </div>
+                </div>
+            </div>
+            </fieldset>
+            <div id="topOptions" class="searchOptions hidden">
+            <fieldset class="home">
+                <legend>Advanced Search</legend>
+            $for name, label, placeholder in advanced:
+                <div class="formElement">
+                <label for="qtop-$name">$label</label><br/>
+                <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
+                </div>
+            </fieldset>
+            <div class="searchPlus">
+                <a href="/search/inside">Full Text Search</a>?
+            </div>
+            </div>
+        </form>
+    </div>
+
+
+    <div id="headerTools">
+        <div id="headerLogin">
+        $if ctx.user:
+            <div class="hidden">
+                <form name='logout' action="$homepath()/account/logout" method="post"></form>
+            </div>
+            <div id="headerUser">
+                <a href="javascript:;" id="userToggle" title="Open Menu"><span class="label">$ctx.user.displayname</span><span class="arrow">&nbsp;&#9660;</span></a>
+                <div id="headerUserOpen">
+                    <a href="$ctx.user.key">$_("Your Profile")</a>
+                    <a href="$homepath()/account/loans">$_("Loans")</a>
+                    <a href="$ctx.user.key/lists">$_("Lists")</a>
+                    <a href="$homepath()/account">$_("Settings")</a>
+                    <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+                </div>
+            </div>
+        $else:
+            <a href="/account/login" class="white">$_("Log in")</a>
+            /
+            <a href="/account/create">$_("Sign Up")</a>
+        </div>
+    </div>

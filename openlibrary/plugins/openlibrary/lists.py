@@ -1,17 +1,16 @@
 """Lists implementaion.
 """
 import random
-
 import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
-from infogami.infobase import client
+from infogami.infobase import client, common
 
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
 
-from openlibrary.plugins.worksearch import code as worksearch
+from openlibrary.plugins.worksearch import subjects
 
 class lists_home(delegate.page):
     path = "/lists"
@@ -37,7 +36,7 @@ class lists(delegate.page):
         
     def get_doc(self, key):
         if key.startswith("/subjects/"):
-            s = worksearch.get_subject(key)
+            s = subjects.get_subject(key)
             if s.work_count > 0:
                 return s
             else:
@@ -70,7 +69,7 @@ class lists_delete(delegate.page):
             
         web.header("Content-Type", "application/json")
         return delegate.RawText('{"status": "ok"}')
-        
+
 class lists_json(delegate.page):
     path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
     encoding = "json"
@@ -78,7 +77,7 @@ class lists_json(delegate.page):
     
     def GET(self, path):
         if path.startswith("/subjects/"):
-            doc = worksearch.get_subject(path)
+            doc = subjects.get_subject(path)
         else:
             doc = web.ctx.site.get(path)
         if not doc:
@@ -208,6 +207,10 @@ class list_view_json(delegate.page):
         list = web.ctx.site.get(key)
         if not list or list.type.key == '/type/delete':
             raise web.notfound()
+
+        i = web.input()
+        if i.get("_raw") == "true":
+            return delegate.RawText(self.dumps(list.dict()))
         
         data = self.get_list_data(list)
         return delegate.RawText(self.dumps(data))
@@ -325,8 +328,8 @@ class list_editions(delegate.page):
         if not list:
             raise web.notfound()
         
-        i = web.input(limit=20, page=1)
-        limit = h.safeint(i.limit, 20)
+        i = web.input(limit=50, page=1)
+        limit = h.safeint(i.limit, 50)
         page = h.safeint(i.page, 1) - 1
         offset = page * limit
 
@@ -348,11 +351,11 @@ class list_editions_json(delegate.page):
         if not list:
             raise web.notfound()
             
-        i = web.input(limit=20, offset=0)
+        i = web.input(limit=50, offset=0)
         
-        limit = h.safeint(i.limit, 20)
+        limit = h.safeint(i.limit, 50)
         offset = h.safeint(i.offset, 0)
-
+        
         editions = list.get_editions(limit=limit, offset=offset, _raw=True)
         
         data = make_collection(
@@ -434,6 +437,14 @@ class list_editions_yaml(list_subjects_json):
     encoding = "yml"
     content_type = 'text/yaml; charset="utf-8"'
 
+class lists_embed(delegate.page):
+    path = "(/people/\w+/lists/OL\d+L)/embed"
+
+    def GET(self, key):
+        doc = web.ctx.site.get(key)
+        if doc is None or doc.type.key != '/type/list':
+            raise web.notfound()
+        return render_template("type/list/embed", doc)
 
 class export(delegate.page):
     path = "(/people/\w+/lists/OL\d+L)/export"
@@ -463,10 +474,17 @@ class export(delegate.page):
             raise web.notfound()
             
     def get_editions(self, list, raw=False):
-        editions = list.get_editions(limit=10000, offset=0, _raw=raw)['editions']
+        editions = sorted(list.get_all_editions(), key=lambda doc: doc['last_modified']['value'], reverse=True)
+        
         if not raw:
+            editions = [self.make_doc(e) for e in editions]
             list.preload_authors(editions)
         return editions
+        
+    def make_doc(self, rawdata):
+        data = web.ctx.site._process_dict(common.parse_query(rawdata))
+        doc = client.create_thing(web.ctx.site, data['key'], data)
+        return doc
         
 class feeds(delegate.page):
     path = "(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
@@ -497,11 +515,7 @@ def get_recently_modified_lists(limit, offset=0):
     
     keys = web.ctx.site.things({"type": "/type/list", "sort": "-last_modified", "limit": limit, "offset": offset})
     lists = web.ctx.site.get_many(keys)
-    
-    # Cache seed_summary, so that it can be reused later without recomputing.
-    for list in lists:
-        list.seed_summary_cached = list.seed_summary
-        
+
     return [list.dict() for list in lists]
     
 get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, key_prefix="get_recently_modified_lists", timeout=5*60)
@@ -532,8 +546,10 @@ def get_active_lists_in_random(limit=20, preload=True):
     
     while len(lists) < limit:
         result = get_recently_modified_lists(limit*5, offset=offset)
+        if not result:
+            break
+            
         offset += len(result)
-        
         # ignore lists with 4 or less seeds
         lists += [xlist for xlist in result if len(xlist.get("seeds", [])) > 4]
     
@@ -542,18 +558,7 @@ def get_active_lists_in_random(limit=20, preload=True):
 
     if preload:
         _preload_lists(lists)
-        
-    seed_summaries = {}
-    
-    for xlist in lists:
-        seed_summaries[xlist['key']] = xlist.pop("seed_summary_cached", None)
-    
+
     # convert rawdata into models.
     lists = [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
-    
-    # Initialize seed_summary to avoid recomputing it for all the lists.
-    for xlist in lists:
-        if xlist.key in seed_summaries:
-            xlist.__dict__['seed_summary'] = seed_summaries[xlist.key]
-    
     return lists

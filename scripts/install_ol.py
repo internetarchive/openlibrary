@@ -70,6 +70,7 @@ easyinstall('lxml')
 easyinstall('PIL')
 easyinstall('pymarc')
 easyinstall('genshi')
+easyinstall('BeautifulSoup')
 
 
 ### Source code

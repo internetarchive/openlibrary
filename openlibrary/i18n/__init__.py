@@ -52,6 +52,7 @@ import web
 import os
 from StringIO import StringIO
 
+import babel
 from babel.support import Translations
 from babel.messages import Catalog
 from babel.messages.pofile import read_po, write_po
@@ -144,6 +145,13 @@ def load_translations(lang):
     if os.path.exists(mo_path):
         return Translations(open(mo_path))
 
+@web.memoize
+def load_locale(lang):
+    try:
+        return babel.Locale(lang)
+    except babel.UnknownLocaleError:
+        pass
+
 class GetText:
     def __call__(self, string, *args, **kwargs):
         """Translate a given string to the language of the current locale."""
@@ -199,6 +207,12 @@ def ungettext(s1, s2, _n, *a, **kw):
         return value % kw
     else:
         return value
+
+def gettext_territory(code):
+    """Returns the territory name in the current locale.
+    """
+    locale = load_locale(web.ctx.get('lang', 'en'))
+    return locale.territories.get(code, code)
 
 gettext = GetText()
 ugettext = gettext

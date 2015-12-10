@@ -1,0 +1,26 @@
+$def with (page)
+
+$var title: $page.name
+
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.key</h1> 
+</div>
+
+<div id="contentBody">
+
+    <div class="section">
+       <h3 class="collapse">$_("Readers")</h3>
+       $for x in page.readers:
+           <div><span class="tag"><a href="$x">$x</a></span></div>
+    </div>
+
+    <div class="section">
+       <h3 class="collapse">$_("Writers")</h3>
+       $for x in page.writers:
+           <div><span class="tag"><a href="$x">$x</a></span></div>
+    </div>
+
+    <div class="clearfix"></div>
+    $:render_template("lib/history", page)
+</div>

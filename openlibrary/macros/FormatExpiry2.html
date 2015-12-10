@@ -1,0 +1,8 @@
+$def with(expiry)
+
+$if expiry is None:
+    $# Not yet fulfilled
+    <span class="red">Not yet downloaded</span>
+$else:
+    $ expiry_datetime = datetime_from_isoformat(expiry)       
+    <span class="darkgreen">$datestr(expiry_datetime)</span>

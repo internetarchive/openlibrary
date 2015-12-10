@@ -18,11 +18,7 @@
     "72626487"
   ], 
   "notes": "Subtitle varies: \"An official handbook,\" 1949-50-1998; \"the official yearbook of the United Kingdom,\" 1999-2001.\n\nPublished: H.M.S.O., <1955>-1996; The Stationery Office, 1997-2001.\n\nSome issues also available online via the World Wide Web.\n\nPrepared by: the Office for National Statistics, 1998-2001.", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "work_titles": [
     "Britain (London, England)"
   ], 

@@ -8,11 +8,7 @@
     "02012591"
   ], 
   "number_of_pages": 243, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "F1058 .C74"
   ], 

@@ -1,0 +1,15 @@
+$def with ()
+
+$ path = request.path
+
+$def link(url, title):
+    $if url == path:
+        <strong>$title</strong>
+    $else:
+        <a href="$url">$title</a>
+
+<div>   
+    $:link("/theme/files", _("Files"))
+    | $:link("/theme/modifications", _("Modifications"))
+    | $:link("/theme/manage", _("Manage"))
+</div>

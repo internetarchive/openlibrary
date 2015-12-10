@@ -1,0 +1,37 @@
+$def with (page)
+
+$var title: $page.key
+
+<div id="contentHead">
+    $:macros.databarView(page)
+    <h1>$page.key</h1> 
+</div>
+
+<div id="contentBody">
+
+    <div>$:format(page.description)</div>
+
+    <div>
+       <span class="title">$_("Kind")</span>
+       <span class="tag">$page.kind</span>
+    </div>
+
+    <h2>Properties</h2>
+
+    <ul class="booklinks sansserif">
+    $for p in page.properties:
+        <li><b>$p.name$cond(not p.unique, "[]")</b> <span class="smaller" style="display: inline;">of type</span> <a href="$p.expected_type.key">$p.expected_type.key</a></li>
+    </ul>
+
+$if page.backreferences:
+    <h2>$_("Backreferences")</h2>
+    <ul class="booklinks sansserif">
+    $for p in page.backreferences:
+        <li><b>$p.name</b> <span class="smaller" style="display: inline;">from</span> <a href="$p.expected_type.key">$p.expected_type.key</a>.$p.property_name</li>
+    </ul>
+
+    <div class="clearfix"></div>
+
+    $:render_template("lib/history", page)
+
+</div>

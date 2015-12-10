@@ -6,19 +6,26 @@ from infogami.utils import stats
 import web
 
 def get_works_solr():
-    c = config.get("plugin_worksearch")
-    host = c and c.get('solr')
-    return host and Solr("http://" + host + "/solr/works")
+    if config.get('single_core_solr'):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
+    else:
+        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
 
-def get_author_solr():
-    c = config.get("plugin_worksearch")
-    host = c and c.get('authors_solr')
-    return host and Solr("http://" + host + "/solr/authors")
+    return Solr(base_url)
 
-def get_subject_solr():
-    c = config.get("plugin_worksearch")
-    host = c and c.get('subjects_solr')
-    return host and Solr("http://" + host + "/solr/subjects")
+def get_authors_solr():
+    if config.get('single_core_solr'):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
+    else:
+        base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
+    return Solr(base_url)
+
+def get_subjects_solr():
+    if config.get('single_core_solr'):
+        base_url = "http://%s/solr" % config.plugin_worksearch.get('subjects_solr')
+    else:
+        base_url = "http://%s/solr/subjects" % config.plugin_worksearch.get('subjects_solr')
+    return Solr(base_url)
 
 def work_search(query, limit=20, offset=0, **kw):
     """Search for works."""
@@ -38,8 +45,12 @@ def work_search(query, limit=20, offset=0, **kw):
         "public_scan_b",
         "overdrive_s",
         "lending_edition_s",
+        "lending_identifier_s",
     ]
     kw.setdefault("fields", fields)
+
+    if config.get('single_core_solr'):
+        kw.setdefault("fq", "type:work")
 
     query = process_work_query(query)
     solr = get_works_solr()
@@ -64,8 +75,12 @@ def process_work_query(query):
     return query
 
 def work_wrapper(w):
+    key = w['key']
+    if not key.startswith("/works/"):
+        key += "/works/"
+
     d = web.storage(
-        key="/works/" + w["key"],
+        key=key,
         title=w["title"],
         edition_count=w["edition_count"]
     )
@@ -85,6 +100,7 @@ def work_wrapper(w):
     d.lendinglibrary = 'lendinglibrary' in ia_collection
     d.printdisabled = 'printdisabled' in ia_collection
     d.lending_edition = w.get('lending_edition_s', '')
+    d.lending_identifier = w.get('lending_identifier_s', '')
     d.overdrive = w['overdrive_s'].split(';')[0] if 'overdrive_s' in w else ''
 
     # special care to handle missing author_key/author_name in the solr record

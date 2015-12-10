@@ -1,14 +1,25 @@
-import urllib, web
+import urllib, urllib2
+import web
 import simplejson as json
 from time import sleep
+import sys
 
 query_host = 'openlibrary.org'
 
+def urlopen(url, data=None):
+    version = "%s.%s.%s" % sys.version_info[:3]
+    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__name__, version)
+    headers = {
+        'User-Agent': user_agent
+    }
+    req = urllib2.Request(url, data, headers)
+    return urllib2.urlopen(req)
+
 def jsonload(url):
-    return json.load(urllib.urlopen(url))
+    return json.load(urlopen(url))
 
 def urlread(url):
-    return urllib.urlopen(url).read()
+    return urlopen(url).read()
 
 def set_query_host(host):
     global query_host
@@ -85,6 +96,9 @@ def query_iter(q, limit=500, offset=0):
             return
         for i in ret:
             yield i
+        # We haven't got as many we have requested. No point making one more request
+        if len(ret) < limit:
+            break
         q['offset'] += limit
 
 def get_editions_with_covers_by_author(author, count):
@@ -111,13 +125,14 @@ def version_iter(q, limit=500, offset=0):
         q['offset'] += limit
 
 def withKey(key):
+    url = base_url() + key + '.json'
     for i in range(20):
         try:
-            return jsonload(base_url() + key + '.json')
+            return jsonload(url)
         except:
             pass
-        print 'retry'
-        sleep(10)
+        print 'retry:', i
+        print url
 
 def get_marc_src(e):
     mc = get_mc(e['key'])

@@ -1,0 +1,120 @@
+$def with (page)
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="" />
+    <meta name="title" content="" />
+
+    <meta name="author" content="OpenLibrary.org" />
+    <meta name="creator" content="OpenLibrary.org" />
+    <meta name="copyright" content="Original content copyright; 2009" />
+    <meta name="distribution" content="Global" />
+    <meta name="robots" content="Index, Follow" />
+
+    <!--
+    <link rel="alternate" type="application/json" href="http://openlibrary.org/.json"/>
+    <link rel="alternate" type="application/rdf+xml" href="http://openlibrary.org/.rdf"/>
+    -->
+
+    <script src="/js/ol.js?format=raw" type="text/javascript"></script>
+    
+    <title>$:page.title ($_("Open Library"))</title>
+
+    <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
+    
+</head>
+
+<body id="$ctx.get('bodyid', 'user')">
+<a name="top"></a>
+
+    <div id="placement">
+
+        <div id="position">
+
+            $:render_template("lib/search_head", page)
+
+            $:render_template("lib/nav_head", page)
+
+<script type="text/javascript">
+\$().ready(function(){
+
+    $('#navMask').css('opacity','.7').customFadeIn();
+    $('#contentHistory').show().animate({top:'65px'},"slow");
+
+    $("#revertSlideOut").toggle(
+        function(){
+            $("#historyExploreSlide").animate({width:'280px'},"slow");
+            $(".revertTitle").css("color","#000");
+        },
+        function(){
+            $("#historyExploreSlide").animate({width:'660px'},"slow");
+            $(".revertTitle").css("color","#036daa");
+        }
+    );
+    $("#revertSlideIn").click(function(){
+        $("#historyExploreSlide").animate({width:'660px'},"slow");
+    });
+    $('.historyShift').click(function(){
+        $('#historyCurrent').customFadeOut('slow');
+        $('#historyRevert').customFadeIn('slow');
+    });
+    $('#historyBack').click(function(){$('#count').text("4");});
+    
+});
+</script>
+
+        <div id="navMask"></div>
+
+        <div id="contentHistory">
+            <div id="historyPosition">
+                <div id="historyCurrent">
+                    <div class="revertTitle">Scroll through</div>
+                    <div class="revertThis">previous revisions</div>
+                </div>
+                <div id="historyRevert" class="hidden">
+                    <a class="revertSlideLink" id="revertSlideOut" href="javascript:;">
+                        <span class="revertTitle">Revert</span>
+                        <span class="revertThis">to this version?</span>
+                    </a>
+                    <form name="revert" id="revert" method="post" action="">
+                        <div id="because">But why? <span class="opt">(optional)</span></div>
+                        <input type="text" name="reason" id="reason" value=""/>
+                        <input type="submit" value="Save"/>
+                        <a href="javascript:;" id="revertSlideIn">Cancel</a>
+                    </form>
+                </div>
+                <div id="historyExplore">
+                    <div id="historyExploreSlide">
+                        <a id="historyBack" href="history02.html" target="historyPage" class="historyShift"></a>
+                        <table><tbody><tr><td>
+                        <div id="version">
+                            <div id="vtitle">Version</div>
+                            <div id="number"><span id="count">5</span> of 5</div>
+                        </div>
+                        </td><td>
+                        <div id="details">
+                            <div id="author">Edited 4 days ago by <a href="[USER]">george08</a>.</div>
+                            <div id="comment">Added something or other to blah blah... <a href="#">More</a></div>
+                        </div>
+                        </td></tr></tbody></table>
+                    </div>             
+                    <a id="historyFwd" href="history03.html" target="historyPage" class="historyShift"></a>
+                </div>
+                <div id="historyClose">
+                    <a href="history00.html" target="_top">Cancel</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        <div id="logoHistory"><img src="images/logoHistory.png" alt="Open Library" width="90" height="71"/></div>
+
+
+        </div>
+
+    </div>
+
+</body>
+</html>

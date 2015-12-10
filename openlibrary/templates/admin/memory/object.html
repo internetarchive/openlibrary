@@ -1,0 +1,42 @@
+$def with (object)
+
+$var title: $object.get_type() @ $object.get_id()
+
+<div id="contentHead">
+    <div class="head">
+        <h1><a href="/admin/memory/type/$object.get_type()">$object.get_type()</a> @ $object.get_id()</h1>
+    </div>
+</div>
+
+<style type="text/css">
+    td { vertical-align: top; }
+</style>
+            
+
+
+<div id="contentBody">
+
+<pre>
+$object.repr()
+</pre>
+
+$def display(x):
+    <tr>
+        <td>$x.name</td>
+        <td><a href="/admin/memory/id/$x.get_id()">$x.get_id()</a></td>
+        <td>$x.get_type()</td>
+        <td><pre>$x.repr()</pre></td>
+    </tr>
+
+<h2>Referents</h2>
+<table>
+$for r in object.get_referents()[:50]:
+    $:display(r)
+</table>
+
+<h2>Referrers</h2>
+<table>
+$for r in object.get_referrers()[:50]:
+    $:display(r)
+</table>
+</div>

@@ -1,6 +1,9 @@
 """Cover management."""
 
-import Image
+try:
+    from PIL import Image
+except ImportError:
+    import Image
 import os
 from cStringIO import StringIO
 import web
@@ -67,7 +70,7 @@ def write_image(data, prefix):
 
         for name, size in config.image_sizes.items():
             path = "%s-%s.jpg" % (path_prefix, name)
-            resize_image(img, size).save(path)
+            resize_image(img, size).save(path, quality=90)
         return img
     except IOError, e:
         print 'ERROR:', str(e)
@@ -112,32 +115,9 @@ def read_file(path):
     return data
 
 def read_image(d, size):
-    ensure_thumbnail_created(d.id, find_image_path(d.filename))
     if size:
         filename = d['filename_' + size.lower()] or d.filename + "-%s.jpg" % size.upper()
     else:
         filename = d.filename
     path = find_image_path(filename)
     return read_file(path)
-
-def ensure_thumbnail_created(id, path):
-    """Temporary hack during migration to make sure thumbnails are created."""
-    if ':' in path or path.endswith('.jpg') or os.path.exists(path + '-S.jpg'):
-        return
-
-    # original file is not present. Can't create thumbnails.
-    if not os.path.exists(path):
-        return
-
-    prefix = os.path.basename(path)
-    assert not prefix.endswith('.jpg')
-
-    write_image(open(path).read(), prefix)
-
-    # write_image also writes the original image to a new file. Delete it as we already have the original image.
-    os.remove(path + '.jpg')
-    db.getdb().update('cover', where='id=$id', vars=locals(),
-        filename_s=prefix + '-S.jpg', 
-        filename_m=prefix + '-M.jpg', 
-        filename_l=prefix + '-L.jpg', 
-    )

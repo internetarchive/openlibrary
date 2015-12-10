@@ -27,9 +27,13 @@ sphinx
 supervisor
 web.py==0.33
 pystatsd
+celery
+eventer
+sqlalchemy
+Pygments
+OL-GeoIP
+mockcache
 """
-
-from openlibrary.core.setup_commands import commands
 
 setup(
     name='openlibrary',
@@ -37,7 +41,6 @@ setup(
     description='Open Library',
     packages=find_packages(exclude=["ez_setup"]),
     scripts=filter(executable, glob.glob('scripts/*')),
-    install_requires=dependencies.split(),
-    cmdclass=commands
+    install_requires=dependencies.split()
 )
 

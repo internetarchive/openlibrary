@@ -12,13 +12,13 @@ from infogami.utils.delegate import register_exception
 def split_key(bib_key):
     """
         >>> split_key('1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN:1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN1234567890')
-        ('isbn_10', '1234567890')
+        ('isbn_', '1234567890')
         >>> split_key('ISBN1234567890123')
-        ('isbn_13', '1234567890123')
+        ('isbn_', '1234567890123')
         >>> split_key('LCCNsa 64009056')
         ('lccn', 'sa 64009056')
         >>> split_key('badkey')
@@ -54,12 +54,10 @@ def split_key(bib_key):
         key = 'olid'
         value = bib_key.upper()
     
-    # decide isbn_10 or isbn_13 based on length.
     if key == 'isbn':
-        if len(value.replace('-', '')) == 13:
-            key = 'isbn_13'
-        else:
-            key = 'isbn_10'
+        # 'isbn_' is a special indexed filed that gets both isbn_10 and isbn_13 in the normalized form.
+        key = 'isbn_'
+        value = value.replace("-", "") # normalize isbn by stripping hyphens
 
     if key == 'oclc':
         key = 'oclc_numbers'
@@ -139,7 +137,9 @@ def get_many_as_dict(keys):
     return dict((doc['key'], doc) for doc in ol_get_many(keys))
     
 def get_url(doc):
-    base = web.ctx.get("home", "http://openlibrary.org")
+    base = web.ctx.get("home", "https://openlibrary.org")
+    if base == 'http://[unknown]':
+        base = "https://openlibrary.org"
     if doc['key'].startswith("/books/") or doc['key'].startswith("/works/"):
         return base + doc['key'] + "/" + urlsafe(doc.get("title", "untitled"))
     elif doc['key'].startswith("/authors/"):
@@ -188,7 +188,7 @@ class DataProcessor:
                 
             return {
                 "name": name,
-                "url": "http://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
+                "url": "https://openlibrary.org/subjects/%s%s" % (prefix, name.lower().replace(" ", "_"))
             }
             
         def get_subjects(name, prefix):
@@ -205,7 +205,25 @@ class DataProcessor:
                 "text": get_value(e.get("excerpt", {})),
                 "comment": e.get("comment", "")
             }
-                    
+
+        def format_table_of_contents(toc):
+            # after openlibrary.plugins.upstream.models.get_table_of_contents
+            def row(r):
+                if isinstance(r, basestring):
+                    level = 0
+                    label = ""
+                    title = r
+                    pagenum = ""
+                else:
+                    level = h.safeint(r.get('level', '0'), 0)
+                    label = r.get('label', '')
+                    title = r.get('title', '')
+                    pagenum = r.get('pagenum', '')
+                r = dict(level=level, label=label, title=title, pagenum=pagenum)
+                return r
+            d = [row(r) for r in toc]
+            return [row for row in d if any(row.values())]
+
         d = {
             "url": get_url(doc),
             "key": doc['key'],
@@ -243,21 +261,35 @@ class DataProcessor:
             "subject_people": get_subjects("subject_people", "person:"),
             "subject_times": get_subjects("subject_times", "time:"),
             "excerpts": [format_excerpt(e) for e in w.get("excerpts", [])],
+
+            "notes": get_value(doc.get("notes", "")),
+            "table_of_contents": format_table_of_contents(doc.get("table_of_contents", [])),
+
             "links": [dict(title=link.get("title"), url=link['url']) for link in w.get('links', '') if link.get('url')],
         }
+
+        for fs in [doc.get("first_sentence"), w.get('first_sentence')]:
+            if fs:
+                e = {
+                    "text": get_value(fs),
+                    "comment": "",
+                    "first_sentence": True
+                    }
+                d['excerpts'].insert(0, e)
+                break
         
         def ebook(doc):
             itemid = doc['ocaid']
             availability = get_ia_availability(itemid)
             
             d = {
-                "preview_url": "http://www.archive.org/details/" + itemid,
+                "preview_url": "https://archive.org/details/" + itemid,
                 "availability": availability
             }
                 
-            prefix = "http://www.archive.org/download/%s/%s" % (itemid, itemid)
+            prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
             if availability == 'full':
-                d["read_url"] = "http://www.archive.org/stream/%s" % (itemid)
+                d["read_url"] = "https://archive.org/stream/%s" % (itemid)
                 d['formats'] = {
                     "pdf": {
                         "url": prefix + ".pdf"
@@ -274,7 +306,9 @@ class DataProcessor:
                     }
                 }
             elif availability == "borrow":
-                d['borrow_url'] = u"http://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
+                loanstatus =  web.ctx.site.store.get('ebooks/' + doc['ocaid'], {'borrowed': 'false'})
+                d['checkedout'] = (loanstatus['borrowed'] == 'true')
                 d['formats'] = {
                     "djvu": {
                         "url": prefix + ".djvu",
@@ -297,9 +331,9 @@ class DataProcessor:
         if doc.get('covers'):
             cover_id = doc['covers'][0]
             d['cover'] = {
-                "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-                "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-                "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
+                "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
+                "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
             }
 
         d['identifiers'] = trim(d['identifiers'])
@@ -346,7 +380,7 @@ def process_result_for_viewapi(result):
 def get_ia_availability(itemid):
     collections = ia.get_meta_xml(itemid).get("collection", [])
 
-    if 'lendinglibrary' in collections:
+    if 'lendinglibrary' in collections or 'inlibrary' in collections:
         return 'borrow'
     elif 'printdisabled' in collections:
         return 'restricted'
@@ -360,7 +394,7 @@ def process_doc_for_viewapi(bib_key, page):
     
     if 'ocaid' in page:
         preview = get_ia_availability(page['ocaid'])
-        preview_url = 'http://www.archive.org/details/' + page['ocaid']
+        preview_url = 'https://archive.org/details/' + page['ocaid']
     else:
         preview = 'noview'
         preview_url = url
@@ -373,7 +407,7 @@ def process_doc_for_viewapi(bib_key, page):
     }
     
     if page.get('covers'):
-        d['thumbnail_url'] = 'http://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
+        d['thumbnail_url'] = 'https://covers.openlibrary.org/b/id/%s-S.jpg' % page["covers"][0]
 
     return d      
 

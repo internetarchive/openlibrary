@@ -12,9 +12,21 @@ import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary.plugins.upstream.utils import get_history
+from openlibrary.plugins.upstream.account import Account
+from openlibrary import accounts
+from openlibrary.core import loanstats
 
 # relative imports
 from lists.model import ListMixin, Seed
+from . import cache, iprange, inlibrary, waitinglist
+
+def _get_ol_base_url():
+    # Anand Oct 2013
+    # Looks like the default value when called from script
+    if "[unknown]" in web.ctx.home:
+        return "https://openlibrary.org"
+    else:
+        return web.ctx.home
 
 class Image:
     def __init__(self, site, category, id):
@@ -24,6 +36,8 @@ class Image:
         
     def info(self):
         url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
+        if url.startswith("//"):
+            url = "http:" + url
         try:
             d = simplejson.loads(urllib2.urlopen(url).read())
             d['created'] = h.parse_datetime(d['created'])
@@ -42,14 +56,57 @@ class Image:
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
-
 class Thing(client.Thing):
-    """Base class for all OL models."""
+    """Base class for all OL models."""    
+    
+    @cache.method_memoize
     def get_history_preview(self):
-        if '_history_preview' not in self.__dict__:
-            self.__dict__['_history_preview'] = get_history(self)
-        return self._history_preview
+        """Returns history preview.
+        """
+        history = self._get_history_preview()
+        history = web.storage(history)
         
+        history.revision = self.revision
+        history.lastest_revision = self.revision
+        history.created = self.created
+        
+        def process(v):
+            """Converts entries in version dict into objects.
+            """
+            v = web.storage(v)
+            v.created = h.parse_datetime(v.created)
+            v.author = v.author and self._site.get(v.author, lazy=True)
+            return v
+        
+        history.initial = [process(v) for v in history.initial]
+        history.recent = [process(v) for v in history.recent]
+        
+        return history
+
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "h"))
+    def _get_history_preview(self):
+        h = {}
+        if self.revision < 5:
+            h['recent'] = self._get_versions(limit=5)
+            h['initial'] = h['recent'][-1:]
+            h['recent'] = h['recent'][:-1]
+        else:
+            h['initial'] = self._get_versions(limit=1, offset=self.revision-1)
+            h['recent'] = self._get_versions(limit=4)
+        return h
+            
+    def _get_versions(self, limit, offset=0):
+        q = {"key": self.key, "limit": limit, "offset": offset}
+        versions = self._site.versions(q)
+        for v in versions:
+            v.created = v.created.isoformat()
+            v.author = v.author and v.author.key
+
+            # XXX-Anand: hack to avoid too big data to be stored in memcache.
+            # v.changes is not used and it contrinutes to memcache bloat in a big way.
+            v.changes = '[]'
+        return versions
+                
     def get_most_recent_change(self):
         """Returns the most recent change.
         """
@@ -66,32 +123,80 @@ class Thing(client.Thing):
         # preload them
         self._site.get_many(list(authors))
         
-    def _make_url(self, label, suffix, **params):
+    def _make_url(self, label, suffix, relative=True, **params):
         """Make url of the form $key/$label$suffix?$params.
         """
-        u = self.key + "/" + h.urlsafe(label) + suffix
+        if label is not None:
+            u = self.key + "/" + h.urlsafe(label) + suffix
+        else:
+            u = self.key + suffix
         if params:
             u += '?' + urllib.urlencode(params)
+        if not relative:
+            u = _get_ol_base_url() + u            
         return u
+
+    def get_url(self, suffix="", **params):
+        """Constructs a URL for this page with given suffix and query params.
         
+        The suffix is added to the URL of the page and query params are appended after adding "?".
+        """
+        return self._make_url(label=self.get_url_suffix(), suffix=suffix, **params)
+        
+    def get_url_suffix(self):
+        """Returns the additional suffix that is added to the key to get the URL of the page.
+        
+        Models of Edition, Work etc. should extend this to return the suffix.
+        
+        This is used to construct the URL of the page. By default URL is the 
+        key of the page. If this method returns None, nothing is added to the 
+        key. If this method returns a string, it is sanitized and added to key 
+        after adding a "/".
+        """
+        return None
+                
     def _get_lists(self, limit=50, offset=0, sort=True):
+        # cache the default case
+        if limit == 50 and offset == 0:
+            keys = self._get_lists_cached()
+        else:
+            keys = self._get_lists_uncached(limit=limit, offset=offset)
+            
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
+        return lists
+        
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
+    def _get_lists_cached(self):
+        return self._get_lists_uncached(limit=50, offset=0)
+        
+    def _get_lists_uncached(self, limit, offset):
         q = {
             "type": "/type/list",
             "seeds": {"key": self.key},
             "limit": limit,
             "offset": offset
         }
-        keys = self._site.things(q)
-        lists = self._site.get_many(keys)
-        if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
-        return lists
-
+        return self._site.things(q)
+        
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+        }
+        
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.title or "untitled", suffix, **params)
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.title or "untitled"
 
     def __repr__(self):
         return "<Edition: %s>" % repr(self.title)
@@ -108,35 +213,263 @@ class Edition(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+        
+
+    def get_ebook_info(self):
+        """Returns the ebook info with the following fields.
+        
+        * read_url - url to read the book
+        * borrow_url - url to borrow the book
+        * borrowed - True if the book is already borrowed
+        * daisy_url - url to access the daisy format of the book
+        
+        Sample return values:
+
+            {
+                "read_url": "http://www.archive.org/stream/foo00bar",
+                "daisy_url": "/books/OL1M/foo/daisy"
+            }
+
+            {
+                "daisy_url": "/books/OL1M/foo/daisy",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "borrowed": False
+            }
+        """
+        d = {}
+        if self.ocaid:
+            d['has_ebook'] = True
+            d['daisy_url'] = self.url('/daisy')
+
+            collections = self.get_ia_collections()
+            borrowable = ('lendinglibrary' in collections or
+                         ('inlibrary' in collections and inlibrary.get_library() is not None))
+
+            if borrowable:
+                d['borrow_url'] = self.url("/borrow")
+                key = "ebooks" + self.key
+                doc = self._site.store.get(key) or {}
+                d['borrowed'] = doc.get("borrowed") == "true"
+            elif 'printdisabled' in collections:
+                pass # ebook is not available 
+            else:
+                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+        return d
+
+    def get_ia_collections(self):
+        return self.get_ia_meta_fields().get("collection", [])
+
+    def is_access_restricted(self):
+        collections = self.get_ia_collections()
+        return ('printdisabled' in collections
+                or 'lendinglibrary' in collections
+                or self.get_ia_meta_fields().get("access-restricted") is True)
+
+    def can_borrow(self):
+        collections = self.get_ia_collections()
+        return (
+            'lendinglibrary' in collections or
+            ('inlibrary' in collections and inlibrary.get_library() is not None))
+
+    def get_waitinglist(self):
+        """Returns list of records for all users currently waiting for this book."""
+        return waitinglist.get_waitinglist_for_book(self.key)
+
+    def get_waitinglist_size(self):
+        """Returns the number of people on waiting list to borrow this book.
+        """
+        return waitinglist.get_waitinglist_size(self.key)
+
+    def get_waitinglist_position(self, user):
+        """Returns the position of this user in the waiting list."""
+        return waitinglist.get_waitinglist_position(user.key, self.key)
+
+    def get_scanning_contributor(self):
+        return self.get_ia_meta_fields().get("contributor")
+
+    def get_loans(self):
+        from ..plugins.upstream import borrow
+        return borrow.get_edition_loans(self)
+
+    def get_ebook_status(self):
+        """
+            None
+            "read-online"
+            "borrow-available"
+            "borrow-checkedout"
+            "borrow-user-checkedout"
+            "borrow-user-waiting"
+            "protected"
+        """
+        if self.get("ocaid"):
+            if not self.is_access_restricted():
+                return "read-online"
+            if not self.is_lendable_book():
+                return "protected"
+
+            if self.get_available_loans():
+                return "borrow-available"
+
+            user = web.ctx.site.get_user()
+            if not user:
+                return "borrow-checkedout"
+
+            checkedout_by_user = any(loan.get('user') == user.key for loan in self.get_current_loans())
+            if checkedout_by_user:
+                return "borrow-user-checkedout"
+            if user.is_waiting_for(self):
+                return "borrow-user-waiting"
+            else:
+                return "borrow-checkedout"
+
+    def is_lendable_book(self):
+        """Returns True if the book is lendable.
+        """
+        return self.can_borrow()
+
+    def get_ia_download_link(self, suffix):
+        """Returns IA download link for given suffix.
+        The suffix is usually one of '.pdf', '.epub', ''.djvu', '.mobi', '_djvu.txt'
+        """
+        if self.ocaid:
+            metadata = self.get_ia_meta_fields()
+            # The _filenames field is set by ia.get_metadata function
+            filenames = metadata.get("_filenames")
+            if filenames:
+                filename = some(f for f in filenames if f.endswith(suffix))
+            else:
+                # filenames is not in cache. 
+                # This is required only until all the memcache entries expire
+                filename = self.ocaid + suffix
+
+            if filename is None and self.is_ia_scan():                
+                # IA scans will have all the required suffixes. 
+                # Sometimes they are generated on the fly. 
+                filename = self.ocaid + suffix
+
+            if filename:
+                return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+
+    def is_ia_scan(self):
+        metadata = self.get_ia_meta_fields()
+        # all IA scans will have scanningcenter field set
+        return bool(metadata.get("scanningcenter"))
+
+def some(values):
+    """Returns the first value that is True from the values iterator.
+    Works like any, but returns the value instead of bool(value).
+    Returns None if none of the values is True.
+    """
+    for v in values:
+        if v:
+            return v
+
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.title or "untitled", suffix, **params)
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.title or "untitled"
 
     def __repr__(self):
         return "<Work: %s>" % repr(self.key)
     __str__ = __repr__
 
-    def get_edition_count(self):
-        if '_editon_count' not in self.__dict__:
-            self.__dict__['_editon_count'] = self._site._request(
-                                                '/count_editions_by_work', 
-                                                data={'key': self.key})
-        return self.__dict__['_editon_count']
-    
-    edition_count = property(get_edition_count)
+    @property
+    @cache.method_memoize
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "e"))
+    def edition_count(self):
+        return self._site._request("/count_editions_by_work", data={"key": self.key})
+
+    def get_one_edition(self):
+        """Returns any one of the editions.
+        
+        Used to get the only edition when edition_count==1.
+        """
+        # If editions from solr are available, use that. 
+        # Otherwise query infobase to get the editions (self.editions makes infobase query).
+        editions = self.get_sorted_editions() or self.editions
+        return editions and editions[0] or None
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+
+    def _get_d(self):
+        """Returns the data that goes into memcache as d/$self.key.
+        Used to measure the memcache usage.
+        """
+        return {
+            "h": self._get_history_preview(),
+            "l": self._get_lists_cached(),
+            "e": self.edition_count
+        }
+
+    def _make_subject_link(self, title, prefix=""):
+        slug = web.safestr(title.lower().replace(' ', '_').replace(',',''))
+        key = "/subjects/%s%s" % (prefix, slug)
+        return web.storage(key=key, title=title, slug=slug)
+
+    def get_subject_links(self, type="subject"):
+        """Returns all the subjects as link objects.         
+        Each link is a web.storage object with title and key fields.
+
+        The type should be one of subject, place, person or time.
+        """
+        if type == 'subject':
+            return [self._make_subject_link(s) for s in self.get_subjects()]
+        elif type == 'place':
+            return [self._make_subject_link(s, "place:") for s in self.subject_places]
+        elif type == 'person':
+            return [self._make_subject_link(s, "person:") for s in self.subject_people]
+        elif type == 'time':
+            return [self._make_subject_link(s, "time:") for s in self.subject_times]
+        else:
+            return []
+
+    def get_ebook_info(self):
+        """Returns the ebook info with the following fields.
+
+        * read_url - url to read the book
+        * borrow_url - url to borrow the book
+        * borrowed - True if the book is already borrowed
+        * daisy_url - url to access the daisy format of the book
+
+        Sample return values:
+
+            {
+                "read_url": "http://www.archive.org/stream/foo00bar",
+                "daisy_url": "/books/OL1M/foo/daisy"
+            }
+
+            {
+                "daisy_url": "/books/OL1M/foo/daisy",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "borrowed": False
+            }
+        """
+        solrdata = web.storage(self._solr_data or {})
+        d = {}
+        if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
+            d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
+            d['has_ebook'] = True
+        elif solrdata.get('lending_edition'):
+            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition)
+            d['borrowed'] = solrdata.checked_out
+            d['has_ebook'] = True
+        return d
 
 class Author(Thing):
     """Class to represent /type/author objects in OL.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.name or "unnamed", suffix, **params)
-
+        return self.get_url(suffix, **params)
+        
+    def get_url_suffix(self):
+        return self.name or "unnamed"
+    
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
@@ -151,12 +484,24 @@ class Author(Thing):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
     
 class User(Thing):
+    def get_status(self):
+        account = self.get_account() or {}
+        return account.get("status")
+
     def get_usergroups(self):
         keys = self._site.things({
             'type': '/type/usergroup', 
             'members': self.key})
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
+    
+    def get_account(self):
+        username = self.get_username()
+        return accounts.find(username=username)
+        
+    def get_email(self):
+        account = self.get_account() or {}
+        return account.get("email")
     
     def get_username(self):
         return self.key.split("/")[-1]
@@ -172,6 +517,22 @@ class User(Thing):
         
         seed could be an object or a string like "subject:cheese".
         """
+        # cache the default case
+        if seed is None and limit == 100 and offset == 0:
+            keys = self._get_lists_cached()
+        else:
+            keys = self._get_lists_uncached(seed=seed, limit=limit, offset=offset)
+        
+        lists = self._site.get_many(keys)
+        if sort:
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
+        return lists
+
+    @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
+    def _get_lists_cached(self):
+        return self._get_lists_uncached(limit=100, offset=0)
+        
+    def _get_lists_uncached(self, seed=None, limit=100, offset=0):
         q = {
             "type": "/type/list", 
             "key~": self.key + "/lists/*",
@@ -183,11 +544,7 @@ class User(Thing):
                 seed = {"key": seed.key}
             q['seeds'] = seed
             
-        keys = self._site.things(q)
-        lists = self._site.get_many(keys)
-        if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
-        return lists
+        return self._site.things(q)
         
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
@@ -223,6 +580,35 @@ class User(Thing):
         }
         return self._site.new(key, doc)
 
+    def is_waiting_for(self, book):
+        """Returns True if this user is waiting to loan given book.
+        """
+        return waitinglist.is_user_waiting_for(self.key, book.key)
+
+    def get_waitinglist(self):
+        """Returns list of records for all the books the user is currently waiting for."""
+        return waitinglist.get_waitinglist_for_user(self.key)
+
+    def has_borrowed(self, book):
+        """Returns True if this user has borrowed given book.
+        """
+        loan = self.get_loan_for(book)
+        return loan is not None
+
+    def get_loan_for(self, book):
+        """Returns the loan object for given book.
+
+        Returns None if this user hasn't borrowed the given book.
+        """
+        from ..plugins.upstream import borrow
+        loans = borrow.get_loans(self)
+        for loan in loans:
+            if book.key == loan['book'] or book.ocaid == loan['ocaid']:
+                return loan
+
+    def get_waiting_loan_for(self, book):
+        return waitinglist.get_waiting_loan_object(self.key, book.key)
+
     def __repr__(self):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
@@ -239,8 +625,11 @@ class List(Thing, ListMixin):
         * tags - list of tags to describe this list.
     """
     def url(self, suffix="", **params):
-        return self._make_url(self.name or "unnamed", suffix, **params)
+        return self.get_url(suffix, **params)
         
+    def get_url_suffix(self):
+        return self.name or "unnamed"
+    
     def get_owner(self):
         match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
         if match:
@@ -312,37 +701,19 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-re_range_star = re.compile(r'(\d+\.\d+)\.(\d+)-(\d+)\.\*')
-
 class Library(Thing):
     """Library document.
     
     Each library has a list of IP addresses belongs to that library. 
     """
+    def url(self, suffix="", **params):
+        return self.get_url(suffix, **params)
+
+    def find_bad_ip_ranges(self, text):
+        return iprange.find_bad_ip_ranges(text)
+    
     def parse_ip_ranges(self, text):
-        for line in text.splitlines():
-            line = line.split("#")[0].strip()
-            if not line:
-                continue
-            m = re_range_star.match(line)
-            if m:
-                start = '%s.%s.0' % (m.group(1), m.group(2))
-                end = '%s.%s.255' % (m.group(1), m.group(3))
-                yield (start, end)
-                continue
-            if "-" in line:
-                start, end = line.split("-", 1)
-                yield (start.strip(), end.strip())
-                continue
-            if '*' in line:
-                collected = []
-                octets = line.split('.')
-                while octets[0].isdigit():
-                    collected.append(octets.pop(0))
-                if collected and all(octet == '*' for octet in octets):
-                    yield '%s/%d' % ('.'.join(collected + ['0'] * len(octets)), len(collected) * 8)
-                continue
-            yield line
+        return iprange.parse_ip_ranges(text)
     
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
@@ -354,7 +725,30 @@ class Library(Thing):
         """Return True if the the given ip is part of the library's ip range.
         """
         return ip in self.get_ip_range_list()
+        
+    def get_branches(self):
+        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
+        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
+        def parse(line):
+            branch = web.storage(zip(columns, line.strip().split("|")))
+            
+            # add empty values for missing columns
+            for c in columns:
+                branch.setdefault(c, "")
+            
+            try:
+                branch.lat, branch.lon = branch.latlong.split(",", 1)
+            except ValueError:
+                branch.lat = "0"
+                branch.lon = "0"
+            return branch
+        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
 
+    def get_loans_per_day(self, resource_type="total"):
+        name = self.key.split("/")[-1]
+        stats = loanstats.LoanStats(library=name)
+        return stats.get_loans_per_day(resource_type=resource_type)
+        
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
@@ -366,7 +760,7 @@ class Subject(web.storage):
         keys = web.ctx.site.things(q)
         lists = web.ctx.site.get_many(keys)
         if sort:
-            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_update)
+            lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
         
     def get_seed(self):
@@ -375,11 +769,18 @@ class Subject(web.storage):
             seed = "subject:" + seed
         return seed
         
-    def url(self, suffix="", **params):
+    def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
             u += '?' + urllib.urlencode(params)
+        if not relative:
+            u = _get_ol_base_url() + u
         return u
+
+    # get_url is a common method available in all Models. 
+    # Calling it `get_url` instead of `url` because there are some types that 
+    # have a property with name `url`.
+    get_url = url
         
     def get_default_cover(self):
         for w in self.works:
@@ -408,6 +809,6 @@ def register_types():
     types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
-    types.register_type('^/permission/[^/]*$', '/type/permision')
+    types.register_type('^/permission/[^/]*$', '/type/permission')
 
     types.register_type('^/(css|js)/[^/]*$', '/type/rawtext')

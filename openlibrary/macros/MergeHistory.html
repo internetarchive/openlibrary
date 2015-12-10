@@ -1,0 +1,36 @@
+$def with (author=None, type=None, limit=25)
+
+$ page = safeint(query_param('page', '1'))
+$ ip = query_param('ip', None)
+
+    <table class="changeHistory">
+        <thead>
+            <tr>
+                <th>$_("When")</th>
+                <th>$_("What")</th>
+                <th>&#191;Qu&#233;?</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="time">$datestr(v.created)</td>
+                $# show book title/author name instead of key
+                $if v.thing.type.key == '/type/edition':
+                    $ name = v.thing.title or 'Title unknown'
+                $elif v.thing.type.key == '/type/work':
+                    $ name = v.thing.title or 'Title unknown'
+                $elif v.thing.type.key == '/type/author':
+                    $ name = v.thing.name or 'Author name unknown'
+                $else:
+                    $ name = v.key
+                <td class="path">
+                    <div class="truncatepath">
+                        <a href="$homepath()$v.key" class="datalink" title="$v.key">$name</a>
+                        $if v.revision != 1:
+                           <span class="smallest sansserif"> - <a style="text-decoration: none;" href="$homepath()$v.key?m=diff&amp;b=$v.revision" title="Review what's changed in from the previous revision">diff</a></span>
+                    </div>
+                </td>
+                <td class="comment">$v.comment</td>
+            </tr>
+        </tbody>
+    </table>

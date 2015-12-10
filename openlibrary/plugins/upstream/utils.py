@@ -5,13 +5,15 @@ from UserDict import DictMixin
 from collections import defaultdict
 import random
 import urllib
+import urllib2
 import xml.etree.ElementTree as etree
 import datetime
 import gzip
 import StringIO
+import logging
 
 from infogami import config
-from infogami.utils import view, delegate
+from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
@@ -19,7 +21,7 @@ from infogami.infobase.client import Thing, Changeset, storify
 
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache
+from openlibrary.core import cache, ab
     
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -242,8 +244,6 @@ def _get_changes_v1_raw(query, revision=None):
             
     return versions
 
-_get_changes_v1_raw = cache.memcache_memoize(_get_changes_v1_raw, key_prefix="upstream._get_changes_v1_raw", timeout=10*60)
-
 def get_changes_v1(query, revision=None):
     # uses the cached function _get_changes_v1_raw to get the raw data
     # and processes to before returning.
@@ -350,7 +350,7 @@ def get_locale():
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    importers = ['/people/ImportBot', '/people/EdwardBot']
+    importers = set(['/people/ImportBot', '/people/EdwardBot', '/people/LCImportBot', '/people/AnandBot'])
     comments = [
         "found a matching marc record",
         "add publisher and source",
@@ -374,6 +374,23 @@ def putctx(key, value):
     """Save a value in the context."""
     context[key] = value
     return ""
+
+class Metatag:
+    def __init__(self, tag="meta", **attrs):
+        self.tag = tag
+        self.attrs = attrs
+
+    def __str__(self):
+        attrs = " ".join('%s="%s"' % (web.websafe(k), web.websafe(v)) for k, v in self.attrs.items())
+        return "<%s %s />" % (self.tag, attrs)
+
+    def __repr__(self):
+        return "Metatag(%s)" % str(self)
+
+@public
+def add_metatag(tag="meta", **attrs):
+    context.setdefault('metatags', [])
+    context.metatags.append(Metatag(tag, **attrs))
     
 def pad(seq, size, e=None):
     """
@@ -433,6 +450,16 @@ def get_languages():
     
 @public
 def get_edition_config():
+    return _get_edition_config()
+    
+@web.memoize
+def _get_edition_config():
+    """Returns the edition config.
+    
+    The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
+    
+    This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
+    """
     thing = web.ctx.site.get('/config/edition')
     classifications = [web.storage(t.dict()) for t in thing.classifications if 'name' in t]
     identifiers = [web.storage(t.dict()) for t in thing.identifiers if 'name' in t]
@@ -562,7 +589,8 @@ def _get_recent_changes2():
         t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
         return t(c)
 
-    messages = [render(c) for c in changes]
+    # Gio: c.kind!='update' allow us to ignore update recent changes on people 
+    messages = [render(c) for c in changes if c.kind != 'update']
     messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
     return messages
     
@@ -571,7 +599,7 @@ _get_recent_changes2 = web.memoize(_get_recent_changes2, expires=5*60, backgroun
 
 @public
 def get_random_recent_changes(n):
-    if "recentchanges_v2" in web.ctx.features:
+    if "recentchanges_v2" in web.ctx.get("features", []):
         changes = _get_recent_changes2()
     else:
         changes = _get_recent_changes()
@@ -584,30 +612,65 @@ def get_random_recent_changes(n):
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
+        stats.begin("get_blog_feeds", url=url)
         tree = etree.parse(urllib.urlopen(url))
-    except IOError:
+    except Exception:
         # Handle error gracefully.
+        logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
         return []
+    finally:
+        stats.end()
     
     def parse_item(item):
-        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000')
-        return web.storage(
+        pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000').isoformat()
+        return dict(
             title=item.find("title").text,
             link=item.find("link").text,
             pubdate=pubdate
         )
     return [parse_item(item) for item in tree.findall("//item")]
     
-_get_blog_feeds = web.memoize(_get_blog_feeds, expires=5*60, background=True)
+_get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
+
+def get_donation_include(type):
+    input = web.input()
+    url_banner_source = "https://archive.org/includes/donate.php"
+    html = ''
+    param = '?platform=ol'
+    dd = ''
+    if 'will' in input:
+        url_banner_source = "https://www-will.archive.org/includes/donate.php"
+    if 'don' in input:
+        dd = input['don']
+        param = param+"&ymd="+dd
+    if (type=='true'):
+        html = urllib2.urlopen(url_banner_source+param).read()
+    return html
+
+#get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 
 @public
 def get_blog_feeds():
-    return _get_blog_feeds()
+    def process(post):
+        post = web.storage(post)
+        post.pubdate = parse_datetime(post.pubdate)
+        return post
+    return [process(post) for post in _get_blog_feeds()]
 
 class Request:
     path = property(lambda self: web.ctx.path)
     home = property(lambda self: web.ctx.home)
     domain = property(lambda self: web.ctx.host)
+
+    @property
+    def canonical_url(self):
+        """Returns the https:// version of the URL.
+
+        Used for adding <meta rel="canonical" ..> tag in all web pages.
+        Required to make OL retain the page rank after https migration.
+        """
+        return "https://" + web.ctx.host + web.ctx.get('readable_path', web.ctx.path) + web.ctx.query
+
 
 def setup():
     """Do required initialization"""
@@ -623,7 +686,10 @@ def setup():
     
     web.template.Template.globals.update({
         'HTML': HTML,
-        'request': Request()
+        'request': Request(),
+        'logger': logging.getLogger("openlibrary.template"),
+        'sum': sum,
+        'get_donation_include': get_donation_include
     })
     
     from openlibrary.core import helpers as h

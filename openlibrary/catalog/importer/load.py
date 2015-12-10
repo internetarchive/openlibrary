@@ -16,6 +16,8 @@ if password.endswith('\n'):
 db_error = web.database(dbn='postgres', db='ol_errors', host='localhost', user='openlibrary', pw=password)
 
 def walk_redirects(obj, seen):
+    # called from find_author
+    # uses ol client API
     seen.add(obj['key'])
     while obj['type'] == '/type/redirect':
         assert obj['location'] != obj['key']
@@ -199,7 +201,7 @@ def build_query(loc, rec):
         print l
         if l['key'] == '/languages/ser':
             l['key'] = '/languages/srp'
-        if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent'):
+        if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent', '/languages/enb'):
             l['key'] = '/languages/eng'
         if l['key'] == '/languages/emg':
             l['key'] = '/languages/eng'
@@ -209,6 +211,8 @@ def build_query(loc, rec):
             l['key'] = '/languages/jpn'
         if l['key'] == '/languages/fra':
             l['key'] = '/languages/fre'
+        if l['key'] == '/languages/ila':
+            l['key'] = '/languages/ita'
         if l['key'] == '/languages/gwr':
             l['key'] = '/languages/ger'
         if l['key'] == '/languages/fr ':

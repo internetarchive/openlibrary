@@ -3,6 +3,22 @@ from openlibrary.mocks.mock_infobase import MockSite
 
 
 class TestMockSite:
+    def test_new_key(self, mock_site):
+        ekey = mock_site.new_key('/type/edition')
+        assert ekey == '/books/OL1M'
+        ekey = mock_site.new_key('/type/edition')
+        assert ekey == '/books/OL2M'
+
+        wkey = mock_site.new_key('/type/work')
+        assert wkey == '/works/OL1W'
+        wkey = mock_site.new_key('/type/work')
+        assert wkey == '/works/OL2W'
+
+        akey = mock_site.new_key('/type/author')
+        assert akey == '/authors/OL1A'
+        akey = mock_site.new_key('/type/author')
+        assert akey == '/authors/OL2A'
+
     def test_get(self, mock_site):
         doc = {
             "key": "/books/OL1M",

@@ -1,0 +1,26 @@
+$def with (page, name, unique=True, right=False)
+
+$ label = i18n.get('/type/user', name)
+$ value = page[name]
+
+<div class="formElement title" id="clone_$name">
+    <div class="label">
+        <label for="$name">$label</label>
+    </div>
+$if unique:
+    <div class="input">
+        <input type="text" id="$name" name="$name" value="$value"/>
+    </div>
+$else:
+    $ value = value or [""]
+    $for i, v in enumerate(value):
+        <div class="input">
+            <span><input type="text" name="$name#$i" id="$name#$i" value="$v"/></span>
+            <span>
+                $if i == len(value) - 1:
+                    <button onClick="add_row('$name')" type="button">Add another</button>
+            </span>
+        </div>
+        $ label = ""
+</div>
+<div class="clearfix"></div>

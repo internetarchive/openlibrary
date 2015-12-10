@@ -26,6 +26,30 @@ class ProfileProcessor:
                 return out
         else:
             return handler()
+
+class CORSProcessor:
+    """Processor to handle OPTIONS method to support
+    Cross Origin Resurce Sharing.
+    """
+    def __call__(self, handler):
+        if web.ctx.path.startswith("/api/") or web.ctx.path.endswith(".json"):
+            self.add_cors_headers()
+        if web.ctx.method == "OPTIONS":
+            raise web.ok("")
+        else:
+            return handler()
+
+    def add_cors_headers(self):
+        # Allow anyone to access GET and OPTIONS requests
+        allowed = "GET, OPTIONS"
+        # unless the path is /account/* or /admin/*
+        for p in ["/account", "/admin"]:
+            if web.ctx.path.startswith(p):
+                allowed = "OPTIONS"
+
+        web.header("Access-Control-Allow-Origin", "*")
+        web.header("Access-Control-Allow-Method", allowed)
+        web.header("Access-Control-Max-Age", 3600*24) # one day        
     
 if __name__ == "__main__":
     import doctest

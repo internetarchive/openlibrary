@@ -5,6 +5,9 @@ import urllib, urllib2
 import re
 import web
 import simplejson
+import logging
+
+logger = logging.getLogger("openlibrary.logger")
 
 def urlencode(d, doseq=False):
     """There is a bug in urllib when used with unicode data.
@@ -80,8 +83,17 @@ class Solr:
                     name = f
                 params['facet.field'].append(name)
 
-        url = self.base_url + "/select?" + urlencode(params, doseq=True)
-        data = urllib2.urlopen(url).read()
+        # switch to POST request when the payload is too big.
+        # XXX: would it be a good idea to swithc to POST always?
+        payload = urlencode(params, doseq=True)
+        url = self.base_url + "/select"        
+        if len(payload) < 500:
+            url = url + "?" + payload
+            logger.info("solr request: %s", url)
+            data = urllib2.urlopen(url).read()
+        else:
+            logger.info("solr request: %s ...", url)
+            data = urllib2.urlopen(url, payload).read()
         return self._parse_solr_result(
             simplejson.loads(data), 
             doc_wrapper=doc_wrapper, 

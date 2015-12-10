@@ -1,0 +1,36 @@
+$def with (tasks)
+<table>
+  <tr>
+    <th>
+      Task name
+    </th>
+    <th>
+      Started at
+    </th>
+    <th>
+      Finished at
+    </th>
+    <th>
+      Changeset
+    </th>
+
+  </tr>
+ $for task in tasks:
+   <tr>
+     <td> 
+       <a href="/admin/tasks/$task['_id']">$task['command']</a>
+     </td>
+     <td>
+       $task['started_at'] ($datestr(task['started_at']))
+     </td>
+     <td>
+       $task['finished_at'] ($datestr(task['finished_at']))
+     </td>
+     <td>
+       <a href="/recentchanges/2010/01/01/foo/$task['context']['changeset']">$task['context']['changeset']</a>
+     </td>
+   </tr>
+</table>
+       
+  
+    

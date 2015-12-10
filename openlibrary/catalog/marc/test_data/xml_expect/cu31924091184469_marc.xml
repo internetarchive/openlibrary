@@ -12,11 +12,7 @@
   ], 
   "notes": "Includes bibliographical references.", 
   "number_of_pages": 466, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "lc_classifications": [
     "PA4025.A2 B83 1896"
   ], 

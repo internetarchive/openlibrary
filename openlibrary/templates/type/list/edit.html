@@ -1,0 +1,43 @@
+$def with (page)
+ 
+$var title: $page.name
+
+$putctx("robots", "noindex,nofollow")
+
+<div id="contentHead">
+    $:macros.databarEdit(page)
+    
+    <h1>$_("Edit List")</h1>
+</div>
+
+
+<div id="contentBody">
+            
+    <form id="editList" name="edit" method="post" action="" class="olform validate">
+
+
+        <div class="formElement">
+            <div class="label">
+                <label for="name">$_("Label")</label> 
+            </div>
+            <div class="input">
+                <input type="text" name="name" id="name" value="$page.name" />
+            </div>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="list_description">$_("Description")</label> 
+            </div>
+            <div class="input">
+                <textarea id="list_description" name="description" class="markdown" rows="5" cols="80" style="width: 100%">$page.description</textarea>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+        <div class="formElement bottom">
+            $:macros.EditButtons(comment=page.comment_)
+        </div>        
+    </form>
+</div>

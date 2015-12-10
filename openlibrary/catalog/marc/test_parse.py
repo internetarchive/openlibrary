@@ -34,61 +34,71 @@ bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
 class TestParse(unittest.TestCase):
     def test_xml(self):
         for i in xml_samples:
-            expect_filename = 'test_data/xml_expect/' + i + '_marc.xml'
-            path = 'test_data/xml_input/' + i + '_marc.xml'
-            element = etree.parse(open(path)).getroot()
-            if element.tag != record_tag and element[0].tag == record_tag:
-                element = element[0]
-            rec = MarcXml(element)
-            edition_marc_xml = read_edition(rec)
-            assert edition_marc_xml
-#            if i.startswith('engin'):
-#                pprint(edition_marc_xml)
-#                assert False
-            j = {}
-            if os.path.exists(expect_filename):
-                j = simplejson.load(open(expect_filename))
+            try:
+                expect_filename = 'test_data/xml_expect/' + i + '_marc.xml'
+                path = 'test_data/xml_input/' + i + '_marc.xml'
+                element = etree.parse(open(path)).getroot()
+                if element.tag != record_tag and element[0].tag == record_tag:
+                    element = element[0]
+                rec = MarcXml(element)
+                edition_marc_xml = read_edition(rec)
+                assert edition_marc_xml
+    #            if i.startswith('engin'):
+    #                pprint(edition_marc_xml)
+    #                assert False
+                j = {}
+                if os.path.exists(expect_filename):
+                    j = simplejson.load(open(expect_filename))
+                    if not j:
+                        print expect_filename
+                    assert j
                 if not j:
-                    print expect_filename
-                assert j
-            if not j:
-                simplejson.dump(edition_marc_xml, open(expect_filename, 'w'), indent=2)
-                continue
-            self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
-            for k in edition_marc_xml.keys():
-                self.assertEqual(edition_marc_xml[k], j[k])
-            self.assertEqual(edition_marc_xml, j)
+                    simplejson.dump(edition_marc_xml, open(expect_filename, 'w'), indent=2)
+                    continue
+                self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
+                for k in edition_marc_xml.keys():
+                    print `i, k, edition_marc_xml[k]`
+                    self.assertEqual(edition_marc_xml[k], j[k])
+                self.assertEqual(edition_marc_xml, j)
+            except:
+                print 'bad marc:', i
+                raise
 
     def test_binary(self):
         for i in bin_samples:
-            expect_filename = 'test_data/bin_expect/' + i
-            data = open('test_data/bin_input/' + i).read()
-            if len(data) != int(data[:5]):
-                data = data.decode('utf-8').encode('raw_unicode_escape')
-            assert len(data) == int(data[:5])
-            rec = MarcBinary(data)
-            edition_marc_bin = read_edition(rec)
-            assert edition_marc_bin
-#            if i.startswith('engin'):
-#                pprint(edition_marc_bin)
-#                assert False
-            j = {}
-            if os.path.exists(expect_filename):
-                j = simplejson.load(open(expect_filename))
+            try:
+                expect_filename = 'test_data/bin_expect/' + i
+                data = open('test_data/bin_input/' + i).read()
+                if len(data) != int(data[:5]):
+                    data = data.decode('utf-8').encode('raw_unicode_escape')
+                assert len(data) == int(data[:5])
+                rec = MarcBinary(data)
+                edition_marc_bin = read_edition(rec)
+                assert edition_marc_bin
+    #            if i.startswith('engin'):
+    #                pprint(edition_marc_bin)
+    #                assert False
+                j = {}
+                if os.path.exists(expect_filename):
+                    j = simplejson.load(open(expect_filename))
+                    if not j:
+                        print expect_filename
+                    assert j
                 if not j:
-                    print expect_filename
-                assert j
-            if not j:
-                simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
-                continue
-            self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
-            for k in edition_marc_bin.keys():
-                if isinstance(j[k], list):
-                    for item1, item2 in zip(edition_marc_bin[k], j[k]):
-                        self.assertEqual(item1, item2)
+                    simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
+                    continue
+                self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
+                for k in edition_marc_bin.keys():
+                    if isinstance(j[k], list):
+                        for item1, item2 in zip(edition_marc_bin[k], j[k]):
+                            #print (i, k, item1)
+                            self.assertEqual(item1, item2)
 
-                self.assertEqual(edition_marc_bin[k], j[k])
-            self.assertEqual(edition_marc_bin, j)
+                    self.assertEqual(edition_marc_bin[k], j[k])
+                self.assertEqual(edition_marc_bin, j)
+            except:
+                print 'bad marc:', i
+                raise
 
         i = 'talis_see_also.mrc'
         f = open('test_data/bin_input/' + i)

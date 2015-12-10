@@ -1,0 +1,15 @@
+$def with (page)
+
+<div id="editTools" class="edit">
+    <div id="editButton">
+        <button type="submit" class="linkButton" name="$edit_url" title="Revert this entire merge" accesskey="u">$_("Undo All")</button>
+    </div>
+    <div id="editInfo">
+        $ author = get_recent_author(page)
+        $if author:
+            <div class="brown smaller sansserif">$_("Merged by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
+        $else:
+            <div class="brown smaller sansserif">$_("Merged anonymously")</div>
+        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified))</div>
+    </div>
+</div>

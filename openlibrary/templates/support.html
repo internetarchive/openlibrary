@@ -1,0 +1,65 @@
+$def with (email=None, url=None, done = False)
+
+$var title: What's the problem? 
+
+<div id="contentHead">
+ <h1>$_("What's the problem?")</h1>
+</div>
+
+<div id="contentBody">
+
+ $if done:
+   <em>Your question has been submitted. We'll get back to you shortly.</em>
+
+ <form action="" method="post" name="spamForm" class="olform validate">
+  <p>Please review the <a href="/help/faq">Frequently Asked Questions</a> (FAQ) 
+to see if your question is answered there. Thank you.</p>
+ <div class="formElement">
+ <div class="label"><label for="email">$_("Your Email Address")</label></div>
+ <div class="input"><input type="text" class = "email" name="email" id="email" value="$email"/> (We'll need this if you want a reply)</div>
+ </div>
+
+ <div class="formElement">
+   <div class="label"><label for="topic">$_("Topic")</label></div>
+   <div class="input">
+     <select class = "required" name="topic" id="topic">
+       <option value="">Select...</option>
+       <option value="Borrowing Books">Borrowing Books</option>
+       <option value="Deletion Request">Deletion Request</option>
+       <option value="Developer/API/Covers Question/Bug report">Developer/API/Covers/Bug report Question</option>
+       <option value="Editing Problem">Editing Problem</option>
+       <option value="Login Trouble">Login Trouble</option>
+       <option value="Spam Report">Spam Report</option>
+       <option value="Title Mismatch">Title Mismatch</option>
+       <option value="Waiting List Issue">Waiting List Issue</option>
+       <option value="Other">Other</option>
+     </select>
+   </div>
+ </div>
+
+ <div class="formElement">
+   <div class="label"><label for="question">$_("Your question")</label></div>
+   <div class="input">
+     <textarea id="question" name="question" class = "required" cols="40" rows="5"></textarea>
+   </div>
+   <p>If you encounter an error message, please cut and paste it along with the question.</p><p>
+   For questions about books, please provide the url of the openlibrary.org page or the title/author of the book.</p>
+
+ </div>
+
+
+ <!-- <div class="formElement"> -->
+ <!-- <div class="label"><label for="url">$_("Which page were you looking at?")</label></div> -->
+ <div class="input"><input type="hidden" name="url" id="url" value="$url"/></div>
+<!-- </div> -->
+
+
+ <div class="formElement bottom">
+ <div class="input">
+ <input type="submit" class="largest" value="Send" name="send" title="Send"/>
+ &nbsp; &nbsp;
+ <a href="javascript:history.go(-1);" class="red">Cancel</a>
+ </div>
+ </div>
+ </form>
+</div>

@@ -1,0 +1,64 @@
+$def with (page)
+
+$ lang = page.key.split('.')[-1]
+$ namespace = find_i18n_namespace(page.key)
+
+<script type="text/javascript">
+function change_ns(ns) {
+    document.forms['i18n']['ns'].value = ns;
+    document.forms['i18n'].submit();
+}
+
+function changelang() {
+    var lang = \$("#id_lang").attr('value');
+        window.location.href = "/i18n$namespace/strings." + lang;
+}
+</script>
+
+$var title: $page.key
+
+<div id="contentHead">
+    <h2>
+    $page.key
+        <span class="tools">
+            <a href="javascript:;" onclick="window.location.href = '$changequery(m='edit')';">$_.edit</a>
+        </span>
+    </h2>
+</div>
+
+
+<div id="contentBody">
+    <p>
+        Language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
+        <input type="hidden" name="ns" value="$namespace"/>
+    </p>
+
+    <table width="100%">
+        <tr>
+            <td>
+
+            $ xnamespace = namespace or "/"
+            $for ns in _.get_namespaces():
+                $if ns == xnamespace:
+                    <span class="red">&rarr;</span>
+                    $(ns or "root")
+                $else:
+                    <a href="/i18n$ns/strings.$lang" >$ns</a>     
+                <span class="smaller">$(_.get_count(ns, lang))/$_.get_count(ns)</span> 
+                <br/>
+
+            </td>
+            <td style="vertical-align: top" width="100%">
+                <table id="strings_table">
+                $for key in _.getkeys(namespace, lang):
+                    <tr>
+                        <td class="formheader-i18n">$key</td>
+                        <td width="100%" style="padding-left: 20px">$page.get('string_' + key, '')</td>
+                    </tr>
+                </table>
+            <br/>
+            </td>
+        </tr>
+    </table>
+
+</div>

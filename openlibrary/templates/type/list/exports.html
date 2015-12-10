@@ -1,0 +1,41 @@
+$def with (list)
+ 
+<div id="listTools"> 
+    $if list.edition_count <= 10000:
+        <ul> 
+            <li> 
+                <span class="icon export"></span> 
+                <span class="larger black"><strong>Export</strong></span><br/> 
+                As 
+                <a href="$list.url('/export?format=json')">JSON</a>, 
+                <a href="$list.url('/export?format=html')">HTML</a> 
+                or 
+                <a href="$list.url('/export?format=bibtex')">BibTex</a>
+            </li> 
+            <li> 
+                <span class="icon subscribe"></span> 
+                <span class="larger black"><strong>Subscribe</strong></span><br/> 
+                Watch activity via <a href="$list.url('/feeds/updates.atom')">Atom feed</a> 
+            </li>
+        </ul>
+    $else:
+        <ul> 
+            <li style="padding-bottom:10px;"> 
+                <span class="icon export"></span> 
+                <span class="larger grey"><strong>Export Not Available</strong></span>
+            </li>
+            <li>
+                <span class="icon alert" style="height:115px;"></span>
+                <span class="smaller grey">
+                $_("Only lists with up to %s editions can be exported. This one has %s.", commify(10000), commify(list.edition_count))
+                <br/><br/>
+                $:_('Try removing some seeds for more focus, or look at <a href="%s">bulk download</a> of the catalog.', "/data#bulk_download")
+                </span><br />&nbsp;
+            </li>
+            <li> 
+                <span class="icon subscribe"></span> 
+                <span class="larger black"><strong>Subscribe</strong></span><br/> 
+                Watch activity via <a href="$list.url('/feeds/updates.atom')">Atom feed</a> 
+            </li>
+        </ul>    
+</div>

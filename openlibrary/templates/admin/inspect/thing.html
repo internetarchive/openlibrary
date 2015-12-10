@@ -1,0 +1,30 @@
+$def with (thing, tasks)
+<style type="text/css">
+table { 
+              font-family: Lucida, "Lucida Sans";
+              font-size: 0.75em;
+              width: 100%;
+              }
+
+table th { 
+                 font-weight: bold;
+ }
+table th, table td {
+                                 border-bottom: 1px solid #ddd; 
+                                 vertical-align:top;
+                                 padding: 5pt;
+                                 }
+
+</style>
+
+$var title: [Admin Center] Inspecting $thing
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Inspect thing</h1>
+</div>
+
+<div id="contentBody">
+  <h2>Offline tasks associated with this item</h2>
+  $:render_template("admin/inspect/tasks", tasks)
+</div>

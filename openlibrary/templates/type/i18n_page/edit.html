@@ -1,0 +1,42 @@
+$def with (page)
+
+$ languages = i18n.get_languages()
+
+$ lang = i18n.get_locale() or 'en'
+$ _t = i18n.get_namespace('/type/i18n_page')
+$ _ = i18n.get_namespace('/mode/edit')
+
+$var title: $_.edit_title(page.key)
+
+<form name="edit" method="post" class="olform">
+
+
+<div id="contentHead">
+    <div class="head">
+        <span class="tools">$_.pretitle:</span>
+        <h1>$page.key</h1>
+    </div>
+</div>
+
+$ key = page.key
+$if key == '/':
+    $ key = '/index'
+
+<div id="contentBody">
+    $:macros.TypeChanger(page.type)
+    <div class="formElement">
+        <div class="label"><label for="_lang">Available Translations:</label></div>
+        <div class="input">
+            <select name="_lang" onchange="window.location = (window.location.protocol + '//' + window.location.host + this.options[this.selectedIndex].value + window.location.search + '&redirect=$page.key')" id="lang_dropdown">
+            <option value="">Please select one ...</option>
+            <option value="${key}.en">English (en)</option>
+            <option value="${key}.it">Italian (it)</option>
+            <option value="${key}.es">Spanish (es)</option>
+            <option value="${key}.te">Telugu (te)</option>
+            </select>
+        </div>
+    </div>
+
+</div>
+
+</form>

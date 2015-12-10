@@ -77,16 +77,6 @@ class TestHomeTemplates:
         html = unicode(render_template("home/read"))
         assert html.strip() == ""
         
-    def test_lending_template(self, render_template, mock_site, olconfig):
-        html = unicode(render_template("home/lendinglibrary"))
-        assert html.strip() == ""
-        
-        mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
-        olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
-
-        html = unicode(render_template("home/lendinglibrary", "/people/foo/lists/OL1L"))
-        assert "Lending Library" in html
-
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
         docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits = 1, bot_edits = 1, lists = 1,

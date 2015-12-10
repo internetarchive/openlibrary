@@ -1,0 +1,60 @@
+$def with (page)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: Editing $page.displayname
+
+<script type="text/javascript">
+function add_row(name) {
+    var clonediv = \$("#clone_" + name);
+    var n = clonediv.children().length;
+    var row = \$("div:last", clonediv);
+    var newrow = row.clone();
+
+    clonediv.append(newrow);
+
+    \$("span:last", row).html("");
+    \$("input", newrow).attr("name", name + "#" + n);
+    \$("input", newrow).attr("value", "");
+}
+</script>
+
+<div id="contentHead">
+    <h1>
+        <span class="tools">$_("Currently Editing:")</span>
+        $page.displayname
+    </h1>
+</div>
+
+<div id="contentBody">
+    
+    <form method="POST" class="olform">
+        <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
+
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Display Name")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="displayname" id="title" value="$page.displayname"/>
+            </div>
+        </div>
+
+        $:macros.TypeChanger(page.type)
+
+        <div class="clearfix"></div>
+
+        $:macros.UserEditRow(page, 'website', False)
+
+        <div class="formElement">
+            <div class="label"><label for="description">$_("Description")</label></div>
+            <div class="input">
+                <textarea name="description" class="markdown" rows="6" cols="40">$page.description</textarea>
+            </div>
+        </div>
+        
+        <div class="clearfix"></div>
+
+        $:macros.EditButtons(comment=page.comment_)
+    </form>
+</div>

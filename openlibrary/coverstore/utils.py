@@ -4,7 +4,6 @@ import urllib, urllib2
 import socket
 import os
 import mimetypes
-import Image
 import simplejson
 import web
 

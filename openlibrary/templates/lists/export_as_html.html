@@ -1,0 +1,47 @@
+$def with (list, editions)
+<html>
+<head>
+    <title>$list.name - Editions</title>
+    <style type="text/css">
+        h3.title {
+            display: inline;
+        }
+    </style>
+</head>
+<body>
+    $def render_authors(book):
+        <span class="author">
+            $if book.works:
+                $ authors = book.works[0].get_authors()
+            $else:
+                $ authors = book.get_authors()
+            
+            $if authors:
+                $for a in authors:
+                    <a href="$request.home$a.url()">$a.name</a>$cond(not loop.last, ", ")
+            $else:
+                <em>Unknown authors</em>
+        </span>
+    <ul>
+    $for book in editions:
+        <li>
+            <h3 class="title"> 
+                <a href="$request.home$book.url()">$book.get('title', 'Title unknown')</a> 
+            </h3> 
+            by $:render_authors(book)
+            
+            <div class="published">
+                $if book.publishers and book.publish_date:
+                    $book.publish_date, $(', '.join(book.publishers))
+                $elif book.publish_date:
+                    $book.publish_date
+                $elif book.publishers:
+                    <em>Publish date unknown</em>, $(', '.join(book.publishers))
+                $else:
+                    <em>Publisher unknown</em>
+            </div>
+            <br/>
+        </li>
+    </ul>
+</body>
+</html>

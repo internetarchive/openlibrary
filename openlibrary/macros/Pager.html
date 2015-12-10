@@ -1,0 +1,32 @@
+$def with (page, num_found, results_per_page)
+
+$ pages = (num_found / results_per_page) + 1
+$if pages != 1:
+    $ pages_in_set = 10
+    $ half = pages_in_set/2
+    $if pages < pages_in_set:
+        $ first_page_in_set = 1
+        $ last_page_in_set = pages
+    $elif page < half:
+        $ first_page_in_set = 1
+        $ last_page_in_set = min((pages_in_set, pages))
+    $elif page > (pages-half):
+        $ first_page_in_set = max((pages-pages_in_set, 1))
+        $ last_page_in_set = pages
+    $else:
+        $ first_page_in_set = max((page-half, 1))
+        $ last_page_in_set = page+half
+    <div class="clearfix"></div>
+    <div class="pagination">
+    $if page != 1:
+        <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;First</a>
+        <a href="$changequery(page=page-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
+    $for p in range(first_page_in_set, last_page_in_set+1):
+        $if p == page:
+            <span class="this">$p</span>
+        $else:
+            <a href="$changequery(page=p)" class="ChoosePage">$p</a>
+    $if page < pages:
+        <a href="$changequery(page=page+1)" class="ChoosePage">Next&nbsp;&gt;</a>
+        <a href="$changequery(page=pages)" class="ChoosePage">Last&nbsp;&raquo;</a>
+    </div>

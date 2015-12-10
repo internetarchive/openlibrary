@@ -1,0 +1,61 @@
+$def with (book)
+
+<div class="hidden">
+    <div class="floater" id="addCover">
+        <div class="floaterHead">
+            <h2>Book Covers</h2>
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"></a>
+        </div>
+        <form class="floatform" id="addcover-form" name="bookcover" method="POST" enctype="multipart/form-data" action="/uploadcover">
+            <div id="popThisUp2" class="floaterAlert hidden"><strong>Ahem.</strong> You appear not to have specified an image. Please choose one?</div>
+            <div id="imageIntro">$_("There are two ways to get a cover image on Open Library:")</div>
+            <div class="formElement">
+                <div class="label">
+                    <label id="coverBrowse" for="coverFile">$_("Either choose a JPG, GIF or PNG on your computer,")</label>
+                </div>
+                <div class="input">
+                    <input type="file" name="file" id="coverFile"/>
+                </div>
+            </div>
+            <div class="formElement">
+                <div class="label">
+                    <label id="coverWeb" for="coverUrl"><span class="highlight">$:_("<u>Or</u></span>, paste in a URL to an image if it's on the web.")</label>
+                </div>
+                <div class="input">
+                    <input type="text" name="url" id="coverUrl" value="http://"/>
+                </div>
+            </div>            
+            <input type="hidden" name="key" value="$book.key"/>
+            
+            <div class="formButtons">
+                <button type="submit" name="coverUpload" id="coverUpload" value="Upload" style="width:auto!important;">$_("Upload")</button>
+                <a id="coverClose" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
+            </div>
+        </form>
+    </div>
+</div>    
+<script type="text/javascript">
+<!--
+function submit_cover(response, status) {
+    if (response.id) {
+        var url = "$get_coverstore_url()" + "/b/id/" + response.id + "-S.jpg";
+        \$("#cover").html(\$("<img/>").attr("src", url));
+        \$('<input type="hidden" name="edition--coverid"/>').val(response.id).appendTo("#cover");
+        \$.fn.colorbox.close();
+    }
+}
+
+\$().ready(function() { 
+    //Forms(); 
+});
+\$(document).ready(function() {
+    \$("#addcover-form").ajaxForm({"success": submit_cover, "dataType": "json"});
+});
+
+var html = [
+    '<form class="olforms books" id="addcover-form">',
+    ''
+    
+].join("\n");
+//-->
+</script>

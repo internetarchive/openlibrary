@@ -1,0 +1,62 @@
+$def with ()
+
+
+$var title: $_("Merge History")
+
+<div id="contentHead">
+    $:macros.databarMerge(page)
+    <h1>$_("Merge History")</h1>
+</div>
+
+<div id="contentBody">
+    <div id="mergeHead" class="sansserif">
+        <div class="smallest lightgreen">Master</div>
+        <div id="recordMaster">
+            <span id="recordMasterTitle" class="larger"><strong>
+            <!-- if author merge: -->
+                Firstname Lastname</strong>
+            <!-- elif work/edition merge -->
+                <a href="work" class="results" title="Visit this work's page">Title</a></strong>
+                <span class="small grey">by</span> <span class="small">
+                <!-- if author(s) -->
+                    <a href="author" class="results" title="Visit this author's page">Author</a>
+                <!-- else -->
+                    <em>an unknown author</em>
+                </span>
+            </span>
+            <span id="recordMasterDate" class="smaller">
+            <!-- if author merge -->
+                (
+                <!-- if birthdate -->
+                    Birthdate
+                <!-- if deathdate -->
+                     - Deathdate
+                )
+            <!-- elif work merge -->
+                <!-- if first-published date -->
+                    First published in 0000
+            <!-- elif edition merge -->
+                <!-- if published date -->
+                    Published in Month 00, 0000
+            </span>
+            <!-- if author merge -->
+                <span id="recordMasterCount" class="smaller">
+                    <a href="author" title="Visit this author's page">000 works</a>
+                </span>
+        </div>
+        <div class="smallest lightgreen">Duplicates</div>
+        <div id="recordDuplicates">
+            <p class="small collapse">
+            <!-- if author merge -->
+                Name; Name; Name
+            <!-- if work/edition merge -->
+                Title; Title; Title
+            </p>
+        </div>
+    </div>
+
+    <h3>Updated Records</h3>
+
+    $ type = query_param('type', None)
+    $:macros.MergeHistory(author=None, type=type, limit=50)
+</div>

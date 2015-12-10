@@ -1,0 +1,38 @@
+$def with (page)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: $_("Edit %(title)s", title=page.key)
+
+$:render_template("lib/edit_head", page)
+            
+<div id="contentBody">
+
+    <form name="edit" method="post" action="" class="olform">
+
+    $:macros.TypeChanger(page.type)
+
+    <div class="clearfix"></div>
+
+    <div class="formElement">
+        <div class="label"><label for="description">Description:</label></div>
+        <div class="input">
+            <textarea id="description" name="description" rows="5" cols="80" style="height: 200px;">$page.description</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        <div class="label"><label for="members#0">Members:</label></div>
+        <div class="input">
+            $for i, m in enumerate(page.members):
+                <input id="members#$i" type="text" name="members#$i" value="$page.members[i].key"/>
+            $for i in range(len(page.members), len(page.members)+5):
+                <input id="members#$i" type="text" name="members#$i" value=""/>
+        </div>
+    </div>
+
+
+    $:macros.EditButtons(comment=page.comment_)
+
+    </form>
+</div>

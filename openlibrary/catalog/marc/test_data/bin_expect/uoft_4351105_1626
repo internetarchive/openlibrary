@@ -27,11 +27,7 @@
   "subtitle": "pami\ufe20a\ufe21tniki mirovo\u012d \u0117stetichesko\u012d mysli", 
   "title": "Istorii\ufe20a\ufe21 \u0117stetiki", 
   "notes": "Includes bibliographical references.", 
-  "languages": [
-    {
-      "key": "/languages/rus"
-    }
-  ], 
+  "languages": ["rus"],
   "lc_classifications": [
     "BH81 .A55 1962"
   ], 

@@ -7,5 +7,10 @@ data_root = None
 
 ol_url = "http://openlibrary.org/"
 
+# ids of the blocked covers
+# this is used to block covers when someone requests
+# an image to be blocked.
+blocked_covers = []
+
 def get(name, default=None):
     return globals().get(name, default)

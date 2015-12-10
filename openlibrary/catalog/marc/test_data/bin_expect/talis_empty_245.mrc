@@ -7,11 +7,7 @@
     "Schott's woodwind series -- Oboe and pianoforte, no.2"
   ], 
   "notes": "Score and part.", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "publish_date": "1950", 
   "publish_country": "xxk", 
   "authors": [

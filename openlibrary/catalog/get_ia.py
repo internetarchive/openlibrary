@@ -1,17 +1,17 @@
-from openlibrary.catalog.marc import fast_parse, read_xml, is_display_marc
+from openlibrary.catalog.marc import fast_parse, read_xml
 from openlibrary.catalog.utils import error_mail
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
-from openlibrary.catalog.read_rc import read_rc
 from time import sleep
 from openlibrary.utils.ia import find_item
+from openlibrary.core import ia
 
-base = "http://www.archive.org/download/"
+base = "https://archive.org/download/"
 
-rc = read_rc()
-
-class NoMARCXML:
+class NoMARCXML(IOError):
     pass
 
 def urlopen_keep_trying(url):
@@ -49,7 +49,7 @@ def get_marc_ia_data(ia, host=None, path=None):
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
-    return f.read if f else None
+    return f.read() if f else None
 
 def get_marc_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
@@ -64,6 +64,30 @@ def get_marc_ia(ia):
     print 'leader:', data[:24]
     return data
     return fast_parse.read_edition(data, accept_electronic = True)
+
+def get_marc_record_from_ia(identifier):
+    """Takes IA identifiers and returns MARC record instance.
+    """
+    metadata = ia.get_metadata(identifier)
+    filenames = metadata['_filenames']
+
+    marc_xml_filename = identifier + "_marc.xml"
+    marc_bin_filename = identifier + "_meta.mrc"
+
+    item_base = base + "/" + identifier + "/"
+
+    # Try marc.xml first
+    if marc_xml_filename in filenames:
+        data = urlopen_keep_trying(item_base + marc_xml_filename).read()
+        if data[:10].find('<?xml') != -1:
+            root = etree.fromstring(data)
+            return MarcXml(root)
+
+    # If that fails, try marc.bin
+    if marc_bin_filename in filenames:
+        data = urlopen_keep_trying(item_base + marc_bin_filename).read()
+        if len(data) == int(data[:5]):
+            return MarcBinary(data)
 
 def get_ia(ia):
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
@@ -86,10 +110,12 @@ def get_ia(ia):
         try:
             return read_xml.read_edition(f)
         except read_xml.BadXML:
+            print "read_xml BADXML"
             pass
         except xml.parsers.expat.ExpatError:
             #print 'IA:', `ia`
             #print 'XML parse error:', base + loc
+            print "read_xml ExpatError"            
             pass
     print base + loc
     if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
@@ -236,11 +262,7 @@ def marc_formats(ia, host=None, path=None):
     has = { 'xml': False, 'bin': False }
     ending = 'files.xml'
     if host and path:
-<<<<<<< HEAD
-        url = 'http://%s%s/%s_files.xml' % (host, path, ia)
-=======
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
->>>>>>> a6e890c72315ff97b2f8a600f189fce28668fefe
     else:
         url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
     for attempt in range(10):

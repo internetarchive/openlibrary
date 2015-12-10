@@ -1,0 +1,10 @@
+$def with (username, email)
+
+$var title: $_("Verification email sent")
+<div id="contentHead">
+    <h1>$_("Hi, %(user)s!", user=username)</h1>
+</div>
+
+<div id="contentBody">
+    <p>$_("We've sent an email to %(email)s. You'll need to read that and click on the verification link to finish creating your account.", email=email)</p>
+</div>

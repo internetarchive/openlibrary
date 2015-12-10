@@ -1,0 +1,73 @@
+$def with (page)
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="description" content="" />
+    <meta name="title" content="" />
+
+    <meta name="author" content="OpenLibrary.org" />
+    <meta name="creator" content="OpenLibrary.org" />
+    <meta name="copyright" content="Original content copyright; 2009" />
+    <meta name="distribution" content="Global" />
+    <meta name="robots" content="Index, Follow" />
+
+    <!--
+    <link rel="alternate" type="application/json" href="http://openlibrary.org/.json"/>
+    <link rel="alternate" type="application/rdf+xml" href="http://openlibrary.org/.rdf"/>
+    -->
+
+    $for js in ctx.javascripts:
+        <script src="$js" type="text/javascript"/>
+
+    $if query_param("debug", "false").lower() == "true":
+        <script src="http://home.us.archive.org/~larthur/scripts/vendor.js" type="text/javascript"></script>
+    $else:
+        <script src="$vendor_js()" type="text/javascript"></script>
+    
+    <script src="/js/ol.js?format=raw" type="text/javascript"></script>
+    
+    <title>$:page.title ($_("Open Library"))</title>
+
+    $for link in ctx.get("links", []):
+        $:link
+
+    $for s in ctx.stylesheets:
+        <link rel="stylesheet" type="text/css" href="$s" />
+
+    <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
+    
+    <script type="text/javascript">
+        \$().ready(setupSearch);
+        \$().ready(linkbuttons);
+    </script>
+</head>
+
+<body id="$ctx.get('bodyid', 'user')">
+<a name="top"></a>
+
+    <div id="placement">
+
+        <div id="position">
+
+            <div id="content">
+                <div class="flash-messages">
+                $for flash in get_flash_messages():
+                    <div class="$flash.type"><span>$flash.message</span></div>
+                </div>
+
+                $:page
+
+            </div>
+    
+            $:render_template("lib/nav_foot", page)
+
+        </div>
+
+    </div>
+
+    $:render_template("lib/site_legal", page)
+
+</body>
+</html>

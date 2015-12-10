@@ -1,0 +1,197 @@
+.wmd-panel
+{
+    width: auto;
+}
+
+.wmd-editor
+{
+    background-color: Aquamarine;
+}
+
+.wmd-button-bar 
+{
+    background-color: transparent;
+}
+.formElement .input .wmd-button-bar {
+    width: 916px;
+}
+fieldset.major .wmd-button-bar,
+form.olform.books .formElement .input .wmd-button-bar {
+    width: 854px;
+}
+form.olform.books .formElement.librarian .input .wmd-button-bar {
+    width: 798px;
+}
+form#addAuthor.olform .wmd-button-bar {
+    width: 628px;
+}
+
+
+.wmd-input 
+{ 
+    height: 500px;
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #454545;
+}
+
+.wmd-preview {
+    background-color: #fff;
+    border: 1px solid #dedede;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    display: none;
+    margin-bottom: 10px;
+}
+.formElement .input .wmd-preview {
+    width: 906px;
+    min-height: 47px;
+    padding: 5px;
+    float: left;
+    clear: both;
+}
+fieldset.major .wmd-preview,
+form.olform.books .formElement .input .wmd-preview {
+    width: 848px;
+    min-height: 47px;
+    padding: 3px;
+}
+form.olform.books .formElement.librarian .input .wmd-preview {
+    width: 798px;
+    min-height: 47px;
+    padding: 3px;
+}
+form#addAuthor.olform .wmd-preview {
+    width: 623px;
+    padding: 3px;
+    min-height: 47px;
+}
+
+.wmd-output 
+{ 
+    background-color: #fff;
+}
+
+.wmd-button-row 
+{
+    position: relative; 
+    margin-bottom: 5px!important;
+    margin-left: 0!important;
+    margin-top: 10px;
+    padding: 0;
+    height: 20px;
+}
+
+.wmd-spacer
+{
+    width: 1px; 
+    height: 20px; 
+    margin-left: 14px;
+    position: absolute;
+    display: inline-block; 
+    list-style: none;
+}
+
+.wmd-button
+{
+    width: 20px; 
+    height: 20px;
+    margin-right: 10px;
+    position: absolute;
+    background-image: url("/images/wmd-buttons.png");
+    background-repeat: no-repeat;
+    background-position: 0 0;
+    display: inline-block; 
+    list-style: none;
+}
+
+.wmd-button > a
+{
+    width: 20px; 
+    height: 20px; 
+    margin-left: 5px;
+    margin-right: 5px;
+    position: absolute;
+    display: inline-block; 
+}
+
+
+/* sprite button slicing style information */
+.wmd-bold-button    {left: 0;   background-position: 0 0;}
+.wmd-italic-button  {left: 25px;  background-position: -20px 0;}
+.wmd-spacer1        {left: 50px;}
+.wmd-link-button    {left: 75px;  background-position: -40px 0;}
+.wmd-quote-button   {left: 100px;  background-position: -60px 0;}
+.wmd-code-button    {left: 125px;  background-position: -80px 0;}
+.wmd-image-button   {left: 150px;  background-position: -100px 0;}
+.wmd-spacer2        {left: 175px;}
+.wmd-olist-button   {left: 200px;  background-position: -120px 0;}
+.wmd-ulist-button   {left: 225px; background-position: -140px 0;}
+.wmd-heading-button {left: 250px; background-position: -160px 0;}
+.wmd-hr-button      {left: 275px; background-position: -180px 0;}
+.wmd-spacer3        {left: 300px;}
+.wmd-undo-button    {left: 325px; background-position: -200px 0;}
+.wmd-redo-button    {left: 350px; background-position: -220px 0;}
+.wmd-help-button    {margin-right:0; right: 0; background-position: -240px 0;}
+
+
+.wmd-prompt-background
+{
+    background-color: #000;
+    opacity: 0.9;
+    filter: Alpha(Opacity=90);
+}
+
+.wmd-prompt-dialog
+{
+    width: 400px; 
+    border:10px solid #615132; 
+    background-color: #fff; 
+    -webkit-border-radius:12px;
+    -moz-border-radius:12px;
+    border-radius:12px;
+    -moz-box-shadow: 1px 3px 10px #000;
+    -webkit-box-shadow: 1px 3px 10px #000;
+    box-shadow: 1px 3px 10px #000;
+    text-align: left;
+}
+
+.wmd-prompt-dialog > div {
+    font-size: 14px;
+    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;
+    padding: 20px!important;
+}
+.wmd-prompt-dialog > div p {
+    margin-bottom: 0!important;
+    position: relative;
+}
+.wmd-prompt-dialog p b {
+    display: block;
+    position: relative;
+    top: -20px;
+    left: -20px;
+    background-color: #615132;
+    padding: 0 10px 10px 10px;
+    color: #fff;
+    font-family: "News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;
+    font-size: 1.75em;
+    width: 380px;
+}
+.wmd-prompt-dialog > form {
+    width: 480px;
+    padding: 20px;
+    padding-top: 0;
+}
+.wmd-prompt-dialog > form > input[type=text] {
+    float: left;
+    margin-left: 20px!important;
+    clear: both;
+    width: 350px;
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+}
+
+.wmd-prompt-dialog > form > input[type="button"]{
+    font-size: 1.125em;
+    width: auto!important;
+}

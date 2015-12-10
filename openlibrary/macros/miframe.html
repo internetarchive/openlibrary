@@ -1,0 +1,4 @@
+$def with (url, **attrs)
+
+$if url.startswith("http://www.archive.org/"):
+    <iframe src="$url" $:' '.join('%s="%s"' % (k, v) for k, v in attrs.items())></iframe>

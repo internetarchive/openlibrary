@@ -18,11 +18,7 @@
   ], 
   "notes": "\"Revised and updated version of the classic guide to the Arab-Israeli Conflict\"--Back cover.\n\nIncludes bibliographical references (p. 443-444) and index.", 
   "number_of_pages": 381, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "isbn_10": [
     "0971294518"
   ], 

@@ -1,0 +1,11 @@
+$def with (page)
+
+$if not ctx.get("sent_head"):
+    $:render_template("site/head.tmpl")
+
+$if not ctx.get("sent_neck"):
+    $:render_template("site/neck.tmpl", title=page.title)
+
+$:render_template("site/body", page)
+
+$:render_template("site/footer")

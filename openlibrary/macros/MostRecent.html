@@ -1,0 +1,31 @@
+$def with (author=None, limit=4)
+
+$ changes = get_recent_changes(author=author, limit=limit, bot=False)
+
+$for v in changes[:4]:
+    $if v.author:
+        $ who = '<a href="%s" rel="nofollow">%s</a>' % (v.author.key, v.author.displayname or v.author.key)
+    $else:
+        $ who = None
+    $if v.thing.type.key in ['/type/edition', '/type/work']:
+        $ what = v.thing.title or v.key
+    $elif v.thing.type.key == '/type/author':
+        $ what = v.thing.name or v.key
+    $else:
+        $ what = v.key
+    $ what = '<a href="%s" rel="nofollow">%s</a>' % (v.key, what)
+    $ when = datestr(v.created)
+    <div class="history">
+        $if v.revision == 1:
+            $ action = "created"
+        $else:
+            $ action = "updated"
+            
+        $if v.revision == 1 and v.author and v.author.key == v.key:
+            $:who created new account
+        $elif who:
+            $:who $action $:what
+        $else:
+            $:what was $action anonymously
+        <span class="timestamp">$when</span>
+    </div>

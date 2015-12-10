@@ -34,7 +34,8 @@ __all__ = [
     "safesort", 
     "datestr", "format_date",    
     "sprintf", "cond", "commify", "truncate",
-    "urlsafe", "texsafe",
+    "urlsafe", "texsafe", 
+    "percentage",
     
     # functions imported from elsewhere
     "parse_datetime", "safeint"
@@ -62,11 +63,16 @@ def sanitize(html):
                 
     try:
         html = genshi.HTML(html)
-    except genshi.ParseError:
+    except (genshi.ParseError, UnicodeDecodeError, UnicodeError):
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
             html = str(BeautifulSoup(html))
-            html = genshi.HTML(html)
+            try:
+                html = genshi.HTML(html)
+            except Exception:
+                # Failed to sanitize.
+                # We can't do any better than returning the original HTML, without sanitizing.
+                return html                
         else:
             raise
 
@@ -76,10 +82,10 @@ def sanitize(html):
     return stream.render()                                        
 
 
-def json_encode(d):
+def json_encode(d, **kw):
     """Same as simplejson.dumps.
     """
-    return simplejson.dumps(d)
+    return simplejson.dumps(d, **kw)
 
 
 def safesort(iterable, key=None, reverse=False):
@@ -95,9 +101,12 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
-def datestr(then, now=None, lang=None):
+def datestr(then, now=None, lang=None, relative = True):
     """Internationalized version of web.datestr."""
-    result = web.datestr(then, now)
+    if not relative:
+        result = then.strftime("%b %d %Y")
+    else:
+        result = web.datestr(then, now)
     if not result:
         return result
     elif result[0] in string.digits: # eg: 2 milliseconds ago
@@ -164,7 +173,7 @@ def truncate(text, limit):
 def urlsafe(path):
     """Replaces the unsafe chars from path with underscores.
     """
-    return _get_safepath_re().sub('_', path).strip('_')
+    return _get_safepath_re().sub('_', path).strip('_')[:100]
 
 @web.memoize
 def _get_safepath_re():
@@ -222,7 +231,37 @@ def texsafe(text):
         _texsafe_re = re.compile(pattern)
         
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
+
+def percentage(value, total):
+    """Computes percentage.
+        
+        >>> percentage(1, 10)
+        10.0
+        >>> percentage(0, 0)
+        0.0
+    """
+    if total == 0:
+        return 0
+    else:
+        return (value * 100.0)/total
+
+def uniq(values, key=None):
+    """Returns the unique entries from the given values in the original order.
     
+    The value of the optional `key` parameter should be a function that takes
+    a single argument and returns a key to test the uniqueness.
+    """
+    key = key or (lambda x: x)
+    s = set()
+    result = []
+    for v in values:
+        k = key(v)
+        if k not in s:
+            s.add(k)
+            result.append(v)
+    return result
+
+        
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)

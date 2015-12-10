@@ -1,0 +1,47 @@
+$def with (page)
+
+$ _x = ctx.setdefault('bodyid', 'edit')
+
+$var title: $_("Edit %(title)s", title=page.key)
+
+$:render_template("lib/edit_head", page)
+
+<div id="contentBody">
+    <form name="edit" method="post" action="">
+
+        <div class="formElement title">
+            <div class="label">
+                <label for="title">$_("Title")</label>
+            </div>
+            <div class="input">
+                <input type="text" name="title" id="title" value="$page.title"/>
+            </div>
+        </div>
+        
+        $:macros.TypeChanger(page.type)
+        
+        <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="body">$_("Document Body")</label>
+            </div>
+            <div class="input">
+                <textarea name="body" id="body" rows="40" cols="80">$page.body</textarea>
+
+                $if page.key.endswith(".css"):
+                    $ ctype = "text/css"
+                $elif page.key.endswith(".js"):
+                    $ ctype = "text/javascript"
+                $elif page.key.endswith(".html"):
+                    $ ctype = "text/html"
+                $else:
+                    $ ctype = "text/plain"
+                <input type="hidden" name="content_type" value="$ctype"/>
+            </div>
+        </div>
+
+        $:macros.EditButtonsMacros(comment=page.comment_)
+
+    </form>
+</div>

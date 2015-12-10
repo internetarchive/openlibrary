@@ -1,5 +1,5 @@
 Lists
 =====
 
-This document explain how lists feature is implemented.
+This document explain how the lists feature is implemented.
 

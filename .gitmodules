@@ -1,9 +1,9 @@
 [submodule "vendor/infogami"]
 	path = vendor/infogami
-	url = git://github.com/openlibrary/infogami.git
+	url = git://github.com/internetarchive/infogami.git
 [submodule "vendor/js/wmd"]
 	path = vendor/js/wmd
-	url = git://github.com/openlibrary/wmd.git
+	url = git://github.com/internetarchive/wmd.git
 [submodule "vendor/acs4_py"]
 	path = vendor/acs4_py
 	url = http://github.com/internetarchive/acs4_py.git

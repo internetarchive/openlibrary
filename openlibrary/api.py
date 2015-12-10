@@ -23,20 +23,25 @@ from ConfigParser import ConfigParser
 import urllib, urllib2
 import simplejson
 import web
+import logging
+
+logger = logging.getLogger("openlibrary.api")
 
 class OLError(Exception):
     def __init__(self, http_error):
+        self.code = http_error.code
         self.headers = http_error.headers
         msg = http_error.msg + ": " + http_error.read()
         Exception.__init__(self, msg)
 
 
 class OpenLibrary:
-    def __init__(self, base_url="http://openlibrary.org"):
+    def __init__(self, base_url="https://openlibrary.org"):
         self.base_url = base_url.rstrip('/')
         self.cookie = None
 
     def _request(self, path, method='GET', data=None, headers=None):
+        logger.info("%s %s", method, path)
         url = self.base_url + path
         headers = headers or {}
         if self.cookie:
@@ -65,11 +70,16 @@ class OpenLibrary:
             password = joe123
             
         Optionally section name can be passed as argument to force using a different section name.
+
+        If environment variable OPENLIBRARY_RCFILE is specified, it'll read that file instead of ~/.olrc.
         """
         config = ConfigParser()
-        config.read(os.path.expanduser('~/.olrc'))
+
+        configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
+        logger.info("reading %s", configfile)
+        config.read(configfile)
         
-        section = section or self.base_url.replace('http://', '')
+        section = section or self.base_url.replace('http://', '').replace("https://", "")
 
         if not config.has_section(section):
             raise Exception("No section found with name %s in ~/.olrc" % repr(section))
@@ -102,7 +112,7 @@ class OpenLibrary:
         if len(keys) > 500:
             # get in chunks of 500 to avoid crossing the URL length limit.
             d = {}
-            for chunk in web.group(keys, 500):
+            for chunk in web.group(keys, 100):
                 d.update(self._get_many(chunk))
             return d
         else:
@@ -163,6 +173,7 @@ class OpenLibrary:
         """
         q = dict(q or {})
         q.update(kw)
+        q = marshal(q)
         def unlimited_query(q):
             q['limit'] = 1000
             q.setdefault('offset', 0)

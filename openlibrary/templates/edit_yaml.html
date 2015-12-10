@@ -1,0 +1,28 @@
+$def with (key, data)
+
+$putctx('bodyid', 'edit')
+
+$var title: $key
+
+
+<div id="editHead">
+    <h2>    
+        $_("You're in edit mode.")
+        <span class="cancelThis"><a href="javascript:history.go(-1);">$_("Cancel, and go back.")</a></span>
+    </h2>
+</div>
+
+<div id="contentBody">
+  <form method="POST" action="">
+    <div class="formElement">
+        <div class="label"><label for="body">$_("YAML Representation:")</label></div>
+        <div class="input">
+            <textarea id="body" name="body" rows="15" cols="80">$data</textarea>
+        </div>
+    </div>
+
+    <div class="formElement">
+        $:macros.EditButtons(comment="")
+    </div>
+  </form>
+</div>

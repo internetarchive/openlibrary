@@ -38,6 +38,64 @@ def get_schema():
     $$ LANGUAGE SQL IMMUTABLE;
     
     CREATE INDEX thing_olid_idx ON thing(get_olid(key));
+
+    CREATE TABLE stats (
+        id serial primary key,
+        key text unique,
+        type text,
+        created timestamp without time zone,
+        updated timestamp without time zone,
+        json text
+    );
+    CREATE INDEX stats_type_idx ON stats(type);
+    CREATE INDEX stats_created_idx ON stats(created);
+    CREATE INDEX stats_updated_idx ON stats(updated);
+
+    CREATE TABLE waitingloan (
+        id serial primary key,
+        book_key text,
+        user_key text,
+        status text default 'waiting',
+        position integer,
+        wl_size integer,
+        since timestamp without time zone default (current_timestamp at time zone 'utc'),
+        last_update timestamp without time zone default (current_timestamp at time zone 'utc'),
+        expiry timestamp without time zone,
+        available_email_sent boolean default 'f',
+        UNIQUE (book_key, user_key)
+    );
+
+    CREATE INDEX waitingloan_user_key_idx ON waitingloan(user_key);
+    CREATE INDEX waitingloan_status_idx ON waitingloan(status);
+
+
+    CREATE TABLE import_batch (
+        id serial primary key,
+        name text,
+        submitter text,
+        submit_time timestamp without time zone default (current_timestamp at time zone 'utc')
+    );
+
+    CREATE INDEX import_batch_name ON import_batch(name);
+    CREATE INDEX import_batch_submitter_idx ON import_batch(submitter);
+    CREATE INDEX import_batch_submit_time_idx ON import_batch(submit_time);
+
+    CREATE TABLE import_item (
+        id serial primary key,
+        batch_id integer references import_batch,
+        added_time timestamp without time zome default (current_timestamp at time zone 'utc'),
+        import_time timestamp without time zone,
+        status text default 'pending',
+        error text,
+        ia_id text,
+        ol_key text,
+        comments text,
+        UNIQUE (batch_id, ia_id)
+    );
+    CREATE INDEX import_item_batch_id ON import_item(batch_id);
+    CREATE INDEX import_item_import_time ON import_item(import_time);
+    CREATE INDEX import_item_status ON import_item(status);
+    CREATE INDEX import_item_ia_id ON import_item(ia_id);
     """
         
     # monkey patch schema.sql to include the custom functions

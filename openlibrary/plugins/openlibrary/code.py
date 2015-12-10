@@ -30,23 +30,7 @@ import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
-
-def setup_invalidation_processor():
-    from openlibrary.core.processors.invalidation import InvalidationProcessor
-    
-    config = infogami.config.get("invalidation", {})
-
-    prefixes = config.get('prefixes', [])
-    timeout = config.get("timeout", 60)
-    cookie_name = config.get("cookie", "invalidation_timestamp")
-    
-    if prefixes:
-        p = InvalidationProcessor(prefixes, timeout=timeout, cookie_name=cookie_name)
-        delegate.app.add_processor(p)
-        client.hooks.append(p.hook)
-
-setup_invalidation_processor()
-
+delegate.app.add_processor(processors.CORSProcessor())
 
 try:
     from infogami.plugins.api import code as api
@@ -65,18 +49,9 @@ infogami.config.infobase_parameters = dict(type="ol")
 from openlibrary.core import schema
 schema.register_schema()
 
-if infogami.config.get('infobase_server') is None:
-    # setup infobase hooks for OL
-    from openlibrary.plugins import ol_infobase
-    ol_infobase.init_plugin()
-
 from openlibrary.core import models
 models.register_models()
 models.register_types()
-
-
-# this adds /show-marc/xxx page to infogami
-import showmarc
 
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
@@ -84,8 +59,20 @@ infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "
 import lists
 lists.setup()
 
+logger = logging.getLogger("openlibrary")
+
 class hooks(client.hook):
     def before_new_version(self, page):
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if account and account.is_blocked():
+            raise ValidationException("Your account has been suspended. You are not allowed to make any edits.")
+        
+        if page.type.key == '/type/library':
+            bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
+            if bad:
+                raise ValidationException('Bad IPs: ' + '; '.join(bad))
+
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
@@ -346,13 +333,11 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
         
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^./]*)(/.*)?"
+    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
 
     def GET(self, key, value, suffix):
         key = key.lower()
         suffix = suffix or ""
-        
-        print (key, value, suffix)
         
         if key == "isbn":
             if len(value) == 13:
@@ -395,12 +380,15 @@ class bookpage(delegate.page):
                 q = {"type": "/type/volume", 'ia_id': value}
                 result = web.ctx.site.things(q)
                 if result:
-                    raise redirect(redirect[0], ext, suffix)
+                    raise redirect(result[0], ext, suffix)
+                else:
+                    raise redirect("/books/ia:" + value, ext, suffix)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
+            logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
 
@@ -433,8 +421,9 @@ class opds(delegate.mode):
             raise web.notfound("")
         else:
             from infogami.utils import template
+            import opds
             try:
-                result = template.typetemplate('opds')(page, web)
+                result = template.typetemplate('opds')(page, opds)
             except:
                 raise web.notfound("")
             else:
@@ -542,10 +531,31 @@ class _yaml_edit(_yaml):
             add_flash_message('unknown action')
             return render.edit_yaml(key, i.body)        
 
+def _get_user_root():
+    user_root = infogami.config.get("infobase", {}).get("user_root", "/user")
+    return web.rstrips(user_root, "/")
+
+def _get_bots():
+    bots = web.ctx.site.store.values(type="account", name="bot", value="true")
+    user_root = _get_user_root()
+    return [user_root + "/" + account['username'] for account in bots]
+
+def _get_members_of_group(group_key):
+    """Returns keys of all members of the group identifier by group_key.
+    """
+    usergroup = web.ctx.site.get(group_key) or {}
+    return [m.key for m in usergroup.get("members", [])]
+
 def can_write():
-    user = delegate.context.user and delegate.context.user.key
-    usergroup = web.ctx.site.get('/usergroup/api')
-    return usergroup and user in [u.key for u in usergroup.members]
+    """Any user with bot flag set can write.
+    For backward-compatability, all admin users and people in api usergroup are also allowed to write.
+    """
+    user_key = delegate.context.user and delegate.context.user.key
+    bots = _get_members_of_group("/usergroup/api") + _get_members_of_group("/usergroup/admin") + _get_bots()
+    return user_key in bots
+    
+# overwrite the implementation of can_write in the infogami API plugin with this one.
+api.can_write = can_write
 
 class Forbidden(web.HTTPError):
     def __init__(self, msg=""):
@@ -743,11 +753,6 @@ class backdoor(delegate.page):
         if isinstance(result, basestring):
             result = delegate.RawText(result)
         return result
-        
-# monkey-patch to check for lowercase usernames on register
-from infogami.core.forms import register
-username_validator = web.form.Validator("Username already used", lambda username: not web.ctx.site._request("/has_user", data={"username": username}))
-register.username.validators = list(register.username.validators) + [username_validator]
 
 def setup_template_globals():
     web.template.Template.globals.update({
@@ -764,30 +769,39 @@ def setup_template_globals():
         "dumps": simplejson.dumps,
     })
 
-def setup_logging():
-    try:
-        logconfig = infogami.config.get("logging_config_file")
-        if logconfig and os.path.exists(logconfig):
-            logging.config.fileConfig(logconfig)
-    except Exception, e:
-        print >> sys.stderr, "Unable to set logging configuration:", str(e)
-        raise
+
+def setup_context_defaults():
+    from infogami.utils import context
+    context.defaults.update({
+        'features': [],
+        'user': None
+    })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats
+    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
     
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
     stats.setup()
+    support.setup()
+    events.setup()
+    status.setup()
+    merge_editions.setup()
+    authors.setup()
+    
+    import api
+    api.setup()
     
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
     
-    setup_template_globals()
-    setup_logging()
-    logger = logging.getLogger("openlibrary")
-    logger.info("Application init")
+    if infogami.config.get("dev_instance") is True:
+        import dev_instance
+        dev_instance.setup()
 
+    setup_context_defaults()
+    setup_template_globals()
+    
 setup()

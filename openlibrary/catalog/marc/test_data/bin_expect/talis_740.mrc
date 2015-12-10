@@ -14,11 +14,7 @@
   ], 
   "title": "Modern Supreme Court", 
   "number_of_pages": 390, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "isbn_10": [
     "0674580567"
   ], 

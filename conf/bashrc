@@ -15,4 +15,6 @@ export PATH=$gitroot/usr/local/bin:$PATH
 export LD_LIBRARY_PATH=$gitroot/usr/local/lib:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=$gitroot/usr/local/lib:$DYLD_LIBRARY_PATH
 
+export PYTHONPATH=$gitroot/conf:$PYTHONPATH
+
 source $pyenv/bin/activate

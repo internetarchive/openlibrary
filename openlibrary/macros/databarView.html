@@ -1,0 +1,26 @@
+$def with (page)
+
+$if page.type.key == '/type/work' and page.edition_count == 1:
+    $ edit_url = page.get_one_edition().get_url(suffix="/edit") or page.url(suffix="/edit")
+$elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
+    $ edit_url = page.url(suffix="/edit")
+$else:
+    $ edit_url = page.key + "?m=edit"
+
+<div id="editTools" class="edit">
+    $if not page.is_fake_record():
+        <div id="editButton">
+            <button class="linkButton larger" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
+        </div>
+    <div id="editInfo">
+        $if "superfast" in ctx.features:
+            $ author = page.get_most_recent_change().author
+        $else:
+            $ author = get_recent_author(page)
+        $if author:
+            <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
+        $else:
+            <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
+        <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
+    </div>
+</div>

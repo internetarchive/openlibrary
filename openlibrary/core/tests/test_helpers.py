@@ -99,3 +99,7 @@ def test_texsafe():
     assert h.texsafe("hello") == r"hello"
     assert h.texsafe("a_b") == r"a\_{}b"  
     assert h.texsafe("a < b") == r"a \textless{} b"
+    
+def test_percentage():
+    assert h.percentage(1, 10) == 10.0
+    assert h.percentage(0, 0) == 0

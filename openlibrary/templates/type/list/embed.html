@@ -1,0 +1,162 @@
+$def with (list)
+
+$var title: $list.name
+
+$putctx('bodyid', 'form')
+
+$ page = safeint(query_param('page'), 1) - 1
+$ page_size = 10
+
+$def render_seed_count(seed_count):
+    $ msg = ungettext("%s seed", "%s seeds", seed_count)
+    $:sprintf(msg, seed_count)
+    
+<div id="contentHead" style="margin-bottom:0;"> 
+    <div class="superNav">
+        <a href="/" title="Visit Open Library"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
+
+        $ owner = list.get_owner()
+        <a href="$owner.key">$owner.displayname</a>
+        / 
+        <a href="$owner.key/lists">Lists</a>
+    </div> 
+    <h1>
+        $list.name 
+    </h1>
+    <p class="collapse sansserif">
+        <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
+    </p>
+</div>
+<div id="contentBody"> 
+    $def render_authors(authors):
+        $if not authors:
+            <em>Unknown authors</em>
+        $else:
+            $for a in authors:
+                <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
+ 
+    $if list.description:
+        $:format(list.description)
+
+    <ul id="listResults" class="narrow">
+    $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+        <li id="seed-$loop.index">
+            $ cover = seed.get_cover()
+            $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+            <span class="image"> 
+                <a href="$seed.url"><img src="$cover_url" height="70"/></a>
+            </span> 
+            <span class="seed-key hidden">$seed.key</span>
+            <div class="details"> 
+                <div class="resultTitle">
+                    $if seed.type in ['edition', 'work']:
+                        $ ebook = seed.document.get_ebook_info()
+                        $ doc = seed.document
+                        <!-- $:json_encode(ebook) -->
+                        <span class="actions" style="float: right;">
+                            $if 'read_url' in ebook:
+                                <a href="$ebook['read_url']" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                    <span class="image read"></span>
+                                    <span class="label">$_("Read")</span>
+                                </a>
+                            $elif 'borrow_url' in ebook:
+                                $if ebook.get('borrowed'):
+                                    <a href="$ebook['borrow_url']" title="This book is checked out">
+                                        <span class="image checked-out"></span>
+                                        <span class="label">Checked out</span>
+                                    </a>
+                                $else:
+                                    <a href="$ebook['borrow_url']" title="Borrow book">
+                                        <span class="image borrow"></span>
+                                        <span class="label">Borrow</span>
+                                    </a>
+                            $elif 'daisy_url' in ebook:
+                                <a href="$ebook['daisy_url']" title="Protected DAISY">
+                                    <span class="image daisy"></span>
+                                    <span class="label">DAISY</span>
+                                </a>
+                        </span>
+
+                    <h3> 
+                        <a href="$seed.url" class="results">$seed.title</a>
+                    </h3>
+                    $if seed.type == "work" or seed.type == "edition":
+                        $if seed.type == "work":
+                            $ authors = seed.document.get_authors()
+                        $else:
+                            $if seed.document.works:
+                                $ authors = seed.document.works[0].get_authors()
+                            $else:
+                                $ authors = seed.document.get_authors()
+                        <span class="small">by $:render_authors(authors)</span>
+                    <span class="meta">
+                    $if seed.type == "author": 
+                        <span class="type author small">$seed.type</span>
+                    $elif seed.type == "work" or seed.type == "edition":
+                        <span class="type book small">$seed.type</span>
+                    $elif seed.type == "subject":
+                        <span class="type subject small">$seed.type</span>
+                    $elif seed.type == "place":
+                        <span class="type place small">$seed.type</span>
+                    $elif seed.type == "person":
+                        <span class="type people small">$seed.type</span>
+                    $else:
+                        <span class="type small">$seed.type</span>
+                    $if seed.type == "edition":
+                        $if seed.ebook_count:
+                            - eBook available
+                    $elif seed.type == "work":
+                        - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $if seed.ebook_count:
+                            $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                    $else:
+                        - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $if seed.ebook_count:
+                            $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                    </span>
+                </div>
+            </div>
+        </li>
+    </ul>
+ 
+    <div class="clearfix"></div> 
+    $:macros.Pager(page+1, len(list.seeds), page_size)
+</div>
+
+<script type="text/javascript">
+\$(function() {
+    \$('a').not('.pagination a').attr('target','_blank');
+});
+</script>
+
+<style type="text/css">
+ul#listResults span.actions span.image {
+    display: block;
+    height: 24px;
+    width: 24px;
+    margin: 0 auto;
+    float: none;
+}
+span.actions {
+    max-width: none;
+}
+ul#listResults span.actions a span.checked-out {
+    height: 32px;
+    width: 32px;
+}
+ul#listResults li:last {
+    border-bottom: 1px dotted #ebebeb;
+}
+div {
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+body#form {
+    overflow: auto;
+    width: 100%;
+}
+ul.narrow li span.resultTitle {
+    width: auto;
+    max-width: 525px;
+}
+</style>

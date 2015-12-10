@@ -10,11 +10,7 @@
     "Dutton"
   ], 
   "number_of_pages": 128, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "isbn_10": [
     "0525230106"
   ], 

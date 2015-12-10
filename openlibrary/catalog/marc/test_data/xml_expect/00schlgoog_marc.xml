@@ -6,11 +6,7 @@
   ], 
   "notes": "Romanized.", 
   "number_of_pages": 148, 
-  "languages": [
-    {
-      "key": "/languages/heb"
-    }
-  ], 
+  "languages": ["heb"],
   "lc_classifications": [
     "BM520.9 .H35 1886"
   ], 

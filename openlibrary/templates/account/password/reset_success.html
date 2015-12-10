@@ -1,0 +1,11 @@
+$def with(username)
+
+$var title: $_("Password Reset Successful")
+
+<div id="contentHead">
+    <h1>$_("Hi, %(user)s!", user=username)</h1>
+</div>
+    
+<div id="contentBody">
+    <p>$:_("Your password has been updated. Please <a href='/account/login?redirect=/'>log in to continue</a>.")</p>
+</div>

@@ -16,7 +16,6 @@ Table of Contents
    :maxdepth: 2
 
    bootstrap.rst
-   working.rst
    dev/index.rst
    architecture.rst
    design/index.rst

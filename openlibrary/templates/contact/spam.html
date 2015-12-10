@@ -1,0 +1,42 @@
+$def with (email=None, irl=None)
+
+$var title: Contact Us
+
+<div id="contentHead">
+ <h1>$_("Contact Us")</h1>
+</div>
+
+<div id="contentBody">
+ <p>$_("Having trouble with something? Feel free to drop us a line.")</p>
+
+ <p>$_("But, before you do, there are 4 things you should know about Open Library:")</p>
+
+$:_("<ol><li>It's a <b>wiki</b>. This means that <i>everyone can edit or correct</i> it.</li><li>It doesn't hold any books, so we are unable to distribute copies.</li><li>There are no librarians on staff, so we cannot help with research enquiries.</li><li>The Open Library team is very small. It might take a little while for us to get back to you if a response is required. Your patience is appreciated.</li></ol>")
+ <h3>$_("Please complete this form")</h3>
+
+ <form action="" method="post" name="spamForm" class="olform">
+ <div class="formElement">
+ <div class="label"><label for="email">$_("Your Email Address")</label></div>
+ <div class="input"><input type="text" name="email" id="email" value="$email"/></div>
+ </div>
+
+ <div class="formElement">
+ <div class="label"><label for="irl">$_("Which page were you looking at?")</label></div>
+ <div class="input"><input type="text" name="irl" id="irl" value="$irl"/></div>
+ </div>
+
+ <div class="formElement">
+ <div class="label"><label for="comment">$_("What's the problem you'd like to report?")</label></div>
+ <div class="input">
+ <textarea id="comment" name="comment" cols="40" rows="5"></textarea>
+ </div>
+ </div>
+ <div class="formElement bottom">
+ <div class="input">
+ <input type="submit" class="largest" value="Send" name="send" title="Send"/>
+ &nbsp; &nbsp;
+ <a href="javascript:history.go(-1);" class="red">Cancel</a>
+ </div>
+ </div>
+ </form>
+</div>

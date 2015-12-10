@@ -12,11 +12,7 @@
     "Enriched classics series"
   ], 
   "number_of_pages": 178, 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "work_titles": [
     "Candide"
   ], 

@@ -1,8 +1,12 @@
+import web
+import datetime
+
 from infogami.utils import delegate
 from infogami.utils.view import render, require_login, public, permission_denied, safeint
 from infogami import config
-import web
-import datetime
+
+from openlibrary import accounts
+
 
 @public
 def get_scan_status(key):
@@ -61,7 +65,7 @@ class scan_review(delegate.mode):
     def POST(self, path):
         book = get_book(path)
         record = get_scan_record(path)
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         delegate.admin_login()
         q = {
             'key': '/scan_record' + path,
@@ -103,7 +107,7 @@ class scan_review(delegate.mode):
 class scan_book_notfound(delegate.mode):
     def is_scan_user(self):
         usergroup = web.ctx.site.get('/usergroup/scan')
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         return user and usergroup and user.key in (m.key for m in usergroup.members)
 
     def POST(self, path):
@@ -146,7 +150,7 @@ class scan_inprogress(scan_book_notfound):
 class scan_complete(delegate.mode):
     def is_scan_user(self):
         usergroup = web.ctx.site.get('/usergroup/scan')
-        user = web.ctx.site.get_user()
+        user = accounts.get_current_user()
         return user and usergroup and user.key in (m.key for m in usergroup.members)
 
     def GET(self, path):

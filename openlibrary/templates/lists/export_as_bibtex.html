@@ -1,0 +1,21 @@
+$def with (list, editions)
+
+$var content_type = "application/x-bibtex"
+
+$for e in editions:
+    @Book{$e.key.split("/")[-1],
+        title: {$:texsafe(e.title)},
+        $if e.works:
+            $ authors = e.works[0].get_authors()
+        $else:
+            $ authors = e.get_authors()
+        $if authors:
+            author: {$" and ".join(texsafe(a.name or "unnamed") for a in authors)},
+        $if e.publishers:
+            publisher: {$:texsafe(e.publishers[0])},
+        $ year = e.get_publish_year()
+        $if year:
+            year: {$:texsafe(str(year))},
+        $if e.publish_places:
+            place: {$:texsafe(e.publish_places[0])},
+    }

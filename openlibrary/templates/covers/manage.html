@@ -1,0 +1,68 @@
+$def with (key, images)
+
+$putctx("bodyid", "form")
+$putctx('robots', 'noindex,nofollow')
+
+<script type="text/javascript">
+\$(function() {
+    \$(".column").sortable({
+        connectWith: '.trash'
+    });
+    \$(".trash").sortable({
+        connectWith: '.column'
+    });
+    \$(".column").disableSelection();
+    \$(".trash").disableSelection();
+});
+</script>
+<script type="text/javascript">
+\$().ready(function(){
+    \$("#topNotice").hide();
+});
+</script>
+
+<div class="imageIntro">
+    $_("You can drag and drop thumbnails to reorder, or into the trash to delete them.")
+</div>
+
+<form class="floatform" action="" method="post">
+    <div class="column">
+    $for image in images:
+        <div class="portlet">
+            <div class="portlet-header">
+                <table>
+                    <tr>
+                        <td>
+                            <img src="$image.url("S")" height="60" class="cover" alt=""/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="portlet-content">
+                <input type="hidden" name="image" value="$image.id"/>            
+            </div>
+        </div>
+    </div>
+
+    <!-- When all the covers are deleted, book.covers becomes empty and gets removed from the book.
+    Once book.covers is removed, book.get_covers() gives all matching covers from coverstore instead of empty list.
+    This marker will make sure book.covers never becomes empty. 
+    All negative coverid values are ignored by get_covers/get_photos.
+    -->
+    <input type="hidden" name="image" value="-1"/>
+         
+    <input type="hidden" name="image" value="-"/>
+
+    <div class="trashPosition">
+        <div class="trashCan"></div>
+        <div class="trash"></div>
+    </div>
+
+    <div class="clearfix"></div>
+
+    <div class="formElement" style="margin:40px 0 0 30px;">
+        <button type="submit" value="Save" class="largest">$_("Save")</button>
+        <a class="floaterClose close-popup" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
+    </div>
+
+</form>

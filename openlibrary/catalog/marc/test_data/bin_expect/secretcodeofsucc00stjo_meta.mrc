@@ -79,11 +79,7 @@
     "9780061764547"
   ], 
   "subtitle": "7 hidden steps to more wealth and happiness", 
-  "languages": [
-    {
-      "key": "/languages/eng"
-    }
-  ], 
+  "languages": ["eng"],
   "dewey_decimal_class": [
     "650.1"
   ], 

@@ -1,15 +1,44 @@
 # Open Library fastcgi configuration
 
-infobase_server: "127.0.0.1:7500"
+connection_type: "hybrid"
+
 site: "openlibrary.org"
 
 from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
+support_case_notification_address: "Open Library <info@openlibrary.org>"
+support_case_control_address : "support@openlibrary.org"
+
+# Legal values for support_default_assignees are 
+#
+# bug_report
+# borrowing_books
+# buying_books
+# contact_an_author
+# deletion_request
+# developer/api/covers_question
+# editing_problem
+# image_upload
+# login_trouble
+# spam_report
+# other
+#
+# and
+#
+# default (in case there is no special email address for the given category)
+
+support_default_assignees:
+  developer/api/covers_question/bug_report: "noufal+bugs@gmail.com"
+  default: "noufal+default@gmail.com"
+
+
+smtp_server: "localhost"
+
 dummy_sendmail: True
 debug: True
 
-coverstore_url: "http://127.0.0.1:7000/"
+coverstore_url: "http://0.0.0.0:8080/covers/"
 
 state_dir: var/run
 
@@ -17,28 +46,29 @@ state_dir: var/run
 use_gzip: True
 
 admin_password: "admin123"
-errorlog: "var/log/ol-errors"
+errorlog: "/var/log/openlibrary/ol-errors"
 login_cookie_name: session
 
-infobase:
-    secret_key: xxx
- 
-memcache_servers:
-    - "localhost:7060"
+infobase_server: "localhost:7000"
 
-loanstatus_url: http://localhost:8010
+# contents of this file are assigned to config["infobase"]
+# Path can be relative to this file
+infobase_config_file: infobase.yml
+coverstore_config_file: coverstore.yml
+ 
+loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
-plugins:
-    - "openlibrary"
-    - "links"
-    - "search"
-    - "worksearch"
-    - "api"
-    - "books"
-    - "oltemplates"
-    - "admin"
-    - "upstream"
+#dev_instance: True
+dev_instance_url: http://127.0.0.1:8080/
+
+memcache_servers:
+    - "localhost:11211"
+
+plugin_modules:
+    - openlibrary
+    - infogami.plugins.links
+    - infogami.plugins.api
 
 plugin_worksearch:
     solr: "localhost:8983"
@@ -46,8 +76,12 @@ plugin_worksearch:
     author_solr: "localhost:8983"
     edition_solr: "localhost:8983"
     spellcheck_count: 3
-    ebook_count_host: 'localhost'
-    ebook_count_db_name: 'openlibrary_ebook_count'
+    ebook_count_db_parameters:
+        db: 'openlibrary_ebook_count'
+        host: 'localhost'
+
+single_core_solr: True
+stats_solr: "localhost:8983"
 
 features:
     upstream: enabled
@@ -55,6 +89,7 @@ features:
     recentchanges_v2: enabled
     history_v2: admin
     merge-authors: enabled
+    merge-editions: enabled
     undo: enabled
     dev: enabled
     lists: enabled
@@ -62,6 +97,11 @@ features:
     stats: enabled
     stats-header: enabled
     inlibrary: enabled
+    support: admin
+    dev: enabled
+    superfast: enabled
+    publishers: enabled
+    languages: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -69,6 +109,7 @@ css_root: /upstream/css
 js_root: /upstream/js
 use_google_cdn: false
 logging_config_file: conf/logging.ini
+email_config_file: conf/email.ini
 
 lists:
     seeds_db: http://127.0.0.1:5984/seeds
@@ -77,11 +118,15 @@ lists:
     editions_view: http://127.0.0.1:5984/editions/_fti/_design/seeds/by_seed
 
 admin:
-    counts_db: http://127.0.0.1:5984/admin
+    #counts_db: http://127.0.0.1:5984/admin
     olsystem_root: /home/noufal/projects/OL/olsystem/
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
-
+    admin_db: http://127.0.0.1:5984/admin
+    
+celery: #Information relevant to celery configuration
+    tombstone_db: http://localhost:5984/celery
+  
 
 stats: # This section is used to state what stats need to be gathered.
     pageload.all:
@@ -123,4 +168,24 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /lists
       time: total
 
+    ol.pageload.readapi:
+      filter: url
+      pattern: /api/volumes/.*
+      time: total
 
+
+libraries_admin_email: admin@dev-instance
+
+graphite_base_url: "http://ol-admin.us.archive.org:7080"
+geoip_database: var/cache/GeoLiteCity.dat
+
+# prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
+ia_ignore_prefixes:
+    - "jstor-"
+    - "imslp-"
+    - "nasa_techdoc_"
+    - "gov.uscourts."
+
+plugin_recaptcha:
+    public_key: ""
+    private_key: ""
