@@ -4,7 +4,6 @@ $if change.author:
     $ who = '<a href="%s" rel="nofollow">%s</a>' % (change.author.key, change.author.displayname or change.author.key)
 $else:
     $ who = None
-
 $if len(change.changes) == 1:
     $ doc = change.get_changes()[0]
     
@@ -29,5 +28,7 @@ $if len(change.changes) == 1:
     $else:
         $:what was $action anonymously
     <span class="timestamp">$when</span>
+    $if doc.type.key == '/type/delete':
+        $var ignore = True
 $else:
     $var ignore = True
