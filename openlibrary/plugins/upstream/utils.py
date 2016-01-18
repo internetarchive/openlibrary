@@ -589,7 +589,7 @@ def _get_recent_changes2():
         return (
             # Gio: c.kind=='update' allow us to ignore update recent changes on people
             c.kind == 'update' or
-            #Charles: ignore change if author has been deleted (spam)
+            # Charles: ignore change if author has been deleted (e.g. spammer)
             (c.author and c.author.type.key == '/type/delete'))
 
     def render(c):
