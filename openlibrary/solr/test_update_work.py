@@ -96,13 +96,14 @@ class Test_build_data:
                     make_edition(publish_date="Another 2000"),
 
                     ## Doesn't seems to be handling this case
-                    #make_edition(publish_date="2001-01-02"),
+                    make_edition(publish_date="2001-01-02"),
 
+                    make_edition(publish_date="01-02-2003"),
                     make_edition(publish_date="Jan 2002"),
                     make_edition(publish_date="Bad date 12")])
 
         d = build_data(work)
-        assert set(d['publish_year']) == set(["2000", "2002"])
+        assert set(d['publish_year']) == set(["2000", "2002", "2003"])
         assert d["first_publish_year"] == 2000
 
     def test_isbns(self):
