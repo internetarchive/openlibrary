@@ -1,3 +1,4 @@
+import update_work
 from update_work import build_data
 
 author_counter = 0
@@ -27,6 +28,15 @@ def make_work(**kw):
     kw.setdefault("type", {"key": "/type/work"})
     kw.setdefault("title", "Foo")
     return kw
+
+class FakeDataProvider:
+    """Stub data_provider and methods which are used by build_data."""
+    def get_metadata(self, id):
+        return {}
+    def get_editions_of_work(self, work):
+        return []
+
+update_work.data_provider = FakeDataProvider()
 
 class Test_build_data:
 
