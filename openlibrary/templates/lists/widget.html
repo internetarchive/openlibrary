@@ -185,29 +185,32 @@ $if ctx.user:
     // Lists API
 
     Lists = {
-        create: function(user, data, success) {
+        create: function(user, data, success, complete) {
             this.ajax({
                 url: user + "/lists.json",
                 data: data,
-                success: success
+                success: success,
+                complete: complete
             });
         },
-        add: function(list_key, seed, success) {
+        add: function(list_key, seed, success, complete) {
             this.ajax({
                 url: list_key + "/seeds.json",
                 data: {
                     'add': [seed]
                 },
-                success: success
+                success: success,
+                complete: complete
             });
         },
-        remove: function(list_key, seed, success) {
+        remove: function(list_key, seed, success, complete) {
             this.ajax({
                 url: list_key + "/seeds.json",
                 data: {
                     'remove': [seed]
                 },
-                success: success
+                success: success,
+                complete: complete
             });
         },
     
@@ -223,7 +226,8 @@ $if ctx.user:
                     xhr.setRequestHeader("Content-Type", "application/json");
                     xhr.setRequestHeader("Accept", "application/json");
                 },
-                success: d.success
+                success: d.success,
+                complete: d.complete
             });
         }
     }
@@ -286,10 +290,13 @@ $if ctx.user:
     }
     
     function setup_submit_event() {
-        // This form in creted only at the begining. 
+        // This form in created only at the beginning. 
         // Unlike other elements, event for this form should be setup only once.
         \$("#new-list").ol_validate({
             submitHandler: function(form) {
+                // disable form while waiting for response
+                \$("#new-list button").attr("disabled", true);
+      
                 var data = {
                     name: \$("#list_label").val(),
                     description: \$("#list_desc").val(),
@@ -312,6 +319,9 @@ $if ctx.user:
                     add_page_list(list);
 
                     reload_widget();
+                }, function(){
+                    // re-enable form now that the request is finished
+                    \$("#new-list button").attr("disabled", false);
                 });
                 return false;
             }
@@ -330,13 +340,16 @@ $if ctx.user:
             event.preventDefault();
             close_popup();
         
+            \$(this).unbind("click");   // ignore clicks while waiting for response
+
             var id = \$(this).attr("id");
             var list = get_list(id);
         
             Lists.add(list.key, seed, function() {
                 list.active = true;
                 add_page_list(list);
-                reload_widget();
+            }, function(){
+                reload_widget();    // reload widget regardless of success or failure
             });
             return false;
         });

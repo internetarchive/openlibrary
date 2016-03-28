@@ -162,7 +162,7 @@ class OpenLibrary:
         Open Library always limits the result to 1000 items due to
         performance issues. Pass limit=False to fetch all matching
         results by making multiple requests to the server. Please note
-        the an iterator is returned insted of list when limit=False is
+        that an iterator is returned instead of list when limit=False is
         passed.::
 
             >>> ol.query({'type': '/type/type', 'limit': 2}) #doctest: +SKIP
