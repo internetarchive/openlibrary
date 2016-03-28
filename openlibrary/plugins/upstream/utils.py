@@ -584,13 +584,19 @@ def _get_recent_changes2():
     
     q = {"bot": False, "limit": 100}
     changes = web.ctx.site.recentchanges(q)
-    
+
+    def is_ignored(c):
+        return (
+            # c.kind=='update' allow us to ignore update recent changes on people
+            c.kind == 'update' or
+            # ignore change if author has been deleted (e.g. spammer)
+            (c.author and c.author.type.key == '/type/delete'))
+
     def render(c):
         t = get_template("recentchanges/" + c.kind + "/message") or get_template("recentchanges/default/message")
         return t(c)
 
-    # Gio: c.kind!='update' allow us to ignore update recent changes on people 
-    messages = [render(c) for c in changes if c.kind != 'update']
+    messages = [render(c) for c in changes if not is_ignored(c)]
     messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
     return messages
     

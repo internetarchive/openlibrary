@@ -28,3 +28,6 @@ $elif who:
 $else:
     $:what was $action anonymously
 <span class="timestamp">$when</span>
+
+$if doc.type.key == '/type/delete':
+    $var ignore = True
