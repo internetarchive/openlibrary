@@ -114,7 +114,7 @@ def parse_data(data):
         format = 'marc'
 
     parse_meta_headers(edition_builder)
-    
+
     return edition_builder.get_dict(), format
 
 def get_next_count():
@@ -216,6 +216,11 @@ class ia_importapi:
         if status != 'ok':
             return self.error(status, "Prohibited Item")
 
+        # Gio - April 2016
+        # items with metadata no_ol_import=true will be not imported
+        if metadata.get("no_ol_import") == 'true' or metadata.get("no_ol_import") == 'True':
+            return self.error("no-ol-import")
+
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if not marc_record:
@@ -286,19 +291,19 @@ class ia_importapi:
 
 
 class ils_search:
-    """Search and Import API to use in Koha. 
-    
+    """Search and Import API to use in Koha.
+
     When a new catalog record is added to Koha, it makes a request with all
     the metadata to find if OL has a matching record. OL returns the OLID of
     the matching record if exists, if not it creates a new record and returns
     the new OLID.
-    
+
     Request Format:
-    
+
         POST /api/ils_search
         Content-type: application/json
         Authorization: Basic base64-of-username:password
-    
+
         {
             'title': '',
             'authors': ['...','...',...]
@@ -307,9 +312,9 @@ class ils_search:
             'isbn': [...],
             'lccn': [...],
         }
-        
+
     Response Format:
-    
+
         {
             'status': 'found | notfound | created',
             'olid': 'OL12345M',
@@ -321,7 +326,7 @@ class ils_search:
             },
             ...
         }
-        
+
     When authorization header is not provided and match is not found,
     status='notfound' is returned instead of creating a new record.
     """
@@ -333,8 +338,8 @@ class ils_search:
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
-    
-        # step 2: search 
+
+        # step 2: search
         matches = self.search(data)
 
         # step 3: Check auth
@@ -348,7 +353,7 @@ class ils_search:
         keys = []
         if auth_header:
             keys = self.create(matches)
-        
+
         # step 4: format the result
         d = self.format_result(matches, auth_header, keys)
         return json.dumps(d)
@@ -368,7 +373,7 @@ class ils_search:
         authstring = authstring.replace("Basic ","")
         username, password = base64.decodestring(authstring).split(':')
         accounts.login(username, password)
-        
+
     def prepare_input_data(self, rawdata):
         data = dict(rawdata)
         identifiers = rawdata.get('identifiers',{})
@@ -386,20 +391,20 @@ class ils_search:
             data['authors'] = [{"name" : i} for i in authors]
 
         return {"doc" : data}
-        
+
     def search(self, params):
         matches = records.search(params)
         return matches
 
     def create(self, items):
         return records.create(items)
-            
+
     def format_result(self, matches, authenticated, keys):
         doc = matches.pop("doc", {})
         if doc and doc['key']:
             doc = web.ctx.site.get(doc['key']).dict()
             # Sanitise for only information that we want to return.
-            for i in ["created", "last_modified", "latest_revision", "type", "revision"]: 
+            for i in ["created", "last_modified", "latest_revision", "type", "revision"]:
                 doc.pop(i)
             # Main status information
             d = {
@@ -437,42 +442,42 @@ class ils_search:
                     'status': 'notfound'
                     }
         return d
-        
+
 def http_basic_auth():
     auth = web.ctx.env.get('HTTP_AUTHORIZATION')
     return auth and web.lstrips(auth, "")
-        
-        
+
+
 class ils_cover_upload:
     """Cover Upload API for Koha.
-    
+
     Request Format: Following input fields with enctype multipart/form-data
-    
+
         * olid: Key of the edition. e.g. OL12345M
-        * file: image file 
+        * file: image file
         * url: URL to image
         * redirect_url: URL to redirect after upload
 
         Other headers:
            Authorization: Basic base64-of-username:password
-    
+
     One of file or url can be provided. If the former, the image is
     directly used. If the latter, the image at the URL is fetched and
     used.
 
-    On Success: 
-          If redirect URL specified, 
+    On Success:
+          If redirect URL specified,
                 redirect to redirect_url?status=ok
-          else 
-                return 
+          else
+                return
                 {
                   "status" : "ok"
                 }
-    
-    On Failure: 
-          If redirect URL specified, 
+
+    On Failure:
+          If redirect URL specified,
                 redirect to redirect_url?status=error&reason=bad+olid
-          else 
+          else
                 return
                 {
                   "status" : "error",
@@ -502,7 +507,7 @@ class ils_cover_upload:
 
     def build_url(self, url, **params):
         if '?' in url:
-            return url + "&" + urllib.urlencode(params)    
+            return url + "&" + urllib.urlencode(params)
         else:
             return url + "?" + urllib.urlencode(params)
 
@@ -518,7 +523,7 @@ class ils_cover_upload:
 
         if not i.olid:
             self.error(i, "olid missing")
-            
+
         key = '/books/' + i.olid
         book = web.ctx.site.get(key)
         if not book:
@@ -532,16 +537,16 @@ class ils_cover_upload:
 
         from openlibrary.plugins.upstream import covers
         add_cover = covers.add_cover()
-        
+
         data = add_cover.upload(key, i)
         coverid = data.get('id')
-        
+
         if coverid:
             add_cover.save(book, coverid)
             raise self.success(i)
         else:
             raise self.error(i, "upload failed")
-    
+
 
 add_hook("import", importapi)
 add_hook("ils_search", ils_search)
