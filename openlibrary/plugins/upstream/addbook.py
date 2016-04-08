@@ -47,6 +47,17 @@ def get_authors_solr():
         base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
     return Solr(base_url)
 
+def is_old_user():
+    """Check to see if account is more than two years old."""
+    user = web.ctx.site.get_user()
+    account = user and user.get_account()
+    if not account:
+        return False
+    create_dt = account.creation_time()
+    now_dt = datetime.datetime.utcnow()
+    delta = now_dt - create_dt
+    return delta.days > 365*2
+
 def make_work(doc):
     w = web.storage(doc)
     w.key = "/works/" + w.key
@@ -611,18 +622,7 @@ class book_edit(delegate.page):
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
 
-        #check to see if account is more than two years old
-        old_user = False
-        user = web.ctx.site.get_user()
-        account = user and user.get_account()
-        if account:
-            create_dt = account.creation_time()
-            now_dt = datetime.datetime.utcnow()
-            delta = now_dt - create_dt
-            if delta.days > 365*2:
-                old_user = True
-
-        if recap_plugin_active and not old_user:
+        if recap_plugin_active and not is_old_user():
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
@@ -642,18 +642,7 @@ class book_edit(delegate.page):
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
 
-        #check to see if account is more than two years old
-        old_user = False
-        user = web.ctx.site.get_user()
-        account = user and user.get_account()
-        if account:
-            create_dt = account.creation_time()
-            now_dt = datetime.datetime.utcnow()
-            delta = now_dt - create_dt
-            if delta.days > 365*2:
-                old_user = True
-
-        if recap_plugin_active and not old_user:
+        if recap_plugin_active and not is_old_user():
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
@@ -702,7 +691,7 @@ class work_edit(delegate.page):
             raise web.notfound()
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
+        if recap_plugin_active and not is_old_user():
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
@@ -721,7 +710,7 @@ class work_edit(delegate.page):
                 'Something went wrong. Please try again later.')
 
         recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
+        if recap_plugin_active and not is_old_user():
             public_key = config.plugin_recaptcha.public_key
             private_key = config.plugin_recaptcha.private_key
             recap = recaptcha.Recaptcha(public_key, private_key)
