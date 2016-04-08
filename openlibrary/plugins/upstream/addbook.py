@@ -103,14 +103,12 @@ def new_doc(type, **data):
 
 
 class DocSaveHelper:
-    """Simple utility to collct the saves and save all of the togeter at the end.
-    """
+    """Simple utility to collect the saves and save them together at the end."""
     def __init__(self):
         self.docs = []
 
     def save(self, doc):
-        """Adds the doc to the list of docs to be saved.
-        """
+        """Adds the doc to the list of docs to be saved."""
         if not isinstance(doc, dict): # thing
             doc = doc.dict()
         self.docs.append(doc)
@@ -763,7 +761,7 @@ class author_edit(delegate.page):
 
 
 class edit(core.edit):
-    """Overwrite ?m=edit behaviour for author, book and work pages"""
+    """Overwrite ?m=edit behaviour for author, book and work pages."""
     def GET(self, key):
         page = web.ctx.site.get(key)
 
