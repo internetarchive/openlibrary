@@ -74,7 +74,7 @@ def is_old_user():
 
 def is_plugin_enabled(name):
     plugin_names = delegate.get_plugins()
-    return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
+    return name in plugin_names or "openlibrary.plugins." + name in plugin_names
 
 
 def make_work(doc):
