@@ -51,6 +51,21 @@ def get_authors_solr():
 
 
 def get_recaptcha():
+    def is_old_user():
+        """Check to see if account is more than two years old."""
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if not account:
+            return False
+        create_dt = account.creation_time()
+        now_dt = datetime.datetime.utcnow()
+        delta = now_dt - create_dt
+        return delta.days > 365*2
+
+    def is_plugin_enabled(name):
+        plugin_names = delegate.get_plugins()
+        return name in plugin_names or "openlibrary.plugins." + name in plugin_names
+
     if is_plugin_enabled('recaptcha') and not is_old_user():
         public_key = config.plugin_recaptcha.public_key
         private_key = config.plugin_recaptcha.private_key
@@ -58,23 +73,6 @@ def get_recaptcha():
     else:
         recap = None
     return recap
-
-
-def is_old_user():
-    """Check to see if account is more than two years old."""
-    user = web.ctx.site.get_user()
-    account = user and user.get_account()
-    if not account:
-        return False
-    create_dt = account.creation_time()
-    now_dt = datetime.datetime.utcnow()
-    delta = now_dt - create_dt
-    return delta.days > 365*2
-
-
-def is_plugin_enabled(name):
-    plugin_names = delegate.get_plugins()
-    return name in plugin_names or "openlibrary.plugins." + name in plugin_names
 
 
 def make_work(doc):
