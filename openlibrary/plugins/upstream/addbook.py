@@ -47,6 +47,15 @@ def get_authors_solr():
         base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
     return Solr(base_url)
 
+def get_recaptcha():
+    if is_plugin_enabled('recaptcha') and not is_old_user():
+        public_key = config.plugin_recaptcha.public_key
+        private_key = config.plugin_recaptcha.private_key
+        recap = recaptcha.Recaptcha(public_key, private_key)
+    else:
+        recap = None
+    return recap
+
 def is_old_user():
     """Check to see if account is more than two years old."""
     user = web.ctx.site.get_user()
@@ -118,15 +127,7 @@ class addbook(delegate.page):
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/add', work=work, author=author, recaptcha=recap)
+        return render_template('books/add', work=work, author=author, recaptcha=get_recaptcha())
 
     def has_permission(self):
         return web.ctx.site.can_write("/books/add")
@@ -139,13 +140,9 @@ class addbook(delegate.page):
                 "Oops", 
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active and not web.ctx.site.get_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-
-            if not recap.validate():
+        if not web.ctx.site.get_user():
+            recap = get_recaptcha()
+            if recap and not recap.validate():
                 return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         saveutil = DocSaveHelper()
@@ -620,16 +617,7 @@ class book_edit(delegate.page):
                 'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
             })
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-
-        if recap_plugin_active and not is_old_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/edit', work, edition, recaptcha=recap)
+        return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 
 
     def POST(self, key):
@@ -640,15 +628,10 @@ class book_edit(delegate.page):
                 "Oops",
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
+        recap = get_recaptcha()
 
-        if recap_plugin_active and not is_old_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-
-            if not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+        if recap and not recap.validate():
+            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
@@ -690,15 +673,7 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active and not is_old_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/edit', work, recaptcha=recap)
+        return render_template('books/edit', work, recaptcha=get_recaptcha())
 
 
     def POST(self, key):
@@ -709,14 +684,10 @@ class work_edit(delegate.page):
                 "Oops", 
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active and not is_old_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
+        recap = get_recaptcha()
 
-            if not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+        if recap and not recap.validate():
+            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)
