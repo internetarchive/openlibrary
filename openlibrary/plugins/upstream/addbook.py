@@ -32,6 +32,7 @@ logger = logging.getLogger("openlibrary.book")
 
 SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
+
 def get_works_solr():
     if config.get('single_core_solr'):
         base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
@@ -40,12 +41,14 @@ def get_works_solr():
 
     return Solr(base_url)
 
+
 def get_authors_solr():
     if config.get('single_core_solr'):
         base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
     else:
         base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
     return Solr(base_url)
+
 
 def get_recaptcha():
     if is_plugin_enabled('recaptcha') and not is_old_user():
@@ -55,6 +58,7 @@ def get_recaptcha():
     else:
         recap = None
     return recap
+
 
 def is_old_user():
     """Check to see if account is more than two years old."""
@@ -66,6 +70,12 @@ def is_old_user():
     now_dt = datetime.datetime.utcnow()
     delta = now_dt - create_dt
     return delta.days > 365*2
+
+
+def is_plugin_enabled(name):
+    plugin_names = delegate.get_plugins()
+    return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
+
 
 def make_work(doc):
     w = web.storage(doc)
@@ -86,11 +96,13 @@ def make_work(doc):
     w.setdefault('first_publish_year', None)
     return w
 
+
 def new_doc(type, **data):
     key = web.ctx.site.new_key(type)
     data['key'] = key
     data['type'] = {"key": type}
     return web.ctx.site.new(key, data)
+
 
 class DocSaveHelper:
     """Simple utility to collct the saves and save all of the togeter at the end.
@@ -109,10 +121,6 @@ class DocSaveHelper:
         """Saves all the collected docs."""
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
-
-def is_plugin_enabled(name):
-    plugin_names = delegate.get_plugins()
-    return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
 
 
 class addbook(delegate.page):
@@ -322,17 +330,21 @@ class addbook(delegate.page):
 
         raise web.seeother(edition.url("/edit?mode=add-work"))
 
+
 # remove existing definations of addbook and addauthor
 delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
+
 
 class addbook(delegate.page):
     def GET(self):
         raise web.redirect("/books/add")
 
+
 class addauthor(delegate.page):
     def GET(self):
         raise web.redirect("/authors")
+
 
 def trim_value(value):
     """Trim strings, lists and dictionaries to remove empty/None values.
@@ -363,10 +375,12 @@ def trim_value(value):
     else:
         return value
 
+
 def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
+
 
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -592,6 +606,7 @@ class SaveBookHelper:
             logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
+
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
 
@@ -618,7 +633,6 @@ class book_edit(delegate.page):
             })
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
-
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
@@ -659,6 +673,7 @@ class book_edit(delegate.page):
             add_flash_message('error', str(e))
             return self.GET(key)
 
+
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
 
@@ -674,7 +689,6 @@ class work_edit(delegate.page):
             raise web.notfound()
 
         return render_template('books/edit', work, recaptcha=get_recaptcha())
-
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
@@ -702,6 +716,7 @@ class work_edit(delegate.page):
         except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))
             return self.GET(key)
+
 
 class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
@@ -748,6 +763,7 @@ class author_edit(delegate.page):
             author.links = author.get('links') or []
             return author
 
+
 class edit(core.edit):
     """Overwrite ?m=edit behaviour for author, book and work pages"""
     def GET(self, key):
@@ -761,6 +777,7 @@ class edit(core.edit):
         else:
             return core.edit.GET(self, key)
 
+
 class daisy(delegate.page):
     path = "(/books/.*)/daisy"
 
@@ -772,9 +789,11 @@ class daisy(delegate.page):
 
         return render_template("books/daisy", page)
 
+
 def to_json(d):
     web.header('Content-Type', 'application/json')
     return delegate.RawText(simplejson.dumps(d))
+
 
 class languages_autocomplete(delegate.page):
     path = "/languages/_autocomplete"
@@ -785,6 +804,7 @@ class languages_autocomplete(delegate.page):
 
         languages = [lang for lang in utils.get_languages() if lang.name.lower().startswith(i.q.lower())]
         return to_json(languages[:i.limit])
+
 
 class authors_autocomplete(delegate.page):
     path = "/authors/_autocomplete"
@@ -843,7 +863,6 @@ class work_identifiers(delegate.view):
         saveutil.commit(comment="Added an %s identifier."%typ, action="edit-book")
         add_flash_message("info", "Thank you very much for improving that record!")
         raise web.redirect(web.ctx.path)
-
 
 
 def setup():
