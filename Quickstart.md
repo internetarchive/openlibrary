@@ -161,7 +161,20 @@ Every raw contains:
 
               openlibrary=# SELECT count(*) as count FROM thing WHERE type='22';
 
+## :: reCAPTCHA
+- To develop with reCAPTCHA locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required):
+https://developers.google.com/recaptcha/docs/start
 
+- On the *Manage your reCAPTCHA API keys* page under *Register a new site* enter the following values:
+
+| | |
+| --- | --- |
+| **Label**   | *Local OL dev* |
+| **Domains** | *0.0.0.0* |
+
+- All reCAPTCHA API keys work for local testing, so you do not need to enter the actual OpenLibrary domain. For example, `0.0.0.0` will work for the purpose of local development:
+
+- Once you have generated the keys, add them to your local `conf/openlibrary.yml` file by filling in the public and private keys under the `plugin_recaptcha` section.
 
 ### Credits and special thanks
 - [rajbot](https://github.com/rajbot)
