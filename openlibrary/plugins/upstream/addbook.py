@@ -32,6 +32,7 @@ logger = logging.getLogger("openlibrary.book")
 
 SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
+
 def get_works_solr():
     if config.get('single_core_solr'):
         base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
@@ -40,12 +41,39 @@ def get_works_solr():
 
     return Solr(base_url)
 
+
 def get_authors_solr():
     if config.get('single_core_solr'):
         base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
     else:
         base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
     return Solr(base_url)
+
+
+def get_recaptcha():
+    def is_old_user():
+        """Check to see if account is more than two years old."""
+        user = web.ctx.site.get_user()
+        account = user and user.get_account()
+        if not account:
+            return False
+        create_dt = account.creation_time()
+        now_dt = datetime.datetime.utcnow()
+        delta = now_dt - create_dt
+        return delta.days > 365*2
+
+    def is_plugin_enabled(name):
+        plugin_names = delegate.get_plugins()
+        return name in plugin_names or "openlibrary.plugins." + name in plugin_names
+
+    if is_plugin_enabled('recaptcha') and not is_old_user():
+        public_key = config.plugin_recaptcha.public_key
+        private_key = config.plugin_recaptcha.private_key
+        recap = recaptcha.Recaptcha(public_key, private_key)
+    else:
+        recap = None
+    return recap
+
 
 def make_work(doc):
     w = web.storage(doc)
@@ -66,21 +94,21 @@ def make_work(doc):
     w.setdefault('first_publish_year', None)
     return w
 
+
 def new_doc(type, **data):
     key = web.ctx.site.new_key(type)
     data['key'] = key
     data['type'] = {"key": type}
     return web.ctx.site.new(key, data)
 
+
 class DocSaveHelper:
-    """Simple utility to collct the saves and save all of the togeter at the end.
-    """
+    """Simple utility to collect the saves and save them together at the end."""
     def __init__(self):
         self.docs = []
 
     def save(self, doc):
-        """Adds the doc to the list of docs to be saved.
-        """
+        """Adds the doc to the list of docs to be saved."""
         if not isinstance(doc, dict): # thing
             doc = doc.dict()
         self.docs.append(doc)
@@ -89,10 +117,6 @@ class DocSaveHelper:
         """Saves all the collected docs."""
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
-
-def is_plugin_enabled(name):
-    plugin_names = delegate.get_plugins()
-    return name in plugin_names or "openlibrary.plugins." + name in delegate.get_plugins()
 
 
 class addbook(delegate.page):
@@ -107,15 +131,7 @@ class addbook(delegate.page):
         work = i.work and web.ctx.site.get(i.work)
         author = i.author and web.ctx.site.get(i.author)
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/add', work=work, author=author, recaptcha=recap)
+        return render_template('books/add', work=work, author=author, recaptcha=get_recaptcha())
 
     def has_permission(self):
         return web.ctx.site.can_write("/books/add")
@@ -128,13 +144,9 @@ class addbook(delegate.page):
                 "Oops", 
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active and not web.ctx.site.get_user():
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-
-            if not recap.validate():
+        if not web.ctx.site.get_user():
+            recap = get_recaptcha()
+            if recap and not recap.validate():
                 return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         saveutil = DocSaveHelper()
@@ -314,17 +326,21 @@ class addbook(delegate.page):
 
         raise web.seeother(edition.url("/edit?mode=add-work"))
 
+
 # remove existing definations of addbook and addauthor
 delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
+
 
 class addbook(delegate.page):
     def GET(self):
         raise web.redirect("/books/add")
 
+
 class addauthor(delegate.page):
     def GET(self):
         raise web.redirect("/authors")
+
 
 def trim_value(value):
     """Trim strings, lists and dictionaries to remove empty/None values.
@@ -355,10 +371,12 @@ def trim_value(value):
     else:
         return value
 
+
 def trim_doc(doc):
     """Replace empty values in the document with Nones.
     """
     return web.storage((k, trim_value(v)) for k, v in doc.items() if k[:1] not in "_{")
+
 
 class SaveBookHelper:
     """Helper to save edition and work using the form data coming from edition edit and work edit pages.
@@ -584,6 +602,7 @@ class SaveBookHelper:
             logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
+
 class book_edit(delegate.page):
     path = "(/books/OL\d+M)/edit"
 
@@ -609,28 +628,7 @@ class book_edit(delegate.page):
                 'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
             })
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-
-        #check to see if account is more than two years old
-        old_user = False
-        user = web.ctx.site.get_user()
-        account = user and user.get_account()
-        if account:
-            create_dt = account.creation_time()
-            now_dt = datetime.datetime.utcnow()
-            delta = now_dt - create_dt
-            if delta.days > 365*2:
-                old_user = True
-
-        if recap_plugin_active and not old_user:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/edit', work, edition, recaptcha=recap)
-
+        return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
@@ -640,26 +638,10 @@ class book_edit(delegate.page):
                 "Oops",
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
+        recap = get_recaptcha()
 
-        #check to see if account is more than two years old
-        old_user = False
-        user = web.ctx.site.get_user()
-        account = user and user.get_account()
-        if account:
-            create_dt = account.creation_time()
-            now_dt = datetime.datetime.utcnow()
-            delta = now_dt - create_dt
-            if delta.days > 365*2:
-                old_user = True
-
-        if recap_plugin_active and not old_user:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-
-            if not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+        if recap and not recap.validate():
+            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
@@ -687,6 +669,7 @@ class book_edit(delegate.page):
             add_flash_message('error', str(e))
             return self.GET(key)
 
+
 class work_edit(delegate.page):
     path = "(/works/OL\d+W)/edit"
 
@@ -701,16 +684,7 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
-        else:
-            recap = None
-
-        return render_template('books/edit', work, recaptcha=recap)
-
+        return render_template('books/edit', work, recaptcha=get_recaptcha())
 
     def POST(self, key):
         i = web.input(v=None, _method="GET")
@@ -720,14 +694,10 @@ class work_edit(delegate.page):
                 "Oops", 
                 'Something went wrong. Please try again later.')
 
-        recap_plugin_active = is_plugin_enabled('recaptcha')
-        if recap_plugin_active:
-            public_key = config.plugin_recaptcha.public_key
-            private_key = config.plugin_recaptcha.private_key
-            recap = recaptcha.Recaptcha(public_key, private_key)
+        recap = get_recaptcha()
 
-            if not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+        if recap and not recap.validate():
+            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
 
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)
@@ -742,6 +712,7 @@ class work_edit(delegate.page):
         except (ClientException, ValidationException), e:
             add_flash_message('error', str(e))
             return self.GET(key)
+
 
 class author_edit(delegate.page):
     path = "(/authors/OL\d+A)/edit"
@@ -788,8 +759,9 @@ class author_edit(delegate.page):
             author.links = author.get('links') or []
             return author
 
+
 class edit(core.edit):
-    """Overwrite ?m=edit behaviour for author, book and work pages"""
+    """Overwrite ?m=edit behaviour for author, book and work pages."""
     def GET(self, key):
         page = web.ctx.site.get(key)
 
@@ -800,6 +772,7 @@ class edit(core.edit):
                 raise web.seeother(page.url(suffix="/edit"))
         else:
             return core.edit.GET(self, key)
+
 
 class daisy(delegate.page):
     path = "(/books/.*)/daisy"
@@ -812,9 +785,11 @@ class daisy(delegate.page):
 
         return render_template("books/daisy", page)
 
+
 def to_json(d):
     web.header('Content-Type', 'application/json')
     return delegate.RawText(simplejson.dumps(d))
+
 
 class languages_autocomplete(delegate.page):
     path = "/languages/_autocomplete"
@@ -825,6 +800,7 @@ class languages_autocomplete(delegate.page):
 
         languages = [lang for lang in utils.get_languages() if lang.name.lower().startswith(i.q.lower())]
         return to_json(languages[:i.limit])
+
 
 class authors_autocomplete(delegate.page):
     path = "/authors/_autocomplete"
@@ -883,7 +859,6 @@ class work_identifiers(delegate.view):
         saveutil.commit(comment="Added an %s identifier."%typ, action="edit-book")
         add_flash_message("info", "Thank you very much for improving that record!")
         raise web.redirect(web.ctx.path)
-
 
 
 def setup():
