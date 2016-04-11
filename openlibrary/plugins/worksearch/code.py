@@ -195,12 +195,14 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
             'cover_i','cover_edition_key', 'public_scan_b', 
             'lending_edition_s', 'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
-    if use_dismax:
-        q = web.urlquote(' '.join(q_list))
-        solr_select = solr_select_url + "?defType=dismax&q.op=AND&q=%s&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10&start=%d&rows=%d&fl=%s" % (q, offset, rows, fl)
-    else:
-        q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
-        solr_select = solr_select_url + "?q.op=AND&q=%s&start=%d&rows=%d&fl=%s" % (q, offset, rows, fl)
+    solr_select = solr_select_url + "?q.op=AND&start=%d&rows=%d&fl=%s" % (offset, rows, fl)
+    if q_list:
+        if use_dismax:
+            q = web.urlquote(' '.join(q_list))
+            solr_select += "&defType=dismax&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10"
+        else:
+            q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
+        solr_select += "&q=%s" % q
     solr_select += '&spellcheck=true&spellcheck.count=%d' % spellcheck_count
     solr_select += "&facet=true&" + '&'.join("facet.field=" + f for f in facet_fields)
 
@@ -723,7 +725,7 @@ class search_json(delegate.page):
             page = safeint(query.pop("page", "1"), default=1)
 
         query['wt'] = 'json'
-        
+
         try:
             (reply, solr_select, q_list) = run_solr_query(query,
                                                 rows=limit, 
