@@ -34,3 +34,4 @@ TAGS
 env/
 .coverage
 htmlcov
+.vagrant
