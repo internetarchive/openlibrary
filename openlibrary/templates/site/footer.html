@@ -11,7 +11,7 @@ $if bodyid == 'user' or 'admin':
     </div><!-- /background -->
 
 $if bodyid == 'user' or 'admin':
-    $:render_template("lib/site_legal", page)
-    
+    $:render_template('lib/site_legal', page)
+    $:render_template('lib/analytics', page)
 </body>
 </html>
