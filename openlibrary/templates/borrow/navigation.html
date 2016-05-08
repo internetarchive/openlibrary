@@ -11,8 +11,6 @@ $def link(url, title):
         $:link("/read", _("Read"))
         | $:link("/borrow", _("Borrow"))
         | $:link("/borrow/about", _("How it Works"))
-        | $:link("/libraries", _("Participating Libraries"))
-        | $:link("/libraries/register", _("Register your library"))
         | $:link("/stats/lending", _("Stats"))
     </div>
     $if ctx.user and ctx.user.is_admin():
