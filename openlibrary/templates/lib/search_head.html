@@ -32,17 +32,17 @@ $ )
             </div>
             </fieldset>
             <div id="topOptions" class="searchOptions hidden">
-            <fieldset class="home">
-                <legend>Advanced Search</legend>
-            $for name, label, placeholder in advanced:
-                <div class="formElement">
-                <label for="qtop-$name">$label</label><br/>
-                <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
-                </div>
-            </fieldset>
-            <div class="searchPlus">
-                <a href="/search/inside">Full Text Search</a>?
-            </div>
+                <fieldset class="home">
+                    <legend>Advanced Search</legend>
+                $for name, label, placeholder in advanced:
+                    <div class="formElement">
+                    <label for="qtop-$name">$label</label><br/>
+                    <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
+                    </div>
+                </fieldset>
+                $#<div class="searchPlus">
+                $#    <a href="/search/inside">Full Text Search</a>?
+                $#</div>
             </div>
         </form>
     </div>
