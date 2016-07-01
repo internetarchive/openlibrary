@@ -35,3 +35,4 @@ env/
 .coverage
 htmlcov
 .vagrant
+.DS_Store
