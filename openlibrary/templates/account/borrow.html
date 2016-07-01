@@ -39,7 +39,6 @@ th.status {
 }
 </style>
 
-
 $if len(loans) >= 5:
     <script type="text/javascript">
     <!--
@@ -50,6 +49,14 @@ $if len(loans) >= 5:
     });
     //-->
     </script>
+
+<script type="text/javascript">
+<!--
+\$().ready(function(){
+    \$(".local-date-time").text(moment(\$(".local-date-time").text()).format('LLL'));
+});
+//-->
+</script>
 
 <div id="contentHead">
     <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname)) /</div>

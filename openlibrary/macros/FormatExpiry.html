@@ -5,4 +5,5 @@ $if expiry is None or expiry == False:
     <span class="red">Not yet downloaded</span>
 $else:
     $ expiry_datetime = datetime_from_isoformat(expiry)       
-    <span class="darkgreen">$datestr(expiry_datetime)</span>
+    <div class="darkgreen local-date-time">$datetimestr_utc(expiry_datetime)</div>
+    <div class="expires-datetime">$datetimestr_utc(expiry_datetime)</div>
