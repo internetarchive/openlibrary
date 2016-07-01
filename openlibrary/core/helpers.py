@@ -33,7 +33,7 @@ __all__ = [
     "json_encode",
     "safesort", 
     "datestr", "format_date",    
-    "sprintf", "cond", "commify", "truncate",
+    "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe", 
     "percentage",
     
@@ -115,6 +115,8 @@ def datestr(then, now=None, lang=None, relative = True):
     else:
         return format_date(then, lang=lang)
 
+def datetimestr_utc():
+    return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def format_date(date, lang=None):
     lang = lang or web.ctx.get('lang') or "en"

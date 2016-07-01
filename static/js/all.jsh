@@ -11,6 +11,5 @@ JSMIN="python $VENDORJS/wmd/jsmin.py"
 for f in $JSROOT/*.js
 do
     cat $f | $JSMIN
-    echo
-    echo
+    printf '\n\n'
 done
