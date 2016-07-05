@@ -115,7 +115,7 @@ def datestr(then, now=None, lang=None, relative = True):
     else:
         return format_date(then, lang=lang)
 
-def datetimestr_utc():
+def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
 
 def format_date(date, lang=None):
