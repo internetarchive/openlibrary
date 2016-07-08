@@ -18,7 +18,7 @@
 
         vagrant up
 
-- You can now view your running instance by loading localhost:8080 in a web browser.
+- You can now view your running instance by loading `http://localhost:8080` in a web browser.
 
 - You can log into the OpenLibrary instance as an admin, with the username *openlibrary*, password *openlibrary*.
 
@@ -26,20 +26,36 @@
 
         vagrant ssh
 
-- You can turn on the virtual machine using:
+- You can turn off the virtual machine using:
 
         vagrant halt
 
-- Remember that, thanks to vagrant and virtual box, your local folder ```openlibrary``` (where you runned ```vagrant up```) contains *exactly* the same files as ```/openlibrary``` in the dev virtual machine (the one that you login doing ```vagrant ssh```).
+- Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
+
+
+## :: Running tests
+
+- OpenLibrary uses py.test
+
+- Inside vagrant, go to the application base directory:
+
+        cd /openlibrary
+
+- Run tests:
+
+        make test
+
 
 ## :: Administration
 
-- If you want to add a new user to the admin group, you can do that at ```http://localhost:8080/usergroup/admin```
+- If you want to add a new user to the admin group, you can do that at `http://localhost:8080/usergroup/admin`
 
-- The admin interface is available at ```http://localhost:8080/admin```
+- The admin interface is available at `http://localhost:8080/admin`
+
 
 ## :: Creating users
-- If you create a user, you will have to verify the email address, but you will not be able to send email from your vagrant dev instance. Instead, you can find the verification link in the app server log, which should be in ```/var/log/upstart/ol-web.log```.
+
+- If you create a user, you will have to verify the email address, but you will not be able to send email from your vagrant dev instance. Instead, you can find the verification link in the app server log, which should be in `/var/log/upstart/ol-web.log`.
 
     The verification link should look like:
 
@@ -49,7 +65,8 @@
 
 
 ## :: Copying documents
-- You can copy test data from the live openlibrary.org site into your dev instance. ```vagrant ssh``` into your dev instance, and run the ```copydocs.py``` script in ```/openlibrary/scripts```. If you want to add a book, you must first copy an author record, then the work record, and then the book record.
+
+- You can copy test data from the live openlibrary.org site into your dev instance. `vagrant ssh` into your dev instance, and run the `copydocs.py` script in `/openlibrary/scripts`. If you want to add a book, you must first copy an author record, then the work record, and then the book record.
 
         $ cd /openlibrary/scripts
 
@@ -68,20 +85,23 @@
             saving ['/books/OL24966433M']
             [{'key': '/books/OL24966433M', 'revision': 1}]
 
+
 ## :: Routing and templates
+
 - OpenLibrary is rendered using [Templetor](http://webpy.org/docs/0.3/templetor) templates, part of the [web.py](http://webpy.org/) framework.
 
 - The repository you cloned on your local machine is mounted at /openlibrary in the vagrant virtual machine. If you make template changes to files locally, the OpenLibrary instance in the virtual machine should automatically pick up those changes.
 
 - The home page is rendered by [templates/home/index.html](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/templates/home/index.html), and its controller is [plugins/openlibrary/home.py](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/plugins/openlibrary/home.py#L18).
 
-- A books page is rendered by [templates/type/edition/view.html](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/templates/type/edition/view.html). An edition is defined by edition.type. Note that editions have are served by a ```/books/OL\d+M``` url.
+- A books page is rendered by [templates/type/edition/view.html](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/templates/type/edition/view.html). An edition is defined by edition.type. Note that editions have are served by a `/books/OL\d+M` url.
 
-- A works page is rendered by ```templates/view/work/view.html```. A work is defined by work type.
+- A works page is rendered by `templates/view/work/view.html`. A work is defined by work type.
 
 
 ## :: Memcache
-- Infobase queries get cached in memcache. In the vagrant dev instance, there is a single-node memcache cluster that you can test by connecting to your test instance using ```vagrant ssh``` and then typing:
+
+- Infobase queries get cached in memcache. In the vagrant dev instance, there is a single-node memcache cluster that you can test by connecting to your test instance using `vagrant ssh` and then typing:
 
         $ cd /openlibrary
         $ python
@@ -100,9 +120,9 @@
 
   to **DELETE** a memcached entry:
 
-      >>> mc.delete('/authors/OL18319A')
+        >>> mc.delete('/authors/OL18319A')
 
-- You can also find memcached items using the Internet Archive ID (import ```memcache``` instead of ```olmemecache```):
+- You can also find memcached items using the Internet Archive ID (import `memcache` instead of `olmemecache`):
 
         >>> import yaml
         >>> import memcache
@@ -111,13 +131,16 @@
 
         >>> mc.get('ia.get_metadata-"houseofscorpion00farmrich"')
 
-## :: Logs
-- Logs for the upstart services will be in ```/var/log/upstart/```.
 
-- The app server logs will be in ```/var/log/upstart/ol-web.log```.
+## :: Logs
+
+- Logs for the upstart services will be in `/var/log/upstart/`.
+
+- The app server logs will be in `/var/log/upstart/ol-web.log`.
 
 
 ## :: Database
+
 - You should never work directly with the database, all the data are indeed managed by OpenLibrary through *infobase*, but, if you are brave and curious, here you can find some useful infos.
 
 - The first thing you have to know is that OpenLibrary is based on a [triplestore](https://en.wikipedia.org/wiki/Triplestore) database running on *Postgres*.
@@ -126,13 +149,13 @@
 
               psql openlibrary
 
-- All the OL’s entities are stored as things in the ```thing``` table.
+- All the OL’s entities are stored as things in the `thing` table.
 Every raw contains:
 
               id | key | type | latest_revision | created | last_modified
               ---+-----+------+-----------------+---------+---------------
 
-- It is useful identify the ```id``` of some particular types: ```/type/author``` ```/type/work``` ```/type/edition``` ```/type/user```
+- It is useful identify the `id` of some particular types: `/type/author` `/type/work` `/type/edition` `/type/user`
 
              openlibrary=# SELECT * FROM thing WHERE key='/type/author' OR key='/type/edition' OR key='/type/work' OR key='/type/user';
 
@@ -161,9 +184,10 @@ Every raw contains:
 
               openlibrary=# SELECT count(*) as count FROM thing WHERE type='22';
 
+
 ## :: reCAPTCHA
-- To develop with reCAPTCHA locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required):
-https://developers.google.com/recaptcha/docs/start
+
+- To develop with reCAPTCHA locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required): `https://developers.google.com/recaptcha/docs/start`
 
 - On the *Manage your reCAPTCHA API keys* page under *Register a new site* enter the following values:
 
@@ -175,6 +199,7 @@ https://developers.google.com/recaptcha/docs/start
 - All reCAPTCHA API keys work for local testing, so you do not need to enter the actual OpenLibrary domain. For example, `0.0.0.0` will work for the purpose of local development:
 
 - Once you have generated the keys, add them to your local `conf/openlibrary.yml` file by filling in the public and private keys under the `plugin_recaptcha` section.
+
 
 ### Credits and special thanks
 - [rajbot](https://github.com/rajbot)
