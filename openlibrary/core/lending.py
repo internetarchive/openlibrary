@@ -103,7 +103,7 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
-def get_loans_of_user(user_key):
+def get_loans_of_user(user_key): # TODO: Remove inclusion of local data; should only come from IA
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata]  + _get_ia_loans_of_user(userkey2userid(user_key))
     return loans
