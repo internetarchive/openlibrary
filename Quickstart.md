@@ -63,6 +63,8 @@
 
     The hash you see will be different that above. Just load that link and the user will be created in your dev instance.
 
+- During sign up, if you get an error "INPUT ERROR: K: FORMAT OF SITE KEY WAS INVALID", then it probably means reCAPTCHA has not been set up on your local dev environment. See "reCAPTCHA" below.
+
 
 ## :: Copying documents
 
