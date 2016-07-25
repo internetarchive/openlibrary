@@ -25,12 +25,12 @@ memcached
 libpq-dev
 libxml2-dev
 libxslt-dev
-
 curl
 screen
+python-dev
+python-pip
 
 libgeoip-dev
-python-dev
 python-lxml
 python-psycopg2
 python-yaml"
@@ -85,16 +85,6 @@ function setup_nginx() {
     fi
     sudo /etc/init.d/nginx restart
 }
-
-# pip version 1.5.4 gets into some issues when old version of requests is installed.
-# get the latest version of pip in that case
-# if pip --version | grep -q 1.5.4
-# then
-#     pip install -U pip
-# fi
-
-# easy_install pip
-
 
 setup_database
 setup_nginx
