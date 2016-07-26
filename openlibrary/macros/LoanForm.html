@@ -38,7 +38,7 @@ $else:
     $if ['epub'] == loan_types:
         <fieldset class="download">
             <legend>Download &amp; Open in Adobe Digital Editions</legend>
-            <label> 
+            <label data-convert="Borrow This Book: epub1"> 
                 <input type="radio" name="format" class="download" value="epub"/>  
                 <strong>Download ePub</strong>
                 Reflowable text version
@@ -56,7 +56,7 @@ $else:
         $if 'bookreader' in loan_types:
             <fieldset class="online">
                 <legend>Read in Browser</legend>
-                <label>
+                <label data-convert="Borrow This Book: bookreader">
                     <input type="radio" name="format" class="online" value="bookreader"/> 
                     <strong>Read in Browser</strong> 
                     Open in our BookReader
@@ -78,14 +78,14 @@ $else:
             <fieldset class="download">
                 <legend>Download &amp; Open in Adobe Digital Editions</legend>
                 $if 'pdf' in loan_types:
-                    <label style="margin-right:15px;"> 
+                    <label style="margin-right:15px;" data-convert="Borrow This Book: pdf"> 
                         <input type="radio" name="format" class="download" value="pdf"/>  
                         <strong>Download PDF</strong> 
                         High quality page images 
                     </label> 
                 $if 'epub' in loan_types:
-                    <label> 
-                        <input type="radio" name="format" class="download" value="epub"/>  
+                    <label data-convert="Borrow This Book: epub"> 
+                        <input type="radio" name="format" class="download" value="epub2"/>  
                         <strong>Download ePub</strong> 
                         Smaller file, may contain errors 
                     </label>
