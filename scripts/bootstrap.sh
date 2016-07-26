@@ -12,6 +12,9 @@ update-locale LANG=en_US.UTF-8 LC_ALL=POSIX
 
 apt-get update
 
+# Coordinate with apt-get and pip packages installed for Travis CI but also include system packages
+# and python module dependencies
+
 APT_PACKAGES="
 nginx
 solr-tomcat
@@ -19,42 +22,24 @@ postgresql
 build-essential
 git-core
 memcached
-
+libpq-dev
+libxml2-dev
+libxslt-dev
 curl
 screen
+python-dev
+python-pip
 
 libgeoip-dev
-
-python-dev
 python-lxml
-python-beautifulsoup
-python-babel
-python-imaging
-python-couchdb
-python-genshi
-gunicorn
 python-psycopg2
-python-py
-python-memcache
-python-yaml
-python-simplejson
-python-sphinx
-python-celery
-python-sqlalchemy
-python-pytest"
+python-yaml"
 
 apt-get install -y $APT_PACKAGES
 
-PYTHON_PACKAGES="
-DBUtils==1.1
-iptools==0.4.0
-pymarc==2.8.4
-web.py==0.33
-pystatsd==0.1.6
-eventer==0.1.1
-OL-GeoIP==1.2.4
-mockcache
-sixpack-client"
+PYTHON_PACKAGES=$OL_ROOT/test_requirements.txt
+
+pip install -r $PYTHON_PACKAGES
 
 REINDEX_SOLR=no
 
@@ -100,17 +85,6 @@ function setup_nginx() {
     fi
     sudo /etc/init.d/nginx restart
 }
-
-# pip version 1.5.4 gets into some issues when old version of requests is installed.
-# get the latest version of pip in that case
-# if pip --version | grep -q 1.5.4
-# then
-#     pip install -U pip
-# fi
-
-easy_install pip
-
-pip install $PYTHON_PACKAGES
 
 setup_database
 setup_nginx
