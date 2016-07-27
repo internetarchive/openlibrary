@@ -78,6 +78,10 @@ function setup_ol() {
 }
 
 function setup_nginx() {
+    if [ -f /etc/nginx/nginx.conf ]; then
+        # https://abitwiser.wordpress.com/2011/02/24/virtualbox-hates-sendfile/
+        sed -i -e 's/sendfile on/sendfile off/g' /etc/nginx/nginx.conf
+    fi
     ln -sf $OL_ROOT/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/
     ln -sf /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
     if [ -f /etc/nginx/sites-enabled/default ]; then
