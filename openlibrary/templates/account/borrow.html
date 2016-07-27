@@ -53,7 +53,10 @@ $if len(loans) >= 5:
 <script type="text/javascript">
 <!--
 \$().ready(function(){
-    \$(".local-date-time").text(moment(\$(".expires-datetime").text()).format('LLL'));
+    \$(".local-date-time").each(function() {
+        var expiry_utc = \$(this).attr("data-expiry-utc");
+        \$(this).html(moment(expiry_utc).format('LLL'));
+    });
 });
 //-->
 </script>
