@@ -88,6 +88,11 @@
             [{'key': '/books/OL24966433M', 'revision': 1}]
 
 
+## :: CSS and JS in local development
+
+After making changes to CSS or JS, make sure to run `make css` or `make js`, in order to re-compile the build/ static assets. You might also need to restart the webserver and/or clear browser caches to see the changes.
+
+
 ## :: Routing and templates
 
 - OpenLibrary is rendered using [Templetor](http://webpy.org/docs/0.3/templetor) templates, part of the [web.py](http://webpy.org/) framework.
