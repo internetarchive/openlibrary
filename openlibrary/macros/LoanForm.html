@@ -25,6 +25,8 @@ $else:
             \$('.preSubmit').hide();
             \$('.postSubmit').show();
             \$('#ol_host').attr('value', location.host);
+            var format = \$(this).find('input').attr('value');
+            archive_analytics.ol_send_event_ping({'category': 'Borrow', 'action': format});
             \$('#borrowbook').submit();
             setTimeout('document.location.reload()', 4000);
             return true;
