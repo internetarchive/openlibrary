@@ -15,8 +15,8 @@ archive_analytics.ol_send_event_ping = function(values) {
     'kind':'event',
     'ec':values['category'],
     'ea':values['action'],
-    'el':values['label'],
-    'ev':values['value'],
+    'el':location.pathname,
+    'ev':1,
     'loadtime':(endTime.getTime() - startTime.getTime()),
     'cache_bust':Math.random()
   });
