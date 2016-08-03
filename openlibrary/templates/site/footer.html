@@ -4,7 +4,7 @@ $ bodyid = ctx.get('bodyid', 'user')
 
 $if bodyid == 'user' or 'admin':
     $:render_template("lib/nav_foot", page)
-    $if "stats" in ctx.features:
+    $if ("stats" in ctx.features) and query_param('debug'):
         $:render_template("site/stats")
     </div><!-- /position -->
     </div><!-- /placement -->
