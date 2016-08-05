@@ -8,7 +8,7 @@ $putctx("sent_neck", True)
     $if ctx.get("description"):
     	<meta name="description" content="$ctx.description" />
 
-    <title>$:title ($_("Open Library"))</title>
+    <title>$:title | $_("Open Library")</title>
 
     $for link in ctx.get("links", []):
         $:link

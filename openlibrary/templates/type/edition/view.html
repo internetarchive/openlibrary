@@ -1,6 +1,7 @@
 $def with (page)
 
-$var title: $page.title
+$ title_suffix = cond(page.publish_date, "({0} edition)".format(page.publish_date), "(edition)")
+$var title: $page.title $title_suffix
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
@@ -41,6 +42,18 @@ $code:
         meta = title + author_info + ", " + edition + " edition, " + format
         return meta
     putctx("description", get_description(page))
+
+$code:
+    def get_authors_byline(page, include_schema=False):
+        work = page.works and page.works[0]
+        schema_attribute = cond(include_schema, ' itemprop="author"', '')
+        authors = cond(work, work and work.get_authors(), page.get_authors())
+        if authors:
+            return ', '.join('<a href="%s"%s>%s</a>' % (a.url(), schema_attribute, truncate(a.name, 40)) for a in authors)
+        elif page.author_names:
+            return ('<span%s>' % (schema_attribute)) + ", ".join(page.author_names) + "</span>"
+        else:
+            return None
 
 $def display_value(label, value, itemprop=None):
     $if value:
@@ -198,12 +211,9 @@ $elif ebook_status == "borrow-user-checkedout":
             <span title="$_('Go to the main page for %s', page.title)"><a href="$work.url()">$truncate(work.title or "", 60)</a></span>
         $else:
             <strong>$:_('1 edition')</strong> record for of $page.title
-        $ authors = cond(work, work and work.get_authors(), page.get_authors())
-        $if authors:
-            $ author_list = ', '.join('<a href="%s">%s</a>' % (a.url(), truncate(a.name, 40)) for a in authors)
-            $_("by") <span title="$_('Go to this author\'s page')">$:author_list</span>
-        $elif page.author_names:
-            by $", ".join(page.author_names)
+        $ authors_byline = get_authors_byline(page)
+        $if authors_byline:
+            $_("by") <span title="$_('Author')">$:authors_byline</span>
         $else:
             $:_("by an <em>unknown author</em>")
         $if work:
@@ -265,8 +275,9 @@ $elif ebook_status == "borrow-user-checkedout":
                     <br /><em>$page.subtitle</em> 
                 $if page.edition_title or page.edition_name:
                     <br />$page.edition_title $page.edition_name
-                $if page.by_statement:
-                    <br />$page.by_statement
+                $ authors_byline = get_authors_byline(page, include_schema=True)
+                $if authors_byline:
+                    <br />$_("by") $:authors_byline
                 </h1>
                 <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
@@ -287,7 +298,7 @@ $elif ebook_status == "borrow-user-checkedout":
                                  <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
                         <span class="adjust">.</span>
                     $if page.languages:
-                    <br/>Written in $:thingrepr(page.languages).
+                    <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
                 </h4> 
             </div>
 
