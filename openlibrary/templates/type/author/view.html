@@ -44,7 +44,12 @@ $var history: $page.history
 
 $ olid = page.key.split('/')[-1]
 
-$putctx("description", "Books by " + page.get("name", ""))
+$ books = page.get_books()
+$ book_list_excerpt = ''
+$if books and books.works:
+    $ book_titles_excerpt = [work.title for work in books.works[:8]]
+    $ book_list_excerpt = ', '.join(book_titles_excerpt)
+$putctx("description", "Books by " + page.get("name", "") + ', ' + book_list_excerpt)
 
 $ library = (get_library() if 'inlibrary' in ctx.features else None)
 
@@ -114,8 +119,6 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                 <h6 class="collapse black uppercase">$_("Location")</h6>
                 $page.location
             </div>
-
-        $ books = page.get_books()
 
         <div class="clearfix"></div>
         <div class="section">
