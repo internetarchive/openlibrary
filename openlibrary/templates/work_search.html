@@ -64,7 +64,7 @@ $if param:
     $ facet_counts = results.facet_counts
     $ num_found = results.num_found
     $ error = results.error
-$else:
+$else: 
     $ num_found = 0
 
 $ start_facet_count = 5
@@ -112,11 +112,11 @@ function less(header) {
 </script>
 
 <div id="contentHead">
-    $#<div id="pullOut" class="sansserif searchInside">
-    $#    <p><a href="/search/inside">Search inside</a>
-    $#    over 2 million books</p>
-    $#    <div class="label new"></div>
-    $#</div>
+    <div id="pullOut" class="sansserif searchInside">
+        <p><a href="/search/inside">Search inside</a>
+        over 2 million books</p>
+        <div class="label new"></div>
+    </div>
     $if param:
         <h1>
             $_("Search Results")
@@ -130,13 +130,13 @@ function less(header) {
 <p class="collapse sansserif">
     $if param and not error:
         $if num_found == 0:
-            <span class="red"><strong>$_("No hits")</strong></span>
+            <span class="red"><strong>$_("No hits")</strong></span> 
             <span class="lightgreen">$_("Try something else?")</span>
         $if num_found > 0:
             <span class="darkgreen"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></span>
 &nbsp;
         $if num_found > 1:
-            <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
+            <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/> 
             $if sort == 'editions':
                 <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
             $elif sort == 'old':
@@ -144,7 +144,7 @@ function less(header) {
             $elif sort == 'new':
                 <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
             $else:
-                <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+                <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>  
             </span>
 </p>
 
@@ -170,7 +170,7 @@ function less(header) {
         $if param and not error:
             $ title = []
             $if q_param:
-                $title.append(q_param)
+                $title.append(q_param)                
             $if 'has_fulltext' in param:
                 $title.append('eBook')
 
@@ -199,9 +199,9 @@ function less(header) {
                                 Classic eBooks hidden
                         $elif header == 'subject_facet':
                             <a href="/subjects/$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
-                        $elif header == 'person_facet':
+                        $elif header == 'person_facet': 
                             <a href="/subjects/person:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
-                        $elif header == 'place_facet':
+                        $elif header == 'place_facet': 
                             <a href="/subjects/place:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
                         $elif header == 'time_facet':
                             <a href="/subjects/time:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
@@ -214,7 +214,7 @@ function less(header) {
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
-
+        
     </div>
 
 
@@ -236,7 +236,7 @@ function less(header) {
             <li>
             <span class="bookcover">
                 $if doc.cover_edition_key:
-                    $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
+                    $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key 
                 $elif doc.ia:
                     $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
                 $else:
@@ -261,7 +261,7 @@ function less(header) {
                         $if len(doc.ia):
                             ($len(doc.ia) ebook$("s" if len(doc.ia) != 1 else ""))
                         $if doc.first_publish_year:
-                            - first published in
+                            - first published in 
                             $if doc.first_edition:
                                 <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
                             $else:
@@ -274,7 +274,7 @@ function less(header) {
                     <a href="//archive.org/stream/$doc.ia[0]" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
                         <span class="image read"></span>
                         <span class="label">$_("Read")</span>
-                    </a>
+                    </a>                
                 </span>
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                 <span class="actions">
@@ -294,7 +294,7 @@ function less(header) {
                     <a href="/works/$doc.key" title="Protected DAISY">
                         <span class="image daisy"></span>
                         <span class="label">DAISY</span>
-                    </a>
+                    </a>                
                 </span>
             </li>
         </ul>
@@ -342,7 +342,7 @@ $if param and not error:
                 <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="orange">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="orange hidden">$_("less")</a></span></div>
             </div>
         </div>
-
+    
 <!-- /facets -->
 
     $if param and not error:
