@@ -23,9 +23,8 @@ def inside_search_select(params):
         json_data = urllib2.urlopen(search_select, timeout=30).read()
         logger.debug('URL: ' + search_select)
         logger.debug(json_data)
-    except IOError, e:
-        logger.error("Unable to query search engine", exc_info=True)
-        return {'error': web.htmlquote(str(e))}
+    except:
+        return {'error': 'Unable to query search engine'}
     finally:
         # TODO: Update for Elastic
         # stats.end()
@@ -161,5 +160,5 @@ class snippets(delegate.page):
                 m = re_h1_error.search(ret)
                 # return { 'error': web.htmlunquote(m.group(1)) }
                 return { 'error': 'Error finding matches' }
-                
+
         return render_template('search/snippets.tmpl', find_matches, ia)
