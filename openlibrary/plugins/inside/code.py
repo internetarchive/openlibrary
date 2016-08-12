@@ -4,149 +4,65 @@ from infogami import config
 from lxml import etree
 from openlibrary.utils import escape_bracket
 import logging
-import re, web, urllib, urlparse, simplejson, httplib
-
-re_query_parser_error = re.compile(r'<pre>([^<]+?)</pre>', re.S)
-re_inside_fields = re.compile(r'(ia|body|page_count|body_length):')
-bad_fields = ['title', 'author', 'authors', 'lccn', 'ia', 'oclc', 'isbn', 'publisher', 'subject', 'person', 'place', 'time']
-re_bad_fields = re.compile(r'\b(' + '|'.join(bad_fields) + '):')
+import re, web, urllib, urllib2, urlparse, simplejson, httplib
 
 logger = logging.getLogger("openlibrary.inside")
-
-def urlopen(url, timeout=5):
-    """Like urllib.urlopen, but built using httplib with timeout support.
-    """
-    o = urlparse.urlparse(url)
-    selector = o.path
-    if o.query:
-        selector += "?" + o.query
-
-    # set 5 second timeout. 
-    # report error if it takes longer than that.
-    # TODO: move the timeout to config
-    conn = httplib.HTTPConnection(o.hostname, o.port, timeout=timeout)
-    conn.request("GET", selector)
-    return conn.getresponse()
+search_host = 'https://books-search0.us.archive.org/api/v0.1/search'
 
 def escape_q(q):
-    if re_inside_fields.match(q):
-        return q
-    return escape_bracket(q).replace(':', '\\:')
+    """Hook for future pre-treatment of search query"""
+    return q
 
-trans = { '\n': '<br>', '{{{': '<b>', '}}}': '</b>', }
-re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
-def quote_snippet(snippet):
-    return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
+def inside_search_select(params):
+    search_select = search_host + '?' + urllib.urlencode(params)
 
-if hasattr(config, 'plugin_inside'):
-    solr_host = config.plugin_inside['solr']
-    solr_select_url = "http://" + solr_host + "/solr/inside/select"
-
-def inside_solr_select(params):
-    params.setdefault("wt", "json")
-    #solr_select = solr_select_url + '?' + '&'.join("%s=%s" % (k, unicode(v)) for k, v in params)
-    solr_select = solr_select_url + "?" + urllib.urlencode(params)
-    stats.begin("solr", url=solr_select)
+    # TODO: Update for Elastic
+    # stats.begin("solr", url=search_select)
 
     try:
-        json_data = urlopen(solr_select).read()
+        json_data = urllib2.urlopen(search_select, timeout=30).read()
+        logger.debug('URL: ' + search_select)
+        logger.debug(json_data)
     except IOError, e:
-        logger.error("Unable to query search inside solr", exc_info=True)
-        return {"error": web.htmlquote(str(e))}
+        logger.error("Unable to query search engine", exc_info=True)
+        return {'error': web.htmlquote(str(e))}
     finally:
-        stats.end()
-   
+        # TODO: Update for Elastic
+        # stats.end()
+        pass
+
     try:
         return simplejson.loads(json_data)
     except:
-        m = re_query_parser_error.search(json_data)
-        return { 'error': web.htmlunquote(m.group(1)) }
-
-def editions_from_ia(ia):
-    q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
-    editions = web.ctx.site.things(q)
-    if not editions:
-        del q['ocaid']
-        q['source_records'] = 'ia:' + ia
-        editions = web.ctx.site.things(q)
-    return editions
-
-def read_from_archive(ia):
-    meta_xml = 'http://archive.org/download/' + ia + '/' + ia + '_meta.xml'
-    stats.begin("archive.org", url=meta_xml)
-    xml_data = urllib.urlopen(meta_xml)
-    item = {}
-    try:
-        tree = etree.parse(xml_data)
-    except etree.XMLSyntaxError:
-        return {}
-    finally:
-        stats.end()
-    root = tree.getroot()
-
-    fields = ['title', 'creator', 'publisher', 'date', 'language']
-
-    for k in 'title', 'date', 'publisher':
-        v = root.find(k)
-        if v is not None:
-            item[k] = v.text
-
-    for k in 'creator', 'language', 'collection':
-        v = root.findall(k)
-        if len(v):
-            item[k] = [i.text for i in v if i.text]
-    return item
+        return {'error': 'Error converting search engine data to JSON'}
 
 @public
 def search_inside_result_count(q):
     q = escape_q(q)
     params = {
-        'fl': 'ia',
-        'q.op': 'AND',
         'q': web.urlquote(q)
     }
-    results = inside_solr_select(params)
+    results = inside_search_select(params)
     if 'error' in results:
         return None
 
-    return results['response']['numFound']
+    return results['hits']['total']
 
 class search_inside(delegate.page):
     path = '/search/inside'
 
     def GET(self):
-        def get_results(q, offset=0, limit=100, snippets=3, fragsize=200, hl_phrase=False):
-            m = re_bad_fields.match(q)
-            if m:
-                return { 'error': m.group(1) + ' search not supported' }
+        def get_results(q, offset=0, limit=100):
             q = escape_q(q)
-            solr_params = [
-                ('fl', 'ia,body_length,page_count'),
-                ('hl', 'true'),
-                ('hl.fl', 'body'),
-                ('hl.snippets', snippets),
-                ('hl.mergeContiguous', 'true'),
-                ('hl.usePhraseHighlighter', 'true' if hl_phrase else 'false'),
-                ('hl.simple.pre', '{{{'),
-                ('hl.simple.post', '}}}'),
-                ('hl.fragsize', fragsize),
-                ('q.op', 'AND'),
-                ('q', web.urlquote(q)),
-                ('start', offset),
-                ('rows', limit),
-                ('qf', 'body'),
-                ('qt', 'standard'),
-                ('hl.maxAnalyzedChars', '-1'),
-                ('wt', 'json'),
-            ]
-            results = inside_solr_select(dict(solr_params))
+            results = inside_search_select({'q': q, 'from': offset, 'size': limit})
             # If there is any error in gettig the response, return the error
             if 'error' in results:
                 return results
 
+            # TODO: This chunk seems unused
             ekey_doc = {}
-            for doc in results['response']['docs']:
-                ia = doc['ia']
+            for doc in results['hits']['hits']:
+                ia = doc['fields']['identifier'][0]
                 q = {'type': '/type/edition', 'ocaid': ia}
                 ekeys = web.ctx.site.things(q)
                 if not ekeys:
@@ -155,32 +71,53 @@ class search_inside(delegate.page):
                     ekeys = web.ctx.site.things(q)
                 if ekeys:
                     ekey_doc[ekeys[0]] = doc
-
             editions = web.ctx.site.get_many(ekey_doc.keys())
             for e in editions:
                 ekey_doc[e['key']]['edition'] = e
+
             return results
 
+        def quote_snippet(snippet):
+            trans = { '\n': ' ', '{{{': '<b>', '}}}': '</b>', }
+            re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
+            return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
+
+        def editions_from_ia(ia):
+            q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
+            editions = web.ctx.site.things(q)
+            if not editions:
+                del q['ocaid']
+                q['source_records'] = 'ia:' + ia
+                editions = web.ctx.site.things(q)
+            return editions
+
+        def read_from_archive(ia):
+            meta_xml = 'http://archive.org/download/' + ia + '/' + ia + '_meta.xml'
+            stats.begin("archive.org", url=meta_xml)
+            xml_data = urllib2.urlopen(meta_xml, timeout=5)
+            item = {}
+            try:
+                tree = etree.parse(xml_data)
+            except etree.XMLSyntaxError:
+                return {}
+            finally:
+                stats.end()
+            root = tree.getroot()
+
+            fields = ['title', 'creator', 'publisher', 'date', 'language']
+
+            for k in 'title', 'date', 'publisher':
+                v = root.find(k)
+                if v is not None:
+                    item[k] = v.text
+
+            for k in 'creator', 'language', 'collection':
+                v = root.findall(k)
+                if len(v):
+                    item[k] = [i.text for i in v if i.text]
+            return item
+
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
-
-def ia_lookup(path):
-    h1 = httplib.HTTPConnection("archive.org")
-
-    for attempt in range(5):
-        h1.request("GET", path)
-        res = h1.getresponse()
-        res.read()
-        if res.status != 200:
-            break
-    assert res.status == 302
-    new_url = res.getheader('location')
-
-    re_new_url = re.compile('^http://([^/]+\.us\.archive\.org)(/.+)$')
-
-    m = re_new_url.match(new_url)
-    return m.groups()
-
-re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
 
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
@@ -188,10 +125,27 @@ class snippets(delegate.page):
         def find_doc(ia, host, ia_path):
             abbyy_gz = '_abbyy.gz'
             files_xml = 'http://%s%s/%s_files.xml' % (host, ia_path, ia)
-            xml_data = urllib.urlopen(files_xml)
+            xml_data = urllib2.urlopen(files_xml, timeout=5)
             for e in etree.parse(xml_data).getroot():
                 if e.attrib['name'].endswith(abbyy_gz):
                     return e.attrib['name'][:-len(abbyy_gz)]
+
+        def ia_lookup(path):
+            h1 = httplib.HTTPConnection("archive.org")
+
+            for attempt in range(5):
+                h1.request("GET", path)
+                res = h1.getresponse()
+                res.read()
+                if res.status != 200:
+                    break
+            assert res.status == 302
+            new_url = res.getheader('location')
+
+            re_new_url = re.compile('^http://([^/]+\.us\.archive\.org)(/.+)$')
+
+            m = re_new_url.match(new_url)
+            return m.groups()
 
         def find_matches(ia, q):
             q = escape_q(q)
@@ -199,10 +153,13 @@ class snippets(delegate.page):
             doc = find_doc(ia, host, ia_path) or ia
 
             url = 'http://' + host + '/fulltext/inside.php?item_id=' + ia + '&doc=' + doc + '&path=' + ia_path + '&q=' + web.urlquote(q)
-            ret = urllib.urlopen(url).read().replace('"matches": [],\n}', '"matches": []\n}')
+            ret = urllib2.urlopen(url, timeout=5).read().replace('"matches": [],\n}', '"matches": []\n}')
             try:
                 return simplejson.loads(ret)
             except:
+                re_h1_error = re.compile('<center><h1>(.+?)</h1></center>')
                 m = re_h1_error.search(ret)
-                return { 'error': web.htmlunquote(m.group(1)) }
+                # return { 'error': web.htmlunquote(m.group(1)) }
+                return { 'error': 'Error finding matches' }
+                
         return render_template('search/snippets.tmpl', find_matches, ia)
