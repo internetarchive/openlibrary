@@ -17,5 +17,11 @@ if (window.archive_analytics) {
   if ($$(".more_search").size()>0) {
     window.archive_analytics.send_scroll_fetch_base_event();
   }
+  \$().ready(function(){
+    \$('[data-ol-link-track]').click(function(){
+      var category_action = \$(this).attr('data-ol-link-track').split('|');
+      window.archive_analytics.ol_send_event_ping({'category': category_action[0], 'action': category_action[1]});
+    });
+  });
 }
 </script>
