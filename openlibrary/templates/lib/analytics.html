@@ -1,6 +1,9 @@
 $def with (page)
 $ stats = stats_summary()
-$ total_time = float(stats['total']['time']) * 1000
+$if stats['total'] and stats['total']['time']:
+  $ total_time = float(stats['total']['time']) * 1000
+$else:
+  $ total_time = 0
 
 <script type="text/javascript">
 if (window.archive_analytics) {
