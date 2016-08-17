@@ -6,23 +6,23 @@ from openlibrary.utils import escape_bracket
 import logging
 import re, web, urllib, urllib2, urlparse, simplejson, httplib
 
-logger = logging.getLogger("openlibrary.inside")
-search_host = 'https://books-search0.us.archive.org/api/v0.1/search'
-
 def escape_q(q):
     """Hook for future pre-treatment of search query"""
     return q
 
 def inside_search_select(params):
-    search_select = search_host + '?' + urllib.urlencode(params)
+    if not hasattr(config, 'plugin_inside'):
+        return {'error': 'Unable to prepare search engine'}
+    search_endpoint = config.plugin_inside['search_endpoint']
+    search_select = search_endpoint + '?' + urllib.urlencode(params)
 
     # TODO: Update for Elastic
     # stats.begin("solr", url=search_select)
 
     try:
         json_data = urllib2.urlopen(search_select, timeout=30).read()
+        logger = logging.getLogger("openlibrary.inside")
         logger.debug('URL: ' + search_select)
-        logger.debug(json_data)
     except:
         return {'error': 'Unable to query search engine'}
     finally:
