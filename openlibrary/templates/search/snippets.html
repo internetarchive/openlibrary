@@ -4,7 +4,7 @@ $ q = query_param('q')
 
 <div id="contentHead">
     <div class="small sansserif grey" style="margin-bottom:5px;">
-        <a href="/search/inside">Search Inside</a> / 
+        <a href="/search/inside">Search Inside</a> /
         <a href="/search/inside?q=$q">$q</a>
     </div>
     <h1>
@@ -15,13 +15,14 @@ $ q = query_param('q')
 <div id="contentBody">
 
 $ result = find_matches(ia, q)
+$ matches = result.get('matches', [])
 $ scale = 2
 $ xpadding = 50
 $ ypadding = 50
 $ par_num = 0
 $ box_num = 0
 
-$for match in result['matches']:
+$for match in matches:
     $ text = match['text']
 
     $for par in match['par']:

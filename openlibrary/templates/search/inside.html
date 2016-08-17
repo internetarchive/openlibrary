@@ -12,17 +12,22 @@ $ offset = (page - 1) * results_per_page
 
 $var title: Search Open Library for $q
 
+$ hits = []
+$ num_found = 0
+
+$if q:
+    $ search_start = time()
+    $ results = get_results(q, offset=offset, limit=results_per_page)
+    $ search_secs = time() - search_start
+    $if 'error' not in results and results['hits']:
+        $ hits = results['hits'].get('hits', [])
+        $ num_found = results['hits'].get('total', 0)
+
 <div id="contentHead">
     <h1>
         $_("Search Inside")
     </h1>
     $if q:
-        $ search_start = time()
-        $ results = get_results(q, offset=offset, limit=results_per_page)
-        $ search_secs = time() - search_start
-    $if q and 'error' not in results:
-        $ hits = results['hits']['hits']
-        $ num_found = results['hits']['total']
         $if num_found:
             <p class="sansserif darkgreen collapse"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></p>
         $else:
@@ -30,84 +35,58 @@ $var title: Search Open Library for $q
 </div>
 
 <div id="contentBody">
-
     <div class="section">
-
-    <form class="siteSearch olform" action="">
-        <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
-        <input type="submit"  class="large" value="$_('Search')"/>
-    </form>
-
+        <form class="siteSearch olform" action="">
+            <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
+            <input type="submit"  class="large" value="$_('Search')"/>
+        </form>
     </div>
 
     $if q and 'error' in results:
         $results['error']
     $if q and 'error' not in results:
         <div id="searchResults">
-                Search took $("%.2f" % search_secs) seconds<p>
+                <p>Search took $("%.2f" % search_secs) seconds</p>
                 <ul id="siteSearch">
                 $for doc in hits:
-                        $ doc_fields = doc['fields']
-                        $ ia = doc_fields['identifier'][0]
+                        $ doc_fields = doc.get('fields', {})
+                        $ ia = doc_fields.get('identifier', [''])[0]
                         <li>
                         $ authors = []
-                        $ cover = '/images/icons/avatar_book-sm.png'
-                        $ e = doc.get('edition')
                         $ item = read_from_archive(ia)
+                        $ title = item.get('title', 'no title for: ' + ia)
+                        $ authors = item.get('creator', [])
                         $ collection = set(item.get('collection', []))
-                        $if e:
-                                $ key = e.key
-                                $ url = key
-                                $ title = e.title
-                                $if e.covers and e.covers[0]:
-                                    $ cover = "//covers.openlibrary.org/b/id/%d-M.jpg" % e.covers[0]
-                                $else:
-                                    $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
-                                $if e.works:
-                                    $ w = e.works[0]
-                                    $ authors = [a.author for a in w.authors]
-                                $else:
-                                    $ authors = e.authors
-                        $else: 
-                                $ title = item.get('title', 'no title for: ' + ia)
-                                $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
-                                $ authors = item.get('creator', [])
-                                $ url = "//archive.org/details/" + ia
-                        <span class="bookcover"><a href="$url" target="_blank"><img src="$cover"></a></span>
-                        <span class="details">
-                            <span class="resultTitle">
-                                <h3 class="booktitle sansserif"><a href="$url" class="results" target="_blank">$title</a></h3>
-                                <span class="bookauthor">by            
-                                $if e and authors:
-                                    $for a in authors:
-                                        <a href="$a.key" class="results">$a.name</a>$('' if loop.last else ', ')
-                                $elif not e and authors:
-                                    $', '.join(authors)
-                                $else:
-                                    <em>unknown author</em>
-                            </span>
-                            <span class="resultPublisher">
-                                $if e:
-                                        Published 
-                                        $if e.publish_date:
-                                                in $e.publish_date 
-                                        $if e.publishers:
-                                                by $', '.join(e.publishers)
-                                $else:
+                        $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
+                        $ url = "//archive.org/details/" + ia
+                            <span class="bookcover"><a href="$url" target="_blank"><img src="$cover" /></a></span>
+                            <span class="details">
+                                <span class="resultTitle">
+                                    <h3 class="booktitle sansserif"><a href="$url" class="results" target="_blank">$title</a></h3>
+                                    <span class="bookauthor">by
+                                    $if authors:
+                                        $', '.join(authors)
+                                    $else:
+                                        <em>unknown author</em>
+                                    </span>
+                                    <span class="resultPublisher">
                                         <a href="//archive.org/details/$ia" target="_blank">View on archive.org</a>
-                                &bull; page $doc_fields['page_num'][0]
+                                        $ page_nums = doc_fields.get('page_num', [])
+                                        $if page_nums:
+                                            &bull; page $(', '.join([str(num) for num in page_nums]))
+                                    </span>
+                                </span>
                             </span>
-                        </span>
-                        <span class="actions">
-                                $if not (no_snippet & collection):
-                                        <a href="//archive.org/stream/$ia#search/$q" target="_blank" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
-                                                <span class="image read"></span>
-                                                <span class="label">$_("Read")</span>
-                                        </a>                
-                        </span>
-                        <div class="clearfix"></div>
-                            <span class="snippet">                    
-                                    &hellip;$:quote_snippet(doc['highlight']['text'][0])&hellip;
+                            <span class="actions">
+                                    $if not (no_snippet & collection):
+                                            <a href="//archive.org/stream/$ia#search/$q" target="_blank" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                                    <span class="image read"></span>
+                                                    <span class="label">$_("Read")</span>
+                                            </a>
+                            </span>
+                            <div class="clearfix"></div>
+                            <span class="snippet">
+                                    &hellip;$:quote_snippet(doc.get('highlight', {}).get('text', [''])[0])&hellip;
                             </span>
                         </li>
                 </ul>
