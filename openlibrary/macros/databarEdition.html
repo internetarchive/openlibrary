@@ -7,6 +7,7 @@ $ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=9
 $ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
 $ bibliocom = " http://www.biblio.com/isbn/XXX.html"
 $ powells = "http://www.powells.com/partner/33286/biblio/XXX"
+$ shimply = "http://www.shimply.com/p/XXX"
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
@@ -111,6 +112,7 @@ $if isbn or asin or scribd:
             <p><a href="$barnesandnoble.replace('XXX', isbn)" class="datalink">Barnes and Noble</a></p>
             <p><a href="$bibliocom.replace('XXX', isbn)" class="datalink">Biblio.com</a></p>
             <p><a href="$powells.replace('XXX', isbn)" class="datalink">Powells</a></p>
+            <p><a href="$shimply.replace('XXX', isbn)" class="datalink">Shimply</a></p>
         $if scribd:
             <p><a href="http://www.scribd.com/doc/$scribd" class="datalink">Scribd</a></p>
     </div>
