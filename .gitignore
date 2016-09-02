@@ -36,3 +36,4 @@ env/
 htmlcov
 .vagrant
 .DS_Store
+.cache
