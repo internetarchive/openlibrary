@@ -1,0 +1,34 @@
+$def with (opts)
+
+$ isbn = opts['isbn']
+$ asin = opts['asin']
+$ scribd = opts['scribd']
+
+$ alibris = "http://click.linksynergy.com/fs-bin/click?id=ECh45gHEoh4&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
+
+$ amazon = "http://www.amazon.com/dp/XXX/?tag=internetarchi-20"
+
+$# AbeBooks target link: http://www.abebooks.com/servlet/SearchResults?isbn=XXX
+$# AbeBooks affiliate tracking: http://affiliates.abebooks.com/c/64277/77798/2029?u=[ENCODED TARGET LINK]
+$ abebooks = "http://affiliates.abebooks.com/c/64277/77798/2029?u=http%3A%2F%2Fwww.abebooks.com%2Fservlet%2FSearchResults%3Fisbn%3DXXX"
+
+$ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
+
+$ bookdepository = "https://www.bookdepository.com/search?searchIsbn=XXX"
+
+$ powells = "http://www.powells.com/partner/44336/biblio/XXX"
+
+<ul>
+$if isbn or asin:
+    $if isbn:
+        <li><a href="$alibris.replace('XXX', isbn)" title="Look for this edition for sale at Alibris" target="_blank">Alibris</a></li>
+    $if asin:
+        <li><a href="$amazon.replace('XXX', asin)" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a></li>
+    $if isbn:
+        <li><a href="$abebooks.replace('XXX', isbn)" title="Look for this edition for sale at AbeBooks" target="_blank">AbeBooks</a></li>
+        <li><a href="$bibliocom.replace('XXX', isbn)" title="Look for this edition for sale at Biblio" target="_blank">Biblio.com</a></li>
+        <li><a href="$bookdepository.replace('XXX', isbn)" title="Look for this edition for sale at Book Depository" target="_blank">Book Depository</a></li>
+        <li><a href="$powells.replace('XXX', isbn)" title="Look for this edition for sale at Powell's" target="_blank">Powells</a></li>
+$elif scribd:
+    <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd" target="_blank">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>
+</ul>
