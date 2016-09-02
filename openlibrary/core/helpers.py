@@ -35,7 +35,7 @@ __all__ = [
     "datestr", "format_date",    
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe", 
-    "percentage",
+    "percentage", "affiliate_id",
     
     # functions imported from elsewhere
     "parse_datetime", "safeint"
@@ -262,6 +262,9 @@ def uniq(values, key=None):
             s.add(k)
             result.append(v)
     return result
+
+def affiliate_id(affiliate):
+    return config.get('affiliate_ids', {}).get(affiliate, '')
 
         
 def _get_helpers():
