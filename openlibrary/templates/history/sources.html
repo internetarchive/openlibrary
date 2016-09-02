@@ -2,7 +2,7 @@ $code:
     names = {
         "marc_loc_updates": "Library of Congress",
         "marc_records_scriblio_net": "Scriblio",
-        "talis_openlibrary_contribution": "Talis",        
+        "talis_openlibrary_contribution": "Talis",
         "unc_catalog_marc": "University of North Carolina",
         "marc_oregon_summit_records": "Oregon Libraries",
         "marc_western_washington_univ": "Western Washington University",
@@ -20,13 +20,13 @@ $code:
     }
     for i in range(1, 17):
         names["SanFranPL%02d" % i] = "San Francisco Public Library"
-        
+
     def get_source_record(record_id):
         if '/' not in record_id and '_meta.mrc:' in record_id:
             record_id = 'ia:' + record_id.split('_')[0]
         item = record_id.split("/")[0]
         url = "/show-records/" + record_id
-        
+
         if item.startswith("ia:"):
             source_name = "Internet Archive"
             source_url = "//archive.org/details/" + item[3:]
@@ -35,7 +35,7 @@ $code:
             source_url = "http://www.amazon.com/?tag=" + affiliate_id('amazon')
         else:
             source_name = names.get(item, item)
-            source_url = "//archive.org/details/" + item    
+            source_url = "//archive.org/details/" + item
         return storage(id=record_id, url=url, source_name=source_name, source_url=source_url)
 
 $var get_source_record = get_source_record
