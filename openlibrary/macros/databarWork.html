@@ -53,10 +53,10 @@ $if isbn_10 and not asin:
 
 $ library = None
 <style type="text/css">
-#edit-identifiers { 
+#edit-identifiers {
                     font-size: 75%;
                     }
-.hidden { 
+.hidden {
           display:none;
  }
 
@@ -108,7 +108,7 @@ $elif page.get('ocaid'):
             <p><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online"><strong>Read online</strong></a><br/><br/></p>
             $if downloadbook:
                 <p><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></p>
-            $if djvutxt: 
+            $if djvutxt:
                 <p><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></p>
             $if daisy:
                 <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive"><meta itemprop="bookFormat" content="EBook/DAISY3"/><meta itemprop="accessibilityFeature" content="unlocked"/>DAISY</a></p>
@@ -145,7 +145,7 @@ $if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or li
                 $for current_loan in current_and_available_loans[0]:
                     $if current_loan['user'] == ctx.user.key:
                         $ user_loan = current_loan
-                        $ break        
+                        $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
         $if overdrive_id:
             <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>

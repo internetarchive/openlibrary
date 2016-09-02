@@ -4,7 +4,7 @@ body,div,dl,dt,dd,ul,ol,li,pre,code,form,fieldset,legend,input,textarea,th,td{ma
 table{border-collapse:collapse;border-spacing:0;}
 fieldset,img{border:0;}
 address,caption,cite,code,dfn,th,var{font-style:normal;font-weight:normal;}
-li{list-style:none;} 
+li{list-style:none;}
 caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}
 q:before,q:after{content:'';}
 abbr,acronym{border:0;font-variant:normal;}
@@ -97,7 +97,7 @@ button.plain:hover {color:#35672e;}
 
 .fixthis{background-color:pink!important;}
 .adminOnly{background-color:#ffa337!important;padding:4px;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;}
-    
+
 /* TYPOGRAPHY */
 
 div.unordered {margin-top:10px;line-height:150%;}
@@ -225,7 +225,7 @@ div#noLogin {margin-top:10px;background:#fffdcd url("/images/icons/icon_info.png
     padding: 40px 40px 40px 80px;
     font-family: "Georgia", "Times New Roman", serif;
     position: relative;
-} 
+}
 .flash-messages .bookadded span span {
     display: inline;
     background: transparent url("");
@@ -532,7 +532,7 @@ div.searchFilter {
     position: relative;
     width: 285px;
     height: 24px;
-} 
+}
 div#footerSearch div.searchFilter {
     height: 19px;
 }
@@ -619,7 +619,7 @@ fieldset.home legend {
 
 .ui-dialog { position: relative; padding: 0; width: 400px; border:10px solid #615132; background-color: #fff; -webkit-border-radius:12px;-moz-border-radius:12px;border-radius:12px;-moz-box-shadow: 1px 3px 10px #000;-webkit-box-shadow: 1px 3px 10px #000;box-shadow: 1px 3px 10px #000;z-index:10000!important;}
 .ui-dialog .ui-dialog-titlebar { padding: 10px; position: relative; background-color: #615132; color: #fff;font-size: 1.75em;margin: 0;padding: 0;}
-.ui-dialog .ui-dialog-title { float: left; margin: 0; padding: 0 10px 10px; } 
+.ui-dialog .ui-dialog-title { float: left; margin: 0; padding: 0 10px 10px; }
 .ui-dialog .ui-dialog-titlebar-close { position: absolute; right: 0; top: 0; width: 32px; height: 32px; }
 .ui-dialog .ui-dialog-titlebar-close span { display: block; }
 .ui-dialog .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus { padding: 0; }
@@ -964,7 +964,7 @@ div.subNav {
     float: left;
     width: 100%;
     clear: both;
-    margin-top: 0px; 
+    margin-top: 0px;
     margin-bottom: 25px;
 }
 div.footerNav ul,div.subNav ul {
@@ -1017,7 +1017,7 @@ div#footerHistory ul li.around-the-library-link {display: none;}
 div#bottom div#legal {
     padding: 20px 0 100px 35px;
     background: url("/images/logo_IA-sm.png") no-repeat 0 20px;
-    
+
 }
 div#bottom div#legal p {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
@@ -1211,7 +1211,7 @@ div#homeRecent .history .timestamp {
 }
 ul#olBlog {
     font-size: 0.8125em;
-} 
+}
 
 /* NEW HOME PAGE */
 h1 a.header,h2 a.header, h3 a.header {color:#00636a!important;text-decoration:none!important;}
@@ -1447,7 +1447,7 @@ a.facetSubject:link, a.facetSubject:visited {
     text-decoration: none;
 }
 a.facetSubject:hover, a.facetSubject:active {
-    color: #036daa; 
+    color: #036daa;
     text-decoration: underline;
 }
 
@@ -1563,10 +1563,10 @@ div.pingList p {
     margin: 0 0 10px 40px;
 }
 div.pingList ul {
-    margin-left: 40px;    
+    margin-left: 40px;
 }
 ul.urlList li {
-    margin-bottom: 10px;    
+    margin-bottom: 10px;
 }
 ul.urlList li span.url {
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
@@ -1611,15 +1611,15 @@ form.olform.books .label {
     font-weight: 700;
 }
 form.olform.books .TitleAuthor input#work-title {
-    font-size: 1.875em!important; 
+    font-size: 1.875em!important;
     margin: 0;
-    width: 900px!important; 
+    width: 900px!important;
 }
 form.olform.books .TitleAuthor input#author {
     font-size: 1em!important;
-    width: 550px!important; 
+    width: 550px!important;
 }
-#tabsAddbook {		
+#tabsAddbook {
     margin-bottom: 5px;
 }
 table#toc-table {
@@ -1730,7 +1730,7 @@ div.excerpt .text {
     padding: 15px;
     font-size: 0.875em;
     line-height: 1.25em;
-    font-style: italic; 
+    font-style: italic;
 }
 div.excerpt .attribution {
     padding-left: 15px;
@@ -1887,7 +1887,7 @@ div#historyRevert a.revertSlideLink span.revertThis {
 div#historyRevert form {
     display: block;
     float: left;
-    padding-top: 20px; 
+    padding-top: 20px;
 }
 div#historyRevert form #because {
     font-size: 12px;
@@ -2187,10 +2187,10 @@ li span.bookcover {
 }
 li span.snippet {
     display: block;
-    margin: 10px 0; 
-    background-color: #f5f5f5; 
-    font-size: 0.80em; 
-    padding: 20px; 
+    margin: 10px 0;
+    background-color: #f5f5f5;
+    font-size: 0.80em;
+    padding: 20px;
     font-style: italic;
 }
 
@@ -2218,7 +2218,7 @@ span.resultTitle h3.booktitle {
     font-weight: 700;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
-span.resultTitle span.bookauthor, 
+span.resultTitle span.bookauthor,
 span.resultTitle span.resultPublisher {
     font-size: 0.75em;
     color: #666;
@@ -2248,7 +2248,7 @@ span.actions a {
 
     /* Anand: commented to fix alignment of "Checked out" */
     /*
-    max-width: 45px; 
+    max-width: 45px;
     */
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
     font-size: 10px;
@@ -2259,7 +2259,7 @@ span.actions a {
 }
 span.actions a span.image {
     display: block;
-    width: 24px; 
+    width: 24px;
     height: 24px;
     margin: 0 auto;
     padding: 0;
@@ -2292,7 +2292,7 @@ ul#siteSearch span.resultTitle {
     color: #666;
 }
 div.wide ul#siteSearch span.resultTitle {
-    max-width: 850px; 
+    max-width: 850px;
 }
 div.narrow ul#siteSearch span.resultTitle {
     max-width: 500px!important;
@@ -2478,7 +2478,7 @@ body#form {
     min-height: 440px;
     overflow: hidden;
 }
-body#form #placement, 
+body#form #placement,
 body#form #position,
 body#form #content {
     width: 600px;
@@ -2542,10 +2542,10 @@ body#form div.centerIt {
     text-align: left;
 }
 
-body#form .column { 
-    width: 560px; 
+body#form .column {
+    width: 560px;
     min-height: 90px;
-    float: left; 
+    float: left;
     margin: 10px;
     background-image: url("/images/back_sortable.png");
     background-repeat: no-repeat;
@@ -2570,23 +2570,23 @@ body#form .trashPosition:hover .trashCan {
     background-position: -32px 0;
 }
 body#form .trash {
-    width: 560px; 
-    height: 90px; 
+    width: 560px;
+    height: 90px;
     overflow: hidden;
-    background-color: #fffdcd; 
+    background-color: #fffdcd;
     float: left;
-    margin: 0 10px; 
+    margin: 0 10px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
     border-radius: 8px;
     border: 1px solid #e2de8b;
 }
-body#form .portlet { 
-    margin: 7px 13px 13px 7px; 
-    float: left; 
-    width: 70px; 
-    height: 70px; 
-    overflow: hidden; 
+body#form .portlet {
+    margin: 7px 13px 13px 7px;
+    float: left;
+    width: 70px;
+    height: 70px;
+    overflow: hidden;
     border: 1px solid #dedede;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -2603,8 +2603,8 @@ body#form .portlet td {
 body#form .portlet img {
     cursor: move;
 }
-body#form .portlet-content { 
-    padding: 0.4em; 
+body#form .portlet-content {
+    padding: 0.4em;
 }
 body#form .imagePost {
     float: left;
@@ -2632,16 +2632,16 @@ body#form .saved {
     max-height: 270px;
     overflow: auto;
 }
-.ui-sortable-placeholder { 
-    border: 1px dotted #ccc; 
-    visibility: visible !important; 
-    height: 70px !important; 
+.ui-sortable-placeholder {
+    border: 1px dotted #ccc;
+    visibility: visible !important;
+    height: 70px !important;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
 }
-.ui-sortable-placeholder * { 
-    visibility: hidden; 
+.ui-sortable-placeholder * {
+    visibility: hidden;
 }
 
 /* ADD ROLES, ETC. */
@@ -2744,7 +2744,7 @@ div.floaterAdd form.floatform textarea {
     margin: 8px 3px 0;
     text-decoration: none;
     text-transform: uppercase;
-    white-space: nowrap; /* required in IE 6 */    
+    white-space: nowrap; /* required in IE 6 */
     outline: 0; /* prevent dotted border in Firefox */
 }
 .ui-tabs-nav a:link,
@@ -2760,7 +2760,7 @@ div.floaterAdd form.floatform textarea {
     padding: 3px 11px;
     z-index: 2000;
 }
-.ui-tabs-nav .ui-tabs-selected a:link, 
+.ui-tabs-nav .ui-tabs-selected a:link,
 .ui-tabs-nav .ui-tabs-selected a:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
     background: #efefef;
     padding: 8px 11px 3px;
@@ -2769,14 +2769,14 @@ div.floaterAdd form.floatform textarea {
     color: #00636a;
     text-transform: capitalize!important;
     font-size: 1.125em!important;
-    margin:0 3px;    
+    margin:0 3px;
     cursor: default;
 }
-.ui-tabs-nav a:hover, 
-.ui-tabs-nav a:focus, 
+.ui-tabs-nav a:hover,
+.ui-tabs-nav a:focus,
 .ui-tabs-nav a:active,
-.ui-tabs-nav .ui-tabs-deselectable a:hover, 
-.ui-tabs-nav .ui-tabs-deselectable a:focus, 
+.ui-tabs-nav .ui-tabs-deselectable a:hover,
+.ui-tabs-nav .ui-tabs-deselectable a:focus,
 .ui-tabs-nav .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
     cursor: pointer;
 }
@@ -2863,7 +2863,7 @@ table.measurements tr.major td.amount {
 table.measurements .shift {
     text-align: left!important;
 }
-table.services th { 
+table.services th {
 	font-family: "News Gothic MT", "Franklin Gothic Medium", "Times New Roman";
 	font-size: 11px;
 	font-weight: bold;
@@ -2871,7 +2871,7 @@ table.services th {
 	color: #333333;
  }
 
-table.services td { 
+table.services td {
 	padding: 5px;
 	border-right: 1px solid white;
 	border-bottom: 1px solid white;
@@ -2991,18 +2991,18 @@ div#adminTwitter, div#adminTwitter div.tweet_cell{width:300px;}
 div#adminTwitter div.tweet_avatar{width:35px;}
 div#adminTwitter div.tweet_copy{width:265px;}
 
-#flickr_badge_source_txt {padding:0; font: 0.6875em Arial, Helvetica, Sans serif; color:#666666;} 
-#flickr_badge_icon {display:block !important; margin:0 !important; border: 1px solid rgb(0, 0, 0) !important;} 
-#flickr_icon_td {padding:0 5px 0 0 !important;} 
-.flickr_badge_image {text-align:center !important;} 
-.flickr_badge_image img {border: 1px solid black !important;} 
-#flickr_www {display:block; padding:0 10px 0 10px !important; font: 0.6875em Arial, Helvetica, Sans serif !important; color:#3993ff !important;} 
-#flickr_badge_uber_wrapper a:hover, 
-#flickr_badge_uber_wrapper a:link, 
-#flickr_badge_uber_wrapper a:active, 
-#flickr_badge_uber_wrapper a:visited {text-decoration:none !important; background:inherit !important;color:#3993ff;} 
-#flickr_badge_wrapper {margin:0 auto;text-align:center;} 
-#flickr_badge_wrapper img {display:block;margin:0 auto 10px;} 
+#flickr_badge_source_txt {padding:0; font: 0.6875em Arial, Helvetica, Sans serif; color:#666666;}
+#flickr_badge_icon {display:block !important; margin:0 !important; border: 1px solid rgb(0, 0, 0) !important;}
+#flickr_icon_td {padding:0 5px 0 0 !important;}
+.flickr_badge_image {text-align:center !important;}
+.flickr_badge_image img {border: 1px solid black !important;}
+#flickr_www {display:block; padding:0 10px 0 10px !important; font: 0.6875em Arial, Helvetica, Sans serif !important; color:#3993ff !important;}
+#flickr_badge_uber_wrapper a:hover,
+#flickr_badge_uber_wrapper a:link,
+#flickr_badge_uber_wrapper a:active,
+#flickr_badge_uber_wrapper a:visited {text-decoration:none !important; background:inherit !important;color:#3993ff;}
+#flickr_badge_wrapper {margin:0 auto;text-align:center;}
+#flickr_badge_wrapper img {display:block;margin:0 auto 10px;}
 #flickr_badge_source {padding:0 !important; font: 0.6875em Arial, Helvetica, Sans serif !important; color:#666666 !important;}
 
 /* TWITTER FEED */
@@ -3132,7 +3132,7 @@ div.merge div.record label {
     width: 710px;
 }
 div.merge div.record .metaDate {
-    color: #615132; 
+    color: #615132;
     font-size: 0.8125em;
     padding-left: 10px;
 }
@@ -3254,7 +3254,7 @@ form#borrowbook fieldset.online {
 }
 form#borrowbook fieldset div {
     float: left;
-    width: 100%; 
+    width: 100%;
     text-align: center;
 }
 form#borrowbook fieldset table {
@@ -3333,7 +3333,7 @@ p#postBorrowList {font-size:.75em;padding-left:55px;}
 ul#listResults {list-style-type:none;margin:0;padding:0;border-top:1px dotted #ebebeb;}
 ul#listResults li {float:left;width:100%;list-style-type:none;padding:15px 0;border-bottom:1px solid #ebebeb;}
 ul.clean {border-top:none!important;}
-ul.clean li {border-bottom:none!important;} 
+ul.clean li {border-bottom:none!important;}
 ul#listResults li span {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
 ul#listResults li span.image {display: block; float:left;height:70px;margin-right:10px;width:75px;overflow: hidden;text-align:center;}
 ul#listResults li span.imageLg {display: block; float:left;height:110px;margin-right:15px;width:90px;overflow: hidden;text-align:center;}
@@ -3445,7 +3445,7 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists .listEntry {width:280px;margin:0 30px 35px 0;float:left;}
 #lists .listEntry .cover {width:35px;float:left;}
 #lists .listEntry .cover img {width:25px;max-width:25px;}
-#lists .listEntry .data {width:245px;float:left;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;} 
+#lists .listEntry .data {width:245px;float:left;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;}
 #lists .listEntry .name {font-size:.6875em;color:#666;}
 #lists .listEntry .name a.title {font-weight: bold; font-size: 1.375em;}
 #lists .listEntry .description p,#lists .listEntry .description li {font-size:.8125em;font-family:"Georgia","Times New Roman",serif;color:#333;margin:0!important;}
@@ -3476,7 +3476,7 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 /* Added by Anand July 29, 2011*/
 span.actions a span.checked-out {
     display: block;
-    width: 32px; 
+    width: 32px;
     height: 32px;
     margin: 0 auto;
     padding: 0;
