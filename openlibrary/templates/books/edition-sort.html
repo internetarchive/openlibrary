@@ -1,14 +1,5 @@
 $def with (book)
 
-$ booksense = "http://booksense.com/product/info.jsp?isbn=XXX"
-$ amazon = "http://www.amazon.com/gp/product/XXX?tag=openlibr-20"
-$ abebooks = "http://affiliates.abebooks.com/c/64277/77798/2029?u=http%3A%2F%2Fwww.abebooks.com%2Fservlet%2FSearchResults%3Fisbn%3DXXX"
-$ alibris = " http://click.linksynergy.com/fs-bin/click?id=eSmaWuUpnDY&offerid=99238.122856000&type=2&subid=0&tmpid=939&RD_PARM1=http%253A%252F%252Fwww.alibris.com/booksearch%253Fqsort%253Dp%2526isbn%253DXXX"
-$ barnesandnoble = "http://search.barnesandnoble.com/booksearch/isbninquiry.asp?ISBN=XXXafsrc=1&lkid=J14933426&pubid=K172077"
-$ bibliocom = "http://www.biblio.com/editions.php?isbn=XXX&aid=openlibrary"
-$ powells = "http://www.powells.com/partner/33286/biblio/XXX"
-$ bookdepository = "http://www.bookdepository.com/search?searchTerm=XXX"
-
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
 $ overdrive = "http://www.overdrive.com/search?q={XXX}"
@@ -88,7 +79,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Protected DAISY"/></a></li>
             </ul>
         </div>
-        </td> 
+        </td>
     $elif book.ocaid:
         <td class="icon read">
         <div class="aaaa"></div>
@@ -148,17 +139,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         <td class="icon buy">
         <div class="aaaa"></div>
         <div class="links">
-            <ul>
-            $if isbn_10:
-                <li><a href="$alibris.replace('XXX', isbn_10)" title="Look for this edition for sale at Alibris">Alibris</a></li>
-                <li><a href="$amazon.replace('XXX', isbn_10)" title="Look for this edition for sale at Amazon">Amazon</a></li>
-                <li><a href="$abebooks.replace('XXX', isbn_10)" title="Look for this edition for sale at AbeBooks">AbeBooks</a></li>
-                <li><a href="$bibliocom.replace('XXX', isbn_10)" title="Look for this edition for sale at Biblio">Biblio.com</a></li>
-                <li><a href="$bookdepository.replace('XXX', isbn_10)" title="Look for this edition for sale at Book Depository">Book Depository</a></li>                
-                <li><a href="$powells.replace('XXX', isbn_10)" title="Look for this edition for sale at Powell's">Powells</a></li>
-            $else:
-                <li><a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd">Scribd</a><br /><span class="gray smaller">eBook in browser</span></li>
-            </ul>
+            $:macros.AffiliateLinks({'isbn': isbn_10, 'asin': isbn_10, 'scribd': scribd})
         </div>
         </td>
     $else:

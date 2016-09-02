@@ -10,7 +10,7 @@ report_spam_address: "Open Library <info@openlibrary.org>"
 support_case_notification_address: "Open Library <info@openlibrary.org>"
 support_case_control_address : "support@openlibrary.org"
 
-# Legal values for support_default_assignees are 
+# Legal values for support_default_assignees are
 #
 # bug_report
 # borrowing_books
@@ -55,7 +55,7 @@ infobase_server: "localhost:7000"
 # Path can be relative to this file
 infobase_config_file: infobase.yml
 coverstore_config_file: coverstore.yml
- 
+
 loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
@@ -123,10 +123,10 @@ admin:
     nagios_url: http://monitor.us.archive.org/cgi-bin/nagios3/status.cgi?hostgroup=24.openlibrary&style=detail
     statsd_server: localhost:9090
     admin_db: http://127.0.0.1:5984/admin
-    
+
 celery: #Information relevant to celery configuration
     tombstone_db: http://localhost:5984/celery
-  
+
 
 stats: # This section is used to state what stats need to be gathered.
     pageload.all:
@@ -157,7 +157,7 @@ stats: # This section is used to state what stats need to be gathered.
       filter: url
       pattern: ^/$
       time: total
-      
+
     pageload.recentchanges:
       filter: url
       pattern: /recentchanges
@@ -189,3 +189,8 @@ ia_ignore_prefixes:
 plugin_recaptcha:
     public_key: ""
     private_key: ""
+
+affiliate_ids:
+    # Amazon is a book source, not just an affiliate, so we make its affiliate
+    # tag generally available
+    amazon: internetarchi-20

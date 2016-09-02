@@ -13,12 +13,12 @@ try:
     import genshi.filters
 except ImportError:
     genshi = None
-    
+
 try:
     from BeautifulSoup import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
-    
+
 from infogami import config
 
 # handy utility to parse ISO date strings
@@ -29,14 +29,14 @@ from infogami.utils.view import safeint
 from openlibrary.i18n import gettext as _
 
 __all__ = [
-    "sanitize", 
+    "sanitize",
     "json_encode",
-    "safesort", 
-    "datestr", "format_date",    
+    "safesort",
+    "datestr", "format_date",
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
-    "urlsafe", "texsafe", 
-    "percentage",
-    
+    "urlsafe", "texsafe",
+    "percentage", "affiliate_id",
+
     # functions imported from elsewhere
     "parse_datetime", "safeint"
 ]
@@ -50,7 +50,7 @@ def sanitize(html):
     # Can't sanitize unless genshi module is available
     if genshi is None:
         return html
-        
+
     def get_nofollow(name, event):
         attrs = event[1][1]
         href = attrs.get('href', '')
@@ -60,7 +60,7 @@ def sanitize(html):
             _, host, _, _, _ = urlparse.urlsplit(href)
             if host:
                 return 'nofollow'
-                
+
     try:
         html = genshi.HTML(html)
     except (genshi.ParseError, UnicodeDecodeError, UnicodeError):
@@ -72,14 +72,14 @@ def sanitize(html):
             except Exception:
                 # Failed to sanitize.
                 # We can't do any better than returning the original HTML, without sanitizing.
-                return html                
+                return html
         else:
             raise
 
     stream = html \
         | genshi.filters.HTMLSanitizer() \
         | genshi.filters.Transformer("//a").attr("rel", get_nofollow)
-    return stream.render()                                        
+    return stream.render()
 
 
 def json_encode(d, **kw):
@@ -90,7 +90,7 @@ def json_encode(d, **kw):
 
 def safesort(iterable, key=None, reverse=False):
     """Sorts heterogeneous of objects without raising errors.
-    
+
     Sorting heterogeneous objects sometimes causes error. For example,
     datetime and Nones don't go well together. This function takes special
     care to make that work.
@@ -132,7 +132,7 @@ def _get_babel_locale(lang):
 
 def sprintf(s, *a, **kw):
     """Handy utility for string replacements.
-    
+
         >>> sprintf('hello %s', 'python')
         'hello python'
         >>> sprintf('hello %(name)s', name='python')
@@ -143,11 +143,11 @@ def sprintf(s, *a, **kw):
         return s % args
     else:
         return s
-        
+
 
 def cond(pred, true_value, false_value=""):
     """Lisp style cond function.
-    
+
     Hanly to use instead of if-else expression.
     """
     if pred:
@@ -163,7 +163,7 @@ def commify(number, lang=None):
         return babel.numbers.format_number(int(number), lang)
     except:
         return unicode(number)
-        
+
 
 def truncate(text, limit):
     """Truncate text and add ellipses if it longer than specified limit."""
@@ -217,26 +217,26 @@ _texsafe_re = None
 
 def texsafe(text):
     """Escapes the special characters in the given text for using it in tex type setting.
-    
+
     Tex (or Latex) uses some characters in the ascii character range for
     special notations. These characters must be escaped when occur in the
     regular text. This function escapes those special characters.
-    
+
     The list of special characters and the latex command to typeset them can
     be found in `The Comprehensive LaTeX Symbol List`_.
-    
+
     .. _The Comprehensive LaTeX Symbol List: http://www.ctan.org/tex-archive/info/symbols/comprehensive/symbols-a4.pdf
     """
     global _texsafe_re
     if _texsafe_re is None:
         pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
         _texsafe_re = re.compile(pattern)
-        
+
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)
 
 def percentage(value, total):
     """Computes percentage.
-        
+
         >>> percentage(1, 10)
         10.0
         >>> percentage(0, 0)
@@ -249,7 +249,7 @@ def percentage(value, total):
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
-    
+
     The value of the optional `key` parameter should be a function that takes
     a single argument and returns a key to test the uniqueness.
     """
@@ -263,11 +263,14 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
-        
+def affiliate_id(affiliate):
+    return config.get('affiliate_ids', {}).get(affiliate, '')
+
+
 def _get_helpers():
     _globals = globals()
     return web.storage((k, _globals[k]) for k in __all__)
-    
+
 
 ## This must be at the end of this module
 helpers = _get_helpers()
