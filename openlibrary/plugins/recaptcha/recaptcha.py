@@ -52,10 +52,10 @@ class Recaptcha(web.form.Input):
             response=i.recaptcha_response_field,
             remoteip=web.ctx.ip)
 
-        # If HTTP call fails, let the user through
         try:
-            response = urllib2.urlopen('http://www.google.com/recaptcha/api/verify', urllib.urlencode(data), timeout=2).read()
+            response = urllib2.urlopen('http://www.google.com/recaptcha/api/verify', urllib.urlencode(data), timeout=3).read()
         except urllib2.URLError:
+            logger.error('Recaptcha call failed: letting user through')
             return True
 
         if '\n' in response:

@@ -58,6 +58,8 @@ def work_search(query, limit=20, offset=0, **kw):
     stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
     try:
         result = solr.select(query, start=offset, rows=limit, **kw)
+    except Exception:
+        return None
     finally:
         stats.end()
     

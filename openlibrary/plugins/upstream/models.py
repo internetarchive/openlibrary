@@ -494,7 +494,11 @@ class Work(models.Work):
             return []
             
     def get_covers_from_solr(self):
+        try:
         w = self._solr_data
+            logger.error('Unable to retrieve covers from solr')
+        except Exception:
+            return []
         if w:
             if 'cover_id' in w:
                 return [Image(self._site, "w", int(w['cover_id']))]

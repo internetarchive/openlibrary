@@ -90,10 +90,10 @@ class Solr:
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            data = urllib2.urlopen(url).read()
+            data = urllib2.urlopen(url, timeout=3).read()
         else:
             logger.info("solr request: %s ...", url)
-            data = urllib2.urlopen(url, payload).read()
+            data = urllib2.urlopen(url, payload, timeout=3).read()
         return self._parse_solr_result(
             simplejson.loads(data), 
             doc_wrapper=doc_wrapper, 

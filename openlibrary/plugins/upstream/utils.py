@@ -651,8 +651,9 @@ def get_donation_include(type):
         param = param+"&ymd="+dd
     if (type=='true'):
         try:
-            html = urllib2.urlopen(url_banner_source+param, timeout=2).read()
+            html = urllib2.urlopen(url_banner_source+param, timeout=3).read()
         except urllib2.URLError:
+            logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''
     return html
 

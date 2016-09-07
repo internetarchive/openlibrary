@@ -55,7 +55,7 @@ class subjects(delegate.page):
             
         page = get_subject(key, details=True)
 
-        if page.work_count == 0:
+        if not page or page.work_count == 0:
             web.ctx.status = "404 Not Found"
             return render_template('subjects/notfound.tmpl', key)
 
@@ -245,6 +245,8 @@ class SubjectEngine:
 
         from search import work_search
         result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
+        if not result:
+            return None
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
             w['checked_out'] = False
