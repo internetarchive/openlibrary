@@ -650,7 +650,10 @@ def get_donation_include(type):
         dd = input['don']
         param = param+"&ymd="+dd
     if (type=='true'):
-        html = urllib2.urlopen(url_banner_source+param).read()
+        try:
+            html = urllib2.urlopen(url_banner_source+param, timeout=2).read()
+        except urllib2.URLError:
+            return ''
     return html
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)

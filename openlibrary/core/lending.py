@@ -50,7 +50,10 @@ def setup(config):
     global config_content_server, config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key
 
     if config.get("content_server"):
-        config_content_server = ContentServer(config.get("content_server"))
+        try:
+            config_content_server = ContentServer(config.get("content_server"))
+        except:
+            pass
     config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')

@@ -2,6 +2,7 @@
 
 import web
 import urllib
+import urllib2
 
 _recaptcha_html = """
 <script type="text/javascript">
@@ -51,7 +52,12 @@ class Recaptcha(web.form.Input):
             response=i.recaptcha_response_field,
             remoteip=web.ctx.ip)
 
-        response = urllib.urlopen('http://www.google.com/recaptcha/api/verify', urllib.urlencode(data)).read()
+        # If HTTP call fails, let the user through
+        try:
+            response = urllib2.urlopen('http://www.google.com/recaptcha/api/verify', urllib.urlencode(data), timeout=2).read()
+        except urllib2.URLError:
+            return True
+
         if '\n' in response:
             success, error = response.split('\n', 1)
             if success.lower() != 'true':
