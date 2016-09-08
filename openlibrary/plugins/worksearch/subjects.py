@@ -41,7 +41,7 @@ SUBJECTS = [
 
 class subjects_index(delegate.page):
     path = "/subjects"
-    
+
     def GET(self):
         return render_template("subjects/index.html")
 
@@ -52,7 +52,7 @@ class subjects(delegate.page):
         nkey = self.normalize_key(key)
         if nkey != key:
             raise web.redirect(nkey)
-            
+
         page = get_subject(key, details=True)
 
         if not page or page.work_count == 0:
@@ -60,7 +60,7 @@ class subjects(delegate.page):
             return render_template('subjects/notfound.tmpl', key)
 
         return render_template("subjects", page)
-        
+
     def normalize_key(self, key):
         key = key.lower()
 
@@ -81,7 +81,7 @@ class subjects_json(delegate.page):
         nkey = self.normalize_key(key)
         if nkey != key:
             raise web.redirect(nkey)
-            
+
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
@@ -107,10 +107,10 @@ class subjects_json(delegate.page):
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
         return json.dumps(subject)
-        
+
     def normalize_key(self, key):
-        return key.lower() 
-        
+        return key.lower()
+
     def process_key(self, key):
         return key
 
@@ -124,7 +124,7 @@ class subject_works_json(delegate.page):
         nkey = self.normalize_key(key)
         if nkey != key:
             raise web.redirect(nkey)
-            
+
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
@@ -152,7 +152,7 @@ class subject_works_json(delegate.page):
         return json.dumps(subject)
 
     def normalize_key(self, key):
-        return key.lower() 
+        return key.lower()
 
     def process_key(self, key):
         return key
@@ -166,9 +166,9 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
         >>> get_subject("/subjects/Love") #doctest: +SKIP
         {
-            "key": "/subjects/Love", 
+            "key": "/subjects/Love",
             "name": "Love",
-            "work_count": 5129, 
+            "work_count": 5129,
             "works": [...]
         }
 
@@ -176,25 +176,25 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
     >>> get_subject("/subjects/Love", details=True) #doctest: +SKIP
     {
-        "key": "/subjects/Love", 
+        "key": "/subjects/Love",
         "name": "Love",
-        "work_count": 5129, 
+        "work_count": 5129,
         "works": [...],
-        "ebook_count": 94, 
+        "ebook_count": 94,
         "authors": [
             {
-                "count": 11, 
-                "name": "Plato.", 
+                "count": 11,
+                "name": "Plato.",
                 "key": "/authors/OL12823A"
-            }, 
+            },
             ...
         ],
         "subjects": [
             {
                 "count": 1168,
-                "name": "Religious aspects", 
+                "name": "Religious aspects",
                 "key": "/subjects/religious aspects"
-            }, 
+            },
             ...
         ],
         "times": [...],
@@ -203,8 +203,8 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
         "publishing_history": [[1492, 1], [1516, 1], ...],
         "publishers": [
             {
-                "count": 57, 
-                "name": "Sine nomine"        
+                "count": 57,
+                "name": "Sine nomine"
             },
             ...
         ]
@@ -220,13 +220,13 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
                 Engine = d.get("engine") or SubjectEngine
                 return Engine()
         return SubjectEngine()
-        
+
     sort_options = {
         'editions': 'edition_count desc',
         'new': 'first_publish_year desc',
     }
     sort_order = sort_options.get(sort) or sort_options['editions']
-    
+
     engine = create_engine()
     return engine.get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
 
@@ -259,7 +259,7 @@ class SubjectEngine:
             # Quick fix it solve that issue.
             if w.key.endswith("/works/"):
                 w.key = "/works/" + w.key.replace("/works/", "")
-                
+
         subject = Subject(
             key=key,
             name=name,
@@ -313,22 +313,22 @@ class SubjectEngine:
 
     def make_query(self, key, filters):
         meta = self.get_meta(key)
-        
+
         q = {meta.facet_key: self.normalize_key(meta.path)}
-        
+
         if filters:
             if filters.get("has_fulltext") == "true":
                 q['has_fulltext'] = "true"
             if filters.get("publish_year"):
                 q['publish_year'] = filters['publish_year']
         return q
-        
+
     def normalize_key(self, key):
         return str_to_key(key).lower()
 
     def get_ebook_count(self, name, value, publish_year):
         return get_ebook_count(name, value, publish_year)
-    
+
     def facet_wrapper(self, facet, value, count):
         if facet == "publish_year":
             return [int(value), count]
@@ -343,7 +343,7 @@ class SubjectEngine:
             return [value, count]
         else:
             return web.storage(name=value, count=count)
-            
+
     def query_optons_for_details(self):
         """Additional query options to be added when details=True.
         """
@@ -363,11 +363,11 @@ class SubjectEngine:
 
 def get_ebook_count(field, key, publish_year=None):
     ebook_count_db = get_ebook_count_db()
-    
+
     # Handle the case of ebook_count_db_parametres not specified in the config.
     if ebook_count_db is None:
         return 0
-    
+
     def db_lookup(field, key, publish_year=None):
         sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
         if publish_year:
@@ -395,8 +395,8 @@ def get_ebook_count(field, key, publish_year=None):
 
 @web.memoize
 def get_ebook_count_db():
-    """Returns the ebook_count database. 
-    
+    """Returns the ebook_count database.
+
     The database object is created on the first call to this function and
     cached by memoize. Subsequent calls return the same object.
     """
@@ -411,7 +411,7 @@ def get_ebook_count_db():
 def find_ebook_count(field, key):
     q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
     return execute_ebook_count_query(q)
-    
+
 def execute_ebook_count_query(q):
     root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
     rows = 1000
@@ -419,7 +419,7 @@ def execute_ebook_count_query(q):
     ebook_count = 0
     start = 0
     solr_url = root_url % (rows, start, q)
-    
+
     stats.begin("solr", url=solr_url)
     response = json.load(urllib.urlopen(solr_url))['response']
     stats.end()
@@ -455,7 +455,7 @@ def execute_ebook_count_query(q):
 
 def setup():
     """Placeholder for doing any setup required.
-    
+
     This function is called from code.py.
     """
     pass

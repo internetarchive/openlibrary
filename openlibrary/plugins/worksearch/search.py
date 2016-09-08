@@ -32,9 +32,9 @@ def work_search(query, limit=20, offset=0, **kw):
 
     kw.setdefault("doc_wrapper", work_wrapper)
     fields = [
-        "key", 
-        "author_name", 
-        "author_key", 
+        "key",
+        "author_name",
+        "author_key",
         "title",
         "edition_count",
         "ia",
@@ -54,7 +54,7 @@ def work_search(query, limit=20, offset=0, **kw):
 
     query = process_work_query(query)
     solr = get_works_solr()
-    
+
     stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
     try:
         result = solr.select(query, start=offset, rows=limit, **kw)
@@ -62,7 +62,7 @@ def work_search(query, limit=20, offset=0, **kw):
         return None
     finally:
         stats.end()
-    
+
     return result
 
 def process_work_query(query):
@@ -108,7 +108,7 @@ def work_wrapper(w):
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])
     w.setdefault('author_name', [])
-    
+
     d.authors = [web.storage(key='/authors/' + k, name=n)
                  for k, n in zip(w['author_key'], w['author_name'])]
 
