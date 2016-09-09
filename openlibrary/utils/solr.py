@@ -86,17 +86,17 @@ class Solr:
         # switch to POST request when the payload is too big.
         # XXX: would it be a good idea to swithc to POST always?
         payload = urlencode(params, doseq=True)
-        url = self.base_url + "/select"        
+        url = self.base_url + "/select"
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            data = urllib2.urlopen(url).read()
+            data = urllib2.urlopen(url, timeout=3).read()
         else:
             logger.info("solr request: %s ...", url)
-            data = urllib2.urlopen(url, payload).read()
+            data = urllib2.urlopen(url, payload, timeout=3).read()
         return self._parse_solr_result(
-            simplejson.loads(data), 
-            doc_wrapper=doc_wrapper, 
+            simplejson.loads(data),
+            doc_wrapper=doc_wrapper,
             facet_wrapper=facet_wrapper)
 
     def _parse_solr_result(self, result, doc_wrapper, facet_wrapper):
@@ -130,7 +130,7 @@ class Solr:
         def escape_value(v):
             if isinstance(v, tuple): # hack for supporting range
                 return "[%s TO %s]" % (escape(v[0]), escape(v[1]))
-            elif isinstance(v, list): # one of 
+            elif isinstance(v, list): # one of
                 return "(%s)" % " OR ".join(escape_value(x) for x in v)
             else:
                 return '"%s"' % escape(v)

@@ -22,10 +22,10 @@ from infogami.infobase.client import Thing, Changeset, storify
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
-    
+
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
-    
+
         >>> d = MultiDict()
         >>> d['x'] = 1
         >>> d['x'] = 2
@@ -47,84 +47,84 @@ class MultiDict(DictMixin):
     """
     def __init__(self, items=(), **kw):
         self._items = []
-        
+
         for k, v in items:
             self[k] = v
         self.update(kw)
-    
+
     def __getitem__(self, key):
         values = self.getall(key)
         if values:
             return values[-1]
         else:
             raise KeyError, key
-    
+
     def __setitem__(self, key, value):
         self._items.append((key, value))
-        
+
     def __delitem__(self, key):
         self._items = [(k, v) for k, v in self._items if k != key]
-        
+
     def getall(self, key):
         return [v for k, v in self._items if k == key]
-        
+
     def keys(self):
         return [k for k, v in self._items]
-        
+
     def values(self):
         return [v for k, v in self._items]
-        
+
     def items(self):
         return self._items[:]
-        
+
     def multi_items(self):
         """Returns items as tuple of key and a list of values."""
         items = []
         d = {}
-        
+
         for k, v in self._items:
             if k not in d:
                 d[k] = []
                 items.append((k, d[k]))
             d[k].append(v)
         return items
-        
+
 @macro
 @public
 def render_template(name, *a, **kw):
     if "." in name:
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
-    
+
 @public
 def get_error(name, *args):
     """Return error with the given name from errors.tmpl template."""
     return get_message_from_template("errors", name, args)
-        
-@public        
+
+@public
 def get_message(name, *args):
     """Return message with given name from messages.tmpl template"""
     return get_message_from_template("messages", name, args)
-    
+
 def get_message_from_template(template_name, name, args):
     d = render_template(template_name).get("messages", {})
     msg = d.get(name) or name.lower().replace("_", " ")
-    
+
     if msg and args:
         return msg % args
     else:
         return msg
-    
+
 @public
 def list_recent_pages(path, limit=100, offset=0):
     """Lists all pages with name path/* in the order of last_modified."""
     q = {}
-        
+
     q['key~' ] = path + '/*'
     # don't show /type/delete and /type/redirect
     q['a:type!='] = '/type/delete'
     q['b:type!='] = '/type/redirect'
-    
+
     q['sort'] = 'key'
     q['limit'] = limit
     q['offset'] = offset
@@ -132,19 +132,19 @@ def list_recent_pages(path, limit=100, offset=0):
     # queries are very slow with != conditions
     # q['type'] != '/type/delete'
     return web.ctx.site.get_many(web.ctx.site.things(q))
-        
+
 @public
 def json_encode(d):
     return simplejson.dumps(d)
 
 def unflatten(d, seperator="--"):
     """Convert flattened data into nested form.
-    
+
         >>> unflatten({"a": 1, "b--x": 2, "b--y": 3, "c--0": 4, "c--1": 5})
         {'a': 1, 'c': [4, 5], 'b': {'y': 3, 'x': 2}}
         >>> unflatten({"a--0--x": 1, "a--0--y": 2, "a--1--x": 3, "a--1--y": 4})
         {'a': [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]}
-        
+
     """
     def isint(k):
         try:
@@ -152,14 +152,14 @@ def unflatten(d, seperator="--"):
             return True
         except ValueError:
             return False
-        
+
     def setvalue(data, k, v):
         if '--' in k:
             k, k2 = k.split(seperator, 1)
             setvalue(data.setdefault(k, {}), k2, v)
         else:
             data[k] = v
-            
+
     def makelist(d):
         """Convert d into a list if all the keys of d are integers."""
         if isinstance(d, dict):
@@ -169,7 +169,7 @@ def unflatten(d, seperator="--"):
                 return web.storage((k, makelist(v)) for k, v in d.items())
         else:
             return d
-            
+
     d2 = {}
     for k, v in d.items():
         setvalue(d2, k, v)
@@ -177,21 +177,21 @@ def unflatten(d, seperator="--"):
 
 def fuzzy_find(value, options, stopwords=[]):
     """Try find the option nearest to the value.
-    
+
         >>> fuzzy_find("O'Reilly", ["O'Reilly Inc", "Addison-Wesley"])
         "O'Reilly Inc"
     """
     if not options:
         return value
-        
+
     rx = web.re_compile("[-_\.&, ]+")
-    
+
     # build word frequency
     d = defaultdict(list)
     for option in options:
         for t in rx.split(option):
             d[t].append(option)
-    
+
     # find score for each option
     score = defaultdict(lambda: 0)
     for t in rx.split(value):
@@ -199,17 +199,17 @@ def fuzzy_find(value, options, stopwords=[]):
             continue
         for option in d[t]:
             score[option] += 1
-            
+
     # take the option with maximum score
     return max(options, key=score.__getitem__)
-    
+
 @public
 def radio_input(checked=False, **params):
     params['type'] = 'radio'
     if checked:
         params['checked'] = "checked"
     return "<input %s />" % " ".join(['%s="%s"' % (k, web.websafe(v)) for k, v in params.items()])
-    
+
 @public
 def radio_list(name, args, value):
     html = []
@@ -219,29 +219,29 @@ def radio_list(name, args, value):
         else:
             label = arg
         html.append(radio_input())
-        
+
 @public
 def get_coverstore_url():
     return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
-    
+
 def _get_changes_v1_raw(query, revision=None):
-    """Returns the raw versions response. 
-    
+    """Returns the raw versions response.
+
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
-    
+
     versions = web.ctx.site.versions(query)
-    
+
     for v in versions:
         v.created = v.created.isoformat()
         v.author = v.author and v.author.key
-        
+
         # XXX-Anand: hack to avoid too big data to be stored in memcache.
         # v.changes is not used and it contrinutes to memcache bloat in a big way.
         v.changes = '[]'
-            
+
     return versions
 
 def get_changes_v1(query, revision=None):
@@ -252,17 +252,17 @@ def get_changes_v1(query, revision=None):
         v.created = parse_datetime(v.created)
         v.author = v.author and web.ctx.site.get(v.author, lazy=True)
         return v
-    
+
     return [process(v) for v in _get_changes_v1_raw(query, revision)]
-    
+
 def _get_changes_v2_raw(query, revision=None):
-    """Returns the raw recentchanges response. 
-    
+    """Returns the raw recentchanges response.
+
     Revision is taken as argument to make sure a new cache entry is used when a new revision of the page is created.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
-    
+
     changes = web.ctx.site.recentchanges(query)
     return [c.dict() for c in changes]
 
@@ -271,13 +271,13 @@ def _get_changes_v2_raw(query, revision=None):
 
 def get_changes_v2(query, revision=None):
     page = web.ctx.site.get(query['key'])
-    
+
     def first(seq, default=None):
         try:
             return seq.next()
         except StopIteration:
             return default
-    
+
     def process_change(change):
         change = Changeset.create(web.ctx.site, storify(change))
         change.thing = page
@@ -286,11 +286,11 @@ def get_changes_v2(query, revision=None):
         change.created = change.timestamp
 
         change.get = change.__dict__.get
-        change.get_comment = lambda: get_comment(change)        
+        change.get_comment = lambda: get_comment(change)
         change.machine_comment = change.data.get("machine_comment")
-    
+
         return change
-        
+
     def get_comment(change):
         t = get_template("recentchanges/" + change.kind + "/comment") or get_template("recentchanges/default/comment")
         return t(change, page)
@@ -298,13 +298,13 @@ def get_changes_v2(query, revision=None):
     query['key'] = page.key
     changes = _get_changes_v2_raw(query, revision=page.revision)
     return [process_change(c) for c in changes]
-    
+
 def get_changes(query, revision=None):
     if 'history_v2' in web.ctx.features:
         return get_changes_v2(query, revision=revision)
     else:
         return get_changes_v1(query, revision=revision)
-        
+
 @public
 def get_history(page):
     h = web.storage(revision=page.revision, lastest_revision=page.revision, created=page.created)
@@ -315,14 +315,14 @@ def get_history(page):
     else:
         h.initial = get_changes({"key": page.key, "limit": 1, "offset": h.revision-1}, revision=page.revision)
         h.recent = get_changes({"key": page.key, "limit": 4}, revision=page.revision)
-    
+
     return h
-    
+
     if 'history_v2' in web.ctx.features:
         return get_history_v2(page)
     else:
-        return get_history_v1(page)    
-    
+        return get_history_v1(page)
+
 @public
 def get_version(key, revision):
     try:
@@ -346,7 +346,7 @@ def get_locale():
         return babel.Locale(web.ctx.get("lang") or "en")
     except babel.core.UnknownLocaleError:
         return babel.Locale("en")
-    
+
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
@@ -368,7 +368,7 @@ def process_version(v):
 @public
 def is_thing(t):
     return isinstance(t, Thing)
-    
+
 @public
 def putctx(key, value):
     """Save a value in the context."""
@@ -391,7 +391,7 @@ class Metatag:
 def add_metatag(tag="meta", **attrs):
     context.setdefault('metatags', [])
     context.metatags.append(Metatag(tag, **attrs))
-    
+
 def pad(seq, size, e=None):
     """
         >>> pad([1, 2], 4, 0)
@@ -439,7 +439,7 @@ def parse_toc(text):
     return [parse_toc_row(line) for line in text.splitlines() if line.strip(" |")]
 
 _languages = None
-    
+
 @public
 def get_languages():
     global _languages
@@ -447,17 +447,17 @@ def get_languages():
         keys = web.ctx.site.things({"type": "/type/language", "key~": "/languages/*", "limit": 1000})
         _languages = sorted([web.storage(name=d.name, code=d.code, key=d.key) for d in web.ctx.site.get_many(keys)], key=lambda d: d.name.lower())
     return _languages
-    
+
 @public
 def get_edition_config():
     return _get_edition_config()
-    
+
 @web.memoize
 def _get_edition_config():
     """Returns the edition config.
-    
+
     The results are cached on the first invocation. Any changes to /config/edition page require restarting the app.
-    
+
     This is is cached because fetching and creating the Thing object was taking about 20ms of time for each book request.
     """
     thing = web.ctx.site.get('/config/edition')
@@ -477,7 +477,7 @@ def get_markdown(text, safe_mode=False):
 class HTML(unicode):
     def __init__(self, html):
         unicode.__init__(self, web.safeunicode(html))
-        
+
     def __repr__(self):
         return "<html: %s>" % unicode.__repr__(self)
 
@@ -489,7 +489,7 @@ def websafe(text):
         return web.safestr(text)
     else:
         return _websafe(text)
-        
+
 
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
@@ -513,7 +513,7 @@ class UpstreamMemcacheClient:
         key = adapter.convert_key(key)
         if key is None:
             return None
-        
+
         try:
             value = self._client.get(web.safestr(key))
         except memcache.Client.MemcachedKeyError:
@@ -524,7 +524,7 @@ class UpstreamMemcacheClient:
     def get_multi(self, keys):
         keys = [adapter.convert_key(k) for k in keys]
         keys = [web.safestr(k) for k in keys]
-        
+
         d = self._client.get_multi(keys)
         return dict((web.safeunicode(adapter.unconvert_key(k)), self.decompress(v)) for k, v in d.items())
 
@@ -532,12 +532,12 @@ if config.get('upstream_memcache_servers'):
     olmemcache.Client = UpstreamMemcacheClient
     # set config.memcache_servers only after olmemcache.Client is updated
     config.memcache_servers = config.upstream_memcache_servers
-    
+
 def _get_recent_changes():
     site = web.ctx.get('site') or delegate.create_site()
     web.ctx.setdefault("ip", "127.0.0.1")
-    
-    # The recentchanges can have multiple revisions for a document if it has been modified more than once. 
+
+    # The recentchanges can have multiple revisions for a document if it has been modified more than once.
     # Take only the most recent revision in that case.
     visited = set()
     def is_visited(key):
@@ -546,7 +546,7 @@ def _get_recent_changes():
         else:
             visited.add(key)
             return False
-       
+
     # ignore reverts
     re_revert = web.re_compile("reverted to revision \d+")
     def is_revert(r):
@@ -564,24 +564,24 @@ def _get_recent_changes():
             t[k] = thing[k]
         t['type'] = web.storage(key=thing.type.key)
         return t
-    
+
     for r in result:
         r.author = r.author and process_thing(r.author)
         r.thing = process_thing(site.get(r.key, r.revision))
-        
+
     return result
-    
+
 def _get_recent_changes2():
     """New recent changes for around the library.
-    
+
     This function returns the message to display for each change.
     The message is get by calling `recentchanges/$kind/message.html` template.
-    
+
     If `$var ignore=True` is set by the message template, the change is ignored.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
-    
+
     q = {"bot": False, "limit": 100}
     changes = web.ctx.site.recentchanges(q)
 
@@ -599,7 +599,7 @@ def _get_recent_changes2():
     messages = [render(c) for c in changes if not is_ignored(c)]
     messages = [m for m in messages if str(m.get("ignore", "false")).lower() != "true"]
     return messages
-    
+
 _get_recent_changes = web.memoize(_get_recent_changes, expires=5*60, background=True)
 _get_recent_changes2 = web.memoize(_get_recent_changes2, expires=5*60, background=True)
 
@@ -609,12 +609,12 @@ def get_random_recent_changes(n):
         changes = _get_recent_changes2()
     else:
         changes = _get_recent_changes()
-    
+
     if len(changes) > n:
-        return random.sample(changes, n)  
+        return random.sample(changes, n)
     else:
         return changes
-        
+
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
@@ -626,7 +626,7 @@ def _get_blog_feeds():
         return []
     finally:
         stats.end()
-    
+
     def parse_item(item):
         pubdate = datetime.datetime.strptime(item.find("pubDate").text, '%a, %d %b %Y %H:%M:%S +0000').isoformat()
         return dict(
@@ -635,22 +635,26 @@ def _get_blog_feeds():
             pubdate=pubdate
         )
     return [parse_item(item) for item in tree.findall("//item")]
-    
+
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
-def get_donation_include(type):
-    input = web.input()
+def get_donation_include(include):
+    web_input = web.input()
     url_banner_source = "https://archive.org/includes/donate.php"
     html = ''
     param = '?platform=ol'
     dd = ''
-    if 'will' in input:
+    if 'will' in web_input:
         url_banner_source = "https://www-will.archive.org/includes/donate.php"
-    if 'don' in input:
-        dd = input['don']
-        param = param+"&ymd="+dd
-    if (type=='true'):
-        html = urllib2.urlopen(url_banner_source+param).read()
+    if 'don' in web_input:
+        dd = web_input.get('don', '')
+        param = param + "&ymd=" + dd
+    if include == 'true':
+        try:
+            html = urllib2.urlopen(url_banner_source + param, timeout=3).read()
+        except urllib2.URLError:
+            logging.getLogger("openlibrary").error('Could not load donation banner')
+            return ''
     return html
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
@@ -689,7 +693,7 @@ def setup():
     web.template.Template.FILTERS['.xml'] = websafe
 
     web.commify = commify
-    
+
     web.template.Template.globals.update({
         'HTML': HTML,
         'request': Request(),
@@ -697,7 +701,7 @@ def setup():
         'sum': sum,
         'get_donation_include': get_donation_include
     })
-    
+
     from openlibrary.core import helpers as h
     web.template.Template.globals.update(h.helpers)
 

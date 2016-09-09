@@ -50,7 +50,13 @@ def setup(config):
     global config_content_server, config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key
 
     if config.get("content_server"):
-        config_content_server = ContentServer(config.get("content_server"))
+        try:
+            config_content_server = ContentServer(config.get("content_server"))
+        except Exception as e:
+            logger.exception('Failed to assign config_content_server')
+    else:
+        logger.error('content_server unassigned')
+
     config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -566,13 +572,12 @@ class IA_Lending_API:
         logger.info("POST %s %s", IA_API_URL, params)
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
-        jsontext = urllib2.urlopen(IA_API_URL, payload).read()
-        logger.info("POST response: %s", jsontext)
         try:
+            jsontext = urllib2.urlopen(IA_API_URL, payload, timeout=3).read()
+            logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
-        except Exception:
-            logger.error("POST failed", exc_info=True)
-            logger.info("jsontext=%s", jsontext)
+        except Exception as e:
+            logger.exception("POST failed")
             raise
 
 ia_lending_api = IA_Lending_API()
