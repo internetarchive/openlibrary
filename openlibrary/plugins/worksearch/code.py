@@ -1,4 +1,4 @@
-import web, re, urllib
+import web, re, urllib, urllib2
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -22,7 +22,7 @@ class edition_search(_edition_search):
 
 def get_solr_select_url(host, core):
     if config.get('single_core_solr'):
-        return "http://%s/solr/select" % host 
+        return "http://%s/solr/select" % host
     else:
         return "http://%s/solr/%s/select" % (host, core)
 
@@ -39,7 +39,7 @@ if hasattr(config, 'plugin_worksearch'):
 
     solr_edition_host = config.plugin_worksearch.get('edition_solr', 'localhost')
     solr_edition_select_url = get_solr_select_url(solr_edition_host, 'editions')
-    
+
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
 re_author_facet = re.compile('^(OL\d+A) (.*)$')
@@ -176,6 +176,32 @@ def build_q_list(param):
             q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
+def parse_json_from_solr_query(url):
+    solr_result = execute_solr_query(url)
+    return parse_json(solr_result)
+
+def execute_solr_query(url):
+    stats.begin("solr", url=url)
+    try:
+        solr_result = urllib2.urlopen(url, timeout=3)
+    except Exception as e:
+        logger.exception("Failed solr query")
+        return None
+    finally:
+        stats.end()
+    return solr_result
+
+def parse_json(raw_file):
+    if raw_file is None:
+        logger.error("Error parsing empty search engine response")
+        return None
+    try:
+        json_result = json.load(raw_file)
+    except json.JSONDecodeError as e:
+        logger.exception("Error parsing search engine response")
+        return None
+    return json_result
+
 def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=None, offset=None, fields=None):
     # called by do_search
     if spellcheck_count == None:
@@ -189,10 +215,10 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     if fields is None:
         fields = [
-            'key', 'author_name', 'author_key', 
-            'title', 'subtitle', 'edition_count', 
-            'ia', 'has_fulltext', 'first_publish_year', 
-            'cover_i','cover_edition_key', 'public_scan_b', 
+            'key', 'author_name', 'author_key',
+            'title', 'subtitle', 'edition_count',
+            'ia', 'has_fulltext', 'first_publish_year',
+            'cover_i','cover_edition_key', 'public_scan_b',
             'lending_edition_s', 'overdrive_s', 'ia_collection_s']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&start=%d&rows=%d&fl=%s" % (offset, rows, fl)
@@ -243,9 +269,10 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     if config.get("single_core_solr"):
         solr_select += "&fq=type:work"
 
-    stats.begin("solr", url=solr_select)
-    reply = urllib.urlopen(solr_select).read()
-    stats.end()
+    solr_result = execute_solr_query(solr_select)
+    if solr_result is None:
+        return (None, None, None)
+    reply = solr_result.read()
     return (reply, solr_select, q_list)
 
 re_pre = re.compile(r'<pre>(.*)</pre>', re.S)
@@ -349,7 +376,7 @@ def get_doc(doc): # called from work_search template
         doc.url = doc.key + '/' + urlsafe(doc.title)
     else:
         doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
-    
+
     if not doc.public_scan and doc.lending_identifier:
         store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
         doc.checked_out = store_doc.get("borrowed") == "true"
@@ -400,7 +427,7 @@ def work_object(w): # called by works_by_author
         obj['checked_out'] = doc.get("borrowed") == "true"
     else:
         obj['checked_out'] = False
-    
+
     for f in 'has_fulltext', 'subtitle':
         if w.get(f):
             obj[f] = w[f]
@@ -511,9 +538,16 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     elif sort.startswith('title'):
         solr_select += '&sort=title+asc'
     solr_select += "&facet=true&facet.mincount=1&f.author_facet.facet.sort=count&f.publish_year.facet.limit=-1&facet.limit=25&" + '&'.join("facet.field=" + f for f in facet_fields)
-    stats.begin("solr", url=solr_select)
-    reply = json.load(urllib.urlopen(solr_select))
-    stats.end()
+    reply = parse_json_from_solr_query(solr_select)
+    if reply is None:
+        return web.storage(
+            num_found = 0,
+            works = [],
+            years = [],
+            get_facet = [],
+            sort = sort,
+        )
+    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
     facets = reply['facet_counts']['facet_fields']
     works = [work_object(w) for w in reply['response']['docs']]
 
@@ -529,34 +563,32 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     )
 
 def sorted_work_editions(wkey, json_data=None):
-    q='key:' + wkey
-    if not json_data: # for testing
+    """Setting json_data to a real value simulates getting SOLR data back, i.e. for testing (but ick!)"""
+    q = 'key:' + wkey
+    if json_data:
+        reply = json.loads(json_data)
+    else:
         solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=edition_key&qt=standard&wt=json" % q
-        stats.begin("solr", url=solr_select)
-        json_data = urllib.urlopen(solr_select).read()
-        stats.end()
-    reply = json.loads(json_data)
-
-    if reply['response']['numFound'] == 0:
+        reply = parse_json_from_solr_query(solr_select)
+    if reply is None or reply.get('response', {}).get('numFound', 0) == 0:
         return []
+    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
     return reply["response"]['docs'][0].get('edition_key', [])
 
 def simple_search(q, offset=0, rows=20, sort=None):
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*%%2Cscore&qt=standard&wt=json" % (web.urlquote(q), offset, rows)
     if sort:
         solr_select += "&sort=" + web.urlquote(sort)
-
-    stats.begin("solr", url=solr_select)
-    json_data = urllib.urlopen(solr_select)
-    stats.end()
-    return json.load(json_data)
+    return parse_json_from_solr_query(solr_select)
 
 def top_books_from_author(akey, rows=5, offset=0):
     q = 'author_key:(' + akey + ')'
     solr_select = solr_select_url + "?q=%s&start=%d&rows=%d&fl=key,title,edition_count,first_publish_year&wt=json&sort=edition_count+desc" % (q, offset, rows)
-    stats.begin("solr", url=solr_select)
-    response = json.load(urllib.urlopen(solr_select))['response']
-    stats.end()
+    json_result = parse_json_from_solr_query(solr_select)
+    if json_result is None:
+        return {'books': [], 'total': 0}
+    # TODO: Deep JSON structure defense - for now, let it blow up so easier to detect
+    response = json_result['response']
     return {
         'books': [web.storage(doc) for doc in response['docs']],
         'total': response['numFound'],
@@ -588,16 +620,21 @@ def escape_colon(q, vf):
     return result
 
 def run_solr_search(solr_select):
-    stats.begin("solr", url=solr_select)
-    json_data = urllib.urlopen(solr_select).read()
-    stats.end()
+    solr_result = execute_solr_query(solr_select)
+    json_data = solr_result.read() if solr_result is not None else None
     return parse_search_response(json_data)
 
 def parse_search_response(json_data):
+    """Construct response for any input"""
+    if json_data is None:
+        return {'error': 'Error parsing empty search engine response'}
     try:
         return json.loads(json_data)
     except json.JSONDecodeError:
+        logger.exception("Error parsing search engine response")
         m = re_pre.search(json_data)
+        if m is None:
+            return {'error': 'Error parsing search engine response'}
         error = web.htmlunquote(m.group(1))
         solr_error = 'org.apache.lucene.queryParser.ParseException: '
         if error.startswith(solr_error):
@@ -610,7 +647,7 @@ class subject_search(delegate.page):
         return render_template('search/subjects.tmpl', self.get_results)
 
     def get_results(self, q, offset=0, limit=100):
-        if config.get('single_core_solr'):            
+        if config.get('single_core_solr'):
             valid_fields = ['key', 'name', 'subject_type', 'work_count']
         else:
             valid_fields = ['key', 'name', 'type', 'count']
@@ -628,7 +665,7 @@ class subject_search(delegate.page):
         if config.get('single_core_solr'):
             params['fq'] = 'type:subject'
             params['sort'] = 'work_count desc'
-        else:                
+        else:
             params['sort'] = 'count desc'
 
         solr_select = solr_subject_select_url + "?" + urllib.urlencode(params)
@@ -649,7 +686,7 @@ class author_search(delegate.page):
     path = '/search/authors'
     def GET(self):
         return render_template('search/authors.tmpl', self.get_results)
-    
+
     def get_results(self, q, offset=0, limit=100):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
@@ -669,17 +706,17 @@ class author_search(delegate.page):
                 # The template still expects the key to be in the old format
                 doc['key'] = doc['key'].split("/")[-1]
         return d
-        
+
 class author_search_json(author_search):
     path = '/search/authors'
     encoding = 'json'
-    
+
     def GET(self):
         i = web.input(q='', offset=0, limit=100)
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 100)
         limit = min(1000, limit) # limit limit to 1000.
-        
+
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
@@ -709,9 +746,9 @@ class search_json(delegate.page):
             query = i
 
         sorts = dict(
-            editions='edition_count desc', 
-            old='first_publish_year asc', 
-            new='first_publish_year desc', 
+            editions='edition_count desc',
+            old='first_publish_year asc',
+            new='first_publish_year desc',
             scans='ia_count desc')
         sort_name = query.get('sort', None)
         sort_value = sort_name and sorts[sort_name] or None
@@ -728,9 +765,9 @@ class search_json(delegate.page):
 
         try:
             (reply, solr_select, q_list) = run_solr_query(query,
-                                                rows=limit, 
-                                                page=page, 
-                                                sort=sort_value, 
+                                                rows=limit,
+                                                page=page,
+                                                sort=sort_value,
                                                 offset=offset,
                                                 fields="*")
 
@@ -746,20 +783,20 @@ class search_json(delegate.page):
 def setup():
     import searchapi
     searchapi.setup()
-    
+
     from . import subjects
-    
+
     # subjects module needs read_author_facet and solr_select_url.
     # Importing this module to access them will result in circular import.
     # Setting them like this to avoid circular-import.
     subjects.read_author_facet = read_author_facet
     if hasattr(config, 'plugin_worksearch'):
         subjects.solr_select_url = solr_select_url
-    
+
     subjects.setup()
-    
+
     from . import publishers, languages
     publishers.setup()
     languages.setup()
-    
+
 setup()

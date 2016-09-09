@@ -638,20 +638,20 @@ def _get_blog_feeds():
 
 _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.get_blog_feeds", timeout=5*60)
 
-def get_donation_include(type):
-    input = web.input()
+def get_donation_include(include):
+    web_input = web.input()
     url_banner_source = "https://archive.org/includes/donate.php"
     html = ''
     param = '?platform=ol'
     dd = ''
-    if 'will' in input:
+    if 'will' in web_input:
         url_banner_source = "https://www-will.archive.org/includes/donate.php"
-    if 'don' in input:
-        dd = input['don']
-        param = param+"&ymd="+dd
-    if (type=='true'):
+    if 'don' in web_input:
+        dd = web_input.get('don', '')
+        param = param + "&ymd=" + dd
+    if include == 'true':
         try:
-            html = urllib2.urlopen(url_banner_source+param, timeout=3).read()
+            html = urllib2.urlopen(url_banner_source + param, timeout=3).read()
         except urllib2.URLError:
             logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''

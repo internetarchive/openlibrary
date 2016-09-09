@@ -21,6 +21,7 @@ from openlibrary.utils.solr import Solr
 from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
 import account
 import borrow
+import logging
 
 def follow_redirect(doc):
     if isinstance(doc, basestring) and doc.startswith("/a/"):
@@ -496,8 +497,8 @@ class Work(models.Work):
     def get_covers_from_solr(self):
         try:
             w = self._solr_data
-            logger.error('Unable to retrieve covers from solr')
-        except Exception:
+        except Exception as e:
+            logging.getLogger("openlibrary").exception('Unable to retrieve covers from solr')
             return []
         if w:
             if 'cover_id' in w:
@@ -523,6 +524,9 @@ class Work(models.Work):
         stats.begin("solr", query={"key": key}, fields=fields)
         try:
             d = solr.select({"key": key}, fields=fields)
+        except Exception as e:
+            logging.getLogger("openlibrary").exception("Failed to get solr data")
+            return None
         finally:
             stats.end()
 

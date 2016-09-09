@@ -52,10 +52,10 @@ def setup(config):
     if config.get("content_server"):
         try:
             config_content_server = ContentServer(config.get("content_server"))
-        except Exception:
-            logger.error('Failed to assign config_content_server')
+        except Exception as e:
+            logger.exception('Failed to assign config_content_server')
     else:
-        logger.warn('content_server unassigned')
+        logger.error('content_server unassigned')
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
@@ -576,8 +576,8 @@ class IA_Lending_API:
             jsontext = urllib2.urlopen(IA_API_URL, payload, timeout=3).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
-        except Exception:
-            logger.error("POST failed", exc_info=True)
+        except Exception as e:
+            logger.exception("POST failed")
             raise
 
 ia_lending_api = IA_Lending_API()

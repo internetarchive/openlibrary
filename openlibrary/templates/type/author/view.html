@@ -7,7 +7,7 @@ $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
         if ("$query_param('merge', 'false')" == "true") {
             \$("#preMerge").parent().andSelf().show();
 
-            $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]            
+            $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]
             var data = {
                 "master": "$page.key",
                 "duplicates": $:json_encode(duplicates)
@@ -16,22 +16,22 @@ $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
             \$.post("/authors/merge.json", JSON.stringify(data),
                 function(result, status, req) {
                     \$("#preMerge").fadeOut(); \$("#postMerge").fadeIn();
-                }, 
+                },
                 "json"
             );
             */
-            
+
             \$.ajax({
                 url: "/authors/merge.json",
                 type: "POST",
                 data: JSON.stringify(data),
                 success: function(data, textStatus, XMLHttpRequest) {
-                    \$("#preMerge").fadeOut(); 
-                    \$("#postMerge").fadeIn();                    
+                    \$("#preMerge").fadeOut();
+                    \$("#postMerge").fadeIn();
                 },
                 error: function(XMLHttpRequest, textStatus, errorThrown) {
-                    \$("#preMerge").fadeOut(); 
-                    \$("#errorMerge").fadeIn();                                        
+                    \$("#preMerge").fadeOut();
+                    \$("#errorMerge").fadeIn();
                 }
             });
         }
@@ -110,7 +110,7 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
 
         $if page.website:
             <div class="section">
-                <h6 class="collapse black uppercase">$_("Website")</h6> 
+                <h6 class="collapse black uppercase">$_("Website")</h6>
                 <a href="$page.website" class="datalink">$page.website</a>
             </div>
 
@@ -130,13 +130,13 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                 <a name="books"></a>
                 <p><span class="tools">
                 $if books.num_found > 1:
-                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/> 
+                    <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/>
                     $if books.sort == 'editions':
-                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
+                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a>
                     $elif books.sort == 'old':
-                        <a href="$changequery(sort=None)#editions">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')#editions">Most Recent</a> 
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')#editions">Most Recent</a>
                     $elif books.sort == 'new':
-                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <strong class="lightgreen">Most Recent</strong> 
+                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <strong class="lightgreen">Most Recent</strong>
                     $elif books.sort == 'title':
                         <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
                 </span></p>
@@ -207,7 +207,7 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
     <div class="contentOnethird">
 
         <div class="illustration">
-            $:render_template("covers/author_photo", page) 
+            $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")
         </div>
 
@@ -222,10 +222,11 @@ $ library = (get_library() if 'inlibrary' in ctx.features else None)
                 </div>
 
         <!-- SUBJECTS DISPLAY -->
-        $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
-        $:render_subjects("Places", books.get_facet('place_facet'), 'place:')
-        $:render_subjects("People", books.get_facet('person_facet'), 'person:')
-        $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
+        $if books.num_found > 0:
+            $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
+            $:render_subjects("Places", books.get_facet('place_facet'), 'place:')
+            $:render_subjects("People", books.get_facet('person_facet'), 'person:')
+            $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
         $if "lists" in ctx.features:

@@ -4,6 +4,7 @@ from openlibrary.utils.solr import Solr
 from infogami import config
 from infogami.utils import stats
 import web
+import logging
 
 def get_works_solr():
     if config.get('single_core_solr'):
@@ -58,7 +59,8 @@ def work_search(query, limit=20, offset=0, **kw):
     stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
     try:
         result = solr.select(query, start=offset, rows=limit, **kw)
-    except Exception:
+    except Exception as e:
+        logging.getLogger("openlibrary").exception("Failed solr query")
         return None
     finally:
         stats.end()
