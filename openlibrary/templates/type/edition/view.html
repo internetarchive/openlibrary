@@ -3,21 +3,9 @@ $def with (page)
 $ title_suffix = cond(page.publish_date, "({0} edition)".format(page.publish_date), "(edition)")
 $ title = page.title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
-$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
+$ cover_url = page.get_cover_url("M") or "https://openlibrary.org/images/icons/avatar_book-sm.png"
 
 $var title: $title
-
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the book on Open Library.")
-$add_metatag(property="twitter:image", content=cover_url)
-
-$add_metatag(property="og:title", content=title_with_site)
-$add_metatag(property="og:type", content="book")
-$add_metatag(property="og:image", content=cover_url)
-$add_metatag(property="og:url", content=request.canonical_url)
-$add_metatag(property="og:site_name", content="Open Library")
 
 $code:
     def has_any(*keys):
@@ -50,7 +38,8 @@ $code:
 
         meta = title + author_info + ", " + edition + " edition, " + format
         return meta
-    putctx("description", get_description(page))
+    description = get_description(page)
+    putctx("description", description)
 
 $code:
     def get_authors_byline(page, include_schema=False):
@@ -118,6 +107,19 @@ $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
 $ work = page.works and page.works[0] or None
+
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title_with_site)
+$add_metatag(property="twitter:description", content="View the book on Open Library.")
+$add_metatag(property="twitter:image", content=cover_url)
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="books.book")
+$add_metatag(property="og:image", content=cover_url)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=description)
 
 <style type="text/css">
 .page-banner {
