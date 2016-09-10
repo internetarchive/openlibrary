@@ -1,14 +1,23 @@
 $def with (page)
 
 $ title_suffix = cond(page.publish_date, "({0} edition)".format(page.publish_date), "(edition)")
-$var title: $page.title $title_suffix
+$ title = page.title + " " + title_suffix
+$ title_with_site = title + " | Open Library"
+$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
+
+$var title: $title
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=page.title)
+$add_metatag(property="twitter:title", content=title_with_site)
 $add_metatag(property="twitter:description", content="View the book on Open Library.")
-$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
 $add_metatag(property="twitter:image", content=cover_url)
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="book")
+$add_metatag(property="og:image", content=cover_url)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
 
 $code:
     def has_any(*keys):
