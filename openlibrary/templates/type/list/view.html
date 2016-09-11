@@ -25,19 +25,19 @@ $add_metatag(property="og:description", content=meta_description)
 $jsdef render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
     $:sprintf(msg, seed_count)
-    
-<div id="contentHead" style="margin-bottom:0;"> 
+
+<div id="contentHead" style="margin-bottom:0;">
 
     $:macros.databarView(list)
- 
+
     <div class="superNav">
         $ owner = list.get_owner()
         <a href="$owner.key">$owner.displayname</a>
-        / 
+        /
         <a href="$owner.key/lists">Lists</a>
-    </div> 
+    </div>
     <h1>
-        $list.name 
+        $list.name
     </h1>
     <p class="collapse sansserif">
         <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
@@ -54,7 +54,7 @@ function remove_seed(list_key, seed, success) {
     if (seed[0] == "/") {
         seed = {"key": seed}
     }
-    
+
     \$.ajax({
         type: "POST",
         url: list_key + "/seeds.json",
@@ -63,7 +63,7 @@ function remove_seed(list_key, seed, success) {
             "remove": [seed]
         }),
         dataType: "json",
-    
+
         beforeSend: function(xhr) {
             xhr.setRequestHeader("Content-Type", "application/json");
             xhr.setRequestHeader("Accept", "application/json");
@@ -79,18 +79,18 @@ function get_seed_count() {
 \$(function(){
     \$(".listDelete a").click(function() {
         var seed_id = \$(this).closest("li").attr("id");
-        
+
         if (get_seed_count() > 1) {
             \$("#remove-seed-dialog")
                 .data("seed-id", seed_id)
                 .dialog("open");
         }
         else {
-            \$("#delete-list-dialog").dialog("open");            
+            \$("#delete-list-dialog").dialog("open");
         }
-            
+
     });
-    
+
     \$("#remove-seed-dialog").dialog({
         autoOpen: false,
         width: 400,
@@ -101,16 +101,16 @@ function get_seed_count() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
-                
+
                 var _this = this;
-                
+
                 remove_seed(list_key, seed, function() {
                     \$(seed_id).remove();
                     // update seed count
                     \$("#seed-count").html(render_seed_count(get_seed_count()));
 
                     // TODO: update edition count
-                    
+
                     \$(_this).dialog("close");
                 });
             },
@@ -119,7 +119,7 @@ function get_seed_count() {
             }
         }
     });
-    
+
     \$("#delete-list-dialog").dialog({
         autoOpen: false,
         width: 400,
@@ -129,7 +129,7 @@ function get_seed_count() {
             "Yes, I'm sure": function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
-                
+
                 \$.post(list_key + "/delete.json", function() {
                     \$(this).dialog("close");
                     window.location.reload();
@@ -145,20 +145,20 @@ function get_seed_count() {
 //-->
 </script>
 
-<div id="contentBody"> 
+<div id="contentBody">
     <div id="remove-seed-dialog" class="hidden" title="Remove seed">Are you sure you want to remove this seed from the list?</div>
     <div id="delete-list-dialog" class="hidden" title="Remove Seed">
         You are about the remove the last seed in the list. That will delete the whole list. Are you sure you want to continue?
     </div>
-    
+
     $def render_authors(authors):
         $if not authors:
             <em>Unknown authors</em>
         $else:
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
- 
-    <div class="contentTwothird" style="margin-bottom:0;"> 
+
+    <div class="contentTwothird" style="margin-bottom:0;">
 
         $if list.description:
             $:format(list.description)
@@ -170,11 +170,11 @@ function get_seed_count() {
                 $ cover_url = "https:" + ((cover and cover.url("M")) or "//openlibrary.org/images/icons/avatar_book-sm.png")
                 $if not meta_cover_url:
                     $ meta_cover_url = cover_url
-                <span class="image"> 
+                <span class="image">
                     <a href="$seed.url"><img src="$cover_url" height="70"/></a>
-                </span> 
+                </span>
                 <span class="seed-key hidden">$seed.key</span>
-                <span class="details"> 
+                <span class="details">
                     <span class="resultTitle">
                         $if seed.type in ['edition', 'work']:
                             $ ebook = seed.document.get_ebook_info()
@@ -204,7 +204,7 @@ function get_seed_count() {
                                     </a>
                             </span>
 
-                        <h3> 
+                        <h3>
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
                         $if seed.type == "work" or seed.type == "edition":
@@ -217,7 +217,7 @@ function get_seed_count() {
                                     $ authors = seed.document.get_authors()
                             <span class="small">by $:render_authors(authors)</span>
                         <span class="meta">
-                        $if seed.type == "author": 
+                        $if seed.type == "author":
                             <span class="type author small">$seed.type</span>
                         $elif seed.type == "work" or seed.type == "edition":
                             <span class="type book small">$seed.type</span>
@@ -254,16 +254,16 @@ function get_seed_count() {
                 </span>
             </li>
         </ul>
-    </div> 
+    </div>
 
     <div class="contentOnethird" style="margin-bottom:0;">
- 
+
         $:render_template("type/list/exports", list)
 
         <h3 class="collapse">List Meta</h3>
         <div class="smaller lightgreen sansserif">Derived from seed metadata</div>
         <br/>
-        
+
         $def render_subjects(label, subjects):
             $if subjects:
                 <div class="section">
@@ -273,20 +273,20 @@ function get_seed_count() {
                         <a href="$subject.url">$subject.title</a>$cond(not loop.last, ",", "")
                     </div>
                 </div>
-                
+
         $ subjects = list.get_subjects()
-        
+
         $:render_subjects("Subjects", subjects.subjects)
         $:render_subjects("People", subjects.people)
         $:render_subjects("Places", subjects.places)
         $:render_subjects("Times", subjects.times)
-    </div> 
- 
-    <div class="clearfix"></div> 
+    </div>
+
+    <div class="clearfix"></div>
 
     $:macros.Pager(page+1, len(list.seeds), page_size)
 
-    
+
     $:render_template("lib/history", list)
 </div>
 
@@ -306,6 +306,7 @@ ul#listResults span.actions a span.checked-out {
     width: 32px;
 }
 </style>
+
 $if meta_cover_url is not None:
     $add_metatag(property="og:image", content=meta_cover_url)
     $add_metatag(property="twitter:image", content=meta_cover_url)
