@@ -11,6 +11,7 @@ import datetime
 import gzip
 import StringIO
 import logging
+from HTMLParser import HTMLParser
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -391,6 +392,24 @@ class Metatag:
 def add_metatag(tag="meta", **attrs):
     context.setdefault('metatags', [])
     context.metatags.append(Metatag(tag, **attrs))
+
+@public
+def url_quote(text):
+    return urllib.quote_plus(text)
+
+@public
+def entity_decode(text):
+    return HTMLParser().unescape(text)
+
+@public
+def set_share_links(url='#', title=''):
+    encoded_url = url_quote(url)
+    twitter_text = url_quote("Check this out: " + entity_decode(title))
+    links = [
+        {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=' + encoded_url},
+        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, twitter_text)}
+    ]
+    context.share_links = links
 
 def pad(seq, size, e=None):
     """

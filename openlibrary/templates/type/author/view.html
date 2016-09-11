@@ -71,12 +71,13 @@ $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=description)
 
+$set_share_links(url=request.canonical_url.encode('utf8'), title=title)
+
 <div id="contentHead">
 
     $:macros.databarView(page)
 
     <h1>$page.get('name', 'name missing')</h1>
-    <div class="clearfix"></div>
     <h2 class="author collapse">
     $if page.birth_date or page.death_date:
         $page.birth_date - $page.death_date
