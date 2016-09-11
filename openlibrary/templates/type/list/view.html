@@ -1,9 +1,26 @@
 $def with (list)
 
-$var title: $list.name
-
+$ title = list.name
+$ title_with_site = title + " | Lists | Open Library"
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 50
+$ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
+$ meta_description = title
+$if list.description:
+    $ meta_description = meta_description + ": " + list.description
+
+$var title: $list.name
+
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title_with_site)
+$add_metatag(property="twitter:description", content="View the list on Open Library.")
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="website")
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=meta_description)
 
 $jsdef render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
@@ -150,7 +167,9 @@ function get_seed_count() {
         $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
             <li id="seed-$loop.index">
                 $ cover = seed.get_cover()
-                $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
+                $ cover_url = "https:" + ((cover and cover.url("M")) or "//openlibrary.org/images/icons/avatar_book-sm.png")
+                $if not meta_cover_url:
+                    $ meta_cover_url = cover_url
                 <span class="image"> 
                     <a href="$seed.url"><img src="$cover_url" height="70"/></a>
                 </span> 
@@ -287,3 +306,6 @@ ul#listResults span.actions a span.checked-out {
     width: 32px;
 }
 </style>
+$if meta_cover_url is not None:
+    $add_metatag(property="og:image", content=meta_cover_url)
+    $add_metatag(property="twitter:image", content=meta_cover_url)
