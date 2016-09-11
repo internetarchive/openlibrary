@@ -166,8 +166,14 @@ function get_seed_count() {
         <ul id="listResults" class="narrow">
         $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
             <li id="seed-$loop.index">
+                $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
-                $ cover_url = "https:" + ((cover and cover.url("M")) or "//openlibrary.org/images/icons/avatar_book-sm.png")
+                $if cover:
+                    $ cover_url = item_image(cover.url("M"), default=default_image)
+                $else:
+                    $ cover_url = default_image
+
+                $# Use first found image as the OpenGraph image
                 $if not meta_cover_url:
                     $ meta_cover_url = cover_url
                 <span class="image">

@@ -659,6 +659,11 @@ def get_donation_include(include):
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 
+def item_image(image_path, default=None):
+    if image_path is None:
+        return default
+    return "https:" + image_path
+
 @public
 def get_blog_feeds():
     def process(post):
@@ -699,7 +704,8 @@ def setup():
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
         'sum': sum,
-        'get_donation_include': get_donation_include
+        'get_donation_include': get_donation_include,
+        'item_image': item_image
     })
 
     from openlibrary.core import helpers as h

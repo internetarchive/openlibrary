@@ -2,7 +2,7 @@ $def with (page)
 
 $ title = page.title
 $ title_with_site = title + " | Open Library"
-$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
+$ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 
 $var title: $title
 
@@ -42,11 +42,11 @@ $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
 $add_metatag(property="twitter:description", content="View the book on Open Library.")
-$add_metatag(property="twitter:image", content=cover_url)
+$add_metatag(property="twitter:image", content=meta_cover_url)
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.book")
-$add_metatag(property="og:image", content=cover_url)
+$add_metatag(property="og:image", content=meta_cover_url)
 $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=description)

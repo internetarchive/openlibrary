@@ -41,7 +41,7 @@ $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
 
 $ title = page.get('name', 'name missing')
 $ title_with_site = title + " | Open Library"
-$ photo_url = "https:" + (page.get_photo_url("M") or "//openlibrary.org/images/icons/avatar_author-lg.png")
+$ meta_photo_url = item_image(page.get_photo_url("M"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
 $var title: $title
 $var history: $page.history
@@ -62,11 +62,11 @@ $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
 $add_metatag(property="twitter:description", content="View the author on Open Library.")
-$add_metatag(property="twitter:image", content=photo_url)
+$add_metatag(property="twitter:image", content=meta_photo_url)
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.author")
-$add_metatag(property="og:image", content=photo_url)
+$add_metatag(property="og:image", content=meta_photo_url)
 $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=description)
