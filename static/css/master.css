@@ -194,6 +194,17 @@ body#admin {background-color: #b9b9b9;}
 body#admin div#background {width:100%;float:left;background-color: #d3d3d3;padding-bottom: 15px;}
 body#admin div#bottom {background-color: transparent;}
 
+/* WIDGETS */
+.word-corner-badge {
+  position: absolute;
+  font-size: 9px;
+  color: red;
+  -ms-transform: rotate(324deg) translate(-11px, -14px);
+  -moz-transform: rotate(324deg) translate(-11px, -14px);
+  -webkit-transform: rotate(324deg) translate(-11px, -14px);
+  transform: rotate(324deg) translate(-10px, -16px);
+}
+
 /* ERROR MESSAGES */
 div.flash-messages {
     font-size: 1.0em;
