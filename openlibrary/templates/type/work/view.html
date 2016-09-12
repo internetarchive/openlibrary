@@ -51,7 +51,7 @@ $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=description)
 
-$set_share_links(url=request.canonical_url.encode('utf8'), title=title)
+$set_share_links(url=request.canonical_url.encode('utf8'), title=title, view_context=ctx)
 
 <div class="contentContainer" itemscope itemtype="http://schema.org/Book">
     <div id="contentHead">

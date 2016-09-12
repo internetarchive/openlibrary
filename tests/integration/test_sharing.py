@@ -29,6 +29,8 @@ class TestSharing:
         assert browser.is_element_present_by_css("meta[property='og:url'][content*='authors/OL1518080A/Lawrence_Lessig']")
         assert browser.is_element_present_by_css("meta[property='og:site_name'][content='Open Library']")
         assert browser.is_element_present_by_css("meta[property='og:description'][content*='Lawrence Lessig']")
+        assert browser.is_element_present_by_css("a[href*='facebook.com/sharer/sharer.php']")
+        assert browser.is_element_present_by_css("a[href*='twitter.com/intent/tweet']")
 
     def test_open_graph_metadata_on_work(self, browser):
         url = self.host + '/works/OL6037022W/Remix'
@@ -39,6 +41,8 @@ class TestSharing:
         assert browser.is_element_present_by_css("meta[property='og:url'][content*='works/OL6037022W/Remix']")
         assert browser.is_element_present_by_css("meta[property='og:site_name'][content='Open Library']")
         assert browser.is_element_present_by_css("meta[property='og:description'][content*='Remix']")
+        assert browser.is_element_present_by_css("a[href*='facebook.com/sharer/sharer.php']")
+        assert browser.is_element_present_by_css("a[href*='twitter.com/intent/tweet']")
 
     def test_open_graph_metadata_on_edition(self, browser):
         url = self.host + '/books/OL24218235M/Remix'
@@ -49,6 +53,8 @@ class TestSharing:
         assert browser.is_element_present_by_css("meta[property='og:url'][content*='books/OL24218235M/Remix']")
         assert browser.is_element_present_by_css("meta[property='og:site_name'][content='Open Library']")
         assert browser.is_element_present_by_css("meta[property='og:description'][content*='Remix']")
+        assert browser.is_element_present_by_css("a[href*='facebook.com/sharer/sharer.php']")
+        assert browser.is_element_present_by_css("a[href*='twitter.com/intent/tweet']")
 
     def test_open_graph_metadata_on_list(self, browser):
         """Assumes that one list has been created with Remix as its entry"""
@@ -60,4 +66,5 @@ class TestSharing:
         assert browser.is_element_present_by_css("meta[property='og:url'][content*='/lists/']")
         assert browser.is_element_present_by_css("meta[property='og:site_name'][content='Open Library']")
         assert browser.is_element_present_by_css("meta[property='og:description']")
-
+        assert browser.is_element_present_by_css("a[href*='facebook.com/sharer/sharer.php']")
+        assert browser.is_element_present_by_css("a[href*='twitter.com/intent/tweet']")

@@ -402,14 +402,22 @@ def entity_decode(text):
     return HTMLParser().unescape(text)
 
 @public
-def set_share_links(url='#', title=''):
+def set_share_links(url='#', title='', view_context=None):
+    """
+    Constructs list share links for social platforms and assigns to view context attribute
+
+    Args (all required):
+        url (str) - complete canonical url to page being shared
+        title (str) - title of page being shared
+        view_context (object that has/can-have share_links attribute)
+    """
     encoded_url = url_quote(url)
     twitter_text = url_quote("Check this out: " + entity_decode(title))
     links = [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=' + encoded_url},
         {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, twitter_text)}
     ]
-    context.share_links = links
+    view_context.share_links = links
 
 def pad(seq, size, e=None):
     """
@@ -678,6 +686,7 @@ def get_donation_include(include):
 
 #get_donation_include = cache.memcache_memoize(get_donation_include, key_prefix="upstream.get_donation_include", timeout=60)
 
+@public
 def item_image(image_path, default=None):
     if image_path is None:
         return default
@@ -723,8 +732,7 @@ def setup():
         'request': Request(),
         'logger': logging.getLogger("openlibrary.template"),
         'sum': sum,
-        'get_donation_include': get_donation_include,
-        'item_image': item_image
+        'get_donation_include': get_donation_include
     })
 
     from openlibrary.core import helpers as h
