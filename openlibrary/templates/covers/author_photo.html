@@ -1,13 +1,12 @@
 $def with(author, size="M")
 
-$ url = author.get_photo_url(size)
+$ author_thumbnail_url = author.get_photo_url(size)
+$ author_photo_url = author.get_photo_url("L")
 
-$ author_lg = author.get_photo_url("L")
-
-$if url:
+$if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a href="#seeImage" class="coverLook" title="Pull up a larger author photo"><img src="$url" class="cover" alt="Photo of $author.name"/></a>
+            <a href="#seeImage" class="coverLook" title="Pull up a larger author photo"><img src="$author_thumbnail_url" class="cover" alt="Photo of $author.name"/></a>
         </div>
     </div>
 $else:
@@ -23,6 +22,6 @@ $else:
             $truncate(author.name or "", 60)
             <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
         </div>
-        <a href="javascript:;" onclick="\$.fn.colorbox.close();" title="Click to close"><img src="$author_lg" class="cover" alt="Photo of $author.name"/></a>
+        <a href="javascript:;" onclick="\$.fn.colorbox.close();" title="Click to close"><img src="$author_photo_url" class="cover" alt="Photo of $author.name"/></a>
     </div>
 </div>

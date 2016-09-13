@@ -39,7 +39,7 @@ a:visited {color: #036;text-decoration:underline;outline:none;}
 .large{font-size:14px!important;}
 .larger{font-size:16px!important;}
 button.larger{font-size:18px!important;}
-.largest{font-size:18px;!important}
+.largest{font-size:18px!important}
 .average{font-size:13px;}
 .hidden{display:none;}
 .invisible{visibility:hidden;}
@@ -71,6 +71,7 @@ button.larger{font-size:18px!important;}
 .capitalize {text-transform: capitalize!important;}
 .underline {text-decoration:underline!important;}
 .lighter {color:#666;}
+.bold {font-weight: bold!important}
 .sansserif {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
 .arial{font-family:"Arial","Helvetica",sans-serif!important;}
 .serif {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif!important;}
@@ -192,6 +193,17 @@ body#user div#bottom {background-color: transparent;}
 body#admin {background-color: #b9b9b9;}
 body#admin div#background {width:100%;float:left;background-color: #d3d3d3;padding-bottom: 15px;}
 body#admin div#bottom {background-color: transparent;}
+
+/* WIDGETS */
+.word-corner-badge {
+  position: absolute;
+  font-size: 9px;
+  color: red;
+  -ms-transform: rotate(324deg) translate(-11px, -14px);
+  -moz-transform: rotate(324deg) translate(-11px, -14px);
+  -webkit-transform: rotate(324deg) translate(-11px, -14px);
+  transform: rotate(324deg) translate(-10px, -16px);
+}
 
 /* ERROR MESSAGES */
 div.flash-messages {
@@ -326,7 +338,7 @@ div.formDivider {float:left;width:25px;min-height:100px;}
 
 .formBackLeft {float:left;width:670px;}
 .formBackRight {float:left;width:120px;padding:10px 10px 15px 30px;text-align:center;}
-#message {font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;font-size:14px;background-color:##fffdcd;padding:15px;}
+#message {font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;font-size:14px;background-color:#fffdcd;padding:15px;}
 
 
 /* ACCOUNT FORMS */
@@ -586,7 +598,7 @@ fieldset.home legend {
     display: none;
 }
 .searchPlus {
-    font-familay: "Lucida Grande", Verdana, Arial, sans-serif;
+    font-family: "Lucida Grande", Verdana, Arial, sans-serif;
     font-size: 0.75em;
     color: #333;
     width: 203px;
@@ -777,6 +789,12 @@ body#edit div#editTools{padding:20px;max-width:300px;}
 body#user div#editHistory {display: none;}
 div#editButton button,div#editHistory button,div.revert.notice button {font-size:1.125em;}
 div#editInfo {float:right;white-space:nowrap;text-align:right;}
+
+#content .shareLinks {float:left;clear:both;margin-top:10px;}
+#content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
+#content .shareLinks li {list-style-type:none;float:left;margin-right:12px;line-height: 24px;}
+#content .shareLinks a {line-height: 24px;}
+
 div#revertNotice {
     width: 958px;
     height: 45px;
@@ -1308,7 +1326,7 @@ div#content div.contentLists {
     font-size: 14px;
 }
 .resultsCovers a {text-decoration: none;}
-ul.homeCarousel {list-style-type:none;height:200px;overflow:hidden;margin-left:0!important;margin-bottom:none!important;}
+ul.homeCarousel {list-style-type:none;height:200px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
 ul.homeCarousel li {position:relative;float:left;list-style:none!important;}
 ul.homeCarousel .hiddenCoverMagic {width:100px;height:200px;}
 ul.homeCarousel .hiddenCoverMagic div, .hiddenCoverMagic a {display:none;}

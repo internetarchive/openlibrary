@@ -1,30 +1,27 @@
 $def with (page)
 
 $ title_suffix = cond(page.publish_date, "({0} edition)".format(page.publish_date), "(edition)")
-$var title: $page.title $title_suffix
+$ title = page.title + " " + title_suffix
+$ title_with_site = title + " | Open Library"
+$ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=page.title)
-$add_metatag(property="twitter:description", content="View the book on Open Library.")
-$ cover_url = "https:" + (page.get_cover_url("M") or "//openlibrary.org/images/icons/avatar_book-sm.png")
-$add_metatag(property="twitter:image", content=cover_url)
+$var title: $title
 
 $code:
     def has_any(*keys):
         return any(page[k] for k in keys)
 
-$code:       
+$code:
     def get_description(book):
         if book.publishers and book.publish_date:
-            edition = book.publish_date + ',' + ', '.join(book.publishers)
+            edition = book.publish_date + ', ' + ', '.join(book.publishers)
         elif book.publish_date:
             edition = book.publish_date
         elif book.publishers:
             edition = ', '.join(book.publishers)
         else:
-            edition = 'unknown '
-            
+            edition = 'unknown'
+
         work = page.works and page.works[0]
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
@@ -32,7 +29,7 @@ $code:
 
         format = ""
         if book.physical_format:
-            format += book.physical_format.replace('[', '').replace(']','')
+            format += book.physical_format.replace('[', '').replace(']', '')
 
         if book.languages:
             format += ' in ' + ', '.join(lang.name for lang in book.languages)
@@ -41,7 +38,8 @@ $code:
 
         meta = title + author_info + ", " + edition + " edition, " + format
         return meta
-    putctx("description", get_description(page))
+    description = get_description(page)
+    putctx("description", description)
 
 $code:
     def get_authors_byline(page, include_schema=False):
@@ -110,14 +108,29 @@ $def display_contributor(c):
 
 $ work = page.works and page.works[0] or None
 
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title_with_site)
+$add_metatag(property="twitter:description", content="View the book on Open Library.")
+$add_metatag(property="twitter:image", content=meta_cover_url)
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="books.book")
+$add_metatag(property="og:image", content=meta_cover_url)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=description)
+
+$set_share_links(url=request.canonical_url.encode('utf8'), title=title, view_context=ctx)
+
 <style type="text/css">
 .page-banner {
-    background: #95A865; 
-    color: black; 
+    background: #95A865;
+    color: black;
     background: #036DAA;
     color: white;
-    text-align: left; 
-    padding: 20px;    
+    text-align: left;
+    padding: 20px;
 }
 .page-banner a {
     color: white;
@@ -139,7 +152,7 @@ $ work = page.works and page.works[0] or None
     color: white;
     text-decoration: none;
     color: #95A865;
-    background: #389AD4;    
+    background: #389AD4;
     color: #ffe;
 }
 .page-banner a.button:hover {
@@ -154,17 +167,17 @@ $ ebook_status = page.get_ebook_status()
 
 $if ebook_status == "read-online":
     <div class="page-banner sansserief">
-        This title is part of the <a href="https://openlibrary.org/read">classic eBook collection</a>. 
+        This title is part of the <a href="https://openlibrary.org/read">classic eBook collection</a>.
         <a class="button" href="https://archive.org/stream/$page.ocaid">Read online now!</a>
     </div>
 $elif ebook_status == "borrow-available":
     <div class="page-banner sansserief">
-        This title is part of the <a href="https://openlibrary.org/borrow">Lending Library collection</a>. 
+        This title is part of the <a href="https://openlibrary.org/borrow">Lending Library collection</a>.
         <a class="button" href="$page.url('/borrow')">Borrow eBook</a>
     </div>
 $elif ebook_status == "borrow-checkedout":
     <div class="page-banner sansserief">
-        This title from the <a href="https://openlibrary.org/borrow">Lending Library collection</a> is already checked out. 
+        This title from the <a href="https://openlibrary.org/borrow">Lending Library collection</a> is already checked out.
         <a class="button" href="$page.url('/borrow')">Join the waiting list</a>
     </div>
 $elif ebook_status == "borrow-user-waiting":
@@ -238,7 +251,7 @@ $elif ebook_status == "borrow-user-checkedout":
             $else:
                 $_("Next") &rarr;
     </div>
-    </td>    
+    </td>
     </tr></tbody></table>
 </div>
 
@@ -254,7 +267,7 @@ $elif ebook_status == "borrow-user-checkedout":
                 $if not page.is_fake_record():
                     $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
-            
+
         $ contributors = page.get('contributors', [])
         $if contributors:
             <div class="section">
@@ -270,9 +283,9 @@ $elif ebook_status == "borrow-user-checkedout":
 
             <div class="section sansserif">
                 <h1 class="edition">
-                    <strong itemprop="name">$page.title</strong>  
+                    <strong itemprop="name">$page.title</strong>
                 $if page.subtitle:
-                    <br /><em>$page.subtitle</em> 
+                    <br /><em>$page.subtitle</em>
                 $if page.edition_title or page.edition_name:
                     <br />$page.edition_title $page.edition_name
                 $ authors_byline = get_authors_byline(page, include_schema=True)
@@ -283,7 +296,7 @@ $elif ebook_status == "borrow-user-checkedout":
                     $if page.publish_date or page.publishers or page.publish_places:
                         Published
                         $if page.publish_date:
-                            <strong itemprop="datePublished">$page.publish_date</strong> 
+                            <strong itemprop="datePublished">$page.publish_date</strong>
                         $if page.publishers:
                             by
                             $for p in page.publishers:
@@ -291,7 +304,7 @@ $elif ebook_status == "borrow-user-checkedout":
                                     <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')" title="$_('Show for other books from %s', p)">$p</a>$cond(loop.last, "", ", ")
                                 $else:
                                     <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
-                                
+
                         $if page.publish_places:
                             in
                             $for p in page.publish_places:
@@ -299,7 +312,7 @@ $elif ebook_status == "borrow-user-checkedout":
                         <span class="adjust">.</span>
                     $if page.languages:
                     <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
-                </h4> 
+                </h4>
             </div>
 
         $if page.description:
@@ -358,7 +371,7 @@ $elif ebook_status == "borrow-user-checkedout":
                 </tbody>
                 </table>
             </div>
-            
+
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
             <h3 class="collapse">$_("The Physical Object")</h3>
@@ -386,7 +399,7 @@ $elif ebook_status == "borrow-user-checkedout":
             $for name, values in page.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
         </div>
- 
+
         </div>
 
 
@@ -437,7 +450,7 @@ $elif ebook_status == "borrow-user-checkedout":
        |$k = $v
     }}</textarea>
             </form>
-        </div>    
+        </div>
     </div>
 
 </div>

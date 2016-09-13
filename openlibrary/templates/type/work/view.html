@@ -1,6 +1,10 @@
 $def with (page)
 
-$var title: $page.title
+$ title = page.title
+$ title_with_site = title + " | Open Library"
+$ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+
+$var title: $title
 
 $code:
     def render_description():
@@ -12,13 +16,13 @@ $code:
         if page.authors:
             title += " by " + ", ".join(a.name or "" for a in page.get_authors())
         items.append(title)
-        
+
         if page.edition_count:
             items.append("%d %s" % (page.edition_count, cond(page.edition_count > 1, "editions", "edition")))
-            
+
         if page.first_publish_year:
             items.append("First published in %s" % page.first_publish_year)
-        
+
         subjects = page.get_subjects()
         if subjects:
             items.append("Subjects: " + ", ".join(s for s in subjects))
@@ -28,11 +32,27 @@ $code:
             items.append("People: " + ", ".join(s for s in page.subject_people))
         if page.subject_times:
             items.append("Times: " + ", ".join(s for s in page.subject_times))
-            
+
         return "; ".join(items)
 
-    putctx("description", render_description())
-    
+    description = render_description()
+    putctx("description", description)
+
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title_with_site)
+$add_metatag(property="twitter:description", content="View the book on Open Library.")
+$add_metatag(property="twitter:image", content=meta_cover_url)
+
+$add_metatag(property="og:title", content=title_with_site)
+$add_metatag(property="og:type", content="books.book")
+$add_metatag(property="og:image", content=meta_cover_url)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=description)
+
+$set_share_links(url=request.canonical_url.encode('utf8'), title=title, view_context=ctx)
+
 <div class="contentContainer" itemscope itemtype="http://schema.org/Book">
     <div id="contentHead">
 
@@ -69,12 +89,12 @@ $code:
     <script type="text/javascript">
     <!--
     \$().ready(function(){
-        var back = history.length; 
-        \$().bind('cbox_closed', function(){ 
+        var back = history.length;
+        \$().bind('cbox_closed', function(){
             var page = back - history.length;
-            if (page < 0){ 
-                history.go(page); 
-            } 
+            if (page < 0){
+                history.go(page);
+            }
         });
     });
     //-->
@@ -94,7 +114,7 @@ $code:
                         $:render_template("lists/widget", page)
                     </div>
         </div>
-        
+
         <div class="workAbout">
             $if not (page.description or page.excerpts or page.first_sentence):
                 <div class="workHelp brown sansserif">
@@ -180,7 +200,7 @@ $code:
 
         $if "lists" in ctx.features:
             $if page.edition_count > 1:
-                <script type="text/javascript"> 
+                <script type="text/javascript">
                 \$().ready(function(){
                     \$('#widget-my-lists').children().insertBefore('#widget-my-lists').end().end().remove();
                     \$('#widget-other-lists').children().insertBefore('#widget-other-lists').end().end().remove();
@@ -194,7 +214,7 @@ $code:
                         \$('ul.listLists').css('width','100%')
                     };
                 });
-                </script> 
+                </script>
                 <div class="clearfix"></div>
                 <div class="section" id="listsWork" style="float:left;">
                     $:render_template("lists/widget", page)
@@ -206,7 +226,7 @@ $code:
         $elif page.edition_count > 1:
             <div class="clearfix"></div>
             $:render_template("type/work/editions_datatable", page)
-            
+
         $:render_template("lib/history", page)
     </div>
 </div>

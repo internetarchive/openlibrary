@@ -23,4 +23,14 @@ $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
     </div>
+    $ share_links = ctx.get('share_links')
+    $if share_links:
+        <div class="shareLinks">
+            <ul class="shareLinks-list">
+                <li><span class="word-corner-badge sansserif">NEW</span><span class="headline large teal bold">Share this:</span></li>
+            $for share_link in share_links:
+                $ track_tag = share_link['text'].replace(' ', '-')
+                <li><a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag">$share_link['text']</a></li>
+            </ul>
+        </div>
 </div>

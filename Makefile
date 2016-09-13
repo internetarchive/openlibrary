@@ -11,7 +11,7 @@ SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 
 # Use python from local env if it exists or else default to python in the path.
-PYTHON=$(if $(wildcard env),env/bin/python,python) 
+PYTHON=$(if $(wildcard env),env/bin/python,python)
 
 .PHONY: all clean distclean git css js i18n docs
 
@@ -21,7 +21,7 @@ css:
 	mkdir -p $(BUILD)
 	bash static/css/all.cssh > $(BUILD)/all.css
 
-js: 
+js:
 	mkdir -p $(BUILD)
 	bash static/js/vendor.jsh > $(BUILD)/vendor.js
 	bash static/js/all.jsh > $(BUILD)/all.js
@@ -41,7 +41,7 @@ clean:
 	rm -rf $(BUILD)
 
 distclean:
-	git clean -fdx 
+	git clean -fdx
 	git submodule foreach git clean -fdx
 
 venv:
@@ -50,7 +50,7 @@ venv:
 	virtualenv env
 	./env/bin/pip install --download-cache var/cache/pip $(OL_VENDOR)/openlibrary.pybundle
 
-install_solr: 
+install_solr:
 	@echo "** installing solr **"
 	mkdir -p var/lib/solr var/cache usr/local
 	wget -c $(OL_VENDOR)/$(SOLR_VERSION).tgz -O var/cache/$(SOLR_VERSION).tgz
@@ -68,7 +68,7 @@ setup_ol: git
 	make all
 
 bootstrap: venv install_solr setup_coverstore setup_ol
-	
+
 run:
 	$(PYTHON) scripts/openlibrary-server conf/openlibrary.yml
 
@@ -88,4 +88,4 @@ reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
 
 test:
-	py.test openlibrary/core/tests openlibrary/plugins/upstream/tests/test_forms.py
+	py.test openlibrary/core/tests openlibrary/plugins/upstream/tests/test_forms.py openlibrary/plugins/upstream/tests/test_utils.py
