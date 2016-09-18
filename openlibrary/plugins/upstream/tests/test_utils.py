@@ -9,8 +9,6 @@ def test_url_quote():
 def test_entity_decode():
     assert utils.entity_decode('&gt;foo') == '>foo'
     assert utils.entity_decode('<h1>') == '<h1>'
-    assert utils.entity_decode('Kabitā') == 'Kabitā'
-    assert utils.entity_decode(u'Kabit\u0101') == 'Kabit%C4%81'
 
 def test_set_share_links():
     class TestContext(object):

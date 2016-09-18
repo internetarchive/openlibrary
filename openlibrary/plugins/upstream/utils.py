@@ -395,6 +395,8 @@ def add_metatag(tag="meta", **attrs):
 
 @public
 def url_quote(text):
+    if isinstance(text, unicode):
+        text = text.encode('utf8')
     return urllib.quote_plus(text)
 
 @public
