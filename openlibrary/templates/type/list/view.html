@@ -22,7 +22,7 @@ $add_metatag(property="og:url", content=request.canonical_url)
 $add_metatag(property="og:site_name", content="Open Library")
 $add_metatag(property="og:description", content=meta_description)
 
-$set_share_links(url=request.canonical_url.encode('utf8'), title=title, view_context=ctx)
+$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
