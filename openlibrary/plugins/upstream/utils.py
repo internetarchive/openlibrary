@@ -409,8 +409,8 @@ def set_share_links(url='#', title='', view_context=None):
     Constructs list share links for social platforms and assigns to view context attribute
 
     Args (all required):
-        url (str) - complete canonical url to page being shared
-        title (str) - title of page being shared
+        url (str or unicode) - complete canonical url to page being shared
+        title (str or unicode) - title of page being shared
         view_context (object that has/can-have share_links attribute)
     """
     encoded_url = url_quote(url)
