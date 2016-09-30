@@ -1778,7 +1778,7 @@ msgid "Hide options"
 msgstr ""
 
 #: templates/lib/search_foot.html:59 templates/lib/search_head.html:43
-msgid "More search options"
+msgid "More options"
 msgstr "మరిన్ని శోధనావిధానాలు"
 
 #: templates/lib/site_legal.html:5

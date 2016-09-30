@@ -168,7 +168,7 @@ Every raw contains:
 
   this query returns something like:
 
-         id       |      key      | type | latest_revision |          created           |       last_modified        
+         id       |      key      | type | latest_revision |          created           |       last_modified
          ---------+---------------+------+-----------------+----------------------------+----------------------------
          17872418 | /type/work    |    1 |              14 | 2008-08-18 22:51:38.685066 | 2010-08-09 23:37:25.678493
          22       | /type/user    |    1 |               5 | 2008-03-19 16:44:20.354477 | 2009-03-16 06:21:53.030443
@@ -206,6 +206,11 @@ Every raw contains:
 - All reCAPTCHA API keys work for local testing, so you do not need to enter the actual OpenLibrary domain. For example, `0.0.0.0` will work for the purpose of local development:
 
 - Once you have generated the keys, add them to your local `conf/openlibrary.yml` file by filling in the public and private keys under the `plugin_recaptcha` section.
+
+
+## :: Troubleshooting
+
+- If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
 
 
 ### Credits and special thanks
