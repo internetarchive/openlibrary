@@ -549,16 +549,24 @@ div#footerSearch div.searchFilter {
     height: 19px;
 }
 div.searchFilter .searchOpener {
-    position: absolute;
-    right: 0;
-    bottom: 0;
+    float: left;
+    margin-top: 4px;
+    margin-right: 6px;
     font-size: 0.6875em;
 }
 div.searchFilter .searchCheckbox {
-    position: absolute;
-    left: 0;
-    bottom: 0;
+    float: left;
+    margin-top: 4px;
+    margin-right: 6px;
     font-size: 0.6875em;
+}
+div.searchFilter .searchFullText {
+    float: left;
+    margin-top: 4px;
+    font-size: 0.6875em;
+}
+div.searchFilter .searchFullText a:visited {
+    color: #036daa;
 }
 input.query {
     width: 205px;
