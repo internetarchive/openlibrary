@@ -24,9 +24,8 @@ $if q:
         $ num_found = results['hits'].get('total', 0)
 
 <div id="contentHead">
-    <h1>
-        $_("Search Inside")
-    </h1>
+    <h1 class="header-inline">$_("Search Inside")</h1>
+    <div class="beta">(BETA)</div>
     $if q:
         $if num_found:
             <p class="sansserif darkgreen collapse"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></p>
