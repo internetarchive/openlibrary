@@ -1,5 +1,5 @@
-from .. import update_work
-from ..update_work import build_data
+from openlibrary.solr import update_work
+from openlibrary.solr.update_work import build_data
 
 author_counter = 0
 edition_counter = 0
