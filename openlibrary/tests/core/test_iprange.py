@@ -1,4 +1,4 @@
-from .. import iprange
+from openlibrary.core import iprange
 
 def test_parse_ip_ranges():
     def f(text):
@@ -14,7 +14,7 @@ class TestIPDict:
     def test_simple(self):
         d = iprange.IPDict()
         d.add_ip_range("1.2.3.0/24", "foo")
-        
+
         assert d.get("1.2.3.4") == "foo"
         assert d.get("1.2.3.44") == "foo"
         assert d.get("1.2.4.5") == None
@@ -25,10 +25,10 @@ class TestIPDict:
             "#ip ranges\n" +
             "1.2.3.0/24\n" +
             "9.8.*.*")
-        
+
         d = iprange.IPDict()
         d.add_ip_range_text(text, 'foo')
-        
+
         assert '1.2.3.2' in d
         assert '1.2.4.2' not in d
         assert '9.8.1.2' in d
