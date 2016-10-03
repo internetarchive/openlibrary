@@ -95,7 +95,6 @@ button.plain:hover {color:#35672e;}
 .onTop{z-index:20000!important;}
 .pagination span.ellipsis {display:block;float:left;color:#000;padding:8px;margin-right:10px;}
 .breadcrumbs {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color: #615132;font-size:11px;padding-bottom:10px;}
-.header-inline {display:inline-block;vertical-align:middle;}
 
 .fixthis{background-color:pink!important;}
 .adminOnly{background-color:#ffa337!important;padding:4px;-webkit-border-radius:4px;-moz-border-radius:4px;border-radius:4px;}
@@ -204,11 +203,6 @@ body#admin div#bottom {background-color: transparent;}
   -moz-transform: rotate(324deg) translate(-11px, -14px);
   -webkit-transform: rotate(324deg) translate(-11px, -14px);
   transform: rotate(324deg) translate(-10px, -16px);
-}
-.beta {
-    display: inline-block;
-    vertical-align: middle;
-    margin-left: 4px!important;
 }
 
 /* ERROR MESSAGES */
@@ -483,9 +477,18 @@ body#user div.siteSearch {
     background-color: #e2dcc5;
 }
 div#headerSearch {
-    top: 86px;
+    top: 64px;
     padding: 9px;
     outline:none;
+}
+.searchFullText {
+  margin-bottom: 6px;
+}
+.searchFullText a {
+    font-size: 0.6875em;
+}
+.searchFullText a:visited {
+    color: #036daa;
 }
 div#footerPosition {
     position: relative;
@@ -555,24 +558,16 @@ div#footerSearch div.searchFilter {
     height: 19px;
 }
 div.searchFilter .searchOpener {
-    float: left;
-    margin-top: 4px;
-    margin-right: 6px;
+    position: absolute;
+    right: 0;
+    bottom: 0;
     font-size: 0.6875em;
 }
 div.searchFilter .searchCheckbox {
-    float: left;
-    margin-top: 4px;
-    margin-right: 6px;
+    position: absolute;
+    left: 0;
+    bottom: 0;
     font-size: 0.6875em;
-}
-div.searchFilter .searchFullText {
-    float: left;
-    margin-top: 4px;
-    font-size: 0.6875em;
-}
-div.searchFilter .searchFullText a:visited {
-    color: #036daa;
 }
 input.query {
     width: 205px;

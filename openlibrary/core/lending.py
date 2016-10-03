@@ -103,7 +103,10 @@ def get_loan(identifier, user_key=None):
         if loan.is_expired():
             loan.delete()
             return
-    return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+    try:
+        return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+    except Exception as e:
+        return
 
 def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
