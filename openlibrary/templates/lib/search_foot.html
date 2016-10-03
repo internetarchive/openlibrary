@@ -15,6 +15,9 @@ $ )
 
             <form method="get" action="/search" class="siteSearch">
                 <div id="bottomOptions" class="searchOptions hidden">
+                <div class="searchPlus">
+                    <a href="/search/inside">Full Text Search</a>?
+                </div>
                 <fieldset class="home">
                     <legend>More Search Options</legend>
                 <!-- HIDE THIS
@@ -43,7 +46,7 @@ $ )
                     </div>
                 </fieldset>
                 </div>
-
+            
                 <fieldset class="home">
                 <legend>Site Search</legend>
                 <label for="qbtm" class="small hidden" id="btmSrchLabel">Keyword<br/></label>
@@ -52,15 +55,12 @@ $ )
                 </fieldset>
                 <div class="searchPlacement">
                     <div class="searchFilter">
-                        <div class="searchCheckbox">
-                            <input name="has_fulltext" type="checkbox" value="true" id="ftokensbtm" />
-                            <label for="ftokensbtm">$_("Only eBooks")</label>
-                        </div>
                         <div class="searchOpener">
-                            <a href="javascript:;" id="searchFoot">$_("More options")</a>
+                            <a href="javascript:;" id="searchFoot">$_("More search options")</a>
                         </div>
-                        <div class="searchFullText">
-                            <a href="/search/inside" data-ol-link-track="BottomSearch|FullText">$_("Search inside")</a>
+                        <div class="searchCheckbox">
+                            <input name="has_fulltext" type="checkbox" value="true" id="ftokensbtm" /> 
+                            <label for="ftokensbtm">$_("Show only eBooks")</label>
                         </div>
                     </div>
                 </div>

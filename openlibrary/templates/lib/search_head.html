@@ -21,15 +21,12 @@ $ )
 
             <div class="searchPlacement">
                 <div class="searchFilter">
+                    <div class="searchOpener">
+                        <a href="javascript:;" id="searchHead">$_("More search options")</a>
+                    </div>
                     <div class="searchCheckbox">
                         <input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
-                        <label for="ftokenstop">$_("Only eBooks")</label>
-                    </div>
-                    <div class="searchOpener">
-                        <a href="javascript:;" id="searchHead">$_("More options")</a>
-                    </div>
-                    <div class="searchFullText">
-                        <a href="/search/inside" data-ol-link-track="TopSearch|FullText">$_("Search inside")</a>
+                        <label for="ftokenstop">$_("Show only eBooks")</label>
                     </div>
                 </div>
             </div>
@@ -43,6 +40,9 @@ $ )
                 <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
                 </div>
             </fieldset>
+            <div class="searchPlus">
+                <a href="/search/inside">Full Text Search</a>?
+            </div>
             </div>
         </form>
     </div>
