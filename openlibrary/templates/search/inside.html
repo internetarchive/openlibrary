@@ -24,8 +24,7 @@ $if q:
         $ num_found = results['hits'].get('total', 0)
 
 <div id="contentHead">
-    <h1 class="header-inline">$_("Search Inside")</h1>
-    <div class="beta">(BETA)</div>
+    <h1><span class="word-corner-badge">BETA</span>$_("Search Inside")</h1>
     $if q:
         $if num_found:
             <p class="sansserif darkgreen collapse"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></p>
@@ -35,14 +34,14 @@ $if q:
 
 <div id="contentBody">
     <div class="section">
-        <form class="siteSearch olform" action="">
+        <form class="siteSearch searchInsideForm olform" action="">
             <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
             <input type="submit"  class="large" value="$_('Search')"/>
         </form>
     </div>
 
     $if q and 'error' in results:
-        $results['error']
+        <div class="searchResultsError">$results['error']</div>
     $if q and 'error' not in results:
         <div id="searchResults">
                 <p>Search took $("%.2f" % search_secs) seconds</p>
