@@ -96,7 +96,9 @@ get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", t
 
 @public
 def readonline_carousel(id="read-carousel"):
-    """Return template code for books pulled from search engine. TODO: If probs, use stock list."""
+    """Return template code for books pulled from search engine.
+       TODO: If problems, use stock list.
+    """
     try:
         data = random_ebooks()
         if len(data) > 120:
@@ -125,7 +127,7 @@ def random_ebooks(limit=2000):
     def process_doc(doc):
         d = {}
 
-        key = doc['key']
+        key = doc.get('key', '')
         # New solr stores the key as /works/OLxxxW
         if not key.startswith("/works/"):
             key = "/works/" + key
@@ -142,7 +144,7 @@ def random_ebooks(limit=2000):
         d['read_url'] = "//archive.org/stream/" + doc['ia'][0]
         return d
 
-    return [process_doc(doc) for doc in result['docs'] if doc.get('ia')]
+    return [process_doc(doc) for doc in result.get('docs', []) if doc.get('ia')]
 
 # cache the results of random_ebooks in memcache for 15 minutes
 random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
@@ -153,12 +155,12 @@ def format_list_editions(key):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    list = web.ctx.site.get(key)
-    if not list:
+    seed_list = web.ctx.site.get(key)
+    if not seed_list:
         return []
 
     editions = {}
-    for seed in list.seeds:
+    for seed in seed_list.seeds:
         if not isinstance(seed, basestring):
             if seed.type.key == "/type/edition":
                 editions[seed.key] = seed
