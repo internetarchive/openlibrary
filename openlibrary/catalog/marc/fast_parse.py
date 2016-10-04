@@ -82,7 +82,7 @@ def read_file(f):
             break
         yield (data, int_length)
 
-def read_author_person(line, is_marc8):
+def read_author_person(line, is_marc8=False):
     name = []
     name_and_date = []
     for k, v in get_subfields(line, ['a', 'b', 'c', 'd'], is_marc8):
@@ -113,14 +113,14 @@ def read_full_title(line, accept_sound = False, is_marc8=False):
     title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)]
     return ' '.join([t for t in title if t])
 
-def read_short_title(line, is_marc8):
+def read_short_title(line, is_marc8=False):
     title = normalize_str(read_full_title(line, is_marc8))[:25].rstrip()
     if title:
         return [title]
     else:
         return []
 
-def read_title_and_subtitle(data, is_marc8): # not currently used
+def read_title_and_subtitle(data, is_marc8=False): # not currently used
     line = get_first_tag(data, set(['245']))
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
@@ -195,7 +195,7 @@ def get_tag_line(data, line):
 
 re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
 
-def get_person_content(line, is_marc8):
+def get_person_content(line, is_marc8=False):
     contents = {}
     for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q'], is_marc8):
         if k != 'd' and re_dates.match(v): # wrong subtag
@@ -209,12 +209,12 @@ def get_contents(line, want):
         contents.setdefault(k, []).append(v)
     return contents
 
-def get_lower_subfields(line, is_marc8):
+def get_lower_subfields(line, is_marc8=False):
     if len(line) < 4: 
         return [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2479215:693
     return [translate(i[1:], is_marc8) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
 
-def get_subfield_values(line, want, is_marc8):
+def get_subfield_values(line, want, is_marc8=False):
     return [v for k, v in get_subfields(line, want, is_marc8)]
 
 def get_all_tag_lines(data):
@@ -237,11 +237,11 @@ def get_tag_lines(data, want):
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
-def read_control_number(line, is_marc8):
+def read_control_number(line, is_marc8=False):
     assert line[-1] == '\x1e'
     return [line[:-1]]
 
-def read_lccn(line, is_marc8):
+def read_lccn(line, is_marc8=False):
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         lccn = v.strip()
@@ -256,7 +256,7 @@ def read_lccn(line, is_marc8):
             found.append(lccn)
     return found
 
-def read_isbn(line, is_marc8):
+def read_isbn(line, is_marc8=False):
     found = []
     if line.find('\x1f') != -1:
         for k, v in get_raw_subfields(line, ['a', 'z']):
@@ -269,7 +269,7 @@ def read_isbn(line, is_marc8):
             found = [m.group(1)]
     return map(str, tidy_isbn(found))
 
-def read_oclc(line, is_marc8):
+def read_oclc(line, is_marc8=False):
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         m = re_oclc.match(v)
@@ -277,14 +277,14 @@ def read_oclc(line, is_marc8):
             found.append(m.group(1))
     return found
 
-def read_publisher(line, is_marc8):
+def read_publisher(line, is_marc8=False):
     return [i for i in (v.strip(' /,;:') for k, v in get_subfields(line, ['b'], is_marc8)) if i]
 
-def read_author_org(line, is_marc8):
+def read_author_org(line, is_marc8=False):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
-def read_author_event(line, is_marc8):
+def read_author_event(line, is_marc8=False):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
@@ -295,7 +295,7 @@ def add_oclc(edition):
     assert oclc.isdigit()
     edition.setdefault('oclc', []).append(oclc)
 
-def index_fields(data, want, check_author = True):
+def index_fields(data, want, check_author=True):
     if str(data)[6:8] != 'am': # only want books
         return None
     is_marc8 = data[9] != 'a'
@@ -371,7 +371,7 @@ def index_fields(data, want, check_author = True):
         return None
     return edition
 
-def read_edition(data, accept_electronic = False):
+def read_edition(data, accept_electronic=False):
     is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \

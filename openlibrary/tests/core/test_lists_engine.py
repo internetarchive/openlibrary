@@ -19,4 +19,3 @@ def test_reduce():
                 {"name": "Hate", "key": "subject:hate", "count": 1}
             ]
         }
-    

@@ -1,8 +1,8 @@
 import time
 import simplejson
 
-from .. import cache
-from ...mocks import mock_memcache
+from openlibrary.core import cache
+from openlibrary.mocks import mock_memcache
 
 class Test_memcache_memoize:
     def test_encode_args(self):

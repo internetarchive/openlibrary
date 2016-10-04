@@ -20,6 +20,7 @@ class TestWorkSubjects(unittest.TestCase):
         }
         self.assertEqual(four_types(input), expect)
 
+    def testFindSubjects(self):
         marc = [[
             ('650', ' 0\x1faRhodes, Dan (Fictitious character)\x1fvFiction.\x1e'),
             ('650', ' 0\x1faSheriffs\x1fvFiction.\x1e'),
@@ -45,5 +46,3 @@ class TestWorkSubjects(unittest.TestCase):
         }
 
         self.assertEqual(find_subjects(marc), expect)
-        
-
