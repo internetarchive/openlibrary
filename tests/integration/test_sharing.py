@@ -59,7 +59,7 @@ class TestSharing:
     def test_open_graph_metadata_on_list(self, browser):
         """Assumes that one list has been created with Remix as its entry"""
         browser.visit(self.host + '/lists')
-        browser.find_by_css('.listEntry .data .name a').first.click()
+        browser.find_by_css('.changeHistory a').first.click()
         assert browser.is_element_present_by_css("meta[property='og:title'][content*='Lists']")
         assert browser.is_element_present_by_css("meta[property='og:type'][content='website']")
         assert browser.is_element_present_by_css("meta[property='og:image'][content*='openlibrary.org/images']")
