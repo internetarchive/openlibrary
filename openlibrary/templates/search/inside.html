@@ -50,11 +50,9 @@ $if q:
                         $ doc_fields = doc.get('fields', {})
                         $ ia = doc_fields.get('identifier', [''])[0]
                         <li>
-                        $ authors = []
-                        $ item = read_from_archive(ia)
-                        $ title = item.get('title', 'no title for: ' + ia)
-                        $ authors = item.get('creator', [])
-                        $ collection = set(item.get('collection', []))
+                        $ title = doc_fields.get('meta_title', ['no title for: ' + ia])[0]
+                        $ authors = doc_fields.get('meta_creator', [])
+                        $ collection = set(doc_fields.get('meta_collection', []))
                         $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
                         $ url = "//archive.org/details/" + ia
                             <span class="bookcover"><a href="$url" target="_blank"><img src="$cover" /></a></span>
