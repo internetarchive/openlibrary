@@ -92,7 +92,7 @@ class WaitingLoan(dict):
     @classmethod
     def query(cls, **kw):
         # kw.setdefault('order', 'since')
-        # # as of web.py 0.33, the version used by OL, 
+        # # as of web.py 0.33, the version used by OL,
         # # db.where doesn't work with no conditions
         # if len(kw) > 1: # if has more keys other than "order"
         #     result = db.where("waitingloan", **kw)
@@ -128,7 +128,7 @@ class WaitingLoan(dict):
         If book_key is specified, it deletes only the expired waiting loans of that book.
         """
         return
-            
+
     def delete(self):
         """Delete this waiting loan from database.
         """
@@ -147,7 +147,7 @@ class Stats:
             "select book_key, count(*) as count" +
             " from waitingloan" +
             " group by 1" +
-            " order by 2 desc" + 
+            " order by 2 desc" +
             " limit $limit", vars=locals()).list()
         docs = web.ctx.site.get_many([row.book_key for row in rows])
         docs_dict = dict((doc.key, doc) for doc in docs)
@@ -258,7 +258,7 @@ def update_waitinglist(identifier):
 
     if checkedout:
         loans = book.get_loans()
-        # Delete from waiting list if a user has already borrowed this book        
+        # Delete from waiting list if a user has already borrowed this book
         for loan in loans:
             w = WaitingLoan.find(loan['user'], book.ocaid)
             if w:
@@ -274,7 +274,7 @@ def update_waitinglist(identifier):
     # Mark the first entry in the waiting-list as available if the book
     # is not checked out.
     if not checkedout and wl and wl[0]['status'] != 'available':
-        expiry = datetime.datetime.utcnow() + datetime.timedelta(days=1)        
+        expiry = datetime.datetime.utcnow() + datetime.timedelta(days=1)
         wl[0].update(status='available', expiry=expiry.isoformat())
 
     ebook_key = "ebooks" + book_key
@@ -284,7 +284,7 @@ def update_waitinglist(identifier):
     # checked out or someone is waiting.
     not_available = bool(checkedout or wl)
 
-    update_ebook('ebooks' + book_key, 
+    update_ebook('ebooks' + book_key,
         book_key=book_key,
         borrowed=str(not_available).lower(), # store as string "true" or "false"
         wl_size=len(wl))
@@ -306,8 +306,8 @@ def on_waitinglist_update(identifier):
         checkedout = lending.is_loaned_out(identifier)
         # If some people are waiting and the book is checked out,
         # send email to the person who borrowed the book.
-        # 
-        # If the book is not checked out, inform the first person 
+        #
+        # If the book is not checked out, inform the first person
         # in the waiting list
         if checkedout:
             sendmail_people_waiting(book)
@@ -335,7 +335,7 @@ def sendmail_book_available(book):
         if not user:
             return
         email = user.get_email()
-        sendmail_with_template("email/waitinglist_book_available", to=email, user=user, book=book)
+        sendmail_with_template("email/waitinglist_book_available", to=email, user=user, book=book, waitinglist=wl)
         record.update(available_email_sent=True)
         logger.info("%s is available, send email to the first person in WL. wl-size=%s", book.key, len(wl))
 
@@ -374,9 +374,9 @@ def sendmail_people_waiting(book):
             continue
         user = web.ctx.site.get(loan["user"])
         email = user and user.get_email()
-        sendmail_with_template("email/waitinglist_people_waiting", to=email, 
-            user=user, 
-            book=book, 
+        sendmail_with_template("email/waitinglist_people_waiting", to=email,
+            user=user,
+            book=book,
             expiry_days=_get_expiry_in_days(loan))
         loan['waiting_email_sent'] = True
         web.ctx.site.store[loan['_key']] = loan
@@ -396,7 +396,7 @@ def _get_loan_timestamp_in_days(loan):
 def prune_expired_waitingloans():
     """Removes all the waiting loans that are expired.
 
-    A waiting loan expires if the person fails to borrow a book with in 
+    A waiting loan expires if the person fails to borrow a book with in
     24 hours after his waiting loan becomes "available".
     """
     return
