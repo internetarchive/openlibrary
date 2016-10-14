@@ -1,23 +1,24 @@
 /**
  * OpenLibrary-specific convenience functions for use with Archive.org analytics.js
- * 
+ *
  * Depends on Archive.org analytics.js function archive_analytics.send_ping()
  *
  * Usage:
  *     $("select#role").add_new_field({href: "#role-popup"});
- * 
+ *
  */
-
-archive_analytics.ol_send_event_ping = function(values) {
-  var endTime = new Date();
-  archive_analytics.send_ping({
-    'service':'ol',
-    'kind':'event',
-    'ec':values['category'],
-    'ea':values['action'],
-    'el':location.pathname,
-    'ev':1,
-    'loadtime':(endTime.getTime() - startTime.getTime()),
-    'cache_bust':Math.random()
-  });
+if (window.archive_analytics) {
+  window.archive_analytics.ol_send_event_ping = function(values) {
+    var endTime = new Date();
+    window.archive_analytics.send_ping({
+      'service':'ol',
+      'kind':'event',
+      'ec':values['category'],
+      'ea':values['action'],
+      'el':location.pathname,
+      'ev':1,
+      'loadtime':(endTime.getTime() - startTime.getTime()),
+      'cache_bust':Math.random()
+    });
+  }
 }

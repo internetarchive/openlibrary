@@ -15,7 +15,7 @@ $else:
                 return '1-%s' % loan['resource_type']
             else:
                 return '2-%s' % loan['resource_type']
-                
+
         available_loans.sort(key=loan_key)
 
     <script type="text/javascript">
@@ -26,7 +26,9 @@ $else:
             \$('.postSubmit').show();
             \$('#ol_host').attr('value', location.host);
             var format = \$(this).find('input').attr('value');
-            archive_analytics.ol_send_event_ping({'category': 'Borrow', 'action': format});
+            if (window.archive_analytics) {
+                window.archive_analytics.ol_send_event_ping({'category': 'Borrow', 'action': format});
+            }
             \$('#borrowbook').submit();
             setTimeout('document.location.reload()', 4000);
             return true;
@@ -40,8 +42,8 @@ $else:
     $if ['epub'] == loan_types:
         <fieldset class="download">
             <legend>Download &amp; Open in Adobe Digital Editions</legend>
-            <label> 
-                <input type="radio" name="format" class="download" value="epub"/>  
+            <label>
+                <input type="radio" name="format" class="download" value="epub"/>
                 <strong>Download ePub</strong>
                 Reflowable text version
             </label>
@@ -59,8 +61,8 @@ $else:
             <fieldset class="online">
                 <legend>Read in Browser</legend>
                 <label>
-                    <input type="radio" name="format" class="online" value="bookreader"/> 
-                    <strong>Read in Browser</strong> 
+                    <input type="radio" name="format" class="online" value="bookreader"/>
+                    <strong>Read in Browser</strong>
                     Open in our BookReader
                 </label>
                 <div>
@@ -76,20 +78,20 @@ $else:
                 </div>
             </fieldset>
 
-        $if 'pdf' in loan_types or 'epub' in loan_types:    
+        $if 'pdf' in loan_types or 'epub' in loan_types:
             <fieldset class="download">
                 <legend>Download &amp; Open in Adobe Digital Editions</legend>
                 $if 'pdf' in loan_types:
-                    <label style="margin-right:15px;"> 
-                        <input type="radio" name="format" class="download" value="pdf"/>  
-                        <strong>Download PDF</strong> 
-                        High quality page images 
-                    </label> 
+                    <label style="margin-right:15px;">
+                        <input type="radio" name="format" class="download" value="pdf"/>
+                        <strong>Download PDF</strong>
+                        High quality page images
+                    </label>
                 $if 'epub' in loan_types:
-                    <label> 
-                        <input type="radio" name="format" class="download" value="epub"/>  
-                        <strong>Download ePub</strong> 
-                        Smaller file, may contain errors 
+                    <label>
+                        <input type="radio" name="format" class="download" value="epub"/>
+                        <strong>Download ePub</strong>
+                        Smaller file, may contain errors
                     </label>
                 <div>
                     <table cellpadding="0" cellspacing="0" border="0"><tbody>
@@ -120,7 +122,7 @@ $else:
         }
         form#borrowbook fieldset {
             float: none;
-        } 
+        }
         form#borrowbook fieldset.online, form#borrowbook fieldset.offline {
             width: 605px;
         }
