@@ -1,6 +1,6 @@
-$def with (user, book, waitinglist)
+$def with (user, book, waitinglist_record)
 $var subject: $book.title is available to borrow
-$ expiry = waitinglist.get('expiry')
+$ expiry = waitinglist_record.get('expiry')
 $ expiry_text = ' (before %s UTC)' % expiry if expiry else ''
 
 Hello $user.displayname,
