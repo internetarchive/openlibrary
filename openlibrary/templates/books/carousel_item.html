@@ -6,10 +6,10 @@ $if "authors" in book:
 $else:
     $ authors = ""
     $ long_title = truncate(book.title, 40)
-    
-<div class="coverMagic hiddenCoverMagic"> 
+
+<div class="coverMagic hiddenCoverMagic">
     $if "cover_url" in book:
-        <div class="SRPCover"> 
+        <div class="SRPCover">
             <a href="$book.url" title="$long_title"><img xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
         </div>
     $else:
@@ -22,7 +22,7 @@ $else:
                 </div>
             </div>
         </a>
-    
+
     $if book.get("read_url"):
         <div class="coverEbook">
             <a href="$book.read_url" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
@@ -30,8 +30,8 @@ $else:
     $elif book.get("borrow_url"):
         <div class="coverEbook">
             $if book.get("checked_out"):
-                <a href="$book.borrow_url" title="$_('This book is checked out')"><img 
-                    src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" 
+                <a href="$book.borrow_url" title="$_('This book is checked out')"><img
+                    src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33"
                     alt="$_('This book is checked out')"/></a>
             $else:
                 <a href="$book.borrow_url" title="$_('Borrow this book')"><img
@@ -48,9 +48,5 @@ $else:
     $elif book.get("daisy_url"):
         <div class="coverEbook">
             <a href="$book.daisy_url" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a>
-        </div>
-    $elif book.get("overdrive_url"):
-        <div class="coverEbook">
-            <a href="$book.overdrive_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
         </div>
 </div>

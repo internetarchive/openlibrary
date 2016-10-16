@@ -76,7 +76,7 @@ class Test_build_data:
         work['editions'] = [make_edition()]
         d = build_data(work)
         assert d['edition_count'] == 1
-    
+
         work['editions'] = [make_edition(), make_edition()]
         d = build_data(work)
         assert d['edition_count'] == 2
@@ -125,7 +125,7 @@ class Test_build_data:
         d = build_data(work)
         assert sorted(d['oclc']) == ['123', '234']
         assert sorted(d['lccn']) == ['lccn-1', 'lccn-2', 'lccn-3']
-        
+
     def test_identifiers(self):
         work = make_work(editions=[
                     make_edition(identifiers={"librarything": ["lt-1"]}),
@@ -133,14 +133,6 @@ class Test_build_data:
         ])
         d = build_data(work)
         assert sorted(d['id_librarything']) == ['lt-1', 'lt-2']
-        assert 'overdrive_s' not in d
-
-        e1 = make_edition(identifiers={"overdrive": ["o-1"]})
-        e2 = make_edition(identifiers={"overdrive": ["o-2"]})
-        work = make_work(editions=[e1, e2])
-        d = build_data(work)
-        assert sorted(d['id_overdrive']) == ['o-1', 'o-2']
-        assert sorted(d['overdrive_s'].split(";")) == ['o-1', 'o-2']
 
     def test_ia_boxid(self):
         e = make_edition()
@@ -237,7 +229,7 @@ class Test_build_data:
         assert "time" not in d
 
         w = make_work(
-                subjects=["a", "b c"], 
+                subjects=["a", "b c"],
                 subject_places=["a", "b c"],
                 subject_people=["a", "b c"],
                 subject_times=["a", "b c"])

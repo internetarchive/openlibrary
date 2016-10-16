@@ -134,12 +134,7 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
                 <p>Look for something else in the <a href="/borrow">lending library</a>?</p>
             </div>
     $elif not page.ocaid:
-        $# overdrive-only - does not require login
-        $# $$$ we could generate direct overdrive link since overdrive id is available
-        <div class="message info">
-            <h2 class="sansserif">An eBook may be available from your local library.</h2>
-            <p><a href="this book link">Check overdrive.com</a> for availability.</p>
-        </div>
+        pass
     $elif not ctx.user:
         $# not logged in
         $if not available_loans:

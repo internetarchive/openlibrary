@@ -197,10 +197,6 @@ def format_book_data(book):
     if cover:
         d.cover_url = cover.url("M")
 
-    overdrive = book.get("identifiers", {}).get('overdrive')
-    if overdrive:
-        d.overdrive_url = "http://www.overdrive.com/search?q={%s}" % overdrive
-
     ia_id = book.get("ocaid")
     if ia_id:
         collections = ia.get_meta_xml(ia_id).get("collection", [])

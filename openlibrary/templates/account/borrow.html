@@ -110,7 +110,7 @@ $else:
                     $if wlsize:
                         <div class="smallest lightgreen sansserif waitrank">
                             $ungettext("There is one person waiting for this book.", "There are %(n)s people waiting for this book.", wlsize, n=wlsize)
-                        </div>                    
+                        </div>
                 </td>
                 <td class="expires">
                     $if loan['expiry'] is None:
@@ -212,7 +212,7 @@ $else:
                         $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
                     </div>
                     <div class="smallest lightgreen sansserif waitrank">
-                        $if status == "waiting":                        
+                        $if status == "waiting":
                             $ wsize = book.get_waitinglist_size()
                             $ pos = record.get_position()
                             $if pos == 1:
@@ -226,16 +226,16 @@ $else:
                     $if status == "available":
                         $ delta_hours = record.get_expiry_in_hours()
                         <div class="smaller" style="padding-top: 5px;">
-                            $if delta_hours == 0:                                        
+                            $if delta_hours == 0:
                                 You have less than an hour to borrow it.
-                            $elif delta_hours == 1:                                        
+                            $elif delta_hours == 1:
                                 You have one more hour to borrow it.
                             $else:
                                 You have $delta_hours more hours to borrow it.
                         </div>
                 </td>
                 <td class="actions">
-                    $if status == "available":                    
+                    $if status == "available":
                         <form action="$book.url('/borrow')" method="post">
                             <input type="hidden" name="action" value="borrow" />
                             <input type="submit" value="Borrow Now" />
@@ -256,10 +256,10 @@ $# XXX borrow history not yet recorded so we show instructions if no current loa
 $if len(loans) == 0 and len(waitinglist) == 0:
     <div class="contentHalf" style="padding-right:20px;width:419px;">
         <p>
-        $_("There are 3 different sources for borrowing books through Open Library:")</p>
+        $_("There are 2 different sources for borrowing books through Open Library:")</p>
         <p style="line-height:1em;margin:1.5em 0 1em;">
             <strong>
-            <span style="font-size:1.875em;">1.</span> 
+            <span style="font-size:1.875em;">1.</span>
             <span style="font-size:1.125em;">$_("Internet Archive"),</span>
             </strong>
             <span class="larger"><em>$_("eBooks everywhere")</em></span>
@@ -268,17 +268,9 @@ $if len(loans) == 0 and len(waitinglist) == 0:
         <p style="line-height:1em;margin:1.5em 0 1em;">
             <strong>
             <span style="font-size:1.875em;">2.</span>
-            <span style="font-size:1.125em;">$_("OverDrive"),</span>
-            </strong>
-            <span class="larger"><em>$_("eBooks from your local library")</em></span>
-        </p>
-        <p class="large">$:_('Open Library has teamed up with <a href="http://overdrive.com/">OverDrive.com</a>, a global disctributor of eBooks through your local library where available.')</p>
-        <p style="line-height:1em;margin:1.5em 0 1em;">
-            <strong>
-            <span style="font-size:1.875em;">3.</span> 
             <span style="font-size:1.125em;">$_("WorldCat"),</span>
             </strong>
-            <span class="larger"><em>$_("physical books from your local library")</em></span> 
+            <span class="larger"><em>$_("physical books from your local library")</em></span>
         </p>
         <p class="large">$_("We connect our records to WorldCat wherever possible. You can tell WorldCat your postcode/zip code, and it will tell you the closest library with a copy of the book.")</p>
     </div>
@@ -287,13 +279,12 @@ $if len(loans) == 0 and len(waitinglist) == 0:
         <div class="section">
             <h3>$_("Getting Started")</h3>
             <p class="small sansserif">$_("All you need to borrow a book scanned at the Internet Archive is an Open Library account and Adobe Digital Editions.")</p>
-            <p class="small sansserif">$_("Loans through OverDrive or WorldCat are managed through your local libraries, not through Open Library.")</p>
+            <p class="small sansserif">$_("Loans through WorldCat are managed through your local libraries, not through Open Library.")</p>
             <p class="small sansserif">$:_('Check out the <a href="/help/faq#section-borrowing"><strong>Lending FAQ</strong></a> for more information.')</p>
         </div>
         <div class="section">
             <h3>Which books are available?</h3>
             <p class="small sansserif">$:_('Browse all the available books through the <a href="/subjects/lending_library">"Lending Library"</a> subject, or try a <a href="/search?subject_facet=Lending%20library">search</a>.')</p>
-            <p class="small sansserif">$:_('You can also <a href="/subjects/overdrive">browse OverDrive titles here</a>.')</p>
         </div>
     </div>
     <div class="contentSpacer"></div>
@@ -305,5 +296,5 @@ $if len(loans) == 0 and len(waitinglist) == 0:
     </div>
     <div class="clearfix"></div>
     <p class="small sansserif lightgreen">$:_('If you work at a library and are interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
-    
+
 </div>

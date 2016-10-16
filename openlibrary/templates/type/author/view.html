@@ -202,13 +202,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                                         <span class="label">Borrow</span>
                                     </a>
                             </span>
-                        $elif doc.overdrive:
-                            <span class="actions read">
-                                <a href="http://www.overdrive.com/search?q={$(doc.overdrive[0])}" title="Link to overdrive.com">
-                                    <span class="image borrow"></span>
-                                    <span class="label">Borrow</span>
-                                </a>
-                            </span>
                         $elif 'printdisabled' in doc.collections:
                             <span class="actions read">
                                 <a href="$doc.key" title="Protected DAISY">

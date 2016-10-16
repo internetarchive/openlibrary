@@ -9,7 +9,6 @@ $else:
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
-$ overdrive = "http://www.overdrive.com/search?q={XXX}"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
@@ -36,14 +35,11 @@ $if page.isbn_10:
 $elif isbn_13:
     $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
 
-$ overdrive_id = None
 $ asin = None
 $ scribd = None
 $if page.get('identifiers'):
     $if page.identifiers.get('scribd'):
         $ scribd = page.identifiers.scribd[0]
-    $if page.identifiers.get('overdrive'):
-        $ overdrive_id = page.identifiers.overdrive[0]
     $if page.identifiers.get('amazon'):
         $ asin = page.identifiers.amazon[0]
 
@@ -128,7 +124,7 @@ $else:
     </div>
     </div>
 
-$if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
+$if isbn or oclc_numbers or 'lendinglibrary' in collection or library:
     <div>
     <h3 class="header">
         <span class="icon borrow"></span>
@@ -144,8 +140,6 @@ $if isbn or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or li
                         $ user_loan = current_loan
                         $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
-        $if overdrive_id:
-            <p><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a> <span class="smaller">OverDrive</span></p>
         $if isbn:
             <p><a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">Physical copy, local</a> <span class="smaller">WorldCat</span></p>
         $elif oclc_numbers:
