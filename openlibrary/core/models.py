@@ -33,7 +33,7 @@ class Image:
         self._site = site
         self.category = category
         self.id = id
-        
+
     def info(self):
         url = '%s/%s/id/%s.json' % (h.get_coverstore_url(), self.category, self.id)
         if url.startswith("//"):
@@ -44,32 +44,32 @@ class Image:
             if d['author'] == 'None':
                 d['author'] = None
             d['author'] = d['author'] and self._site.get(d['author'])
-            
+
             return web.storage(d)
         except IOError:
             # coverstore is down
             return None
-                
+
     def url(self, size="M"):
         return "%s/%s/id/%s-%s.jpg" % (h.get_coverstore_url(), self.category, self.id, size.upper())
-        
+
     def __repr__(self):
         return "<image: %s/%d>" % (self.category, self.id)
 
 class Thing(client.Thing):
-    """Base class for all OL models."""    
-    
+    """Base class for all OL models."""
+
     @cache.method_memoize
     def get_history_preview(self):
         """Returns history preview.
         """
         history = self._get_history_preview()
         history = web.storage(history)
-        
+
         history.revision = self.revision
         history.lastest_revision = self.revision
         history.created = self.created
-        
+
         def process(v):
             """Converts entries in version dict into objects.
             """
@@ -77,10 +77,10 @@ class Thing(client.Thing):
             v.created = h.parse_datetime(v.created)
             v.author = v.author and self._site.get(v.author, lazy=True)
             return v
-        
+
         history.initial = [process(v) for v in history.initial]
         history.recent = [process(v) for v in history.recent]
-        
+
         return history
 
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "h"))
@@ -94,7 +94,7 @@ class Thing(client.Thing):
             h['initial'] = self._get_versions(limit=1, offset=self.revision-1)
             h['recent'] = self._get_versions(limit=4)
         return h
-            
+
     def _get_versions(self, limit, offset=0):
         q = {"key": self.key, "limit": limit, "offset": offset}
         versions = self._site.versions(q)
@@ -106,7 +106,7 @@ class Thing(client.Thing):
             # v.changes is not used and it contrinutes to memcache bloat in a big way.
             v.changes = '[]'
         return versions
-                
+
     def get_most_recent_change(self):
         """Returns the most recent change.
         """
@@ -115,14 +115,14 @@ class Thing(client.Thing):
             return preview.recent[0]
         else:
             return preview.initial[0]
-    
+
     def prefetch(self):
         """Prefetch all the anticipated data."""
         preview = self.get_history_preview()
         authors = set(v.author.key for v in preview.initial + preview.recent if v.author)
         # preload them
         self._site.get_many(list(authors))
-        
+
     def _make_url(self, label, suffix, relative=True, **params):
         """Make url of the form $key/$label$suffix?$params.
         """
@@ -133,44 +133,44 @@ class Thing(client.Thing):
         if params:
             u += '?' + urllib.urlencode(params)
         if not relative:
-            u = _get_ol_base_url() + u            
+            u = _get_ol_base_url() + u
         return u
 
     def get_url(self, suffix="", **params):
         """Constructs a URL for this page with given suffix and query params.
-        
+
         The suffix is added to the URL of the page and query params are appended after adding "?".
         """
         return self._make_url(label=self.get_url_suffix(), suffix=suffix, **params)
-        
+
     def get_url_suffix(self):
         """Returns the additional suffix that is added to the key to get the URL of the page.
-        
+
         Models of Edition, Work etc. should extend this to return the suffix.
-        
-        This is used to construct the URL of the page. By default URL is the 
-        key of the page. If this method returns None, nothing is added to the 
-        key. If this method returns a string, it is sanitized and added to key 
+
+        This is used to construct the URL of the page. By default URL is the
+        key of the page. If this method returns None, nothing is added to the
+        key. If this method returns a string, it is sanitized and added to key
         after adding a "/".
         """
         return None
-                
+
     def _get_lists(self, limit=50, offset=0, sort=True):
         # cache the default case
         if limit == 50 and offset == 0:
             keys = self._get_lists_cached()
         else:
             keys = self._get_lists_uncached(limit=limit, offset=offset)
-            
+
         lists = self._site.get_many(keys)
         if sort:
             lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
-        
+
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=50, offset=0)
-        
+
     def _get_lists_uncached(self, limit, offset):
         q = {
             "type": "/type/list",
@@ -179,7 +179,7 @@ class Thing(client.Thing):
             "offset": offset
         }
         return self._site.things(q)
-        
+
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.
@@ -188,13 +188,13 @@ class Thing(client.Thing):
             "h": self._get_history_preview(),
             "l": self._get_lists_cached(),
         }
-        
+
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
-        
+
     def get_url_suffix(self):
         return self.title or "untitled"
 
@@ -205,7 +205,7 @@ class Edition(Thing):
     def full_title(self):
         # retained for backward-compatibility. Is anybody using this really?
         return self.title
-    
+
     def get_publish_year(self):
         if self.publish_date:
             m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
@@ -213,16 +213,16 @@ class Edition(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-        
+
 
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.
-        
+
         * read_url - url to read the book
         * borrow_url - url to borrow the book
         * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
-        
+
         Sample return values:
 
             {
@@ -251,7 +251,7 @@ class Edition(Thing):
                 doc = self._site.store.get(key) or {}
                 d['borrowed'] = doc.get("borrowed") == "true"
             elif 'printdisabled' in collections:
-                pass # ebook is not available 
+                pass # ebook is not available
             else:
                 d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
         return d
@@ -329,7 +329,7 @@ class Edition(Thing):
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
-        The suffix is usually one of '.pdf', '.epub', ''.djvu', '.mobi', '_djvu.txt'
+        The suffix is usually one of '.pdf', '.epub', '.mobi', '_djvu.txt'
         """
         if self.ocaid:
             metadata = self.get_ia_meta_fields()
@@ -338,13 +338,13 @@ class Edition(Thing):
             if filenames:
                 filename = some(f for f in filenames if f.endswith(suffix))
             else:
-                # filenames is not in cache. 
+                # filenames is not in cache.
                 # This is required only until all the memcache entries expire
                 filename = self.ocaid + suffix
 
-            if filename is None and self.is_ia_scan():                
-                # IA scans will have all the required suffixes. 
-                # Sometimes they are generated on the fly. 
+            if filename is None and self.is_ia_scan():
+                # IA scans will have all the required suffixes.
+                # Sometimes they are generated on the fly.
                 filename = self.ocaid + suffix
 
             if filename:
@@ -370,7 +370,7 @@ class Work(Thing):
     """
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
-        
+
     def get_url_suffix(self):
         return self.title or "untitled"
 
@@ -386,10 +386,10 @@ class Work(Thing):
 
     def get_one_edition(self):
         """Returns any one of the editions.
-        
+
         Used to get the only edition when edition_count==1.
         """
-        # If editions from solr are available, use that. 
+        # If editions from solr are available, use that.
         # Otherwise query infobase to get the editions (self.editions makes infobase query).
         editions = self.get_sorted_editions() or self.editions
         return editions and editions[0] or None
@@ -413,7 +413,7 @@ class Work(Thing):
         return web.storage(key=key, title=title, slug=slug)
 
     def get_subject_links(self, type="subject"):
-        """Returns all the subjects as link objects.         
+        """Returns all the subjects as link objects.
         Each link is a web.storage object with title and key fields.
 
         The type should be one of subject, place, person or time.
@@ -466,23 +466,23 @@ class Author(Thing):
     """
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
-        
+
     def get_url_suffix(self):
         return self.name or "unnamed"
-    
+
     def __repr__(self):
         return "<Author: %s>" % repr(self.key)
     __str__ = __repr__
 
     def get_edition_count(self):
         return self._site._request(
-                '/count_editions_by_author', 
+                '/count_editions_by_author',
                 data={'key': self.key})
     edition_count = property(get_edition_count)
-    
+
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
-    
+
 class User(Thing):
     def get_status(self):
         account = self.get_account() or {}
@@ -490,31 +490,31 @@ class User(Thing):
 
     def get_usergroups(self):
         keys = self._site.things({
-            'type': '/type/usergroup', 
+            'type': '/type/usergroup',
             'members': self.key})
         return self._site.get_many(keys)
     usergroups = property(get_usergroups)
-    
+
     def get_account(self):
         username = self.get_username()
         return accounts.find(username=username)
-        
+
     def get_email(self):
         account = self.get_account() or {}
         return account.get("email")
-    
+
     def get_username(self):
         return self.key.split("/")[-1]
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
-        
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
-        
+
         When seed is specified, this returns all the lists which contain the
         given seed.
-        
+
         seed could be an object or a string like "subject:cheese".
         """
         # cache the default case
@@ -522,7 +522,7 @@ class User(Thing):
             keys = self._get_lists_cached()
         else:
             keys = self._get_lists_uncached(seed=seed, limit=limit, offset=offset)
-        
+
         lists = self._site.get_many(keys)
         if sort:
             lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
@@ -531,10 +531,10 @@ class User(Thing):
     @cache.memoize(engine="memcache", key=lambda self: ("d" + self.key, "l"))
     def _get_lists_cached(self):
         return self._get_lists_uncached(limit=100, offset=0)
-        
+
     def _get_lists_uncached(self, seed=None, limit=100, offset=0):
         q = {
-            "type": "/type/list", 
+            "type": "/type/list",
             "key~": self.key + "/lists/*",
             "limit": limit,
             "offset": offset
@@ -543,9 +543,9 @@ class User(Thing):
             if isinstance(seed, Thing):
                 seed = {"key": seed.key}
             q['seeds'] = seed
-            
+
         return self._site.things(q)
-        
+
     def new_list(self, name, description, seeds, tags=[]):
         """Creates a new list object with given name, description, and seeds.
 
@@ -615,9 +615,9 @@ class User(Thing):
 
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
-    
+
     List contains the following properties:
-    
+
         * name - name of the list
         * description - detailed description of the list (markdown)
         * members - members of the list. Either references or subject strings.
@@ -626,28 +626,28 @@ class List(Thing, ListMixin):
     """
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
-        
+
     def get_url_suffix(self):
         return self.name or "unnamed"
-    
+
     def get_owner(self):
         match = web.re_compile(r"(/people/[^/]+)/lists/OL\d+L").match(self.key)
         if match:
             key = match.group(1)
             return self._site.get(key)
-            
+
     def get_cover(self):
         """Returns a cover object.
         """
         return self.cover and Image(self._site, "b", self.cover)
-        
+
     def get_tags(self):
         """Returns tags as objects.
-        
+
         Each tag object will contain name and url fields.
         """
         return [web.storage(name=t, url=self.key + u"/tags/" + t) for t in self.tags]
-        
+
     def _get_subjects(self):
         """Returns list of subjects inferred from the seeds.
         Each item in the list will be a storage object with title and url.
@@ -657,10 +657,10 @@ class List(Thing, ListMixin):
             web.storage(title="Cheese", url="/subjects/cheese"),
             web.storage(title="San Francisco", url="/subjects/place:san_francisco")
         ]
-        
+
     def add_seed(self, seed):
         """Adds a new seed to this list.
-        
+
         seed can be:
             - author, edition or work object
             - {"key": "..."} for author, edition or work objects
@@ -676,20 +676,20 @@ class List(Thing, ListMixin):
             self.seeds = self.seeds or []
             self.seeds.append(seed)
             return True
-        
+
     def remove_seed(self, seed):
         """Removes a seed for the list.
         """
         if isinstance(seed, Thing):
             seed = {"key": seed.key}
-            
+
         index = self._index_of_seed(seed)
         if index >= 0:
             self.seeds.pop(index)
             return True
         else:
             return False
-        
+
     def _index_of_seed(self, seed):
         for i, s in enumerate(self.seeds):
             if isinstance(s, Thing):
@@ -703,39 +703,39 @@ class List(Thing, ListMixin):
 
 class Library(Thing):
     """Library document.
-    
-    Each library has a list of IP addresses belongs to that library. 
+
+    Each library has a list of IP addresses belongs to that library.
     """
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
     def find_bad_ip_ranges(self, text):
         return iprange.find_bad_ip_ranges(text)
-    
+
     def parse_ip_ranges(self, text):
         return iprange.parse_ip_ranges(text)
-    
+
     def get_ip_range_list(self):
         """Returns IpRangeList object for the range of IPs of this library.
         """
         ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
         return iptools.IpRangeList(*ranges)
-        
+
     def has_ip(self, ip):
         """Return True if the the given ip is part of the library's ip range.
         """
         return ip in self.get_ip_range_list()
-        
+
     def get_branches(self):
         # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
         columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
         def parse(line):
             branch = web.storage(zip(columns, line.strip().split("|")))
-            
+
             # add empty values for missing columns
             for c in columns:
                 branch.setdefault(c, "")
-            
+
             try:
                 branch.lat, branch.lon = branch.latlong.split(",", 1)
             except ValueError:
@@ -748,7 +748,7 @@ class Library(Thing):
         name = self.key.split("/")[-1]
         stats = loanstats.LoanStats(library=name)
         return stats.get_loans_per_day(resource_type=resource_type)
-        
+
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
@@ -762,13 +762,13 @@ class Subject(web.storage):
         if sort:
             lists = h.safesort(lists, reverse=True, key=lambda list: list.last_modified)
         return lists
-        
+
     def get_seed(self):
         seed = self.key.split("/")[-1]
         if seed.split(":")[0] not in ["place", "person", "time"]:
             seed = "subject:" + seed
         return seed
-        
+
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
@@ -777,11 +777,11 @@ class Subject(web.storage):
             u = _get_ol_base_url() + u
         return u
 
-    # get_url is a common method available in all Models. 
-    # Calling it `get_url` instead of `url` because there are some types that 
+    # get_url is a common method available in all Models.
+    # Calling it `get_url` instead of `url` because there are some types that
     # have a property with name `url`.
     get_url = url
-        
+
     def get_default_cover(self):
         for w in self.works:
             cover_id = w.get("cover_id")
@@ -796,7 +796,7 @@ def register_models():
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/library', Library)
-    
+
 def register_types():
     """Register default types for various path patterns used in OL.
     """
