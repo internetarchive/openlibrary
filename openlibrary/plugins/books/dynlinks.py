@@ -55,7 +55,7 @@ def split_key(bib_key):
         value = bib_key.upper()
 
     if key == 'isbn':
-        # 'isbn_' is a special indexed filed that gets both isbn_10 and isbn_13 in the normalized form.
+        # 'isbn_' is a special indexed field that gets both isbn_10 and isbn_13 in the normalized form.
         key = 'isbn_'
         value = value.replace("-", "") # normalize isbn by stripping hyphens
 
@@ -284,7 +284,8 @@ class DataProcessor:
 
             d = {
                 "preview_url": "https://archive.org/details/" + itemid,
-                "availability": availability
+                "availability": availability,
+                "formats": {}
             }
 
             prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
@@ -305,9 +306,6 @@ class DataProcessor:
                 d['borrow_url'] = u"https://openlibrary.org%s/%s/borrow" % (doc['key'], h.urlsafe(doc.get("title", "untitled")))
                 loanstatus =  web.ctx.site.store.get('ebooks/' + doc['ocaid'], {'borrowed': 'false'})
                 d['checkedout'] = (loanstatus['borrowed'] == 'true')
-                d['formats'] = {}
-            else:
-                d['formats'] = {}
 
             return d
 
