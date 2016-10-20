@@ -155,7 +155,6 @@ class Edition(models.Edition):
 
         itemid = self.ocaid
         if not itemid:
-            # Could be e.g. OverDrive
             return []
 
         lending_resources = []

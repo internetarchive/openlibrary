@@ -1,6 +1,6 @@
 """Test suite for dynlinks.
 
-Most of the tests here use 3 sets of data. 
+Most of the tests here use 3 sets of data.
 
 data0: This contains OL0A, OL0M and OL0W with each having just name/title.
 data1: This contains OL1A, OL1M, OL1W with each having name/tile and interconnections.
@@ -59,7 +59,7 @@ def pytest_funcarg__data1(request):
             }]
         }
     }
-    
+
 def pytest_funcarg__data9(request):
     return {
         "/authors/OL9A": {
@@ -154,19 +154,19 @@ def pytest_funcarg__data9(request):
                     "url": "http://en.wikipedia.org/wiki/foo"
                 }],
                 'subjects': [{
-                    'url': 'http://openlibrary.org/subjects/test_subject', 
+                    'url': 'http://openlibrary.org/subjects/test_subject',
                     'name': 'Test Subject'
-                }], 
+                }],
                 'subject_places': [{
-                    'url': 'http://openlibrary.org/subjects/place:test_place', 
+                    'url': 'http://openlibrary.org/subjects/place:test_place',
                     'name': 'Test Place'
                 }],
                 'subject_people': [{
-                    'url': 'http://openlibrary.org/subjects/person:test_person', 
+                    'url': 'http://openlibrary.org/subjects/person:test_person',
                     'name': 'Test Person'
-                }], 
+                }],
                 'subject_times': [{
-                    'url': 'http://openlibrary.org/subjects/time:test_time', 
+                    'url': 'http://openlibrary.org/subjects/time:test_time',
                     'name': 'Test Time'
                 }],
                 "cover": {
@@ -194,11 +194,7 @@ def pytest_funcarg__data9(request):
                         },
                         "text": {
                             "url": "http://www.archive.org/download/foo12bar/foo12bar_djvu.txt"
-                        },
-                        "djvu": {
-                            "url": "http://www.archive.org/download/foo12bar/foo12bar.djvu",
-                            "permission": "open"
-                        },
+                        }
                     }
                 }],
                 "number_of_pages": "100",
@@ -211,18 +207,18 @@ class Mock:
     def __init__(self):
         self.calls = []
         self.default = None
-        
+
     def __call__(self, *a, **kw):
         for a2, kw2, _return in self.calls:
             if (a, kw) == (a2, kw2):
                 return _return
         return self.default
-        
+
     def setup_call(self, *a, **kw):
         _return = kw.pop("_return", None)
         call = a, kw, _return
         self.calls.append(call)
-        
+
 def monkeypatch_ol(monkeypatch):
     mock = Mock()
     mock.setup_call("isbn_10", "1234567890", _return="/books/OL1M")
@@ -234,26 +230,26 @@ def monkeypatch_ol(monkeypatch):
     mock.setup_call(["/books/OL2M"], _return=[{"key": "/books/OL2M", "title": "bar", "ocaid": "ia-bar"}])
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
-    
+
     monkeypatch.setattr(ia, "get_meta_xml", lambda itemid: web.storage())
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    
+
     assert dynlinks.query_keys(["isbn:1234567890"]) == {"isbn:1234567890": "/books/OL1M"}
     assert dynlinks.query_keys(["isbn:9876543210"]) == {}
     assert dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": "/books/OL1M"}
 
 def test_query_docs(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    
+
     assert dynlinks.query_docs(["isbn:1234567890"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
     assert dynlinks.query_docs(["isbn:9876543210"]) == {}
     assert dynlinks.query_docs(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}
-    
+
 def test_process_doc_for_view_api(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    
+
     bib_key = "isbn:1234567890"
     doc = {"key": "/books/OL1M", "title": "foo"}
     expected_result = {
@@ -263,12 +259,12 @@ def test_process_doc_for_view_api(monkeypatch):
         "preview_url": "http://openlibrary.org/books/OL1M/foo"
     }
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
-    
+
     doc['ocaid'] = "ia-foo"
     expected_result["preview"] = "full"
     expected_result["preview_url"] = "http://www.archive.org/details/ia-foo"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
-    
+
     doc['covers'] = [42, 53]
     expected_result["thumbnail_url"] = "http://covers.openlibrary.org/b/id/42-S.jpg"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
@@ -286,7 +282,7 @@ def test_process_result_for_details(monkeypatch):
                         "title": "foo"
                     }
             }}
-            
+
     OL1A = {
         "key": "/authors/OL1A",
         "type": {"key": "/type/author"},
@@ -298,12 +294,12 @@ def test_process_result_for_details(monkeypatch):
 
     result = {
         "isbn:1234567890": {
-            "key": "/books/OL1M", 
-            "title": "foo", 
+            "key": "/books/OL1M",
+            "title": "foo",
             "authors": [{"key": "/authors/OL1A"}]
         }
     }
-    
+
     expected_result = {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
@@ -320,12 +316,12 @@ def test_process_result_for_details(monkeypatch):
             }
         }
     }
-    
+
     assert dynlinks.process_result_for_details(result) == expected_result
-    
+
 def test_dynlinks(monkeypatch):
     monkeypatch_ol(monkeypatch)
-    
+
     expected_result = {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
@@ -334,8 +330,8 @@ def test_dynlinks(monkeypatch):
             "preview_url": "http://openlibrary.org/books/OL1M/foo"
         }
     }
-    
-    js = dynlinks.dynlinks(["isbn:1234567890"], {})    
+
+    js = dynlinks.dynlinks(["isbn:1234567890"], {})
     match = re.match('^var _OLBookInfo = ({.*});$', js)
     assert match is not None
     assert simplejson.loads(match.group(1)) == expected_result
@@ -355,11 +351,11 @@ def test_isbnx(monkeypatch):
         "type": {"key": "/type/edition"},
         "isbn_10": "123456789X"
     })
-    
+
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
     json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = simplejson.loads(json)
-    assert d.keys() == ["isbn:123456789X"] 
+    assert d.keys() == ["isbn:123456789X"]
 
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
@@ -383,35 +379,35 @@ def test_dynlinks_details(monkeypatch):
             "bib_key": "OL2M",
             "info_url": "http://openlibrary.org/books/OL2M/bar",
             "preview": "full",
-            "preview_url": "http://www.archive.org/details/ia-bar", 
+            "preview_url": "http://www.archive.org/details/ia-bar",
             "details": {
-                "key": "/books/OL2M", 
-                "title": "bar", 
+                "key": "/books/OL2M",
+                "title": "bar",
                 "ocaid": "ia-bar"
             }
         },
     }
     json = dynlinks.dynlinks(["OL2M"], {"format": "json", "details": "true"})
     assert simplejson.loads(json) == expected_result
-    
-class TestDataProcessor:        
+
+class TestDataProcessor:
     def test_get_authors0(self, data0):
         p = dynlinks.DataProcessor()
         p.authors = data0
         assert p.get_authors(data0['/books/OL0M']) == []
-        
+
     def test_get_authors1(self, data1):
         p = dynlinks.DataProcessor()
         p.authors = data1
         assert p.get_authors(data1['/works/OL1W']) == [{"url": "http://openlibrary.org/authors/OL1A/Mark_Twain", "name": "Mark Twain"}]
-        
+
     def test_process_doc0(self, data0):
         p = dynlinks.DataProcessor()
         assert p.process_doc(data0['/books/OL0M']) == data0['result']['data']
-        
+
     def test_process_doc9(self, monkeypatch, data9):
         monkeypatch_ol(monkeypatch)
-        
+
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9

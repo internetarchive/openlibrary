@@ -219,7 +219,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
             'title', 'subtitle', 'edition_count',
             'ia', 'has_fulltext', 'first_publish_year',
             'cover_i','cover_edition_key', 'public_scan_b',
-            'lending_edition_s', 'overdrive_s', 'ia_collection_s']
+            'lending_edition_s', 'ia_collection_s']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&start=%d&rows=%d&fl=%s" % (offset, rows, fl)
     if q_list:
@@ -347,7 +347,6 @@ def get_doc(doc): # called from work_search template
 
     cover = doc.find("str[@name='cover_edition_key']")
     e_public_scan = doc.find("bool[@name='public_scan_b']")
-    e_overdrive = doc.find("str[@name='overdrive_s']")
     e_lending_edition = doc.find("str[@name='lending_edition_s']")
     e_lending_identifier = doc.find("str[@name='lending_identifier_s']")
     e_collection = doc.find("str[@name='ia_collection_s']")
@@ -362,7 +361,6 @@ def get_doc(doc): # called from work_search template
         ia = [e.text for e in (e_ia if e_ia is not None else [])],
         has_fulltext = (doc.find("bool[@name='has_fulltext']").text == 'true'),
         public_scan = ((e_public_scan.text == 'true') if e_public_scan is not None else (e_ia is not None)),
-        overdrive = (e_overdrive.text.split(';') if e_overdrive is not None else []),
         lending_edition = (e_lending_edition.text if e_lending_edition is not None else None),
         lending_identifier = (e_lending_identifier and e_lending_identifier.text),
         collections = collections,
@@ -413,7 +411,6 @@ def work_object(w): # called by works_by_author
         public_scan = w.get('public_scan_b', bool(ia)),
         lending_edition = w.get('lending_edition_s', ''),
         lending_identifier = w.get('lending_identifier_s', ''),
-        overdrive = (w['overdrive_s'].split(';') if 'overdrive_s' in w else []),
         collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
         url = key + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key'),
@@ -523,7 +520,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
     fields = ['key', 'author_name', 'author_key', 'title', 'subtitle',
         'edition_count', 'ia', 'cover_edition_key', 'has_fulltext',
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
-        'overdrive_s', 'ia_collection_s', 'cover_i']
+        'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
     solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
     if config.get("single_core_solr"):

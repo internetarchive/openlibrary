@@ -409,7 +409,7 @@ def get_ebook_count_db():
         return None
 
 def find_ebook_count(field, key):
-    q = '%s_key:%s+AND+(overdrive_s:*+OR+ia:*)' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
+    q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
     return execute_ebook_count_query(q)
 
 def execute_ebook_count_query(q):
@@ -445,8 +445,6 @@ def execute_ebook_count_query(q):
                     if m:
                         pub_year = int(m.group(1))
                 ebook_count = len(ia)
-                if 'overdrive' in e.get('identifiers', {}):
-                    ebook_count += len(e['identifiers']['overdrive'])
                 if ebook_count:
                     years[pub_year] += ebook_count
         start += rows

@@ -168,7 +168,8 @@ $ ebook_status = page.get_ebook_status()
 $if ebook_status == "read-online":
     <div class="page-banner sansserief">
         This title is part of the <a href="https://openlibrary.org/read">classic eBook collection</a>.
-        <a class="button" href="https://archive.org/stream/$page.ocaid">Read online now!</a>
+        $ read_url = "https://%s/stream/%s" % (bookreader_host(), page.ocaid)
+        <a class="button" href="$read_url">Read online now!</a>
     </div>
 $elif ebook_status == "borrow-available":
     <div class="page-banner sansserief">

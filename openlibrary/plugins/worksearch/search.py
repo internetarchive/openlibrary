@@ -44,7 +44,6 @@ def work_search(query, limit=20, offset=0, **kw):
         "subject",
         "ia_collection_s",
         "public_scan_b",
-        "overdrive_s",
         "lending_edition_s",
         "lending_identifier_s",
     ]
@@ -105,7 +104,6 @@ def work_wrapper(w):
     d.printdisabled = 'printdisabled' in ia_collection
     d.lending_edition = w.get('lending_edition_s', '')
     d.lending_identifier = w.get('lending_identifier_s', '')
-    d.overdrive = w['overdrive_s'].split(';')[0] if 'overdrive_s' in w else ''
 
     # special care to handle missing author_key/author_name in the solr record
     w.setdefault('author_key', [])

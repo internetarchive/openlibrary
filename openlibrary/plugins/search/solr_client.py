@@ -22,7 +22,7 @@ solr_server_addr = ('pharosdb.us.archive.org', 8983)
 solr_server_addr = ('h02.us.archive.org', 8993)
 # solr_server_addr = ('127.0.0.1', 8983)
 
-default_facet_list = ('has_fulltext', 
+default_facet_list = ('has_fulltext',
                       'authors',
                       'subjects',
                       'facet_year',
@@ -31,12 +31,12 @@ default_facet_list = ('has_fulltext',
                       'languages',
                       'publishers',
                       )
-                      
+
 class PetaboxQueryProcessor:
     """Utility to expand search query using petabox php script."""
     def __init__(self):
         self.cache = {}
-        
+
     def process(self, query):
         if query in self.cache:
             return self.cache[query]
@@ -59,13 +59,13 @@ class PetaboxQueryProcessor:
         aq = f.read()
         if aq and aq[0] == '\n':
             raise SolrError, ('invalid response from basic query conversion', aq, php_location)
-            
+
         self.cache[query] = aq
         return aq
-        
+
 class SimpleQueryProcessor:
     """Alternate query processor to be used when petabox php script is unavailable. To be used in development.
-    
+
         >>> SimpleQueryProcessor().process("hello")
         '(title:hello^100 OR authors:hello^15 OR subjects:hello^10 OR language:hello^10 OR text:hello^1 OR fulltext:hello^1)'
         >>> SimpleQueryProcessor().process("hello world") #doctest: +NORMALIZE_WHITESPACE
@@ -76,7 +76,7 @@ class SimpleQueryProcessor:
         query = web.utf8(query)
         tokens = query.split(' ')
         return " ".join(self.process_token(t) for t in tokens)
-        
+
     def process_token(self, token):
         return '(title:%s^100 OR authors:%s^15 OR subjects:%s^10 OR language:%s^10 OR text:%s^1 OR fulltext:%s^1)' % (token, token, token, token, token, token)
 
@@ -115,7 +115,7 @@ class Solr_result(object):
 
         self.result_list = list(str(a.text) \
                                 for a in et.getiterator('identifier'))
-        
+
 # rewrite of solr result class, to use python or json format result
 class SR2(Solr_result):
     def __init__(self, result_json):
@@ -132,7 +132,7 @@ class SR2(Solr_result):
         except Exception, e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_json, traceback.format_list(ptb))
-            
+
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
 class Solr_client(object):
@@ -142,11 +142,11 @@ class Solr_client(object):
                  pool_size = 1):
         self.server_addr = server_addr
         self.shards = shards
-        
+
         self.query_processor = PetaboxQueryProcessor()
 
         # for caching expanded query strings
-        self._cache = {} 
+        self._cache = {}
 
     def __query_fmt(self, query, **attribs):
         # rows=None, start=None, wt=None, sort=None):
@@ -161,7 +161,7 @@ class Solr_client(object):
         r = '&'.join(q)
         # print >> web.debug, "* query fmt: returning (%r)"% r
         return r
-    
+
     @staticmethod
     def prefix_query(prefix, query):
         if '"' in query:
@@ -207,9 +207,9 @@ class Solr_client(object):
             for y in s:
                 if not y.startswith('OCA/'):
                     yield y
-                    
+
     def search(self, query, **params):
-        # advanced search: directly post a Solr search which uses fieldnames etc.        
+        # advanced search: directly post a Solr search which uses fieldnames etc.
         # return list of document id's
         assert type(query) == str
 
@@ -231,7 +231,7 @@ class Solr_client(object):
         """Does an advanced search on fulltext:blah.
         You get back a pair (x,y) where x is the total # of hits
         and y is a list of identifiers like ["foo", "bar", etc.]"""
-        
+
         query = self._prefix_query('fulltext', query)
         result_list = self.raw_search(query, rows=rows, start=start)
         e = ElementTree()
@@ -259,24 +259,26 @@ class Solr_client(object):
                         out.append(xid)
                         break
         return (total_nbr, out)
-                    
+
 
     def pagetext_search(self, locator, query, rows=None, start=None):
         """Does an advanced search on
                pagetext:blah locator:identifier
         where identifier is one of the id's from fulltext search.
         You get back a list of page numbers like [21, 25, 39]."""
-        
+
         def extract(page_id):
-            """A page id is something like
+            """TODO: DjVu format is deprecated. Is this function
+            still even used?
+            A page id is something like
             'adventsuburbanit00butlrich_0065.djvu',
             which this function extracts asa a locator and
             a leaf number ('adventsuburbanit00butlrich', 65). """
-            
+
             g = re.search('(.*)_(\d{4})\.djvu$', page_id)
             a,b = g.group(1,2)
             return a, int(b)
-        
+
         # try using qf= parameter here and see if it gives a speedup. @@
         # pdb.set_trace()
         query = self._prefix_query('pagetext', query)
@@ -286,7 +288,7 @@ class Solr_client(object):
                                     start=start)
         XML = ElementTree()
         try:
-            XML.parse(StringIO(page_hits))            
+            XML.parse(StringIO(page_hits))
         except SyntaxError, e:
             raise SolrError, e
         page_ids = list(e.text for e in XML.getiterator('identifier'))

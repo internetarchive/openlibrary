@@ -25,7 +25,7 @@ $ available_loans = page.get_available_loans()
         <p>
           You are an admin?: $ctx.user.is_admin()
         </p>
-        
+
         <p>
           IP address: $user_ip
         </p>
@@ -37,39 +37,35 @@ $ available_loans = page.get_available_loans()
           $else:
              no
         </p>
-        
+
         <p>
           which library: $get_library()
         </p>
-                
+
         <p>
           work subjects: $page.works[0].get_subjects()
         </p>
 
-        <p>
-            overdrive_id - if set means can be borrowed digitally from an external library using Overdrive: $overdrive_id(page)
-        </p>
-        
         <p>
             archive.org item identifier: <a href="//archive.org/details/$page.ocaid">$page.ocaid</a>
         <p>
         <p>
             external-identifiers from archive.org meta.xml: $page.get_lending_resources()
         </p>
-        
+
         <p>
             $# bookreader available: $is_loan_available(page, 'bookreader')<br>
             $# pdf available: $is_loan_available(page, 'pdf')<br>
             $# epub available: $is_loan_available(page, 'epub')
         </p>
-        
+
         <p>
             $ pdf_resource_id = page.get_lending_resource_id('pdf')
             pdf resourceid: $pdf_resource_id<br>
             $ epub_resource_id = page.get_lending_resource_id('epub')
             epub resourceid: $epub_resource_id
         </p>
-        
+
         <p>
              <table>
                 <tr>
@@ -79,7 +75,7 @@ $ available_loans = page.get_available_loans()
                     <tr><td>$edition_loan</td><td><form method="POST"><input type="submit" value="Delete record" /><input type="hidden" name="action" value="delete" /><input type="hidden" name="loan_key" value="$edition_loan['_key']" /></form></td></tr>
             </table>
         </p>
-        
+
         <p>
             <table>
               <tr><th>Available loans for $page.title:</tr></th>
@@ -87,7 +83,7 @@ $ available_loans = page.get_available_loans()
                  <tr><td>$loan</td></tr>
             </table>
         </p>
-        
+
         <p>
             Book status in ACS4:<br>
             $ bss = 'http://lending.us.archive.org/bss/bss.py'
@@ -98,7 +94,7 @@ $ available_loans = page.get_available_loans()
             $:pdf_info
             $ pdf_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': pdf_resource_id, 'type': 'pdf' }
             $:pdf_fulfillment
-            
+
             <br>
             $ epub_loaned = bss_format % { 'what': 'is_loaned_out', 'urn': epub_resource_id, 'type': 'epub' }
             $:epub_loaned
@@ -107,6 +103,6 @@ $ available_loans = page.get_available_loans()
             $ epub_fulfillment = bss_format % { 'what': 'fulfillment_info', 'urn': epub_resource_id, 'type': 'epub' }
             $:epub_fulfillment
         </p>
-        
+
 
 </div>

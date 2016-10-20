@@ -28,7 +28,7 @@ $def format_users(users):
             <a href="$user.key" title="$user.key">$user.name</a>
         $else:
             <em>Unknown</em>
-        
+
 <style type="text/css">
 ul.inner {
     margin-bottom: 0px !important;
@@ -67,7 +67,7 @@ ul.inner {
                                 $if page.publish_date:
                                     $page.publish_date,
                                 $else:
-                                    <em>Published date unknown,</em> 
+                                    <em>Published date unknown,</em>
                                 $if page.publishers:
                                     $for p in page.publishers:
                                         $p$cond(loop.last, "", ", ")
@@ -213,7 +213,7 @@ ul.inner {
         <ul>
             <li>You are <a href="$ctx.user.key" title="$ctx.user.key">$ctx.user.displayname</a></li>
             <li>Your IP is <span class="small">$user_ip</li>
-            <li>          
+            <li>
                 $if "inlibrary" in ctx.features:
                     $ lib = get_library()
                     $if lib:
@@ -225,7 +225,7 @@ ul.inner {
             </li>
         </ul>
     </div>
-        
+
     <div class="section">
         <h3>Borrow Info</h3>
         Borrowable? <em>$cond(can_borrow(page), "Yes", "No")</em>
@@ -274,7 +274,7 @@ ul.inner {
         <ul>
             <li>key: <a href="$page.key">$page.key</a></li>
             <li>archive.org ID: <a href="//archive.org/details/$page.ocaid">$page.ocaid</a>
-            <li>IA Collections: 
+            <li>IA Collections:
                 <ul class="inner">
                     $for c in page.get_ia_meta_fields()['collection']:
                         <li><span class="small">$c</span></li>
@@ -292,7 +292,6 @@ ul.inner {
                         <li><span class="small">$subject</span></li>
                 </ul>
             </li>
-            <li>Overdrive ID: $overdrive_id(page)</li>
         </ul>
     </div>
     <div class="section">
@@ -322,17 +321,17 @@ ul.inner {
 
     <div class="section">
         <h3>Edition ebook record from datastore</h3>
-        <pre>$:json_encode(edition_ebook, indent="  ", sort_keys=True)</pre>        
+        <pre>$:json_encode(edition_ebook, indent="  ", sort_keys=True)</pre>
     </div>
-        
+
     $def resource_info(urn):
         $ bss = 'http://lending.us.archive.org/bss/bss.py'
         <a href="$bss/is_loaned_out/$urn">Loan Status</a>
         | <a href="$bss/resource_info/$urn">Resource Info</a>
         | <a href="$bss/fulfillment_info/$urn">Fulfillment Info</a>
-            
+
     <div class="section">
-        <h3>Book status in ACS4</h3>                
+        <h3>Book status in ACS4</h3>
         <ul>
             <li>
                 <p>
@@ -421,7 +420,7 @@ td.serial {
 
 body#plain div#alert0 {
     background-color: #eeecad !important;
-    border: 1px solid #d2ac95;    
+    border: 1px solid #d2ac95;
 }
 
 </style>

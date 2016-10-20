@@ -2,11 +2,10 @@ $def with (book)
 
 $ worldcat = "http://worldcat.org/isbn/XXX"
 $ worldcatoclc = "http://worldcat.org/oclc/XXX"
-$ overdrive = "http://www.overdrive.com/search?q={XXX}"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
-$ viewbook = "//archive.org/stream/XXX"
+$ viewbook = "//%s/stream/XXX" % bookreader_host()
 $ detailbook = "//archive.org/details/XXX"
 $ downloadbook = "//archive.org/download/XXX/XXX.pdf"
 $ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
@@ -15,7 +14,6 @@ $ epub = "//archive.org/download/XXX/XXX.epub"
 $ mobi = "//archive.org/download/XXX/XXX.mobi"
 $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
 
-$ djvu = "//archive.org/download/XXX/XXX.djvu"
 $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
 $ google = ""
@@ -31,10 +29,6 @@ $if meta_fields:
     $ contrib = meta_fields.get('contributor')
     $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
         $ library = get_library()
-
-$ overdrive_id = None
-$if book.get('identifiers', None) and book.identifiers.get('overdrive', None):
-    $ overdrive_id = book.identifiers.overdrive[0]
 
 $ scribd = book.get('identifiers', {}).get('scribd', [None])[0]
 
@@ -90,7 +84,6 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
             <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
             <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-            <li><a href="$djvu.replace('XXX', book.ocaid)" title="Download a DjVu">DjVu</a></li>
             <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
             <li><a href="$kindle.replace('XXX', book.ocaid)" title="Send to Kindle">Send to Kindle</a></li>
             </ul>
@@ -103,14 +96,12 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </div>
         </td>
 
-    $if isbn_10 or oclc_numbers or overdrive_id or 'lendinglibrary' in collection or library:
+    $if isbn_10 or oclc_numbers or 'lendinglibrary' in collection or library:
         <td class="icon borrow">
             <div class="aaaa"></div>
             <div class="links">
                 <ul>
-                $if overdrive_id:
-                    <li><a href="$overdrive.replace('XXX', overdrive_id)" title="Borrow from OverDrive">eBook, local library</a><br /><span class="gray smaller">via OverDrive</span></li>
-                $if  'lendinglibrary' in collection or library:
+                $if 'lendinglibrary' in collection or library:
                     $ current_and_available_loans = book.get_current_and_available_loans()
                     $ user_loan = None
                     $if ctx.user:
