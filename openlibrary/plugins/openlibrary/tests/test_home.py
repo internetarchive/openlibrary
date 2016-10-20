@@ -158,7 +158,7 @@ class TestCarouselItem:
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
             "cover_url": "http://covers.openlibrary.org/b/id/1-M.jpg",
-            "read_url": "http://www.archive.org/stream/foo",
+            "read_url": "http://archive.org/stream/foo",
             "borrow_url": "/books/OL1M/foo/borrow",
             "daisy_url": "/books/OL1M/foo/daisy",
         }

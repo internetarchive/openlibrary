@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 # How long bookreader loans should last
 BOOKREADER_LOAN_DAYS = 14
-BOOKREADER_STREAM_URL_PATTERN = "https://archive.org/stream/{0}"
+BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
 
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
@@ -245,7 +245,7 @@ class Loan(dict):
 
         if resource_type == "bookreader":
             resource_id = "bookreader:" + identifier
-            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(identifier)
+            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
             t_expiry = datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
             expiry = t_expiry.isoformat()
         else:

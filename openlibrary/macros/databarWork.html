@@ -12,8 +12,7 @@ $ worldcatoclc = "http://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
-$ viewbook = "//archive.org/stream/XXX"
-$ detailbook = "//archive.org/details/XXX"
+$ viewbook = "//%s/stream/XXX" % bookreader_host()
 $ downloadbook = page.get_ia_download_link(".pdf")
 $ pdfbw = page.get_ia_download_link("_bw.pdf")
 $ daisy = page.get_ia_download_link("_daisy.zip")
