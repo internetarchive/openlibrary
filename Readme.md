@@ -15,7 +15,18 @@ catalog, building towards a web page for every book ever published.
      - [The Service Architecture](#the-service-architecture)
    - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
+   - [FAQs](https://openlibrary.org/help/faq)
    - [License](#license)
+
+## Overview
+
+Open Library is an effort started in 2006 to create "one web page for
+every book ever published". It provides access to many public domain
+and out-of-print books, which can be read online.
+
+- [Learn more about the Open Library project](https://openlibrary.org/about)
+- [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
+- [Visit the Blog](http://blog.openlibrary.org)
 
 ## Installation
 
