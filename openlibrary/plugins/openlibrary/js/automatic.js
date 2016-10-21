@@ -9,11 +9,11 @@ jQuery(function($) {
     });
 
     // wmd editor
-    $("textarea.markdown").wmd({
-        helpLink: "/help/markdown",
-        helpHoverTitle: "Formatting Help",
-        helpTarget: "_new"
-    });
+    // $("textarea.markdown").wmd({
+    //     helpLink: "/help/markdown",
+    //     helpHoverTitle: "Formatting Help",
+    //     helpTarget: "_new"
+    // });
 
     // tabs
     var options = {};
