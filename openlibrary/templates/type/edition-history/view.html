@@ -21,19 +21,19 @@ $ ednotes = ["edition_name", "translated_from", "series", "volume", "genres", "o
 $ web = ["download_url", "purchase_url"]
 
 <div id="contentHead">
-    
+
     $:macros.databarView(page)
 
     <div class="work">
 
     $if page.works: <span class="work">$:thingrepr(page.works)</span>
 
-    $if page.authors: 
+    $if page.authors:
         <span class="author">by $:thingrepr(page.authors)</span>
     $else:
         <span class="author">by <em>unknown author</em></span>
 
-    $# if page.books: 
+    $# if page.books:
         <span class="editions fixthis" title="Need editions from related work">/ # <a href="#">editions</a> /</span>
 
     </div>
@@ -49,9 +49,9 @@ $ web = ["download_url", "purchase_url"]
 
         $if page.get('publish_date'):
             $ pub_and_date += ', ' + page.publish_date
-        $:pub_and_date 
+        $:pub_and_date
     </h1>
-        
+
 </div>
 
 <script type="text/javascript">

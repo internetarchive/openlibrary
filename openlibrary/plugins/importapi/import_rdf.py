@@ -25,7 +25,7 @@ def parse_subject(e, key):
     elif 'http://purl.org/dc/terms/LCC' == resource_type:
         new_key = 'lc_classification'
         return (new_key, val.text)
-    else:        
+    else:
         return (None, None)
 
 def parse_category(e, key):
@@ -58,16 +58,16 @@ parser_map = {
     '{http://purl.org/ontology/bibo/}lccn':       ['lccn',          parse_string],
     '{http://purl.org/ontology/bibo/}oclcnum':    ['oclc_number',   parse_string],
     '{http://RDVocab.info/elements/}placeOfPublication': ['publish_place', parse_string],
-    
+
 }
 #TODO: {http://purl.org/dc/terms/}identifier (could be ocaid)
 #TODO: {http://www.w3.org/2005/Atom}link     (could be cover image)
 
 def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
-    
+
     for e in root.iter():
-        if isinstance(e.tag, basestring): 
+        if isinstance(e.tag, basestring):
             #print e.tag
             if e.tag in parser_map:
                 key = parser_map[e.tag][0]

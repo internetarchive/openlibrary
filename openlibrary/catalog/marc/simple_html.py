@@ -103,7 +103,7 @@ rec_no = 0
 for data, length in read_file(open(sys.argv[1])):
     rec_no += 1
     rec = build_record(data)
-    title = rec['title'] 
+    title = rec['title']
     filename = dir + "/" + str(rec_no) + ".html"
     f = open(filename, 'w')
     print >> f, "<html>\n<head><title>" + title + "</title>" + style + "</head>\n<body>"

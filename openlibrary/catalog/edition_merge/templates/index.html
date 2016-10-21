@@ -19,7 +19,7 @@ td { vertical-align: top; background: #ddd };
 {% endwith %}
 
 {% macro pager() %}
-Pages: 
+Pages:
 {% for i in range((total / rows)+1) %}
 {% if i + 1 == page %}
 {{ page }}

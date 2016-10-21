@@ -16,10 +16,10 @@ logger = logging.getLogger("openlibrary")
 
 class ConnectionMiddleware:
     response_type = "json"
-    
+
     def __init__(self, conn):
         self.conn = conn
-        
+
     def get_auth_token(self):
         return self.conn.get_auth_token()
 
@@ -55,9 +55,9 @@ class ConnectionMiddleware:
             return self.store_put_many(sitename, data)
         elif path.startswith("/account"):
             return self.account_request(sitename, path, method, data)
-                
+
         return self.conn.request(sitename, path, method, data)
-        
+
     def account_request(self, sitename, path, method="GET", data=None):
         return self.conn.request(sitename, path, method, data)
 
@@ -84,19 +84,19 @@ class ConnectionMiddleware:
 
     def save_many(self, sitename, data):
         return self.conn.request(sitename, '/save_many', 'POST', data)
-        
+
     def store_get(self, sitename, path):
         return self.conn.request(sitename, path, 'GET')
-        
+
     def store_put(self, sitename, path, data):
         return self.conn.request(sitename, path, 'PUT', data)
 
     def store_put_many(self, sitename, data):
         return self.conn.request(sitename, "/_store/_save_many", 'POST', data)
-    
+
     def store_delete(self, sitename, path, data):
         return self.conn.request(sitename, path, 'DELETE', data)
-        
+
 _memcache = None
 
 class IAMiddleware(ConnectionMiddleware):
@@ -132,7 +132,7 @@ class IAMiddleware(ConnectionMiddleware):
                     self._ensure_no_store_entry(sitename, itemid)
 
                     raise client.ClientException(
-                        "404 Not Found", "notfound", 
+                        "404 Not Found", "notfound",
                         simplejson.dumps({"key": "/books/ia:" + itemid, "error": "notfound"}))
 
                 storedoc = self._ensure_store_entry(sitename, itemid)
@@ -166,7 +166,7 @@ class IAMiddleware(ConnectionMiddleware):
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         d = {
             "key": "/books/ia:" +  itemid,
-            "type": {"key": "/type/redirect"}, 
+            "type": {"key": "/type/redirect"},
             "location": location,
             "revision": 1,
             "created": timestamp,
@@ -193,7 +193,7 @@ class IAMiddleware(ConnectionMiddleware):
             jsontext = self.store_get(sitename, store_key)
             return simplejson.loads(jsontext)
         except client.ClientException, e:
-            logger.error("error", exc_info=True)            
+            logger.error("error", exc_info=True)
             if e.status.startswith("404"):
                 doc = {
                     "_key": key,
@@ -232,13 +232,13 @@ class IAMiddleware(ConnectionMiddleware):
 
     def dummy_edit(self, key):
         return {
-            "comment": "", 
-            "author": None, 
-            "ip": "127.0.0.1", 
-            "created": "2012-01-01T00:00:00", 
-            "bot": False, 
-            "key": key, 
-            "action": "edit-book", 
+            "comment": "",
+            "author": None,
+            "ip": "127.0.0.1",
+            "created": "2012-01-01T00:00:00",
+            "bot": False,
+            "key": key,
+            "action": "edit-book",
             "changes": simplejson.dumps({"key": key, "revision": 1}),
             "revision": 1,
 
@@ -250,21 +250,21 @@ class IAMiddleware(ConnectionMiddleware):
 
     def dummy_recentchange(self, key):
         return {
-            "comment": "", 
-            "author": None, 
-            "ip": "127.0.0.1", 
-            "timestamp": "2012-01-01T00:00:00", 
-            "data": {}, 
+            "comment": "",
+            "author": None,
+            "ip": "127.0.0.1",
+            "timestamp": "2012-01-01T00:00:00",
+            "data": {},
             "changes": [{"key": key, "revision": 1}],
             "kind": "update",
             "id": "0",
         }
-        
+
 class MemcacheMiddleware(ConnectionMiddleware):
     def __init__(self, conn, memcache_servers):
         ConnectionMiddleware.__init__(self, conn)
         self.memcache = self.get_memcache(memcache_servers)
-        
+
     def get_memcache(self, memcache_servers):
         global _memcache
         if _memcache is None:
@@ -278,14 +278,14 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
         if key.startswith("_"):
             # Don't cache keys that starts with _ to avoid considering _store/foo as things.
-            # The _store stuff is used for storing infobase store docs. 
-            return ConnectionMiddleware.get(self, sitename, data)            
-                
+            # The _store stuff is used for storing infobase store docs.
+            return ConnectionMiddleware.get(self, sitename, data)
+
         if revision is None:
             stats.begin("memcache.get", key=key)
             result = self.memcache.get(key)
             stats.end(hit=bool(result))
-            
+
             return result or ConnectionMiddleware.get(self, sitename, data)
         else:
             # cache get requests with revisions for a minute
@@ -296,14 +296,14 @@ class MemcacheMiddleware(ConnectionMiddleware):
                 if result:
                     self.mc_set(mc_key, result, time=60) # cache for a minute
             return result
-    
+
     def get_many(self, sitename, data):
         keys = simplejson.loads(data['keys'])
-        
+
         stats.begin("memcache.get_multi")
         result = self.memcache.get_multi(keys)
         stats.end(found=len(result))
-        
+
         keys2 = [k for k in keys if k not in result]
         if keys2:
             data['keys'] = simplejson.dumps(keys2)
@@ -315,12 +315,12 @@ class MemcacheMiddleware(ConnectionMiddleware):
             self.mc_set_multi(dict((key, simplejson.dumps(doc)) for key, doc in result2.items()))
 
             result.update(result2)
-        
+
         #@@ too many JSON conversions
         for k in result:
             if isinstance(result[k], basestring):
                 result[k] = simplejson.loads(result[k])
-                
+
         return simplejson.dumps(result)
 
     def mc_get(self, key):
@@ -328,22 +328,22 @@ class MemcacheMiddleware(ConnectionMiddleware):
         result = self.memcache.get(key)
         stats.end(hit=bool(result))
         return result
-    
+
     def mc_delete(self, key):
         stats.begin("memcache.delete", key=key)
         self.memcache.delete(key)
         stats.end()
-        
+
     def mc_add(self, key, value, time=0):
         stats.begin("memcache.add", key=key, time=time)
         self.memcache.add(key, value)
         stats.end()
-        
+
     def mc_set(self, key, value, time=0):
         stats.begin("memcache.set", key=key)
         self.memcache.add(key, value, time=time)
         stats.end()
-    
+
     def mc_set_multi(self, mapping):
         stats.begin("memcache.set_multi")
         self.memcache.set_multi(mapping)
@@ -390,7 +390,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
         result = ConnectionMiddleware.store_delete(self, sitename, key, data)
         self.mc_delete(key)
         return result
-        
+
     def account_request(self, sitename, path, method="GET", data=None):
         # For post requests, remove the account entry from the cache.
         if method == "POST" and isinstance(data, dict):
@@ -409,7 +409,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
                     # ignore
                     pass
             if 'email' in data:
-                # if email is being passed, that that email doc is likely to be changed. 
+                # if email is being passed, that that email doc is likely to be changed.
                 # remove that also from cache.
                 deletes.append("/_store/account-email/" + data["email"])
                 deletes.append("/_store/account-email/" + data["email"].lower())
@@ -430,20 +430,20 @@ class MigrationMiddleware(ConnectionMiddleware):
             "/b/", "/books/",
             "/user/", "/people/"
         )
-        
+
         if "/" in key and key.split("/")[1] in ['a', 'b', 'l', 'user']:
             for old, new in web.group(mapping, 2):
                 if key.startswith(old):
                     return new + key[len(old):]
         return key
-    
+
     def exists(self, key):
         try:
             d = ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
             return True
         except client.ClientException, e:
             return False
-    
+
     def _process(self, data):
         if isinstance(data, list):
             return [self._process(d) for d in data]
@@ -453,11 +453,11 @@ class MigrationMiddleware(ConnectionMiddleware):
             return dict((k, self._process(v)) for k, v in data.iteritems())
         else:
             return data
-    
+
     def get(self, sitename, data):
         if web.ctx.get('path') == "/api/get" and 'key' in data:
             data['key'] = self._process_key(data['key'])
-            
+
         response = ConnectionMiddleware.get(self, sitename, data)
         if response:
             data = simplejson.loads(response)
@@ -465,14 +465,14 @@ class MigrationMiddleware(ConnectionMiddleware):
             data = data and self.fix_doc(data)
             response = simplejson.dumps(data)
         return response
-        
+
     def fix_doc(self, doc):
-        type = doc.get("type", {}).get("key") 
-        
+        type = doc.get("type", {}).get("key")
+
         if type == "/type/work":
             if doc.get("authors"):
                 # some record got empty author records because of an error
-                # temporary hack to fix 
+                # temporary hack to fix
                 doc['authors'] = [a for a in doc['authors'] if 'author' in a and 'key' in a['author']]
         elif type == "/type/edition":
             # get rid of title_prefix.
@@ -482,7 +482,7 @@ class MigrationMiddleware(ConnectionMiddleware):
                 del doc['title_prefix']
 
         return doc
-        
+
     def fix_broken_redirect(self, key):
         """Some work/edition records references to redirected author records
         and that is making save fail.
@@ -504,12 +504,12 @@ class MigrationMiddleware(ConnectionMiddleware):
             data = dict((key, self.fix_doc(doc)) for key, doc in data.items())
             response = simplejson.dumps(data)
         return response
-        
+
 class HybridConnection(client.Connection):
-    """Infobase connection made of both local and remote connections. 
-    
+    """Infobase connection made of both local and remote connections.
+
     The local connection is used for reads and the remote connection is used for writes.
-    
+
     Some services in the OL infrastructure depends of the log written by the
     writer, so remote connection is used, which takes care of writing logs. By
     using a local connection for reads improves the performance by cutting
@@ -519,14 +519,14 @@ class HybridConnection(client.Connection):
         client.Connection.__init__(self)
         self.reader = reader
         self.writer = writer
-        
+
     def set_auth_token(self, token):
         self.reader.set_auth_token(token)
         self.writer.set_auth_token(token)
-    
+
     def get_auth_token(self):
         return self.writer.get_auth_token()
-        
+
     def request(self, sitename, path, method="GET", data=None):
         if method == "GET":
             return self.reader.request(sitename, path, method, data=data)
@@ -536,7 +536,7 @@ class HybridConnection(client.Connection):
 @web.memoize
 def _update_infobase_config():
     """Updates infobase config when this function is called for the first time.
-    
+
     From next time onwards, it doens't do anything becase this function is memoized.
     """
     # update infobase configuration
@@ -545,14 +545,14 @@ def _update_infobase_config():
         config.infobase = {}
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
-            
+
 def create_local_connection():
     _update_infobase_config()
     return client.connect(type='local', **web.config.db_parameters)
-    
+
 def create_remote_connection():
     return client.connect(type='remote', base_url=config.infobase_server)
-    
+
 def create_hybrid_connection():
     local = create_local_connection()
     remote = create_remote_connection()
@@ -573,7 +573,7 @@ def OLConnection():
     conn = create_connection()
     if config.get('memcache_servers'):
         conn = MemcacheMiddleware(conn, config.get('memcache_servers'))
-    
+
     if config.get('upstream_to_www_migration'):
         conn = MigrationMiddleware(conn)
 

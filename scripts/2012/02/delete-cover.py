@@ -4,14 +4,14 @@
 Used when some assert copyright on an images and demands to remove it from our collection.
 
 USAGE:
-    
+
     python scripts/2012/02/delete-cover.py 5699220
 
 After deleting the item must be uploaded back to archive.org cluster. This can be done using:
 
     /olsystem/bin/uploaditem.py --u
 
-    
+
 """
 import os
 import sys
@@ -26,7 +26,7 @@ def delete_cover(itemid, zipfile, filename):
 
 def main():
     coverid = int(sys.argv[1])
-    itemid = "olcovers%d" % (coverid/10000) 
+    itemid = "olcovers%d" % (coverid/10000)
 
     download(itemid, itemid + "_meta.xml")
 

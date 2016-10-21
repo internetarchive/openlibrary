@@ -55,17 +55,17 @@ function setup_tooltip(selector, format_message) {
 \$(function () {
     \$.plot("#loans-per-day", [
         {
-            "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
+            "data": $:json_encode(stats.get_loans_per_day("bookreader")),
             "label": "bookreader",
             bars: { "fillColor": "#fffdcd" },
             color: "#fffdcd"
         }, {
-            "data": $:json_encode(stats.get_loans_per_day("pdf")), 
+            "data": $:json_encode(stats.get_loans_per_day("pdf")),
             "label": "pdf",
             bars: { "fillColor": "#ffa337" },
             color: "#ffa337"
         }, {
-            "data": $:json_encode(stats.get_loans_per_day("epub")), 
+            "data": $:json_encode(stats.get_loans_per_day("epub")),
             "label": "epub",
             bars: { "fillColor": "#748d36" },
             color: "#748d36"
@@ -82,18 +82,18 @@ function setup_tooltip(selector, format_message) {
         grid: {
             hoverable: true,
             show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
         },
         xaxis: {
             mode: "time"
-        }, 
+        },
         legend: {
             show: true,
             position: "nw"
         }
     });
-        
+
     \$.plot("#duration", [$:json_encode(stats.get_loan_duration_frequency())], {
         series: {
              bars: {
@@ -107,7 +107,7 @@ function setup_tooltip(selector, format_message) {
         grid: {
             hoverable: true,
             show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
         },
         xaxis: {
@@ -128,11 +128,11 @@ function setup_tooltip(selector, format_message) {
         grid: {
             hoverable: true,
             show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
         }
     });
-    
+
 
     \$.plot("#loans-per-book", [$:json_encode(stats.get_loans_per_book(limit=5))], {
         series: {
@@ -147,7 +147,7 @@ function setup_tooltip(selector, format_message) {
         grid: {
             hoverable: true,
             show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
         }
     });
@@ -230,7 +230,7 @@ table#library-table th {
                 <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
             </div>
         </div>
-        
+
         <h2>Average Time a Book is Checked Out</h2>
         <div class="chart" style="width: 838px;">
             <div id="duration" class="graph">
@@ -273,7 +273,7 @@ table#library-table th {
             <div class="chartYaxis" style="width:180px;">$_("This Many People")</div>
             <div class="chartXaxis">$_("Borrowed This Many Books")</div>
         </div>
-        
+
         <br/>
 
         <h2>Distribution of How Many Times a Book is Borrowed</h2>
@@ -304,7 +304,7 @@ table#library-table th {
                 </tr>
             </tbody>
         </table>
-        <div class="clearfix"></div>        
+        <div class="clearfix"></div>
     </div>
 
     <div id="books">

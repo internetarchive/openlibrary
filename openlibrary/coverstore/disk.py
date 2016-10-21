@@ -41,7 +41,7 @@ class Disk:
         path = os.path.join(self.root, filename)
         if os.path.exists(path):
             return open(path).read()
-        
+
     def make_filename(self, prefix=""):
         def exists(filename):
             return os.path.exists(os.path.join(self.root, filename))
@@ -111,7 +111,7 @@ class WARCDisk:
         headers = dict(headers)
         subject_uri = headers.pop('subject_uri', 'xxx')
         mimetype = headers.pop('mimetype', 'application/octet-stream')
-        
+
         warc_record = warc.WARCRecord('resource', subject_uri, mimetype, headers, data)
         offset = w.write(warc_record)
         w.close()
@@ -126,30 +126,30 @@ class WARCDisk:
 
     def get_next_warcfile(self):
         """Find the next warc file.
-        
+
         For a new disk, next_warcfile should be file_0000_00.warc.
-        
+
             >>> import os, string
             >>> _ = os.system("rm -rf test_disk")
             >>> disk = WARCDisk("test_disk", maxsize=100)
             >>> disk.get_next_warcfile()
             'file_0000_00.warc'
-            
+
         After writing enough data, it should move to next file.
-        
+
             >>> _ = disk.write('x' * 100)
             >>> disk.get_next_warcfile()
             'file_0000_01.warc'
-            
+
         A a new disk with existing data should be able to find the correct value of next_warcfile.
-        
+
             >>> disk = WARCDisk("test_disk", maxsize=100)
             >>> disk.get_next_warcfile()
             'file_0000_01.warc'
         """
         from web.utils import numify, denumify
-    
-        #@@ this could be dangerous. If we clear the directory, it starts again from count 0. 
+
+        #@@ this could be dangerous. If we clear the directory, it starts again from count 0.
         #@@ Probably, this should be taken from database.
         if self.next_warcfile is None:
             files = [os.path.basename(f) for f in self.find(self.root) if f.endswith('.warc')]
@@ -171,8 +171,8 @@ class WARCDisk:
 
 class ArchiveDisk(WARCDisk):
     """Disk interface to internet archive storage.
-    
-    There is a convention that is used to name files and items. 
+
+    There is a convention that is used to name files and items.
     prefix_xxxx_yy.ext is saved in item named prefix_xxxx.
     """
     def make_warcfile(self, warcfilename):
@@ -183,7 +183,7 @@ class ArchiveDisk(WARCDisk):
             itemname = self.get_item_name(warcfilename)
             url = self.item_url(itemname) + '/' + warcfilename
             return warc.HTTPFile(url)
-    
+
     def read(self, filename):
         # if the file is locally available then read it from there.
         # else contact the server
@@ -224,25 +224,25 @@ class ArchiveDisk(WARCDisk):
             return vals and vals[0]
         except Exception:
             return None
-  
+
 class LayeredDisk:
     """Disk interface over multiple disks.
-    Write always happens to the first disk and 
+    Write always happens to the first disk and
     read happens on the first disk where the file is available.
     """
     def __init__(self, disks):
         self.disks = disks
-        
+
     def read(self, filename):
         for disk in self.disks:
             data = disk.read(filename)
             if data:
                 return data
-        
+
     def write(self, data, headers={}):
         return self.disks[0].write(data, headers)
 
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
-    
+

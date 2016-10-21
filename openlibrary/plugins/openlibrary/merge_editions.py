@@ -102,7 +102,7 @@ class merge_editions(delegate.page):
                 continue
             uniq_values = defaultdict(list)
             for num, e in enumerate(editions):
-                v = e.get(k) 
+                v = e.get(k)
                 if v:
                     if isinstance(v, list):
                         for lv in v:

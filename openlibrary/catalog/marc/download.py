@@ -60,13 +60,13 @@ files = (
     ('bpl147.mrc', 41036),
 )
 
-myform = form.Form( 
+myform = form.Form(
     form.Dropdown('file', [(i, "%s - %d records" % (i, j)) for i, j in files]),
-    form.Textbox("start", 
+    form.Textbox("start",
         form.notnull,
         form.regexp('\d+', 'Must be a digit'),
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)),
-    form.Textbox("count", 
+    form.Textbox("count",
         form.notnull,
         form.regexp('\d+', 'Must be a digit'),
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)))

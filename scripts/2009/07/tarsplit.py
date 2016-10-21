@@ -1,5 +1,5 @@
-"""In the process of moving coverstore images into tar files, 
-one tar file for each warc file has been created with original, 
+"""In the process of moving coverstore images into tar files,
+one tar file for each warc file has been created with original,
 small, medium and large images in them.
 
 This script splits them into separate tar files each containing only
@@ -58,7 +58,7 @@ class TarManager:
         tarinfo = tarfile.TarInfo(name)
         tarinfo.mtime = mtime
         tarinfo.size = fileobj.size
-        
+
         self.get_tarfile(name).addfile(tarinfo, fileobj=fileobj)
 
     def close(self):
@@ -75,7 +75,7 @@ def main(files):
         # open in append mode and close it to make sure EOF headers are written correctly.
         #_tarfile = tarfile.TarFile(f, 'a')
         #_tarfile.close()
-        
+
         _tarfile = tarfile.TarFile(f)
         try:
             for tarinfo in _tarfile:
@@ -94,6 +94,6 @@ def main(files):
 
     logfile.close()
     tar_manager.close()
-            
+
 if __name__ == "__main__":
     main(sys.argv[1:])

@@ -42,6 +42,6 @@ def main():
     system('cd dist && zip -r openlibrary.xol openlibrary > /dev/null')
     print
     print "Activity file generated at: dist/openlibrary.xol"
-    
+
 if __name__ == "__main__":
     main()

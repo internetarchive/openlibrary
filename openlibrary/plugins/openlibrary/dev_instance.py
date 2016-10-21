@@ -14,26 +14,26 @@ def setup():
     # monkey-patch query to make solr-updater work with-in the process instead of making http requests.
     query.query = ol_query
     query.withKey = ol_get
-    
+
     infogami.config.middleware.append(CoverstoreMiddleware)
-    
+
     # Borrow code tries to find the loan-status by making a URL call
     from openlibrary.plugins.upstream import borrow
     borrow.get_loan_status = lambda resource_id: []
-    
+
 class CoverstoreMiddleware:
     """Middleware to delegate all /cover/* requests to coverstore.
-    
-    This avoids starting a new service for coverstore. 
+
+    This avoids starting a new service for coverstore.
     Assumes that coverstore config is at conf/coverstore.yml
     """
     def __init__(self, app):
         self.app = app
-        
+
         from openlibrary.coverstore import code, server
         server.load_config("conf/coverstore.yml")
         self.coverstore_app = code.app.wsgifunc()
-        
+
     def __call__(self, environ, start_response):
         root = "/covers"
         if environ['PATH_INFO'].startswith(root):
@@ -52,15 +52,15 @@ def ol_get(key):
 
 def setup_solr_updater():
     from infogami import config
-    
+
     # solr-updater reads configuration from openlibrary.config.runtime_config
     from openlibrary import config as olconfig
     olconfig.runtime_config = config.__dict__
-    
-    # The solr-updater makes a http call to the website insted of using the 
+
+    # The solr-updater makes a http call to the website insted of using the
     # infobase API. It requires setting the host before start using it.
     from openlibrary.catalog.utils.query import set_query_host
-    
+
     dev_instance_url = config.get("dev_instance_url", "http://127.0.0.1:8080/")
     host = web.lstrips(dev_instance_url, "http://").strip("/")
     set_query_host(host)
@@ -74,11 +74,11 @@ class process_ebooks(delegate.page):
     """Hack to add ebooks to store so that books are visible in the returncart.
     """
     path = "/_dev/process_ebooks"
-    
+
     def GET(self):
         from openlibrary.plugins.worksearch.search import get_works_solr
         result = get_works_solr().select(query='borrowed_b:false', fields=['key', 'lending_edition_s'], limit=100)
-        
+
         def make_doc(d):
             # Makes a store doc from solr doc
             return {
@@ -88,7 +88,7 @@ class process_ebooks(delegate.page):
                 "book_key": "/books/" + d['lending_edition_s'],
                 "borrowed": "false"
             }
-        
+
         docs = [make_doc(d) for d in result['docs']]
         docdict = dict((d['_key'], d) for d in docs)
         web.ctx.site.store.update(docdict)
@@ -99,7 +99,7 @@ def update_solr(changeset):
     """Updates solr on edit.
     """
     from openlibrary.solr import update_work
-    
+
     keys = set()
     docs = changeset['docs'] + changeset['old_docs']
     docs = [doc for doc in docs if doc] # doc can be None if it is newly created.
@@ -111,9 +111,9 @@ def update_solr(changeset):
             keys.update(a['author']['key'] for a in doc.get('authors', []) if 'author' in a)
         elif doc['type']['key'] == '/type/author':
             keys.add(doc['key'])
-            
+
     update_work.update_keys(list(keys))
-    
+
 @infogami.install_hook
 def add_ol_user():
     """Creates openlibrary user with admin previleges.
@@ -126,7 +126,7 @@ def add_ol_user():
             password="openlibrary",
             displayname="Open Library")
         web.ctx.site.activate_account(username="openlibrary")
-        
+
     if web.ctx.site.get("/usergroup/api") is None:
         g_api = web.ctx.site.new("/usergroup/api", {
             "key": "/usergroup/api",
@@ -134,7 +134,7 @@ def add_ol_user():
             "members": [{"key": "/people/openlibrary"}]
         })
         g_api._save(comment="Added openlibrary user to API usergroup.")
-        
+
     g_admin = web.ctx.site.get("/usergroup/admin").dict()
     g_admin.setdefault('members', [])
     members = [m['key'] for m in g_admin["members"]]

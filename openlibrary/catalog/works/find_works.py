@@ -585,7 +585,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             update.append(e)
 
     cur_work = w['best_match']
-    need_save = fix_up_authors(cur_work, akey, w['editions']) 
+    need_save = fix_up_authors(cur_work, akey, w['editions'])
     if any(subjects_from_existing_works.values()):
         need_save = True
     if need_save or cur_work['title'] != w['title'] \
@@ -625,10 +625,10 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     return work_updated
 
 def update_works(akey, works, do_updates=False):
-    # we can now look up all works by an author   
+    # we can now look up all works by an author
     if do_updates:
         rc = read_rc()
-        ol.login('WorkBot', rc['WorkBot']) 
+        ol.login('WorkBot', rc['WorkBot'])
     assert do_updates
 
     fh_log = open('/1/var/log/openlibrary/work_finder/' + strftime('%F_%T'), 'w')

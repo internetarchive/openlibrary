@@ -5,16 +5,16 @@ reviewsource = ('type/reviewsource', {
 })
 
 bookreview = ('type/bookreview', {
-    'book': 'type/edition', 
-    'author': 'type/user', 
+    'book': 'type/edition',
+    'author': 'type/user',
     'title': 'type/string',
-    'source': 'type/reviewsource', 
+    'source': 'type/reviewsource',
     'text': 'type/text',
     'url': 'type/string'
 })
 
 vote = ('type/vote', {
-    'review': 'type/bookreview', 
+    'review': 'type/bookreview',
     'user': 'type/user',
     'weight': 'type/int'
 })

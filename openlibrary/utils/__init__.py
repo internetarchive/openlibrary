@@ -36,7 +36,7 @@ def escape_bracket(q):
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
-    
+
     The value of the optional `key` parameter should be a function that takes
     a single argument and returns a key to test the uniqueness.
     TODO: Moved this to core/utils.py
@@ -50,7 +50,7 @@ def uniq(values, key=None):
             s.add(k)
             result.append(v)
     return result
- 
+
 def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
     """
@@ -60,4 +60,4 @@ def dicthash(d):
         return tuple(dicthash(v) for v in d)
     else:
         return d
- 
+

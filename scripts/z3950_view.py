@@ -123,13 +123,13 @@ class z3950_lookup:
 
         if from_marc_xml:
             ret += '<h2>From MARC XML on archive.org</h2>'
-            
+
             ret += 'leader: <code>' + from_marc_xml.leader.replace(' ', '&nbsp;') + '</code><br>'
             ret += from_marc_xml.html() + '<br>\n'
 
         if from_marc_xml:
             ret += '<h2>From MARC binary on archive.org</h2>'
-            
+
             ret += 'record length: ' + `len(meta_mrc)` + ' bytes<br>'
             ret += 'leader: <code>' + from_marc_bin.leader.replace(' ', '&nbsp;') + '</code><br>'
             ret += from_marc_bin.html() + '<br>\n'

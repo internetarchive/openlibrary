@@ -198,7 +198,7 @@ html_theme_options = {
     'linkcolor': '#036DAA',
     'visitedlinkcolor': '#003366',
 
-    'sidebarbgcolor': '#E2DCC5', 
+    'sidebarbgcolor': '#E2DCC5',
     'sidebarlinkcolor': '#036DAA',
     'sidebartextcolor': 'black',
 

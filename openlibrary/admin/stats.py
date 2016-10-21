@@ -52,7 +52,7 @@ def get_config_info(infobase_config):
     f.close()
     logroot = config.get("writelog")
     return logroot
-    
+
 def store_data(data, date):
     uid = "counts-%s"%date
     logger.debug(" Updating stats for %s - %s", uid, data)

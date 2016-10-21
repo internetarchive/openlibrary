@@ -4,12 +4,12 @@ from openlibrary.utils import schema
 
 def get_schema(engine='postgres'):
     s = schema.Schema()
-    
+
     s.add_table('category',
         s.column('id', 'serial', primary_key=True),
         s.column('name', 'string')
     )
-    
+
     s.add_table('cover',
         s.column('id', 'serial', primary_key=True),
         s.column('category_id', 'integer', references='category'),
@@ -29,7 +29,7 @@ def get_schema(engine='postgres'):
         s.column('created', 'timestamp', default=s.CURRENT_UTC_TIMESTAMP),
         s.column('last_modified', 'timestamp', default=s.CURRENT_UTC_TIMESTAMP),
     )
-    
+
     s.add_index('cover', 'olid')
     s.add_index('cover', 'last_modified')
     s.add_index('cover', 'created')
@@ -49,4 +49,3 @@ def get_schema(engine='postgres'):
         # quick hack to fix bug in openlibrary.utils.schema
         sql = sql.replace('autoincrement primary key', 'primary key autoincrement')
     return sql
-    

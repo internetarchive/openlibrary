@@ -189,7 +189,7 @@ def fmt_line(fields):
     def bold(s):
         return ''.join(i + '\b' + i for i in s)
     return ''.join(bold("$" + k) + norm(v) for k, v in fields)
-    
+
 def strip_brackets(line):
     if line[4] == '[' and line[-2] == ']':
         return line[0:4] + line[5:-2] + line[-1]
@@ -267,8 +267,8 @@ def load_db():
         if 'redirects' in person:
             redirects = set(r.lower() for r in person['redirects'])
             c.executemany('insert ignore into redirects (person_id, redirect) values (%s, %s)', [(id, r) for r in redirects])
-        
-#        print 'insert into 
+
+#        print 'insert into
 
 #read_people()
 
@@ -292,7 +292,7 @@ def decade_match(a, start):
         return start <= int(a) < end
     return any((start <= int(c) < end) for c in re_digit.findall(a))
 
-def year_approx_match(a, b): 
+def year_approx_match(a, b):
     approx_century_match = False
     if a.startswith('ca. '):
         ca = True
@@ -444,7 +444,7 @@ def name_lookup(c, fields):
     if any(k == 'c' for k, v in fields):
         name = join_fields(fields, 'abc')
         names.update([name, flip_name(name)])
-        title = [v for k, v in fields if k in 'c'] 
+        title = [v for k, v in fields if k in 'c']
         names.update([' '.join(title + ab), ' '.join(title + [flipped])])
 
         title = ' '.join(title)

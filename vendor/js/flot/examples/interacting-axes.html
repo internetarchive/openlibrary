@@ -68,16 +68,16 @@ $(function () {
             right = Math.max(Math.round(pos.left) + $(this).outerWidth(), right);
             bottom = Math.max(Math.round(pos.top) + $(this).outerHeight(), bottom);
         });
-        
+
         return { left: left, top: top, width: right - left, height: bottom - top };
     }
-    
+
     $.each(plot.getAxes(), function (i, axis) {
         if (!axis.show)
             return;
-        
+
         var box = getBoundingBoxForAxis(plot, axis);
-        
+
         $('<div class="axisTarget" style="position:absolute;left:' + box.left + 'px;top:' + box.top + 'px;width:' + box.width +  'px;height:' + box.height + 'px"></div>')
             .data('axis.direction', axis.direction)
             .data('axis.n', axis.n)

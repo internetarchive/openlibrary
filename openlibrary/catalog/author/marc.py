@@ -30,7 +30,7 @@ def ldv(line):
         if line.find(s) != -1:
             return True
     return False
-    
+
 for loc in locs:
 #    print loc
     data = get_data(loc)

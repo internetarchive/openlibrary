@@ -17,7 +17,7 @@ def make_parser():
     p.add_option("-u", "--user", default="archive", help="database user")
     p.add_option("-p", "--password", default="", help="database password")
     p.add_option("-d", "--database", default="", help="database name (mandatory)")
-    return p    
+    return p
 
 def tabjoin(*args):
     return "\t".join((a or "").encode("utf-8") for a in args)
@@ -27,10 +27,10 @@ def dump_metadata(db):
     offset = 0
 
     while True:
-        rows = db.select("metadata", 
-                what="identifier, boxid, collection, curatestate", 
-                where="mediatype='texts'", 
-                limit=limit, 
+        rows = db.select("metadata",
+                what="identifier, boxid, collection, curatestate",
+                where="mediatype='texts'",
+                limit=limit,
                 offset=offset)
         if not rows:
             break

@@ -10,7 +10,7 @@ from pprint import pprint
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', rc['ImportBot'])
 
 re_meta_mrc = re.compile('^([^/]*)_meta.mrc:0:\d+$')
 

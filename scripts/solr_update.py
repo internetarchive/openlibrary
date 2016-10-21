@@ -58,9 +58,9 @@ solr_works = config.runtime_config["plugin_worksearch"]["solr"]
 solr_subjects = config.runtime_config["plugin_worksearch"]["subject_solr"]
 
 def fix_hardcoded_config():
-    from openlibrary.catalog.utils import query 
+    from openlibrary.catalog.utils import query
     query = query_host = args.server
-    
+
     from openlibrary.solr import update
     update.solr_works = solr_works
     update.solr_subjects = solr_subjects
@@ -122,7 +122,7 @@ def run_update():
                     if need_update:
                         if not done_login:
                             rc = read_rc()
-                            ol.login('EdwardBot', rc['EdwardBot']) 
+                            ol.login('EdwardBot', rc['EdwardBot'])
                         ol.save(w['key'], w, 'avoid author redirect')
             if work_to_update['type']['key'] == '/type/work' and work_to_update.get('title'):
                 subjects = get_work_subjects(work_to_update)
@@ -298,12 +298,12 @@ while True:
         elif action == 'store.put':
             # A sample record looks like this:
             # {
-            #   "action": "store.put", 
-            #   "timestamp": "2011-12-01T00:00:44.241604", 
+            #   "action": "store.put",
+            #   "timestamp": "2011-12-01T00:00:44.241604",
             #   "data": {
             #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
             #       "key": "ebooks/books/OL5854888M"
-            #   }, 
+            #   },
             #   "site": "openlibrary.org"
             # }
             data = i.get('data', {}).get("data")

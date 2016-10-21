@@ -82,7 +82,7 @@ class index: # unused
         q = cjson.decode(web.data())
         add_to_indexes(q, dbm)
         print 'success',
-        
+
 class store:
     def GET(self, key):
         web.header('Content-Type','application/json; charset=utf-8', unique=True)

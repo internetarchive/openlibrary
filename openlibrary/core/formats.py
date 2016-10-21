@@ -20,8 +20,8 @@ def load_yaml(text):
     return yaml.safe_load(text)
 
 def dump_yaml(data):
-    return yaml.safe_dump(data, 
-        indent=4, 
+    return yaml.safe_dump(data,
+        indent=4,
         allow_unicode=True,
         default_flow_style=False)
 
@@ -32,7 +32,7 @@ def load(text, format):
         return load_yaml(text)
     else:
         raise Exception("unsupported format %r" % format)
-    
+
 def dump(data, format):
     if format == "json":
         return dump_json(data)
@@ -40,4 +40,3 @@ def dump(data, format):
         return dump_yaml(data)
     else:
         raise Exception("unsupported format %r" % format)
-    

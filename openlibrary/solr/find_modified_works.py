@@ -18,12 +18,12 @@ def parse_options(args):
 If the `from` or `to` options are specified. Prints works modified in that time period and quits.
 
 Without these options, goes into loop mode which will keep polling openlibrary and print works modified on stdout. """)
-    parser.add_argument('-f', '--from', dest='frm', type=str, 
+    parser.add_argument('-f', '--from', dest='frm', type=str,
                         help='From date (yyyy/mm/dd)', default = False)
-    parser.add_argument('-t', '--to', dest='to', type=str, 
+    parser.add_argument('-t', '--to', dest='to', type=str,
                         help='To date (yyyy/mm/dd)', default = False)
-    parser.add_argument('-s', '--start-time-file', dest='start_file', type=str, 
-                        help='File to store last time polling was done in loop mode', 
+    parser.add_argument('-s', '--start-time-file', dest='start_file', type=str,
+                        help='File to store last time polling was done in loop mode',
                         default = "find_modified_works.date")
     parser.add_argument('-d', '--delay', dest='delay', type=int, default = 3,
                         help='Number of seconds to wait between polling openlibrary in loop mode')
@@ -72,7 +72,7 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
 
         # Fetch works for all changesets we've not seen yet. Add them
         # to the ones left over from the previous iteration.
-        works = list(extract_works(unseen_changes)) 
+        works = list(extract_works(unseen_changes))
         logging.debug("  in which %d have works modified.", len(works))
         logging.debug("  There are %d left over works from the last iteration.", len(rest))
         works += rest
@@ -98,9 +98,9 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
             logging.debug("    Retaining %s", len(rest))
         else:
             to_be_emitted, rest = works, []
-            
 
-            
+
+
         if to_be_emitted:
             logging.debug("Emitting %d works", len(to_be_emitted))
             for i in to_be_emitted:
@@ -108,13 +108,13 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
 
         logging.debug("Sleeping for %d seconds", delay)
         time.sleep(delay)
-        
+
         with open(start_time_file, "w") as f:
             logging.debug("Writing %s to state file", date.strftime("%Y/%m/%d"))
             f.write(date.strftime("%Y/%m/%d"))
 
 
-    
+
 
 def main():
     args = parse_options(sys.argv[1:])
@@ -128,13 +128,13 @@ def main():
         frm = datetime.datetime.strptime(frm, "%Y/%m/%d")
     else:
         to = datetime.datetime.now()
-        
+
     if loop:
         poll_for_changes(args.start_file, args.max_chunk_size, args.delay)
     else:
         for i in get_modified_works(frm, to):
             print i
-    
+
 
 
 if __name__ == "__main__":

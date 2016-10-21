@@ -17,17 +17,17 @@ def reduce_seeds(values):
         "last_update": "",
     }
     subject_processor = SubjectProcessor()
-    
+
     for v in values:
         d["works"] += v[0]
         d['editions'] += v[1]
         d['ebooks'] += v[2]
         d['last_update'] = max(d['last_update'], v[3])
         subject_processor.add_subjects(v[4])
-        
+
     d['subjects'] = subject_processor.top_subjects()
     return d
-    
+
 RE_SUBJECT = re.compile("[, _]+")
 
 def get_seeds(work):
@@ -39,7 +39,7 @@ def get_seeds(work):
         if isinstance(subject, basestring):
             key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
             return {"key": key, "name": subject}
-            
+
     def get_subjects(work):
         subjects = [_get_subject(s, "subject:") for s in work.get("subjects", [])]
         places = [_get_subject(s, "place:") for s in work.get("subject_places", [])]
@@ -47,20 +47,20 @@ def get_seeds(work):
         times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
         d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
         return d.values()
-    
+
     def get(work):
         yield work['key']
         for a in get_authors(work):
             yield a['key']
-        
+
         for e in work.get('editions', []):
             yield e['key']
-        
+
         for s in get_subjects(work):
             yield s['key']
-            
+
     return list(get(work))
-    
+
 class SubjectProcessor:
     """Processor to take a dict of subjects, places, people and times and build a list of ranked subjects.
     """

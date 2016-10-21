@@ -23,7 +23,7 @@ def things(query):
         return result
     else:
         return result + things(dict(query, offset=query.get('offset', 0) + 1000))
-    
+
 def get_many(keys):
     def f(keys):
         keys = simplejson.dumps(keys)

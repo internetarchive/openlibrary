@@ -44,7 +44,7 @@ def copyright_status(edition):
     assume("We're assuming the authorship is anonymous.")
 
   maxauthordeath = None
-      
+
   def y(author, attr):
     """Extract attribute (i.e. a string-valued date field) from author and
     convert it to integer.  If field is absent or no valid conversion, return None."""
@@ -85,7 +85,7 @@ and therefore died no later than the year %d, since we have no known death date.
 
   if maxauthordeath:
     if maxauthordeath < pubyear and pubyear < 1999:
-      pdyear = pubyear + 50            
+      pdyear = pubyear + 50
     else:
       pdyear = maxauthordeath + 50
   else:
@@ -108,4 +108,4 @@ and therefore died no later than the year %d, since we have no known death date.
 if __name__ == '__main__':
   import doctest
   doctest.testmod()
-  
+

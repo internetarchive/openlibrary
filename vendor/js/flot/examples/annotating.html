@@ -25,7 +25,7 @@ $(function () {
     var d1 = [];
     for (var i = 0; i < 20; ++i)
         d1.push([i, Math.sin(i)]);
-    
+
     var data = [{ data: d1, label: "Pressure", color: "#333" }];
 
     // setup background areas
@@ -35,9 +35,9 @@ $(function () {
         { color: '#000', lineWidth: 1, xaxis: { from: 2, to: 2 } },
         { color: '#000', lineWidth: 1, xaxis: { from: 8, to: 8 } }
     ];
-    
+
     var placeholder = $("#placeholder");
-    
+
     // plot it
     var plot = $.plot(placeholder, data, {
         bars: { show: true, barWidth: 0.5, fill: 0.9 },

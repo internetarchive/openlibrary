@@ -35,10 +35,10 @@ def main(server):
             break
 
         print 'linking %d editions' % len(chunk)
-        
+
         for e in chunk:
             e['scan_records'] = [{'key': '/scan_record' + e['key']}]
-            
+
         ol.save_many(chunk, 'link scan records')
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ def main(database):
 
     t = db.transaction()
     ids = [r.id for r in db.select('thing', where="key LIKE $pat", vars={'pat': 'SPAM%'})]
-    
+
     db.update("transaction", author=None, where="author_id in $ids", vars=locals())
     db.update("version", author=None, where="author_id in $ids", vars=locals())
 

@@ -2,7 +2,7 @@ $def with (page, user_lists_only=False)
 
 $if "lists" not in ctx.features:
     $return
-    
+
 $code:
     def get_seed_info():
         if page.key.startswith("/subjects/"):
@@ -24,7 +24,7 @@ $code:
                 seed_type = "edition"
                 title = page.get("title", "untitled")
         return seed, seed_type, title
-    
+
     def get_list_data(list, include_cover_url=True):
         d = storage({
             "name": list.name or "",
@@ -37,12 +37,12 @@ $code:
         owner = list.get_owner()
         d['owner'] = storage(displayname=owner.displayname or "", key=owner.key)
         return d
-    
+
     def get_user_lists():
         lists = ctx.user and ctx.user.get_lists(sort=False) or []
         # No need to get cover_url for user lists. They are only displayed in the dropdown
         return [get_list_data(list, include_cover_url=False) for list in lists]
-        
+
     def get_page_lists():
         user_key = ctx.user and ctx.user.key
         return [get_list_data(list) for list in page.get_lists(sort=False)]
@@ -50,7 +50,7 @@ $code:
     def get_user_list_index(list):
         for i, ulist in enumerate(user_lists):
             if ulist.key == list.key:
-                return i        
+                return i
 
 $ seed, seed_type, title = get_seed_info()
 $ user_lists = get_user_lists()
@@ -85,7 +85,7 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists):
     <div class="dropit">
-        <div class="icon list"></div> 
+        <div class="icon list"></div>
         <div class="dropper on">
             <a href="javascript:;" class="dropclick plain">
                 <h3>Add to list</h3>
@@ -94,12 +94,12 @@ $jsdef render_widget_add(lists):
             <div class="dropdown">
                 $for i, list in enumerate(lists):
                     $if not list.active:
-                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p> 
+                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                 <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
                     <a href="javascript:;" class="hidden listClick"></a>
                 </p>
-            </div> 
-        </div> 
+            </div>
+        </div>
     </div>
 
 $jsdef render_widget_display(lists, limit):
@@ -117,7 +117,7 @@ $jsdef render_head():
         <h4>
         $if len(page_lists) > 0:
             $ msg = ungettext("%s List", "%s Lists", len(page_lists))
-            $sprintf(msg, len(page_lists))            
+            $sprintf(msg, len(page_lists))
             $if len(page_lists) > 3:
                 <span class="sansserif smaller"><a href="$page_url/lists">$_("See all")</a></span>
             $else:
@@ -132,12 +132,12 @@ $jsdef render_head():
 
 $if not ctx.user and not page_lists:
     <div class="sansserif small">You <em>could</em> add <strong>$title</strong> to a <a href="/lists" title="Learn more about lists">list</a> if you <a href="/account/login" title="Log in or sign up now">log in</a>.</div>
-    
+
 $if ctx.user:
     <div id="widget-add">
         $:render_widget_add(user_lists)
     </div>
-    
+
 <ul class="listLists">
     <div id="widget-lists">
         $:render_widget_display(page_lists, 3)
@@ -213,7 +213,7 @@ $if ctx.user:
                 complete: complete
             });
         },
-    
+
         ajax: function(d) {
             \$.ajax({
                 type: "POST",
@@ -221,7 +221,7 @@ $if ctx.user:
                 contentType: "application/json",
                 data: JSON.stringify(d.data),
                 dataType: "json",
-            
+
                 beforeSend: function(xhr) {
                     xhr.setRequestHeader("Content-Type", "application/json");
                     xhr.setRequestHeader("Accept", "application/json");
@@ -238,10 +238,10 @@ $if ctx.user:
     var seed = $:json_encode(seed);
     var seed_type = $:json_encode(seed_type);
     var title = $:json_encode(title);
-    
+
     var user_lists = $:json_encode(user_lists);
     var page_lists = $:json_encode(page_lists);
-    
+
     var user_key = $:json_encode(user_key);
     var page_url = $:json_encode(page_url);
 
@@ -256,11 +256,11 @@ $if ctx.user:
             \$(this).next('.dropdown').slideToggle();
             \$(this).parent().find('.arrow').toggleClass("up");
         });
-        
+
         // Trigger an event to allow adding listeners
         \$(window).trigger("ol.lists");
     }
-    
+
     function get_user_list_index(list) {
         for (var i=0; i< user_lists.length; i++) {
             if (list.key == user_lists[i].key) {
@@ -274,11 +274,11 @@ $if ctx.user:
         id = id.substr(5);
         return user_lists[parseInt(id)];
     }
-    
+
     function add_page_list(list) {
         page_lists.splice(0, 0, list);
     }
-    
+
     function remove_page_list(list) {
         for (var i=0; i<page_lists.length; i++) {
             var pagelist = page_lists[i];
@@ -288,15 +288,15 @@ $if ctx.user:
             }
         }
     }
-    
+
     function setup_submit_event() {
-        // This form in created only at the beginning. 
+        // This form in created only at the beginning.
         // Unlike other elements, event for this form should be setup only once.
         \$("#new-list").ol_validate({
             submitHandler: function(form) {
                 // disable form while waiting for response
                 \$("#new-list button").attr("disabled", true);
-      
+
                 var data = {
                     name: \$("#list_label").val(),
                     description: \$("#list_desc").val(),
@@ -327,24 +327,24 @@ $if ctx.user:
             }
         });
     }
-            
+
     function setup_events() {
         \$(".listClick").colorbox({inline: true, opacity: "0.5", href: "#addList"});
-    
+
         \$("#create-new-list").click(function() {
            close_popup();
-           \$(".listClick").click(); 
+           \$(".listClick").click();
         });
 
         \$("a.add-to-list").click(function(event) {
             event.preventDefault();
             close_popup();
-        
+
             \$(this).unbind("click");   // ignore clicks while waiting for response
 
             var id = \$(this).attr("id");
             var list = get_list(id);
-        
+
             Lists.add(list.key, seed, function() {
                 list.active = true;
                 add_page_list(list);
@@ -353,11 +353,11 @@ $if ctx.user:
             });
             return false;
         });
-    
+
         \$("a.remove-from-list").click(function(event) {
             event.preventDefault();
             var id = \$(this).attr("id");
-            
+
             \$("#remove-dialog")
                 .data("list-id", id)
                 .dialog("open");
@@ -368,8 +368,8 @@ $if ctx.user:
     function close_popup() {
         \$(this).next('.dropdown').slideToggle();
         \$(this).parent().find('.arrow').toggleClass("down");
-    } 
-    
+    }
+
     function setup_dialog() {
         \$("#remove-dialog").ol_confirm_dialog(function() {
             var id = \$(this).data("list-id");

@@ -14,16 +14,16 @@ $else:
     $if page.created:
         <i>Joined $datestr(page.created)</i>
     $if ctx.user and ctx.user.key == page.key:
-        &bull; 
+        &bull;
         <a href="$homepath()/account">$_("Settings")</a>
         |
         <a href="$homepath()/account/loans">$_("Loans")</a>
     $elif ctx.user and ctx.user.is_admin():
-        &bull; 
+        &bull;
         <span class="adminOnly"><a href="/admin$page.key">admin page</a></span>
-        
+
     $if "lists" in ctx.features and lists:
-        &bull; 
+        &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
     </div>
 </div>
@@ -36,7 +36,7 @@ $else:
         </p>
 
     $:sanitize(format(page.description))
-    
+
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">
         \$().ready(function(){
@@ -48,7 +48,7 @@ $else:
             <h2>Lists
             <span class="sansserif small"><a href="$page.key/lists">See all</a></span>
             </h2>
-            <ul id="listResults" class="clean"> 
+            <ul id="listResults" class="clean">
                 $for list in lists:
                     <li>$:render_template("lists/snippet", list)</li>
             </ul>

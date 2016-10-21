@@ -294,7 +294,7 @@ def read_series(fields):
                 if s not in found:
                     found.append(s)
     return {'series': found} if found else {}
-                
+
 def read_contributions(fields):
     want = [
         ('700', 'abcde'),
@@ -336,9 +336,9 @@ def read_subjects(fields):
             a = get_subfield_values(line, subdivision)
             b = " -- ".join(get_subfield_values(line, subfields) + a)
             found.append(b)
-    
+
     return {'subjects': found} if found else {}
-    
+
 def read_genres(fields):
     found = []
     for tag in '600', '650', '651':
@@ -442,7 +442,7 @@ def read_description(fields):
 
 def read_other_titles(fields):
     found = []
-    
+
     if '246' in fields:
         for line in fields['246']:
             title = join_subfield_values(line, ['a'])

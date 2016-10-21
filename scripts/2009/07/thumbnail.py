@@ -35,7 +35,7 @@ def make_thumbnail(record):
         try:
             if image.mode != 'RGB':
                 image = image.convert('RGB')
-            
+
             thumbnail = StringIO()
             image.resize(sizes[size], resample=Image.ANTIALIAS).save(thumbnail, format='jpeg')
             yield imgpath, thumbnail.getvalue()

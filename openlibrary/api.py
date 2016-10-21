@@ -4,7 +4,7 @@ Sample Usage::
 
     ol = OpenLibrary("http://0.0.0.0:8080")
     ol.login('joe', 'secret')
-    
+
     page = ol.get("/sandbox")
     print page["body"]
 
@@ -46,7 +46,7 @@ class OpenLibrary:
         headers = headers or {}
         if self.cookie:
             headers['Cookie'] = self.cookie
-        
+
         try:
             req = urllib2.Request(url, data, headers)
             req.get_method = lambda: method
@@ -68,7 +68,7 @@ class OpenLibrary:
             [0.0.0.0:8080]
             username = joe
             password = joe123
-            
+
         Optionally section name can be passed as argument to force using a different section name.
 
         If environment variable OPENLIBRARY_RCFILE is specified, it'll read that file instead of ~/.olrc.
@@ -78,7 +78,7 @@ class OpenLibrary:
         configfile = os.getenv('OPENLIBRARY_RCFILE', os.path.expanduser('~/.olrc'))
         logger.info("reading %s", configfile)
         config.read(configfile)
-        
+
         section = section or self.base_url.replace('http://', '').replace("https://", "")
 
         if not config.has_section(section):
@@ -91,13 +91,13 @@ class OpenLibrary:
     def login(self, username, password):
         """Login to Open Library with given credentials.
         """
-        headers = {'Content-Type': 'application/json'}  
-        try:      
+        headers = {'Content-Type': 'application/json'}
+        try:
             data = simplejson.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
         except urllib2.HTTPError, e:
             response = e
-        
+
         if 'Set-Cookie' in response.headers:
             cookies = response.headers['Set-Cookie'].split(',')
             self.cookie =  ';'.join([c.split(';')[0] for c in cookies])
@@ -105,7 +105,7 @@ class OpenLibrary:
     def get(self, key, v=None):
         data = self._request(key + '.json' + ('?v=%d' % v if v else '')).read()
         return unmarshal(simplejson.loads(data))
-        
+
     def get_many(self, keys):
         """Get multiple documents in a single request as a dictionary.
         """
@@ -117,7 +117,7 @@ class OpenLibrary:
             return d
         else:
             return self._get_many(keys)
-        
+
     def _get_many(self, keys):
         response = self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
         return simplejson.loads(response.read())['result']
@@ -130,7 +130,7 @@ class OpenLibrary:
             headers['42-comment'] = comment
         data = simplejson.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).read()
-        
+
     def _call_write(self, name, query, comment, action):
         headers = {'Content-Type': 'application/json'}
         query = marshal(query)
@@ -148,7 +148,7 @@ class OpenLibrary:
 
     def save_many(self, query, comment=None, action=None):
         return self._call_write('save_many', query, comment, action)
-        
+
     def write(self, query, comment="", action=""):
         """Internal write API."""
         return self._call_write('write', query, comment, action)

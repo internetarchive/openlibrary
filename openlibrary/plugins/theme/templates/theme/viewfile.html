@@ -6,7 +6,7 @@ $def with (path, text, diff)
             <button class="linkButton larger" name="$changequery(m='edit')" title="Edit this file" accesskey="e">Edit</button>
         </div>
     </div>
-    
+
     $:render_template("theme/menu")
     <h2 style="margin: 10px 0px 0px 0px; padding:0;">$:render_template("theme/breadcrums", path)</h2>
 </div>
@@ -16,7 +16,7 @@ $def with (path, text, diff)
         <div style="border: 2px solid #ccc; padding: 20px; margin: 10px 0px;">
             This file has local changes.<br/>
             <a href="javascript:;" id="show-diff">show diff</a> | <a href="javascript:;" id="revert">revert all changes this file</a>.
-            
+
             <style type="text/css">
             .gd { background: #FDD; }
             .gi { background: #DFD; }
@@ -39,7 +39,7 @@ $def with (path, text, diff)
                 width: 100%;
             }
             </style>
-            
+
             <div id="diff" class="hidden" style="padding-top: 20px;">
                 <pre>$:diff.htmldiff</pre>
             </div>
@@ -53,7 +53,7 @@ $def with (path, text, diff)
        \$("#show-diff").click(function() {
            \$("#diff").toggle();
        });
-       
+
        \$("#revert").click(function() {
            \$("#revert-form").submit();
        });

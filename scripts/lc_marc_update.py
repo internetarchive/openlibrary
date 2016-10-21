@@ -99,7 +99,7 @@ def iter_marc(data):
 
 def login(h1, password):
     body = json.dumps({'username': 'LCImportBot', 'password': password})
-    headers = {'Content-Type': 'application/json'}  
+    headers = {'Content-Type': 'application/json'}
     h1.request('POST', base_url + '/account/login', body, headers)
     print base_url + '/account/login'
     res = h1.getresponse()

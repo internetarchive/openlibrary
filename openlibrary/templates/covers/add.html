@@ -16,7 +16,7 @@ $else:
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
 
-    
+
 <div class="popAlert" id="errors" style="display: $('block' if status else 'none')">
 $if status:
     $if status.code == 1: $_("Please provide a valid image.")
@@ -31,7 +31,7 @@ $if status:
 \$(function() {
     parent.closeThrobber();
     \$("#form.addcover-form").submit(function(event) {
-              
+
        function val(selector) {
            return \$.trim(\$(selector).val());
        }
@@ -42,21 +42,21 @@ $if status:
        var file = val("#coverFile");
        var url = val("#imageUrl");
        var coverid = val("#coverid");
-       
+
        if (file == "" && (url == "" || url == "http://" ) && coverid == "") {
            return error("Please choose an image or provide a URL.");
        }
-       
+
        function test_url(url) {
            var obj = {
                optional: function() { return false; }
            }
-           return \$.validator.url.apply(obj, [url, null]);           
+           return \$.validator.url.apply(obj, [url, null]);
        }
-       
+
        if (url != "" && url != "http://" && !test_url(url)) {
            return error("Please provide a valid URL.");
-       }       
+       }
    });
 });
 //-->
@@ -93,7 +93,7 @@ $if status:
                         });
                         </script>
                     </div>
-                    
+
             <div class="formElement">
                 <div class="label">
                     <label id="imageBrowse" for="coverFile">$_("Choose a JPG, GIF or PNG on your computer,")</label>
@@ -102,7 +102,7 @@ $if status:
                     <input type="file" name="file" id="coverFile" value=""/>
                 </div>
             </div>
-                    
+
             <div class="formElement">
                 <div class="label">
                     <label id="imageWeb" for="imageUrl"><span class="highlight">$:_("<u>Or</u></span>, paste in the image URL if it's on the web.")</label>
@@ -111,12 +111,12 @@ $if status:
                     <input type="text" name="url" id="imageUrl" value="$data.get('url', 'http://')" onClick="if(!this._haschanged && this.value == 'http://'){this.value=''};this._haschanged=true;"/>
                 </div>
             </div>
-            
+
             <div class="formElement" style="margin: $('15px 0px 0px 15px;' if doc.type.key == "/type/work" else '50px 0px 0px 30px;')">
                 <button type="submit" name="upload" id="imageUpload" value="$_('Submit')" class="largest">$_("Submit")</button>
                 <a class="close-popup floaterClose" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
             </div>
-                    
+
         </div>
-    </div>                
+    </div>
 </form>

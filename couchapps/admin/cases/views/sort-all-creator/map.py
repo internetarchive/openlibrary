@@ -1,5 +1,5 @@
 def map(doc):
     if doc.get("type","") == "case":
-        yield [doc.get('creator_name'), 
+        yield [doc.get('creator_name'),
                doc.get('history',[{}])[-1].get("at","")
                ], 1

@@ -22,7 +22,7 @@ def result_table(data, birth, death, order):
             return ''
         m = re_year.match(i[field])
         return m.group(1) if m else i[field]
- 
+
     data = [
         {
             'key': i['key'],
@@ -30,7 +30,7 @@ def result_table(data, birth, death, order):
             'birth': clean(i, birth, 'birth_date'),
             'death': clean(i, death, 'death_date'),
         } for i in data]
-               
+
     base_url = web.htmlquote("?birth=%s&death=%s&order=" % (web.urlquote(birth), web.urlquote(death)))
     html += '<tr>'
     html += '<th><a href="' + base_url + 'name">Name</a></th>'
@@ -62,7 +62,7 @@ def get_all(url):
             return all
         offset += limit
 
-class index:        
+class index:
     def GET(self):
         input = web.input()
         birth = input.get('birth', '').strip()

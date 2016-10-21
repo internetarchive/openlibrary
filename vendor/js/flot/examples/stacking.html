@@ -45,7 +45,7 @@ $(function () {
         d3.push([i, parseInt(Math.random() * 30)]);
 
     var stack = 0, bars = true, lines = false, steps = false;
-    
+
     function plotWithOptions() {
         $.plot($("#placeholder"), [ d1, d2, d3 ], {
             series: {
@@ -57,7 +57,7 @@ $(function () {
     }
 
     plotWithOptions();
-    
+
     $(".stackControls input").click(function (e) {
         e.preventDefault();
         stack = $(this).val() == "With stacking" ? true : null;

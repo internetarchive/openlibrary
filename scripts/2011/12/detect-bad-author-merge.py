@@ -22,20 +22,20 @@ def read():
             pass
 
 def read_author_merges():
-    return (row for row in read() 
-                if row.get('action') == 'save_many' 
+    return (row for row in read()
+                if row.get('action') == 'save_many'
                 and row['data']['changeset']['kind'] == 'merge-authors')
 
 def is_bad_merge(row):
     """A merge is bad if the difference between revision of any modified page
     in the input and after merge is more than 1.
-    
+
     Returns the list of keys of effected docs. It will be empty list if the merge is alright.
     """
     # revisions from the input query
     revs = dict((doc['key'], doc.get('revision')) for doc in row['data']['query'])
     # (key, revision) tuples from changeset changes
-    changes = [(c['key'], c['revision']) for c in row['data']['changeset']['changes']]    
+    changes = [(c['key'], c['revision']) for c in row['data']['changeset']['changes']]
     return [key for key, rev in changes if revs[key] is not None and rev - revs[key] > 1]
 
 def main():

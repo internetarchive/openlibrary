@@ -53,7 +53,7 @@ $if len(changes) > 1:
     $if len(changes) == limit:
         <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a>
     $if page != 0:
-         &nbsp;|&nbsp; 
+         &nbsp;|&nbsp;
          <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     </div>
 $else:

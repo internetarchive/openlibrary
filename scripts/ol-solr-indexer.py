@@ -85,11 +85,11 @@ def scan_days():
     logger.info("Last Bookmark: %s",book_day)
     if options.fwd == True:
         _scan('fwd',book_day,num_days)
-    elif options.bwd == True: 
+    elif options.bwd == True:
         _scan('bwd',book_day,num_days)
 
 def _scan(direction, day, num_days):
-    if direction == 'fwd': 
+    if direction == 'fwd':
         next_day = _get_next_day('fwd',day)
         search_updates(next_day)
         now = datetime.utcnow()
@@ -179,7 +179,7 @@ def check_updates(rows,timestamp):
                     logger.error('Cannot read %s : %s',str(k),e)
     write_stout('\n')
     if submit_update_to_solr(to_submit) : _set_bookmark(options.bookmark_file,timestamp)
-    
+
 def submit_update_to_solr(target):
     '''Executes the update queries for every element in the taget list.'''
     global sub_count
@@ -222,10 +222,10 @@ def ol_get(trg):
 def write_stout(msg):
     ''' Writes a message on stout and flush it.'''
     if(VERBOSE == True or logger.getEffectiveLevel() == 10):
-        sys.stdout.write(msg) 
+        sys.stdout.write(msg)
         sys.stdout.flush()
     else:
-        pass 
+        pass
 
 def datetimestr_to_int(datestr):
     '''Converts a date string in an epoch value.'''
@@ -252,7 +252,7 @@ def solr_key_get(trg):
         return doc['response']
     else:
         logger.error('Request %s failed - Status Code: %s',url,str(r.status_code))
- 
+
 def parse_options():
     '''Parses the command line options.'''
     parser = argparse.ArgumentParser(description='Script to index the ol-search engine with the missing work from the OL db.')
@@ -310,8 +310,8 @@ def main():
     options = parse_options()
     if not config.runtime_config:
         config.load(options.config)
-        config.load_config(options.config)   
-    
+        config.load_config(options.config)
+
     if (options.daemon == True):
         start_daemon()
     else:
@@ -319,5 +319,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()   
+    main()
 

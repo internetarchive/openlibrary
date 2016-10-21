@@ -28,7 +28,7 @@ class show_marc:
                                {'Range':'bytes=%d-%d'% (r0, r1)},
                                )
 
-        
+
         result = urllib2.urlopen(ureq).read(100000)
         # print 'urllib2 got %d bytes (%.3f sec):<p/>'% (len(result), time()-t0)
 

@@ -72,7 +72,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-publishers">$_("Who is the publisher?")</label> 
+                <label for="edition-publishers">$_("Who is the publisher?")</label>
                 <span class="tip">$_("For example"): <em>Oxford University Press; Penguin; W.W. Norton</em></span>
             </div>
             <div class="input">
@@ -82,7 +82,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-publish_date">$_("When was it published?")</label> 
+                <label for="edition-publish_date">$_("When was it published?")</label>
                 <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
             </div>
             <div class="input">
@@ -100,7 +100,7 @@ $jsdef render_language(i, language):
             </div>
         </div>
 
-       
+
         <div class="formElement librarian hidden">
             <div class="label">
                 <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
@@ -113,7 +113,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement librarian hidden">
             <div class="label">
-                <label for="edition-series">$_("Is the book part of a series?")</label> 
+                <label for="edition-series">$_("Is the book part of a series?")</label>
                 <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
             </div>
             <div class="input">
@@ -145,7 +145,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement">
             <div class="label">
-                <label for="edition-title">Title</label> 
+                <label for="edition-title">Title</label>
                 <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
             </div>
             <div class="input">
@@ -160,10 +160,10 @@ $jsdef render_language(i, language):
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
             </div>
         </div>
-        
+
         <div class="formElement" style="width: 650px;">
             <div class="label">
-                <label for="edition-toc">Table of Contents</label> 
+                <label for="edition-toc">Table of Contents</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
 <pre class="smaller gray"> * Part 1 | THIS WORLD | 1
  ** Chapter 1 | Of the Nature of Flatland | 3
@@ -175,13 +175,13 @@ $jsdef render_language(i, language):
                 <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50" style="width: 100%;min-height:250px;">$book.get_toc_text()</textarea>
             </div>
         </div>
-        
-        
-        
+
+
+
 
         <div class="formElement librarian hidden">
             <div class="label">
-                <label for="edition-title_other">$_("Is it known by any other titles?")</label> 
+                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
                 <span class="tip">$_("Perhaps in another language?")</span>
             </div>
             <div class="input">
@@ -196,7 +196,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement librarian hidden">
             <div class="label">
-                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label> 
+                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label>
                 <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
             </div>
             <div class="input">
@@ -216,7 +216,7 @@ $jsdef render_language(i, language):
 
         <div class="formElement librarian hidden">
             <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label> 
+                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
             <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
             </div>
             <div class="input">
@@ -244,7 +244,7 @@ $jsdef render_language(i, language):
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
-                                    
+
                                     <!-- <option>---</option> -->
                                     <!-- <option value="__add__">$_("Add a new role")</option> -->
                                 </select>
@@ -318,7 +318,7 @@ $jsdef render_language(i, language):
                 $else:
                     $:render_language(0, storage(name="", key=""))
             </div>
-            
+
             <div class="formElement librarian hidden" id="translated-from">
                 <div class="label">
                     <label for="is-translation">$_("Is it a translation of another book?")</label>
@@ -331,7 +331,7 @@ $jsdef render_language(i, language):
                     $ trans_class = "transYes"
                 $else:
                     $ trans_class = "hidden transYes"
-                    
+
                 <div class="input">
                     <br/>
                     <input type="radio" name="edition--translation" id="is-translation" value="no" $checked_no  onclick="\$('.transYes').customFadeOut();"/>
@@ -362,7 +362,7 @@ $jsdef render_language(i, language):
                 </div>
 
             </div>
-            
+
 
         </fieldset>
 
@@ -371,7 +371,7 @@ $jsdef render_language(i, language):
         <div class="formElement">
             <div class="label">
                 <label for="edition-description">$_("Description of this edition")</label>
-                <span class="tip">$_("Only if it's different from the work's description")</span> 
+                <span class="tip">$_("Only if it's different from the work's description")</span>
             </div>
             <div class="input">
                 <textarea name="edition--description" id="edition-description" rows="3" cols="50">$book.description</textarea>
@@ -385,7 +385,7 @@ $jsdef render_language(i, language):
 <fieldset class="major" id="identifiers">
     <legend>$_("ID Numbers")</legend>
     <div class="formBack">
-    
+
         <div id="id-errors" class="note hidden"></div>
         <div class="formElement">
             <div class="label">
@@ -396,20 +396,20 @@ $jsdef render_language(i, language):
                 <table class="identifiers" width="100%">
                     <tr id="identifiers-form">
                         <td align="right">
-                            <select name="name" id="select-id" style="width:300px!important;">    
+                            <select name="name" id="select-id" style="width:300px!important;">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
  							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
 							$ set1 = [id_dict[name] for name in popular if name in id_dict]
                             $ set2 = sorted([id for id in edition_config.identifiers if id.name not in popular], key=lambda id:id.label)
-							
+
                                 <option value="">Select one of many...</option>
                                 $for id in set1:
                                     <option value="$id.name">$id.label</option>
-                                <optgroup label="----------"></optgroup>    
+                                <optgroup label="----------"></optgroup>
                                 $for id in set2:
                                     <option value="$id.name">$id.label</option>
-                                
+
                                 <!-- <option>---</option> -->
                                 <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
@@ -471,11 +471,11 @@ $jsdef render_language(i, language):
                     <tr id="classifications-form">
                         <td align="right">
                             $ classification_labels = dict((d.name, d.label) for d in edition_config.classifications)
-                            <select name="name" id="select-classification" style="width:300px!important;"> 
+                            <select name="name" id="select-classification" style="width:300px!important;">
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
                                     <option value="$d.name">$d.label</option>
-                                
+
                                 <!-- <option>---</option> -->
                                 <!-- <option value="__add__">$_("Add a new classification type")</option> -->
                             </select>
@@ -546,7 +546,7 @@ $jsdef render_language(i, language):
                     <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
                 </div>
             </div>
-        
+
             <div class="formElement">
                 <div class="label">
                     <label for="edition--weight--value">$_("How much does the book weigh?")</label>
@@ -603,7 +603,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("Additional Metadata")</label>
-                <span class="tip">This field can accept arbitrary key:value pairs</span> 
+                <span class="tip">This field can accept arbitrary key:value pairs</span>
             </div>
             <div class="input">
                 <textarea name="additional_metadata" id="additional_metadata" rows="15" cols="50">foo:bar</textarea>
@@ -617,7 +617,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="formElement">
             <div class="label">
                 <label for="edition-first_sentence">$_("First sentence")</label>
-                <span class="tip"></span> 
+                <span class="tip"></span>
             </div>
             <div class="input">
                 <textarea name="edition--first_sentence" id="edition-first_sentence" rows="3" cols="50">$book.first_sentence</textarea>
@@ -631,9 +631,9 @@ $if ctx.user and ctx.user.is_admin():
         function error(errordiv, input, message) {
             \$(errordiv).show().html(message);
             \$(input).focus();
-            return false;            
+            return false;
         }
-        
+
         \$("#roles").repeat({
             vars: {
                 "prefix": "edition--"
@@ -642,10 +642,10 @@ $if ctx.user and ctx.user.is_admin():
                 if (data.role == "" || data.role == "---") {
                     return error("#role-errors", "#select-role", "$_('Please select a role.')");
                 }
-                
+
                 if (data.name == "") {
                     return error("#role-errors", "#role-name", "$_('You need to give this ROLE a name.')".replace(/ROLE/, data.role));
-                } 
+                }
 
                 \$("#role-errors").hide();
                 return true;
@@ -661,7 +661,7 @@ $if ctx.user and ctx.user.is_admin():
                 }
                 if (data.value == "") {
                     var label = \$("#select-id").find("option[value=" + data.name + "]").html();
-                    return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));  
+                    return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));
                 }
                 \$("id-errors").hide();
                 return true;
@@ -675,19 +675,19 @@ $if ctx.user and ctx.user.is_admin():
                 if (data.name == "" || data.name == "---") {
                     return error("#classification-errors", "#select-classification", "$_('Please select a classification.')");
                 }
-                
+
                 if (data.value == "") {
                     var label = \$("#select-classification").find("option[value=" + data.name + "]").html();
                     return error("#classification-errors", "#classification-value", "$_('You need to give a value to CLASS.')".replace(/CLASS/, label));
-                } 
+                }
 
                 \$("#classification-errors").hide();
                 return true;
-            }            
+            }
         });
        \$("a#libraryMode").click(function(event) {
            event.preventDefault();
-           
+
           \$(".librarian").toggleClass("librarian-on");
           \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
        });

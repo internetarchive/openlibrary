@@ -31,7 +31,7 @@ $if param:
     $ docs = results.docs
     $ facet_counts = results.facet_counts
     $ num_found = results.num_found
-    
+
 <div id="contentHead">
   <div class="head">
   <h1>Search Results</h1>
@@ -42,7 +42,7 @@ $if param:
     <p><span class="sansserif darkgreen">$:_("We found <strong>%s results</strong> that match your query.", commify(num_found))</span>
 
     $ sorturl = search_url() # first page
-    
+
     $if sort == 'score':
         <span class="tools">Sort by <a href="$sorturl">number of editions</a> or <strong>relevance</strong></span>
     $else:
@@ -113,13 +113,13 @@ $if param:
                     <span class="image read"></span>
                     <span class="label">$commify(len(doc.ia))&nbsp;eBook$("s" if len(doc.ia) != 1 else "")</span>
                 </a>
-                
+
             </span>
         </span>
     </li>
 
     </ul>
-    
+
     $ pages = (num_found / rows) + 1
     $ pages_in_set = 10
     $ half = pages_in_set/2
@@ -134,8 +134,8 @@ $if param:
         $ last_page_in_set = pages
     $else:
         $ first_page_in_set = page-half
-        $ last_page_in_set = page+half       
-    
+        $ last_page_in_set = page+half
+
     Pages:
     <div class="clearfix"></div>
     <div class="pagination">

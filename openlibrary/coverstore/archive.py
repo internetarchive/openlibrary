@@ -28,14 +28,14 @@ class TarManager:
     def get_tarfile(self, name):
         id = web.numify(name)
         tarname = "covers_%s_%s.tar" % (id[:4], id[4:6])
-                
+
         # for id-S.jpg, id-M.jpg, id-L.jpg
-        if '-' in name: 
+        if '-' in name:
             size = name[len(id + '-'):][0].lower()
             tarname = size + "_" + tarname
         else:
             size = ""
-        
+
         _tarname, _tarfile, _indexfile = self.tarfiles[size.upper()]
         if _tarname != tarname:
             _tarname and _tarfile.close()
@@ -50,9 +50,9 @@ class TarManager:
         dir = os.path.dirname(path)
         if not os.path.exists(dir):
             os.makedirs(dir)
-            
+
         indexpath = path.replace('.tar', '.index')
-            
+
         if os.path.exists(path):
             return tarfile.TarFile(path, 'a'), open(indexpath, 'a')
         else:
@@ -62,14 +62,14 @@ class TarManager:
         tarinfo = tarfile.TarInfo(name)
         tarinfo.mtime = mtime
         tarinfo.size = os.stat(fileobj.name).st_size
-        
+
         tar, index = self.get_tarfile(name)
-        # tar.offset is current size of tar file. 
+        # tar.offset is current size of tar file.
         # Adding 512 bytes for header gives us the starting offset of next file.
         offset = tar.offset + 512
-        
+
         tar.addfile(tarinfo, fileobj=fileobj)
-        
+
         index.write('%s\t%s\t%s\n' % (name, offset, tarinfo.size))
         return "%s:%s:%s" % (os.path.basename(tar.name), offset, tarinfo.size)
 
@@ -82,7 +82,7 @@ idx = id
 def archive():
     """Move files from local disk to tar files and update the paths in the db."""
     tar_manager = TarManager()
-    
+
     _db = db.getdb()
 
     try:
@@ -91,41 +91,41 @@ def archive():
             id = "%010d" % cover.id
 
             print 'archiving', cover
-            
+
             files = {
                 'filename': web.storage(name=id + '.jpg', filename=cover.filename),
                 'filename_s': web.storage(name=id + '-S.jpg', filename=cover.filename_s),
                 'filename_m': web.storage(name=id + '-M.jpg', filename=cover.filename_m),
                 'filename_l': web.storage(name=id + '-L.jpg', filename=cover.filename_l),
             }
-            
+
             for d in files.values():
                 d.path = d.filename and os.path.join(config.data_root, "localdisk", d.filename)
-                    
+
             if any(d.path is None or not os.path.exists(d.path) for d in files.values()):
                 print >> web.debug, "Missing image file for %010d" % cover.id
                 continue
-            
+
             if isinstance(cover.created, basestring):
                 from infogami.infobase import utils
-                cover.created = utils.parse_datetime(cover.created)    
-            
+                cover.created = utils.parse_datetime(cover.created)
+
             timestamp = time.mktime(cover.created.timetuple())
-                
+
             for d in files.values():
                 d.newname = tar_manager.add_file(d.name, open(d.path), timestamp)
-                
+
             _db.update('cover', where="id=$cover.id",
-                archived=True, 
+                archived=True,
                 filename=files['filename'].newname,
                 filename_s=files['filename_s'].newname,
                 filename_m=files['filename_m'].newname,
                 filename_l=files['filename_l'].newname,
                 vars=locals()
             )
-        
+
             for d in files.values():
-                print 'removing', d.path            
+                print 'removing', d.path
                 os.remove(d.path)
     finally:
         #logfile.close()

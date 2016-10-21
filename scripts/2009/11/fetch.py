@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 """Fetch a document and its references recursively upto specified depth from Open Library website.
 
-USAGE: 
-    
+USAGE:
+
     Fetch an author and it's references upto depth 3
-    
+
     $ python fetch.py /authors/OL23919A
 
     Load all the fetched documents into local instance
@@ -122,14 +122,14 @@ def load():
         doc = simplejson.load(open(f))
         documents[doc['key']] = doc
 
-    keys = topological_sort(documents.keys(), 
+    keys = topological_sort(documents.keys(),
             get_children=lambda key: [k for k in get_references(documents[key]) if not k.startswith("/type/")])
 
     from openlibrary.api import OpenLibrary
     ol = OpenLibrary("http://0.0.0.0:8080")
     ol.autologin()
     print ol.save_many([documents[k] for k in keys], comment="documents copied from openlibrary.org")
-    
+
 if __name__ == "__main__":
     import sys
     if '--load' in sys.argv:

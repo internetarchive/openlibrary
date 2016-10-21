@@ -15,17 +15,17 @@ class DocumentLoader:
         params.setdefault('user', os.getenv('USER'))
         self.db = web.database(**params)
         self.db.printing = False
-        
+
     def new_work_keys(self, n):
         """Returns n new works keys."""
         return ['/works/OL%dW' % i for i in self.incr_seq('type_work_seq', n)]
-        
+
     def incr_seq(self, seqname, n):
         """Increment a sequence by n and returns the latest value of
         that sequence and returns list of n numbers.
         """
         rows = self.db.query(
-            "SELECT setval($seqname, $n + (select last_value from %s)) as value" % seqname, 
+            "SELECT setval($seqname, $n + (select last_value from %s)) as value" % seqname,
             vars=locals())
         end = rows[0].value + 1 # lastval is inclusive
         begin = end - n
@@ -58,7 +58,7 @@ class DocumentLoader:
         """Create new documents in the database without going through
         infobase.  This approach is very fast, but this can lead to
         errors in the database if the caller is not careful.
-        
+
         All records must contain "key" and "type"
         properties. "last_modified" and "created" properties are
         automatically added to all records.
@@ -74,9 +74,9 @@ class DocumentLoader:
         type_ids = self.get_thing_ids(doc['type']['key'] for doc in documents)
 
         # insert things
-        things = [dict(key=doc['key'], 
-                       type=type_ids[doc['type']['key']], 
-                       created=timestamp, 
+        things = [dict(key=doc['key'],
+                       type=type_ids[doc['type']['key']],
+                       created=timestamp,
                        last_modified=timestamp)
                   for doc in documents]
         thing_ids = self.db.multiple_insert('thing', things)
@@ -112,7 +112,7 @@ class DocumentLoader:
 
         # add versions
         versions = [dict(transaction_id=txn_id,
-                         thing_id=doc['id'],  
+                         thing_id=doc['id'],
                          revision=doc['revision'])
                     for doc in documents]
         self.db.multiple_insert('version', versions, seqname=False)
@@ -122,7 +122,7 @@ class DocumentLoader:
         # insert data
         try:
             data = [dict(thing_id=doc.pop('id'),
-                         revision=doc['revision'], 
+                         revision=doc['revision'],
                          data=simplejson.dumps(doc))
                     for doc in documents]
         except UnicodeDecodeError:
@@ -130,9 +130,9 @@ class DocumentLoader:
             raise
         self.db.multiple_insert('data', data, seqname=False)
         return result
-        
+
     def bulk_update(self, documents, author='/user/ImportBot', comment=None):
-        """Update existing documents in the database. 
+        """Update existing documents in the database.
 
         When adding new properties, it is sufficient to specify key and
         new properties.
@@ -151,7 +151,7 @@ class DocumentLoader:
         When append new value to an existing property, entire list must be provied.
 
         db.bulk_update([{
-                'key': '/a/OL1A', 
+                'key': '/a/OL1A',
                 'links': ['http://en.wikipedia.org/wiki/Foo', 'http://de.wikipedia.org/wiki/Foo']
             }, comment="add german wikipedia links")
 
@@ -166,13 +166,13 @@ class DocumentLoader:
         keys = [doc['key'] for doc in documents]
 
         # update latest_revision and last_modified in thing table
-        self.db.query("UPDATE thing" + 
-                      " SET last_modified=$timestamp, latest_revision=latest_revision+1" + 
+        self.db.query("UPDATE thing" +
+                      " SET last_modified=$timestamp, latest_revision=latest_revision+1" +
                       " WHERE key IN $keys",
                       vars=locals())
 
         # fetch the current data
-        rows = self.db.query("SELECT thing.id, thing.key, thing.created, thing.latest_revision, data.data" + 
+        rows = self.db.query("SELECT thing.id, thing.key, thing.created, thing.latest_revision, data.data" +
                              " FROM thing, data" +
                              " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision-1 and thing.key in $keys",
                              vars=locals())
@@ -186,7 +186,7 @@ class DocumentLoader:
             """
             r = rows[doc['key']]
             d = simplejson.loads(r.data)
-            d.update(doc, 
+            d.update(doc,
                      revision=r.latest_revision,
                      latest_revision=r.latest_revision,
                      last_modified=last_modified,
@@ -216,8 +216,8 @@ class Reindexer:
         import openlibrary.plugins.openlibrary.schema
         self.schema = openlibrary.plugins.openlibrary.schema.get_schema()
         self.noindex = set(["id", "key", "type", "type_id",
-                       "revision", "latest_revision", 
-                       "created", "last_modified", 
+                       "revision", "latest_revision",
+                       "created", "last_modified",
                        "permission", "child_permission"])
         self._property_cache = {}
 
@@ -227,7 +227,7 @@ class Reindexer:
         If tables is specified, index is recomputed only for those tables and other tables are ignored.
         """
         t = self.db.transaction()
-        
+
         try:
             documents = self.get_documents(keys)
             self.delete_earlier_index(documents, tables)
@@ -241,12 +241,12 @@ class Reindexer:
     def get_documents(self, keys):
         """Get documents with given keys from database and add "id" and "type_id" to them.
         """
-        rows = self.db.query("SELECT thing.id, thing.type, data.data" + 
+        rows = self.db.query("SELECT thing.id, thing.type, data.data" +
                              " FROM thing, data" +
                              " WHERE data.thing_id=thing.id AND data.revision=thing.latest_revision and thing.key in $keys",
                              vars=locals())
 
-        documents = [dict(simplejson.loads(row.data), 
+        documents = [dict(simplejson.loads(row.data),
                           id=row.id,
                           type_id=row.type)
                      for row in rows]
@@ -265,11 +265,11 @@ class Reindexer:
 
         for table, thing_ids in data.items():
             self.db.delete(table, where="thing_id IN $thing_ids", vars=locals())
-    
+
     def create_new_index(self, documents, tables=None):
         """Insert data in to index tables for the specified documents."""
         data = defaultdict(list)
-        
+
         def insert(doc, name, value, ordering=None):
             # these are present in thing table. No need to index these keys
             if name in ["id", "type", "created", "last_modified", "permission", "child_permission"]:
@@ -326,7 +326,7 @@ class Reindexer:
             rows.append(
                 dict(thing_id=thing_id,
                      key_id=self.get_property_id(type_id, name),
-                     value=value, 
+                     value=value,
                      ordering=ordering))
 
     def process_refs(self, data):
@@ -340,7 +340,7 @@ class Reindexer:
             return
 
         thing_ids = dict((r.key, r.id) for r in self.db.query(
-                "SELECT id, key FROM thing WHERE key in $keys", 
+                "SELECT id, key FROM thing WHERE key in $keys",
                 vars=locals()))
 
         for table, rows in data.items():
@@ -385,18 +385,18 @@ class Reindexer:
 def _test():
     loader = DocumentLoader(db='ol')
     loader.db.printing = True
-    
+
     n = 2
 
     print loader.bulk_new([dict(
-                key="/b/OL%dM" % i, 
-                title="book %d" % i, 
-                type={"key": "/type/edition"}, 
+                key="/b/OL%dM" % i,
+                title="book %d" % i,
+                type={"key": "/type/edition"},
                 table_of_contents=[{"type": {"key": "/type/toc_item"}, "class": "part", "label": "test", "title": "test", "pagenum": "10"}])
-            for i in range(1, n+1)], 
+            for i in range(1, n+1)],
         comment="add books")
-    
+
     loader.reindex(["/b/OL%dM" % i for i in range(1, n+1)])
-    
+
 if __name__ == "__main__":
     _test()

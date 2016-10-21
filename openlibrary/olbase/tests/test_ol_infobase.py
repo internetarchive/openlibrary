@@ -6,7 +6,7 @@ class TestOLIndexer:
         assert indexer.normalize_isbn("123456789X") == "123456789X"
         assert indexer.normalize_isbn("123-456-789-X") == "123456789X"
         assert indexer.normalize_isbn("123-456-789-X ") == "123456789X"
-        
+
     def test_expand_isbns(self):
         indexer = OLIndexer()
         assert indexer.expand_isbns([]) == []

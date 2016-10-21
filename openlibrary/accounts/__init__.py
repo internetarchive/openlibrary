@@ -27,15 +27,15 @@ def find(username=None, lusername=None, email=None):
             return web.ctx.site.store.values(type="account", name=name, value=value, limit=1)[0]
         except IndexError:
             return None
-    
+
     if username:
         doc = web.ctx.site.store.get("account/" + username)
     elif lusername:
         doc = query("lusername", lusername)
     elif email:
-        # the email stored in account doc is case-sensitive. 
-        # The lowercase of email is used in the account-email document. 
-        # querying that first and taking the username from there to make 
+        # the email stored in account doc is case-sensitive.
+        # The lowercase of email is used in the account-email document.
+        # querying that first and taking the username from there to make
         # the email search case-insensitive.
         #
         # There are accounts with case-variation of emails. To handle those,
@@ -44,7 +44,7 @@ def find(username=None, lusername=None, email=None):
         doc = email_doc and web.ctx.site.store.get("account/" + email_doc['username'])
     else:
         doc = None
-        
+
     return doc and Account(doc)
 
 def register(username, email, password, displayname):

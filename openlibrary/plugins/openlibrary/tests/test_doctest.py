@@ -10,5 +10,5 @@ def test_doctest():
 
 def do_doctest(mod):
     doctest.testmod(mod)
-        
+
 

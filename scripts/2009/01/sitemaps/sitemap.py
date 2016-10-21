@@ -1,7 +1,7 @@
 """Script to generate XML sitemap of openlibrary.org website.
 
 USAGE:
-    
+
     python sitemaps.py suffix dump.txt.gz
 """
 
@@ -61,7 +61,7 @@ def process_dump(dumpfile):
             title = doc.get('name', 'unnamed')
         else:
             title = doc.get('title', 'untitled')
-        
+
         path = key + "/" + h.urlsafe(title.strip())
         """
         path = key
@@ -149,7 +149,7 @@ def main(dumpfile):
     system("sort -S%dM sitemaps_data.txt > sitemaps_data.txt.sorted" % sort_mem)
 
     log("generating sitemaps")
-    generate_sitemaps("sitemaps_data.txt.sorted") 
+    generate_sitemaps("sitemaps_data.txt.sorted")
     generate_siteindex()
 
     log("done")

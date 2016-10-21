@@ -19,7 +19,7 @@ def query_authors(lastname, firstname, birth_date):
     if not birth_date:
         logger.info("%s, no matches found.", (lastname, firstname, birth_date))
         return
-    url = base_url + "?" + urllib.urlencode({"q": "%s %s birth_date:%s" % (lastname, firstname, birth_date)}) 
+    url = base_url + "?" + urllib.urlencode({"q": "%s %s birth_date:%s" % (lastname, firstname, birth_date)})
     json = urllib.urlopen(url).read()
     data = simplejson.loads(json)
     n = data['numFound']
@@ -30,7 +30,7 @@ def query_authors(lastname, firstname, birth_date):
         logger.info("queried for %s, found %s duplicates. %s", (lastname, firstname, birth_date), n, url.replace(".json", ""))
     else:
         logger.info("queried for %s, no matches found.", (lastname, firstname, birth_date))
-    
+
 def read(filename):
     rows = csv.reader(open(filename))
     cols = [c.strip() for c in rows.next()]

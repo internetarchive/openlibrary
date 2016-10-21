@@ -14,9 +14,9 @@ $var title: $("Log In")
 
 <div id="contentBody">
     <form id="register" class="login olform" name="register" method="post">
-        
+
         $if form.note:
-            <div class="note">$form.note</div>        
+            <div class="note">$form.note</div>
 
         <div class="formElement">
             <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
@@ -26,7 +26,7 @@ $var title: $("Log In")
                 <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
-    
+
         <div class="formElement">
             <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
             <div class="input">

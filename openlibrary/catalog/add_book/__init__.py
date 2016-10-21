@@ -35,14 +35,14 @@ from time import sleep
 from openlibrary import accounts
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
- 
+
 # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
 def strip_accents(s):
     if isinstance(s, str):
         return s
     assert isinstance(s, unicode)
     return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
- 
+
 def normalize(s): # strip non-alphanums and truncate at 25 chars
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
@@ -70,7 +70,7 @@ bad_titles = set(('Publications', 'Works. English', 'Missal', 'Works', 'Report',
     'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
     'The Novels', 'Laws, etc'))
 
-subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ] 
+subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ]
 
 def get_title(e):
     if not e.get('work_titles'):
@@ -235,7 +235,7 @@ def find_match(e1, edition_pool):
 
 def build_pool(rec):
     pool = defaultdict(set)
-    
+
     ## Find records with matching title
     assert isinstance(rec.get('title'), basestring)
     q = {
@@ -247,7 +247,7 @@ def build_pool(rec):
     q['title'] = rec['title']
     del q['normalized_title_']
     pool['title'].update(web.ctx.site.things(q))
-    
+
     ## Find records with matching ISBNs
     isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
     isbns = [isbn.replace("-", "").strip() for isbn in isbns] # strip hyphens
@@ -256,7 +256,7 @@ def build_pool(rec):
         keys = web.ctx.site.things({"isbn_": isbns, 'type': '/type/edition'})
         if keys:
             pool['isbn'] = set(keys)
-    
+
     ## Find records with matching oclc_numbers and lccn
     for field in 'oclc_numbers', 'lccn':
         values = rec.get(field, [])
@@ -364,7 +364,7 @@ def find_exact_match(rec, edition_pool):
 def add_cover(cover_url, ekey):
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
-    upload_url = coverstore_url + '/b/upload2' 
+    upload_url = coverstore_url + '/b/upload2'
     if upload_url.startswith("//"):
         upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
     user = accounts.get_current_user()
@@ -410,7 +410,7 @@ def load(rec):
         raise RequiredField('source_records')
     if isinstance(rec['source_records'], basestring):
         rec['source_records'] = [rec['source_records']]
-   
+
     edition_pool = build_pool(rec)
     if not edition_pool:
         return load_data(rec) # 'no books in pool, loading'

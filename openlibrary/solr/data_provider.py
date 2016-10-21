@@ -55,7 +55,7 @@ class DataProvider:
         raise NotImplementedError()
 
     def get_editions_of_work(self, work):
-        raise NotImplementedError()        
+        raise NotImplementedError()
 
 class LegacyDataProvider(DataProvider):
     def __init__(self):
@@ -77,7 +77,7 @@ class LegacyDataProvider(DataProvider):
 
     def get_metadata(self, identifier):
         logger.info("find_metadata %s", identifier)
-        return ia.get_metadata(identifier) 
+        return ia.get_metadata(identifier)
 
     def get_document(self, key):
         logger.info("get_document %s", key)
@@ -109,7 +109,7 @@ class BetterDataProvider(LegacyDataProvider):
     def get_metadata(self, identifier):
         """Alternate implementation of ia.get_metadata() that uses IA db directly.
         """
-        logger.info("get_metadata %s", identifier)        
+        logger.info("get_metadata %s", identifier)
         self.preload_metadata([identifier])
         if self.metadata_cache.get(identifier):
             d = web.storage(self.metadata_cache[identifier])
@@ -128,12 +128,12 @@ class BetterDataProvider(LegacyDataProvider):
 
         fields = ('identifier, boxid, isbn, ' +
                   'title, description, publisher, creator, ' +
-                  'date, collection, ' + 
+                  'date, collection, ' +
                   'repub_state, mediatype, noindex')
 
         rows = self.ia_db.select('metadata',
-            what=fields, 
-            where='identifier IN $identifiers', 
+            what=fields,
+            where='identifier IN $identifiers',
             vars=locals())
 
         for row in rows:

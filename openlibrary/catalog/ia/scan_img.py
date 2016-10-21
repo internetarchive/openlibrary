@@ -104,7 +104,7 @@ def find_img(item_id):
     (cover, title) = parse_scandata_xml(scandata)
     return {
         'item_id': item_id,
-        'ia_host': ia_host, 
+        'ia_host': ia_host,
         'ia_path': ia_path,
         'cover': cover,
         'title': title
@@ -114,7 +114,7 @@ def test_find_img():
     flatland ='flatlandromanceo00abbouoft'
     ret = find_img(flatland)
     assert ret['item_id'] == 'flatlandromanceo00abbouoft'
-    assert ret['cover'] == 1 
+    assert ret['cover'] == 1
     assert ret['title'] == 7
 
 def test_find_img2():

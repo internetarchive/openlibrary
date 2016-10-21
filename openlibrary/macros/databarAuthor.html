@@ -1,7 +1,7 @@
 $def with (page)
 
 <div id="Tools" class="collapse">
-$if ctx.user: 
+$if ctx.user:
     $if "lists" in ctx.features:
         <!-- IF ON LIST -->
         <div class="dropit">
@@ -10,18 +10,18 @@ $if ctx.user:
         </div>
         <!-- IF NOT ON LIST -->
         <div class="dropit">
-            <div class="icon list"></div> 
+            <div class="icon list"></div>
             <div class="dropper on">
                 <a href="javascript:;" class="dropclick plain">
                     <h3>Add to list</h3>
                     <div class="arrow"></div>
                 </a>
                 <div class="dropdown">
-                    <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p> 
-                    <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p> 
+                    <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p>
+                    <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p>
                     <p><a href="javascript:;" class="listClick">Create a new list</a></p>
-                </div> 
-            </div> 
+                </div>
+            </div>
         </div>
         <div class="hidden">
             <div class="floaterAdd" id="addList">

@@ -315,7 +315,7 @@ def read_author_person(f):
 
 # 1. if authors in 100, 110, 111 use them
 # 2. if first contrib is 710 or 711 use it
-# 3. if 
+# 3. if
 
 def person_last_name(f):
     v = list(f.get_subfield_values('a'))[0]
@@ -469,7 +469,7 @@ def read_contributions(rec):
         fields = rec.get_fields(tag)
         for f in fields:
             skip_authors.add(tuple(f.get_all_subfields()))
-    
+
     if not skip_authors:
         for tag, f in rec.read_fields(['700', '710', '711', '720']):
             f = rec.decode_field(f)
@@ -491,7 +491,7 @@ def read_contributions(rec):
                 skip_authors.add(tuple(f.get_subfields(want[tag])))
                 break
 
-    for tag, f in rec.read_fields(['700', '710', '711', '720']): 
+    for tag, f in rec.read_fields(['700', '710', '711', '720']):
         sub = want[tag]
         cur = tuple(rec.decode_field(f).get_subfields(sub))
         if tuple(cur) in skip_authors:

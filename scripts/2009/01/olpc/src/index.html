@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>OLPC Bookreader Demo</title>
-    
+
     <link href="js/carousel.css" rel="stylesheet" type="text/css">
     <link href="js/yui.css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" type="text/css" media="screen,projection,print" href="js/jquery.cluetip.css" />
@@ -10,11 +10,11 @@
     <script type="text/javascript" src="js/jquery-1.2.6.min.js"></script>
     <script type="text/javascript" src="GnuBook/GnuBook.js"></script>
     <script type="text/javascript" src="js/jquery.easing.1.3.js"></script>
-    <script type="text/javascript" src="js/yui.js"></script> 
+    <script type="text/javascript" src="js/yui.js"></script>
     <script type="text/javascript" src="js/carousel.js"></script>
     <script type="text/javascript" src="js/jquery.tiptoe.js">
 
-    <script type="text/javascript" src="js/jquery.hoverIntent.js"></script> 
+    <script type="text/javascript" src="js/jquery.hoverIntent.js"></script>
     <script type="text/javascript" src="js/jquery.cluetip.js"></script>
     <script type="text/javascript" src="js/toggle.js"></script>
     <script type="text/javascript" src="js/books.js"></script>
@@ -34,32 +34,32 @@
 
 
 
-<!-- 
+<!--
 	Inlined styles for my overrides to the carousel for this demo.
 	Normally I would put this in a separate CSS file.
 -->
 <style type="text/css">
-.carousel-component { 
+.carousel-component {
 	padding:0px 2px 2px 2px;
 	margin:0px;
 	width:200px; /* seems to be needed for safari */
 }
 
-.carousel-component .carousel-list li { 
+.carousel-component .carousel-list li {
 	margin:0px;
-	padding:2px;	
-	width:182px; 
+	padding:2px;
+	width:182px;
 }
 
 /* Applies only to vertical carousels */
-.carousel-component .carousel-vertical li { 
+.carousel-component .carousel-vertical li {
 	margin-bottom:0px;
 	padding: 0px 0px 4px 0px;
 	font-family: Georgia, san-serif;
 	font-size: 14px;
 }
 
-.carousel-component .carousel-list li a { 
+.carousel-component .carousel-list li a {
 	display:block;
 	border:1px solid #e2edfa;
 	outline:none;
@@ -67,27 +67,27 @@
 	text-decoration: none;
 }
 
-.carousel-component .carousel-list li a:hover { 
+.carousel-component .carousel-list li a:hover {
 	border: 1px solid #aaaaaa;
 	background-color: #fff;
 	color: #2e2e24;
 	text-decoration: underline;
 }
 
-.carousel-component .carousel-list li img { 
-	display:block; 
+.carousel-component .carousel-list li img {
+	display:block;
 	color: #2b4c5b;
 	text-decoration: none;
 	border: 1px solid #2e2e24;
 }
-									
-#up-arrow { 
-	cursor:pointer; 
+
+#up-arrow {
+	cursor:pointer;
 	margin-top:10px;
 }
 
-#down-arrow { 
-	cursor:pointer; 
+#down-arrow {
+	cursor:pointer;
 	margin-top:2px;
 	margin-bottom: 20px;
 }
@@ -100,9 +100,9 @@ var lastRan = -1;
 
 
 var carousel; // for ease of debugging; globals generally not a good idea
-var pageLoad = function() 
+var pageLoad = function()
 {
-	carousel = new YAHOO.extension.Carousel("dhtml-carousel", 
+	carousel = new YAHOO.extension.Carousel("dhtml-carousel",
 		{
 			numVisible:        2,
 			animationSpeed:    0.25,

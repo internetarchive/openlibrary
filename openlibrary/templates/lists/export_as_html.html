@@ -15,7 +15,7 @@ $def with (list, editions)
                 $ authors = book.works[0].get_authors()
             $else:
                 $ authors = book.get_authors()
-            
+
             $if authors:
                 $for a in authors:
                     <a href="$request.home$a.url()">$a.name</a>$cond(not loop.last, ", ")
@@ -25,11 +25,11 @@ $def with (list, editions)
     <ul>
     $for book in editions:
         <li>
-            <h3 class="title"> 
-                <a href="$request.home$book.url()">$book.get('title', 'Title unknown')</a> 
-            </h3> 
+            <h3 class="title">
+                <a href="$request.home$book.url()">$book.get('title', 'Title unknown')</a>
+            </h3>
             by $:render_authors(book)
-            
+
             <div class="published">
                 $if book.publishers and book.publish_date:
                     $book.publish_date, $(', '.join(book.publishers))

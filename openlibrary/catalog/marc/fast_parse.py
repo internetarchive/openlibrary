@@ -210,7 +210,7 @@ def get_contents(line, want):
     return contents
 
 def get_lower_subfields(line, is_marc8=False):
-    if len(line) < 4: 
+    if len(line) < 4:
         return [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2479215:693
     return [translate(i[1:], is_marc8) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
 
@@ -340,7 +340,7 @@ def index_fields(data, want, check_author=True):
             continue
         if tag == '020' and re_real_book.search(line):
             is_real_book = True
-        if tag == '260': 
+        if tag == '260':
             if line.find('\x1fh[sound') != -1: # sound recording
                 return None
             continue
@@ -405,7 +405,7 @@ def read_edition(data, accept_electronic=False):
             continue
         if tag == '008': # not interested in '19uu' for merge
             #assert len(line) == 41 usually
-            if line[7:11].isdigit(): 
+            if line[7:11].isdigit():
                 edition['publish_date'] = line[7:11]
             edition['publish_country'] = line[15:18]
             continue

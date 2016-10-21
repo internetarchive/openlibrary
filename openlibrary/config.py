@@ -25,7 +25,7 @@ def load_config(config_file):
     """Loads the config file.
 
     The loaded config will be available via infogami.config.
-    """    
+    """
     infogami.load_config(config_file)
     setup_infobase_config(config_file)
 
@@ -39,6 +39,6 @@ def setup_infobase_config(config_file):
     if config.get("infobase_config_file"):
         dir = os.path.dirname(config_file)
         path = os.path.join(dir, config.infobase_config_file)
-        config.infobase = yaml.safe_load(open(path).read())  
+        config.infobase = yaml.safe_load(open(path).read())
     else:
         config.infobase = {}

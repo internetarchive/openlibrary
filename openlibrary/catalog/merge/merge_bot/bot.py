@@ -31,8 +31,8 @@ def list_to_html(l):
 
 def as_html(x):
     return list_to_html(x) if isinstance(x, list) else x
- 
-class index:        
+
+class index:
     def head(self, title):
         style = '''
 body { font-family: Arial,Helvectica,Sans-serif }

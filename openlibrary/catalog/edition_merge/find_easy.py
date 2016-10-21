@@ -31,7 +31,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
         continue
     ekeys = ['/books/OL%dM' % x for x in sorted(int(re_edition_key.match(ekey).group(1)) for ekey in ekeys.split(' '))]
     min_ekey = ekeys[0]
-    
+
     if len(ekeys) > 3:
         print ia, ekeys
     editions = [ol.get(ekey) for ekey in ekeys]

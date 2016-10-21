@@ -51,7 +51,7 @@ def add_title(prefix_len, subtags):
         title_and_subtitle.append(v)
         if k == 'a':
             title.append(v)
-    
+
     titles = [' '.join(title)]
     if title != title_and_subtitle:
         titles.append(' '.join(title_and_subtitle))

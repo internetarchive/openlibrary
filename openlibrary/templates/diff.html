@@ -6,7 +6,7 @@ $putctx("robots", "noindex,nofollow")
 
 <div id="contentHead">
 
-    $:macros.databarDiff() 
+    $:macros.databarDiff()
 
     $if a.type.key in ["/type/edition", "/type/work", "/type/page"]:
         $ title = a.title or a.key
@@ -15,7 +15,7 @@ $putctx("robots", "noindex,nofollow")
     $else:
         $ title = a.key
 
-    <h2 class="collapse"><a href="$a.key">$title</a> &rarr; Diff</h2>  
+    <h2 class="collapse"><a href="$a.key">$title</a> &rarr; Diff</h2>
 
     <div id="legend">
        <dl>
@@ -25,7 +25,7 @@ $putctx("robots", "noindex,nofollow")
            <dd class="unmod">$_("Not changed")</dd>
        </dl>
     </div>
-          
+
 </div>
 
 $def display_revision(page):
@@ -51,7 +51,7 @@ $def diff_covers(p, a, b):
                     <img src="$get_coverstore_url()/b/id/$img-M.jpg"/>
             </td>
         </tr>
-        
+
 $def listdiff(name, a, b):
     $ diffresults = better_diff(a or [], b or [])
     <tr>
@@ -70,7 +70,7 @@ $def listdiff(name, a, b):
         </table>
         </td>
     </tr>
-    
+
 $def diff_display(name, value):
     $if isinstance(value, basestring):
         $value
@@ -95,14 +95,14 @@ $def diff_display(name, value):
         <colgroup class="l"><col class="line" /><col class="content" /></colgroup>
         <colgroup class="r"><col class="line" /><col class="content" /></colgroup>
         <thead>
-            <tr> 
+            <tr>
                 <th></th>
                 <th style="width: 40%">$:display_revision(a)</th>
                 <th style="width: 40%">$:display_revision(b)</th>
             </tr>
         </thead>
         <tbody>
-            
+
         $code:
             def find_diff(a, b, p):
                 label = p
@@ -122,7 +122,7 @@ $def diff_display(name, value):
                     ap = a[p]
                     bp = b[p]
                     t = get_expected_type(a, p)
-                    
+
                 if isinstance(ap, list) or isinstance(bp, list):
                     if ap == bp:
                         return ""
@@ -134,15 +134,15 @@ $def diff_display(name, value):
                     if is_thing(bp):
                         bp = bp.dict()
                 return thingdiff(t, label, ap, bp)
-        
+
         $ diff_count = 0
-        
+
         $for p in set(a.keys() + b.keys()):
             $ diff = find_diff(a, b, p)
             $if not isinstance(diff, (str, unicode)) and hasattr(diff, "next"):
                 $ diff = u"".join(text for _x, text in diff)
-            
-            $if isinstance(diff, (str, unicode)):    
+
+            $if isinstance(diff, (str, unicode)):
                 $ diff = diff and diff.strip()
             $if diff:
                 $:diff
@@ -153,6 +153,6 @@ $def diff_display(name, value):
             </tr>
         </tbody>
     </table>
-       
+
 
 </div>

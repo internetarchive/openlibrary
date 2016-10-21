@@ -159,8 +159,8 @@ class TestInvalidationProcessor:
         p(lambda: None)
 
         assert self.cookie == {
-            "name": "invalidation_cookie", 
-            "expires": p.expire_time, 
+            "name": "invalidation_cookie",
+            "expires": p.expire_time,
             "value": web.ctx.site.get("/templates/site.tmpl").last_modified.isoformat()
         }
 

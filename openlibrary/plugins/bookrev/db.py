@@ -21,11 +21,11 @@ def insert_backreference(type_name, prop_name, ref_type_name, ref_prop_name):
 
     type = get_type(type_name)
 
-    def create_backreference(): 
+    def create_backreference():
         d = {'type': get_type(ref_type_name), 'property_name': ref_prop_name}
-        return db._get_thing(type, 
-                             prop_name, 
-                             get_type('type/backreference'), 
+        return db._get_thing(type,
+                             prop_name,
+                             get_type('type/backreference'),
                              d)
 
     type.backreferences = type.get('backreferences', [])
@@ -61,7 +61,7 @@ def insert_book_review(edition, user, review_source, text, title=None):
 
 def get_review_source(name, description='', create=True):
     type = get_type('type/reviewsource')
-    rs = get_thing(name, type) 
+    rs = get_thing(name, type)
     if not rs and create:
         site = get_site()
         rs = tdb.new(name, site, type, d=None)

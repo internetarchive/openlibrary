@@ -18,16 +18,16 @@ logger = logging.getLogger("openlibrary.olbase")
 
 def setup():
     setup_event_listener()
-    
+
 def setup_event_listener():
     logger.info("setting up infobase events for Open Library")
-    
+
     ol = server.get_site('openlibrary.org')
     ib = server._infobase
 
     # Convert infobase event into generic eventer event
     ib.add_event_listener(lambda event: eventer.trigger("infobase.all", event))
-    
+
 @eventer.bind("infobase.all")
 def trigger_subevents(event):
     """Trigger infobase.edit event for edits.
@@ -38,9 +38,9 @@ def trigger_subevents(event):
         author = changeset['author'] or changeset['ip']
         keys = [c['key'] for c in changeset['changes']]
         logger.info("Edit by %s, changeset_id=%s, changes=%s", author, changeset["id"], keys)
-        
+
         eventer.trigger("infobase.edit", changeset)
-    
+
 @eventer.bind("infobase.edit")
 def invalidate_memcache(changeset):
     """Invalidate memcache entries effected by this change.
@@ -64,22 +64,22 @@ class MemcacheInvalidater:
             self.find_edition_counts,
             self.find_libraries
         ]
-        
-        keys = set()        
+
+        keys = set()
         for m in methods:
             keys.update(m(changeset))
         return list(keys)
-        
+
     def find_data(self, changeset):
         """Returns the data entries effected by this change.
-        
+
         The data entry stores the history, lists and edition_count of a page.
         """
         return ["d" + c['key'] for c in changeset['changes']]
-        
+
     def find_lists(self, changeset):
         """Returns the list entires effected by this change.
-        
+
         When a list is modified, the data of the user and the data of each
         seed are invalidated.
         """
@@ -91,13 +91,13 @@ class MemcacheInvalidater:
                 yield "d" + match.group(1) # d/users/foo
                 for seed in doc.get('seeds', []):
                     yield "d" + self.seed_to_key(seed)
-        
+
     def find_edition_counts(self, changeset):
         """Returns the edition_count entries effected by this change."""
         docs = changeset['docs'] + changeset['old_docs']
-        return set(k for doc in docs 
+        return set(k for doc in docs
                      for k in self.find_edition_counts_for_doc(doc))
-    
+
     def find_edition_counts_for_doc(self, doc):
         """Returns the memcache keys to be invalided for edition_counts effected by editing this doc.
         """
@@ -105,7 +105,7 @@ class MemcacheInvalidater:
             return ["d" + w['key'] for w in doc.get("works", [])]
         else:
             return []
-            
+
     def find_libraries(self, changeset):
         """When any of the library page is changed, invalidate all library entries.
         """
@@ -113,10 +113,10 @@ class MemcacheInvalidater:
             return ['inlibrary.libraries-hash', 'inlibrary.libraries']
         else:
             return []
-            
+
     def seed_to_key(self, seed):
         """Converts seed to key.
-        
+
             >>> seed_to_key({"key": "/books/OL1M"})
             "/books/OL1M"
             >>> seed_to_key("subject:love")
@@ -129,8 +129,8 @@ class MemcacheInvalidater:
         elif seed.startswith("subject:"):
             return "/subjects/" + seed[len("subject:"):]
         else:
-            return "/subjects/" + seed    
-    
+            return "/subjects/" + seed
+
 @web.memoize
 def get_memcache():
     """Returns memcache client created from infobase configuration.

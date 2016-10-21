@@ -28,7 +28,7 @@ class Stats:
             self.total = (x for x in reversed(docs) if total_key in x).next()[total_key]
         except (KeyError, StopIteration):
             self.total = ""
-                
+
     def get_counts(self, ndays = 28, times = False):
         """Returns the stats for last n days as an array useful for
         plotting. i.e. an array of [x, y] tuples where y is the value
@@ -48,10 +48,10 @@ class Stats:
         else:
             return zip(range(0, ndays*5, 5),
                        (x.get(self.key, 0) for x in self.docs[-ndays:])) # The *5 and 5 are for the bar widths
-        
+
     def get_summary(self, ndays = 28):
         """Returns the summary of counts for past n days.
-        
+
         Summary can be either sum or average depending on the type of stats.
         This is used to find counts for last 7 days and last 28 days.
         """
@@ -60,7 +60,7 @@ class Stats:
 @cache.memoize(engine="memcache", key="admin._get_count_docs", expires=5*60)
 def _get_count_docs(ndays):
     """Returns the count docs from admin stats database.
-    
+
     This function is memoized to avoid accessing the db for every request.
     """
     today = datetime.datetime.utcnow().date()

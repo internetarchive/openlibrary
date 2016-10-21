@@ -30,12 +30,12 @@ $if "type" in doc and doc.type.key == "/type/user":
                             .dialog('open');
                         return false;
                     });
-                
+
                 \$("#delete-dialog").ol_confirm_dialog(function(){
                     var list_id = "#" + \$(this).data("list-id");
                     var key = \$(list_id + " a:first").attr("href");
                     var dialog = this;
-                
+
                     \$.post(key + "/delete.json", function() {
                         \$(list_id).remove();
                         \$(dialog).dialog("close");
@@ -59,21 +59,21 @@ $else:
                     .dialog('open');
                 return false;
             });
-        
+
             \$("#remove-dialog").ol_confirm_dialog(function() {
                 var seed = $:json_encode(seed);
                 var list_id = "#" + \$(this).data("list-id");
                 var key = \$(list_id + " a:first").attr("href");
-                
+
                 var dialog = this;
-                
+
                 remove_seed(key, seed, function() {
                     \$(list_id).remove();
                     \$(dialog).dialog("close");
                 });
             });
         });
-        
+
         function remove_seed(list_key, seed, success) {
             \$.ajax({
                 type: "POST",
@@ -93,10 +93,10 @@ $else:
         }
     </script>
     <div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$header.title</strong> from this list?</div>
-    
+
 <div id="contentBody">
     $if lists:
-        <ul id="listResults" class="wide"> 
+        <ul id="listResults" class="wide">
             $for list in lists:
                 <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
         </ul>

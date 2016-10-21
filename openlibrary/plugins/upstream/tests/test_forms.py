@@ -4,7 +4,7 @@ from .. import spamcheck
 class TestRegister:
     def test_leaks(self):
         f = forms.Register()
-        assert f.displayname.value is None 
+        assert f.displayname.value is None
         f.displayname.value = 'Foo'
 
         f = forms.Register()
@@ -21,5 +21,5 @@ class TestRegister:
             'email': 'foo@example.com',
             'email2': 'foo@example.com',
             'password': 'foo123'
-        } 
+        }
         assert f.validates(d)

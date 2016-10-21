@@ -68,8 +68,8 @@ def run_for_day(d):
     cmd = subprocess.Popen(count, stdin = cmd.stdout, stdout = subprocess.PIPE)
     val = cmd.stdout.read()
     return dict (visitors = int(val))
-    
-    
+
+
 def main(config):
     admin_db = connect_to_couch(config)
     current = datetime.datetime.now()

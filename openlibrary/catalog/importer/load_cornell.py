@@ -18,7 +18,7 @@ from olapi import OpenLibrary, unmarshal
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', rc['ImportBot'])
 
 db_amazon = web.database(dbn='postgres', db='amazon')
 db_amazon.printing = False

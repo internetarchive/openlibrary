@@ -18,7 +18,7 @@ def url(**params):
         return True
     else:
         return False
-    
+
 def loggedin(**kw):
     """Returns True if any user is logged in.
     """

@@ -68,9 +68,9 @@ def dates_not_close(d1, d2):
     return abs(death1 - death2) >= 10
 
 def test_dates_not_close():
-    assert dates_not_close('1825-1899', '1804-1849') 
+    assert dates_not_close('1825-1899', '1804-1849')
     assert not dates_not_close(u'1907-2003', u'1909-')
-    assert not dates_not_close('1825-1899', '1826-1898') 
+    assert not dates_not_close('1825-1899', '1826-1898')
 
 def combinations(iterable, r):
     # combinations('ABCD', 2) --> AB AC AD BC BD CD
@@ -431,7 +431,7 @@ def read_people(people):
                 break
         if not c or c.lower() != 'family':
             continue
-        new = tuple((k, v + ' family' if k == 'a' else v) for k, v in p if k != 'c') 
+        new = tuple((k, v + ' family' if k == 'a' else v) for k, v in p if k != 'c')
         if new in found:
             found[new] += found.pop(p)
             marc_alt[p] = new
@@ -560,11 +560,11 @@ def read_file(filename):
 
 def test_accents():
     lines = [
-        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'], 
-        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'], 
-        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'], 
-        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'], 
-        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'], 
+        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'],
+        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'],
+        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'],
+        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'],
+        ['00\x1faB\xe5adar\xe5aya\xf2na.\x1ftBrahmas\xe5utra.\x1e'],
         ['00\x1faB\xe5adar\xe5ayana.\x1ftBrahmas\xe5utra.\x1e']
     ]
     a, b = read_people(lines)
@@ -573,10 +573,10 @@ def test_accents():
 
 def test_same_name_one_date_missing():
     lines = [
-        ['10\x1faAbedin, Zainul\x1fxCriticism and interpretation.\x1e'], 
+        ['10\x1faAbedin, Zainul\x1fxCriticism and interpretation.\x1e'],
         ['10\x1faAbedin, Zainul,\x1fd1914-1976\x1fxCriticism and interpretation.\x1e'],
 
-        ['10\x1faAbedin, Zainul\x1fxCriticism and interpretation.\x1e'], 
+        ['10\x1faAbedin, Zainul\x1fxCriticism and interpretation.\x1e'],
         ['10\x1faAbedin, Zainul,\x1fd1914-1976\x1fxCriticism and interpretation.\x1e']
     ]
     a, b = read_people(lines)
@@ -629,7 +629,7 @@ def test_question_date():
 
 def test_pope_sixtus():
     lines = [
-        ['00\x1faSixtus\x1fbV,\x1fcPope,\x1fd1521-1590.\x1e'], 
+        ['00\x1faSixtus\x1fbV,\x1fcPope,\x1fd1521-1590.\x1e'],
         ['04\x1faSixtus\x1fbV,\x1fcPope.\x1e'],
         ['00\x1faSixtus\x1fbV,\x1fcPope,\x1fd1520-1590.\x1e']
     ]
@@ -923,8 +923,8 @@ def test():
 
 def test_same_name_different_dates():
     lines = [
-        ['10\x1faStrauss, Johann,\x1fd1825-1899.\x1e', '10\x1faStrauss, Johann,\x1fd1804-1849.\x1e'], 
-        ['10\x1faStrauss, Johann,\x1fd1825-1899.\x1e', '10\x1faStrauss, Johann,\x1fd1804-1849.\x1e'], 
+        ['10\x1faStrauss, Johann,\x1fd1825-1899.\x1e', '10\x1faStrauss, Johann,\x1fd1804-1849.\x1e'],
+        ['10\x1faStrauss, Johann,\x1fd1825-1899.\x1e', '10\x1faStrauss, Johann,\x1fd1804-1849.\x1e'],
         ['10\x1faStrauss, Johann,\x1fd1825-1899.\x1e', '10\x1faStrauss, Johann,\x1fd1804-1849.\x1e']
     ]
     a, b = read_people(lines)

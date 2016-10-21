@@ -140,8 +140,8 @@ class addbook(delegate.page):
         i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
 
         if spamcheck.is_spam(i):
-            return render_template("message.html", 
-                "Oops", 
+            return render_template("message.html",
+                "Oops",
                 'Something went wrong. Please try again later.')
 
         if not web.ctx.site.get_user():
@@ -622,8 +622,8 @@ class book_edit(delegate.page):
         if not work:
             # HACK: create dummy work when work is not available to make edit form work
             work = web.ctx.site.new('', {
-                'key': '', 
-                'type': {'key': '/type/work'}, 
+                'key': '',
+                'type': {'key': '/type/work'},
                 'title': edition.title,
                 'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
             })
@@ -634,7 +634,7 @@ class book_edit(delegate.page):
         i = web.input(v=None, _method="GET")
 
         if spamcheck.is_spam():
-            return render_template("message.html", 
+            return render_template("message.html",
                 "Oops",
                 'Something went wrong. Please try again later.')
 
@@ -690,8 +690,8 @@ class work_edit(delegate.page):
         i = web.input(v=None, _method="GET")
 
         if spamcheck.is_spam():
-            return render_template("message.html", 
-                "Oops", 
+            return render_template("message.html",
+                "Oops",
                 'Something went wrong. Please try again later.')
 
         recap = get_recaptcha()

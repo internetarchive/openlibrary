@@ -17,7 +17,7 @@ import infogami
 # make sure infogami.config.features is set
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
-    
+
 from infogami.utils import delegate
 from infogami.utils.view import render, public, safeint, add_flash_message
 from infogami.infobase import client
@@ -67,7 +67,7 @@ class hooks(client.hook):
         account = user and user.get_account()
         if account and account.is_blocked():
             raise ValidationException("Your account has been suspended. You are not allowed to make any edits.")
-        
+
         if page.type.key == '/type/library':
             bad = list(page.find_bad_ip_ranges(page.ip_ranges or ""))
             if bad:
@@ -76,7 +76,7 @@ class hooks(client.hook):
         if page.key.startswith('/a/') or page.key.startswith('/authors/'):
             if page.type.key == '/type/author':
                 return
-                
+
             books = web.ctx.site.things({"type": "/type/edition", "authors": page.key})
             books = books or web.ctx.site.things({"type": "/type/work", "authors": {"author": {"key": page.key}}})
             if page.type.key == '/type/delete' and books:
@@ -100,11 +100,11 @@ def sampledump():
             d = f(k)
             result += d
         return result
-        
+
     def get_references(data, result=None):
         if result is None:
             result = []
-            
+
         if isinstance(data, dict):
             if 'key' in data:
                 result.append(data['key'])
@@ -114,10 +114,10 @@ def sampledump():
             for v in data:
                 get_references(v, result)
         return result
-        
+
     visiting = {}
     visited = set()
-    
+
     def visit(key):
         if key in visited or key.startswith('/type/'):
             return
@@ -126,7 +126,7 @@ def sampledump():
             print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
             visited.add(key)
             return
-        
+
         thing = web.ctx.site.get(key)
         if not thing:
             return
@@ -135,12 +135,12 @@ def sampledump():
         d.pop('permission', None)
         d.pop('child_permission', None)
         d.pop('table_of_contents', None)
-        
+
         visiting[key] = d
         for ref in get_references(d.values()):
             visit(ref)
         visited.add(key)
-        
+
         print simplejson.dumps(d)
 
     keys = [
@@ -153,7 +153,7 @@ def sampledump():
 
     for k in keys:
         visit(k)
-    
+
 @infogami.action
 def sampleload(filename="sampledump.txt.gz"):
     if filename.endswith('.gz'):
@@ -161,13 +161,13 @@ def sampleload(filename="sampledump.txt.gz"):
         f = gzip.open(filename)
     else:
         f = open(filename)
-    
+
     queries = [simplejson.loads(line) for  line in f]
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
     path = "/addbook"
-    
+
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
 
@@ -175,10 +175,10 @@ class addbook(delegate.page):
         author = i.get('author') and web.ctx.site.get(i.author)
         if author:
             d['authors'] = [author]
-        
+
         page = web.ctx.site.new("", d)
         return render.edit(page, self.path, 'Add Book')
-        
+
     def POST(self):
         from infogami.core.code import edit
         key = web.ctx.site.new_key('/type/edition')
@@ -187,7 +187,7 @@ class addbook(delegate.page):
 
 class addauthor(delegate.page):
     path = '/addauthor'
-        
+
     def POST(self):
         i = web.input("name")
         if len(i.name) < 2:
@@ -212,14 +212,14 @@ class clonebook(delegate.page):
 
 class search(delegate.page):
     path = "/suggest/search"
-    
+
     def GET(self):
         i = web.input(prefix="")
         if len(i.prefix) > 2:
             q = {'type': '/type/author', 'name~': i.prefix + '*', 'sort': 'name', 'limit': 5}
             things = web.ctx.site.things(q)
             things = [web.ctx.site.get(key) for key in things]
-        
+
             result = [dict(type=[{'id': t.key, 'name': t.key}], name=web.utf8(t.name), guid=t.key, id=t.key, article=dict(id=t.key)) for t in things]
         else:
             result = []
@@ -231,11 +231,11 @@ class search(delegate.page):
         else:
             data = simplejson.dumps(d)
         raise web.HTTPError('200 OK', {}, data)
-        
+
 class blurb(delegate.page):
     path = "/suggest/blurb/(.*)"
     def GET(self, path):
-        i = web.input()        
+        i = web.input()
         callback = i.pop('callback', None)
         author = web.ctx.site.get('/' +path)
         body = ''
@@ -298,7 +298,7 @@ class flipbook(delegate.page):
             hash = '#page/n%s' % leaf
         else:
             hash = ""
-        
+
         url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
         raise web.seeother(url)
 
@@ -331,14 +331,14 @@ class change_cover(delegate.mode):
         if page is None or page.type.key not in  ['/type/edition', '/type/author']:
             raise web.seeother(key)
         return render.change_cover(page)
-        
+
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
 
     def GET(self, key, value, suffix):
         key = key.lower()
         suffix = suffix or ""
-        
+
         if key == "isbn":
             if len(value) == 13:
                 key = "isbn_13"
@@ -352,14 +352,14 @@ class bookpage(delegate.page):
         if key != 'ocaid': # example: MN41558ucmf_6
             value = value.replace('_', ' ')
 
-        if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding): 
+        if web.ctx.encoding and web.ctx.path.endswith("." + web.ctx.encoding):
             ext = "." + web.ctx.encoding
         else:
             ext = ""
-        
+
         if web.ctx.env.get('QUERY_STRING'):
             ext += '?' + web.ctx.env['QUERY_STRING']
-            
+
         def redirect(key, ext, suffix):
             if ext:
                 return web.found(key + ext)
@@ -433,10 +433,10 @@ delegate.media_types['application/marcxml+xml'] = 'marcxml'
 class marcxml(delegate.mode):
     name = 'view'
     encoding = 'marcxml'
-    
+
     def GET(self, key):
         page = web.ctx.site.get(key)
-        
+
         if page is None or page.type.key != '/type/edition':
             raise web.notfound("")
         else:
@@ -455,14 +455,14 @@ class _yaml(delegate.mode):
 
     def GET(self, key):
         d = self.get_data(key)
-        
+
         if web.input(text="false").text.lower() == "true":
             web.header('Content-Type', 'text/plain')
         else:
             web.header('Content-Type', 'text/x-yaml')
-            
+
         raise web.ok(self.dump(d))
-        
+
     def get_data(self, key):
         i = web.input(v=None)
         v = safeint(i.v, None)
@@ -475,13 +475,13 @@ class _yaml(delegate.mode):
             else:
                 msg = e.message
             raise web.HTTPError(e.status, data=msg)
-    
+
         return simplejson.loads(d)
-        
+
     def dump(self, d):
         import yaml
         return yaml.safe_dump(d, indent=4, allow_unicode=True, default_flow_style=False)
-        
+
     def load(self, data):
         import yaml
         return yaml.safe_load(data)
@@ -489,16 +489,16 @@ class _yaml(delegate.mode):
 class _yaml_edit(_yaml):
     name = "edit"
     encoding = "yml"
-    
+
     def is_admin(self):
         u = delegate.context.user
         return u and u.is_admin()
-    
+
     def GET(self, key):
         # only allow admin users to edit yaml
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
-            
+
         try:
             d = self.get_data(key)
         except web.HTTPError, e:
@@ -507,29 +507,29 @@ class _yaml_edit(_yaml):
             else:
                 raise
         return render.edit_yaml(key, self.dump(d))
-        
+
     def POST(self, key):
         # only allow admin users to edit yaml
         if not self.is_admin():
             return render.permission_denied(key, 'Permission Denied')
-            
+
         i = web.input(body='', _comment=None)
-        
+
         if '_save' in i:
             d = self.load(i.body)
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (client.ClientException, ValidationException), e:            
+            except (client.ClientException, ValidationException), e:
                 add_flash_message('error', str(e))
-                return render.edit_yaml(key, i.body)                
+                return render.edit_yaml(key, i.body)
             raise web.seeother(key + '.yml')
         elif '_preview' in i:
             add_flash_message('Preview not supported')
             return render.edit_yaml(key, i.body)
         else:
             add_flash_message('unknown action')
-            return render.edit_yaml(key, i.body)        
+            return render.edit_yaml(key, i.body)
 
 def _get_user_root():
     user_root = infogami.config.get("infobase", {}).get("user_root", "/user")
@@ -553,7 +553,7 @@ def can_write():
     user_key = delegate.context.user and delegate.context.user.key
     bots = _get_members_of_group("/usergroup/api") + _get_members_of_group("/usergroup/admin") + _get_bots()
     return user_key in bots
-    
+
 # overwrite the implementation of can_write in the infogami API plugin with this one.
 api.can_write = can_write
 
@@ -580,7 +580,7 @@ class new:
                 type = type['key']
             query['key'] = web.ctx.site.new_key(type)
             return query['key']
-            
+
     def verify_types(self, query):
         if isinstance(query, list):
             for q in query:
@@ -593,14 +593,14 @@ class new:
                 if 'key' not in type:
                     raise BadRequest("Bad Type: " + simplejson.dumps(type))
                 type = type['key']
-                
+
             if type not in ['/type/author', '/type/edition', '/type/work', '/type/series', '/type/publisher']:
                 raise BadRequest("Bad Type: " + simplejson.dumps(type))
- 
+
     def POST(self):
         if not can_write():
             raise Forbidden("Permission Denied.")
-            
+
         try:
             query = simplejson.loads(web.data())
             h = api.get_custom_headers()
@@ -608,10 +608,10 @@ class new:
             action = h.get('action')
         except Exception, e:
             raise BadRequest(str(e))
-            
+
         self.verify_types(query)
         keys = self.prepare_query(query)
-        
+
         try:
             if not isinstance(query, list):
                 query = [query]
@@ -628,7 +628,7 @@ class new:
             openlibrary.core.stats.increment(key)
 
         return simplejson.dumps(keys)
-        
+
 api and api.add_hook('new', new)
 
 @public
@@ -668,13 +668,13 @@ def most_recent_change():
         return v
     else:
         return get_recent_changes(limit=1)[0]
-    
+
 def wget(url):
     try:
         return urllib.urlopen(url).read()
     except:
         return ""
-    
+
 @public
 def get_cover_id(key):
     try:
@@ -701,29 +701,29 @@ class invalidate(delegate.page):
             thing = client.Thing(web.ctx.site, d['key'], client.storify(d))
             client._run_hooks('on_new_version', thing)
         return delegate.RawText("ok")
-            
+
 def save_error():
     t = datetime.datetime.utcnow()
     name = '%04d-%02d-%02d/%02d%02d%02d%06d' % (t.year, t.month, t.day, t.hour, t.minute, t.second, t.microsecond)
-    
+
     path = infogami.config.get('errorlog', 'errors') + '/'+ name + '.html'
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    
+
     error = web.safestr(web.djangoerror())
     f = open(path, 'w')
     f.write(error)
     f.close()
-    
+
     print >> web.debug, 'error saved to', path
-    
+
     return name
 
 def internalerror():
     i = web.input(_method='GET', debug='false')
     name = save_error()
-    
+
     openlibrary.core.stats.increment('ol.internal-errors', 1)
 
     if i.debug.lower() == 'true':
@@ -731,7 +731,7 @@ def internalerror():
     else:
         msg = render.site(render.internalerror(name))
         raise web.internalerror(web.safestr(msg))
-    
+
 delegate.app.internalerror = internalerror
 delegate.add_exception_hook(save_error)
 
@@ -745,7 +745,7 @@ class memory(delegate.page):
 
 class backdoor(delegate.page):
     path = "/debug/backdoor"
-    
+
     def GET(self):
         import backdoor
         reload(backdoor)
@@ -762,7 +762,7 @@ def setup_template_globals():
         "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
         "NEWLINE": "\n",
         "random": random.Random(),
-        
+
         # bad use of globals
         "time": time,
         "input": web.input,
@@ -779,7 +779,7 @@ def setup_context_defaults():
 
 def setup():
     import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
-    
+
     home.setup()
     inlibrary.setup()
     borrow_home.setup()
@@ -790,18 +790,18 @@ def setup():
     status.setup()
     merge_editions.setup()
     authors.setup()
-    
+
     import api
     api.setup()
-    
+
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
-    
+
     if infogami.config.get("dev_instance") is True:
         import dev_instance
         dev_instance.setup()
 
     setup_context_defaults()
     setup_template_globals()
-    
+
 setup()

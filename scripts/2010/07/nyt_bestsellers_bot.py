@@ -33,8 +33,8 @@ def _request(request, parser=json.loads):
     return results
 
 def get_nyt_bestseller_list_names():
-    url = "%s/%s.json?%s" % (NYT_BEST_SELLERS_URL, 
-                             "names", 
+    url = "%s/%s.json?%s" % (NYT_BEST_SELLERS_URL,
+                             "names",
                              urllib.urlencode({"api-key": NYT_API_KEY}))
     results = _request(url)
     assert 'results' in results
@@ -42,10 +42,10 @@ def get_nyt_bestseller_list_names():
     return [r['list_name'] for r in results['results']]
 
 def load_nyt_bestseller_list(list_name):
-    url = "%s/%s.json?%s" % (NYT_BEST_SELLERS_URL, 
-                             urllib.quote(list_name.replace(' ', '-')), 
+    url = "%s/%s.json?%s" % (NYT_BEST_SELLERS_URL,
+                             urllib.quote(list_name.replace(' ', '-')),
                              urllib.urlencode({"api-key": NYT_API_KEY}))
-    
+
     results = _request(url)
     assert 'results' in results
 
@@ -58,7 +58,7 @@ def load_nyt_bestseller_list(list_name):
 def _do_ol_query(type="/type/edition", **query):
     query.setdefault("type", type)
     return OL.query(query)
-    
+
 
 def reconcile_authors(authors):
     result = set()
@@ -90,18 +90,18 @@ def reconcile_book(book):
     authors = reconcile_authors(book['book_details'][0]['author'])
     if not authors:
         authors = set()
-        for a in re.split("(?: (?:and|with) )|(?:,|&)|(?:^edited|others$)", 
+        for a in re.split("(?: (?:and|with) )|(?:,|&)|(?:^edited|others$)",
                           book['book_details'][0]['author']):
             authors.update(reconcile_authors(a))
 
     if not authors:
         LOG("INFO", "NO AUTHOR: %s" % pprint.pformat(book['book_details']))
         return []
-    
+
     for a in authors:
         title = book['book_details'][0]['title']
         r = []
-        r.extend(_do_ol_query(type="/type/work", authors={"author": {"key": str(a)}}, 
+        r.extend(_do_ol_query(type="/type/work", authors={"author": {"key": str(a)}},
                               title=title))
         title = " ".join([t.capitalize() for t in title.split()])
         r.extend(_do_ol_query(type="/type/work", authors={"author": {"key": str(a)}},
@@ -149,7 +149,7 @@ def write_machine_tags(ln, books):
 
         if work['key'] not in write:
             LOG("INFO", "all tags already present, skipping %s: '%s' by %s" % (
-                work['key'], 
+                work['key'],
                 nyt['book_details'][0]['title'], nyt['book_details'][0]['author']
             ))
         else:
@@ -163,15 +163,15 @@ def write_machine_tags(ln, books):
 
 if __name__ == "__main__":
     op = OptionParser(usage="%prog [-a HOST:PORT] [-k nyt_api_key] -u [bot_username] -p [bot_password]")
-    op.add_option("-a", "--api-host", dest="openlibrary_host", 
+    op.add_option("-a", "--api-host", dest="openlibrary_host",
                   default="openlibrary.org:80",
                   help="The openlibrary API host")
-    op.add_option("-k", "--nyt-api-key", dest="nyt_api_key", 
+    op.add_option("-k", "--nyt-api-key", dest="nyt_api_key",
                   help="API key for use with the nyt bestsellers api")
-    op.add_option("-u", "--bot-username", dest="username", 
+    op.add_option("-u", "--bot-username", dest="username",
                   default="nyt_bestsellers_bot",
                   help="The bot username for accessing the Open Library API")
-    op.add_option("-p", "--bot-password", dest="password", 
+    op.add_option("-p", "--bot-password", dest="password",
                   help="The bot password for accessing the Open Library API")
 
     options, _ = op.parse_args()
@@ -195,13 +195,13 @@ if __name__ == "__main__":
                     book['book_details'][0]['title'], book['book_details'][0]['author'], ol_keys
                 ))
             results[ln].append({
-                    "nyt": book, 
+                    "nyt": book,
                     "ol:keys": ol_keys,
                     "ol:works": (key for key in ol_keys if key.startswith("/works/"))
             })
         if results[ln]:
-            LOG("INFO", "RECONCILED %s%% of %s" % (int(len([r for r in results[ln] if r['ol:works']]) / 
-                                                       float(len(results[ln])) * 100), 
+            LOG("INFO", "RECONCILED %s%% of %s" % (int(len([r for r in results[ln] if r['ol:works']]) /
+                                                       float(len(results[ln])) * 100),
                                              ln))
             write_machine_tags(ln, results[ln])
         else:

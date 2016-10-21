@@ -4,17 +4,17 @@ $def with (books, id="ol-carousel")
 \$(function() {
     function load_covers(carousel, state) {
         for (var i = carousel.first; i <= carousel.last; i++) {
-            if (carousel.has(i)) {                
+            if (carousel.has(i)) {
                 carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
-                
+
                 var cover = carousel.get(i).find("img.cover");
                 if (cover.length > 0) {
                     cover.attr("src", cover.attr("xsrc"));
                 }
             }
-        }        
+        }
     }
-    
+
     \$("#$id").jcarousel({
         scroll:6,
         itemLoadCallback: {onBeforeAnimation: load_covers}
@@ -22,8 +22,8 @@ $def with (books, id="ol-carousel")
 })
 </script>
 
-<div class="contentLists results"> 
-    <div class="covers resultsCovers"> 
+<div class="contentLists results">
+    <div class="covers resultsCovers">
         <ul class="homeCarousel jcarousel-skin-OL" id="$id">
             $for book in books:
                 <li>

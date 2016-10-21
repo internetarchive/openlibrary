@@ -5,7 +5,7 @@ import simplejson
 class MockConnection:
     def __init__(self):
         self.docs = {}
-        
+
     def request(self, sitename, path, method="GET", data={}):
         if path == "/get":
             key = data['key']
@@ -23,18 +23,18 @@ class TestMigrationMiddleware:
 
         def add(doc):
             conn.conn.docs[doc['key']] = doc
-        
+
         def get(key):
-            json = conn.request("openlibrary.org", "/get", data={"key": key}) 
+            json = conn.request("openlibrary.org", "/get", data={"key": key})
             return simplejson.loads(json)
-            
+
         add({
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
             "title_prefix": "The",
             "title": "Book"
         })
-            
+
         assert get("/books/OL1M") == {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
@@ -47,7 +47,7 @@ class TestMigrationMiddleware:
             "title_prefix": "The ",
             "title": "Book"
         })
-            
+
         assert get("/books/OL2M") == {
             "key": "/books/OL2M",
             "type": {"key": "/type/edition"},
@@ -59,7 +59,7 @@ class TestMigrationMiddleware:
             "type": {"key": "/type/edition"},
             "title_prefix": "The Book",
         })
-        
+
         assert get("/books/OL3M") == {
             "key": "/books/OL3M",
             "type": {"key": "/type/edition"},
@@ -71,16 +71,16 @@ class TestMigrationMiddleware:
 
         def add(doc):
             conn.conn.docs[doc['key']] = doc
-        
+
         def get(key):
-            json = conn.request("openlibrary.org", "/get", data={"key": key}) 
+            json = conn.request("openlibrary.org", "/get", data={"key": key})
             return simplejson.loads(json)
 
         def get_many(keys):
             data = dict(keys=simplejson.dumps(keys))
-            json = conn.request("openlibrary.org", "/get_many", data=data) 
+            json = conn.request("openlibrary.org", "/get_many", data=data)
             return simplejson.loads(json)
-        
+
         add({
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
@@ -88,7 +88,7 @@ class TestMigrationMiddleware:
                 "type": {"key": "/type/author_role"}
             }]
         })
-        
+
         assert get("/works/OL1W") == {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
@@ -101,7 +101,7 @@ class TestMigrationMiddleware:
                 "authors": []
             }
         }
-        
+
         OL2W = {
             "key": "/works/OL2W",
             "type": {"key": "/type/work"},
@@ -111,5 +111,5 @@ class TestMigrationMiddleware:
             }]
         }
         add(OL2W)
-        
+
         assert get("/works/OL2W") == OL2W

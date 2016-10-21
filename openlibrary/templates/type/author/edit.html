@@ -1,5 +1,5 @@
 $def with (page)
- 
+
 $var title: $page.name
 
 $putctx("robots", "noindex,nofollow")
@@ -21,16 +21,16 @@ $putctx("robots", "noindex,nofollow")
     $if not ctx.user:
         $:render_template("lib/not_logged")
 </div>
-            
+
 <div id="contentBody">
-            
+
     <form id="addAuthor" name="edit" method="post" action="" class="olform validate">
 
-    
+
     <div class="formElement title">
         <div class="formElement" style="margin-bottom:12px;">
             <div class="label">
-                <label for="name">$_("Name")</label> 
+                <label for="name">$_("Name")</label>
                 <span class="tip">$:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>. <span class="attn"><em>* Required field.</em></span>')</span>
             </div>
             <div class="input">
@@ -38,7 +38,7 @@ $putctx("robots", "noindex,nofollow")
             </div>
         </div>
     </div>
-                            
+
         <div style="float:left;width:698px;">
 
             <div id="tabsAddauthor">
@@ -49,12 +49,12 @@ $putctx("robots", "noindex,nofollow")
                 </ul>
 
                 <div id="about">
-                    
+
                     <fieldset class="major collapse">
 
                         <div class="formElement">
                             <div class="label">
-                                <label for="wmd-input">$_("A short bio?")</label> 
+                                <label for="wmd-input">$_("A short bio?")</label>
                                 <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
                             </div>
                             <div class="input">
@@ -70,7 +70,7 @@ $putctx("robots", "noindex,nofollow")
                                 <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date" style="width:150px!important;"/>
                             </div>
                         </div>
-                            
+
                         <div class="formElement contentQuarter" id="deathDate" style="width:205px;margin-bottom:0;">
                             <div class="label deathLabelAcc">
                                 <label for="death_date">$_("Date of death")</label>
@@ -87,17 +87,17 @@ $putctx("robots", "noindex,nofollow")
                         </div>
 
                         <div class="clearfix"></div>
-                            
+
                         <div class="formElement">
                             <div class="label">
-                                <label for="alternate_names">$_("Does this author go by any other names?")</label> 
+                                <label for="alternate_names">$_("Does this author go by any other names?")</label>
                                 <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
                             </div>
                             <div class="input">
                                 <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
-                        
+
                         $if page.website:
                             $if ctx.user and ctx.user.is_admin():
                                 <div class="formElement adminOnly">
@@ -109,22 +109,22 @@ $putctx("robots", "noindex,nofollow")
                                         <input type="text" name="author--website" id="website" value="$page.website"/>
                                     </div>
                                 </div>
- 
-                        
+
+
                 </div>
 <!-- /ABOUT -->
                 <div id="web">
                     $:render_template("books/edit/web", page, prefix="author--")
                 </div>
             </div>
-                
+
         </div>
 
         <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:1.125em;padding-top:15px;">
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page)
         </div>
-                
+
             <div class="clearfix"></div>
 
             <div class="formElement bottom">
@@ -133,7 +133,7 @@ $putctx("robots", "noindex,nofollow")
 
         $if ctx.user and ctx.user.is_admin():
             <div class="adminOnly" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this macro?')" id="deleteTop">$_("Delete Record")</button></div>
-        
+
 
     </form>
 </div>

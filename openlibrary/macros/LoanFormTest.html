@@ -11,7 +11,7 @@ $else:
     <ul class="preSubmit large">
         <li><strong>Please choose your preferred format:</strong></li>
     </ul>
- 
+
     <form method="post" id="borrowBook" name="borrowBook" class="olform">
     $for loan in available_loans:
         $ type_str, desc = type_info.get(loan['type'], (loan['type'], ''))
@@ -20,8 +20,8 @@ $else:
             $if loan['type'] == default_type or len(available_loans) == 1:
                 <input type="radio" name="format" value="$loan['type']" checked="checked"/>
             $else:
-                <input type="radio" name="format" value="$loan['type']" />  
-            <strong style="padding-left:10px;">$type_str</strong> 
+                <input type="radio" name="format" value="$loan['type']" />
+            <strong style="padding-left:10px;">$type_str</strong>
             <span class="smaller grey">$desc</span>
             </label>
         </p>

@@ -8,7 +8,7 @@ $def link(url, title):
     $else:
         <a href="$url">$title</a>
 
-<div>   
+<div>
     $:link("/theme/files", _("Files"))
     | $:link("/theme/modifications", _("Modifications"))
     | $:link("/theme/manage", _("Manage"))

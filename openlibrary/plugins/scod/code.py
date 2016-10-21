@@ -41,9 +41,9 @@ def get_book(path, check_scanned=True, check_ocaid=True):
         error('This book is already scanned')
     elif check_scanned and get_scan_status(path) != 'NOT_SCANNED':
         error(path + ' is not scannable.')
-    else:    
+    else:
         return page
-        
+
 class scan_confirm(delegate.mode):
     def GET(self, path):
         book = get_book(path)
@@ -53,14 +53,14 @@ class scan_login(delegate.mode):
     def GET(self, path):
         book = get_book(path)
         print render.scan_login(book)
-        
+
 class scan_review(delegate.mode):
     @require_login
     def GET(self, path):
         book = get_book(path)
         scanning_center = get_scan_record(path).locations[0].name
         return render.scan_review(book, scanning_center)
-    
+
     @require_login
     def POST(self, path):
         book = get_book(path)
@@ -92,7 +92,7 @@ class scan_review(delegate.mode):
                 return config.plugin_scod.get('email_recipients', [])
             else:
                 return config.get('scan_email_recipients', [])
-        
+
         to = get_to()
         if to:
             scan_record = get_scan_record(path)
@@ -103,7 +103,7 @@ class scan_review(delegate.mode):
         message = render.scan_waiting_email(book, scan_record)
         web.sendmail(config.from_address, to, message.subject.strip(), message)
         return render.scan_inprogress(book)
-        
+
 class scan_book_notfound(delegate.mode):
     def is_scan_user(self):
         usergroup = web.ctx.site.get('/usergroup/scan')
@@ -116,7 +116,7 @@ class scan_book_notfound(delegate.mode):
 
         book = web.ctx.site.get(path)
         i = web.input("scan_status", _comment=None)
-        
+
         q = {
             'key': '/scan_record' + path,
             'scan_status': {
@@ -139,11 +139,11 @@ class scan_book_notfound(delegate.mode):
         if to:
             if i.scan_status == 'SCAN_IN_PROGRESS':
                 message = render.scan_inprogress_email(book, scan_record, i._comment)
-            else:    
+            else:
                 message = render.scan_book_notfound_email(book, scan_record, i._comment)
             web.sendmail(config.from_address, to, message.subject.strip(), str(message), cc=cc)
         raise web.seeother(web.changequery(query={}))
-        
+
 class scan_inprogress(scan_book_notfound):
     pass
 
@@ -159,14 +159,14 @@ class scan_complete(delegate.mode):
 
         book = get_book(path, check_scanned=False, check_ocaid=False)
         return render.scan_complete(book)
-        
+
     def POST(self, path):
         if not self.is_scan_user():
             return permission_denied('Permission denied.')
 
         book = get_book(path, check_scanned=False, check_ocaid=False)
         i = web.input("ocaid", volumes=None, multivolume_work=None, _comment=None)
-        
+
         q = [
             {
                 'key': path,
@@ -195,7 +195,7 @@ class scan_complete(delegate.mode):
                     'volume_number': index,
                     'ia_id': ia_id
                 }
-                    
+
             volumes = i.volumes and i.volumes.split() or []
             q[0]['volumes'] = {
                 'connect': 'update_list',
@@ -222,13 +222,13 @@ def get_scan_queue(scan_status, limit=None, offset=None):
         'type': '/type/scan_record',
         'scan_status': scan_status,
         'sort': '-last_modified'
-    } 
+    }
     if limit:
         q['limit'] = limit
-    
+
     if offset:
         q['offset'] = offset
-        
+
     keys = web.ctx.site.things(q)
     result = web.ctx.site.get_many(keys)
 
@@ -252,7 +252,7 @@ def to_datetime(iso_date_string):
         return None
 
     try:
-        #@@ python datetime module is ugly. 
+        #@@ python datetime module is ugly.
         #@@ It takes so much of work to create datetime from isoformat.
         date, time = iso_date_string.split('T', 1)
         y, m, d = date.split('-')
@@ -268,8 +268,8 @@ class scan_queue(delegate.page):
         options = ["NOT_SCANNED", "WAITING_FOR_BOOK", "BOOK_NOT_SCANNED", "SCAN_IN_PROGRESS", "SCAN_COMPLETE"]
         if i.status not in options:
             raise web.seeother(web.changequery({}))
-            
+
         offset = safeint(i.p, 0) * 50
-            
+
         records = get_scan_queue(i.status, limit=50, offset=offset)
         return render.scan_queue(records)

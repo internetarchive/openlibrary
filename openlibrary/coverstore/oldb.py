@@ -20,7 +20,7 @@ def get_db():
     if _db is None and config.get("ol_db_parameters"):
         _db = web.database(**config.ol_db_parameters)
     return _db
-    
+
 _memcache = None
 def get_memcache():
     global _memcache
@@ -37,14 +37,14 @@ def get_property_id(name):
         return rows[0].id
     except IndexError:
         return None
-    
+
 def query(key, value):
     key_id = get_property_id(key)
-    
+
     db = get_db()
-    rows = db.query("SELECT thing.key" + 
+    rows = db.query("SELECT thing.key" +
         " FROM thing, edition_str" +
-        " WHERE thing.id=edition_str.thing_id" + 
+        " WHERE thing.id=edition_str.thing_id" +
             " AND key_id=$key_id" +
             " AND value=$value" +
         " ORDER BY thing.last_modified LIMIT 10",

@@ -50,23 +50,23 @@ $var title: $_("Merge Authors")
 </div>
 
 <div id="contentBody">
-    
+
 $if not keys:
     $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
     <div class="note">$_("No authors selected.")</div>
-    
-$if formdata: 
+
+$if formdata:
     $if not formdata.master:
         <div class="note">$_("Please select a master author record.")</div>
     $if len(formdata.selected) == 0:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>Select a &quot;master&quot; record that best represents the author - 
+    <li>Select a &quot;master&quot; record that best represents the author -
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>Select author records which should be merged with the master
-        - 
+        -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
     <li>Press MERGE AUTHORS.
@@ -91,7 +91,7 @@ $if formdata:
             <div class="data record smaller"><strong>Authors</strong></div>
             <div class="data count">&nbsp;</div>
         </div>
-        
+
         $if keys:
             $ master = formdata and formdata.master or keys[0]
         $else:

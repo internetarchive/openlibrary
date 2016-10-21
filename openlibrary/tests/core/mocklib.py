@@ -25,13 +25,13 @@ def monkeypatch_urllib(monkeypatch, url, response_string):
     """
     _urlopen = urllib.urlopen
     given_url = url
-    
-    def urlopen(url, *a, **kw): 
+
+    def urlopen(url, *a, **kw):
         if url == given_url:
             return urllib.addinfourl(StringIO(response_string), [], url)
         else:
             return _urlopen(url, *a, **kw)
-            
+
     monkeypatch.setattr(urllib, "urlopen", urlopen)
 
 def monkeypatch_urllib2(monkeypatch, url, response_string):
@@ -41,7 +41,7 @@ def monkeypatch_urllib2(monkeypatch, url, response_string):
     _urlopen = urllib2.urlopen
     given_url = url
 
-    def urlopen(url, *a, **kw): 
+    def urlopen(url, *a, **kw):
         if url == given_url:
             return urllib.addinfourl(StringIO(response_string), [], url)
         else:

@@ -43,9 +43,9 @@ class addreview(delegate.page):
 	    edition = db.get_thing(form.d.edition, db.get_type('type/edition'))
 	    if not edition:
 		return error()
-            review = db.insert_book_review(edition, 
-                                           user, 
-                                           reviewsources.data.get('web'), 
+            review = db.insert_book_review(edition,
+                                           user,
+                                           reviewsources.data.get('web'),
                                            form.d.text,
                                            title=form.d.title)
             return web.redirect('/' + edition.name + '#reviews')

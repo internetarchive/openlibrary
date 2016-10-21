@@ -32,7 +32,7 @@ ignore_noindex = set(['printdisabled', 'lendinglibrary', 'inlibrary'])
 
 def login(h1):
     body = json.dumps({'username': 'ImportBot', 'password': rc['ImportBot']})
-    headers = {'Content-Type': 'application/json'}  
+    headers = {'Content-Type': 'application/json'}
     h1.request('POST', base_url + '/account/login', body, headers)
     print base_url + '/account/login'
     res = h1.getresponse()

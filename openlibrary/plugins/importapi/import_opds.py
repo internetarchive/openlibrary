@@ -8,7 +8,7 @@ def parse_string(e, key):
     return (key, e.text)
 
 def parse_author(e, key):
-    name = e.find('{http://www.w3.org/2005/Atom}name')    
+    name = e.find('{http://www.w3.org/2005/Atom}name')
     return (key, name.text)
 
 def parse_category(e, key):
@@ -41,16 +41,16 @@ parser_map = {
     '{http://purl.org/ontology/bibo/}lccn':    ['lccn',          parse_string],
     '{http://purl.org/ontology/bibo/}oclcnum': ['oclc_number',   parse_string],
     '{http://purl.org/dc/terms/}identifier':   ['identifier',    parse_identifier],
-    '{http://RDVocab.info/elements/}placeOfPublication': ['publish_place', parse_string],    
+    '{http://RDVocab.info/elements/}placeOfPublication': ['publish_place', parse_string],
 }
 #TODO: {http://purl.org/dc/terms/}identifier (could be ocaid)
 #TODO: {http://www.w3.org/2005/Atom}link     (could be cover image)
 
 def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
-    
+
     for e in root:
-        if isinstance(e.tag, basestring): 
+        if isinstance(e.tag, basestring):
             #print e.tag
             if e.tag in parser_map:
                 key = parser_map[e.tag][0]

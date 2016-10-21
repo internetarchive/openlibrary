@@ -20,7 +20,7 @@ def clen(d):
     return len(compressor.compress(simplejson.dumps(d)))
 
 def get_sizes(label, pattern, max, count):
-    # there might not be docs for some numbers. 
+    # there might not be docs for some numbers.
     # Considering double keys than required and skipping the None
     keys = [pattern % random.randint(0, max) for i in range(2*count)]
     docs = [doc for doc in web.ctx.site.get_many(keys) if doc][:count]

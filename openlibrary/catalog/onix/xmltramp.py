@@ -26,21 +26,21 @@ class Element:
 				if islst(k) and k[0] == None: na[k[1]] = attrs[k]
 				else: na[k] = attrs[k]
 			attrs = na
-		
+
 		self._name = name
 		self._attrs = attrs or {}
 		self._dir = children or []
-		
+
 		prefixes = prefixes or {}
 		self._prefixes = dict(zip(prefixes.values(), prefixes.keys()))
-		
+
 		if prefixes: self._dNS = prefixes.get(None, None)
 		else: self._dNS = None
 
 		self._line = line
-	
+
 	def __repr__(self, recursive=0, multiline=0, inprefixes=None):
-		def qname(name, inprefixes): 
+		def qname(name, inprefixes):
 			if islst(name):
 				if inprefixes[name[0]] is not None:
 					return inprefixes[name[0]]+':'+name[1]
@@ -48,7 +48,7 @@ class Element:
 					return name[1]
 			else:
 				return name
-		
+
 		def arep(a, inprefixes, addns=1):
 			out = ''
 
@@ -58,33 +58,33 @@ class Element:
 					if addns and self._prefixes[p]: out += ':'+self._prefixes[p]
 					if addns: out += '="'+quote(p, False)+'"'
 					inprefixes[p] = self._prefixes[p]
-			
+
 			for k in a.keys():
 				out += ' ' + qname(k, inprefixes)+ '="' + quote(a[k], False) + '"'
-			
+
 			return out
-		
+
 		inprefixes = inprefixes or {u'http://www.w3.org/XML/1998/namespace':'xml'}
-		
+
 		# need to call first to set inprefixes:
-		attributes = arep(self._attrs, inprefixes, recursive) 
-		out = '<' + qname(self._name, inprefixes)  + attributes 
-		
-		if not self._dir and (self._name[0] in empty.keys() 
+		attributes = arep(self._attrs, inprefixes, recursive)
+		out = '<' + qname(self._name, inprefixes)  + attributes
+
+		if not self._dir and (self._name[0] in empty.keys()
 		  and self._name[1] in empty[self._name[0]]):
 			out += ' />'
 			return out
-		
+
 		out += '>'
 
 		if recursive:
 			content = 0
-			for x in self._dir: 
+			for x in self._dir:
 				if isinstance(x, Element): content = 1
-				
+
 			pad = '\n' + ('\t' * recursive)
 			for x in self._dir:
-				if multiline and content: out +=  pad 
+				if multiline and content: out +=  pad
 				if isstr(x): out += quote(x)
 				elif isinstance(x, Element):
 					out += x.__repr__(recursive+1, multiline, inprefixes.copy())
@@ -93,36 +93,36 @@ class Element:
 			if multiline and content: out += '\n' + ('\t' * (recursive-1))
 		else:
 			if self._dir: out += '...'
-		
+
 		out += '</'+qname(self._name, inprefixes)+'>'
-			
+
 		return out
-	
+
 	def __unicode__(self):
 		text = ''
 		for x in self._dir:
 			text += unicode(x)
 		return ' '.join(text.split())
-		
+
 	def __str__(self):
 		return self.__unicode__().encode('utf-8')
-	
+
 	def __getattr__(self, n):
 		if n[0] == '_': raise AttributeError, "Use foo['"+n+"'] to access the child element."
 		if self._dNS: n = (self._dNS, n)
 		for x in self._dir:
 			if isinstance(x, Element) and x._name == n: return x
 		raise AttributeError, 'No child element named %s' % repr(n)
-		
+
 	def __hasattr__(self, n):
 		for x in self._dir:
 			if isinstance(x, Element) and x._name == n: return True
 		return False
-		
+
  	def __setattr__(self, n, v):
 		if n[0] == '_': self.__dict__[n] = v
 		else: self[n] = v
- 
+
 
 	def __getitem__(self, n):
 		if isinstance(n, type(0)): # d[1] == d._dir[1]
@@ -130,20 +130,20 @@ class Element:
 		elif isinstance(n, slice(0).__class__):
 			# numerical slices
 			if isinstance(n.start, type(0)): return self._dir[n.start:n.stop]
-			
+
 			# d['foo':] == all <foo>s
 			n = n.start
 			if self._dNS and not islst(n): n = (self._dNS, n)
 			out = []
 			for x in self._dir:
-				if isinstance(x, Element) and x._name == n: out.append(x) 
+				if isinstance(x, Element) and x._name == n: out.append(x)
 			return out
 		else: # d['foo'] == first <foo>
 			if self._dNS and not islst(n): n = (self._dNS, n)
 			for x in self._dir:
 				if isinstance(x, Element) and x._name == n: return x
 			raise KeyError
-	
+
 	def __setitem__(self, n, v):
 		if isinstance(n, type(0)): # d[1]
 			self._dir[n] = v
@@ -154,7 +154,7 @@ class Element:
 
 			nv = Element(n)
 			self._dir.append(nv)
-			
+
 		else: # d["foo"] replaces first <foo> and dels rest
 			if self._dNS and not islst(n): n = (self._dNS, n)
 
@@ -178,7 +178,7 @@ class Element:
 			# delete all <foo>s
 			n = n.start
 			if self._dNS and not islst(n): n = (self._dNS, n)
-			
+
 			for i in range(len(self)):
 				if self[i]._name == n: del self[i]
 		else:
@@ -186,8 +186,8 @@ class Element:
 			for i in range(len(self)):
 				if self[i]._name == n: del self[i]
 				break
-	
-	def __call__(self, *_pos, **_set): 
+
+	def __call__(self, *_pos, **_set):
 		if _set:
 			for k in _set.keys(): self._attrs[k] = _set[k]
 		if len(_pos) > 1:
@@ -226,30 +226,30 @@ class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
 		self.ch = ''
 		self.prefixes = {}
 		ContentHandler.__init__(self)
-		
+
 	def startPrefixMapping(self, prefix, uri):
 		if not self.prefixes.has_key(prefix): self.prefixes[prefix] = []
 		self.prefixes[prefix].append(uri)
 	def endPrefixMapping(self, prefix):
 		self.prefixes[prefix].pop()
-	
+
 	def startElementNS(self, name, qname, attrs):
-		ch = self.ch; self.ch = ''	
+		ch = self.ch; self.ch = ''
 		if ch and not ch.isspace(): self.stack[-1]._dir.append(ch)
 
 		attrs = dict(attrs)
 		newprefixes = {}
 		for k in self.prefixes.keys(): newprefixes[k] = self.prefixes[k][-1]
-		
+
 		self.stack.append(Element(name, attrs, prefixes=newprefixes.copy(), line=self.getLineNumber ()))
-	
+
 	def characters(self, ch):
 		self.ch += ch
-	
+
 	def endElementNS(self, name, qname):
 		ch = self.ch; self.ch = ''
 		if ch and not ch.isspace(): self.stack[-1]._dir.append(ch)
-	
+
 		element = self.stack.pop()
 		if self.stack:
 			self.stack[-1]._dir.append(element)
@@ -271,23 +271,23 @@ def parse(text):
 	from StringIO import StringIO
 	return seed(StringIO(text))
 
-def load(url): 
+def load(url):
 	import urllib
 	return seed(urllib.urlopen(url))
 
 def unittest():
 	parse('<doc>a<baz>f<b>o</b>ob<b>a</b>r</baz>a</doc>').__repr__(1,1) == \
 	  '<doc>\n\ta<baz>\n\t\tf<b>o</b>ob<b>a</b>r\n\t</baz>a\n</doc>'
-	
+
 	assert str(parse("<doc />")) == ""
 	assert str(parse("<doc>I <b>love</b> you.</doc>")) == "I love you."
 	assert parse("<doc>\nmom\nwow\n</doc>")[0].strip() == "mom\nwow"
 	assert str(parse('<bing>  <bang> <bong>center</bong> </bang>  </bing>')) == "center"
 	assert str(parse('<doc>\xcf\x80</doc>')) == '\xcf\x80'
-	
+
 	d = Element('foo', attrs={'foo':'bar'}, children=['hit with a', Element('bar'), Element('bar')])
-	
-	try: 
+
+	try:
 		d._doesnotexist
 		raise "ExpectedError", "but found success. Damn."
 	except AttributeError: pass
@@ -296,14 +296,14 @@ def unittest():
 		d.doesnotexist
 		raise "ExpectedError", "but found success. Damn."
 	except AttributeError: pass
-	
+
 	assert hasattr(d, 'bar') == True
-	
+
 	assert d('foo') == 'bar'
 	d(silly='yes')
 	assert d('silly') == 'yes'
 	assert d() == d._attrs
-	
+
 	assert d[0] == 'hit with a'
 	d[0] = 'ice cream'
 	assert d[0] == 'ice cream'
@@ -315,14 +315,14 @@ def unittest():
 	d['bar':] = 'baz'
 	assert len(d['bar':]) == 3
 	assert d['bar']._name == 'bar'
-	
+
 	d = Element('foo')
-	
+
 	doc = Namespace("http://example.org/bar")
 	bbc = Namespace("http://example.org/bbc")
 	dc = Namespace("http://purl.org/dc/elements/1.1/")
 	d = parse("""<doc version="2.7182818284590451"
-	  xmlns="http://example.org/bar" 
+	  xmlns="http://example.org/bar"
 	  xmlns:dc="http://purl.org/dc/elements/1.1/"
 	  xmlns:bbc="http://example.org/bbc">
 		<author>John Polk and John Palfrey</author>
@@ -347,7 +347,7 @@ def unittest():
 	assert len(d[dc.creator:]) == 1
 	d[dc.creator:] = "You!!!"
 	assert len(d[dc.creator:]) == 2
-	
+
 	assert d[bbc.show](bbc.station) == "4"
 	d[bbc.show](bbc.station, "5")
 	assert d[bbc.show](bbc.station) == "5"
@@ -360,17 +360,17 @@ def unittest():
 	e.c = 'CDATA sections are <em>closed</em> with ]]>.'
 	assert e.__repr__(1) == '<e><c>CDATA sections are &lt;em>closed&lt;/em> with ]]&gt;.</c></e>'
 	e.c = parse('<div xmlns="http://www.w3.org/1999/xhtml">i<br /><span></span>love<br />you</div>')
-	assert e.__repr__(1) == '<e><c><div xmlns="http://www.w3.org/1999/xhtml">i<br /><span></span>love<br />you</div></c></e>'	
-	
+	assert e.__repr__(1) == '<e><c><div xmlns="http://www.w3.org/1999/xhtml">i<br /><span></span>love<br />you</div></c></e>'
+
 	e = Element('e')
 	e('c', 'that "sucks"')
 	assert e.__repr__(1) == '<e c="that &quot;sucks&quot;"></e>'
 
-	
+
 	assert quote("]]>") == "]]&gt;"
 	assert quote('< dkdkdsd dkd sksdksdfsd fsdfdsf]]> kfdfkg >') == '&lt; dkdkdsd dkd sksdksdfsd fsdfdsf]]&gt; kfdfkg >'
-	
+
 	assert parse('<x a="&lt;"></x>').__repr__(1) == '<x a="&lt;"></x>'
 	assert parse('<a xmlns="http://a"><b xmlns="http://b"/></a>').__repr__(1) == '<a xmlns="http://a"><b xmlns="http://b"></b></a>'
-	
+
 if __name__ == '__main__': unittest()

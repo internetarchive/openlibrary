@@ -6,7 +6,7 @@ $def with (book)
     function error(error_div, input, message) {
         \$(error_div).show().html(message);
         \$.fn.colorbox.resize();
-        setTimeout(function(){ 
+        setTimeout(function(){
             \$(input).focus();
         }, 0);
         return false;
@@ -48,14 +48,14 @@ $def with (book)
                return error("#select-classification-popup-errors", "#select-classification-popup-label", "Please enter name of the new classification type.");
            }
            data.value = data.label.toLowerCase().replace(/ /g, "_");
-           return true;           
+           return true;
        },
        onshow: function() {
            \$("#select-classification-popup-errors").hide();
            \$("#select-classification-popup input[type=text]").val("");
-       }       
+       }
    });
-   
+
 });
 //-->
 </script>
@@ -76,7 +76,7 @@ $def with (book)
                     <input type="text" name="value" id="select-role-popup-value" value=""/>
                 </div>
             </div>
-            
+
             <div class="formElement">
                 <button type="submit" name="" class="larger">$_("Add")</button>
                 &nbsp;
@@ -103,7 +103,7 @@ $def with (book)
                     <input type="text" name="label" id="id-label" value=""/>
                 </div>
             </div>
-            
+
             <div class="formElement">
                 <div class="label">
                     <label for="id-website">$_("If the system has a website, what's the homepage?") <span class="tip">$_("For example:") <em>http://www.goodreads.com/</em></span></label>
@@ -112,7 +112,7 @@ $def with (book)
                     <input type="text" name="website" id="id-website" value="http://"/>
                 </div>
             </div>
-            
+
             <div class="formElement">
                 <div class="label">
                     <label for="id-note">$_("Please leave a note: Why is this ID useful?")</label>
@@ -121,7 +121,7 @@ $def with (book)
                     <textarea name="note" id="id-note" rows="5" cols="40"></textarea>
                 </div>
             </div>
-            
+
             <div class="formElement" style="margin-bottom:15px;">
                 <div class="label"></div>
                 <button type="submit" name="" class="larger">$_("Add")</button>
@@ -148,7 +148,7 @@ $def with (book)
                     <input type="text" name="label" id="select-classification-popup-label" value=""/>
                 </div>
             </div>
-                        
+
             <div class="formElement">
                 <div class="label">
                     <label for="new-role-note">$_("Please leave a note: Why is this classification useful?")</label>
@@ -157,7 +157,7 @@ $def with (book)
                     <textarea name="note" id="new-role-note" rows="5" cols="40"></textarea>
                 </div>
             </div>
-            
+
             <div class="formElement">
                 <div class="label">
                     <label for="new-role-website">$_("Can you direct us to more information about this classification system online?")</label>
@@ -166,7 +166,7 @@ $def with (book)
                     <input type="text" name="website" id="new-role-website" value="http://"/>
                 </div>
             </div>
-            
+
             <div class="formElement" style="margin-bottom:15px;">
                 <button type="submit" name="" class="larger">$_("Add")</button>
                 &nbsp;

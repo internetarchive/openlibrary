@@ -50,7 +50,7 @@ $for ns in _.get_namespaces():
     $if ns == xnamespace:
         $(ns or "root")
     $else:
-        <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>     
+        <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>
     $(_.get_count(ns, lang))/$_.get_count(ns)
 
     <table id="strings_table">
@@ -65,7 +65,7 @@ $for ns in _.get_namespaces():
         <button type="button" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" />Add</button>
 
       $:macros.EditButtons()
-    
+
 
 Language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
 

@@ -5,14 +5,14 @@ $ _x = ctx.setdefault('bodyid', 'edit')
 $var title: $_("Edit %(title)s", title=page.title or page.key)
 
 $:render_template("lib/edit_head", page)
-            
+
 <div id="contentBody">
 
     <form name="edit" method="post" action="" class="olform">
 
     <div class="formElement title">
         <input type="hidden" name="type.key" value="$page.type.key" />
-        
+
         <div class="label"><label for="title">$_("Title"):</label></div>
         <div class="input">
             <input type="text" name="title" value="$page.title" />

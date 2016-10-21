@@ -5,15 +5,15 @@ class Test_ils_cover_upload:
         build_url = code.ils_cover_upload().build_url
         assert build_url("http://example.com/foo", status="ok") == "http://example.com/foo?status=ok"
         assert build_url("http://example.com/foo?bar=true", status="ok") == "http://example.com/foo?bar=true&status=ok"
-        
+
 class Test_ils_search:
     def test_format_result(self):
         format_result = code.ils_search().format_result
-        
+
         assert format_result(None) == {
             'status': 'notfound'
         }
-        
+
         doc = {
             'key': '/books/OL1M',
             'type': {'key': '/type/edition'}
@@ -23,7 +23,7 @@ class Test_ils_search:
             'olid': 'OL1M',
             'key': '/books/OL1M'
         }
-        
+
         doc = {
             'key': '/books/OL1M',
             'type': {'key': '/type/edition'},
@@ -39,10 +39,10 @@ class Test_ils_search:
                 'large': 'http://covers.openlibrary.org/b/id/12345-L.jpg',
             }
         }
-        
+
     def test_prepare_data(self):
         prepare_data = code.ils_search().prepare_data
-        
+
         data = {
             'isbn': ['1234567890', '9781234567890', '123-4-56789-0', '978-1-935928-32-4']
         }

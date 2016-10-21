@@ -16,7 +16,7 @@ $def with (email, form)
 <div id="contentBody">
     <form id="register" class="olform email" name="register" method="post">
         <p class="instruct">$_("Your current email address is"): $email</p>
-        
+
         $if form.note:
             <div class="note">$form.note</div>
 
@@ -28,7 +28,7 @@ $def with (email, form)
                 <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
             </div>
         </div>
-        
+
         <div class="formElement bottom">
             <div class="input">
                 <br/>

@@ -12,7 +12,7 @@ $ master = change.get_master()
 
     <div id="mergeHead" class="sansserif">
         <div class="smallest lightgreen">Master</div>
-        
+
         <div id="recordMaster">
             <span id="recordMasterTitle" class="larger">
                 <strong><a href="$master.key">$master.name</a></strong>
@@ -28,7 +28,7 @@ $ master = change.get_master()
             </span>
 
         </div>
-        
+
         <div class="smallest lightgreen">Duplicates</div>
         <div id="recordDuplicates">
             <p class="small collapse">
@@ -39,7 +39,7 @@ $ master = change.get_master()
 
         <p class="smallest gray sansserif">$len(change.changes) records modified.</p>
     </div>
-    
+
     <h3>Updated Records</h3>
     $:render_template("recentchanges/updated_records", change)
 </div>

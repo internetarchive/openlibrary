@@ -54,10 +54,10 @@ $:render_template("lib/covers", page)
 function resetCounts() {
     var hash = {};
     var counts = \$("<span></span>");
-    
+
     var x = sprintf(ungettext("%s book", "%s books", page.work_count), commify(page.work_count));
     var y = sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count));
-    
+
     counts.append('<strong></strong>').find("strong:last").text(x);
     hash.ebooks = null;
 
@@ -65,8 +65,8 @@ function resetCounts() {
     counts.append('<span class="clickdata"></span>');
 
 	\$("#coversCount").html(counts.html());
-    
-	var yearFrom, yearTo;		
+
+	var yearFrom, yearTo;
 	if (page.filter.published_in) {
 		var y = "" + page.filter.published_in;
 		if (y.indexOf("-") > 0) {
@@ -83,13 +83,13 @@ function resetCounts() {
 	}
 	else {
 	    page._published_in = null;
-	    
+
 		yearFrom = page.publishing_history[0][0];
 		yearTo = page.publishing_history[page.publishing_history.length-1][0];
-		
+
         hash.published_in = null;
 	}
-	
+
 	if (yearFrom == yearTo) {
         \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
 	}
@@ -103,21 +103,21 @@ function resetCounts() {
 });
 </script>
 
-<div id="contentBody"> 
+<div id="contentBody">
 
-<div class="head"> 
-    <h2>Search Classic eBooks</h2> 
-</div> 
+<div class="head">
+    <h2>Search Classic eBooks</h2>
+</div>
 
-<div class="section"> 
-    <form method="get" action="/search" class="siteSearch olform"> 
-    <label for="q" class="hidden">Keywords</label> 
+<div class="section">
+    <form method="get" action="/search" class="siteSearch olform">
+    <label for="q" class="hidden">Keywords</label>
     <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
     <input type="hidden" name="public_scan_b" value="true">
-    <button type="submit" class="larger" id="searchsubmit">Search</button> 
-    </form> 
-</div> 
-   
-<div class="clearfix"></div> 
+    <button type="submit" class="larger" id="searchsubmit">Search</button>
+    </form>
+</div>
+
+<div class="clearfix"></div>
 
 </div>

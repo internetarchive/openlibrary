@@ -41,7 +41,7 @@ class Batch(web.storage):
         logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
         if items:
             values = [dict(batch_id=self.id, ia_id=item) for item in items]
-            db.get_db().multiple_insert("import_item", values)        
+            db.get_db().multiple_insert("import_item", values)
             logger.info("batch %s: added %d items", self.name, len(items))
 
     def get_items(self, status="pending"):
@@ -98,8 +98,8 @@ class Stats:
             where = "status=$status"
         else:
             where = "1=1"
-        rows = db.select("import_item", 
-            what="count(*) as count", 
+        rows = db.select("import_item",
+            what="count(*) as count",
             where=where,
             vars=locals())
         return rows[0].count
@@ -113,7 +113,7 @@ class Stats:
             "SELECT added_time::date as date, status, count(*)" +
             " FROM import_item " +
             " WHERE added_time > current_date - interval '$ndays' day"
-            " GROUP BY 1, 2" + 
+            " GROUP BY 1, 2" +
             " ORDER BY 1 desc",
             vars=locals())
         d = defaultdict(dict)
@@ -140,9 +140,9 @@ class Stats:
             where = "added_time::date = $date"
         else:
             where = "1 = 1"
-        return db.select("import_item", 
-            where=where, 
-            order=order, 
+        return db.select("import_item",
+            where=where,
+            order=order,
             limit=limit,
             vars=locals())
 

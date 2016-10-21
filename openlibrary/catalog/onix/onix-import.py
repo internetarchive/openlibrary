@@ -60,7 +60,7 @@ def setup_names ():
 	parent_id = site_object().id
 	for r in web.query ("SELECT id,name FROM thing WHERE parent_id = $parent_id", vars=locals()):
 		item_names[r.name] = r.id
-	
+
 	for r in web.query ("SELECT d1.value FROM datum AS d1, datum AS d2 WHERE d1.version_id=d2.version_id AND d1.key='source_record_lineno' AND d2.key='source_name' AND d2.value=$source_name", { 'source_name': source_name }):
 		edition_records.add (int (r.value))
 

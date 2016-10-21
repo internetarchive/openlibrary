@@ -69,7 +69,7 @@ def process_record(pos, loc, data, file_id):
         if not v:
             continue
         for i in v:
-            add_to_index(out[k], i, str(rec_id)) 
+            add_to_index(out[k], i, str(rec_id))
 
 def progress_update(rec_no, t):
     remaining = total - rec_no

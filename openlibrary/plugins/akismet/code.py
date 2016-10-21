@@ -2,7 +2,7 @@
 """
 import socket
 
-# akismet module changes socket default timeout. 
+# akismet module changes socket default timeout.
 # Undoing it as it might effect other parts of the system.
 timeout = socket.getdefaulttimeout()
 
@@ -45,7 +45,7 @@ class hooks(client.hook):
             if page.website:
                 data['comment_author_url'] = page.website[0]
             self.checkspam(comment, data)
-    
+
     def checkspam(self, comment, data):
         data['user_ip'] = web.ctx.get('ip', '127.0.0.1')
 

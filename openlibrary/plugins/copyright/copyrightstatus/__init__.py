@@ -5,18 +5,18 @@ copyrightstatus: calculate whether things are in the public domain in various co
     >>> copyrightstatus.is_public_domain(edition)
     {
       'ca': {
-        'date': 2044, 
+        'date': 2044,
         'assumptions': [
-          "We're assuming that the data is correct.", 
-          "We're assuming that the author whose death dates are missing didn't die after those whose are available."]}, 
+          "We're assuming that the data is correct.",
+          "We're assuming that the author whose death dates are missing didn't die after those whose are available."]},
       'us': {
-        'date': 2117, 
+        'date': 2117,
         'assumptions': [
-          "We're assuming that the data is correct.", 
-          "We're assuming it was published.", 
-          "We're assuming it was published in the US.", 
-          "We're assuming it was published with a valid copyright notice.", 
-          "We're assuming it wasn't published by a corporation or under a psuedonym.", 
+          "We're assuming that the data is correct.",
+          "We're assuming it was published.",
+          "We're assuming it was published in the US.",
+          "We're assuming it was published with a valid copyright notice.",
+          "We're assuming it wasn't published by a corporation or under a psuedonym.",
           "We're assuming that the author lived as long as the oldest person ever and published the work at birth."
         ]}
     }

@@ -99,22 +99,22 @@ class Account(web.storage):
     @property
     def username(self):
         return self._key.split("/")[-1]
-        
+
     def get_edit_count(self):
         user = self.get_user()
         return user and user.get_edit_count() or 0
-        
+
     @property
     def registered_on(self):
         """Returns the registration time."""
         t = self.get("created_on")
         return t and h.parse_datetime(t)
-        
+
     @property
     def activated_on(self):
         user = self.get_user()
         return user and user.created
-        
+
     @property
     def displayname(self):
         key = "/people/" + self.username
@@ -125,30 +125,30 @@ class Account(web.storage):
             return self.data.get("displayname") or self.username
         else:
             return self.username
-            
+
     def creation_time(self):
         d = self['created_on'].split(".")[0]
         return datetime.datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-        
+
     def get_recentchanges(self, limit=100, offset=0):
         q = dict(author=self.get_user().key, limit=limit, offset=offset)
         return web.ctx.site.recentchanges(q)
 
     def verify_password(self, password):
         return verify_hash(get_secret_key(), password, self.enc_password)
-        
+
     def update_password(self, new_password):
         web.ctx.site.update_account(self.username, password=new_password)
-    
+
     def update_email(self, email):
         web.ctx.site.update_account(self.username, email=email)
-        
+
     def send_verification_email(self):
         send_verification_email(self.username, self.email)
 
     def activate(self):
         web.ctx.site.activate_account(username=self.username)
-        
+
     def block(self):
         """Blocks this account."""
         web.ctx.site.update_account(self.username, status="blocked")
@@ -163,7 +163,7 @@ class Account(web.storage):
 
     def login(self, password):
         """Tries to login with the given password and returns the status.
-        
+
         The return value can be one of the following:
 
             * ok
@@ -193,7 +193,7 @@ class Account(web.storage):
         t = datetime.datetime(*time.gmtime()[:6]).isoformat()
         text = "%s,%s" % (user_key, t)
         return text + "," + generate_hash(get_secret_key(), text)
-            
+
     def _save(self):
         """Saves this account in store.
         """
@@ -208,7 +208,7 @@ class Account(web.storage):
         """
         t = self.get("last_login")
         return t and h.parse_datetime(t)
-    
+
     def get_user(self):
         key = "/people/" + self.username
         doc = web.ctx.site.get(key)
@@ -226,7 +226,7 @@ class Account(web.storage):
             return Link(doc)
         else:
             return False
-    
+
     def get_password_reset_link(self):
         key = "account/%s/password"%self.username
         doc = web.ctx.site.store.get(key)

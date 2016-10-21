@@ -7,17 +7,17 @@ $var title: $_("Merge Editions")
 </div>
 
 <div id="contentBody">
- 
+
 $if not keys:
     $# TODO: improve this message. This error comes when no author keys are passed as url parameters.
     <div class="note">$_("No editions selected.")</div>
- 
+
 <ol class="sansserif">
-    <li>Select a &quot;master&quot; record that best represents the edition - 
+    <li>Select a &quot;master&quot; record that best represents the edition -
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>Select edition records which should be merged with the master
-        - 
+        -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
     <li>Press MERGE EDITIONS.</li>

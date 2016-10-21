@@ -16,7 +16,7 @@ class NoQueryParam(KeyError):
     called but no X parameters were provided.
     """
     pass
-    
+
 
 
 def search(params):
@@ -33,7 +33,7 @@ def search(params):
     -------
     {'doc': {'authors': [
                          {
-                          'key': '/authors/OL1A', 
+                          'key': '/authors/OL1A',
                           'name': 'Arthur Conan Doyle'
                          }
                         ],
@@ -50,7 +50,7 @@ def search(params):
     provided as input and one extra key called 'key' which will be
     openlibrary identifier if one was found or None if nothing was.
 
-    There will be two extra keys added to the 'doc'. 
+    There will be two extra keys added to the 'doc'.
 
      1. 'work' which is a dictionary with a single element 'key' that
         contains a link to the work of the matched edition.
@@ -58,7 +58,7 @@ def search(params):
         element 'key' that links to the appropriate author.
 
      If a work, author or an edition is not matched, the 'key' at that
-     level will be None. 
+     level will be None.
 
      To update fields in a record, add the extra keys to the 'doc' and
      send the resulting structure to 'create'.
@@ -75,7 +75,7 @@ def search(params):
     """
     params = copy.deepcopy(params)
     doc = params.pop("doc")
-    
+
     matches = []
     # TODO: We are looking only at edition searches here. This should be expanded to works.
     if "isbn" in doc.get('identifiers',{}):
@@ -112,8 +112,8 @@ def find_matches_by_identifiers(identifiers):
 
     We consider only oclc_numbers, lccn and ocaid. isbn is dealt with
     separately.
-    
-    Will return two lists of matches: 
+
+    Will return two lists of matches:
       all : List of items that match all the given identifiers (better
             matches).
       any : List of items that match any of the given identifiers
@@ -174,7 +174,7 @@ def build_create_input(params):
     params['work'] = {'key' : None}
     params['authors'] = [{'name' : x['name'], 'key' : None} for x in params.get('authors',[])]
     return params
-    
+
 
 def edition_to_doc(thing):
     """Converts an edition document from infobase into a 'doc' used by
@@ -189,7 +189,7 @@ def edition_to_doc(thing):
             identifiers[i] = doc.pop(i)
     for i in ["isbn_10", "isbn_13"]:
         if i in doc:
-            identifiers.setdefault('isbn',[]).extend(doc.pop(i)) 
+            identifiers.setdefault('isbn',[]).extend(doc.pop(i))
     doc['identifiers'] = identifiers
 
     # TODO : Process classifiers here too
@@ -202,7 +202,7 @@ def edition_to_doc(thing):
         doc['authors'] = authors
 
     return doc
-    
+
 
 def work_to_doc(thing):
     """
@@ -266,11 +266,11 @@ def things_to_matches(things):
             edition = None
         matches.append(dict(edition = edition, work = work))
     return matches
-            
-            
-            
-        
-        
+
+
+
+
+
 
 # Creation/updation entry point
 def create(records):
@@ -283,7 +283,7 @@ def create(records):
         things = doc_to_things(copy.deepcopy(doc))
         ret = web.ctx.site.save_many(things, 'Import new records.')
         return [x.key for x in ret]
-    
+
 
 # Creation helpers
 def edition_doc_to_things(doc):
@@ -391,7 +391,7 @@ def doc_to_things(doc):
     else:
         key = web.ctx.site.new_key(typ)
         doc['key'] = key
-    
+
     # Type specific processors
     processors = {'/type/edition' : edition_doc_to_things,
                   '/type/work'    : work_doc_to_things,
@@ -402,4 +402,4 @@ def doc_to_things(doc):
 
     return retval
 
-    
+

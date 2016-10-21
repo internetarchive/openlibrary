@@ -50,7 +50,7 @@ class Minicron(object):
                 return True
 
         mm, hh, dom, moy, dow, cmd = cronline.split(None, 5)
-        
+
         if not all(x == "*" for x in [dom, moy, dow]):
             raise BadCronLine("Only minutes and hours may be set. The others have to be *")
         return all([match_minute(ctime, mm),
@@ -61,7 +61,7 @@ class Minicron(object):
         logging.debug(" Running command %s"%cmd)
         p = subprocess.Popen(cmd, shell = True)
         p.wait()
-        
+
     def _check_and_run_commands(self, ctime):
         """Checks each line of the cron input file to see if the
         command is to be run. If so, it runs it"""
@@ -82,7 +82,7 @@ class Minicron(object):
         elif self.times > 0:
             self.times -= 1
             self.scheduler.enter(self.tickfreq, 1, self._tick, ())
-        
+
 
     def run(self, times = None):
         self.times = times

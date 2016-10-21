@@ -3,7 +3,7 @@
 USAGE:
     Get all docs:
         $ ./scripts/openlibary conf/openlibrary.yml runscript scripts/2011/08/oldoc.py
-    
+
     Get docs for one single function:
         $ ./scripts/openlibary conf/openlibrary.yml runscript scripts/2011/08/oldoc.py datestr
 

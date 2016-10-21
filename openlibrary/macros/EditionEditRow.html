@@ -21,7 +21,7 @@ $else:
     $for i, v in enumerate(value):
         <div class="formElement">
             <div class="$class_label"><label for="$name">$label</label></div>
-            <div class="$class_input">$:thinginput(v, expected_type=property_type, name=name, id=name)            
+            <div class="$class_input">$:thinginput(v, expected_type=property_type, name=name, id=name)
                 $if i == len(value) - 1:
                     <button class="addAnother control" id="$button_id" type="button" title="Add another?"></button>
             </div>

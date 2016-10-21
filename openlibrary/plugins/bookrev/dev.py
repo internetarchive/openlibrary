@@ -9,7 +9,7 @@ def list_latest_reviews():
 
 def simple_shell():
     """A simple shell for creating book reviews. For dev use only."""
-    
+
     def create_dummy_user(username, password, displayname=None, email=''):
 
         username = web.lstrips(username, 'user/')
@@ -53,7 +53,7 @@ def simple_shell():
             if not self.edition:
                 raise quit()
             name = raw_input('\nreview author? [%s] ' % default) or default
-            self.user = db.get_thing(utils.lpad(name, 'user/'), 
+            self.user = db.get_thing(utils.lpad(name, 'user/'),
                                      db.get_type('type/user'))
             if not self.user:
                 print '\nreview author not found.'
@@ -63,11 +63,11 @@ def simple_shell():
             else:
                 print '\nuser %s found.' % self.user
 
-        def input_text(self): 
+        def input_text(self):
             if not self.edition or not self.user:
                 raise quit()
             print '\ntype in the review. (exit by typing two continuous line breaks.)\n'
-            self.text = utils.read_text()        
+            self.text = utils.read_text()
             print '\nthanks.'
 
     try:

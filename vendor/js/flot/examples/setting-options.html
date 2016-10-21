@@ -24,7 +24,7 @@ $(function () {
     var d1 = [];
     for (var i = 0; i < Math.PI * 2; i += 0.25)
         d1.push([i, Math.sin(i)]);
-    
+
     var d2 = [];
     for (var i = 0; i < Math.PI * 2; i += 0.25)
         d2.push([i, Math.cos(i)]);
@@ -32,7 +32,7 @@ $(function () {
     var d3 = [];
     for (var i = 0; i < Math.PI * 2; i += 0.1)
         d3.push([i, Math.tan(i)]);
-    
+
     $.plot($("#placeholder"), [
         { label: "sin(x)",  data: d1},
         { label: "cos(x)",  data: d2},

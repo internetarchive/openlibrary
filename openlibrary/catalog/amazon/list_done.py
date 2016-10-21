@@ -42,7 +42,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         for e in doc.find_class('fastTrackList'):
             if e.text == 'This item is currently not available.':
                 print e.text
-                
+
         for pt in doc.find_class('productTitle'):
             assert pt.tag == 'div'
             assert pt[0].tag == 'a'

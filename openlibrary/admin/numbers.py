@@ -43,7 +43,7 @@ def query_single_thing(db, typ, start, end):
     typ = '/type/%s'%typ
     result = db.query(q1, vars=locals())
     try:
-        kid = result[0].id 
+        kid = result[0].id
     except IndexError:
         raise InvalidType("No id for type '/type/%s in the datbase"%typ)
     q2 = "select count(*) as count from thing where type=%d and created >= '%s' and created < '%s'"% (kid, start, end)
@@ -65,7 +65,7 @@ def single_thing_skeleton(**kargs):
     except KeyError, k:
         raise TypeError("%s is a required argument for admin_range__%s"%(k, typ))
     return query_single_thing(db, typ, start, end)
-    
+
 
 # Public functions that are used by stats.py
 def admin_range__human_edits(**kargs):
@@ -100,7 +100,7 @@ def admin_range__bot_edits(**kargs):
     result = db.query(q1)
     count = result[0].count
     return count
-    
+
 
 def admin_range__covers(**kargs):
     "Queries the number of covers added between `start` and `end`"
@@ -148,16 +148,16 @@ def admin_range__visitors(**kargs):
     else:
         logging.debug("  No statistics obtained for %s (%d)", date, key)
         raise NoStats("No record for %s"%date)
-    
+
 def admin_range__loans(**kargs):
     """Finds the number of loans on a given day.
 
     Loan info is written to infobase write log. Grepping through the log file gives us the counts.
-    
+
     WARNING: This script must be run on the node that has infobase logs.
     """
     try:
-        db = kargs['thingdb']        
+        db = kargs['thingdb']
         start = kargs['start']
         end = kargs['end']
     except KeyError, k:
@@ -165,7 +165,7 @@ def admin_range__loans(**kargs):
     result = db.query(
         "SELECT count(*) as count FROM stats" +
         " WHERE type='loan'" +
-        "   AND created >= $start" + 
+        "   AND created >= $start" +
         "   AND created < $end",
         vars=locals())
     return result[0].count
@@ -184,12 +184,12 @@ def admin_total__lists(**kargs):
     try:
         db    = kargs['thingdb']
     except KeyError, k:
-        raise TypeError("%s is a required argument for admin_total__lists"%k)    
+        raise TypeError("%s is a required argument for admin_total__lists"%k)
     # Computing total number of lists
     q1 = "SELECT id as id from thing where key='/type/list'"
     result = db.query(q1)
     try:
-        kid = result[0].id 
+        kid = result[0].id
     except IndexError:
         raise InvalidType("No id for type '/type/list' in the database")
     q2 = "select count(*) as count from thing where type=%d"% kid

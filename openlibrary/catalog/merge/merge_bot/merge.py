@@ -1,4 +1,4 @@
-#!/usr/bin/python2.5 
+#!/usr/bin/python2.5
 
 import catalog.merge.merge_marc as marc
 import catalog.merge.amazon as amazon

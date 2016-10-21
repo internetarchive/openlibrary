@@ -153,7 +153,7 @@ td { padding: 5px; background: #eee }
         ret += '<td><input type="submit" value="find"></td></tr>'
         ret += '</table>'
         ret += '</form>'
-        if author: 
+        if author:
             ret += 'Author: <a href="http://openlibrary.org%s">%s</a><br>' % (author, name)
             ret += search(author, name)
         ret += "</body></html>"

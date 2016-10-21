@@ -6,7 +6,7 @@ $def with (page)
         <span class="count">$_("First published in %s", page.first_publish_year)</span>
     </h2>
     <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
-        <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>? 
+        <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?
     </div>
 </div>
 
@@ -43,7 +43,7 @@ $def with (page)
     \$('#editions th.read span').html('&nbsp;&uarr;');
     \$('#editions th').mouseup(function(){
         \$('#editions th span').html('');
-        \$(this).find('span').html('&nbsp;&uarr;');            
+        \$(this).find('span').html('&nbsp;&uarr;');
         if (\$(this).hasClass('sorting_asc')) {
             \$(this).find('span').html('&nbsp;&darr;');
         } else if (\$(this).hasClass('sorting_desc')) {

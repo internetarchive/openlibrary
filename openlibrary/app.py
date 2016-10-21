@@ -18,15 +18,15 @@ class view(_app.page):
             def GET(self, name):
                 return app.render_template("hello", name)
     """
-    # In infogami, the class with this functionality is called page. 
+    # In infogami, the class with this functionality is called page.
     # We are redefining with a slightly different terminology to make
     # things more readable.
     pass
 
-# view is just a base class. 
+# view is just a base class.
 # Defining a class extending from _app.page auto-registers it inside infogami.
 # Undoing that.
-del _app.pages['/view']    
+del _app.pages['/view']
 
 class subview(_app.view):
     """Subviews are views that work an object in the database.
@@ -35,9 +35,9 @@ class subview(_app.view):
     of the document in the database to work on and the suffix iden identifying
     the action.
 
-    For example, the in the subview with URL "/works/OL123W/foo/identifiers", 
+    For example, the in the subview with URL "/works/OL123W/foo/identifiers",
     "identifiers" is the action and "/works/OL123W" is the key of the document.
-    The middle part "foo" is added by a middleware to make the URLs readable 
+    The middle part "foo" is added by a middleware to make the URLs readable
     and not that is transparant to this.
 
     Here is a sample subview:
@@ -46,7 +46,7 @@ class subview(_app.view):
             suffix = "identifiers"
             types = ["/type/edition"]
     """
-    # In infogami, the class with this functionality is called a view. 
+    # In infogami, the class with this functionality is called a view.
     # We are redefining with a slightly different terminology to make
     # things more readable.
 

@@ -10,7 +10,7 @@ $if doc.type.key == '/type/author':
     $ title = "Author Photos"
     $if doc.get_photo():
         $ change = "Manage Author Photos"
-        $ size = "smaller"        
+        $ size = "smaller"
     $else:
         $ change = "Add Author Photo"
         $ size = "smallest"
@@ -18,14 +18,14 @@ $else:
     $ add_url = doc.url('/add-cover')
     $ manage_url = doc.url('/manage-covers')
     $ title = "Book Covers"
-    
+
     $if doc.get_cover():
         $ change = "Manage Covers"
         $ size = "smaller"
     $else:
         $ change = "Add Cover Image"
         $ size = "smallest"
-    
+
 <script type="text/javascript">
 <!--
 \$().ready(function(){
@@ -38,12 +38,12 @@ $else:
 
 function update_image(image) {
     var url;
-    
+
     $if doc.type.key in ["/type/edition", "/type/work", "/edit"]:
         if (image) {
             url = "$get_coverstore_url()/b/id/" + image + "-M.jpg";
             // XXX-Anand: Fix this hack
-            // set url and show SRPCover  and hide SRPCoverBlank 
+            // set url and show SRPCover  and hide SRPCoverBlank
             \$("$cover_selector").attr('src', url)
                 .parents("div:first").show()
                 .next().hide();
@@ -71,7 +71,7 @@ function update_image(image) {
             .find('iframe')
             .attr("src", src);
     }
-    
+
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
     \$(".coverPop").colorbox({inline: true, opacity: "0.5", href: "#addImage"})

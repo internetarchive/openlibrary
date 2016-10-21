@@ -12,24 +12,24 @@ def populate_infobase(site):
     a0 = {'name'         : 'Test author 1',
           'type'         : {'key': atype},
           'key'          : akey0}
-    
+
     akey1 = site.new_key(atype)
     a1 = {'name'         : 'Test author 1',
           'type'         : {'key': atype},
           'key'          : akey1}
-    
-    
+
+
     ## Create a work
     wtype = '/type/work'
     wkey = site.new_key(wtype)
-    w = { 
+    w = {
         'title'        : 'test1',
         'type'         : {'key': wtype},
         'key'          : wkey,
         'authors'      : [ {'author' : a0}, {'author' : a1}]
         }
-    site.save(w)    
-    
+    site.save(w)
+
     ## Create two editions for this work
     editions = []
     etype = '/type/edition'
@@ -47,7 +47,7 @@ def populate_infobase(site):
             }
         site.save(e)
         editions.append(ekey)
-        
+
     ## Now create a work without any edition
     wkey = site.new_key(wtype)
     w = {
@@ -56,8 +56,8 @@ def populate_infobase(site):
         'key'          : wkey,
         }
     site.save(w)
-    
-    
+
+
 
 def test_doc_to_thing_adds_key_to_edition(mock_site):
     "Test whether doc_to_things adds a key to an edition"
@@ -107,42 +107,42 @@ def test_doc_to_thing_updation_of_work(mock_site):
 
 def test_doc_to_thing_unpack_work_and_authors_from_edition(mock_site):
     "Tests if the 'work' and 'author' fields in a an edition doc are unpacked and converted."
-    doc = {'type' : '/type/edition', 
+    doc = {'type' : '/type/edition',
            'work' : { 'title' : 'Test title for work'},
            'authors' : [ {'name' : 'Test author'} ]
            }
     things = doc_to_things(doc)
     expected = [{'key': '/books/OL1M', 'type': '/type/edition'}, # The edition
-                
+
                 {'authors': [{'author': '/authors/OL1A', 'type': '/type/author_role'}],
                  'key': '/works/OL1W',
                  'title': 'Test title for work',
                  'type': '/type/work'}, # The work
-                
+
                 {'key': '/authors/OL1A', 'name': 'Test author', 'type': '/type/author'} # The author
                 ]
     assert expected  == things
 
 def test_doc_to_thing_unpack_authors_from_work(mock_site):
     "Tests if the 'authors' fields in a work doc are unpacked and converted."
-    doc = {'type' : '/type/work', 
+    doc = {'type' : '/type/work',
            'title' : 'This is a test book',
            'authors' : [ {'name' : 'Test author'} ]
            }
     things = doc_to_things(doc)
-    expected = [                
+    expected = [
                 {'authors': [{'author': '/authors/OL1A', 'type': '/type/author_role'}],
                  'key': '/works/OL1W',
                  'title': 'This is a test book',
                  'type': '/type/work'}, # The work
-                
+
                 {'key': '/authors/OL1A', 'name': 'Test author', 'type': '/type/author'} # The author
                 ]
     assert expected  == things
 
 def test_doc_to_thing_unpack_identifiers(mock_site):
     "Tests if the identifiers are unpacked from an edition"
-    doc = {'type' : '/type/edition', 
+    doc = {'type' : '/type/edition',
            'identifiers' : {"oclc_numbers" : ['1234'],
                             "isbn_10" : ['1234567890'],
                             "isbn_13" : ['1234567890123'],
@@ -156,7 +156,7 @@ def test_doc_to_thing_unpack_identifiers(mock_site):
 
 def test_create(mock_site):
     "Tests the create API"
-    doc = {'type' : '/type/edition', 
+    doc = {'type' : '/type/edition',
            'publisher' : "Test publisher",
            'work' : { 'title' : 'Test title for work'},
            'authors' : [{'name' : 'Test author'}],
@@ -252,12 +252,12 @@ def test_find_matches_by_identifiers(mock_site):
                        'key': None,
                        'title': 'THIS IS A TEST BOOK 2',
                        'type': '/type/edition'}}
-    
+
     create(record0)
     create(record1)
 
     q = {'oclc_numbers': "1807182", 'lccn': '34029558'}
-                              
+
     results = find_matches_by_identifiers(q)
 
     assert results["all"] == ['/books/OL1M']
@@ -278,20 +278,20 @@ def test_find_matches_by_title_and_publishers(mock_site):
                        'type': '/type/edition',
                        'publishers' : ['Dover'],
                        'publish_year': '2000'}}
-               
+
 
     create(record0)
     create(record1)
-    
+
     # A search that should fail
-    q = {'publishers': ["Bantam"], 
+    q = {'publishers': ["Bantam"],
          'publish_year': '2000'}
     result = find_matches_by_title_and_publishers(q)
     assert not result, "Found a match '%s' where there should have been none"%result
 
     # A search that should return the first entry (title, publisher and year)
     q = {'title': 'Bantam book',
-         'publishers': ["Bantam"], 
+         'publishers': ["Bantam"],
          'publish_year': '1992'}
     result = find_matches_by_title_and_publishers(q)
     assert result == ['/books/OL1M']
@@ -302,7 +302,7 @@ def test_find_matches_by_title_and_publishers(mock_site):
     assert result == ['/books/OL2M']
     # TODO: Search by title and then filter for publisher in the application directly.
 
-    
+
 def test_search_by_title(mock_site):
     "Drill the main search API using title"
     populate_infobase(mock_site)
@@ -317,7 +317,7 @@ def test_search_by_title(mock_site):
                             {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
     assert matches == expected
 
-    
+
 @pytest.mark.skipif('"isbn_ not supported by mock_site"')
 def test_search_by_isbn(mock_site):
     "Drill the main search API using isbn"
@@ -350,7 +350,7 @@ def test_massage_search_results_edition(mock_site):
                 'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
                             {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
     assert massaged == expected
-    
+
     # Without limiting
     massaged = massage_search_results(matches)
     expected = {'doc': {'authors': [{'key': '/authors/OL1A'}, {'key': '/authors/OL2A'}],
@@ -365,6 +365,6 @@ def test_massage_search_results_edition(mock_site):
                 'matches': [{'edition': '/books/OL1M', 'work': u'/works/OL1W'},
                             {'edition': '/books/OL2M', 'work': u'/works/OL1W'}]}
     assert massaged == expected
-    
+
 #TODO : Test when no matches at all are found
-    
+

@@ -14,29 +14,29 @@ class BasicMergeEngine:
     def merge(self, master, duplicates):
         docs = self.do_merge(master, duplicates)
         return self.save(docs, master, duplicates)
-        
+
     def do_merge(self, master, duplicates):
         """Performs the merge and returns the list of docs to save.
         """
         docs_to_save = []
-        
+
         # mark all the duplcates as redirects to the master
         docs_to_save.extend(self.make_redirect_doc(key, master) for key in duplicates)
-        
+
         # find the references of each duplicate and covert them
         references = self.find_all_backreferences(duplicates)
         docs = self.get_many(references)
         docs_to_save.extend(self.convert_doc(doc, master, duplicates) for doc in docs)
-        
+
         # finally, merge all the duplicates into the master.
         master_doc = web.ctx.site.get(master).dict()
         dups = self.get_many(duplicates)
         for d in dups:
             master_doc = self.merge_docs(master_doc, d)
-            
+
         docs_to_save.append(master_doc)
         return docs_to_save
-        
+
     def get_many(self, keys):
         def process(doc):
             # some books have bad table_of_contents. Fix them to avoid failure on save.
@@ -45,7 +45,7 @@ class BasicMergeEngine:
                     doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
             return doc
         return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
-        
+
     def find_all_backreferences(self, duplicates):
         references = set()
         for key in duplicates:
@@ -58,20 +58,20 @@ class BasicMergeEngine:
         All the subclasses must provide an implementation for this method.
         """
         raise NotImplementedError()
-        
+
     def save(self, docs, master, duplicates):
         """Saves the effected docs because of merge.
-        
+
         All the subclasses must provide an implementation for this method.
         """
         raise NotImplementedError()
-            
+
     def merge_docs(self, master, dup, ignore=[]):
         """Merge duplicate doc into master doc.
         """
         keys = set(master.keys() + dup.keys())
         return dict((k, self.merge_property(master.get(k), dup.get(k))) for k in keys)
-        
+
     def merge_property(self, a, b):
         if isinstance(a, list) and isinstance(b, list):
             return uniq(a + b, key=dicthash)
@@ -79,14 +79,14 @@ class BasicMergeEngine:
             return b
         else:
             return a
-        
+
     def make_redirect_doc(self, key, redirect):
         return {
             "key": key,
             "type": {"key": "/type/redirect"},
             "location": redirect
         }
-    
+
     def convert_doc(self, doc, master, duplicates):
         """Converts references to any of the duplicates in the given doc to the master.
         """
@@ -115,41 +115,41 @@ class AuthorMergeEngine(BasicMergeEngine):
             if 'alternate_names' in master:
                 master['alternate_names'] = uniq(master['alternate_names'], key=space_squash_and_strip)
         return master
-        
+
     def save(self, docs, master, duplicates):
         data = {
             "master": master,
             "duplicates": list(duplicates)
         }
-        
+
         # There is a bug (#89) due to which old revisions of the docs are being sent to save.
         # Collecting all the possible information to detect the problem and saving it in datastore.
         debug_doc = {}
-        debug_doc['type'] = 'merge-authors-debug' 
+        debug_doc['type'] = 'merge-authors-debug'
         mc = self._get_memcache()
         debug_doc['memcache'] = mc and dict((k, simplejson.loads(v)) for k, v in mc.get_multi([doc['key'] for doc in docs]).items())
         debug_doc['docs'] = docs
-        
+
         result = web.ctx.site.save_many(docs, comment='merge authors', action="merge-authors", data=data)
-        
+
         docrevs= dict((doc['key'], doc.get('revision')) for doc in docs)
         revs = dict((row['key'], row['revision']) for row in result)
-        
+
         # Bad merges are happening when we are getting non-recent docs.
         # That can be identified by checking difference in the revision numbers before and after save
         bad_merge = any(revs[k]-docrevs[k] > 1 for k in revs if docrevs[k] is not None)
-        
+
         debug_doc['bad_merge'] = str(bad_merge).lower()
         debug_doc['result'] = result
         key = 'merge_authors/%d' % web.ctx.site.seq.next_value('merge-authors-debug')
         web.ctx.site.store[key] = debug_doc
-        
+
         return result
-        
+
     def _get_memcache(self):
         from openlibrary.plugins.openlibrary import connection
         return connection._memcache
-    
+
     def find_backreferences(self, key):
         q = {
             "type": "/type/edition",
@@ -157,7 +157,7 @@ class AuthorMergeEngine(BasicMergeEngine):
             "limit": 10000
         }
         edition_keys = web.ctx.site.things(q)
-        
+
         editions = self.get_many(edition_keys)
         work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
 
@@ -175,7 +175,7 @@ def space_squash_and_strip(s):
 
 def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
-    
+
 def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """
@@ -189,16 +189,16 @@ def fix_table_of_contents(table_of_contents):
             level = 0
             label = ""
             title = web.safeunicode(r['value'])
-            pagenum = ""            
+            pagenum = ""
         else:
             level = safeint(r.get('level', '0'), 0)
             label = r.get('label', '')
             title = r.get('title', '')
             pagenum = r.get('pagenum', '')
-            
+
         r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
         return r
-    
+
     d = [row(r) for r in table_of_contents]
     return [row for row in d if any(row.values())]
 
@@ -207,7 +207,7 @@ class merge_authors(delegate.page):
 
     def is_enabled(self):
         return "merge-authors" in web.ctx.features
-        
+
     def filter_authors(self, keys):
         docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
         d = dict((doc.key, doc.type.key) for doc in docs)
@@ -216,7 +216,7 @@ class merge_authors(delegate.page):
     def GET(self):
         i = web.input(key=[])
         keys = uniq(i.key)
-        
+
         # filter bad keys
         keys = self.filter_authors(keys)
         return render_template('merge/authors', keys, top_books_from_author=top_books_from_author)
@@ -225,28 +225,28 @@ class merge_authors(delegate.page):
         i = web.input(key=[], master=None, merge_key=[])
         keys = uniq(i.key)
         selected = uniq(i.merge_key)
-        
+
         # filter bad keys
-        keys = self.filter_authors(keys)        
+        keys = self.filter_authors(keys)
 
         # doesn't make sense to merge master with it self.
         if i.master in selected:
             selected.remove(i.master)
 
         formdata = web.storage(
-            master=i.master, 
+            master=i.master,
             selected=selected
         )
 
         if not i.master or len(selected) == 0:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
-        else:                
+        else:
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             master = web.ctx.site.get("/authors/" + i.master)
             raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
 
 class merge_authors_json(delegate.page):
-    """JSON API for merge authors. 
+    """JSON API for merge authors.
 
     This is called from the master author page to trigger the merge while displaying progress.
     """
@@ -261,7 +261,7 @@ class merge_authors_json(delegate.page):
         data = simplejson.loads(json)
         master = data['master']
         duplicates = data['duplicates']
-        
+
         engine = AuthorMergeEngine()
         result = engine.merge(master, duplicates)
         return delegate.RawText(simplejson.dumps(result),  content_type="application/json")

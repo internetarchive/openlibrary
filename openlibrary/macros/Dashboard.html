@@ -6,7 +6,7 @@
 <script id="source" type="text/javascript">
 \$.getJSON("/admin/ipstats", function(data) {
     var d = data.data;
- 
+
     // convert seconds into milliseconds
     for (var i=0; i < d.length; i++)
        d[i][0] = d[i][0] * 1000;
@@ -36,7 +36,7 @@
 
         return markings;
     }
-    
+
     var options = {
         xaxis: { mode: "time" },
         selection: { mode: "x" },
@@ -45,7 +45,7 @@
 	lines: { show: true },
         points: { show: true }
     };
-    
+
     \$().ready(function() {
         var plot = \$.plot(\$("#placeholder"), [d], options);
 
@@ -58,8 +58,8 @@
             yaxis: { ticks: [], min: 0, autoscaleMargin: 0.1 },
             selection: { mode: "x" }
         });
-    
-        // now connect the two    
+
+        // now connect the two
         \$("#placeholder").bind("plotselected", function (event, ranges) {
             // do the zooming
             plot = \$.plot(\$("#placeholder"), [d],
@@ -70,7 +70,7 @@
             // don't fire event on the overview to prevent eternal loop
             overview.setSelection(ranges, true);
         });
-    
+
         \$("#overview").bind("plotselected", function (event, ranges) {
             plot.setSelection(ranges);
         });
@@ -98,17 +98,17 @@
             if (item) {
                 if (previousPoint != item.datapoint) {
                     previousPoint = item.datapoint;
-                    
+
                     \$("#tooltip").remove();
                     var x = item.datapoint[0].toFixed(2),
                         y = item.datapoint[1].toFixed(2);
-                    
+
                     showTooltip(item.pageX, item.pageY, y);
                 }
             }
             else {
                 \$("#tooltip").remove();
-                previousPoint = null;            
+                previousPoint = null;
         }
 
     });

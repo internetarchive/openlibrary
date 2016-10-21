@@ -25,7 +25,7 @@ def get_data(loc):
 def edition_marc(key):
     mc = list(set(v.machine_comment for v in site.versions({'key': key })))
     return [loc for loc in mc if loc]
-    
+
 key_start = len('/scan_record')
 for key in site.things({'type': '/type/scan_record'}):
     assert key.startswith('/scan_record/b/')

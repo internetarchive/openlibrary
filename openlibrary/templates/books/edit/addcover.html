@@ -24,16 +24,16 @@ $def with (book)
                 <div class="input">
                     <input type="text" name="url" id="coverUrl" value="http://"/>
                 </div>
-            </div>            
+            </div>
             <input type="hidden" name="key" value="$book.key"/>
-            
+
             <div class="formButtons">
                 <button type="submit" name="coverUpload" id="coverUpload" value="Upload" style="width:auto!important;">$_("Upload")</button>
                 <a id="coverClose" href="javascript:;" onclick="parent.\$.fn.colorbox.close();">$_("Cancel")</a>
             </div>
         </form>
     </div>
-</div>    
+</div>
 <script type="text/javascript">
 <!--
 function submit_cover(response, status) {
@@ -45,8 +45,8 @@ function submit_cover(response, status) {
     }
 }
 
-\$().ready(function() { 
-    //Forms(); 
+\$().ready(function() {
+    //Forms();
 });
 \$(document).ready(function() {
     \$("#addcover-form").ajaxForm({"success": submit_cover, "dataType": "json"});
@@ -55,7 +55,7 @@ function submit_cover(response, status) {
 var html = [
     '<form class="olforms books" id="addcover-form">',
     ''
-    
+
 ].join("\n");
 //-->
 </script>

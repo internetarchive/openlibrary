@@ -39,7 +39,7 @@ def process_record(pos, loc, data):
     print loc
     print rec
     assert not too_long
-    
+
     for a, length in field_size:
         if a not in rec:
             continue

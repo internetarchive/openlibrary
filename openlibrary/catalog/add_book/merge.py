@@ -9,7 +9,7 @@ def db_name(a):
     if a.birth_date or a.death_date:
         date = a.get('birth_date', '') + '-' + a.get('death_date', '')
     elif a.date:
-        #assert not a.birth_date and not a.death_date 
+        #assert not a.birth_date and not a.death_date
         date = a.date
     return ' '.join([a['name'], date]) if date else a['name']
 

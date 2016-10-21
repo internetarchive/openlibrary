@@ -27,7 +27,7 @@ function add_row(name) {
 </div>
 
 <div id="contentBody">
-    
+
     <form method="POST" class="olform">
         <input type="hidden" name="type.key" id="type.key" value="/type/user"/>
 
@@ -52,7 +52,7 @@ function add_row(name) {
                 <textarea name="description" class="markdown" rows="6" cols="40">$page.description</textarea>
             </div>
         </div>
-        
+
         <div class="clearfix"></div>
 
         $:macros.EditButtons(comment=page.comment_)
