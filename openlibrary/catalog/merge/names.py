@@ -111,7 +111,7 @@ def flip_marc_name(marc):
     if not m:
         return remove_trailing_dot(marc)
     first_parts = split_parts(m.group(2))
-    if normalize(first_parts[-1]) not in titles: 
+    if normalize(first_parts[-1]) not in titles:
         # example: Eccles, David Eccles Viscount
         return remove_trailing_dot(m.group(2)) + ' ' + m.group(1)
     if len(first_parts) > 2 and normalize(first_parts[-2]) == normalize(m.group(1)):

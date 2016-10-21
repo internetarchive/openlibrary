@@ -16,7 +16,7 @@ function moveup(e) {
     if (!e) e = window.event;
     if (e.preventDefault)
         e.preventDefault();
-    
+
     var parents = \$(this).parents().filter("tr[@repeat]");
     var a = parents[0];
     var b = parents.prev()[0]
@@ -28,7 +28,7 @@ function movedown(e) {
     if (!e) e = window.event;
     if (e.preventDefault)
         e.preventDefault();
-    
+
     var parents = \$(this).parents().filter("tr[@repeat]");
     var a = parents[0];
     var b = parents.next()[0]
@@ -39,7 +39,7 @@ function movedown(e) {
 function swapvalues(a, b) {
     var ia = \$(':input', a);
     var ib = \$(':input', b);
-    
+
     for (var i=0; i<ia.length; i++)
         swap(ia[i], ib[i]);
 }
@@ -47,14 +47,14 @@ function swapvalues(a, b) {
 function swap(a, b) {
     // probably this check must also be there for type radio
     if (a.nodeName.toLowerCase() == 'input' && a.type.toLowerCase() == 'checkbox') {
-        var t = a.checked; 
-        a.checked = b.checked; 
-        b.checked = t; 
+        var t = a.checked;
+        a.checked = b.checked;
+        b.checked = t;
     }
     else {
-        var t = a.value; 
-        a.value = b.value; 
-        b.value = t;         
+        var t = a.value;
+        a.value = b.value;
+        b.value = t;
     }
 }
 \$().ready(function(){
@@ -71,7 +71,7 @@ $def display_multiple_row(property, value, index):
     $else:
         $ attrs = 'repeat="%d""' % index
         $ prefix = '%s#%d' % (property.name, index)
-        
+
     <tr $:attrs>
         $if property.expected_type.kind == "embeddable":
             $ count = len(property.expected_type.properties)
@@ -106,13 +106,13 @@ $def display_multiple(property, value):
 
 $def display_regular(p, value):
     $:thinginput(value, p)
-    
+
 $def display(property, value):
     $if property.unique:
         $:display_regular(property, value)
     $else:
         $:display_multiple(property, value)
-        
+
 $def move_buttons(key):
     <td style="white-space: nowrap;">
         <button type="remove" template="row_$key" class="repeat plain larger red" title="Remove this">&#8856;</button>
@@ -147,7 +147,7 @@ $:render_template("lib/edit_head", page)
         $:macros.TypeChanger(page.type)
 
         <div class="clearfix"></div>
-        
+
         $for p in page.type.properties:
             $ label = p.name
             $ value = page[p.name]
@@ -164,7 +164,7 @@ $:render_template("lib/edit_head", page)
                     </table>
                 </div>
             </div>
-    
+
     $:macros.EditButtons(comment=page.comment_)
 
     </form>

@@ -8,7 +8,7 @@ The script deals with 3 data formats.
 3. bookdump: dump containing only books with each property expanded. (used for solr import)
 
 To create jsondump:
-    
+
     1. Take dump of data table of the openlibrary database
 
         $ psql -c 'copy data to stdout' > data.txt
@@ -22,18 +22,18 @@ To create jsondump:
         $ ./scripts/jsondump.py rawdump data_sorted.txt > rawdump.txt
 
     4. The rawdump file contains 'key', 'type' and 'json' columns. The json column should be taken to generate jsondump from rawdump.
-    
+
         $ cut -f3 rawdump.txt > jsondump.txt
-        
+
 To generate bookdump:
 
     * Generate rawdump using the above procedure.
     * split types to group the dump by type. This command created type/authors.txt, type/editions.txt etc.
-    
+
         $ ./scripts/jsondump.py split_types rawdump.txt
 
     * generate bookdump. (This operation is highly memory intensive).
-    
+
         $ ./scripts/jsondump.py bookdump type/edition.txt type/author.txt type/language.txt > bookdump.txt
 """
 import sys
@@ -50,9 +50,9 @@ def command(f):
 @command
 def rawdump(datafile):
     """Generates a json dump from copy of data table from OL database.
-    
+
     Usage:
-    
+
         $ python jsondump.py rawdump datafile > dumpfile
     """
     write_rawdump(sys.stdout, read_json(read_data_table(datafile)))
@@ -72,7 +72,7 @@ def merge(dump, idump):
         d = make_dict(read(idump))
         for key, line in read(dump):
             yield d.pop(key, line)
-    
+
     sys.stdout.writelines(do_merge())
 
 @command
@@ -116,7 +116,7 @@ def bookdump(editions_file, authors_file, languages_file):
 @command
 def modified(db, date):
     """Display list of modified keys on a given day.
-    
+
         $ python jsondump.py modified dbname YYYY-MM-DD
     """
     import os
@@ -128,7 +128,7 @@ def help(cmd=None):
     action = cmd and get_action(cmd)
     if action:
         print "python jsondump.py " + cmd
-        print 
+        print
         print action.__doc__
     else:
         print __doc__
@@ -151,7 +151,7 @@ def listget(x, i, default=None):
         return x[i]
     except IndexError:
         return default
-    
+
 def main():
     action = get_action(listget(sys.argv, 1, "help"))
     action(*sys.argv[2:])
@@ -186,12 +186,12 @@ def doctest_escape():
 
 def read_data_table(path):
     r"""Read dump of postgres data table assuming that it is sorted by first column.
-    
+
         >>> list(read_data_table(['1\t1\tJSON-1-1\n', '1\t2\tJSON-1-2\n', '2\t1\tJSON-2-1\n']))
         ['JSON-1-2\n', 'JSON-2-1\n']
         >>> list(read_data_table(['1\t1\tJSON\\t1-1\n']))
         ['JSON\t1-1\n']
-    
+
     """
     xthing_id = None
     xrev = 0
@@ -235,7 +235,7 @@ def read_json(file):
         [('/foo', '/type/page', '{"key": "/foo", "type": {"key": "/type/page"}, "title": "foo"}\n')]
     """
     for json in xopen(file):
-        d = simplejson.loads(json)        
+        d = simplejson.loads(json)
         ret = (d['key'], d['type']['key'], json)
         if not all(isinstance(i, basestring) for i in ret):
             print 'not all strings:'
@@ -273,7 +273,7 @@ def capture_stdout(f):
         out, sys.stdout = sys.stdout.getvalue(), stdout
         return out
     return g
-        
+
 @command
 def test(*args):
     """Test this module.

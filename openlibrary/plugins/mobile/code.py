@@ -24,16 +24,16 @@ class MobileMiddleware:
         for k, v in d.items():
             d[k] = v and urllib.unquote(v)
         return d
-        
+
     def is_mobile_device(self, environ):
         useragent = environ.get('HTTP_USER_AGENT', '').lower()
         return 'ipad' in useragent or 'iphone' in useragent
-        
+
     def __call__(self, environ, start_response):
         cookies = self.cookies(environ, mobile="true")
-        # delegate to mobile app when cookie mobile is set to true. 
-        if (cookies.mobile == "true" 
-            and self.is_mobile_device(environ) 
+        # delegate to mobile app when cookie mobile is set to true.
+        if (cookies.mobile == "true"
+            and self.is_mobile_device(environ)
             # XXXarielb there's probably a better way to do this
             # we need to serve the query entrypoint on mobile too
             and not environ.get('PATH_INFO', '').startswith("/query")):
@@ -42,7 +42,7 @@ class MobileMiddleware:
             return self.wsgi_app(environ, start_response)
 
 config.middleware.append(MobileMiddleware)
-            
+
 urls = (
     "/", "index",
     "(/books/OL\d+M)(?:/.*)?", "book",
@@ -64,7 +64,7 @@ class index:
         rc = web.ctx.site.recentchanges({"bot": True, "limit": 1000, "author": "/people/ImportBot"})
         edition_keys = []
         for change in rc:
-            edition_keys.extend([c.key for c in change.changes 
+            edition_keys.extend([c.key for c in change.changes
                                  if c.revision == 1 and c.key.startswith("/books/")])
         editions = [ed for ed in web.ctx.site.get_many(edition_keys) if ed.ocaid]
         return layout(render_template("mobile/index", new_books=editions[:10]))
@@ -89,7 +89,7 @@ def _editions_for_works(works):
         if work.key in work_key_to_edition:
             edition = work_key_to_edition[work.key]
             yield edition, work
-    
+
 
 class search:
     def _do_search(self, q):
@@ -120,12 +120,12 @@ class author:
         works = [work for work in works['works'] if work.get('has_fulltext')]
         for edition, work in _editions_for_works(works):
             books.append((edition, work))
-        
+
         return layout(render_template("mobile/author", author=author, books=books), title=author.title)
 
 class static:
-    # just used in the development. 
+    # just used in the development.
     # on production /images/.* is handled by lighttpd.
-    
+
     def GET(self):
         raise web.seeother('/static/upstream' + web.ctx.path)

@@ -22,17 +22,17 @@ $def show_plot():
         \$(function () {
             \$.plot("#loans-per-day", [
                 {
-                    "data": $:json_encode(page.get_loans_per_day("bookreader")), 
+                    "data": $:json_encode(page.get_loans_per_day("bookreader")),
                     "label": "bookreader",
                     bars: { "fillColor": "#fffdcd" },
                     color: "#fffdcd"
                 }, {
-                    "data": $:json_encode(page.get_loans_per_day("pdf")), 
+                    "data": $:json_encode(page.get_loans_per_day("pdf")),
                     "label": "pdf",
                     bars: { "fillColor": "#ffa337" },
                     color: "#ffa337"
                 }, {
-                    "data": $:json_encode(page.get_loans_per_day("epub")), 
+                    "data": $:json_encode(page.get_loans_per_day("epub")),
                     "label": "epub",
                     bars: { "fillColor": "#748d36" },
                     color: "#748d36"
@@ -49,7 +49,7 @@ $def show_plot():
                 grid: {
                     hoverable: true,
                     show: true,
-                    borderWidth: 1, 
+                    borderWidth: 1,
                     borderColor: "#d9d9d9"
                 },
                 xaxis: {
@@ -184,7 +184,7 @@ $elif status != "approved":
     <div id="contentBody"><p>Only site administrators can see this page.</p></div>
 $else:
     <div id="contentHead">
-        $:render_template("borrow/navigation", path=page.key)        
+        $:render_template("borrow/navigation", path=page.key)
         <div class="superNav">
             <a href="/libraries">Libraries</a> /
         </div>

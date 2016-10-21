@@ -38,13 +38,13 @@ def main():
         logging.info("User initiated shutdown")
         return 0
     return -1
-    
-    
+
+
 if __name__ == "__main__":
     sys.exit(main())
 
-        
-        
-        
-        
-        
+
+
+
+
+

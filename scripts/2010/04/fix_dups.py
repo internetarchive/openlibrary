@@ -1,5 +1,5 @@
 """Noticed some duplicate entries in the thing table of OL database.
-There should have been a unique constrant on thing.key, but that was missing. 
+There should have been a unique constrant on thing.key, but that was missing.
 Quick analysis revealed that there are many work records with single dup and the dup has only one revision.
 
 This script removes those dups.
@@ -22,7 +22,7 @@ def fix_work_dup(key):
     rows = db.where("thing", key=key).list()
     if len(rows) == 1:
         print key, "already fixed"
-        return 
+        return
     elif len(rows) == 2:
         w1, w2 = rows
         if w1.latest_revision < w2.latest_revision:

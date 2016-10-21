@@ -12,14 +12,13 @@ def get_new_key(site, type):
     """Returns a new key for the given type of document.
     """
     return site.new_key(type)
-    
+
 def get_new_keys(site, type, n):
     """Returns n new keys for given type of documents.
-    
+
     Example:
-    
+
         >>> get_new_keys("/type/edition", 2)
         ["/books/OL12M", "/books/OL13M"]
     """
     return [get_new_key(site, type) for i in range(n)]
-    

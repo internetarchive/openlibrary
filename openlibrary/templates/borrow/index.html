@@ -54,10 +54,10 @@ $:render_template("lib/covers", page)
 function resetCounts() {
     var hash = {};
     var counts = \$("<span></span>");
-    
+
     var x = sprintf(ungettext("%s book", "%s books", page.work_count), commify(page.work_count));
     var y = sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count));
-    
+
     counts.append('<strong></strong>').find("strong:last").text(x);
     hash.ebooks = null;
 
@@ -65,8 +65,8 @@ function resetCounts() {
     counts.append('<span class="clickdata"></span>');
 
 	\$("#coversCount").html(counts.html());
-    
-	var yearFrom, yearTo;		
+
+	var yearFrom, yearTo;
 	if (page.filter.published_in) {
 		var y = "" + page.filter.published_in;
 		if (y.indexOf("-") > 0) {
@@ -83,13 +83,13 @@ function resetCounts() {
 	}
 	else {
 	    page._published_in = null;
-	    
+
 		yearFrom = page.publishing_history[0][0];
 		yearTo = page.publishing_history[page.publishing_history.length-1][0];
-		
+
         hash.published_in = null;
 	}
-	
+
 	if (yearFrom == yearTo) {
         \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
 	}
@@ -103,39 +103,39 @@ function resetCounts() {
 });
 </script>
 
-<div id="contentBody"> 
+<div id="contentBody">
 
-<div class="head"> 
-    <h2>Search the Lending Library</h2> 
-</div> 
+<div class="head">
+    <h2>Search the Lending Library</h2>
+</div>
 
-<div class="section"> 
-    <form method="get" action="/search" class="siteSearch olform"> 
-    <label for="q" class="hidden">Keywords</label> 
+<div class="section">
+    <form method="get" action="/search" class="siteSearch olform">
+    <label for="q" class="hidden">Keywords</label>
     <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
     $if inlibrary:
         <input type="hidden" name="subject_facet" value="In library">
     $else:
         <input type="hidden" name="subject_facet" value="Lending library">
-    <button type="submit" class="larger" id="searchsubmit">Search</button> 
-    </form> 
-</div> 
-   
-<div class="clearfix"></div> 
+    <button type="submit" class="larger" id="searchsubmit">Search</button>
+    </form>
+</div>
+
+<div class="clearfix"></div>
 
 <!--
-<div class="head"> 
-    <h2>Loans Per Day</h2> 
+<div class="head">
+    <h2>Loans Per Day</h2>
 
     <br />&nbsp;
     <div class="chart">
         <div id="loans-per-day" class="graph">
             <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div> 
+        </div>
     </div>
-</div> 
+</div>
 
-<style type="text/css"> 
+<style type="text/css">
 div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
 .chartYaxis{width:180px;top:85px;left:-85px;}
 </style>
@@ -157,7 +157,7 @@ div.graph,div.chart{width:898px;height:180px;float:none;background-image:none;}
          grid: {
              hoverable: true,
              show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
          },
          xaxis: {

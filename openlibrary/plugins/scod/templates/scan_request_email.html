@@ -18,7 +18,7 @@ Scan Record:
     scan_status: $scan_record.scan_status
     source_record_id: $scan_record.source_record_id
     shelf: $scan_record.shelf
-    locations: 
+    locations:
     $for location in scan_record.locations:
         $location.name
 

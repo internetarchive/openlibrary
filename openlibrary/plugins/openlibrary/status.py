@@ -16,7 +16,7 @@ class status(delegate.page):
         return render_template("status", status_info, feature_flags)
 
 def get_software_version():
-    return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()    
+    return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()
 
 def get_features_enabled():
     return config.features

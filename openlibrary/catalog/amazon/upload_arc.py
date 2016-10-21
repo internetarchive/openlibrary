@@ -65,7 +65,7 @@ done = [
     '20100212213032.arc',
     '20100212215107.arc'
 ]
-    
+
 def put_file(con, ia, filename, headers):
     print 'uploading %s' % filename
     headers['authorization'] = "LOW " + accesskey + ':' + secret

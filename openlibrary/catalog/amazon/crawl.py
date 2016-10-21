@@ -171,7 +171,7 @@ def get_cats(root):
             print `href`
         m2 = re_facet_count.search(span2.text)
         cats.append((int(m1.group(1)), span1.text, int(m2.group(1).replace(',',''))))
-        
+
     return cats
 
     for e in container.find('table').find_class('refinementLink'):

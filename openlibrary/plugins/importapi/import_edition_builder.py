@@ -9,7 +9,7 @@ you can use add('subject') to add an entry to the 'subjects' list.
 
 This class also takes care of creating complex types, such as authors.
 For example, you can add an author using add('author', 'Mark Twain') and
-we will create {'personal_name': ..., 'name': ..., 'entity_type': 'person'} 
+we will create {'personal_name': ..., 'name': ..., 'entity_type': 'person'}
 which is stored as a list of authors in the edition dict.
 
 A sample dict looks like one of these:
@@ -18,10 +18,10 @@ A sample dict looks like one of these:
 {'publishers': [u'Grosset & Dunlap'], 'pagination': u'156 p.', 'title': u'Great trains of all time', 'lccn': [u'62051844'], 'number_of_pages': 156, 'languages': ['eng'], 'dewey_decimal_class': [u'625.2'], 'lc_classifications': [u'TF147 .H8'], 'publish_date': '1962', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1894', 'personal_name': u'Hubbard, Freeman H.', 'name': u'Hubbard, Freeman H.', 'entity_type': 'person'}], 'by_statement': u'Illustrated by Herb Mott', 'oclc_numbers': [u'1413013'], 'publish_places': [u'New York']}
 """
 
-class import_edition_builder:    
+class import_edition_builder:
 
     def add_string(self, key, val):
-        self.edition_dict[key] = val    
+        self.edition_dict[key] = val
 
     def add_list(self, key, val):
         if key in self.edition_dict:
@@ -33,15 +33,15 @@ class import_edition_builder:
         # We don't know birth_date or death_date.
         # Should name and personal_name be the same value?
         author_dict = {
-           'personal_name': val, 
-           'name': val, 
+           'personal_name': val,
+           'name': val,
            'entity_type': 'person'
         }
         self.add_list('authors', author_dict)
 
     def add_illustrator(self, key, val):
         self.add_list('contributions', val + u' (Illustrator)')
-    
+
     def __init__(self, init_dict={}):
         self.edition_dict = init_dict.copy()
 

@@ -44,7 +44,7 @@ def decade_match(a, start, ca):
         return start <= int(a) < end
     return any((start <= int(c) < end) for c in re_digit.findall(a))
 
-def year_approx_match(a, b): 
+def year_approx_match(a, b):
     approx_century_match = False
     if a.startswith('ca. '):
         ca = True
@@ -230,7 +230,7 @@ def name_lookup(fields):
     if any(k == 'c' for k, v in fields):
         name = join_fields(fields, 'abc')
         names.update([name, flip_name(name)])
-        title = [v for k, v in fields if k in 'c'] 
+        title = [v for k, v in fields if k in 'c']
         names.update([' '.join(title + ab), ' '.join(title + [flipped])])
         title = ' '.join(title)
         names.update(["%s (%s)" % (name, title), "%s (%s)" % (flipped, title)])

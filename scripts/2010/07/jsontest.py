@@ -21,8 +21,8 @@ if False and __name__ == "__main__":
     timeit("read", read())
     timeit("simplejson.load", (simplejson.loads(json) for json in read()))
     timeit("jsonlib.load", (jsonlib.loads(json) for json in read()))
-    
-    
+
+
     timeit("simplejson.load-dump", (simplejson.dumps(simplejson.loads(json)) for json in read()))
     timeit("jsonlib.load-dump", (jsonlib.dumps(jsonlib.loads(json)) for json in read()))
 
@@ -43,8 +43,8 @@ def bench(count, f, *args):
 
 if True and __name__ == "__main__":
     for b in (
-        simplejson.dumps({"str": "value", 
-                          "num": 1.0, 
+        simplejson.dumps({"str": "value",
+                          "num": 1.0,
                           "strlist": ["a", "b", "c"],
                           "numlist": range(1000)}),
         urllib2.urlopen("http://freebase.com/api/trans/notable_types_2?id=/en/bob_dylan").read(),

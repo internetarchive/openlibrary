@@ -11,16 +11,16 @@ def admin_processor(handler):
     delegate.initialize_context()
     delegate.context.features = []
     features.loadhook()
-    
+
     # required to give a special look and feel in site template
     delegate.context.setdefault('bodyid', 'admin')
     delegate.context.setdefault('usergroup', 'admin')
 
     page = handler()
     return render_template("site", page)
-    
+
 def notfound():
     msg = render_template(
-            "site", 
+            "site",
             render_template("notfound", web.ctx.path, create=False))
     return web.notfound(msg)

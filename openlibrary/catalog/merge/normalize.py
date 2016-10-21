@@ -1,4 +1,4 @@
-import re, unicodedata 
+import re, unicodedata
 
 #re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^[:alpha:] ]', re.I)

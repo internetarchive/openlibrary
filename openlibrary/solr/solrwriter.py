@@ -48,7 +48,7 @@ class SolrWriter(object):
         q = '<delete><id>%s</id></delete>' % key
         self.request(q)
 
-    def update(self, document):        
+    def update(self, document):
         logger.info("updating %s", document.get(self.identifier_field))
         self.pending_updates.append(document)
         if len(self.pending_updates) >= 100:

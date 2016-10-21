@@ -3,7 +3,7 @@ def pytest_funcarg__compare_results(request):
     skipping the 'key', "last_modified" and "revision" keys if
     present"""
     def compare_results(d1, d2):
-        
+
         for i in ["revision", "last_modified", "key"]:
             if i in d1: d1.pop(i)
             if i in d2: d2.pop(i)

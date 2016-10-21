@@ -17,10 +17,10 @@ class WorkLoader:
 
     def load_works(self, filename, author="/user/ImportBot"):
         self.author = author
-        
+
         root = os.path.dirname(filename)
         editions_file = open(os.path.join(root, 'editions.txt'), 'a')
-        
+
         try:
             for i, lines in enumerate(web.group(open(filename), 1000)):
                 t0 = time.time()
@@ -45,25 +45,25 @@ class WorkLoader:
                 if 'toc' in work:
                     del work['toc']
                 editions[key] = work.pop('editions')
-                
+
         result = self.loader.bulk_new(works, comment="add works page", author=self.author)
 
         def process(result):
             for r in result:
                 for e in editions[r['key']]:
                     yield "\t".join([e, r['key'], str(r['id'])]) + "\n"
-        
+
         editions_file.writelines(process(result))
-        
+
     def update_editions(self, filename, author="/user/ImportBot"):
         self.author = author
-        
+
         root = os.path.dirname(filename)
         index_file = open(os.path.join(root, 'edition_ref.txt'), 'a')
-            
+
         type_edition_id = self.loader.get_thing_id("/type/edition")
         keyid = Reindexer(self.loader.db).get_property_id(type_edition_id, "works")
-        
+
         log("begin")
         try:
             for i, lines in enumerate(web.group(open(filename), 1000)):
@@ -75,12 +75,12 @@ class WorkLoader:
             index_file.close()
 
         log("end")
-    
+
     def update_editions_chunk(self, lines, index_file, keyid):
         data = [line.strip().split("\t") for line in lines]
         editions = [{"key": e, "works": [{"key": w}]} for e, w, wid in data]
         result = self.loader.bulk_update(editions, comment="link works", author=self.author)
-    
+
         def process():
             edition_map = dict((row[0], row) for row in data)
             for row in result:
@@ -88,8 +88,8 @@ class WorkLoader:
                 wid = edition_map[row['key']]
                 ordering = 0
                 yield "\t".join(map(str, [eid, keyid, wid, ordering])) + "\n"
-        index_file.writelines(process())    
-        
+        index_file.writelines(process())
+
     def add_index(self, editions, keys2id):
         rows = []
         for e in editions:

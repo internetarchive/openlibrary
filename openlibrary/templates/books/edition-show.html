@@ -73,7 +73,7 @@ $ publishers = (', '.join(book.publishers))
                 <h4 class="publisher">
                     Published
                     $if book.publish_date:
-                        <strong>$book.publish_date</strong> 
+                        <strong>$book.publish_date</strong>
                     $if book.publishers:
                         by
                         $for p in book.publishers:
@@ -88,7 +88,7 @@ $ publishers = (', '.join(book.publishers))
                     <span class="adjust">.</span>
                     $if book.languages:
                     <br/>Written in $:thingrepr(book.languages).
-                </h4>    
+                </h4>
             </div>
 
         $if book.description:
@@ -132,7 +132,7 @@ $ publishers = (', '.join(book.publishers))
                     </tbody>
                 </table>
             </div>
-        
+
         $ classifications = book.get_classifications().multi_items()
         $if classifications:
             <div class="section">
@@ -144,7 +144,7 @@ $ publishers = (', '.join(book.publishers))
                 </tbody>
                 </table>
             </div>
-            
+
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
             <h3 class="collapse">$_("The Physical Object")</h3>
@@ -206,7 +206,7 @@ $ publishers = (', '.join(book.publishers))
             |$k = $v
         }}</textarea>
                 </form>
-            </div>    
+            </div>
         </div>
 
 <!-- source_records: $book.get('source_records', []) -->

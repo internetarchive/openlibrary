@@ -4,7 +4,7 @@ $var title: $page.key
 
 <style type="text/css">
 #contentBody li {
-    list-style-type:none!important; 
+    list-style-type:none!important;
     line-height: 1em;
 }
 .dict {
@@ -24,7 +24,7 @@ $def display(d):
         $:display_list(d)
     $else:
         <span class="tag">$(d or "")</span>
-   
+
 $def display_dict(d):
     <ul class="dict">
     $for k in d:
@@ -42,7 +42,7 @@ $def display_list(d):
 
 <div id="contentHead">
     $:macros.databarView(page)
-    <h1>$page.key</h1> 
+    <h1>$page.key</h1>
 </div>
 
 

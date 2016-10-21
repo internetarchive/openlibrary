@@ -41,7 +41,7 @@ def parse_arguments():
     return parser.parse_args()
 
 def load_config(path):
-    logger.info("loading config from %s", path)    
+    logger.info("loading config from %s", path)
     print "***load_config", path
     config.load(path)
     config.load_config(path)
@@ -100,7 +100,7 @@ class InfobaseLog:
 
             self.offset = d['offset']
 
-def parse_log(records):    
+def parse_log(records):
     for rec in records:
         action = rec.get('action')
         if action == 'save':
@@ -115,12 +115,12 @@ def parse_log(records):
         elif action == 'store.put':
             # A sample record looks like this:
             # {
-            #   "action": "store.put", 
-            #   "timestamp": "2011-12-01T00:00:44.241604", 
+            #   "action": "store.put",
+            #   "timestamp": "2011-12-01T00:00:44.241604",
             #   "data": {
             #       "data": {"borrowed": "false", "_key": "ebooks/books/OL5854888M", "_rev": "975708", "type": "ebook", "book_key": "/books/OL5854888M"},
             #       "key": "ebooks/books/OL5854888M"
-            #   }, 
+            #   },
             #   "site": "openlibrary.org"
             # }
             data = rec.get('data', {}).get("data", {})
@@ -135,8 +135,8 @@ def parse_log(records):
                     yield "/books/ia:" + identifier
 
             # Hack to force updating something from admin interface
-            # The admin interface writes the keys to update to a document named 
-            # 'solr-force-update' in the store and whatever keys are written to that 
+            # The admin interface writes the keys to update to a document named
+            # 'solr-force-update' in the store and whatever keys are written to that
             # are picked by this script
             elif key == 'solr-force-update':
                 keys = data.get('keys')
@@ -160,8 +160,8 @@ def is_allowed_itemid(identifier):
     for prefix in ignore_prefixes:
         if identifier.startswith(prefix):
             return False
-        
-    return True            
+
+    return True
 
 def update_keys(keys):
     global args
@@ -214,8 +214,8 @@ class Solr:
         logger.info("END commit")
 
 def process_args(args):
-    # Sometimes archive.org requests blocks forever. 
-    # Setting a timeout will make the request fail instead of waiting forever. 
+    # Sometimes archive.org requests blocks forever.
+    # Setting a timeout will make the request fail instead of waiting forever.
     socket.setdefaulttimeout(args.socket_timeout)
 
     if args.monkeypatch:
@@ -239,7 +239,7 @@ def main():
     if args.ol_url:
         host = web.lstrips(args.ol_url, "http://").strip("/")
         update_work.set_query_host(host)
-    
+
     print str(args)
     logger.info("loading config")
     config = load_config(args.config)
@@ -269,7 +269,7 @@ def main():
             logger.info("not doing solr commit as commit is off")
 
 
-        # don't sleep after committing some records. 
+        # don't sleep after committing some records.
         # While the commit was on, some more edits might have happened.
         if count == 0:
             logger.info("No more log records available, sleeping...")

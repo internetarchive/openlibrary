@@ -8,7 +8,7 @@ from openlibrary.api import OpenLibrary
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', rc['ImportBot'])
 
 password = open(os.path.expanduser('~/.openlibrary_db_password')).read()
 if password.endswith('\n'):

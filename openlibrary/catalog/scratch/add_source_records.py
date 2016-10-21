@@ -7,7 +7,7 @@ from olapi import OpenLibrary, unmarshal, marshal
 
 rc = read_rc()
 ol = OpenLibrary("http://dev.openlibrary.org")
-ol.login('EdwardBot', rc['EdwardBot']) 
+ol.login('EdwardBot', rc['EdwardBot'])
 
 test_dir = '/home/edward/ol/test_data'
 

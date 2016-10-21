@@ -39,18 +39,18 @@ $putctx('robots', 'noindex,nofollow')
                 </table>
             </div>
             <div class="portlet-content">
-                <input type="hidden" name="image" value="$image.id"/>            
+                <input type="hidden" name="image" value="$image.id"/>
             </div>
         </div>
     </div>
 
     <!-- When all the covers are deleted, book.covers becomes empty and gets removed from the book.
     Once book.covers is removed, book.get_covers() gives all matching covers from coverstore instead of empty list.
-    This marker will make sure book.covers never becomes empty. 
+    This marker will make sure book.covers never becomes empty.
     All negative coverid values are ignored by get_covers/get_photos.
     -->
     <input type="hidden" name="image" value="-1"/>
-         
+
     <input type="hidden" name="image" value="-"/>
 
     <div class="trashPosition">

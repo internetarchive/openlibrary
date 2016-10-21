@@ -4,7 +4,7 @@ $ _t = i18n.get_namespace('/type/edition')
 $ _ = i18n.get_namespace('/mode/edit')
 
 $ title = title or safeadd(_.editing, ' ', page.title)
- 
+
 $var title: $title
 
 $add_javascript('/static/js/jquery/jquery.js')
@@ -19,10 +19,10 @@ $add_javascript('/static/js/jquery/freebase.select.js')
 function next(key) {
     if (!key)
        return "";
-    
+
     var tokens = key.split('#');
 
-    try { 
+    try {
         if (tokens.length == 2) {
              var prefix = tokens[0];
              tokens = tokens[1].split('.');
@@ -43,7 +43,7 @@ function next(key) {
 
 function add_row(name) {
     var tbody = \$("#tbody_" + name);
-    
+
     var rows = tbody.children();
     var row = \$(rows[rows.length-1]);
     var newrow = row.clone();
@@ -52,17 +52,17 @@ function add_row(name) {
     \$("td:last", row).html("");
     \$("td:first", newrow).html("");
 
-    \$("input", newrow).map(function() { 
-        \$(this).attr('id', next(\$(this).attr('id'))); 
-        \$(this).attr('name', next(\$(this).attr('name'))); 
+    \$("input", newrow).map(function() {
+        \$(this).attr('id', next(\$(this).attr('id')));
+        \$(this).attr('name', next(\$(this).attr('name')));
         \$(this).attr('ac_name', next(\$(this).attr('ac_name')));
-        \$(this).attr('value', ''); 
+        \$(this).attr('value', '');
     });
-    
+
     // auto complete is not working for newly added rows.
     // Explicitly enabling autocomplete.
     setup_autocomplete(\$("input[@ac_enabled=true]", newrow));
-    
+
     // fix autocomplete for authors
     \$("input[@freebase_suggest=true]", newrow).map(function() {
         setup_freebase_suggest(this);
@@ -87,21 +87,21 @@ jQuery(function(\$) {
     </div>
 
     <!-- WIKI EDIT SECTION -->
-    <div id="biblio-form-body">    
+    <div id="biblio-form-body">
         <table cellspacing="0" cellpadding="0" border="0" width="100%">
         <tr>
             <td valign="top">
-                <div id="header">               
-                    <span class="pretitle">$_.pretitle:<br /></span>             
-                    <div id="title">$page.title</div>            
+                <div id="header">
+                    <span class="pretitle">$_.pretitle:<br /></span>
+                    <div id="title">$page.title</div>
                 </div>
-                
+
                 <!-- begin left table -->
                 <table cellspacing="0" cellpadding="0" border="0" width="100%">
                     <tr>
                        <td valign="top" colspan="3" height="8"></td>
                     </tr>
-                    
+
                     $:macros.EditionEditRow(page, 'title_prefix', True)
                     $:macros.EditionEditRow(page, 'title', True)
                     $:macros.EditionEditRow(page, 'subtitle', True)
@@ -149,10 +149,10 @@ jQuery(function(\$) {
                     <!-- description -->
                     <span class="formheader-edit">$_t.description</span>
                     <br /><textarea name="description" rows="6" cols="20">$page.description</textarea>
-                
+
                     <!-- first_sentence -->
                     <span class="formheader-edit">$_t.first_sentence</span>
-                    <br /><textarea name="first_sentence" rows="6" width="100%">$page.first_sentence</textarea>                
+                    <br /><textarea name="first_sentence" rows="6" width="100%">$page.first_sentence</textarea>
 
                     <!-- notes -->
                     <span class="formheader-edit">$_t.notes</span>
@@ -213,7 +213,7 @@ function change_cover() {
             </td>
         </tr>
         </table>
-            
+
         <!-- edit summary and buttons -->
                  <div style="padding-left: 10px;">
                     $:macros.EditButtons()

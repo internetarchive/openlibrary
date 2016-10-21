@@ -10,7 +10,7 @@ def pytest_funcarg__dummy_crontabfile(request):
     f.close()
     request.addfinalizer(lambda : os.remove(cronfile))
     return cronfile
-    
+
 def pytest_funcarg__crontabfile(request):
     """Creates a file with an actual command that we can use to test
     running of cron lines"""

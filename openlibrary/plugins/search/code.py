@@ -156,7 +156,7 @@ class Timestamp1(object):
         self.td[self.key] += self.last_t - t
         self.last_t = t
         self.key = key
-        
+
 class search(delegate.page):
     def POST(self):
         i = web.input(wtitle='',
@@ -347,7 +347,7 @@ def munch_qresults_stored(qresults):
         d['authors'] = list(mk_author(a,k) for a,k in zip(da,dak) if k is not None)
         return web.storage(**d)
     return map(mk_book, qresults.raw_results)
-    
+
 def collect_works(result_list):
     wds = defaultdict(list)
     rs = []
@@ -530,11 +530,11 @@ class SearchProcessor:
         """Process a query dictionary and returns a query string."""
         query = dict(query)
         q = query.pop('q', None)
-        
+
         parts = []
         if q:
             parts.append(self.normalize(q))
-                
+
         for k, v in query.items():
             k = k.lower()
             v = self.normalize(v)
@@ -544,41 +544,41 @@ class SearchProcessor:
                 part = '%s:(%s)' % (k, v)
             parts.append(part)
         return " ".join(parts)
-        
+
     def normalize(self, value):
         """Normalize string value by remove unnecessary punctuation."""
         return clean_punctuation(value)
-        
+
     def _solr_query(self, q):
         """Takes a query string and expands it"""
         return solr.basic_query(q)
-        
+
     def _process_doc(self, doc):
         d = {
             'key': doc['identifier'],
             'type': {'key': '/type/edition'},
             'title': doc.get('title', '')
         }
-        
+
         if 'authors' in doc and 'author_keys' in doc:
             d['authors'] = [{'key': key, 'name': name} for key, name in zip(doc['author_keys'], doc['authors'])]
-            
+
         keys = ['title', 'publishers', 'languages', 'subjects']
         for k in keys:
             if k in doc:
                 d[k] = doc[k]
-                
+
         return d
 
     def _process_result(self, result, facets=None):
         out = {
             'matches': result.total_results,
             'docs': [self._process_doc(d) for d in result.raw_results]
-        } 
+        }
         if facets is not None:
             out['facets'] = facets
         return out
-        
+
     def search(self, query):
         """Constructs solr query from given query dict, executes it and returns the results.
 
@@ -599,10 +599,10 @@ class SearchProcessor:
             limit = int(query.pop('limit', 20))
         except ValueError:
             limit = 20
-            
+
         if limit > 1000:
             limit = 1000
-        
+
         facets = str(query.pop('facets', 'false')).lower() == 'true'
 
         query_string = self._process_query(query)
@@ -610,7 +610,7 @@ class SearchProcessor:
 
         if facets:
             # what if offset it more than 5000?
-            
+
             # query for 5000 rows and take the required part from the results to avoid another request
             result = solr.advanced_search(solr_query, start=offset, rows=5000)
             facet_counts = solr_client.facet_counts(result.raw_results, solr_client.default_facet_list)
@@ -620,15 +620,15 @@ class SearchProcessor:
         else:
             result = solr.advanced_search(solr_query, start=offset, rows=limit)
             d = self._process_result(result)
-            
+
         t2 = time.time()
         d['time_taken'] = t2-t1
         return d
-        
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
-    
+
     @jsonapi
     def GET(self):
         i = web.input(q='', query=None, _unicode=False)
@@ -638,7 +638,7 @@ class search_json(delegate.page):
             query = simplejson.loads(i.query)
         else:
             query = i
-        
+
         result = SearchProcessor().search(i)
         return simplejson.dumps(result)
 

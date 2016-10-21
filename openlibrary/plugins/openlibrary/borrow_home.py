@@ -17,10 +17,10 @@ from libraries import LoanStats
 
 class borrow(delegate.page):
     path = "/borrow"
-    
+
     def is_enabled(self):
         return "inlibrary" in web.ctx.features
-    
+
     def GET(self):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
@@ -63,17 +63,17 @@ class borrow(delegate.page):
             sort = 'random_%d desc' % i.rand
             filters['sort'] = sort
 
-        subject = get_lending_library(web.ctx.site, 
-            offset=i.offset, 
-            limit=i.limit, 
-            details=i.details.lower() == "true", 
+        subject = get_lending_library(web.ctx.site,
+            offset=i.offset,
+            limit=i.limit,
+            details=i.details.lower() == "true",
             inlibrary=inlibrary.get_library() is not None,
             **filters)
         return simplejson.dumps(subject)
 
 class read(delegate.page):
     path = "/read"
-    
+
     def GET(self):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
@@ -112,19 +112,19 @@ class read(delegate.page):
             sort = 'random_%d desc' % i.rand
             filters['sort'] = sort
 
-        subject = get_readable_books(web.ctx.site, 
-            offset=i.offset, 
-            limit=i.limit, 
+        subject = get_readable_books(web.ctx.site,
+            offset=i.offset,
+            limit=i.limit,
             details=i.details.lower() == "true",
             **filters)
         return simplejson.dumps(subject)
 
 class borrow_about(delegate.page):
     path = "/borrow/about"
-    
+
     def GET(self):
         return render_template("borrow/about")
-        
+
 def convert_works_to_editions(site, works):
     """Takes work docs got from solr and converts them into appropriate editions required for lending library.
     """
@@ -132,7 +132,7 @@ def convert_works_to_editions(site, works):
     editions = {}
     for e in site.get_many(ekeys):
         editions[e['key']] = e.dict()
-    
+
     for w in works:
         if w.get('lending_edition'):
             ekey = '/books/' + w['lending_edition']
@@ -151,7 +151,7 @@ def get_lending_library(site, inlibrary=False, **kw):
         subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=True, **kw)
     else:
         subject = CustomSubjectEngine().get_subject("/subjects/lending_library", in_library=False, **kw)
-    
+
     subject['key'] = '/borrow'
     convert_works_to_editions(site, subject['works'])
     return subject
@@ -164,7 +164,7 @@ def get_readable_books(site, **kw):
 
 class ReadableBooksEngine(SubjectEngine):
     """SubjectEngine for readable books.
-    
+
     This doesn't take subject into account, but considers the public_scan_b
     field, which is derived from ia collections.
 
@@ -179,10 +179,10 @@ class ReadableBooksEngine(SubjectEngine):
         }
 
     def get_ebook_count(self, name, value, publish_year):
-        # we are not displaying ebook count. 
+        # we are not displaying ebook count.
         # No point making a solr query
         return 0
-    
+
 
 class CustomSubjectEngine(SubjectEngine):
     """SubjectEngine for inlibrary and lending_library combined."""
@@ -190,7 +190,7 @@ class CustomSubjectEngine(SubjectEngine):
         meta = self.get_meta(key)
 
         q = {
-            meta.facet_key: ["lending_library"], 
+            meta.facet_key: ["lending_library"],
             'public_scan_b': "false",
             'NOT borrowed_b': "true",
 
@@ -207,9 +207,9 @@ class CustomSubjectEngine(SubjectEngine):
                 q['publish_year'] = filters['publish_year']
 
         return q
-    
+
     def get_ebook_count(self, name, value, publish_year):
-        # we are not displaying ebook count. 
+        # we are not displaying ebook count.
         # No point making a solr query
         return 0
 

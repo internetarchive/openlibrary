@@ -196,5 +196,5 @@ while True:
 
         print "average update time: %.1f seconds" % (float(sum(update_times)) / float(len(update_times)))
     print >> open(state_file, 'w'), offset
-   
+
 #out.close()

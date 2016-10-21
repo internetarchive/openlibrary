@@ -91,7 +91,7 @@ def load(site, filename):
         versions = site.versions({'machine_comment': lc_src})
         assert len(versions) == 1
         thing = site.withID(versions[0]['thing_id'])
-        
+
         if 'authors' not in amazon:
             continue
         author_count = 0

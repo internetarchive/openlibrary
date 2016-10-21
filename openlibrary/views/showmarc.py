@@ -61,10 +61,10 @@ class show_ia(app.view):
             record = None
 
         return app.render_template("showia", ia, record, books)
-        
+
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
-    
+
     def GET(self, asin):
         return app.render_template("showamazon", asin)
 
@@ -73,7 +73,7 @@ re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
 
 class show_marc(app.view):
     path = "/show-records/(.*):(\d+):(\d+)"
-	
+
     def GET(self, filename, offset, length):
         m = re_bad_meta_mrc.match(filename)
         if m:
@@ -106,7 +106,7 @@ class show_marc(app.view):
                                {'Range':'bytes=%d-%d'% (r0, r1)},
                                )
 
-        try:        
+        try:
             result = urllib2.urlopen(ureq).read(100000)
         except urllib2.HTTPError, e:
             return "ERROR:" + str(e)

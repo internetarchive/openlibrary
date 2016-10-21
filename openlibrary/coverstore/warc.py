@@ -13,7 +13,7 @@ CRLF = "\r\n"
 
 class WARCReader:
     """Reader to read records from a warc file.
-    
+
     >>> import StringIO
     >>> f = StringIO.StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
@@ -29,7 +29,7 @@ class WARCReader:
     """
     def __init__(self, file):
         self._file = file
-        
+
     def read(self):
         """Returns an iterator over all the records in the WARC file."""
         def consume_crlf():
@@ -51,15 +51,15 @@ class WARCReader:
             assert line == CRLF
 
         line = self._file.readline()
-        if not line: 
+        if not line:
             return None
-        
+
         tokens = line.strip().split()
         warc_id, data_length, record_type, subject_uri, creation_date, record_id, content_type = tokens
-        header = WARCHeader(warc_id, 
-            data_length, record_type, subject_uri, 
+        header = WARCHeader(warc_id,
+            data_length, record_type, subject_uri,
             creation_date, record_id, content_type, {})
-            
+
         while True:
             line = self._file.readline()
             if line == CRLF:
@@ -67,8 +67,8 @@ class WARCReader:
             k, v = line.strip().split(':', 1)
             header.headers[k.strip()] = v.strip()
         return header
-        
-    def _readline(self):        
+
+    def _readline(self):
         line = self._file.readline()
         if line[-2:-1] == '\r':
             return line
@@ -81,7 +81,7 @@ class HTTPFile:
         self.url = url
         self.offset = 0
         self.chunk_size = chunk_size
-        
+
     def seek(self, offset, whence=0):
         if whence == 0:
             self.offset = offset
@@ -89,10 +89,10 @@ class HTTPFile:
             self.offset += offset
         else:
             raise "Invalid whence", whence
-    
+
     def tell(self):
         return self.offset
-        
+
     def readline(self):
         """Reads a line from file."""
         data = ''
@@ -107,7 +107,7 @@ class HTTPFile:
             data = self.read(self.chunk_size)
             yield data
             if condition(data):
-                break     
+                break
 
     def read(self, size):
         protocol, host, port, path = self.urlsplit(self.url)
@@ -118,7 +118,7 @@ class HTTPFile:
         data = response.read()
         self.offset += len(data)
         return data
-            
+
     def urlsplit(self, url):
         """Splits url into protocol, host, port and path.
 
@@ -129,22 +129,22 @@ class HTTPFile:
         protocol, rest = urllib.splittype(url)
         hostport, path = urllib.splithost(rest)
         host, port = urllib.splitport(hostport)
-        return protocol, host, port, path        
-    
+        return protocol, host, port, path
+
 class WARCHeader:
     r"""WARCHeader class represents the header in the WARC file format.
-    
+
     header      = header-line CRLF *anvl-field CRLF
     header-line = warc-id tsp data-length tsp record-type tsp
                   subject-uri tsp creation-date tsp
                   record-id tsp content-type
     anvl-field  =  field-name ":" [ field-body ] CRLF
-    
+
     >>> WARCHeader("WARC/0.10", 10, "resource", "subject_uri", "20080808080808", "record_42", "image/jpeg", {'hello': 'world'})
     <header: 'WARC/0.10 10 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\n'>
     """
-    def __init__(self, warc_id, 
-            data_length, record_type, subject_uri, 
+    def __init__(self, warc_id,
+            data_length, record_type, subject_uri,
             creation_date, record_id, content_type, headers):
         self.warc_id = warc_id
         self.data_length = str(data_length)
@@ -154,18 +154,18 @@ class WARCHeader:
         self.record_id = record_id
         self.content_type = content_type
         self.headers = headers
-        
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
     def __ne__(self, other):
         return not (self == other)
-        
+
     def __str__(self):
-        params = [self.warc_id, self.data_length, self.record_type, self.subject_uri, 
+        params = [self.warc_id, self.data_length, self.record_type, self.subject_uri,
                 self.creation_date, self.record_id, self.content_type]
-                
-        a = " ".join([str(p) for p in params]) 
+
+        a = " ".join([str(p) for p in params])
         b = "".join(["%s: %s\r\n" % (k, v) for k, v in self.headers.items()])
         return a + CRLF + b + CRLF
 
@@ -174,51 +174,51 @@ class WARCHeader:
         for k in ["warc_id", "data_length", "record_type", "subject_uri", "creation_date", "record_id", "content_type"]:
             d[k] = getattr(self, k)
         return d
-        
+
     def __repr__(self):
         return "<header: %s>" % repr(str(self))
 
 class WARCRecord:
     r"""A record in a WARC file.
-    
+
     >>> WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
     <record: 'WARC/0.10 7 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\nfoo bar'>
     """
-    def __init__(self, record_type, subject_uri, content_type, headers, data, creation_date=None, record_id=None):        
+    def __init__(self, record_type, subject_uri, content_type, headers, data, creation_date=None, record_id=None):
         warc_id = "WARC/" + WARC_VERSION
         data_length = len(data)
         creation_date = creation_date or datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
         record_id = record_id or self.create_uuid()
-        
-        self._header = WARCHeader(warc_id, data_length, record_type, subject_uri, 
+
+        self._header = WARCHeader(warc_id, data_length, record_type, subject_uri,
                                 creation_date, record_id, content_type, headers)
         self._data = data
 
     def create_uuid(self):
         import uuid
         return 'urn:uuid:' + str(uuid.uuid1())
-        
+
     def get_header(self):
         return self._header
-        
+
     def get_data(self):
         return self._data
-        
+
     def __eq__(self, other):
         return self.get_header() == other.get_header() and self.get_data() == other.get_data()
-        
+
     def __ne__(self, other):
         return not (self == other)
-        
+
     def __str__(self):
         return str(self.get_header()) + self.get_data()
-        
+
     def __repr__(self):
         return "<record: %s>" % repr(str(self))
-        
+
 class LazyWARCRecord(WARCRecord):
     """Class to create WARCRecord lazily.
-    
+
     >>> import StringIO
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
     >>> f = StringIO.StringIO(str(r1))
@@ -232,10 +232,10 @@ class LazyWARCRecord(WARCRecord):
         self.file = file
         self.offset = offset
         self._data = None
-        
+
     def get_header(self):
         return self.header
-        
+
     def get_data(self):
         if self._data is None:
             offset = self.file.tell()
@@ -246,7 +246,7 @@ class LazyWARCRecord(WARCRecord):
 
 class WARCWriter:
     r"""Writes to write warc records to file.
-    
+
     >>> import re, StringIO
     >>> f = StringIO.StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo", creation_date="20080808080808", record_id="record_42")
@@ -271,12 +271,12 @@ class WARCWriter:
     """
     def __init__(self, file):
         self.file = file
-        
+
     def close(self):
         self.file.close()
-        
+
     def write(self, record):
-        """Writes a record into the WARC file. 
+        """Writes a record into the WARC file.
         Assumes that data_length and other attributes are correctly set in record.header.
         """
         self.file.write(str(record.get_header()))

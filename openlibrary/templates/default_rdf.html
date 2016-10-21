@@ -12,6 +12,6 @@ $def display(key, value):
     $else:
             <ol:$key>$value</ol:$key>
 
-$for key in page.keys(): 
+$for key in page.keys():
     $:display(key, page[key])
 </rdf:RDF>

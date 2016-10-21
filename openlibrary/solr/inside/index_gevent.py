@@ -326,7 +326,7 @@ def run_solr_queue(queue_num):
         r += '<field name="ia">%s</field>\n' % ia
         if lang != 'other': # also in schema copyField -> body
             r += '<field name="body_%s"><![CDATA[%s]]></field>\n' % (lang, esc_body)
-        else: 
+        else:
             r += '<field name="body"><![CDATA[%s]]></field>\n' % esc_body
         r += '<field name="body_length">%s</field>\n' % len(body)
         r += '<field name="page_count">%s</field>\n' % page_count

@@ -6,7 +6,7 @@ import re
 from dump import pgdecode
 
 def parse_data_table(filename):
-    """Parses the dump of data table and returns an iterator with 
+    """Parses the dump of data table and returns an iterator with
     <key, type, revision, json> for all entries.
     """
     for line in open(filename):

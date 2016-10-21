@@ -34,14 +34,14 @@ def safeint(value, default=None):
 
 def get_ol_url():
     return web.rstrips(config.ol_url, "/")
-    
+
 def ol_things(key, value):
     if oldb.is_supported():
         return oldb.query(key, value)
     else:
         query = {
             'type': '/type/edition',
-            key: value, 
+            key: value,
             'sort': 'last_modified',
             'limit': 10
         }
@@ -54,7 +54,7 @@ def ol_things(key, value):
             import traceback
             traceback.print_exc()
             return []
-        
+
 def ol_get(olkey):
     if oldb.is_supported():
         return oldb.get(olkey)
@@ -94,8 +94,8 @@ def changequery(url, **kw):
     return base + '?' + urllib.urlencode(params)
 
 def read_file(path, offset, size, chunk=50*1024):
-    """Returns an iterator over file data at specified offset and size.    
-    
+    """Returns an iterator over file data at specified offset and size.
+
         >>> len("".join(read_file('/dev/urandom', 100, 10000)))
         10000
     """
@@ -110,7 +110,7 @@ def read_file(path, offset, size, chunk=50*1024):
             f.close()
             raise IOError("file truncated")
     f.close()
-    
+
 def rm_f(filename):
     try:
         os.remove(filename)
@@ -120,11 +120,11 @@ def rm_f(filename):
 chars = string.letters + string.digits
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
-    
+
 def urlencode(data):
     """
     urlencodes the given data dictionary. If any of the value is a file object, data is multipart encoded.
-    
+
     @@@ should go into web.browser
     """
     multipart = False
@@ -132,14 +132,14 @@ def urlencode(data):
         if isinstance(v, file):
             multipart = True
             break
-            
+
     if not multipart:
         return 'application/x-www-form-urlencoded', urllib.urlencode(data)
     else:
         # adopted from http://code.activestate.com/recipes/146306/
         def get_content_type(filename):
             return mimetypes.guess_type(filename)[0] or 'application/octet-stream'
-        
+
         def encode(key, value, out):
             if isinstance(value, file):
                 out.append('--' + BOUNDARY)

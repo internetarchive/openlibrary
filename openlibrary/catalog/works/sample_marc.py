@@ -3,8 +3,8 @@ import re
 
 # random authors and subjects
 terms = [
-    'rowling', 'harry potter', 'shakespeare', 'hamlet', 'twain', 'darwin', 
-    'sagan', 'huckleberry finn', 'tom sawyer', 'verne', 'waiting for godot', 
+    'rowling', 'harry potter', 'shakespeare', 'hamlet', 'twain', 'darwin',
+    'sagan', 'huckleberry finn', 'tom sawyer', 'verne', 'waiting for godot',
     'beckett', 'churchill', 'darwin', 'dickens', 'doyle', 'leonardo',
     'da vinci',
 ]

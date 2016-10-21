@@ -44,7 +44,7 @@ for w in query_iter(q):
     work_author = withKey(wakey)
 
     for e in query_iter(q):
-        if not e.get('title', None): 
+        if not e.get('title', None):
             continue
         titles.update([get_title(e), e['title']])
 

@@ -3,13 +3,13 @@
 The loan stats are currently sorted in couchdb. Solr provides wonderful
 faceting that allows us to build beautiful views of data.
 
-This file provides all the functionality to take one loan stats record, 
+This file provides all the functionality to take one loan stats record,
 query OL and archive.org for other related info like subjects, collections
 etc. and massages that into a form that can be fed into solr.
 
 How to run:
 
-    ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load 
+    ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load
 
 """
 import sys
@@ -40,9 +40,9 @@ def get_region(library):
         return library.lending_region
 
     # Take column #3 from address. The available columns are:
-    # name, street, city, state, ...        
+    # name, street, city, state, ...
     try:
-        # Open library of Richmond is really rest of the world 
+        # Open library of Richmond is really rest of the world
         if library.addresses and library.key != "/libraries/openlibrary_of_richmond":
             return library.addresses.split("|")[3]
     except IndexError:
@@ -58,7 +58,7 @@ def get_library(key):
 
 _ia_db = None
 def get_ia_db():
-    """Metadata API is slow. 
+    """Metadata API is slow.
     Talk to archive.org database directly if it is specified in the configuration.
     """
     if not config.get("ia_db"):
@@ -84,7 +84,7 @@ def _get_metadata(ia_id):
     if not ia_id:
         return {}
     db = get_ia_db()
-    if db:        
+    if db:
         result = db.query("SELECT collection, sponsor, contributor FROM metadata WHERE identifier=$ia_id", vars=locals())
         meta = result and result[0] or {}
         if meta:
@@ -103,13 +103,13 @@ def preload(entries):
     preload_metadata(ia_ids)
 
 def preload_metadata(ia_ids):
-    logger.info("preload metadata for %s identifiers", len(ia_ids))    
+    logger.info("preload metadata for %s identifiers", len(ia_ids))
     # ignore already loaded ones
     ia_ids = [id for id in ia_ids if id and id not in metadata_cache]
 
     if not ia_ids:
         return
-    
+
     db = get_ia_db()
     rows = db.query("SELECT identifier, collection, sponsor, contributor FROM metadata WHERE identifier IN $ia_ids", vars=locals())
     for row in rows:
@@ -163,7 +163,7 @@ class LoanEntry(web.storage):
         return get_metadata(self.get_iaid())
 
     @property
-    def library(self):  
+    def library(self):
         key = self.get("library")
         lib = key and get_library(key)
         if lib and not is_region(lib):
@@ -271,7 +271,7 @@ def add_events_to_solr(events):
 
 def main(*args):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-    if "--load" in args:        
+    if "--load" in args:
         docs = read_events()
         update_solr(docs)
     elif args and args[0] == "--load-from-db":

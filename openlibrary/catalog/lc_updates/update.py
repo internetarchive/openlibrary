@@ -4,7 +4,7 @@ from openlibrary.catalog.read_rc import read_rc
 import os, sys, httplib, subprocess
 from time import sleep
 
-# httplib.HTTPConnection.debuglevel = 1 
+# httplib.HTTPConnection.debuglevel = 1
 
 # http://home.us.archive.org/~samuel/abouts3.txt
 

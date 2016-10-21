@@ -10,7 +10,7 @@ $def render_author():
         $ msg = ungettext("This author is on <strong>%s list</strong>.", "This author is on <strong>%s lists</strong>.", len(lists))
         $:sprintf(msg, commify(len(lists)))
     </p>
-    
+
 $def render_edition():
     $#<!-- Need to insert book cover $:render_template('covers/book_cover_small', doc.works[0]) -->
     <h1 class="collapse"><a href="$doc.key">$doc.title</a> / Lists</h1>
@@ -30,7 +30,7 @@ $def render_work():
         $ msg = ungettext("This work is on <strong>%s list</strong>.", "This work is on <strong>%s lists</strong>.", len(lists))
         $:sprintf(msg, commify(len(lists)))
     </p>
-    
+
 $def render_user():
     <h1 class="collapse"><a href="$doc.key">$doc.displayname</a> / Lists</h1>
     <p class="collapse large brown sansserif">

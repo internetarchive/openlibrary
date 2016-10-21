@@ -48,7 +48,7 @@ def parse_file():
             cur += line
             expect = 'end_catrecord'
             continue
-        if expect == 'end_catrecord': 
+        if expect == 'end_catrecord':
             if line.startswith('</CATRECORD>'):
                 cur += '</CATRECORD>'
                 yield parse_catrecord(cur)

@@ -21,7 +21,7 @@ def group(items, size):
 def main(dbname, filename):
     server = couchdb.Server("http://localhost:5984/")
     db = server[dbname]
-    
+
     t0 = time.time()
     for i, chunk in enumerate(group(open(filename), 1000)):
         if i%100 == 0:
@@ -33,7 +33,7 @@ def main(dbname, filename):
         print db.resource.post('_bulk_docs', content=json)
 
     print 'done'
-    
+
 if __name__ == '__main__':
     if len(sys.argv) == 1:
         import doctest

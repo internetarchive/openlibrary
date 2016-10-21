@@ -31,7 +31,7 @@ def take(n, seq):
 def group(seq, n):
     while True:
         x = list(take(n, seq))
-        if x: 
+        if x:
             yield x
         else:
             break

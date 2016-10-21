@@ -25,9 +25,9 @@ $def with (page)
         <script src="http://home.us.archive.org/~larthur/scripts/vendor.js" type="text/javascript"></script>
     $else:
         <script src="$vendor_js()" type="text/javascript"></script>
-    
+
     <script src="/js/ol.js?format=raw" type="text/javascript"></script>
-    
+
     <title>$:page.title ($_("Open Library"))</title>
 
     $for link in ctx.get("links", []):
@@ -37,7 +37,7 @@ $def with (page)
         <link rel="stylesheet" type="text/css" href="$s" />
 
     <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
-    
+
     <script type="text/javascript">
         \$().ready(setupSearch);
         \$().ready(linkbuttons);
@@ -60,7 +60,7 @@ $def with (page)
                 $:page
 
             </div>
-    
+
             $:render_template("lib/nav_foot", page)
 
         </div>

@@ -180,7 +180,7 @@ def test_from_marc_3(mock_site):
 def test_from_marc_2(mock_site):
     add_languages(mock_site)
     ia = 'roadstogreatness00gall'
-    
+
     data = open_test_data(ia + '_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
@@ -369,20 +369,20 @@ def test_extra_author(mock_site):
     mock_site.save({
         "name": "Hubert Howe Bancroft",
         "death_date": "1918.",
-        "alternate_names": ["HUBERT HOWE BANCROFT", "Hubert Howe Bandcroft"], 
-        "key": "/authors/OL563100A", 
-        "birth_date": "1832", 
-        "personal_name": "Hubert Howe Bancroft", 
-        "type": {"key": "/type/author"}, 
+        "alternate_names": ["HUBERT HOWE BANCROFT", "Hubert Howe Bandcroft"],
+        "key": "/authors/OL563100A",
+        "birth_date": "1832",
+        "personal_name": "Hubert Howe Bancroft",
+        "type": {"key": "/type/author"},
     })
 
     mock_site.save({
         "title": "The works of Hubert Howe Bancroft",
         "covers": [6060295, 5551343],
         "first_sentence": {"type": "/type/text", "value": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."},
-        "subject_places": ["Alaska", "America", "Arizona", "British Columbia", "California", "Canadian Northwest", "Central America", "Colorado", "Idaho", "Mexico", "Montana", "Nevada", "New Mexico", "Northwest Coast of North America", "Northwest boundary of the United States", "Oregon", "Pacific States", "Texas", "United States", "Utah", "Washington (State)", "West (U.S.)", "Wyoming"], 
-        "excerpts": [{"excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."}], 
-        "first_publish_date": "1882", 
+        "subject_places": ["Alaska", "America", "Arizona", "British Columbia", "California", "Canadian Northwest", "Central America", "Colorado", "Idaho", "Mexico", "Montana", "Nevada", "New Mexico", "Northwest Coast of North America", "Northwest boundary of the United States", "Oregon", "Pacific States", "Texas", "United States", "Utah", "Washington (State)", "West (U.S.)", "Wyoming"],
+        "excerpts": [{"excerpt": "When it first became known to Europe that a new continent had been discovered, the wise men, philosophers, and especially the learned ecclesiastics, were sorely perplexed to account for such a discovery."}],
+        "first_publish_date": "1882",
         "key": "/works/OL3421434W",
         "authors": [{"type": {"key": "/type/author_role"}, "author": {"key": "/authors/OL563100A"}}],
         "subject_times": ["1540-1810", "1810-1821", "1821-1861", "1821-1951", "1846-1850", "1850-1950", "1859-", "1859-1950", "1867-1910", "1867-1959", "1871-1903", "Civil War, 1861-1865", "Conquest, 1519-1540", "European intervention, 1861-1867", "Spanish colony, 1540-1810", "To 1519", "To 1821", "To 1846", "To 1859", "To 1867", "To 1871", "To 1889", "To 1912", "Wars of Independence, 1810-1821"],
@@ -426,32 +426,32 @@ def test_missing_source_records(mock_site):
     })
 
     mock_site.save({
-        "number_of_pages": 276, 
-        "subtitle": "a documentary history", 
-        "series": ["The Bedford series in history and culture"], 
-        "covers": [6649715, 3865334, 173632], 
-        "lc_classifications": ["D804.G42 N87 1997"], 
-        "ocaid": "nurembergwarcrim00marr", 
-        "contributions": ["Marrus, Michael Robert."], 
-        "uri_descriptions": ["Book review (H-Net)"], 
-        "title": "The Nuremberg war crimes trial, 1945-46", 
-        "languages": [{"key": "/languages/eng"}], 
+        "number_of_pages": 276,
+        "subtitle": "a documentary history",
+        "series": ["The Bedford series in history and culture"],
+        "covers": [6649715, 3865334, 173632],
+        "lc_classifications": ["D804.G42 N87 1997"],
+        "ocaid": "nurembergwarcrim00marr",
+        "contributions": ["Marrus, Michael Robert."],
+        "uri_descriptions": ["Book review (H-Net)"],
+        "title": "The Nuremberg war crimes trial, 1945-46",
+        "languages": [{"key": "/languages/eng"}],
         "subjects": ["Nuremberg Trial of Major German War Criminals, Nuremberg, Germany, 1945-1946"],
-        "publish_country": "mau", "by_statement": "[compiled by] Michael R. Marrus.", 
-        "type": {"key": "/type/edition"}, 
+        "publish_country": "mau", "by_statement": "[compiled by] Michael R. Marrus.",
+        "type": {"key": "/type/edition"},
         "uris": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
-        "publishers": ["Bedford Books"], 
-        "ia_box_id": ["IA127618"], 
-        "key": "/books/OL1023483M", 
-        "authors": [{"key": "/authors/OL592898A"}], 
-        "publish_places": ["Boston"], 
-        "pagination": "xi, 276 p. :", 
-        "lccn": ["96086777"], 
-        "notes": {"type": "/type/text", "value": "Includes bibliographical references (p. 262-268) and index."}, 
-        "identifiers": {"goodreads": ["326638"], "librarything": ["1114474"]}, 
-        "url": ["http://www.h-net.org/review/hrev-a0a6c9-aa"], 
-        "isbn_10": ["031216386X", "0312136919"], 
-        "publish_date": "1997", 
+        "publishers": ["Bedford Books"],
+        "ia_box_id": ["IA127618"],
+        "key": "/books/OL1023483M",
+        "authors": [{"key": "/authors/OL592898A"}],
+        "publish_places": ["Boston"],
+        "pagination": "xi, 276 p. :",
+        "lccn": ["96086777"],
+        "notes": {"type": "/type/text", "value": "Includes bibliographical references (p. 262-268) and index."},
+        "identifiers": {"goodreads": ["326638"], "librarything": ["1114474"]},
+        "url": ["http://www.h-net.org/review/hrev-a0a6c9-aa"],
+        "isbn_10": ["031216386X", "0312136919"],
+        "publish_date": "1997",
         "works": [{"key": "/works/OL16029710W"}]
     })
 
@@ -477,11 +477,11 @@ def test_no_extra_author(mock_site):
     mock_site.save(author)
 
     work = {
-        "title": "A Separate Pension Plan for Alberta", 
-        "covers": [1644794], 
+        "title": "A Separate Pension Plan for Alberta",
+        "covers": [1644794],
         "key": "/works/OL8611498W",
         "authors": [{"type": "/type/author_role", "author": {"key": "/authors/OL2894448A"}}],
-        "type": {"key": "/type/work"}, 
+        "type": {"key": "/type/work"},
     }
     mock_site.save(work)
 
@@ -493,7 +493,7 @@ def test_no_extra_author(mock_site):
         "latest_revision": 6,
         "title": "A Separate Pension Plan for Alberta",
         "languages": [{"key": "/languages/eng"}],
-        "subjects": ["Economics", "Alberta", "Political Science / State & Local Government", "Government policy", "Old age pensions", "Pensions", "Social security"], 
+        "subjects": ["Economics", "Alberta", "Political Science / State & Local Government", "Government policy", "Old age pensions", "Pensions", "Social security"],
         "type": {"key": "/type/edition"},
         "physical_dimensions": "9 x 6 x 0.2 inches",
         "publishers": ["The University of Alberta Press"],
@@ -595,7 +595,7 @@ def test_don_quixote(mock_site):
         }
         work_keys = list(mock_site.things(q))
         assert work_keys
-        
+
         assert reply['success'] == True
 
 def test_same_twice(mock_site):

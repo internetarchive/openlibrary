@@ -6,7 +6,7 @@ from olapi import OpenLibrary, unmarshal
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', rc['ImportBot'])
 
 db = web.database(dbn='mysql', host=rc['ia_db_host'], user=rc['ia_db_user'], \
         passwd=rc['ia_db_pass'], db='archive')

@@ -18,9 +18,9 @@ $if pagecount > 1:
         $if start > 1: <a href="$url(1)">1</a>
         $if start > 2: <span class="ellipsis">...</span>
         $for i in range(start, end+1):
-            $if i == index: 
+            $if i == index:
                 <span class="this">$i</span>
-            $else: 
+            $else:
                 <a href="$url(i)">$i</a>
         $if end < pagecount-1: <span class="ellipsis">...</span>
         $if end < pagecount: <a href="$url(pagecount)" class="ChoosePage">$pagecount</a>

@@ -7,7 +7,7 @@
     <script language="javascript" type="text/javascript" src="../jquery.js"></script>
 	<script language="javascript" type="text/javascript" src="../jquery.flot.js"></script>
     <script language="javascript" type="text/javascript" src="../jquery.flot.pie.js"></script>
-	
+
 <script type="text/javascript">
 $(function () {
 	// data
@@ -35,20 +35,20 @@ $(function () {
 	}
 
 	// DEFAULT
-    $.plot($("#default"), data, 
+    $.plot($("#default"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true
 			}
 		}
 	});
-	
+
 	// GRAPH 1
-	$.plot($("#graph1"), data, 
+	$.plot($("#graph1"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true
 			}
 		},
@@ -56,12 +56,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 2
-	$.plot($("#graph2"), data, 
+	$.plot($("#graph2"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 1,
 				label: {
@@ -78,12 +78,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 3
-	$.plot($("#graph3"), data, 
+	$.plot($("#graph3"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 1,
 				label: {
@@ -100,12 +100,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 4
-	$.plot($("#graph4"), data, 
+	$.plot($("#graph4"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 1,
 				label: {
@@ -114,7 +114,7 @@ $(function () {
 					formatter: function(label, series){
 						return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
 					},
-					background: { 
+					background: {
 						opacity: 0.5,
 						color: '#000'
 					}
@@ -125,12 +125,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 5
-	$.plot($("#graph5"), data, 
+	$.plot($("#graph5"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 3/4,
 				label: {
@@ -139,7 +139,7 @@ $(function () {
 					formatter: function(label, series){
 						return '<div style="font-size:8pt;text-align:center;padding:2px;color:white;">'+label+'<br/>'+Math.round(series.percent)+'%</div>';
 					},
-					background: { 
+					background: {
 						opacity: 0.5,
 						color: '#000'
 					}
@@ -150,12 +150,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 6
-	$.plot($("#graph6"), data, 
+	$.plot($("#graph6"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 1,
 				label: {
@@ -172,12 +172,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 7
-	$.plot($("#graph7"), data, 
+	$.plot($("#graph7"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				combine: {
 					color: '#999',
@@ -189,12 +189,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 8
-	$.plot($("#graph8"), data, 
+	$.plot($("#graph8"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius:300,
 				label: {
@@ -210,12 +210,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// GRAPH 9
-	$.plot($("#graph9"), data, 
+	$.plot($("#graph9"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true,
 				radius: 1,
 				tilt: 0.5,
@@ -237,12 +237,12 @@ $(function () {
 			show: false
 		}
 	});
-	
+
 	// DONUT
-    $.plot($("#donut"), data, 
+    $.plot($("#donut"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				innerRadius: 0.5,
 				show: true
 			}
@@ -250,10 +250,10 @@ $(function () {
 	});
 
 	// INTERACTIVE
-    $.plot($("#interactive"), data, 
+    $.plot($("#interactive"), data,
 	{
 		series: {
-			pie: { 
+			pie: {
 				show: true
 			}
 		},
@@ -267,7 +267,7 @@ $(function () {
 
 });
 
-function pieHover(event, pos, obj) 
+function pieHover(event, pos, obj)
 {
 	if (!obj)
                 return;
@@ -275,7 +275,7 @@ function pieHover(event, pos, obj)
 	$("#hover").html('<span style="font-weight: bold; color: '+obj.series.color+'">'+obj.series.label+' ('+percent+'%)</span>');
 }
 
-function pieClick(event, pos, obj) 
+function pieClick(event, pos, obj)
 {
 	if (!obj)
                 return;
@@ -287,12 +287,12 @@ function pieClick(event, pos, obj)
 		* {
 		  font-family: sans-serif;
 		}
-		
+
 		body
 		{
 			padding: 0 1em 1em 1em;
 		}
-		
+
 		div.graph
 		{
 			width: 400px;
@@ -300,14 +300,14 @@ function pieClick(event, pos, obj)
 			float: left;
 			border: 1px dashed gainsboro;
 		}
-		
+
 		label
 		{
 			display: block;
 			margin-left: 400px;
 			padding-left: 1em;
 		}
-		
+
 		h2
 		{
 			padding-top: 1em;
@@ -315,7 +315,7 @@ function pieClick(event, pos, obj)
 			clear: both;
 			color: #ccc;
 		}
-		
+
 		code
 		{
 			display: block;
@@ -326,28 +326,28 @@ function pieClick(event, pos, obj)
 			color: #666;
 			font-size: 10pt;
 		}
-		
+
 		code b
 		{
 			color: black;
 		}
-		
+
 		ul
 		{
 			font-size: 10pt;
 		}
-		
+
 		ul li
 		{
 			margin-bottom: 0.5em;
 		}
-		
+
 		ul.options li
 		{
 			list-style: none;
 			margin-bottom: 1em;
 		}
-		
+
 		ul li i
 		{
 			color: #999;
@@ -391,7 +391,7 @@ $.plot($("#graph1"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph2</h2>
     <div id="graph2" class="graph"></div>
 	<label for="graph2">
@@ -419,7 +419,7 @@ $.plot($("#graph2"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph3</h2>
     <div id="graph3" class="graph"></div>
 	<label for="graph3">
@@ -447,7 +447,7 @@ $.plot($("#graph3"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph4</h2>
     <div id="graph4" class="graph"></div>
 	<label for="graph4">
@@ -477,7 +477,7 @@ $.plot($("#graph4"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph5</h2>
     <div id="graph5" class="graph"></div>
 	<label for="graph5">
@@ -507,7 +507,7 @@ $.plot($("#graph5"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph6</h2>
     <div id="graph6" class="graph"></div>
 	<label for="graph6">
@@ -536,7 +536,7 @@ $.plot($("#graph6"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph7</h2>
     <div id="graph7" class="graph"></div>
 	<label for="graph7">
@@ -560,7 +560,7 @@ $.plot($("#graph7"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Graph8</h2>
     <div id="graph8" class="graph"></div>
 	<label for="graph8">
@@ -620,7 +620,7 @@ $.plot($("#graph9"), data, <br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Donut</h2>
     <div id="donut" class="graph"></div>
 	<label for="donut">
@@ -637,7 +637,7 @@ $.plot($("#donut"), data,<br/>
 });<br/>
 		</code>
 	</label>
-	
+
 	<h2>Interactive</h2>
     <div id="interactive" class="graph"></div>
 	<label for="interactive">
@@ -660,7 +660,7 @@ $("#interactive").bind("plotclick", pieClick);</b><br/>
 		</code>
 		<div id="hover"></div>
 	</label>
-		
+
 	<h2>Pie Options</h2>
 	<ul class="options">
 		<li style="border-bottom: 1px dotted #ccc;"><b>option:</b> <i>default value</i> - Description of option</li>
@@ -697,7 +697,7 @@ $("#interactive").bind("plotclick", pieClick);</b><br/>
 			<li><b>opacity:</b> <i>0.5</i> - Opacity of the highlight overlay on top of the current pie slice. Currently this just uses a white overlay, but support for changing the color of the overlay will also be added at a later date.
 		</ul>
 	</ul>
-	
+
 	<h2>Changes/Features</h2>
 	<ul>
 		<li style="list-style: none;"><i>v1.0 - November 20th, 2009 - Brian Medendorp</i></li>
@@ -750,7 +750,7 @@ $("#interactive").bind("plotclick", pieClick);</b><br/>
 		<li>Tested in Firefox (3.0.10, 3.5b4), Internet Explorer (6.0.2900, 7.0.5730, 8.0.6001), Chrome (1.0.154), Opera (9.64), and Safari (3.1.1, 4 beta 5528.16).
 	</ul>
 
-	
+
  </body>
 </html>
 

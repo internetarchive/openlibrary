@@ -24,11 +24,11 @@ def insert_backreference(type_name, prop_name, ref_type_name, ref_prop_name):
 
     type = get_type(type_name)
 
-    def create_backreference(): 
+    def create_backreference():
         d = {'type': get_type(ref_type_name), 'property_name': ref_prop_name}
-        return db._get_thing(type, 
-                             prop_name, 
-                             get_type('type/backreference'), 
+        return db._get_thing(type,
+                             prop_name,
+                             get_type('type/backreference'),
                              d)
 
     type.backreferences = type.get('backreferences', [])

@@ -31,12 +31,12 @@ $(function () {
     function euroFormatter(v, axis) {
         return v.toFixed(axis.tickDecimals) +"€";
     }
-    
+
     function doPlot(position) {
         $.plot($("#placeholder"),
            [ { data: oilprices, label: "Oil price ($)" },
              { data: exchangerates, label: "USD/EUR exchange rate", yaxis: 2 }],
-           { 
+           {
                xaxes: [ { mode: 'time' } ],
                yaxes: [ { min: 0 },
                         {
@@ -50,7 +50,7 @@ $(function () {
     }
 
     doPlot("right");
-    
+
     $("button").click(function () {
         doPlot($(this).text());
     });

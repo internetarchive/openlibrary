@@ -129,14 +129,14 @@ def test_find_works():
         'editions': [
             {'key': '/books/OL2M', 'norm_title': 'magic', 'title': 'magic'},
             {'key': '/books/OL1M', 'norm_title': u'mágico', 'norm_wt': 'magic', 'title': u'Mágico'},
-        ], 
+        ],
     }]
 
     work_count = len(works)
     assert work_count == 1
     editions = works[0]['editions']
     edition_count = len(works[0]['editions'])
-    edition_keys = sorted(e['key'] for e in editions) 
+    edition_keys = sorted(e['key'] for e in editions)
     assert edition_keys == expect_keys
     assert edition_count == 4
     del works[0]['editions']

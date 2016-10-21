@@ -24,7 +24,7 @@ $if ctx.user and ctx.user.is_admin():
     <div id="contentHead">
         $:render_template("borrow/navigation", path="/libraries/dashboard")
         <h1>Libraries Dashboard</h1>
-    </div> 
+    </div>
     <script type="text/javascript">
     <!--
     \$().ready(Tabs);
@@ -58,7 +58,7 @@ $if ctx.user and ctx.user.is_admin():
                             $ registered_on = lib.registered_on
                                 $datestr(parse_datetime(registered_on))</td>
                     </tr>
-                
+
                 $if not pending_libraries:
                     <tr><td><em>What's this? No new registrations? WTF? Hi!</em></td></tr>
             </table>
@@ -78,10 +78,10 @@ $if ctx.user and ctx.user.is_admin():
                 <b>All Active Libraries' Emails:</b><br />
                 $for lib in libraries:
                     $if lib.status == "approved":
-                        $lib.contact_email,    
+                        $lib.contact_email,
             </p>
         </div>
     </div>
-$else:    
+$else:
     <div id="contentHead"><h1>Permission denied.</h1></div>
     <div id="contentBody"><p>Only site administrators can see this page.</p></div>

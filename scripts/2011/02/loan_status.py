@@ -2,10 +2,10 @@
 
 # Simple script to check if a book is part of "Lending library" and currently available
 # for loan
-# 
+#
 # $ python scripts/2011/02/loan_status.py /books/OL6244901M && echo yes
 # Not available
-# 
+#
 # $ python scripts/2011/02/loan_status.py /books/OL6390314M && echo yes
 # Available
 # yes
@@ -32,7 +32,7 @@ def main():
     if len(sys.argv) < 2:
         print "Usage: loan_status.py /books/OL123M"
         sys.exit(-1)
-        
+
     status = get_loan_status(sys.argv[1])
     # print status
     if status is None:

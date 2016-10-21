@@ -48,15 +48,15 @@ $(function () {
 
         return markings;
     }
-    
+
     var options = {
         xaxis: { mode: "time", tickLength: 5 },
         selection: { mode: "x" },
         grid: { markings: weekendAreas }
     };
-    
+
     var plot = $.plot($("#placeholder"), [d], options);
-    
+
     var overview = $.plot($("#overview"), [d], {
         series: {
             lines: { show: true, lineWidth: 1 },
@@ -68,7 +68,7 @@ $(function () {
     });
 
     // now connect the two
-    
+
     $("#placeholder").bind("plotselected", function (event, ranges) {
         // do the zooming
         plot = $.plot($("#placeholder"), [d],
@@ -79,7 +79,7 @@ $(function () {
         // don't fire event on the overview to prevent eternal loop
         overview.setSelection(ranges, true);
     });
-    
+
     $("#overview").bind("plotselected", function (event, ranges) {
         plot.setSelection(ranges);
     });

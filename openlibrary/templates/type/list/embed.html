@@ -10,31 +10,31 @@ $ page_size = 10
 $def render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
     $:sprintf(msg, seed_count)
-    
-<div id="contentHead" style="margin-bottom:0;"> 
+
+<div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
         <a href="/" title="Visit Open Library"><img src="/images/logo_OL-sm.png" width="90" height="71" alt="Open Library logo" class="right"/></a>
 
         $ owner = list.get_owner()
         <a href="$owner.key">$owner.displayname</a>
-        / 
+        /
         <a href="$owner.key/lists">Lists</a>
-    </div> 
+    </div>
     <h1>
-        $list.name 
+        $list.name
     </h1>
     <p class="collapse sansserif">
         <span class="darkgreen"><strong>$:render_seed_count(len(list.seeds))</strong></span>
     </p>
 </div>
-<div id="contentBody"> 
+<div id="contentBody">
     $def render_authors(authors):
         $if not authors:
             <em>Unknown authors</em>
         $else:
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
- 
+
     $if list.description:
         $:format(list.description)
 
@@ -43,11 +43,11 @@ $def render_seed_count(seed_count):
         <li id="seed-$loop.index">
             $ cover = seed.get_cover()
             $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
-            <span class="image"> 
+            <span class="image">
                 <a href="$seed.url"><img src="$cover_url" height="70"/></a>
-            </span> 
+            </span>
             <span class="seed-key hidden">$seed.key</span>
-            <div class="details"> 
+            <div class="details">
                 <div class="resultTitle">
                     $if seed.type in ['edition', 'work']:
                         $ ebook = seed.document.get_ebook_info()
@@ -77,7 +77,7 @@ $def render_seed_count(seed_count):
                                 </a>
                         </span>
 
-                    <h3> 
+                    <h3>
                         <a href="$seed.url" class="results">$seed.title</a>
                     </h3>
                     $if seed.type == "work" or seed.type == "edition":
@@ -90,7 +90,7 @@ $def render_seed_count(seed_count):
                                 $ authors = seed.document.get_authors()
                         <span class="small">by $:render_authors(authors)</span>
                     <span class="meta">
-                    $if seed.type == "author": 
+                    $if seed.type == "author":
                         <span class="type author small">$seed.type</span>
                     $elif seed.type == "work" or seed.type == "edition":
                         <span class="type book small">$seed.type</span>
@@ -118,8 +118,8 @@ $def render_seed_count(seed_count):
             </div>
         </li>
     </ul>
- 
-    <div class="clearfix"></div> 
+
+    <div class="clearfix"></div>
     $:macros.Pager(page+1, len(list.seeds), page_size)
 </div>
 

@@ -35,7 +35,7 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
                     <td class="comment">$v.comment</td>
                     <td class="buttons" nowrap="nowrap">
                         <a href="$homepath()$v.key?m=view&v=$v.revision">$_("view")</a> -
-                        <a href="$homepath()$v.key?m=edit&v=$v.revision">$_("edit")</a> - 
+                        <a href="$homepath()$v.key?m=edit&v=$v.revision">$_("edit")</a> -
                         <a href="$homepath()$v.key?m=diff&b=$v.revision">$_("diff")</a>
                     </td>
                 </tr>
@@ -49,7 +49,7 @@ $ show_users = (query_param('show_users', 'false').lower() == 'true')
 
     <div class="historyPager small sansserif gray" style="width:100%;">
     $if len(changes) == limit:
-        <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a> &nbsp;|&nbsp; 
+        <a href="$:changequery(page=page + 1)" rel="nofollow">&larr; $_("Older")</a> &nbsp;|&nbsp;
     $if page != 0:
         <a href="$:changequery(page=page - 1)" rel="nofollow">$_("Newer") &rarr;</a>
     $else:

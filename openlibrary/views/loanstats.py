@@ -35,11 +35,11 @@ class lending_stats(app.view):
             stats.country = value
         elif key == 'collections':
             stats.collection = value
-        elif key == 'subjects': 
+        elif key == 'subjects':
             stats.subject = value
-        elif key == 'subjects': 
+        elif key == 'subjects':
             stats.subject = value
-        elif key == 'format': 
+        elif key == 'format':
             stats.resource_type = value
 
         i = web.input(t="30days", download=None)

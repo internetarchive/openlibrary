@@ -8,7 +8,7 @@ $if title.startswith("i18n::") and title.count(':') == 3:
     $ title = i18n.get(namespace, key)
 
 $var title: $title
-        
+
 $if '<!--suppress-title-->' not in page.body:
     <div id="contentHead">
         $:macros.databarView(page)

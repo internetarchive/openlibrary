@@ -22,17 +22,17 @@ LATEST_VERSION = 14
 class Upgrader:
     def upgrade(self, db):
         v = self.get_database_version(db)
-        
+
         print "current db version:", v
         print "latest version:", LATEST_VERSION
-        
+
         t = db.transaction()
         try:
             for i in range(v, LATEST_VERSION):
                 print "upgrading to", i+1
                 f = getattr(self, "upgrade_%03d" % (i+1))
                 f(db)
-        except: 
+        except:
             print
             print "**ERROR**: Failed to complete the upgrade. rolling back..."
             print
@@ -41,7 +41,7 @@ class Upgrader:
         else:
             t.commit()
             print "done"
-    
+
     def upgrade_011(self, db):
         """Add seq table."""
         q = """CREATE TABLE seq (
@@ -50,28 +50,28 @@ class Upgrader:
             value int default 0
         )"""
         db.query(q)
-            
+
     def upgrade_012(self, db):
         """Add data column to transaction table."""
         db.query("ALTER TABLE transaction ADD COLUMN data text")
-    
+
     def upgrade_013(self, db):
         """Add changes column to transaction table."""
         db.query("ALTER TABLE transaction ADD COLUMN changes text")
-        
+
         # populate changes
-        rows = db.query("SELECT thing.key, version.revision, version.transaction_id" 
+        rows = db.query("SELECT thing.key, version.revision, version.transaction_id"
             + " FROM  thing, version"
             + " WHERE thing.id=version.thing_id"
             + " ORDER BY version.transaction_id")
-        
+
         for tx_id, changes in itertools.groupby(rows, lambda row: row.transaction_id):
             changes = [{"key": row.key, "revision": row.revision} for row in changes]
             db.update("transaction", where="id=$tx_id", changes=simplejson.dumps(changes), vars=locals())
-        
+
     def upgrade_014(self, db):
         """Add transaction_index table."""
-        
+
         q = """
         create table transaction_index (
             tx_id int references transaction,
@@ -85,7 +85,7 @@ class Upgrader:
 
     def get_database_version(self, db):
         schema = self.read_schema(db)
-    
+
         if 'seq' not in schema:
             return 10
         elif 'data' not in schema['transaction']:
@@ -100,7 +100,7 @@ class Upgrader:
     def read_schema(self, db):
         rows = db.query("SELECT table_name, column_name,  data_type "
             + " FROM information_schema.columns"
-            + " WHERE table_schema = 'public'") 
+            + " WHERE table_schema = 'public'")
 
         schema = web.storage()
         for row in rows:
@@ -123,6 +123,6 @@ def main():
         dbname = sys.argv[1]
         db = web.database(dbn='postgres', db=dbname, user=os.getenv('USER'), pw='')
         Upgrader().upgrade(db)
- 
+
 if __name__ == "__main__":
     main()

@@ -19,10 +19,10 @@ from openlibrary.mocks.mock_ol import pytest_funcarg__ol
 
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
-    """    
+    """
     template.load_templates("openlibrary")
-    
-    #TODO: call setup on upstream and openlibrary plugins to 
+
+    #TODO: call setup on upstream and openlibrary plugins to
     # load all globals.
     web.template.Template.globals["_"] = gettext
     web.template.Template.globals.update(helpers.helpers)
@@ -34,13 +34,13 @@ def pytest_funcarg__render_template(request):
     # ol_infobase.init_plugin call is failing when trying to import plugins.openlibrary.code.
     # monkeypatch to avoid that.
     from openlibrary.plugins import ol_infobase
-    
+
     init_plugin = ol_infobase.init_plugin
     ol_infobase.init_plugin = lambda: None
     def undo():
         ol_infobase.init_plugin = init_plugin
-    request.addfinalizer(undo)    
-    
+    request.addfinalizer(undo)
+
     from openlibrary.plugins.openlibrary import code
     web.config.db_parameters = dict()
     code.setup_template_globals()
@@ -50,7 +50,7 @@ def pytest_funcarg__render_template(request):
         web.ctx.clear()
 
     request.addfinalizer(finalizer)
-    
+
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
         d = render_template(name, *a, **kw)

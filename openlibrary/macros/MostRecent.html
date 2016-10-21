@@ -20,7 +20,7 @@ $for v in changes[:4]:
             $ action = "created"
         $else:
             $ action = "updated"
-            
+
         $if v.revision == 1 and v.author and v.author.key == v.key:
             $:who created new account
         $elif who:

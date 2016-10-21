@@ -10,12 +10,12 @@ def map(doc, re_subject=re.compile("[, _]+")):
         work = doc
         editions = work.get('editions', [])
         ebooks = sum(1 for e in editions if 'ocaid' in e)
-    
-        dates = [d['last_modified']['value'] 
+
+        dates = [d['last_modified']['value']
                     for d in [work] + editions
                     if 'last_modified' in d]
         last_modified = max(dates or [""])
-        
+
         subjects = {
             "subjects": work.get("subjects"),
             "people": work.get("subject_people"),
@@ -24,7 +24,7 @@ def map(doc, re_subject=re.compile("[, _]+")):
         }
         # strip off empty values
         subjects = dict((k, v) for k, v in subjects.items() if v)
-        
+
         counts = [1, len(editions), ebooks, last_modified, subjects]
 
         # work
@@ -50,5 +50,5 @@ def map(doc, re_subject=re.compile("[, _]+")):
             for s in values:
                 key = get_subject_key(prefix, s)
                 if key:
-                    yield key, counts[:-1] + [{name: [s]}] 
+                    yield key, counts[:-1] + [{name: [s]}]
 del re

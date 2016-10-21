@@ -66,12 +66,12 @@ def _old_get_meta_xml(itemid):
         logger.error("Failed to download _meta.xml for %s", itemid, exc_info=True)
         stats.end()
         return web.storage()
-        
-    # archive.org returns html on internal errors. 
+
+    # archive.org returns html on internal errors.
     # Checking for valid xml before trying to parse it.
     if not metaxml.strip().startswith("<?xml"):
         return web.storage()
-    
+
     try:
         defaults = {"collection": [], "external-identifier": []}
         return web.storage(xml2dict(metaxml, **defaults))
@@ -85,9 +85,9 @@ def get_meta_xml(itemid):
 
 def xml2dict(xml, **defaults):
     """Converts xml to python dictionary assuming that the xml is not nested.
-    
+
     To get some tag as a list/set, pass a keyword argument with list/set as value.
-    
+
         >>> xml2dict('<doc><x>1</x><x>2</x></doc>')
         {'x': 2}
         >>> xml2dict('<doc><x>1</x><x>2</x></doc>', x=[])
@@ -95,30 +95,30 @@ def xml2dict(xml, **defaults):
     """
     d = defaults
     dom = minidom.parseString(xml)
-    
+
     for node in dom.documentElement.childNodes:
         if node.nodeType == node.TEXT_NODE or len(node.childNodes) == 0:
             continue
         else:
             key = node.tagName
             value = node.childNodes[0].data
-            
+
             if key in d and isinstance(d[key], list):
                 d[key].append(value)
             elif key in d and isinstance(d[key], set):
                 d[key].add(value)
             else:
                 d[key] = value
-                
+
     return d
-    
+
 def _get_metadata(itemid):
     """Returns metadata by querying the archive.org metadata API.
     """
     print >> web.debug, "_get_metadata", itemid
     url = "http://www.archive.org/metadata/%s" % itemid
     try:
-        stats.begin("archive.org", url=url)        
+        stats.begin("archive.org", url=url)
         text = urllib2.urlopen(url).read()
         stats.end()
         return simplejson.loads(text)
@@ -127,9 +127,9 @@ def _get_metadata(itemid):
 
 # cache the results in memcache for a minute
 _get_metadata = web.memoize(_get_metadata, expires=60)
-        
+
 def locate_item(itemid):
-    """Returns (hostname, path) for the item. 
+    """Returns (hostname, path) for the item.
     """
     d = _get_metadata(itemid)
     return d.get('server'), d.get('dir')
@@ -153,17 +153,17 @@ class ItemEdition(dict):
     """Class to convert item metadata into edition dict.
     """
     def __init__(self, itemid):
-        dict.__init__(self)        
+        dict.__init__(self)
         self.itemid = itemid
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
         # if not self._is_valid_item(itemid, metadata):
         #     return None
 
-        self.update({   
+        self.update({
             "key": "/books/ia:" + itemid,
-            "type": {"key": "/type/edition"}, 
-            "title": itemid, 
+            "type": {"key": "/type/edition"},
+            "title": itemid,
             "ocaid": itemid,
             "revision": 1,
             "created": timestamp,
@@ -280,7 +280,7 @@ class ItemEdition(dict):
                     isbn_10.append(isbn)
         if isbn_10:
             self["isbn_10"] = isbn_10
-        if isbn_13: 
+        if isbn_13:
             self["isbn_13"] = isbn_13
 
     def add_subjects(self):

@@ -66,9 +66,9 @@ $var title: Search Open Library for "$q"
                 $ date = doc['date']
             <li class="sansserif">
             <a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
-            <span class="small grey"><b>$wc</b>  
+            <span class="small grey"><b>$wc</b>
             $if 'top_subjects' in doc:
-                about $', '.join(doc['top_subjects']), 
+                about $', '.join(doc['top_subjects']),
             including <i>$doc.get('top_work', '')</i></span>
             </li>
         </ul>

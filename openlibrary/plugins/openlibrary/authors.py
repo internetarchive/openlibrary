@@ -6,7 +6,7 @@ def setup():
 
 class author(delegate.page):
     path = "/authors"
-    
+
     def GET(self):
         return render_template("authors/index.html")
 

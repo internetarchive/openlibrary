@@ -40,10 +40,10 @@ def main():
     data = dict((k, v) for k, v in data.iteritems() if k in values)
 
     dates = sorted(dates)
-    
-    dat_f = tempfile.NamedTemporaryFile(prefix="%s.dat" % os.path.splitext(os.path.basename(in_fn))[0], 
+
+    dat_f = tempfile.NamedTemporaryFile(prefix="%s.dat" % os.path.splitext(os.path.basename(in_fn))[0],
                                         delete=False)
-    plt_f = tempfile.NamedTemporaryFile(prefix="%s.plt" % os.path.splitext(os.path.basename(in_fn))[0], 
+    plt_f = tempfile.NamedTemporaryFile(prefix="%s.plt" % os.path.splitext(os.path.basename(in_fn))[0],
                                         delete=False)
 
     print "writing to %s, %s" % (plt_f.name, dat_f.name)
@@ -66,7 +66,7 @@ def main():
     plot_cmd = []
     for i, v in enumerate(values):
         plot_cmd.append('"%s" using 1:%d title "%s" with lines' % (dat_f.name, i + 2, v))
-    
+
     plt_f.write("plot %s\n;" % ", \\\n\t".join(plot_cmd))
 
     dat_f.write("%s\n" % "\t".join(["#", "date"] + values))

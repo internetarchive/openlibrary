@@ -24,7 +24,7 @@ $def with (author)
                 <$tag>$x</$tag>
         $elif value:
             <$tag>$value</$tag>
-            
+
 
     <foaf:Person rdf:about="$auri">
         $:display("foaf:name", name)
@@ -59,8 +59,8 @@ $def with (author)
                 <rdfs:label>$link.title</rdfs:label>
             </foaf:Document>
         </foaf:page>
-      
-      $for photo in author.photos:    
+
+      $for photo in author.photos:
         $ auphoto = "http://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
         <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" />

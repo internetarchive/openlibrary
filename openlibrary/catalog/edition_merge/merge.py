@@ -231,7 +231,7 @@ def merge(ia):
 
     wkeys = set()
     works = []
-    if False: 
+    if False:
         for e in editions:
             for wkey in e.get('works', []):
                 if wkey not in wkeys:

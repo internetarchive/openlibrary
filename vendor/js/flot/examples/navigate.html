@@ -39,7 +39,7 @@
     plots) and adds a couple of public methods so you can easily build
     a little user interface around it, like the little buttons at the
     top right in the plot.</p>
-    
+
 
 <script type="text/javascript">
 $(function () {
@@ -51,13 +51,13 @@ $(function () {
             res += f(i * i * t) / (i * i);
         return res;
     }
-    
+
     var d1 = [];
     for (var t = 0; t <= 2 * Math.PI; t += 0.01)
         d1.push([sumf(Math.cos, t, 10), sumf(Math.sin, t, 10)]);
     var data = [ d1 ];
 
-    
+
     var placeholder = $("#placeholder");
     var options = {
         series: { lines: { show: true }, shadowSize: 0 },
@@ -73,7 +73,7 @@ $(function () {
 
     var plot = $.plot(placeholder, data, options);
 
-    // show pan/zoom messages to illustrate events 
+    // show pan/zoom messages to illustrate events
     placeholder.bind('plotpan', function (event, plot) {
         var axes = plot.getAxes();
         $(".message").html("Panning to x: "  + axes.xaxis.min.toFixed(2)
@@ -90,14 +90,14 @@ $(function () {
                            + " &ndash; " + axes.yaxis.max.toFixed(2));
     });
 
-    // add zoom out button 
+    // add zoom out button
     $('<div class="button" style="right:20px;top:20px">zoom out</div>').appendTo(placeholder).click(function (e) {
         e.preventDefault();
         plot.zoomOut();
     });
 
     // and add panning buttons
-    
+
     // little helper for taking the repetitive work out of placing
     // panning arrows
     function addArrow(dir, right, top, offset) {

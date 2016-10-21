@@ -34,13 +34,13 @@ $def with (work)
                 <foaf:name>$a.author.name</foaf:name>
             </rdf:Description>
         </dcterms:creator>
-       
+
         $:display("dcterms:subject", work.subjects)
         $:display("dcterms:coverage", work.subject_places)
         $:display("dcterms:coverage", work.subject_times)
         $:display("dcterms:description", work.description)
 
-      $for DDC in work.dewey_number:   
+      $for DDC in work.dewey_number:
         <dcterms:subject>
             <rdf:Description>
                 <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>
@@ -57,7 +57,7 @@ $def with (work)
 
         $:display("dcterms:date", work.first_publish_date)
 
-        $:display("dcterms:alternative", work.other_titles) 
+        $:display("dcterms:alternative", work.other_titles)
 
       $for link in work.links:
         <foaf:page>
@@ -65,7 +65,7 @@ $def with (work)
                 <rdfs:label>$link.title</rdfs:label>
             </foaf:Document>
         </foaf:page>
-    </frbr:Work> 
+    </frbr:Work>
 
     $for edition in work.editions:
         $ eduri = "http://openlibrary.org" + edition.key
@@ -78,7 +78,7 @@ $def with (work)
             <rdrel:workManifested rdf:resource="$wuri" />
             <dcterms:title>$etitle</dcterms:title>
             <dcterms:date>$edition.publish_date</dcterms:date>
-        </rdf:Description>    
+        </rdf:Description>
 
     <!-- administrative -->
     <rdf:Description rdf:about="">

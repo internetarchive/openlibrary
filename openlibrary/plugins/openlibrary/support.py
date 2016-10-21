@@ -60,7 +60,7 @@ def sendmail(from_address, to_address, subject, message):
     else:
         web.sendmail(from_address, to_address, subject, message)
 
-            
+
 SUPPORT_EMAIL_TEMPLATE = """
 
 Description:\n

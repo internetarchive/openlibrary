@@ -18,7 +18,7 @@ $ summary = stats.get_items_summary(date)
 </table>
 
 <h2>Items</h2>
-    
+
 <div id="contentBody">
     <table class="changeHistory">
         <tr>
@@ -29,7 +29,7 @@ $ summary = stats.get_items_summary(date)
             <th>Error</th>
             <th>Added Time</th>
             <th>Imported Time</th>
-        </tr>            
+        </tr>
         $for row in stats.get_items(date):
             <tr>
                 <td>$loop.index</td>
@@ -45,7 +45,7 @@ $ summary = stats.get_items_summary(date)
                 <td>$row.added_time</td>
                 <td>$row.import_time</td>
             </tr>
-    </table>    
+    </table>
 </div>
 
 </div>

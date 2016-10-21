@@ -88,7 +88,7 @@ def match_tap_solr(params):
     Note:
     This function is ugly and the idea is to contain ugliness here
     itself so that it doesn't leak into the rest of the library.
-    
+
     """
 
     asolr = get_authors_solr()
@@ -96,7 +96,7 @@ def match_tap_solr(params):
     # First find author keys. (if present in query) (TODO: This could be improved)
     # if "authors" in params:
     #     q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
-    
+
     return []
 
 

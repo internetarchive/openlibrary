@@ -20,7 +20,7 @@ def _update_spam_doc(**kwargs):
     doc = web.ctx.site.store.get("spamwords") or {}
     doc.update(_key="spamwords", **kwargs)
     web.ctx.site.store["spamwords"] = doc
-    
+
 def is_spam(i=None):
     user = web.ctx.site.get_user()
 

@@ -14,10 +14,10 @@ def test_loader(serviceconfig):
     assert services['ol-web0'][1].name == "7060-memcached"
     assert services['ol-web1'][0].name == "7072-ol-gunicorn"
     assert services['ol-web1'][1].name == "7061-memcached"
-    
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
+

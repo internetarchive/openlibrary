@@ -65,7 +65,7 @@ def create_item(con, ia, cur_date):
     put_file(con, ia, filename, headers)
 
 def upload_index(con, cur_date):
-    ia = 'amazon_crawl.' + cur_date 
+    ia = 'amazon_crawl.' + cur_date
 
     create_item(con, ia, cur_date)
     wait_for_upload(ia)

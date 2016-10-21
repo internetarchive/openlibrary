@@ -54,17 +54,17 @@ $(function () {
     };
     var data = [];
     var placeholder = $("#placeholder");
-    
+
     $.plot(placeholder, data, options);
 
-    
+
     // fetch one series, adding to what we got
     var alreadyFetched = {};
-    
+
     $("input.fetchSeries").click(function () {
         var button = $(this);
-        
-        // find the URL in the link right next to us 
+
+        // find the URL in the link right next to us
         var dataurl = button.siblings('a').attr('href');
 
         // then fetch the data with jQuery
@@ -80,11 +80,11 @@ $(function () {
                 alreadyFetched[series.label] = true;
                 data.push(series);
             }
-            
+
             // and plot all we got
             $.plot(placeholder, data, options);
          }
-        
+
         $.ajax({
             url: dataurl,
             method: 'GET',
@@ -99,11 +99,11 @@ $(function () {
         // reset data
         data = [];
         alreadyFetched = {};
-        
+
         $.plot(placeholder, data, options);
 
         var iteration = 0;
-        
+
         function fetchData() {
             ++iteration;
 
@@ -111,10 +111,10 @@ $(function () {
                 // we get all the data in one go, if we only got partial
                 // data, we could merge it with what we already got
                 data = [ series ];
-                
+
                 $.plot($("#placeholder"), data, options);
             }
-        
+
             $.ajax({
                 // usually, we'll just call the same URL, a script
                 // connected to a database, but in this case we only
@@ -125,7 +125,7 @@ $(function () {
                 dataType: 'json',
                 success: onDataReceived
             });
-            
+
             if (iteration < 5)
                 setTimeout(fetchData, 1000);
             else {

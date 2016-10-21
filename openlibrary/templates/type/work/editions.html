@@ -4,13 +4,13 @@ $def with (page)
     <h2>
     $commify(page.edition_count) editions
     $if page.first_publish_year:
-        <span class="count">$_("First published in %s", page.first_publish_year)</span> 
+        <span class="count">$_("First published in %s", page.first_publish_year)</span>
     -
     <span class="count">
         <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>
     </span>
-    
-    | <span class="count fixthis"><a href="#">Merge duplicates</a>    
+
+    | <span class="count fixthis"><a href="#">Merge duplicates</a>
     </h2>
 </div>
 

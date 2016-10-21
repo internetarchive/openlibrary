@@ -50,7 +50,7 @@ def main(server):
 
     print 'linking volumes to %d editions' % len(editions)
     ol.save_many(editions.values(), 'link volumes')
-    
+
 if __name__ == "__main__":
     import sys
     main(sys.argv[1])

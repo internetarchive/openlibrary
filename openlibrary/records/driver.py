@@ -4,7 +4,7 @@ Low level import API
 
 The Low level import API functions has 2 stages.
 
-1. Matchers 
+1. Matchers
 -----------
 
 The matchers are functions present in the ``matchers`` module and
@@ -53,7 +53,7 @@ def search(params):
 
 def run_matchers(params):
     """
-    Run all the matchers in the match_functions list and produce a list of keys which match the 
+    Run all the matchers in the match_functions list and produce a list of keys which match the
     """
     keys = []
     for i in match_functions:
@@ -84,7 +84,7 @@ def run_filter(matched_keys, params):
     def compare(i1, i2):
         """Compares `i1` to see if it matches `i2`
         according to the rules stated above.
-        
+
         `i1` is originally the `thing` and `i2` the search parameters.
         """
         if i1 == i2: # Trivially the same
@@ -130,5 +130,5 @@ def run_filter(matched_keys, params):
 
     docs = (thing_to_doc(web.ctx.site.get(x)) for x in matched_keys)
 
-    return itertools.imap(lambda x: web.ctx.site.get(x['key']), 
+    return itertools.imap(lambda x: web.ctx.site.get(x['key']),
                           itertools.ifilter(lambda y: compare(y, params), docs))

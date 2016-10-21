@@ -2,28 +2,28 @@ $def with (list, editions)
 
 $var title: $list.name
 
-<div id="contentHead"> 
+<div id="contentHead">
 
     $:macros.databarView(list)
- 
+
     <div class="superNav">
         $ owner = list.get_owner()
         <a href="$owner.key">$owner.displayname</a>
-        / 
+        /
         <a href="$owner.key/lists">Lists</a>
-    </div> 
+    </div>
     <h1>
-        $list.name 
+        $list.name
         <span class="sansserif small black">
             <a href="$list.url()" class="">Seeds</a>
             &nbsp;|&nbsp;
-            <strong>Activity</strong>        
+            <strong>Activity</strong>
         </span>
-    </h1> 
+    </h1>
     <p class="collapse sansserif">
         <span class="darkgreen"><strong>$commify(list.edition_count) edition$("s" if list.edition_count != 1 else "")</strong></span>
     </p>
-</div> 
+</div>
 
 $def render_authors(authors):
     $if not authors:
@@ -31,9 +31,9 @@ $def render_authors(authors):
     $else:
         $for a in authors:
             <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
- 
-<div id="contentBody"> 
- 
+
+<div id="contentBody">
+
     <div class="lists">
         <table id="editions">
             <tr>
@@ -47,20 +47,20 @@ $def render_authors(authors):
                     <td class="what">
                         $ cover = book.get_cover()
                         $ cover_url = cover and cover.url("S") or "/images/icons/avatar_book-sm.png"
-                        <div class="cover"> 
+                        <div class="cover">
                             <a href="$book.url()"><img src="$cover_url" height="70"/></a>
-                        </div> 
-                        <div class="title"> 
+                        </div>
+                        <div class="title">
                             $if book.works:
                                 $ authors = book.works[0].get_authors()
                             $else:
                                 $ authors = book.get_authors()
-                            <h3> 
+                            <h3>
                                 <a href="$book.url()" class="results">$book.title</a>
                             </h3>
-                            
+
                             <span class="author">by $:render_authors(authors)</span>
-                            
+
                             <div class="published">
                                 $if book.publishers and book.publish_date:
                                     $book.publish_date, $(', '.join(book.publishers))
@@ -90,10 +90,10 @@ $def render_authors(authors):
         </table>
         <div class="historyPager small sansserif gray">
             $if 'next_params' in editions:
-                <a href="$:changequery(**editions['next_params'])" rel="nofollow">&larr; $_("Older")</a>                
+                <a href="$:changequery(**editions['next_params'])" rel="nofollow">&larr; $_("Older")</a>
             $if 'prev_params' in editions:
                  &nbsp;|&nbsp;
                 <a href="$:changequery(**editions['prev_params'])" rel="nofollow">$_("Newer") &rarr;</a>
-        </div>        
-    </div> 
+        </div>
+    </div>
 </div>

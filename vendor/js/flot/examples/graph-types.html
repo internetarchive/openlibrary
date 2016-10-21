@@ -32,7 +32,7 @@ $(function () {
     var d4 = [];
     for (var i = 0; i < 14; i += 0.1)
         d4.push([i, Math.sqrt(i * 10)]);
-    
+
     var d5 = [];
     for (var i = 0; i < 14; i += 0.5)
         d5.push([i, Math.sqrt(i)]);
@@ -40,7 +40,7 @@ $(function () {
     var d6 = [];
     for (var i = 0; i < 14; i += 0.5 + Math.random())
         d6.push([i, Math.sqrt(2*i + Math.sin(i) + 5)]);
-                        
+
     $.plot($("#placeholder"), [
         {
             data: d1,

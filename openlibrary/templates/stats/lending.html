@@ -3,17 +3,17 @@ $def with (stats)
 $var title: Lending Stats
 
 <div id="contentHead">
-$if stats.region:    
+$if stats.region:
     <a href="/stats/lending">Lending Stats</a> / regions / $stats.region</h1>
 $elif stats.library:
     <h1><a href="/stats/lending">Lending Stats</a> / libraries / $stats.library.split("/")[-1]</h1>
 $elif stats.collection:
-    <h1><a href="/stats/lending">Lending Stats</a> / Collections / $stats.collection</h1>    
+    <h1><a href="/stats/lending">Lending Stats</a> / Collections / $stats.collection</h1>
 $elif stats.subject:
     <h1><a href="/stats/lending">Lending Stats</a> / Subjects / $stats.subject</h1>
 $else:
     <h1>Lending Stats</h1>
-<p class="collapse sansserief"><strong class="black">for last $query_param("t", "30days")</strong></p>    
+<p class="collapse sansserief"><strong class="black">for last $query_param("t", "30days")</strong></p>
 Show stats for: <a href="$:changequery(t='30days')">30 days</a> | <a href="$:changequery(t='60days')">60 days</a> | <a href="$:changequery(t='120days')">120 days</a> | <a href="$:changequery(t='99999days')">Entire duration</a>
 </div>
 
@@ -34,12 +34,12 @@ $def render_counts(label, counts, klass="contentQuarter"):
             </div>
         </div>
     </div>
-    
+
 <div id="contentBody">
     <h2>Loans Per Day
         <span class="tools">
             <a href="$changequery(download='csv')">Download as CSV</a>
-        </span>    
+        </span>
     </h2>
 
     <div class="chart">
@@ -64,7 +64,7 @@ $def render_counts(label, counts, klass="contentQuarter"):
             </div>
         </div>
     </div>
-    <div class="clearfix"></div>    
+    <div class="clearfix"></div>
 
     <h2>Loans by Published Year</h2>
     <div class="chart">
@@ -79,16 +79,16 @@ $def render_counts(label, counts, klass="contentQuarter"):
         <div>
             $:render_counts("Countries", stats.get_facet_counts("country_s"))
         </div>
-        <div class="clearfix"></div>    
+        <div class="clearfix"></div>
 
 
     $if not stats.library and not stats.region:
         <div>
             $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
-            <div class="contentSpacer"></div>  
+            <div class="contentSpacer"></div>
             $:render_counts("Regions", stats.get_facet_counts("region_s"), klass="contentHalf")
         </div>
-        <div class="clearfix"></div>    
+        <div class="clearfix"></div>
 
     <div>
         $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="contentHalf")
@@ -102,7 +102,7 @@ $def render_counts(label, counts, klass="contentQuarter"):
         <div>
             $:render_counts("Subjects", stats.get_facet_counts("subject_facet"), klass="")
         </div>
-        <div class="clearfix"></div>    
+        <div class="clearfix"></div>
     <br/>
     <br/>
 
@@ -110,12 +110,12 @@ $def render_counts(label, counts, klass="contentQuarter"):
     $if not stats.collection:
         <div>
             $:render_counts("Collections", stats.get_facet_counts("ia_collections_id"))
-            <div class="contentSpacer"></div>        
+            <div class="contentSpacer"></div>
             $:render_counts("Scanning Sponsor", stats.get_facet_counts("sponsor_s"))
             <div class="contentSpacer"></div>
             $:render_counts("Contributor", stats.get_facet_counts("contributor_s"))
         </div>
-        <div class="clearfix"></div>    
+        <div class="clearfix"></div>
 
 
 
@@ -125,17 +125,17 @@ $def render_counts(label, counts, klass="contentQuarter"):
 \$(function () {
     \$.plot("#loans-per-day", [
         {
-            "data": $:json_encode(stats.get_loans_per_day("bookreader")), 
+            "data": $:json_encode(stats.get_loans_per_day("bookreader")),
             "label": "bookreader",
             bars: { "fillColor": "#fffdcd" },
             color: "#fffdcd"
         }, {
-            "data": $:json_encode(stats.get_loans_per_day("pdf")), 
+            "data": $:json_encode(stats.get_loans_per_day("pdf")),
             "label": "pdf",
             bars: { "fillColor": "#ffa337" },
             color: "#ffa337"
         }, {
-            "data": $:json_encode(stats.get_loans_per_day("epub")), 
+            "data": $:json_encode(stats.get_loans_per_day("epub")),
             "label": "epub",
             bars: { "fillColor": "#748d36" },
             color: "#748d36"
@@ -152,12 +152,12 @@ $def render_counts(label, counts, klass="contentQuarter"):
         grid: {
             hoverable: true,
             show: true,
-            borderWidth: 1, 
+            borderWidth: 1,
             borderColor: "#d9d9d9"
         },
         xaxis: {
             mode: "time"
-        }, 
+        },
         yaxis: {position: "right"},
         legend: {
             show: true,

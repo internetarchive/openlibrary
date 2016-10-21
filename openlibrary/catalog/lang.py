@@ -6,7 +6,7 @@ def cftime():
 	t,m = divmod(time.time(), 1.0)
 	return re.sub(r':\d\d ', r'\1.%02d ',
 		      (time.ctime(t), int(100*m)))
-	
+
 def warn (msg):
 	sys.stderr.write ("%s\n" % msg)
 
@@ -43,7 +43,7 @@ class Box:
 
 def memoized (f):
         box = Box ()
-        def get ():     
+        def get ():
 		if box.empty:
 			box.set (f ())
                 return box.get ()

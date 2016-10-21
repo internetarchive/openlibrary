@@ -130,7 +130,7 @@ def group_branches_by_state(branches):
 def get_libraries_by_country():
     libraries = inlibrary.get_libraries()
     d = {}
-    
+
     usa = "United States of America"
     aliases = {
         "US": usa,
@@ -327,7 +327,7 @@ class stats_per_library(delegate.page):
         if not lib:
             raise web.notfound()
 
-        rows = lib.get_loans_per_day("total")        
+        rows = lib.get_loans_per_day("total")
 
         dates = [self.to_datestr(row[0]) for row in rows]
         total = [str(row[1]) for row in rows]

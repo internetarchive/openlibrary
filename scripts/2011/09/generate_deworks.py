@@ -81,7 +81,7 @@ class DenormalizeWorksTask(mapreduce.Task):
         """
         doc = simplejson.loads(value)
         type_key = doc['type']['key']
-        
+
         if type_key == '/type/edition':
             if doc.get('works'):
                 yield doc['works'][0]['key'], value
@@ -107,7 +107,7 @@ class DenormalizeWorksTask(mapreduce.Task):
             doc = simplejson.loads(json)
             self.process_edition(doc)
             docs[doc['key']] = doc
-            
+
         if key.startswith("/works/"):
             work = docs.pop(key, {})
         else:
@@ -220,7 +220,7 @@ class AuthorsDict:
         doc = simplejson.loads(self.z.decompress(text))
         doc['type'] = {'key': '/type/author'}
         return doc
-        
+
 def xopen(filename, mode='r'):
     if filename.endswith(".gz"):
         return gzip.open(filename, mode)
@@ -244,7 +244,7 @@ def read_ia_metadata(filename):
         d[id] = rest
     logger.info("END reading " + filename)
     return d
-        
+
 def read_dump(filename):
     t0 = time.time()
     N = 50000
@@ -257,11 +257,11 @@ def read_dump(filename):
             logger.info("reading %d (%d docs/sec)", i, rate)
         _type, key, _revision, _last_modified, jsondata = line.strip().split("\t")
         yield key, jsondata
-    
+
 def mkdir_p(path):
     if not os.path.exists(path):
         os.makedirs(path)
-        
+
 def main(dumpfile, ia_dumpfile):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -273,7 +273,7 @@ def main(dumpfile, ia_dumpfile):
         print key + "\t" + json
 
     task.close()
-    
+
 def make_author_db(author_dump_file):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
 
@@ -294,17 +294,17 @@ def make_author_db(author_dump_file):
     logger.log("BEGIN create index")
     db.query("CREATE UNIQUE INDEX key_index ON docs(key)")
     logger.log("END create index")
-    
+
 def make_ia_db(editions_dump_file):
     #logging.basicConfig(level=logging.INFO, format="%(asctime)s %(message)s")
     #global logger
     #logger = logging.getLogger("openlibrary")
     logger.info("BEGIN make_ia_db %s", editions_dump_file)
-    
+
     #db = bsddb.hashopen("ia.db", cachesize=1024*1024*500)
-    
+
     #from openlibrary.core import ia
-    
+
     f = open("ocaids.txt", "w")
 
     for key, json in read_dump(editions_dump_file):
@@ -322,7 +322,7 @@ def make_ia_db(editions_dump_file):
 
 def test_AuthorsDict():
     d = AuthorsDict()
-    
+
     docs = [
         {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"},
         {"key": "/authors/OL2A", "type": {"key": "/type/author"}, "name": "bar"},
@@ -334,7 +334,7 @@ def test_AuthorsDict():
 
     for doc in docs:
         assert d[doc['key']] == doc
-    
+
 if __name__ == '__main__':
     # the --authordb and --iadb options are not in use now.
     if "--authordb" in sys.argv:

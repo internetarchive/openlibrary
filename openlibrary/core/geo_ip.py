@@ -14,7 +14,7 @@ def get_region(ip):
     gi = get_db()
     if not gi:
         return None
-    
+
     region = None
     try:
         record = gi.record_by_addr(ip)

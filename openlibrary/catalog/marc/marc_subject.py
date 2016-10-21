@@ -107,7 +107,7 @@ def get_subjects_from_ia(ia):
         return {}
     rec = None
     if formats['bin']:
-        rec = load_binary(ia) 
+        rec = load_binary(ia)
     if not rec:
         assert formats['xml']
         rec = load_xml(ia)

@@ -91,7 +91,7 @@ def lang():
     print ol.write(queue, comment='add original language')
 
 def toc_items(toc_list):
-    return [{'title': item, 'type': '/type/toc_item'} for item in toc_list] 
+    return [{'title': item, 'type': '/type/toc_item'} for item in toc_list]
 
 def add_fields():
     comment = 'add fields to works'

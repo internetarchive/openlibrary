@@ -47,7 +47,7 @@ class page_view:
             f.readline()
         return ret
 
-class index:        
+class index:
     def GET(self):
         ret = '<html><body><ul>'
         for filename in os.listdir(arc_dir):

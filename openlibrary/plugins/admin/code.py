@@ -46,21 +46,21 @@ def register_admin_page(path, cls, label=None, visible=True):
 
 class admin(delegate.page):
     path = "/admin(?:/.*)?"
-    
+
     def delegate(self):
         if web.ctx.path == "/admin":
             return self.handle(admin_index)
-            
+
         for t in admin_tasks:
             m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
             if m:
                 return self.handle(t.cls, m.groups())
         raise web.notfound()
-        
+
     def handle(self, cls, args=()):
         # Use admin theme
         context.bodyid = "admin"
-        
+
         m = getattr(cls(), web.ctx.method, None)
         if not m:
             raise web.nomethod(cls=cls)
@@ -69,9 +69,9 @@ class admin(delegate.page):
                 return m(*args)
             else:
                 return render.permission_denied(web.ctx.path, "Permission denied.")
-        
+
     GET = POST = delegate
-        
+
     def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
         return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
@@ -79,17 +79,17 @@ class admin(delegate.page):
 class admin_index:
     def GET(self):
         return render_template("admin/index",get_counts())
-        
+
 class gitpull:
     def GET(self):
         root = os.path.join(os.path.dirname(openlibrary.__file__), os.path.pardir)
         root = os.path.normpath(root)
-        
+
         p = subprocess.Popen('cd %s && git pull' % root, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out = p.stdout.read()
         p.wait()
         return '<pre>' + web.websafe(out) + '</pre>'
-        
+
 class reload:
     def GET(self):
         servers = config.get("plugin_admin", {}).get("webservers", [])
@@ -97,9 +97,9 @@ class reload:
             body = "".join(self.reload(servers))
         else:
             body = "No webservers specified in the configuration file."
-        
+
         return render_template("message", "Reload", body)
-        
+
     def reload(self, servers):
         for s in servers:
             s = web.rstrips(s, "/") + "/_reload"
@@ -109,7 +109,7 @@ class reload:
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
-        
+
 @web.memoize
 def local_ip():
     import socket
@@ -120,7 +120,7 @@ class _reload(delegate.page):
         # make sure the request is coming from the LAN.
         if web.ctx.ip not in ['127.0.0.1', '0.0.0.0'] and web.ctx.ip.rsplit(".", 1)[0] != local_ip().rsplit(".", 1)[0]:
             return render.permission_denied(web.ctx.fullpath, "Permission denied to reload templates/macros.")
-        
+
         from infogami.plugins.wikitemplates import code as wikitemplates
         wikitemplates.load_all()
 
@@ -135,7 +135,7 @@ class any:
 class people:
     def GET(self):
         i = web.input(email=None)
-        
+
         if i.email:
             account = accounts.find(email=i.email)
             if account:
@@ -152,12 +152,12 @@ class people_view:
                 return render_template('admin/people/view', account)
         else:
             raise web.notfound()
-            
+
     def POST(self, key):
         user = accounts.find(username = key)
         if not user:
             raise web.notfound()
-            
+
         i = web.input(action=None, tag=None, bot=None)
         if i.action == "update_email":
             return self.POST_update_email(user, i)
@@ -188,11 +188,11 @@ class people_view:
 
     def POST_activate_account(self, user):
         user.activate()
-        raise web.seeother(web.ctx.path)        
+        raise web.seeother(web.ctx.path)
 
     def POST_send_password_reset_email(self, user):
         send_forgot_password_email(user.username, user.email)
-        raise web.seeother(web.ctx.path)        
+        raise web.seeother(web.ctx.path)
 
     def POST_block_account(self, account):
         account.block()
@@ -217,7 +217,7 @@ class people_view:
         user.send_verification_email()
         add_flash_message("info", "Activation mail has been resent.")
         raise web.seeother(web.ctx.path)
-    
+
     def POST_update_email(self, account, i):
         user = account.get_user()
         if not forms.vemail.valid(i.email):
@@ -225,23 +225,23 @@ class people_view:
 
         if not forms.email_not_already_used.valid(i.email):
             return render_template("admin/people/view", user, i, {"email": forms.email_not_already_used.msg})
-        
+
         account.update_email(i.email)
-        
+
         add_flash_message("info", "Email updated successfully!")
         raise web.seeother(web.ctx.path)
-    
+
     def POST_update_password(self, account, i):
         user = account.get_user()
         if not forms.vpass.valid(i.password):
             return render_template("admin/people/view", user, i, {"password": forms.vpass.msg})
 
         account.update_password(i.password)
-        
+
         logger.info("updated password of %s", user.key)
         add_flash_message("info", "Password updated successfully!")
         raise web.seeother(web.ctx.path)
-        
+
     def POST_add_tag(self, account, tag):
         account.add_tag(tag)
         return delegate.RawText('{"ok": "true"}', content_type="application/json")
@@ -249,7 +249,7 @@ class people_view:
     def POST_remove_tag(self, account, tag):
         account.remove_tag(tag)
         return delegate.RawText('{"ok": "true"}', content_type="application/json")
-    
+
     def POST_set_bot_flag(self, account, bot):
         bot = (bot and bot.lower()) == "true"
         account.set_bot_flag(bot)
@@ -267,17 +267,17 @@ class people_edits:
             raise web.notfound()
         else:
             return render_template("admin/people/edits", account)
-        
+
     def POST(self, username):
         i = web.input(changesets=[], comment="Revert", action="revert")
         if i.action == "revert" and i.changesets:
             ipaddress_view().revert(i.changesets, i.comment)
-        raise web.redirect(web.ctx.path)        
-    
+        raise web.redirect(web.ctx.path)
+
 class ipaddress:
     def GET(self):
         return render_template('admin/ip/index')
-        
+
 class ipaddress_view:
     def GET(self, ip):
         return render_template('admin/ip/view', ip)
@@ -308,8 +308,8 @@ class ipaddress_view:
     def revert(self, changeset_ids, comment):
         logger.debug("Reverting changesets %s", changeset_ids)
         site = web.ctx.site
-        docs = [self.get_doc(c['key'], c['revision']-1) 
-                for cid in changeset_ids 
+        docs = [self.get_doc(c['key'], c['revision']-1)
+                for cid in changeset_ids
                 for c in site.get_change(cid).changes]
 
         logger.debug("Reverting %d docs", len(docs))
@@ -318,12 +318,12 @@ class ipaddress_view:
         }
         return web.ctx.site.save_many(docs, action="revert", data=data, comment=comment)
 
-        
+
 class stats:
     def GET(self, today):
         json = web.ctx.site._conn.request(web.ctx.site.name, '/get', 'GET', {'key': '/admin/stats/' + today})
         return delegate.RawText(json)
-        
+
     def POST(self, today):
         """Update stats for today."""
         doc = self.get_stats(today)
@@ -332,7 +332,7 @@ class stats:
 
     def get_stats(self, today):
         stats = web.ctx.site._request("/stats/" + today)
-        
+
         key = '/admin/stats/' + today
         doc = web.ctx.site.new(key, {
             'key': key,
@@ -351,19 +351,19 @@ class ipstats:
         web.header('Content-Type', 'application/json')
         json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
         return delegate.RawText(json)
-        
+
 class block:
     def GET(self):
         page = web.ctx.site.get("/admin/block") or web.storage(ips=[web.storage(ip="127.0.0.1", duration="1 week", since="1 day")])
         return render_template("admin/block", page)
-    
+
     def POST(self):
         i = web.input()
         ips = [ip.strip() for ip in i.ips.splitlines()]
         self.block_ips(ips)
         add_flash_message("info", "Saved!")
         raise web.seeother("/admin/block")
-        
+
     def block_ips(self, ips):
         page = web.ctx.get("/admin/block") or web.ctx.site.new("/admin/block", {"key": "/admin/block", "type": "/type/object"})
         page.ips = [{'ip': ip} for ip in ips]
@@ -380,14 +380,14 @@ def block_ip_processor(handler):
     if not web.ctx.path.startswith("/admin") \
         and (web.ctx.method == "POST" or web.ctx.path.endswith("/edit")) \
         and web.ctx.ip in get_blocked_ips():
-        
+
         return render_template("permission_denied", web.ctx.path, "Your IP address is blocked.")
     else:
         return handler()
-        
+
 def daterange(date, *slice):
     return [date + datetime.timedelta(i) for i in range(*slice)]
-    
+
 def storify(d):
     if isinstance(d, dict):
         return web.storage((k, storify(v)) for k, v in d.items())
@@ -421,7 +421,7 @@ def get_admin_stats():
             'members': sum(doc['members'] for doc in docs)
         }
     date = datetime.datetime.utcnow().date()
-    
+
     if has_doc(date):
         today = f([date])
     else:
@@ -429,7 +429,7 @@ def get_admin_stats():
     yesterday = f(daterange(date, -1, 0, 1))
     thisweek = f(daterange(date, 0, -7, -1))
     thismonth = f(daterange(date, 0, -30, -1))
-    
+
     xstats = {
         'edits': {
             'today': today['edits'],
@@ -441,14 +441,14 @@ def get_admin_stats():
             'today': today['members'],
             'yesterday': yesterday['members'],
             'thisweek': thisweek['members'],
-            'thismonth': thismonth['members'] 
+            'thismonth': thismonth['members']
         }
     }
     return storify(xstats)
-    
+
 from openlibrary.plugins.upstream import borrow
 class loans_admin:
-    
+
     def GET(self):
         i = web.input(page=1, pagesize=200)
 
@@ -478,16 +478,16 @@ class loans_admin:
         web.ctx.site.get_many([loan['book'] for loan in loans])
 
         return render_template("admin/loans", loans, None, pagecount=pagecount, pageindex=pageindex, stats=stats)
-        
+
     def POST(self):
         i = web.input(action=None)
-        
+
         # Sanitize
         action = None
         actions = ['updateall']
         if i.action in actions:
             action = i.action
-            
+
         if action == 'updateall':
             borrow.update_all_loan_status()
         raise web.seeother(web.ctx.path) # Redirect to avoid form re-post on re-load
@@ -516,10 +516,10 @@ class inspect:
             return self.GET_memcache()
         else:
             raise web.notfound()
-        
+
     def GET_store(self):
         i = web.input(key=None, type=None, name=None, value=None)
-        
+
         if i.key:
             doc = web.ctx.site.store.get(i.key)
             if doc:
@@ -528,17 +528,17 @@ class inspect:
                 docs = []
         else:
             docs = web.ctx.site.store.values(type=i.type or None, name=i.name or None, value=i.value or None, limit=100)
-            
+
         return render_template("admin/inspect/store", docs, input=i)
-        
+
     def GET_memcache(self):
         i = web.input(action="read")
         i.setdefault("keys", "")
-        
+
         from openlibrary.core import cache
         mc = cache.get_memcache()
-        
-        keys = [k.strip() for k in i["keys"].split() if k.strip()]        
+
+        keys = [k.strip() for k in i["keys"].split() if k.strip()]
         if i.action == "delete":
             mc.delete_multi(keys)
             add_flash_message("info", "Deleted %s keys from memcache" % len(keys))
@@ -562,7 +562,7 @@ class spamwords:
             spamcheck.set_spam_domains(i.domains.strip().split("\n"))
             add_flash_message("info", "Updated domains successfully.")
         raise web.redirect("/admin/spamwords")
-        
+
 
 class _graphs:
     def GET(self):
@@ -597,7 +597,7 @@ class permissions:
         i = web.input(
             perm_pages="/permission/loggedinusers",
             perm_records="/permission/loggedinusers")
-        
+
         root = self.set_permission("/", i.perm_pages)
         works = self.set_permission("/works", i.perm_records)
         books = self.set_permission("/books", i.perm_records)
@@ -671,8 +671,8 @@ def setup():
     public(get_admin_stats)
     public(get_blocked_ips)
     delegate.app.add_processor(block_ip_processor)
-    
+
     import graphs
     graphs.setup()
-    
+
 setup()

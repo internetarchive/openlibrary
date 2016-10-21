@@ -12,8 +12,8 @@ def main(host, db):
 
     t = db.transaction()
     try:
-        db.query("DECLARE datacur CURSOR FOR " + 
-            " SELECT thing.key, version.machine_comment FROM thing, version" 
+        db.query("DECLARE datacur CURSOR FOR " +
+            " SELECT thing.key, version.machine_comment FROM thing, version"
             " WHERE thing.id=version.thing_id AND version.machine_comment is not NULL"
             " ORDER BY thing.id")
 

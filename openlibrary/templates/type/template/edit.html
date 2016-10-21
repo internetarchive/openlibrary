@@ -8,7 +8,7 @@ $:render_template("lib/edit_head", page)
 
 <div id="contentBody">
     <form name="edit" method="post" action="" autocomplete="off">
-        
+
         <div class="formElement title">
             <div class="label">
                 <label for="title">$_("Title")</label>
@@ -31,7 +31,7 @@ $:render_template("lib/edit_head", page)
         </div>
 
         <div class="clearfix"></div>
-        
+
         <div class="formElement">
             <div class="label">
                 <label for="body">$_("Document Body")</label>
@@ -45,6 +45,6 @@ $:render_template("lib/edit_head", page)
 
         $if ctx.user and ctx.user.is_admin():
             <div class="adminOnly" style="position:absolute;top:230px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this template?')" id="deleteTop">$_("Delete Record")</button></div>
-        
+
     </form>
 </div>

@@ -109,7 +109,7 @@ class ReadProcessor:
             self.set_inlibrary = True
             self.inlibrary = inlibrary.get_library()
         return self.inlibrary
-        
+
 
     def get_item_status(self, ekey, iaid, collections, subjects):
         if 'lendinglibrary' in collections:
@@ -204,7 +204,7 @@ class ReadProcessor:
         doc = self.docs[k]
         data = self.datas[k]
         details = self.detailss.get(k)
-       
+
         # determine potential ia items for this identifier,
         orig_iaid = doc.get('ocaid')
         doc_works = doc.get('works')

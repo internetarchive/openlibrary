@@ -79,7 +79,7 @@ while 1:
     filename = 'marc/%d' % i
     if exists(filename):
         continue
-    print i, 
+    print i,
     url = 'http://catalogue.nla.gov.au/Record/%d/Details' % i
     web_input = None
     for attempt in range(5):

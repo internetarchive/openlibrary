@@ -17,18 +17,18 @@ def parse_options(args=None):
 
     options, args = parser.parse_args()
 
-    options.template_root = options.template_root.rstrip("/")    
+    options.template_root = options.template_root.rstrip("/")
     return options, args
 
 def write(path, text):
     print "saving", path
-    
+
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
         os.makedirs(dir)
 
     text = text.replace("\r\n", "\n").replace("\r", "\n")
-        
+
     f = open(path, "w")
     f.write(text.encode("utf-8"))
     f.close()
@@ -46,7 +46,7 @@ def make_path(doc):
     else:
         key = doc['key'].rsplit(".")[0]
         key = web.lstrips(key, options.template_root)
-        
+
         plugin = doc.get("plugin", options.default_plugin)
         return "openlibrary/plugins/%s%s.html" % (plugin, key)
 

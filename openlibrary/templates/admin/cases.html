@@ -9,28 +9,28 @@ $ filter = query_param("filter", "new")
 </div>
 <div id="contentBody">
 <style type="text/css">
-table.support { 
+table.support {
               font-family: Lucida, "Lucida Sans";
               font-size: 0.75em;
               width: 100%;
               }
 
-table.support th { 
+table.support th {
                  font-weight: bold;
  }
 table.support th, table.support td {
-                                 border-bottom: 1px solid #ddd; 
+                                 border-bottom: 1px solid #ddd;
                                  vertical-align:top;
                                  padding: 5pt;
                                  }
-table.support pre.hidden { 
+table.support pre.hidden {
                          display: none;
  }
 
 </style>
 
 $ path = request.path
-$if path.endswith("support"): 
+$if path.endswith("support"):
    $ path = "/admin/support/new"
 
 

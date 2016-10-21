@@ -39,10 +39,10 @@ function add_key() {
 
 
 \$().ready(function() {
-    \$("#newkey").bind("keypress", function(e) { 
-        if (e.keyCode == 13) { 
-            \$("#button_addkey").click(); 
-            return false; 
+    \$("#newkey").bind("keypress", function(e) {
+        if (e.keyCode == 13) {
+            \$("#button_addkey").click();
+            return false;
         }
     });
 });
@@ -67,7 +67,7 @@ $:render_template("lib/edit_head", page)
         $:macros.TypeChanger(page.type)
 
         <div class="clearfix"></div>
-        
+
         Change language: $:Dropdown('lang', _.get_languages(), onchange="changelang();", id="id_lang", value=lang).render()
         <input type="hidden" name="ns" value="$namespace">
 
@@ -83,7 +83,7 @@ $:render_template("lib/edit_head", page)
                     <span class="red">&rarr;</span>
                     $(ns or "root")
                 $else:
-                    <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>     
+                    <a href="/i18n$ns/strings.$lang?m=edit" >$ns</a>
                 <span class="smaller">$(_.get_count(ns, lang))/$_.get_count(ns)</span>
                 <br/>
 
@@ -100,12 +100,12 @@ $:render_template("lib/edit_head", page)
                 </table>
                 <br /><br />
                 <span class="darkgreen">
-                    $_.get('/type/i18n', 'add_new_key') 
+                    $_.get('/type/i18n', 'add_new_key')
                     <input type="text" name="_newkey" id="newkey"/>
                 </span>
                 <button type="button" id="button_addkey" onclick="add_key()" name="_addkey" value="$_.get('/type/i18n', 'add')" class="addkey-small" />Add</button>
 
-    
+
             </td>
         </tr>
     </table>

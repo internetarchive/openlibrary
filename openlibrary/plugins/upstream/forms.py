@@ -23,7 +23,7 @@ email_not_disposable = Validator(_("Disposable email not permitted"), lambda ema
 email_domain_not_blocked = Validator(_("Your email provider is not recognized."), lambda email: not spamcheck.is_spam_email(email))
 username_validator = Validator(_("Username already used"), lambda username: not find_account(lusername=username.lower()))
 
-vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers')) 
+vlogin = RegexpValidator(r"^[A-Za-z0-9-_]{3,20}$", _('Must be between 3 and 20 letters and numbers'))
 vpass = RegexpValidator(r".{3,20}", _('Must be between 3 and 20 characters'))
 vemail = RegexpValidator(r".*@.*", _("Must be a valid email address"))
 
@@ -33,7 +33,7 @@ class EqualToValidator(Validator):
         self.fieldname = fieldname
         self.form = None
 
-    def valid(self, value): 
+    def valid(self, value):
         # self.form will be set by RegisterForm
         return self.form[self.fieldname].value == value
 
@@ -72,15 +72,15 @@ def verify_password(password):
     user = accounts.get_current_user()
     if user is None:
         return False
-    
+
     try:
         username = user.key.split('/')[-1]
         web.ctx.site.login(username, password)
     except ClientException:
         return False
-        
+
     return True
-    
+
 validate_password = Validator(_("Invalid password"), verify_password)
 
 ChangePassword = Form(

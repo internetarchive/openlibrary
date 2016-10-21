@@ -179,7 +179,7 @@ def test_parse():
     expect = {
         'publisher': ['Univ. Press'],
         'number_of_pages': 128,
-        'full_title': 'Human efficiency and levels of intelligence.', 
+        'full_title': 'Human efficiency and levels of intelligence.',
         'publish_date': '1920',
         'publish_country': 'nju',
         'authors': [{

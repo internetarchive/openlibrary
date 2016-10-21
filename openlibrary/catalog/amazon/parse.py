@@ -425,7 +425,7 @@ re_cite = {
     'citing': re.compile('\nThis book cites (\d+) \nbook(?:s)?:'),
     'cited': re.compile('\n(\d+) \nbook(?:s)? \ncites? this book:')
 }
-    
+
 def read_citing(doc):
     div = doc.get_element_by_id('bookCitations', None)
     found = {}

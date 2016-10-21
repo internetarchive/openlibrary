@@ -58,7 +58,7 @@ def parse(filename, chunk_size=10000):
         i += len(d)
         yield d
     print i, time.time() - t0
-        
+
 def main(dbname, param, filename):
     data = parse(filename, 10000)
     fname = "load_" + dbname

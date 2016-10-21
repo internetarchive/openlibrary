@@ -21,11 +21,11 @@ __all__ = [
 
 def save_image(data, category, olid, author=None, ip=None, source_url=None):
     """Save the provided image data, creates thumbnails and adds an entry in the database.
-    
+
     ValueError is raised if the provided data is not a valid image.
     """
     prefix = make_path_prefix(olid)
-    
+
     img = write_image(data, prefix)
     if img is None:
         raise ValueError("Bad Image")
@@ -46,13 +46,13 @@ def save_image(data, category, olid, author=None, ip=None, source_url=None):
     d['filename_l'] = prefix + '-L.jpg'
     d.id = db.new(**d)
     return d
-    
+
 def make_path_prefix(olid, date=None):
     """Makes a file prefix for storing an image.
     """
     date = date or datetime.date.today()
     return "%04d/%02d/%02d/%s-%s" % (date.year, date.month, date.day, olid, random_string(5))
-    
+
 def write_image(data, prefix):
     path_prefix = find_image_path(prefix)
     dirname = os.path.dirname(path_prefix)
@@ -94,7 +94,7 @@ def resize_image(image, size):
     return image.resize(size, Image.ANTIALIAS)
 
 def find_image_path(filename):
-    if ':' in filename: 
+    if ':' in filename:
         return os.path.join(config.data_root,'items', filename.rsplit('_', 1)[0], filename)
     else:
         return os.path.join(config.data_root, 'localdisk', filename)

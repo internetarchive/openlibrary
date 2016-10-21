@@ -5,7 +5,7 @@ $def with (page)
 </script>
 
 <div id="editHead">
-    <h2>    
+    <h2>
         $_("You're in edit mode.")
         <span class="cancelThis"><a href="javascript:history.go(-1);">$_('Cancel, and go back.')</a></span>
     </h2>
@@ -13,5 +13,5 @@ $ author = get_recent_author(page)
 $if author:
     <p>$_("This doc was last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a> $(page.last_modified and datestr(page.last_modified)).</p>
 $else:
-    <p>$_("This doc was last edited anonymously") $(page.last_modified and datestr(page.last_modified)).</p> 
+    <p>$_("This doc was last edited anonymously") $(page.last_modified and datestr(page.last_modified)).</p>
 </div>

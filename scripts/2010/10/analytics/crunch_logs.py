@@ -37,21 +37,21 @@ class UserAgent:
     """
 
     name = "ua_type"
-    
+
     def __init__(self):
         self._user_agent_map = load_user_agent_map()
 
     def map(self, line):
         # determine if the request is being made by a browser
         if line['user_agent'] not in user_agent_map:
-            if ('bot' in line['user_agent'] 
+            if ('bot' in line['user_agent']
                 or 'http://' in line['user_agent']
                 or line['user_agent'].startswith("Python-urllib")):
                 # just make it a bot
                 user_agent_map[line['user_agent']] = ('R',)
             else:
                 user_agent_map[line['user_agent']] = ('B',)
-                
+
         line['is_bot'] = 'B' not in user_agent_map.get(line['user_agent'])
 
         return dict((ua_type, 1) for ua_type in user_agent_map.get(line['user_agent'], []))
@@ -111,7 +111,7 @@ class PageType:
     """
 
     name = "page_type"
-    
+
     def map(self, line):
         if line['code'] != 200:
             return
@@ -171,8 +171,8 @@ class ApiRequestType:
             if len(req) < 3:
                 return {"unknown.api": 1}
             else:
-                return {"%s.api" % req[2]: 1} 
-            
+                return {"%s.api" % req[2]: 1}
+
         return None
 
 def main():
@@ -199,7 +199,7 @@ def main():
     data = collections.defaultdict(lambda: collections.defaultdict(lambda: collections.defaultdict(int)))
 
     processors = (
-        ResponseCode(), RequestType(), UserAgent(), 
+        ResponseCode(), RequestType(), UserAgent(),
         Referrer(), PageType(), ApiRequestType()
     )
 
@@ -220,8 +220,8 @@ def main():
             continue
 
         # some minor normalization of the line
-        line.update({'code': int(line['code']), 
-                     'size': None if line['size'] == '-' else int(line['size']), 
+        line.update({'code': int(line['code']),
+                     'size': None if line['size'] == '-' else int(line['size']),
                      'offset': int(line['offset']),
                      'date': datetime.datetime.strptime(line['date'][:len("dd/mm/yyyy") + 1], "%d/%b/%Y").date()})
 

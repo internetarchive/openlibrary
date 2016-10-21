@@ -49,8 +49,8 @@ class CORSProcessor:
 
         web.header("Access-Control-Allow-Origin", "*")
         web.header("Access-Control-Allow-Method", allowed)
-        web.header("Access-Control-Max-Age", 3600*24) # one day        
-    
+        web.header("Access-Control-Max-Age", 3600*24) # one day
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

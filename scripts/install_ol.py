@@ -39,7 +39,7 @@ def getjson(url):
     f = urllib.urlopen(url)
     c = f.read()
     f.close()
-    obj = json.loads(c) 
+    obj = json.loads(c)
     return obj
 
 #install instructions from http://openlibrary.org/dev/docs/setup
@@ -80,7 +80,7 @@ if not os.path.exists(install_dir):
 else:
     #directory already exists, so this script is being re-run
     cmd('updating source', '''cd "%s" && sudo -u %s git pull''' % (install_dir, install_user))
- 
+
 cmd('run setup.sh to checkout other source code', '''cd "%s" && sudo -u %s ./setup.sh''' % (install_dir, install_user))
 
 
@@ -124,7 +124,7 @@ if 'error' in obj:
                             'agreement=yes',
                             'submit=Sign+Up'
                             ))
-    
+
     f = urllib.urlopen('http://0.0.0.0:8080/account/create', post_data)
     c = f.read()
     f.close()

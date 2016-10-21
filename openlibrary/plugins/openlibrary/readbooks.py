@@ -18,7 +18,7 @@ def select(query, chunk_size=50000):
         for r in result:
             yield r
     web.rollback()
-        
+
 def parse_datum(rows):
     thing = None
     for r in rows:
@@ -27,13 +27,13 @@ def parse_datum(rows):
         elif thing.get('id') != r.thing_id:
             yield thing
             thing = dict(id=r.thing_id)
-        
+
         if r.ordering is None:
             thing[r.key] = r.value
         else:
             thing.setdefault(r.key, []).append(r.value)
-            
-def books(fbooks, fauthors):        
+
+def books(fbooks, fauthors):
     authors = {}
     type_author = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/author'")[0].id)
     type_edition = str(web.query("SELECT * FROM thing WHERE site_id=1 AND key='/type/edition'")[0].id)
@@ -52,12 +52,12 @@ def books(fbooks, fauthors):
             dt = t2 - t1
             t1 = t2
             print "%d: 10000 books read in %f time. %f things/sec" % (i, dt, 10000/dt)
- 
+
 def main():
     web.config.db_parameters = dict(dbn='postgres', db='infobase_data4', host='pharosdb', user='anand', pw='')
     web.config.db_printing = True
     web.load()
-    
+
     fbooks = open("books.txt", "w")
     fauthors = open("authors.txt", "w")
     books(fbooks, fauthors)
@@ -66,4 +66,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+

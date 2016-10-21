@@ -187,7 +187,7 @@ def merge_authors(ol, keys, debug=False):
     print best_key
 
     do_normalize(new_key, best_key, authors)
-    old_keys = set(k for k in keys if k != new_key) 
+    old_keys = set(k for k in keys if k != new_key)
     print 'old keys:', old_keys
 
     for old in old_keys:
@@ -201,12 +201,12 @@ def merge_authors(ol, keys, debug=False):
         #l = list(query_iter(q))
         #print old, l
         #assert l == []
-    
+
 if __name__ == '__main__':
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
     rc = read_rc()
     ol = OpenLibrary("http://openlibrary.org")
-    ol.login('EdwardBot', rc['EdwardBot']) 
+    ol.login('EdwardBot', rc['EdwardBot'])
     assert len(sys.argv) > 2
     merge_authors(ol, sys.argv[1:])

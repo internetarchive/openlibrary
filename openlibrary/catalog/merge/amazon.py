@@ -299,7 +299,7 @@ def test_merge_titles2():
     amazon = {'title': u'Sea Birds Britain Ireland'}
     marc = {
         'title_with_subtitles': u'seabirds of Britain and Ireland',
-        'title': u'seabirds of Britain and Ireland', 
+        'title': u'seabirds of Britain and Ireland',
         'full_title': u'The seabirds of Britain and Ireland',
     }
     amazon = build_titles(unicode(full_title(amazon)))

@@ -15,7 +15,7 @@ def find_doctests(modules):
         mod = __import__(m, None, None, ['x'])
         for t in finder.find(mod, mod.__name__):
             yield t
-        
+
 def run_doctest(test):
     runner = doctest.DocTestRunner(verbose=True)
     failures, tries = runner.run(test)

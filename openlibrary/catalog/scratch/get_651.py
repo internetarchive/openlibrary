@@ -25,7 +25,7 @@ urls = (
 )
 app = web.application(urls, globals())
 
-class lookup:        
+class lookup:
     def GET(self, key):
         return json.dumps(get_651(key))
 

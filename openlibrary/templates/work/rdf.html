@@ -32,7 +32,7 @@ $def with (work)
                 <$tag>$x</$tag>
         $elif value:
             <$tag>$value</$tag>
-    
+
     <!-- wrap in frbr:work -->
     <frbr:Work rdf:about="http://openlibrary.org$wuri">
 
@@ -40,12 +40,12 @@ $def with (work)
     <!-- author role doesn't matter here: all are authors -->
     <!-- repeatable -->
 
-    
+
     $for author in work.authors:
          <rdf:Description rdf:about="http://openlibrary.org$author.key">
               <dcterms.creator>$author.name</dcterms:creator>
               </rdf:Description>
-       
+
     <!-- subjects (repeatable)-->
 
         $display("dcterms:subject", subjects)
@@ -72,7 +72,7 @@ $def with (work)
 
     <!-- Dewey and LC class, from edition template -->
     <!-- http://openlibrary.org/templates/type/edition/rdf.tmpl -->
-        $for DDC in book.dewey_decimal_class:   
+        $for DDC in book.dewey_decimal_class:
         <dcterms:subject>
             <rdf:Description>
                 <dcam:memberOf rdf:resource="http://purl.org/dc/terms/DDC"/>

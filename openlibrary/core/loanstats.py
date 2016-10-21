@@ -57,7 +57,7 @@ class LoanStats:
 
         if self.time_period:
             start, end = self.time_period
-            def solrtime(t): 
+            def solrtime(t):
                 return t.isoformat() + "Z"
             params['fq'].append("start_time_dt:[%s TO %s]" % (solrtime(start), solrtime(end)))
 
@@ -77,7 +77,7 @@ class LoanStats:
 
     def _get_subject_filter(self, subject):
         # subjects are stored as subject_key field as values like:
-        # ["subject:fiction", "subject:history", "place:england"] 
+        # ["subject:fiction", "subject:history", "place:england"]
         # etc.
         if ":" in subject:
             type, subject = subject.split(":", 1)
@@ -92,8 +92,8 @@ class LoanStats:
     def _run_solr_facet_query(self, facet_fields, facet_limit=None):
         params = {
             "wt": "json",
-            "fq": "type:stats", 
-            "q": "*:*", 
+            "fq": "type:stats",
+            "q": "*:*",
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
@@ -115,8 +115,8 @@ class LoanStats:
 
             params = {
                 "wt": "json",
-                "fq": "type:stats", 
-                "q": "*:*", 
+                "fq": "type:stats",
+                "q": "*:*",
                 "rows": 0,
                 "facet": "on",
                 "facet.mincount": 1,
@@ -132,7 +132,7 @@ class LoanStats:
         params = {
             "wt": "json",
             "q": "*:*",
-            "rows": 1, 
+            "rows": 1,
             "sort": "last_updated_dt desc"
         }
         response = self.solr_select(params)
@@ -147,11 +147,11 @@ class LoanStats:
         params = {
             "wt": "json",
             "fq": ["type:stats"],
-            "q": "*:*", 
+            "q": "*:*",
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit 
+            "facet.limit": 100000, # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -166,11 +166,11 @@ class LoanStats:
         params = {
             "wt": "json",
             "fq": ["type:stats"],
-            "q": "*:*", 
+            "q": "*:*",
             "rows": 0,
             "facet": "on",
             "facet.mincount": 1,
-            "facet.limit": 100000, # don't limit 
+            "facet.limit": 100000, # don't limit
             "facet.field": ['start_day_s']
         }
         if resource_type != 'total':
@@ -199,7 +199,7 @@ class LoanStats:
     def get_loan_durations(self):
         params = {
             "wt": "json",
-            "q": "*:*", 
+            "q": "*:*",
             "rows": 0,
             "facet": "on",
             "facet.field": ['duration_hours_i']
@@ -212,10 +212,10 @@ class LoanStats:
         two_week = sum(count for hr, count in counts if 24*7 <= hr < 24*14)
         expired = sum(count for hr, count in counts if 24*14 <= hr)
         return [
-            {"label": "Less than one hour", "data": one_hour}, 
-            {"label": "Less than one day", "data": one_day}, 
-            {"label": "Less than one week", "data": one_week}, 
-            {"label": "More than a week", "data": two_week}, 
+            {"label": "Less than one hour", "data": one_hour},
+            {"label": "Less than one day", "data": one_day},
+            {"label": "Less than one week", "data": one_week},
+            {"label": "More than a week", "data": two_week},
             {"label": "Loan expired", "data": expired}]
 
     def make_facet(self, name, key, count):
@@ -228,7 +228,7 @@ class LoanStats:
             slug = key
         elif name == "country_s":
             title = i18n.gettext_territory(key)
-            slug = key   
+            slug = key
         elif name == "book_key_s":
             # XXX-Anand: Optimize this by pre loading all books
             book = web.ctx.site.get(key)

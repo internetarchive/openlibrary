@@ -6,7 +6,7 @@ rc = read_rc()
 def add_cover_image(ekey, ia):
     h1 = httplib.HTTPConnection('openlibrary.org')
     body = json.dumps(dict(username='ImportBot', password=rc['ImportBot']))
-    headers = {'Content-Type': 'application/json'}  
+    headers = {'Content-Type': 'application/json'}
     h1.request('POST', 'http://openlibrary.org/account/login', body, headers)
 
     res = h1.getresponse()

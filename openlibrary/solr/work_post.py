@@ -183,7 +183,7 @@ def build_doc(w):
             for l2 in l.split('\t'):
                 if len(l2) != 3:
                     print e['languages']
-                
+
                 assert len(l2) == 3
                 lang.add(l2)
     if lang:

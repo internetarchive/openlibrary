@@ -26,7 +26,7 @@ class Nagios(object):
         # the service in question. A single step is not enough since
         # there are nested tables in the layout.
         service = self.data.find(text = re.compile(service))
-        if service: 
+        if service:
             service_tr = service.findParents("tr")[2]
             status_td  = service_tr.find("td", attrs = {"class" : re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")})
             return status_td['class'].replace("status","")
@@ -48,7 +48,7 @@ class Service(object):
 
     def __repr__(self):
         return "Service(name = '%s', node = '%s', logs = '%s')"%(self.name, self.node, self.logs)
-    
+
 
 def load_all(config, nagios_url):
     """Loads all services specified in the config dictionary and returns

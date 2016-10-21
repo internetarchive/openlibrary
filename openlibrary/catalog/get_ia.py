@@ -115,7 +115,7 @@ def get_ia(ia):
         except xml.parsers.expat.ExpatError:
             #print 'IA:', `ia`
             #print 'XML parse error:', base + loc
-            print "read_xml ExpatError"            
+            print "read_xml ExpatError"
             pass
     print base + loc
     if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
@@ -206,7 +206,7 @@ def get_from_archive(locator):
             print 'retry, attempt', attempt
 
     r0, r1 = offset, offset+length-1
-    url = 'http://' + host + path + '/' + rest 
+    url = 'http://' + host + path + '/' + rest
 
     assert 0 < length < 100000
 

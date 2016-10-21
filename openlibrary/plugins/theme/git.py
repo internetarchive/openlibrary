@@ -18,26 +18,26 @@ class Git:
     """
     def __init__(self):
         pass
-    
+
     def add_file(self, path):
         """Adds an empty file to the repository.
         """
         pass
-        
+
     def status(self):
         """Returns the list of modified files.
         """
         out = self.system("git status --short").stdout
         return [line.strip().split()[-1] for line in out.splitlines() if not line.startswith("??")]
-        
+
     def diff(self, path):
         diff = self.system("git diff --ignore-space-at-eol " + path).stdout.strip()
         html = highlight(diff, DiffLexer(), HtmlFormatter(full=True, style="trac", nowrap=True))
         return web.storage(name=path, diff=diff, htmldiff=html)
-        
+
     def system(self, cmd, input=None, check_status=True):
         """Executes the command returns the stdout.
-        
+
         Raises CommandError on non-zero status unless check_status is set to False.
         """
         print >> web.debug, "system", repr(cmd), input
@@ -52,15 +52,15 @@ class Git:
             raise CommandError(status, err)
         else:
             return web.storage(cmd=cmd, status=status, stdout=out, stderr=err)
-        
+
     def modified(self):
         return [self.diff(f) for f in self.status()]
-        
+
     def commit(self, files, author, message):
         author = author.replace("'", "")
         cmd = "git commit --author '%s' -F - " % author + " ".join(files)
         return self.system(cmd, input=message)
-        
+
     def push(self):
         return self.system("git push")
-        
+

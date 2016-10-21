@@ -134,7 +134,7 @@ class index:
                     page += '<td align="right">%.2f</td>' % hours
                     total_bytes = q['bytes_per_sec_total'] * q['t1']
                     avg_bytes = total_bytes / q['rec_no']
-                    future_load = ((remaining_bytes / avg_bytes) * no_match) 
+                    future_load = ((remaining_bytes / avg_bytes) * no_match)
                     total_future_load += future_load
                     page += '<td align="right">%s</td>' % web.commify(int(future_load))
                 else:
@@ -145,7 +145,7 @@ class index:
         if total_recs:
             page += '<td align="right">%.2f%%</td>' % (float(total_load * 100.0) / total_recs)
         else:
-            page += '<td align="right"></td>' 
+            page += '<td align="right"></td>'
         page += '<td align="right">%.2f</td>' % total_load_per_sec
         page += '<td></td>' * 3 + '<td align="right">%s</td>' % web.commify(int(total_future_load))
         page += '</tr></table>'

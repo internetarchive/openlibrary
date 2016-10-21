@@ -15,7 +15,7 @@ marc_index = web.database(dbn='postgres', db='marc_index')
 marc_index.printing = False
 
 ol = OpenLibrary("http://openlibrary.org")
-ol.login('ImportBot', rc['ImportBot']) 
+ol.login('ImportBot', rc['ImportBot'])
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

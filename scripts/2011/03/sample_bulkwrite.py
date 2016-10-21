@@ -33,7 +33,7 @@ def has_identifier(doc, id_name, id_value):
 
 def get_docs(keys):
     # ol.get_many returns a dict, taking values() to get the list of docs
-    return ol.get_many(keys).values() 
+    return ol.get_many(keys).values()
 
 def add_oclc_ids(filename):
     """Adds OCLC Ids to OL records.

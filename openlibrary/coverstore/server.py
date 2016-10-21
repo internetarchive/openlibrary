@@ -14,11 +14,11 @@ def runfcgi(func, addr=('localhost', 8000)):
     config = dict(web.config.get("fastcgi", {}))
 
     mode = config.pop("mode", None)
-    if mode == "prefork":    
+    if mode == "prefork":
         import flup.server.fcgi_fork as flups
     else:
         import flup.server.fcgi as flups
-        
+
     return flups.WSGIServer(func, multiplexed=True, bindAddress=addr, **config).run()
 
 web.wsgi.runfcgi = runfcgi
