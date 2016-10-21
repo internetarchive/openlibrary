@@ -152,11 +152,11 @@ def reload():
 
 def setup_jquery_urls():
     if config.get('use_google_cdn', True):
-        jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"
-        jqueryui_url = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.7.2/jquery-ui.min.js"
+        jquery_url = "http://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"
+        jqueryui_url = "http://ajax.googleapis.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"
     else:
-        jquery_url = "/static/upstream/js/jquery-1.3.2.min.js"
-        jqueryui_url = "/static/upstream/js/jquery-ui-1.7.2.min.js"
+        jquery_url = "/static/js/jquery-1.11.3.min.js"
+        jqueryui_url = "/static/js/jquery-ui-1.12.1.min.js"
 
     web.template.Template.globals['jquery_url'] = jquery_url
     web.template.Template.globals['jqueryui_url'] = jqueryui_url

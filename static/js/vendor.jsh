@@ -24,7 +24,7 @@ xcat $VENDORJS/jquery-tweet/jquery.tweet.js | $JSMIN
 
 xcat $VENDORJS/jquery-autocomplete/jquery.autocomplete-modified.js | $JSMIN
 
-xcat $VENDORJS/wmd/jquery.wmd.min.js 
+xcat $VENDORJS/wmd/jquery.wmd.min.js
 
 xcat $VENDORJS/flot/excanvas.min.js
 xcat $VENDORJS/flot/jquery.flot.min.js
@@ -38,6 +38,8 @@ xcat $VENDORJS/json2/json2.js | $JSMIN
 xcat $VENDORJS/underscore/underscore-min.js
 xcat $VENDORJS/backbone/backbone-min.js
 xcat $VENDORJS/moment/moment.min.js
+
+xcat $VENDORJS/bootstrap/bootstrap.min.js
 
 # for backward compatability
 xcat <<END

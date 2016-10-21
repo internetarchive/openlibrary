@@ -3,8 +3,11 @@
 DIR=`dirname $0`
 OLROOT=$DIR/../..
 
+cat $DIR/jquery-ui.min.css
 cat $DIR/datatables.css
 cat $DIR/diff.css
 cat $DIR/jquery.autocomplete.css
 cat $DIR/master.css
 cat $DIR/wmd.css
+cat $DIR/bootstrap.min.css
+cat $DIR/bootstrap-theme.min.css
