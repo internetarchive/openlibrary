@@ -43,43 +43,12 @@ function setup_account_create() {
             required: ""
         }
     });
-    
+
     // CHECK USERNAME AVAILABILITY
     $('#usernameLoading').hide();
     $('#emailLoading').hide();
 
 };
-
-/*
-  function finishAjaxUsername(id, response) {
-    $('#usernameLoading').hide();
-    $('#'+id).html(unescape(response));
-    $('#'+id).customFadeIn();
-  } 
-  //finishAjax
-
-  // CHECK EMAIL ASSOCIATION
-  function validateCheckEmail() {
-    $('#emailLoading').hide();
-    $('#email').blur(function(){
-      $('#emailLoading').show();
-      $.post("checkemail.php", {
-        email: $('#email').val()
-      }, function(response){
-        $('#emailResult').customFadeOut();
-        setTimeout("finishAjaxEmail('emailResult', '"+escape(response)+"')", 400);
-      });
-        return false;
-    });
-  });
-
-  function finishAjaxEmail(id, response) {
-    $('#emailLoading').hide();
-    $('#'+id).html(unescape(response));
-    $('#'+id).customFadeIn();
-  } 
-  //finishAjax 
-  */
 
 //RECAPTCHA
 var RecaptchaOptions = {

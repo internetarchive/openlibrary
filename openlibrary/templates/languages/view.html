@@ -107,7 +107,7 @@ $:render_template("lib/covers", page)
             color: '#615132',
             'font-size': '11px',
             opacity: 0.90
-        }).appendTo("body").customFadeIn(200);
+        }).appendTo("body").fadeIn(200);
     };
     var previousPoint = null;
     placeholder.bind("plothover", function (event, pos, item) {
@@ -283,8 +283,8 @@ $:render_template("lib/covers", page)
 	page.coverCarousel.reload();
         \$("#coversNone").hide();
         if (page.getPageCount() == 0) {
-            \$("#coversLoading").customFadeOut();
-            \$("#coversNone").customFadeIn();
+            \$("#coversLoading").fadeOut();
+            \$("#coversNone").fadeIn();
             if (page.has_fulltext == "true") {
                 \$("span.bookType").text("eBooks");
             } else {
@@ -311,9 +311,9 @@ $:render_template("lib/covers", page)
 	    resetFacets();
 
         if (page.getPageCount() > 0) {\$("#coversNone").hide();};
-        \$("#coversLoading").customFadeOut();
-        \$(".jcarousel-prev").customFadeIn();
-        \$(".jcarousel-next").customFadeIn();
+        \$("#coversLoading").fadeOut();
+        \$(".jcarousel-prev").fadeIn();
+        \$(".jcarousel-next").fadeIn();
         \$("#coversCount").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
 	}
 

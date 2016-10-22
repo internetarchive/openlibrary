@@ -17,7 +17,7 @@ if (window.archive_analytics) {
   if(window.flights){
     window.flights.init();
   }
-  if ($$(".more_search").size()>0) {
+  if (\$(".more_search").length > 0) {
     window.archive_analytics.send_scroll_fetch_base_event();
   }
   \$().ready(function(){

@@ -40,7 +40,7 @@ $def with (page)
 <script type="text/javascript">
 \$().ready(function(){
 
-    $('#navMask').css('opacity','.7').customFadeIn();
+    $('#navMask').css('opacity','.7').fadeIn();
     $('#contentHistory').show().animate({top:'65px'},"slow");
 
     $("#revertSlideOut").toggle(
@@ -57,8 +57,8 @@ $def with (page)
         $("#historyExploreSlide").animate({width:'660px'},"slow");
     });
     $('.historyShift').click(function(){
-        $('#historyCurrent').customFadeOut('slow');
-        $('#historyRevert').customFadeIn('slow');
+        $('#historyCurrent').fadeOut('slow');
+        $('#historyRevert').fadeIn('slow');
     });
     $('#historyBack').click(function(){$('#count').text("4");});
 

@@ -83,9 +83,6 @@ function setupSearch() {
 
 };
 
-function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
-function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
-
 function aboutFeeds() {
     jQuery.getFeed({
         url: 'http://www.archive.org/services/collection-rss.php?mediatype=texts',
@@ -138,7 +135,7 @@ function carouselSetup(loadCovers, loadLists) {
     //page.listCarousel.scroll(1+page.pos);
 
     $('span.tools a').toggleClass('on');
-    $('#resultsList').customFadeIn();
+    $('#resultsList').fadeIn();
     $('#resultsCovers').hide();
   });
   $("a#booksCovers").click(function(){
@@ -146,19 +143,19 @@ function carouselSetup(loadCovers, loadLists) {
 
     $('span.tools a').toggleClass('on');
     $('#resultsList').hide();
-    $('#resultsCovers').customFadeIn();
+    $('#resultsCovers').fadeIn();
   });
 // SWITCH EDITIONS VIEW
   $("#editionsList").hide()
   $("a#edsList").click(function(){
     $('span.tools a').toggleClass('on');
-    $('#editionsList').customFadeIn();
+    $('#editionsList').fadeIn();
     $('#editionsCovers').hide();
   });
   $("a#edsCovers").click(function(){
     $('span.tools a').toggleClass('on');
     $('#editionsList').hide();
-    $('#editionsCovers').customFadeIn();
+    $('#editionsCovers').fadeIn();
   });
 };
 // BOOK COVERS

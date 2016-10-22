@@ -72,7 +72,7 @@ tr.odd,tr.even{background-color:#ececec;}
 .pagination span.ellipsis {display:block;float:left;color:#000;padding:8px;margin-right:10px;}
 
 .fixthis{background-color:pink;}
-    
+
 /* TYPOGRAPHY */
 
 div.unordered {margin-top:10px;line-height:150%;}
@@ -383,7 +383,7 @@ div.searchFilter {
     position: relative;
     width: 285px;
     height: 24px;
-} 
+}
 div.searchFilter .searchOpener {
     position: absolute;
     right: -5px;
@@ -437,7 +437,7 @@ div.searchOptions label {
 
 .ui-dialog { position: relative; padding: 0; width: 400px; border:10px solid #615132; background-color: #fff; -webkit-border-radius:12px;-moz-border-radius:12px;border-radius:12px;-moz-box-shadow: 1px 3px 10px #000;-webkit-box-shadow: 1px 3px 10px #000;box-shadow: 1px 3px 10px #000;}
 .ui-dialog .ui-dialog-titlebar { padding: 10px; position: relative; background-color: #615132; color: #fff;font-size: 1.75em;margin: 0;padding: 0;}
-.ui-dialog .ui-dialog-title { float: left; margin: 0; padding: 0 10px 10px; } 
+.ui-dialog .ui-dialog-title { float: left; margin: 0; padding: 0 10px 10px; }
 .ui-dialog .ui-dialog-titlebar-close { position: absolute; right: 0; top: 0; width: 32px; height: 32px; }
 .ui-dialog .ui-dialog-titlebar-close span { display: block; }
 .ui-dialog .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus { padding: 0; }
@@ -749,7 +749,7 @@ div#footerHistory .history .timestamp {
 div#bottom div#legal {
     padding: 20px 0 100px 35px;
     background: url("/images/logo_IA-sm.png") no-repeat 0 20px;
-    
+
 }
 div#bottom div#legal p {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
@@ -1041,10 +1041,10 @@ div.pingList p {
     margin: 0 0 10px 40px;
 }
 div.pingList ul {
-    margin-left: 40px;    
+    margin-left: 40px;
 }
 ul.urlList li {
-    margin-bottom: 10px;    
+    margin-bottom: 10px;
 }
 ul.urlList li span.url {
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
@@ -1069,13 +1069,13 @@ form.olform.books .label {
     width: 875px;
 }
 form.olform.books .TitleAuthor input#work-title {
-    font-size: 1.875em!important; 
-    width: 500px!important; 
+    font-size: 1.875em!important;
+    width: 500px!important;
     margin: 10px 0 0 0!important;
 }
 form.olform.books .TitleAuthor input#author {
-    font-size: 1.875em!important; 
-    width: 300px!important; 
+    font-size: 1.875em!important;
+    width: 300px!important;
     margin: 10px 0 0 0!important;
 }
 #tabsAddbook {
@@ -1102,7 +1102,7 @@ div.excerpt .text {
     background-color: #f6f6f6;
     padding: 15px;
     font-size: 0.875em;
-    font-style: italic; 
+    font-style: italic;
     line-height: 1.375em;
 }
 div.excerpt .attribution {
@@ -1248,7 +1248,7 @@ div#historyRevert a.revertSlideLink span.revertThis {
 div#historyRevert form {
     display: block;
     float: left;
-    padding-top: 20px; 
+    padding-top: 20px;
 }
 div#historyRevert form #because {
     font-size: 12px;
@@ -1590,7 +1590,7 @@ div.tabsPop {margin-top: 31px;}
 	margin: 0 3px 4px;
 	text-decoration: none;
 	text-transform: uppercase;
-    white-space: nowrap; /* required in IE 6 */    
+    white-space: nowrap; /* required in IE 6 */
     outline: 0; /* prevent dotted border in Firefox */
 }
 .floater .ui-tabs-nav .ui-tabs-selected a {
@@ -1663,9 +1663,9 @@ body#form div.centerIt {
     text-align: left;
 }
 
-body#form .column { 
-    width: 560px; 
-    float: left; 
+body#form .column {
+    width: 560px;
+    float: left;
     margin: 10px;
     background-image: url("/images/back_sortable.png");
     background-repeat: no-repeat;
@@ -1690,23 +1690,23 @@ body#form .trashPosition:hover .trashCan {
     background-position: -32px 0;
 }
 body#form .trash {
-    width: 560px; 
-    height: 90px; 
+    width: 560px;
+    height: 90px;
     overflow: hidden;
-    background-color: #fffdcd; 
+    background-color: #fffdcd;
     float: left;
-    margin: 0 10px; 
+    margin: 0 10px;
     -webkit-border-radius: 8px;
     -moz-border-radius: 8px;
     border-radius: 8px;
     border: 1px solid #e2de8b;
 }
-body#form .portlet { 
-    margin: 7px 13px 13px 7px; 
-    float: left; 
-    width: 70px; 
-    height: 70px; 
-    overflow: hidden; 
+body#form .portlet {
+    margin: 7px 13px 13px 7px;
+    float: left;
+    width: 70px;
+    height: 70px;
+    overflow: hidden;
     border: 1px solid #dedede;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
@@ -1723,19 +1723,19 @@ body#form .portlet td {
 body#form .portlet img {
     cursor: move;
 }
-body#form .portlet-content { 
-    padding: 0.4em; 
+body#form .portlet-content {
+    padding: 0.4em;
 }
-.ui-sortable-placeholder { 
-    border: 1px dotted #ccc; 
-    visibility: visible !important; 
-    height: 70px !important; 
+.ui-sortable-placeholder {
+    border: 1px dotted #ccc;
+    visibility: visible !important;
+    height: 70px !important;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     border-radius: 6px;
 }
-.ui-sortable-placeholder * { 
-    visibility: hidden; 
+.ui-sortable-placeholder * {
+    visibility: hidden;
 }
 
 
@@ -1833,7 +1833,7 @@ div.floaterAlert {
 	margin:0 3px;
 	text-decoration:none;
 	text-transform:uppercase;
-    white-space: nowrap; /* required in IE 6 */    
+    white-space: nowrap; /* required in IE 6 */
     outline: 0; /* prevent dotted border in Firefox */
 }
 .ui-tabs-nav .ui-tabs-selected a {
@@ -1857,9 +1857,9 @@ div.floaterAlert {
 .ui-tabs-nav .ui-tabs-selected a span {
     padding-bottom: 3px;
 }
-.ui-tabs-nav .ui-tabs-selected a:link, 
-.ui-tabs-nav .ui-tabs-selected a:visited, 
-.ui-tabs-nav .ui-tabs-disabled a:link, 
+.ui-tabs-nav .ui-tabs-selected a:link,
+.ui-tabs-nav .ui-tabs-selected a:visited,
+.ui-tabs-nav .ui-tabs-disabled a:link,
 .ui-tabs-nav .ui-tabs-disabled a:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
 	background:#fff;
 	padding:8px 11px 3px;
@@ -1868,7 +1868,7 @@ div.floaterAlert {
 	color: #35672e;
 	text-transform: capitalize!important;
 	font-size: 1.125em!important;
-	margin:0 3px;    
+	margin:0 3px;
     cursor: default;
 }
 .ui-tabs-nav a:hover, .ui-tabs-nav a:focus, .ui-tabs-nav a:active,
@@ -2063,11 +2063,6 @@ div.tweet_cell{float:left;padding-bottom:20px;}
 span.tweet_user {font-weight:700;}
 div.tweet_avatar,div.tweet_copy {float:left;}
 div.tweet_date a {color:#999;text-decoration:none;}
-/* FLICKR FEED */
-div.flickrs {float:left;background:url("/images/logo_flickr-sm.png") no-repeat; margin-top: 50px;}
-div.flickrs ul {margin-top: 45px;}
-div.flickrs ul li {display: block;float: left;margin: 0 10px 20px 0;}
-div.flickrs ul li img {height: 100px;}
 
 /* ABOUT */
 div.moduleSide {
@@ -2143,33 +2138,33 @@ div#publicTwitter a.tweetFeed {font-size:12px;line-height:normal;}
     background-color: Aquamarine;
 }
 
-#wmd-button-bar 
+#wmd-button-bar
 {
     width: 100%;
     background-color: transparent;
 }
 
-#wmd-input 
-{ 
+#wmd-input
+{
     height: 500px;
     width: 100%;
     background-color: Gainsboro;
     border: 1px solid DarkGray;
 }
 
-#wmd-preview 
-{ 
-    background-color: LightSkyBlue; 
+#wmd-preview
+{
+    background-color: LightSkyBlue;
 }
 
-#wmd-output 
-{ 
+#wmd-output
+{
     background-color: Pink;
 }
 
-#wmd-button-row 
+#wmd-button-row
 {
-    position: relative; 
+    position: relative;
     margin-bottom: 5px!important;
     margin-left: 0!important;
     margin-top: 10px;
@@ -2179,35 +2174,35 @@ div#publicTwitter a.tweetFeed {font-size:12px;line-height:normal;}
 
 .wmd-spacer
 {
-    width: 1px; 
-    height: 20px; 
+    width: 1px;
+    height: 20px;
     margin-left: 14px;
     position: absolute;
-    display: inline-block; 
+    display: inline-block;
     list-style: none;
 }
 
 .wmd-button
 {
-    width: 20px; 
+    width: 20px;
     height: 20px;
     margin-right: 10px;
     position: absolute;
     background-image: url(/images/wmd-buttons.png);
     background-repeat: no-repeat;
     background-position: 0 0;
-    display: inline-block; 
+    display: inline-block;
     list-style: none;
 }
 
 .wmd-button > a
 {
-    width: 20px; 
-    height: 20px; 
+    width: 20px;
+    height: 20px;
     margin-left: 5px;
     margin-right: 5px;
     position: absolute;
-    display: inline-block; 
+    display: inline-block;
 }
 
 
