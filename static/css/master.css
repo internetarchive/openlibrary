@@ -1,13 +1,3 @@
-/* RESET EVERYTHING */
-
-body,div,dl,dt,dd,ul,ol,li,pre,code,form,fieldset,legend,input,textarea,th,td{margin:0;padding:0;}
-table{border-collapse:collapse;border-spacing:0;}
-fieldset,img{border:0;}
-address,caption,cite,code,dfn,th,var{font-style:normal;font-weight:normal;}
-li{list-style:none;}
-caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}
-q:before,q:after{content:'';}
-abbr,acronym{border:0;font-variant:normal;}
 /*SET FONT SIZES AS em, DIVIDING YOUR PIXEL SIZE by 16 (i.e. 12px = 12/16 or 0.75em)*/
 
 /* DEFINE SOME DEFAULTS */
@@ -920,7 +910,6 @@ div#headerNav ul.links li span {
     height: 22px;
     padding: 10px 0 0 10px;
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-    font-size: 0.6875em;
     font-weight: 700;
     text-transform: uppercase;
     color: #000;
@@ -967,7 +956,6 @@ body#user div#headerTools {
 }
 div#headerLogin {
     text-align: right;
-    font-size: 0.6875em;
     padding-top: 20px;
     color: #666;
 }
