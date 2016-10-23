@@ -29,7 +29,7 @@ $if q:
         $for doc in result['response']['docs']:
             <tr>
                 <td>$("%.2f" % doc['score'])</td>
-                <td><a href="/works/$doc['key']">$doc['title']</a></td>
+                <td><a href="$doc['key']">$doc['title']</a></td>
                 <td>
                 $for key, name in zip(doc['author_key'], doc['author_name']):
                     <a href="/authors/$key">$name</a>
