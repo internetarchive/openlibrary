@@ -1,10 +1,18 @@
-<!-- <div id="topNotice" style="background-color: #000;"><p><b class="orange">Please Note:</b> Open Library's search engine is having issues. We're working on it, and will update on the <a href="http://blog.openlibrary.org" title="More information & updates on blog.openlibrary">blog</a> if needed.</p></div> -->
-
-$:get_donation_include('true')
-
-$if "inlibrary" in ctx.features:
-    $ library = get_library()
-    $if library:
-        <div id="topNotice" style="background-color: #000; padding: 10px;"><p><b style="padding:3px; background-color: #00636a; color: #fff;">&nbsp;<i>Hello!</i>&nbsp;</b>&nbsp;&nbsp;<span>$get_library().name</span> is participating in our eBook lending program.
-
-        Browse the growing <a href="/borrow" data-ol-link-track="TopBar|Lending">lending library of over 250,000 eBooks</a>!</p></div>
+<div id="topNotice">
+  <div class="topNotice-container">
+    <div class="topNotice-left">
+      <a href="https://archive.org" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-logo iconochive-logo"></span></a>
+      <a href="https://archive.org" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-name">INTERNET ARCHIVE</span></a>
+    </div>
+    <div class="topNotice-right">
+      <ul>
+        <li><a href="https://archive.org/web" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-web"></span></li></a>
+        <li><a href="https://archive.org/details/texts" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-texts"></span></li></a>
+        <li><a href="https://archive.org/details/movies" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-movies"></span></li></a>
+        <li><a href="https://archive.org/details/audio" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-audio"></span></li></a>
+        <li><a href="https://archive.org/details/software" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-software"></span></li></a>
+        <li><a href="https://archive.org/details/image" data-ol-link-track="TopBarArchive" target="_blank"><span class="topNotice-icon iconochive-image"></span></li></a>
+      </ul>
+    </div>
+  </div>
+</div>

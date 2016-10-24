@@ -8,3 +8,4 @@ cat $DIR/diff.css
 cat $DIR/jquery.autocomplete.css
 cat $DIR/master.css
 cat $DIR/wmd.css
+cat $DIR/iconochive.css
