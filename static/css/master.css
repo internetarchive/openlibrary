@@ -3185,21 +3185,30 @@ div.mergeThis {
 
 /* GLOBAL TOP NOTICE */
 #topNotice {
-    background-color: #615132;
-    text-align: center;
+    background-color: #222;
+    height: 30px;
 }
-#topNotice p {
-    font-size: 0.75em;
-    color: #fff;
-    margin: 0;
-    padding: 5px;
+#topNotice .topNotice-container {
+    margin: 0 auto;
+    width: 958px;
 }
-#topNotice strong {
-    color: #ffa337;
+#topNotice .topNotice-left {
+    float: left;
+    display: table;
 }
-
-#topNotice a {
-    color: #ffa337;
+#topNotice .topNotice-left a {
+    display: table-cell;
+    vertical-align: middle;
+    height: 30px;
+    padding-right: 8px;
+    text-decoration: none;
+    color: white;
+}
+#topNotice .topNotice-left a:hover {
+    color: white;
+}
+#topNotice .topNotice-logo {
+    font-size: 24px;
 }
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
