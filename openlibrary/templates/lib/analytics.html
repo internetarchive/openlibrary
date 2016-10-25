@@ -1,7 +1,8 @@
 $def with (page)
 $ stats = stats_summary()
-$if stats['total'] and stats['total']['time']:
-  $ total_time = float(stats['total']['time']) * 1000
+$ raw_time = stats.get('total', {}).get('time') # Assumes that if total present, it's a dict
+$if raw_time is not None:
+  $ total_time = float(raw_time) * 1000
 $else:
   $ total_time = 0
 
