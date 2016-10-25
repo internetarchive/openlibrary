@@ -3188,9 +3188,6 @@ div.mergeThis {
     background-color: #222;
     height: 30px;
 }
-#topNotice a {
-    text-decoration: none;
-}
 #topNotice .topNotice-container {
     margin: 0 auto;
     width: 958px;
@@ -3202,40 +3199,16 @@ div.mergeThis {
 #topNotice .topNotice-left a {
     display: table-cell;
     vertical-align: middle;
-    padding: 3px 8px 3px 0;
-    color: #999;
+    height: 30px;
+    padding-right: 8px;
+    text-decoration: none;
+    color: white;
 }
 #topNotice .topNotice-left a:hover {
     color: white;
 }
 #topNotice .topNotice-logo {
     font-size: 24px;
-}
-#topNotice .topNotice-name {
-    font-size: 0.9em;
-}
-#topNotice .topNotice-right {
-    float: right;
-    padding: 5px 0;
-}
-#topNotice .topNotice-right a {
-    color: #999;
-}
-#topNotice .topNotice-right a:hover {
-    color: white;
-}
-#topNotice ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-}
-#topNotice li {
-    display: inline;
-    margin: 0 0 0 20px;
-    padding: 3px 0;
-}
-#topNotice .topNotice-icon {
-    font-size: 20px;
 }
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
