@@ -28,7 +28,7 @@ function setupSearch() {
     var B = A.parent().parent();
     var C = B.find("a#searchHead");
     var t1 = C.text();
-    var t2 = "Hide options";
+    var t2 = "Hide Advanced";
     C.click(function(){
         var D = $(this);
         $('#footerSearch').toggle();
@@ -55,7 +55,7 @@ function setupSearch() {
     var F = E.parent().parent();
     var G = F.find("a#searchFoot");
     var t3 = G.text();
-    var t4 = "Hide options";
+    var t4 = "Hide Advanced";
     G.click(function(){
         var H = $(this);
         E.toggle();
@@ -78,7 +78,7 @@ function setupSearch() {
             F.removeClass("darker");
             G.removeClass("attn");
             G.text(t3);
-        };    
+        };
     });
 
 };
@@ -90,7 +90,7 @@ function aboutFeeds() {
     jQuery.getFeed({
         url: 'http://www.archive.org/services/collection-rss.php?mediatype=texts',
         success: function(feed) {
-        
+
             jQuery('#resultScanned').append('<h4>New Scanned Books</h4>');
             var html = '';
             for(var i = 0; i < feed.items.length && i < 4; i++) {
@@ -99,12 +99,12 @@ function aboutFeeds() {
             }
             jQuery('#resultScanned').append(html);
             jQuery('#resultScanned').append('<div class="title"><a href="'+feed.link+'">See all</a></div>');
-        }    
+        }
     });
     jQuery.getFeed({
         url: 'http://blog.openlibrary.org/feed/',
         success: function(feed) {
-        
+
             jQuery('#resultBlog').append('<h4>From The Blog</h4>');
             var html = '';
             for(var i = 0; i < feed.items.length && i < 2; i++) {
@@ -113,12 +113,12 @@ function aboutFeeds() {
             }
             jQuery('#resultBlog').append(html);
             jQuery('#resultBlog').append('<div class="content"><a href="'+feed.link+'">Visit the blog...</a></div>');
-        }    
+        }
     });
 };
 
 
-// BUILD CAROUSEL 
+// BUILD CAROUSEL
 function carouselSetup(loadCovers, loadLists) {
   $('#coversCarousel').jcarousel({
     visible: 1,
@@ -136,14 +136,14 @@ function carouselSetup(loadCovers, loadLists) {
   $("#resultsList").hide()
   $("a#booksList").click(function(){
     //page.listCarousel.scroll(1+page.pos);
-    
+
     $('span.tools a').toggleClass('on');
     $('#resultsList').customFadeIn();
     $('#resultsCovers').hide();
   });
   $("a#booksCovers").click(function(){
     //page.coverCarousel.scroll(1+page.pos/12);
-    
+
     $('span.tools a').toggleClass('on');
     $('#resultsList').hide();
     $('#resultsCovers').customFadeIn();
@@ -168,7 +168,7 @@ function bookCovers(){
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 };
-// CLOSE POP-UP FROM IFRAME 
+// CLOSE POP-UP FROM IFRAME
 function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
@@ -197,16 +197,16 @@ function Place(key) {
 }
 
 /**
- * Gets the covers using AJAX call and calls the callback with covers as argument. 
- * AJAX call is avoided if the cover data is already present. 
+ * Gets the covers using AJAX call and calls the callback with covers as argument.
+ * AJAX call is avoided if the cover data is already present.
  */
 Place.prototype.getCovers = function(pagenum, callback) {
     var offset = pagenum * 12;
     var limit = 12;
-    
+
     if (offset > this.bookCount)
         return [];
-    
+
     if (this.covers[pagenum]) {
         callback(this.covers[pagenum]);
     }
@@ -312,7 +312,7 @@ $().ready(function(){
         function hideUser(){
             $('#headerUserOpen').fadeOut();
             $('#userToggle').removeClass('hover');
-        };  
+        };
     });
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}

@@ -554,11 +554,22 @@ div.searchFilter .searchOpener {
     bottom: 0;
     font-size: 0.6875em;
 }
-div.searchFilter .searchCheckbox {
+div.searchFilter .searchCheckboxes {
     position: absolute;
     left: 0;
     bottom: 0;
     font-size: 0.6875em;
+}
+.searchCheckboxes > ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+.searchCheckboxes > ul > li {
+    list-style-type: none;
+    display: inline-block;
+    margin: 0 4px 0 0;
+    padding: 0;
 }
 input.query {
     width: 205px;

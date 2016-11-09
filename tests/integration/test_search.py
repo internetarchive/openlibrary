@@ -14,9 +14,32 @@ class TestSearch:
         browser.quit()
 
     def test_search_inside(self, browser):
-        browser.visit(self.host)
-        browser.click_link_by_text('Search inside all Internet Archive books')
-        browser.find_by_css(".searchInsideForm > input[name='q']").fill('homer')
-        browser.find_by_css(".searchInsideForm > input[type='submit']").click()
+        browser.visit(self.host + '/search/inside')
+        browser.find_by_css(".searchInsideForm > input[name='q']").fill('black cat')
+        browser.find_by_css(".searchInsideForm > [type='submit']").click()
         # No Elastic Search in test rig, so expect to return error message
+        assert browser.is_text_present('Search Inside')
         assert browser.is_element_present_by_css("[class='searchResultsError']")
+
+    def test_search_inside_from_global_nav(self, browser):
+        browser.visit(self.host)
+        browser.find_by_css("#headerSearch input[name='q']").fill('black cat')
+        browser.find_by_css("#headerSearch input[name='search-fulltext']").check()
+        browser.find_by_css("#headerSearch [type='submit']").click()
+        # No Elastic Search in test rig, so expect to return error message
+        assert browser.is_text_present('Search Inside')
+        assert browser.is_element_present_by_css("[class='searchResultsError']")
+
+    def test_metadata_search(self, browser):
+        browser.visit(self.host + '/search')
+        browser.find_by_css(".siteSearch > input[name='q']").fill('remix')
+        browser.find_by_css(".siteSearch > [type='submit']").click()
+        assert browser.is_text_present('Search Results')
+        assert browser.is_element_present_by_css('#searchResults li')
+
+    def test_metadata_search_from_global_nav(self, browser):
+        browser.visit(self.host)
+        browser.find_by_css("#headerSearch input[name='q']").fill('remix')
+        browser.find_by_css("#headerSearch input[type='submit']").click()
+        assert browser.is_text_present('Search Results')
+        assert browser.is_element_present_by_css('#searchResults li')
