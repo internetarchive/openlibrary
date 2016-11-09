@@ -12,9 +12,6 @@ $ )
 
     <h2 class="shift">Site Search</h2>
     <div class="siteSearch" id="headerSearch">
-        <div class="searchFullText">
-            <span class="word-corner-badge">BETA</span><a href="/search/inside" data-ol-link-track="TopSearch|FullText">$_("Search inside all Internet Archive books")</a>
-        </div>
         <form method="get" action="/search" class="siteSearch">
             <fieldset class="home">
             <legend>Site Search</legend>
@@ -25,11 +22,15 @@ $ )
             <div class="searchPlacement">
                 <div class="searchFilter">
                     <div class="searchOpener">
-                        <a href="javascript:;" id="searchHead">$_("More search options")</a>
+                        <a href="javascript:;" id="searchHead">$_("Advanced")</a>
                     </div>
-                    <div class="searchCheckbox">
-                        <input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
-                        <label for="ftokenstop">$_("Show only eBooks")</label>
+                    <div class="searchCheckboxes">
+                        <ul>
+                            <li><input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
+                                <label for="ftokenstop">$_("Only eBooks")</label></li>
+                            <li><input name="search-fulltext" type="checkbox" value="true" id="search-fulltext" />
+                                <label for="search-fulltext">$_("Search eBook text")</label></li>
+                        </ul>
                     </div>
                 </div>
             </div>

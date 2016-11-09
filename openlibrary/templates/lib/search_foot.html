@@ -56,11 +56,15 @@ $ )
                 <div class="searchPlacement">
                     <div class="searchFilter">
                         <div class="searchOpener">
-                            <a href="javascript:;" id="searchFoot">$_("More search options")</a>
+                            <a href="javascript:;" id="searchFoot">$_("Advanced")</a>
                         </div>
-                        <div class="searchCheckbox">
-                            <input name="has_fulltext" type="checkbox" value="true" id="ftokensbtm" />
-                            <label for="ftokensbtm">$_("Show only eBooks")</label>
+                        <div class="searchCheckboxes">
+                            <ul>
+                                <li><input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
+                                    <label for="ftokenstop">$_("Only eBooks")</label></li>
+                                <li><input name="search-fulltext" type="checkbox" value="true" id="search-fulltext" />
+                                    <label for="search-fulltext">$_("Search eBook text")</label></li>
+                            </ul>
                         </div>
                     </div>
                 </div>

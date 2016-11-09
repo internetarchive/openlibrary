@@ -479,6 +479,11 @@ class search(delegate.page):
     def GET(self):
         global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
+
+        # Send to full-text Search Inside if checkbox checked
+        if i.get('search-fulltext'):
+            raise web.seeother('/search/inside?' + urllib.urlencode({'q': i.get('q', '')}))
+
         if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
             #if ftoken_db is None:

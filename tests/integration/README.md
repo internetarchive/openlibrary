@@ -22,5 +22,7 @@ $ pip install pytest
 Verify correct Open Library host in test files.
 - Default: `http://localhost:8080`
 
+For now, need to manually add an Edition to a new List just once.
+
 $ cd tests/integration
 $ pytest
