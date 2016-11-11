@@ -1,22 +1,23 @@
 $def with (book)
 
-<span class="bookcover">
+<span itemscope itemtype="http://schema.org/Book">
+  <span class="bookcover">
     $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
-    <a href="$book.key"><img src="$url" height="60"/></a>
-</span>
-<span class="details">
+    <a href="$book.key"><img itemprop="image" src="$url" height="60"/></a>
+  </span>
+  <span class="details">
     <span class="resultTitle">
-        <span class="booktitle"><a href="$book.url()">$book.title</a></span>
+        <span itemprop="name" class="booktitle"><a href="$book.url()">$book.title</a></span>
         $if book.get('authors', None):
             <span class="bookauthor">$_("by")
-            $ authorlist = ', '.join([thingrepr(author).rstrip() for author in book.authors])
+              $ authorlist = ', '.join(['<span itemprop="author">%s</span>' % thingrepr(author).rstrip() for author in book.authors])
             $:authorlist
             </span>
         <span class="resultPublisher">
             $if book.publishers:
-                $(', '.join(book.publishers)), $book.publish_date
+                $(', '.join(['<span itemprop="publisher">%s</span>' % publisher for publisher in book.publishers])), <span itemprop="datePublished">$book.publish_date</span>
             $else:
-                $book.publish_date
+                <span c$book.publish_date
             <span class="resultType">
                 $book.physical_format.replace('[', '').replace(']','')
             </span>
@@ -29,4 +30,5 @@ $def with (book)
                 <span class="label">$_("Read")</span>
             </a>
         </span>
+  </span>
 </span>
