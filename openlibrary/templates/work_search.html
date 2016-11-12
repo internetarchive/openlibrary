@@ -233,7 +233,7 @@ function less(header) {
             $ doc = get_doc(result_doc)
             $ key = doc.key
             $ work_keys.append(key)
-            <li>
+            <li itemscope itemtype="http://schema.org/Book">
             <span class="bookcover">
                 $if doc.cover_edition_key:
                     $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
@@ -241,12 +241,12 @@ function less(header) {
                     $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
                 $else:
                     $ cover = "/images/icons/avatar_book-sm.png"
-                <a href="$doc.url"><img src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+                <a href="$doc.url"><img itemprop="image" src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
             </span>
             <span class="details">
                 <span class="resultTitle">
                     <h3 class="booktitle">
-                        <a href="$doc.url"
+                        <a itemprop="name" href="$doc.url"
                         class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
                     </h3>
                     <span class="bookauthor">by
@@ -254,7 +254,7 @@ function less(header) {
                         <em>Unknown author</em>
                     $else:
                         $for a in doc.authors:
-                            <a href="$a.url" class="results">$a.name</a>$(',' if not loop.last else '')
+                            <a itemprop="author" href="$a.url" class="results">$a.name</a>$(',' if not loop.last else '')
                     </span>
                     <span class="resultPublisher">
                         $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")

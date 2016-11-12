@@ -8,15 +8,16 @@ $else:
     $ long_title = truncate(book.title, 40)
 
 <div class="coverMagic hiddenCoverMagic">
+  <span itemscope itemtype="http://schema.org/Book">
     $if "cover_url" in book:
         <div class="SRPCover">
-            <a href="$book.url" title="$long_title"><img xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
+            <a href="$book.url" title="$long_title"><img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
         </div>
     $else:
         <a href="$book.url" title="$long_title">
             <div class="SRPCoverBlank" style="display:block;">
                 <div class="innerBorder">
-                    <div class="BookTitle">$truncate(book.title, 40)
+                    <div itemprop="name" class="BookTitle">$truncate(book.title, 40)
                         <div class="Author">$truncate(authors, 40)</div>
                     </div>
                 </div>
@@ -49,4 +50,5 @@ $else:
         <div class="coverEbook">
             <a href="$book.daisy_url" title="$_('Download a protected DAISY')"><img src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33" alt="$_('Download a protected DAISY')"/></a>
         </div>
+  </span>
 </div>
