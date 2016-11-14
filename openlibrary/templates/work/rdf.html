@@ -20,8 +20,8 @@ $def with (work)
 
     <!-- set up URIs for later -->
 
-    $ wuri = "http://openlibrary.org" + work.key + "/"
-    $ wAbout = "http://openlibrary.org" + work.key + "/about/"
+    $ wuri = "https://openlibrary.org" + work.key + "/"
+    $ wAbout = "https://openlibrary.org" + work.key + "/about/"
 
 
     <!-- set up xml formatting -->
@@ -34,7 +34,7 @@ $def with (work)
             <$tag>$value</$tag>
 
     <!-- wrap in frbr:work -->
-    <frbr:Work rdf:about="http://openlibrary.org$wuri">
+    <frbr:Work rdf:about="https://openlibrary.org$wuri">
 
     <!-- author needs the key plus the display form -->
     <!-- author role doesn't matter here: all are authors -->
@@ -42,7 +42,7 @@ $def with (work)
 
 
     $for author in work.authors:
-         <rdf:Description rdf:about="http://openlibrary.org$author.key">
+         <rdf:Description rdf:about="https://openlibrary.org$author.key">
               <dcterms.creator>$author.name</dcterms:creator>
               </rdf:Description>
 
