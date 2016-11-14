@@ -8,7 +8,7 @@ $else:
     $ long_title = truncate(book.title, 40)
 
 <div class="coverMagic hiddenCoverMagic">
-  <span itemscope itemtype="http://schema.org/Book">
+  <span itemscope itemtype="https://schema.org/Book">
     $if "cover_url" in book:
         <div class="SRPCover">
             <a href="$book.url" title="$long_title"><img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>

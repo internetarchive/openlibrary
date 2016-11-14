@@ -1,6 +1,6 @@
 $def with (book)
 
-<span itemscope itemtype="http://schema.org/Book">
+<span itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
     $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
     <a href="$book.key"><img itemprop="image" src="$url" height="60"/></a>
@@ -17,7 +17,7 @@ $def with (book)
             $if book.publishers:
                 $(', '.join(['<span itemprop="publisher">%s</span>' % publisher for publisher in book.publishers])), <span itemprop="datePublished">$book.publish_date</span>
             $else:
-                <span c$book.publish_date
+                <span class="datePublished">$book.publish_date</span>
             <span class="resultType">
                 $book.physical_format.replace('[', '').replace(']','')
             </span>

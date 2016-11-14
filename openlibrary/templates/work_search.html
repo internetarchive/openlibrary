@@ -233,7 +233,7 @@ function less(header) {
             $ doc = get_doc(result_doc)
             $ key = doc.key
             $ work_keys.append(key)
-            <li itemscope itemtype="http://schema.org/Book">
+            <li itemscope itemtype="https://schema.org/Book">
             <span class="bookcover">
                 $if doc.cover_edition_key:
                     $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
