@@ -35,12 +35,12 @@ $ cur_v = query_param("v", None)
             $ opds = page.key + ".opds" + hist_addition
             <div id="historyTools" class="smaller brown sansserif" style="float:right;padding-top:8px;">
                 Download catalog record:
-                <a href="$rdf">RDF</a>
+                <a rel="nofollow" href="$rdf">RDF</a>
                 /
-                <a href="$json">JSON</a>
+                <a rel="nofollow" href="$json">JSON</a>
                 $if page.key.startswith("/books"):
                     /
-                    <a href="$opds">OPDS</a>
+                    <a rel="nofollow" href="$opds">OPDS</a>
             </div>
 
     </h2>
