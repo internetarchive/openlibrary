@@ -245,16 +245,15 @@ class Edition(Thing):
             borrowable = ('lendinglibrary' in collections or
                          ('inlibrary' in collections and inlibrary.get_library() is not None))
 
-            archive_bookreader_url = 'https://archive.org/stream/%s' % self.ocaid
             if borrowable:
-                d['borrow_url'] = archive_bookreader_url
-                key = 'ebooks' + self.key
+                d['borrow_url'] = self.url("/borrow")
+                key = "ebooks" + self.key
                 doc = self._site.store.get(key) or {}
-                d['borrowed'] = doc.get('borrowed') == 'true'
+                d['borrowed'] = doc.get("borrowed") == "true"
             elif 'printdisabled' in collections:
                 pass # ebook is not available
             else:
-                d['read_url'] = archive_bookreader_url
+                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
         return d
 
     def get_ia_collections(self):
