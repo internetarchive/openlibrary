@@ -51,7 +51,7 @@ It essentially enables your local developer repository to behave as if
 it were actually openlibrary.org, and thus sync with and to
 openlibrary.org's loans:
 
-[Enabling Lending on Localhost](https://github.com/internetarchive/olsystem/Readme.md#enabling-lending-on-localhost)
+[Enabling Lending on Localhost](https://github.com/internetarchive/olsystem/blob/master/Readme.md#enabling-lending-on-localhost)
 
 ## Importing Test Data
 
