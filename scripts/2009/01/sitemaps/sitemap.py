@@ -10,8 +10,8 @@ import os
 import itertools
 import datetime
 import gzip
-#import json
 import re
+import json
 import time
 
 t_sitemap = """$def with (things)
@@ -45,6 +45,24 @@ def xopen(filename):
     else:
         return open(filename)
 
+def urlsafe(name):
+    """Slugifies the name to produce OL url slugs
+
+    XXX This is duplicated from openlibrary.core.helpers because there
+    isn't a great way to import the methods from openlibrary as a
+    package
+    """
+    # unsafe chars according to RFC 2396
+    reserved = ";/?:@&=+$,"
+    delims = '<>#%"'
+    unwise = "{}|\\^[]`"
+    space = ' \n\r'
+
+    unsafe = reserved + delims + unwise + space
+    pattern = '[%s]+' % "".join(re.escape(c) for c in unsafe)
+    safepath_re = re.compile(pattern)
+    return safepath_re.sub('_', name).replace(' ', '-').strip('_')[:100]
+
 def process_dump(dumpfile):
     """Generates a summary file used to generate sitemaps.
 
@@ -52,31 +70,25 @@ def process_dump(dumpfile):
     """
     rows = (line.strip().split("\t") for line in xopen(dumpfile))
     for type, key, revision, last_modified, jsontext in rows:
-        if type not in ['/type/edition', '/type/work', '/type/author']:
+        if type not in ['/type/work', '/type/author']:
             continue
 
-        """
         doc = json.loads(jsontext)
-        if type == '/type/author':
-            title = doc.get('name', 'unnamed')
-        else:
-            title = doc.get('title', 'untitled')
+        title = doc.get('name', '') if type == '/type/author' \
+                else doc.get('title', '')
 
-        path = key + "/" + h.urlsafe(title.strip())
-        """
-        path = key
+        path = key + "/" + urlsafe(title.strip()).encode('utf-8')
+
         last_modified = last_modified.replace(' ', 'T') + 'Z'
         sortkey = get_sort_key(key)
         if sortkey:
-            yield [sortkey, path.encode('utf-8'), last_modified]
+            yield [sortkey, path, last_modified]
 
-re_key = re.compile("^/(authors|books|works)/OL\d+[AMW]$")
+re_key = re.compile("^/(authors|works)/OL\d+[AMW]$")
 
 def get_sort_key(key):
     """Returns a sort key used to group urls in 10K batches.
 
-    >>> get_sort_key("/books/OL12345678M")
-    'books_1234'
     >>> get_sort_key("/authors/OL123456A")
     'authors_0012'
     """
@@ -89,8 +101,16 @@ def get_sort_key(key):
 
 def generate_sitemaps(filename):
     rows = (line.strip().split("\t") for line in open(filename))
-    for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
-        things = [web.storage(path=path, last_modified=last_modified) for sortkey, path, last_modified in chunk]
+    for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):    
+        things = []
+
+        _chunk = list(chunk)
+        for segment in _chunk:
+            sortkey = segment.pop(0)
+            last_modified = segment.pop(-1)
+            path = ''.join(segment)
+            things.append(web.storage(path=path, last_modified=last_modified))
+
         if things:
             write("sitemaps/sitemap_%s.xml.gz" % sortkey, sitemap(things))
 
@@ -103,11 +123,16 @@ def generate_siteindex():
     write("sitemaps/siteindex.xml.gz", index)
 
 def write(path, text):
-    text = web.safestr(text)
-    log('writing', path, text.count('\n'))
-    f = gzip.open(path, 'w')
-    f.write(text)
-    f.close()
+    try:
+        text = web.safestr(text)
+        log('writing', path, text.count('\n'))
+        f = gzip.open(path, 'w')
+        f.write(text)
+        f.close()
+    except:
+        import ipdb
+        ipdb.set_trace()
+        print('write fail')
     #os.system("gzip " + path)
 
 def write_tsv(path, rows):
@@ -157,3 +182,4 @@ def main(dumpfile):
 if __name__ == "__main__":
     import sys
     main(sys.argv[1])
+
