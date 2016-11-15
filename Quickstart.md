@@ -3,8 +3,8 @@
 ## Table of Contents
 
    - [Using the Open Library Website](#using-the-open-library-website)
-     - [Logging In (As Admin)])(#logging-in)
-     - [Admin Interface](#administration)
+     - [Logging In (As Admin)](#logging-in)
+     - [Admin Interface](#admin-interface)
      - [Creating Users](#creating-users)
      - [Lending & Borrowing](#lending-and-borrowing)
    - [Importing Test Data](#importing-test-data)
