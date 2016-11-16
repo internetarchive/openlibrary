@@ -197,7 +197,7 @@ class borrow(delegate.page):
             # Show the page with "you've returned this"
             # $$$ this would do better in a session variable that can be cleared
             #     after the message is shown once
-            raise web.seeother(edition.url('/borrow?r=t'))
+            raise web.seeother(edition.url('?r=t'))
 
         elif action == 'read':
             # Look for loans for this book
@@ -223,7 +223,7 @@ class borrow(delegate.page):
         if i.get("redirect"):
             raise web.redirect(i.redirect)
         else:
-            raise web.redirect(edition.url("/borrow"))
+            raise web.redirect(edition.url())
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
