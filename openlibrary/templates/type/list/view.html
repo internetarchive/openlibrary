@@ -190,7 +190,7 @@ function get_seed_count() {
                             <!-- $:json_encode(ebook) -->
                             <span class="actions" style="float: right;">
                                 $if 'read_url' in ebook:
-                                    <a href="$ebook['read_url']" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                    <a href="$ebook['read_url']?ref=ol" target="_blank" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
                                         <span class="image read"></span>
                                         <span class="label">$_("Read")</span>
                                     </a>
