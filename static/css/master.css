@@ -1304,7 +1304,7 @@ div#content div.contentLists {
     right: 22px;
     border: none;
     padding: 0px;
-    background: url('/images/icons/icon_ebook-avail.png');    
+    background: url('/images/icons/read-book.png');    
     background-position:center;
     background-repeat:no-repeat;
     cursor: pointer;
@@ -1322,7 +1322,7 @@ div#content div.contentLists {
     position: absolute;
     left: 5px;
     border: none;
-    background-image: url('/images/icons/return-book.svg');
+    background-image: url('/images/icons/return-book.png');
     background-position:center;
     background-repeat:no-repeat;
     width: 32px;
