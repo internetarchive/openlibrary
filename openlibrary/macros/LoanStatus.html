@@ -29,7 +29,7 @@ $ borrow_link = page.url() + '/borrow'
 
 $if user_loan:
     <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Read/Return eBook</a><br />
-    <span class="smaller">You have this book checked out from $contributor</span></p>
+    <span class="smaller">Checked out from $contributor</span></p>
 $elif available_loans:
     <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Borrow eBook</a><br />
     <span class="smaller">in-browser, ePub, or PDF<br />from $contributor</span></p>
