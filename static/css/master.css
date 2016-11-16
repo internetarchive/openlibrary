@@ -1292,6 +1292,45 @@ div#content div.contentLists {
     background: -moz-linear-gradient(top, #fafafa, #f5f5f5);
     background: -webkit-gradient(linear, left top, left bottom, from(#fafafa), to(#f5f5f5));
 }
+
+/* HOME PAGE LOAN SECTION */
+.loan-btn {
+}
+
+.goto-book-btn {
+    float: left;
+    top: 162px;
+    position: absolute;
+    right: 22px;
+    border: none;
+    padding: 0px;
+    background: url('/images/icons/icon_ebook-avail.png');    
+    background-position:center;
+    background-repeat:no-repeat;
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    padding: 0px;    
+    z-index: 999;
+}
+
+.return-book-btn {
+    background: transparent;
+    top: 162px;
+    cursor: pointer;
+    float: left;
+    position: absolute;
+    left: 5px;
+    border: none;
+    background-image: url('/images/icons/return-book.svg');
+    background-position:center;
+    background-repeat:no-repeat;
+    width: 32px;
+    height: 32px;
+    padding: 0px;
+    z-index: 999;
+}
+
 /* HOME PAGE CAROUSEL SKIN */
 .resultsCovers {
     width: 958px;

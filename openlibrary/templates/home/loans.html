@@ -1,7 +1,7 @@
 $def with(loans)
 
-$ books = [get_document(loan['book']) for loan in loans]
-$ carousel = loans_carousel(books)
+$# books = [get_document(loan['book']) for loan in loans]
+$ carousel = loans_carousel(loans)
 
 $if carousel:
     <div class="head">

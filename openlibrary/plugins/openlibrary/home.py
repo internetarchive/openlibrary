@@ -40,7 +40,7 @@ class home(delegate.page):
         user = accounts.get_current_user()
         user.update_loan_status()
         loans = borrow.get_loans(user)
-        
+
         return render_template("home/index",
                                stats=stats,
                                blog_posts=blog_posts,
@@ -48,7 +48,7 @@ class home(delegate.page):
                                returncart_list=returncart_list,
                                user=user,
                                loans=loans)
-    
+
 @public
 def carousel_from_list(key, randomize=False, limit=60):
     id = key.split("/")[-1] + "_carousel"
@@ -78,7 +78,12 @@ def add_checkedout_status(books):
 
 @public
 def loans_carousel(loans, css_id="loans-carousel"):
-    return render_template("books/carousel", storify(loans), id=css_id)
+    books = []
+    for loan in loans:
+        book = web.ctx.site.get(loan['book'])
+        book['loan'] = loan
+        books.append(book)
+    return render_template("books/carousel", storify(books), id=css_id)
 
 @public
 def render_returncart(limit=60, randomize=True):
