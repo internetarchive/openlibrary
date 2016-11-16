@@ -1,0 +1,18 @@
+$def with(loans)
+
+$ books = [get_document(loan['book']) for loan in loans]
+$ carousel = loans_carousel(books)
+
+$if carousel:
+    <div class="head">
+        <h2 class="inline"><a href="/read">Books I'm Borrowing</a></h2>
+        <p class="inline sansserif large collapse">
+	  &nbsp;
+	  $if len(loans):
+	      You can still <a href="/borrow">borrow</a> $(5 - len(loans)) more books until you've hit the limit!
+	  $else:
+	      You have reached the borrowing limit. Please return a book to checkout something new.
+        </p>
+    </div>
+
+    $:carousel
