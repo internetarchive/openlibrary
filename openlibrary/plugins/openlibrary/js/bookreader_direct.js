@@ -5,7 +5,7 @@ jQuery(function() {
   $('.borrow-link').live('click', function(event) {
     event.preventDefault();
     var $this = $(this);
-    var borrowUrl = $this.attr('href');
+    var borrowUrl = $this.attr('href').replace(/'/g, '%27');
     var borrowFormString = "<form action='" + borrowUrl + "' method='POST' target='_blank'>\n" +
       "<input type='hidden' name='action' value='borrow' />\n" +
       "<input type='hidden' name='format' value='bookreader' />\n" +
