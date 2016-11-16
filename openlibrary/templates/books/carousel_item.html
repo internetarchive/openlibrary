@@ -26,7 +26,7 @@ $else:
 
     $if book.get("read_url"):
         <div class="coverEbook">
-            <a href="$book.read_url" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
+            <a href="$book.read_url?ref=ol" target="_blank" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
         </div>
     $elif book.get("borrow_url"):
         <div class="coverEbook">
@@ -35,7 +35,7 @@ $else:
                     src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33"
                     alt="$_('This book is checked out')"/></a>
             $else:
-                <a href="$book.borrow_url" title="$_('Borrow this book')"><img
+                <a href="$book.borrow_url" target="_blank" title="$_('Borrow this book')" class="borrow-link"><img
                     src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33"
                     alt="$_('Borrow this book')"/></a>
         </div>
@@ -44,7 +44,7 @@ $else:
             $if book.get("checked_out"):
                 <a href="$book.url" title="$_('This book is checked out')"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checked out')"/></a>
             $else:
-                <a href="$book.inlibrary_borrow_url" title="$_('Borrow this book')"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
+                <a href="$book.inlibrary_borrow_url" target="_blank" title="$_('Borrow this book')" class="borrow-link"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Borrow this book')"/></a>
         </div>
     $elif book.get("daisy_url"):
         <div class="coverEbook">

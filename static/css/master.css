@@ -1705,7 +1705,7 @@ table.navEdition td {
 select#select-id {
     max-width: 300px;
 }
-.borrow-link, .read-link {
+.borrow-btn, .read-btn {
     color: white;
     background: #036DAA;
     border-radius: 5px;
@@ -1713,11 +1713,11 @@ select#select-id {
     cursor: pointer;
     display: inline-block;
 }
-.borrow-link:link, .borrow-link:visited, .read-link:link, .read-link:visited {
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited {
     color: white;
     text-decoration: none;
 }
-.borrow-link:hover, .read-link:hover {
+.borrow-btn:hover, .read-btn:hover {
     color: white;
     text-decoration: underline;
 }

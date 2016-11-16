@@ -196,12 +196,12 @@ function get_seed_count() {
                                     </a>
                                 $elif 'borrow_url' in ebook:
                                     $if ebook.get('borrowed'):
-                                        <a href="$ebook['borrow_url']" title="This book is checked out">
+                                        <a href="$ebook['borrow_url']" class="borrow-link" title="This book is checked out">
                                             <span class="image checked-out"></span>
                                             <span class="label">Checked out</span>
                                         </a>
                                     $else:
-                                        <a href="$ebook['borrow_url']" title="Borrow book">
+                                        <a href="$ebook['borrow_url']" class="borrow-link" title="Borrow book">
                                             <span class="image borrow"></span>
                                             <span class="label">Borrow</span>
                                         </a>

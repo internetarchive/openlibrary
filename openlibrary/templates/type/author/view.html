@@ -192,12 +192,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                             <span class="actions read">
                                 $if doc.checked_out:
-                                    <a href="/books/$doc.lending_edition/x/borrow" title="This book is checked out">
+                                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="This book is checked out">
                                         <span class="image checked-out"></span>
                                         <span class="label">Checked out</span>
                                     </a>
                                 $else:
-                                    <a href="/books/$doc.lending_edition/x/borrow" title="Borrow book now">
+                                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Borrow book now">
                                         <span class="image borrow"></span>
                                         <span class="label">Borrow</span>
                                     </a>
