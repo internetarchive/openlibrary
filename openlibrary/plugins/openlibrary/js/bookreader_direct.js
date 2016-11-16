@@ -1,7 +1,8 @@
 // Make Borrow links act as if POSTing to Borrow page
 
 jQuery(function() {
-  $('.borrow-link').click(function(event) {
+  // TODO: After update jQuery, will need to get rid of deprecated .live()
+  $('.borrow-link').live('click', function(event) {
     event.preventDefault();
     var $this = $(this);
     var borrowUrl = $this.attr('href');
