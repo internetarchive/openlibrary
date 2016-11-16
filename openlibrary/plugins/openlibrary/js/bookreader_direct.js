@@ -1,7 +1,7 @@
 // Make Borrow links act as if POSTing to Borrow page
 
 jQuery(function() {
-  var borrowLinks = $('.image.borrow, .image.checked-out').closest('a');
+  var borrowLinks = $('.image.borrow, .image.checked-out, .borrow-link').closest('a');
   borrowLinks.click(function(event) {
     event.preventDefault();
     var $this = $(this);

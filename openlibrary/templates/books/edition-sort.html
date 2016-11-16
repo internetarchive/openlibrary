@@ -79,7 +79,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         <div class="aaaa"></div>
         <div class="links">
             <ul>
-            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader">Read online</a></strong><br/><br/></li>
+            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-link">Read online</a></strong><br/></li>
             <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
             <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
             <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
