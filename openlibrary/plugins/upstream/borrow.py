@@ -127,7 +127,7 @@ class borrow(delegate.page):
         # Added so that direct bookreader links being routed through
         # here can use a single action of 'borrow', regardless of
         # whether the book has been checked out or not.
-        if user.has_borrowed(edition):
+        if action == 'borrow' and user.has_borrowed(edition):
             action = 'read'
 
         if action == 'borrow':
@@ -194,10 +194,10 @@ class borrow(delegate.page):
 
             user_loan.return_loan()
 
-            # Show the page with "you've returned this"
+            # Show the page with "you've returned this". Use a dummy slug.
             # $$$ this would do better in a session variable that can be cleared
             #     after the message is shown once
-            raise web.seeother(edition.url('/borrow?r=t'))
+            raise web.seeother(edition.url())
 
         elif action == 'read':
             # Look for loans for this book
@@ -223,7 +223,7 @@ class borrow(delegate.page):
         if i.get("redirect"):
             raise web.redirect(i.redirect)
         else:
-            raise web.redirect(edition.url("/borrow"))
+            raise web.redirect(edition.url())
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):

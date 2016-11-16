@@ -13,7 +13,7 @@ abbr,acronym{border:0;font-variant:normal;}
 /* DEFINE SOME DEFAULTS */
 b,strong{font-weight:700;}
 i,em{font-style:italic;}
-#contentBody ol,#contentMeta ol,.floaterBody ol,#contentBody ul,#contentMeta ul,.floaterBody ul{margin-left:1.5em;}
+#contentBody ol,#contentMeta ol,.floaterBody ol,#contentBody ul,#contentMeta ul,.floaterBody ul{margin-left:.5em;margin-right:.5em;}
 #contentBody ul.unlist,#contentBody ol.unlist {margin-left:0;list-style-type:none!important;}
 #contentBody ul.unlist li,#contentBody ol.unlist li {list-style-type:none!important;}
 #contentBody ul.listLarge li {line-height:24px!important;}
