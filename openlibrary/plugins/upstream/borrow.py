@@ -197,7 +197,7 @@ class borrow(delegate.page):
             # Show the page with "you've returned this". Use a dummy slug.
             # $$$ this would do better in a session variable that can be cleared
             #     after the message is shown once
-            raise web.seeother(edition.url("?r=t"))
+            raise web.seeother(edition.url())
 
         elif action == 'read':
             # Look for loans for this book
