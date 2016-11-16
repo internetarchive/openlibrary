@@ -5,7 +5,7 @@ $ worldcatoclc = "http://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
-$ viewbook = "//%s/stream/XXX" % bookreader_host()
+$ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ detailbook = "//archive.org/details/XXX"
 $ downloadbook = "//archive.org/download/XXX/XXX.pdf"
 $ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
@@ -79,7 +79,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         <div class="aaaa"></div>
         <div class="links">
             <ul>
-            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader">Read online</a></strong><br/><br/></li>
+            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn" target="_blank">Read online</a></strong><br/></li>
             <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
             <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
             <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>

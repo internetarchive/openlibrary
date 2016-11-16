@@ -1705,6 +1705,22 @@ table.navEdition td {
 select#select-id {
     max-width: 300px;
 }
+.borrow-btn, .read-btn {
+    color: white;
+    background: #036DAA;
+    border-radius: 5px;
+    padding: 5px 8px;
+    cursor: pointer;
+    display: inline-block;
+}
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited {
+    color: white;
+    text-decoration: none;
+}
+.borrow-btn:hover, .read-btn:hover {
+    color: white;
+    text-decoration: underline;
+}
 
 /* POPUP CAROUSEL SKIN */
 body#form .jcarousel-list-horizontal {
@@ -1791,6 +1807,9 @@ table.meta td.title {white-space:nowrap;width:120px;}
 table.meta td.object {white-space:nowrap;}
 table.meta td.tag {white-space:nowrap;}
 table.meta td.descrip {white-space:nowrap;width:65px;}
+
+#editions .links ul {list-style-type: none}
+#editions .links li {list-style-type: none}
 
 /* HISTORY */
 
@@ -3359,6 +3378,7 @@ p#borrowList {position:absolute;top:0;left:100%;width:300px;font-size:.75em;}
 p#postBorrowList {font-size:.75em;padding-left:55px;}
 .indent table.borrow {width:100%;}
 .indent table.borrow th,.indent table.borrow td {text-align: center;vertical-align: top;font-size: .875em;font-weight: 700;padding-bottom: 20px;}
+
 /* LISTS */
 #listTools ul {font-size:.75em;color:#666;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;margin:0 0 20px 0!important;}
 #contentHead #listTools ul {margin:15px 0 0 0!important;}

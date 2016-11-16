@@ -120,7 +120,17 @@ class borrow(delegate.page):
         if not user:
             raise web.seeother(error_redirect)
 
-        if i.action == 'borrow':
+        action = i.action
+
+        # Intercept a 'borrow' action if the user has already
+        # borrowed the book and convert to a 'read' action.
+        # Added so that direct bookreader links being routed through
+        # here can use a single action of 'borrow', regardless of
+        # whether the book has been checked out or not.
+        if user.has_borrowed(edition):
+            action = 'read'
+
+        if action == 'borrow':
             resource_type = i.format
 
             if resource_type not in ['epub', 'pdf', 'bookreader']:
@@ -162,7 +172,7 @@ class borrow(delegate.page):
                 # Send to the borrow page
                 raise web.seeother(error_redirect)
 
-        elif i.action == 'return':
+        elif action == 'return':
             # Check that this user has the loan
             user.update_loan_status()
             loans = get_loans(user)
@@ -189,16 +199,16 @@ class borrow(delegate.page):
             #     after the message is shown once
             raise web.seeother(edition.url('/borrow?r=t'))
 
-        elif i.action == 'read':
+        elif action == 'read':
             # Look for loans for this book
             user.update_loan_status()
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(make_bookreader_auth_link(loan['_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
-        elif i.action == 'join-waitinglist':
+        elif action == 'join-waitinglist':
             return self.POST_join_waitinglist(edition, user)
-        elif i.action == 'leave-waitinglist':
+        elif action == 'leave-waitinglist':
             return self.POST_leave_waitinglist(edition, user, i)
 
         # Action not recognized
