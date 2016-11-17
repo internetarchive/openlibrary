@@ -38,8 +38,9 @@ class home(delegate.page):
         returncart_list = config.get("home", {}).get("returncart_list")
 
         user = accounts.get_current_user()
-        user.update_loan_status()
-        loans = borrow.get_loans(user)
+        if user:
+            user.update_loan_status()
+        loans = borrow.get_loans(user) if user else None
 
         return render_template("home/index",
                                stats=stats,
@@ -82,6 +83,8 @@ def loans_carousel(loans, css_id="loans-carousel"):
     for loan in loans:
         book = web.ctx.site.get(loan['book'])
         book['loan'] = loan
+        if book.covers:
+            book['cover_url'] = h.get_coverstore_url() + "/b/id/%s-M.jpg" % book.covers[0]
         books.append(book)
     return render_template("books/carousel", storify(books), id=css_id)
 

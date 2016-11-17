@@ -30,13 +30,13 @@ $def with (books, id="ol-carousel")
 	  $if book.get('loan'):
 	    <div>
 	      <form action="$(book['loan']['book'] + '/do_return/borrow')" method="post" class="loan-btn">
-		<input type="submit" value="" class="return-book-btn"/>
+		<input type="submit" value="" title="Return Book" class="return-book-btn"/>
 		<input type="hidden" name="action" value="return" />
 	      </form>	    
 	      <form class="LoanReadForm loan-btn" method="POST" action="$(book['loan']['book'])/_doread/borrow">
 		<input type="hidden" name="action" value="read" />
 		<input type="text" name="ol_host" value="" class="hidden ol_host" />
-		<input type="submit" value="" class="goto-book-btn" />
+		<input type="submit" value="" title="Read Book Online" class="goto-book-btn" />
 	      </form>
 	    </div>
 
