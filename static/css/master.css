@@ -1299,9 +1299,9 @@ div#content div.contentLists {
 
 .goto-book-btn {
     float: left;
-    top: 162px;
+    top: 165px;
     position: absolute;
-    right: 22px;
+    right: 25px;
     border: none;
     padding: 0px;
     background: url('/images/icons/read-book.png');    
@@ -1316,7 +1316,7 @@ div#content div.contentLists {
 
 .return-book-btn {
     background: transparent;
-    top: 162px;
+    top: 165px;
     cursor: pointer;
     float: left;
     position: absolute;
