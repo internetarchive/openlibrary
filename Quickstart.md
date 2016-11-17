@@ -1,59 +1,35 @@
 # A quick start for OpenLibrary's developers
 
-## :: Setting up a dev instance
+## Table of Contents
 
-- First you need to have installed [Virtualbox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/).
+   - [Using the Open Library Website](#using-the-open-library-website)
+     - [Logging In (As Admin)](#logging-in)
+     - [Admin Interface](#admin-interface)
+     - [Creating Users](#creating-users)
+     - [Lending & Borrowing](#lending-and-borrowing)
+   - [Importing Test Data](#importing-test-data)
+   - [Frontend Developer's Guide](#frontend-guide)
+     - [Building CSS and JS](#building-css-and-js)
+     - [Routing & Templates](#routing-and-templates)
+   - [Backend Developer's Guide](#backend-guide)
+     - [Memcache](#memcache)
+     - [Log Files](#logs)
+     - [Database](#database)
+     - [Recaptcha](#recaptcha)
 
-- Fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary) to your own [Github](https://www.github.com) account.
+## Using the Open Library Website
 
-- Clone your forked repo to your local machine:
+### Logging In
 
-        git clone git@github.com:YOURACCOUNT/openlibrary.git
+You can log into the OpenLibrary instance as an admin, with the username *openlibrary*, password *openlibrary*
 
-- Switch into the directory that you just cloned:
+### Admin Interface
 
-        cd openlibrary
-
-- Start up the dev virtual machine instance using vagrant:
-
-        vagrant up
-
-- You can now view your running instance by loading `http://localhost:8080` in a web browser.
-
-- You can log into the OpenLibrary instance as an admin, with the username *openlibrary*, password *openlibrary*.
-
-- If you need to ssh into the vagrant dev virtual machine, type:
-
-        vagrant ssh
-
-- You can turn off the virtual machine using:
-
-        vagrant halt
-
-- Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
-
-
-## :: Running tests
-
-- OpenLibrary uses py.test
-
-- Inside vagrant, go to the application base directory:
-
-        cd /openlibrary
-
-- Run tests:
-
-        make test
-
-
-## :: Administration
+For users with sufficient privileges, an admin interface is available at `http://localhost:8080/admin`.
 
 - If you want to add a new user to the admin group, you can do that at `http://localhost:8080/usergroup/admin`
 
-- The admin interface is available at `http://localhost:8080/admin`
-
-
-## :: Creating users
+### Creating Users
 
 - If you create a user, you will have to verify the email address, but you will not be able to send email from your vagrant dev instance. Instead, you can find the verification link in the app server log, which should be in `/var/log/upstart/ol-web.log`.
 
@@ -63,12 +39,23 @@
 
     The hash you see will be different that above. Just load that link and the user will be created in your dev instance.
 
-- During sign up, if you get an error "INPUT ERROR: K: FORMAT OF SITE KEY WAS INVALID", then it probably means reCAPTCHA has not been set up on your local dev environment. See "reCAPTCHA" below.
+Debugging: During sign up, if you get an error "INPUT ERROR: K: FORMAT OF SITE KEY WAS INVALID", then it probably means reCAPTCHA has not been set up on your local dev environment. See "reCAPTCHA" below.
 
+### Lending and Borrowing
 
-## :: Copying documents
+These instructions are fairly specific to Internet Archive staff who
+are administrating the Open Library service and who have access to the
+production olsystem repository.
 
-- You can copy test data from the live openlibrary.org site into your dev instance. `vagrant ssh` into your dev instance, and run the `copydocs.py` script in `/openlibrary/scripts`. If you want to add a book, you must first copy an author record, then the work record, and then the book record.
+It essentially enables your local developer repository to behave as if
+it were actually openlibrary.org, and thus sync with and to
+openlibrary.org's loans:
+
+[Enabling Lending on Localhost](https://github.com/internetarchive/olsystem/blob/master/Readme.md#enabling-lending-on-localhost)
+
+## Importing Test Data
+
+You can copy test data from the live openlibrary.org site into your dev instance. `vagrant ssh` into your dev instance, and run the `copydocs.py` script in `/openlibrary/scripts`. If you want to add a book, you must first copy an author record, then the work record, and then the book record.
 
         $ cd /openlibrary/scripts
 
@@ -88,12 +75,13 @@
             [{'key': '/books/OL24966433M', 'revision': 1}]
 
 
-## :: CSS and JS in local development
+## Frontend Guide
 
-After making changes to CSS or JS, make sure to run `make css` or `make js`, in order to re-compile the build/ static assets. You might also need to restart the webserver and/or clear browser caches to see the changes.
+### Building CSS and JS
 
+In local development, after making changes to CSS or JS, make sure to run `make css` or `make js`, in order to re-compile the build/ static assets. You might also need to restart the webserver and/or clear browser caches to see the changes.
 
-## :: Routing and templates
+### Routing and Templates
 
 - OpenLibrary is rendered using [Templetor](http://webpy.org/docs/0.3/templetor) templates, part of the [web.py](http://webpy.org/) framework.
 
@@ -105,8 +93,9 @@ After making changes to CSS or JS, make sure to run `make css` or `make js`, in 
 
 - A works page is rendered by `templates/view/work/view.html`. A work is defined by work type.
 
+## Backend Guide
 
-## :: Memcache
+### Memcache
 
 - Infobase queries get cached in memcache. In the vagrant dev instance, there is a single-node memcache cluster that you can test by connecting to your test instance using `vagrant ssh` and then typing:
 
@@ -138,15 +127,14 @@ After making changes to CSS or JS, make sure to run `make css` or `make js`, in 
 
         >>> mc.get('ia.get_metadata-"houseofscorpion00farmrich"')
 
-
-## :: Logs
+### Logs
 
 - Logs for the upstart services will be in `/var/log/upstart/`.
 
 - The app server logs will be in `/var/log/upstart/ol-web.log`.
 
 
-## :: Database
+### Database
 
 - You should never work directly with the database, all the data are indeed managed by OpenLibrary through *infobase*, but, if you are brave and curious, here you can find some useful infos.
 
@@ -192,7 +180,7 @@ Every raw contains:
               openlibrary=# SELECT count(*) as count FROM thing WHERE type='22';
 
 
-## :: reCAPTCHA
+### reCAPTCHA
 
 - To develop with reCAPTCHA locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required): `https://developers.google.com/recaptcha/docs/start`
 
@@ -207,13 +195,12 @@ Every raw contains:
 
 - Once you have generated the keys, add them to your local `conf/openlibrary.yml` file by filling in the public and private keys under the `plugin_recaptcha` section.
 
-
-## :: Troubleshooting
-
-- If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
-
+- From within vagrant, restart the Open Library service via /etc/init.d/ol-start
 
 ### Credits and special thanks
+
 - [rajbot](https://github.com/rajbot)
 - [gdamdam](https://github.com/gdamiola)
 - [anandology](https://github.com/anandology)
+- [bfalling](https://github.com/bfalling)
+- [mekarpeles](https://github.com/mekarpeles)

@@ -9,10 +9,12 @@ catalog, building towards a web page for every book ever published.
    - [Overview](#overview)
    - [Installation](#installation)
    - [Code Organization](#code-organization)
-   - [Learn the Stack](#learn-the-stack)
+   - [Architecture](#architecture)
      - [The Frontend](#the-frontend)
      - [The Backend](#the-backend)
      - [The Service Architecture](#the-service-architecture)
+   - [Developer's Guide](#developers-guide)
+   - [Running Tests](#running-tests)
    - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
@@ -30,7 +32,43 @@ and out-of-print books, which can be read online.
 
 ## Installation
 
-See the [Quickstart.md](Quickstart.md) for instructions on setting up a developer VM.
+First you need to have installed
+[Virtualbox](https://www.virtualbox.org/) and
+[Vagrant](https://www.vagrantup.com/).
+
+Next, fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary) to your own [Github](https://www.github.com) account and clone your forked repo to your local machine:
+
+        git clone git@github.com:YOURACCOUNT/openlibrary.git
+
+Enter the project directory and provision + launch the dev virtual machine instance using vagrant:
+
+      cd openlibrary
+      vagrant up
+
+You can now view your running instance by loading `http://localhost:8080` in a web browser.
+
+You can turn off the virtual machine from the host machine using:
+
+        vagrant halt
+	
+To administrate and ssh into the vagrant dev virtual machine, type:
+
+        vagrant ssh
+
+Note: Remember that, thanks to vagrant and virtual box, your local
+folder `openlibrary` (where you ran `vagrant up`) contains *exactly*
+the same files as `/openlibrary` in the dev virtual machine (the one
+that you login to via `vagrant ssh`).
+
+### Help!
+
+If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
+
+### Developer's Guide
+
+For instructions on administrating your Open Library instance and
+build instructions for developers, refer the Developer's
+[Quickstart.md](Quickstart.md) document.
 
 You can find more info digging into this old (and in part outdated) document here: http://code.openlibrary.org/en/latest/
 
@@ -42,7 +80,7 @@ You can find more info digging into this old (and in part outdated) document her
 * openlibrary/templates - all the templates used in the website
 * openlibrary/macros - macros are like templates, but can be called from wikitext
 
-## Learn the Stack
+## Architecture
 
 ### The Frontend
 
@@ -65,6 +103,19 @@ how to use Infogami (and its database, Infobase):
 ### The Service Architecture
 
 - [Overview of OpenLibrary Service Architecture](https://openlibrary.org/about/architecture)
+
+## Running tests
+
+Open Library tests can be run using pytest (py.test).
+
+Inside vagrant, go to the application base directory:
+
+        cd /openlibrary
+        make test
+
+### Integration Tests
+
+Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
 
 ## Contributing
 
