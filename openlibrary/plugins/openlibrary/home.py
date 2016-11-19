@@ -42,6 +42,25 @@ class home(delegate.page):
             returncart_list=returncart_list)
 
 @public
+def trending_carousel(limit=60):
+    """popular works across lists which are available"""
+    lsts = web.ctx.site.things({
+        "type": "/type/list", "sort": "-last_modified", "limit": limit,
+        "offset": 0})
+
+    work_keys = {}
+    for lst in web.ctx.site.get_many(lsts):
+        for seed in lst.seeds:
+            key = seed['key']
+            if key.startswith('/works/'):
+                work_keys[key] = work_keys.get(key, 0) + 1
+    sorted_keys = sorted(work_keys, key=lambda k: work_keys[k], reverse=True)
+    books = [format_book_data(web.ctx.site.get(key))
+             for key in sorted_keys]
+    return render_template("books/carousel", storify(books),
+                           id='popular-carousel')
+
+@public
 def carousel_from_list(key, randomize=False, limit=60):
     id = key.split("/")[-1] + "_carousel"
 
