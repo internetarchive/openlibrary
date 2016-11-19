@@ -42,23 +42,31 @@ class home(delegate.page):
             returncart_list=returncart_list)
 
 @public
-def trending_carousel(limit=60):
+def trending_carousel(limit=100):
     """popular works across lists which are available"""
     lsts = web.ctx.site.things({
         "type": "/type/list", "sort": "-last_modified", "limit": limit,
         "offset": 0})
 
+    books = []
     work_keys = {}
     for lst in web.ctx.site.get_many(lsts):
         for seed in lst.seeds:
             key = seed['key']
             if key.startswith('/works/'):
-                work_keys[key] = work_keys.get(key, 0) + 1
+                work_keys[key] = work_keys.get(key, 0) + 1        
     sorted_keys = sorted(work_keys, key=lambda k: work_keys[k], reverse=True)
-    books = [format_book_data(web.ctx.site.get(key))
-             for key in sorted_keys]
-    return render_template("books/carousel", storify(books),
+    for key in sorted_keys:
+        try:
+            books.append(format_book_data(web.ctx.site.get(key)))
+        except:
+            pass
+
+    return render_template("books/carousel",
+                           storify(books if len(books) <=limit else books[:limit]),
                            id='popular-carousel')
+
+trending_carousel = cache.memcache_memoize(get_returncart, "home.trending_carousel", timeout=60*60)
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -99,6 +107,7 @@ def render_returncart(limit=60, randomize=True):
         random.shuffle(data)
     data = data[:limit]
     return render_template("books/carousel", storify(data), id="returncart_carousel")
+
 
 def get_returncart(limit):
     if 'env' not in web.ctx:
