@@ -9,7 +9,8 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
+from openlibrary.core import lending, admin, cache, ia, inlibrary, helpers as h
+from openlibrary.plugins.upstream.borrow import can_borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
 
@@ -44,29 +45,18 @@ class home(delegate.page):
 @public
 def trending_carousel(limit=100):
     """popular works across lists which are available"""
-    lsts = web.ctx.site.things({
-        "type": "/type/list", "sort": "-last_modified", "limit": limit,
-        "offset": 0})
-
     books = []
-    work_keys = {}
-    for lst in web.ctx.site.get_many(lsts):
-        for seed in lst.seeds:
-            key = seed['key']
-            if key.startswith('/works/'):
-                work_keys[key] = work_keys.get(key, 0) + 1        
-    sorted_keys = sorted(work_keys, key=lambda k: work_keys[k], reverse=True)
-    for key in sorted_keys:
-        try:
-            books.append(format_book_data(web.ctx.site.get(key)))
-        except:
-            pass
+    lst = web.ctx.site.get('/people/mekBot/lists/OL104041L')
+    for seed in lst.seeds:
+        key = seed['key']
+        edition = web.ctx.site.get(key)
+        #if not lending.get_loan(edition.ocaid):
+        book = format_book_data(edition)
+        books.append(book)
 
-    return render_template("books/carousel",
-                           storify(books if len(books) <=limit else books[:limit]),
-                           id='popular-carousel')
-
-trending_carousel = cache.memcache_memoize(get_returncart, "home.trending_carousel", timeout=60*60)
+    random.shuffle(books)
+    add_checkedout_status(books)
+    return render_template("books/carousel", storify(books), id='popular-carousel')
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -83,7 +73,7 @@ def add_checkedout_status(books):
     """OBSOLETE -- will be deleted.
     """
     # This is not very efficient approach.
-    # Todo: Implement the following apprach later.
+    # Todo: Implement the following approach later.
     # * Store the borrow status of all books in the list in memcache
     # * Use that info to add checked_out status
     # * Invalidate that on any borrow/return
