@@ -13,6 +13,10 @@ $var title: $_("Welcome to Open Library")
 $:render_template("home/splash")
 
 <div id="contentBody">
+
+    $:render_template("home/categories")
+    <div class="clearfix"></div>
+
     $:render_template("home/read")
     <div class="clearfix"></div>
 
