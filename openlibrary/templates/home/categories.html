@@ -1,0 +1,108 @@
+$def with (id="ol-carousel")
+
+<div class="head">
+  <h2 class="inline"><a href="/read">Browse By Category</a></h2>
+  <p class="inline sansserif large collapse">
+  </p>
+</div>
+
+<script type="text/javascript">
+  \$(function() {
+
+    var Subject = {
+        count: function (subject, callback) {
+            var url = '/subjects/' + subject + '.json';
+            \$.ajax({
+                type: "GET",
+                url: url,
+		dataType: "json",
+                success: function(result) {
+                    var cnt = result.work_count || 0;
+                    if (callback) {
+                        return callback(subject, cnt);
+                    }
+                    return cnt;
+                }
+            });
+        },
+        render: function(subject, key) {
+            return '<li class="category-item">' +
+                '<a class="category-nostyle" href="/subjects/' + subject.name + '">' +
+	    '<div class="category-icon">' +
+                '<img class="category-img"' +
+		'src="/static/images/categories/' + key + '.svg"/>' +
+
+		'</div>' +
+		'<p class="category-title">' + subject.name + '</p>' +
+		'<p class="category-count" name="' + key + '"></p>' +
+		'</a>' +
+            '</li>';
+        }
+    };
+
+
+    var Categories = {
+        featured: {
+            'art': {'name': 'Art', 'sort': 'date_published'},
+            'science_fiction': {'name': 'Sci-Fi', 'sort': 'date_published'},
+            'fantasy': {'name': 'Fantasy', 'sort': 'date_published'},
+            'biographies': {'name': 'Biographies', 'sort': 'date_published'},
+            'recipes': {'name': 'Recipes', 'sort': 'date_published'},
+            'romance': {'name': 'Romance', 'sort': 'date_published'},
+            'textbooks': {'name': 'Textbooks', 'sort': 'date_published'},
+            'children': {'name': 'Children', 'sort': 'date_published'},
+            'history': {'name': 'History', 'sort': 'date_published'},
+            'medicine': {'name': 'Medicine', 'sort': 'date_published'},
+            'religion': {'name': 'Religion', 'sort': 'date_published'},
+            'mystery_and_detective_stories': {'name': 'Mysteries', 'sort': 'date_published'},
+            'plays': {'name': 'Plays', 'sort': 'edition_count'},
+            'music': {'name': 'Music', 'sort': 'date_published'},
+            'science': {'name': 'Science', 'sort': 'date_published'}
+        },
+        get: function(category) {
+            var url = api_url + '/subjects/' + category + '.json';
+        },
+        setup: function(categories) {
+            for (var key in categories) {
+                var category = categories[key];
+		\$('.categoryCarousel').append(Subject.render(category, key));
+            }
+            for (var cat in categories) {
+                Subject.count(cat, function(subject, count) {
+                    \$('[name="' + subject + '"]').text(count + ' books');
+                });
+            }
+        }
+    }
+    Categories.setup(Categories.featured);
+
+    function load_covers(carousel, state) {
+
+        // this is where loading should happen
+
+	for (var i = carousel.first; i <= carousel.last; i++) {
+            if (carousel.has(i)) {
+                carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
+
+                var cover = carousel.get(i).find("img.cover");
+                if (cover.length > 0) {
+                    cover.attr("src", cover.attr("xsrc"));
+                }
+            }
+        }
+    }
+
+    \$("#$id").jcarousel({
+        scroll:6,
+        itemLoadCallback: {onBeforeAnimation: load_covers}
+    });
+
+})
+</script>
+
+  <div class="contentLists results categoryCarouselContainer">
+    <div class="resultsIcons">
+        <ul class="categoryCarousel" id="$id">
+        </ul>
+    </div>
+  </div>
