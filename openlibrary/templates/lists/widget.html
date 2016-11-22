@@ -108,19 +108,19 @@ $jsdef render_widget_display(lists, limit):
 
 $jsdef render_head():
     $if seed_type == "subject":
-        <div class="head">
-            <h3>Lists</h3>
-            <div class="smallest lightgreen sansserif">watch for edits or export all records</div>
-        </div>
+	<div class="head">
+          <h3>Lists</h3>
+          <div class="smallest lightgreen sansserif">watch for edits or export all records</div>
+	</div>
     $else:
-        <div>	
+        <div>
           <h3 class="header">
             <span class="icon list heart-adjust"></span>
             $if len(page_lists) > 0:
                 $ msg = ungettext("%s List", "%s Lists", len(page_lists))
                 <span class="head"><a href="$page_url/lists">$(sprintf(msg, len(page_lists)))</a></span>
             $else:
-                $_("Lists")
+                <span class="head">$_("Lists")</span>
           </h3>
         </div>
 
