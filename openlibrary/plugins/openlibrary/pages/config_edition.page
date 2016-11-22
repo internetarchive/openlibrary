@@ -223,6 +223,12 @@
             "label": "Almedina"
         },
         {
+        "url": "http://amicus.collectionscanada.ca/ourl/c.php?id=@@@&l=eng&s=amicus",
+        "website": "http://www.collectionscanada.ca/amicus/",
+        "name": "amicus",
+        "label": "AMICUS Canadian National Catalogue"
+        },
+        {
             "website": "http://www.issn.org/",
             "notes": "",
             "name": "issn",
@@ -251,7 +257,7 @@
             "notes": "",
             "name": "albertina_national_bibliotheek_van_belgi\u00eb",
             "label": "Albertina National Bibliotheek van Belgi\u00eb"
-        }
+        }   
     ],
     "key": "/config/edition",
     "type": {
