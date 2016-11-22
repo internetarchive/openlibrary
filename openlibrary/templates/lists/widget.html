@@ -85,7 +85,6 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists):
     <div class="dropit">
-        <div class="icon list"></div>
         <div class="dropper on">
             <a href="javascript:;" class="dropclick plain">
                 <h3>Add to list</h3>
@@ -114,17 +113,17 @@ $jsdef render_head():
             <div class="smallest lightgreen sansserif">watch for edits or export all records</div>
         </div>
     $else:
-        <h4>
-        $if len(page_lists) > 0:
-            $ msg = ungettext("%s List", "%s Lists", len(page_lists))
-            $sprintf(msg, len(page_lists))
-            $if len(page_lists) > 3:
-                <span class="sansserif smaller"><a href="$page_url/lists">$_("See all")</a></span>
+        <div>	
+          <h3 class="header">
+            <span class="icon list heart-adjust"></span>
+            $if len(page_lists) > 0:
+                $ msg = ungettext("%s List", "%s Lists", len(page_lists))
+                <span class="head"><a href="$page_url/lists">$(sprintf(msg, len(page_lists)))</a></span>
             $else:
-                <span class="sansserif smaller"><a href="$page_url/lists">$_("Details")</a></span>
-        $else:
-            $_("Lists")
-        </h4>
+                $_("Lists")
+          </h3>
+        </div>
+
 
 <div id="widget-head">
     $:render_head()

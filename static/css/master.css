@@ -3420,7 +3420,7 @@ ul.listLists span {display:block;color:#666;}
 ul.listLists li .image {float:left;width:42px;min-height:35px;}
 ul.listLists li .image img {width:32px;}
 ul.listLists li .data {float:left;width:208px;}
-ul.listLists li .label {font-size:.8125em;line-height:1.125em;}
+ul.listLists li .label {font-size:.8125em;line-height:1.125em; font-size: 12px;}
 ul.listLists li .meta, ul.listLists li .owner {font-size:.6875em;line-height:1.125em;}
 
 div#listsWork ul.listLists {float:left;clear:both;}
@@ -3435,6 +3435,7 @@ div#listsWork p#listsLess {padding-left:0;margin-bottom:0!important;text-align:r
 div#listsWork div.dropit {position:relative;width:215px;min-height:45px;}
 div#listsWork div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 0 42px;margin:0 0 5px;}
 div#listsWork div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
+.heart-adjust { position: relative; top: -3px; left: 4px; }
 div#listsWork div.icon.list {background-position:0 0;}
 div#listsWork div.icon.listed {background-position:-32px 0;}
 div#listsWork div.dropper {position:absolute;top:0;left:32px;width:161px;padding:8px 10px;z-index:1001;}
