@@ -345,6 +345,11 @@ div.formDivider {float:left;width:25px;min-height:100px;}
 form.olform {
   font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
 }
+
+form.pagesearchbox {
+    margin-top: 15px;
+}
+
 form.olform .label {
     width: 838px;
     padding: 10px 0 2px;

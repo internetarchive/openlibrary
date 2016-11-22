@@ -27,7 +27,8 @@ $def with (id="ol-carousel")
         },
         render: function(subject, key) {
             return '<li class="category-item">' +
-                '<a class="category-nostyle" href="/subjects/' + subject.name + '">' +
+                '<a class="category-nostyle" href="/subjects/' +
+                 key + '#sort=' + subject.sort + '&ebooks=true">' +
 	    '<div class="category-icon">' +
                 '<img class="category-img"' +
 		'src="/static/images/categories/' + key + '.svg"/>' +
@@ -77,8 +78,6 @@ $def with (id="ol-carousel")
     Categories.setup(Categories.featured);
 
     function load_covers(carousel, state) {
-
-        // this is where loading should happen
 
 	for (var i = carousel.first; i <= carousel.last; i++) {
             if (carousel.has(i)) {
