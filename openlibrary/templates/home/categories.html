@@ -1,8 +1,9 @@
 $def with (id="ol-carousel")
 
 <div class="head">
-  <h2 class="inline"><a href="/read">Browse By Category</a></h2>
+  <h2 class="inline"><a href="/subjects">Browse By Category</a></h2>
   <p class="inline sansserif large collapse">
+    &nbsp; Browse books by popular categories or <a href="/subjects">explore other categories</a>
   </p>
 </div>
 
@@ -15,7 +16,7 @@ $def with (id="ol-carousel")
             \$.ajax({
                 type: "GET",
                 url: url,
-		dataType: "json",
+                dataType: "json",
                 success: function(result) {
                     var cnt = result.work_count || 0;
                     if (callback) {
@@ -29,14 +30,14 @@ $def with (id="ol-carousel")
             return '<li class="category-item">' +
                 '<a class="category-nostyle" href="/subjects/' +
                  key + '#sort=' + subject.sort + '&ebooks=true">' +
-	    '<div class="category-icon">' +
+            '<div class="category-icon">' +
                 '<img class="category-img"' +
-		'src="/static/images/categories/' + key + '.svg"/>' +
+                'src="/static/images/categories/' + key + '.svg"/>' +
 
-		'</div>' +
-		'<p class="category-title">' + subject.name + '</p>' +
-		'<p class="category-count" name="' + key + '"></p>' +
-		'</a>' +
+                '</div>' +
+                '<p class="category-title">' + subject.name + '</p>' +
+                '<p class="category-count" name="' + key + '"></p>' +
+                '</a>' +
             '</li>';
         }
     };
@@ -61,12 +62,12 @@ $def with (id="ol-carousel")
             'science': {'name': 'Science', 'sort': 'date_published'}
         },
         get: function(category) {
-            var url = api_url + '/subjects/' + category + '.json';
+            var url = '/subjects/' + category + '.json';
         },
         setup: function(categories) {
             for (var key in categories) {
                 var category = categories[key];
-		\$('.categoryCarousel').append(Subject.render(category, key));
+                \$('.categoryCarousel').append(Subject.render(category, key));
             }
             for (var cat in categories) {
                 Subject.count(cat, function(subject, count) {
@@ -79,7 +80,7 @@ $def with (id="ol-carousel")
 
     function load_covers(carousel, state) {
 
-	for (var i = carousel.first; i <= carousel.last; i++) {
+        for (var i = carousel.first; i <= carousel.last; i++) {
             if (carousel.has(i)) {
                 carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
 
