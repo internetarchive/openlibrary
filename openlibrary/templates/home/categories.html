@@ -45,21 +45,21 @@ $def with (id="ol-carousel")
 
     var Categories = {
         featured: {
-            'art': {'name': 'Art', 'sort': 'date_published'},
-            'science_fiction': {'name': 'Sci-Fi', 'sort': 'date_published'},
-            'fantasy': {'name': 'Fantasy', 'sort': 'date_published'},
-            'biographies': {'name': 'Biographies', 'sort': 'date_published'},
-            'recipes': {'name': 'Recipes', 'sort': 'date_published'},
-            'romance': {'name': 'Romance', 'sort': 'date_published'},
-            'textbooks': {'name': 'Textbooks', 'sort': 'date_published'},
-            'children': {'name': 'Children', 'sort': 'date_published'},
-            'history': {'name': 'History', 'sort': 'date_published'},
-            'medicine': {'name': 'Medicine', 'sort': 'date_published'},
-            'religion': {'name': 'Religion', 'sort': 'date_published'},
-            'mystery_and_detective_stories': {'name': 'Mysteries', 'sort': 'date_published'},
+            'art': {'name': 'Art', 'sort': 'edition_count'},
+            'science_fiction': {'name': 'Sci-Fi', 'sort': 'edition_count'},
+            'fantasy': {'name': 'Fantasy', 'sort': 'edition_count'},
+            'biographies': {'name': 'Biographies', 'sort': 'edition_count'},
+            'recipes': {'name': 'Recipes', 'sort': 'edition_count'},
+            'romance': {'name': 'Romance', 'sort': 'edition_count'},
+            'textbooks': {'name': 'Textbooks', 'sort': 'edition_count'},
+            'children': {'name': 'Children', 'sort': 'edition_count'},
+            'history': {'name': 'History', 'sort': 'edition_count'},
+            'medicine': {'name': 'Medicine', 'sort': 'edition_count'},
+            'religion': {'name': 'Religion', 'sort': 'edition_count'},
+            'mystery_and_detective_stories': {'name': 'Mysteries', 'sort': 'edition_count'},
             'plays': {'name': 'Plays', 'sort': 'edition_count'},
-            'music': {'name': 'Music', 'sort': 'date_published'},
-            'science': {'name': 'Science', 'sort': 'date_published'}
+            'music': {'name': 'Music', 'sort': 'edition_count'},
+            'science': {'name': 'Science', 'sort': 'edition_count'}
         },
         get: function(category) {
             var url = '/subjects/' + category + '.json';
