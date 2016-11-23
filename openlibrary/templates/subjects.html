@@ -182,7 +182,7 @@ function set_hash(data) {
                     showTooltip(item.pageX, item.pageY,
                                 y + " $_('editions in') " + x);
                 };
-                        }
+            }
         }
         else {
             \$("#chartLabel").remove();
@@ -224,7 +224,7 @@ function set_hash(data) {
         \$("#coversLoading").show();
         \$(".jcarousel-prev").hide();
         \$(".jcarousel-next").hide();
-                page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
+        page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
     });
     var plot = \$.plot(placeholder, data, options);
     var dateFrom = plot.getAxes().xaxis.min.toFixed(0);
@@ -257,7 +257,6 @@ function set_hash(data) {
             counts.append('<a class="bookcount" href="javascript:;"></a>').find("a:last").text(x);
             counts.append(" / ");
             counts.append('<strong></strong>').find("strong:last").text(y);
-
             hash.ebooks = "true";
         }
         else {
