@@ -3436,6 +3436,7 @@ div#listsWork div.dropit {position:relative;width:215px;min-height:45px;}
 div#listsWork div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 0 42px;margin:0 0 5px;}
 div#listsWork div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div.Tools .hidetool { display: none; }
+div.Tools span.owner { font-size: 10px; }
 .heart-adjust { position: relative; top: -3px; left: 4px; }
 div#listsWork div.icon.list {background-position:0 0;}
 div#listsWork div.icon.listed {background-position:-32px 0;}
