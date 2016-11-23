@@ -1346,6 +1346,8 @@ div#content div.contentLists {
 .categoryCarouselContainer { height: 85px; }
 .categoryCarouselContainer .resultsIcons .jcarousel-next-horizontal { top: 13px; }
 .categoryCarouselContainer .resultsIcons .jcarousel-prev-horizontal { top: 13px; }
+.categoryCarouselContainer .resultsIcons { height: 85px;}
+.categoryCarouselContainer .resultsIcons .jcarousel-container { height: 85px;}
 ul.categoryCarousel { list-style-type:none; height:85px; overflow:hidden; margin-left:0 !important; margin-bottom:0 !important; }
 ul.categoryCarousel li { position:relative; float:left; list-style:none!important; }
 ul.categoryCarousel .hiddenCoverMagic { height:85px; }
@@ -1370,6 +1372,7 @@ p.category-title {
     margin: 0px;
     margin-top: 5px;
 }
+
 
 .resultsIcons .jcarousel-container { height: 130px; padding: 0px;}
 .resultsIcons .jcarousel-container-horizontal { height: 130px; padding: 0px;}
