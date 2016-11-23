@@ -278,16 +278,10 @@ function less(header) {
                 </span>
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                 <span class="actions">
-                    $if doc.checked_out:
-                        <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="This book is checked out">
-                            <span class="image checked-out"></span>
-                            <span class="label">Checked out - Join waiting list</span>
-                        </a>
-                    $else:
-                        <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Borrow book">
-                            <span class="image borrow"></span>
-                            <span class="label">Borrow</span>
-                        </a>
+                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book">
+                        <span class="image borrow"></span>
+                        <span class="label">Read</span>
+                    </a>
                 </span>
             $elif not doc.public_scan and 'printdisabled' in doc.collections:
                 <span class="actions">
