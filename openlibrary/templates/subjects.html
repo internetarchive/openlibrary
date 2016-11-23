@@ -10,7 +10,6 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1 class="inline">
         $page.name
     </h1>
-
     <span class="heading">
         <span class="count" id="coversCount">
             <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
@@ -43,7 +42,6 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 
     </span>
     </p>
-
     <form action="/search" class="olform pagesearchbox">
         <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
         <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
@@ -61,29 +59,29 @@ $:render_template("lib/covers", page)
 
 <div id="contentMeta" style="padding-top:0;">
 
-	<div class="head">
-	    <h2 style="margin-bottom:0px!important;">
-	        $_("Publishing History")
+        <div class="head">
+            <h2 style="margin-bottom:0px!important;">
+                $_("Publishing History")
                 <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
-	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
-	    </h2>
-	</div>
+                <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+                <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
+            </h2>
+        </div>
 
 <script type="text/javascript">
 <!--
 function parse_hash() {
     try {
-    	var hash = document.location.hash || "#";
-    	var tokens = hash.substr(1).split("&");
-    	var d = {};
-    	for (var i in tokens) {
-    		if (tokens[i]) {
-    			var kv = tokens[i].split("=");
-    			d[kv[0]] = kv[1];
-    	    }
-    	}
-    	return d;
+        var hash = document.location.hash || "#";
+        var tokens = hash.substr(1).split("&");
+        var d = {};
+        for (var i in tokens) {
+            if (tokens[i]) {
+                var kv = tokens[i].split("=");
+                d[kv[0]] = kv[1];
+            }
+        }
+        return d;
     }
     catch (error) {
         // Work-around for IE weirdness
@@ -252,10 +250,6 @@ function set_hash(data) {
     function resetAndReplot() {
         \$.plot(placeholder, [{data: page.publishing_history}], options);
         reset();
-    }
-
-    var resetPageCounts = function() {
-
     }
 
     function resetCounts() {
