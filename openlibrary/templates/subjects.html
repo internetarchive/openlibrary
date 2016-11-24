@@ -24,24 +24,27 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     </span>
     <a href="#search" class="shift">Search for books with subject ${page.name}.</a>
 
-
     <p class="collapse sansserif">
-    <span class="tools brown">
+      <span class="tools brown">
         <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>
         Sort by:
         <span id="sortByNew" style="display:none">
-        <a href="javascript:;" class="sortEditionCount"># of Editions</a>
-        |
-        <strong class="lightgreen">Most Recent Publish Date</strong>
+          <a href="javascript:;" class="sortEditionCount"># of Editions</a>
+          |
+          <strong class="lightgreen">Most Recent Publish Date</strong>
         </span>
         <span id="sortByEdition">
-        <strong class="lightgreen"># of Editions</strong>
-        |
-        <a href="javascript:;" class="sortFirstPublish">Most Recent Publish Date</a>
+          <strong class="lightgreen"># of Editions</strong>
+          |
+          <a href="javascript:;" class="sortFirstPublish">Most Recent Publish Date</a>
         </span>
-
-    </span>
+      </span>
     </p>
+    <form action="/search" class="olform pagesearchbox">
+      <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
+      <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
+      <button type="submit" class="larger">$_('Search')</button>
+    </form>
 </div>
 
 <script type="text/javascript">
@@ -54,18 +57,66 @@ $:render_template("lib/covers", page)
 
 <div id="contentMeta" style="padding-top:0;">
 
-	<div class="head">
-	    <h2 style="margin-bottom:0px!important;">
-	        $_("Publishing History")
-                <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
-	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
-	        <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
-	    </h2>
-	</div>
+  <div class="head">
+    <h2 style="margin-bottom:0px!important;">
+      $_("Publishing History")
+      <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
+      <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
+      <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
+    </h2>
+  </div>
 
 <script type="text/javascript">
 <!--
+function parse_hash() {
+    try {
+        var hash = document.location.hash || "#";
+        var tokens = hash.substr(1).split("&");
+        var d = {};
+        for (var i in tokens) {
+            if (tokens[i]) {
+                var kv = tokens[i].split("=");
+                d[kv[0]] = kv[1];
+            }
+        }
+        return d;
+    }
+    catch (error) {
+        // Work-around for IE weirdness
+        return {};
+    }
+}
+
+function set_hash(data) {
+    var d = parse_hash();
+
+    for (var k in data) {
+        if (data[k])
+            d[k] = data[k];
+        else
+            delete d[k];
+    }
+
+    var tokens = [];
+    for (var k in d) {
+        tokens[tokens.length] = k + "=" + d[k];
+    }
+
+    var hash = "#" + tokens.join("&");
+    var current_hash = document.location.hash || "#";
+
+    if (hash == current_hash)
+        return;
+    document.location.hash = hash;
+}
+
 \$().ready(function() {
+    var _hash = parse_hash();
+
+    if (_hash.ebooks === 'true') {
+        handle_ebooks(_hash)
+    }
+
     var data = [{data: page.publishing_history}];
     var options = {
        series: {
@@ -131,7 +182,7 @@ $:render_template("lib/covers", page)
                     showTooltip(item.pageX, item.pageY,
                                 y + " $_('editions in') " + x);
                 };
-			}
+            }
         }
         else {
             \$("#chartLabel").remove();
@@ -173,7 +224,7 @@ $:render_template("lib/covers", page)
         \$("#coversLoading").show();
         \$(".jcarousel-prev").hide();
         \$(".jcarousel-next").hide();
-		page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
+        page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
     });
     var plot = \$.plot(placeholder, data, options);
     var dateFrom = plot.getAxes().xaxis.min.toFixed(0);
@@ -182,15 +233,11 @@ $:render_template("lib/covers", page)
     \$(".resetSelection").click(function(){
         \$.plot(placeholder, data, options);
         if (page.getPageCount() > 0) {\$("#coversNone").hide();};
-	\$("#coversLoading").show();
+        \$("#coversLoading").show();
         \$(".jcarousel-prev").hide();
         \$(".jcarousel-next").hide();
-	page.reset(reset);
+        page.reset(reset);
     });
-
-	//var renderPublishers = createTemplate("#publishers-template");
-	//var renderAuthors = createTemplate("#authors-template");
-	//var renderSubjects = createTemplate("#subjects-template");
 
     page._published_in = null;
 
@@ -210,7 +257,6 @@ $:render_template("lib/covers", page)
             counts.append('<a class="bookcount" href="javascript:;"></a>').find("a:last").text(x);
             counts.append(" / ");
             counts.append('<strong></strong>').find("strong:last").text(y);
-
             hash.ebooks = "true";
         }
         else {
@@ -226,65 +272,67 @@ $:render_template("lib/covers", page)
         counts.append("&nbsp;");
         counts.append('<span class="clickdata"></span>');
 
-		var yearFrom, yearTo;
-		if (page.filter.published_in) {
-			var y = "" + page.filter.published_in;
-			if (y.indexOf("-") > 0) {
-				var tokens = y.split("-");
-				yearFrom = tokens[0];
-				yearTo = tokens[1];
-				page._published_in = page.filter.published_in;
-			}
-			else {
-				yearFrom = yearTo = y;
-			}
-
-			hash.published_in = y;
-
-	        \$(".chartUnzoom").hide();
+        var yearFrom, yearTo;
+        if (page.filter.published_in) {
+            var y = "" + page.filter.published_in;
+            if (y.indexOf("-") > 0) {
+                var tokens = y.split("-");
+                yearFrom = tokens[0];
+                yearTo = tokens[1];
+                page._published_in = page.filter.published_in;
+            }
+            else {
+                yearFrom = yearTo = y;
+            }
+            
+            hash.published_in = y;
+            
+            \$(".chartUnzoom").hide();
             \$(".chartZoom").show();
-		}
-		else {
-		    page._published_in = null;
-
-			yearFrom = page.publishing_history[0][0];
-			yearTo = page.publishing_history[page.publishing_history.length-1][0];
-
+        }
+        else {
+            page._published_in = null;
+            
+            yearFrom = page.publishing_history[0][0];
+            yearTo = page.publishing_history[page.publishing_history.length-1][0];
+            
             hash.published_in = null;
-
+            
             \$(".chartZoom").hide();
             \$(".chartUnzoom").show();
-		}
+        }
 
-		\$("#coversCount").html(counts.html());
+        \$("#coversCount").html(counts.html());
 
-		if (yearFrom == yearTo) {
-	        \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
-		}
-		else {
-	        \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo-1));
-		}
-
-		if (page.sort == 'new') {
-		    hash.sort = 'date_published';
-
-		    \$("#sortByNew").show();
+        if (yearFrom == yearTo) {
+            \$(".clickdata").text(sprintf(_("published in %s."), yearFrom));
+        }
+        else {
+            \$(".clickdata").text(sprintf(_("published between %s & %s."), yearFrom, yearTo-1));
+        }
+        
+        if (page.sort == 'new') {
+            hash.sort = 'date_published';
+            
+            \$("#sortByNew").show();
             \$("#sortByEdition").hide();
-		}
-		else if (page.sort == 'editions') {
-		    hash.sort = 'edition_count';
-
-		    \$("#sortByNew").hide();
+        }
+        else if (page.sort == 'editions') {
+            hash.sort = 'edition_count';
+            
+            \$("#sortByNew").hide();
             \$("#sortByEdition").show();
-		}
-		set_hash(hash);
+        }
+        set_hash(hash);
     }
 
     function resetCarousel() {
-	\$("#coversCarousel").html("");
-	page.coverCarousel.scroll(1, false);
-	page.coverCarousel.size(page.getPageCount());
-	page.coverCarousel.reload();
+        \$("#coversCarousel").html("");
+        if(page.coverCarousel && page.coverCarousel.scroll) {
+            page.coverCarousel.scroll(1, false);
+            page.coverCarousel.size(page.getPageCount());
+            page.coverCarousel.reload();
+        }
         \$("#coversNone").hide();
         if (page.getPageCount() == 0) {
             \$("#coversLoading").customFadeOut();
@@ -299,27 +347,29 @@ $:render_template("lib/covers", page)
     }
 
     function resetFacets() {
-		\$("#resultsPublishers div.unordered").html(renderPublishers(page.publishers));
-		\$("#resultsAuthors div.unordered").html(renderAuthors(page.authors));
-
-		$for s, limit in subject_list:
-			\$("#subjects-$s").html(renderSubjects(page.${s}.slice(0, $limit)));
+        \$("#resultsPublishers div.unordered").html(renderPublishers(page.publishers));
+        \$("#resultsAuthors div.unordered").html(renderAuthors(page.authors));
+        
+        $for s, limit in subject_list:
+            \$("#subjects-$s").html(renderSubjects(page.${s}.slice(0, $limit)));
     }
 
     window.resetCarousel = resetCarousel;
     window.resetCounts = resetCounts;
 
-	function reset() {
-	    resetCarousel();
-	    resetCounts();
-	    resetFacets();
-
-        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
+    function reset() {
+        resetCarousel();
+        resetCounts();
+        resetFacets();
+        
+        if (page.getPageCount() > 0) {
+            \$("#coversNone").hide();
+        };
         \$("#coversLoading").customFadeOut();
         \$(".jcarousel-prev").customFadeIn();
         \$(".jcarousel-next").customFadeIn();
         \$("#coversCount").animate({backgroundColor:'#ffa337'},500).animate({backgroundColor:'#fff'},2000);
-	}
+    }
 
     if (jQuery.support.opacity) {
         \$(".chartYaxis").css({'top' : '60px', 'left' : '-60px'})
@@ -378,111 +428,68 @@ $:render_template("lib/covers", page)
     }
 
     function handle_page(hash) {
-    	\$.log(["handle_page", _hash]);
+        \$.log(["handle_page", _hash]);
 
-    	var index = parseInt(hash.page);
-    	if(index && index > 0) {
-    		page.coverCarousel.scroll(index, false);
-    	}
+        var index = parseInt(hash.page);
+        if(index && index > 0) {
+            page.coverCarousel.scroll(index, false);
+        }
     }
 
-	function handle_published_in(hash) {
-    	if (!hash.published_in) {
-    	    return;
-    	}
+    function handle_published_in(hash) {
+        if (!hash.published_in) {
+            return;
+        }
 
-	    var yearFrom, yearTo;
+        var yearFrom, yearTo;
 
-		var y = hash.published_in;
-		if (y.indexOf("-") > 0) {
-			var tokens = y.split("-");
-			yearFrom = tokens[0];
-			yearTo = tokens[1];
+        var y = hash.published_in;
+        if (y.indexOf("-") > 0) {
+            var tokens = y.split("-");
+            yearFrom = tokens[0];
+            yearTo = tokens[1];
 
-			var _options = \$.extend({}, options, {
-			    xaxis: {min: yearFrom, max: yearTo}
-			});
-		}
-		else {
-			yearFrom = yearTo = y;
-			var _options = options;
-		}
+            var _options = \$.extend({}, options, {
+                xaxis: {min: yearFrom, max: yearTo}
+            });
+        }
+        else {
+            yearFrom = yearTo = y;
+            var _options = options;
+        }
 
-		if (parseInt(yearFrom) && parseInt(yearTo)) {
-		    page.addFilter({"published_in": hash.published_in}, function() {
-		        reset();
-		        handle_page(hash);
+        if (parseInt(yearFrom) && parseInt(yearTo)) {
+            page.addFilter({"published_in": hash.published_in}, function() {
+                reset();
+                handle_page(hash);
                 var plot = \$.plot(placeholder, data, _options);
-		    });
-		}
-	}
+            });
+        }
+    }
 
-	function handle_sort(hash) {
-	    if (!hash.sort) {
-	        return;
-	    }
+    function handle_sort(hash) {
+        if (!hash.sort) {
+            return;
+        }
 
-	    if (hash.sort == 'date_published') {
-	        page.setSort('new');
-	        resetCarousel();
-            resetCounts();
-	    }
-	    else if (hash.sort == 'edition_count') {
-	        page.setSort('editions');
+        if (hash.sort == 'date_published') {
+            page.setSort('new');
             resetCarousel();
             resetCounts();
-	    }
-	}
+        }
+        else if (hash.sort == 'edition_count') {
+            page.setSort('editions');
+            resetCarousel();
+            resetCounts();
+        }
+    }
 
-	handle_sort(_hash);
-	handle_ebooks(_hash);
-	handle_published_in(_hash);
-	handle_page(_hash);
+    handle_sort(_hash);
+    handle_ebooks(_hash);
+    handle_published_in(_hash);
+    handle_page(_hash);
 });
 
-function parse_hash() {
-    try {
-    	var hash = document.location.hash || "#";
-    	var tokens = hash.substr(1).split("&");
-    	var d = {};
-    	for (var i in tokens) {
-    		if (tokens[i]) {
-    			var kv = tokens[i].split("=");
-    			d[kv[0]] = kv[1];
-    	    }
-    	}
-    	return d;
-    }
-    catch (error) {
-        // Work-around for IE weirdness
-        return {};
-    }
-}
-
-function set_hash(data) {
-	var d = parse_hash();
-
-	for (var k in data) {
-		if (data[k])
-			d[k] = data[k];
-		else
-			delete d[k];
-	}
-
-	var tokens = [];
-	for (var k in d) {
-		tokens[tokens.length] = k + "=" + d[k];
-	}
-
-    var hash = "#" + tokens.join("&");
-    var current_hash = document.location.hash || "#";
-
-    if (hash == current_hash)
-        return;
-	document.location.hash = hash;
-}
-
-var _hash = parse_hash();
 //-->
 </script>
 
@@ -495,30 +502,30 @@ var _hash = parse_hash();
     </div>
 
     <div class="clearfix"></div>
+    
+    <div class="head" id="subjectRelated">
+      <h2>$_("Related...")
+        <!--
+            <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
+            -->
+      </h2>
+    </div>
 
-        <div class="head" id="subjectRelated">
-            <h2>$_("Related...")
-                <!--
-                <span class="count">        <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')">Search within $page.name</a></span>
-                -->
-            </h2>
-        </div>
-
-	$jsdef renderSubjects(subjects):
-	    $if len(subjects) > 0:
-	        <span class="subject">
-	        $for s in subjects:
-	            <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
-	        </span>
-	    $else:
-	        <span class="title"><em>$_("None found.")</em></span>
+    $jsdef renderSubjects(subjects):
+        $if len(subjects) > 0:
+            <span class="subject">
+            $for s in subjects:
+                <a href="$s.key">$s.name</a>$cond(loop.last, '', ',')
+            </span>
+        $else:
+            <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
         <div class="contentQuarter">
-            <h6 class="black collapse uppercase">$s</h6>
-			<div class="subjects" id="subjects-$s">
-				$:renderSubjects(page[s][:limit])
-			</div>
+          <h6 class="black collapse uppercase">$s</h6>
+          <div class="subjects" id="subjects-$s">
+            $:renderSubjects(page[s][:limit])
+          </div>
         </div>
         $if s != 'times':
             <div class="contentSpacer"></div>
@@ -533,13 +540,13 @@ $jsdef renderAuthors(authors):
         <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
         <br/>
 <div id="resultsAuthors">
-    <div class="head">
-        <h3>$_("Prolific Authors")</h3>
-        <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
-    </div>
-    <div class="unordered">
-        $:renderAuthors(page.authors)
-    </div>
+  <div class="head">
+    <h3>$_("Prolific Authors")</h3>
+    <div class="smallest lightgreen sansserif">$_("who have written the most books on this subject")</div>
+  </div>
+  <div class="unordered">
+    $:renderAuthors(page.authors)
+  </div>
 </div>
 <div class="spacer"></div>
 
@@ -561,21 +568,11 @@ $jsdef renderPublishers(publishers):
                 <a href="/search?${page.subject_type}_facet=$page.name.replace('&','%26')&amp;publisher_facet=$p.name.replace('"', '\\"').replace('&','%26')" title="$_('Get more information about this publisher')">$p.name</a>,
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
-         <br/>
-
-$# <div id="resultsPublishers">
-$#     <div class="head">
-$#         <h3>$_("Prominent Publishers")</h3>
-$#         <div class="smallest lightgreen sansserif">$_("who have published the most books on this subject")</div>
-$#     </div>
-$#     <div class="unordered">
-$#         $:renderPublishers(page.publishers[:20])
-$#     </div>
-$# </div>
+        <br/>
 
 $if "lists" in ctx.features:
     <style type="text/css">
-    #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
+      #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
     </style>
     <div class="spacer"></div>
     <div id="subjectLists">
@@ -583,15 +580,5 @@ $if "lists" in ctx.features:
     </div>
 
 <div class="section clearfix"></div>
-
-<a name="search"></a>
-<form action="/search" class="olform">
-    <h2 class="collapse"><label for="searchSubjects">Search</label> <span class="sansserif grey smaller">within $page.name</span></h2>
-    <p>
-        <input type="hidden" name="${page.subject_type}_facet" value="$page.name" />
-        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value="" />
-        <button type="submit" class="larger">$_('Search')</button>
-    </p>
-</form>
 
 </div>

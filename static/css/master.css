@@ -345,6 +345,11 @@ div.formDivider {float:left;width:25px;min-height:100px;}
 form.olform {
   font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
 }
+
+form.pagesearchbox {
+    margin-top: 15px;
+}
+
 form.olform .label {
     width: 838px;
     padding: 10px 0 2px;
@@ -1336,7 +1341,54 @@ div#content div.contentLists {
     color: #666;
     font-size: 14px;
 }
+
 .resultsCovers a {text-decoration: none;}
+.categoryCarouselContainer { height: 85px; }
+.categoryCarouselContainer .resultsIcons .jcarousel-next-horizontal { top: 13px; }
+.categoryCarouselContainer .resultsIcons .jcarousel-prev-horizontal { top: 13px; }
+.categoryCarouselContainer .resultsIcons { height: 85px;}
+.categoryCarouselContainer .resultsIcons .jcarousel-container { height: 85px;}
+ul.categoryCarousel { list-style-type:none; height:85px; overflow:hidden; margin-left:0 !important; margin-bottom:0 !important; }
+ul.categoryCarousel li { position:relative; float:left; list-style:none!important; }
+ul.categoryCarousel .hiddenCoverMagic { height:85px; }
+ul.categoryCarousel .hiddenCoverMagic div, .hiddenCoverMagic a { display:none; }
+a.category-nostyle { text-decoration: none; }
+.category-icon { margin: 0 auto; width: 30px;}
+img.category-img {
+    width: 30px;
+    margin-top: 5px;
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: gray; /* IE 6-9 */
+}
+p.category-count { text-align: center; font-size: .7em; line-height: 1; color: #666; padding: 0px; margin: 0px; margin-top: 5px; font-style: italic; }
+p.category-title {
+    font-size: 0.875em;
+    text-align: center;
+    line-height: 1;
+    margin: 0px;
+    margin-top: 5px;
+}
+
+
+.resultsIcons .jcarousel-container { height: 130px; padding: 0px;}
+.resultsIcons .jcarousel-container-horizontal { height: 130px; padding: 0px;}
+.resultsIcons { height: 130px;  }
+.resultsIcons .jcarousel-container { width: 958px; padding: 5px 0px; }
+.resultsIcons .jcarousel-clip { width: 918px; }
+.resultsIcons .jcarousel-item-horizontal { width: 153px; margin-right: 0;}
+.resultsIcons .jcarousel-next-horizontal { top: 35px;}
+.resultsIcons .jcarousel-prev-horizontal { top: 35px; left: -15px;}
+
+div.chartHome {float:left;width:160px;margin:0 29px 30px 0;text-align:center;}
+div.chartHome .chartShow {width:150px;height:60px;padding:0 5px;border-bottom: 1px solid #666;cursor:pointer;}
+div.chartHome a {color:#000;text-decoration:none;}
+
+/* RESULTS CAROUSEL SKIN */
+
 ul.homeCarousel {list-style-type:none;height:200px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
 ul.homeCarousel li {position:relative;float:left;list-style:none!important;}
 ul.homeCarousel .hiddenCoverMagic {width:100px;height:200px;}

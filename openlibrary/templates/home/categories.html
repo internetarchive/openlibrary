@@ -1,0 +1,109 @@
+$def with (id="ol-carousel")
+
+<div class="head">
+  <h2 class="inline"><a href="/subjects">Browse by Category</a></h2>
+  <p class="inline sansserif large collapse">
+    &nbsp; Browse books by popular categories or <a href="/subjects">explore other categories.</a>
+  </p>
+</div>
+
+<script type="text/javascript">
+  \$(function() {
+
+    var Subject = {
+        count: function (subject, callback) {
+            var url = '/subjects/' + subject + '.json';
+            \$.ajax({
+                type: "GET",
+                url: url,
+                dataType: "json",
+                success: function(result) {
+                    var cnt = result.work_count || 0;
+                    if (callback) {
+                        return callback(subject, cnt);
+                    }
+                    return cnt;
+                }
+            });
+        },
+        render: function(subject, key) {
+            return '<li class="category-item">' +
+                '<a class="category-nostyle" href="/subjects/' +
+                 key + '#sort=' + subject.sort + '&ebooks=true">' +
+            '<div class="category-icon">' +
+                '<img class="category-img"' +
+                'src="/static/images/categories/' + key + '.svg"/>' +
+
+                '</div>' +
+                '<p class="category-title">' + subject.name + '</p>' +
+                '<p class="category-count" name="' + key + '"></p>' +
+                '</a>' +
+            '</li>';
+        }
+    };
+
+
+    var Categories = {
+        featured: {
+            'art': {'name': 'Art', 'sort': 'edition_count'},
+            'science_fiction': {'name': 'Sci-Fi', 'sort': 'edition_count'},
+            'fantasy': {'name': 'Fantasy', 'sort': 'edition_count'},
+            'biographies': {'name': 'Biographies', 'sort': 'edition_count'},
+            'recipes': {'name': 'Recipes', 'sort': 'edition_count'},
+            'romance': {'name': 'Romance', 'sort': 'edition_count'},
+            'textbooks': {'name': 'Textbooks', 'sort': 'edition_count'},
+            'children': {'name': 'Children', 'sort': 'edition_count'},
+            'history': {'name': 'History', 'sort': 'edition_count'},
+            'medicine': {'name': 'Medicine', 'sort': 'edition_count'},
+            'religion': {'name': 'Religion', 'sort': 'edition_count'},
+            'mystery_and_detective_stories': {'name': 'Mysteries', 'sort': 'edition_count'},
+            'plays': {'name': 'Plays', 'sort': 'edition_count'},
+            'music': {'name': 'Music', 'sort': 'edition_count'},
+            'science': {'name': 'Science', 'sort': 'edition_count'}
+        },
+        get: function(category) {
+            var url = '/subjects/' + category + '.json';
+        },
+        setup: function(categories) {
+            for (var key in categories) {
+                var category = categories[key];
+                \$('.categoryCarousel').append(Subject.render(category, key));
+            }
+            for (var cat in categories) {
+                Subject.count(cat, function(subject, count) {
+                    var cnt = count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    \$('[name="' + subject + '"]').text(cnt + ' books');
+                });
+            }
+        }
+    }
+    Categories.setup(Categories.featured);
+
+    function load_covers(carousel, state) {
+
+        for (var i = carousel.first; i <= carousel.last; i++) {
+            if (carousel.has(i)) {
+                carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
+
+                var cover = carousel.get(i).find("img.cover");
+                if (cover.length > 0) {
+                    cover.attr("src", cover.attr("xsrc"));
+                }
+            }
+        }
+    }
+
+    \$("#$id").jcarousel({
+        scroll:6,
+        itemLoadCallback: {onBeforeAnimation: load_covers}
+    });
+
+})
+</script>
+
+  <div class="contentLists results categoryCarouselContainer">
+    <div class="resultsIcons">
+        <ul class="categoryCarousel" id="$id">
+        </ul>
+    </div>
+  </div>
