@@ -3,7 +3,7 @@ $def with (id="ol-carousel")
 <div class="head">
   <h2 class="inline"><a href="/subjects">Browse by Category</a></h2>
   <p class="inline sansserif large collapse">
-    &nbsp; Browse books by popular categories or <a href="/subjects">explore other categories</a>
+    &nbsp; Browse books by popular categories or <a href="/subjects">explore other categories.</a>
   </p>
 </div>
 
@@ -71,7 +71,8 @@ $def with (id="ol-carousel")
             }
             for (var cat in categories) {
                 Subject.count(cat, function(subject, count) {
-                    \$('[name="' + subject + '"]').text(count + ' books');
+                    var cnt = count.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+                    \$('[name="' + subject + '"]').text(cnt + ' books');
                 });
             }
         }
