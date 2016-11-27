@@ -46,16 +46,20 @@ class home(delegate.page):
 def trending_carousel(limit=100):
     """popular works across lists which are available"""
     books = []
-    lst = web.ctx.site.get('/people/mekBot/lists/OL104041L')
-    for seed in lst.seeds:
-        key = seed['key']
-        edition = web.ctx.site.get(key)
-        #if not lending.get_loan(edition.ocaid):
+    lst = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
+    seeds = lst.seeds
+    random.shuffle(seeds)
+    while seeds and len(books) < 25:
+        seed = seeds.pop()
+        key = seed['key']        
+        edition = web.ctx.site.get(key)        
+        ebook = seed.get_ebook_info()
+        if 'daisy_url' in ebook and 'borrow_url' not in ebook:
+            continue
+        if 'borrow_url' in ebook and ebook['borrowed']:
+            continue
         book = format_book_data(edition)
         books.append(book)
-
-    random.shuffle(books)
-    add_checkedout_status(books)
     return render_template("books/carousel", storify(books), id='popular-carousel')
 
 @public
@@ -83,7 +87,6 @@ def add_checkedout_status(books):
             checked_out = doc.get("borrowed") == "true"
         else:
             checked_out = False
-        book['checked_out'] = checked_out
 
 @public
 def render_returncart(limit=60, randomize=True):
