@@ -87,8 +87,7 @@ def loans_carousel(loans, css_id="CarouselLoans"):
             book['cover_url'] = h.get_coverstore_url() + "/b/id/%s-M.jpg" % book.covers[0]
         books.append(format_book_data(book))
     if books:
-        return render_template("books/carousel",
-                               storify(books), id=css_id)
+        return render_template("books/carousel", storify(books), id=css_id)
 
 @public
 def render_returncart(limit=60, randomize=True):
