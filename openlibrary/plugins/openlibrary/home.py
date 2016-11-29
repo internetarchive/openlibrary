@@ -48,6 +48,31 @@ class home(delegate.page):
             user=user, loans=loans)
 
 @public
+def popular_carousel(limit=100):
+    """popular works across lists which are available"""
+    books = []
+    lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
+    lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
+    seeds1 = lst1.seeds
+    seeds2 = lst2.seeds
+    random.shuffle(seeds1)
+    random.shuffle(seeds2)
+    seeds = seeds1 + seeds2
+    while seeds and len(books) < 36:
+        seed = seeds.pop(0)
+        key = seed['key']
+        ebook = seed.get_ebook_info()
+        if 'daisy_url' in ebook and 'borrow_url' not in ebook:
+            continue
+        if 'borrow_url' in ebook and ebook['borrowed']:
+            continue
+        edition = web.ctx.site.get(key)
+        book = format_book_data(edition)
+        books.append(book)
+    return render_template("books/carousel", storify(books), id='CarouselPopular')
+
+
+@public
 def carousel_from_list(key, randomize=False, limit=60):
     id = key.split("/")[-1] + "_carousel"
 
