@@ -27,7 +27,7 @@ $def with (books, id="ol-carousel")
         <ul class="homeCarousel jcarousel-skin-OL" id="$id">
             $for book in books:
                 <li>
-                    $:render_template("books/carousel_item", book)
+                    $:render_template("books/carousel_item", book, id=id)
                 </li>
         </ul>
     </div>

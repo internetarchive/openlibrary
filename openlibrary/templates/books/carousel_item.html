@@ -1,4 +1,4 @@
-$def with (book)
+$def with (book, id=None)
 
 $if "authors" in book:
     $ authors = ", ".join(a.name for a in book.authors)
@@ -11,7 +11,10 @@ $else:
   <span itemscope itemtype="https://schema.org/Book">
     $if "cover_url" in book:
         <div class="SRPCover">
-            <a href="$book.url" title="$long_title"><img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
+            <a href="$book.url"
+	       $if id:
+	           data-ol-link-track="$(id)"
+	       title="$long_title"><img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
         </div>
     $else:
         <a href="$book.url" title="$long_title">
