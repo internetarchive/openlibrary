@@ -80,8 +80,9 @@ def loans_carousel(loans=None, css_id="CarouselLoans"):
     _loans = loans or []
     books = [format_book_data(web.ctx.site.get(loan['book']))
              for loan in _loans]
-    if books:
-        return render_template("books/carousel", storify(books), id=css_id)
+    return render_template(
+        "books/carousel", storify(books), id=css_id
+    ) if books else ""
 
 @public
 def render_returncart(limit=60, randomize=True):
