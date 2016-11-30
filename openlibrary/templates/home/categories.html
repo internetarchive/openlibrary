@@ -28,9 +28,10 @@ $def with (id="ol-carousel")
         },
         render: function(subject, key) {
             return '<li class="category-item">' +
-                '<a class="category-nostyle" href="/subjects/' +
+                '<a class="category-nostyle" data-ol-link-track="CarouselCategories"' +
+                    href="/subjects/' +
                  key + '#sort=' + subject.sort + '&ebooks=true">' +
-            '<div class="category-icon">' +
+                '<div class="category-icon">' +
                 '<img class="category-img"' +
                 'src="/static/images/categories/' + key + '.svg"/>' +
 
