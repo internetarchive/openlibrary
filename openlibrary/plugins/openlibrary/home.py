@@ -38,8 +38,6 @@ class home(delegate.page):
         returncart_list = config.get("home", {}).get("returncart_list")
 
         user = accounts.get_current_user()
-        if user:
-            user.update_loan_status()
         loans = borrow.get_loans(user) if user else None
 
         return render_template(
