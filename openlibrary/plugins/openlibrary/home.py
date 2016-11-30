@@ -76,17 +76,12 @@ def add_checkedout_status(books):
 
 @public
 def loans_carousel(loans=None, css_id="CarouselLoans"):
-    """Generates books I have checked out on home page"""
-    books = []
-    if loans:
-        for loan in loans:
-            book = web.ctx.site.get(loan['book'])
-            book['loan'] = loan
-            if book.covers:
-                book['cover_url'] = h.get_coverstore_url() + "/b/id/%s-M.jpg" % book.covers[0]
-            books.append(format_book_data(book))
-        if books:
-            return render_template("books/carousel", storify(books), id=css_id)
+    """Generates 'Your Loans' carousel on home page"""
+    _loans = loans or []
+    books = [format_book_data(web.ctx.site.get(loan['book']))
+             for loan in _loans]
+    if books:
+        return render_template("books/carousel", storify(books), id=css_id)
 
 @public
 def render_returncart(limit=60, randomize=True):
