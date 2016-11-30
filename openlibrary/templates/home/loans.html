@@ -6,7 +6,7 @@ $if carousel:
         <p class="inline sansserif large collapse">
           &nbsp;
           $if len(loans):
-              You can still <a href="/borrow">borrow</a> $(5 - len(loans)) more books until you've hit the limit!
+              You can still <a href="/borrow">borrow</a> $(5 - len(loans)) more book$("" if len(loans) == 4 else "s") until you've hit the limit!
           $else:
               You have reached the borrowing limit. Please return a book to checkout something new.
         </p>
