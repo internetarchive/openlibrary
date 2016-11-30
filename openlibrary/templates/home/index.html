@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, lending_list=None, returncart_list=None)
+$def with (stats=None, blog_posts=None, lending_list=None, returncart_list=None, user=None, loans=None)
 
 $var title: $_("Welcome to Open Library")
 
@@ -21,6 +21,9 @@ $:render_template("home/splash")
     <div class="clearfix"></div>
 
     $:render_template("home/returncart")
+    <div class="clearfix"></div>
+
+    $:render_template("home/loans", loans)
     <div class="clearfix"></div>
 
     $:render_template("home/stats", stats)

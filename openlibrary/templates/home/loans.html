@@ -1,0 +1,16 @@
+$def with(loans)
+$ carousel = loans_carousel(loans)
+$if carousel:
+    <div class="head">
+        <h2 class="inline"><a href="/account/loans">Your Loans</a></h2>
+        <p class="inline sansserif large collapse">
+          &nbsp;
+          $if len(loans):
+	      $ loans_remaining = 5 - len(loans)
+              You can still <a href="/borrow">borrow</a> $loans_remaining more book$("" if loans_remaining == 1 else "s") until you've hit the limit!
+          $else:
+              You have reached the borrowing limit. Please return a book to checkout something new.
+        </p>
+    </div>
+
+    $:carousel

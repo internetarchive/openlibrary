@@ -9,7 +9,9 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
+from openlibrary import accounts
 from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
+from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
 
@@ -35,11 +37,15 @@ class home(delegate.page):
         lending_list = config.get("home", {}).get("lending_list")
         returncart_list = config.get("home", {}).get("returncart_list")
 
-        return render_template("home/index",
-            stats=stats,
+        user = accounts.get_current_user()
+        loans = borrow.get_loans(user) if user else None
+
+        return render_template(
+            "home/index", stats=stats,
             blog_posts=blog_posts,
             lending_list=lending_list,
-            returncart_list=returncart_list)
+            returncart_list=returncart_list,
+            user=user, loans=loans)
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -67,6 +73,16 @@ def add_checkedout_status(books):
         else:
             checked_out = False
         book['checked_out'] = checked_out
+
+@public
+def loans_carousel(loans=None, css_id="CarouselLoans"):
+    """Generates 'Your Loans' carousel on home page"""
+    _loans = loans or []
+    books = [format_book_data(web.ctx.site.get(loan['book']))
+             for loan in _loans]
+    return render_template(
+        "books/carousel", storify(books), id=css_id
+    ) if books else ""
 
 @public
 def render_returncart(limit=60, randomize=True):
