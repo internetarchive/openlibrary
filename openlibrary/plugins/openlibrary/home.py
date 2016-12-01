@@ -48,28 +48,48 @@ class home(delegate.page):
             user=user, loans=loans)
 
 @public
-def popular_carousel(limit=100):
-    """popular works across lists which are available"""
+def popular_carousel(limit=36):
+    """popular works across lists which are available for reading
+    (borrowable or downloadable; not daisy only)
+
+    Limit is 36 by default to show 6 pages of the 6-item carousels on
+    landing page.
+
+    lst1 is a manually curated collection of popular available books
+    which was constructed by looking at goodreads
+    (http://www.goodreads.com/list/show/1.Best_Books_Ever) Best Ever
+    list.
+
+    lst2 comes from the "top 2000+ most requested print disabled
+    eBooks in California" displayed from the /lists page.
+
+    Because lst1 is more highly curated and has more overall
+    recognizable and popular books, we prioritize drawing from this
+    list (randomized) and then fallback to lst2 (as lst1 is depleted
+    by virtue of loans).
+
+    """
     books = []
     lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
     lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
-    seeds1 = lst1.seeds
-    seeds2 = lst2.seeds
-    random.shuffle(seeds1)
-    random.shuffle(seeds2)
-    seeds = seeds1 + seeds2
-    while seeds and len(books) < 36:
-        seed = seeds.pop(0)
-        key = seed['key']
-        ebook = seed.get_ebook_info()
-        if 'daisy_url' in ebook and 'borrow_url' not in ebook:
-            continue
-        if 'borrow_url' in ebook and ebook['borrowed']:
-            continue
-        edition = web.ctx.site.get(key)
-        book = format_book_data(edition)
-        books.append(book)
-    return render_template("books/carousel", storify(books), id='CarouselPopular')
+    if lst1 and lst2:
+        seeds1, seeds2 = lst1.seeds, lst2.seeds
+        random.shuffle(seeds1)
+        random.shuffle(seeds2)
+        seeds = seeds1 + seeds2
+        while seeds and len(books) < limit:
+            seed = seeds.pop(0)
+            key = seed['key']
+            ebook = seed.get_ebook_info()
+            if 'daisy_url' in ebook and 'borrow_url' not in ebook:
+                continue
+            if 'borrow_url' in ebook and ebook['borrowed']:
+                continue
+            edition = web.ctx.site.get(key)
+            book = format_book_data(edition)
+            books.append(book)
+    return render_template("books/carousel", storify(books),
+                           id='CarouselPopular')
 
 
 @public
