@@ -1757,7 +1757,8 @@ table.navEdition td {
 select#select-id {
     max-width: 300px;
 }
-.borrow-btn, .read-btn {
+
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn {
     color: white;
     background: #036DAA;
     border-radius: 5px;
@@ -1765,11 +1766,19 @@ select#select-id {
     cursor: pointer;
     display: inline-block;
 }
-.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited {
+.wait-btn {
+    background: #ffa337;
+}
+
+.unwait-btn {
+    background: #aaa;
+}
+
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {
     color: white;
     text-decoration: none;
 }
-.borrow-btn:hover, .read-btn:hover {
+.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover {
     color: white;
     text-decoration: underline;
 }
