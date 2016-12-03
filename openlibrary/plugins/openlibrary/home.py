@@ -10,7 +10,8 @@ from infogami.infobase.client import storify
 from infogami import config
 
 from openlibrary import accounts
-from openlibrary.core import admin, cache, ia, inlibrary, helpers as h
+from openlibrary.core import admin, cache, ia, inlibrary, lending, \
+    helpers as h
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
@@ -68,7 +69,12 @@ def popular_carousel(limit=36):
     list (randomized) and then fallback to lst2 (as lst1 is depleted
     by virtue of loans).
 
+    Bulk submits ~50 archive.org itemids to is_borrowable to see if
+    they are available (only considers waitinglist and bookreader
+    borrows, no acs4)
     """
+    import requests
+
     books = []
     lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
     lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
@@ -77,17 +83,29 @@ def popular_carousel(limit=36):
         random.shuffle(seeds1)
         random.shuffle(seeds2)
         seeds = seeds1 + seeds2
+
+        parts = {}
         while seeds and len(books) < limit:
-            seed = seeds.pop(0)
-            key = seed['key']
-            ebook = seed.get_ebook_info()
-            if 'daisy_url' in ebook and 'borrow_url' not in ebook:
-                continue
-            if 'borrow_url' in ebook and ebook['borrowed']:
-                continue
-            edition = web.ctx.site.get(key)
-            book = format_book_data(edition)
-            books.append(book)
+            while seeds and len(parts) < 50:
+                seed = seeds.pop(0)
+                key = seed['key']
+                edition = web.ctx.site.get(key)
+                archive_id = edition.get('ocaid')
+                if archive_id:
+                    parts[archive_id] = edition
+
+            archive_ids = parts.keys()
+            responses = lending.is_borrowable(archive_ids)
+
+            for archive_id in archive_ids:
+                if len(books) == 36:
+                    continue
+                if archive_id in responses:
+                    status = 'status' in responses[archive_id]
+                    if status and responses[archive_id]['status'] == 'available':
+                        books.append(format_book_data(parts[archive_id]))
+            parts = {}
+
     return render_template("books/carousel", storify(books),
                            id='CarouselPopular')
 

@@ -69,6 +69,23 @@ def is_loaned_out(identifier):
     """
     return is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier) or is_loaned_out_on_ia(identifier)
 
+def is_borrowable(identifiers):
+    """Takes a list of archive.org ocaids and returns json indicating
+    whether each of these books represented by these identifiers are
+    available (i.e. not on waiting list and not checked out via
+    bookreader.  Does not check acs4 (by default) because the queries
+    are prohibitively slow.
+    """
+    import requests
+    availability_url = 'http://www-richard2.archive.org/services/loans/beta/loan/index.php?action=availability'
+
+    # XXX may want to have a timeout in case archive.org cannot be reached
+    data = urllib.urlencode({
+        'identifiers': ','.join(identifiers)
+    })    
+    content = urllib2.urlopen(url=availability_url, data=data,
+                              timeout=3).read()
+    return simplejson.loads(content).get('responses', {})
 
 def is_loaned_out_on_acs4(identifier):
     """Returns True if the item is checked out on acs4 server.
