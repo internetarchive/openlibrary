@@ -36,9 +36,18 @@ $elif available_loans:
 $else:
     <p style="padding-bottom:10px;">
         <span class="smaller">eBook is checked out.</span>
-        <br>
+        $ wlsize = page.get_waitinglist_size()
         $if waiting_loan:
-            You are on the <a href="$borrow_link">waiting list</a>.
+           $ spot = ctx.user.get_waiting_loan_for(page)['position']
+           $if spot == 1:
+               <p>You are next on the waiting list:</p>
+           $else:
+               <p>You are #$(spot) of $(wlsize) on the waiting list:</p>
+               
+           <p><a href="$borrow_link" class="unwait-btn">Leave waiting list?</a></p>
+           <br/>
         $else:
-            <a href="$borrow_link">Join the waiting list?</a>
+           <p>Readers waiting for this title: $(wlsize)</p>
+           <p><a href="$borrow_link" class="wait-btn">Join the waiting list?</a></p>
+           <br/>
     </p>
