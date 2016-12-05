@@ -43,11 +43,14 @@ $else:
                <p>You are next on the waiting list:</p>
            $else:
                <p>You are #$(spot) of $(wlsize) on the waiting list:</p>
-               
+
            <p><a href="$borrow_link" class="unwait-btn">Leave waiting list?</a></p>
            <br/>
         $else:
-           <p>Readers waiting for this title: $(wlsize)</p>
+	   $if wlsize:
+             <p>Readers waiting for this title: $(wlsize)</p>
+	   $else:
+	     <p>You'll be next in line:</p>
            <p><a href="$borrow_link" class="wait-btn">Join the waiting list?</a></p>
            <br/>
     </p>
