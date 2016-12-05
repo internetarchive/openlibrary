@@ -27,9 +27,19 @@ $if user:
 
 $ borrow_link = page.url() + '/borrow'
 
-$if user_loan:
-    <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Read/Return eBook</a><br />
-    <span class="smaller">Checked out from $contributor</span></p>
+$if user_loan:    
+    <p>
+      <a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Read eBook</a>
+      $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
+      <form action="$return_url" method="post" class="waitinglist-form">
+        <input type="hidden" name="action" value="return" />
+	<input type="submit" value="Return book" class="submit unwait-btn"/>
+      </form>
+    </p>
+    <p>
+      <span class="smaller">Checked out from $contributor</span>
+    </p>
+
 $elif available_loans:
     <p style="padding-bottom:10px;"><a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Borrow eBook</a><br />
     <span class="smaller">in-browser, ePub, or PDF from $contributor</span></p>
