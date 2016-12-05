@@ -152,7 +152,7 @@ body#user div#content{font-family:Georgia,"Palatino Linotype", "Book Antiqua", P
 body#admin div#content,body#edit div#content{font-family:"News Gothic MT","Trebuchet MS",Helvetica,Geneva,sans-serif;}
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;font-size:0.875em;}
 input[type=text]{margin: 0 10px 5px 0;}
-#contentBody input[type=submit]{font-size:1.125em!important;}
+#contentBody input[type=submit]{font-size:1.125em;}
 p.instruct {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 0.875em;
@@ -1759,6 +1759,7 @@ select#select-id {
 }
 
 .borrow-btn, .read-btn, .wait-btn, .unwait-btn {
+    margin: 1px auto;
     color: white;
     background: #036DAA;
     border-radius: 5px;
@@ -1777,18 +1778,33 @@ select#select-id {
 }
 
 .waitinglist-form {
+    margin-bottom: 10px;
+}
+
+.waitinglist-form input[type=submit] {
+    font-size: 12px!important;
+}
+
+.Tools .waitinglist-form {
     padding-left: 42px;
-    font-size: 12px !important;
+}
+
+.btn-notice {
+    padding: 5px;  
+    background-color: rgba(226, 220, 197, 0.28);
 }
 
 .borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {
+    font-size: 12px!important;
     color: white;
     text-decoration: none;
 }
 .borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover {
+    font-size: 12px!important;
     color: white;
     text-decoration: underline;
 }
+
 
 /* POPUP CAROUSEL SKIN */
 body#form .jcarousel-list-horizontal {
