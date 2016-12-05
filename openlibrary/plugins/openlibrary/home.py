@@ -86,6 +86,7 @@ def popular_carousel(limit=36):
 
         parts = {}
         while seeds and len(books) < limit:
+            archive_ids = []
             while seeds and len(parts) < 50:
                 seed = seeds.pop(0)
                 key = seed['key']
@@ -93,8 +94,8 @@ def popular_carousel(limit=36):
                 archive_id = edition.get('ocaid')
                 if archive_id:
                     parts[archive_id] = edition
+                    archive_ids.append(archive_id)
 
-            archive_ids = parts.keys()
             responses = lending.is_borrowable(archive_ids)
 
             for archive_id in archive_ids:
