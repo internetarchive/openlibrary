@@ -93,8 +93,13 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
             </p>
         </div>
     $elif not page.can_borrow():
+        $# Check for private collection
+        $if page.is_in_private_collection():
+            <h2 class="sansserif">This book isn't available to borrow.</h2>
+            <p>This book is part of a special collection. Look for something else in the <a href="/borrow">lending library</a>?</p>
+
         $# Check for in-library
-        $if 'inlibrary' in page.get_ia_collections():
+        $elif 'inlibrary' in page.get_ia_collections():
             $if available_loans:
                 <div class="message info">
                     $# george copy

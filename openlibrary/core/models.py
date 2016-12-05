@@ -265,11 +265,21 @@ class Edition(Thing):
                 or 'lendinglibrary' in collections
                 or self.get_ia_meta_fields().get("access-restricted") is True)
 
+    # Special check to prevent private collection books from
+    # appearing with Borrow links in OL
+    # TODO: Remove when we can handle institutional books
+    def is_in_private_collection(self):
+        ia_collections = self.get_ia_collections()
+        return any(x in self.private_collections() for x in ia_collections)
+
+    def private_collections(self):
+        return ['georgetown-university-law-library-rr']
+
     def can_borrow(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None))
+        return ('lendinglibrary' in collections or
+            ('inlibrary' in collections and inlibrary.get_library() is not None)
+            ) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
