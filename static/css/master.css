@@ -1768,10 +1768,17 @@ select#select-id {
 }
 .wait-btn {
     background: #ffa337;
+    border: none;
 }
 
 .unwait-btn {
     background: #aaa;
+    border: none;
+}
+
+.waitinglist-form {
+    padding-left: 42px;
+    font-size: 12px !important;
 }
 
 .borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {

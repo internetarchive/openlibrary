@@ -44,13 +44,44 @@ $else:
            $else:
                <p>You are #$(spot) of $(wlsize) on the waiting list:</p>
 
-           <p><a href="$borrow_link" class="unwait-btn">Leave waiting list?</a></p>
+
+	   <form method="POST" action="$borrow_link" class="waitinglist-form leave-waitlist">
+             <input type="hidden" name="action" value="leave-waitinglist"/>
+	     <input type="submit" class="submit unwait-btn" value="Leave waiting list?"/>
+           </form>
+	   
            <br/>
         $else:
 	   $if wlsize:
              <p>Readers waiting for this title: $(wlsize)</p>
 	   $else:
 	     <p>You'll be next in line:</p>
-           <p><a href="$borrow_link" class="wait-btn">Join the waiting list?</a></p>
+
+	   <form method="POST" class="waitinglist-form join-waitlist">
+             <input type="hidden" name="action" value="join-waitinglist"/>
+	     <input type="submit" class="submit wait-btn" value="Join waiting list?"/>
+	   </form>
            <br/>
     </p>
+
+<script>
+
+  \$(function() {
+    var url = window.location.protocol + "//" + window.location.hostname + "$(borrow_link)";
+    console.log(url);
+    \$('.join-waitlist').submit(function(event) {
+      event.preventDefault();
+      \$.ajax({
+          type: "POST",
+          url: url,
+          data: {action: "join-waitinglist"},
+          dataType: "json",
+          // success throws an error on dev, single 
+          //origin (no cors enabled on server?
+          complete: function(result) {
+            window.location.reload();
+          }
+      });
+    });
+  });
+</script>
