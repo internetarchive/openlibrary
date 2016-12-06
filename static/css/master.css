@@ -1772,6 +1772,7 @@ select#select-id {
     cursor: pointer;
     display: inline-block;
     font-size: 12px!important;
+    line-height: 1.5em;
 }
 .wait-btn {
     background: #389ad4;
@@ -1804,6 +1805,10 @@ select#select-id {
     padding: 7px;
     margin-bottom: 10px;
     background-color: rgba(226, 220, 197, 0.28);
+}
+
+div.Tools .btn-notice p {
+    padding-left: 0px !important;
 }
 
 .borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {

@@ -29,7 +29,7 @@ $ borrow_link = page.url() + '/borrow'
 
 $if user_loan:
     <div class="btn-notice">
-      <p style="padding-left: 0px;">
+      <p>
 	<span class="smaller">Checked out from $contributor</span>
       </p>
       <p style="padding-left: 0px;">
@@ -44,10 +44,10 @@ $if user_loan:
 
 $elif available_loans:
     <div class="btn-notice">
-      <p style="padding-left: 0px;">
+      <p>
 	<span class="smaller">Read in-browser or download the ePub / PDF from $contributor</span>
       </p>
-      <p style="padding-left: 0px;">
+      <p>
 	<a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">
           Borrow eBook
 	</a>
@@ -55,14 +55,14 @@ $elif available_loans:
     </div>
 
 $else:
-    <p style="padding-bottom:10px;">
+    <p>
         <span class="smaller">This eBook is checked out.</span>
     </p>
 
     $ wlsize = page.get_waitinglist_size()
     $if waiting_loan:
         <div class="btn-notice">
-          <p style="padding-left: 0px;">
+          <p>
             $ spot = ctx.user.get_waiting_loan_for(page)['position']
             $if spot == 1:
                 <span class="smaller">You are <strong>next</strong> on the waiting list.</span>
@@ -77,7 +77,7 @@ $else:
 
     $else:
         <div class="btn-notice">
-          <p style="padding-left: 0px;">
+          <p>
             <span class="smaller">$("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")</span>
 	  </p>
           <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">

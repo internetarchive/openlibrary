@@ -139,8 +139,8 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $ user_loan = current_loan
                         $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
-	    $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-            $if checkedout:    
+            $ checkedout = current_and_available_loans[1] if current_and_available_loans else []
+            $if not checkedout:
                 $ work = page.works and page.works[0]
                 $if work and work.edition_count > 1:
                     <p class="btn-notice">
