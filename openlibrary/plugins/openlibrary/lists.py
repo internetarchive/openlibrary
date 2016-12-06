@@ -548,6 +548,12 @@ def get_randomized_list_seeds(lst_key):
     return seeds
 
 
+def seed_is_daisy_only(seed):
+    """Returns True if and only if the book is daisy only"""
+    ebook = seed.get_ebook_info()
+    return 'daisy_url' in ebook and 'borrow_url' not in ebook
+
+
 @public
 def get_active_lists_in_random(limit=20, preload=True):
     lists = []

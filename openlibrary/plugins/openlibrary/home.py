@@ -15,7 +15,7 @@ from openlibrary.core import admin, cache, ia, inlibrary, lending, \
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
-from openlibrary.plugins.openlibrary.lists import get_randomized_list_seeds
+from openlibrary.plugins.openlibrary import lists
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -86,12 +86,13 @@ def get_popular_books(seeds, limit=None, loan_check_batch_size=50,
         archive_ids = []
         while seeds and len(batch) < loan_check_batch_size:
             seed = seeds.pop(0)
-            key = seed['key']
-            edition = web.ctx.site.get(key)
-            archive_id = edition.get('ocaid')
-            if archive_id:
-                batch[archive_id] = edition
-                archive_ids.append(archive_id)
+
+            if not lists.seed_is_daisy_only(seed):
+                edition = web.ctx.site.get(seed['key'])
+                archive_id = edition.get('ocaid')
+                if archive_id:
+                    batch[archive_id] = edition
+                    archive_ids.append(archive_id)
 
         responses = lending.is_borrowable(archive_ids)
 
@@ -144,7 +145,7 @@ def popular_carousel(limit=36):
     ]
     seeds = []
     for lst_key in user_lists:
-        seeds.extend(get_randomized_list_seeds(lst_key))
+        seeds.extend(lists.get_randomized_list_seeds(lst_key))
 
     available_books, _ = get_popular_books(seeds, limit=limit)
 
