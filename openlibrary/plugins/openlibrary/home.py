@@ -15,6 +15,7 @@ from openlibrary.core import admin, cache, ia, inlibrary, lending, \
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
+from openlibrary.plugins.openlibrary.lists import get_randomized_list_seeds
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -48,64 +49,106 @@ class home(delegate.page):
             returncart_list=returncart_list,
             user=user, loans=loans)
 
+
+def get_popular_books(seeds, limit=None, loan_check_batch_size=50,
+                      available_only=True):
+    """Takes a list of seeds (from user lists or otherwise), checks which
+    ones are (un)available (in batch sizes of
+    `loan_check_batch_size`), fetches data for editions (according to
+    available_only), and returns the tuple of available and
+    unavailable popular works.
+
+    Args:
+        seeds (list) - seeds from a user's list
+
+        limit (int) - Load the popular carousel with how many items?
+        (preferably divisible by 6; number of books shown per page)
+
+        loan_check_batch_size (int) - Bulk submits this many
+        archive.org itemids at a time to see if they are available to
+        be borrowed (only considers waitinglist and bookreader
+        borrows, no acs4)
+
+        available (bool) - return only available works? If True,
+        waitlisted_books will be []
+
+    Returns:
+        returns a tuple (available_books,
+        waitlisted_books). waitlisted_books will be [] if
+        available_only=True
+
+    """
+    available_books = []
+    waitlisted_books = []
+
+    batch = {}
+    while seeds and (limit is None or len(available_books) < limit):
+        archive_ids = []
+        while seeds and len(batch) < loan_check_batch_size:
+            seed = seeds.pop(0)
+            key = seed['key']
+            edition = web.ctx.site.get(key)
+            archive_id = edition.get('ocaid')
+            if archive_id:
+                batch[archive_id] = edition
+                archive_ids.append(archive_id)
+
+        responses = lending.is_borrowable(archive_ids)
+
+        for archive_id in archive_ids:
+            if len(available_books) == limit:
+                continue
+            if archive_id in responses:
+                status = 'status' in responses[archive_id]
+                if status and responses[archive_id]['status'] == 'available':
+                    available_books.append(format_book_data(batch[archive_id]))
+                elif not available_only:
+                    waitlisted_books.append(format_book_data(batch[archive_id]))
+        batch = {}  # reset for next batch loan check
+
+    return available_books, waitlisted_books
+
 @public
 def popular_carousel(limit=36):
-    """popular works across lists which are available for reading
-    (borrowable or downloadable; not daisy only)
+    """Renders a carousel of popular editions, which are available for
+    reading or borrowing, from user lists (borrowable or downloadable;
+    excludes daisy only).
 
-    Limit is 36 by default to show 6 pages of the 6-item carousels on
-    landing page.
+    Args:
+        limit (int) - Load the popular carousel with how many items?
+        (preferably divisible by 6; number of books shown per page)
 
-    lst1 is a manually curated collection of popular available books
-    which was constructed by looking at goodreads
-    (http://www.goodreads.com/list/show/1.Best_Books_Ever) Best Ever
-    list.
+    Selected Lists:
+        /people/mekBot/lists/OL104041L is a manually curated
+        collection of popular available books which was constructed by
+        looking at goodreads
+        (http://www.goodreads.com/list/show/1.Best_Books_Ever) Best
+        Ever list. Because this list is more highly curated and has
+        more overall recognizable and popular books, we prioritize
+        drawing from this list (shuffled) first and then fallback to
+        other lists as this one is depleted (i.e. all books become
+        unavailable for checking out).
 
-    lst2 comes from the "top 2000+ most requested print disabled
-    eBooks in California" displayed from the /lists page.
+        /people/openlibrary/lists/OL104411L comes from the "top 2000+
+        most requested print disabled eBooks in California" displayed
+        from the /lists page.
 
-    Because lst1 is more highly curated and has more overall
-    recognizable and popular books, we prioritize drawing from this
-    list (randomized) and then fallback to lst2 (as lst1 is depleted
-    by virtue of loans).
-
-    Bulk submits ~50 archive.org itemids to is_borrowable to see if
-    they are available (only considers waitinglist and bookreader
-    borrows, no acs4)
+    Returns:
+        A rendered html carousel with popular books.
     """
-    books = []
-    lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
-    lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
-    if lst1 and lst2:
-        seeds1, seeds2 = lst1.seeds, lst2.seeds
-        random.shuffle(seeds1)
-        random.shuffle(seeds2)
-        seeds = seeds1 + seeds2
+    # Pulls from one list at a time (prioritized by the perceived
+    # quality of the list), shuffles its seeds, and appends to seeds
+    user_lists = [
+        '/people/mekBot/lists/OL104041L',
+        '/people/openlibrary/lists/OL104411L'
+    ]
+    seeds = []
+    for lst_key in user_lists:
+        seeds.extend(get_randomized_list_seeds(lst_key))
 
-        parts = {}
-        while seeds and len(books) < limit:
-            archive_ids = []
-            while seeds and len(parts) < 50:
-                seed = seeds.pop(0)
-                key = seed['key']
-                edition = web.ctx.site.get(key)
-                archive_id = edition.get('ocaid')
-                if archive_id:
-                    parts[archive_id] = edition
-                    archive_ids.append(archive_id)
+    available_books, _ = get_popular_books(seeds, limit=limit)
 
-            responses = lending.is_borrowable(archive_ids)
-
-            for archive_id in archive_ids:
-                if len(books) == 36:
-                    continue
-                if archive_id in responses:
-                    status = 'status' in responses[archive_id]
-                    if status and responses[archive_id]['status'] == 'available':
-                        books.append(format_book_data(parts[archive_id]))
-            parts = {}
-
-    return render_template("books/carousel", storify(books),
+    return render_template("books/carousel", storify(available_books),
                            id='CarouselPopular')
 
 

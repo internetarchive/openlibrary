@@ -539,6 +539,15 @@ def _preload_lists(lists):
 
     web.ctx.site.get_many(list(keys))
 
+
+def get_randomized_list_seeds(lst_key):
+    """Fetches all the seeds of a list and shuffles them"""
+    lst = web.ctx.site.get(lst_key)
+    seeds = lst.seeds if lst else []
+    random.shuffle(seeds)
+    return seeds
+
+
 @public
 def get_active_lists_in_random(limit=20, preload=True):
     lists = []
