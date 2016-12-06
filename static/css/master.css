@@ -1763,7 +1763,7 @@ select#select-id {
     max-width: 300px;
 }
 
-.borrow-btn, .read-btn, .wait-btn, .unwait-btn {
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn {
     margin: 1px auto;
     color: white;
     background: #036DAA;
@@ -1771,9 +1771,10 @@ select#select-id {
     padding: 5px 8px;
     cursor: pointer;
     display: inline-block;
+    font-size: 12px!important;
 }
 .wait-btn {
-    background: #ffa337;
+    background: #389ad4; //#ffa337;
     border: none;
 }
 
@@ -1782,29 +1783,32 @@ select#select-id {
     border: none;
 }
 
-.waitinglist-form {
-    margin-bottom: 10px;
+.check-btn {
+    background-color: rgb(164, 181, 122);
 }
 
 .waitinglist-form input[type=submit] {
+    line-height: 1.5em;
     font-size: 12px!important;
 }
 
-.Tools .waitinglist-form {
-    padding-left: 42px;
-}
-
 .btn-notice {
-    padding: 5px;  
+    padding: 10px;
     background-color: rgba(226, 220, 197, 0.28);
 }
 
-.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {
+.panel .btn-notice {
+    margin-left: 42px;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {
     font-size: 12px!important;
     color: white;
     text-decoration: none;
 }
-.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover {
+.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover, .check-btn:hover {
     font-size: 12px!important;
     color: white;
     text-decoration: underline;
