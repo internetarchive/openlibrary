@@ -39,7 +39,7 @@ $else:
                 </a>
             $else:
                 <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '') class="borrow-link"><img
-                    src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33"
+                    src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33"
                     alt="$_('Read this book')"/></a>
         </div>
     $elif "inlibrary" in ctx.features and book.get("inlibrary_borrow_url") and get_library() is not None:
@@ -47,7 +47,7 @@ $else:
             $if book.get("checked_out"):
                 <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('This book is checked out')"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checked out')"/></a>
             $else:
-                <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')" class="borrow-link"><img src="/images/icons/icon_borrow-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
+                <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')" class="borrow-link"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
         </div>
     $elif book.get("daisy_url"):
         <div class="coverEbook">
