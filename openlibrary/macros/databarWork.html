@@ -123,7 +123,7 @@ $else:
     </div>
     </div>
 
-$if isbn or oclc_numbers or 'lendinglibrary' in collection or library:
+$if (isbn or oclc_numbers or 'lendinglibrary' in collection or library) and not any_private_collections(collection):
     <div>
     <h3 class="header">
         <span class="icon borrow"></span>

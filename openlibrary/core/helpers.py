@@ -36,6 +36,7 @@ __all__ = [
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe",
     "percentage", "affiliate_id", "bookreader_host",
+    "private_collections", "any_private_collections",
 
     # functions imported from elsewhere
     "parse_datetime", "safeint"
@@ -268,6 +269,14 @@ def affiliate_id(affiliate):
 
 def bookreader_host():
     return config.get('bookreader_host', '')
+
+def private_collections():
+    """Collections which are lendable but should not be linked from OL
+    TODO: Remove when we can handle institutional books"""
+    return ['georgetown-university-law-library-rr']
+
+def any_private_collections(collections):
+    return any(x in private_collections() for x in collections)
 
 def _get_helpers():
     _globals = globals()

@@ -15,6 +15,7 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
 from openlibrary.core import loanstats
+from openlibrary.core.helpers import any_private_collections
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -265,15 +266,9 @@ class Edition(Thing):
                 or 'lendinglibrary' in collections
                 or self.get_ia_meta_fields().get("access-restricted") is True)
 
-    # Special check to prevent private collection books from
-    # appearing with Borrow links in OL
-    # TODO: Remove when we can handle institutional books
+    # Private collections are lendable books that should not be linked/revealed from OL
     def is_in_private_collection(self):
-        ia_collections = self.get_ia_collections()
-        return any(x in self.private_collections() for x in ia_collections)
-
-    def private_collections(self):
-        return ['georgetown-university-law-library-rr']
+        return any_private_collections(self.get_ia_collections())
 
     def can_borrow(self):
         collections = self.get_ia_collections()
