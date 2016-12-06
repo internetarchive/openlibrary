@@ -393,7 +393,9 @@ $elif ebook_status == "borrow-user-checkedout":
             <tbody>
                 $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
                 $for name, values in page.get_identifiers().multi_items():
-                    $:display_identifiers(values[0].label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
+                    $ identifier_label = values[0].label
+                    $if not (page.is_in_private_collection() and identifier_label == 'Internet Archive'):
+                        $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             </tbody>
             </table>
             $:display_goodreads("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
