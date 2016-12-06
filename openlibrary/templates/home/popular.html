@@ -1,5 +1,5 @@
-$ carousel = popular_carousel()
-$if carousel:
+$ popular, waitlisted = popular_carousel()
+$if popular:
     <div class="head">
       <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a></h2>
       <p class="inline sansserif large collapse">
@@ -7,4 +7,16 @@ $if carousel:
       </p>
     </div>
 
-    $:carousel
+    $:popular
+
+    <div class="clearfix"></div>
+
+$if waitlisted:
+    <div class="head">
+      <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Worth the Wait</a></h2>
+      <p class="inline sansserif large collapse">
+        &nbsp; Get on the waiting list for hundreds of popular books
+      </p>
+    </div>
+
+    $:waitlisted

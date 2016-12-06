@@ -75,6 +75,7 @@ def popular_carousel(limit=36):
     """
     import requests
 
+    waitlist = []
     books = []
     lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
     lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
@@ -105,10 +106,15 @@ def popular_carousel(limit=36):
                     status = 'status' in responses[archive_id]
                     if status and responses[archive_id]['status'] == 'available':
                         books.append(format_book_data(parts[archive_id]))
+                    else:
+                        waitlist.append(format_book_data(parts[archive_id]))
             parts = {}
 
-    return render_template("books/carousel", storify(books),
+    popular = render_template("books/carousel", storify(books),
                            id='CarouselPopular')
+    waitlisted = render_template("books/carousel", storify(waitlist),
+                           id='CarouselWaitlist')
+    return popular, waitlisted
 
 
 @public
