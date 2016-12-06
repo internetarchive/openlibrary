@@ -77,8 +77,8 @@ def is_borrowable(identifiers):
     are prohibitively slow.
     """
     import requests
-    availability_url = 'http://www-richard2.archive.org/services/loans/beta/loan/index.php?action=availability'
-
+    availability_url = 'https://archive.org/services/loans/beta/loan/index.php' + \
+                       '?action=availability'
     # XXX may want to have a timeout in case archive.org cannot be reached
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
