@@ -65,7 +65,7 @@ $else:
 	   $else:
              <p><span class="smaller btn-notice">You'll be next in line.</span></p>
 
-	   <form method="POST" class="join-waitlist waitinglist-form">
+	   <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
              <input type="hidden" name="action" value="join-waitinglist"/>
 	     <input type="submit" class="submit wait-btn" value="Join waiting list?"/>
 	   </form>
@@ -74,28 +74,10 @@ $else:
 <script>
 
   \$(function() {
-    var url = window.location.protocol + "//" + window.location.hostname + "$(borrow_link)";
-
     \$('.return-book').submit(function(event) {
       if (!confirm("Really return this book?")) {
         event.preventDefault();
-        event.stopImmediatePropagation();
       }
-    })
-
-    \$('.join-waitlist').submit(function(event) {
-      event.preventDefault();
-      \$.ajax({
-          type: "POST",
-          url: url,
-          data: {action: "join-waitinglist"},
-          dataType: "json",
-          // success throws an error on dev, single 
-          //origin (no cors enabled on server?
-          complete: function(result) {
-            window.location.reload();
-          }
-      });
     });
   });
 </script>
