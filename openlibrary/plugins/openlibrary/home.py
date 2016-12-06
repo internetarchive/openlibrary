@@ -99,7 +99,10 @@ def get_popular_books(seeds, limit=None, loan_check_batch_size=50,
         for archive_id in archive_ids:
             if len(available_books) == limit:
                 continue
-            if archive_id in responses:
+            if archive_id not in responses:
+                # If book is not accounted for, err on the side of inclusion
+                available_books.append(format_book_data(batch[archive_id]))
+            else:
                 status = 'status' in responses[archive_id]
                 if status and responses[archive_id]['status'] == 'available':
                     available_books.append(format_book_data(batch[archive_id]))
