@@ -1787,10 +1787,6 @@ select#select-id {
     background-color: rgb(164, 181, 122);
 }
 
-.borrow-btn {
-    background-color: #ffa337;
-}
-
 .waitinglist-form input[type=submit] {
     line-height: 1.5em;
     font-size: 12px!important;
