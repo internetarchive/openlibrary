@@ -17,18 +17,16 @@ class TestSearch:
         browser.visit(self.host + '/search/inside')
         browser.find_by_css(".searchInsideForm > input[name='q']").fill('black cat')
         browser.find_by_css(".searchInsideForm > [type='submit']").click()
-        # No Elastic Search in test rig, so expect to return error message
         assert browser.is_text_present('Search Inside')
-        assert browser.is_element_present_by_css("[class='searchResultsError']")
+        assert browser.is_element_present_by_css('.searchInsideForm')
 
     def test_search_inside_from_global_nav(self, browser):
         browser.visit(self.host)
         browser.find_by_css("#headerSearch input[name='q']").fill('black cat')
         browser.find_by_css("#headerSearch input[name='search-fulltext']").check()
         browser.find_by_css("#headerSearch [type='submit']").click()
-        # No Elastic Search in test rig, so expect to return error message
         assert browser.is_text_present('Search Inside')
-        assert browser.is_element_present_by_css("[class='searchResultsError']")
+        assert browser.is_element_present_by_css('.searchInsideForm')
 
     def test_metadata_search(self, browser):
         browser.visit(self.host + '/search')
