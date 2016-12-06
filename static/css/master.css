@@ -1774,7 +1774,7 @@ select#select-id {
     font-size: 12px!important;
 }
 .wait-btn {
-    background: #389ad4; //#ffa337;
+    background: #389ad4;
     border: none;
 }
 
@@ -1787,20 +1787,27 @@ select#select-id {
     background-color: rgb(164, 181, 122);
 }
 
+.borrow-btn {
+    background-color: #ffa337;
+}
+
 .waitinglist-form input[type=submit] {
     line-height: 1.5em;
     font-size: 12px!important;
 }
 
-.btn-notice {
-    padding: 10px;
-    background-color: rgba(226, 220, 197, 0.28);
+#editions .btn-notice {
+    padding: 0px;
+    background-color: none !important;
 }
 
-.panel .btn-notice {
-    margin-left: 42px;
-    padding: 5px;
+.Tools .btn-notice {
+    line-height: 1.5em;
+    font-size: 12px;
+    margin-left: 37px;
+    padding: 7px;
     margin-bottom: 10px;
+    background-color: rgba(226, 220, 197, 0.28);
 }
 
 .borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {

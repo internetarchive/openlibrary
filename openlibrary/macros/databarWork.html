@@ -139,21 +139,25 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $ user_loan = current_loan
                         $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
-            $ available_loans = current_and_available_loans[1] if current_and_available_loans else []
-            $if page.get_waitinglist_size() or not available_loans:
+	    $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
+            $if checkedout:    
                 $ work = page.works and page.works[0]
                 $if work and work.edition_count > 1:
                     <p class="btn-notice">
 		      <span class="smaller">Other editions of this book may be available.</span>
 		      </br>
-		      <a href="$work.url()" class="check-btn">Check Availability</a>
+		      <a href="$work.url()" class="check-btn">Check Other Editions </a>
 		    </p>
 
-        $if isbn:
-            <p><a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">Physical copy, local</a> <span class="smaller">WorldCat</span></p>
-        $elif oclc_numbers:
-            <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">Physical copy, local</a> <span class="smaller">WorldCat</span></p>
-    </div>
+        <p>
+          $if isbn:
+            <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
+          $elif oclc_numbers:
+            <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
+
+          Find a physical copy near you</a> &mdash; <span class="smaller">powered by <a href="https://worldcat.org">WorldCat</a></span>
+	</p>
+      </div>
     </div>
 $else:
     <div>
