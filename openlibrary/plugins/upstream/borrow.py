@@ -216,7 +216,7 @@ class borrow(delegate.page):
 
     def POST_join_waitinglist(self, edition, user):
         waitinglist.join_waitinglist(user.key, edition.key)
-        raise web.redirect(edition.url("/borrow"))
+        raise web.redirect(edition.url())
 
     def POST_leave_waitinglist(self, edition, user, i):
         waitinglist.leave_waitinglist(user.key, edition.key)
