@@ -76,15 +76,13 @@ def is_borrowable(identifiers):
     bookreader.  Does not check acs4 (by default) because the queries
     are prohibitively slow.
     """
-    import requests
     availability_url = 'https://archive.org/services/loans/beta/loan/index.php' + \
                        '?action=availability'
-    # XXX may want to have a timeout in case archive.org cannot be reached
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
     })    
     content = urllib2.urlopen(url=availability_url, data=data,
-                              timeout=3).read()
+                              timeout=2).read()
     return simplejson.loads(content).get('responses', {})
 
 def is_loaned_out_on_acs4(identifier):

@@ -73,8 +73,6 @@ def popular_carousel(limit=36):
     they are available (only considers waitinglist and bookreader
     borrows, no acs4)
     """
-    import requests
-
     books = []
     lst1 = web.ctx.site.get('/people/mekBot/lists/OL104041L')
     lst2 = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
