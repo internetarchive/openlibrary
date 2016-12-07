@@ -86,7 +86,7 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
     $if ctx.user and ctx.user.has_borrowed(page):
         $ active_loan = ctx.user.get_loan_for(page)
         <div class="message info">
-            <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
+            <h2 class="sansserif">You have this book checked out. You can read it online or return the book.</h2>
             <p>
             $:macros.LoanReadForm(active_loan['book'])
             $:macros.ReturnForm(active_loan)
