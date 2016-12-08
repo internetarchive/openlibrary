@@ -1156,6 +1156,7 @@ div#headerLogin {
     background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
     background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
     text-decoration: none;
+    cursor: pointer;
 }
 
 
