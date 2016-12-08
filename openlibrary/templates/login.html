@@ -12,6 +12,49 @@ $var title: $("Log In")
 //\$().ready(validateLogin);
 </script>
 
+
+<div id="migrateModal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-x">&#x2715;</div>
+      <div class="modal-icon">
+	<img  src="https://archive.org/images/logo_arches.png"/>
+      </div>
+      <div class="modal-header-copy">
+	<h2>Link Accounts</h2>
+	<p>Do you have an existing <a href="https://archive.org">archive.org</a> account? Otherwise, this login will work for both services.</p>
+      </div>
+    </div>
+
+    <div class="modal-body">
+      <ul class="modal-option">
+	<li><a id="linkAccounts">Yes, connect my archive.org account.</a></li>
+	<li><a id="createAccount">No, create one for me.</a></li>
+      </ul>
+      <div class="modal-connect-form">
+        <div class="formFields">
+          <div>
+            <input type="text" id="connectEmail" autocomplete="off"
+             name="connectEmail"  placeholder="Archive.org email"/>
+            <input type="text" autocomplete="off" class="fake"
+             name="connectEmail_fake"  placeholder="Archive.org email"/>
+          </div>
+          <div class="inputbr"></div>
+          <div>
+            <input type="password" id="connectPassword" autocomplete="off"
+             name="connectPassword"  placeholder="Password"/>
+           <input type="password" autocomplete="off" class="fake"
+            name="connectPassword_fake" placeholder="Password"/>
+          </div>
+        </div>
+        <div>
+          <button id="verifyAndConnect">Verify &amp; Connect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="contentBody">
     <form id="register" class="login olform" name="register" method="post">
 
@@ -47,7 +90,7 @@ $var title: $("Log In")
 
         <div class="formElement bottom">
             <br/>
-            <input value="$_('Log In')" type="submit" name="login" title="$_('Log In')"/>
+            <input value="$_('Log In')" type="submit" class="login-submit" name="login" title="$_('Log In')"/>
             &nbsp;
             <a href="javascript:;" onclick="history.go(-1);" class="attn">$_("Cancel")</a>
         </div>
@@ -59,3 +102,86 @@ $var title: $("Log In")
         </div>
     </form>
 </div>
+
+<script>
+
+  \$(function(){
+
+      var connect = {};
+
+      //\$('#migrateModal').click(function(event) {
+      //    \$('#migrateModal').hide();
+      //});
+
+      var resetModal = function() {
+          \$('#migrateModal').hide();
+ 	  \$('.modal-connect-form').hide();
+          \$('.modal-option').show();
+      }
+
+      \$('.modal-x').click(function(event) {
+	  resetModal();
+      });
+
+      \$('#linkAccounts').click(function(event) {
+          \$('.modal-option').hide();
+	  \$('.modal-connect-form').show();
+      });
+
+      \$('#verifyAndConnect').click(function(event) {
+          var url = 'https://api.archivelab.org/auth';
+	  \$.ajax({
+              type: "POST",
+	      data: {
+		  email: \$('#connectEmail').val(),
+		  password: \$('#connectPassword').val(),
+              },
+              url: url,
+              dataType: "json",
+              success: function(result) {
+		  console.log(result);
+		  if (result.email) {
+		      connect.email = result.email;
+		      \$('#register').submit();
+		  } else {
+		      alert("Error");
+		      \$('#connectEmail').val('');
+		      \$('#connectPassword').val('');
+		  }
+              }
+          })
+      });
+
+      \$('#createAccount').click(function(event) {
+	  resetModal();
+          connect.email = \$('#username').val();
+          \$('#register').submit();
+      });
+
+      \$('#register').submit(function(event) {
+          console.log(connect);
+          if (!connect.email) {
+              event.preventDefault();
+              var url = 'https://api.archivelab.org/auth';
+              \$.ajax({
+                  type: "GET",
+	          data: {
+		      email: \$('#username').val(),
+                      ia: 1,
+		      ol: 0
+                  },
+                  url: url,
+                  dataType: "json",
+                  success: function(result) {
+	              if (result.has_ia != result.has_ol) {
+                          \$('#migrateModal').show();
+		      } else {
+			  connect.email = result.email;
+			  \$('#register').submit();
+		      }
+                  }
+              })
+          }
+      })
+  });
+</script>
