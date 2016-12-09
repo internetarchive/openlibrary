@@ -22,7 +22,8 @@ $var title: $("Log In")
       </div>
       <div class="modal-header-copy">
 	<h2>Link Accounts</h2>
-	<p>Do you have an existing <a href="https://archive.org">archive.org</a> account? Otherwise, this login will work for both services.</p>
+        <p class="modal-header-copy-a">Open Library now requires an <a href="https://archive.org">archive.org</a> account. Do you have one already?</p>
+        <p class="modal-header-copy-b">Verify your <a href="https://archive.org">archive.org</a> credentials and proceed to login.</p>
       </div>
     </div>
 
@@ -115,6 +116,8 @@ $var title: $("Log In")
 
       var resetModal = function() {
           \$('#migrateModal').hide();
+	  \$('.modal-header-copy-a').show();
+	  \$('.modal-header-copy-b').hide();
  	  \$('.modal-connect-form').hide();
           \$('.modal-option').show();
       }
@@ -125,11 +128,14 @@ $var title: $("Log In")
 
       \$('#linkAccounts').click(function(event) {
           \$('.modal-option').hide();
-	  \$('.modal-connect-form').show();
+	  \$('.modal-header-copy-a').fadeOut(function() {
+	      \$('.modal-header-copy-b').fadeIn();
+	  });
+	  \$('.modal-connect-form').show()
       });
 
       \$('#verifyAndConnect').click(function(event) {
-          var url = 'https://api.archivelab.org/auth';
+	  var url = 'https://api.archivelab.org/auth';
 	  \$.ajax({
               type: "POST",
 	      data: {
