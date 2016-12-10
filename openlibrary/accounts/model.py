@@ -5,14 +5,17 @@ import time
 import datetime
 import hmac
 import random
+import simplejson
 import uuid
+import urllib
+import urllib2
 
 import web
 
 from infogami import config
 from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
-from openlibrary.core import helpers as h
+from openlibrary.core import lending, helpers as h
 
 
 def sendmail(to, msg, cc=None):
@@ -182,6 +185,10 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
+
+            # XXX we need to check if IA and OL accounts linked
+            # and create accounts which don't exist
+
             self['last_login'] = datetime.datetime.utcnow().isoformat()
             self._save()
             return "ok"
@@ -267,3 +274,18 @@ class Account(web.storage):
         """
         self.bot = flag
         self._save()
+
+    @classmethod
+    def get_ia_account(cls, email):
+        token = lending.config_ia_ol_auth_key
+        data = {
+            "email": email,
+            "service": "getUser",
+            "token": token
+        }
+        if not token:
+            data['test'] = "true"
+        payload = urllib.urlencode(data)
+        response = simplejson.loads(urllib2.urlopen(
+            lending.IA_AUTH_API_URL, payload).read())
+        return response

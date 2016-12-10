@@ -5,6 +5,7 @@ import random
 import urllib
 import uuid
 import datetime, time
+import simplejson
 
 from infogami.utils import delegate
 from infogami import config
@@ -369,6 +370,18 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
+class account_audit(delegate.page):
+
+    path = "/account/audit"
+    #encoding = "json"
+
+    def GET(self):
+        i = web.input(email='', password='', username='')
+        i.displayname = i.get('displayname') or i.username
+
+        ia = Account.get_ia_account(i.get('email'))
+        return delegate.RawText(simplejson.dumps(ia), content_type="application/json")
+
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
@@ -411,6 +424,21 @@ class account_others(delegate.page):
     def GET(self, path):
         return render.notfound(path, create=False)
 
+_x  = """
+def authenticate_user(email, password):
+    ol_account = None
+    ia_account = None
+    migrated = False
+
+    # Check OL to see if user exists
+    if forms.vlogin.valid(i.username):
+        # Try to find account with exact username, failing which try for case variations.
+        ol_account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
+
+        if ol_account:
+            if web.ctx.site.login(self.username, password):
+                pass
+"""
 
 ####
 
