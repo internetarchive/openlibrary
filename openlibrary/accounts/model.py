@@ -275,6 +275,23 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
+
+    @classmethod
+    def auth_ia_account(cls, email, password):
+        token = lending.config_ia_ol_auth_key
+        data = {
+            "email": email,
+            "password": password,
+            "service": "authUser",
+            "token": token
+        }
+        if not token:
+            data['test'] = "true"
+        payload = urllib.urlencode(data)
+        r = urllib2.urlopen(lending.IA_AUTH_API_URL, payload).read()
+        return r == "ok"
+
+
     @classmethod
     def get_ia_account(cls, email):
         token = lending.config_ia_ol_auth_key
@@ -286,6 +303,5 @@ class Account(web.storage):
         if not token:
             data['test'] = "true"
         payload = urllib.urlencode(data)
-        response = simplejson.loads(urllib2.urlopen(
-            lending.IA_AUTH_API_URL, payload).read())
-        return response
+        r = urllib2.urlopen(lending.IA_AUTH_API_URL, payload).read()
+        return simplejson.loads(r)

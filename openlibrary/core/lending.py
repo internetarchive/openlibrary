@@ -51,9 +51,9 @@ config_ia_ol_auth_key = None
 def setup(config):
     """Initializes this module from openlibrary config.
     """
-    global config_content_server, config_loanstatus_url,
-      config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key,
-      config_ia_ol_auth_key
+    global config_content_server, config_loanstatus_url, \
+        config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key, \
+        config_ia_ol_auth_key
 
     if config.get("content_server"):
         try:
