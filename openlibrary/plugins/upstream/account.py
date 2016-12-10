@@ -370,17 +370,92 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
+
 class account_audit(delegate.page):
 
     path = "/account/audit"
     #encoding = "json"
 
-    def GET(self):
-        i = web.input(email='', password='', username='')
-        i.displayname = i.get('displayname') or i.username
+    def POST(self):
+        """
+        ia_account - {
+          _key: "account/mekBot",
+          _rev: "219552765",
+          bot: true,
+          created_on: "2016-08-24T19:57:59.537293",
+          data: {
+            displayname: "Mek",
+          },
+          email: "mek@archive.org",
+          enc_password: "********",
+          last_login: "2016-12-09T02:44:34.612309",
+          lusername: "mekbot",
+          status: "active",
+          tags: [],
+          type: "account",
+          username: "mekBot",
+        }
 
-        ia = Account.get_ia_account(i.get('email'))
-        return delegate.RawText(simplejson.dumps(ia), content_type="application/json")
+        ol_account - {
+          account_found: true,
+          field: "username",
+          invalid_request: false,
+          itemname: "@mekarpeles"
+          locked: false,
+          privs: "...",
+          requested: "mek@archive.org",
+          screenname: "mekarpeles",
+          username: "mek@archive.org"
+        }
+        """
+
+        def json_response(data):
+            return delegate.RawText(simplejson.dumps(data),
+                                    content_type="application/json")
+
+        i = web.input(email='', password='')
+        email = i.get('email').lower()
+        password = i.get('password')
+        ol_accounts = web.ctx.site.store.values(
+            type="account", name="email", value=email)
+
+        audit = {
+            'email': email,
+            'authenticated': False,
+            'has_ia': False,
+            'has_ol': False,
+        }
+
+        ia_account = Account.get_ia_account(email)
+        ol_account = ol_accounts[0] if ol_accounts else None
+
+        if ia_account.get("account_found", False) is True:
+            audit['has_ia'] = True
+
+            if Account.auth_ia_account(email, password):
+                audit['authenticated'] = 'ia'
+
+            if not audit['authenticated']:
+                return json_response({'error': "wrong_ia_credentials"})
+
+        if ol_account:
+            audit['has_ol'] = True
+
+            if not audit['authenticated']:
+                if ol_account.login(password):
+                    audit['authenticated'] = 'ol'
+
+            if not audit['authenticated']:
+                return json_response({'error': "wrong_ol_credentials"})
+
+        if not (audit['has_ia'] or audit['has_ol']):
+                return json_response({'error': "wrong_account"})
+
+        if audit['authenticated'] and audit['has_ia'] and audit['has_ol']:
+            pass  # XXX make sure the accounts are linked in OL.
+
+        return json_response(audit)
+
 
 class account_notifications(delegate.page):
     path = "/account/notifications"
@@ -424,21 +499,6 @@ class account_others(delegate.page):
     def GET(self, path):
         return render.notfound(path, create=False)
 
-_x  = """
-def authenticate_user(email, password):
-    ol_account = None
-    ia_account = None
-    migrated = False
-
-    # Check OL to see if user exists
-    if forms.vlogin.valid(i.username):
-        # Try to find account with exact username, failing which try for case variations.
-        ol_account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
-
-        if ol_account:
-            if web.ctx.site.login(self.username, password):
-                pass
-"""
 
 ####
 
