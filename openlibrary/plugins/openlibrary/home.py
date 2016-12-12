@@ -2,6 +2,7 @@
 """
 import random
 import web
+import simplejson
 import logging
 
 from infogami.utils import delegate
@@ -9,6 +10,7 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
+from openlibrary.data import popular
 from openlibrary import accounts
 from openlibrary.core import admin, cache, ia, inlibrary, lending, \
     helpers as h
@@ -78,6 +80,7 @@ def get_popular_books(seeds, limit=None, loan_check_batch_size=50,
         available_only=True
 
     """
+<<<<<<< Updated upstream
     available_books = []
     waitlisted_books = []
 
@@ -153,6 +156,30 @@ def popular_carousel(limit=36):
     available_books, _ = get_popular_books(seeds, limit=limit)
 
     return render_template("books/carousel", storify(available_books),
+=======
+    books = []
+    seeds = popular.popular
+
+    while seeds and len(books) < limit:
+        batch = seeds[:100]
+        seeds = seeds[100:]
+        random.shuffle(batch)
+
+        responses = lending.is_borrowable([seed[0] for seed in batch])
+
+        for seed in batch:
+            ocaid, key = seed
+            if len(books) == limit:
+                continue
+            if ocaid not in responses:
+                # If book is not accounted for, err on the side of inclusion
+                books.append(format_book_data(web.ctx.site.get(key)))
+            elif 'status' in responses[ocaid]:
+                if responses[ocaid]['status'] == 'available':
+                    books.append(format_book_data(web.ctx.site.get(key)))
+
+    return render_template("books/carousel", storify(books),
+>>>>>>> Stashed changes
                            id='CarouselPopular')
 
 

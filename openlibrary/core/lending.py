@@ -37,6 +37,7 @@ BOOKREADER_AUTH_SECONDS = 10*60
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
 IA_API_URL = "https://archive.org/services/openlibrary.php"
+IA_AUTH_API_URL = "http://archive.org/~mek/auth.php"
 AVAILABILITY_API = 'https://archive.org/services/loans/beta/loan/index.php'
 
 config_content_server = None
@@ -62,6 +63,25 @@ def setup(config):
     config_ia_access_secret = config.get('ia_access_secret')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
+
+
+def is_borrowable(identifiers):
+    """Takes a list of archive.org ocaids and returns json indicating
+    whether each of these books represented by these identifiers are
+    available (i.e. not on waiting list and not checked out via
+    bookreader. Does not check acs4 (by default) because the queries
+    are prohibitively slow.
+    """
+    url = AVAILABILITY_API + '?action=availability'
+    data = urllib.urlencode({
+        'identifiers': ','.join(identifiers)
+    })
+    try:
+        content = urllib2.urlopen(url=url, data=data, timeout=2).read()
+        return simplejson.loads(content).get('responses', {})
+    except Exception as e:
+        return {}
+
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.
