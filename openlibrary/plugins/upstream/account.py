@@ -113,7 +113,8 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(remember=False, redirect='/', action="login")
+        i = web.input(email='', connect=None, remember=False,
+                      redirect='/', action="login")
 
         if i.action == "resend_verification_email":
             return self.POST_resend_verification_email(i)
@@ -127,32 +128,37 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST_login(self, i):
-        # make sure the username is valid
-        if not forms.vlogin.valid(i.username):
-            return self.error("account_user_notfound", i)
 
-        # Try to find account with exact username, failing which try for case variations.
-        account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
+        audit = audit_account(i.email, i.password)
 
-        if not account:
-            return self.error("account_user_notfound", i)
+        if 'error' in audit:
+            error = audit['error']
+            if error == "account_not_verified":
+                # XXX this template will need to be updated
+                return render_template("account/not_verified", username=account.username,
+                                       password=i.password, email=account.email)
+            elif error == "account_not_found":
+                return self.error("account_user_notfound", i)
+            elif error == "account_blocked":
+                return self.error("account_blocked", i)
+            else:
+                return self.error(audit['error'], i)
 
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
 
-        status = account.login(i.password)
-        if status == 'ok':
-            expires = (i.remember and 3600*24*7) or ""
-            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
+        if audit['has_ia'] or audit['has_ol']:
+            # check if linked
+            if not audit['linked']:
+                # Once account creds validated, created / `connect` accounts
+                pass
+
+        if audit['authenticated']:
+            expires = (i.remember and 3600 * 24 * 7) or ""
+            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
+                          expires=expires)
             raise web.seeother(i.redirect)
-        elif status == "account_not_verified":
-            return render_template("account/not_verified", username=account.username, password=i.password, email=account.email)
-        elif status == "account_not_found":
-            return self.error("account_user_notfound", i)
-        elif status == "account_blocked":
-            return self.error("account_blocked", i)
-        else:
-            return self.error("account_incorrect_password", i)
+
 
     def POST_resend_verification_email(self, i):
         try:
@@ -371,6 +377,11 @@ class account_password_reset(delegate.page):
         return render_template("account/password/reset_success", username=username)
 
 
+def audit(email):
+
+    pass
+
+
 class account_audit(delegate.page):
 
     path = "/account/audit"
@@ -408,53 +419,61 @@ class account_audit(delegate.page):
           username: "mek@archive.org"
         }
         """
-
-        def json_response(data):
-            return delegate.RawText(simplejson.dumps(data),
-                                    content_type="application/json")
-
         i = web.input(email='', password='')
         email = i.get('email').lower()
         password = i.get('password')
-        ol_accounts = web.ctx.site.store.values(
-            type="account", name="email", value=email)
+        result = audit_account(email, password)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
-        audit = {
-            'email': email,
-            'authenticated': False,
-            'has_ia': False,
-            'has_ol': False,
-        }
 
-        ia_account = Account.get_ia_account(email)
-        ol_account = ol_accounts[0] if ol_accounts else None
+def audit_account(email, password):
+    ol_accounts = web.ctx.site.store.values(
+        type="account", name="email", value=email)
 
-        if ia_account.get("account_found", False) is True:
-            audit['has_ia'] = True
+    audit = {
+        'email': email,
+        'authenticated': False,
+        'has_ia': False,
+        'has_ol': False,
+    }
 
-            if Account.auth_ia_account(email, password):
-                audit['authenticated'] = 'ia'
+    ia_account = Account.get_ia_account(email)
+    ol_account = ol_accounts[0] if ol_accounts else None
 
-            if not audit['authenticated']:
-                return json_response({'error': "wrong_ia_credentials"})
+    if not (ia_account.get("account_found", False) or ol_account):
+        return {'error': 'account_user_notfound'}
 
-        if ol_account:
-            audit['has_ol'] = True
+    if ia_account.get("account_found", False) is True:
+        audit['has_ia'] = True
 
-            if not audit['authenticated']:
-                if ol_account.login(password):
-                    audit['authenticated'] = 'ol'
+        if Account.auth_ia_account(email, password):
+            audit['authenticated'] = 'ia'
 
-            if not audit['authenticated']:
-                return json_response({'error': "wrong_ol_credentials"})
+        if not audit['authenticated']:
+            return {'error': "wrong_ia_credentials"}
 
-        if not (audit['has_ia'] or audit['has_ol']):
-                return json_response({'error': "wrong_account"})
+    if ol_account:
+        audit['has_ol'] = True
 
-        if audit['authenticated'] and audit['has_ia'] and audit['has_ol']:
-            pass  # XXX make sure the accounts are linked in OL.
+        if not audit['authenticated']:
+            # XXX Check that OL login doesn't have / perform side
+            # effects in a way which IA auth attempt doesn't
+            # (e.g. setting cookies, etc)
+            status = ol_account.login(password)
+            if status == "ok":
+                audit['authenticated'] = 'ol'
+            else:
+                return {'error': status}
 
-        return json_response(audit)
+        if not audit['authenticated']:
+            return {'error': "wrong_ol_credentials"}
+
+    if audit['authenticated'] and audit['has_ia'] and audit['has_ol']:
+        # XXX make sure the accounts are linked in OL.
+        audit['linked'] = False
+
+    return audit
 
 
 class account_notifications(delegate.page):
