@@ -139,15 +139,15 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $ user_loan = current_loan
                         $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
-            $ checkedout = current_and_available_loans[1] if current_and_available_loans else []
-            $if not checkedout:
+            $ checkedout = (current_and_available_loans[0]) if current_and_available_loans else []
+            $if checkedout and not user_loan:
                 $ work = page.works and page.works[0]
                 $if work and work.edition_count > 1:
                     <p class="btn-notice">
-		      <span class="smaller">Other editions of this book may be available.</span>
-		      </br>
-		      <a href="$work.url()" class="check-btn">Check Other Editions </a>
-		    </p>
+                      <span class="smaller">Other editions of this book may be available.</span>
+                      </br>
+                      <a href="$work.url()" class="check-btn">Check Other Editions </a>
+                    </p>
 
         <p>
           $if isbn:
@@ -156,7 +156,7 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
             <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
 
           Find a physical copy near you</a> &mdash; <span class="smaller">powered by <a href="https://worldcat.org">WorldCat</a></span>
-	</p>
+        </p>
       </div>
     </div>
 $else:
