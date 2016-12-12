@@ -52,69 +52,6 @@ class home(delegate.page):
             user=user, loans=loans)
 
 
-def get_popular_books(seeds, limit=None, loan_check_batch_size=50,
-                      available_only=True):
-    """Takes a list of seeds (from user lists or otherwise), checks which
-    ones are (un)available (in batch sizes of
-    `loan_check_batch_size`), fetches data for editions (according to
-    available_only), and returns the tuple of available and
-    unavailable popular works.
-
-    Args:
-        seeds (list) - seeds from a user's list
-
-        limit (int) - Load the popular carousel with how many items?
-        (preferably divisible by 6; number of books shown per page)
-
-        loan_check_batch_size (int) - Bulk submits this many
-        archive.org itemids at a time to see if they are available to
-        be borrowed (only considers waitinglist and bookreader
-        borrows, no acs4)
-
-        available (bool) - return only available works? If True,
-        waitlisted_books will be []
-
-    Returns:
-        returns a tuple (available_books,
-        waitlisted_books). waitlisted_books will be [] if
-        available_only=True
-
-    """
-<<<<<<< Updated upstream
-    available_books = []
-    waitlisted_books = []
-
-    batch = {}
-    while seeds and (limit is None or len(available_books) < limit):
-        archive_ids = []
-        while seeds and len(batch) < loan_check_batch_size:
-            seed = seeds.pop(0)
-
-            if not lists.seed_is_daisy_only(seed):
-                edition = web.ctx.site.get(seed['key'])
-                archive_id = edition.get('ocaid')
-                if archive_id:
-                    batch[archive_id] = edition
-                    archive_ids.append(archive_id)
-
-        responses = lending.is_borrowable(archive_ids)
-
-        for archive_id in archive_ids:
-            if len(available_books) == limit:
-                continue
-            if archive_id not in responses:
-                # If book is not accounted for, err on the side of inclusion
-                available_books.append(format_book_data(batch[archive_id]))
-            else:
-                status = 'status' in responses[archive_id]
-                if status and responses[archive_id]['status'] == 'available':
-                    available_books.append(format_book_data(batch[archive_id]))
-                elif not available_only:
-                    waitlisted_books.append(format_book_data(batch[archive_id]))
-        batch = {}  # reset for next batch loan check
-
-    return available_books, waitlisted_books
-
 @public
 def popular_carousel(limit=36):
     """Renders a carousel of popular editions, which are available for
@@ -126,6 +63,9 @@ def popular_carousel(limit=36):
         (preferably divisible by 6; number of books shown per page)
 
     Selected Lists:
+        popular.popular is a mapping of OL ids to archive.org identifiers
+        for popular book editions coming from the following OL lists:
+
         /people/mekBot/lists/OL104041L is a manually curated
         collection of popular available books which was constructed by
         looking at goodreads
@@ -143,20 +83,6 @@ def popular_carousel(limit=36):
     Returns:
         A rendered html carousel with popular books.
     """
-    # Pulls from one list at a time (prioritized by the perceived
-    # quality of the list), shuffles its seeds, and appends to seeds
-    user_lists = [
-        '/people/mekBot/lists/OL104041L',
-        '/people/openlibrary/lists/OL104411L'
-    ]
-    seeds = []
-    for lst_key in user_lists:
-        seeds.extend(lists.get_randomized_list_seeds(lst_key))
-
-    available_books, _ = get_popular_books(seeds, limit=limit)
-
-    return render_template("books/carousel", storify(available_books),
-=======
     books = []
     seeds = popular.popular
 
@@ -179,7 +105,6 @@ def popular_carousel(limit=36):
                     books.append(format_book_data(web.ctx.site.get(key)))
 
     return render_template("books/carousel", storify(books),
->>>>>>> Stashed changes
                            id='CarouselPopular')
 
 
