@@ -37,7 +37,6 @@ BOOKREADER_AUTH_SECONDS = 10*60
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
 IA_API_URL = "https://archive.org/services/openlibrary.php"
-IA_AUTH_API_URL = "http://archive.org/~mek/auth.php"
 AVAILABILITY_API = 'https://archive.org/services/loans/beta/loan/index.php'
 
 config_content_server = None
