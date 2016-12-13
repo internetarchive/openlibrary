@@ -96,9 +96,20 @@ $ book_keys = []
             $ book_keys.append(book['key'].replace('/books/', ''))
             <tr>$:render_template("books/edition-sort", book)</tr>
         $ edition_list_secs = time() - edition_list_start
-
     </tbody>
 </table>
+
+$# Added here instead of LoanStatus to avoid the js being bound to every item
+$# in a work's edition listing
+<script>
+\$(function() {
+    \$('.return-book').submit(function(event) {
+        if (!confirm("Really return this book?")) {
+            event.preventDefault();
+        }
+    });
+});
+</script>
 
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>

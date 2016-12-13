@@ -139,6 +139,18 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $ user_loan = current_loan
                         $ break
             $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
+            $# Added here instead of LoanStatus to avoid the js being bound to every item
+            $# in a work's edition listing
+            <script>
+            \$(function() {
+                \$('.return-book').submit(function(event) {
+                    if (!confirm("Really return this book?")) {
+                        event.preventDefault();
+                    }
+                });
+            });
+            </script>
+
             $ checkedout = (current_and_available_loans[0]) if current_and_available_loans else []
             $if checkedout and not user_loan:
                 $ work = page.works and page.works[0]
