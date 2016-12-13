@@ -44,23 +44,35 @@ class home(delegate.page):
         user = accounts.get_current_user()
         loans = borrow.get_loans(user) if user else None
 
+        popular_available, popular_waitlist = popular_carousel()
         return render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
-            user=user, loans=loans)
+            user=user, loans=loans,
+            popular_books=popular_available,
+            waitlisted_books=popular_waitlist
+        )
 
 
 @public
-def popular_carousel(limit=36):
+def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_size=100):
     """Renders a carousel of popular editions, which are available for
     reading or borrowing, from user lists (borrowable or downloadable;
     excludes daisy only).
 
     Args:
-        limit (int) - Load the popular carousel with how many items?
-        (preferably divisible by 6; number of books shown per page)
+        available_limit (int) - Load the popular carousel with how
+        many items?  (preferably divisible by 6; number of books shown
+        per page)
+
+        waitlist_limit (int)) - limit waitlist to how many books
+
+        loan_check_batch_size (int) - Bulk submits this many
+        archive.org itemids at a time to see if they are available to
+        be borrowed (only considers waitinglist and bookreader
+        borrows, no acs4)
 
     Selected Lists:
         popular.popular is a mapping of OL ids to archive.org identifiers
@@ -81,43 +93,46 @@ def popular_carousel(limit=36):
         from the /lists page.
 
     Returns:
-        A rendered html carousel with popular books.
+        returns a tuple (available_books, waitlisted_books)
+
     """
-    books = []
+    available_books = []
+    waitlisted_books = []
     seeds = popular.popular
 
-    while seeds and len(books) < limit:
-        batch = seeds[:100]
-        seeds = seeds[100:]
+    while seeds and len(available_books) < available_limit:
+        batch = seeds[:loan_check_batch_size]
+        seeds = seeds[loan_check_batch_size:]
         random.shuffle(batch)
 
         responses = lending.is_borrowable([seed[0] for seed in batch])
 
         for seed in batch:
             ocaid, key = seed
-            if len(books) == limit:
+            if len(available_books) == available_limit:
                 continue
             if ocaid not in responses:
                 # If book is not accounted for, err on the side of inclusion
-                books.append(format_book_data(web.ctx.site.get(key)))
+                available_books.append(format_book_data(web.ctx.site.get(key)))
             elif 'status' in responses[ocaid]:
                 if responses[ocaid]['status'] == 'available':
-                    books.append(format_book_data(web.ctx.site.get(key)))
-
-    return render_template("books/carousel", storify(books),
-                           id='CarouselPopular')
-
+                    available_books.append(
+                        format_book_data(web.ctx.site.get(key)))
+                elif len(waitlisted_books) < waitlist_limit:
+                    waitlisted_books.append(
+                        format_book_data(web.ctx.site.get(key)))
+    return storify(available_books), storify(waitlisted_books)
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
-    id = key.split("/")[-1] + "_carousel"
+    css_id = key.split("/")[-1] + "_carousel"
 
     data = format_list_editions(key)
     if randomize:
         random.shuffle(data)
     data = data[:limit]
     add_checkedout_status(data)
-    return render_template("books/carousel", storify(data), id=id)
+    return render_template("books/carousel", storify(data), id=css_id)
 
 def add_checkedout_status(books):
     """OBSOLETE -- will be deleted.

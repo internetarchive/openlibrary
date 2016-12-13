@@ -1,5 +1,6 @@
-$ carousel = popular_carousel()
-$if carousel:
+$def with(books=None)
+
+$if books:
     <div class="head">
       <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a></h2>
       <p class="inline sansserif large collapse">
@@ -7,4 +8,4 @@ $if carousel:
       </p>
     </div>
 
-    $:carousel
+    $:render_template("books/carousel", books, id="CarouselPopular")
