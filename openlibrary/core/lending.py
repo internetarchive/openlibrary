@@ -210,7 +210,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         ocaid=loan['ocaid'],
         book=loan['book'])
 
-    wl = ia_lending_api.get_waitinglist_of_book(identifier)
+    try:
+        wl = ia_lending_api.get_waitinglist_of_book(identifier)
+    except urllib2.URLError:
+        pass
+    if wl is None:
+        logger.error("failed to get waitinglist for %s", identifier, exc_info=True)
+        return
 
     # for the end user, a book is not available if it is either
     # checked out or someone is waiting.

@@ -26,8 +26,9 @@ $:render_template("home/splash")
     $:render_template("home/returncart")
     <div class="clearfix"></div>
 
-    $:render_template("home/loans", loans)
-    <div class="clearfix"></div>
+    $if loans:
+        $:render_template("home/loans", loans)
+        <div class="clearfix"></div>
 
     $:render_template("home/stats", stats)
     <div class="clearfix"></div>

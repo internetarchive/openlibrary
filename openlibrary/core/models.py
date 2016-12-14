@@ -15,6 +15,7 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
 from openlibrary.core import loanstats
+from openlibrary.core.helpers import any_private_collections
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -265,11 +266,15 @@ class Edition(Thing):
                 or 'lendinglibrary' in collections
                 or self.get_ia_meta_fields().get("access-restricted") is True)
 
+    # Private collections are lendable books that should not be linked/revealed from OL
+    def is_in_private_collection(self):
+        return any_private_collections(self.get_ia_collections())
+
     def can_borrow(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None))
+        return ('lendinglibrary' in collections or
+            ('inlibrary' in collections and inlibrary.get_library() is not None)
+            ) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""

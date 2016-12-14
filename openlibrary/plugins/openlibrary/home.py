@@ -140,7 +140,7 @@ def loans_carousel(loans=None, css_id="CarouselLoans"):
     """Generates 'Your Loans' carousel on home page"""
     _loans = loans or []
     books = [format_book_data(web.ctx.site.get(loan['book']))
-             for loan in _loans]
+             for loan in _loans if web.ctx.site.get(loan['book'])]
     return render_template(
         "books/carousel", storify(books), id=css_id
     ) if books else ""
