@@ -10,6 +10,7 @@ import uuid
 import urllib
 import urllib2
 
+import lepl.apps.rfc3696
 import web
 
 from infogami import config
@@ -30,7 +31,8 @@ def sendmail(to, msg, cc=None):
 
         print >> web.debug, "sending email", message
     else:
-        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+        web.sendmail(config.from_address, to, subject=msg.subject.strip(),
+                     message=web.safestr(msg), cc=cc)
 
 def verify_hash(secret_key, text, hash):
     """Verifies if the hash is generated
@@ -283,20 +285,20 @@ class Account(web.storage):
         """
         ol_accounts = web.ctx.site.store.values(
             type="account", name="archive_user_itemname", value=email)
-        return ol_accounts[0] if ol_accounts else None
+        return Account(**ol_accounts[0]) if ol_accounts else None
         
     @classmethod
     def get_ol_account_by_email(cls, email):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="email", value=email)
-        return ol_accounts[0] if ol_accounts else None
+        return Account(**ol_accounts[0]) if ol_accounts else None
     
     @classmethod
     def get_ia_account_by_email(cls, email, password):
         import internetarchive as ia
-        s3 = cls.auth_ia_account(email, password)
+        s3 = cls.get_ia_s3_keys(email, password)
         account = ia.get_user_info(s3['access'], s3['secret']) if s3 else None
-        return simplejson.loads(account)
+        return account
 
     @classmethod
     def get_ia_email_by_itemname(cls, itemname):
@@ -312,9 +314,17 @@ class Account(web.storage):
     def get_ia_s3_keys(cls, email, password):
         import internetarchive as ia
         from internetarchive.config import get_auth_config
-        return get_auth_config(email, password)  # XXX what if fails? Return type?
+        try:
+            # XXX what if fails? Return type?
+            auth = get_auth_config(email, password)
+            return auth['s3']
+        except:
+            return None
     
     @classmethod
     def auth_ia_account(cls, email, password):
-        return 's3' in cls.get_ia_s3_keys(email, password)
+        return bool(cls.get_ia_s3_keys(email, password))
  
+    @staticmethod
+    def valid_email(email):
+        return lepl.apps.rfc3696.Email()(email)

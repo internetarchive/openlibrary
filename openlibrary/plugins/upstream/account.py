@@ -429,14 +429,17 @@ def audit_account(email, password):
         'has_ol': False,
         'linked': False
     }
-    
-    ol_account = Account.get_ol_account_by_email(email, password)
-    link = ol_account.archive_user_itemname if ol_account else None
-    
+
+    if not Account.valid_email(email):
+        return {'error': 'invalid_email'}
+
+    ol_account = Account.get_ol_account_by_email(email)
+    link = getattr(ol_account, 'archive_user_itemname', None) if ol_account else None
+    ia_account = Account.get_ia_account_by_email(email, password)    
+
     if not ol_account:
-        ia_account = Account.get_ia_account_by_email(email, password))
         if not ia_account:
-            return {'error': 'account_user_notfound'}        
+            return {'error': 'account_user_notfound'}
     
     if link:
         audit['linked'] = link
@@ -447,7 +450,9 @@ def audit_account(email, password):
         if Account.auth_ia_account(email, password):
             audit['authenticated'] = 'ia'        
 
-            if not ol_account:
+            if ol_account:
+                audit['has_ol'] = True
+            else:
                 # check if there's an OL account which links to this
                 # IA account (this IA account could have a different
                 # email than the linked OL account)
@@ -464,6 +469,7 @@ def audit_account(email, password):
             return {'error': "wrong_ia_credentials"}
     
     if ol_account:
+        audit['has_ol'] = True
         if not audit['authenticated']:
             # XXX Check that OL login doesn't have / perform side
             # effects in a way which IA auth attempt doesn't
