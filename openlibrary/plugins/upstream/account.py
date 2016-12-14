@@ -127,6 +127,10 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST_login(self, i):
+        bridge = i.get('connect', {})
+
+        return delegate.RawText(simplejson.dumps(bridge),
+                                content_type="application/json")
 
         audit = audit_account(i.email, i.password)
 
@@ -417,6 +421,10 @@ class account_audit(delegate.page):
         email = i.get('email').lower()
         password = i.get('password')
         result = audit_account(email, password)
+
+        # XXX check if usernames are available on the other service
+        
+
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
@@ -435,7 +443,7 @@ def audit_account(email, password):
 
     ol_account = Account.get_ol_account_by_email(email)
     link = getattr(ol_account, 'archive_user_itemname', None) if ol_account else None
-    ia_account = Account.get_ia_account_by_email(email, password)    
+    ia_account = Account.get_ia_account_by_email(email, password)
 
     if not ol_account:
         if not ia_account:
@@ -446,12 +454,12 @@ def audit_account(email, password):
         ia_account = Account.get_linked_ia_account(link, password)
 
     if ia_account:
-        audit['has_ia'] = True
+        audit['has_ia'] = ia_account['itemname']
         if Account.auth_ia_account(email, password):
             audit['authenticated'] = 'ia'        
 
             if ol_account:
-                audit['has_ol'] = True
+                audit['has_ol'] = ol_account.username
             else:
                 # check if there's an OL account which links to this
                 # IA account (this IA account could have a different
@@ -459,7 +467,7 @@ def audit_account(email, password):
                 _link = ia_account['itemname']
                 ol_account = Account.get_ol_account_by_link(_link)                
                 if ol_account:
-                    audit['has_ol'] = True
+                    audit['has_ol'] = ol_account.username
                     audit['linked'] = _link
         
             return audit
@@ -469,7 +477,7 @@ def audit_account(email, password):
             return {'error': "wrong_ia_credentials"}
     
     if ol_account:
-        audit['has_ol'] = True
+        audit['has_ol'] = ol_account.username
         if not audit['authenticated']:
             # XXX Check that OL login doesn't have / perform side
             # effects in a way which IA auth attempt doesn't
@@ -484,9 +492,8 @@ def audit_account(email, password):
             return {'error': "wrong_ol_credentials"}
 
     if audit['authenticated'] and ol_account and ia_account:
-        link = ia_account['itemname']
         # XXX make sure the accounts are linked in OL.
-        audit['linked'] = True
+        audit['linked'] = getattr(ol_account, 'archive_user_itemname', None)
 
     return audit
 

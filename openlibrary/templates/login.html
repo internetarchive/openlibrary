@@ -22,8 +22,9 @@ $var title: $("Log In")
       </div>
       <div class="modal-header-copy">
         <h2>Link Accounts</h2>
-        <p class="modal-header-copy-a">Open Library now requires an <a href="https://archive.org">archive.org</a> account. Do you have one already?</p>
-        <p class="modal-header-copy-b">Verify your <a href="https://archive.org">archive.org</a> credentials and proceed to login.</p>
+        <p class="modal-header-copy-a">Open Library now requires an <a class="service" href="https://archive.org">archive.org</a> account. Do you have one already?</p>
+        <p class="modal-header-copy-b">Verify your <a class="service" href="https://archive.org">archive.org</a> credentials and proceed to login.</p>
+        <p class="modal-header-copy-c">Choose a username for your new <a class="service" href="https://archive.org">archive.org</a> account.</p>
       </div>
     </div>
 
@@ -32,13 +33,22 @@ $var title: $("Log In")
         <li><a id="linkAccounts">Yes, connect my archive.org account.</a></li>
         <li><a id="createAccount">No, create one for me.</a></li>
       </ul>
-      <div class="modal-connect-form">
+      <div class="modal-create-form modal-form">
+        <div class="formFields">
+            <input type="text" id="connectEmail" autocomplete="off"
+             name="createUsername" placeholder=""/>
+	</div>
+        <div>
+          <button id="verifyAndCreate">Verify &amp; Create</button>
+        </div>
+      </div>
+      <div class="modal-connect-form modal-form">
         <div class="formFields">
           <div>
             <input type="text" id="connectEmail" autocomplete="off"
              name="connectEmail"  placeholder="Archive.org email"/>
             <input type="text" autocomplete="off" class="fake"
-             name="connectEmail_fake"  placeholder="Archive.org email"/>
+             name="connectEmail_fake" placeholder="Archive.org email"/>
           </div>
           <div class="inputbr"></div>
           <div>
@@ -47,6 +57,10 @@ $var title: $("Log In")
            <input type="password" autocomplete="off" class="fake"
             name="connectPassword_fake" placeholder="Password"/>
           </div>
+
+	  <!-- data forwarded from the 1st form -->
+	  <input type="hidden" id="mainEmail" name="mainEmail" />
+	  <input type="hidden" id="mainPassword" name="mainPassword" />
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
@@ -108,7 +122,7 @@ $var title: $("Log In")
 
   \$(function(){
 
-      var connect = {};
+      var bridge = {};
 
       //\$('#migrateModal').click(function(event) {
       //    \$('#migrateModal').hide();
@@ -118,7 +132,9 @@ $var title: $("Log In")
           \$('#migrateModal').hide();
           \$('.modal-header-copy-a').show();
           \$('.modal-header-copy-b').hide();
+          \$('.modal-header-copy-c').hide();
           \$('.modal-connect-form').hide();
+          \$('.modal-create-form').hide();
           \$('.modal-option').show();
       }
 
@@ -134,7 +150,26 @@ $var title: $("Log In")
           \$('.modal-connect-form').show()
       });
 
+      \$('#createAccount').click(function(event) {
+          \$('.modal-option').hide();
+          \$('.modal-header-copy-a').fadeOut(function() {
+              \$('.modal-header-copy-b').fadeIn();
+          });
+          resetModal();
+
+          bridge.email = \$('#username').val();
+          \$('.modal-create-form').show()
+          // instead of a submit, 
+
+          \$('#register').submit();
+      });
+
+      \$('#verifyAndCreate').click(function(event) {
+
+      });
+
       \$('#verifyAndConnect').click(function(event) {
+          // XXX change to OL /account/verify_usernames
           var url = 'https://api.archivelab.org/auth';
           \$.ajax({
               type: "POST",
@@ -148,7 +183,7 @@ $var title: $("Log In")
                   console.log(result);
                   if (result.email) {
                       // XXX TODO: ajax 2 for
-                      connect.email = result.email;
+                      bridge.email = result.email;
                       \$('#register').submit();
                   } else {
                       alert("Error");
@@ -159,14 +194,8 @@ $var title: $("Log In")
           })
       });
 
-      \$('#createAccount').click(function(event) {
-          resetModal();
-          connect.email = \$('#username').val();
-          \$('#register').submit();
-      });
-
       \$('#register').submit(function(event) {
-          if (!connect.email) {
+          if (!bridge.email) {
               event.preventDefault();
               var url = '/account/audit';
               \$.ajax({
@@ -186,7 +215,7 @@ $var title: $("Log In")
                           if (!result.linked) {
                               \$('#migrateModal').show();
                           } else {
-                              connect.email = result.email;
+                              bridge.email = result.email;
                               \$('#register').submit();
                           }
                       }
