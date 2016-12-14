@@ -147,6 +147,7 @@ $var title: $("Log In")
               success: function(result) {
                   console.log(result);
                   if (result.email) {
+                      // XXX TODO: ajax 2 for
                       connect.email = result.email;
                       \$('#register').submit();
                   } else {
@@ -178,10 +179,11 @@ $var title: $("Log In")
                   dataType: "json",
                   success: function(result) {
                       console.log(result);
-                      if (true) { //result.error) {
-                          // alert(result.error);
+                      if (result.error) {
+                          // TODO: set html to reflect error
+                          alert(result.error);
                       } else {
-                          if (result.has_ia != result.has_ol) {
+                          if (!result.linked) {
                               \$('#migrateModal').show();
                           } else {
                               connect.email = result.email;
