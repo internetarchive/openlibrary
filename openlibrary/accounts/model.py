@@ -245,7 +245,8 @@ class Account(web.storage):
     def get_links(self):
         """Returns all the verification links present in the database.
         """
-        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
+        return web.ctx.site.store.values(type="account-link", name="username",
+                                         value=self.username)
 
     def get_tags(self):
         """Returns list of tags that this user has.
@@ -275,33 +276,45 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
+    @classmethod
+    def get_ol_account_by_link(cls, link):
+        """Attempts to retrieve an openlibrary account by its
 
+        """
+        ol_accounts = web.ctx.site.store.values(
+            type="account", name="archive_user_itemname", value=email)
+        return ol_accounts[0] if ol_accounts else None
+        
+    @classmethod
+    def get_ol_account_by_email(cls, email):
+        ol_accounts = web.ctx.site.store.values(
+            type="account", name="email", value=email)
+        return ol_accounts[0] if ol_accounts else None
+    
+    @classmethod
+    def get_ia_account_by_email(cls, email, password):
+        import internetarchive as ia
+        s3 = cls.auth_ia_account(email, password)
+        account = ia.get_user_info(s3['access'], s3['secret']) if s3 else None
+        return simplejson.loads(account)
+
+    @classmethod
+    def get_ia_email_by_itemname(cls, itemname):
+        import internetarchive as ia
+        return ia.get_item(itemname).metadata.get('uploader', None)
+
+    @classmethod
+    def get_ia_account_by_itemname(cls, itemname, password):
+        email = get_ia_email_by_itemname(itemname)
+        return get_ia_account_by_email(email, password)
+
+    @classmethod
+    def get_ia_s3_keys(cls, email, password):
+        import internetarchive as ia
+        from internetarchive.config import get_auth_config
+        return get_auth_config(email, password)  # XXX what if fails? Return type?
+    
     @classmethod
     def auth_ia_account(cls, email, password):
-        token = lending.config_ia_ol_auth_key
-        data = {
-            "email": email,
-            "password": password,
-            "service": "authUser",
-            "token": token
-        }
-        if not token:
-            data['test'] = "true"
-        payload = urllib.urlencode(data)
-        r = urllib2.urlopen(lending.IA_AUTH_API_URL, payload).read()
-        return r == "ok"
-
-
-    @classmethod
-    def get_ia_account(cls, email):
-        token = lending.config_ia_ol_auth_key
-        data = {
-            "email": email,
-            "service": "getUser",
-            "token": token
-        }
-        if not token:
-            data['test'] = "true"
-        payload = urllib.urlencode(data)
-        r = urllib2.urlopen(lending.IA_AUTH_API_URL, payload).read()
-        return simplejson.loads(r)
+        return 's3' in cls.get_ia_s3_keys(email, password)
+ 

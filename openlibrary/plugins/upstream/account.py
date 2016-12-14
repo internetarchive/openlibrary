@@ -16,12 +16,11 @@ import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
+from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary import accounts
 import forms
 import utils
 import borrow
-
-from openlibrary.plugins.recaptcha import recaptcha
 
 
 logger = logging.getLogger("openlibrary.account")
@@ -377,11 +376,6 @@ class account_password_reset(delegate.page):
         return render_template("account/password/reset_success", username=username)
 
 
-def audit(email):
-
-    pass
-
-
 class account_audit(delegate.page):
 
     path = "/account/audit"
@@ -428,34 +422,48 @@ class account_audit(delegate.page):
 
 
 def audit_account(email, password):
-    ol_accounts = web.ctx.site.store.values(
-        type="account", name="email", value=email)
-
     audit = {
         'email': email,
         'authenticated': False,
         'has_ia': False,
         'has_ol': False,
+        'linked': False
     }
+    
+    ol_account = Account.get_ol_account_by_email(email, password)
+    link = ol_account.archive_user_itemname if ol_account else None
+    
+    if not ol_account:
+        ia_account = Account.get_ia_account_by_email(email, password))
+        if not ia_account:
+            return {'error': 'account_user_notfound'}        
+    
+    if link:
+        audit['linked'] = link
+        ia_account = Account.get_linked_ia_account(link, password)
 
-    ia_account = Account.get_ia_account(email)
-    ol_account = ol_accounts[0] if ol_accounts else None
-
-    if not (ia_account.get("account_found", False) or ol_account):
-        return {'error': 'account_user_notfound'}
-
-    if ia_account.get("account_found", False) is True:
+    if ia_account:
         audit['has_ia'] = True
-
         if Account.auth_ia_account(email, password):
-            audit['authenticated'] = 'ia'
+            audit['authenticated'] = 'ia'        
 
-        if not audit['authenticated']:
+            if not ol_account:
+                # check if there's an OL account which links to this
+                # IA account (this IA account could have a different
+                # email than the linked OL account)
+                _link = ia_account['itemname']
+                ol_account = Account.get_ol_account_by_link(_link)                
+                if ol_account:
+                    audit['has_ol'] = True
+                    audit['linked'] = _link
+        
+            return audit
+
+        # If IA is linked, only IA creds should be honored.
+        if link and not audit['authenticated']:
             return {'error': "wrong_ia_credentials"}
-
+    
     if ol_account:
-        audit['has_ol'] = True
-
         if not audit['authenticated']:
             # XXX Check that OL login doesn't have / perform side
             # effects in a way which IA auth attempt doesn't
@@ -469,9 +477,10 @@ def audit_account(email, password):
         if not audit['authenticated']:
             return {'error': "wrong_ol_credentials"}
 
-    if audit['authenticated'] and audit['has_ia'] and audit['has_ol']:
+    if audit['authenticated'] and ol_account and ia_account:
+        link = ia_account['itemname']
         # XXX make sure the accounts are linked in OL.
-        audit['linked'] = False
+        audit['linked'] = True
 
     return audit
 
