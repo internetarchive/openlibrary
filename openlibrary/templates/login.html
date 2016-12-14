@@ -165,7 +165,6 @@ $var title: $("Log In")
       });
 
       \$('#register').submit(function(event) {
-          console.log(connect);
           if (!connect.email) {
               event.preventDefault();
               var url = '/account/audit';
@@ -179,11 +178,15 @@ $var title: $("Log In")
                   dataType: "json",
                   success: function(result) {
                       console.log(result);
-                      if (result.has_ia != result.has_ol) {
-                          \$('#migrateModal').show();
+                      if (true) { //result.error) {
+                          // alert(result.error);
                       } else {
-                          connect.email = result.email;
-                          \$('#register').submit();
+                          if (result.has_ia != result.has_ol) {
+                              \$('#migrateModal').show();
+                          } else {
+                              connect.email = result.email;
+                              \$('#register').submit();
+                          }
                       }
                   }
               })

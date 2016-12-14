@@ -37,3 +37,4 @@ wsgiref==0.1.2
 mockcache==1.0.1
 sixpack-client==1.1.0
 internetarchive==1.1.0
+lepl==5.1.3
