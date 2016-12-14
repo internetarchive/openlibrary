@@ -1025,6 +1025,10 @@ div#headerLogin {
     display: none;
 }
 
+.modal-header-copy-c {
+    display: none;
+}
+
 .modal-header-copy {
     text-shadow: 0 1px 0 #fff;
 }
@@ -1097,11 +1101,15 @@ div#headerLogin {
     cursor: pointer;
 }
 
+.modal-create-form {
+    display: none;
+}
+
 .modal-connect-form {
     display: none;
 }
 
-.modal-connect-form .formFields {
+.modal-form .formFields {
     background-color: #fff;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
@@ -1110,7 +1118,7 @@ div#headerLogin {
     margin-bottom: 15px;
 }
 
-.modal-connect-form input {
+.modal-form input {
     padding: 10px;
     box-sizing : border-box;
     background-color: transparent;
@@ -1120,20 +1128,20 @@ div#headerLogin {
     margin: 0px;
 }
 
-.modal-connect-form input.fake {
+.modal-form input.fake {
     display: none;
 }
 
-.modal-connect-form .inputbr {
+.modal-form .inputbr {
     border-bottom: 1px solid #ddd;
 }
 
-.modal-connect-form input:-webkit-autofill {
+.modal-form input:-webkit-autofill {
     background-color: transparent !important;
     webkit-text-fill-color: transparent !important;
 }
 
-.modal-connect-form button {
+.modal-form button {
     width: 100%;
     border: none;
     outline: none;
@@ -1153,7 +1161,7 @@ div#headerLogin {
     text-decoration: none;
 }
 
-.modal-connect-form button:hover {
+.modal-form button:hover {
     background: #3cb0fd;
     background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
     background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
