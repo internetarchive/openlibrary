@@ -36,7 +36,7 @@ __all__ = [
     "sprintf", "cond", "commify", "truncate", "datetimestr_utc",
     "urlsafe", "texsafe",
     "percentage", "affiliate_id", "bookreader_host",
-    "private_collections", "any_private_collections",
+    "private_collections", "private_collection_in",
 
     # functions imported from elsewhere
     "parse_datetime", "safeint"
@@ -275,7 +275,7 @@ def private_collections():
     TODO: Remove when we can handle institutional books"""
     return ['georgetown-university-law-library-rr']
 
-def any_private_collections(collections):
+def private_collection_in(collections):
     return any(x in private_collections() for x in collections)
 
 def _get_helpers():

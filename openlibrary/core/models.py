@@ -15,7 +15,7 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
 from openlibrary.core import loanstats
-from openlibrary.core.helpers import any_private_collections
+from openlibrary.core.helpers import private_collection_in
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -268,7 +268,7 @@ class Edition(Thing):
 
     # Private collections are lendable books that should not be linked/revealed from OL
     def is_in_private_collection(self):
-        return any_private_collections(self.get_ia_collections())
+        return private_collection_in(self.get_ia_collections())
 
     def can_borrow(self):
         collections = self.get_ia_collections()

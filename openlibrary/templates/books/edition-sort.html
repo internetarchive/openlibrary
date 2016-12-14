@@ -96,7 +96,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </div>
         </td>
 
-    $if (isbn_10 or oclc_numbers or 'lendinglibrary' in collection or library) and not any_private_collections(collection):
+    $if (isbn_10 or oclc_numbers or 'lendinglibrary' in collection or library) and not private_collection_in(collection):
         <td class="icon borrow">
             <div class="aaaa"></div>
             <div class="links">
