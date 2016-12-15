@@ -189,7 +189,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                                     <span class="label">Read</span>
                                 </a>
                             </span>
-                        $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections) and not any_private_collections(doc.collections):
+                        $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections) and not private_collection_in(doc.collections):
                             <span class="actions read">
                                 <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book">
                                     <span class="image borrow"></span>
