@@ -196,13 +196,13 @@ body#admin div#bottom {background-color: transparent;}
 
 /* WIDGETS */
 .word-corner-badge {
-  position: absolute;
-  font-size: 9px;
-  color: red;
-  -ms-transform: rotate(324deg) translate(-11px, -14px);
-  -moz-transform: rotate(324deg) translate(-11px, -14px);
-  -webkit-transform: rotate(324deg) translate(-11px, -14px);
-  transform: rotate(324deg) translate(-10px, -16px);
+    position: absolute;
+    font-size: 9px;
+    color: red;
+    -ms-transform: rotate(324deg) translate(-11px, -14px);
+    -moz-transform: rotate(324deg) translate(-11px, -14px);
+    -webkit-transform: rotate(324deg) translate(-11px, -14px);
+    transform: rotate(324deg) translate(-10px, -16px);
 }
 
 /* ERROR MESSAGES */
@@ -415,7 +415,7 @@ form.olform select {
     padding: 3px;
 }
 form#notifications input[type=radio] {
-  margin: 0 10px 0 20px;
+    margin: 0 10px 0 20px;
 }
 div.invalid,
 div.valid,
@@ -1771,7 +1771,7 @@ select#select-id {
     padding: 5px 8px;
     cursor: pointer;
     display: inline-block;
-    font-size: 12px!important;
+    font-size: 12px;
     line-height: 1.5em;
 }
 .wait-btn {
@@ -1888,12 +1888,12 @@ table.identifiers {
     width: 395px;
 }
 .identifiers td {
-	color: #333333;
-	border-bottom: 1px solid #ddd;
-	padding: 5px;
+        color: #333333;
+        border-bottom: 1px solid #ddd;
+        padding: 5px;
 }
 .identifiers.authors td {
-	background-color: #fff;
+        background-color: #fff;
 }
 ul.booklinks li {list-style-type:disc;margin:0 0 10px 1.5em}
 ul.booklinks li span {display:block;}
@@ -2954,11 +2954,11 @@ div.floaterAdd form.floatform textarea {
 
 /* ADMIN */
 body#admin div#contentHead {
-  float: left;
-  padding-bottom: 30px;
+    float: left;
+    padding-bottom: 30px;
 }
 table.records {
-  width: 100%;
+    width: 100%;
 }
 table.records td {
     width: 33%;
@@ -3013,22 +3013,22 @@ table.measurements .shift {
     text-align: left!important;
 }
 table.services th {
-	font-family: "News Gothic MT", "Franklin Gothic Medium", "Times New Roman";
-	font-size: 11px;
-	font-weight: bold;
-	text-transform: uppercase;
-	color: #333333;
+        font-family: "News Gothic MT", "Franklin Gothic Medium", "Times New Roman";
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #333333;
  }
 
 table.services td {
-	padding: 5px;
-	border-right: 1px solid white;
-	border-bottom: 1px solid white;
+        padding: 5px;
+        border-right: 1px solid white;
+        border-bottom: 1px solid white;
 
  }
 
 table.services td.node {
-	       vertical-align: top;
+               vertical-align: top;
 }
 
 td.nagios-PENDING { font-family: arial,serif;  font-size: 8pt;  background-color: #ACACAC; }
@@ -3177,10 +3177,10 @@ div.grippie {
 /* FAQ STYLES */
 .Wrap { width: 500px; }
 .Wrap h2 { font-family: "News Gothic MT", "Franklin Gothic Medium", "Arial", sans-serif;
-	font-size: 0.6875em;
-	text-transform: uppercase;
-	color: #615132;
-	font-weight: bold;}
+        font-size: 0.6875em;
+        text-transform: uppercase;
+        color: #615132;
+        font-weight: bold;}
 
 h3.Question {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; font-size: 1.2em; font-weight:normal; color: #615132; margin-top: 10px; padding-top: 10px; border-top: 1px dotted #ddd;}
 

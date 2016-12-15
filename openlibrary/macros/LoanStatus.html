@@ -32,7 +32,7 @@ $if user_loan:
       <p>
         <span class="smaller">Checked out from $contributor</span>
       </p>
-      <p style="padding-left: 0px;">
+      <p>
         <a href="$borrow_link" title="Borrow from $contributor" class="borrow-btn borrow-link">Read eBook</a>
       </p>
       $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
@@ -85,4 +85,3 @@ $else:
             <input type="submit" class="submit wait-btn" value="Join waiting list"/>
           </form>
         </div>
-
