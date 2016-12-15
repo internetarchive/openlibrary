@@ -179,7 +179,7 @@ $elif ebook_status == "borrow-available":
 $elif ebook_status == "borrow-checkedout":
     <div class="page-banner sansserief">
         This title from the <a href="https://openlibrary.org/borrow">Lending Library collection</a> is already checked out.
-        <a class="button" href="$page.url('/borrow')">Join the waiting list</a>
+        <a class="button borrow-link" href="$page.url('/borrow')">Join the waiting list</a>
     </div>
 $elif ebook_status == "borrow-user-waiting":
     <div class="page-banner sansserief">

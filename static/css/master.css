@@ -152,7 +152,7 @@ body#user div#content{font-family:Georgia,"Palatino Linotype", "Book Antiqua", P
 body#admin div#content,body#edit div#content{font-family:"News Gothic MT","Trebuchet MS",Helvetica,Geneva,sans-serif;}
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;font-size:0.875em;}
 input[type=text]{margin: 0 10px 5px 0;}
-#contentBody input[type=submit]{font-size:1.125em!important;}
+#contentBody input[type=submit]{font-size:1.125em;}
 p.instruct {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 0.875em;
@@ -196,13 +196,13 @@ body#admin div#bottom {background-color: transparent;}
 
 /* WIDGETS */
 .word-corner-badge {
-  position: absolute;
-  font-size: 9px;
-  color: red;
-  -ms-transform: rotate(324deg) translate(-11px, -14px);
-  -moz-transform: rotate(324deg) translate(-11px, -14px);
-  -webkit-transform: rotate(324deg) translate(-11px, -14px);
-  transform: rotate(324deg) translate(-10px, -16px);
+    position: absolute;
+    font-size: 9px;
+    color: red;
+    -ms-transform: rotate(324deg) translate(-11px, -14px);
+    -moz-transform: rotate(324deg) translate(-11px, -14px);
+    -webkit-transform: rotate(324deg) translate(-11px, -14px);
+    transform: rotate(324deg) translate(-10px, -16px);
 }
 
 /* ERROR MESSAGES */
@@ -415,7 +415,7 @@ form.olform select {
     padding: 3px;
 }
 form#notifications input[type=radio] {
-  margin: 0 10px 0 20px;
+    margin: 0 10px 0 20px;
 }
 div.invalid,
 div.valid,
@@ -1282,12 +1282,17 @@ ul#olBlog {margin:0}
 ul#olBlog li {list-style-type: none;margin:1em 0;}
 
 .contentLists.results .coverMagic {position:relative;height:200px;margin:0;float:left;}
-.contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000;}
+.contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000; }
 .contentLists.results .SRPCover {float:left;height:200px;vertical-align:middle;}
 .contentLists.results .SRPCover img {max-height:200px;max-width:133px;}
 .contentLists.results .SRPCoverBlank {position:relative;width:115px;height:180px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 .contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
 .contentLists {margin-bottom:20px;}
+
+.coverEbook img {
+  opacity: .85;
+  filter: alpha(opacity=85);
+}
 
 div#content div.contentLists {
     float: left;
@@ -1757,22 +1762,66 @@ table.navEdition td {
 select#select-id {
     max-width: 300px;
 }
-.borrow-btn, .read-btn {
+
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn {
+    margin: 1px auto;
     color: white;
     background: #036DAA;
     border-radius: 5px;
     padding: 5px 8px;
     cursor: pointer;
     display: inline-block;
+    font-size: 12px;
+    line-height: 1.5em;
 }
-.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited {
+.wait-btn {
+    background: #389ad4;
+    border: none;
+}
+
+.unwait-btn {
+    background: #aaa;
+    border: none;
+}
+
+.check-btn {
+    background-color: rgb(164, 181, 122);
+}
+
+.waitinglist-form input[type=submit] {
+    line-height: 1.5em;
+    font-size: 12px!important;
+}
+
+#editions .btn-notice {
+    padding: 0px;
+    background-color: none !important;
+}
+
+.Tools .btn-notice {
+    line-height: 1.5em;
+    font-size: 12px;
+    margin-left: 37px;
+    padding: 7px;
+    margin-bottom: 10px;
+    background-color: rgba(226, 220, 197, 0.28);
+}
+
+div.Tools .btn-notice p {
+    padding-left: 0px !important;
+}
+
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {
+    font-size: 12px!important;
     color: white;
     text-decoration: none;
 }
-.borrow-btn:hover, .read-btn:hover {
+.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover, .check-btn:hover {
+    font-size: 12px!important;
     color: white;
     text-decoration: underline;
 }
+
 
 /* POPUP CAROUSEL SKIN */
 body#form .jcarousel-list-horizontal {
@@ -1839,12 +1888,12 @@ table.identifiers {
     width: 395px;
 }
 .identifiers td {
-	color: #333333;
-	border-bottom: 1px solid #ddd;
-	padding: 5px;
+        color: #333333;
+        border-bottom: 1px solid #ddd;
+        padding: 5px;
 }
 .identifiers.authors td {
-	background-color: #fff;
+        background-color: #fff;
 }
 ul.booklinks li {list-style-type:disc;margin:0 0 10px 1.5em}
 ul.booklinks li span {display:block;}
@@ -2905,11 +2954,11 @@ div.floaterAdd form.floatform textarea {
 
 /* ADMIN */
 body#admin div#contentHead {
-  float: left;
-  padding-bottom: 30px;
+    float: left;
+    padding-bottom: 30px;
 }
 table.records {
-  width: 100%;
+    width: 100%;
 }
 table.records td {
     width: 33%;
@@ -2964,22 +3013,22 @@ table.measurements .shift {
     text-align: left!important;
 }
 table.services th {
-	font-family: "News Gothic MT", "Franklin Gothic Medium", "Times New Roman";
-	font-size: 11px;
-	font-weight: bold;
-	text-transform: uppercase;
-	color: #333333;
+        font-family: "News Gothic MT", "Franklin Gothic Medium", "Times New Roman";
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: #333333;
  }
 
 table.services td {
-	padding: 5px;
-	border-right: 1px solid white;
-	border-bottom: 1px solid white;
+        padding: 5px;
+        border-right: 1px solid white;
+        border-bottom: 1px solid white;
 
  }
 
 table.services td.node {
-	       vertical-align: top;
+               vertical-align: top;
 }
 
 td.nagios-PENDING { font-family: arial,serif;  font-size: 8pt;  background-color: #ACACAC; }
@@ -3128,10 +3177,10 @@ div.grippie {
 /* FAQ STYLES */
 .Wrap { width: 500px; }
 .Wrap h2 { font-family: "News Gothic MT", "Franklin Gothic Medium", "Arial", sans-serif;
-	font-size: 0.6875em;
-	text-transform: uppercase;
-	color: #615132;
-	font-weight: bold;}
+        font-size: 0.6875em;
+        text-transform: uppercase;
+        color: #615132;
+        font-weight: bold;}
 
 h3.Question {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif; font-size: 1.2em; font-weight:normal; color: #615132; margin-top: 10px; padding-top: 10px; border-top: 1px dotted #ddd;}
 
