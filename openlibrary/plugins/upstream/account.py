@@ -379,11 +379,23 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
+class check_username_available(delegate.page):
+
+    path = "/account/check_username"
+
+    def POST(self):
+        """Checks whether `username` is availabe on service (i.e. `ia` or
+        `ol`)"""
+        i = web.input(service="ia", username="")
+        if i.service == 'ia':
+            return accounts.username_available(username)
+        elif i.service == 'ol':
+            return
+
 
 class account_audit(delegate.page):
 
     path = "/account/audit"
-    #encoding = "json"
 
     def POST(self):
         """
@@ -421,10 +433,6 @@ class account_audit(delegate.page):
         email = i.get('email').lower()
         password = i.get('password')
         result = audit_account(email, password)
-
-        # XXX check if usernames are available on the other service
-        
-
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
@@ -442,21 +450,22 @@ def audit_account(email, password):
         return {'error': 'invalid_email'}
 
     ol_account = Account.get_ol_account_by_email(email)
-    link = getattr(ol_account, 'archive_user_itemname', None) if ol_account else None
-    ia_account = Account.get_ia_account_by_email(email, password)
+    ia_account = Account.get_ia_account_by_email(email)
+    link = (getattr(ol_account, 'archive_user_itemname', None)
+            if ol_account else None)
 
     if not ol_account:
         if not ia_account:
             return {'error': 'account_user_notfound'}
-    
+
     if link:
         audit['linked'] = link
         ia_account = Account.get_linked_ia_account(link, password)
 
     if ia_account:
         audit['has_ia'] = ia_account['itemname']
-        if Account.auth_ia_account(email, password):
-            audit['authenticated'] = 'ia'        
+        if Account.auth_ia_account(email, password) == "ok":
+            audit['authenticated'] = 'ia'
 
             if ol_account:
                 audit['has_ol'] = ol_account.username
@@ -465,17 +474,23 @@ def audit_account(email, password):
                 # IA account (this IA account could have a different
                 # email than the linked OL account)
                 _link = ia_account['itemname']
-                ol_account = Account.get_ol_account_by_link(_link)                
+                ol_account = Account.get_ol_account_by_link(_link)
                 if ol_account:
                     audit['has_ol'] = ol_account.username
                     audit['linked'] = _link
-        
+                else:
+                    # is the IA username available on ol?
+                    ia_screenname = account['screenname']
+                    audit['username'] = (
+                        None if Account.get_ia_account_by_screenname(
+                            ia_screenname).get('screenname') else
+                        ia_username)
             return audit
 
         # If IA is linked, only IA creds should be honored.
         if link and not audit['authenticated']:
             return {'error': "wrong_ia_credentials"}
-    
+
     if ol_account:
         audit['has_ol'] = ol_account.username
         if not audit['authenticated']:
@@ -485,6 +500,11 @@ def audit_account(email, password):
             status = ol_account.login(password)
             if status == "ok":
                 audit['authenticated'] = 'ol'
+
+                if not ia_account:
+                    # is the IA username available on ol?
+                    ol_username = ol_account.username
+                    audit['username'] = Account.get_ia_account_by_itemname(ol_username)
             else:
                 return {'error': status}
 
