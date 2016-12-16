@@ -21,34 +21,36 @@ $var title: $("Log In")
         <img  src="https://archive.org/images/logo_arches.png"/>
       </div>
       <div class="modal-header-copy">
-        <h2>Link Accounts</h2>
-        <p class="modal-header-copy-a">Open Library now requires an <a class="service" href="https://archive.org">archive.org</a> account. Do you have one already?</p>
-        <p class="modal-header-copy-b">Verify your <a class="service" href="https://archive.org">archive.org</a> credentials and proceed to login.</p>
-        <p class="modal-header-copy-c">Choose a username for your new <a class="service" href="https://archive.org">archive.org</a> account.</p>
+        <h2>Connect Accounts</h2>
+        <p class="modal-header-copy-a">
+          Your <a class="linked-service" href=""></a> account must be connected to an <a class="unlinked-service" href=""></a> account to continue. Do you have one already?
+        </p>
+        <p class="modal-header-copy-b">Verify your <a class="unlinked-service" href=""></a> credentials and proceed to login.</p>
+        <p class="modal-header-copy-c">Choose a username for your new <a class="unlinked-service" href=""></a> account.</p>
       </div>
     </div>
 
     <div class="modal-body">
       <ul class="modal-option">
-        <li><a id="linkAccounts">Yes, connect my archive.org account.</a></li>
+        <li><a id="linkAccounts">Yes, connect my <span class="unlinked-service"></span> account.</a></li>
         <li><a id="createAccount">No, create one for me.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
         <div class="formFields">
-            <input type="text" id="connectEmail" autocomplete="off"
-             name="createUsername" placeholder=""/>
+            <input type="text" id="connectUsername" autocomplete="off"
+             name="createUsername" placeholder="Username"/>
         </div>
         <div>
           <button id="verifyAndCreate">Verify &amp; Create</button>
         </div>
       </div>
-      <form class="modal-connect-form modal-form">
+      <div class="modal-connect-form modal-form">
         <div class="formFields">
           <div>
             <input type="text" id="connectEmail" autocomplete="off"
-             name="connectEmail"  placeholder="Archive.org email"/>
+             name="connectEmail"  placeholder="Email"/>
             <input type="text" autocomplete="off" class="fake"
-             name="connectEmail_fake" placeholder="Archive.org email"/>
+             name="connectEmail_fake" placeholder="Email"/>
           </div>
           <div class="inputbr"></div>
           <div>
@@ -64,8 +66,9 @@ $var title: $("Log In")
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
+          <p><a class="forgot-unlinked">Forgot Password?</a></p>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>
@@ -77,10 +80,10 @@ $var title: $("Log In")
             <div class="note">$form.note</div>
 
         <div class="formElement">
-            <div class="label"><label for="username">$_("Username")</label> <span class="smaller lighter"></span></div>
+            <div class="label"><label for="username">$_("Email")</label> <span class="smaller lighter"></span></div>
 
             <div class="input">
-                <input type="text" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" autocapitalize="off" autocorrect="off"/>
+                <input type="text" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
                 <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
@@ -88,7 +91,7 @@ $var title: $("Log In")
         <div class="formElement">
             <div class="label"><label for="password">$_("Password")</label> <span class="smaller lighter"></span></div>
             <div class="input">
-                <input type="password" class="required"  id="password" name="password" value="$form.password.value" />
+                <input type="password" class="required" placeholder="Password" id="password" name="password" value="$form.password.value" />
                 <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
             </div>
         </div>
@@ -99,7 +102,12 @@ $var title: $("Log In")
                 <label for="remember" class="small">Remember me</label>
             </div>
         </div>
+
         <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
+        <input type="hidden" id="bridgeUsername" value="" name="bridgeUsername" />
+        <input type="hidden" id="bridgeEmail" value="" name="bridgeEmail" />
+        <input type="hidden" id="bridgePassword" value="" name="bridgePassword" />
+        <input type="hidden" id="bridgeService" value="" name="redirect" />
 
         <div class="clearfix"></div>
 
@@ -126,6 +134,22 @@ $var title: $("Log In")
            linked: false
       };
 
+      var services = {
+	  'ia': {
+	      'url': 'archive.org',
+	      'name': 'Internet Archive',
+	      'opposite': 'ol',
+	      'forgot': '/account/login.forgotpw.php'
+
+	  },
+	  'ol': {
+	      'url': 'openlibrary.org',
+	      'name': 'Open Library',
+	      'opposite': 'ia',
+	      'forgot': '/account/password/forgot'
+	  }
+      };
+
       var resetModal = function() {
           \$('#migrateModal').hide();
           \$('.modal-header-copy-a').show();
@@ -133,6 +157,10 @@ $var title: $("Log In")
           \$('.modal-header-copy-c').hide();
           \$('.modal-connect-form').hide();
           \$('.modal-create-form').hide();
+	  \$('#bridgeUsername').val('');
+	  \$('#bridgeEmail').val('');
+	  \$('#bridgePassword').val('');
+	  \$('#bridgeService').val('');
           \$('.modal-option').show();
       }
 
@@ -160,74 +188,120 @@ $var title: $("Log In")
           \$('.modal-create-form').show()
       });
 
-      \$('#verifyAndCreate').click(function(event) {
-          // if IA, check if OL
-
-          // ajax to see if credentials verify
-          // \$('#register').submit();
-      });
-
-      \$('#verifyAndConnect').click(function(event) {
-          // XXX change to OL /account/verify_usernames
-          var url = 'https://api.archivelab.org/auth';
+      var authenticate = function(email, password, callback) {
+          var url = '/account/audit';
           \$.ajax({
               type: "POST",
               data: {
-                  email: \$('#connectEmail').val(),
-                  password: \$('#connectPassword').val(),
+                  email: email,
+                  password: password
               },
               url: url,
               dataType: "json",
               success: function(result) {
-                  console.log(result);
-                  if (result.email) {
-                      // XXX TODO: ajax 2 for
-                      bridge.email = result.email;
-                      \$('#register').submit();
-                  } else {
-                      alert("Error");
-                      \$('#connectEmail').val('');
-                      \$('#connectPassword').val('');
-                  }
-              }
-          })
+		  return callback(result);
+	      }
+	  });
+      };
+
+      var check_username_available = function(email, password, callback) {
+          var url = '/account/check_username_available';
+          \$.ajax({
+              type: "POST",
+              data: {
+                  email: email,
+                  password: password
+              },
+              url: url,
+              dataType: "json",
+              success: function(result) {
+		  return callback(result);
+	      }
+	  });
+      };
+
+      \$('#verifyAndCreate').click(function(event) {
+	  check_username_available(\$('#createUsername').val(), function(result) {
+	      console.log('verify and create');
+              console.log(result);
+	      if (result.authenticated) {
+		  bridge.service = result.authenticated;
+		  if (!result.username) {
+		      alert("Invalid username");
+		  }
+		  bridge.username = result.username;
+
+		  \$('#bridgeService').val(bridge.service);
+		  \$('#bridgeUsername').val(bridge.username);
+		  // \$('#register').submit();
+	      }
+	  });
       });
 
+      \$('#verifyAndConnect').click(function(event) {
+	  authenticate(\$('#connectEmail').val(), \$('#connectPassword').val(), function(result) {
+	      console.log('verify and connect');
+              console.log(result);
+	      if (result.authenticated) {
+		  bridge.service = result.authenticated;
+		  bridge.email = \$('#connectEmail').val();
+		  bridge.password = \$('#connectPassword').val();
+
+		  \$('#bridgeService').val(bridge.service);
+		  \$('#bridgeEmail').val(bridge.email);
+		  \$('#bridgePassword').val(bridge.password);
+                  \$('#register').submit();
+              } else {
+                  alert("Error");
+                  \$('#bridgeEmail').val('');
+                  \$('#bridgePassword').val('');
+              }
+	  });
+      });
+      
+      var setService = function(service) {
+	 var linked = services[service];
+	 var unlinked = services[linked.opposite];
+	 \$('.linked-service').html(linked.name);
+	 \$('a.linked-service').attr('href', 'https://' + linked.url);
+	 \$('.unlinked-service').html(unlinked.name);
+	 \$('a.unlinked-service').attr('href', unlinked.url);
+	 \$('.modal-body .unlinked-service').html('https://' + unlinked.url);
+	 \$('.forgot-unlinked').attr('href', 'https://' + unlinked.url + unlinked.forgot);
+	 \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
+      }
+
       \$('#register').submit(function(event) {
-          if (!bridge.authenticated) {
+          if (!bridge.authenticated || !bridge.has_ia || !bridge.has_ol) {
               event.preventDefault();
-              var url = '/account/audit';
-              \$.ajax({
-                  type: "POST",
-                  data: {
-                      email: \$('#username').val(),
-                      password: \$('#password').val()
-                  },
-                  url: url,
-                  dataType: "json",
-                  success: function(result) {
-                      console.log(result);
-                      if (result.error) {
-                          // TODO: set html to reflect error
-                          alert(result.error);
-                      } else if (typeof(result.linked) == 'undefined') {
-                          alert("API Error");
-                      } else {
-                          bridge.authenticated = true;
-                          if (!bridge.linked) {
-                              if (Boolean(result.has_ia) !== Boolean(result.has_ol)){
-                                  \$('#migrateModal').show();
-                              } else {
-                                  bridge.email = result.email;
-                              }
+	      authenticate(\$('#username').val(), \$('#password').val(), function(result) {
+                  console.log(result);
+                  if (result.error) {
+                      \$('.note').remove();
+                      \$('#register').prepend('<div class="note">' + result.error + '</div>');
+                  } else if (typeof(result.linked) == 'undefined') {
+                      \$('.note').remove();
+                      \$('#register').prepend('<div class="note">A network error occured. Please try again later</div>');
+                  } else {
+                      bridge.authenticated = true;
+                      bridge.service = result.authenticated;
+
+                      if (!bridge.linked) {
+                          if (Boolean(result.has_ia) !== Boolean(result.has_ol)){
+			      setService(bridge.service);
+                              \$('#migrateModal').show();
                           } else {
-                              bridge.linked = true;
-                              \$('#register').submit();
+                              bridge.email = result.email;
+			      \$('#register').submit();
                           }
+                      } else {
+                          bridge.linked = true;
+                          \$('#register').submit();
                       }
                   }
-              })
+	      });
           }
+	  console.log(bridge);
       })
   });
 </script>

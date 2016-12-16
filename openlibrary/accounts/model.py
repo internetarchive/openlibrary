@@ -278,6 +278,9 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
+    def ia_ol_link(self):
+        return getattr(self, 'archive_user_itemname', None)
+
     @classmethod
     def get_ol_account_by_link(cls, link):
         """Attempts to retrieve an openlibrary account by its
