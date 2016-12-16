@@ -286,45 +286,54 @@ class Account(web.storage):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="archive_user_itemname", value=email)
         return Account(**ol_accounts[0]) if ol_accounts else None
-        
+
     @classmethod
     def get_ol_account_by_email(cls, email):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="email", value=email)
         return Account(**ol_accounts[0]) if ol_accounts else None
-    
-    @classmethod
-    def get_ia_account_by_email(cls, email, password):
-        import internetarchive as ia
-        s3 = cls.get_ia_s3_keys(email, password)
-        account = ia.get_user_info(s3['access'], s3['secret']) if s3 else None
-        return account
 
     @classmethod
-    def get_ia_email_by_itemname(cls, itemname):
-        import internetarchive as ia
-        return ia.get_item(itemname).metadata.get('uploader', None)
+    def _post_ia_auth_api(cls, test=False, **data):
+        token = lending.config_ia_ol_auth_key
+        if 'token' not in data and token:
+            data['token'] = token
+        if test or not token:
+            data['test'] = "true"
+        payload = urllib.urlencode(data)
+        response = simplejson.loads(urllib2.urlopen(
+            lending.IA_AUTH_API_URL, payload).read())
+        return response
 
     @classmethod
-    def get_ia_account_by_itemname(cls, itemname, password):
-        email = get_ia_email_by_itemname(itemname)
-        return get_ia_account_by_email(email, password)
+    def get_ia_account_by_screenname(cls, screenname, test=False):
+        return cls._post_ia_auth_api(test=test, **{
+            "screenname": screenname,
+            "service": "getUser"
+        })
 
     @classmethod
-    def get_ia_s3_keys(cls, email, password):
-        import internetarchive as ia
-        from internetarchive.config import get_auth_config
-        try:
-            # XXX what if fails? Return type?
-            auth = get_auth_config(email, password)
-            return auth['s3']
-        except:
-            return None
-    
+    def get_ia_account_by_email(cls, email, test=False):
+        return cls._post_ia_auth_api(test=test, **{
+            "email": email,
+            "service": "getUser"
+        })
+
     @classmethod
-    def auth_ia_account(cls, email, password):
-        return bool(cls.get_ia_s3_keys(email, password))
- 
+    def get_ia_account_by_itemname(cls, itemname, test=False):
+        return cls._post_ia_auth_api(test=test, **{
+            "itemname": itemname,
+            "service": "getUser"
+        })
+
+    @classmethod
+    def auth_ia_account(cls, email, password, test=False):
+        return cls._post_ia_auth_api(test=test, **{
+            "email": email,
+            "password": password,
+            "service": "authUser",
+        })
+
     @staticmethod
     def valid_email(email):
         return lepl.apps.rfc3696.Email()(email)
