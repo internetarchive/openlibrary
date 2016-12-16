@@ -126,41 +126,87 @@ class account_login(delegate.page):
         f.note = utils.get_error(name)
         return render.login(f)
 
-    def POST_login(self, i):
-        bridge = i.get('connect', {})
-
-        return delegate.RawText(simplejson.dumps(bridge),
-                                content_type="application/json")
-
-        audit = audit_account(i.email, i.password)
-
+    def error_check(self, audit, i):
         if 'error' in audit:
             error = audit['error']
             if error == "account_not_verified":
                 # XXX this template will need to be updated
-                return render_template("account/not_verified", username=account.username,
-                                       password=i.password, email=account.email)
+                return render_template(
+                    "account/not_verified", username=account.username,
+                    password=i.password, email=account.email)
             elif error == "account_not_found":
                 return self.error("account_user_notfound", i)
             elif error == "account_blocked":
                 return self.error("account_blocked", i)
             else:
                 return self.error(audit['error'], i)
+        if not audit['linked'] and not i.bridgeService:
+            return self.error("accounts_not_connected", i)
+        if ((audit['has_ol'] and i.bridgeService != 'ia') or
+            (audit['has_ia'] and i.bridgeService != 'ol')):
+            return self.error("invalid_link_attempt", i)
+        return None
+
+    def POST_login(self, i):
+        i = web.input(username="", password="", bridgeService="",
+                      bridgeEmail="", bridgePassword="", bridgeUsername="")
+
+        audit = audit_account(i.username, i.password)
+
+        errors = self.error_checks(audit, i)
+        if errors:
+            return errors
+
+        return delegate.RawText(simplejson.dumps({
+            'audit': audit,
+            'bridge': i
+        }), content_type="application/json")
+
+        if not audit['linked']:
+            if audit['has_ia'] and audit['has_ol']:
+                ol_account = Account.get_ol_account_by_email(audit['email'])
+                ia_account = Account.get_ia_account_by_email(audit['email'])
+                ol_account.archive_user_itemid = ia_account['itemname']
+                ol_account._save()
+
+            elif audit['has_ol'] and i.bridgeService == 'ia':
+                ol_account = Account.get_ol_account_by_email(audit['email'])
+                if i.bridgeUsername:
+                    # create new IA user XXX
+                    return False
+                if not (i.bridgeEmail and i.bridgePassword):
+                    return self.error("invalid_link_attempt", i)
+
+                ia_account = Account.get_ia_account_by_email(i.bridgeEmail)
+                if (ia_account.get('account_found', False) and
+                    Account.auth_ia_account(email, password) == "ok"):
+                    ol_account.archive_user_itemid = ia_account['itemname']
+                    ol_account._save()
+                else:
+                    return self.error("invalid_ia_credentials", i)
+
+            elif audit['has_ia'] and i.bridgeService == 'ol':
+                ia_account = Account.get_ia_account_by_email(audit['email'])
+                if i.bridgeUsername:
+                    # create new OL user XXX
+                    return False
+                if not (i.bridgeEmail and i.bridgePassword):
+                    return self.error("invalid_link_attempt", i)
+
+                ol_account = Account.get_ol_account_by_email(i.bridgeEmail)
+                if ol_account and ol_account.login(password) == "ok":
+                    ol_account.archive_user_itemid = ia_account['itemname']
+                    ol_account._save()
+                else:
+                    return self.error("invalid_ol_credentials", i)
 
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
 
-        if audit['has_ia'] or audit['has_ol']:
-            # check if linked
-            if not audit['linked']:
-                # Once account creds validated, created / `connect` accounts
-                pass
-
-        if audit['authenticated']:
-            expires = (i.remember and 3600 * 24 * 7) or ""
-            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
-                          expires=expires)
-            raise web.seeother(i.redirect)
+        expires = (i.remember and 3600 * 24 * 7) or ""
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
+                      expires=expires)
+        raise web.seeother(i.redirect)
 
 
     def POST_resend_verification_email(self, i):
@@ -379,6 +425,7 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
+
 class check_username_available(delegate.page):
 
     path = "/account/check_username"
@@ -386,11 +433,25 @@ class check_username_available(delegate.page):
     def POST(self):
         """Checks whether `username` is availabe on service (i.e. `ia` or
         `ol`)"""
-        i = web.input(service="ia", username="")
+        i = web.input(service="ia", email="", password=)
         if i.service == 'ia':
             return accounts.username_available(username)
         elif i.service == 'ol':
             return
+
+class account_audit(delegate.page):
+
+    path = "/account/check_username_availabile"
+
+    def POST(self):
+        i = web.input(username="")
+        email = i.get('email').lower()
+
+        # check if IA username available
+        # check if OL username available
+
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 
 class account_audit(delegate.page):
@@ -398,37 +459,6 @@ class account_audit(delegate.page):
     path = "/account/audit"
 
     def POST(self):
-        """
-        ia_account - {
-          _key: "account/mekBot",
-          _rev: "219552765",
-          bot: true,
-          created_on: "2016-08-24T19:57:59.537293",
-          data: {
-            displayname: "Mek",
-          },
-          email: "mek@archive.org",
-          enc_password: "********",
-          last_login: "2016-12-09T02:44:34.612309",
-          lusername: "mekbot",
-          status: "active",
-          tags: [],
-          type: "account",
-          username: "mekBot",
-        }
-
-        ol_account - {
-          account_found: true,
-          field: "username",
-          invalid_request: false,
-          itemname: "@mekarpeles"
-          locked: false,
-          privs: "...",
-          requested: "mek@archive.org",
-          screenname: "mekarpeles",
-          username: "mek@archive.org"
-        }
-        """
         i = web.input(email='', password='')
         email = i.get('email').lower()
         password = i.get('password')
@@ -462,13 +492,15 @@ def audit_account(email, password):
         audit['linked'] = link
         ia_account = Account.get_linked_ia_account(link, password)
 
-    if ia_account:
+    if ia_account.get('account_found', False):
         audit['has_ia'] = ia_account['itemname']
         if Account.auth_ia_account(email, password) == "ok":
             audit['authenticated'] = 'ia'
 
             if ol_account:
                 audit['has_ol'] = ol_account.username
+                audit['linked'] = getattr(ol_account, 'archive_user_itemname', None)
+
             else:
                 # check if there's an OL account which links to this
                 # IA account (this IA account could have a different
@@ -485,18 +517,17 @@ def audit_account(email, password):
                         None if Account.get_ia_account_by_screenname(
                             ia_screenname).get('screenname') else
                         ia_username)
-            return audit
 
         # If IA is linked, only IA creds should be honored.
         if link and not audit['authenticated']:
             return {'error': "wrong_ia_credentials"}
 
     if ol_account:
+        if ol_account.is_blocked():
+            return {"error": "ol_account_blocked"}
+
         audit['has_ol'] = ol_account.username
         if not audit['authenticated']:
-            # XXX Check that OL login doesn't have / perform side
-            # effects in a way which IA auth attempt doesn't
-            # (e.g. setting cookies, etc)
             status = ol_account.login(password)
             if status == "ok":
                 audit['authenticated'] = 'ol'
@@ -504,16 +535,19 @@ def audit_account(email, password):
                 if not ia_account:
                     # is the IA username available on ol?
                     ol_username = ol_account.username
-                    audit['username'] = Account.get_ia_account_by_itemname(ol_username)
+                    audit['username'] = Account.get_ia_account_by_itemname(
+                        ol_username)
             else:
                 return {'error': status}
 
         if not audit['authenticated']:
             return {'error': "wrong_ol_credentials"}
 
-    if audit['authenticated'] and ol_account and ia_account:
-        # XXX make sure the accounts are linked in OL.
-        audit['linked'] = getattr(ol_account, 'archive_user_itemname', None)
+    # Links the accounts if they can be and are not already:
+    if (audit['authenticated'] and not audit['linked'] and
+        audit['has_ia'] and audit['has_ol']):
+        ol_account.archive_user_itemname = ia_account['itemname']
+        ol_account._save()
 
     return audit
 
