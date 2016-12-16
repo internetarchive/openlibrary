@@ -433,7 +433,7 @@ class check_username_available(delegate.page):
     def POST(self):
         """Checks whether `username` is availabe on service (i.e. `ia` or
         `ol`)"""
-        i = web.input(service="ia", email="", password=)
+        i = web.input(service="ia", email="", password="")
         if i.service == 'ia':
             return accounts.username_available(username)
         elif i.service == 'ol':
