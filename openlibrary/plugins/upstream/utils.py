@@ -673,10 +673,18 @@ def get_donation_include(include):
     param = '?platform=ol'
     if 'ymd' in web_input:
         param += '&ymd=' + web_input.ymd
+
+    # Look for presence of cookie indicating banner has been closed
+    opener = urllib2.build_opener()
+    donation_param = web.cookies().get('donation')
+    if donation_param:
+        # Append a tuple with the cookie pair (*not* extraneous parentheses!)
+        opener.addheaders.append(('Cookie', urllib.urlencode({'donation': donation_param})))
+
     html = ''
     if include == 'true':
         try:
-            html = urllib2.urlopen(url_banner_source + param, timeout=3).read()
+            html = opener.open(url_banner_source + param, timeout=3).read()
         except urllib2.URLError:
             logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''
