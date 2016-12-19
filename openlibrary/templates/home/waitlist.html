@@ -1,0 +1,11 @@
+$def with(books=None)
+
+$if books:
+    <div class="head">
+      <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Worth the Wait</a></h2>
+      <p class="inline sansserif large collapse">
+        &nbsp; Get on the waiting list for hundreds of popular books
+      </p>
+    </div>
+
+    $:render_template("books/carousel", books, id="CarouselWaitlist")
