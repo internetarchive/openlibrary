@@ -252,11 +252,10 @@ class Edition(Thing):
                 d['borrow_url'] = self.url("/borrow")
                 key = "ebooks" + self.key
                 doc = self._site.store.get(key) or {}
+                # caution, solr borrow status may be stale!
                 d['borrowed'] = doc.get("borrowed") == "true"
                 d['daisy_only'] = False
-            elif 'printdisabled' in collections:
-                d['daisy_only'] = True
-            else:
+            elif 'printdisabled' not in collections:
                 d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
                 d['daisy_only'] = False
         return d
