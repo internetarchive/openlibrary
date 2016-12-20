@@ -92,6 +92,25 @@ def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_siz
         most requested print disabled eBooks in California" displayed
         from the /lists page.
 
+    Popular List Construction:
+
+        https://github.com/internetarchive/openlibrary/pull/406#issuecomment-268090607
+        The expensive part about automatically checking the list seeds above
+        for availability is there's no apparent easy way to get ocaids for a
+        collection of editions at once. Thus, web.ctx.site.get needs be used
+        on each Edition (which is expensive) before a batch of editions can
+        be checked for availability. If we had the ocaids of list seeds upfront
+        and could query them in bulk, this would eliminate the problem.
+        
+        As a work-around, we periodically create a flatfile cache of
+        the above list.seed keys mapped ahead of time to their ocaids
+        (i.e. `popular.popular`). 
+
+        For steps on (re)generating `popular.popular`, see: 
+        data.py  popular.generate_popular_list()
+
+        Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
+
     Returns:
         returns a tuple (available_books, waitlisted_books)
 
