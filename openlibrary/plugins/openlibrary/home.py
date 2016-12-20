@@ -104,26 +104,10 @@ def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_siz
         
         As a work-around, we periodically create a flatfile cache of
         the above list.seed keys mapped ahead of time to their ocaids
-        (i.e. `popular.popular`). One may (re)generate this
-        `popular.popular` list via the following steps:
+        (i.e. `popular.popular`). 
 
-        1) Got a list by ol key
-        2) Iterate over the list.seeds
-        3) For each seed, get the document (i.e. in our case, an
-           Edition) via web.ctx.site.get(seed) [expensive]. This is
-           required in order to get editions `ocaid`.
-        4) Append each edution to the popular list as a [ocaid, ol edition key] tuple,
-           assuming it is not edition.get_ebook_status()['daisy_only']
-        5) The list of [ocaid, ol edition key] tuples are then added to `popular.popular`
-
-        popular = []         
-        mek_lst = web.ctx.site.get('/people/mekBot/lists/OL104041L')
-        pop_lst = web.ctx.site.get('/people/openlibrary/lists/OL104411L')
-        for seed in mek_lst.seeds + pop_lst.seeds:
-            ed = web.ctx.site.get(seed)
-            if ed.ocaid and not ed.get_ebook_status()['daisy_only']:
-                popular.append([ed.ocaid, ed.key])
-
+        For steps on (re)generating `popular.popular`, see: 
+        data.py  popular.generate_popular_list()
 
         Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
 
