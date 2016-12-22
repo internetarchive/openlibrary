@@ -19,6 +19,9 @@ from infogami.infobase.client import ClientException
 from openlibrary.core import lending, helpers as h
 
 
+def valid_email(email):
+    return lepl.apps.rfc3696.Email()(email)
+
 def sendmail(to, msg, cc=None):
     cc = cc or []
     if config.get('dummy_sendmail'):
@@ -278,23 +281,66 @@ class Account(web.storage):
         self.bot = flag
         self._save()
 
-    def ia_ol_link(self):
+    @property
+    def itemname(self):
+        """Retrieves the Archive.org itemname which links Open Library and
+        Internet Archive accounts
+        """
         return getattr(self, 'archive_user_itemname', None)
 
-    @classmethod
-    def get_ol_account_by_link(cls, link):
-        """Attempts to retrieve an openlibrary account by its
+    def get_linked_ia_account(self):
+        link = self.itemname
+        return InternetArchiveAccount.get(itemname=link) if link else None
+        
+class OpenLibraryAccount(Account):
 
-        """
+    def authenticates(self, password):
+        return self.authenticate(self.email, password) == "ok"
+
+    @classmethod
+    def create(cls, screenname, email, password, test=False):
+        if test:
+            return cls(email="test@openlibrary.org", itemname="test",
+                       screenname="test")
+
+    @classmethod
+    def get(cls, link=None, email=None, test=False):
+        """Attempts to retrieve an openlibrary account by its email or
+        archive.org itemname (i.e. link)"""
+        if link:
+            return cls.get_by_link(link, test=test)
+        elif email:
+            return cls.get_by_email(email, test=test)
+        raise ValueError("Open Library email or Archive.org itemname required.")
+
+    @classmethod
+    def get_by_link(cls, link, test=False):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="archive_user_itemname", value=email)
         return Account(**ol_accounts[0]) if ol_accounts else None
 
     @classmethod
-    def get_ol_account_by_email(cls, email):
+    def get_by_email(cls, email, test=False):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="email", value=email)
         return Account(**ol_accounts[0]) if ol_accounts else None
+
+
+class InternetArchiveAccount(object):
+
+    def __init__(email, **kwargs):
+        self.email = email
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+
+    def authenticates(self, password):
+        return self.authenticate(self.email, password) == "ok"
+
+    @classmethod
+    def create(cls, screenname, email, password, test=False):
+        if test:
+            return cls(email="test@archive.org", itemname="test",
+                       screenname="test")
 
     @classmethod
     def _post_ia_auth_api(cls, test=False, **data):
@@ -306,37 +352,46 @@ class Account(web.storage):
         payload = urllib.urlencode(data)
         response = simplejson.loads(urllib2.urlopen(
             lending.IA_AUTH_API_URL, payload).read())
-        return response
+        if response.get('account_found', False):
+            return response
+        return None
+    
+    @classmethod
+    def get(cls, screenname=None, email=None, itemname=None, test=False):
+        if screenname:
+            return cls.get_by_screenname(screename, test=test)
+        elif email:
+            return cls.get_by_email(email, test=test)
+        elif itemname:
+            return cls.get_by_itemname(itemname, test=test)
+        raise ValueError("Archive.org Screenname, itemname, or email required")
 
     @classmethod
-    def get_ia_account_by_screenname(cls, screenname, test=False):
+    def get_by_screenname(cls, screenname, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "screenname": screenname,
             "service": "getUser"
         })
-
+    
     @classmethod
-    def get_ia_account_by_email(cls, email, test=False):
+    def get_by_email(cls, email, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "email": email,
             "service": "getUser"
         })
-
+    
     @classmethod
-    def get_ia_account_by_itemname(cls, itemname, test=False):
+    def get_by_itemname(cls, itemname, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "itemname": itemname,
             "service": "getUser"
         })
-
+    
     @classmethod
-    def auth_ia_account(cls, email, password, test=False):
+    def authenticate(cls, email, password, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "email": email,
             "password": password,
             "service": "authUser",
         })
 
-    @staticmethod
-    def valid_email(email):
-        return lepl.apps.rfc3696.Email()(email)

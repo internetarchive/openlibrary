@@ -265,8 +265,8 @@ $var title: $("Log In")
 	 \$('.linked-service').html(linked.name);
 	 \$('a.linked-service').attr('href', 'https://' + linked.url);
 	 \$('.unlinked-service').html(unlinked.name);
-	 \$('a.unlinked-service').attr('href', unlinked.url);
-	 \$('.modal-body .unlinked-service').html('https://' + unlinked.url);
+	 \$('a.unlinked-service').attr('href', 'https://' + unlinked.url);
+	 \$('.modal-body .unlinked-service').html(unlinked.url);
 	 \$('.forgot-unlinked').attr('href', 'https://' + unlinked.url + unlinked.forgot);
 	 \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
       }
@@ -279,14 +279,14 @@ $var title: $("Log In")
                   if (result.error) {
                       \$('.note').remove();
                       \$('#register').prepend('<div class="note">' + result.error + '</div>');
-                  } else if (typeof(result.linked) == 'undefined') {
+                  } else if (typeof(result.link) == 'undefined') {
                       \$('.note').remove();
                       \$('#register').prepend('<div class="note">A network error occured. Please try again later</div>');
                   } else {
                       bridge.authenticated = true;
                       bridge.service = result.authenticated;
 
-                      if (!bridge.linked) {
+                      if (!bridge.link) {
                           if (Boolean(result.has_ia) !== Boolean(result.has_ol)){
 			      setService(bridge.service);
                               \$('#migrateModal').show();
@@ -295,7 +295,7 @@ $var title: $("Log In")
 			      \$('#register').submit();
                           }
                       } else {
-                          bridge.linked = true;
+                          bridge.link = true;
                           \$('#register').submit();
                       }
                   }
