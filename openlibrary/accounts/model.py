@@ -291,7 +291,7 @@ class Account(web.storage):
     def get_linked_ia_account(self):
         link = self.itemname
         return InternetArchiveAccount.get(itemname=link) if link else None
-        
+
 class OpenLibraryAccount(Account):
 
     def authenticates(self, password):
@@ -328,13 +328,12 @@ class OpenLibraryAccount(Account):
 
 class InternetArchiveAccount(object):
 
-    def __init__(email, **kwargs):
-        self.email = email
+    def __init__(self, **kwargs):
         for k in kwargs:
             setattr(self, k, kwargs[k])
 
     def authenticates(self, password):
-        return self.authenticate(self.email, password) == "ok"
+        return self.authenticate(self.username, password) == "ok"
 
     @classmethod
     def create(cls, screenname, email, password, test=False):
@@ -352,19 +351,20 @@ class InternetArchiveAccount(object):
         payload = urllib.urlencode(data)
         response = simplejson.loads(urllib2.urlopen(
             lending.IA_AUTH_API_URL, payload).read())
-        if response.get('account_found', False):
-            return response
-        return None
-    
+        return response
+
     @classmethod
     def get(cls, screenname=None, email=None, itemname=None, test=False):
+        response = None
         if screenname:
-            return cls.get_by_screenname(screename, test=test)
+            response = cls.get_by_screenname(screename, test=test)
         elif email:
-            return cls.get_by_email(email, test=test)
+            response = cls.get_by_email(email, test=test)
         elif itemname:
-            return cls.get_by_itemname(itemname, test=test)
-        raise ValueError("Archive.org Screenname, itemname, or email required")
+            response = cls.get_by_itemname(itemname, test=test)
+        if response and response.get('account_found', False):
+            return cls(**response)
+        return None
 
     @classmethod
     def get_by_screenname(cls, screenname, test=False):
@@ -372,21 +372,21 @@ class InternetArchiveAccount(object):
             "screenname": screenname,
             "service": "getUser"
         })
-    
+
     @classmethod
     def get_by_email(cls, email, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "email": email,
             "service": "getUser"
         })
-    
+
     @classmethod
     def get_by_itemname(cls, itemname, test=False):
         return cls._post_ia_auth_api(test=test, **{
             "itemname": itemname,
             "service": "getUser"
         })
-    
+
     @classmethod
     def authenticate(cls, email, password, test=False):
         return cls._post_ia_auth_api(test=test, **{
@@ -394,4 +394,3 @@ class InternetArchiveAccount(object):
             "password": password,
             "service": "authUser",
         })
-
