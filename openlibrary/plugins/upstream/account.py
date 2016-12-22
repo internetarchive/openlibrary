@@ -450,9 +450,9 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
         if audit['link']:
             return {'success': 'link_exists'}
         else:
-            audit['link'] = ia_account['itemname']
+            audit['link'] = ia_account.itemname
             # XXX update and set once the db migration is complete
-            # ol_account.archive_user_itemname = ia_account['itemname']
+            # ol_account.archive_user_itemname = ia_account.itemname
             # ol_account._save()
             return {'success': 'added_link'}
     elif not (ia_account or ol_account):
@@ -463,15 +463,15 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 return {'error': 'invalid_bridgeEmail'}
             if ol_account:
                 ia_account = InternetArchiveAcccount.get(email=bridgeEmail, test=test)
-                if ia_account and ia_account.authenticates(bridgePassword):                
-                    #ol_account.archive_user_itemid = ia_account['itemname']
+                if ia_account and ia_account.authenticates(bridgePassword):
+                    #ol_account.archive_user_itemid = ia_account.itemname
                     #ol_account._save()
                     return {'success': 'link_ia'}
                 return self.error("invalid_ia_credentials", i)
             elif ia_account:
                 ol_account = OpenLibraryAccount.get(email=email, test=test)
                 if ol_account.authenticated(password):
-                    #ol_account.archive_user_itemid = ia_account['itemname']
+                    #ol_account.archive_user_itemid = ia_account.itemname
                     #ol_account._save()
                     return {'success': 'link_ol'}
                 return self.error("invalid_ol_credentials", i)
@@ -493,7 +493,7 @@ def audit_accounts(email, password, test=False):
         return {'error': 'invalid_email'}
 
     ol_account = OpenLibraryAccount.get(email=email, test=test)
-    ia_account = (ol_account.get_linked_ia_account() if ol_account else 
+    ia_account = (ol_account.get_linked_ia_account() if ol_account else
                   InternetArchiveAccount.get(email=email, test=test))
 
     audit = {
@@ -511,7 +511,7 @@ def audit_accounts(email, password, test=False):
         return {'error': 'account_user_notfound'}
 
     if ia_account:
-        audit['has_ia'] = ia_account['itemname']
+        audit['has_ia'] = ia_account.itemname
         if ia_account.authenticates(password):
             audit['authenticated'] = 'ia'
 
@@ -523,7 +523,7 @@ def audit_accounts(email, password, test=False):
                 # check if there's an OL account which links to this
                 # IA account (this IA account could have a different
                 # email than the linked OL account)
-                _link = ia_account['itemname']
+                _link = ia_account.itemname
                 ol_account = OpenLibraryAccount.get(link=_link, test=test)
                 if ol_account:
                     audit['has_ol'] = ol_account.username
@@ -551,7 +551,7 @@ def audit_accounts(email, password, test=False):
                     # is the IA username available on ol?
                     ol_username = ol_account.username
                     audit['username'] = InternetArchiveAccount.get(
-                        itemname=ol_username)                        
+                        itemname=ol_username)
             else:
                 return {'error': status}
 
@@ -561,10 +561,10 @@ def audit_accounts(email, password, test=False):
     # Links the accounts if they can be and are not already:
     if (audit['authenticated'] and not audit['link'] and
         audit['has_ia'] and audit['has_ol']):
-        audit['link'] = ia_account['itemname']
+        audit['link'] = ia_account.itemname
         audit['just_linked'] = True  # debug only
         # XXX once the db migration is complete:
-        # ol_account.archive_user_itemname = ia_account['itemname']
+        # ol_account.archive_user_itemname = ia_account.itemname
         # ol_account._save()
 
     return audit
