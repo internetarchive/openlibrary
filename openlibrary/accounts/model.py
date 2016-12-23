@@ -298,32 +298,57 @@ class OpenLibraryAccount(Account):
         return self.authenticate(self.email, password) == "ok"
 
     @classmethod
-    def create(cls, screenname, email, password, test=False):
+    def create(cls, username, email, password, test=False):
         if test:
             return cls(email="test@openlibrary.org", itemname="test",
                        screenname="test")
+        if cls.get(email=email):
+            raise ValueError('email_registered')
+        if cls.get(username=username):
+            raise ValueError('username_registered')
+
+        # XXX Create account here
+        return True
 
     @classmethod
-    def get(cls, link=None, email=None, test=False):
+    def get(cls, link=None, email=None, username=None,  test=False):
         """Attempts to retrieve an openlibrary account by its email or
         archive.org itemname (i.e. link)"""
         if link:
             return cls.get_by_link(link, test=test)
         elif email:
             return cls.get_by_email(email, test=test)
+        elif username:
+            return cls.get_by_username(username, test=test)
         raise ValueError("Open Library email or Archive.org itemname required.")
+
+    @classmethod
+    def get_by_username(cls, username, test=False):
+        return accounts.find(lusername=username.lower())
 
     @classmethod
     def get_by_link(cls, link, test=False):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="archive_user_itemname", value=email)
-        return Account(**ol_accounts[0]) if ol_accounts else None
+        return OpenLibraryAccount(**ol_accounts[0]) if ol_accounts else None
 
     @classmethod
     def get_by_email(cls, email, test=False):
-        ol_accounts = web.ctx.site.store.values(
-            type="account", name="email", value=email)
-        return Account(**ol_accounts[0]) if ol_accounts else None
+        """the email stored in account doc is case-sensitive.
+        The lowercase of email is used in the account-email document.
+        querying that first and taking the username from there to make
+        the email search case-insensitive.
+
+        There are accounts with case-variation of emails. To handle
+        those, searching with the original case and using lower case
+        if that fails.
+        """
+        email_doc = (web.ctx.site.store.get("account-email/" + email) or
+                     web.ctx.site.store.get("account-email/" + email.lower()))
+        if email_doc and 'username' in email_doc:
+            doc = web.ctx.site.store.get("account/" + email_doc['username'])
+            return OpenLibraryAccount(**doc) if doc else None
+        return None
 
 
 class InternetArchiveAccount(object):
@@ -340,6 +365,13 @@ class InternetArchiveAccount(object):
         if test:
             return cls(email="test@archive.org", itemname="test",
                        screenname="test")
+        if cls.get(email=email):
+            raise ValueError('email_registered')
+        if cls.get(screenname=screenname):
+            raise ValueError('screenname_registered')
+
+        # XXX Create account here
+        return True
 
     @classmethod
     def _post_ia_auth_api(cls, test=False, **data):
@@ -355,37 +387,41 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def get(cls, screenname=None, email=None, itemname=None, test=False):
-        response = None
         if screenname:
-            response = cls.get_by_screenname(screename, test=test)
+            return cls.get_by_screenname(screenname, test=test)
         elif email:
-            response = cls.get_by_email(email, test=test)
+            return cls.get_by_email(email, test=test)
         elif itemname:
-            response = cls.get_by_itemname(itemname, test=test)
-        if response and response.get('account_found', False):
-            return cls(**response)
+            return cls.get_by_itemname(itemname, test=test)
         return None
 
     @classmethod
     def get_by_screenname(cls, screenname, test=False):
-        return cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_auth_api(test=test, **{
             "screenname": screenname,
             "service": "getUser"
         })
+        return response
+        if response and response.get('account_found', False):
+            return cls(**response)
 
     @classmethod
     def get_by_email(cls, email, test=False):
-        return cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_auth_api(test=test, **{
             "email": email,
             "service": "getUser"
         })
+        if response and response.get('account_found', False):
+            return cls(**response)
 
     @classmethod
     def get_by_itemname(cls, itemname, test=False):
-        return cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_auth_api(test=test, **{
             "itemname": itemname,
             "service": "getUser"
         })
+        if response and response.get('account_found', False):
+            return cls(**response)
 
     @classmethod
     def authenticate(cls, email, password, test=False):
