@@ -433,7 +433,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
         return audit
 
     ia_account = (InternetArchiveAccount.get(
-        itemname=audit['has_ia'], test=i.test) if
+        itemname=audit['has_ia'], test=test) if
                   audit.get('has_ia', False) else None)
     ol_account = (OpenLibraryAccount.get(email=email, test=test) if
                   audit.get('has_ol', False) else None)
@@ -442,7 +442,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
         if not audit['link']:
             audit['link'] = ia_account.itemname
             # XXX update and set once the db migration is complete
-            # ol_account.archive_user_itemname = ia_account.itemname
+            # ol_account.internetarchive_itemname = ia_account.itemname
             # ol_account._save()
             pass
         return audit
@@ -453,22 +453,30 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
             if not valid_email(bridgeEmail):
                 return {'error': 'invalid_bridgeEmail'}
             if ol_account:
-                ia_account = InternetArchiveAcccount.get(
+                ia_account = InternetArchiveAccount.get(
                     email=bridgeEmail, test=test)
-                if ia_account and ia_account.authenticates(bridgePassword):
-                    #ol_account.archive_user_itemid = ia_account.itemname
-                    #ol_account._save()
-                    audit['has_ia'] = ia_account.itemname
-                    return audit
-                return {'error': 'invalid_ia_credentials'}
+                if ia_account:
+                    if OpenLibraryAccount.get_by_link(ia_account.itemname):
+                        return {'error': 'account_already_linked'}
+                    if ia_account.authenticates(bridgePassword):
+                        #ol_account.internetarchive_itemname = ia_account.itemname
+                        #ol_account._save()
+                        audit['has_ia'] = ia_account.itemname
+                        return audit
+                    return {'error': 'invalid_ia_credentials'}
+                return {'error': 'ia_account_doesnt_exist'}
             elif ia_account:
-                ol_account = OpenLibraryAccount.get(email=email, test=test)
-                if ol_account.authenticated(password):
-                    #ol_account.archive_user_itemid = ia_account.itemname
-                    #ol_account._save()
-                    audit['has_ol'] = ol_account.username
-                    return audit
-                return {'error': 'invalid_ol_credentials'}
+                ol_account = OpenLibraryAccount.get(email=bridgeEmail, test=test)
+                if ol_account:
+                    if ol_account.itemname:
+                        return {'error': 'account_already_linked'}
+                    if ol_account.authenticates(bridgePassword):
+                        #ol_account.internetarchive_itemname = ia_account.itemname
+                        #ol_account._save()
+                        audit['has_ol'] = ol_account.username
+                        return audit
+                    return {'error': 'invalid_ol_credentials'}
+                return {'error': 'ol_account_doesnt_exist'}
         elif email and password and username:
             if ol_account:
                 try:
@@ -490,7 +498,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 except (ValueError, NotImplementedError) as e:
                     return {'error': str(e)}
             return {'error': 'no_valid_accounts'}
-        return {'error': 'email, password, and username required'}
+        return {'error': 'missing_fields'}
 
 
 def audit_accounts(email, password, test=False):
@@ -522,7 +530,7 @@ def audit_accounts(email, password, test=False):
 
             if ol_account:
                 audit['has_ol'] = ol_account.username
-                audit['link'] = getattr(ol_account, 'archive_user_itemname', None)
+                audit['link'] = getattr(ol_account, 'internetarchive_itemname', None)
 
             else:
                 # check if there's an OL account which links to this
@@ -556,7 +564,7 @@ def audit_accounts(email, password, test=False):
         audit['link'] = ia_account.itemname
         audit['just_linked'] = True  # debug only
         # XXX once the db migration is complete:
-        # ol_account.archive_user_itemname = ia_account.itemname
+        # ol_account.internetarchive_itemname = ia_account.itemname
         # ol_account._save()
 
     return audit

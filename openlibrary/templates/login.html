@@ -36,33 +36,35 @@ $var title: $("Log In")
         <li><a id="createAccount">No, create one for me.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
-        <div id="createAccountForm">
+        <div class="formFieldsDecoration">
           <div class="formFields">
             <input type="text" id="bridgeUsername" autocomplete="off"
                    name="bridgeUsername" placeholder="Username"/>
           </div>
-          <p id="createAccountErrorMsg"></p>
+          <p class="formFieldsErrorMsg"></p>
         </div>
         <div>
           <button id="verifyAndCreate">Verify &amp; Create</button>
         </div>
       </div>
       <div class="modal-connect-form modal-form">
-        <div class="formFields">
-          <div>
-            <input type="text" id="bridgeEmail" autocomplete="off"
-             name="bridgeEmail"  placeholder="Email"/>
-            <input type="text" autocomplete="off" class="fake"
-             name="bridgeEmail_fake" placeholder="Email"/>
+        <div class="formFieldsDecoration">
+          <div class="formFields">
+            <div>
+              <input type="text" id="bridgeEmail" autocomplete="off"
+		     name="bridgeEmail"  placeholder="Email"/>
+              <input type="text" autocomplete="off" class="fake"
+		     name="bridgeEmail_fake" placeholder="Email"/>
+            </div>
+            <div class="inputbr"></div>
+            <div>
+              <input type="password" id="bridgePassword" autocomplete="off"
+		     name="bridgePassword"  placeholder="Password"/>
+              <input type="password" autocomplete="off" class="fake"
+		     name="bridgePassword_fake" placeholder="Password"/>
+            </div>
           </div>
-          <div class="inputbr"></div>
-          <div>
-            <input type="password" id="bridgePassword" autocomplete="off"
-             name="bridgePassword"  placeholder="Password"/>
-           <input type="password" autocomplete="off" class="fake"
-            name="bridgePassword_fake" placeholder="Password"/>
-          </div>
-
+	  <p class="formFieldsErrorMsg"></p>
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
@@ -196,8 +198,7 @@ $var title: $("Log In")
           });
       };
 
-      var link_accounts = function(email, password, bridgeEmail, bridgePassword,
-                                   callback) {
+      var auth_and_link_accounts = function(email, password, bridgeEmail, bridgePassword, callback) {
           var url = '/account/connect';
           \$.ajax({
               type: "POST",
@@ -210,8 +211,6 @@ $var title: $("Log In")
               url: url,
               dataType: "json",
               success: function(result) {
-                  console.log('link_accounts:');
-                  console.log(result);
                   return callback(result);
               }
           });
@@ -235,32 +234,39 @@ $var title: $("Log In")
       };
 
       \$('#verifyAndCreate').click(function(event) {
-          \$('#createAccountForm').removeClass('error');
-          \$('#createAccountErrorMsg').html('');
+          \$('.formFieldsDecoration').removeClass('error');
+          \$('.formFieldsErrorMsg').html('');
           create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
 
               audit = result;
               console.log(result);
 
               if (audit.error) {
-                  \$('#createAccountForm').addClass('error');
-                  \$('#createAccountErrorMsg').html('This username is unavailable.');
+                  \$('.formFieldsDecoration').addClass('error');
+                  \$('.formFieldsErrorMsg').html('This username is unavailable.');
               } else {
-                  \$('#createAccountForm').removeClass('error');
-                  \$('#createAccountErrorMsg').html('');
+                  \$('.formFieldsDecoration').removeClass('error');
+                  \$('.formFieldsErrorMsg').html('');
                   \$('#register').submit();
               }
           });
       });
 
       \$('#verifyAndConnect').click(function(event) {
-          authenticate(\$('#bridgeEmail').val(), \$('#bridgePassword').val(), function(result) {
+          \$('.formFieldsDecoration').removeClass('error');
+          \$('.formFieldsErrorMsg').html('');
+          auth_and_link_accounts(\$('#username').val(), \$('#password').val(), \$('#bridgeEmail').val(), \$('#bridgePassword').val(), function(result) {
+
               audit = result;
               console.log(audit);
-              if (audit.authenticated) {
-                  \$('#register').submit();
+
+              if (audit.error) {
+                  \$('.formFieldsDecoration').addClass('error');
+                  \$('.formFieldsErrorMsg').html(audit.error);
               } else {
-                  alert("Error");
+                  \$('.formFieldsDecoration').removeClass('error');
+                  \$('.formFieldsErrorMsg').html('');
+                  \$('#register').submit();
               }
           });
       });
@@ -297,7 +303,6 @@ $var title: $("Log In")
                   }
               });
           }
-          console.log(audit);
       })
   });
 </script>
