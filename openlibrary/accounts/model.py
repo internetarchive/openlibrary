@@ -324,7 +324,11 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_username(cls, username, test=False):
-        return accounts.find(lusername=username.lower())
+        try:
+            return web.ctx.site.store.values(
+                type="account", name="lusername", value=username, limit=1)[0]
+        except IndexError:
+            return None
 
     @classmethod
     def get_by_link(cls, link, test=False):
