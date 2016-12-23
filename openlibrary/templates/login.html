@@ -36,9 +36,12 @@ $var title: $("Log In")
         <li><a id="createAccount">No, create one for me.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
-        <div class="formFields">
-            <input type="text" id="connectUsername" autocomplete="off"
-             name="createUsername" placeholder="Username"/>
+        <div id="createAccountForm">
+          <div class="formFields">
+            <input type="text" id="bridgeUsername" autocomplete="off"
+                   name="bridgeUsername" placeholder="Username"/>
+          </div>
+          <p id="createAccountErrorMsg"></p>
         </div>
         <div>
           <button id="verifyAndCreate">Verify &amp; Create</button>
@@ -47,22 +50,19 @@ $var title: $("Log In")
       <div class="modal-connect-form modal-form">
         <div class="formFields">
           <div>
-            <input type="text" id="connectEmail" autocomplete="off"
-             name="connectEmail"  placeholder="Email"/>
+            <input type="text" id="bridgeEmail" autocomplete="off"
+             name="bridgeEmail"  placeholder="Email"/>
             <input type="text" autocomplete="off" class="fake"
-             name="connectEmail_fake" placeholder="Email"/>
+             name="bridgeEmail_fake" placeholder="Email"/>
           </div>
           <div class="inputbr"></div>
           <div>
-            <input type="password" id="connectPassword" autocomplete="off"
-             name="connectPassword"  placeholder="Password"/>
+            <input type="password" id="bridgePassword" autocomplete="off"
+             name="bridgePassword"  placeholder="Password"/>
            <input type="password" autocomplete="off" class="fake"
-            name="connectPassword_fake" placeholder="Password"/>
+            name="bridgePassword_fake" placeholder="Password"/>
           </div>
 
-          <!-- data forwarded from the 1st form -->
-          <input type="hidden" id="mainEmail" name="mainEmail" />
-          <input type="hidden" id="mainPassword" name="mainPassword" />
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
@@ -104,10 +104,6 @@ $var title: $("Log In")
         </div>
 
         <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
-        <input type="hidden" id="bridgeUsername" value="" name="bridgeUsername" />
-        <input type="hidden" id="bridgeEmail" value="" name="bridgeEmail" />
-        <input type="hidden" id="bridgePassword" value="" name="bridgePassword" />
-        <input type="hidden" id="bridgeService" value="" name="redirect" />
 
         <div class="clearfix"></div>
 
@@ -130,24 +126,22 @@ $var title: $("Log In")
 
   \$(function(){
 
-      var bridge = {
-           linked: false
-      };
+      var audit = {}
 
       var services = {
-	  'ia': {
-	      'url': 'archive.org',
-	      'name': 'Internet Archive',
-	      'opposite': 'ol',
-	      'forgot': '/account/login.forgotpw.php'
+          'ia': {
+              'url': 'archive.org',
+              'name': 'Internet Archive',
+              'opposite': 'ol',
+              'forgot': '/account/login.forgotpw.php'
 
-	  },
-	  'ol': {
-	      'url': 'openlibrary.org',
-	      'name': 'Open Library',
-	      'opposite': 'ia',
-	      'forgot': '/account/password/forgot'
-	  }
+          },
+          'ol': {
+              'url': 'openlibrary.org',
+              'name': 'Open Library',
+              'opposite': 'ia',
+              'forgot': '/account/password/forgot'
+          }
       };
 
       var resetModal = function() {
@@ -157,10 +151,10 @@ $var title: $("Log In")
           \$('.modal-header-copy-c').hide();
           \$('.modal-connect-form').hide();
           \$('.modal-create-form').hide();
-	  \$('#bridgeUsername').val('');
-	  \$('#bridgeEmail').val('');
-	  \$('#bridgePassword').val('');
-	  \$('#bridgeService').val('');
+          \$('#bridgeUsername').val('');
+          \$('#bridgeEmail').val('');
+          \$('#bridgePassword').val('');
+          \$('#bridgeService').val('');
           \$('.modal-option').show();
       }
 
@@ -183,8 +177,6 @@ $var title: $("Log In")
           \$('.modal-header-copy-a').fadeOut(function() {
               \$('.modal-header-copy-c').fadeIn();
           });
-
-          bridge.email = \$('#username').val();
           \$('.modal-create-form').show()
       });
 
@@ -199,109 +191,113 @@ $var title: $("Log In")
               url: url,
               dataType: "json",
               success: function(result) {
-		  return callback(result);
-	      }
-	  });
+                  return callback(result);
+              }
+          });
       };
 
-      var check_username_available = function(email, password, callback) {
-          var url = '/account/check_username_available';
+      var link_accounts = function(email, password, bridgeEmail, bridgePassword,
+                                   callback) {
+          var url = '/account/connect';
           \$.ajax({
               type: "POST",
               data: {
                   email: email,
-                  password: password
+                  password: password,
+                  bridgeEmail: bridgeEmail,
+                  bridgePassword: bridgePassword
               },
               url: url,
               dataType: "json",
               success: function(result) {
-		  return callback(result);
-	      }
-	  });
+                  console.log('link_accounts:');
+                  console.log(result);
+                  return callback(result);
+              }
+          });
+      }
+
+      var create_and_link_account = function(email, password, username, callback) {
+          var url = '/account/connect';
+          \$.ajax({
+              type: "POST",
+              data: {
+                  email: email,
+                  password: password,
+                  username: username
+              },
+              url: url,
+              dataType: "json",
+              success: function(result) {
+                  return callback(result);
+              }
+          });
       };
 
       \$('#verifyAndCreate').click(function(event) {
-	  check_username_available(\$('#createUsername').val(), function(result) {
-	      console.log('verify and create');
-              console.log(result);
-	      if (result.authenticated) {
-		  bridge.service = result.authenticated;
-		  if (!result.username) {
-		      alert("Invalid username");
-		  }
-		  bridge.username = result.username;
+          \$('#createAccountForm').removeClass('error');
+          \$('#createAccountErrorMsg').html('');
+          create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
 
-		  \$('#bridgeService').val(bridge.service);
-		  \$('#bridgeUsername').val(bridge.username);
-		  // \$('#register').submit();
-	      }
-	  });
+              audit = result;
+              console.log(result);
+
+              if (audit.error) {
+                  \$('#createAccountForm').addClass('error');
+                  \$('#createAccountErrorMsg').html('This username is unavailable.');
+              } else {
+                  \$('#createAccountForm').removeClass('error');
+                  \$('#createAccountErrorMsg').html('');
+                  \$('#register').submit();
+              }
+          });
       });
 
       \$('#verifyAndConnect').click(function(event) {
-	  authenticate(\$('#connectEmail').val(), \$('#connectPassword').val(), function(result) {
-	      console.log('verify and connect');
-              console.log(result);
-	      if (result.authenticated) {
-		  bridge.service = result.authenticated;
-		  bridge.email = \$('#connectEmail').val();
-		  bridge.password = \$('#connectPassword').val();
-
-		  \$('#bridgeService').val(bridge.service);
-		  \$('#bridgeEmail').val(bridge.email);
-		  \$('#bridgePassword').val(bridge.password);
+          authenticate(\$('#bridgeEmail').val(), \$('#bridgePassword').val(), function(result) {
+              audit = result;
+              console.log(audit);
+              if (audit.authenticated) {
                   \$('#register').submit();
               } else {
                   alert("Error");
-                  \$('#bridgeEmail').val('');
-                  \$('#bridgePassword').val('');
               }
-	  });
+          });
       });
-      
+
       var setService = function(service) {
-	 var linked = services[service];
-	 var unlinked = services[linked.opposite];
-	 \$('.linked-service').html(linked.name);
-	 \$('a.linked-service').attr('href', 'https://' + linked.url);
-	 \$('.unlinked-service').html(unlinked.name);
-	 \$('a.unlinked-service').attr('href', 'https://' + unlinked.url);
-	 \$('.modal-body .unlinked-service').html(unlinked.url);
-	 \$('.forgot-unlinked').attr('href', 'https://' + unlinked.url + unlinked.forgot);
-	 \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
+         var linked = services[service];
+         var unlinked = services[linked.opposite];
+         \$('.linked-service').html(linked.name);
+         \$('a.linked-service').attr('href', 'https://' + linked.url);
+         \$('.unlinked-service').html(unlinked.name);
+         \$('a.unlinked-service').attr('href', 'https://' + unlinked.url);
+         \$('.modal-body .unlinked-service').html(unlinked.url);
+         \$('.forgot-unlinked').attr('href', 'https://' + unlinked.url + unlinked.forgot);
+         \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
       }
 
       \$('#register').submit(function(event) {
-          if (!bridge.authenticated || !bridge.has_ia || !bridge.has_ol) {
+          if (!audit.authenticated || !audit.has_ia || !audit.has_ol) {
               event.preventDefault();
-	      authenticate(\$('#username').val(), \$('#password').val(), function(result) {
-                  console.log(result);
-                  if (result.error) {
+              authenticate(\$('#username').val(), \$('#password').val(), function(result) {
+                  audit = result;
+                  console.log(audit);
+                  if (audit.error) {
                       \$('.note').remove();
-                      \$('#register').prepend('<div class="note">' + result.error + '</div>');
-                  } else if (typeof(result.link) == 'undefined') {
+                      \$('#register').prepend('<div class="note">' + audit.error + '</div>');
+                  } else if (typeof(audit.link) == 'undefined') {
                       \$('.note').remove();
                       \$('#register').prepend('<div class="note">A network error occured. Please try again later</div>');
+                  } else if (!audit.link && (Boolean(audit.has_ia) !== Boolean(audit.has_ol))) {
+                      setService(audit.authenticated);
+                      \$('#migrateModal').show();
                   } else {
-                      bridge.authenticated = true;
-                      bridge.service = result.authenticated;
-
-                      if (!bridge.link) {
-                          if (Boolean(result.has_ia) !== Boolean(result.has_ol)){
-			      setService(bridge.service);
-                              \$('#migrateModal').show();
-                          } else {
-                              bridge.email = result.email;
-			      \$('#register').submit();
-                          }
-                      } else {
-                          bridge.link = true;
-                          \$('#register').submit();
-                      }
+                      \$('#register').submit();
                   }
-	      });
+              });
           }
-	  console.log(bridge);
+          console.log(audit);
       })
   });
 </script>
