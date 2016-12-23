@@ -286,7 +286,7 @@ class Account(web.storage):
         """Retrieves the Archive.org itemname which links Open Library and
         Internet Archive accounts
         """
-        return getattr(self, 'archive_user_itemname', None)
+        return getattr(self, 'internetarchive_itemname', None)
 
     def get_linked_ia_account(self):
         link = self.itemname
@@ -295,7 +295,7 @@ class Account(web.storage):
 class OpenLibraryAccount(Account):
 
     def authenticates(self, password):
-        return self.authenticate(self.email, password) == "ok"
+        return self.login(password) == "ok"
 
     @classmethod
     def create(cls, username, email, password, test=False):
@@ -329,7 +329,7 @@ class OpenLibraryAccount(Account):
     @classmethod
     def get_by_link(cls, link, test=False):
         ol_accounts = web.ctx.site.store.values(
-            type="account", name="archive_user_itemname", value=email)
+            type="account", name="internetarchive_itemname", value=link)
         return OpenLibraryAccount(**ol_accounts[0]) if ol_accounts else None
 
     @classmethod

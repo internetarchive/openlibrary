@@ -1065,7 +1065,7 @@ div#headerLogin {
     border: 3px solid #fff;
 }
 
-#createAccountForm.error {
+.formFieldsDecoration.error {
     padding: 5px;
     background-color: #000;
     border-radius: 5px;
@@ -1074,11 +1074,11 @@ div#headerLogin {
     background-color: rgba(244, 67, 54, 0.52); //#F44336;
 }
 
-#createAccountForm.error #bridgeUsername {
+.formFieldsDecoration.error #bridgeUsername {
     background-color: rgba(244, 67, 54, 0.17);
 }
 
-#createAccountErrorMsg {
+.formFieldsErrorMsg {
     padding: 0px 10px;
     color: #fff;
     font-size: 14px;
