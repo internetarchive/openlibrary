@@ -148,7 +148,7 @@ class account_login(delegate.page):
         return None
 
     def POST_login(self, i):
-        i = web.input(username="", password="")
+        i = web.input(username="", password="", remember=False, redirect='')
 
         audit = audit_accounts(i.username, i.password)
         errors = self.error_check(audit, i)
@@ -506,7 +506,7 @@ def audit_accounts(email, password, test=False):
         return {'error': 'invalid_email'}
 
     ol_account = OpenLibraryAccount.get(email=email, test=test)
-    ia_account = (ol_account.get_linked_ia_account() if ol_account else
+    ia_account = ((ol_account.get_linked_ia_account() if ol_account else None) or
                   InternetArchiveAccount.get(email=email, test=test))
 
     audit = {
