@@ -10,7 +10,7 @@ class TestLanding:
     def login(self, browser_instance):
         browser_instance.visit(self.host)
         browser_instance.find_link_by_text('Log in').first.click()
-        browser_instance.fill('username', 'openlibrary')
+        browser_instance.fill('username', 'jessamyn@archive.org')
         browser_instance.fill('password', 'openlibrary')
         browser_instance.find_by_value('Log In').first.click()
 

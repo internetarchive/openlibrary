@@ -393,6 +393,7 @@ class check_username_available(delegate.page):
         elif i.service == 'ol':
             return
 
+
 class account_connect(delegate.page):
 
     path = "/account/connect"
@@ -447,7 +448,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
             pass
         return audit
     elif not (ia_account or ol_account):
-        return {'error': 'no_valid_accounts'}
+        return {'error': 'account_not_found'}
     else:
         if bridgeEmail and bridgePassword:
             if not valid_email(bridgeEmail):
@@ -542,9 +543,10 @@ def audit_accounts(email, password, test=False):
                     audit['has_ol'] = ol_account.username
                     audit['link'] = _link
 
-        # If IA is linked, only IA creds should be honored.
-        if audit['link'] and not audit['authenticated']:
-            return {'error': "wrong_ia_credentials"}
+        # If IA is linked and only IA creds should be honored, remove
+        # `not` before audit['link']
+        if not audit['link'] and not audit['authenticated']:
+            return {'error': "invalid_ia_credentials"}
 
     if ol_account:
         audit['has_ol'] = ol_account.username
@@ -556,7 +558,7 @@ def audit_accounts(email, password, test=False):
                 return {'error': status}
 
         if not audit['authenticated']:
-            return {'error': "wrong_ol_credentials"}
+            return {'error': "invalid_ol_credentials"}
 
     # Links the accounts if they can be and are not already:
     if (audit['authenticated'] and not audit['link'] and

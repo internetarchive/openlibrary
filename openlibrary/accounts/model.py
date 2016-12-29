@@ -175,7 +175,7 @@ class Account(web.storage):
         The return value can be one of the following:
 
             * ok
-            * account_not_vefified
+            * account_not_verified
             * account_not_found
             * account_incorrect_password
             * account_blocked
@@ -390,42 +390,42 @@ class InternetArchiveAccount(object):
         return response
 
     @classmethod
-    def get(cls, screenname=None, email=None, itemname=None, test=False):
+    def get(cls, screenname=None, email=None, itemname=None,
+            test=False, _json=False):
         if screenname:
-            return cls.get_by_screenname(screenname, test=test)
+            return cls.get_by_screenname(screenname, test=test, _json=_json)
         elif email:
-            return cls.get_by_email(email, test=test)
+            return cls.get_by_email(email, test=test, _json=_json)
         elif itemname:
-            return cls.get_by_itemname(itemname, test=test)
+            return cls.get_by_itemname(itemname, test=test, _json=_json)
         return None
 
     @classmethod
-    def get_by_screenname(cls, screenname, test=False):
+    def get_by_screenname(cls, screenname, test=False, _json=False):
         response = cls._post_ia_auth_api(test=test, **{
             "screenname": screenname,
             "service": "getUser"
         })
-        return response
         if response and response.get('account_found', False):
-            return cls(**response)
+            return response if _json else cls(**response)
 
     @classmethod
-    def get_by_email(cls, email, test=False):
+    def get_by_email(cls, email, test=False, _json=False):
         response = cls._post_ia_auth_api(test=test, **{
             "email": email,
             "service": "getUser"
         })
         if response and response.get('account_found', False):
-            return cls(**response)
+            return response if _json else cls(**response)
 
     @classmethod
-    def get_by_itemname(cls, itemname, test=False):
+    def get_by_itemname(cls, itemname, test=False, _json=False):
         response = cls._post_ia_auth_api(test=test, **{
             "itemname": itemname,
             "service": "getUser"
         })
         if response and response.get('account_found', False):
-            return cls(**response)
+            return response if _json else cls(**response)
 
     @classmethod
     def authenticate(cls, email, password, test=False):
