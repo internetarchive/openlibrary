@@ -21,19 +21,21 @@ $var title: $("Log In")
         <img  src="https://archive.org/images/logo_arches.png"/>
       </div>
       <div class="modal-header-copy">
-        <h2>Connect Accounts</h2>
+        <h2>Connect Your Accounts</h2>
         <p class="modal-header-copy-a">
-          Your <a class="linked-service" href=""></a> account must be connected to an <a class="unlinked-service" href=""></a> account to continue. Do you have one already?
+          Your <span class="linked-service"></span> account has been
+          validated but needs to be linked to an
+          <span class="unlinked-service"></span> account.
         </p>
-        <p class="modal-header-copy-b">Verify your <a class="unlinked-service" href=""></a> credentials and proceed to login.</p>
-        <p class="modal-header-copy-c">Choose a username for your new <a class="unlinked-service" href=""></a> account.</p>
+        <p class="modal-header-copy-b">Verify your <span class="unlinked-service"></span> credentials and proceed to login.</p>
+        <p class="modal-header-copy-c">Choose a username for your new <span class="unlinked-service"></span> account.</p>
       </div>
     </div>
 
     <div class="modal-body">
       <ul class="modal-option">
-        <li><a id="linkAccounts">Yes, connect my <span class="unlinked-service"></span> account.</a></li>
-        <li><a id="createAccount">No, create one for me.</a></li>
+        <li><a id="linkAccounts">Link to an existing <span class="unlinked-service"></span> account.</a></li>
+        <li><a id="createAccount">Create a new <span class="unlinked-service"></span> account.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
         <div class="formFieldsDecoration">
@@ -68,7 +70,7 @@ $var title: $("Log In")
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
-          <p><a class="forgot-unlinked">Forgot Password?</a></p>
+          <p><a target="_blank" class="forgot-unlinked">Forgot Password?</a></p>
         </div>
       </div>
     </div>
@@ -145,6 +147,24 @@ $var title: $("Log In")
               'forgot': '/account/password/forgot'
           }
       };
+
+      var errorLookup = {
+        "invalid_email": "The email address you entered is invalid",
+        "ol_account_blocked": "This Open Library account has been blocked",
+        "account_blocked": "This Open Library account has been blocked",
+        "account_user_notfound": "No account could be found matching these credentials",
+        "ia_account_doesnt_exist": "No Internet Archive account could be found matching these credentials",
+        "ol_account_doesnt_exist": "No Open Library account could be found matching these credentials",
+        "account_not_found": "No account could be found matching these credentials",
+        "account_incorrect_password": "Incorrect password",
+        "account_bad_password": "Invalid credentials",
+        "invalid_ol_credentials": "Invalid Open Library credentials",
+        "invalid_ia_credentials": "Invalid Internet Archive credentials",
+        "account_not_verified": "This account has not been verified",
+        "invalid_bridgeEmail": "Failed to link account: invalid email",
+        "account_already_linked": "This account has already been linked",
+        "missing_fields": "Please fill out all fields and try again"
+      }
 
       var resetModal = function() {
           \$('#migrateModal').hide();
@@ -262,7 +282,7 @@ $var title: $("Log In")
 
               if (audit.error) {
                   \$('.formFieldsDecoration').addClass('error');
-                  \$('.formFieldsErrorMsg').html(audit.error);
+                  \$('.formFieldsErrorMsg').html(errorLookup[audit.error]);
               } else {
                   \$('.formFieldsDecoration').removeClass('error');
                   \$('.formFieldsErrorMsg').html('');
@@ -275,10 +295,7 @@ $var title: $("Log In")
          var linked = services[service];
          var unlinked = services[linked.opposite];
          \$('.linked-service').html(linked.name);
-         \$('a.linked-service').attr('href', 'https://' + linked.url);
          \$('.unlinked-service').html(unlinked.name);
-         \$('a.unlinked-service').attr('href', 'https://' + unlinked.url);
-         \$('.modal-body .unlinked-service').html(unlinked.url);
          \$('.forgot-unlinked').attr('href', 'https://' + unlinked.url + unlinked.forgot);
          \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
       }
@@ -291,7 +308,7 @@ $var title: $("Log In")
                   console.log(audit);
                   if (audit.error) {
                       \$('.note').remove();
-                      \$('#register').prepend('<div class="note">' + audit.error + '</div>');
+                      \$('#register').prepend('<div class="note">' + errorLookup[audit.error] + '</div>');
                   } else if (typeof(audit.link) == 'undefined') {
                       \$('.note').remove();
                       \$('#register').prepend('<div class="note">A network error occured. Please try again later</div>');
