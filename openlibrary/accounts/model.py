@@ -5,7 +5,6 @@ import time
 import datetime
 import hmac
 import random
-import simplejson
 import uuid
 import urllib
 import urllib2
@@ -17,7 +16,6 @@ from infogami import config
 from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 from openlibrary.core import lending, helpers as h
-
 
 def valid_email(email):
     return lepl.apps.rfc3696.Email()(email)
@@ -298,7 +296,7 @@ class OpenLibraryAccount(Account):
         return self.login(password) == "ok"
 
     @classmethod
-    def create(cls, username, email, password, test=False):
+    def create(cls, username, email, password, test=False, verify=True):
         if test:
             return cls(email="test@openlibrary.org", itemname="test",
                        screenname="test")
@@ -307,8 +305,16 @@ class OpenLibraryAccount(Account):
         if cls.get(username=username):
             raise ValueError('username_registered')
 
+        raise NotImplementedError('account_creation_not_implemented')
         # XXX Create account here
-        return True
+        account = web.ctx.site.register(
+            username=username,
+            email=email,
+            password=password,
+            displayname=username)
+        if verify:
+            send_verification_email(username, email)
+        return account
 
     @classmethod
     def get(cls, link=None, email=None, username=None,  test=False):
@@ -366,6 +372,7 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def create(cls, screenname, email, password, test=False):
+        screenname = screenname.replace('@', '')  # remove IA @
         if test:
             return cls(email="test@archive.org", itemname="test",
                        screenname="test")
@@ -374,11 +381,14 @@ class InternetArchiveAccount(object):
         if cls.get(screenname=screenname):
             raise ValueError('screenname_registered')
 
-        # XXX Create account here
-        return True
+        raise NotImplementedError('account_creation_not_implemented')
+        response = cls._post_ia_user_api(
+            service='createUser', email=email, password=password,
+            username=username, test=test)
 
     @classmethod
-    def _post_ia_auth_api(cls, test=False, **data):
+    def _post_ia_user_api(cls, test=False, **data):
+        import simplejson
         token = lending.config_ia_ol_auth_key
         if 'token' not in data and token:
             data['token'] = token
@@ -386,7 +396,7 @@ class InternetArchiveAccount(object):
             data['test'] = "true"
         payload = urllib.urlencode(data)
         response = simplejson.loads(urllib2.urlopen(
-            lending.IA_AUTH_API_URL, payload).read())
+            lending.IA_USER_API_URL, payload).read())
         return response
 
     @classmethod
@@ -402,7 +412,7 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def get_by_screenname(cls, screenname, test=False, _json=False):
-        response = cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_user_api(test=test, **{
             "screenname": screenname,
             "service": "getUser"
         })
@@ -411,7 +421,7 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def get_by_email(cls, email, test=False, _json=False):
-        response = cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_user_api(test=test, **{
             "email": email,
             "service": "getUser"
         })
@@ -420,7 +430,7 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def get_by_itemname(cls, itemname, test=False, _json=False):
-        response = cls._post_ia_auth_api(test=test, **{
+        response = cls._post_ia_user_api(test=test, **{
             "itemname": itemname,
             "service": "getUser"
         })
@@ -429,8 +439,159 @@ class InternetArchiveAccount(object):
 
     @classmethod
     def authenticate(cls, email, password, test=False):
-        return cls._post_ia_auth_api(test=test, **{
+        return cls._post_ia_user_api(test=test, **{
             "email": email,
             "password": password,
             "service": "authUser",
         })
+
+
+def audit_accounts(email, password, test=False):
+    if not valid_email(email):
+        return {'error': 'invalid_email'}
+
+    ol_account = OpenLibraryAccount.get(email=email, test=test)
+    ia_account = ((ol_account.get_linked_ia_account() if ol_account else None) or
+                  InternetArchiveAccount.get(email=email, test=test))
+
+    audit = {
+        'email': email,
+        'authenticated': False,
+        'has_ia': False,
+        'has_ol': False,
+        'link': ol_account.itemname if ol_account else None
+    }
+
+    if ol_account and ol_account.is_blocked():
+        return {"error": "ol_account_blocked"}
+
+    if not (ol_account or ia_account):
+        return {'error': 'account_user_notfound'}
+
+    if ia_account:
+        audit['has_ia'] = ia_account.itemname
+        if ia_account.authenticates(password):
+            audit['authenticated'] = 'ia'
+
+            if ol_account:
+                audit['has_ol'] = ol_account.username
+                audit['link'] = getattr(
+                    ol_account, 'internetarchive_itemname', None)
+
+            else:
+                # check if there's an OL account which links to this
+                # IA account (this IA account could have a different
+                # email than the linked OL account)
+                _link = ia_account.itemname
+                ol_account = OpenLibraryAccount.get(link=_link, test=test)
+                if ol_account:
+                    audit['has_ol'] = ol_account.username
+                    audit['link'] = _link
+
+        # If IA is linked and only IA creds should be honored, remove
+        # `not` before audit['link']
+        if not audit['link'] and not audit['authenticated']:
+            return {'error': "invalid_ia_credentials"}
+
+    if ol_account:
+        audit['has_ol'] = ol_account.username
+        if not audit['authenticated']:
+            status = ol_account.login(password)
+            if status == "ok":
+                audit['authenticated'] = 'ol'
+            else:
+                return {'error': status}
+
+        if not audit['authenticated']:
+            return {'error': "invalid_ol_credentials"}
+
+    # Links the accounts if they can be and are not already:
+    if (audit['authenticated'] and not audit['link'] and
+        audit['has_ia'] and audit['has_ol']):
+        audit['link'] = ia_account.itemname
+        ol_account.internetarchive_itemname = ia_account.itemname
+        ol_account._save()
+
+    return audit
+
+
+def link_accounts(email, password, bridgeEmail="", bridgePassword="",
+                  username="", test=False):
+
+    audit = audit_accounts(email, password)
+
+    if 'error' in audit:
+        return audit
+
+    ia_account = (InternetArchiveAccount.get(
+        itemname=audit['has_ia'], test=test) if
+                  audit.get('has_ia', False) else None)
+    ol_account = (OpenLibraryAccount.get(email=email, test=test) if
+                  audit.get('has_ol', False) else None)
+
+    if ia_account and ol_account:
+        if not audit['link']:
+            audit['link'] = ia_account.itemname
+            ol_account.internetarchive_itemname = ia_account.itemname
+            ol_account._save()
+        return audit
+    elif not (ia_account or ol_account):
+        return {'error': 'account_not_found'}
+    else:
+        if bridgeEmail and bridgePassword:
+            if not valid_email(bridgeEmail):
+                return {'error': 'invalid_bridgeEmail'}
+            if ol_account:
+                ia_account = InternetArchiveAccount.get(
+                    email=bridgeEmail, test=test)
+                if ia_account:
+                    if OpenLibraryAccount.get_by_link(ia_account.itemname):
+                        return {'error': 'account_already_linked'}
+                    if ia_account.authenticates(bridgePassword):
+                        ol_account.internetarchive_itemname = ia_account.itemname
+                        ol_account._save()
+                        audit['link'] = ia_account.itemname
+                        audit['has_ia'] = ia_account.itemname
+                        return audit
+                    return {'error': 'invalid_ia_credentials'}
+                return {'error': 'ia_account_doesnt_exist'}
+            elif ia_account:
+                ol_account = OpenLibraryAccount.get(email=bridgeEmail, test=test)
+                return {'error': 'account_creation_not_implemented'}
+                if ol_account:
+                    if ol_account.itemname:
+                        return {'error': 'account_already_linked'}
+                    if ol_account.authenticates(bridgePassword):
+                        ol_account.internetarchive_itemname = ia_account.itemname
+                        ol_account._save()
+                        audit['has_ol'] = ol_account.username
+                        return audit
+                    return {'error': 'invalid_ol_credentials'}
+                return {'error': 'ol_account_doesnt_exist'}
+        elif email and password and username:
+            if ol_account:
+                try:
+                    ia_account = InternetArchiveAccount.create(
+                        username, email, password, test=test)
+                    return {'error': 'account_creation_not_implemented'}
+
+                    audit['link'] = ia_account.itemname
+                    audit['has_ia'] = ia_account.itemname
+                    return audit
+
+                except (ValueError, NotImplementedError) as e:
+                    return {'error': str(e)}
+            elif ia_account:
+                try:
+                    ol_account = OpenLibraryAccount.create(
+                        username, email, password, test=test, verify=False)
+                    ol_account.internetarchive_itemname = ia_account.itemname
+                    ol_account._save()
+                    audit['has_ol'] = ol_account.username
+                    audit['link'] = ia_account.itemname
+                    return audit
+                except (ValueError, NotImplementedError) as e:
+                    return {'error': str(e)}
+            return {'error': 'no_valid_accounts'}
+        return {'error': 'missing_fields'}
+

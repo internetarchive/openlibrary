@@ -20,7 +20,9 @@ from openlibrary.core import helpers as h
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary import accounts
 from openlibrary.accounts import (
-    Account, InternetArchiveAccount, OpenLibraryAccount, valid_email)
+    Account, InternetArchiveAccount, OpenLibraryAccount, valid_email,
+    link_accounts, audit_accounts
+)
 import forms
 import utils
 import borrow
@@ -424,154 +426,6 @@ class account_audit(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
-
-def link_accounts(email, password, bridgeEmail="", bridgePassword="",
-                  username="", test=False):
-
-    audit = audit_accounts(email, password)
-
-    if 'error' in audit:
-        return audit
-
-    ia_account = (InternetArchiveAccount.get(
-        itemname=audit['has_ia'], test=test) if
-                  audit.get('has_ia', False) else None)
-    ol_account = (OpenLibraryAccount.get(email=email, test=test) if
-                  audit.get('has_ol', False) else None)
-
-    if ia_account and ol_account:
-        if not audit['link']:
-            audit['link'] = ia_account.itemname
-            # XXX update and set once the db migration is complete
-            # ol_account.internetarchive_itemname = ia_account.itemname
-            # ol_account._save()
-            pass
-        return audit
-    elif not (ia_account or ol_account):
-        return {'error': 'account_not_found'}
-    else:
-        if bridgeEmail and bridgePassword:
-            if not valid_email(bridgeEmail):
-                return {'error': 'invalid_bridgeEmail'}
-            if ol_account:
-                ia_account = InternetArchiveAccount.get(
-                    email=bridgeEmail, test=test)
-                if ia_account:
-                    if OpenLibraryAccount.get_by_link(ia_account.itemname):
-                        return {'error': 'account_already_linked'}
-                    if ia_account.authenticates(bridgePassword):
-                        #ol_account.internetarchive_itemname = ia_account.itemname
-                        #ol_account._save()
-                        audit['has_ia'] = ia_account.itemname
-                        return audit
-                    return {'error': 'invalid_ia_credentials'}
-                return {'error': 'ia_account_doesnt_exist'}
-            elif ia_account:
-                ol_account = OpenLibraryAccount.get(email=bridgeEmail, test=test)
-                if ol_account:
-                    if ol_account.itemname:
-                        return {'error': 'account_already_linked'}
-                    if ol_account.authenticates(bridgePassword):
-                        #ol_account.internetarchive_itemname = ia_account.itemname
-                        #ol_account._save()
-                        audit['has_ol'] = ol_account.username
-                        return audit
-                    return {'error': 'invalid_ol_credentials'}
-                return {'error': 'ol_account_doesnt_exist'}
-        elif email and password and username:
-            if ol_account:
-                try:
-                    ia_account = InternetArchiveAccount.create(
-                        username, email, password, test=test)
-                    audit['linked'] = username  # XXX should be itemname of new account
-                    audit['has_ia'] = username  # XXX should be itemname of new account
-                    return audit
-                except (ValueError, NotImplementedError) as e:
-                    return {'error': str(e)}
-            elif ia_account:
-                try:
-                    ol_account = OpenLibraryAccount.create(
-                        username, email, password, test=test)
-                    # XXX set linked, etc
-                    audit['linked'] = ia_account.itemname
-                    audit['has_ol'] = username
-                    return audit
-                except (ValueError, NotImplementedError) as e:
-                    return {'error': str(e)}
-            return {'error': 'no_valid_accounts'}
-        return {'error': 'missing_fields'}
-
-
-def audit_accounts(email, password, test=False):
-    if not valid_email(email):
-        return {'error': 'invalid_email'}
-
-    ol_account = OpenLibraryAccount.get(email=email, test=test)
-    ia_account = ((ol_account.get_linked_ia_account() if ol_account else None) or
-                  InternetArchiveAccount.get(email=email, test=test))
-
-    audit = {
-        'email': email,
-        'authenticated': False,
-        'has_ia': False,
-        'has_ol': False,
-        'link': ol_account.itemname if ol_account else None
-    }
-
-    if ol_account and ol_account.is_blocked():
-        return {"error": "ol_account_blocked"}
-
-    if not (ol_account or ia_account):
-        return {'error': 'account_user_notfound'}
-
-    if ia_account:
-        audit['has_ia'] = ia_account.itemname
-        if ia_account.authenticates(password):
-            audit['authenticated'] = 'ia'
-
-            if ol_account:
-                audit['has_ol'] = ol_account.username
-                audit['link'] = getattr(ol_account, 'internetarchive_itemname', None)
-
-            else:
-                # check if there's an OL account which links to this
-                # IA account (this IA account could have a different
-                # email than the linked OL account)
-                _link = ia_account.itemname
-                ol_account = OpenLibraryAccount.get(link=_link, test=test)
-                if ol_account:
-                    audit['has_ol'] = ol_account.username
-                    audit['link'] = _link
-
-        # If IA is linked and only IA creds should be honored, remove
-        # `not` before audit['link']
-        if not audit['link'] and not audit['authenticated']:
-            return {'error': "invalid_ia_credentials"}
-
-    if ol_account:
-        audit['has_ol'] = ol_account.username
-        if not audit['authenticated']:
-            status = ol_account.login(password)
-            if status == "ok":
-                audit['authenticated'] = 'ol'
-            else:
-                return {'error': status}
-
-        if not audit['authenticated']:
-            return {'error': "invalid_ol_credentials"}
-
-    # Links the accounts if they can be and are not already:
-    if (audit['authenticated'] and not audit['link'] and
-        audit['has_ia'] and audit['has_ol']):
-        audit['link'] = ia_account.itemname
-        audit['just_linked'] = True  # debug only
-        # XXX once the db migration is complete:
-        # ol_account.internetarchive_itemname = ia_account.itemname
-        # ol_account._save()
-
-    return audit
-
-
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
@@ -615,9 +469,6 @@ class account_others(delegate.page):
         return render.notfound(path, create=False)
 
 
-####
-
-
 def send_email_change_email(username, email):
     key = "account/%s/email" % username
 
@@ -628,6 +479,7 @@ def send_email_change_email(username, email):
     msg = render_template("email/email/verify", username=username, email=email, link=link)
     sendmail(email, msg)
 
+
 def send_forgot_password_email(username, email):
     key = "account/%s/password" % username
 
@@ -637,8 +489,6 @@ def send_forgot_password_email(username, email):
     link = web.ctx.home + "/account/password/reset/" + doc['code']
     msg = render_template("email/password/reminder", username=username, link=link)
     sendmail(email, msg)
-
-
 
 
 def as_admin(f):
