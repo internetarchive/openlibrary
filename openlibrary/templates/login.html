@@ -34,7 +34,7 @@ $var title: $("Log In")
 
     <div class="modal-body">
       <ul class="modal-option">
-        <li><a id="linkAccounts">Link to an existing <span class="unlinked-service"></span> account.</a></li>
+        <li><a id="linkAccounts">Link an existing <span class="unlinked-service"></span> account.</a></li>
         <li><a id="createAccount">Create a new <span class="unlinked-service"></span> account.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
@@ -163,11 +163,15 @@ $var title: $("Log In")
         "account_not_verified": "This account has not been verified",
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",
-        "missing_fields": "Please fill out all fields and try again"
+        "missing_fields": "Please fill out all fields and try again",
+        "account_creation_not_implemented": "Account creation not yet supported",
+        "email_registered": "This email is already registered",
+        "username_registered": "This username is already registered"
       }
 
       var resetModal = function() {
           \$('#migrateModal').hide();
+          \$('.formFieldsDecoration').removeClass('error');
           \$('.modal-header-copy-a').show();
           \$('.modal-header-copy-b').hide();
           \$('.modal-header-copy-c').hide();
@@ -180,6 +184,7 @@ $var title: $("Log In")
           \$('.modal-option').show();
       }
 
+      // assigns "reset" action to clicking the X button on the modal.
       \$('.modal-x').click(function(event) {
           resetModal();
       });
@@ -195,11 +200,24 @@ $var title: $("Log In")
 
       // Render the "Create Account" form
       \$('#createAccount').click(function(event) {
-          \$('.modal-option').hide();
-          \$('.modal-header-copy-a').fadeOut(function() {
-              \$('.modal-header-copy-c').fadeIn();
+          var username = audit.has_ia || audit.has_ol;
+          create_and_link_account(\$('#username').val(), \$('#password').val(), username, function(result) {
+              console.log(result);
+              \$('.modal-option').hide();
+              \$('.modal-header-copy-a').fadeOut(function() {
+                  if (result.error) {
+                      \$('.modal-header-copy-c').fadeIn();
+                      \$('.modal-create-form').show()
+                      \$('.formFieldsDecoration').addClass('error');
+                      \$('.formFieldsErrorMsg').html(errorLookup[result.error]);
+                  } else {
+                      audit = result;
+                      \$('.formFieldsDecoration').removeClass('error');
+                      \$('.formFieldsErrorMsg').html('');
+                      \$('#register').submit();
+                  }
+              });
           });
-          \$('.modal-create-form').show()
       });
 
       var authenticate = function(email, password, callback) {
@@ -257,14 +275,12 @@ $var title: $("Log In")
           \$('.formFieldsDecoration').removeClass('error');
           \$('.formFieldsErrorMsg').html('');
           create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
-
-              audit = result;
-              console.log(result);
-
-              if (audit.error) {
+              if (result.error) {
                   \$('.formFieldsDecoration').addClass('error');
-                  \$('.formFieldsErrorMsg').html('This username is unavailable.');
+                  \$('.formFieldsErrorMsg').html(errorLookup[result.error]);
               } else {
+                  audit = result;
+                  console.log(audit);
                   \$('.formFieldsDecoration').removeClass('error');
                   \$('.formFieldsErrorMsg').html('');
                   \$('#register').submit();
