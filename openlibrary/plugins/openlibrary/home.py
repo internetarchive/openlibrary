@@ -101,12 +101,12 @@ def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_siz
         on each Edition (which is expensive) before a batch of editions can
         be checked for availability. If we had the ocaids of list seeds upfront
         and could query them in bulk, this would eliminate the problem.
-        
+
         As a work-around, we periodically create a flatfile cache of
         the above list.seed keys mapped ahead of time to their ocaids
-        (i.e. `popular.popular`). 
+        (i.e. `popular.popular`).
 
-        For steps on (re)generating `popular.popular`, see: 
+        For steps on (re)generating `popular.popular`, see:
         data.py  popular.generate_popular_list()
 
         Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
@@ -211,7 +211,7 @@ def get_returncart(limit):
     return [format_book_data(book) for book in books if book.type.key == '/type/edition']
 
 # cache the results of get_returncart in memcache for 60 sec
-get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
+oget_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
 def readonline_carousel(id="read-carousel"):
@@ -318,6 +318,7 @@ def format_book_data(book):
 
     ia_id = book.get("ocaid")
     if ia_id:
+        d.ocaid = ia_id
         collections = ia.get_meta_xml(ia_id).get("collection", [])
         if 'printdisabled' in collections or 'lendinglibrary' in collections:
             d.daisy_url = book.url("/daisy")

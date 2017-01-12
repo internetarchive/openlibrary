@@ -7,6 +7,7 @@ $else:
     $ authors = ""
     $ long_title = truncate(book.title, 40)
 
+
 <div class="coverMagic hiddenCoverMagic">
   <span itemscope itemtype="https://schema.org/Book">
     $if "cover_url" in book:
@@ -38,7 +39,7 @@ $else:
                     alt="$_('This book is checked out')"/>
                 </a>
             $else:
-                <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '') class="borrow-link"><img
+                <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '') class="borrow-link" ocaid="$(book.get('ocaid', '') or (book.ia[0] if book.get('ia', '') else ''))"><img
                     src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33"
                     alt="$_('Read this book')"/></a>
         </div>
@@ -47,7 +48,7 @@ $else:
             $if book.get("checked_out"):
                 <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('This book is checked out')"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checked out')"/></a>
             $else:
-                <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')" class="borrow-link"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
+                <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')" class="borrow-link" ocaid="$(book.get('ocaid', '') or (book.ia[0] if book.get('ia', '') else ''))"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
         </div>
     $elif book.get("daisy_url"):
         <div class="coverEbook">
