@@ -211,7 +211,7 @@ def get_returncart(limit):
     return [format_book_data(book) for book in books if book.type.key == '/type/edition']
 
 # cache the results of get_returncart in memcache for 60 sec
-oget_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
+get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
 def readonline_carousel(id="read-carousel"):
