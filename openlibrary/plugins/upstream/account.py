@@ -83,6 +83,12 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
+        # XXX MEK IA/OL Auth Bridge: Check IA account availability
+        try:
+            pass
+        except Exception:
+            pass
+
         try:
             accounts.register(username=i.username,
                               email=i.email,
@@ -161,6 +167,7 @@ class account_login(delegate.page):
             i.redirect = "/"
 
         expires = (i.remember and 3600 * 24 * 7) or ""
+
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
                       expires=expires)
         raise web.seeother(i.redirect)
@@ -380,20 +387,6 @@ class account_password_reset(delegate.page):
         accounts.update_account(username, password=i.password)
         link.delete()
         return render_template("account/password/reset_success", username=username)
-
-
-class check_username_available(delegate.page):
-
-    path = "/account/check_username"
-
-    def POST(self):
-        """Checks whether `username` is availabe on service (i.e. `ia` or
-        `ol`)"""
-        i = web.input(service="ia", email="", password="")
-        if i.service == 'ia':
-            return accounts.username_available(username)
-        elif i.service == 'ol':
-            return
 
 
 class account_connect(delegate.page):

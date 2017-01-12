@@ -17,6 +17,7 @@ from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 from openlibrary.core import lending, helpers as h
 
+
 def valid_email(email):
     return lepl.apps.rfc3696.Email()(email)
 
@@ -331,8 +332,8 @@ class OpenLibraryAccount(Account):
     @classmethod
     def get_by_username(cls, username, test=False):
         try:
-            return web.ctx.site.store.values(
-                type="account", name="lusername", value=username, limit=1)[0]
+            return cls(web.ctx.site.store.values(
+                type="account", name="lusername", value=username, limit=1)[0])
         except IndexError:
             return None
 
@@ -340,7 +341,7 @@ class OpenLibraryAccount(Account):
     def get_by_link(cls, link, test=False):
         ol_accounts = web.ctx.site.store.values(
             type="account", name="internetarchive_itemname", value=link)
-        return OpenLibraryAccount(**ol_accounts[0]) if ol_accounts else None
+        return cls(ol_accounts[0]) if ol_accounts else None
 
     @classmethod
     def get_by_email(cls, email, test=False):
@@ -357,11 +358,11 @@ class OpenLibraryAccount(Account):
                      web.ctx.site.store.get("account-email/" + email.lower()))
         if email_doc and 'username' in email_doc:
             doc = web.ctx.site.store.get("account/" + email_doc['username'])
-            return OpenLibraryAccount(**doc) if doc else None
+            return cls(doc) if doc else None
         return None
 
 
-class InternetArchiveAccount(object):
+class InternetArchiveAccount(web.storage):
 
     def __init__(self, **kwargs):
         for k in kwargs:
@@ -471,7 +472,8 @@ def audit_accounts(email, password, test=False):
     if ia_account:
         audit['has_ia'] = ia_account.itemname
         if ia_account.authenticates(password):
-            audit['authenticated'] = 'ia'
+            if ia_account.username == email:
+                audit['authenticated'] = 'ia'
 
             if ol_account:
                 audit['has_ol'] = ol_account.username
@@ -488,29 +490,38 @@ def audit_accounts(email, password, test=False):
                     audit['has_ol'] = ol_account.username
                     audit['link'] = _link
 
-        # If IA is linked and only IA creds should be honored, remove
-        # `not` before audit['link']
-        if not audit['link'] and not audit['authenticated']:
-            return {'error': "invalid_ia_credentials"}
+            if ol_account and audit['link']:
+                # Kludge so if a user logs in with IA credentials, we
+                # can fetch the linked OL account and set an
+                # auth_token even when we don't have the OL user's
+                # password in order to perform web.ctx.site.login.
+                # Their auth checks out via IA, set their auth_token for OL
+                web.ctx.conn.set_auth_token(ol_account.generate_login_code())
 
     if ol_account:
-        audit['has_ol'] = ol_account.username
         if not audit['authenticated']:
             status = ol_account.login(password)
             if status == "ok":
-                audit['authenticated'] = 'ol'
+                audit['has_ol'] = ol_account.username
+                if ol_account.email == email:
+                    audit['authenticated'] = 'ol'
             else:
                 return {'error': status}
 
         if not audit['authenticated']:
             return {'error': "invalid_ol_credentials"}
 
+    if not audit['authenticated']:
+        return {'error': "invalid_ia_credentials"}
+
     # Links the accounts if they can be and are not already:
     if (audit['authenticated'] and not audit['link'] and
         audit['has_ia'] and audit['has_ol']):
         audit['link'] = ia_account.itemname
-        ol_account.internetarchive_itemname = ia_account.itemname
-        ol_account._save()
+
+        _ol_account = web.ctx.site.store.get(ol_account._key)
+        _ol_account['internetarchive_itemname'] = ia_account.itemname
+        web.ctx.site.store[ol_account._key] = _ol_account
 
     return audit
 
@@ -532,8 +543,12 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
     if ia_account and ol_account:
         if not audit['link']:
             audit['link'] = ia_account.itemname
-            ol_account.internetarchive_itemname = ia_account.itemname
-            ol_account._save()
+
+            # avoics Document Update conflict
+            _ol_account = web.ctx.site.store.get(ol_account._key)
+            _ol_account['internetarchive_itemname'] = ia_account.itemname
+            web.ctx.site.store[ol_account._key] = _ol_account
+
         return audit
     elif not (ia_account or ol_account):
         return {'error': 'account_not_found'}
@@ -548,8 +563,11 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     if OpenLibraryAccount.get_by_link(ia_account.itemname):
                         return {'error': 'account_already_linked'}
                     if ia_account.authenticates(bridgePassword):
-                        ol_account.internetarchive_itemname = ia_account.itemname
-                        ol_account._save()
+                        # avoics Document Update conflict
+                        _ol_account = web.ctx.site.store.get(ol_account._key)
+                        _ol_account['internetarchive_itemname'] = ia_account.itemname
+                        web.ctx.site.store[ol_account._key] = _ol_account
+
                         audit['link'] = ia_account.itemname
                         audit['has_ia'] = ia_account.itemname
                         return audit
@@ -557,13 +575,15 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 return {'error': 'ia_account_doesnt_exist'}
             elif ia_account:
                 ol_account = OpenLibraryAccount.get(email=bridgeEmail, test=test)
-                return {'error': 'account_creation_not_implemented'}
                 if ol_account:
                     if ol_account.itemname:
                         return {'error': 'account_already_linked'}
                     if ol_account.authenticates(bridgePassword):
-                        ol_account.internetarchive_itemname = ia_account.itemname
-                        ol_account._save()
+                        # avoics Document Update conflict
+                        _ol_account = web.ctx.site.store.get(ol_account._key)
+                        _ol_account['internetarchive_itemname'] = ia_account.itemname
+                        web.ctx.site.store[ol_account._key] = _ol_account
+
                         audit['has_ol'] = ol_account.username
                         return audit
                     return {'error': 'invalid_ol_credentials'}
@@ -585,8 +605,12 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 try:
                     ol_account = OpenLibraryAccount.create(
                         username, email, password, test=test, verify=False)
-                    ol_account.internetarchive_itemname = ia_account.itemname
-                    ol_account._save()
+
+                    # avoics Document Update conflict
+                    _ol_account = web.ctx.site.store.get(ol_account._key)
+                    _ol_account['internetarchive_itemname'] = ia_account.itemname
+                    web.ctx.site.store[ol_account._key] = _ol_account
+
                     audit['has_ol'] = ol_account.username
                     audit['link'] = ia_account.itemname
                     return audit
