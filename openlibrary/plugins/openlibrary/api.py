@@ -3,11 +3,22 @@ import web
 import simplejson
 
 from infogami.utils import delegate
-from openlibrary.core import helpers as h
+from openlibrary.core import lending, helpers as h
 
 def setup():
     # placeholder
     pass
+
+
+class editions_availability(delegate.page):
+    path = "/availability"
+
+    def POST(self):
+        i = simplejson.loads(web.data())
+        ocaids = i.get('ocaids', [])
+        result = lending.is_borrowable(ocaids)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class work_editions(delegate.page):
     path = "(/works/OL\d+W)/editions"
