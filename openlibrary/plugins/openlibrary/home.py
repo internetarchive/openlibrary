@@ -130,16 +130,19 @@ def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_siz
             ocaid, key = seed
             if len(available_books) == available_limit:
                 continue
-            if ocaid not in responses:
-                # If book is not accounted for, err on the side of inclusion
-                available_books.append(format_book_data(web.ctx.site.get(key)))
-            elif 'status' in responses[ocaid]:
-                if responses[ocaid]['status'] == 'available':
-                    available_books.append(
-                        format_book_data(web.ctx.site.get(key)))
-                elif len(waitlisted_books) < waitlist_limit:
-                    waitlisted_books.append(
-                        format_book_data(web.ctx.site.get(key)))
+
+            book_data = web.ctx.site.get(key)
+            if book_data:
+                book = format_book_data(book_data)
+
+                if ocaid not in responses:
+                    # If book is not accounted for, err on the side of inclusion
+                    available_books.append(book)
+                elif 'status' in responses[ocaid]:
+                    if responses[ocaid]['status'] == 'available':
+                        available_books.append(book)
+                    elif len(waitlisted_books) < waitlist_limit:
+                        waitlisted_books.append(book)
     return storify(available_books), storify(waitlisted_books)
 
 @public
