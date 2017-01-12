@@ -172,6 +172,7 @@ $var title: $("Log In")
       var resetModal = function() {
           \$('#migrateModal').hide();
           \$('.formFieldsDecoration').removeClass('error');
+          \$('.formFieldsErrorMsg').html('');
           \$('.modal-header-copy-a').show();
           \$('.modal-header-copy-b').hide();
           \$('.modal-header-copy-c').hide();
@@ -249,6 +250,7 @@ $var title: $("Log In")
               url: url,
               dataType: "json",
               success: function(result) {
+                  alert('predicting breakage before login');
                   return callback(result);
               }
           });
