@@ -17,9 +17,8 @@ $:render_template("home/splash")
     $:render_template("home/categories")
     <div class="clearfix"></div>
 
-    $if popular_books:
-      $:render_template("home/popular", books=popular_books)
-      <div class="clearfix"></div>
+    $:render_template("home/popular", books=popular_books)
+    <div class="clearfix"></div>
 
     $:render_template("home/read")
     <div class="clearfix"></div>
@@ -27,9 +26,8 @@ $:render_template("home/splash")
     $:render_template("home/returncart")
     <div class="clearfix"></div>
 
-    $if waitlisted_books:
-      $:render_template("home/waitlist", books=waitlisted_books)
-      <div class="clearfix"></div>
+    $:render_template("home/waitlist", books=waitlisted_books)
+    <div class="clearfix"></div>
 
     $:render_template("home/loans", loans)
     <div class="clearfix"></div>
