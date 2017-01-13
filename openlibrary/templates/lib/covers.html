@@ -99,14 +99,20 @@ $jsdef render_page(page):
 
             $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
             $if not all_borrow and w.ia and w.public_scan:
-                <div class="coverEbook"><a href="//archive.org/stream/$w.ia?ref=ol" target="_blank" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a></div>
+                <div class="coverEbook">
+                  <a href="//archive.org/stream/$w.ia?ref=ol" target="_blank" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
+                </div>
             $elif w.ia and w.lending_edition and borrowable:
                 $ img_src = "/images/icons/icon_borrow-avail.png"
                 $ img_title = _("Borrow this book")
                 <div class="coverEbook">
+                  <span class="actions read">
                     <a href="/books/$w.lending_edition/x/borrow" class="borrow-link" title="$img_title"
-		       key="$(w.key)" title="Borrow book" ocaid="$(w.get('ocaid', '') or ','.join(w.get('ia', '')))">
-		      <img src="$img_src" border="0" width="32" height="33" alt="$img_title"/></a>
+                       key="$(w.key)" title="Borrow book" ocaid="$(w.get('ocaid', '') or ','.join(w.get('ia', '')))">
+                      <span class="read-icon image borrow"></span>
+                      <span class="read-label label">Borrow</span>
+                    </a>
+                  </span>
                 </div>
             $elif not all_borrow and not w.public_scan and w.printdisabled and not borrowable:
                 <div class="coverEbook">

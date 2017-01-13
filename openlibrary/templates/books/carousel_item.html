@@ -12,7 +12,9 @@ $else:
   <span itemscope itemtype="https://schema.org/Book">
     $if "cover_url" in book:
         <div class="SRPCover">
-            <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$long_title"><img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/></a>
+            <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$long_title">
+              <img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/>
+            </a>
         </div>
     $else:
         <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$long_title">
@@ -33,22 +35,21 @@ $else:
         </div>
     $elif book.get("borrow_url"):
         <div class="coverEbook">
-            $if book.get("checked_out"):
-                <a href="$book.borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('This book is checked out')">
-                  <img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33"
-                    alt="$_('This book is checked out')"/>
-                </a>
-            $else:
-                <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '')
-		   class="borrow-link" key="$(book.key)" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
-		  <img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
+          <span class="actions read">
+            <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '')
+               class="borrow-link" key="$(book.key)" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
+              <span class="read-icon image borrow"></span>
+            </a>
+          </span>
         </div>
     $elif "inlibrary" in ctx.features and book.get("inlibrary_borrow_url") and get_library() is not None:
         <div class="coverEbook">
-            $if book.get("checked_out"):
-                <a href="$book.url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('This book is checked out')"><img src="/images/icons/icon_borrow-not-avail.png" border="0" width="32" height="33" alt="$_('This book is checked out')"/></a>
-            $else:
-                <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')" key="$(book.key)" class="borrow-link" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read this book')"/></a>
+          <span class="actions read">
+            <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')"
+               key="$(book.key)" class="borrow-link" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
+              <span class="read-icon image borrow"></span>
+            </a>
+          </span>
         </div>
     $elif book.get("daisy_url"):
         <div class="coverEbook">
