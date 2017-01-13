@@ -1,11 +1,10 @@
 $def with(books=None)
 
-$if books:
-    <div class="head">
-      <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a></h2>
-      <p class="inline sansserif large collapse">
-        &nbsp; Discover <a href="/people/openlibrary/lists/OL104411L/Popular">hundreds of books</a> you're bound to love. (Or see what others are <a href="/lists">favoriting</a>.)
-      </p>
-    </div>
+<div class="head">
+  <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a></h2>
+  <p class="inline sansserif large collapse">
+    &nbsp; Discover <a href="/people/openlibrary/lists/OL104411L/Popular">hundreds of books</a> you're bound to love. (Or see what others are <a href="/lists">favoriting</a>.)
+  </p>
+</div>
 
-    $:render_template("books/carousel", books, id="CarouselPopular")
+$:render_template("books/carousel", books or [], id="CarouselPopular")
