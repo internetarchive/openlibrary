@@ -73,7 +73,7 @@ def is_borrowable(identifiers):
 
     params:
         is_borrowable (list) - ocaids; Internet Archive item identifiers
-    
+
     """
     url = AVAILABILITY_API + '?action=availability'
     data = urllib.urlencode({

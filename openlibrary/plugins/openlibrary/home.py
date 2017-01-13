@@ -269,7 +269,7 @@ def random_ebooks(limit=2000):
 random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
 
 def format_list_editions(key):
-    """Formats the editions of the list suitable for display in carousel.
+    """Formats the editions of a list suitable for display in carousel.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
