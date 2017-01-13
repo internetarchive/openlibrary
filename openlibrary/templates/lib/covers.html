@@ -108,7 +108,7 @@ $jsdef render_page(page):
                 <div class="coverEbook">
                   <span class="actions read">
                     <a href="/books/$w.lending_edition/x/borrow" class="borrow-link" title="$img_title"
-                       key="$(w.key)" title="Borrow book" ocaid="$(w.get('ocaid', '') or ','.join(w.get('ia', '')))">
+                       data-key="$(w.key)" data-ocaid="$(w.get('ocaid', '') or ','.join(w.get('ia', '')))">
                       <span class="read-icon image borrow"></span>
                       <span class="read-label label">Borrow</span>
                     </a>

@@ -280,7 +280,7 @@ function less(header) {
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
                 <span class="actions read">
                     <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book"
-                       key="$(doc.key)" ocaid="$(doc.get('ocaid', '') or ','.join(doc.get('ia', '')))">
+                       data-key="$(doc.key)" data-ocaid="$(doc.get('ocaid', '') or ','.join(doc.get('ia', '')))">
                         <span class="read-icon image borrow"></span>
                         <span class="read-label label">Borrow</span>
                     </a>

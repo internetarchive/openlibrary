@@ -36,8 +36,9 @@ $else:
     $elif book.get("borrow_url"):
         <div class="coverEbook">
           <span class="actions read">
-            <a href="$book.borrow_url" title="$_('Read this book')" $:(('data-ol-link-track="%s"' % id) if id else '')
-               class="borrow-link" key="$(book.key)" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
+            <a href="$book.borrow_url" title="$_('Read this book')" class="borrow-link"
+	       $:(('data-ol-link-track="%s"' % id) if id else '') data-key="$(book.key)"
+	       data-ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
               <span class="read-icon image borrow"></span>
             </a>
           </span>
@@ -45,8 +46,9 @@ $else:
     $elif "inlibrary" in ctx.features and book.get("inlibrary_borrow_url") and get_library() is not None:
         <div class="coverEbook">
           <span class="actions read">
-            <a href="$book.inlibrary_borrow_url" $:(('data-ol-link-track="%s"' % id) if id else '') title="$_('Read this book')"
-               key="$(book.key)" class="borrow-link" ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
+            <a href="$book.inlibrary_borrow_url" class="borrow-link" title="$_('Read this book')"
+	       $:(('data-ol-link-track="%s"' % id) if id else '')  data-key="$(book.key)"
+	       data-ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
               <span class="read-icon image borrow"></span>
             </a>
           </span>
