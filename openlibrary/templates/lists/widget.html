@@ -138,10 +138,8 @@ $if ctx.user:
         $:render_widget_add(user_lists)
     </div>
 
-<ul class="listLists">
-    <div id="widget-lists">
-        $:render_widget_display(page_lists, 3)
-    </div>
+<ul class="listLists" id="widget-lists">
+    $:render_widget_display(page_lists, 3)
 </ul>
 <div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$title</strong> from your list?</div>
 

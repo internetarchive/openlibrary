@@ -141,7 +141,7 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                 $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing
-                <script>
+                <script type="text/javascript">
                 \$(function() {
                     \$('.return-book').submit(function(event) {
                         if (!confirm("Really return this book?")) {
