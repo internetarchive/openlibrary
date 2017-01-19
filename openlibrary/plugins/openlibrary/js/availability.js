@@ -15,9 +15,35 @@
   stored as metadata within their Archive.org user account.
 */
 
+var getAvailability, getEditions;
+
 $(function(){
-    var getAvailability = function(ocaids, callback) {
-        var url = '/availability';
+
+    getEditions = function(olids, callback, decoration, cssid) {
+        var url = '/api/editions?olids=' + olids.join(',');
+        if (decoration) {
+            url += '&decoration=' + decoration;
+        }
+	if (cssid) {
+	    url += '&cssid=' + cssid;
+	}
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("Accept", "application/json");
+            },
+            success: function(result) {
+                return callback(result);
+            }
+        });
+    }
+
+    getAvailability = function(ocaids, callback) {
+        var url = '/availability?acs=0&restricted=1';
         $.ajax({
             url: url,
             type: "POST",
@@ -36,53 +62,67 @@ $(function(){
         });
     };
 
-    var books = {};  // lets us keep track of which ocaids came from
-                     // which book (i.e. edition or work). As we learn
-                     // ocaids are available, we'll need a way to
-                     // determine which edition or work this ocaid
-                     // comes from.
-    var ocaids = []  // a full set of ocaids spanning all books which
-                     // can be checked in a single request to the
-                     // availability API.
-    $('[ocaid]').each(function(index, elem) {
-        var book_ocaids = $(elem).attr('ocaid').split(',').filter(function(book) { return book !== "" });
-        var book_key = $(elem).attr('key');
-
-        if(book_ocaids.length) {
-            books[book_key] = book_ocaids;
-            Array.prototype.push.apply(ocaids, book_ocaids);
-        }
-    });
-
-    getAvailability(ocaids, function(response) {
-        for (var book_ocaid in response) {
-            if (response[book_ocaid].status === "available") {
-                // check all the books on this page
-                for (var book_key in books) {
-                    var book_ocaids = books[book_key];
-                    // check if available book_ocaid is in
-                    // this book_key's book_ocaids
-                    if (book_ocaids.indexOf(book_ocaid) > -1) {
-                        // update icon, ocaid, and , url (to ia:)
-                        $("[key=" + book_key  + "]").attr("href", "/borrow/ia/" + book_ocaid);
-
-                        // since we've found an available edition to
-                        // represent this book, we can stop and remove
-                        // book_ocaid from book_ocaids (one less book
-                        // to check against).
-                        delete books[book_key];
-                    }
-                }
+    /*
+     * Finds DOM elements for borrowable books (i.e. they have a
+     * data-ocaid field and a data-key field) within the specified
+     * scope of `selector` and updates they displayed borrow status
+     * and ebook links to reflect correct statuses and available
+     * copies.
+     */
+    var updateBookAvailability = function(selector) {
+        selector = selector || ''; // effectively sets default value of selector
+	var books = {};  // lets us keep track of which ocaids came from
+                         // which book (i.e. edition or work). As we learn
+                         // ocaids are available, we'll need a way to
+                         // determine which edition or work this ocaid
+                         // comes from.
+	var ocaids = []  // a full set of ocaids spanning all books
+                         // which can be checked in a single request
+                         // to the availability API.
+	$(selector).each(function(index, elem) {
+            var book_ocaids = $(elem).attr('data-ocaid').split(',').filter(function(book) {
+		return book !== "" });
+            var book_key = $(elem).attr('data-key');
+	    
+            if(book_ocaids.length) {
+		books[book_key] = book_ocaids;
+		Array.prototype.push.apply(ocaids, book_ocaids);
             }
-        };
+	});
 
-        // for anything remaining in books, set to checked-out
-        for (var book_key in books) {
-            $("[key=" + book_key  + "] span.read-icon").removeClass("borrow");
-            $("[key=" + book_key  + "] span.read-icon").addClass("checked-out");
-            $("[key=" + book_key  + "] span.read-label").html("Checked-out");
-            delete books[book_key];
-        }
+	getAvailability(ocaids, function(response) {
+            for (var book_ocaid in response) {
+		if (response[book_ocaid].status === "available") {
+                    // check all the books on this page
+                    for (var book_key in books) {
+			var book_ocaids = books[book_key];
+			// check if available book_ocaid is in
+			// this book_key's book_ocaids
+			if (book_ocaids.indexOf(book_ocaid) > -1) {
+                            // update icon, ocaid, and , url (to ia:)
+			    // should limit scope to `selector` ! XXX
+                            $(selector + "[data-key=" + book_key  + "]").attr("href", "/borrow/ia/" + book_ocaid);
+			    
+                            // since we've found an available edition to
+                            // represent this book, we can stop and remove
+                            // book_ocaid from book_ocaids (one less book
+                            // to check against).
+                            delete books[book_key];
+			}
+                    }
+		}
+            };
+	    
+            // for anything remaining in books, set to checked-out
+            for (var book_key in books) {
+		$(selector + "[data-key=" + book_key  + "] span.read-icon").removeClass("borrow");
+		$(selector + "[data-key=" + book_key  + "] span.read-icon").addClass("checked-out");
+		$(selector + "[data-key=" + book_key  + "] span.read-label").html("Checked-out");
+		delete books[book_key];
+            }
 
-    });
+	});
+    };
+
+    updateBookAvailability('[data-ocaid]');
 });

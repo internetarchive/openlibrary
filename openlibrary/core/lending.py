@@ -37,7 +37,7 @@ BOOKREADER_AUTH_SECONDS = 10*60
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
 IA_API_URL = "https://archive.org/services/openlibrary.php"
-AVAILABILITY_API = 'https://archive.org/services/loans/beta/loan/index.php'
+AVAILABILITY_API = 'https://www-richard.archive.org/services/loans/beta/loan/index.php'
 
 config_content_server = None
 config_loanstatus_url = None
@@ -64,7 +64,7 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
 
 
-def is_borrowable(identifiers):
+def is_borrowable(identifiers, acs=0, restricted=0):
     """Takes a list of archive.org ocaids and returns json indicating
     whether each of these books represented by these identifiers are
     available (i.e. not on waiting list and not checked out via
@@ -72,18 +72,22 @@ def is_borrowable(identifiers):
     are prohibitively slow.
 
     params:
-        is_borrowable (list) - ocaids; Internet Archive item identifiers
+        identifiers (list) - ocaids; Internet Archive item identifiers
+        acs (int) - do a check to mark acs loans as unavailable
+        restricted (int) - flag book is apart of a restricted collection
 
     """
-    url = AVAILABILITY_API + '?action=availability'
+    url = (AVAILABILITY_API + '?action=availability&exact=%s&validate=%s'
+           % (acs, restricted))
+    print(url)
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
     })
     try:
-        content = urllib2.urlopen(url=url, data=data, timeout=2).read()
+        content = urllib2.urlopen(url=url, data=data, timeout=3).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
-        return {}
+        return {'error': 'request_timeout'}
 
 
 def is_loaned_out(identifier):

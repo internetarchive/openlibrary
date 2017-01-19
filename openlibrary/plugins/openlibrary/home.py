@@ -44,15 +44,15 @@ class home(delegate.page):
         user = accounts.get_current_user()
         loans = borrow.get_loans(user) if user else None
 
-        popular_available, popular_waitlist = popular_carousel()
+        #popular_available, popular_waitlist = popular_carousel()
         return render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
             user=user, loans=loans,
-            popular_books=popular_available,
-            waitlisted_books=popular_waitlist
+            popular_books=[],
+            waitlisted_books=[]
         )
 
 
@@ -198,7 +198,7 @@ def render_returncart(limit=60, randomize=True):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
-    return render_template("books/carousel", storify(data), id="returncart_carousel")
+    return render_template("books/carousel", storify(data), id="CarouselReturns")
 
 def get_returncart(limit):
     if 'env' not in web.ctx:
@@ -214,7 +214,7 @@ def get_returncart(limit):
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
-def readonline_carousel(id="read-carousel"):
+def readonline_carousel(id="CarouselClassics"):
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.
     """
