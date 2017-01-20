@@ -96,7 +96,7 @@ class editions_availability(delegate.page):
         i = simplejson.loads(web.data())
         ocaids = i.get('ocaids', [])
         j = web.input(acs='1', restricted='0')
-        acs, restricted = int(j.acs), int(j.restricted)
+        acs, restricted = bool(int(j.acs)), bool(int(j.restricted))
         result = lending.is_borrowable(ocaids, acs=acs, restricted=restricted)
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")

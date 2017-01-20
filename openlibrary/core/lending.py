@@ -64,7 +64,7 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
 
 
-def is_borrowable(identifiers, acs=0, restricted=0):
+def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating
     whether each of these books represented by these identifiers are
     available (i.e. not on waiting list and not checked out via
@@ -77,9 +77,10 @@ def is_borrowable(identifiers, acs=0, restricted=0):
         restricted (int) - flag book is apart of a restricted collection
 
     """
+    _acs = '1' if acs else '0'
+    _restricted = '1' if restricted else '0'
     url = (AVAILABILITY_API + '?action=availability&exact=%s&validate=%s'
-           % (acs, restricted))
-    print(url)
+           % (_acs, _restricted))
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
     })
@@ -95,7 +96,8 @@ def is_loaned_out(identifier):
 
     This doesn't worry about waiting lists.
     """
-    return is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier) or is_loaned_out_on_ia(identifier)
+    return (is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier)
+            or is_loaned_out_on_ia(identifier))
 
 
 def is_loaned_out_on_acs4(identifier):
@@ -140,7 +142,8 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
-def get_loans_of_user(user_key): # TODO: Remove inclusion of local data; should only come from IA
+def get_loans_of_user(user_key):
+    """TODO: Remove inclusion of local data; should only come from IA"""
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
     loans = [Loan(d) for d in loandata]  + _get_ia_loans_of_user(userkey2userid(user_key))
     return loans
@@ -382,9 +385,11 @@ class Loan(dict):
         return self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
 
     def is_yet_to_be_fulfilled(self):
-        """Returns True if the loan is not yet fulfilled and fulfillment time is not expired.
+        """Returns True if the loan is not yet fulfilled and fulfillment time
+        is not expired.
         """
-        return self['expiry'] is None and (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
+        return (self['expiry'] is None and 
+                (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS)
 
     def return_loan(self):
         logger.info("*** return_loan ***")
@@ -438,7 +443,6 @@ def get_resource_id(identifier, resource_type):
         # The external identifiers will be of the format
         # acs:epub:<resource_id> or acs:pdf:<resource_id>
         acs, rtype, resource_id = eid.split(":", 2)
-        print acs, rtype, resource_id
         if rtype == resource_type:
             return resource_id
 
