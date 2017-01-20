@@ -44,7 +44,6 @@ class home(delegate.page):
         user = accounts.get_current_user()
         loans = borrow.get_loans(user) if user else None
 
-        #popular_available, popular_waitlist = popular_carousel()
         return render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,

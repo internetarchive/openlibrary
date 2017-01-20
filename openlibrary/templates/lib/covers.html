@@ -27,6 +27,9 @@ function loadCoverCarousels(carousel, state) {
     carousel.add(index, "<h3>Loading books...</h3>");
     page.loadPage(index-1, function(data) {
         carousel.add(index, page.renderCovers(data));
+
+        console.log('availability about to get called...');
+        updateBookAvailability('#coversCarousel li);
     });
 }
 
@@ -107,10 +110,9 @@ $jsdef render_page(page):
                 $ img_title = _("Borrow this book")
                 <div class="coverEbook">
                   <span class="actions read">
-                    <a href="/books/$w.lending_edition/x/borrow" class="borrow-link" title="$img_title"
-                       data-key="$(w.key)" data-ocaid="$(w.get('ocaid', '') or ','.join(w.get('ia', '')))">
+                    <a href="/books/$w.lending_edition/x/borrow" class="borrow-link"
+                       title="$img_title" data-key="$(w.key)" data-ocaid="$(w.ia)">
                       <span class="read-icon image borrow"></span>
-                      <span class="read-label label">Borrow</span>
                     </a>
                   </span>
                 </div>

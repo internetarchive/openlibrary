@@ -15,7 +15,7 @@
   stored as metadata within their Archive.org user account.
 */
 
-var getAvailability, getEditions;
+var getAvailability, getEditions, updateBookAvailability;
 
 $(function(){
 
@@ -69,8 +69,9 @@ $(function(){
      * and ebook links to reflect correct statuses and available
      * copies.
      */
-    var updateBookAvailability = function(selector) {
+    updateBookAvailability = function(selector) {
         selector = selector || ''; // effectively sets default value of selector
+        selector += '[data-ocaid]';
 	var books = {};  // lets us keep track of which ocaids came from
                          // which book (i.e. edition or work). As we learn
                          // ocaids are available, we'll need a way to
@@ -80,13 +81,17 @@ $(function(){
                          // which can be checked in a single request
                          // to the availability API.
 	$(selector).each(function(index, elem) {
-            var book_ocaids = $(elem).attr('data-ocaid').split(',').filter(function(book) {
-		return book !== "" });
-            var book_key = $(elem).attr('data-key');
-	    
-            if(book_ocaids.length) {
-		books[book_key] = book_ocaids;
-		Array.prototype.push.apply(ocaids, book_ocaids);
+            var data_ocaid = $(elem).attr('data-ocaid');
+            if(data_ocaid) {
+                console.log(data_ocaid);
+                var book_ocaids = data_ocaid.split(',').filter(function(book) {
+                    return book !== "" });
+                var book_key = $(elem).attr('data-key');
+
+                if(book_ocaids.length) {
+	            books[book_key] = book_ocaids;
+		    Array.prototype.push.apply(ocaids, book_ocaids);
+                }
             }
 	});
 
@@ -102,7 +107,7 @@ $(function(){
                             // update icon, ocaid, and , url (to ia:)
 			    // should limit scope to `selector` ! XXX
                             $(selector + "[data-key=" + book_key  + "]").attr("href", "/borrow/ia/" + book_ocaid);
-			    
+
                             // since we've found an available edition to
                             // represent this book, we can stop and remove
                             // book_ocaid from book_ocaids (one less book
@@ -112,7 +117,7 @@ $(function(){
                     }
 		}
             };
-	    
+
             // for anything remaining in books, set to checked-out
             for (var book_key in books) {
 		$(selector + "[data-key=" + book_key  + "] span.read-icon").removeClass("borrow");
@@ -124,5 +129,5 @@ $(function(){
 	});
     };
 
-    updateBookAvailability('[data-ocaid]');
+    updateBookAvailability();
 });

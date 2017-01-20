@@ -24,7 +24,7 @@ class popular_books(delegate.page):
         Should be cached through memcached.
         """
         i = web.input(start='0', limit='100')
-        start, limit = int(i.start), int(i.limit), 
+        start, limit = int(i.start), int(i.limit),
         books = popular_editions[start:start+limit]
         result = {
             'books': books,
@@ -83,7 +83,7 @@ class get_editions(delegate.page):
             result = {'error': 'max_limit_%s' % max_limit}
         else:
             result = {
-                'books': [decorate(format_edition(edition)) for 
+                'books': [decorate(format_edition(edition)) for
                      edition in web.ctx.site.get_many(keys)]
             }
         return delegate.RawText(simplejson.dumps(result),
