@@ -39,6 +39,15 @@
      * @param Hash o A set of key/value pairs to set as configuration properties.
      * @cat Plugins/jCarousel
      */
+
+    /**
+     * XXX Internet Archive modified this method so jcarousels could
+     * be referenced outside of their denoted callbacks. This was
+     * necessary to enabling fetching and reloading of jcarousels
+     * which were dynamically loaded. A full upgrade of jcarousel was
+     * not performed because it was suspected our old version of
+     * jquery could cause compatibility issues.
+     */
      $.fn.jcarousel = function(o) {
         if (typeof o == 'string') {
             var instance = $(this).data('jcarousel'), args = Array.prototype.slice.call(arguments, 1);
