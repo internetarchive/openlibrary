@@ -165,14 +165,19 @@ $:render_template("home/splash")
             function(available, waitlist) {
 
             var available_olkeys = available.map(function(e) { return all_books[e] });
+            var waitlist_olkeys = waitlist.map(function(e) { return all_books[e] });
             getEditions(available_olkeys, function(books) {
                 updateCarousel('popular_carousel', books);
-            }, 'carousel_item', 'CarouselPopular');
 
-            var waitlist_olkeys = waitlist.map(function(e) { return all_books[e] });
-            getEditions(waitlist_olkeys, function(books) {
-                updateCarousel('waitlist_carousel', books);
-            }, 'carousel_item', 'CarouselWaitlist');
+                getEditions(waitlist_olkeys, function(books) {
+                    updateCarousel('waitlist_carousel', books);
+
+                    // finalize, rerun availability to get correct icons
+                    updateBookAvailability();
+
+                }, 'carousel_item', 'CarouselWaitlist');
+
+            }, 'carousel_item', 'CarouselPopular');
         });
     }
 

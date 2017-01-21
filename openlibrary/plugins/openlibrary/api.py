@@ -66,8 +66,7 @@ def format_edition(edition):
     elif 'inlibrary' in collections:
         book['inlibrary_borrow_url'] = edition.url("/borrow")
     else:
-        book['read_url'] = edition.url("/borrow")
-
+        book['read_url'] = "//archive.org/stream/" + book['ocaid']
     return book
 
 class get_editions(delegate.page):
