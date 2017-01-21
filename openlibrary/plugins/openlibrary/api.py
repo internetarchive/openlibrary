@@ -4,8 +4,9 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from openlibrary.core import lending, helpers as h
+from openlibrary.core import ia, lending, helpers as h
 from openlibrary.data import popular
+
 
 popular_editions = popular.popular
 
@@ -17,15 +18,17 @@ def setup():
 class popular_books(delegate.page):
     path = '/popular'
 
-    def GET(self):
+    def GET(self, start=0, limit=100):
         """Returns `limit` popular book tuples of form [ocaid, olid] starting
         at `start`
 
-        Should be cached through memcached.
+        Popular books may be requested in pages of up to 100.
+
+        TODO: Add memcached caching (see plugins/openlibrary/home.py)
         """
-        i = web.input(start='0', limit='100')
+        i = web.input(start=start, limit=limit)
         start, limit = int(i.start), int(i.limit),
-        books = popular_editions[start:start+limit]
+        books = popular_editions[start : start + limit]
         result = {
             'books': books,
             'limit': limit,
@@ -37,7 +40,6 @@ class popular_books(delegate.page):
 
 def format_edition(edition):
     """This should be moved to a books or carousel model"""
-    from openlibrary.core import ia
     collections = ia.get_meta_xml(edition.get('ocaid')).get("collection", [])
     book = {
         'ocaid': edition.get('ocaid'),
@@ -70,16 +72,16 @@ class get_editions(delegate.page):
     path = '/api/editions'
 
     def GET(self, max_limit=100):
-        i = web.input(olids='', decoration=None, cssid=None)
+        i = web.input(olids='', decoration=None, pixel=None)
         keys = i.olids.split(',')
 
         if i.decoration == "carousel_item":
             decorate = lambda book: render_template(
-                'books/carousel_item', web.storage(book), id=i.cssid).__body__
+                'books/carousel_item', web.storage(book), pixel=i.pixel).__body__
         else:
             decorate = lambda book: book  # identity
 
-        if len(keys) > 100:
+        if len(keys) > max_limit:
             result = {'error': 'max_limit_%s' % max_limit}
         else:
             result = {

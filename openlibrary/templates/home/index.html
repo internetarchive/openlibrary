@@ -39,10 +39,9 @@ $:render_template("home/splash")
 </div>
 
 <script>
-var initCarousel, loadCovers;
 \$(function(){
     var CHUNK_SIZE = 100; // check popular books for availability 100 at a time
-    var CAROUSEL_SLOTS = 36;
+    var CAROUSEL_SLOTS = 36; // 6 pages of 6 books
 
     /**
      * Shuffles array in place.
@@ -75,7 +74,8 @@ var initCarousel, loadCovers;
         });
     };
 
-    var recGetPopularEditions = function(all_books, available, waitlist, num_slots, start, limit, callback) {
+    var recursivelyGetPopularEditions = function(all_books, available,
+        waitlist, num_slots, start, limit, callback) {
         if (available.length >= num_slots) {
             return callback(all_books, available, waitlist);
         } else {
@@ -111,7 +111,9 @@ var initCarousel, loadCovers;
                             return callback(available, waitlist);
                         }
                     }
-                    return recGetPopularEditions(all_books, available, waitlist, num_slots, start, limit, callback);
+                    return recursivelyGetPopularEditions(
+                        all_books, available, waitlist, num_slots, start,
+                        limit, callback);
                 });
             });
         }
@@ -158,24 +160,18 @@ var initCarousel, loadCovers;
         var available_ocaids = [];
         var waitlisted_ocaids = [];
         var start = 0;
-        recGetPopularEditions(all_books, available_ocaids, waitlisted_ocaids, CAROUSEL_SLOTS,
+        recursivelyGetPopularEditions(all_books, available_ocaids, waitlisted_ocaids, CAROUSEL_SLOTS,
             start, CHUNK_SIZE, function(available, waitlist) {
-
             // get all books for popular via get_editions
             // get ocaids by looking them up in all_books
             var available_olkeys = available.map(function(e) { return all_books[e] });
             getEditions(available_olkeys, function(books) {
-                updateCarousel('CarouselPopular', books);
-            // carousel_item is a decoration type
-            // which allows the api to return results
-            // as a list of html partials instead of dicts.
-            // hack: 'CarouselPopular' is sent to the decorate partial
-            // so we can add pixel tracking to it
+                updateCarousel('popular_carousel', books);
             }, 'carousel_item', 'CarouselPopular');
 
             var waitlist_olkeys = waitlist.map(function(e) { return all_books[e] });
             getEditions(waitlist_olkeys, function(books) {
-                updateCarousel('CarouselWaitlist', books);
+                updateCarousel('waitlist_carousel', books);
             }, 'carousel_item', 'CarouselWaitlist');
         });
     }

@@ -153,7 +153,8 @@ def carousel_from_list(key, randomize=False, limit=60):
         random.shuffle(data)
     data = data[:limit]
     add_checkedout_status(data)
-    return render_template("books/carousel", storify(data), id=css_id)
+    return render_template(
+        "books/carousel", storify(data), id=css_id, pixel="CarouselList")
 
 def add_checkedout_status(books):
     """OBSOLETE -- will be deleted.
@@ -172,7 +173,7 @@ def add_checkedout_status(books):
         book['checked_out'] = checked_out
 
 @public
-def loans_carousel(loans=None, css_id="CarouselLoans"):
+def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
     """Generates 'Your Loans' carousel on home page"""
     if not loans:
         return ''
@@ -182,7 +183,7 @@ def loans_carousel(loans=None, css_id="CarouselLoans"):
         if loan_book:
             books.append(format_book_data(loan_book))
     return render_template(
-        'books/carousel', storify(books), id=css_id
+        'books/carousel', storify(books), id=cssid, pixel=pixel
     ) if books else ''
 
 
@@ -197,7 +198,7 @@ def render_returncart(limit=60, randomize=True):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
-    return render_template("books/carousel", storify(data), id="CarouselReturns")
+    return render_template("books/carousel", storify(data), id="returncart_carousel", pixel="CarouselReturns")
 
 def get_returncart(limit):
     if 'env' not in web.ctx:
@@ -213,7 +214,7 @@ def get_returncart(limit):
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
-def readonline_carousel(id="CarouselClassics"):
+def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.
     """
@@ -221,7 +222,8 @@ def readonline_carousel(id="CarouselClassics"):
         data = random_ebooks()
         if len(data) > 120:
             data = random.sample(data, 120)
-        return render_template("books/carousel", storify(data), id=id)
+        return render_template(
+            "books/carousel", storify(data), id=cssid, pixel=pixel)
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None

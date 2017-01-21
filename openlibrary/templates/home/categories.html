@@ -1,4 +1,4 @@
-$def with (id="ol-carousel")
+$def with (id='categories_carousel', pixel='CarouselCategories')
 
 <div class="head">
   <h2 class="inline"><a href="/subjects">Browse by Category</a></h2>
@@ -29,7 +29,7 @@ $def with (id="ol-carousel")
         render: function(subject, key) {
             return '<li class="category-item">' +
                 '<a class="category-nostyle" ' +
-		'data-ol-link-track="CarouselCategories" ' +
+		'data-ol-link-track="$(pixel)" ' +
 		'href="/subjects/' + key +
 		'#sort=' + subject.sort + '&ebooks=true">' +
                 '<div class="category-icon">' +

@@ -19,13 +19,31 @@ var getAvailability, getEditions, updateBookAvailability;
 
 $(function(){
 
-    getEditions = function(olids, callback, decoration, cssid) {
+    /**
+     * params:
+     *
+     *     olids - a csv of open library editions ids
+     *
+     *     callback - a method to which to return results
+     *
+     *     decoration - decoration allows us to return an html
+     *                  component partial instead of raw json. 
+     *                  value of `carousel_item` is a decoration type
+     *                  which allows the api to return results as a
+     *                  list of html partials instead of dicts.
+     *
+     *     pixel - an option of decoration which enables analytics
+     *             tracking to be set. E.g. a 'CarouselPopular' is
+     *             sent to the decorate partial so we can add pixel
+     *             tracking to it
+     */
+    getEditions = function(olids, callback, decoration, pixel) {
         var url = '/api/editions?olids=' + olids.join(',');
         if (decoration) {
             url += '&decoration=' + decoration;
         }
-	if (cssid) {
-	    url += '&cssid=' + cssid;
+	if (pixel) {
+	    url += '&pixel=' + pixel;
 	}
         $.ajax({
             url: url,
