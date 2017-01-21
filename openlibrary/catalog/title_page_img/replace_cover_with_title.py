@@ -129,11 +129,11 @@ def post(ol, ia, ia_host, ia_path, cover, title):
     leaf = cover if use_cover else title
     source_url = "http://%s/GnuBook/GnuBookImages.php?zip=%s/%s_jp2.zip&file=%s_jp2/%s_%04d.jp2" % (ia_host, ia_path, ia, ia, ia, leaf)
 #    print leaf, source_url
-    query = 'http://covers.openlibrary.org/b/query?olid=' + ol[3:]
+    query = 'https://covers.openlibrary.org/b/query?olid=' + ol[3:]
     #print query
     if use_cover:
         print 'use_cover',
-    print 'http://openlibrary.org' + ol
+    print 'https://openlibrary.org' + ol
     for attempt in range(5):
         if attempt > 0:
             print 'trying again (%d)' % attempt

@@ -365,7 +365,7 @@ $if param and not error:
         if (Math.random() * 100 < $readapi_percent) {
             starttime = Date.now();
             \$.ajax({
-                url: 'http://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
+                url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
                 dataType: 'jsonp',
                 success: readapi_callback
             });

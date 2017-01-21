@@ -95,14 +95,14 @@ $if param:
         <li>
         <span class="bookcover">
             $ olid = doc.key.split('/')[-1]
-            <a href="$doc.key"><img src="http://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
+            <a href="$doc.key"><img src="https://covers.openlibrary.org/b/olid/$olid-S.jpg?default=https://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
         </span>
         <span class="details">
             <span class="resultTitle">
-                <span class="booktitle"><a href="http://upstream.openlibrary.org/works/$doc.key">$doc.title</a></span>
+                <span class="booktitle"><a href="https://upstream.openlibrary.org/works/$doc.key">$doc.title</a></span>
                 <span class="bookauthor">by
                 $for k, n in doc.authors:
-                    <a href="http://upstream.openlibrary.org/authors/$k">$n</a>$(',' if not loop.last else '')
+                    <a href="https://upstream.openlibrary.org/authors/$k">$n</a>$(',' if not loop.last else '')
                 </span>
                 <span class="resultPublisher">$commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")</span>
             </span>

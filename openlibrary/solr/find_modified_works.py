@@ -9,7 +9,7 @@ import sys
 import time
 import urllib2
 
-BASE_URL = "http://openlibrary.org/recentchanges/"
+BASE_URL = "https://openlibrary.org/recentchanges/"
 # BASE_URL = "http://0.0.0.0:8080/recentchanges/"
 
 def parse_options(args):

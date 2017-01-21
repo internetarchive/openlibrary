@@ -134,7 +134,7 @@ def show_locs(locs, isbn):
 #        print `[i[0] for i in v]`, '<br>'
         ret += counts_html(v)
         if isbn and first_key:
-            ret += '<td valign="top" rowspan="%d"><img src="http://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
+            ret += '<td valign="top" rowspan="%d"><img src="https://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)
             first_key = False
         ret += '</td></tr>'
     ret += '</table>'
