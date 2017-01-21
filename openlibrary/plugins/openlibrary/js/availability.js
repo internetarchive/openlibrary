@@ -27,7 +27,7 @@ $(function(){
      *     callback - a method to which to return results
      *
      *     decoration - decoration allows us to return an html
-     *                  component partial instead of raw json. 
+     *                  component partial instead of raw json.
      *                  value of `carousel_item` is a decoration type
      *                  which allows the api to return results as a
      *                  list of html partials instead of dicts.
@@ -88,22 +88,20 @@ $(function(){
      * copies.
      */
     updateBookAvailability = function(selector) {
-        selector = selector || ''; // effectively sets default value of selector
-        selector += '[data-ocaid]';
+        selector = (selector || '') + '[data-ocaid]';
 	var books = {};  // lets us keep track of which ocaids came from
-                         // which book (i.e. edition or work). As we learn
-                         // ocaids are available, we'll need a way to
-                         // determine which edition or work this ocaid
-                         // comes from.
-	var ocaids = []  // a full set of ocaids spanning all books
-                         // which can be checked in a single request
-                         // to the availability API.
+        // which book (i.e. edition or work). As we learn
+        // ocaids are available, we'll need a way to
+        // determine which edition or work this ocaid
+        // comes from.
+	var ocaids = [];  // a full set of ocaids spanning all books
+        // which can be checked in a single request
+        // to the availability API.
 	$(selector).each(function(index, elem) {
             var data_ocaid = $(elem).attr('data-ocaid');
             if(data_ocaid) {
-                console.log(data_ocaid);
-                var book_ocaids = data_ocaid.split(',').filter(function(book) {
-                    return book !== "" });
+                var book_ocaids = data_ocaid.split(',')
+		    .filter(function(book) { return book !== "" });
                 var book_key = $(elem).attr('data-key');
 
                 if(book_ocaids.length) {
@@ -124,7 +122,8 @@ $(function(){
 			if (book_ocaids.indexOf(book_ocaid) > -1) {
                             // update icon, ocaid, and , url (to ia:)
 			    // should limit scope to `selector` ! XXX
-                            $(selector + "[data-key=" + book_key  + "]").attr("href", "/borrow/ia/" + book_ocaid);
+                            $(selector + "[data-key=" + book_key  + "]")
+				.attr("href", "/borrow/ia/" + book_ocaid);
 
                             // since we've found an available edition to
                             // represent this book, we can stop and remove
@@ -138,9 +137,12 @@ $(function(){
 
             // for anything remaining in books, set to checked-out
             for (var book_key in books) {
-		$(selector + "[data-key=" + book_key  + "] span.read-icon").removeClass("borrow");
-		$(selector + "[data-key=" + book_key  + "] span.read-icon").addClass("checked-out");
-		$(selector + "[data-key=" + book_key  + "] span.read-label").html("Checked-out");
+		$(selector + "[data-key=" + book_key  + "] span.read-icon")
+		    .removeClass("borrow");
+		$(selector + "[data-key=" + book_key  + "] span.read-icon")
+		    .addClass("checked-out");
+		$(selector + "[data-key=" + book_key  + "] span.read-label")
+		    .html("Checked-out");
 		delete books[book_key];
             }
 

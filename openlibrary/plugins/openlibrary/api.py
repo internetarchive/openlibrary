@@ -1,4 +1,10 @@
-"""API stuff."""
+
+"""
+This file should be for internal APIs which Open Library requires for
+its experience. This does not include public facing APIs with LTS
+(long term support)
+"""
+
 import web
 import simplejson
 
@@ -10,10 +16,6 @@ from openlibrary.data import popular
 
 popular_editions = popular.popular
 
-
-def setup():
-    # placeholder
-    pass
 
 class popular_books(delegate.page):
     path = '/popular'
@@ -49,8 +51,8 @@ def format_edition(edition):
         'authors': [web.storage(key=a.key, name=a.name or None)
                     for a in edition.get_authors()],
         'collections': collections,
-        'protected': not any([c not in collections for c in
-                              ['lendinglibrary', 'browserlending', 'inlibrary']])
+        'protected': any([c in collections for c in
+                          ['lendinglibrary', 'browserlending', 'inlibrary']])
     }
 
     cover = edition.get_cover()

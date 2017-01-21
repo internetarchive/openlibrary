@@ -778,7 +778,8 @@ def setup_context_defaults():
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
+    import (home, inlibrary, borrow_home, libraries, stats, support,
+            events, status, merge_editions, authors)
 
     home.setup()
     inlibrary.setup()
@@ -792,8 +793,6 @@ def setup():
     authors.setup()
 
     import api
-    api.setup()
-
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
 

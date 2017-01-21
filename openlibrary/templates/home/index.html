@@ -149,7 +149,7 @@ $:render_template("home/splash")
         });
 
         \$("#" + cssid).jcarousel({
-            scroll:6,
+            scroll: 6,  // scroll 6 book results (1 page) at a time
             itemLoadCallback: {onBeforeAnimation: load_covers}
         });
         \$('#' + cssid).data('jcarousel').reload();
@@ -160,10 +160,10 @@ $:render_template("home/splash")
         var available_ocaids = [];
         var waitlisted_ocaids = [];
         var start = 0;
-        recursivelyGetPopularEditions(all_books, available_ocaids, waitlisted_ocaids, CAROUSEL_SLOTS,
-            start, CHUNK_SIZE, function(available, waitlist) {
-            // get all books for popular via get_editions
-            // get ocaids by looking them up in all_books
+        recursivelyGetPopularEditions(all_books, available_ocaids,
+            waitlisted_ocaids, CAROUSEL_SLOTS, start, CHUNK_SIZE,
+            function(available, waitlist) {
+
             var available_olkeys = available.map(function(e) { return all_books[e] });
             getEditions(available_olkeys, function(books) {
                 updateCarousel('popular_carousel', books);

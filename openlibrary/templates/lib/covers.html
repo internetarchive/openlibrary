@@ -27,9 +27,7 @@ function loadCoverCarousels(carousel, state) {
     carousel.add(index, "<h3>Loading books...</h3>");
     page.loadPage(index-1, function(data) {
         carousel.add(index, page.renderCovers(data));
-
-        console.log('availability about to get called...');
-        updateBookAvailability('#coversCarousel li);
+        updateBookAvailability('#coversCarousel li');
     });
 }
 
