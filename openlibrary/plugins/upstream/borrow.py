@@ -158,17 +158,14 @@ class borrow(delegate.page):
 
                 if loan:
                     loan_link = loan['loan_link']
-
                     if resource_type == 'bookreader':
                         stats.increment('ol.loans.bookreader')
+                        raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
+                        raise web.seeother(loan_link)
                     elif resource_type == 'epub':
                         stats.increment('ol.loans.epub')
-
-                    if resource_type == 'bookreader':
-                        raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
-                    else:
                         raise web.seeother(loan_link)
                 else:
                     raise web.seeother(error_redirect)
