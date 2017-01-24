@@ -223,7 +223,7 @@ def radio_list(name, args, value):
 
 @public
 def get_coverstore_url():
-    return config.get('coverstore_url', 'http://covers.openlibrary.org').rstrip('/')
+    return config.get('coverstore_url', 'https://covers.openlibrary.org').rstrip('/')
 
 def _get_changes_v1_raw(query, revision=None):
     """Returns the raw versions response.

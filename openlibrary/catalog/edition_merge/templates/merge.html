@@ -29,7 +29,7 @@ Merging editions: {{ ekeys }} into {{ master }}<p>
 <table>
 <tr><td></td>
 {% for ekey in ekeys %}
-<td><a href="http://openlibrary.org{{ekey}}">{{ ekey }}</a></td>
+<td><a href="https://openlibrary.org{{ekey}}">{{ ekey }}</a></td>
 {% endfor %}
 <td>merged</td>
 </tr>
@@ -45,7 +45,7 @@ Merging editions: {{ ekeys }} into {{ master }}<p>
 {% endfor %}
 {% elif k == 'authors' and e.get(k) %}
 {% for akey in e[k] %}
-    <a href="http://openlibrary.org{{akey}}.yml?m=edit">{{akey}}</a>
+    <a href="https://openlibrary.org{{akey}}.yml?m=edit">{{akey}}</a>
 {% endfor %}
 
 {% elif not merged.get(k) and e.get(k) %}

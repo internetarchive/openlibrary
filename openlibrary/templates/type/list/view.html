@@ -195,10 +195,13 @@ function get_seed_count() {
                                         <span class="label">$_("Read")</span>
                                     </a>
                                 $elif 'borrow_url' in ebook:
-                                    <a href="$ebook['borrow_url']" class="borrow-link" title="Read book">
-                                        <span class="image borrow"></span>
-                                        <span class="label">Read</span>
-                                    </a>
+                                    <span class="actions read">
+                                      <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Borrow book"
+					 data-key="$(doc.key)" data-ocaid="$(doc.get('ocaid', '') or ''.join(doc.get('ia', '')))">
+                                        <span class="read-icon image borrow"></span>
+                                        <span class="read-label label">Borrow</span>
+                                      </a>
+                                    </span>
                                 $elif 'daisy_url' in ebook:
                                     <a href="$ebook['daisy_url']" title="Protected DAISY">
                                         <span class="image daisy"></span>

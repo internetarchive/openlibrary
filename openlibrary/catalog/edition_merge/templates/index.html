@@ -40,7 +40,7 @@ Pages:
 <td><a href="//archive.org/details/{{ ia }}">{{ ia }}</a></td>
 <td>
 {% for ekey in editions.split(' ') %}
-<a href="http://openlibrary.org{{ ekey }}">{{ekey}}</a>
+<a href="https://openlibrary.org{{ ekey }}">{{ekey}}</a>
 {% endfor %}
 </td>
 <td><a href="{{url_for('merge', ia=ia)}}">merge</a></td>

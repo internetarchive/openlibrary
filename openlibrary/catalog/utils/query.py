@@ -26,7 +26,7 @@ def set_query_host(host):
     query_host = host
 
 def has_cover(key):
-    url = 'http://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
+    url = 'https://covers.openlibrary.org/' + key[1] + '/query?olid=' + key[3:]
     return urlread(url).strip() != '[]'
 
 def has_cover_retry(key):

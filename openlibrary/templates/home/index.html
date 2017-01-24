@@ -37,3 +37,150 @@ $:render_template("home/splash")
 
     $:render_template("home/about", blog_posts)
 </div>
+
+<script>
+\$(function(){
+    var CHUNK_SIZE = 100; // check popular books for availability 100 at a time
+    var CAROUSEL_SLOTS = 36; // 6 pages of 6 books
+
+    /**
+     * Shuffles array in place.
+     * @param {Array} a items The array containing the items.
+     */
+     function shuffle(a) {
+        var j, x, i;
+        for (i = a.length; i; i--) {
+            j = Math.floor(Math.random() * i);
+            x = a[i - 1];
+            a[i - 1] = a[j];
+            a[j] = x;
+        }
+    }
+
+    var getPopularEditionIds = function(start, limit, callback) {
+        var url = '/popular?start=' + start + '&limit=' + CHUNK_SIZE;
+        \$.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("Accept", "application/json");
+            },
+            success: function(result) {
+                return callback(result);
+            }
+        });
+    };
+
+    var recursivelyGetPopularEditions = function(all_books, available,
+        waitlist, num_slots, start, limit, callback) {
+        if (available.length >= num_slots) {
+            return callback(all_books, available, waitlist);
+        } else {
+            getPopularEditionIds(start, limit, function(editions) {
+                if (editions.error) {
+                    console.log(editions.error);
+                    return callback(available, waitlist);
+                }
+                var batch = editions.books;
+                shuffle(batch);
+
+                // maintain a list of all books we know about, lookup
+                // table for later
+                for (var b in batch) {
+                    var edition = batch[b];
+                    var ocaid = edition[0];
+                    var ol_key = edition[1];
+                    all_books[ocaid] = ol_key;
+                }
+
+                var ocaids = batch.map(function(e) { return e[0] });
+                getAvailability(ocaids, function(responses) {
+                    var books = responses;
+                    start += limit;
+                    for (var b in books) {
+                        var book = books[b];
+                        if (book.status === "available") {
+                            available.push(b);
+                        } else if (book.status === "unavailable" && waitlist.length < num_slots) {
+                            waitlist.push(b);
+                        }
+                        if (available.length >= num_slots) {
+                            return callback(available, waitlist);
+                        }
+                    }
+                    return recursivelyGetPopularEditions(
+                        all_books, available, waitlist, num_slots, start,
+                        limit, callback);
+                });
+            });
+        }
+    }
+
+    function load_covers(carousel, state) {
+        for (var i = carousel.first; i <= carousel.last; i++) {
+            if (carousel.has(i)) {
+                carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
+
+                var cover = carousel.get(i).find("img.cover");
+                if (cover.length > 0) {
+                    cover.attr("src", cover.attr("xsrc"));
+                }
+            }
+        }
+    }
+
+    var updateCarousel = function(cssid, books) {
+        var books = books.books;
+
+        \$('#' + cssid).empty();
+        for (var b in books) {
+            \$('#' + cssid).append('<li>' + books[b] + '</li>');
+        }
+
+        \$('#' + cssid + ' li').each(function(index, elem) {
+            \$(elem).find(".coverMagic").removeClass("hiddenCoverMagic");
+            var cover = \$(elem).find("img.cover");
+            if (cover.length > 0) {
+                cover.attr("src", cover.attr("xsrc"));
+            }
+        });
+
+        \$("#" + cssid).jcarousel({
+            scroll: 6,  // scroll 6 book results (1 page) at a time
+            itemLoadCallback: {onBeforeAnimation: load_covers}
+        });
+        \$('#' + cssid).data('jcarousel').reload();
+    }
+
+    var populatePopularCarousel = function() {
+        var all_books = {};
+        var available_ocaids = [];
+        var waitlisted_ocaids = [];
+        var start = 0;
+        recursivelyGetPopularEditions(all_books, available_ocaids,
+            waitlisted_ocaids, CAROUSEL_SLOTS, start, CHUNK_SIZE,
+            function(available, waitlist) {
+
+            var available_olkeys = available.map(function(e) { return all_books[e] });
+            var waitlist_olkeys = waitlist.map(function(e) { return all_books[e] });
+            getEditions(available_olkeys, function(books) {
+                updateCarousel('popular_carousel', books);
+
+                getEditions(waitlist_olkeys, function(books) {
+                    updateCarousel('waitlist_carousel', books);
+
+                    // finalize, rerun availability to get correct icons
+                    updateBookAvailability();
+
+                }, 'carousel_item', 'CarouselWaitlist');
+
+            }, 'carousel_item', 'CarouselPopular');
+        });
+    }
+
+    populatePopularCarousel();
+});
+</script>

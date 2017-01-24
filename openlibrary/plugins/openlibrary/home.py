@@ -44,15 +44,14 @@ class home(delegate.page):
         user = accounts.get_current_user()
         loans = borrow.get_loans(user) if user else None
 
-        popular_available, popular_waitlist = popular_carousel()
         return render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
             user=user, loans=loans,
-            popular_books=popular_available,
-            waitlisted_books=popular_waitlist
+            popular_books=[],
+            waitlisted_books=[]
         )
 
 
@@ -101,12 +100,12 @@ def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_siz
         on each Edition (which is expensive) before a batch of editions can
         be checked for availability. If we had the ocaids of list seeds upfront
         and could query them in bulk, this would eliminate the problem.
-        
+
         As a work-around, we periodically create a flatfile cache of
         the above list.seed keys mapped ahead of time to their ocaids
-        (i.e. `popular.popular`). 
+        (i.e. `popular.popular`).
 
-        For steps on (re)generating `popular.popular`, see: 
+        For steps on (re)generating `popular.popular`, see:
         data.py  popular.generate_popular_list()
 
         Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
@@ -154,7 +153,8 @@ def carousel_from_list(key, randomize=False, limit=60):
         random.shuffle(data)
     data = data[:limit]
     add_checkedout_status(data)
-    return render_template("books/carousel", storify(data), id=css_id)
+    return render_template(
+        "books/carousel", storify(data), id=css_id, pixel="CarouselList")
 
 def add_checkedout_status(books):
     """OBSOLETE -- will be deleted.
@@ -173,7 +173,7 @@ def add_checkedout_status(books):
         book['checked_out'] = checked_out
 
 @public
-def loans_carousel(loans=None, css_id="CarouselLoans"):
+def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
     """Generates 'Your Loans' carousel on home page"""
     if not loans:
         return ''
@@ -183,7 +183,7 @@ def loans_carousel(loans=None, css_id="CarouselLoans"):
         if loan_book:
             books.append(format_book_data(loan_book))
     return render_template(
-        'books/carousel', storify(books), id=css_id
+        'books/carousel', storify(books), id=cssid, pixel=pixel
     ) if books else ''
 
 
@@ -198,7 +198,7 @@ def render_returncart(limit=60, randomize=True):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
-    return render_template("books/carousel", storify(data), id="returncart_carousel")
+    return render_template("books/carousel", storify(data), id="returncart_carousel", pixel="CarouselReturns")
 
 def get_returncart(limit):
     if 'env' not in web.ctx:
@@ -214,7 +214,7 @@ def get_returncart(limit):
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
-def readonline_carousel(id="read-carousel"):
+def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.
     """
@@ -222,7 +222,8 @@ def readonline_carousel(id="read-carousel"):
         data = random_ebooks()
         if len(data) > 120:
             data = random.sample(data, 120)
-        return render_template("books/carousel", storify(data), id=id)
+        return render_template(
+            "books/carousel", storify(data), id=cssid, pixel=pixel)
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
@@ -269,7 +270,7 @@ def random_ebooks(limit=2000):
 random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
 
 def format_list_editions(key):
-    """Formats the editions of the list suitable for display in carousel.
+    """Formats the editions of a list suitable for display in carousel.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -318,6 +319,7 @@ def format_book_data(book):
 
     ia_id = book.get("ocaid")
     if ia_id:
+        d.ocaid = ia_id
         collections = ia.get_meta_xml(ia_id).get("collection", [])
         if 'printdisabled' in collections or 'lendinglibrary' in collections:
             d.daisy_url = book.url("/daisy")

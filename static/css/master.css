@@ -2432,6 +2432,32 @@ span.actions span.borrow:hover {background-position: -312px 0!important;}
 span.actions span.daisy {background-position: -384px 0!important;}
 span.actions span.daisy:hover {background-position: -408px 0!important;}
 
+.jcarousel-skin-OL span.actions a span.borrow {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto;
+    padding: 0;
+    background-image: url("/images/icons/icon_borrow-avail.png");
+    background-repeat: no-repeat;
+    background-position: 0% 0%!important;
+    position: absolute;
+    right: 0px;
+}
+
+.jcarousel-skin-OL span.actions a span.checked-out {
+    display: block;
+    width: 32px;
+    height: 32px;
+    margin: 0 auto;
+    padding: 0;
+    background-image: url("/images/icons/icon_borrow-not-avail.png");
+    background-repeat: no-repeat;
+    background-position: 0% 0%!important;
+    position: absolute;
+    right: 0px;
+}
+
 ul#siteSearch span.resultTitle {
     display: block;
     float: left;
