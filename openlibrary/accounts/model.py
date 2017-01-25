@@ -5,6 +5,7 @@ import time
 import datetime
 import hmac
 import random
+import simplejson
 import uuid
 import urllib
 import urllib2
@@ -388,12 +389,43 @@ class InternetArchiveAccount(web.storage):
             username=username, test=test)
 
     @classmethod
+    def xauth(cls, **data):
+        return cls._post_ia_xauth_api(**data)
+
+    @classmethod
+    def _post_ia_xauth_api(cls, test=None, **data):
+        service = data.pop('service', u'')
+        url = lending.IA_XAUTH_API_URL
+        url += "?op=%s&client_access=%s&client_secret=%s" % (
+            service,
+            lending.config_ia_ol_xauth_s3.get('s3_key'),
+            lending.config_ia_ol_xauth_s3.get('s3_secret')
+        )
+        if test is not None:
+            url += "&developer=%s" % test
+        if service in ['info', 'authenticate', 'identity']:
+            payload = None
+            for d in data:
+                url += '&%s=%s' % (d, data[d])
+        else:
+            payload = urllib.urlencode(data)
+        print(url)
+        try:
+            response = urllib2.urlopen(url, payload).read()
+        except urllib2.HTTPError as e:
+            print(e.code)
+            if e.code == 403:
+                return {'error': e.read(), 'code': 403}
+            else:
+                response = e.read()
+        return simplejson.loads(response)
+
+    @classmethod
     def _post_ia_user_api(cls, test=False, **data):
-        import simplejson
         token = lending.config_ia_ol_auth_key
         if 'token' not in data and token:
             data['token'] = token
-        if test or not token:
+        if test or not token:  # ?
             data['test'] = "true"
         payload = urllib.urlencode(data)
         response = simplejson.loads(urllib2.urlopen(
@@ -458,6 +490,7 @@ def audit_accounts(email, password, test=False):
     audit = {
         'email': email,
         'authenticated': False,
+        'verified': False,
         'has_ia': False,
         'has_ol': False,
         'link': ol_account.itemname if ol_account else None
@@ -557,22 +590,23 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
             if not valid_email(bridgeEmail):
                 return {'error': 'invalid_bridgeEmail'}
             if ol_account:
-                ia_account = InternetArchiveAccount.get(
-                    email=bridgeEmail, test=test)
-                if ia_account:
+                _res = InternetArchiveAccount.authenticate(
+                    email=bridgeEmail, password=bridgePassword, test=test)
+                if _res == "ok":
+                    ia_account = InternetArchiveAccount.get(
+                        email=bridgeEmail, test=test)
                     if OpenLibraryAccount.get_by_link(ia_account.itemname):
                         return {'error': 'account_already_linked'}
-                    if ia_account.authenticates(bridgePassword):
-                        # avoics Document Update conflict
-                        _ol_account = web.ctx.site.store.get(ol_account._key)
-                        _ol_account['internetarchive_itemname'] = ia_account.itemname
-                        web.ctx.site.store[ol_account._key] = _ol_account
 
-                        audit['link'] = ia_account.itemname
-                        audit['has_ia'] = ia_account.itemname
-                        return audit
-                    return {'error': 'invalid_ia_credentials'}
-                return {'error': 'ia_account_doesnt_exist'}
+                    # avoids Document Update conflict
+                    _ol_account = web.ctx.site.store.get(ol_account._key)
+                    _ol_account['internetarchive_itemname'] = ia_account.itemname
+                    web.ctx.site.store[ol_account._key] = _ol_account
+
+                    audit['link'] = ia_account.itemname
+                    audit['has_ia'] = ia_account.itemname
+                    return audit
+                return {'error': _res}
             elif ia_account:
                 ol_account = OpenLibraryAccount.get(email=bridgeEmail, test=test)
                 if ol_account:

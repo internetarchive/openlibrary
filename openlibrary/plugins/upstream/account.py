@@ -10,7 +10,8 @@ import simplejson
 from infogami.utils import delegate
 from infogami import config
 from infogami.utils.view import (
-    require_login, render, render_template, add_flash_message)
+    require_login, render, render_template, add_flash_message
+)
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
@@ -19,10 +20,7 @@ from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary import accounts
-from openlibrary.accounts import (
-    Account, InternetArchiveAccount, OpenLibraryAccount, valid_email,
-    link_accounts, audit_accounts
-)
+from openlibrary.accounts import link_accounts, audit_accounts, Account
 import forms
 import utils
 import borrow
@@ -34,6 +32,18 @@ logger = logging.getLogger("openlibrary.account")
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
+
+
+class xauth(delegate.page):
+    path = "/xauth"
+
+    def GET(self):
+        from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount
+        i = web.input(service='')
+        #result = InternetArchiveAccount.xauth(service=i.service, email=i.email)
+        result = OpenLibraryAccount.get(email='mek+has_ol@archive.org')
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class account(delegate.page):
     """Account preferences.
@@ -85,6 +95,7 @@ class account_create(delegate.page):
 
         # XXX MEK IA/OL Auth Bridge: Check IA account availability
         try:
+            result = audit_accounts(email, password, test=test)
             pass
         except Exception:
             pass
