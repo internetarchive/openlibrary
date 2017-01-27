@@ -153,18 +153,10 @@ $var title: $("Log In")
         "invalid_email": "The email address you entered is invalid",
         "ol_account_blocked": "This Open Library account has been blocked",
         "account_blocked": "This Open Library account has been blocked",
-        "account_user_notfound": "No account could be found matching these credentials",
-        "ia_account_doesnt_exist": "No Internet Archive account could be found matching these credentials",
-        "ol_account_doesnt_exist": "No Open Library account could be found matching these credentials",
         "account_not_found": "No account could be found matching these credentials",
         "account_incorrect_password": "Incorrect password",
         "account_bad_password": "Invalid login credentials",
-        "invalid_ol_credentials": "Invalid Open Library credentials",
-        "invalid_ia_credentials": "Invalid Internet Archive credentials",
-        "account_not_verified": "This account must be verified before proceeding",
-        "ia_account_not_activated": "This account has not been verified",
-        "ol_account_not_activated": "This account has not been verified",
-        "ol_account_blocked": "Sorry, this Open Library account is blocked.",
+        "account_not_verified": "This account must be verified before",
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",
         "missing_fields": "Please fill out all fields and try again",
@@ -322,8 +314,10 @@ $var title: $("Log In")
          \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
       }
 
-      \$('#register').submit(function(event) {
-          if (!audit.authenticated || !audit.has_ia || !audit.has_ol) {
+      \$('#register').submit(function(event) {          
+          if (audit.link && audit.authenticated) {
+              // performs login
+          } else if (!audit.authenticated || !audit.has_ia || !audit.has_ol) {
               event.preventDefault();
               authenticate(\$('#username').val(), \$('#password').val(), function(result) {
                   audit = result;

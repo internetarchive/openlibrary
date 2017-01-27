@@ -372,6 +372,11 @@ class OpenLibraryAccount(Account):
         _ol_account['internetarchive_itemname'] = None
         web.ctx.site.store[self._key] = _ol_account
 
+    def link(self, itemname):
+        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account['internetarchive_itemname'] = itemname
+        web.ctx.site.store[self._key] = _ol_account
+
     @classmethod
     def authenticate(cls, email, password, test=False):
         ol_account = cls.get(email=email, test=test)
@@ -402,7 +407,7 @@ class InternetArchiveAccount(web.storage):
         if cls.get(email=email):
             raise ValueError('email_registered')
         if cls.get(screenname=screenname):
-            raise ValueError('screenname_registered')
+            raise ValueError('username_registered')
 
         raise NotImplementedError('account_creation_not_implemented')
         response = cls._post_ia_user_api(
@@ -468,98 +473,89 @@ def audit_accounts(email, password, test=False):
         return {'error': 'invalid_email'}
 
     audit = {
-        'email': email,
         'authenticated': False,
         'has_ia': False,
         'has_ol': False,
         'link': False
     }
 
-    ol_resp = OpenLibraryAccount.authenticate(email, password)
-    ia_resp = InternetArchiveAccount.authenticate(email, password)
+    ol_login = OpenLibraryAccount.authenticate(email, password)
+    ia_login = InternetArchiveAccount.authenticate(email, password)
 
     # One of the accounts must authenticate w/o error
-    if "ok" not in (ol_resp, ia_resp):
-        for resp in (ol_resp, ia_resp):
+    if "ok" not in (ol_login, ia_login):
+        for resp in (ol_login, ia_login):
             if resp != "account_not_found":
                 return {'error': resp}
-        return {'error': 'account_user_notfound'}
+        return {'error': 'account_not_found'}
 
-    ol_account = OpenLibraryAccount.get(email=email, test=test)
-    ia_account = ((ol_account.get_linked_ia_account() if ol_account else None) or
-                  InternetArchiveAccount.get(email=email, test=test))
+    elif ia_login == "ok":
+        ia_account = InternetArchiveAccount.get(email=email, test=test)
+        audit['authenticated'] = 'ia'
+        audit['has_ia'] = email
 
-    print(ia_account)
+        # Get the OL account which links to this IA account, if
+        # one exists (i.e. this IA account could be linked to an
+        # OL account with a different email)
+        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
+        link = ol_account.itemname if ol_account else None
 
-    if ia_account:
-        audit['has_ia'] = ia_account.itemname
-        if ia_resp == "ok":
-            if ia_account.email == email:
-                audit['authenticated'] = 'ia'
+        # If no linked account was found but there's an ol_account
+        # having the same email as this IA account, mark them to
+        # be linked
+        if not link:
+            ol_account = OpenLibraryAccount.get(email=email, test=test)
+            link = ia_account.itemname if ol_account else None
 
-            # Get the OL account which links to this IA account, if
-            # one exists (i.e. this IA account could be linked to an
-            # OL account with a different email)
-            _ol_account = OpenLibraryAccount.get(link=ia_account.itemname,
-                                                 test=test)
-            link = _ol_account.itemname if _ol_account else None
+        # So long as there's either a linked OL account, or an OL
+        # account with the same email, set them as linked (and let the
+        # finalize logic link them, if necessary)
+        if ol_account:
+            if not ol_account.verified:
+                return {'error': 'account_not_verified'}
+            if ol_account.blocked:
+                return {'error': 'account_blocked'}
+            audit['link'] = link
+            audit['has_ol'] = ol_account.email
 
-            if link:
-                ol_account = _ol_account
+        # Kludge so if a user logs in with IA credentials, we
+        # can fetch the linked OL account and set an
+        # auth_token even when we don't have the OL user's
+        # password in order to perform web.ctx.site.login.
+        # Their auth checks out via IA, set their auth_token for OL
+        web.ctx.conn.set_auth_token(ol_account.generate_login_code())
 
-            # If no linked account was found but there's an ol_account
-            # having the same email as this IA account, mark them to
-            # be linked
-            elif not link and ol_account:
-                link = ia_account.itemname
+    elif ol_login == "ok":
+        ol_account = OpenLibraryAccount.get(email=email, test=test)
+        audit['authenticated'] = 'ol'
+        audit['has_ol'] = email
 
-            if ol_account and link:
-                if not ol_account.verified:
-                    return {'error': 'ol_account_not_activated'}
-                if ol_account.blocked:
-                    return {'error': 'ol_account_blocked'}
-                audit['link'] = link
-                audit['has_ol'] = ol_account.username
+        ia_account = InternetArchiveAccount.get(email=email, test=test)
 
-                # Kludge so if a user logs in with IA credentials, we
-                # can fetch the linked OL account and set an
-                # auth_token even when we don't have the OL user's
-                # password in order to perform web.ctx.site.login.
-                # Their auth checks out via IA, set their auth_token for OL
-                web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+        # Should get the IA account linked to this OL account, if one
+        # exists. However, xauthn API doesn't yet support `info` by
+        # itemname. Fortunately, we have all the info we need at this
+        # stage for the client to be satisfied.
+        if ol_account.itemname:
+            audit['has_ia'] = ol_account.itemname  # XXX should be email
+            audit['link'] = ol_account.itemname
+            return audit  # special case; unable to get ia acc
 
-    if ol_account:
-        if not audit['authenticated']:
-            status = ol_account.login(password)
-            if status == "ok":
-                audit['has_ol'] = ol_account.username
-                if ol_account.email == email:
-                    audit['authenticated'] = 'ol'
-
-                # link IA account if it exists
-                if ia_account:
-                    if not ia_account.verified:
-                        return {'error': 'ia_account_not_activate'}
-                    audit['has_ia'] = ia_account.itemname
-                    audit['link'] = ia_account.itemname
-
-            else:
-                return {'error': status}
-
-        if not audit['authenticated']:
-            return {'error': "invalid_ol_credentials"}
-
-    if ia_account and not audit['authenticated']:
-        return {'error': "invalid_ia_credentials"}
+        # If the OL account is not linked but there exists an IA
+        # account having the same email,
+        elif ia_account:
+            if not ia_account.verified:
+                return {'error': 'account_not_verified'}
+            if ia_account.locked:
+                return {'error': 'account_blocked'}
+            audit['has_ia'] = ia_account.itemname
+            audit['link'] = ia_account.itemname
 
     # Links the accounts if they can be and are not already:
-    if (audit['has_ia'] and audit['has_ol'] and
-        audit['authenticated'] and not ol_account.itemname):
-        audit['link'] = ia_account.itemname
-
-        _ol_account = web.ctx.site.store.get(ol_account._key)
-        _ol_account['internetarchive_itemname'] = ia_account.itemname
-        web.ctx.site.store[ol_account._key] = _ol_account
+    if (audit['has_ia'] and audit['has_ol'] and audit['authenticated']):
+        ol_account = OpenLibraryAccount.get(email=audit['has_ol'], test=test)
+        if not ol_account.itemname:
+            ol_account.link(audit['link'])
 
     return audit
 
@@ -611,6 +607,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
 
                     audit['link'] = ia_account.itemname
                     audit['has_ia'] = ia_account.itemname
+                    aduit['ia_email'] = ia_account.email
                     return audit
                 return {'error': _res}
             elif ia_account:
@@ -626,7 +623,8 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     _ol_account['internetarchive_itemname'] = ia_account.itemname
                     web.ctx.site.store[ol_account._key] = _ol_account
 
-                    audit['has_ol'] = ol_account.username
+                    audit['has_ol'] = ol_account.email
+                    audit['ol_email'] = ol_account.username
                     return audit
                 return {'error': _resp}
         # Create and link new account
@@ -639,6 +637,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
 
                     audit['link'] = ia_account.itemname
                     audit['has_ia'] = ia_account.itemname
+                    aduit['ia_email'] = ia_account.email
                     return audit
 
                 except (ValueError, NotImplementedError) as e:
@@ -653,7 +652,8 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     _ol_account['internetarchive_itemname'] = ia_account.itemname
                     web.ctx.site.store[ol_account._key] = _ol_account
 
-                    audit['has_ol'] = ol_account.username
+                    audit['has_ol'] = ol_account.email
+                    audit['ol_email'] = ol_account.username
                     audit['link'] = ia_account.itemname
                     return audit
                 except (ValueError, NotImplementedError) as e:
