@@ -24,8 +24,9 @@ $var title: $("Log In")
         <h2>Connect Your Accounts</h2>
         <p class="modal-header-copy-a">
           Your <span class="linked-service"></span> account has been
-          validated but needs to be linked to an
-          <span class="unlinked-service"></span> account.
+          verified but needs to be linked to an
+          <span class="unlinked-service"></span> account before we
+          login can be completed.
         </p>
         <p class="modal-header-copy-b">Verify your <span class="unlinked-service"></span> credentials and proceed to login.</p>
         <p class="modal-header-copy-c">Choose a username for your new <span class="unlinked-service"></span> account.</p>
@@ -34,8 +35,8 @@ $var title: $("Log In")
 
     <div class="modal-body">
       <ul class="modal-option">
-        <li><a id="linkAccounts">Link an existing <span class="unlinked-service"></span> account.</a></li>
-        <li><a id="createAccount">Create a new <span class="unlinked-service"></span> account.</a></li>
+        <li><a id="linkAccounts">Link my existing <span class="unlinked-service"></span> account.</a></li>
+        <li><a id="createAccount">Create an <span class="unlinked-service"></span> account for me.</a></li>
       </ul>
       <div class="modal-create-form modal-form">
         <div class="formFieldsDecoration">
@@ -157,10 +158,13 @@ $var title: $("Log In")
         "ol_account_doesnt_exist": "No Open Library account could be found matching these credentials",
         "account_not_found": "No account could be found matching these credentials",
         "account_incorrect_password": "Incorrect password",
-        "account_bad_password": "Invalid credentials",
+        "account_bad_password": "Invalid login credentials",
         "invalid_ol_credentials": "Invalid Open Library credentials",
         "invalid_ia_credentials": "Invalid Internet Archive credentials",
-        "account_not_verified": "This account has not been verified",
+        "account_not_verified": "This account must be verified before proceeding",
+        "ia_account_not_activated": "This account has not been verified",
+        "ol_account_not_activated": "This account has not been verified",
+        "ol_account_blocked": "Sorry, this Open Library account is blocked.",
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",
         "missing_fields": "Please fill out all fields and try again",
@@ -202,6 +206,7 @@ $var title: $("Log In")
       // Render the "Create Account" form
       \$('#createAccount').click(function(event) {
           var username = audit.has_ia || audit.has_ol;
+
           create_and_link_account(\$('#username').val(), \$('#password').val(), username, function(result) {
               console.log(result);
               \$('.modal-option').hide();
@@ -250,7 +255,6 @@ $var title: $("Log In")
               url: url,
               dataType: "json",
               success: function(result) {
-                  alert('predicting breakage before login');
                   return callback(result);
               }
           });

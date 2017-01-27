@@ -40,8 +40,11 @@ class xauth(delegate.page):
     def GET(self):
         from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount
         i = web.input(service='')
-        #result = InternetArchiveAccount.xauth(service=i.service, email=i.email)
-        result = OpenLibraryAccount.get(email='mek+has_ol@archive.org')
+        #result=InternetArchiveAccount.xauth(service=i.service, email=i.email)
+        ol = OpenLibraryAccount.get(email='mek+has_ol1@archive.org')
+        ol.unlink()
+        result = ol
+        #result = InternetArchiveAccount.get(email='mek+has_ia1@archive.org')
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
