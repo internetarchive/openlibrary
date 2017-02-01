@@ -4,6 +4,7 @@
 ol/ia auth bridge tests
 """
 
+import time
 import atexit
 import unittest
 import yaml
@@ -38,9 +39,13 @@ LINKED_BLOCKED = config['accounts']['linked_blocked']
 UNREGISTERED = config['accounts']['unregistered']
 
 
-driver = webdriver.Chrome()
-driver.implicitly_wait(10)
+try:
+    driver = webdriver.Chrome()
+except:
+    driver = webdriver.Firefox()
 
+driver.implicitly_wait(20)
+wait = WebDriverWait(driver, 10)
 
 def cleanup():
     global driver
@@ -57,12 +62,12 @@ class Xauth_Test(unittest.TestCase):
         driver.find_element_by_name('login').click()
 
     def logout(self):
-        driver.find_element_by_id('userToggle').click()
+        wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         driver.find_element_by_css_selector(
-            '#headerUserOpen > a:nth-child(5)'
-        ).click()
+            '#headerUserOpen > a:nth-child(5)').click()
 
     def is_logged_in(self):
+        time.sleep(2)
         try:
             driver.find_element_by_id('userToggle')
         except NoSuchElementException:
@@ -70,7 +75,6 @@ class Xauth_Test(unittest.TestCase):
         return True
 
     def connect(self, email, password):
-        wait = WebDriverWait(driver, 10)
         wait.until(EC.element_to_be_clickable((By.ID, 'linkAccounts')))
         driver.find_element_by_id('linkAccounts').click()
         driver.find_element_by_id('bridgeEmail').send_keys(email)
@@ -206,7 +210,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(OL_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "The login credentials you entered are invalid"
         error = driver.find_element_by_id('connectError').text
@@ -216,7 +220,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**UNREGISTERED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -226,7 +230,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect('', 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "Please fill out all fields and try again"
         error = driver.find_element_by_id('connectError').text
@@ -236,7 +240,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(OL_VERIFIED['email'], '')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "Please fill out all fields and try again"
         error = driver.find_element_by_id('connectError').text
@@ -246,7 +250,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(IA_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -256,7 +260,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(OL_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "The login credentials you entered are invalid"
         error = driver.find_element_by_id('connectError').text
@@ -266,7 +270,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(IA_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -276,7 +280,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**OL_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has been blocked"
         error = driver.find_element_by_id('connectError').text
@@ -286,7 +290,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**IA_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -296,7 +300,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**LINKED_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has been blocked"
         error = driver.find_element_by_id('connectError').text
@@ -312,7 +316,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**LINKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has already been linked"
         error = driver.find_element_by_id('connectError').text
@@ -326,7 +330,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**OL_UNVERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account must be verified before login can be completed"
         error = driver.find_element_by_id('connectError').text
@@ -336,7 +340,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**IA_UNVERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -346,7 +350,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**IA_VERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -380,7 +384,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(IA_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "The login credentials you entered are invalid"
         error = driver.find_element_by_id('connectError').text
@@ -390,7 +394,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**UNREGISTERED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -400,7 +404,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect('', 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "Please fill out all fields and try again"
         error = driver.find_element_by_id('connectError').text
@@ -410,7 +414,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(IA_VERIFIED['email'], '')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "Please fill out all fields and try again"
         error = driver.find_element_by_id('connectError').text
@@ -420,7 +424,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(OL_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -430,7 +434,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(IA_VERIFIED['email'], 'password')
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "The login credentials you entered are invalid"
         error = driver.find_element_by_id('connectError').text
@@ -440,7 +444,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**OL_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -450,7 +454,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**IA_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has been blocked"
         error = driver.find_element_by_id('connectError').text
@@ -460,7 +464,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(IA_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**LINKED_BLOCKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has been blocked"
         error = driver.find_element_by_id('connectError').text
@@ -476,7 +480,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**LINKED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account has already been linked"
         error = driver.find_element_by_id('connectError').text
@@ -490,7 +494,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**OL_UNVERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -500,7 +504,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**IA_UNVERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "This account must be verified before login can be completed"
         error = driver.find_element_by_id('connectError').text
@@ -510,7 +514,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_VERIFIED)
         self.connect(**OL_VERIFIED)
-        WebDriverWait(driver, 10).until(
+        wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
         _error = "No account could be found matching these credentials"
         error = driver.find_element_by_id('connectError').text
@@ -542,7 +546,11 @@ class Xauth_Test(unittest.TestCase):
     # ======================================================
 
     def test_ia_verified_create_empty_submit(self):
-        driver.get(URL + '/account/login')
+        self.unlink(OL_VERIFIED['email'])
+        self.login(**OL_VERIFIED)
+        self.create()
+        self.assertTrue(self.is_logged_in())
+        self.unlink(OL_VERIFIED['email'])
 
     def test_ia_verified_create_missing_screenname(self):
         driver.get(URL + '/account/login')
