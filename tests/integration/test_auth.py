@@ -28,6 +28,7 @@ internal_api_key = config['internal_api_key']
 IA_BLOCKED = config['accounts']['ia_blocked']
 IA_UNVERIFIED = config['accounts']['ia_unverified']
 IA_VERIFIED = config['accounts']['ia_verified']
+IA_CREATE = config['accounts']['ia_create']
 
 OL_BLOCKED = config['accounts']['ol_blocked']
 OL_UNVERIFIED = config['accounts']['ol_unverified']
@@ -80,6 +81,20 @@ class Xauth_Test(unittest.TestCase):
         driver.find_element_by_id('bridgeEmail').send_keys(email)
         driver.find_element_by_id('bridgePassword').send_keys(password)
         driver.find_element_by_id('verifyAndConnect').click()
+        time.sleep(1)
+
+    def create(self, username):
+        driver.execute_script(
+            "document.getElementById('debug_token').value='" + internal_api_key + "'");
+        time.sleep(10)
+        wait.until(EC.element_to_be_clickable((By.ID, 'createAccount')))
+        driver.find_element_by_id('createAccount').click()
+        if username:
+            wait.until(EC.element_to_be_clickable((By.ID, 'bridgeUsername')))
+            driver.find_element_by_id('bridgeUsername').send_keys(username)
+        wait.until(EC.element_to_be_clickable((By.ID, 'verifyAndCreate')))
+        driver.find_element_by_id('verifyAndCreate').click()
+        time.sleep(1)
 
     def unlink(self, email):
         import requests
@@ -538,7 +553,6 @@ class Xauth_Test(unittest.TestCase):
         # finalize by unlinking for future tests
         self.unlink(OL_VERIFIED['email'])
 
-    """
 
     # ======================================================
     # All combinations of Create & Link attempts after initial
@@ -547,65 +561,43 @@ class Xauth_Test(unittest.TestCase):
 
     def test_ia_verified_create_empty_submit(self):
         self.unlink(OL_VERIFIED['email'])
-        self.login(**OL_VERIFIED)
-        self.create()
-        self.assertTrue(self.is_logged_in())
-        self.unlink(OL_VERIFIED['email'])
-
-    def test_ia_verified_create_missing_screenname(self):
-        driver.get(URL + '/account/login')
-
-    def test_ia_verified_create_invalid_screenname(self):
-        driver.get(URL + '/account/login')
-
-    def test_ia_verified_create_missing_password(self):
-        driver.get(URL + '/account/login')
-
-    def test_ia_verified_create_invalid_password(self):
-        driver.get(URL + '/account/login')
+        self.login(**IA_CREATE)
+        self.create('')
+        wait.until(
+            EC.visibility_of_element_located((By.ID, 'createError')))
+        _error = "Please fill out all fields and try again"
+        error = driver.find_element_by_id('createError').text
+        self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ia_verified_create_registered_screenname(self):
-        driver.get(URL + '/account/login')
+        self.unlink(OL_VERIFIED['email'])
+        self.login(**IA_CREATE)
+        self.create('mekarpeles')
+        wait.until(
+            EC.visibility_of_element_located((By.ID, 'createError')))
+        _error = "This username is already registered"
+        error = driver.find_element_by_id('createError').text
+        self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
-    def test_ia_verified_create_spoofed_email(self):
-        # XXX What happens if user manipulates vars and changes emails
-        # sent along with POST?
-        driver.get(URL + '/account/login')
+
+    """
 
     def test_ia_verified_create_ol_verified(self):
         driver.get(URL + '/account/login')
         # should redir to /home
 
+    """
 
     # ======================================================
     # All combinations of Create & Link attempts after initial
     # successful audit from an OL account
     # ======================================================
 
-    def test_ol_verified_create_empty_submit(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_missing_screenname(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_invalid_screenname(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_missing_password(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_invalid_password(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_registered_screenname(self):
-        driver.get(URL + '/account/login')
-
-    def test_ol_verified_create_spoofed_email(self):
-        # XXX What happens if user manipulates vars and changes emails
-        # sent along with POST?
-        driver.get(URL + '/account/login')
+    """
 
     def test_ol_verified_create_ia_verified(self):
         driver.get(URL + '/account/login')
-        # should redir to /home
-"""
+
+    # should redir to /home
+
+    """
