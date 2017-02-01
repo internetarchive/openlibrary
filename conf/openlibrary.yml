@@ -194,3 +194,5 @@ affiliate_ids:
     # Amazon is a book source, not just an affiliate, so we make its affiliate
     # tag generally available
     amazon: internetarchi-20
+
+internal_api_key: '8oPd1tx747YH374ohs48ZO5s2Nt1r9yD'

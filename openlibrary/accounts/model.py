@@ -295,17 +295,17 @@ class Account(web.storage):
 class OpenLibraryAccount(Account):
 
     @classmethod
-    def create(cls, username, email, password, test=False, verify=True):
-        if test:
-            return cls(email="test@openlibrary.org", itemname="test",
-                       screenname="test")
+    def create(cls, username, email, password, verify=False, test=False):
         if cls.get(email=email):
             raise ValueError('email_registered')
         if cls.get(username=username):
             raise ValueError('username_registered')
 
+        if test:
+            return cls(**{'itemname': username, 'email': email})
+
         raise NotImplementedError('account_creation_not_implemented')
-        # XXX Create account here
+
         account = web.ctx.site.register(
             username=username,
             email=email,
@@ -371,11 +371,13 @@ class OpenLibraryAccount(Account):
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = None
         web.ctx.site.store[self._key] = _ol_account
+        self.internetarchive_itemname = None
 
     def link(self, itemname):
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname
         web.ctx.site.store[self._key] = _ol_account
+        self.internetarchive_itemname = itemname
 
     @classmethod
     def authenticate(cls, email, password, test=False):
@@ -399,38 +401,35 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, test=False):
+    def create(cls, screenname, email, password, verified=False, test=False):
         screenname = screenname.replace('@', '')  # remove IA @
         if test:
             return cls(email="test@archive.org", itemname="test",
                        screenname="test")
         if cls.get(email=email):
             raise ValueError('email_registered')
-        if cls.get(screenname=screenname):
-            raise ValueError('username_registered')
 
-        raise NotImplementedError('account_creation_not_implemented')
-        response = cls._post_ia_user_api(
-            service='createUser', email=email, password=password,
-            username=username, test=test)
+        response = cls.xauth( # XXX test
+            'create', test='oltest', email=email, password=password,
+            screenname=screenname, verified=verified)
+
 
     @classmethod
-    def xauth(cls, **data):
-        return cls._post_ia_xauth_api(**data)
-
-    @classmethod
-    def _post_ia_xauth_api(cls, test=None, **data):
-        service = data.pop('service', u'')
+    def xauth(cls, service, test=None, **data):
         url = "%s?op=%s" % (lending.IA_XAUTH_API_URL, service)
         data.update({
             'client_access': lending.config_ia_ol_xauth_s3.get('s3_key'),
             'client_secret': lending.config_ia_ol_xauth_s3.get('s3_secret')
         })
-        payload = urllib.urlencode(data)
+        payload = simplejson.dumps(data)
         if test:
             url += "&developer=%s" % test
         try:
-            response = urllib2.urlopen(url, payload).read()
+            req = urllib2.Request(url, payload, {
+                'Content-Type': 'application/json'})
+            f = urllib2.urlopen(req)
+            response = f.read()
+            f.close()
         except urllib2.HTTPError as e:
             if e.code == 403:
                 return {'error': e.read(), 'code': 403}
@@ -439,33 +438,20 @@ class InternetArchiveAccount(web.storage):
         return simplejson.loads(response)
 
     @classmethod
-    def _post_ia_user_api(cls, test=False, **data):
-        token = lending.config_ia_ol_auth_key
-        if 'token' not in data and token:
-            data['token'] = token
-        if test or not token:  # ?
-            data['test'] = "true"
-        payload = urllib.urlencode(data)
-        response = simplejson.loads(urllib2.urlopen(
-            lending.IA_USER_API_URL, payload).read())
-        return response
-
-    @classmethod
     def get(cls, email, test=False, _json=False):
-        response = cls._post_ia_xauth_api(email=email, test=test, service="info")
+        response = cls.xauth(email=email, test=test, service="info")
         if 'success' in response:
             values = response.get('values', {})
-            if values:
-                values['email'] = email
             return values if _json else cls(**values)
 
     @classmethod
     def authenticate(cls, email, password, test=False):
-        return cls._post_ia_user_api(test=test, **{
+        response = cls.xauth('authenticate', test=test, **{
             "email": email,
-            "password": password,
-            "service": "authUser",
+            "password": password
         })
+        return ("ok" if response.get('success') is True else
+                response.get('values', {}).get('reason'))
 
 
 def audit_accounts(email, password, test=False):
@@ -491,6 +477,7 @@ def audit_accounts(email, password, test=False):
 
     elif ia_login == "ok":
         ia_account = InternetArchiveAccount.get(email=email, test=test)
+
         audit['authenticated'] = 'ia'
         audit['has_ia'] = email
 
@@ -518,12 +505,12 @@ def audit_accounts(email, password, test=False):
             audit['link'] = link
             audit['has_ol'] = ol_account.email
 
-        # Kludge so if a user logs in with IA credentials, we
-        # can fetch the linked OL account and set an
-        # auth_token even when we don't have the OL user's
-        # password in order to perform web.ctx.site.login.
-        # Their auth checks out via IA, set their auth_token for OL
-        web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+            # Kludge so if a user logs in with IA credentials, we
+            # can fetch the linked OL account and set an
+            # auth_token even when we don't have the OL user's
+            # password in order to perform web.ctx.site.login.
+            # Their auth checks out via IA, set their auth_token for OL
+            web.ctx.conn.set_auth_token(ol_account.generate_login_code())
 
     elif ol_login == "ok":
         ol_account = OpenLibraryAccount.get(email=email, test=test)
@@ -565,24 +552,20 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
 
     audit = audit_accounts(email, password)
 
-    if 'error' in audit:
+    if 'error' in audit or (audit['link'] and audit['authenticated']):
         return audit
 
-    ia_account = (InternetArchiveAccount.get(
-        itemname=audit['has_ia'], test=test) if
-                  audit.get('has_ia', False) else None)
-    ol_account = (OpenLibraryAccount.get(email=email, test=test) if
-                  audit.get('has_ol', False) else None)
+    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'], test=test)
+                  if audit.get('has_ia', False) else None)
+    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'], test=test)
+                  if audit.get('has_ol', False) else None)
 
     if ia_account and ol_account:
         if not audit['link']:
+            if ia_account.locked or ol_account.blocked():
+                return {'error': 'account_blocked'}
             audit['link'] = ia_account.itemname
-
-            # avoids Document Update conflict
-            _ol_account = web.ctx.site.store.get(ol_account._key)
-            _ol_account['internetarchive_itemname'] = ia_account.itemname
-            web.ctx.site.store[ol_account._key] = _ol_account
-
+            ol_account.link(ia_account.itemname)
         return audit
     elif not (ia_account or ol_account):
         return {'error': 'account_not_found'}
@@ -600,64 +583,54 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     if OpenLibraryAccount.get_by_link(ia_account.itemname):
                         return {'error': 'account_already_linked'}
 
-                    # avoids Document Update conflict
-                    _ol_account = web.ctx.site.store.get(ol_account._key)
-                    _ol_account['internetarchive_itemname'] = ia_account.itemname
-                    web.ctx.site.store[ol_account._key] = _ol_account
-
+                    ol_account.link(ia_account.itemname)
                     audit['link'] = ia_account.itemname
-                    audit['has_ia'] = ia_account.itemname
-                    aduit['ia_email'] = ia_account.email
+                    audit['has_ia'] = ia_account.email
+                    audit['has_ol'] = ol_account.email
                     return audit
                 return {'error': _res}
             elif ia_account:
-                _resp = OpenLibraryAccount.authenticate(bridgeEmail, bridgePassword)
+                _resp = OpenLibraryAccount.authenticate(
+                    bridgeEmail, bridgePassword)
                 if _resp == "ok":
                     ol_account = OpenLibraryAccount.get(
                         email=bridgeEmail, test=test)
                     if ol_account.itemname:
                         return {'error': 'account_already_linked'}
 
-                    # avoids Document Update conflict
-                    _ol_account = web.ctx.site.store.get(ol_account._key)
-                    _ol_account['internetarchive_itemname'] = ia_account.itemname
-                    web.ctx.site.store[ol_account._key] = _ol_account
-
+                    audit['has_ia'] = ia_account.email
                     audit['has_ol'] = ol_account.email
-                    audit['ol_email'] = ol_account.username
+                    audit['link'] = ia_account.itemname
+                    ol_account.link(ia_account.itemname)
                     return audit
                 return {'error': _resp}
         # Create and link new account
         elif email and password and username:
             if ol_account:
                 try:
+                    ol_account_username = username or ol_account.username
                     ia_account = InternetArchiveAccount.create(
-                        username, email, password, test=test)
-                    return {'error': 'account_creation_not_implemented'}
+                        username, email, password, test=True) # XXX True
 
                     audit['link'] = ia_account.itemname
-                    audit['has_ia'] = ia_account.itemname
-                    aduit['ia_email'] = ia_account.email
+                    audit['has_ia'] = ia_account.email
+                    audit['has_ol'] = ol_account.email
+                    ol_account.link(ia_account.itemname)
                     return audit
-
                 except (ValueError, NotImplementedError) as e:
                     return {'error': str(e)}
             elif ia_account:
                 try:
+                    ia_account_username = username or ia_account.screenname
                     ol_account = OpenLibraryAccount.create(
-                        username, email, password, test=test, verify=False)
-
-                    # avoics Document Update conflict
-                    _ol_account = web.ctx.site.store.get(ol_account._key)
-                    _ol_account['internetarchive_itemname'] = ia_account.itemname
-                    web.ctx.site.store[ol_account._key] = _ol_account
-
+                        username, email, password, ia_account_username,
+                        verify=False, test=True) # XXX
                     audit['has_ol'] = ol_account.email
-                    audit['ol_email'] = ol_account.username
+                    audit['has_ia'] = ia_account.email
                     audit['link'] = ia_account.itemname
+                    ol_account.link(ia_account.itemname)
                     return audit
                 except (ValueError, NotImplementedError) as e:
                     return {'error': str(e)}
             return {'error': 'no_valid_accounts'}
         return {'error': 'missing_fields'}
-

@@ -17,8 +17,9 @@ from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
-from openlibrary.core import helpers as h
+from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
+
 from openlibrary import accounts
 from openlibrary.accounts import link_accounts, audit_accounts, Account
 import forms
@@ -34,19 +35,27 @@ create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 
-class xauth(delegate.page):
-    path = "/xauth"
+class unlink(delegate.page):
+    path = "/internal/account/unlink"
 
     def GET(self):
-        from openlibrary.accounts import InternetArchiveAccount, OpenLibraryAccount
-        i = web.input(service='')
-        #result=InternetArchiveAccount.xauth(service=i.service, email=i.email)
-        ol = OpenLibraryAccount.get(email='mek+has_ol1@archive.org')
-        ol.unlink()
-        result = ol
-        #result = InternetArchiveAccount.get(email='mek+has_ia1@archive.org')
+        from openlibrary.accounts import OpenLibraryAccount
+        i = web.input(email='', itemname='', key='')
+        if i.key != lending.config_internal_api_key:
+            result = {'error': 'Authentication failed for private API'}
+        else:
+            try:
+                result = OpenLibraryAccount.get(email=i.email, link=i.itemname)
+                if result is None:
+                    raise ValueError('Invalid Open Library account email ' \
+                                     'or itemname')
+                result.unlink()
+            except ValueError as e:
+                result = {'error': str(e)}
+
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
+
 
 class account(delegate.page):
     """Account preferences.

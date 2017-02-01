@@ -44,7 +44,7 @@ $var title: $("Log In")
             <input type="text" id="bridgeUsername" autocomplete="off"
                    name="bridgeUsername" placeholder="Username"/>
           </div>
-          <p class="formFieldsErrorMsg"></p>
+          <p id="createError" class="formFieldsErrorMsg"></p>
         </div>
         <div>
           <button id="verifyAndCreate">Verify &amp; Create</button>
@@ -55,19 +55,19 @@ $var title: $("Log In")
           <div class="formFields">
             <div>
               <input type="text" id="bridgeEmail" autocomplete="off"
-		     name="bridgeEmail"  placeholder="Email"/>
+                     name="bridgeEmail"  placeholder="Email"/>
               <input type="text" autocomplete="off" class="fake"
-		     name="bridgeEmail_fake" placeholder="Email"/>
+                     name="bridgeEmail_fake" placeholder="Email"/>
             </div>
             <div class="inputbr"></div>
             <div>
               <input type="password" id="bridgePassword" autocomplete="off"
-		     name="bridgePassword"  placeholder="Password"/>
+                     name="bridgePassword"  placeholder="Password"/>
               <input type="password" autocomplete="off" class="fake"
-		     name="bridgePassword_fake" placeholder="Password"/>
+                     name="bridgePassword_fake" placeholder="Password"/>
             </div>
           </div>
-	  <p class="formFieldsErrorMsg"></p>
+          <p id="connectError" class="formFieldsErrorMsg"></p>
         </div>
         <div>
           <button id="verifyAndConnect">Verify &amp; Connect</button>
@@ -151,12 +151,12 @@ $var title: $("Log In")
 
       var errorLookup = {
         "invalid_email": "The email address you entered is invalid",
-        "ol_account_blocked": "This Open Library account has been blocked",
-        "account_blocked": "This Open Library account has been blocked",
+        "account_blocked": "This account has been blocked",
+        "account_locked": "This account has been blocked",
         "account_not_found": "No account could be found matching these credentials",
         "account_incorrect_password": "Incorrect password",
-        "account_bad_password": "Invalid login credentials",
-        "account_not_verified": "This account must be verified before",
+        "account_bad_password": "The login credentials you entered are invalid",
+        "account_not_verified": "This account must be verified before login can be completed",
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",
         "missing_fields": "Please fill out all fields and try again",
@@ -197,9 +197,8 @@ $var title: $("Log In")
 
       // Render the "Create Account" form
       \$('#createAccount').click(function(event) {
-          var username = audit.has_ia || audit.has_ol;
 
-          create_and_link_account(\$('#username').val(), \$('#password').val(), username, function(result) {
+          create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
               console.log(result);
               \$('.modal-option').hide();
               \$('.modal-header-copy-a').fadeOut(function() {
@@ -314,7 +313,7 @@ $var title: $("Log In")
          \$('.forgot-unlinked').html('Forgot your ' + unlinked.name + ' password?');
       }
 
-      \$('#register').submit(function(event) {          
+      \$('#register').submit(function(event) {
           if (audit.link && audit.authenticated) {
               // performs login
           } else if (!audit.authenticated || !audit.has_ia || !audit.has_ol) {

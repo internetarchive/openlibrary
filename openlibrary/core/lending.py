@@ -43,18 +43,20 @@ IA_XAUTH_API_URL = 'https://www-jnelson2.archive.org/services/xauthn/'
 
 config_content_server = None
 config_loanstatus_url = None
-config_ia_access_secret = None
 config_bookreader_host = None
+config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_auth_key = None
 config_ia_ol_xauth_s3 = None
+config_internal_api_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
     """
     global config_content_server, config_loanstatus_url, \
-        config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key, \
-        config_ia_ol_auth_key, config_ia_ol_xauth_s3
+        config_ia_access_secret, config_bookreader_host, \
+        config_ia_ol_shared_key, config_ia_ol_auth_key, \
+        config_ia_ol_xauth_s3, config_internal_api_key
 
     if config.get("content_server"):
         try:
@@ -70,6 +72,7 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
+    config_internal_api_key = config.get('internal_api_key')
 
 
 def is_borrowable(identifiers, acs=False, restricted=False):
@@ -396,7 +399,7 @@ class Loan(dict):
         """Returns True if the loan is not yet fulfilled and fulfillment time
         is not expired.
         """
-        return (self['expiry'] is None and 
+        return (self['expiry'] is None and
                 (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS)
 
     def return_loan(self):
