@@ -468,6 +468,10 @@ def audit_accounts(email, password, test=False):
     ol_login = OpenLibraryAccount.authenticate(email, password)
     ia_login = InternetArchiveAccount.authenticate(email, password)
 
+    if any([err in (ol_login, ia_login) for err 
+            in ['account_blocked', 'account_locked']]):
+        return {'error': 'account_blocked'}
+
     # One of the accounts must authenticate w/o error
     if "ok" not in (ol_login, ia_login):
         for resp in (ol_login, ia_login):
