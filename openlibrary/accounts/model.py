@@ -623,7 +623,7 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
                     ol_account.link(ia_account.itemname)
                 return audit
             except ValueError as e:
-                return {'error': str(e)}
+                return {'error': str(e), 'value': e.value}
         elif ia_account:
             try:
                 ia_account_username = username or ia_account.screenname
