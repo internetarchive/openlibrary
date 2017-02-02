@@ -323,7 +323,7 @@ class OpenLibraryAccount(Account):
         ol_account = cls.get(email=email)
         if itemname:
             ol_account.link(itemname)
-        
+
         return ol_account
 
     @classmethod
@@ -340,21 +340,16 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_username(cls, username, test=False):
-        print('username: %s' % username)
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1)
 
-        print('match: %s' % match)
         if len(match):
-            print('match 0: %s' % match[0])
             return cls(match[0])
 
         lower_match = web.ctx.site.store.values(
             type="account", name="lusername", value=username, limit=1)
 
-        print('lower_match: %s' % lower_match)
         if len(lower_match):
-            print('lower_match 0: %s' % lower_match[0])
             return cls(lower_match[0])
 
         return None
@@ -440,8 +435,6 @@ class InternetArchiveAccount(web.storage):
             'create', test=test, email=email, password=password,
             screenname=screenname, verified=verified)
 
-        print(response)
-
         if response.get('success'):
             ia_account = cls.get(email=email)
             if test:
@@ -503,7 +496,7 @@ def audit_accounts(email, password, test=False):
     ol_login = OpenLibraryAccount.authenticate(email, password)
     ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any([err in (ol_login, ia_login) for err 
+    if any([err in (ol_login, ia_login) for err
             in ['account_blocked', 'account_locked']]):
         return {'error': 'account_blocked'}
 
@@ -657,7 +650,6 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     audit['has_ol'] = ol_account.email
                     if not test:
                         ol_account.link(ia_account.itemname)
-                    print(audit)
                     return audit
                 except ValueError as e:
                     return {'error': str(e)}
@@ -670,7 +662,6 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     audit['has_ol'] = ol_account.email
                     audit['has_ia'] = ia_account.email
                     audit['link'] = ia_account.itemname
-                    print(audit)
                     if not test:
                         ol_account.link(ia_account.itemname)
                     return audit
