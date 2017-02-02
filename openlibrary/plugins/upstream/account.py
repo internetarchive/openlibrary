@@ -105,13 +105,6 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
-        # XXX MEK IA/OL Auth Bridge: Check IA account availability
-        try:
-            result = audit_accounts(email, password, test=test)
-            pass
-        except Exception:
-            pass
-
         try:
             accounts.register(username=i.username,
                               email=i.email,
@@ -163,7 +156,6 @@ class account_login(delegate.page):
         if 'error' in audit:
             error = audit['error']
             if error == "account_not_verified":
-                # XXX this template will need to be updated
                 return render_template(
                     "account/not_verified", username=account.username,
                     password=i.password, email=account.email)
@@ -420,11 +412,12 @@ class account_connect(delegate.page):
         """Links or creates accounts"""
         i = web.input(email="", password="", username="",
                       bridgeService="", bridgeEmail="", bridgePassword="",
-                      test=False)
+                      token="")
+        test = 'openlibrary' if i.token == lending.config_internal_api_key else None
         result = link_accounts(i.get('email').lower(), i.password,
                                bridgeEmail=i.bridgeEmail.lower(),
                                bridgePassword=i.bridgePassword,
-                               username=i.username, test=i.test)
+                               username=i.username, test=test)
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
