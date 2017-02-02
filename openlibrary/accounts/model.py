@@ -190,10 +190,6 @@ class Account(web.storage):
             code = e.get_data().get("code")
             return code
         else:
-
-            # XXX we need to check if IA and OL accounts linked
-            # and create accounts which don't exist
-
             self['last_login'] = datetime.datetime.utcnow().isoformat()
             self._save()
             return "ok"
@@ -295,25 +291,40 @@ class Account(web.storage):
 class OpenLibraryAccount(Account):
 
     @classmethod
-    def create(cls, username, email, password, verify=False, test=False):
+    def create(cls, username, email, password, verify=False, itemname=None, test=False):
         if cls.get(email=email):
             raise ValueError('email_registered')
         if cls.get(username=username):
-            raise ValueError('username_registered')
-
+            ve = ValueError('username_registered')
+            ve.value = username
+            raise ve
         if test:
-            return cls(**{'itemname': username, 'email': email})
+            return cls(**{'itemname': '@' + username,
+                          'email': email,
+                          'username': username,
+                          'displayname': username,
+                          'test': True
+                      })
+        try:
+            account = web.ctx.site.register(
+                username=username,
+                email=email,
+                password=password,
+                displayname=username)
+        except ClientException as e:
+            raise ValueError('something_went_wrong')
 
-        raise NotImplementedError('account_creation_not_implemented')
-
-        account = web.ctx.site.register(
-            username=username,
-            email=email,
-            password=password,
-            displayname=username)
         if verify:
-            send_verification_email(username, email)
-        return account
+            key = "account/%s/verify" % username
+            doc = create_link_doc(key, username, email)
+            web.ctx.site.store[key] = doc
+            web.ctx.site.activate_account(username=username)
+
+        ol_account = cls.get(email=email)
+        if itemname:
+            ol_account.link(itemname)
+
+        return ol_account
 
     @classmethod
     def get(cls, link=None, email=None, username=None,  test=False):
@@ -329,11 +340,19 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_username(cls, username, test=False):
-        try:
-            return cls(web.ctx.site.store.values(
-                type="account", name="lusername", value=username, limit=1)[0])
-        except IndexError:
-            return None
+        match = web.ctx.site.store.values(
+            type="account", name="username", value=username, limit=1)
+
+        if len(match):
+            return cls(match[0])
+
+        lower_match = web.ctx.site.store.values(
+            type="account", name="lusername", value=username, limit=1)
+
+        if len(lower_match):
+            return cls(lower_match[0])
+
+        return None
 
     @classmethod
     def get_by_link(cls, link, test=False):
@@ -368,12 +387,18 @@ class OpenLibraryAccount(Account):
         return getattr(self, 'status', '') == 'blocked'
 
     def unlink(self):
+        """Careful, this will save any other changes to the ol user object as
+        well
+        """
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = None
         web.ctx.site.store[self._key] = _ol_account
         self.internetarchive_itemname = None
 
     def link(self, itemname):
+        """Careful, this will save any other changes to the ol user object as
+        well
+        """
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname
         web.ctx.site.store[self._key] = _ol_account
@@ -401,18 +426,23 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, verified=False, test=False):
+    def create(cls, screenname, email, password, verified=False, test=None):
         screenname = screenname.replace('@', '')  # remove IA @
-        if test:
-            return cls(email="test@archive.org", itemname="test",
-                       screenname="test")
         if cls.get(email=email):
             raise ValueError('email_registered')
 
-        response = cls.xauth( # XXX test
-            'create', test='oltest', email=email, password=password,
+        response = cls.xauth(
+            'create', test=test, email=email, password=password,
             screenname=screenname, verified=verified)
 
+        if response.get('success'):
+            ia_account = cls.get(email=email)
+            if test:
+                ia_account.test = True
+            return ia_account
+        ve = ValueError('username_registered')
+        ve.value = screenname
+        raise ve
 
     @classmethod
     def xauth(cls, service, test=None, **data):
@@ -468,7 +498,7 @@ def audit_accounts(email, password, test=False):
     ol_login = OpenLibraryAccount.authenticate(email, password)
     ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any([err in (ol_login, ia_login) for err 
+    if any([err in (ol_login, ia_login) for err
             in ['account_blocked', 'account_locked']]):
         return {'error': 'account_blocked'}
 
@@ -559,9 +589,9 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
     if 'error' in audit or (audit['link'] and audit['authenticated']):
         return audit
 
-    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'], test=test)
+    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
                   if audit.get('has_ia', False) else None)
-    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'], test=test)
+    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
                   if audit.get('has_ol', False) else None)
 
     if ia_account and ol_account:
@@ -609,32 +639,35 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                     return audit
                 return {'error': _resp}
         # Create and link new account
-        elif email and password and username:
+        elif email and password:
             if ol_account:
                 try:
                     ol_account_username = username or ol_account.username
                     ia_account = InternetArchiveAccount.create(
-                        username, email, password, test=True) # XXX True
+                        ol_account_username, email, password,
+                        verified=True, test=test)
 
                     audit['link'] = ia_account.itemname
                     audit['has_ia'] = ia_account.email
                     audit['has_ol'] = ol_account.email
-                    ol_account.link(ia_account.itemname)
+                    if not test:
+                        ol_account.link(ia_account.itemname)
                     return audit
-                except (ValueError, NotImplementedError) as e:
+                except ValueError as e:
                     return {'error': str(e)}
             elif ia_account:
                 try:
                     ia_account_username = username or ia_account.screenname
                     ol_account = OpenLibraryAccount.create(
-                        username, email, password, ia_account_username,
-                        verify=False, test=True) # XXX
+                        ia_account_username, email, password,
+                        verify=True, test=test)
                     audit['has_ol'] = ol_account.email
                     audit['has_ia'] = ia_account.email
                     audit['link'] = ia_account.itemname
-                    ol_account.link(ia_account.itemname)
+                    if not test:
+                        ol_account.link(ia_account.itemname)
                     return audit
-                except (ValueError, NotImplementedError) as e:
-                    return {'error': str(e)}
-            return {'error': 'no_valid_accounts'}
+                except ValueError as e:
+                    return {'error': str(e), 'value': e.value}
+            return {'error': 'account_not_found'}
         return {'error': 'missing_fields'}

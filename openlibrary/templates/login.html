@@ -44,6 +44,7 @@ $var title: $("Log In")
             <input type="text" id="bridgeUsername" autocomplete="off"
                    name="bridgeUsername" placeholder="Username"/>
           </div>
+          <input type="hidden" id="debug_token" value=""/>
           <p id="createError" class="formFieldsErrorMsg"></p>
         </div>
         <div>
@@ -160,7 +161,6 @@ $var title: $("Log In")
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",
         "missing_fields": "Please fill out all fields and try again",
-        "account_creation_not_implemented": "Account creation not yet supported",
         "email_registered": "This email is already registered",
         "username_registered": "This username is already registered"
       }
@@ -192,28 +192,30 @@ $var title: $("Log In")
           \$('.modal-header-copy-a').fadeOut(function() {
               \$('.modal-header-copy-b').fadeIn();
           });
-          \$('.modal-connect-form').show()
+          \$('.modal-connect-form').show();
       });
 
       // Render the "Create Account" form
       \$('#createAccount').click(function(event) {
-
           create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
+
+              audit = result;
               console.log(result);
-              \$('.modal-option').hide();
-              \$('.modal-header-copy-a').fadeOut(function() {
-                  if (result.error) {
-                      \$('.modal-header-copy-c').fadeIn();
-                      \$('.modal-create-form').show()
-                      \$('.formFieldsDecoration').addClass('error');
-                      \$('.formFieldsErrorMsg').html(errorLookup[result.error]);
-                  } else {
-                      audit = result;
-                      \$('.formFieldsDecoration').removeClass('error');
-                      \$('.formFieldsErrorMsg').html('');
-                      \$('#register').submit();
+
+              if (result.error) {
+                  if (result.value) {
+                    \$('#bridgeUsername').val(result.value);
+                    \$('.formFieldsDecoration').addClass('error');
+                    \$('.formFieldsErrorMsg').html(errorLookup[result.error]);
                   }
-              });
+                  \$('.modal-option').hide();
+                  \$('.modal-header-copy-a').fadeOut(function() {
+                      \$('.modal-create-form').show();
+                      \$('.modal-header-copy-c').fadeIn();
+                  });
+              } else {
+                  \$('#register').submit();
+              }
           });
       });
 
@@ -251,14 +253,15 @@ $var title: $("Log In")
           });
       }
 
-      var create_and_link_account = function(email, password, username, callback) {
+      var create_and_link_account = function(email, password, username, callback, token) {
           var url = '/account/connect';
           \$.ajax({
               type: "POST",
               data: {
                   email: email,
                   password: password,
-                  username: username
+                  username: username,
+                  token: token
               },
               url: url,
               dataType: "json",
@@ -268,21 +271,32 @@ $var title: $("Log In")
           });
       };
 
+      /*
+       * This gets called on the create account screen
+       * once the button is pressed, assuming the intiail attempt
+       * (which sends a blank username and defaults to the user's
+       *  existing username for the service they have) fails.
+       */
       \$('#verifyAndCreate').click(function(event) {
           \$('.formFieldsDecoration').removeClass('error');
           \$('.formFieldsErrorMsg').html('');
           create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
+
+              audit = result;
+              console.log(audit);
+
               if (result.error) {
                   \$('.formFieldsDecoration').addClass('error');
+                  if (\$('#bridgeUsername').val() === "") {
+                      result.error = 'missing_fields';
+                  }
                   \$('.formFieldsErrorMsg').html(errorLookup[result.error]);
               } else {
-                  audit = result;
-                  console.log(audit);
                   \$('.formFieldsDecoration').removeClass('error');
                   \$('.formFieldsErrorMsg').html('');
                   \$('#register').submit();
               }
-          });
+          }, \$('#debug_token').val());
       });
 
       \$('#verifyAndConnect').click(function(event) {
