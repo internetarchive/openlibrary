@@ -49,7 +49,7 @@ except:
     driver = webdriver.Firefox()
 
 driver.implicitly_wait(20)
-wait = WebDriverWait(driver, 10)
+wait = WebDriverWait(driver, 15)
 
 def cleanup():
     global driver
@@ -66,6 +66,7 @@ class Xauth_Test(unittest.TestCase):
         driver.find_element_by_name('login').click()
 
     def logout(self):
+        time.sleep(2)
         wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         driver.find_element_by_css_selector(
             '#headerUserOpen > a:nth-child(5)').click()
@@ -89,7 +90,7 @@ class Xauth_Test(unittest.TestCase):
     def create(self, username=None):
         driver.execute_script(
             "document.getElementById('debug_token').value='" + internal_api_key + "'");
-        time.sleep(10)
+        time.sleep(1)
         wait.until(EC.element_to_be_clickable((By.ID, 'createAccount')))
         driver.find_element_by_id('createAccount').click()
         if username:
@@ -566,6 +567,10 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_CREATE_CONFLICT)
         self.create('')
+        driver.find_element_by_id('bridgeUsername').clear()
+        wait.until(EC.element_to_be_clickable((By.ID, 'verifyAndCreate')))
+        driver.find_element_by_id('verifyAndCreate').click()
+        time.sleep(1)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
         _error = "Please fill out all fields and try again"
@@ -575,7 +580,7 @@ class Xauth_Test(unittest.TestCase):
     def test_ia_verified_create_registered_screenname(self):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_CREATE_CONFLICT)
-        self.create('mekarpeles')
+        self.create('')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
         _error = "This username is already registered"
@@ -601,6 +606,10 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_CREATE_CONFLICT)
         self.create('')
+        driver.find_element_by_id('bridgeUsername').clear()
+        wait.until(EC.element_to_be_clickable((By.ID, 'verifyAndCreate')))
+        driver.find_element_by_id('verifyAndCreate').click()
+        time.sleep(1)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
         _error = "Please fill out all fields and try again"
@@ -610,7 +619,7 @@ class Xauth_Test(unittest.TestCase):
     def test_ol_verified_create_registered_screenname(self):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_CREATE_CONFLICT)
-        self.create('mekarpeles')
+        self.create('')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
         _error = "This username is already registered"
