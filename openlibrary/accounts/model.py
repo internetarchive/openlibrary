@@ -440,7 +440,9 @@ class InternetArchiveAccount(web.storage):
             if test:
                 ia_account.test = True
             return ia_account
-        raise ValueError('username_registered')
+        ve = ValueError('username_registered')
+        ve.value = screenname
+        raise ve
 
     @classmethod
     def xauth(cls, service, test=None, **data):
