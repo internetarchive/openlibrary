@@ -21,7 +21,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
-from openlibrary.accounts import link_accounts, audit_accounts, Account
+from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account
 import forms
 import utils
 import borrow
@@ -412,12 +412,21 @@ class account_connect(delegate.page):
         """Links or creates accounts"""
         i = web.input(email="", password="", username="",
                       bridgeService="", bridgeEmail="", bridgePassword="",
-                      token="")
+                      token="", service="link")
         test = 'openlibrary' if i.token == lending.config_internal_api_key else None
-        result = link_accounts(i.get('email').lower(), i.password,
-                               bridgeEmail=i.bridgeEmail.lower(),
-                               bridgePassword=i.bridgePassword,
-                               username=i.username, test=test)
+
+        if i.service == "link":
+            result = link_accounts(i.get('email').lower(), i.password,
+                                   bridgeEmail=i.bridgeEmail.lower(),
+                                   bridgePassword=i.bridgePassword,
+                                   username=i.username)
+        elif i.service == "create":
+            result = create_accounts(i.get('email').lower(), i.password,
+                                   bridgeEmail=i.bridgeEmail.lower(),
+                                   bridgePassword=i.bridgePassword,
+                                   username=i.username, test=test)
+        else:
+            result = {'error': 'invalid_option'}
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 

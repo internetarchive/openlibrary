@@ -581,6 +581,67 @@ def audit_accounts(email, password, test=False):
     return audit
 
 
+
+
+def create_accounts(email, password, bridgeEmail="", bridgePassword="",
+                  username="", test=False):
+
+    audit = audit_accounts(email, password)
+
+    if 'error' in audit or (audit['link'] and audit['authenticated']):
+        return audit
+
+    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
+                  if audit.get('has_ia', False) else None)
+    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
+                  if audit.get('has_ol', False) else None)
+
+    # Make sure at least one account exists
+    if ia_account and ol_account:
+        if not audit['link']:
+            if ia_account.locked or ol_account.blocked():
+                return {'error': 'account_blocked'}
+            audit['link'] = ia_account.itemname
+            ol_account.link(ia_account.itemname)
+        return audit
+    elif not (ia_account or ol_account):
+        return {'error': 'account_not_found'}
+
+    # Create and link new account
+    if email and password:
+        if ol_account:
+            try:
+                ol_account_username = username or ol_account.username
+                ia_account = InternetArchiveAccount.create(
+                    ol_account_username, email, password,
+                    verified=True, test=test)
+
+                audit['link'] = ia_account.itemname
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                if not test:
+                    ol_account.link(ia_account.itemname)
+                return audit
+            except ValueError as e:
+                return {'error': str(e)}
+        elif ia_account:
+            try:
+                ia_account_username = username or ia_account.screenname
+                ol_account = OpenLibraryAccount.create(
+                    ia_account_username, email, password,
+                    verify=True, test=test)
+                audit['has_ol'] = ol_account.email
+                audit['has_ia'] = ia_account.email
+                audit['link'] = ia_account.itemname
+                if not test:
+                    ol_account.link(ia_account.itemname)
+                return audit
+            except ValueError as e:
+                return {'error': str(e), 'value': e.value}
+        return {'error': 'account_not_found'}
+    return {'error': 'missing_fields'}
+
+
 def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                   username="", test=False):
 
@@ -594,6 +655,7 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
     ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
                   if audit.get('has_ol', False) else None)
 
+    # Make sure at least one account exists
     if ia_account and ol_account:
         if not audit['link']:
             if ia_account.locked or ol_account.blocked():
@@ -603,71 +665,40 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
         return audit
     elif not (ia_account or ol_account):
         return {'error': 'account_not_found'}
-    else:
-        # Link existing accounts
-        if bridgeEmail and bridgePassword:
-            if not valid_email(bridgeEmail):
-                return {'error': 'invalid_bridgeEmail'}
-            if ol_account:
-                _res = InternetArchiveAccount.authenticate(
-                    email=bridgeEmail, password=bridgePassword, test=test)
-                if _res == "ok":
-                    ia_account = InternetArchiveAccount.get(
-                        email=bridgeEmail, test=test)
-                    if OpenLibraryAccount.get_by_link(ia_account.itemname):
-                        return {'error': 'account_already_linked'}
 
-                    ol_account.link(ia_account.itemname)
-                    audit['link'] = ia_account.itemname
-                    audit['has_ia'] = ia_account.email
-                    audit['has_ol'] = ol_account.email
-                    return audit
-                return {'error': _res}
-            elif ia_account:
-                _resp = OpenLibraryAccount.authenticate(
-                    bridgeEmail, bridgePassword)
-                if _resp == "ok":
-                    ol_account = OpenLibraryAccount.get(
-                        email=bridgeEmail, test=test)
-                    if ol_account.itemname:
-                        return {'error': 'account_already_linked'}
+    # Link existing accounts
+    if bridgeEmail and bridgePassword:
+        if not valid_email(bridgeEmail):
+            return {'error': 'invalid_bridgeEmail'}
+        if ol_account:
+            _res = InternetArchiveAccount.authenticate(
+                email=bridgeEmail, password=bridgePassword, test=test)
+            if _res == "ok":
+                ia_account = InternetArchiveAccount.get(
+                    email=bridgeEmail, test=test)
+                if OpenLibraryAccount.get_by_link(ia_account.itemname):
+                    return {'error': 'account_already_linked'}
 
-                    audit['has_ia'] = ia_account.email
-                    audit['has_ol'] = ol_account.email
-                    audit['link'] = ia_account.itemname
-                    ol_account.link(ia_account.itemname)
-                    return audit
-                return {'error': _resp}
-        # Create and link new account
-        elif email and password:
-            if ol_account:
-                try:
-                    ol_account_username = username or ol_account.username
-                    ia_account = InternetArchiveAccount.create(
-                        ol_account_username, email, password,
-                        verified=True, test=test)
+                ol_account.link(ia_account.itemname)
+                audit['link'] = ia_account.itemname
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                return audit
+            return {'error': _res}
+        elif ia_account:
+            _resp = OpenLibraryAccount.authenticate(
+                bridgeEmail, bridgePassword)
+            if _resp == "ok":
+                ol_account = OpenLibraryAccount.get(
+                    email=bridgeEmail, test=test)
+                if ol_account.itemname:
+                    return {'error': 'account_already_linked'}
 
-                    audit['link'] = ia_account.itemname
-                    audit['has_ia'] = ia_account.email
-                    audit['has_ol'] = ol_account.email
-                    if not test:
-                        ol_account.link(ia_account.itemname)
-                    return audit
-                except ValueError as e:
-                    return {'error': str(e)}
-            elif ia_account:
-                try:
-                    ia_account_username = username or ia_account.screenname
-                    ol_account = OpenLibraryAccount.create(
-                        ia_account_username, email, password,
-                        verify=True, test=test)
-                    audit['has_ol'] = ol_account.email
-                    audit['has_ia'] = ia_account.email
-                    audit['link'] = ia_account.itemname
-                    if not test:
-                        ol_account.link(ia_account.itemname)
-                    return audit
-                except ValueError as e:
-                    return {'error': str(e), 'value': e.value}
-            return {'error': 'account_not_found'}
-        return {'error': 'missing_fields'}
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                audit['link'] = ia_account.itemname
+                ol_account.link(ia_account.itemname)
+                return audit
+            return {'error': _resp}
+        return {'error': 'account_not_found'}
+    return {'error': 'missing_fields'}
