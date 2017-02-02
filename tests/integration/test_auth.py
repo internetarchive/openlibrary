@@ -29,10 +29,13 @@ IA_BLOCKED = config['accounts']['ia_blocked']
 IA_UNVERIFIED = config['accounts']['ia_unverified']
 IA_VERIFIED = config['accounts']['ia_verified']
 IA_CREATE = config['accounts']['ia_create']
+IA_CREATE_CONFLICT = config['accounts']['ia_create_conflict']
 
 OL_BLOCKED = config['accounts']['ol_blocked']
 OL_UNVERIFIED = config['accounts']['ol_unverified']
 OL_VERIFIED = config['accounts']['ol_verified']
+OL_CREATE = config['accounts']['ol_create']
+OL_CREATE_CONFLICT = config['accounts']['ol_create_conflict']
 
 LINKED = config['accounts']['linked']
 LINKED_BLOCKED = config['accounts']['linked_blocked']
@@ -83,7 +86,7 @@ class Xauth_Test(unittest.TestCase):
         driver.find_element_by_id('verifyAndConnect').click()
         time.sleep(1)
 
-    def create(self, username):
+    def create(self, username=None):
         driver.execute_script(
             "document.getElementById('debug_token').value='" + internal_api_key + "'");
         time.sleep(10)
@@ -561,7 +564,7 @@ class Xauth_Test(unittest.TestCase):
 
     def test_ia_verified_create_empty_submit(self):
         self.unlink(OL_VERIFIED['email'])
-        self.login(**IA_CREATE)
+        self.login(**IA_CREATE_CONFLICT)
         self.create('')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
@@ -571,7 +574,7 @@ class Xauth_Test(unittest.TestCase):
 
     def test_ia_verified_create_registered_screenname(self):
         self.unlink(OL_VERIFIED['email'])
-        self.login(**IA_CREATE)
+        self.login(**IA_CREATE_CONFLICT)
         self.create('mekarpeles')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'createError')))
@@ -579,25 +582,46 @@ class Xauth_Test(unittest.TestCase):
         error = driver.find_element_by_id('createError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
-
-    """
-
     def test_ia_verified_create_ol_verified(self):
-        driver.get(URL + '/account/login')
-        # should redir to /home
+        self.login(**IA_CREATE)
+        self.create()
+        self.assertTrue(self.is_logged_in())
+        self.logout()
+        self.assertTrue(not self.is_logged_in())
+        self.login(**IA_CREATE)
+        self.assertTrue(self.is_logged_in())
 
-    """
 
     # ======================================================
     # All combinations of Create & Link attempts after initial
     # successful audit from an OL account
     # ======================================================
 
-    """
+    def test_ol_verified_create_empty_submit(self):
+        self.unlink(OL_VERIFIED['email'])
+        self.login(**OL_CREATE_CONFLICT)
+        self.create('')
+        wait.until(
+            EC.visibility_of_element_located((By.ID, 'createError')))
+        _error = "Please fill out all fields and try again"
+        error = driver.find_element_by_id('createError').text
+        self.assertTrue(error == _error, '%s != %s' % (error, _error))
+
+    def test_ol_verified_create_registered_screenname(self):
+        self.unlink(OL_VERIFIED['email'])
+        self.login(**OL_CREATE_CONFLICT)
+        self.create('mekarpeles')
+        wait.until(
+            EC.visibility_of_element_located((By.ID, 'createError')))
+        _error = "This username is already registered"
+        error = driver.find_element_by_id('createError').text
+        self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_verified_create_ia_verified(self):
-        driver.get(URL + '/account/login')
-
-    # should redir to /home
-
-    """
+        self.login(**OL_CREATE)
+        self.create()
+        self.assertTrue(self.is_logged_in())
+        self.logout()
+        self.assertTrue(not self.is_logged_in())
+        self.login(**OL_CREATE)
+        self.assertTrue(self.is_logged_in())
