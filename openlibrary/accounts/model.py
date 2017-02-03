@@ -291,13 +291,28 @@ class Account(web.storage):
 class OpenLibraryAccount(Account):
 
     @classmethod
-    def create(cls, username, email, password, verify=False, itemname=None, test=False):
+    def create(cls, username, email, password, verified=False,
+               itemname=None, retries=0, test=False):
+        """
+        params:
+            retries (int) - If the username is unavailable, how many
+                            subsequent attempts should be made?
+        """
         if cls.get(email=email):
             raise ValueError('email_registered')
-        if cls.get(username=username):
-            ve = ValueError('username_registered')
-            ve.value = username
-            raise ve
+
+        _user = cls.get(username=username)
+        attempt = 0
+        while _user:
+            if attempt >= retries:
+                ve = ValueError('username_registered')
+                ve.value = username
+                raise ve
+            new_username = '%s_%s' % (username, attempt)
+            attempt += 1
+            _user = cls.get(username=new_username)
+        username = new_username
+
         if test:
             return cls(**{'itemname': '@' + username,
                           'email': email,
@@ -314,7 +329,7 @@ class OpenLibraryAccount(Account):
         except ClientException as e:
             raise ValueError('something_went_wrong')
 
-        if verify:
+        if verified:
             key = "account/%s/verify" % username
             doc = create_link_doc(key, username, email)
             web.ctx.site.store[key] = doc
@@ -426,23 +441,36 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, verified=False, test=None):
+    def create(cls, screenname, email, password, retries=0,
+               verified=False, test=None):
         screenname = screenname.replace('@', '')  # remove IA @
         if cls.get(email=email):
             raise ValueError('email_registered')
 
-        response = cls.xauth(
-            'create', test=test, email=email, password=password,
-            screenname=screenname, verified=verified)
+        _screenname = screenname
+        attempt = 0
+        while True:
+            response = cls.xauth(
+                'create', test=test, email=email, password=password,
+                screenname=_screenname, verified=verified)
 
-        if response.get('success'):
-            ia_account = cls.get(email=email)
-            if test:
-                ia_account.test = True
-            return ia_account
-        ve = ValueError('username_registered')
-        ve.value = screenname
-        raise ve
+            if response.get('success'):
+                ia_account = cls.get(email=email)
+                if test:
+                    ia_account.test = True
+                return ia_account
+
+            elif 'screenname' not in response.get('values', {}):
+                errors = '_'.join(response.get('values', {}))
+                raise ValueError(errors)
+
+            elif attempt >= retries:
+                ve = ValueError('username_registered')
+                ve.value = _screenname
+                raise ve
+
+            _screenname = '%s_%s' % (screenname, attempt)
+            attempt += 1            
 
     @classmethod
     def xauth(cls, service, test=None, **data):
@@ -459,12 +487,15 @@ class InternetArchiveAccount(web.storage):
                 'Content-Type': 'application/json'})
             f = urllib2.urlopen(req)
             response = f.read()
+            # XXX hack to get around xauth api error
+            response = response.replace("""<br />
+<b>Notice</b>:  Undefined index: argv in <b>/home/jnelson/petabox2/www/common/setup.php</b> on line <b>326</b><br />""", '')
             f.close()
         except urllib2.HTTPError as e:
-            if e.code == 403:
-                return {'error': e.read(), 'code': 403}
-            else:
+            try:
                 response = e.read()
+            except simplejson.decoder.JSONDecodeError:
+                return {'error': e.read(), 'code': e.code}
         return simplejson.loads(response)
 
     @classmethod
@@ -611,10 +642,12 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
     if email and password:
         if ol_account:
             try:
-                ol_account_username = username or ol_account.username
+                ol_account_username = (
+                    username or ol_account.displayname
+                    or ol_account.usernme)
                 ia_account = InternetArchiveAccount.create(
                     ol_account_username, email, password,
-                    verified=True, test=test)
+                    retries=5, verified=True, test=test)
 
                 audit['link'] = ia_account.itemname
                 audit['has_ia'] = ia_account.email
@@ -626,10 +659,10 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
                 return {'error': str(e), 'value': e.value}
         elif ia_account:
             try:
-                ia_account_username = username or ia_account.screenname
+                ia_account_screenname = username or ia_account.screenname
                 ol_account = OpenLibraryAccount.create(
-                    ia_account_username, email, password,
-                    verify=True, test=test)
+                    ia_account_screenname, email, password,
+                    retries=5, verified=True, test=test)
                 audit['has_ol'] = ol_account.email
                 audit['has_ia'] = ia_account.email
                 audit['link'] = ia_account.itemname

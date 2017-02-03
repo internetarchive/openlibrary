@@ -23,10 +23,10 @@ $var title: $("Log In")
       <div class="modal-header-copy">
         <h2>Connect Your Accounts</h2>
         <p class="modal-header-copy-a">
-          Your <span class="linked-service"></span> account has been
-          verified but needs to be linked to an
-          <span class="unlinked-service"></span> account before
-          login can be completed.
+	  You can now use your Internet Archive account to login to
+	  Open Library. Do you have an existing
+          <span class="unlinked-service"></span> account you'd like to
+          connect?
         </p>
         <p class="modal-header-copy-b">Verify your <span class="unlinked-service"></span> credentials and proceed to login.</p>
         <p class="modal-header-copy-c">Choose a username for your new <span class="unlinked-service"></span> account.</p>
@@ -35,8 +35,8 @@ $var title: $("Log In")
 
     <div class="modal-body">
       <ul class="modal-option">
-        <li><a id="linkAccounts">Link my existing <span class="unlinked-service"></span> account.</a></li>
-        <li><a id="createAccount">Create an <span class="unlinked-service"></span> account for me.</a></li>
+        <li><a id="linkAccounts">Yes, I have an <span class="unlinked-service"></span> account</a></li>
+        <li><a id="createAccount">No, continue</a></li>
       </ul>
       <div class="modal-create-form modal-form">
         <div class="formFieldsDecoration">
@@ -254,6 +254,9 @@ $var title: $("Log In")
           });
       }
 
+      /*
+       * Rest calls to create and link account via OL API
+       */
       var create_and_link_account = function(email, password, username, callback, token) {
           var url = '/account/connect';
           \$.ajax({
