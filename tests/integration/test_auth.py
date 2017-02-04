@@ -93,11 +93,6 @@ class Xauth_Test(unittest.TestCase):
         time.sleep(1)
         wait.until(EC.element_to_be_clickable((By.ID, 'createAccount')))
         driver.find_element_by_id('createAccount').click()
-        if username:
-            wait.until(EC.element_to_be_clickable((By.ID, 'bridgeUsername')))
-            driver.find_element_by_id('bridgeUsername').send_keys(username)
-        wait.until(EC.element_to_be_clickable((By.ID, 'verifyAndCreate')))
-        driver.find_element_by_id('verifyAndCreate').click()
         time.sleep(1)
 
     def unlink(self, email):
@@ -106,6 +101,10 @@ class Xauth_Test(unittest.TestCase):
         url = ('%s/internal/account/unlink?key=%s&email=%s'
                % (URL, internal_api_key, email))
         r = requests.get(url)
+
+    # ======================================================
+    # Basic tests
+    # ======================================================
 
     def test_empty_submit(self):
         self.login(u'', u'')
@@ -557,7 +556,7 @@ class Xauth_Test(unittest.TestCase):
         # finalize by unlinking for future tests
         self.unlink(OL_VERIFIED['email'])
 
-"""
+    """
     The following tests are deprecated until the "test" / developer
     settings are sophisticated to accommodate idempotent testing of
     user creation. The "create_empty" and "username_registered" cases
@@ -585,15 +584,17 @@ class Xauth_Test(unittest.TestCase):
         error = driver.find_element_by_id('createError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
+    """
+
     def test_ia_verified_create_registered_screenname(self):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_CREATE_CONFLICT)
         self.create('')
-        wait.until(
-            EC.visibility_of_element_located((By.ID, 'createError')))
-        _error = "This username is already registered"
-        error = driver.find_element_by_id('createError').text
+        _error = "A problem occurred and we were unable to log you in."
+        error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
+
+    """
 
     def test_ia_verified_create_ol_verified(self):
         self.login(**IA_CREATE)
@@ -624,15 +625,17 @@ class Xauth_Test(unittest.TestCase):
         error = driver.find_element_by_id('createError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
+    """
+    
     def test_ol_verified_create_registered_screenname(self):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_CREATE_CONFLICT)
         self.create('')
-        wait.until(
-            EC.visibility_of_element_located((By.ID, 'createError')))
-        _error = "This username is already registered"
-        error = driver.find_element_by_id('createError').text
+        _error = "A problem occurred and we were unable to log you in."
+        error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
+
+    """
 
     def test_ol_verified_create_ia_verified(self):
         self.login(**OL_CREATE)

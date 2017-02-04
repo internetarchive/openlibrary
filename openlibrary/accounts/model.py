@@ -19,6 +19,9 @@ from infogami.infobase.client import ClientException
 from openlibrary.core import lending, helpers as h
 
 
+def append_random_suffix(text, limit=9999):
+    return '%s_%s' % (text, random.randint(0, limit))
+
 def valid_email(email):
     return lepl.apps.rfc3696.Email()(email)
 
@@ -291,8 +294,8 @@ class Account(web.storage):
 class OpenLibraryAccount(Account):
 
     @classmethod
-    def create(cls, username, email, password, verified=False,
-               itemname=None, retries=0, test=False):
+    def create(cls, username, email, password, displayname=None,
+               verified=False, retries=0, test=False):
         """
         params:
             retries (int) - If the username is unavailable, how many
@@ -301,23 +304,28 @@ class OpenLibraryAccount(Account):
         if cls.get(email=email):
             raise ValueError('email_registered')
 
+        username = username.replace('@', '')
+        displayname = displayname or username
+
+        # tests whether a user w/ this username exists
         _user = cls.get(username=username)
+        new_username = username
         attempt = 0
         while _user:
             if attempt >= retries:
                 ve = ValueError('username_registered')
                 ve.value = username
                 raise ve
-            new_username = '%s_%s' % (username, attempt)
+ 
+            new_username = append_random_suffix(username)
             attempt += 1
             _user = cls.get(username=new_username)
         username = new_username
-
         if test:
             return cls(**{'itemname': '@' + username,
                           'email': email,
                           'username': username,
-                          'displayname': username,
+                          'displayname': displayname,
                           'test': True
                       })
         try:
@@ -325,7 +333,7 @@ class OpenLibraryAccount(Account):
                 username=username,
                 email=email,
                 password=password,
-                displayname=username)
+                displayname=displayname)
         except ClientException as e:
             raise ValueError('something_went_wrong')
 
@@ -336,9 +344,6 @@ class OpenLibraryAccount(Account):
             web.ctx.site.activate_account(username=username)
 
         ol_account = cls.get(email=email)
-        if itemname:
-            ol_account.link(itemname)
-
         return ol_account
 
     @classmethod
@@ -434,6 +439,7 @@ class OpenLibraryAccount(Account):
         else:
             return "ok"
 
+
 class InternetArchiveAccount(web.storage):
 
     def __init__(self, **kwargs):
@@ -469,7 +475,7 @@ class InternetArchiveAccount(web.storage):
                 ve.value = _screenname
                 raise ve
 
-            _screenname = '%s_%s' % (screenname, attempt)
+            _screenname = append_random_suffix(screenname)
             attempt += 1            
 
     @classmethod
@@ -487,9 +493,6 @@ class InternetArchiveAccount(web.storage):
                 'Content-Type': 'application/json'})
             f = urllib2.urlopen(req)
             response = f.read()
-            # XXX hack to get around xauth api error
-            response = response.replace("""<br />
-<b>Notice</b>:  Undefined index: argv in <b>/home/jnelson/petabox2/www/common/setup.php</b> on line <b>326</b><br />""", '')
             f.close()
         except urllib2.HTTPError as e:
             try:
@@ -611,12 +614,10 @@ def audit_accounts(email, password, test=False):
 
     return audit
 
-
-
-
 def create_accounts(email, password, bridgeEmail="", bridgePassword="",
-                  username="", test=False):
+                    username="", test=False):
 
+    retries = 0 if test else 10
     audit = audit_accounts(email, password)
 
     if 'error' in audit or (audit['link'] and audit['authenticated']):
@@ -644,10 +645,11 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
             try:
                 ol_account_username = (
                     username or ol_account.displayname
-                    or ol_account.usernme)
+                    or ol_account.username)
+                
                 ia_account = InternetArchiveAccount.create(
                     ol_account_username, email, password,
-                    retries=5, verified=True, test=test)
+                    retries=retries, verified=True, test=test)
 
                 audit['link'] = ia_account.itemname
                 audit['has_ia'] = ia_account.email
@@ -656,13 +658,16 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
                     ol_account.link(ia_account.itemname)
                 return audit
             except ValueError as e:
-                return {'error': str(e), 'value': e.value}
+                return {'error': 'max_retries_exceeded', 'msg': str(e)}
         elif ia_account:
             try:
-                ia_account_screenname = username or ia_account.screenname
+                # always take screen name 
+                ia_account_screenname = ia_account.screenname
+                ia_account_itemname = ia_account.itemname
                 ol_account = OpenLibraryAccount.create(
-                    ia_account_screenname, email, password,
-                    retries=5, verified=True, test=test)
+                    ia_account_itemname, email, password,
+                    displayname=ia_account_itemname,
+                    retries=retries, verified=True, test=test)
                 audit['has_ol'] = ol_account.email
                 audit['has_ia'] = ia_account.email
                 audit['link'] = ia_account.itemname
@@ -670,7 +675,7 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
                     ol_account.link(ia_account.itemname)
                 return audit
             except ValueError as e:
-                return {'error': str(e), 'value': e.value}
+                return {'error': 'max_retries_exceeded', 'msg': str(e)}
         return {'error': 'account_not_found'}
     return {'error': 'missing_fields'}
 

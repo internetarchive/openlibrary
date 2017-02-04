@@ -49,6 +49,7 @@ class unlink(delegate.page):
                 if result is None:
                     raise ValueError('Invalid Open Library account email ' \
                                      'or itemname')
+                    result.enc_password = 'REDACTED'
                 result.unlink()
             except ValueError as e:
                 result = {'error': str(e)}
@@ -411,10 +412,9 @@ class account_connect(delegate.page):
     def POST(self):
         """Links or creates accounts"""
         i = web.input(email="", password="", username="",
-                      bridgeService="", bridgeEmail="", bridgePassword="",
+                      bridgeEmail="", bridgePassword="",
                       token="", service="link")
         test = 'openlibrary' if i.token == lending.config_internal_api_key else None
-
         if i.service == "link":
             result = link_accounts(i.get('email').lower(), i.password,
                                    bridgeEmail=i.bridgeEmail.lower(),
