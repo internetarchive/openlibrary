@@ -21,7 +21,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
-from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account
+from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount
 import forms
 import utils
 import borrow
@@ -39,7 +39,9 @@ class unlink(delegate.page):
     path = "/internal/account/unlink"
 
     def GET(self):
-        from openlibrary.accounts import OpenLibraryAccount
+        """Internal API endpoint used for authorized test cases and
+        administrators to unlink linked OL and IA accounts.
+        """
         i = web.input(email='', itemname='', key='')
         if i.key != lending.config_internal_api_key:
             result = {'error': 'Authentication failed for private API'}
@@ -410,7 +412,17 @@ class account_connect(delegate.page):
     path = "/account/connect"
 
     def POST(self):
-        """Links or creates accounts"""
+        """When a user logs in with either an OL or IA account which have not
+        been linked, and if the user's credentials for this account
+        have been verified, the next step is for the user to (a)
+        connect their account to an account for whichever service is
+        missing, or (b) to create a new account for this service and
+        then link them. The /account/connect endpoint handles this
+        linking case and dispatches to the correct method (either
+        'link' or 'create' depending on the parameters POSTed to the
+        endpoint).
+        """
+
         i = web.input(email="", password="", username="",
                       bridgeEmail="", bridgePassword="",
                       token="", service="link")
@@ -418,12 +430,9 @@ class account_connect(delegate.page):
         if i.service == "link":
             result = link_accounts(i.get('email').lower(), i.password,
                                    bridgeEmail=i.bridgeEmail.lower(),
-                                   bridgePassword=i.bridgePassword,
-                                   username=i.username)
+                                   bridgePassword=i.bridgePassword)
         elif i.service == "create":
             result = create_accounts(i.get('email').lower(), i.password,
-                                   bridgeEmail=i.bridgeEmail.lower(),
-                                   bridgePassword=i.bridgePassword,
                                    username=i.username, test=test)
         else:
             result = {'error': 'invalid_option'}
@@ -436,6 +445,12 @@ class account_audit(delegate.page):
     path = "/account/audit"
 
     def POST(self):
+        """When the user attempts a login, an audit is performed to determine
+        whether their account is already linked (in which case we can
+        proceed to log the user in), whether there is an error
+        authenticating their account, or whether a /account/connect
+        must first performed.
+        """
         i = web.input(email='', password='')
         test = i.get('test', '').lower() == 'true'
         email = i.get('email').lower()

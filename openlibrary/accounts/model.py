@@ -297,14 +297,20 @@ class OpenLibraryAccount(Account):
     def create(cls, username, email, password, displayname=None,
                verified=False, retries=0, test=False):
         """
-        params:
+        Args:
+            username (unicode) - the username (slug) of the account.
+                                 Usernames must be unique
+            email (unicode) - the login and email of the account
+            password (unicode)
+            displayname (unicode) - human readable, changable screenname
             retries (int) - If the username is unavailable, how many
-                            subsequent attempts should be made?
+                            subsequent attempts should be made to find
+                            an available username.
         """
         if cls.get(email=email):
             raise ValueError('email_registered')
 
-        username = username.replace('@', '')
+        username = username[1:] if username[0] == '@' else username
         displayname = displayname or username
 
         # tests whether a user w/ this username exists
@@ -348,8 +354,9 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get(cls, link=None, email=None, username=None,  test=False):
-        """Attempts to retrieve an openlibrary account by its email or
-        archive.org itemname (i.e. link)"""
+        """Utility method retrieve an openlibrary account by its email,
+        username or archive.org itemname (i.e. link)
+        """
         if link:
             return cls.get_by_link(link, test=test)
         elif email:
@@ -360,6 +367,7 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_username(cls, username, test=False):
+        """Retrieves and OpenLibraryAccount by username if it exists or """
         match = web.ctx.site.store.values(
             type="account", name="username", value=username, limit=1)
 
@@ -449,7 +457,13 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def create(cls, screenname, email, password, retries=0,
                verified=False, test=None):
-        screenname = screenname.replace('@', '')  # remove IA @
+        """
+        Args:
+        
+        """
+
+        screenname = screenname[1:] if screenname[0] == '@' else screenname
+
         if cls.get(email=email):
             raise ValueError('email_registered')
 
@@ -482,8 +496,8 @@ class InternetArchiveAccount(web.storage):
     def xauth(cls, service, test=None, **data):
         url = "%s?op=%s" % (lending.IA_XAUTH_API_URL, service)
         data.update({
-            'client_access': lending.config_ia_ol_xauth_s3.get('s3_key'),
-            'client_secret': lending.config_ia_ol_xauth_s3.get('s3_secret')
+            'access': lending.config_ia_ol_xauth_s3.get('s3_key'),
+            'secret': lending.config_ia_ol_xauth_s3.get('s3_secret')
         })
         payload = simplejson.dumps(data)
         if test:
@@ -514,7 +528,7 @@ class InternetArchiveAccount(web.storage):
             "email": email,
             "password": password
         })
-        return ("ok" if response.get('success') is True else
+        return ("ok" if response.get('success') else
                 response.get('values', {}).get('reason'))
 
 
@@ -573,11 +587,18 @@ def audit_accounts(email, password, test=False):
             audit['link'] = link
             audit['has_ol'] = ol_account.email
 
-            # Kludge so if a user logs in with IA credentials, we
-            # can fetch the linked OL account and set an
-            # auth_token even when we don't have the OL user's
-            # password in order to perform web.ctx.site.login.
-            # Their auth checks out via IA, set their auth_token for OL
+            # When a user logs in with OL credentials, the
+            # web.ctx.site.login() is called with their OL user
+            # credentials, which internally sets an auth_token
+            # enabling the user's session.  The web.ctx.site.login
+            # method requires OL credentials which are not present in
+            # the case where a user logs in with their IA
+            # credentials. As a result, when users login with their
+            # valid IA credentials, the following kludge allows us to
+            # fetch the OL account linked to their IA account, bypass
+            # this web.ctx.site.login method (which requires OL
+            # credentials), and directly set an auth_token to 
+            # enable the user's session.
             web.ctx.conn.set_auth_token(ol_account.generate_login_code())
 
     elif ol_login == "ok":
@@ -614,9 +635,11 @@ def audit_accounts(email, password, test=False):
 
     return audit
 
-def create_accounts(email, password, bridgeEmail="", bridgePassword="",
-                    username="", test=False):
+def create_accounts(email, password, username="", test=False):
+    """Retrieves the IA or OL account having correct email and password
+    credentials
 
+    """
     retries = 0 if test else 10
     audit = audit_accounts(email, password)
 
@@ -681,8 +704,24 @@ def create_accounts(email, password, bridgeEmail="", bridgePassword="",
 
 
 def link_accounts(email, password, bridgeEmail="", bridgePassword="",
-                  username="", test=False):
+                  test=False):
+    """Takes the correct email and password for an archive.org or
+    openlibrary.org account and then links this account to an existing
+    account for the complimentary service (using the bridge credentials)
 
+    Args:
+        email (unicode) - the email of the user's primary account
+        password (unicode) - the password for the user's primary account
+        bridgeEmail (unicode) - the email of the secondary account which
+                                to connect
+        bridgePassword (unicode) - the password of the secondary
+                                   account to connect
+        test (bool) - isn't currently used in the link_accounts case
+                      because linking is a safely reversable operation.
+                      Test *is* used in the create_accounts case
+                      (where it prevents real accounts from being
+                      created)
+    """
     audit = audit_accounts(email, password)
 
     if 'error' in audit or (audit['link'] and audit['authenticated']):

@@ -36,10 +36,9 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
-IA_API_URL = "https://archive.org/services/openlibrary.php"
-AVAILABILITY_API = 'https://archive.org/services/loans/beta/loan/index.php'
-IA_USER_API_URL = "http://archive.org/~mek/auth.php"
-IA_XAUTH_API_URL = 'https://www-jnelson2.archive.org/services/xauthn/'
+IA_API_URL = None
+AVAILABILITY_API = None
+IA_XAUTH_API_URL = None
 
 config_content_server = None
 config_loanstatus_url = None
@@ -56,7 +55,8 @@ def setup(config):
     global config_content_server, config_loanstatus_url, \
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_auth_key, \
-        config_ia_ol_xauth_s3, config_internal_api_key
+        config_ia_ol_xauth_s3, config_internal_api_key, \
+        IA_API_URL, AVAILABILITY_API, IA_XAUTH_API_URL
 
     if config.get("content_server"):
         try:
@@ -65,6 +65,10 @@ def setup(config):
             logger.exception('Failed to assign config_content_server')
     else:
         logger.error('content_server unassigned')
+
+    IA_API_URL = config.get('ia_api_url')
+    AVAILABILITY_API = config.get('availability_api') 
+    IA_XAUTH_API_URL = config.get('ia_xauth_api_url')
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
