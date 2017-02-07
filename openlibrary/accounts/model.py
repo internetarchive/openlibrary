@@ -459,7 +459,14 @@ class InternetArchiveAccount(web.storage):
                verified=False, test=None):
         """
         Args:
-        
+            screenname (unicode) - changable human readable archive.org username.
+                                   The slug / itemname is generated automatically
+                                   from this value.
+            email (unicode)
+            password (unicode)
+            retries (int) - If the username is unavailable, how many
+                            subsequent attempts should be made to find
+                            an available username.
         """
 
         screenname = screenname[1:] if screenname[0] == '@' else screenname
@@ -533,6 +540,22 @@ class InternetArchiveAccount(web.storage):
 
 
 def audit_accounts(email, password, test=False):
+    """Performs an audit of the IA or OL account having this email. 
+
+    The audit:
+    - verifies the password is correct for this account
+    - aborts if any sort of error (e.g. account blocked, unverified)
+    - reports whether the account is linked (to a secondary account)
+    - if unlinked, reports whether a secondary account exists w/
+      matching email
+
+    Args:
+        email (unicode)
+        password (unicode)
+        test (bool) - not currently used; is there to allow testing in
+                      the absence of archive.org dependency
+    """
+
     if not valid_email(email):
         return {'error': 'invalid_email'}
 
@@ -638,7 +661,6 @@ def audit_accounts(email, password, test=False):
 def create_accounts(email, password, username="", test=False):
     """Retrieves the IA or OL account having correct email and password
     credentials
-
     """
     retries = 0 if test else 10
     audit = audit_accounts(email, password)
