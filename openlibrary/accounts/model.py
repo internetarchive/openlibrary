@@ -20,7 +20,7 @@ from openlibrary.core import lending, helpers as h
 
 
 def append_random_suffix(text, limit=9999):
-    return '%s_%s' % (text, random.randint(0, limit))
+    return '%s%s' % (text, random.randint(0, limit))
 
 def valid_email(email):
     return lepl.apps.rfc3696.Email()(email)
