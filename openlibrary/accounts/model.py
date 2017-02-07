@@ -501,7 +501,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def xauth(cls, service, test=None, **data):
-        url = "%s?op=%s" % (lending.IA_XAUTH_API_URL, service)
+        url = "%s?op=%s" % (lending.config_ia_xauth_api_url, service)
         data.update({
             'access': lending.config_ia_ol_xauth_s3.get('s3_key'),
             'secret': lending.config_ia_ol_xauth_s3.get('s3_secret')

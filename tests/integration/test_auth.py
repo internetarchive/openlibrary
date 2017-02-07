@@ -70,6 +70,7 @@ class Xauth_Test(unittest.TestCase):
         wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         driver.find_element_by_css_selector(
             '#headerUserOpen > a:nth-child(5)').click()
+        driver.get(URL + '/account/login')
 
     def is_logged_in(self):
         time.sleep(2)
