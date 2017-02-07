@@ -45,7 +45,6 @@ config_loanstatus_url = None
 config_bookreader_host = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
-config_ia_ol_auth_key = None
 config_ia_ol_xauth_s3 = None
 config_internal_api_key = None
 
@@ -54,9 +53,9 @@ def setup(config):
     """
     global config_content_server, config_loanstatus_url, \
         config_ia_access_secret, config_bookreader_host, \
-        config_ia_ol_shared_key, config_ia_ol_auth_key, \
-        config_ia_ol_xauth_s3, config_internal_api_key, \
-        IA_API_URL, AVAILABILITY_API, IA_XAUTH_API_URL
+        config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
+        config_internal_api_key, IA_API_URL, AVAILABILITY_API, \
+        IA_XAUTH_API_URL
 
     if config.get("content_server"):
         try:
