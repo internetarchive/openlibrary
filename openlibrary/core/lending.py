@@ -36,9 +36,9 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
-config_ia_api_url = None
-config_availability_api = None
+config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
+config_ia_availability_api_url = None
 
 config_content_server = None
 config_loanstatus_url = None
@@ -54,8 +54,8 @@ def setup(config):
     global config_content_server, config_loanstatus_url, \
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
-        config_internal_api_key, config_ia_api_url, \
-        config_availability_api, config_ia_xauth_api_url
+        config_internal_api_key, config_ia_loan_api_url, \
+        config_ia_availability_api_url, config_ia_xauth_api_url
 
     if config.get("content_server"):
         try:
@@ -65,8 +65,8 @@ def setup(config):
     else:
         logger.error('content_server unassigned')
 
-    config_ia_api_url = config.get('ia_api_url')
-    config_availability_api = config.get('availability_api') 
+    config_ia_loan_api_url = config.get('ia_loan_api_url')
+    config_ia_availability_api_url = config.get('ia_availability_api_url') 
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
 
     config_loanstatus_url = config.get('loanstatus_url')
@@ -93,7 +93,7 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     """
     _acs = '1' if acs else '0'
     _restricted = '1' if restricted else '0'
-    url = (config_availability_api + '?action=availability&exact=%s&validate=%s'
+    url = (config_ia_availability_api_url + '?action=availability&exact=%s&validate=%s'
            % (_acs, _restricted))
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
@@ -624,11 +624,11 @@ class IA_Lending_API:
         return self._post(method=method, **arguments)
 
     def _post(self, **params):
-        logger.info("POST %s %s", config_ia_api_url, params)
+        logger.info("POST %s %s", config_ia_loan_api_url, params)
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
         try:
-            jsontext = urllib2.urlopen(config_ia_api_url, payload, timeout=3).read()
+            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload, timeout=3).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
         except Exception as e:
