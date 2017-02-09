@@ -19,7 +19,7 @@ with open('auth.yaml', 'r') as f:
     config = yaml.load(f)
 
 URL =  config['url']
-internal_api_key = config['internal_api_key']
+internal_tests_api_key = config['internal_tests_api_key']
 
 # =========
 # Accounts
@@ -90,7 +90,7 @@ class Xauth_Test(unittest.TestCase):
 
     def create(self, username=None):
         driver.execute_script(
-            "document.getElementById('debug_token').value='" + internal_api_key + "'");
+            "document.getElementById('debug_token').value='" + internal_tests_api_key + "'");
         time.sleep(1)
         wait.until(EC.element_to_be_clickable((By.ID, 'createAccount')))
         driver.find_element_by_id('createAccount').click()
@@ -100,7 +100,7 @@ class Xauth_Test(unittest.TestCase):
         import requests
         email = email.replace('+', '%2b')
         url = ('%s/internal/account/unlink?key=%s&email=%s'
-               % (URL, internal_api_key, email))
+               % (URL, internal_tests_api_key, email))
         r = requests.get(url)
 
     # ======================================================

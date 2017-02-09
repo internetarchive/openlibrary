@@ -39,14 +39,13 @@ LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
 config_ia_availability_api_url = None
-
-config_content_server = None
-config_loanstatus_url = None
-config_bookreader_host = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
-config_internal_api_key = None
+config_content_server = None
+config_loanstatus_url = None
+config_bookreader_host = None
+config_internal_tests_api_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
@@ -54,7 +53,7 @@ def setup(config):
     global config_content_server, config_loanstatus_url, \
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
-        config_internal_api_key, config_ia_loan_api_url, \
+        config_internal_tests_api_key, config_ia_loan_api_url, \
         config_ia_availability_api_url, config_ia_xauth_api_url
 
     if config.get("content_server"):
@@ -74,7 +73,7 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
-    config_internal_api_key = config.get('internal_api_key')
+    config_internal_tests_api_key = config.get('internal_tests_api_key')
 
 
 def is_borrowable(identifiers, acs=False, restricted=False):

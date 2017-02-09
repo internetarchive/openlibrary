@@ -16,7 +16,10 @@ import web
 from infogami import config
 from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
-from openlibrary.core import lending, helpers as h
+
+from openlibrary.core import stats
+from openlibrary.core import lending
+from openlibrary.core import helpers as h
 
 
 def append_random_suffix(text, limit=9999):
@@ -322,7 +325,7 @@ class OpenLibraryAccount(Account):
                 ve = ValueError('username_registered')
                 ve.value = username
                 raise ve
- 
+
             new_username = append_random_suffix(username)
             attempt += 1
             _user = cls.get(username=new_username)
@@ -422,6 +425,7 @@ class OpenLibraryAccount(Account):
         _ol_account['internetarchive_itemname'] = None
         web.ctx.site.store[self._key] = _ol_account
         self.internetarchive_itemname = None
+        stats.increment('ol.account.xauth.unlinked')
 
     def link(self, itemname):
         """Careful, this will save any other changes to the ol user object as
@@ -431,6 +435,7 @@ class OpenLibraryAccount(Account):
         _ol_account['internetarchive_itemname'] = itemname
         web.ctx.site.store[self._key] = _ol_account
         self.internetarchive_itemname = itemname
+        stats.increment('ol.account.xauth.linked')
 
     @classmethod
     def authenticate(cls, email, password, test=False):
@@ -497,7 +502,7 @@ class InternetArchiveAccount(web.storage):
                 raise ve
 
             _screenname = append_random_suffix(screenname)
-            attempt += 1            
+            attempt += 1
 
     @classmethod
     def xauth(cls, service, test=None, **data):
@@ -540,7 +545,7 @@ class InternetArchiveAccount(web.storage):
 
 
 def audit_accounts(email, password, test=False):
-    """Performs an audit of the IA or OL account having this email. 
+    """Performs an audit of the IA or OL account having this email.
 
     The audit:
     - verifies the password is correct for this account
@@ -620,7 +625,7 @@ def audit_accounts(email, password, test=False):
             # valid IA credentials, the following kludge allows us to
             # fetch the OL account linked to their IA account, bypass
             # this web.ctx.site.login method (which requires OL
-            # credentials), and directly set an auth_token to 
+            # credentials), and directly set an auth_token to
             # enable the user's session.
             web.ctx.conn.set_auth_token(ol_account.generate_login_code())
 
@@ -655,6 +660,7 @@ def audit_accounts(email, password, test=False):
         ol_account = OpenLibraryAccount.get(email=audit['has_ol'], test=test)
         if not ol_account.itemname:
             ol_account.link(audit['link'])
+            stats.increment('ol.account.xauth.auto-linked')
 
     return audit
 
@@ -674,12 +680,14 @@ def create_accounts(email, password, username="", test=False):
                   if audit.get('has_ol', False) else None)
 
     # Make sure at least one account exists
+    # XXX should never get here, move to audit
     if ia_account and ol_account:
         if not audit['link']:
             if ia_account.locked or ol_account.blocked():
                 return {'error': 'account_blocked'}
             audit['link'] = ia_account.itemname
             ol_account.link(ia_account.itemname)
+            stats.increment('ol.account.xauth.auto-linked')
         return audit
     elif not (ia_account or ol_account):
         return {'error': 'account_not_found'}
@@ -691,7 +699,7 @@ def create_accounts(email, password, username="", test=False):
                 ol_account_username = (
                     username or ol_account.displayname
                     or ol_account.username)
-                
+
                 ia_account = InternetArchiveAccount.create(
                     ol_account_username, email, password,
                     retries=retries, verified=True, test=test)
@@ -701,12 +709,13 @@ def create_accounts(email, password, username="", test=False):
                 audit['has_ol'] = ol_account.email
                 if not test:
                     ol_account.link(ia_account.itemname)
+                    stats.increment('ol.account.xauth.ol-created-ia')
                 return audit
             except ValueError as e:
                 return {'error': 'max_retries_exceeded', 'msg': str(e)}
         elif ia_account:
             try:
-                # always take screen name 
+                # always take screen name
                 ia_account_screenname = ia_account.screenname
                 ia_account_itemname = ia_account.itemname
                 ol_account = OpenLibraryAccount.create(
@@ -718,6 +727,7 @@ def create_accounts(email, password, username="", test=False):
                 audit['link'] = ia_account.itemname
                 if not test:
                     ol_account.link(ia_account.itemname)
+                    stats.increment('ol.account.xauth.ia-created-ol')
                 return audit
             except ValueError as e:
                 return {'error': 'max_retries_exceeded', 'msg': str(e)}
@@ -755,12 +765,15 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                   if audit.get('has_ol', False) else None)
 
     # Make sure at least one account exists
+    # XXX should never get here, move to audit
     if ia_account and ol_account:
         if not audit['link']:
             if ia_account.locked or ol_account.blocked():
                 return {'error': 'account_blocked'}
             audit['link'] = ia_account.itemname
             ol_account.link(ia_account.itemname)
+            if not test:
+                stats.increment('ol.account.xauth.auto-linked')
         return audit
     elif not (ia_account or ol_account):
         return {'error': 'account_not_found'}
@@ -782,6 +795,8 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 audit['link'] = ia_account.itemname
                 audit['has_ia'] = ia_account.email
                 audit['has_ol'] = ol_account.email
+                if not test:
+                    stats.increment('ol.account.xauth.ol-existing-ia')
                 return audit
             return {'error': _res}
         elif ia_account:
@@ -797,6 +812,8 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
                 audit['has_ol'] = ol_account.email
                 audit['link'] = ia_account.itemname
                 ol_account.link(ia_account.itemname)
+                if not test:
+                    stats.increment('ol.account.xauth.ia-existing-ol')
                 return audit
             return {'error': _resp}
         return {'error': 'account_not_found'}

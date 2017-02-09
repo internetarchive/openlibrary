@@ -43,7 +43,7 @@ class unlink(delegate.page):
         administrators to unlink linked OL and IA accounts.
         """
         i = web.input(email='', itemname='', key='')
-        if i.key != lending.config_internal_api_key:
+        if i.key != lending.config_internal_tests_api_key:
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
@@ -426,7 +426,7 @@ class account_connect(delegate.page):
         i = web.input(email="", password="", username="",
                       bridgeEmail="", bridgePassword="",
                       token="", service="link")
-        test = 'openlibrary' if i.token == lending.config_internal_api_key else None
+        test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
         if i.service == "link":
             result = link_accounts(i.get('email').lower(), i.password,
                                    bridgeEmail=i.bridgeEmail.lower(),
