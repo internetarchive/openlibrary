@@ -127,3 +127,5 @@ https://github.com/internetarchive/openlibrary/projects/1
 All source code published here is available under the terms of the GNU
 Affero General Public License, version 3. Please see
 http://gplv3.fsf.org/ for more information.
+
+## EOF
