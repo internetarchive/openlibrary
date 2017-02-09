@@ -10,21 +10,29 @@ class MockSite:
     def _get_backreferences(self, thing):
         return {}
 
+class MockLendableEdition(models.Edition):
+    def get_ia_collections(self):
+        return ['lendinglibrary']
+
+class MockPrivateEdition(models.Edition):
+    def get_ia_collections(self):
+        return ['lendinglibrary', 'georgetown-university-law-library-rr']
+
 
 class TestEdition:
-    def test_url(self):
+    def mock_edition(self, edition_class):
         data = {
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
             "title": "foo"
         }
+        return edition_class(MockSite(), "/books/OL1M", data=data)
 
-        e = models.Edition(MockSite(), "/books/OL1M", data=data)
-
+    def test_url(self):
+        e = self.mock_edition(models.Edition)
         assert e.url() == "/books/OL1M/foo"
         assert e.url(v=1) == "/books/OL1M/foo?v=1"
         assert e.url(suffix="/add-cover") == "/books/OL1M/foo/add-cover"
-
 
         data = {
             "key": "/books/OL1M",
@@ -34,14 +42,25 @@ class TestEdition:
         assert e.url() == "/books/OL1M/untitled"
 
     def test_get_ebook_info(self):
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "foo"
-        }
-
-        e = models.Edition(MockSite(), "/books/OL1M", data=data)
+        e = self.mock_edition(models.Edition)
         assert e.get_ebook_info() == {}
+
+    def test_is_not_in_private_collection(self):
+        e = self.mock_edition(MockLendableEdition)
+        assert not e.is_in_private_collection()
+
+    def test_can_borrow_cuz_not_in_private_collection(self):
+        e = self.mock_edition(MockLendableEdition)
+        assert e.can_borrow()
+
+    def test_is_in_private_collection(self):
+        e = self.mock_edition(MockPrivateEdition)
+        assert e.is_in_private_collection()
+
+    def test_can_not_borrow_cuz_in_private_collection(self):
+        e = self.mock_edition(MockPrivateEdition)
+        assert not e.can_borrow()
+
 
 class TestAuthor:
     def test_url(self):

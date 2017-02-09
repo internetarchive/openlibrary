@@ -133,7 +133,7 @@ class TestCarouselItem:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "http://covers.openlibrary.org/b/id/1-M.jpg"
+            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg"
         }
         assert book['title'] in self.render(book)
         assert book['cover_url'] in self.render(book)
@@ -157,7 +157,7 @@ class TestCarouselItem:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "http://covers.openlibrary.org/b/id/1-M.jpg",
+            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg",
             "read_url": "http://archive.org/stream/foo",
             "borrow_url": "/books/OL1M/foo/borrow",
             "daisy_url": "/books/OL1M/foo/daisy",
@@ -186,7 +186,7 @@ class TestCarouselItem:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "http://covers.openlibrary.org/b/id/1-M.jpg",
+            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg",
             "inlibrary_borrow_url": "/books/OL1M/foo/borrow-inlibrary",
         }
 
@@ -206,7 +206,7 @@ class Test_carousel:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "cover_url": "http://covers.openlibrary.org/b/id/1-M.jpg"
+            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg"
         })
         html = unicode(render_template("books/carousel", [book]))
 
@@ -227,7 +227,7 @@ class Test_format_book_data:
         assert home.format_book_data(book).get("cover_url") is None
 
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo", covers=[1, 2])
-        assert home.format_book_data(book).get("cover_url") == "http://covers.openlibrary.org/b/id/1-M.jpg"
+        assert home.format_book_data(book).get("cover_url") == "https://covers.openlibrary.org/b/id/1-M.jpg"
 
     def test_authors(self, mock_site, mock_ia):
         a1 = mock_site.quicksave("/authors/OL1A", "/type/author", name="A1")

@@ -86,15 +86,20 @@ $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
     $if ctx.user and ctx.user.has_borrowed(page):
         $ active_loan = ctx.user.get_loan_for(page)
         <div class="message info">
-            <h2 class="sansserif">You have this book checked out. You can read it online or return the book.
+            <h2 class="sansserif">You have this book checked out. You can read it online or return the book.</h2>
             <p>
             $:macros.LoanReadForm(active_loan['book'])
             $:macros.ReturnForm(active_loan)
             </p>
         </div>
     $elif not page.can_borrow():
-        $# Check for in-library
-        $if 'inlibrary' in page.get_ia_collections():
+        $# Check for private collection
+        $if page.is_in_private_collection():
+            <h2 class="sansserif">This book isn't available to borrow.</h2>
+            <p>This book is part of a special collection. Look for something else in the <a href="/borrow">lending library</a>?</p>
+
+        $elif 'inlibrary' in page.get_ia_collections():
+            $# Check for in-library
             $if available_loans:
                 <div class="message info">
                     $# george copy

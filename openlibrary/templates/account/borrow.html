@@ -90,6 +90,8 @@ $else:
         <!-- for each borrow -->
         $for loan in loans:
             $ book = get_document(loan['book'])
+            $if book is None:
+                $continue
             <tr>
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)

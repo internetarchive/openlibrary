@@ -61,7 +61,7 @@ $def with (author)
         </foaf:page>
 
       $for photo in author.photos:
-        $ auphoto = "http://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
+        $ auphoto = "https://covers.openlibrary.org/b/id/" + str(photo) + "-M.jpg"
         <foaf:depiction>
             <foaf:Image rdf:about="$auphoto" />
         </foaf:depiction>

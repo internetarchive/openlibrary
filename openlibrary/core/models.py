@@ -15,6 +15,7 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
 from openlibrary.core import loanstats
+from openlibrary.core.helpers import private_collection_in
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -214,7 +215,6 @@ class Edition(Thing):
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
-
     def get_ebook_info(self):
         """Returns the ebook info with the following fields.
 
@@ -222,6 +222,8 @@ class Edition(Thing):
         * borrow_url - url to borrow the book
         * borrowed - True if the book is already borrowed
         * daisy_url - url to access the daisy format of the book
+        * daisy_only - a boolean indicating whether book avail
+                       exclusively as daisy
 
         Sample return values:
 
@@ -235,25 +237,27 @@ class Edition(Thing):
                 "borrow_url": "/books/OL1M/foo/borrow",
                 "borrowed": False
             }
+
         """
         d = {}
         if self.ocaid:
             d['has_ebook'] = True
             d['daisy_url'] = self.url('/daisy')
+            d['daisy_only'] = True
 
             collections = self.get_ia_collections()
-            borrowable = ('lendinglibrary' in collections or
-                         ('inlibrary' in collections and inlibrary.get_library() is not None))
+            borrowable = self.can_borrow()
 
             if borrowable:
                 d['borrow_url'] = self.url("/borrow")
                 key = "ebooks" + self.key
                 doc = self._site.store.get(key) or {}
+                # caution, solr borrow status may be stale!
                 d['borrowed'] = doc.get("borrowed") == "true"
-            elif 'printdisabled' in collections:
-                pass # ebook is not available
-            else:
+                d['daisy_only'] = False
+            elif 'printdisabled' not in collections:
                 d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+                d['daisy_only'] = False
         return d
 
     def get_ia_collections(self):
@@ -265,11 +269,17 @@ class Edition(Thing):
                 or 'lendinglibrary' in collections
                 or self.get_ia_meta_fields().get("access-restricted") is True)
 
+    def is_in_private_collection(self):
+        """Private collections are lendable books that should not be
+        linked/revealed from OL
+        """
+        return private_collection_in(self.get_ia_collections())
+
     def can_borrow(self):
         collections = self.get_ia_collections()
-        return (
-            'lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None))
+        return ('lendinglibrary' in collections or
+            ('inlibrary' in collections and inlibrary.get_library() is not None)
+            ) and not self.is_in_private_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""

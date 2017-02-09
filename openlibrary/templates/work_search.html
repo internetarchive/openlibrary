@@ -276,11 +276,13 @@ function less(header) {
                         <span class="label">$_("Read")</span>
                     </a>
                 </span>
+
             $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                <span class="actions">
-                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book">
-                        <span class="image borrow"></span>
-                        <span class="label">Read</span>
+                <span class="actions read">
+                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book"
+                       data-key="$(doc.key)" data-ocaid="$(doc.get('ocaid', '') or ','.join(doc.get('ia', '')))">
+                        <span class="read-icon image borrow"></span>
+                        <span class="read-label label">Borrow</span>
                     </a>
                 </span>
             $elif not doc.public_scan and 'printdisabled' in doc.collections:
@@ -363,7 +365,7 @@ $if param and not error:
         if (Math.random() * 100 < $readapi_percent) {
             starttime = Date.now();
             \$.ajax({
-                url: 'http://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
+                url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
                 dataType: 'jsonp',
                 success: readapi_callback
             });

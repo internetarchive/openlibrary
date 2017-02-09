@@ -96,7 +96,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </div>
         </td>
 
-    $if isbn_10 or oclc_numbers or 'lendinglibrary' in collection or library:
+    $if (isbn_10 or oclc_numbers or 'lendinglibrary' in collection or library) and not private_collection_in(collection):
         <td class="icon borrow">
             <div class="aaaa"></div>
             <div class="links">
@@ -109,7 +109,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                             $if current_loan['user'] == ctx.user.key:
                                 $ user_loan = current_loan
                                 $ break
-                    $:macros.LoanStatus(book, 'eBook', ctx.user, current_and_available_loans, contrib, '')
+                    <li>$:macros.LoanStatus(book, 'eBook', ctx.user, current_and_available_loans, contrib, '')</li>
                 $if isbn_10:
                     <li><a href="$worldcat.replace('XXX', isbn_10)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
                 $elif oclc_numbers:

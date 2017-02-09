@@ -320,9 +320,9 @@ class ils_search:
             'olid': 'OL12345M',
             'key': '/books/OL12345M',
             'cover': {
-                'small': 'http://covers.openlibrary.org/b/12345-S.jpg',
-                'medium': 'http://covers.openlibrary.org/b/12345-M.jpg',
-                'large': 'http://covers.openlibrary.org/b/12345-L.jpg',
+                'small': 'https://covers.openlibrary.org/b/12345-S.jpg',
+                'medium': 'https://covers.openlibrary.org/b/12345-M.jpg',
+                'large': 'https://covers.openlibrary.org/b/12345-L.jpg',
             },
             ...
         }
@@ -416,9 +416,9 @@ class ils_search:
             covers = doc.get('covers') or []
             if covers and covers[0] > 0:
                 d['cover'] = {
-                    "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
-                    "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % covers[0],
-                    "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
+                    "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % covers[0],
+                    "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % covers[0],
+                    "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % covers[0],
                 }
 
             # Pull out identifiers to top level

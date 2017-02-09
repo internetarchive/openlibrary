@@ -147,7 +147,7 @@ def do_normalize(author_key, best_key, authors):
     ol.save(author_key, a, 'merge authors')
 
 def has_image(key):
-    url = 'http://covers.openlibrary.org/a/query?olid=' + key[3:]
+    url = 'https://covers.openlibrary.org/a/query?olid=' + key[3:]
     ret = urlread(url).strip()
     return ret != '[]'
 

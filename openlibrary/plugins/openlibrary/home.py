@@ -49,18 +49,29 @@ class home(delegate.page):
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
-            user=user, loans=loans)
+            user=user, loans=loans,
+            popular_books=[],
+            waitlisted_books=[]
+        )
 
 
 @public
-def popular_carousel(limit=36):
+def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_size=100):
     """Renders a carousel of popular editions, which are available for
     reading or borrowing, from user lists (borrowable or downloadable;
     excludes daisy only).
 
     Args:
-        limit (int) - Load the popular carousel with how many items?
-        (preferably divisible by 6; number of books shown per page)
+        available_limit (int) - Load the popular carousel with how
+        many items?  (preferably divisible by 6; number of books shown
+        per page)
+
+        waitlist_limit (int)) - limit waitlist to how many books
+
+        loan_check_batch_size (int) - Bulk submits this many
+        archive.org itemids at a time to see if they are available to
+        be borrowed (only considers waitinglist and bookreader
+        borrows, no acs4)
 
     Selected Lists:
         popular.popular is a mapping of OL ids to archive.org identifiers
@@ -80,44 +91,70 @@ def popular_carousel(limit=36):
         most requested print disabled eBooks in California" displayed
         from the /lists page.
 
+    Popular List Construction:
+
+        https://github.com/internetarchive/openlibrary/pull/406#issuecomment-268090607
+        The expensive part about automatically checking the list seeds above
+        for availability is there's no apparent easy way to get ocaids for a
+        collection of editions at once. Thus, web.ctx.site.get needs be used
+        on each Edition (which is expensive) before a batch of editions can
+        be checked for availability. If we had the ocaids of list seeds upfront
+        and could query them in bulk, this would eliminate the problem.
+
+        As a work-around, we periodically create a flatfile cache of
+        the above list.seed keys mapped ahead of time to their ocaids
+        (i.e. `popular.popular`).
+
+        For steps on (re)generating `popular.popular`, see:
+        data.py  popular.generate_popular_list()
+
+        Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
+
     Returns:
-        A rendered html carousel with popular books.
+        returns a tuple (available_books, waitlisted_books)
+
     """
-    books = []
+    available_books = []
+    waitlisted_books = []
     seeds = popular.popular
 
-    while seeds and len(books) < limit:
-        batch = seeds[:100]
-        seeds = seeds[100:]
+    while seeds and len(available_books) < available_limit:
+        batch = seeds[:loan_check_batch_size]
+        seeds = seeds[loan_check_batch_size:]
         random.shuffle(batch)
 
         responses = lending.is_borrowable([seed[0] for seed in batch])
 
         for seed in batch:
             ocaid, key = seed
-            if len(books) == limit:
+            if len(available_books) == available_limit:
                 continue
-            if ocaid not in responses:
-                # If book is not accounted for, err on the side of inclusion
-                books.append(format_book_data(web.ctx.site.get(key)))
-            elif 'status' in responses[ocaid]:
-                if responses[ocaid]['status'] == 'available':
-                    books.append(format_book_data(web.ctx.site.get(key)))
 
-    return render_template("books/carousel", storify(books),
-                           id='CarouselPopular')
+            book_data = web.ctx.site.get(key)
+            if book_data:
+                book = format_book_data(book_data)
 
+                if ocaid not in responses:
+                    # If book is not accounted for, err on the side of inclusion
+                    available_books.append(book)
+                elif 'status' in responses[ocaid]:
+                    if responses[ocaid]['status'] == 'available':
+                        available_books.append(book)
+                    elif len(waitlisted_books) < waitlist_limit:
+                        waitlisted_books.append(book)
+    return storify(available_books), storify(waitlisted_books)
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
-    id = key.split("/")[-1] + "_carousel"
+    css_id = key.split("/")[-1] + "_carousel"
 
     data = format_list_editions(key)
     if randomize:
         random.shuffle(data)
     data = data[:limit]
     add_checkedout_status(data)
-    return render_template("books/carousel", storify(data), id=id)
+    return render_template(
+        "books/carousel", storify(data), id=css_id, pixel="CarouselList")
 
 def add_checkedout_status(books):
     """OBSOLETE -- will be deleted.
@@ -136,14 +173,19 @@ def add_checkedout_status(books):
         book['checked_out'] = checked_out
 
 @public
-def loans_carousel(loans=None, css_id="CarouselLoans"):
+def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
     """Generates 'Your Loans' carousel on home page"""
-    _loans = loans or []
-    books = [format_book_data(web.ctx.site.get(loan['book']))
-             for loan in _loans]
+    if not loans:
+        return ''
+    books = []
+    for loan in loans:
+        loan_book = web.ctx.site.get(loan['book'])
+        if loan_book:
+            books.append(format_book_data(loan_book))
     return render_template(
-        "books/carousel", storify(books), id=css_id
-    ) if books else ""
+        'books/carousel', storify(books), id=cssid, pixel=pixel
+    ) if books else ''
+
 
 @public
 def render_returncart(limit=60, randomize=True):
@@ -156,7 +198,7 @@ def render_returncart(limit=60, randomize=True):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
-    return render_template("books/carousel", storify(data), id="returncart_carousel")
+    return render_template("books/carousel", storify(data), id="returncart_carousel", pixel="CarouselReturns")
 
 def get_returncart(limit):
     if 'env' not in web.ctx:
@@ -172,7 +214,7 @@ def get_returncart(limit):
 get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
 
 @public
-def readonline_carousel(id="read-carousel"):
+def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.
     """
@@ -180,7 +222,8 @@ def readonline_carousel(id="read-carousel"):
         data = random_ebooks()
         if len(data) > 120:
             data = random.sample(data, 120)
-        return render_template("books/carousel", storify(data), id=id)
+        return render_template(
+            "books/carousel", storify(data), id=cssid, pixel=pixel)
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None
@@ -227,7 +270,7 @@ def random_ebooks(limit=2000):
 random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
 
 def format_list_editions(key):
-    """Formats the editions of the list suitable for display in carousel.
+    """Formats the editions of a list suitable for display in carousel.
     """
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -276,6 +319,7 @@ def format_book_data(book):
 
     ia_id = book.get("ocaid")
     if ia_id:
+        d.ocaid = ia_id
         collections = ia.get_meta_xml(ia_id).get("collection", [])
         if 'printdisabled' in collections or 'lendinglibrary' in collections:
             d.daisy_url = book.url("/daisy")

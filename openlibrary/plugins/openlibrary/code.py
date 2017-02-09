@@ -679,7 +679,7 @@ def wget(url):
 def get_cover_id(key):
     try:
         _, cat, oln = key.split('/')
-        return simplejson.loads(wget('http://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
+        return simplejson.loads(wget('https://covers.openlibrary.org/%s/query?olid=%s&limit=1' % (cat, oln)))[0]
     except (ValueError, IndexError, TypeError):
         return None
 
@@ -778,7 +778,8 @@ def setup_context_defaults():
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, events, status, merge_editions, authors
+    import home, inlibrary, borrow_home, libraries, stats, support, \
+        events, status, merge_editions, authors
 
     home.setup()
     inlibrary.setup()
@@ -792,8 +793,6 @@ def setup():
     authors.setup()
 
     import api
-    api.setup()
-
     from stats import stats_hook
     delegate.app.add_processor(web.unloadhook(stats_hook))
 

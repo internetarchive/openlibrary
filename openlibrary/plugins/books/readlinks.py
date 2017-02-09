@@ -182,9 +182,9 @@ class ReadProcessor:
             # can be rewrit in terms of iaid
             # XXX covers url from yaml?
             result['cover'] = {
-                "small": "http://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
-                "medium": "http://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
-                "large": "http://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
+                "small": "https://covers.openlibrary.org/b/id/%s-S.jpg" % cover_id,
+                "medium": "https://covers.openlibrary.org/b/id/%s-M.jpg" % cover_id,
+                "large": "https://covers.openlibrary.org/b/id/%s-L.jpg" % cover_id,
                 }
 
         return result

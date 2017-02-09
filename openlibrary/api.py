@@ -126,7 +126,7 @@ class OpenLibrary:
         headers = {'Content-Type': 'application/json'}
         data = marshal(data)
         if comment:
-            headers['Opt'] = '"http://openlibrary.org/dev/docs/api"; ns=42'
+            headers['Opt'] = '"https://openlibrary.org/dev/docs/api"; ns=42'
             headers['42-comment'] = comment
         data = simplejson.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).read()
@@ -137,7 +137,7 @@ class OpenLibrary:
 
         # use HTTP Extension Framework to add custom headers. see RFC 2774 for more details.
         if comment or action:
-            headers['Opt'] = '"http://openlibrary.org/dev/docs/api"; ns=42'
+            headers['Opt'] = '"https://openlibrary.org/dev/docs/api"; ns=42'
         if comment:
             headers['42-comment'] = comment
         if action:

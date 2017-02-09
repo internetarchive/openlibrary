@@ -34,9 +34,9 @@ class Test_ils_search:
             'olid': 'OL1M',
             'key': '/books/OL1M',
             'cover': {
-                'small': 'http://covers.openlibrary.org/b/id/12345-S.jpg',
-                'medium': 'http://covers.openlibrary.org/b/id/12345-M.jpg',
-                'large': 'http://covers.openlibrary.org/b/id/12345-L.jpg',
+                'small': 'https://covers.openlibrary.org/b/id/12345-S.jpg',
+                'medium': 'https://covers.openlibrary.org/b/id/12345-M.jpg',
+                'large': 'https://covers.openlibrary.org/b/id/12345-L.jpg',
             }
         }
 

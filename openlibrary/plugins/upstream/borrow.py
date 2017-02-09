@@ -74,6 +74,30 @@ bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 ########## Page Handlers
 
 # Handler for /books/{bookid}/{title}/borrow
+class checkout_with_ocaid(delegate.page):
+
+    path = "/borrow/ia/(.*)"
+
+    def GET(self, ocaid):
+        """Redirect shim: Translate an IA identifier into an OL identifier and
+        then redirects user to the canonical OL borrow page.
+        """
+        print(ocaid)
+        ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
+        print(ia_edition.location)
+        edition = web.ctx.site.get(ia_edition.location)
+        url = '%s/x/borrow' % (edition.key)
+        raise web.seeother(url)
+
+    def POST(self, ocaid):
+        """Redirect shim: Translate an IA identifier into an OL identifier and
+        then forwards a borrow request to the canonical borrow
+        endpoint with this OL identifier.
+        """
+        ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
+        borrow().POST(ia_edition.location)
+
+# Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
     path = "(/books/.*)/borrow"
 
@@ -155,19 +179,20 @@ class borrow(delegate.page):
                     resource_type=resource_type,
                     user_key=user.key,
                     book_key=key)
-                loan_link = loan['loan_link']
 
-                if resource_type == 'bookreader':
-                    stats.increment('ol.loans.bookreader')
-                elif resource_type == 'pdf':
-                    stats.increment('ol.loans.pdf')
-                elif resource_type == 'epub':
-                    stats.increment('ol.loans.epub')
-
-                if resource_type == 'bookreader':
-                    raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                if loan:
+                    loan_link = loan['loan_link']
+                    if resource_type == 'bookreader':
+                        stats.increment('ol.loans.bookreader')
+                        raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                    elif resource_type == 'pdf':
+                        stats.increment('ol.loans.pdf')
+                        raise web.seeother(loan_link)
+                    elif resource_type == 'epub':
+                        stats.increment('ol.loans.epub')
+                        raise web.seeother(loan_link)
                 else:
-                    raise web.seeother(loan_link)
+                    raise web.seeother(error_redirect)
             else:
                 # Send to the borrow page
                 raise web.seeother(error_redirect)
@@ -216,7 +241,7 @@ class borrow(delegate.page):
 
     def POST_join_waitinglist(self, edition, user):
         waitinglist.join_waitinglist(user.key, edition.key)
-        raise web.redirect(edition.url("/borrow"))
+        raise web.redirect(edition.url())
 
     def POST_leave_waitinglist(self, edition, user, i):
         waitinglist.leave_waitinglist(user.key, edition.key)
@@ -230,7 +255,7 @@ class borrow_status(delegate.page):
     path = "(/books/.*)/_borrow_status"
 
     def GET(self, key):
-    	global lending_subjects
+        global lending_subjects
 
         i = web.input(callback=None)
 
@@ -250,10 +275,10 @@ class borrow_status(delegate.page):
                     subjects.add(subject)
 
         output = {
-        	'id' : key,
-        	'loan_available': loan_available,
-        	'available_formats': available_formats,
-        	'lending_subjects': [lending_subject for lending_subject in subjects]
+                'id' : key,
+                'loan_available': loan_available,
+                'available_formats': available_formats,
+                'lending_subjects': [lending_subject for lending_subject in subjects]
         }
 
         output_text = simplejson.dumps( output )

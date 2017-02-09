@@ -27,12 +27,13 @@ import recentchanges
 import merge_authors
 
 if not config.get('coverstore_url'):
-    config.coverstore_url = "http://covers.openlibrary.org"
+    config.coverstore_url = "https://covers.openlibrary.org"
 
 class static(delegate.page):
     path = "/images/.*"
     def GET(self):
-        raise web.seeother('/static/' + web.ctx.path)
+        host = 'https://%s' % web.ctx.host if 'openlibrary.org' in web.ctx.host else ''
+        raise web.seeother(host + '/static' + web.ctx.path)
 
 # handlers for change photo and change cover
 

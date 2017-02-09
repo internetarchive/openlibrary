@@ -175,7 +175,9 @@ $ publishers = (', '.join(book.publishers))
             <tbody>
                 $:display_identifiers("Open Library", [storage(url=None, value=book.key.split("/")[-1])])
                 $for name, values in book.get_identifiers().multi_items():
-                    $:display_identifiers(values[0].label, values)
+                    $ identifier_label = values[0].label
+                    $if not (book.is_in_private_collection() and identifier_label == 'Internet Archive'):
+                        $:display_identifiers(identifier_label, values)
             </tbody>
             </table>
             $:display_goodreads("Open Library", [storage(url=None, value=book.key.split("/")[-1])])
