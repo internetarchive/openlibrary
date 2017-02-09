@@ -5,31 +5,60 @@ import random
 import urllib
 import uuid
 import datetime, time
+import simplejson
 
 from infogami.utils import delegate
 from infogami import config
-from infogami.utils.view import require_login, render, render_template, add_flash_message
+from infogami.utils.view import (
+    require_login, render, render_template, add_flash_message
+)
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary.i18n import gettext as _
-from openlibrary.core import helpers as h
+from openlibrary.core import helpers as h, lending
+from openlibrary.plugins.recaptcha import recaptcha
+
 from openlibrary import accounts
+from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount
 import forms
 import utils
 import borrow
-
-from openlibrary.plugins.recaptcha import recaptcha
 
 
 logger = logging.getLogger("openlibrary.account")
 
 # XXX: These need to be cleaned up
-Account = accounts.Account
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
+
+
+class unlink(delegate.page):
+    path = "/internal/account/unlink"
+
+    def GET(self):
+        """Internal API endpoint used for authorized test cases and
+        administrators to unlink linked OL and IA accounts.
+        """
+        i = web.input(email='', itemname='', key='')
+        if i.key != lending.config_internal_tests_api_key:
+            result = {'error': 'Authentication failed for private API'}
+        else:
+            try:
+                result = OpenLibraryAccount.get(email=i.email, link=i.itemname)
+                if result is None:
+                    raise ValueError('Invalid Open Library account email ' \
+                                     'or itemname')
+                    result.enc_password = 'REDACTED'
+                result.unlink()
+            except ValueError as e:
+                result = {'error': str(e)}
+
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
 
 class account(delegate.page):
     """Account preferences.
@@ -112,7 +141,8 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(remember=False, redirect='/', action="login")
+        i = web.input(email='', connect=None, remember=False,
+                      redirect='/', action="login")
 
         if i.action == "resend_verification_email":
             return self.POST_resend_verification_email(i)
@@ -125,33 +155,40 @@ class account_login(delegate.page):
         f.note = utils.get_error(name)
         return render.login(f)
 
+    def error_check(self, audit, i):
+        if 'error' in audit:
+            error = audit['error']
+            if error == "account_not_verified":
+                return render_template(
+                    "account/not_verified", username=account.username,
+                    password=i.password, email=account.email)
+            elif error == "account_not_found":
+                return self.error("account_user_notfound", i)
+            elif error == "account_blocked":
+                return self.error("account_blocked", i)
+            else:
+                return self.error(audit['error'], i)
+        if not audit['link']:
+            # This needs to be overriden w/ `test`
+            return self.error("accounts_not_connected", i)
+        return None
+
     def POST_login(self, i):
-        # make sure the username is valid
-        if not forms.vlogin.valid(i.username):
-            return self.error("account_user_notfound", i)
+        i = web.input(username="", password="", remember=False, redirect='')
 
-        # Try to find account with exact username, failing which try for case variations.
-        account = accounts.find(username=i.username) or accounts.find(lusername=i.username)
-
-        if not account:
-            return self.error("account_user_notfound", i)
+        audit = audit_accounts(i.username, i.password)
+        errors = self.error_check(audit, i)
+        if errors:
+            return errors
 
         if i.redirect == "/account/login" or i.redirect == "":
             i.redirect = "/"
 
-        status = account.login(i.password)
-        if status == 'ok':
-            expires = (i.remember and 3600*24*7) or ""
-            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
-            raise web.seeother(i.redirect)
-        elif status == "account_not_verified":
-            return render_template("account/not_verified", username=account.username, password=i.password, email=account.email)
-        elif status == "account_not_found":
-            return self.error("account_user_notfound", i)
-        elif status == "account_blocked":
-            return self.error("account_blocked", i)
-        else:
-            return self.error("account_incorrect_password", i)
+        expires = (i.remember and 3600 * 24 * 7) or ""
+
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
+                      expires=expires)
+        raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
         try:
@@ -369,6 +406,59 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
+
+class account_connect(delegate.page):
+
+    path = "/account/connect"
+
+    def POST(self):
+        """When a user logs in with either an OL or IA account which have not
+        been linked, and if the user's credentials for this account
+        have been verified, the next step is for the user to (a)
+        connect their account to an account for whichever service is
+        missing, or (b) to create a new account for this service and
+        then link them. The /account/connect endpoint handles this
+        linking case and dispatches to the correct method (either
+        'link' or 'create' depending on the parameters POSTed to the
+        endpoint).
+        """
+
+        i = web.input(email="", password="", username="",
+                      bridgeEmail="", bridgePassword="",
+                      token="", service="link")
+        test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
+        if i.service == "link":
+            result = link_accounts(i.get('email').lower(), i.password,
+                                   bridgeEmail=i.bridgeEmail.lower(),
+                                   bridgePassword=i.bridgePassword)
+        elif i.service == "create":
+            result = create_accounts(i.get('email').lower(), i.password,
+                                   username=i.username, test=test)
+        else:
+            result = {'error': 'invalid_option'}
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
+
+class account_audit(delegate.page):
+
+    path = "/account/audit"
+
+    def POST(self):
+        """When the user attempts a login, an audit is performed to determine
+        whether their account is already linked (in which case we can
+        proceed to log the user in), whether there is an error
+        authenticating their account, or whether a /account/connect
+        must first performed.
+        """
+        i = web.input(email='', password='')
+        test = i.get('test', '').lower() == 'true'
+        email = i.get('email').lower()
+        password = i.get('password')
+        result = audit_accounts(email, password, test=test)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
@@ -412,9 +502,6 @@ class account_others(delegate.page):
         return render.notfound(path, create=False)
 
 
-####
-
-
 def send_email_change_email(username, email):
     key = "account/%s/email" % username
 
@@ -425,6 +512,7 @@ def send_email_change_email(username, email):
     msg = render_template("email/email/verify", username=username, email=email, link=link)
     sendmail(email, msg)
 
+
 def send_forgot_password_email(username, email):
     key = "account/%s/password" % username
 
@@ -434,8 +522,6 @@ def send_forgot_password_email(username, email):
     link = web.ctx.home + "/account/password/reset/" + doc['code']
     msg = render_template("email/password/reminder", username=username, link=link)
     sendmail(email, msg)
-
-
 
 
 def as_admin(f):
