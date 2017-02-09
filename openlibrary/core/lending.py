@@ -65,13 +65,12 @@ def setup(config):
     else:
         logger.error('content_server unassigned')
 
+    config_loanstatus_url = config.get('loanstatus_url')
+    config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
     config_ia_availability_api_url = config.get('ia_availability_api_url') 
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
-
-    config_loanstatus_url = config.get('loanstatus_url')
     config_ia_access_secret = config.get('ia_access_secret')
-    config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
