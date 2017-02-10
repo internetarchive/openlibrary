@@ -987,6 +987,213 @@ div#headerLogin {
 #headerLogin #headerUserOpen a {display:block;white-space:nowrap;line-height:24px;padding:0 7px;}
 #headerLogin #headerUserOpen a:hover {background-color:#bcb599;}
 
+/* MIGRATE MODAL */
+
+.modal-overlay {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 9999; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+.modal-content {
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-size: 14px;
+    border-radius: 10px;
+    background-color: #fefefe;
+    margin: 150px auto 15% auto; /* 15% from the top and centered */
+    border: 1px solid #888;
+    width: 350px;
+}
+
+.modal-header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 0px 20px;
+    background-color: #e8e8e8;
+    border-bottom: 1px solid #ccc;
+}
+
+.modal-header-copy-b {
+    display: none;
+}
+
+.modal-header-copy-c {
+    display: none;
+}
+
+.modal-header-copy {
+    text-shadow: 0 1px 0 #fff;
+}
+
+.modal-header-copy h2 {
+    text-align: center;
+    color: #333;
+    text-shadow: 0 1px 0 #fff;
+    font-size: 17px;
+    margin: 10px 0px 0px 0px;
+    font-weight: bold;
+}
+
+.modal-header-copy p {
+    color: #555;
+}
+
+.modal-content a {
+    color: #036daa;
+}
+
+.modal-icon {
+    position: relative;
+    top: -25px;
+    width: 60px;
+    height: 45px;
+    margin: 0 auto;
+}
+
+.modal-icon img {
+    width: 60px;
+    border-radius: 50%;
+    box-shadow: inset 0 1px 0 0 hsla(0,0%,100%,.1);
+    box-shadow: 0px 0px 1px #000;
+    border: 3px solid #fff;
+}
+
+.formFieldsDecoration.error {
+    padding: 5px;
+    background-color: #000;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    background-color: rgba(244, 67, 54, 0.52); //#F44336;
+}
+
+.formFieldsDecoration.error #bridgeUsername {
+    background-color: rgba(244, 67, 54, 0.17);
+}
+
+.formFieldsErrorMsg {
+    padding: 0px 10px;
+    color: #fff;
+    font-size: 14px;
+}
+
+.modal-x {
+    color: #aaa;
+    float: right;
+    font-size: 20px;
+    position: relative;
+    right: -8px;
+    margin-top: 8px;
+}
+
+.modal-x:hover,
+.modal-x:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-body {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    background-color: #f7f7f7;
+    padding: 20px;
+    border-top: 1px solid #fff;
+    -webkit-transition: all .35s cubic-bezier(.52,0,.27,1.01);
+    transition: all .35s cubic-bezier(.52,0,.27,1.01);
+}
+
+.modal-body ul {
+    margin-left: 20px;
+}
+
+.modal-body ul li a {
+    line-height: 2.5em;
+    cursor: pointer;
+}
+
+.modal-create-form {
+    display: none;
+}
+
+.modal-connect-form {
+    display: none;
+}
+
+.modal-form {
+    margin-bottom: 15px;
+}
+
+.modal-form .formFields {
+    background-color: #fff;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+}
+
+.modal-form input {
+    padding: 10px;
+    box-sizing : border-box;
+    background-color: transparent;
+    webkit-text-fill-color: transparent !important;
+    border: none;
+    width: 100%;
+    margin: 0px;
+}
+
+.modal-form input.fake {
+    display: none;
+}
+
+.modal-form .inputbr {
+    border-bottom: 1px solid #ddd;
+}
+
+.modal-form input:-webkit-autofill {
+    background-color: transparent !important;
+    webkit-text-fill-color: transparent !important;
+}
+
+.modal-form button {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: #3498db;
+    background-image: -webkit-linear-gradient(top, #3498db, #2980b9);
+    background-image: -moz-linear-gradient(top, #3498db, #2980b9);
+    background-image: -ms-linear-gradient(top, #3498db, #2980b9);
+    background-image: -o-linear-gradient(top, #3498db, #2980b9);
+    background-image: linear-gradient(to bottom, #3498db, #2980b9);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    font-family: Arial;
+    color: #ffffff;
+    font-size: 16px;
+    padding: 10px 20px 10px 20px;
+    text-decoration: none;
+}
+
+.modal-form button:hover {
+    background: #3cb0fd;
+    background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+    background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
 /* FOOTER */
 
 div.footerNav {

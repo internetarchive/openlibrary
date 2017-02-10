@@ -5,15 +5,28 @@ import time
 import datetime
 import hmac
 import random
+import simplejson
 import uuid
+import urllib
+import urllib2
 
+import lepl.apps.rfc3696
 import web
 
 from infogami import config
 from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
+
+from openlibrary.core import stats
+from openlibrary.core import lending
 from openlibrary.core import helpers as h
 
+
+def append_random_suffix(text, limit=9999):
+    return '%s%s' % (text, random.randint(0, limit))
+
+def valid_email(email):
+    return lepl.apps.rfc3696.Email()(email)
 
 def sendmail(to, msg, cc=None):
     cc = cc or []
@@ -27,7 +40,8 @@ def sendmail(to, msg, cc=None):
 
         print >> web.debug, "sending email", message
     else:
-        web.sendmail(config.from_address, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
+        web.sendmail(config.from_address, to, subject=msg.subject.strip(),
+                     message=web.safestr(msg), cc=cc)
 
 def verify_hash(secret_key, text, hash):
     """Verifies if the hash is generated
@@ -159,7 +173,7 @@ class Account(web.storage):
 
     def is_blocked(self):
         """Tests if this account is blocked."""
-        return self.status == "blocked"
+        return getattr(self, 'status', '') == "blocked"
 
     def login(self, password):
         """Tries to login with the given password and returns the status.
@@ -167,7 +181,7 @@ class Account(web.storage):
         The return value can be one of the following:
 
             * ok
-            * account_not_vefified
+            * account_not_verified
             * account_not_found
             * account_incorrect_password
             * account_blocked
@@ -238,7 +252,8 @@ class Account(web.storage):
     def get_links(self):
         """Returns all the verification links present in the database.
         """
-        return web.ctx.site.store.values(type="account-link", name="username", value=self.username)
+        return web.ctx.site.store.values(type="account-link", name="username",
+                                         value=self.username)
 
     def get_tags(self):
         """Returns list of tags that this user has.
@@ -267,3 +282,539 @@ class Account(web.storage):
         """
         self.bot = flag
         self._save()
+
+    @property
+    def itemname(self):
+        """Retrieves the Archive.org itemname which links Open Library and
+        Internet Archive accounts
+        """
+        return getattr(self, 'internetarchive_itemname', None)
+
+    def get_linked_ia_account(self):
+        link = self.itemname
+        return InternetArchiveAccount.get(itemname=link) if link else None
+
+class OpenLibraryAccount(Account):
+
+    @classmethod
+    def create(cls, username, email, password, displayname=None,
+               verified=False, retries=0, test=False):
+        """
+        Args:
+            username (unicode) - the username (slug) of the account.
+                                 Usernames must be unique
+            email (unicode) - the login and email of the account
+            password (unicode)
+            displayname (unicode) - human readable, changable screenname
+            retries (int) - If the username is unavailable, how many
+                            subsequent attempts should be made to find
+                            an available username.
+        """
+        if cls.get(email=email):
+            raise ValueError('email_registered')
+
+        username = username[1:] if username[0] == '@' else username
+        displayname = displayname or username
+
+        # tests whether a user w/ this username exists
+        _user = cls.get(username=username)
+        new_username = username
+        attempt = 0
+        while _user:
+            if attempt >= retries:
+                ve = ValueError('username_registered')
+                ve.value = username
+                raise ve
+
+            new_username = append_random_suffix(username)
+            attempt += 1
+            _user = cls.get(username=new_username)
+        username = new_username
+        if test:
+            return cls(**{'itemname': '@' + username,
+                          'email': email,
+                          'username': username,
+                          'displayname': displayname,
+                          'test': True
+                      })
+        try:
+            account = web.ctx.site.register(
+                username=username,
+                email=email,
+                password=password,
+                displayname=displayname)
+        except ClientException as e:
+            raise ValueError('something_went_wrong')
+
+        if verified:
+            key = "account/%s/verify" % username
+            doc = create_link_doc(key, username, email)
+            web.ctx.site.store[key] = doc
+            web.ctx.site.activate_account(username=username)
+
+        ol_account = cls.get(email=email)
+        return ol_account
+
+    @classmethod
+    def get(cls, link=None, email=None, username=None,  test=False):
+        """Utility method retrieve an openlibrary account by its email,
+        username or archive.org itemname (i.e. link)
+        """
+        if link:
+            return cls.get_by_link(link, test=test)
+        elif email:
+            return cls.get_by_email(email, test=test)
+        elif username:
+            return cls.get_by_username(username, test=test)
+        raise ValueError("Open Library email or Archive.org itemname required.")
+
+    @classmethod
+    def get_by_username(cls, username, test=False):
+        """Retrieves and OpenLibraryAccount by username if it exists or """
+        match = web.ctx.site.store.values(
+            type="account", name="username", value=username, limit=1)
+
+        if len(match):
+            return cls(match[0])
+
+        lower_match = web.ctx.site.store.values(
+            type="account", name="lusername", value=username, limit=1)
+
+        if len(lower_match):
+            return cls(lower_match[0])
+
+        return None
+
+    @classmethod
+    def get_by_link(cls, link, test=False):
+        ol_accounts = web.ctx.site.store.values(
+            type="account", name="internetarchive_itemname", value=link)
+        return cls(ol_accounts[0]) if ol_accounts else None
+
+    @classmethod
+    def get_by_email(cls, email, test=False):
+        """the email stored in account doc is case-sensitive.
+        The lowercase of email is used in the account-email document.
+        querying that first and taking the username from there to make
+        the email search case-insensitive.
+
+        There are accounts with case-variation of emails. To handle
+        those, searching with the original case and using lower case
+        if that fails.
+        """
+        email_doc = (web.ctx.site.store.get("account-email/" + email) or
+                     web.ctx.site.store.get("account-email/" + email.lower()))
+        if email_doc and 'username' in email_doc:
+            doc = web.ctx.site.store.get("account/" + email_doc['username'])
+            return cls(doc) if doc else None
+        return None
+
+    @property
+    def verified(self):
+        return not (getattr(self, 'status', '') == 'pending')
+
+    @property
+    def blocked(self):
+        return getattr(self, 'status', '') == 'blocked'
+
+    def unlink(self):
+        """Careful, this will save any other changes to the ol user object as
+        well
+        """
+        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account['internetarchive_itemname'] = None
+        web.ctx.site.store[self._key] = _ol_account
+        self.internetarchive_itemname = None
+        stats.increment('ol.account.xauth.unlinked')
+
+    def link(self, itemname):
+        """Careful, this will save any other changes to the ol user object as
+        well
+        """
+        _ol_account = web.ctx.site.store.get(self._key)
+        _ol_account['internetarchive_itemname'] = itemname
+        web.ctx.site.store[self._key] = _ol_account
+        self.internetarchive_itemname = itemname
+        stats.increment('ol.account.xauth.linked')
+
+    @classmethod
+    def authenticate(cls, email, password, test=False):
+        ol_account = cls.get(email=email, test=test)
+        if not ol_account:
+            return "account_not_found"
+        if ol_account.is_blocked():
+            return "account_blocked"
+        try:
+            web.ctx.site.login(ol_account.username, password)
+        except ClientException, e:
+            code = e.get_data().get("code")
+            return code
+        else:
+            return "ok"
+
+
+class InternetArchiveAccount(web.storage):
+
+    def __init__(self, **kwargs):
+        for k in kwargs:
+            setattr(self, k, kwargs[k])
+
+    @classmethod
+    def create(cls, screenname, email, password, retries=0,
+               verified=False, test=None):
+        """
+        Args:
+            screenname (unicode) - changable human readable archive.org username.
+                                   The slug / itemname is generated automatically
+                                   from this value.
+            email (unicode)
+            password (unicode)
+            retries (int) - If the username is unavailable, how many
+                            subsequent attempts should be made to find
+                            an available username.
+        """
+
+        screenname = screenname[1:] if screenname[0] == '@' else screenname
+
+        if cls.get(email=email):
+            raise ValueError('email_registered')
+
+        _screenname = screenname
+        attempt = 0
+        while True:
+            response = cls.xauth(
+                'create', test=test, email=email, password=password,
+                screenname=_screenname, verified=verified)
+
+            if response.get('success'):
+                ia_account = cls.get(email=email)
+                if test:
+                    ia_account.test = True
+                return ia_account
+
+            elif 'screenname' not in response.get('values', {}):
+                errors = '_'.join(response.get('values', {}))
+                raise ValueError(errors)
+
+            elif attempt >= retries:
+                ve = ValueError('username_registered')
+                ve.value = _screenname
+                raise ve
+
+            _screenname = append_random_suffix(screenname)
+            attempt += 1
+
+    @classmethod
+    def xauth(cls, service, test=None, **data):
+        url = "%s?op=%s" % (lending.config_ia_xauth_api_url, service)
+        data.update({
+            'access': lending.config_ia_ol_xauth_s3.get('s3_key'),
+            'secret': lending.config_ia_ol_xauth_s3.get('s3_secret')
+        })
+        payload = simplejson.dumps(data)
+        if test:
+            url += "&developer=%s" % test
+        try:
+            req = urllib2.Request(url, payload, {
+                'Content-Type': 'application/json'})
+            f = urllib2.urlopen(req)
+            response = f.read()
+            f.close()
+        except urllib2.HTTPError as e:
+            try:
+                response = e.read()
+            except simplejson.decoder.JSONDecodeError:
+                return {'error': e.read(), 'code': e.code}
+        return simplejson.loads(response)
+
+    @classmethod
+    def get(cls, email, test=False, _json=False):
+        response = cls.xauth(email=email, test=test, service="info")
+        if 'success' in response:
+            values = response.get('values', {})
+            return values if _json else cls(**values)
+
+    @classmethod
+    def authenticate(cls, email, password, test=False):
+        response = cls.xauth('authenticate', test=test, **{
+            "email": email,
+            "password": password
+        })
+        return ("ok" if response.get('success') else
+                response.get('values', {}).get('reason'))
+
+
+def audit_accounts(email, password, test=False):
+    """Performs an audit of the IA or OL account having this email.
+
+    The audit:
+    - verifies the password is correct for this account
+    - aborts if any sort of error (e.g. account blocked, unverified)
+    - reports whether the account is linked (to a secondary account)
+    - if unlinked, reports whether a secondary account exists w/
+      matching email
+
+    Args:
+        email (unicode)
+        password (unicode)
+        test (bool) - not currently used; is there to allow testing in
+                      the absence of archive.org dependency
+    """
+
+    if not valid_email(email):
+        return {'error': 'invalid_email'}
+
+    audit = {
+        'authenticated': False,
+        'has_ia': False,
+        'has_ol': False,
+        'link': False
+    }
+
+    ol_login = OpenLibraryAccount.authenticate(email, password)
+    ia_login = InternetArchiveAccount.authenticate(email, password)
+
+    if any([err in (ol_login, ia_login) for err
+            in ['account_blocked', 'account_locked']]):
+        return {'error': 'account_blocked'}
+
+    # One of the accounts must authenticate w/o error
+    if "ok" not in (ol_login, ia_login):
+        for resp in (ol_login, ia_login):
+            if resp != "account_not_found":
+                return {'error': resp}
+        return {'error': 'account_not_found'}
+
+    elif ia_login == "ok":
+        ia_account = InternetArchiveAccount.get(email=email, test=test)
+
+        audit['authenticated'] = 'ia'
+        audit['has_ia'] = email
+
+        # Get the OL account which links to this IA account, if
+        # one exists (i.e. this IA account could be linked to an
+        # OL account with a different email)
+        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
+        link = ol_account.itemname if ol_account else None
+
+        # If no linked account was found but there's an ol_account
+        # having the same email as this IA account, mark them to
+        # be linked
+        if not link:
+            ol_account = OpenLibraryAccount.get(email=email, test=test)
+            link = ia_account.itemname if ol_account else None
+
+        # So long as there's either a linked OL account, or an OL
+        # account with the same email, set them as linked (and let the
+        # finalize logic link them, if necessary)
+        if ol_account:
+            if not ol_account.verified:
+                return {'error': 'account_not_verified'}
+            if ol_account.blocked:
+                return {'error': 'account_blocked'}
+            audit['link'] = link
+            audit['has_ol'] = ol_account.email
+
+            # When a user logs in with OL credentials, the
+            # web.ctx.site.login() is called with their OL user
+            # credentials, which internally sets an auth_token
+            # enabling the user's session.  The web.ctx.site.login
+            # method requires OL credentials which are not present in
+            # the case where a user logs in with their IA
+            # credentials. As a result, when users login with their
+            # valid IA credentials, the following kludge allows us to
+            # fetch the OL account linked to their IA account, bypass
+            # this web.ctx.site.login method (which requires OL
+            # credentials), and directly set an auth_token to
+            # enable the user's session.
+            web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+
+    elif ol_login == "ok":
+        ol_account = OpenLibraryAccount.get(email=email, test=test)
+        audit['authenticated'] = 'ol'
+        audit['has_ol'] = email
+
+        ia_account = InternetArchiveAccount.get(email=email, test=test)
+
+        # Should get the IA account linked to this OL account, if one
+        # exists. However, xauthn API doesn't yet support `info` by
+        # itemname. Fortunately, we have all the info we need at this
+        # stage for the client to be satisfied.
+        if ol_account.itemname:
+            audit['has_ia'] = ol_account.itemname  # XXX should be email
+            audit['link'] = ol_account.itemname
+            return audit  # special case; unable to get ia acc
+
+        # If the OL account is not linked but there exists an IA
+        # account having the same email,
+        elif ia_account:
+            if not ia_account.verified:
+                return {'error': 'account_not_verified'}
+            if ia_account.locked:
+                return {'error': 'account_blocked'}
+            audit['has_ia'] = ia_account.itemname
+            audit['link'] = ia_account.itemname
+
+    # Links the accounts if they can be and are not already:
+    if (audit['has_ia'] and audit['has_ol'] and audit['authenticated']):
+        ol_account = OpenLibraryAccount.get(email=audit['has_ol'], test=test)
+        if not ol_account.itemname:
+            ol_account.link(audit['link'])
+            stats.increment('ol.account.xauth.auto-linked')
+
+    return audit
+
+def create_accounts(email, password, username="", test=False):
+    """Retrieves the IA or OL account having correct email and password
+    credentials
+    """
+    retries = 0 if test else 10
+    audit = audit_accounts(email, password)
+
+    if 'error' in audit or (audit['link'] and audit['authenticated']):
+        return audit
+
+    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
+                  if audit.get('has_ia', False) else None)
+    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
+                  if audit.get('has_ol', False) else None)
+
+    # Make sure at least one account exists
+    # XXX should never get here, move to audit
+    if ia_account and ol_account:
+        if not audit['link']:
+            if ia_account.locked or ol_account.blocked():
+                return {'error': 'account_blocked'}
+            audit['link'] = ia_account.itemname
+            ol_account.link(ia_account.itemname)
+            stats.increment('ol.account.xauth.auto-linked')
+        return audit
+    elif not (ia_account or ol_account):
+        return {'error': 'account_not_found'}
+
+    # Create and link new account
+    if email and password:
+        if ol_account:
+            try:
+                ol_account_username = (
+                    username or ol_account.displayname
+                    or ol_account.username)
+
+                ia_account = InternetArchiveAccount.create(
+                    ol_account_username, email, password,
+                    retries=retries, verified=True, test=test)
+
+                audit['link'] = ia_account.itemname
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                if not test:
+                    ol_account.link(ia_account.itemname)
+                    stats.increment('ol.account.xauth.ol-created-ia')
+                return audit
+            except ValueError as e:
+                return {'error': 'max_retries_exceeded', 'msg': str(e)}
+        elif ia_account:
+            try:
+                # always take screen name
+                ia_account_screenname = ia_account.screenname
+                ia_account_itemname = ia_account.itemname
+                ol_account = OpenLibraryAccount.create(
+                    ia_account_itemname, email, password,
+                    displayname=ia_account_itemname,
+                    retries=retries, verified=True, test=test)
+                audit['has_ol'] = ol_account.email
+                audit['has_ia'] = ia_account.email
+                audit['link'] = ia_account.itemname
+                if not test:
+                    ol_account.link(ia_account.itemname)
+                    stats.increment('ol.account.xauth.ia-created-ol')
+                return audit
+            except ValueError as e:
+                return {'error': 'max_retries_exceeded', 'msg': str(e)}
+        return {'error': 'account_not_found'}
+    return {'error': 'missing_fields'}
+
+
+def link_accounts(email, password, bridgeEmail="", bridgePassword="",
+                  test=False):
+    """Takes the correct email and password for an archive.org or
+    openlibrary.org account and then links this account to an existing
+    account for the complimentary service (using the bridge credentials)
+
+    Args:
+        email (unicode) - the email of the user's primary account
+        password (unicode) - the password for the user's primary account
+        bridgeEmail (unicode) - the email of the secondary account which
+                                to connect
+        bridgePassword (unicode) - the password of the secondary
+                                   account to connect
+        test (bool) - isn't currently used in the link_accounts case
+                      because linking is a safely reversable operation.
+                      Test *is* used in the create_accounts case
+                      (where it prevents real accounts from being
+                      created)
+    """
+    audit = audit_accounts(email, password)
+
+    if 'error' in audit or (audit['link'] and audit['authenticated']):
+        return audit
+
+    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
+                  if audit.get('has_ia', False) else None)
+    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
+                  if audit.get('has_ol', False) else None)
+
+    # Make sure at least one account exists
+    # XXX should never get here, move to audit
+    if ia_account and ol_account:
+        if not audit['link']:
+            if ia_account.locked or ol_account.blocked():
+                return {'error': 'account_blocked'}
+            audit['link'] = ia_account.itemname
+            ol_account.link(ia_account.itemname)
+            if not test:
+                stats.increment('ol.account.xauth.auto-linked')
+        return audit
+    elif not (ia_account or ol_account):
+        return {'error': 'account_not_found'}
+
+    # Link existing accounts
+    if bridgeEmail and bridgePassword:
+        if not valid_email(bridgeEmail):
+            return {'error': 'invalid_bridgeEmail'}
+        if ol_account:
+            _res = InternetArchiveAccount.authenticate(
+                email=bridgeEmail, password=bridgePassword, test=test)
+            if _res == "ok":
+                ia_account = InternetArchiveAccount.get(
+                    email=bridgeEmail, test=test)
+                if OpenLibraryAccount.get_by_link(ia_account.itemname):
+                    return {'error': 'account_already_linked'}
+
+                ol_account.link(ia_account.itemname)
+                audit['link'] = ia_account.itemname
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                if not test:
+                    stats.increment('ol.account.xauth.ol-existing-ia')
+                return audit
+            return {'error': _res}
+        elif ia_account:
+            _resp = OpenLibraryAccount.authenticate(
+                bridgeEmail, bridgePassword)
+            if _resp == "ok":
+                ol_account = OpenLibraryAccount.get(
+                    email=bridgeEmail, test=test)
+                if ol_account.itemname:
+                    return {'error': 'account_already_linked'}
+
+                audit['has_ia'] = ia_account.email
+                audit['has_ol'] = ol_account.email
+                audit['link'] = ia_account.itemname
+                ol_account.link(ia_account.itemname)
+                if not test:
+                    stats.increment('ol.account.xauth.ia-existing-ol')
+                return audit
+            return {'error': _resp}
+        return {'error': 'account_not_found'}
+    return {'error': 'missing_fields'}

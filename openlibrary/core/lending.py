@@ -36,19 +36,25 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
-IA_API_URL = "https://archive.org/services/openlibrary.php"
-AVAILABILITY_API = 'https://archive.org/services/loans/beta/loan/index.php'
-
+config_ia_loan_api_url = None
+config_ia_xauth_api_url = None
+config_ia_availability_api_url = None
+config_ia_access_secret = None
+config_ia_ol_shared_key = None
+config_ia_ol_xauth_s3 = None
 config_content_server = None
 config_loanstatus_url = None
-config_ia_access_secret = None
 config_bookreader_host = None
-config_ia_ol_shared_key = None
+config_internal_tests_api_key = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
     """
-    global config_content_server, config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key
+    global config_content_server, config_loanstatus_url, \
+        config_ia_access_secret, config_bookreader_host, \
+        config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
+        config_internal_tests_api_key, config_ia_loan_api_url, \
+        config_ia_availability_api_url, config_ia_xauth_api_url
 
     if config.get("content_server"):
         try:
@@ -59,9 +65,15 @@ def setup(config):
         logger.error('content_server unassigned')
 
     config_loanstatus_url = config.get('loanstatus_url')
-    config_ia_access_secret = config.get('ia_access_secret')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
+    config_ia_loan_api_url = config.get('ia_loan_api_url')
+    config_ia_availability_api_url = config.get('ia_availability_api_url') 
+    config_ia_xauth_api_url = config.get('ia_xauth_api_url')
+    config_ia_access_secret = config.get('ia_access_secret')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
+    config_ia_ol_auth_key = config.get('ia_ol_auth_key')
+    config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
+    config_internal_tests_api_key = config.get('internal_tests_api_key')
 
 
 def is_borrowable(identifiers, acs=False, restricted=False):
@@ -79,7 +91,7 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     """
     _acs = '1' if acs else '0'
     _restricted = '1' if restricted else '0'
-    url = (AVAILABILITY_API + '?action=availability&exact=%s&validate=%s'
+    url = (config_ia_availability_api_url + '?action=availability&exact=%s&validate=%s'
            % (_acs, _restricted))
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
@@ -388,7 +400,7 @@ class Loan(dict):
         """Returns True if the loan is not yet fulfilled and fulfillment time
         is not expired.
         """
-        return (self['expiry'] is None and 
+        return (self['expiry'] is None and
                 (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS)
 
     def return_loan(self):
@@ -610,11 +622,11 @@ class IA_Lending_API:
         return self._post(method=method, **arguments)
 
     def _post(self, **params):
-        logger.info("POST %s %s", IA_API_URL, params)
+        logger.info("POST %s %s", config_ia_loan_api_url, params)
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
         try:
-            jsontext = urllib2.urlopen(IA_API_URL, payload, timeout=3).read()
+            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload, timeout=3).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
         except Exception as e:
