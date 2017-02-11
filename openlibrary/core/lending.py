@@ -140,15 +140,30 @@ def get_loan(identifier, user_key=None):
     borrowed that book.
     """
     d = web.ctx.site.store.get("loan-" + identifier)
-    if d and (user_key is None or d['user'] == user_key):
-        loan = Loan(d)
-        if loan.is_expired():
-            loan.delete()
-            return
+
+    account = None
+    if user_key:
+        from openlibrary.accounts.model import OpenLibraryAccount
+        if user_key.startswith('@'):
+            account = OpenLibraryAccount.get(link=user_key)
+        else:
+            account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+
+    if d:
+        if (user_key is None or (d['user'] == account.username) or (d['user'] == account.itemname)):
+            loan = Loan(d)
+            if loan.is_expired():
+                loan.delete()
+                return
     try:
-        return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+        return _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception as e:
-        return
+        pass
+
+    try:
+        return _get_ia_loan(identifier, account and account.itemname)
+    except Exception as e:
+        pass
 
 def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
@@ -156,8 +171,12 @@ def _get_ia_loan(identifier, userid):
 
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
+    from openlibrary.accounts.model import OpenLibraryAccount
+    account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata]  + _get_ia_loans_of_user(userkey2userid(user_key))
+    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname) +
+                                           _get_ia_loans_of_user(userkey2userid(user_key)))
     return loans
 
 def _get_ia_loans_of_user(userid):
@@ -173,7 +192,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
     ia_loan = ia_lending_api.create_loan(
          identifier=identifier,
          format=resource_type,
-         userid=userkey2userid(user_key),
+         userid=user_key,
          ol_key=book_key)
 
     if ia_loan:
@@ -325,6 +344,10 @@ class Loan(dict):
     def from_ia_loan(data):
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:'):]
+        elif data['userid'].startswith('@'):
+            from openlibrary.accounts.model import OpenLibraryAccount
+            account = OpenLibraryAccount.get_by_link(data['userid'])
+            user_key = '/people/' + account.username
         else:
             user_key = None
 

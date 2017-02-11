@@ -20,6 +20,7 @@ $if available_loans:
 
 $ user_loan = None
 $if user:
+    $ account = get_ol_account(ctx.user.key)
     $for current_loan in current_loans:
         $if current_loan['user'] == user.key:
             $ user_loan = current_loan

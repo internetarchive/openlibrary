@@ -21,6 +21,7 @@ from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import waitinglist
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.core import ab
 
@@ -175,10 +176,11 @@ class borrow(delegate.page):
                 if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
                     raise web.seeother(error_redirect)
 
+                ia_itemname = OpenLibraryAccount.get_by_email(user.email).itemname
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
-                    user_key=user.key,
+                    user_key=ia_itemname,
                     book_key=key)
 
                 if loan:
@@ -378,6 +380,11 @@ class ia_loan_status(delegate.page):
     def GET(self, itemid):
         d = get_borrow_status(itemid, include_resources=False, include_ia=False)
         return delegate.RawText(simplejson.dumps(d), content_type="application/json")
+
+@public
+def get_ol_account(key):
+    username = key.split('/')[-1]
+    return OpenLibraryAccount.get_by_username(username)
 
 @public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
