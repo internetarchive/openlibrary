@@ -82,9 +82,7 @@ class checkout_with_ocaid(delegate.page):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
-        print(ocaid)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
-        print(ia_edition.location)
         edition = web.ctx.site.get(ia_edition.location)
         url = '%s/x/borrow' % (edition.key)
         raise web.seeother(url)
@@ -575,8 +573,6 @@ def get_all_loans():
     return get_all_store_values(type='/type/loan')
 
 def get_loans(user):
-    # return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
-    #return get_all_store_values(type='/type/loan', name='user', value=user.key)
     return lending.get_loans_of_user(user.key)
 
 def get_edition_loans(edition):

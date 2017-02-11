@@ -229,9 +229,17 @@ class Edition(models.Edition):
         for resource_urn in self.get_lending_resources():
             if resource_urn.startswith('acs:'):
                 (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
-                loans.append( { 'resource_id': resource_id, 'resource_type': type, 'size': None } )
+                loans.append({
+                    'resource_id': resource_id,
+                    'resource_type': type,
+                    'size': None
+                })
             elif resource_urn.startswith('bookreader'):
-                loans.append( { 'resource_id': resource_urn, 'resource_type': 'bookreader', 'size': None } )
+                loans.append({
+                    'resource_id': resource_urn,
+                    'resource_type': 'bookreader',
+                    'size': None
+                })
 
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
@@ -241,9 +249,11 @@ class Edition(models.Edition):
                 return '2-%s' % loan['resource_type']
         loans = sorted(loans, key=loan_key)
 
-        # For each possible loan, check if it is available
-        # We shouldn't be out of sync (we already checked get_edition_loans for current loans) but we fail safe, for example
-        # the book may have been borrowed in a dev instance against the live ACS4 server
+        # For each possible loan, check if it is available We
+        # shouldn't be out of sync (we already checked
+        # get_edition_loans for current loans) but we fail safe, for
+        # example the book may have been borrowed in a dev instance
+        # against the live ACS4 server
         for loan in loans:
             if borrow.is_loaned_out(loan['resource_id']):
                 # Only a single loan of an item is allowed
