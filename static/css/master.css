@@ -369,6 +369,7 @@ form.olform .label span {
     font-weight: normal;
 }
 form.olform input[type=text],
+form.olform input[type=email],
 form.olform input[type=password],
 form.olform textarea {
     width: 475px;
@@ -380,12 +381,14 @@ form.olform textarea {
     font-size: 0.75em;
 }
 form.olform.books fieldset.major input[type=text],
+form.olform.books fieldset.major input[type=email],
 form.olform.books fieldset.major input[type=password],
 form.olform.books fieldset.major textarea {
     width: 848px;
     font-size: 0.875em;
 }
 form.olform.books fieldset.major .formBack input[type=text],
+form.olform.books fieldset.major .formBack input[type=email],
 form.olform.books fieldset.major .formBack input[type=password],
 form.olform.books fieldset.major .formBack textarea {
     width: 818px;
@@ -449,6 +452,7 @@ form#register .formElement,
 form#register .label,
 form#register .input,
 form#register input[type=text],
+form#register input[type=email],
 form#register input[type=password] {
     float: left;
 }

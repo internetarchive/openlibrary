@@ -138,8 +138,7 @@ class borrow(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
-        error_redirect = edition.url("/borrow")
-
+        error_redirect = "/account/login?redirect=%s/borrow" % edition.url()
         user = accounts.get_current_user()
         if not user:
             raise web.seeother(error_redirect)
