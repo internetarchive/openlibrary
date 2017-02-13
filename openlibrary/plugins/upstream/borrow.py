@@ -111,9 +111,12 @@ class borrow(delegate.page):
 
         loans = []
         user = accounts.get_current_user()
-        if user:
-            user.update_loan_status()
-            loans = get_loans(user)
+        error_redirect = "/account/login?redirect=%s/borrow" % edition.url()
+        if not user:
+            raise web.seeother(error_redirect)
+
+        user.update_loan_status()
+        loans = get_loans(user)
 
         # Check if we recently did a return
         i = web.input(r=None)
