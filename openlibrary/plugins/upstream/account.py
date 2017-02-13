@@ -520,7 +520,7 @@ def send_forgot_password_email(username, email):
     web.ctx.site.store[key] = doc
 
     link = web.ctx.home + "/account/password/reset/" + doc['code']
-    msg = render_template("email/password/reminder", username=username, link=link)
+    msg = render_template("email/password/reminder", username=username, email=email, link=link)
     sendmail(email, msg)
 
 
