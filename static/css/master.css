@@ -1078,6 +1078,14 @@ div#headerLogin {
     background-color: rgba(244, 67, 54, 0.52); //#F44336;
 }
 
+.xauth-switch {
+    background-color: #006aac;
+    padding: 15px 20px;
+    color: #fff;
+    line-height: 1em;
+    clear: both;
+}
+
 .formFieldsDecoration.error #bridgeUsername {
     background-color: rgba(244, 67, 54, 0.17);
 }

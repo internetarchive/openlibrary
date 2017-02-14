@@ -402,6 +402,7 @@ class OpenLibraryAccount(Account):
         those, searching with the original case and using lower case
         if that fails.
         """
+        email = email.strip()
         email_doc = (web.ctx.site.store.get("account-email/" + email) or
                      web.ctx.site.store.get("account-email/" + email.lower()))
         if email_doc and 'username' in email_doc:
@@ -452,7 +453,6 @@ class OpenLibraryAccount(Account):
         else:
             return "ok"
 
-
 class InternetArchiveAccount(web.storage):
 
     def __init__(self, **kwargs):
@@ -473,7 +473,7 @@ class InternetArchiveAccount(web.storage):
                             subsequent attempts should be made to find
                             an available username.
         """
-
+        email = email.strip().lower()
         screenname = screenname[1:] if screenname[0] == '@' else screenname
 
         if cls.get(email=email):
@@ -529,6 +529,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def get(cls, email, test=False, _json=False):
+        email = email.strip().lower()
         response = cls.xauth(email=email, test=test, service="info")
         if 'success' in response:
             values = response.get('values', {})
@@ -536,6 +537,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def authenticate(cls, email, password, test=False):
+        email = email.strip().lower()
         response = cls.xauth('authenticate', test=test, **{
             "email": email,
             "password": password
@@ -560,7 +562,6 @@ def audit_accounts(email, password, test=False):
         test (bool) - not currently used; is there to allow testing in
                       the absence of archive.org dependency
     """
-
     if not valid_email(email):
         return {'error': 'invalid_email'}
 
@@ -576,7 +577,7 @@ def audit_accounts(email, password, test=False):
 
     if any([err in (ol_login, ia_login) for err
             in ['account_blocked', 'account_locked']]):
-        return {'error': 'account_blocked'}
+        return {'error': 'account_locked'}
 
     # One of the accounts must authenticate w/o error
     if "ok" not in (ol_login, ia_login):

@@ -181,9 +181,8 @@ class account_login(delegate.page):
         if errors:
             return errors
 
-        if i.redirect == "/account/login" or i.redirect == "":
+        if "/account/login" in i.redirect or i.redirect == "":
             i.redirect = "/"
-
         expires = (i.remember and 3600 * 24 * 7) or ""
 
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
@@ -421,6 +420,9 @@ class account_connect(delegate.page):
         linking case and dispatches to the correct method (either
         'link' or 'create' depending on the parameters POSTed to the
         endpoint).
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
 
         i = web.input(email="", password="", username="",
@@ -428,11 +430,11 @@ class account_connect(delegate.page):
                       token="", service="link")
         test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
         if i.service == "link":
-            result = link_accounts(i.get('email').lower(), i.password,
-                                   bridgeEmail=i.bridgeEmail.lower(),
+            result = link_accounts(i.get('email'), i.password,
+                                   bridgeEmail=i.bridgeEmail,
                                    bridgePassword=i.bridgePassword)
         elif i.service == "create":
-            result = create_accounts(i.get('email').lower(), i.password,
+            result = create_accounts(i.get('email'), i.password,
                                    username=i.username, test=test)
         else:
             result = {'error': 'invalid_option'}
@@ -450,10 +452,13 @@ class account_audit(delegate.page):
         proceed to log the user in), whether there is an error
         authenticating their account, or whether a /account/connect
         must first performed.
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
         i = web.input(email='', password='')
         test = i.get('test', '').lower() == 'true'
-        email = i.get('email').lower()
+        email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
         return delegate.RawText(simplejson.dumps(result),
