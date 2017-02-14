@@ -6,13 +6,14 @@ $var title: $("Log In")
     <h1>$_("Log In")</h1>
 </div>
 
+$if not ctx.user:
+    <p class="xauth-switch">You can now use your Internet Archive or Open Library <strong><u>email</u></strong> to log in!</p>
 
 <script type="text/javascript">
-//\$().ready(passwordMask);
-//\$().ready(validateForms);
-//\$().ready(validateLogin);
+  //\$().ready(passwordMask);
+  //\$().ready(validateForms);
+  //\$().ready(validateLogin);
 </script>
-
 
 <div id="migrateModal" class="modal-overlay">
   <div class="modal-content">
@@ -24,8 +25,8 @@ $var title: $("Log In")
       <div class="modal-header-copy">
         <h2>Connect Your Accounts</h2>
         <p class="modal-header-copy-a">
-	  Open Library now works with your Internet Archive account for login.
-	  Do you have an existing
+          Open Library now works with your Internet Archive account for login.
+          Do you have an existing
           <span class="unlinked-service"></span> account you'd like to
           connect?
         </p>
@@ -80,8 +81,12 @@ $var title: $("Log In")
 </div>
 
 <div id="contentBody">
-  <p>Open Library is switching to require email for logging in. For a limited time you can continue to use your username.</p>
-    <form id="register" class="login olform" name="register" method="post">
+  $if ctx.user:
+      <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
+      <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
+
+  $else:
+      <form id="register" class="login olform" name="register" method="post">
 
         $if form.note:
             <div class="note">$form.note</div>
@@ -111,7 +116,7 @@ $var title: $("Log In")
         </div>
 
         <input type="hidden" id="redirect" value="$form.redirect.value" name="redirect" />
-	<input type="hidden" id="debug_token" value="" name="debug_token"/>
+        <input type="hidden" id="debug_token" value="" name="debug_token"/>
 
         <div class="clearfix"></div>
 
@@ -127,8 +132,8 @@ $var title: $("Log In")
             <br/><br/>
             $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>
-    </form>
-</div>
+      </form>
+    </div>
 
 <script>
 
@@ -156,9 +161,9 @@ $var title: $("Log In")
         "invalid_email": "The email address you entered is invalid",
         "account_blocked": "This account has been blocked",
         "account_locked": "This account has been blocked",
-        "account_not_found": "No account could be found matching these credentials",
-        "account_incorrect_password": "Incorrect password",
-        "account_bad_password": "The login credentials you entered are invalid",
+        "account_not_found": "Wrong email. Please try again",
+        "account_incorrect_password": "Wrong password. Please try again",
+        "account_bad_password": "Wrong password. Please try again",
         "account_not_verified": "This account must be verified before login can be completed",
         "invalid_bridgeEmail": "Failed to link account: invalid email",
         "account_already_linked": "This account has already been linked",

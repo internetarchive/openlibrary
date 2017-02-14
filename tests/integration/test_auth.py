@@ -28,6 +28,7 @@ internal_tests_api_key = config['internal_tests_api_key']
 IA_BLOCKED = config['accounts']['ia_blocked']
 IA_UNVERIFIED = config['accounts']['ia_unverified']
 IA_VERIFIED = config['accounts']['ia_verified']
+IA_VERIFIED_MIXED = config['accounts']['ia_verified_mixedcase']
 IA_CREATE = config['accounts']['ia_create']
 IA_CREATE_CONFLICT = config['accounts']['ia_create_conflict']
 
@@ -41,6 +42,22 @@ LINKED = config['accounts']['linked']
 LINKED_BLOCKED = config['accounts']['linked_blocked']
 
 UNREGISTERED = config['accounts']['unregistered']
+
+errorLookup = {
+    "invalid_email": "The email address you entered is invalid",
+    "account_blocked": "This account has been blocked",
+    "account_locked": "This account has been blocked",
+    "account_not_found": "Wrong email. Please try again",
+    "account_incorrect_password": "Wrong password. Please try again",
+    "account_bad_password": "Wrong password. Please try again",
+    "account_not_verified": "This account must be verified before login can be completed",
+    "invalid_bridgeEmail": "Failed to link account: invalid email",
+    "account_already_linked": "This account has already been linked",
+    "missing_fields": "Please fill out all fields and try again",
+    "email_registered": "This email is already registered",
+    "username_registered": "This username is already registered",
+    "max_retries_exceeded": "A problem occurred and we were unable to log you in."
+}
 
 
 try:
@@ -109,25 +126,19 @@ class Xauth_Test(unittest.TestCase):
 
     def test_empty_submit(self):
         self.login(u'', u'')
-        _error = "The email address you entered is invalid"
+        _error = errorLookup['invalid_email']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_missing_email(self):
         self.login(u'', u'password')
-        _error = "The email address you entered is invalid"
-        error = driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_invalid_email(self):
-        self.login(u'invalid_email', u'password')
-        _error = "The email address you entered is invalid"
+        _error = errorLookup['invalid_email']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_unregistered_email(self):
         self.login(u'mek+invalid_email@archive.org', u'password')
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -156,31 +167,31 @@ class Xauth_Test(unittest.TestCase):
 
     def test_ia_missing_password(self):
         self.login(IA_VERIFIED['email'], u'password')
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_bad_password']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ia_incorrect_password(self):
         self.login(IA_VERIFIED['email'], u'password')
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_bad_password']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ia_blocked(self):
         self.login(**IA_BLOCKED)
-        _error = "This account has been blocked"
+        _error = errorLookup['account_locked']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ia_blocked_incorrect_password(self):
         self.login(IA_BLOCKED['email'], '')
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_bad_password']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ia_unverified(self):
         self.login(**IA_UNVERIFIED)
-        _error = "This account must be verified before login can be completed"
+        _error = errorLookup['account_not_verified']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -191,31 +202,31 @@ class Xauth_Test(unittest.TestCase):
 
     def test_ol_missing_password(self):
         self.login(OL_VERIFIED['email'], u'password')
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_bad_password']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_incorrect_password(self):
         self.login(OL_VERIFIED['email'], u'password')
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_bad_password']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_blocked(self):
         self.login(**OL_BLOCKED)
-        _error = "This account has been blocked"
+        _error = errorLookup['account_blocked']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_blocked_incorrect_password(self):
         self.login(OL_BLOCKED['email'], 'password')
-        _error = "This account has been blocked"
+        _error = errorLookup['account_blocked']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_unverified(self):
         self.login(**OL_UNVERIFIED)
-        _error = "This account must be verified before login can be completed"
+        _error = errorLookup['account_not_verified']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -225,23 +236,13 @@ class Xauth_Test(unittest.TestCase):
     # successful audit for an IA account
     # ======================================================
 
-    def test_ia_verified_connect_invalid_email(self):
-        self.unlink(OL_VERIFIED['email'])
-        self.login(**IA_VERIFIED)
-        self.connect(OL_VERIFIED['email'], 'password')
-        wait.until(
-            EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "The login credentials you entered are invalid"
-        error = driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
     def test_ia_verified_connect_unregistered_email(self):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_VERIFIED)
         self.connect(**UNREGISTERED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -251,7 +252,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect('', 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "Please fill out all fields and try again"
+        _error = errorLookup['missing_fields']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -261,7 +262,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(OL_VERIFIED['email'], '')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "Please fill out all fields and try again"
+        _error = errorLookup['missing_fields']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -271,7 +272,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(IA_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -281,7 +282,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(OL_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_incorrect_password']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -291,7 +292,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(IA_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -301,7 +302,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**OL_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has been blocked"
+        _error = errorLookup['account_blocked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -311,7 +312,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**IA_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -321,7 +322,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**LINKED_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has been blocked"
+        _error = errorLookup['account_blocked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -337,7 +338,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**LINKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has already been linked"
+        _error = errorLookup['account_already_linked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -351,7 +352,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**OL_UNVERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account must be verified before login can be completed"
+        _error = errorLookup['account_not_verified']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -361,9 +362,17 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**IA_UNVERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
+
+    def test_ia_verified_CASE(self):
+        self.unlink(OL_VERIFIED['email'])
+        self.login(**IA_VERIFIED_MIXED)
+        self.connect(**OL_VERIFIED)
+        self.assertTrue(self.is_logged_in())
+        self.logout()        
+        self.unlink(OL_VERIFIED['email'])
 
     def test_ia_verified_connect_ia_verified(self):
         self.unlink(OL_VERIFIED['email'])
@@ -371,7 +380,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**IA_VERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -393,7 +402,6 @@ class Xauth_Test(unittest.TestCase):
         # finalize by unlinking for future tests
         self.unlink(OL_VERIFIED['email'])
 
-
     # ======================================================
     # All combinations of connect attempts after initial
     # successful audit for an OL account
@@ -405,7 +413,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(IA_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_incorrect_password']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -415,7 +423,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**UNREGISTERED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -425,7 +433,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect('', 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "Please fill out all fields and try again"
+        _error = errorLookup['missing_fields']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -435,7 +443,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(IA_VERIFIED['email'], '')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "Please fill out all fields and try again"
+        _error = errorLookup['missing_fields']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -445,7 +453,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(OL_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -455,7 +463,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(IA_VERIFIED['email'], 'password')
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "The login credentials you entered are invalid"
+        _error = errorLookup['account_incorrect_password']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -465,7 +473,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**OL_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -475,7 +483,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**IA_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has been blocked"
+        _error = errorLookup['account_locked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -485,7 +493,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**LINKED_BLOCKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has been blocked"
+        _error = errorLookup['account_blocked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -501,7 +509,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**LINKED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account has already been linked"
+        _error = errorLookup['account_already_linked']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -515,7 +523,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**OL_UNVERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -525,7 +533,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**IA_UNVERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "This account must be verified before login can be completed"
+        _error = errorLookup['account_not_verified']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -535,7 +543,7 @@ class Xauth_Test(unittest.TestCase):
         self.connect(**OL_VERIFIED)
         wait.until(
             EC.visibility_of_element_located((By.ID, 'connectError')))
-        _error = "No account could be found matching these credentials"
+        _error = errorLookup['account_not_found']
         error = driver.find_element_by_id('connectError').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -591,7 +599,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**IA_CREATE_CONFLICT)
         self.create('')
-        _error = "A problem occurred and we were unable to log you in."
+        _error = errorLookup['max_retries_exceeded']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
@@ -632,7 +640,7 @@ class Xauth_Test(unittest.TestCase):
         self.unlink(OL_VERIFIED['email'])
         self.login(**OL_CREATE_CONFLICT)
         self.create('')
-        _error = "A problem occurred and we were unable to log you in."
+        _error = errorLookup['max_retries_exceeded']
         error = driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
