@@ -183,7 +183,6 @@ class account_login(delegate.page):
 
         if "/account/login" in i.redirect or i.redirect == "":
             i.redirect = "/"
-        print("redirect: " + i.redirect)
         expires = (i.remember and 3600 * 24 * 7) or ""
 
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
@@ -421,6 +420,9 @@ class account_connect(delegate.page):
         linking case and dispatches to the correct method (either
         'link' or 'create' depending on the parameters POSTed to the
         endpoint).
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
 
         i = web.input(email="", password="", username="",
@@ -450,6 +452,9 @@ class account_audit(delegate.page):
         proceed to log the user in), whether there is an error
         authenticating their account, or whether a /account/connect
         must first performed.
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
         i = web.input(email='', password='')
         test = i.get('test', '').lower() == 'true'
