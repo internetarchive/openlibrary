@@ -7,7 +7,7 @@ $var title: $("Log In")
 </div>
 
 $if not ctx.user:
-    <p class="xauth-switch">You can now use your Internet Archive or Open Library <strong><u>email</u></strong> to log in!</p>
+    <p class="xauth-switch">Open Library now uses <strong><u>email</u></strong> to login. You can use your Internet Archive or Open Library account <strong><u>email</u></strong> address.</p>
 
 <script type="text/javascript">
   //\$().ready(passwordMask);
@@ -92,11 +92,14 @@ $if not ctx.user:
             <div class="note">$form.note</div>
 
         <div class="formElement">
-            <div class="label"><label for="username">$_("Email")</label> <span class="smaller lighter"></span></div>
+            <div class="label">
+	      <label for="username">$_("Email")</label>
+	      <span class="smaller lighter"></span>
+	    </div>
 
             <div class="input">
-                <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
-                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
+              <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
 
