@@ -6,9 +6,6 @@ $var title: $("Log In")
     <h1>$_("Log In")</h1>
 </div>
 
-$if not ctx.user:
-    <p class="xauth-switch">You can now use your Internet Archive or Open Library <strong><u>email</u></strong> to log in!</p>
-
 <script type="text/javascript">
   //\$().ready(passwordMask);
   //\$().ready(validateForms);
@@ -81,6 +78,9 @@ $if not ctx.user:
 </div>
 
 <div id="contentBody">
+  $if not ctx.user:
+      <p class="xauth-switch">Open Library now uses <strong><u>email</u></strong> to login. You can use your Internet Archive or Open Library account <strong><u>email</u></strong> address.</p>
+
   $if ctx.user:
       <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
       <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
@@ -92,11 +92,15 @@ $if not ctx.user:
             <div class="note">$form.note</div>
 
         <div class="formElement">
-            <div class="label"><label for="username">$_("Email")</label> <span class="smaller lighter"></span></div>
+            <div class="label">
+	      <label for="username">$_("Email")</label>
+	      <span class="smaller lighter"></span>
+	      &mdash; <a class="forgot-email" href="/account/email/forgot">Forgot your email?</a>
+	    </div>
 
             <div class="input">
-                <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
-                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
+              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
+              <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
 
@@ -128,7 +132,7 @@ $if not ctx.user:
         </div>
         <div class="formElement">
             <div class="label"></div>
-            <div class="input smaller">$:_('<a href="/account/password/forgot">Forgotten your username or password</a>?')
+            <div class="input smaller">$:_('<a href="/account/password/forgot">Forgot Password</a>?')
             <br/><br/>
             $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>

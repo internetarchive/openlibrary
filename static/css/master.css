@@ -1079,11 +1079,37 @@ div#headerLogin {
 }
 
 .xauth-switch {
-    background-color: #006aac;
+    background-color: #e44028;
     padding: 15px 20px;
     color: #fff;
     line-height: 1em;
     clear: both;
+}
+
+.defaultstyling {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+}
+
+.defaultstyling .padtop {
+    margin-top: 10px;
+}
+
+.forgot-email-form {
+    padding: 10px 0px;
+}
+
+.forgot-email-form .form-row {
+    margin-bottom: 10px;
+}
+
+.forgot-email-form label {
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    color: #333;
+    font-weight: 600;
+}
+
+.forgot-email {
+    font-size: .8em;
 }
 
 .formFieldsDecoration.error #bridgeUsername {

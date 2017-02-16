@@ -21,7 +21,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
-from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount
+from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount, valid_email
 import forms
 import utils
 import borrow
@@ -352,6 +352,31 @@ class account_password(delegate.page):
     def try_login(self, username, password):
         account = accounts.find(username=username)
         return account and account.verify_password(password)
+
+class account_email_forgot(delegate.page):
+    path = "/account/email/forgot"
+
+    def GET(self):
+        return render_template('account/email/forgot')
+
+    def POST(self):
+        i = web.input(username='', password='')
+        err = ""
+        act = OpenLibraryAccount.get(username=i.username)
+
+        if act:
+            if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
+                return render_template('account/email/forgot', email=act.email)
+            err = "Incorrect password"
+
+        elif valid_email(i.username):
+            err = "Please enter a username, not an email"
+
+        else:
+            err="Sorry, this user does not exist"
+
+        return render_template('account/email/forgot', err=err)
+        
 
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
