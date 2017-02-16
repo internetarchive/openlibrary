@@ -12,6 +12,7 @@ from infogami import config
 from infogami.utils.view import (
     require_login, render, render_template, add_flash_message
 )
+
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
@@ -181,7 +182,8 @@ class account_login(delegate.page):
         if errors:
             return errors
 
-        if "/account/login" in i.redirect or i.redirect == "":
+        blacklist = ["/account/login", "/account/password", "/account/email"]
+        if i.redirect == "" or any([path in i.redirect for path in blacklist]):
             i.redirect = "/"
         expires = (i.remember and 3600 * 24 * 7) or ""
 
