@@ -6,10 +6,10 @@ $var title: $("Forgot Your Email?")
     <h1>$_('Forgot Your Email?')</h1>
 </div>
 
-<div id="contentBody">
+<div id="contentBody" class="defaultstyling">
   $if email:
-    <p>Your email is: <strong>$email</strong>.</p>
-    <p><a href="/account/login">&larr; Return to login?</a></p>
+    <p>Your email is: <strong>$email</strong></p>
+    <p><a href="/account/login">&larr; Return to Log In?</a></p>
 
   $else:
     $if err:
@@ -27,10 +27,16 @@ $var title: $("Forgot Your Email?")
 	<div>
 	  <label>Password</label>
 	</div>
-	<input type="password" name="password"/> <a href="/account/password/forgot">Forgot password?</a>
+	<input type="password" name="password"/>
       </div>
       <div>
 	<input type="submit" value="Retrieve Email"/>
+      </div>
+      <div class="formElement">
+        <div class="label"></div>
+        <div class="input smaller padtop">
+	  $:_('<a href="/account/password/forgot">Forgot Password</a>?')
+	</div>
       </div>
     </form>
 </div>

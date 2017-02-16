@@ -1086,8 +1086,16 @@ div#headerLogin {
     clear: both;
 }
 
+.defaultstyling {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+}
+
+.defaultstyling .padtop {
+    margin-top: 10px;
+}
+
 .forgot-email-form {
-    padding: 10px;
+    padding: 10px 0px;
 }
 
 .forgot-email-form .form-row {
