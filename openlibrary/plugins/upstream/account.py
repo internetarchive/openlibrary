@@ -353,6 +353,25 @@ class account_password(delegate.page):
         account = accounts.find(username=username)
         return account and account.verify_password(password)
 
+class account_email_forgot(delegate.page):
+    path = "/account/email/forgot"
+
+    def GET(self):
+        return render_template('account/email/forgot')
+
+    def POST(self):
+        i = web.input(username='', password='')
+        act = OpenLibraryAccount.get(username=i.username)
+        if not act:
+            return render_template('account/email/forgot',
+                                   err="Sorry, this user does not exist")
+        if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
+            return render_template('account/email/forgot', email=act.email)
+        else:
+            return render_template('account/email/forgot',
+                                   err="Incorrect password")
+        
+
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 

@@ -1,0 +1,36 @@
+$def with(email=None, err="")
+
+$var title: $("Forgot Your Email?")
+
+<div id="contentHead">
+    <h1>$_('Forgot Your Email?')</h1>
+</div>
+
+<div id="contentBody">
+  $if email:
+    <p>Your email is: <strong>$email</strong>.</p>
+    <p><a href="/account/login">&larr; Return to login?</a></p>
+
+  $else:
+    $if err:
+      <div class="note">$err</div>
+
+    <form class="forgot-email-form"  action="/account/email/forgot" method="POST">
+      <p>Please enter your username and password, and we’ll retrieve your email.</p>
+      <div class="form-row">
+	<div>
+	  <label>Username</label>
+	</div>
+	<input type="text" name="username"/>
+      </div>
+      <div class="form-row">
+	<div>
+	  <label>Password</label>
+	</div>
+	<input type="password" name="password"/> <a href="/account/password/forgot">Forgot password?</a>
+      </div>
+      <div>
+	<input type="submit" value="Retrieve Email"/>
+      </div>
+    </form>
+</div>

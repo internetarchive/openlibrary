@@ -1086,6 +1086,24 @@ div#headerLogin {
     clear: both;
 }
 
+.forgot-email-form {
+    padding: 10px;
+}
+
+.forgot-email-form .form-row {
+    margin-bottom: 10px;
+}
+
+.forgot-email-form label {
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    color: #333;
+    font-weight: 600;
+}
+
+.forgot-email {
+    font-size: .8em;
+}
+
 .formFieldsDecoration.error #bridgeUsername {
     background-color: rgba(244, 67, 54, 0.17);
 }
