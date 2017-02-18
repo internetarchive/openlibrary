@@ -382,11 +382,6 @@ class ia_loan_status(delegate.page):
         return delegate.RawText(simplejson.dumps(d), content_type="application/json")
 
 @public
-def get_ol_account(key):
-    username = key.split('/')[-1]
-    return OpenLibraryAccount.get_by_username(username)
-
-@public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
     """Returns borrow status for each of the sources and formats.
 
@@ -613,9 +608,6 @@ def get_loan_link(edition, type):
 
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
 
-# def get_bookreader_link(edition):
-#     """Returns the link to the BookReader for the edition"""
-#     return "%s/%s" % (bookreader_stream_base, edition.ocaid)
 
 def get_loan_key(resource_id):
     """Get the key for the loan associated with the resource_id"""
@@ -783,7 +775,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
 def update_all_loan_status():
     """Update the status of all loans known to Open Library by cross-checking with the book status server.
-
     This is called once an hour from a cron job.
     """
     # Get book status records of everything loaned out
