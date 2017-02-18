@@ -18,7 +18,6 @@ from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats
-from openlibrary.core import lending
 from openlibrary.core import helpers as h
 
 
@@ -356,7 +355,7 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
-    def get(cls, link=None, email=None, username=None,  test=False):
+    def get(cls, link=None, email=None, username=None, key=None, test=False):
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -366,7 +365,14 @@ class OpenLibraryAccount(Account):
             return cls.get_by_email(email, test=test)
         elif username:
             return cls.get_by_username(username, test=test)
+        elif key:
+            return cls.get_by_key(key, test=test)
         raise ValueError("Open Library email or Archive.org itemname required.")
+
+    @classmethod
+    def get_by_key(cls, key, test=False):
+        username = key.split('/')[-1]
+        return cls.get_by_username(username)
 
     @classmethod
     def get_by_username(cls, username, test=False):
@@ -506,6 +512,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def xauth(cls, service, test=None, **data):
+        from openlibrary.core import lending
         url = "%s?op=%s" % (lending.config_ia_xauth_api_url, service)
         data.update({
             'access': lending.config_ia_ol_xauth_s3.get('s3_key'),
