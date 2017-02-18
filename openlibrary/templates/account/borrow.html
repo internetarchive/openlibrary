@@ -92,7 +92,7 @@ $else:
             $ book = get_document(loan['book'])
             $if book is None:
                 $continue
-            <tr>
+            <tr data-userid="$(loan['userid'])">
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
                 </td>
