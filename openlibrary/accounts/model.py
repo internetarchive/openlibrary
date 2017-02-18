@@ -721,7 +721,7 @@ def create_accounts(email, password, username="", test=False):
                 ia_account_itemname = ia_account.itemname
                 ol_account = OpenLibraryAccount.create(
                     ia_account_itemname, email, password,
-                    displayname=ia_account_itemname,
+                    displayname=ia_account_screenname,
                     retries=retries, verified=True, test=test)
                 audit['has_ol'] = ol_account.email
                 audit['has_ia'] = ia_account.email
