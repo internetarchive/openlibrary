@@ -14,7 +14,8 @@ class TestWaitingLoan:
         monkeypatch.setattr(lending.ia_lending_api, 'query', lambda **kw: [({'status': 'waiting'})])
         # POSTs to api to add to waiting list, then queries ia_lending_api for the result
         w = WaitingLoan.new(user_key=user_key,
-                        identifier=identifier)
+                            identifier=identifier,
+                            itemname='@ol_foobar')
         assert w is not None
         assert w['status'] == 'waiting'
 
@@ -22,11 +23,11 @@ class TestWaitingLoan:
     def test_update(self):
         w = WaitingLoan.new(user_key="U1", identifier="B1")
         assert w['status'] == 'waiting'
-        w.update(status='avaialble')
-        assert w['status'] == 'avaialble'
+        w.update(status='available')
+        assert w['status'] == 'available'
 
         w2 = WaitingLoan.find(user_key="U1", identifier="B1")
-        assert w2['status'] == 'avaialble'
+        assert w2['status'] == 'available'
 
     @pytest.mark.xfail(run=False)
     def test_dict(self):

@@ -109,18 +109,23 @@ class WaitingLoan(dict):
     @classmethod
     def new(cls, **kw):
         user_key = kw['user_key']
-        account = OpenLibraryAccount.get(key=user_key)
-        _wl_api.join_waitinglist(kw['identifier'], account.itemname)
-        return cls.find(user_key, kw['identifier'])
+        itemname = kw.get('itemname', '')
+        if not itemname:
+            account = OpenLibraryAccount.get(key=user_key)
+            itemname = account.itemname
+        _wl_api.join_waitinglist(kw['identifier'], itemname)
+        return cls.find(user_key, kw['identifier'], itemname=itemname)
 
     @classmethod
-    def find(cls, user_key, identifier):
+    def find(cls, user_key, identifier, itemname=None):
         """Returns the waitingloan for given book_key and user_key.
 
         Returns None if there is no such waiting loan.
         """
-        account = OpenLibraryAccount.get(key=user_key)
-        result = cls.query(userid=account.itemname, identifier=identifier)
+        if not itemname:
+            account = OpenLibraryAccount.get(key=user_key)
+            itemname = account.itemname
+        result = cls.query(userid=itemname, identifier=identifier)
         if result:
             return result[0]
 
@@ -219,22 +224,25 @@ def get_waitinglist_position(user_key, book_key):
             return w['position']
     return -1
 
-def join_waitinglist(user_key, book_key):
+def join_waitinglist(user_key, book_key, itemname=None):
     """Adds a user to the waiting list of given book.
 
     It is done by creating a new record in the store.
     """
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
-        WaitingLoan.new(user_key=user_key, identifier=book.ocaid)
+        WaitingLoan.new(user_key=user_key,
+                        identifier=book.ocaid,
+                        itemname=itemname)
         update_waitinglist(book.ocaid)
 
-def leave_waitinglist(user_key, book_key):
+def leave_waitinglist(user_key, book_key, itemname=None):
     """Removes the given user from the waiting list of the given book.
     """
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
-        w = WaitingLoan.find(user_key, book.ocaid)
+        w = WaitingLoan.find(user_key, book.ocaid,
+                             itemname=itemname)
         if w:
             w.delete()
             update_waitinglist(book.ocaid)
