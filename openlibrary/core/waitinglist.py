@@ -125,7 +125,8 @@ class WaitingLoan(dict):
         if not itemname:
             account = OpenLibraryAccount.get(key=user_key)
             itemname = account.itemname
-        result = cls.query(userid=itemname, identifier=identifier)
+        result = (cls.query(userid=itemname, identifier=identifier) or
+                  cls.query(userid=lending.userkey2userid(user_key)))
         if result:
             return result[0]
 
