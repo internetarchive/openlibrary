@@ -143,7 +143,13 @@ class borrow(delegate.page):
 
         error_redirect = edition.url("/borrow")
         user = accounts.get_current_user()
-        if not user:
+
+        if user:
+            account = OpenLibraryAccount.get_by_email(user.email)
+            ia_itemname = account.itemname if account else None
+
+        if not user or not ia_itemname:
+            web.setcookie(config.login_cookie_name, "", expires=-1)
             raise web.seeother("/account/login?redirect=%s/borrow" % edition.url())
 
         action = i.action
@@ -176,7 +182,6 @@ class borrow(delegate.page):
                 if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
                     raise web.seeother(error_redirect)
 
-                ia_itemname = OpenLibraryAccount.get_by_email(user.email).itemname
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
