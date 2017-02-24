@@ -21,6 +21,7 @@ from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import waitinglist
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.core import ab
 
@@ -82,9 +83,7 @@ class checkout_with_ocaid(delegate.page):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
-        print(ocaid)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
-        print(ia_edition.location)
         edition = web.ctx.site.get(ia_edition.location)
         url = '%s/x/borrow' % (edition.key)
         raise web.seeother(url)
@@ -144,7 +143,13 @@ class borrow(delegate.page):
 
         error_redirect = edition.url("/borrow")
         user = accounts.get_current_user()
-        if not user:
+
+        if user:
+            account = OpenLibraryAccount.get_by_email(user.email)
+            ia_itemname = account.itemname if account else None
+
+        if not user or not ia_itemname:
+            web.setcookie(config.login_cookie_name, "", expires=-1)
             raise web.seeother("/account/login?redirect=%s/borrow" % edition.url())
 
         action = i.action
@@ -180,7 +185,7 @@ class borrow(delegate.page):
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
-                    user_key=user.key,
+                    user_key=ia_itemname,
                     book_key=key)
 
                 if loan:
@@ -575,8 +580,6 @@ def get_all_loans():
     return get_all_store_values(type='/type/loan')
 
 def get_loans(user):
-    # return web.ctx.site.store.values(type='/type/loan', name='user', value=user.key)
-    #return get_all_store_values(type='/type/loan', name='user', value=user.key)
     return lending.get_loans_of_user(user.key)
 
 def get_edition_loans(edition):
@@ -610,9 +613,6 @@ def get_loan_link(edition, type):
 
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
 
-# def get_bookreader_link(edition):
-#     """Returns the link to the BookReader for the edition"""
-#     return "%s/%s" % (bookreader_stream_base, edition.ocaid)
 
 def get_loan_key(resource_id):
     """Get the key for the loan associated with the resource_id"""
@@ -780,7 +780,6 @@ def update_loan_from_bss_status(loan_key, loan, status):
 
 def update_all_loan_status():
     """Update the status of all loans known to Open Library by cross-checking with the book status server.
-
     This is called once an hour from a cron job.
     """
     # Get book status records of everything loaned out

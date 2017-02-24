@@ -182,7 +182,8 @@ class account_login(delegate.page):
         if errors:
             return errors
 
-        blacklist = ["/account/login", "/account/password", "/account/email"]
+        blacklist = ["/account/login", "/account/password", "/account/email",
+                     "/account/create"]
         if i.redirect == "" or any([path in i.redirect for path in blacklist]):
             i.redirect = "/"
         expires = (i.remember and 3600 * 24 * 7) or ""
