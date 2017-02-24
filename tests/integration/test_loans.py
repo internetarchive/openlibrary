@@ -32,7 +32,6 @@ class Borrow_Test(unittest.TestCase):
         btn = olsession.driver.find_element_by_class_name('borrow-btn')
         itemname = btn.get_attribute('data-userid')
         self.assertTrue(LIVE_USER1['itemname'] == itemname)
-        
+
     def test_waitlist(self):
         pass
-
