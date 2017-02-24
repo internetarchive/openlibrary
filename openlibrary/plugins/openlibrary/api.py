@@ -86,9 +86,13 @@ class get_editions(delegate.page):
             result = {'error': 'max_limit_%s' % max_limit}
         else:
             result = {
-                'books': [decorate(format_edition(edition)) for
-                     edition in web.ctx.site.get_many(keys)]
+                'books': []
             }
+            for edition in web.ctx.site.get_many(keys):
+                try:
+                    result['books'].append(decorate(format_edition(edition)))
+                except:
+                    pass
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
