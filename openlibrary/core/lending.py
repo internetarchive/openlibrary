@@ -9,8 +9,8 @@ import uuid
 import hmac
 import urllib
 import urllib2
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
-
 from . import ia
 from . import msgbroker
 from . import helpers as h
@@ -67,7 +67,7 @@ def setup(config):
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
-    config_ia_availability_api_url = config.get('ia_availability_api_url') 
+    config_ia_availability_api_url = config.get('ia_availability_api_url')
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
@@ -139,16 +139,32 @@ def get_loan(identifier, user_key=None):
     If user_key is specified, it returns the loan only if that user is
     borrowed that book.
     """
+    _loan = None
+    account = None
+    if user_key:
+        if user_key.startswith('@'):
+            account = OpenLibraryAccount.get(link=user_key)
+        else:
+            account = OpenLibraryAccount.get(key=user_key)
+
     d = web.ctx.site.store.get("loan-" + identifier)
-    if d and (user_key is None or d['user'] == user_key):
+    if d and (user_key is None or (d['user'] == account.username) or \
+              (d['user'] == account.itemname)):
         loan = Loan(d)
         if loan.is_expired():
-            loan.delete()
-            return
+            return loan.delete()
     try:
-        return _get_ia_loan(identifier, user_key and userkey2userid(user_key))
+        _loan = _get_ia_loan(identifier, account and userkey2userid(account.username))
     except Exception as e:
-        return
+        pass
+
+    try:
+        _loan = _get_ia_loan(identifier, account and account.itemname)
+    except Exception as e:
+        pass
+
+    return _loan
+
 
 def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
@@ -156,8 +172,11 @@ def _get_ia_loan(identifier, userid):
 
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
+    account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+
     loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata]  + _get_ia_loans_of_user(userkey2userid(user_key))
+    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname) +
+                                           _get_ia_loans_of_user(userkey2userid(user_key)))
     return loans
 
 def _get_ia_loans_of_user(userid):
@@ -173,7 +192,7 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
     ia_loan = ia_lending_api.create_loan(
          identifier=identifier,
          format=resource_type,
-         userid=userkey2userid(user_key),
+         userid=user_key,
          ol_key=book_key)
 
     if ia_loan:
@@ -325,6 +344,9 @@ class Loan(dict):
     def from_ia_loan(data):
         if data['userid'].startswith('ol:'):
             user_key = '/people/' + data['userid'][len('ol:'):]
+        elif data['userid'].startswith('@'):
+            account = OpenLibraryAccount.get_by_link(data['userid'])
+            user_key = '/people/' + account.username
         else:
             user_key = None
 
@@ -346,6 +368,7 @@ class Loan(dict):
             '_key': "loan-{0}".format(data['identifier']),
             '_rev': 1,
             'type': '/type/loan',
+            'userid': data['userid'],
             'user': user_key,
             'book': book_key,
             'ocaid': data['identifier'],
@@ -363,21 +386,6 @@ class Loan(dict):
     def is_ol_loan(self):
         # self['user'] will be None for IA loans
         return self['user'] is not None
-
-    def to_ia_loan(self):
-        """Converts this loan object into the format of IA loan dict.
-        """
-        d = {
-            'identifier': self['ocaid'],
-            'userid': userkey2userid(self['user']),
-            'ol_key': self['book'],
-            'resource_id': self['resource_id'],
-            'format': self['resource_type'],
-            'loan_link': self['loan_link'],
-            'created': datetime.datetime.fromtimestamp(self['loaned_at']).isoformat(),
-            'until': self['expiry']
-        }
-        return Loan(d)
 
     def get_key(self):
         return self['_key']
@@ -413,8 +421,12 @@ class Loan(dict):
 
     def delete(self):
         loan = dict(self, returned_at=time.time())
+        user_key = self['user']
+        account = OpenLibraryAccount.get(key=user_key)
         if self.get("stored_at") == 'ia':
-            ia_lending_api.delete_loan(self['ocaid'], userkey2userid(self['user']))
+            ia_lending_api.delete_loan(self['ocaid'], userkey2userid(user_key))
+            if account.itemname:
+                ia_lending_api.delete_loan(self['ocaid'], account.itemname)
         else:
             web.ctx.site.store.delete(self['_key'])
 

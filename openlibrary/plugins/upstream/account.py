@@ -12,6 +12,7 @@ from infogami import config
 from infogami.utils.view import (
     require_login, render, render_template, add_flash_message
 )
+
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
@@ -21,7 +22,7 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
-from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount
+from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount, valid_email
 import forms
 import utils
 import borrow
@@ -181,9 +182,10 @@ class account_login(delegate.page):
         if errors:
             return errors
 
-        if i.redirect == "/account/login" or i.redirect == "":
+        blacklist = ["/account/login", "/account/password", "/account/email",
+                     "/account/create"]
+        if i.redirect == "" or any([path in i.redirect for path in blacklist]):
             i.redirect = "/"
-
         expires = (i.remember and 3600 * 24 * 7) or ""
 
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
@@ -354,6 +356,31 @@ class account_password(delegate.page):
         account = accounts.find(username=username)
         return account and account.verify_password(password)
 
+class account_email_forgot(delegate.page):
+    path = "/account/email/forgot"
+
+    def GET(self):
+        return render_template('account/email/forgot')
+
+    def POST(self):
+        i = web.input(username='', password='')
+        err = ""
+        act = OpenLibraryAccount.get(username=i.username)
+
+        if act:
+            if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
+                return render_template('account/email/forgot', email=act.email)
+            err = "Incorrect password"
+
+        elif valid_email(i.username):
+            err = "Please enter a username, not an email"
+
+        else:
+            err="Sorry, this user does not exist"
+
+        return render_template('account/email/forgot', err=err)
+        
+
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
 
@@ -421,6 +448,9 @@ class account_connect(delegate.page):
         linking case and dispatches to the correct method (either
         'link' or 'create' depending on the parameters POSTed to the
         endpoint).
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
 
         i = web.input(email="", password="", username="",
@@ -428,11 +458,11 @@ class account_connect(delegate.page):
                       token="", service="link")
         test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
         if i.service == "link":
-            result = link_accounts(i.get('email').lower(), i.password,
-                                   bridgeEmail=i.bridgeEmail.lower(),
+            result = link_accounts(i.get('email'), i.password,
+                                   bridgeEmail=i.bridgeEmail,
                                    bridgePassword=i.bridgePassword)
         elif i.service == "create":
-            result = create_accounts(i.get('email').lower(), i.password,
+            result = create_accounts(i.get('email'), i.password,
                                    username=i.username, test=test)
         else:
             result = {'error': 'invalid_option'}
@@ -450,10 +480,13 @@ class account_audit(delegate.page):
         proceed to log the user in), whether there is an error
         authenticating their account, or whether a /account/connect
         must first performed.
+
+        Note: Emails are case sensitive behind the scenes and
+        functions which require them as lower will make them so
         """
         i = web.input(email='', password='')
         test = i.get('test', '').lower() == 'true'
-        email = i.get('email').lower()
+        email = i.get('email')
         password = i.get('password')
         result = audit_accounts(email, password, test=test)
         return delegate.RawText(simplejson.dumps(result),
@@ -520,7 +553,7 @@ def send_forgot_password_email(username, email):
     web.ctx.site.store[key] = doc
 
     link = web.ctx.home + "/account/password/reset/" + doc['code']
-    msg = render_template("email/password/reminder", username=username, link=link)
+    msg = render_template("email/password/reminder", username=username, email=email, link=link)
     sendmail(email, msg)
 
 

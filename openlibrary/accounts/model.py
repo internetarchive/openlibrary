@@ -18,7 +18,6 @@ from infogami.utils.view import render_template
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats
-from openlibrary.core import lending
 from openlibrary.core import helpers as h
 
 
@@ -356,7 +355,7 @@ class OpenLibraryAccount(Account):
         return ol_account
 
     @classmethod
-    def get(cls, link=None, email=None, username=None,  test=False):
+    def get(cls, link=None, email=None, username=None, key=None, test=False):
         """Utility method retrieve an openlibrary account by its email,
         username or archive.org itemname (i.e. link)
         """
@@ -366,7 +365,14 @@ class OpenLibraryAccount(Account):
             return cls.get_by_email(email, test=test)
         elif username:
             return cls.get_by_username(username, test=test)
+        elif key:
+            return cls.get_by_key(key, test=test)
         raise ValueError("Open Library email or Archive.org itemname required.")
+
+    @classmethod
+    def get_by_key(cls, key, test=False):
+        username = key.split('/')[-1]
+        return cls.get_by_username(username)
 
     @classmethod
     def get_by_username(cls, username, test=False):
@@ -402,6 +408,7 @@ class OpenLibraryAccount(Account):
         those, searching with the original case and using lower case
         if that fails.
         """
+        email = email.strip()
         email_doc = (web.ctx.site.store.get("account-email/" + email) or
                      web.ctx.site.store.get("account-email/" + email.lower()))
         if email_doc and 'username' in email_doc:
@@ -452,7 +459,6 @@ class OpenLibraryAccount(Account):
         else:
             return "ok"
 
-
 class InternetArchiveAccount(web.storage):
 
     def __init__(self, **kwargs):
@@ -473,7 +479,7 @@ class InternetArchiveAccount(web.storage):
                             subsequent attempts should be made to find
                             an available username.
         """
-
+        email = email.strip().lower()
         screenname = screenname[1:] if screenname[0] == '@' else screenname
 
         if cls.get(email=email):
@@ -506,6 +512,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def xauth(cls, service, test=None, **data):
+        from openlibrary.core import lending
         url = "%s?op=%s" % (lending.config_ia_xauth_api_url, service)
         data.update({
             'access': lending.config_ia_ol_xauth_s3.get('s3_key'),
@@ -529,6 +536,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def get(cls, email, test=False, _json=False):
+        email = email.strip().lower()
         response = cls.xauth(email=email, test=test, service="info")
         if 'success' in response:
             values = response.get('values', {})
@@ -536,6 +544,7 @@ class InternetArchiveAccount(web.storage):
 
     @classmethod
     def authenticate(cls, email, password, test=False):
+        email = email.strip().lower()
         response = cls.xauth('authenticate', test=test, **{
             "email": email,
             "password": password
@@ -560,7 +569,6 @@ def audit_accounts(email, password, test=False):
         test (bool) - not currently used; is there to allow testing in
                       the absence of archive.org dependency
     """
-
     if not valid_email(email):
         return {'error': 'invalid_email'}
 
@@ -576,7 +584,7 @@ def audit_accounts(email, password, test=False):
 
     if any([err in (ol_login, ia_login) for err
             in ['account_blocked', 'account_locked']]):
-        return {'error': 'account_blocked'}
+        return {'error': 'account_locked'}
 
     # One of the accounts must authenticate w/o error
     if "ok" not in (ol_login, ia_login):
@@ -720,7 +728,7 @@ def create_accounts(email, password, username="", test=False):
                 ia_account_itemname = ia_account.itemname
                 ol_account = OpenLibraryAccount.create(
                     ia_account_itemname, email, password,
-                    displayname=ia_account_itemname,
+                    displayname=ia_account_screenname,
                     retries=retries, verified=True, test=test)
                 audit['has_ol'] = ol_account.email
                 audit['has_ia'] = ia_account.email
