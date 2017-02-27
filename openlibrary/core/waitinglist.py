@@ -201,9 +201,12 @@ def get_waitinglist_size(book_key):
 def get_waitinglist_for_user(user_key):
     """Returns the list of records for all the books that a user is waiting for.
     """
-    ia_wl = WaitingLoan.query(userid=OpenLibraryAccount.get(key=user_key))
-    ol_wl = WaitingLoan.query(userid=lending.userkey2userid(user_key))
-    return ol_wl + ia_wl
+    waitlist = []
+    account = OpenLibraryAccount.get(key=user_key)
+    if account.itemname:
+        waitlist.extend(WaitingLoan.query(userid=account.itemname))
+    waitlist.extend(WaitingLoan.query(userid=lending.userkey2userid(user_key)))
+    return waitlist
 
 def is_user_waiting_for(user_key, book_key):
     """Returns True if the user is waiting for specified book.
