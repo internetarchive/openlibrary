@@ -162,10 +162,10 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         </p>
 
             <p>
-                $if isbn:
-                    <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
-                $elif oclc_numbers:
+                $if oclc_numbers:
                     <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
+                $elif isbn:
+                    <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
 
 		Find a physical copy near you</a> &mdash; <span class="smaller">powered by <a href="https://worldcat.org">WorldCat</a></span>
             </p>
