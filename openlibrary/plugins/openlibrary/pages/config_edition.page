@@ -189,7 +189,7 @@
             "label": "National Library of Australia"
         },
         {
-            "url": "http://www.worldcat.org/oclc/@@@?tab=details",
+            "url": "https://www.worldcat.org/oclc/@@@?tab=details",
             "name": "oclc_numbers",
             "label": "OCLC/WorldCat"
         },
