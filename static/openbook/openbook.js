@@ -146,7 +146,7 @@ function setup_openbook(bibkey, book) {
     
     function make_worldcat() {
         var out = ''
-            + '<a target="_blank" href="http://worldcat.org/isbn/ISBN" title="Find this title in a local library using WorldCat">'
+            + '<a target="_blank" href="https://worldcat.org/isbn/ISBN" title="Find this title in a local library using WorldCat">'
             + 'Find in library'
             + '</a>';
         return "<div>" + out.replace("ISBN", book.isbn) + "</div>";
