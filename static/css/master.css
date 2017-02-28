@@ -1003,10 +1003,11 @@ div#headerLogin {
 
 .modal-loading {
     position: absolute;
-    width: 100px;
+    width: 175px;
     right: 50%;
-    margin-right: -55px;
-    top: 250px;    
+    margin-right: -90px;
+    top: 275px;
+    height: 25px;
 }
 
 .modal-overlay {
