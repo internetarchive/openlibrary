@@ -33,7 +33,7 @@ LINKED_BLOCKED = olsession.config['accounts']['linked_blocked']
 
 UNREGISTERED = olsession.config['accounts']['unregistered']
 
-INTERNAL_TEST_API_URL = olsession.config.internal_tests_api_key
+
 
 errorLookup = {
     "invalid_email": "The email address you entered is invalid",
@@ -294,7 +294,7 @@ class Xauth_Test(unittest.TestCase):
         olsession.login(**IA_VERIFIED_MIXED)
         olsession.connect(**OL_VERIFIED)
         self.assertTrue(olsession.is_logged_in())
-        olsession.logout()        
+        olsession.logout()
         olsession.unlink(OL_VERIFIED['email'])
 
     def test_ia_verified_connect_ia_verified(self):
@@ -492,7 +492,7 @@ class Xauth_Test(unittest.TestCase):
     # All combinations of Create & Link attempts after initial
     # successful audit from an OL account
     # ======================================================
-    
+
     def test_ol_verified_create_registered_screenname(self):
         olsession.unlink(OL_VERIFIED['email'])
         olsession.login(**OL_CREATE_CONFLICT)

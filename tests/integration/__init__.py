@@ -1,4 +1,4 @@
-#-*- coding: utf-8 -*-
+integration/test_auth.py#-*- coding: utf-8 -*-
 
 import time
 import yaml
@@ -11,7 +11,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class OLSession(object):
-    def __init__(self, timeout=20):
+    def __init__(self, timeout=10):
         with open('auth.yaml', 'r') as f:
             self.config = yaml.load(f)
         try:
@@ -19,9 +19,10 @@ class OLSession(object):
         except:
             self.driver = webdriver.Firefox()
 
+        self.driver.set_window_size(1200, 1200)
         self.driver.implicitly_wait(timeout)
         self.wait = WebDriverWait(self.driver, timeout)
-        self._url = config.get('url', 'https://dev.openlibrary.org')
+        self._url = self.config.get('url', 'https://dev.openlibrary.org')
         atexit.register(lambda: self.driver.close())
 
     def url(self, uri=""):
@@ -30,11 +31,41 @@ class OLSession(object):
     def goto(self, uri=""):
         self.driver.get(self.url(uri))
 
-    def login(self, email, password, **kwargs):
+    def ia_login(self, email, password, test=None, **kwargs):
+        self.driver.get('https://archive.org/account/login.php')
+        self.driver.find_element_by_id('username').send_keys(email)
+        self.driver.find_element_by_id('password').send_keys(password)
+        self.driver.find_element_by_name('submit').click()
+        if test:
+            test.assertTrue(
+                self.ia_is_logged_in(),
+                "IA Login failed w/ username: %s and password: %s" %
+                (email, password))
+
+    def ia_is_logged_in(self):
+        time.sleep(2)
+        self.driver.get('https://archive.org/account/')
+        try:
+            pagecontent = self.driver.find_element_by_class_name('welcome')
+        except NoSuchElementException:
+            return False
+        return True            
+
+    def ia_logout(self, test=None):
+        self.driver.get('https://archive.org/account/logout.php')
+        if test:
+            test.assertTrue(not self.ia_is_logged_in(),
+                            "Failed to logout of IA")
+
+    def login(self, email, password, test=None, **kwargs):
         self.driver.get(self.url('/account/login'))
         self.driver.find_element_by_id("username").send_keys(email)
         self.driver.find_element_by_id("password").send_keys(password)
         self.driver.find_element_by_name('login').click()
+        if test:
+            test.assertTrue(self.is_logged_in(),
+                "OL Login failed w/ username: %s and password: %s" %
+                (email, password))
 
     def is_logged_in(self):
         time.sleep(2)
@@ -44,38 +75,41 @@ class OLSession(object):
             return False
         return True
 
-    def logout(driver):
+    def logout(self, test=None):
         time.sleep(2)
         self.wait.until(EC.element_to_be_clickable((By.ID, 'userToggle'))).click()
         self.driver.find_element_by_css_selector(
             '#headerUserOpen > a:nth-child(5)').click()
         self.driver.get(self.url('/account/login'))
+        if test:
+            test.assertTrue(not self.is_logged_in(),
+                            "Failed to logout of OL")
 
     def connect(self, email, password):
-        olsession.wait_for_clickable('linkAccounts')
-        driver.find_element_by_id('linkAccounts').click()
-        driver.find_element_by_id('bridgeEmail').send_keys(email)
-        driver.find_element_by_id('bridgePassword').send_keys(password)
-        driver.find_element_by_id('verifyAndConnect').click()
+        self.wait_for_clickable('linkAccounts')
+        self.driver.find_element_by_id('linkAccounts').click()
+        self.driver.find_element_by_id('bridgeEmail').send_keys(email)
+        self.driver.find_element_by_id('bridgePassword').send_keys(password)
+        self.driver.find_element_by_id('verifyAndConnect').click()
         time.sleep(1)
 
     def create(self, username=None):
-        driver.execute_script(
-            "document.getElementById('debug_token').value='" + 
-            INTERNAL_TEST_API_URL + "'");
+        self.driver.execute_script(
+            "document.getElementById('debug_token').value='" +
+            self.config['internal_tests_api_key'] + "'");
         time.sleep(1)
-        olsession.wait_for_clickable('createAccount')
-        driver.find_element_by_id('createAccount').click()
+        self.wait_for_clickable('createAccount')
+        self.driver.find_element_by_id('createAccount').click()
         time.sleep(1)
 
     def unlink(self, email):
         import requests
         email = email.replace('+', '%2b')
-        r = requests.get(self.url('%s/internal/account/unlink?key=%s&email=%s'
-               % (internal_tests_api_key, email)))
+        r = requests.get(self.url('/internal/account/unlink?key=%s&email=%s'
+               % (self.config['internal_tests_api_key'], email)))
 
-    def wait_for_clickable(self, css_id):
-        self.wait.until(EC.element_to_be_clickable((By.ID, css_id)))
+    def wait_for_clickable(self, css_id, by=By.ID):
+        self.wait.until(EC.element_to_be_clickable((by, css_id)))
 
-    def wait_for_visible(self, css_id):
-        self.wait.until(EC.visibility_of_element_located((By.ID, css_id)))
+    def wait_for_visible(self, css_id, by=By.ID):
+        self.wait.until(EC.visibility_of_element_located((by, css_id)))
