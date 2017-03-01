@@ -12,8 +12,11 @@ $var title: $("Log In")
   //\$().ready(validateLogin);
 </script>
 
-<div id="migrateModal" class="modal-overlay">
+<div id="migrateModal" class="modal-overlay modal-backdrop">
   <div class="modal-content">
+    <div id="modal-loader" class="modal-overlay">
+      <img class="modal-loading" src="/static/images/ajax-loader-bar.gif"/>
+    </div>
     <div class="modal-header">
       <div class="modal-x">&#x2715;</div>
       <div class="modal-icon">
@@ -179,6 +182,7 @@ $var title: $("Log In")
 
       var resetModal = function() {
           \$('#migrateModal').hide();
+          \$('#modal-loader').hide();
           \$('.formFieldsDecoration').removeClass('error');
           \$('.formFieldsErrorMsg').html('');
           \$('.modal-header-copy-a').show();
@@ -208,6 +212,7 @@ $var title: $("Log In")
 
       // Render the "Create Account" form
       \$('#createAccount').click(function(event) {
+          \$('#modal-loader').show();
           create_and_link_account(\$('#username').val(), \$('#password').val(), \$('#bridgeUsername').val(), function(result) {
 
               audit = result;
@@ -285,12 +290,16 @@ $var title: $("Log In")
       \$('#verifyAndConnect').click(function(event) {
           \$('.formFieldsDecoration').removeClass('error');
           \$('.formFieldsErrorMsg').html('');
+
+          \$('#modal-loader').show();
+          
           auth_and_link_accounts(\$('#username').val(), \$('#password').val(), \$('#bridgeEmail').val(), \$('#bridgePassword').val(), function(result) {
 
               audit = result;
               console.log(audit);
 
               if (audit.error) {
+                  \$('#modal-loader').hide();
                   \$('.formFieldsDecoration').addClass('error');
                   \$('.formFieldsErrorMsg').html(errorLookup[audit.error]);
               } else {

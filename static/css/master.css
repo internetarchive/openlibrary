@@ -993,8 +993,24 @@ div#headerLogin {
 
 /* MIGRATE MODAL */
 
+#migrateModal {
+    display: none;
+}
+
+#modal-loader {
+    display: none;
+}
+
+.modal-loading {
+    position: absolute;
+    width: 175px;
+    right: 50%;
+    margin-right: -90px;
+    top: 275px;
+    height: 25px;
+}
+
 .modal-overlay {
-    display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
     z-index: 9999; /* Sit on top */
     left: 0;
