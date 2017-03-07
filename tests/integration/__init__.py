@@ -1,4 +1,4 @@
-integration/test_auth.py#-*- coding: utf-8 -*-
+#-*- coding: utf-8 -*-
 
 import time
 import yaml
@@ -11,7 +11,7 @@ from selenium.common.exceptions import NoSuchElementException
 
 
 class OLSession(object):
-    def __init__(self, timeout=10):
+    def __init__(self, timeout=10, domain="https://dev.openlibrary.org"):
         with open('auth.yaml', 'r') as f:
             self.config = yaml.load(f)
         try:
@@ -22,8 +22,12 @@ class OLSession(object):
         self.driver.set_window_size(1200, 1200)
         self.driver.implicitly_wait(timeout)
         self.wait = WebDriverWait(self.driver, timeout)
-        self._url = self.config.get('url', 'https://dev.openlibrary.org')
+        self._url = self.config.get('url', domain)
         atexit.register(lambda: self.driver.close())
+
+    @property
+    def selenium_selector(self):
+        return By
 
     def url(self, uri=""):
         return "%s/%s" % (self._url, uri)
@@ -31,8 +35,9 @@ class OLSession(object):
     def goto(self, uri=""):
         self.driver.get(self.url(uri))
 
-    def ia_login(self, email, password, test=None, **kwargs):
-        self.driver.get('https://archive.org/account/login.php')
+    def ia_login(self, email, password, test=None,
+                 domain="https://archive.org", **kwargs):
+        self.driver.get('%s/account/login.php' % domain)
         self.driver.find_element_by_id('username').send_keys(email)
         self.driver.find_element_by_id('password').send_keys(password)
         self.driver.find_element_by_name('submit').click()
@@ -42,17 +47,17 @@ class OLSession(object):
                 "IA Login failed w/ username: %s and password: %s" %
                 (email, password))
 
-    def ia_is_logged_in(self):
+    def ia_is_logged_in(self, domain="https://archive.org"):
         time.sleep(2)
-        self.driver.get('https://archive.org/account/')
+        self.driver.get('%s/account/' % domain)
         try:
             pagecontent = self.driver.find_element_by_class_name('welcome')
         except NoSuchElementException:
             return False
-        return True            
+        return True
 
-    def ia_logout(self, test=None):
-        self.driver.get('https://archive.org/account/logout.php')
+    def ia_logout(self, test=None, domain="https://archive.org"):
+        self.driver.get('%s/account/logout.php' % domain)
         if test:
             test.assertTrue(not self.ia_is_logged_in(),
                             "Failed to logout of IA")

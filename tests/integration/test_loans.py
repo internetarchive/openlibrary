@@ -6,7 +6,7 @@ testing loans and waitlist
 
 import time
 import unittest
-from . import OLSession, By
+from . import OLSession
 
 
 olsession = OLSession()
@@ -64,7 +64,7 @@ class Borrow_Test(unittest.TestCase):
             xpath = ia_ctas[check_cta]['xpath']
 
             if make_assert:
-                olsession.wait_for_clickable(xpath, by=By.XPATH)
+                olsession.wait_for_clickable(xpath, by=olsession.selenium_selector.XPATH)
             try:
                 time.sleep(3)
                 ia_cta_btn = olsession.driver.find_element_by_xpath(xpath)
@@ -124,7 +124,7 @@ class Borrow_Test(unittest.TestCase):
         userid = cta.get_attribute('data-userid')
         self.assertTrue(cta.get_attribute('data-userid') == itemname,
                         'data-userid should be %s, was %s' % (itemname, userid))
-        
+
     def test_ia_borrow_ol_read_ol_return(self):
         olsession.ia_login(test=self, **LIVE_USER1)
         olsession.login(test=self, **LIVE_USER1)
@@ -177,7 +177,7 @@ class Borrow_Test(unittest.TestCase):
         olsession.goto('/account/loans')
         link = olsession.driver.find_element_by_xpath('//a[@href="/books/%s"]' % OL_EDITION);
         self.assertTrue(link, "Book not found in waiting list on loans page")
-        
+
         olsession.logout(test=self)
         olsession.login(test=self, **LIVE_USER1)
         self.ol_get_book_cta(OL_EDITION, check_cta="return",
