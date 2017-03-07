@@ -22,7 +22,10 @@ from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
-from openlibrary.accounts import audit_accounts, link_accounts, create_accounts, Account, OpenLibraryAccount, valid_email
+from openlibrary.accounts import (
+    audit_accounts, link_accounts,
+    create_accounts, Account, OpenLibraryAccount, valid_email
+)
 import forms
 import utils
 import borrow
@@ -43,7 +46,7 @@ class unlink(delegate.page):
         """Internal API endpoint used for authorized test cases and
         administrators to unlink linked OL and IA accounts.
         """
-        i = web.input(email='', itemname='', key='')
+        i = web.input(email='', itemname='', key='', readonly='')
         if i.key != lending.config_internal_tests_api_key:
             result = {'error': 'Authentication failed for private API'}
         else:
@@ -53,7 +56,8 @@ class unlink(delegate.page):
                     raise ValueError('Invalid Open Library account email ' \
                                      'or itemname')
                     result.enc_password = 'REDACTED'
-                result.unlink()
+                if not readonly:
+                    result.unlink()
             except ValueError as e:
                 result = {'error': str(e)}
 
