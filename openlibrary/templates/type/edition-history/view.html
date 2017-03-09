@@ -8,8 +8,8 @@ $ title = page.title_prefix + ' ' + page.title
 
 $var title: $title
 
-$ lccn = page["lccn"] and page["lccn"][0] and ("http://lccn.loc.gov/" + page["lccn"][0])
-$ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("http://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
+$ lccn = page["lccn"] and page["lccn"][0] and ("https://lccn.loc.gov/" + page["lccn"][0])
+$ oclc = page["oclc_numbers"] and page["oclc_numbers"][0] and ("https://www.worldcat.org/oclc/" + page["oclc_numbers"][0] + "?tab=details")
 $ key = page.key
 $ detailbook = "//archive.org/details/XXX"
 

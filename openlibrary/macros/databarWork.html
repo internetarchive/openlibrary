@@ -7,8 +7,8 @@ $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
-$ worldcat = "http://worldcat.org/isbn/XXX"
-$ worldcatoclc = "http://worldcat.org/oclc/XXX"
+$ worldcat = "https://worldcat.org/isbn/XXX"
+$ worldcatoclc = "https://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
@@ -162,10 +162,10 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         </p>
 
             <p>
-                $if isbn:
-                    <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
-                $elif oclc_numbers:
+                $if oclc_numbers:
                     <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
+                $elif isbn:
+                    <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
 
 		Find a physical copy near you</a> &mdash; <span class="smaller">powered by <a href="https://worldcat.org">WorldCat</a></span>
             </p>
@@ -178,7 +178,7 @@ $else:
             <span class="head">Borrow</span>
 	</h3>
 	<div class="panel">
-            <p class="smaller">Try a <a href="http://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
+            <p class="smaller">Try a <a href="https://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
 	</div>
     </div>
 

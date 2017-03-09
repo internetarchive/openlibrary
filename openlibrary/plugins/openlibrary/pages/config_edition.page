@@ -9,7 +9,7 @@
             "label": "Library of Congress"
         },
         {
-            "website": "http://rvk.uni-regensburg.de/index.php?option=com_rvko&view=show&Itemid=53",
+            "website": "https://rvk.uni-regensburg.de/index.php?option=com_rvko&view=show&Itemid=53",
             "notes": "",
             "name": "rvk",
             "label": "RVK"
@@ -106,7 +106,7 @@
     ],
     "identifiers": [
         {
-            "url": "http://www.amazon.com/gp/product/@@@",
+            "url": "https://www.amazon.com/gp/product/@@@",
             "name": "amazon",
             "label": "Amazon ASIN"
         },
@@ -124,23 +124,23 @@
         },
         {
             "url": "http://d-nb.info/@@@",
-            "website": "http://www.d-nb.de/eng/index.htm",
+            "website": "http://www.dnb.de/EN",
             "notes": "",
             "name": "dnb",
             "label": "Deutsche National Bibliothek"
         },
         {
-            "url": "http://www.goodreads.com/book/show/@@@",
+            "url": "https://www.goodreads.com/book/show/@@@",
             "name": "goodreads",
             "label": "Goodreads"
         },
         {
-            "url": "http://books.google.com/books?id=@@@",
+            "url": "https://books.google.com/books?id=@@@",
             "name": "google",
             "label": "Google"
         },
         {
-            "url": "http://www.archive.org/details/@@@",
+            "url": "https://www.archive.org/details/@@@",
             "name": "ocaid",
             "label": "Internet Archive"
         },
@@ -153,8 +153,8 @@
             "label": "ISBN 13"
         },
         {
-            "url": "http://catalog.hathitrust.org/Record/@@@",
-            "website": "http://hathitrust.org/",
+            "url": "https://catalog.hathitrust.org/Record/@@@",
+            "website": "https://hathitrust.org/",
             "name": "hathi_trust",
             "label": "Hathi Trust"
         },
@@ -166,17 +166,17 @@
             "label": "Harvard University Library"
         },
         {
-            "url": "http://lccn.loc.gov/@@@",
+            "url": "https://lccn.loc.gov/@@@",
             "name": "lccn",
             "label": "LC Control Number"
         },
         {
-            "url": "http://www.librarything.com/work/@@@",
+            "url": "https://www.librarything.com/work/@@@",
             "name": "librarything",
             "label": "Library Thing"
         },
         {
-            "url": "http://www.lulu.com/product/@@@",
+            "url": "https://www.lulu.com/product/@@@",
             "website": "http://www.lulu.com",
             "name": "lulu",
             "label": "Lulu"
@@ -189,7 +189,7 @@
             "label": "National Library of Australia"
         },
         {
-            "url": "http://www.worldcat.org/oclc/@@@?tab=details",
+            "url": "https://www.worldcat.org/oclc/@@@?tab=details",
             "name": "oclc_numbers",
             "label": "OCLC/WorldCat"
         },
@@ -199,13 +199,13 @@
             "label": "Paperback Swap"
         },
         {
-            "url": "http://www.gutenberg.org/etext/@@@",
+            "url": "https://www.gutenberg.org/etext/@@@",
             "website": "www.gutenberg.org",
             "name": "project_gutenberg",
             "label": "Project Gutenberg"
         },
         {
-            "url": "http://www.scribd.com/doc/@@@/",
+            "url": "https://www.scribd.com/doc/@@@/",
             "website": "http://www.scribd.com/",
             "name": "scribd",
             "label": "Scribd"
@@ -235,7 +235,7 @@
             "label": "ISSN"
         },
         {
-            "website": "www.alibris.com",
+            "website": "http://www.alibris.com",
             "notes": "",
             "name": "alibris",
             "label": "Alibris"
