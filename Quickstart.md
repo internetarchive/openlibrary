@@ -21,7 +21,7 @@
 
 ### Logging In
 
-You can log into the OpenLibrary instance as an admin, with the username *openlibrary*, password *openlibrary*
+You can log into the OpenLibrary instance as an admin, with the username *openlibrary@example.com*, password *openlibrary*
 
 ### Admin Interface
 
