@@ -23,8 +23,8 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
 from openlibrary.accounts import (
-    audit_accounts, link_accounts,
-    create_accounts, Account, OpenLibraryAccount, valid_email
+    audit_accounts, link_accounts, create_accounts,
+    Account, OpenLibraryAccount, valid_email
 )
 import forms
 import utils
@@ -38,6 +38,25 @@ send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
+
+class xauth(delegate.page):
+    path = "/internal/xauth"
+
+    def GET(self):
+        """Internal private API used for testing login on vagrant/localhost
+        which normally would have to hit archive.org's xauth
+        service. This service is spoofable to return successful and
+        unsuccessful login attempts depending on the provided GET parameters
+        """
+        result = {
+            itemname: "@openlibrary",
+            verified: true,
+            email: "openlibrary@example.org",
+            locked: false,
+            screenname: "openlibrary"
+        }
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class unlink(delegate.page):
     path = "/internal/account/unlink"

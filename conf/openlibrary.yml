@@ -80,6 +80,12 @@ plugin_worksearch:
         db: 'openlibrary_ebook_count'
         host: 'localhost'
 
+ia_ol_xauth_s3:
+    s3_key: XXX
+    s3_secret: XXX
+
+ia_xauth_api_url: http://127.0.0.1:8080/internal/xauth
+
 single_core_solr: True
 stats_solr: "localhost:8983"
 
