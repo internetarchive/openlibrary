@@ -29,7 +29,7 @@ $else:
 
     $if book.get("read_url"):
         <div class="coverEbook">
-            <a href="$book.read_url?ref=ol" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') target="_blank" title="$_('Read online')">
+            <a href="$book.read_url?ref=ol" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') title="$_('Read online')">
               <img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/>
             </a>
         </div>
