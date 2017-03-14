@@ -84,7 +84,9 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_xauth_api_url: http://127.0.0.1:8080/internal/xauth
+ia_loan_api_url: http://127.0.0.1:8080/internal/fake/loans
+ia_availability_api_url: http://127.0.0.1:8080/internal/fake/availability
+ia_xauth_api_url: http://127.0.0.1:8080/internal/fake/xauth
 
 single_core_solr: True
 stats_solr: "localhost:8983"

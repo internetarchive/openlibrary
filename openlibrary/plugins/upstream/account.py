@@ -39,22 +39,49 @@ create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
 
-class xauth(delegate.page):
-    path = "/internal/xauth"
+class availability(delegate.page):
+    path = "/internal/fake/availability"
 
-    def GET(self):
-        """Internal private API used for testing login on vagrant/localhost
+    def POST(self):
+        """Internal private API required for testing on vagrant/localhost
+        """
+        return delegate.RawText(simplejson.dumps({}),
+                                content_type="application/json")
+
+class loans(delegate.page):
+    path = "/internal/fake/loans"
+
+    def POST(self):
+        """Internal private API required for testing on vagrant/localhost
+        """
+        return delegate.RawText(simplejson.dumps({}),
+                                content_type="application/json")
+
+class xauth(delegate.page):
+    path = "/internal/fake/xauth"
+
+    def POST(self):
+        """Internal private API required for testing login on vagrant/localhost
         which normally would have to hit archive.org's xauth
         service. This service is spoofable to return successful and
         unsuccessful login attempts depending on the provided GET parameters
         """
-        result = {
-            itemname: "@openlibrary",
-            verified: true,
-            email: "openlibrary@example.org",
-            locked: false,
-            screenname: "openlibrary"
-        }
+        i = web.input(email='', op=None)
+        result = {"error": "incorrect option specified"}
+        if i.op == "authenticate":
+            result = {"success": True,"version": 1}
+        elif i.op == "info":
+            result = {
+                "success": True,
+                "values": {
+                    "locked": False,
+                    "email": "openlibrary@example.org",
+                    "itemname":"@openlibrary",
+                    "screenname":"openlibrary",
+                    "verified": True
+                },
+                "version":1
+            }
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
@@ -402,7 +429,7 @@ class account_email_forgot(delegate.page):
             err="Sorry, this user does not exist"
 
         return render_template('account/email/forgot', err=err)
-        
+
 
 class account_password_forgot(delegate.page):
     path = "/account/password/forgot"
