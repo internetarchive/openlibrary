@@ -10,9 +10,9 @@ def test_olmarkdown():
 
     assert md("**foo**") == p("<strong>foo</strong>")
     assert md("<b>foo</b>") == p('<b>foo</b>')
-    assert md("http://openlibrary.org") == p(
-            '<a href="http://openlibrary.org" rel="nofollow">' +
-                'http://openlibrary.org' +
+    assert md("https://openlibrary.org") == p(
+            '<a href="https://openlibrary.org" rel="nofollow">' +
+                'https://openlibrary.org' +
             '</a>'
         )
 
