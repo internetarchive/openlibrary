@@ -1758,7 +1758,7 @@ def load_configs(config_file):
 
     global data_provider
     global _ia_db
-    if data_provider == None:
+    if data_provider is None:
 	data_provider = get_data_provider(c_data_provider,_ia_db)
 
     return data_provider
@@ -1781,10 +1781,11 @@ def load_configs(c_host,c_config,c_data_provider):
     conf_file = c_config
 
     global _ia_db
-    _ia_db = get_ia_db(config.runtime_config['ia_db'])
+    if ('ia_db' in config.runtime_config.keys()):
+        _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
-    if data_provider == None:
+    if data_provider is None:
        data_provider = get_data_provider(c_data_provider,_ia_db)
 
     return data_provider
@@ -1822,7 +1823,7 @@ def main():
 	_ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
-    if data_provider == None:
+    if data_provider is None:
         data_provider = get_data_provider(options.data_provider,_ia_db)
 
 
