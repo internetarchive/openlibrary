@@ -6,7 +6,7 @@ jQuery(function() {
     event.preventDefault();
     var $this = $(this);
     var borrowUrl = $this.attr('href').replace(/'/g, '%27');
-    var borrowFormString = "<form action='" + borrowUrl + "' method='POST' target='_blank'>\n" +
+    var borrowFormString = "<form action='" + borrowUrl + "' method='POST'>\n" +
       "<input type='hidden' name='action' value='borrow' />\n" +
       "<input type='hidden' name='format' value='bookreader' />\n" +
       "<input type='hidden' name='ol_host' value='" + location.host + "' />\n" +

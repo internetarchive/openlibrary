@@ -55,10 +55,10 @@ $if q:
                         $ collection = set(doc_fields.get('meta_collection', []))
                         $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
                         $ url = "//archive.org/details/" + ia
-                            <span class="bookcover"><a href="$url" target="_blank"><img src="$cover" /></a></span>
+                            <span class="bookcover"><a href="$url"><img src="$cover" /></a></span>
                             <span class="details">
                                 <span class="resultTitle">
-                                    <h3 class="booktitle sansserif"><a href="$url" class="results" target="_blank">$title</a></h3>
+                                    <h3 class="booktitle sansserif"><a href="$url" class="results">$title</a></h3>
                                     <span class="bookauthor">by
                                     $if authors:
                                         $', '.join(authors)
@@ -66,7 +66,7 @@ $if q:
                                         <em>unknown author</em>
                                     </span>
                                     <span class="resultPublisher">
-                                        <a href="//archive.org/details/$ia" target="_blank">View on archive.org</a>
+                                        <a href="//archive.org/details/$ia">View on archive.org</a>
                                         $ page_nums = doc_fields.get('page_num', [])
                                         $if page_nums:
                                             &bull; page $(', '.join([str(num) for num in page_nums]))
@@ -75,7 +75,7 @@ $if q:
                             </span>
                             <span class="actions">
                                     $if not (no_snippet & collection):
-                                            <a href="//archive.org/stream/$ia?ref=ol#search/$q" target="_blank" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
+                                            <a href="//archive.org/stream/$ia?ref=ol#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
                                                     <span class="image read"></span>
                                                     <span class="label">$_("Read")</span>
                                             </a>
