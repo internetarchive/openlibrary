@@ -75,13 +75,12 @@ def add_new_scans(args):
     # Find all scans which are updated/added on the given date
     # and have been scanned at most 2 months ago
     q = ("SELECT identifier FROM metadata" +
-        " WHERE repub_state=4" +
-        "   AND mediatype='texts'" +
+        " WHERE mediatype='texts'" +
         "   AND scancenter IS NOT NULL" +
         "   AND collection NOT LIKE $c1" +
         "   AND collection NOT LIKE $c2" +
         "   AND (curatestate IS NULL OR curatestate != 'dark')" +
-        "   AND lower(format) LIKE '%%pdf%%' AND lower(format) LIKE '%%marc%%'" +
+        "   AND lower(format) LIKE '%%pdf%%'" +
         "   AND scandate is NOT NULL AND scandate > $min_scandate" +
         "   AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)")
 
