@@ -638,7 +638,7 @@ class IA_Lending_API:
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
         try:
-            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload, timeout=3).read()
+            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload, timeout=10).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
         except Exception as e:
