@@ -149,9 +149,10 @@ class work_editions(delegate.page):
             "entries": editions
         }
 
+
+
 class author_works(delegate.page):
-    path = "(/authors/OL\d+A)/works"
-    encoding = "json"
+    path = "/api(/authors/OL\d+A)/works"
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
