@@ -644,7 +644,6 @@ class show_log:
         i = web.input(name='')
         logname = i.name
         filepath = config.get('errorlog', 'errors') + '/'+ logname + '.html'
-        print(filepath)
         if os.path.exists(filepath):
             with open(filepath) as f:
                 return f.read()
