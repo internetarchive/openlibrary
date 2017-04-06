@@ -639,6 +639,15 @@ class imports_by_date:
     def GET(self, date):
         return render_template("admin/imports_by_date", imports.Stats(), date)
 
+class show_log:
+    def GET(self):
+        i = web.input(name='')
+        logname = i.name
+        filepath = config.get('errorlog', 'errors') + '/'+ logname + '.html'
+        if os.path.exists(filepath):
+            with open(filepath) as f:
+                return f.read()
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -656,6 +665,7 @@ def setup():
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
+    register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
     register_admin_page('/admin/imports', imports_home, label="")
