@@ -15,6 +15,11 @@ def test_olmarkdown():
                 'https://openlibrary.org' +
             '</a>'
         )
+    assert md("http://example.org") == p(
+            '<a href="http://example.org" rel="nofollow">' +
+                'http://example.org' +
+            '</a>'
+        )
 
     # why extra spaces?
     assert md("a\nb") == p("a<br/>\n   b")
