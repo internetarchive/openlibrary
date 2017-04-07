@@ -42,6 +42,7 @@ config_ia_availability_api_url = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
+config_http_request_timeout = None
 config_content_server = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -74,7 +75,7 @@ def setup(config):
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
-
+    config_http_request_timeout = int(config.get('http_request_timeout'))
 
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating
@@ -97,7 +98,8 @@ def is_borrowable(identifiers, acs=False, restricted=False):
         'identifiers': ','.join(identifiers)
     })
     try:
-        content = urllib2.urlopen(url=url, data=data, timeout=3).read()
+        content = urllib2.urlopen(
+            url=url, data=data, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
         return {'error': 'request_timeout'}
@@ -638,7 +640,8 @@ class IA_Lending_API:
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
         try:
-            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload, timeout=10).read()
+            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
+                                       timeout=config_http_request_timeout).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
         except Exception as e:
