@@ -55,7 +55,8 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_ia_availability_api_url, config_ia_xauth_api_url
+        config_ia_availability_api_url, config_ia_xauth_api_url, \
+        config_http_request_timeout
 
     if config.get("content_server"):
         try:
@@ -75,7 +76,7 @@ def setup(config):
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
-    config_http_request_timeout = int(config.get('http_request_timeout'))
+    config_http_request_timeout = config.get('http_request_timeout')
 
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating

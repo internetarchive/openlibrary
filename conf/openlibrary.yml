@@ -87,7 +87,7 @@ ia_ol_xauth_s3:
 ia_loan_api_url: http://127.0.0.1:8080/internal/fake/loans
 ia_availability_api_url: http://127.0.0.1:8080/internal/fake/availability
 ia_xauth_api_url: http://127.0.0.1:8080/internal/fake/xauth
-http_request_timeout = 10
+http_request_timeout: 10
 
 single_core_solr: True
 stats_solr: "localhost:8983"
