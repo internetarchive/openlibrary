@@ -3,7 +3,7 @@ from openlibrary.api import OpenLibrary, unmarshal
 from openlibrary.catalog.read_rc import read_rc
 
 rc = read_rc()
-ol = OpenLibrary("http://openlibrary.org")
+ol = OpenLibrary("https://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot'])
 
 to_fix = []
