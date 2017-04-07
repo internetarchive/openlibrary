@@ -59,6 +59,9 @@ class OLMarkdown(markdown.Markdown):
         self._patch()
 
     def _patch(self):
+        patterns = self.inlinePatterns
+        autolink = markdown.AutolinkPattern(markdown.AUTOLINK_RE.replace('http', 'https?'))
+        patterns[patterns.index(markdown.AUTOLINK_PATTERN)] = autolink
         p = self.preprocessors
         p[p.index(markdown.LINE_BREAKS_PREPROCESSOR)] = LINE_BREAKS_PREPROCESSOR
         p.append(AUTOLINK_PREPROCESSOR)
