@@ -37,7 +37,7 @@ class OLError(Exception):
 
 class OpenLibrary:
     def __init__(self, base_url="https://openlibrary.org"):
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip('/') if base_url else "https://openlibrary.org"
         self.cookie = None
 
     def _request(self, path, method='GET', data=None, headers=None):
@@ -79,7 +79,7 @@ class OpenLibrary:
         logger.info("reading %s", configfile)
         config.read(configfile)
 
-        section = section or self.base_url.replace('http://', '').replace("https://", "")
+        section = section or self.base_url.split('://')[-1]
 
         if not config.has_section(section):
             raise Exception("No section found with name %s in ~/.olrc" % repr(section))
@@ -126,7 +126,7 @@ class OpenLibrary:
         headers = {'Content-Type': 'application/json'}
         data = marshal(data)
         if comment:
-            headers['Opt'] = '"https://openlibrary.org/dev/docs/api"; ns=42'
+            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
             headers['42-comment'] = comment
         data = simplejson.dumps(data)
         return self._request(key, method="PUT", data=data, headers=headers).read()
@@ -137,7 +137,7 @@ class OpenLibrary:
 
         # use HTTP Extension Framework to add custom headers. see RFC 2774 for more details.
         if comment or action:
-            headers['Opt'] = '"https://openlibrary.org/dev/docs/api"; ns=42'
+            headers['Opt'] = '"%s/dev/docs/api"; ns=42' % self.base_url
         if comment:
             headers['42-comment'] = comment
         if action:

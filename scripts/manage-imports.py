@@ -14,12 +14,14 @@ import time
 logger = logging.getLogger("openlibrary.importer")
 
 @web.memoize
-def get_ol():
-    ol = OpenLibrary()
+def get_ol(servername=None):
+    print(servername)
+    ol = OpenLibrary(base_url=servername)
+    print(ol.base_url)
     ol.autologin()
     return ol
 
-def ol_import_request(item, retries=5):
+def ol_import_request(item, retries=5, servername=None):
     """Requests OL to import an item and retries on server errors.
     """
     logger.info("importing %s", item.ia_id)
@@ -28,15 +30,15 @@ def ol_import_request(item, retries=5):
             logger.info("sleeping for 5 seconds before next attempt.")
             time.sleep(5)
         try:
-            ol = get_ol()
+            ol = get_ol(servername=servername)
             return ol._request('/api/import/ia', method='POST', data='identifier=' + item.ia_id).read()
         except (IOError, OLError), e:
             logger.warn("Failed to contact OL server. error=%s", e)
 
 
-def do_import(item):
-    response = ol_import_request(item)
-
+def do_import(item, servername=None):
+    response = ol_import_request(item, servername=servername)
+    print >> sys.stderr, "Response:", response
     if response and response.startswith("{"):
         d = json.loads(response)
         if d.get("success") and 'edition' in d:
@@ -95,25 +97,25 @@ def add_new_scans(args):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
 
-def import_batch(args):
+def import_batch(args, servername=None):
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
-        print >> sys.syderr, "Unknown batch", batch
+        print >> sys.stderr, "Unknown batch", batch
         sys.exit(1)
 
     for item in batch.get_items():
-        do_import(item)
+        do_import(item, servername=servername)
 
-def import_item(args):
+def import_item(args, servername=None):
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
     if item:
-        do_import(item)
+        do_import(item, servername=servername)
     else:
         logger.error("%s is not found in the import queue", ia_id)
 
-def import_all(args):
+def import_all(args, servername=None):
     while True:
         items = ImportItem.find_pending()
         if not items:
@@ -121,7 +123,7 @@ def import_all(args):
             time.sleep(60)
 
         for item in items:
-            do_import(item)
+            do_import(item, servername=servername)
 
 def main():
     if "--config" in sys.argv:
@@ -132,18 +134,24 @@ def main():
         configfile = "openlibrary.yml"
     load_config(configfile)
 
+    from infogami import config
+    servername = config.get('servername', 'https://openlibrary.org')
+    print(servername)
+
     cmd = sys.argv[1]
     args = sys.argv[2:]
+    if cmd == "import-ocaids":
+        return import_ocaids(*args, servername=servername)
     if cmd == "add-items":
         return add_items(args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":
-        return import_batch(args)
+        return import_batch(args, servername=servername)
     elif cmd == "import-all":
-        return import_all(args)
+        return import_all(args, servername=servername)
     elif cmd == "import-item":
-        return import_item(args)
+        return import_item(args, servername=servername)
     else:
         logger.error("Unknown command: %s", cmd)
 
