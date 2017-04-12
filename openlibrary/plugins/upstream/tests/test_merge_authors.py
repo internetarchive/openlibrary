@@ -16,7 +16,14 @@ def setup_module(mod):
     models.setup()
 
 class MockSite(client.Site):
+
+    class Seq(object):
+        def next_value(self, name):
+            return 1
+
     def __init__(self):
+        self.seq = self.Seq()
+        self.store = {}
         self.docs = {}
         self.query_results = {}
 
@@ -44,6 +51,7 @@ class MockSite(client.Site):
 
     def save_many(self, docs, comment=None, data={}, action=None):
         self.add(docs)
+        return [{'key': d['key'], 'revision': 1} for d in docs]
 
     def add(self, docs):
         self.docs.update((doc['key'], doc) for doc in docs)
