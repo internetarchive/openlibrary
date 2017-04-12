@@ -2,10 +2,10 @@ $def with (book, id=None, pixel='')
 
 $if "authors" in book:
     $ authors = ", ".join(a.name for a in book.authors)
-    $ long_title = truncate(book.title, 40) + " by " + truncate(authors, 40)
+    $ long_title = truncate(book.title or '', 40) + " by " + truncate(authors, 40)
 $else:
     $ authors = ""
-    $ long_title = truncate(book.title, 40)
+    $ long_title = truncate(book.title or '', 40)
 
 
 <div class="coverMagic hiddenCoverMagic">
