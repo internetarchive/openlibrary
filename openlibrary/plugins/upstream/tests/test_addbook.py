@@ -7,7 +7,7 @@ def strip_nones(d):
     return dict((k, v) for k, v in d.items() if v is not None)
 
 class TestSaveBookHelper:
-    def get_test_authors(self, monkeypatch):
+    def test_authors(self, monkeypatch):
         def mock_user():
             return type('MockUser', (object,), {'is_admin': lambda self: False})()
 
