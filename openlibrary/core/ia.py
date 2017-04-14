@@ -1,6 +1,8 @@
 """Library for interacting wih archive.org.
 """
+import os
 import urllib2
+import datetime
 from xml.dom import minidom
 import simplejson
 import web
@@ -8,8 +10,11 @@ import logging
 from infogami import config
 from infogami.utils import stats
 import cache
+from openlibrary.utils.dateutil import date_n_days_ago
 
 logger = logging.getLogger("openlibrary.ia")
+
+VALID_READY_REPUB_STATES = ["4", "6", "19", "20", "22"]
 
 def get_metadata(itemid):
     itemid = web.safestr(itemid.strip())
@@ -22,7 +27,8 @@ def get_metadata(itemid):
         metadata = process_metadata_dict(d.get("metadata", {}))
 
         if metadata:
-            # if any of the files is access restricted, consider it as an access-restricted item.
+            # if any of the files is access restricted, consider it as
+            # an access-restricted item.
             files = d.get('files', [])
             metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
 
@@ -187,7 +193,7 @@ class ItemEdition(dict):
         if metadata.get("mediatype") != "texts":
             return "not-texts-item"
 
-        if metadata.get("repub_state", "4") not in ["4", "6"]:
+        if metadata.get("repub_state", "4") not in VALID_READY_REPUB_STATES:
             return "bad-repub-state"
 
         if "imagecount" not in metadata:
@@ -292,3 +298,90 @@ class ItemEdition(dict):
         subjects = [subject for c, subject in mapping.items() if c in collections]
         if subjects:
             self['subjects'] = subjects
+
+_ia_db = None
+def get_ia_db(configfile=None):
+    """Metadata API is slow.
+
+    Talk to archive.org database directly if it is specified in the
+    global configuration or if a configfile is provided.
+    """
+    if configfile:
+        from openlibrary.config import load_config
+        load_config(configfile)
+
+    if not config.get("ia_db"):
+        return
+    global _ia_db
+    if not _ia_db:
+        settings = config.ia_db
+        host = settings['host']
+        db = settings['db']
+        user = settings['user']
+        pw = os.popen(settings['pw_file']).read().strip()
+        _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
+    return _ia_db
+
+
+def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=60,
+                         repub_states=None, marcs=True, lazy=False, db=None):
+    """Returns a list of identifiers which are candidates for ImportBot.
+
+    If since_days and since_date are None, no date restrictions are
+    applied besides `scanned_within_days` (which may also be None)
+
+    Args:
+        since_days (int) - number of days to look back for item updates
+        since_date (Datetime) - only completed after since_date
+                                (default: if None, since_days used)
+        scanned_within_days (int) - only consider items `scanned_within_days`
+                                    of `since_date` (default 60 days; 2 months)
+        marcs (bool) - require MARCs present?
+        lazy (bool) - if True, returns query as iterator, otherwise,
+                      returns identifiers list
+        db (web.db) - A web.py database object with an active
+                      connection (optional)
+
+    Usage:
+        >>> from openlibrary.core.ia import get_ia_db, get_candidate_ocaids
+        >>> candidates = get_candidate_ocaids(
+        ...    since_days=1, db=get_ia_db('openlibrary/config/openlibrary.yml'))
+
+    """
+    db = db or get_ia_db()
+    date = since_date or date_n_days_ago(n=since_days)
+    min_scandate = date_n_days_ago(start=date, n=scanned_within_days)
+    repub_states = repub_states or VALID_READY_REPUB_STATES
+
+    qvars = {
+        'c1': '%opensource%',
+        'c2': '%additional_collections%'
+    }
+
+    _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
+    q = (
+        "SELECT count(*) FROM metadata" +
+        " WHERE repub_state IN " + _valid_repub_states_sql +
+        "   AND mediatype='texts'" +
+        "   AND scancenter IS NOT NULL" +
+        "   AND collection NOT LIKE $c1" +
+        "   AND collection NOT LIKE $c2" +
+        "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))" +
+        "   AND scandate is NOT NULL" +
+        "   AND lower(format) LIKE '%%pdf%%'"
+    )
+
+    if marcs:
+        q += " AND lower(format) LIKE '%%marc%%'"
+
+    if min_scandate:
+        qvars['min_scandate'] = min_scandate.strftime("%Y%m%d")
+        q += " AND scandate > $min_scandate"
+
+    if date:
+        qvars['date'] = date.isoformat()
+        q += " AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)"
+
+    results = db.query(q, vars=qvars)
+    return results
+    return results if lazy else [row.identifier for row in results]
