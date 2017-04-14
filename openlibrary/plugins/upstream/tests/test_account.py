@@ -22,12 +22,6 @@ def test_create_list_doc(wildcard):
     }
 
 @pytest.mark.xfail
-def test_verify_hash():
-    secret_key = "aqXwLJVOcV"
-    hash = account.generate_hash(secret_key, "foo")
-    assert account.verify_hash(secret_key, "foo", hash) == True
-
-@pytest.mark.xfail
 class TestAccount:
     def signup(self, b, displayname, username, password, email):
         b.open("/account/create")
