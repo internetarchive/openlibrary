@@ -1,23 +1,22 @@
-#! /usr/bin/env python
+#!/usr/bin/env python
+
 import sys
-import _init_path
-from openlibrary.config import load_config
-from openlibrary.api import OpenLibrary, OLError
-from openlibrary.solr.process_stats import get_ia_db
-from openlibrary.core.imports import Batch, ImportItem
 import web
 import json
 import logging
 import datetime
 import time
+import _init_path
+from openlibrary.config import load_config
+from openlibrary.api import OpenLibrary, OLError
+from openlibrary.core.ia import get_candidate_ocaids
+from openlibrary.core.imports import Batch, ImportItem
 
 logger = logging.getLogger("openlibrary.importer")
 
 @web.memoize
 def get_ol(servername=None):
-    print(servername)
     ol = OpenLibrary(base_url=servername)
-    print(ol.base_url)
     ol.autologin()
     return ol
 
@@ -60,6 +59,39 @@ def add_items(args):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.load_items(filename)
 
+def import_ocaids(*ocaids, **kwargs):
+    """This method is mostly for testing. It allows you to import one more
+    archive.org items into Open Library by ocaid
+
+    Usage:
+        $ sudo -u openlibrary /olsystem/bin/olenv \
+            HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
+            python scripts/manage-imports.py \ 
+                --config /olsystem/etc/openlibrary.yml \
+                import-all
+    """
+    servername = kwargs.get('servername', None)
+    date = datetime.date.today()
+    if not ocaids:
+        raise ValueError("Must provide at least one ocaid")
+    batch_name = "import-%s-%04d%02d" % (ocaids[0], date.year, date.month)
+    try:
+        batch = Batch.new(batch_name)
+    except:
+        logger.info("Why is this failing!")
+    try:
+        batch.add_items(ocaids)
+    except:
+        logger.info("skipping batch adding, already present")
+
+    for ocaid in ocaids:
+        item = ImportItem.find_by_identifier(ocaid)
+        if item:
+            do_import(item, servername=servername)
+        else:
+            logger.error("%s is not found in the import queue", ia_id)
+
+
 def add_new_scans(args):
     """Adds new scans from yesterday.
     """
@@ -71,28 +103,7 @@ def add_new_scans(args):
         # yesterday
         date = datetime.date.today() - datetime.timedelta(days=1)
 
-    c1 = '%opensource%'
-    c2 = '%additional_collections%'
-
-    # Find all scans which are updated/added on the given date
-    # and have been scanned at most 2 months ago
-    q = ("SELECT identifier FROM metadata" +
-        " WHERE mediatype='texts'" +
-        "   AND scancenter IS NOT NULL" +
-        "   AND collection NOT LIKE $c1" +
-        "   AND collection NOT LIKE $c2" +
-        "   AND (curatestate IS NULL OR curatestate != 'dark')" +
-        "   AND lower(format) LIKE '%%pdf%%'" +
-        "   AND scandate is NOT NULL AND scandate > $min_scandate" +
-        "   AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)")
-
-    min_scandate = date - datetime.timedelta(60) # 2 months ago
-    result = get_ia_db().query(q, vars=dict(
-        c1=c1,
-        c2=c2,
-        date=date.isoformat(),
-        min_scandate=min_scandate.strftime("%Y%m%d")))
-    items = [row.identifier for row in result]
+    items = get_candidate_ocaids(since_date=date)
     batch_name = "new-scans-%04d%02d" % (date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
@@ -136,7 +147,6 @@ def main():
 
     from infogami import config
     servername = config.get('servername', 'https://openlibrary.org')
-    print(servername)
 
     cmd = sys.argv[1]
     args = sys.argv[2:]

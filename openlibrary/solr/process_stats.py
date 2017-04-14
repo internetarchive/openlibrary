@@ -16,11 +16,11 @@ import sys
 import web
 import simplejson
 import logging
-import os
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
 from ..core import inlibrary, ia, helpers as h
+from ..core.ia import get_ia_db
 from ..core.loanstats import LoanStats
 
 logger = logging.getLogger("openlibrary.solr")
@@ -56,22 +56,7 @@ def get_library(key):
         _libraries = dict((lib.key, lib) for lib in inlibrary.get_libraries())
     return _libraries.get(key, None)
 
-_ia_db = None
-def get_ia_db():
-    """Metadata API is slow.
-    Talk to archive.org database directly if it is specified in the configuration.
-    """
-    if not config.get("ia_db"):
-        return
-    global _ia_db
-    if not _ia_db:
-        settings = config.ia_db
-        host = settings['host']
-        db = settings['db']
-        user = settings['user']
-        pw = os.popen(settings['pw_file']).read().strip()
-        _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
-    return _ia_db
+
 
 metadata_cache = {}
 
