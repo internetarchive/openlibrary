@@ -224,16 +224,36 @@ class ia_importapi:
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if not marc_record:
+            # return self.load_book(self.get_ia_record(metadata))
             return self.error("no-marc-record")
 
         # Case 5 - Is the item a serial instead of a book?
-        if marc_record.leader()[7] == 's':
+        marc_leaders = marc_record.leader()
+        if marc_leaders[7] == 's':
             return self.error("item-is-serial")
+
+        # insider note: follows Archive.org's approach of
+        # Item::isMARCXMLforMonograph() which excludes non-books
+        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+            return self.error("item-not-book")
 
         edition_data = self.get_edition_data(identifier, marc_record)
         if not edition_data:
             return self.error("invalid-marc-record")
         return self.load_book(edition_data)
+
+    def get_ia_record(self, metadata):
+        authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
+        ocaid = metadata['identifier']
+        d = {
+            "source_records": "ia:%s" % ocaid,
+            "title": metadata.get('title', ''),
+            "ocaid": ocaid,
+            "authors": authors,
+            "language": metadata.get('language', ''),
+            "cover":  "https://archive.org/download/{0}/{0}/page/title.jpg".format(ocaid),
+        }
+        return d
 
     def load_book(self, edition_data):
         result = add_book.load(edition_data)
