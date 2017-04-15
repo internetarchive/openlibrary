@@ -194,6 +194,9 @@ class OpenLibrary:
             response = self._request("/query.json?" + urllib.urlencode(dict(query=q)))
             return unmarshal(simplejson.loads(response.read()))
 
+    def import_ocaid(self, ocaid):
+        return self._request('/api/import/ia', method='POST', data='identifier=' + ocaid).read()
+
 
 def marshal(data):
     """Serializes the specified data in the format required by OL.::
