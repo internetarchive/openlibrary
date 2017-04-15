@@ -311,7 +311,7 @@ def get_ia_db(configfile=None):
         load_config(configfile)
 
     if not config.get("ia_db"):
-        return
+        return None
     global _ia_db
     if not _ia_db:
         settings = config.ia_db
