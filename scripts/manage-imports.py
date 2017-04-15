@@ -66,7 +66,7 @@ def import_ocaids(*ocaids, **kwargs):
     Usage:
         $ sudo -u openlibrary /olsystem/bin/olenv \
             HOME=/home/openlibrary OPENLIBRARY_RCFILE=/olsystem/etc/olrc-importbot \
-            python scripts/manage-imports.py \ 
+            python scripts/manage-imports.py \
                 --config /olsystem/etc/openlibrary.yml \
                 import-all
     """
@@ -139,7 +139,7 @@ def import_all(args, servername=None):
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively get all new scribe3 repub states (in all time)"""
     items = get_candidate_ocaids(
-        scanned_within_days=None, repub_states=[6, 19, 20, 22])[start:stop]
+        scanned_within_days=None, repub_states=[19, 20, 22])[start:stop]
     date = datetime.date.today()
     batch_name = "new-scans-%04d%02d" % (date.year, date.month)
     batch = Batch.find(batch_name) or Batch.new(batch_name)

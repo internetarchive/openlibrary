@@ -14,7 +14,7 @@ from openlibrary.utils.dateutil import date_n_days_ago
 
 logger = logging.getLogger("openlibrary.ia")
 
-VALID_READY_REPUB_STATES = ["4", "6", "19", "20", "22"]
+VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 
 def get_metadata(itemid):
     itemid = web.safestr(itemid.strip())
@@ -370,6 +370,7 @@ def get_candidate_ocaids(since_days=None, since_date=None,
         "SELECT " + ("count(identifier)" if count else "identifier") + " FROM metadata" +
         " WHERE repub_state IN " + _valid_repub_states_sql +
         "   AND mediatype='texts'" +
+        "   AND (noindex IS NULL OR collection='printdisabled')" +
         "   AND scancenter IS NOT NULL" +
         "   AND collection NOT LIKE $c1" +
         "   AND collection NOT LIKE $c2" +
@@ -379,7 +380,7 @@ def get_candidate_ocaids(since_days=None, since_date=None,
     )
 
     if marcs:
-        q += " AND lower(format) LIKE '%%marc%%'"
+        q += " AND (lower(format) LIKE '%%marc;%%' OR lower(format) LIKE '%%marc')"
 
     if min_scandate:
         qvars['min_scandate'] = min_scandate.strftime("%Y%m%d")
