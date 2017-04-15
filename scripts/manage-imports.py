@@ -30,7 +30,7 @@ def ol_import_request(item, retries=5, servername=None):
             time.sleep(5)
         try:
             ol = get_ol(servername=servername)
-            return ol._request('/api/import/ia', method='POST', data='identifier=' + item.ia_id).read()
+            return ol.import_ocaid(item.ia_id)
         except (IOError, OLError), e:
             logger.warn("Failed to contact OL server. error=%s", e)
 
@@ -136,13 +136,28 @@ def import_all(args, servername=None):
         for item in items:
             do_import(item, servername=servername)
 
+def retroactive_import(start=None, stop=None, servername=None):
+    """Retroactively get all new scribe3 repub states (in all time)"""
+    items = get_candidate_ocaids(
+        scanned_within_days=None, repub_states=[6, 19, 20, 22])[start:stop]
+    date = datetime.date.today()
+    batch_name = "new-scans-%04d%02d" % (date.year, date.month)
+    batch = Batch.find(batch_name) or Batch.new(batch_name)
+    batch.add_items(items)
+    for item in batch.get_items():
+        do_import(item, servername=servername)
+
 def main():
     if "--config" in sys.argv:
         index = sys.argv.index("--config")
         configfile = sys.argv[index+1]
         del sys.argv[index:index+2]
     else:
-        configfile = "openlibrary.yml"
+        import os
+        configfile = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), os.pardir, os.pardir,
+            'openlibrary', 'conf', 'openlibrary.yml'))
+
     load_config(configfile)
 
     from infogami import config
@@ -150,6 +165,10 @@ def main():
 
     cmd = sys.argv[1]
     args = sys.argv[2:]
+
+    if cmd == "import-retro":
+        start, stop = (int(a) for a in args) if (args and len(args) == 2) else (None, None)
+        return retroactive_import(start=start, stop=stop, servername=servername)
     if cmd == "import-ocaids":
         return import_ocaids(*args, servername=servername)
     if cmd == "add-items":
