@@ -323,9 +323,11 @@ def get_ia_db(configfile=None):
     return _ia_db
 
 
-def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=60,
-                         repub_states=None, marcs=True, lazy=False, db=None):
-    """Returns a list of identifiers which are candidates for ImportBot.
+def get_candidate_ocaids(since_days=None, since_date=None,
+                         scanned_within_days=60, repub_states=None,
+                         marcs=True, lazy=False, count=False, db=None):
+    """Returns a list of identifiers which match the specified criteria
+    and are candidates for ImportBot.
 
     If since_days and since_date are None, no date restrictions are
     applied besides `scanned_within_days` (which may also be None)
@@ -339,6 +341,7 @@ def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=6
         marcs (bool) - require MARCs present?
         lazy (bool) - if True, returns query as iterator, otherwise,
                       returns identifiers list
+        count (bool) - if count, return (long) number of matching identifiers
         db (web.db) - A web.py database object with an active
                       connection (optional)
 
@@ -346,6 +349,10 @@ def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=6
         >>> from openlibrary.core.ia import get_ia_db, get_candidate_ocaids
         >>> candidates = get_candidate_ocaids(
         ...    since_days=1, db=get_ia_db('openlibrary/config/openlibrary.yml'))
+
+    Returns:
+        A list of identifiers which are candidates for ImportBot, or
+        (if count=True) the number of candidates which would be returned.
 
     """
     db = db or get_ia_db()
@@ -360,7 +367,7 @@ def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=6
 
     _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
     q = (
-        "SELECT count(*) FROM metadata" +
+        "SELECT " + ("count(identifier)" if count else "identifier") + " FROM metadata" +
         " WHERE repub_state IN " + _valid_repub_states_sql +
         "   AND mediatype='texts'" +
         "   AND scancenter IS NOT NULL" +
@@ -383,5 +390,6 @@ def get_candidate_ocaids(since_days=None, since_date=None, scanned_within_days=6
         q += " AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)"
 
     results = db.query(q, vars=qvars)
-    return results
+    if count:
+        return results if lazy else results.list()[0].count
     return results if lazy else [row.identifier for row in results]
