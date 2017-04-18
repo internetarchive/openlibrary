@@ -193,6 +193,11 @@ class ItemEdition(dict):
         if "imagecount" not in metadata:
             return "no-imagecount"
 
+        # Gio - April 2016
+        # items with metadata no_ol_import=true will be not imported
+        if metadata.get("no_ol_import") == 'true' or metadata.get("no_ol_import") == 'True':
+            return self.error(status, "no-ol-import")
+
         # items start with these prefixes are not books
         ignore_prefixes = config.get("ia_ignore_prefixes", [])
         for prefix in ignore_prefixes:
