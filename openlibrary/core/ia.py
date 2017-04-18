@@ -325,7 +325,8 @@ def get_ia_db(configfile=None):
 
 def get_candidate_ocaids(since_days=None, since_date=None,
                          scanned_within_days=60, repub_states=None,
-                         marcs=True, lazy=False, count=False, db=None):
+                         marcs=True, custom=None, lazy=False,
+                         count=False, db=None):
     """Returns a list of identifiers which match the specified criteria
     and are candidates for ImportBot.
 
@@ -362,7 +363,8 @@ def get_candidate_ocaids(since_days=None, since_date=None,
 
     qvars = {
         'c1': '%opensource%',
-        'c2': '%additional_collections%'
+        'c2': '%additional_collections%',
+        'c3': '%printdisabled%'
     }
 
     _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
@@ -370,14 +372,18 @@ def get_candidate_ocaids(since_days=None, since_date=None,
         "SELECT " + ("count(identifier)" if count else "identifier") + " FROM metadata" +
         " WHERE repub_state IN " + _valid_repub_states_sql +
         "   AND mediatype='texts'" +
-        "   AND (noindex IS NULL OR collection='printdisabled')" +
+        "   AND (noindex IS NULL OR collection LIKE $c3)" +
         "   AND scancenter IS NOT NULL" +
+        "   AND scanner IS NOT NULL" +
         "   AND collection NOT LIKE $c1" +
         "   AND collection NOT LIKE $c2" +
         "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))" +
         "   AND scandate is NOT NULL" +
         "   AND lower(format) LIKE '%%pdf%%'"
     )
+
+    if custom:
+        q += custom
 
     if marcs:
         q += " AND (lower(format) LIKE '%%marc;%%' OR lower(format) LIKE '%%marc')"
