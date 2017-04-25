@@ -71,6 +71,7 @@ class subjects(delegate.page):
             key = key.replace("/times/", "/time:")
         return key
 
+
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
     encoding = "json"
@@ -85,7 +86,8 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, details='false', has_fulltext='false', sort='editions')
+        i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
+                      sort='editions', available='false')
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -115,6 +117,7 @@ class subjects_json(delegate.page):
 
     def process_key(self, key):
         return key
+
 
 class subject_works_json(delegate.page):
     path = '(/subjects/[^/]+)/works'
