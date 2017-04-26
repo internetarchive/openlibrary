@@ -648,10 +648,11 @@ def get_random_recent_changes(n):
     else:
         changes = _get_recent_changes()
 
-    if len(changes) > n:
-        return random.sample(changes, n)
-    else:
-        return changes
+    _changes = random.sample(changes, n) if len(changes) > n else changes
+    for i, change in enumerate(_changes):
+        _changes[0]['__body__'] = _changes[0]['__body__'].replace('<script>', '')\
+                                                         .replace('</script>', '')
+    return _changes
 
 def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
