@@ -77,11 +77,11 @@ def import_ocaids(*ocaids, **kwargs):
     batch_name = "import-%s-%04d%02d" % (ocaids[0], date.year, date.month)
     try:
         batch = Batch.new(batch_name)
-    except:
-        logger.info("Why is this failing!")
+    except Exception as e:
+        logger.info(str(e))
     try:
         batch.add_items(ocaids)
-    except:
+    except Exception:
         logger.info("skipping batch adding, already present")
 
     for ocaid in ocaids:
@@ -173,7 +173,8 @@ def main():
     args = sys.argv[2:]
 
     if cmd == "import-retro":
-        start, stop = (int(a) for a in args) if (args and len(args) == 2) else (None, None)
+        start, stop = (int(a) for a in args) if \
+                      (args and len(args) == 2) else (None, None)
         return retroactive_import(start=start, stop=stop, servername=servername)
     if cmd == "import-ocaids":
         return import_ocaids(*args, servername=servername)

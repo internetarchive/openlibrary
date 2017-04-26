@@ -224,7 +224,6 @@ class ia_importapi:
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if not marc_record:
-            # return self.load_book(self.get_ia_record(metadata))
             return self.error("no-marc-record")
 
         # Case 5 - Is the item a serial instead of a book?
@@ -243,6 +242,9 @@ class ia_importapi:
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
+        """In lieu of a MARC record, retrieves necessarily data from
+        Archive.org metadata API
+        """
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
         ocaid = metadata['identifier']
         d = {
