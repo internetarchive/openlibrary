@@ -57,3 +57,14 @@ def _resize_list(x, size):
     """
     if len(x) < size:
         x += [None] * (size - len(x))
+
+def date_n_days_ago(n=None, start=None):
+    """
+    Args:
+        n (int) - number of days since start
+        start (date) - date to start counting from (defaut: today)
+    Returns:
+        A (datetime.date) of `n` days ago if n is provided, else None
+    """
+    _start = start or datetime.date.today()
+    return (_start - datetime.timedelta(days=n)) if n else None
