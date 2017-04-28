@@ -81,6 +81,7 @@ def parse_data(data):
             if not metadata:
                 raise DataError("invalid-ia-identifier")
 
+            # see ia_importapi to address `imagecount` limitations
             status = ia.get_item_status(itemid, metadata)
             if status != 'ok':
                 raise DataError(status)
@@ -195,7 +196,10 @@ class ia_importapi:
             return self.status_matched(key)
 
         # Case 1 - Is this a valid item?
-        metadata = ia.get_metadata(identifier)
+        item_json = ia.get_item_json(identifier)
+        item_server = item_json['server']
+        item_path = item_json['dir']
+        metadata = ia.extract_item_metadata(item_json)
         if not metadata:
             return self.error("invalid-ia-identifier")
 
@@ -212,13 +216,14 @@ class ia_importapi:
             return self.load_book(d)
 
         # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata)
+        status = ia.get_item_status(identifier, metadata,
+                                    item_server=item_server, item_path=item_path)
         if status != 'ok':
             return self.error(status, "Prohibited Item")
 
         # Gio - April 2016
         # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import") == 'true' or metadata.get("no_ol_import") == 'True':
+        if metadata.get("no_ol_import", '').lower() == 'true':
             return self.error("no-ol-import")
 
         # Case 4 - Does this item have a marc record?
