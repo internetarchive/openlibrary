@@ -121,9 +121,7 @@ def parse_data(data):
 def get_next_count():
     store = web.ctx.site.store
     counter = store.get('import_api_s3_counter')
-    print 'counter: ',
-    print counter
-    if None == counter:
+    if counter is None:
         store['import_api_s3_counter'] = {'count':0}
         return 0
     else:
@@ -156,8 +154,6 @@ class importapi:
         except DataError, e:
             edition = None
             error_code = str(e)
-
-        #print edition
 
         #call Edward's code here with the edition dict
         if edition:

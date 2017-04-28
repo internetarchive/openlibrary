@@ -161,7 +161,6 @@ def edition_from_item_metadata(itemid, metadata):
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
     url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
-    print(url)
     try:
         stats.begin("archive.org", url=url)
         manifest_json = urllib2.urlopen(url).read()
@@ -234,8 +233,9 @@ class ItemEdition(dict):
                 return "prefix-blacklisted"
 
         # Anand - Oct 2013
-        # If an item is with noindex=true and it is not marked as lending or printdisabled, ignore it.
-        # It would have been marked as noindex=true for some reason.
+        # If an item is with noindex=true and it is not marked as
+        # lending or printdisabled, ignore it.  It would have been
+        # marked as noindex=true for some reason.
         collections = metadata.get("collection", [])
         if not isinstance(collections, list):
             collections = [collections]
