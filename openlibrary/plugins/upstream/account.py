@@ -101,8 +101,8 @@ class unlink(delegate.page):
                 if result is None:
                     raise ValueError('Invalid Open Library account email ' \
                                      'or itemname')
-                    result.enc_password = 'REDACTED'
-                if not readonly:
+                result.enc_password = 'REDACTED'
+                if not i.readonly:
                     result.unlink()
             except ValueError as e:
                 result = {'error': str(e)}
