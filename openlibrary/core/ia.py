@@ -16,28 +16,34 @@ logger = logging.getLogger("openlibrary.ia")
 
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
 
-def get_metadata(itemid):
+def get_item_json(itemid):
     itemid = web.safestr(itemid.strip())
     url = 'http://archive.org/metadata/%s' % itemid
     try:
         stats.begin("archive.org", url=url)
         metadata_json = urllib2.urlopen(url).read()
         stats.end()
-        d = simplejson.loads(metadata_json)
-        metadata = process_metadata_dict(d.get("metadata", {}))
-
-        if metadata:
-            # if any of the files is access restricted, consider it as
-            # an access-restricted item.
-            files = d.get('files', [])
-            metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
-
-            # remember the filenames to construct download links
-            metadata['_filenames'] = [f['name'] for f in files]
-        return metadata
+        return simplejson.loads(metadata_json)
     except IOError:
         stats.end()
         return {}
+
+def extract_item_metadata(item_json):
+    metadata = process_metadata_dict(item_json.get("metadata", {}))
+    if metadata:
+        # if any of the files is access restricted, consider it as
+        # an access-restricted item.
+        files = item_json.get('files', [])
+        metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
+
+        # remember the filenames to construct download links
+        metadata['_filenames'] = [f['name'] for f in files]
+    return metadata
+
+
+def get_metadata(itemid):
+    item_json = get_item_json(itemid)
+    return extract_item_metadata(item_json)
 
 get_metadata = cache.memcache_memoize(get_metadata, key_prefix="ia.get_metadata", timeout=5*60)
 
@@ -152,8 +158,23 @@ def edition_from_item_metadata(itemid, metadata):
         e.add_metadata(metadata)
         return e
 
-def get_item_status(itemid, metadata):
-    return ItemEdition.get_item_status(itemid, metadata)
+def get_item_manifest(item_id, item_server, item_path):
+    url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
+    url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
+    try:
+        stats.begin("archive.org", url=url)
+        manifest_json = urllib2.urlopen(url).read()
+        stats.end()
+        return simplejson.loads(manifest_json)
+    except IOError:
+        stats.end()
+        return {}
+
+def get_item_status(itemid, metadata, **server):
+    item_server = server.pop('item_server', None)
+    item_path = server.pop('item_path', None)
+    return ItemEdition.get_item_status(itemid, metadata, item_server=item_server,
+                                       item_path=item_path)
 
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict.
@@ -177,7 +198,7 @@ class ItemEdition(dict):
         })
 
     @classmethod
-    def get_item_status(cls, itemid, metadata):
+    def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
         """Returns the status of the item related to importing it in OL.
 
         Possible return values are:
@@ -197,7 +218,12 @@ class ItemEdition(dict):
             return "bad-repub-state"
 
         if "imagecount" not in metadata:
-            return "no-imagecount"
+            if not (item_server and item_path):
+                return "no-imagecount"
+            else:
+                manifest = get_item_manifest(itemid, item_server, item_path)
+                if not manifest.get('numPages'):
+                    return "no-imagecount"
 
         # items start with these prefixes are not books
         ignore_prefixes = config.get("ia_ignore_prefixes", [])
@@ -207,8 +233,9 @@ class ItemEdition(dict):
                 return "prefix-blacklisted"
 
         # Anand - Oct 2013
-        # If an item is with noindex=true and it is not marked as lending or printdisabled, ignore it.
-        # It would have been marked as noindex=true for some reason.
+        # If an item is with noindex=true and it is not marked as
+        # lending or printdisabled, ignore it.  It would have been
+        # marked as noindex=true for some reason.
         collections = metadata.get("collection", [])
         if not isinstance(collections, list):
             collections = [collections]
