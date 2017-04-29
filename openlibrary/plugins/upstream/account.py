@@ -24,7 +24,8 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary import accounts
 from openlibrary.accounts import (
     audit_accounts, link_accounts, create_accounts,
-    Account, OpenLibraryAccount, valid_email
+    Account, OpenLibraryAccount, InternetArchiveAccount,
+    valid_email
 )
 import forms
 import utils
@@ -85,24 +86,25 @@ class xauth(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
-class unlink(delegate.page):
-    path = "/internal/account/unlink"
+class internal_audit(delegate.page):
+    path = "/internal/account/audit"
 
     def GET(self):
         """Internal API endpoint used for authorized test cases and
         administrators to unlink linked OL and IA accounts.
         """
-        i = web.input(email='', itemname='', key='', readonly='')
+        i = web.input(email='', username='', itemname='', key='', unlink='')
         if i.key != lending.config_internal_tests_api_key:
             result = {'error': 'Authentication failed for private API'}
         else:
             try:
-                result = OpenLibraryAccount.get(email=i.email, link=i.itemname)
+                result = OpenLibraryAccount.get(email=i.email, link=i.itemname,
+                                                username=i.username)
                 if result is None:
                     raise ValueError('Invalid Open Library account email ' \
                                      'or itemname')
                 result.enc_password = 'REDACTED'
-                if not i.readonly:
+                if i.unlink:
                     result.unlink()
             except ValueError as e:
                 result = {'error': str(e)}
@@ -519,6 +521,58 @@ class account_connect(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
+class account_migration(delegate.page):
+
+    path = "/internal/account/migration"
+
+    def GET(self):
+        i = web.input(username='', email='', key='')
+        if i.key != lending.config_internal_tests_api_key:
+            return delegate.RawText(simplejson.dumps({
+                'error': 'Authentication failed for private API'
+            }), content_type="application/json")
+        try:
+            if i.username:
+                ol_account = OpenLibraryAccount.get(username=i.username)
+            elif i.email:
+                ol_account = OpenLibraryAccount.get(email=i.email)
+        except Exception as e:            
+            return delegate.RawText(simplejson.dumps({
+                'error': 'bad-account'
+            }), content_type="application/json")
+        if ol_account:            
+            ol_account.enc_password = 'REDACTED'
+            if ol_account.itemname:
+                return delegate.RawText(simplejson.dumps({
+                    'status': 'link-exists',
+                    'username': ol_account.username,
+                    'itemname': ol_account.itemname,
+                    'email': ol_account.email.lower()
+                }), content_type="application/json")
+            if not ol_account.itemname:
+                ia_account = InternetArchiveAccount.get(email=ol_account.email.lower())
+                if ia_account:
+                    ol_account.link(ia_account.itemname)
+                    return delegate.RawText(simplejson.dumps({
+                        'username': ol_account.username,
+                        'status': 'link-found',
+                        'itemname': ia_account.itemname,
+                        'ol-itemname': ol_account.itemname,
+                        'email': ol_account.email.lower(),
+                        'ia': ia_account
+                    }), content_type="application/json")
+
+                password = OpenLibraryAccount.generate_random_password(16)
+                ia_account = InternetArchiveAccount.create(
+                    ol_account.username or ol_account.displayname,
+                    ol_account.email, password, verified=True, retries=3)
+                return delegate.RawText(simplejson.dumps({
+                    'username': ol_account.username,
+                    'email': ol_account.email,
+                    'itemname': ia_account.itemname,
+                    'password': password,
+                    'status': 'link-created'
+                }), content_type="application/json")
 
 class account_audit(delegate.page):
 
