@@ -465,9 +465,9 @@ class Work(Thing):
         if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
             d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
             d['has_ebook'] = True
-        elif solrdata.get('lending_edition'):
-            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition)
-            d['borrowed'] = solrdata.checked_out
+        elif solrdata.get('lending_edition_s'):
+            d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)
+            #d['borrowed'] = solrdata.checked_out
             d['has_ebook'] = True
         return d
 
