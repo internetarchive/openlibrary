@@ -238,16 +238,13 @@ function get_seed_count() {
                             $if seed.ebook_count:
                                 - eBook available
                         $elif seed.type == "work":
-                            - $commify(seed.document.edition_count) edition$("s" if seed.document.edition_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
-                        $elif seed.type == "author":
-                            $ work_count = seed.document.get_books().num_found
-                            - $commify(work_count) work$("s" if work_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                            - $commify(seed.document.edition_count) edition$("s" if seed.document.edition_count != 1 else "")
                         $else:
-                            - $commify(seed.document.work_count) work$("s" if seed.document.work_count != 1 else "")$cond(seed.ebook_count, ",")
+                            $if seed.type == "author":
+                                $ work_count = seed.document.get_books().num_found
+                            $else:
+                                $ work_count = seed.document.work_count
+                            - $commify(work_count) work$("s" if work_count != 1 else "")$cond(seed.ebook_count, ",")
                             $if seed.ebook_count:
                                 $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
                         </span>
