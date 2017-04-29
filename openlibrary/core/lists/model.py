@@ -376,7 +376,7 @@ class Seed:
                 return {
                     'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
                     'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
-                    'work_count': len(result.docs),
+                    'work_count': result.num_found,
                     'last_update': last_update
                 }
         return {}
