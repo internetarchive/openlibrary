@@ -336,7 +336,7 @@ class Seed:
         if self.type == 'edition':
             return "edition_key:" + self._get_document_basekey()
         elif self.type == 'work':
-            return 'key:' + self._get_document_basekey()
+            return 'key:/works/' + self._get_document_basekey()
         elif self.type == 'author':
             return "author_key:" + self._get_document_basekey()
         elif self.type == 'subject':
@@ -376,7 +376,7 @@ class Seed:
                 return {
                     'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
                     'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
-                    'work_count': 0,
+                    'work_count': result.num_found,
                     'last_update': last_update
                 }
         return {}

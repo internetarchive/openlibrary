@@ -528,7 +528,7 @@ class Work(models.Work):
 
         fields = [
             "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
-            "has_fulltext", "lending_edition", "checked_out", "public_scan_b", "ia"]
+            "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
 
         solr = get_works_solr()
         stats.begin("solr", query={"key": key}, fields=fields)
