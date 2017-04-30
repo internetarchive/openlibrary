@@ -1,0 +1,129 @@
+$def with (subject_name, subject, head=None, all_borrow=True)
+
+$if head:
+   $:render_template("site/head")
+
+$ inlibrary = "inlibrary" in ctx.features and bool(get_library())
+
+$code:
+    def get_authors(work):
+        return ", ".join(a.name for a in work.authors)
+
+$code:
+    def contains(array, value):
+        return value in array
+
+<script type="text/javascript">
+<!--
+var page = new Subject($:json_encode(subject), {pagesize:6});
+
+function loadCoverCarousels(carousel, state) {
+    if (!page.coverCarousel) {
+        page.coverCarousel = carousel;
+        page.coverCarousel.size(page.getPageCount());
+    }
+    var index = carousel.first;
+    page.pos = (index-1)*6;
+
+    if (window.set_hash) {
+         var _p = (index == 1) ? null : index;
+        set_hash({"page": _p});
+    }
+
+    if (carousel.has(index)) {
+        return;
+    }
+
+    page.loadPage(index-1, function(data) {
+        var works = data.works;
+	console.log(data.works);
+	\$.each(works, function(widx, work) {
+          console.log(work);
+          carousel.add(index+widx, page.renderCovers(work));
+        })
+        updateBookAvailability("#carousel-$(subject_name) li ");
+    });
+}
+
+\$().ready(function() {
+    page.renderCovers = render_page;
+});
+
+\$().ready(carousels);
+\$().ready(function() {
+    \$("#carousel-$(subject_name)").jcarousel({
+        scroll:6,
+        itemLoadCallback: {onBeforeAnimation: loadCoverCarousels}
+    });
+});
+
+function get_authors(work) {
+        var authors = [];
+        for (var i=0; i < work.authors.length; i++) {
+                authors.push(work.authors[i].name);
+        }
+        return authors.join(", ");
+}
+
+var inlibrary = $:json_encode(inlibrary);
+
+var all_borrow = true;
+
+function contains(array, value) {
+    return \$.inArray(value, array) >= 0;
+}
+//-->
+</script>
+
+$jsdef render_page(w):
+        <div class="coverMagic">
+            $if w.cover_id:
+                <div class="SRPCover">
+                    <a href="$w.key" title="$truncate(w.title, 40) by $truncate(get_authors(w), 40), $w.edition_count editions"><img src="//covers.openlibrary.org/b/id/$w.cover_id-M.jpg" alt="$w.title by $get_authors(w)" class="cover"/></a>
+                </div>
+            $elif w.ia:
+                <div class="SRPCover">
+                    <a href="$w.key" title="$truncate(w.title, 40) by $truncate(get_authors(w), 40), $w.edition_count editions"><img src="//covers.openlibrary.org/b/ia/$w.ia-M.jpg?default=https://openlibrary.org/images/icons/avatar_book.png" alt="$w.title by $get_authors(w)" class="cover"/></a>
+                </div>
+            $else:
+                <a href="$w.key" title="$truncate(w.title, 40) by $truncate(get_authors(w), 40), $w.edition_count editions">
+                    <div class="SRPCoverBlank" style="display:block;">
+                        <div class="innerBorder">
+                            <div class="BookTitle">$truncate(w.title, 40)
+                                <div class="Author">$truncate(get_authors(w), 40)</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
+            $if not all_borrow and w.ia and w.public_scan:
+                <div class="coverEbook">
+                  <a href="//archive.org/stream/$w.ia?ref=ol" title="$_('Read online')"><img src="/images/icons/icon_ebook-avail.png" border="0" width="32" height="33" alt="$_('Read online')"/></a>
+                </div>
+            $elif w.ia and w.lending_edition and borrowable:
+                $ img_src = "/images/icons/icon_borrow-avail.png"
+                $ img_title = _("Borrow this book")
+                <div class="coverEbook">
+                  <span class="actions read">
+                    <a href="/books/$w.lending_edition/x/borrow" class="borrow-link"
+                       title="$img_title" data-key="$(w.key)" data-ocaid="$(w.ia)">
+                      <span class="read-icon image borrow"></span>
+                    </a>
+                  </span>
+                </div>
+            $elif not all_borrow and not w.public_scan and w.printdisabled and not borrowable:
+                <div class="coverEbook">
+                    <a href="$w.key" title="$_('Download a protected DAISY')"><img
+                     src="/images/icons/icon_pdaisy-avail.png" border="0" width="32" height="33"
+                     alt="$_('Download a protected DAISY')"/></a>
+                 </div>
+        </div>
+
+<div class="contentLists results">
+    <div class="covers resultsCovers">
+        <ul id="carousel-$(subject_name)" class="topicalCarousel jcarousel-skin-OL">
+        </ul>
+    </div>
+</div>
+

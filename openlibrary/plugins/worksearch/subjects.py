@@ -12,7 +12,7 @@ import datetime
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
-from infogami.utils.view import render_template, safeint
+from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.utils import str_to_key, finddict
@@ -44,6 +44,16 @@ class subjects_index(delegate.page):
 
     def GET(self):
         return render_template("subjects/index.html")
+
+class subjects_partial(delegate.page):
+    path = '/partials/subjects/([^/]+)'
+
+    def GET(self, key):
+        i = web.input(head=None)
+        subject = get_subject('/subjects/' + key, details=True)
+        template = render_template('subjects/partial.html', subject_name=key,
+                                   subject=subject, head=i.head)
+        return delegate.RawText(template, content_type="text/html")
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
