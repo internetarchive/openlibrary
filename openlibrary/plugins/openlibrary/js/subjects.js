@@ -2,11 +2,11 @@
 //
 // Usage:
 //      var subject = Subject({
-//              "key": "/subjects/Love", 
-//              "name": "Love", 
-//              "work_count": 1234, 
+//              "key": "/subjects/Love",
+//              "name": "Love",
+//              "work_count": 1234,
 //              "works": [...]
-//          }, 
+//          },
 //          {
 //              "pagsize": 12
 //          });
@@ -23,7 +23,7 @@ function Subject(data, options) {
     this.filter = {};
     this.has_fulltext = "false";
     this.sort = "editions";
-    
+
     this.init(data);
     this._data = data;
 }
@@ -48,20 +48,20 @@ function slice(array, begin, end) {
 }
 
 $.extend(Subject.prototype, {
-    
+
     init: function(data) {
         $.log(["init", this, arguments]);
-        
-        $.extend(this, data);    
+
+        $.extend(this, data);
         this.page_count = Math.ceil(this.work_count / this.settings.pagesize);
         this.epage_count = Math.ceil(this.ebook_count / this.settings.pagesize);
-        
+
         // cache already visited pages
         //@@ Can't this be handled by HTTP caching?
         this._pages = {};
         if (this.has_fulltext != "true")
             this._pages[0] = {"works": slice(data.works, 0, this.settings.pagesize)};
-    
+
         // TODO: initialize additional pages when there are more works.
     },
 
@@ -73,20 +73,30 @@ $.extend(Subject.prototype, {
         return this.has_fulltext == "true"? this.epage_count : this.page_count;
     },
 
+    renderWork: function(work) {
+	var titlestring = work.title + " by " + work.authors.join(', ') +
+	    ' (' + work.edition_count + ' editions)';
+	return '<div class="SRPCover">' +
+	    '<a href="' + work.key + '" title="' + titlestring + '">' +
+	    '<img src="//covers.openlibrary.org/b/id/' + work.cover_id +
+	    '-M.jpg" alt="' + titlestring + ' class="cover"/></a>' +
+	    '</div>';
+    },
+
     loadPage: function(pagenum, callback) {
         var offset = pagenum * this.settings.pagesize;
         var limit = this.settings.pagesize;
-    
+
         if (offset > this.bookCount) {
             callback && callback([]);
         }
-    
+
         if (this._pages[pagenum]) {
             callback(this._pages[pagenum]);
         }
         else {
             var page = this;
-            
+
             var params = {
                 "limit": limit,
                 "offset": offset,
@@ -94,17 +104,17 @@ $.extend(Subject.prototype, {
                 "sort": this.sort
             }
             $.extend(params, this.filter);
-            
+
             var url = this.key + ".json?" + urlencode(params);
             var t = this;
-                
+
             $.getJSON(url, function(data) {
                 t._pages[pagenum] = data;
                 callback(data);
             });
         }
     },
-    
+
     _ajax: function(params, callback) {
         params = $.extend({"limit": this.settings.pagesize, "offset": 0}, this.filter, params);
         var url = this.key + ".json?" + urlencode(params);
@@ -118,7 +128,7 @@ $.extend(Subject.prototype, {
             }
         }
         this.filter = filter;
-                
+
         var _this = this;
         this._ajax({"details": "true"}, function(data) {
             _this.init(data);
@@ -133,7 +143,7 @@ $.extend(Subject.prototype, {
         this.sort = sort_order;
         this._pages = {};
     },
-    
+
     setFulltext: function(has_fulltext) {
         if (this.has_fulltext == has_fulltext) {
             return;
@@ -141,11 +151,11 @@ $.extend(Subject.prototype, {
         this.has_fulltext = has_fulltext;
         this._pages = {};
     },
-    
+
     addFilter: function(filter, callback) {
         this.setFilter($.extend({}, this.filter, filter), callback);
     },
-        
+
     reset: function(callback) {
         this.filter = {};
         this.init(this._data);

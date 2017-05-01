@@ -46,14 +46,12 @@ class subjects_index(delegate.page):
         return render_template("subjects/index.html")
 
 class subjects_partial(delegate.page):
-    path = '/partials/subjects/([^/]+)'
+    path = '/carousels/subjects/([^/]+)'
 
     def GET(self, key):
         i = web.input(head=None)
         subject = get_subject('/subjects/' + key, details=True)
-        template = render_template('subjects/partial.html', subject_name=key,
-                                   subject=subject, head=i.head)
-        return delegate.RawText(template, content_type="text/html")
+        return delegate.RawText(json.dumps(subject), content_type="application/json")
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'

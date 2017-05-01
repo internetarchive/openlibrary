@@ -118,6 +118,54 @@ function aboutFeeds() {
 };
 
 
+var create_subject_carousel = function(subject_name) {
+    $.ajax({
+	dataType: "json",
+        url: '/carousels/subjects/' + subject_name,
+        type: "GET",
+        contentType: "text/html",
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Accept", "application/json");
+        },
+        success: function(data) {
+	    // TODO: Filter `data` by available
+	    var page = new Subject(data, {pagesize: 6});
+	    
+	    function loadCoverCarousels (carousel, state) {
+		if (!page.coverCarousel) {
+		    page.coverCarousel = carousel;
+		    page.coverCarousel.size(page.getPageCount());
+		}
+		var index = carousel.first;
+		page.pos = (index-1)*6;
+
+		if (window.set_hash) {
+		    var _p = (index == 1) ? null : index;
+		    set_hash({"page": _p});
+		}
+
+		if (carousel.has(index)) {
+		    return;
+		}
+		
+		page.loadPage(index-1, function(data) {
+		    var works = data.works;
+		    $.each(works, function(widx, work) {
+			carousel.add(index+widx, page.renderWork(work));
+		    });
+		    updateBookAvailability("#carousel-" + subject_name + " li ");
+		});
+	    }
+	    
+	    $("#carousel-" + subject_name).jcarousel({
+		scroll:6,
+		itemLoadCallback: {onBeforeAnimation: loadCoverCarousels}
+	    });
+        }
+    });
+};
+
 // BUILD CAROUSEL
 function carouselSetup(loadCovers, loadLists) {
   $('#coversCarousel').jcarousel({
@@ -195,6 +243,7 @@ function Place(key) {
     this.covers = {};
     this.bookCount = 0;
 }
+
 
 /**
  * Gets the covers using AJAX call and calls the callback with covers as argument.
