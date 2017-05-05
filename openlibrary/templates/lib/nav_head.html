@@ -3,8 +3,11 @@ $def with (page)
 
 <header>
   <div class="menu-component">
-    <a class="hamburger"><img src="/static/images/menu.png"/></a>
+    <a href="" class="hamburger"><img src="/static/images/menu.png"/></a>
+    <div class="menu-dropdown">
+    </div>
   </div>
+
   <div class="logo-component">
     <a alt="The Internet Archive's Open Library: One page for every book" href="/">
       <img class="logo-icon" src="/static/images/ia.png"/>
@@ -50,7 +53,7 @@ $def with (page)
 
   $if not ctx.user:
     <div class="auth-component">
-      <li><a class="generic-button" href="/account/login" class="white">$_("Log in")</a></li>
+      <li class="hide-me"><a class="generic-button" href="/account/login" class="white">$_("Log in")</a></li>
       <li><a class="generic-button gb-primary" href="/account/create">$_("Sign Up")</a></li>
     </div>
 
@@ -76,7 +79,20 @@ $def with (page)
       </div>
     </div>
 </header>
-<div class="clearfix"></div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 <header style="display: none;">
 $ advanced = (
@@ -127,14 +143,6 @@ $ )
             </div>
             </div>
         </form>
-    </div>
-
-
-
-    <div id="headerTools">
-        <div id="headerLogin">
-
-        </div>
     </div>
 
 </header>
