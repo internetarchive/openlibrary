@@ -16,7 +16,7 @@ $ )
             <fieldset class="home">
             <legend>Site Search</legend>
             <label for="qtop" class="hidden">Keyword</label>
-            <input type="text" name="q" id="qtop" size="35"/>
+            <input type="text" placeholder="Search books" name="q" id="qtop" />
             <input type="submit" value="$_('Search')"/>
 
             <div class="searchPlacement">
@@ -26,7 +26,7 @@ $ )
                     </div>
                     <div class="searchCheckboxes">
                         <ul>
-                            <li><input name="has_fulltext" type="checkbox" value="true" id="ftokenstop" />
+                            <li><input name="has_fulltext" type="checkbox" value="true" checked="true" id="ftokenstop" />
                                 <label for="ftokenstop">$_("Only eBooks")</label></li>
                             <li><input name="search-fulltext" type="checkbox" value="true" id="search-fulltext" />
                                 <label for="search-fulltext">$_("Search eBook text")</label></li>

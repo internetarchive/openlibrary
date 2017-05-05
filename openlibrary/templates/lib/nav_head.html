@@ -1,27 +1,137 @@
 $def with (page)
 
-        <div id="header">
 
-            <div id="headerNav">
-                <ul class="links">
-                    <li class="first"><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
-                    <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
-                    $if "dev" in ctx.features and ctx.user and ctx.user.is_admin():
-                        <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-                        <li><a class="adminOnly" href="/theme/files" title="$_('Theme Editor')">$_("Theme")</a></li>
-                    $else:
-                        <li class="second"><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-                    <li><a href="/lists" title="$_('Manage your lists')">$_("Lists")</a></li>
-                    <li><a href="/recentchanges" title="$_('Recent edits and additions')">$_("Recently")</a></li>
-                    <li><a href="/help" title="$_('Get help')">$_("Help")</a></li>
-                </ul>
+<header>
+  <div class="menu-component">
+    <img src="/static/images/menu.png"/>
+  </div>
+  <div class="logo-component">
+    <a alt="The Internet Archive's Open Library: One page for every book" href="/">
+      <img class="logo-icon" src="/static/images/ia.png"/>
+      <div class="logo-txt">
+	<h1><span class="logo-bold">OPEN</span>Library</h1>
+	<h2 class="logo-org">Internet Archive</h2>
+      </div>
+    </a>
+  </div>
+
+  <div class="search-component">
+    <div class="search-bar">
+      <a class="search-bar-submit"></a>
+      <form class="search-bar-input" action="/search" method="get">
+	<input type="text" name="q" placeholder="Search" autocomplete="off">
+      </form>
+      <div name="advancedsearch_button" class="search-bar-advanced-btn">
+	<img class="down-arrow" src="/static/images/down-arrow.png"/>
+      </div>
+    </div>
+    <div class="search-advanced">
+    </div>
+    <div class="search-results">
+    </div>
+  </div>
+
+  <ul class="navigation-component">
+    <li>
+      <a href="/subjects">Browse <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+      <!--
+      <ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/subjects">Subjects</a></li>
+	<li><a href="/authors">Authors</a></li>
+	<li><a href="/lists">Lists</a></li>
+      </ul>
+      -->
+    </li>
+    $if ctx.user:
+      <li>
+	<a href="/account/loans">My Books <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+      </li>
+  </ul>
+
+  $if not ctx.user:
+    <div class="auth-component">
+      <a class="generic-button" href="/account/login" class="white">$_("Log in")</a> or
+      <a class="generic-button gb-primary" href="/account/create">$_("Sign Up")</a>
+    </div>
+
+  $if ctx.user:
+    <div class="account-component">      
+       <div class="dropdown-avatar">
+	 <div class="avatar" href="javascript:;" id="userToggle"></div>
+	 <div>
+	   <img class="down-arrow" src="/static/images/down-arrow.png"/>
+	 </div>
+       </div>
+       
+         <div id="headerUserOpen">
+           <a href="$homepath()/account/loans">$_("My Books")</a>
+           <a href="$ctx.user.key/lists">$_("My Lists")</a>
+           <a href="$ctx.user.key">$_("My Profile")</a>
+           <a href="$homepath()/account">$_("Settings")</a>
+           <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+         </div>
+    </div>
+</header>
+<div class="clearfix"></div>
+
+<header style="display: none;">
+$ advanced = (
+$    ('title', _("Title"),_("")),
+$    ('author', _("Author"),_("")),
+$    ('isbn', "ISBN",_("")),
+$    ('subject', _("Subject"),_("")),
+$    ('place', _("Place"),_("")),
+$    ('person', _("Person"),_("")),
+$    ('publisher', _("Publisher"),_("")),
+$ )
+
+    <div class="siteSearch" id="headerSearch">
+        <form method="get" action="/search" class="siteSearch">
+            <fieldset class="home">
+            <legend>Site Search</legend>
+            <label for="qtop" class="hidden">Keyword</label>
+            <input type="text" placeholder="Search books" name="q" id="qtop" />
+            <input type="submit" value="$_('Search')"/>
+
+            <div class="searchPlacement">
+                <div class="searchFilter">
+                    <div class="searchOpener">
+                        <a href="javascript:;" id="searchHead">$_("Advanced")</a>
+                    </div>
+                    <div class="searchCheckboxes">
+                        <ul>
+                            <li><input name="has_fulltext" type="checkbox" value="true" checked="true" id="ftokenstop" />
+                                <label for="ftokenstop">$_("Only eBooks")</label></li>
+                            <li><input name="search-fulltext" type="checkbox" value="true" id="search-fulltext" />
+                                <label for="search-fulltext">$_("Search eBook text")</label></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
-
-            <div id="headerLogo">
-              <h2><a href="/" title="Go Home"><img src="/images/logo_OL-lg.png" alt="$_('Open Library')" width="220" height="140"/></a></h2>
-              <p class="tagline">$_("One web page for every book.")</p>
+            </fieldset>
+            <div id="topOptions" class="searchOptions hidden">
+            <fieldset class="home">
+                <legend>Advanced Search</legend>
+            $for name, label, placeholder in advanced:
+                <div class="formElement">
+                <label for="qtop-$name">$label</label><br/>
+                <input type="text" name="$name" id="qtop-$name" placeholder="$placeholder" size="35"/>
+                </div>
+            </fieldset>
+            <div class="searchPlus">
+                <a href="/search/inside">Full Text Search</a>?
             </div>
+            </div>
+        </form>
+    </div>
 
-            <div id="headerPlace"></div>
+
+
+    <div id="headerTools">
+        <div id="headerLogin">
 
         </div>
+    </div>
+
+</header>
