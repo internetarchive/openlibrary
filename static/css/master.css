@@ -239,6 +239,10 @@ header .auth-component li {
     text-align: left;
 }
 
+header .search-component .search-bar-input input[type=text] {
+    max-width: 100%;
+}
+
 header .auth-component li:first-child {
     margin-bottom: 5px;
 }
