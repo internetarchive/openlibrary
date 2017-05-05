@@ -50,8 +50,8 @@ $def with (page)
 
   $if not ctx.user:
     <div class="auth-component">
-      <a class="generic-button" href="/account/login" class="white">$_("Log in")</a> or
-      <a class="generic-button gb-primary" href="/account/create">$_("Sign Up")</a>
+      <li><a class="generic-button" href="/account/login" class="white">$_("Log in")</a></li>
+      <li><a class="generic-button gb-primary" href="/account/create">$_("Sign Up")</a></li>
     </div>
 
   $if ctx.user:
