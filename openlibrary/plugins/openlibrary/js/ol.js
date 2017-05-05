@@ -28,7 +28,7 @@ function setupSearch() {
     var B = A.parent().parent();
     var C = B.find("a#searchHead");
     var t1 = C.text();
-    var t2 = "Hide Advanced";
+    var t2 = "Hide";
     C.click(function(){
         var D = $(this);
         $('#footerSearch').toggle();

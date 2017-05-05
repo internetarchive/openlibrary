@@ -33,10 +33,9 @@ $if bodyid != "form":
         <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
     </p>
     $:render_template("site/alert")
-    <div id="placement">
 
+    $if bodyid == 'user' or bodyid == 'admin':
+        $:render_template("lib/nav_head", None)
+    <div id="placement">
         <div id="position">
 
-            $if bodyid == 'user' or bodyid == 'admin':
-                $:render_template("lib/search_head", None)
-                $:render_template("lib/nav_head", None)
