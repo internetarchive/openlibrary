@@ -55,21 +55,25 @@ $def with (page)
     </div>
 
   $if ctx.user:
-    <div class="account-component">      
-       <div class="dropdown-avatar">
-	 <div class="avatar" href="javascript:;" id="userToggle"></div>
-	 <div>
-	   <img class="down-arrow" src="/static/images/down-arrow.png"/>
-	 </div>
-       </div>
-       
-         <div id="headerUserOpen">
-           <a href="$homepath()/account/loans">$_("My Books")</a>
-           <a href="$ctx.user.key/lists">$_("My Lists")</a>
-           <a href="$ctx.user.key">$_("My Profile")</a>
-           <a href="$homepath()/account">$_("Settings")</a>
-           <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
-         </div>
+    <div class="account-component">
+      <div class="dropdown-avatar">
+	<div class="avatar" href="javascript:;" id="userToggle"></div>
+	<div>
+	  <img class="down-arrow" src="/static/images/down-arrow.png"/>
+	</div>
+      </div>
+      <div class="account-dropdown" id="main-account-dropdown">
+        <ul>
+          <li><a href="$homepath()/account/loans">$_("My Books")</a></li>
+          <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
+          <li><a href="$ctx.user.key">$_("My Profile")</a></li>
+          <li><a href="$homepath()/account">$_("Settings")</a></li>
+          <li>
+	    <form name="logout" action="/account/logout" method="post">
+	      <a href="#" onclick="document.forms['logout'].submit()">Log out</a></li>
+	  </form>
+	</ul>
+      </div>
     </div>
 </header>
 <div class="clearfix"></div>
