@@ -3,7 +3,7 @@ $def with (page)
 
 <header>
   <div class="menu-component">
-    <img src="/static/images/menu.png"/>
+    <a class="hamburger"><img src="/static/images/menu.png"/></a>
   </div>
   <div class="logo-component">
     <a alt="The Internet Archive's Open Library: One page for every book" href="/">
@@ -32,7 +32,7 @@ $def with (page)
   </div>
 
   <ul class="navigation-component">
-    <li>
+    <li class="nav-item-selected">
       <a href="/subjects">Browse <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
       <!--
       <ul>
@@ -43,10 +43,9 @@ $def with (page)
       </ul>
       -->
     </li>
-    $if ctx.user:
-      <li>
-	<a href="/account/loans">My Books <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
-      </li>
+    <li>
+      <a href="/account/loans">My Books <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+    </li>
   </ul>
 
   $if not ctx.user:
