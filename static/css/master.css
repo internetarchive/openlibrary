@@ -251,10 +251,14 @@ header .auth-component li a {
     color: #333;
 }
 
-header .account-component {    
+header .account-component {
     padding-left: 5px;
     font-size: 1em;
     order: 3;
+}
+
+#main-account-dropdown {
+    display: none;
 }
 
 header ul.navigation-component li {
@@ -391,6 +395,7 @@ header .logo-component .logo-icon {
 
 .account-component {
     flex: 1;
+    position: relative;
 }
 
 .account-component .dropdown-avatar {
@@ -408,6 +413,32 @@ header .logo-component .logo-icon {
     height: 45px;
     background-color: #AAA;
     border-radius: 3px;
+}
+
+header .account-component .account-dropdown {
+    position: absolute;
+    top: 50px;
+    right: 10px;
+    width: 95px;
+    z-index: 999;
+    background-color: #333;
+    text-align: right;
+    border-radius: 3px;
+}
+
+header .account-component .account-dropdown ul li {
+    padding: 5px 0px;
+}
+
+header .account-component .account-dropdown ul li:hover {
+    background-color: #464646;
+}
+
+header .account-component .account-dropdown ul li a {
+    text-decoration: none;
+    color: #fff;
+    text-align: left;
+    padding: 5px;
 }
 
 @media (max-width: 540px) {
