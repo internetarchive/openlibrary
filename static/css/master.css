@@ -214,6 +214,7 @@ header .logo-component {
 }
 
 header .navigation-component {
+    font-family: 'Poppins', sans-serif;
     display: flex;
     flex-basis: 100%;
     order: 5;
@@ -237,14 +238,11 @@ header .auth-component {
 
 header .auth-component li {
     text-align: left;
+    display: inline-flex;
 }
 
 header .search-component .search-bar-input input[type=text] {
     max-width: 100%;
-}
-
-header .auth-component li:first-child {
-    margin-bottom: 5px;
 }
 
 header .auth-component li a {
@@ -278,6 +276,14 @@ header ul.navigation-component li a:visited {
 
 header .account-component a {
     color: #333;
+}
+
+.menu-component {
+    position: relative;
+}
+
+.navigation-component {
+    position: relative;
 }
 
 .navigation-component .down-arrow{
@@ -385,7 +391,7 @@ header .logo-component .logo-icon {
 }
 
 .search-component .search-bar-advanced-btn {
-    margin-top: 22px;
+    margin-top: 13px;
     border: 0 none;
     width: 40px;
     padding: 0;
@@ -540,6 +546,12 @@ header .account-component .account-dropdown ul li a {
 @media (max-width: 620px) {
     header .search-bar-input input {
 	width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    header .auth-component .hide-me {
+	display: none;
     }
 }
 
@@ -1634,14 +1646,16 @@ hr.forgot-padding {
 }
 
 a.generic-button {
-    text-decoration: underline;
+    text-decoration: none;
+    padding: 13px 10px;
 }
 
 a.gb-primary {
+    margin-top: 3px;
     text-decoration: none;
-    background: #389ad4;
+    background: #006aac;
     color: #fff !important;
-    padding: 3px 3px;
+    padding: 13px 10px;
     border-radius: 3px;
 }
 

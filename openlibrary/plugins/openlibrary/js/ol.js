@@ -358,6 +358,11 @@ $().ready(function(){
         }
     });
 
+    $('header .search-component .search-bar-submit').click(function() {
+	var val = $('header .search-component .search-bar-input input').val()
+	window.location.href = "/search?q=" + val;
+    });
+
     function hideUser(){
         $('#main-account-dropdown').fadeOut();
         $('header .dropdown-avatar').removeClass('hover');
