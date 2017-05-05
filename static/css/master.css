@@ -230,12 +230,20 @@ header .search-component {
 }
 
 header .auth-component {
-    padding: 16px;
+    padding: 5px;
     padding-right: 0px;
     order: 6;
 }
 
-header .auth-component a {
+header .auth-component li {
+    text-align: left;
+}
+
+header .auth-component li:first-child {
+    margin-bottom: 5px;
+}
+
+header .auth-component li a {
     color: #333;
 }
 
@@ -267,6 +275,10 @@ header .account-component a {
 .navigation-component .down-arrow{
     position: relative;
     top: -2px;
+}
+
+header .account-component .down-arrow {
+    margin-top: 1px;
 }
 
 .logo-component {
@@ -400,7 +412,7 @@ header .logo-component .logo-icon {
     }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 450px) {
     #topNotice {
 	display: none
     }
@@ -424,13 +436,26 @@ header .logo-component .logo-icon {
     header .search-component .search-bar-advanced-btn {
 	display: none;
     }
+    header .search-component .search-bar {
+	width: 45px;
+    }
     header .search-component .search-bar-submit {
+	width: 31px;
+	height: 45px;
+    }
+    header .auth-component {
+	order: 4;
     }
 }
 
-@media (min-width: 420px) {
+@media (min-width: 450px) {
+    header .navigation-component li.nav-item-selected {
+	border-bottom: 2px solid #e44028;
+    }
     header .search-component {
 	order: 2;
+	margin-left: 15px;
+	margin-right: 10px;
     }
     header .search-component .search-bar-input {
 	display: flex;
@@ -440,6 +465,9 @@ header .logo-component .logo-icon {
     }
     header .account-component {
 	flex: none;
+    }
+    header .auth-component {
+	order: 4;
     }
 }
 
@@ -466,7 +494,7 @@ header .logo-component .logo-icon {
 	order: 3;
     }
     header .auth-component {
-	order: 5;
+	order: 4;
     }
     header .navigation-component {
 	display: flex;
@@ -495,6 +523,9 @@ header .logo-component .logo-icon {
     }
     header .logo-component .logo-icon {
 	display: inherit;
+    }
+    header .navigation-component li.nav-item-selected {
+	border: none;
     }
     header .search-component {
 	order: 3;
@@ -1575,7 +1606,7 @@ a.gb-primary {
     text-decoration: none;
     background: #389ad4;
     color: #fff !important;
-    padding: 1px 10px;
+    padding: 3px 3px;
     border-radius: 3px;
 }
 
