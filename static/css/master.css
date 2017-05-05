@@ -186,7 +186,8 @@ p.info {background-image:url("/images/icons/icon_info.png");}
 
 header {    
     max-width: 960px;
-    margin: 0px auto 5px auto;
+    min-width: 310px;
+    margin: 0px auto;
     flex-direction: column;
     /*font-family: 'Poppins', sans-serif;*/
     display: flex;
@@ -204,12 +205,11 @@ header .menu-component {
 header .menu-component img {
     width: 44px;
     height: 44px;
-    padding: 0px 5px;
+    padding: 0px 3px;
 }
 
 header .logo-component {
-    min-width: 150px;
-    margin-left: 5px;
+    min-width: 135px;
     order: 1;
 }
 
@@ -240,6 +240,8 @@ header .auth-component a {
 }
 
 header .account-component {    
+    padding-left: 5px;
+    font-size: 1em;
     order: 3;
 }
 
@@ -256,11 +258,6 @@ header ul.navigation-component li a {
 header ul.navigation-component li a:visited {
     color: #333 !important;
     text-decoration: none;
-}
-
-header .account-component {
-    padding-left: 16px;
-    font-size: 1em;
 }
 
 header .account-component a {
@@ -305,9 +302,8 @@ header .logo-component .logo-icon {
 }
 
 .logo-component .logo-txt {
-    display: flex;
-    flex-direction: column;
     padding-top: 3px;
+    
 }
 
 .logo-component .logo-txt h1 {
@@ -324,7 +320,7 @@ header .logo-component .logo-icon {
 }
 
 .search-component {
-    min-width: 245px;
+    min-width: 150px;
 }
 
 .search-component .search-bar {
@@ -342,12 +338,14 @@ header .logo-component .logo-icon {
 
 .search-component .search-bar-submit {
     background: url(/static/images/search-lens.png) right no-repeat;
-    width: 35px;
+    width: 45px;
+    height: 45px;
     border-top-left-radius: .3em;
     border-bottom-left-radius: .3em;
 }
 
 .search-component .search-bar-input {
+    min-width: 70px;
     width: 100%;
     display: flex;
     margin: 3px;
@@ -396,9 +394,52 @@ header .logo-component .logo-icon {
     border-radius: 3px;
 }
 
-@media (max-width: 532px) {
+@media (max-width: 540px) {
     #topNotice {
 	display: none
+    }
+}
+
+@media (max-width: 420px) {
+    #topNotice {
+	display: none
+    }
+    header .navigation-component li.nav-item-selected {
+	border-bottom: 2px solid #e44028;
+    }
+    header .logo-component {
+	flex: 1;
+    }
+    header .account-component {
+	flex: none;
+    }
+    header .search-component {
+	flex: none;
+	order: 2;
+	min-width: 10px;
+    }
+    header .search-component .search-bar-input {
+	display: none;
+    }
+    header .search-component .search-bar-advanced-btn {
+	display: none;
+    }
+    header .search-component .search-bar-submit {
+    }
+}
+
+@media (min-width: 420px) {
+    header .search-component {
+	order: 2;
+    }
+    header .search-component .search-bar-input {
+	display: flex;
+    }
+    header .search-component .search-bar-advanced-btn {
+	display: block;
+    }
+    header .account-component {
+	flex: none;
     }
 }
 
@@ -408,16 +449,20 @@ header .logo-component .logo-icon {
     }
     header .logo-component {
 	border-right: none;
+	flex: none;
+	padding: 0px 5px;
     }
     header .search-component {
 	order: 2;
+	flex: 1;
     }
     header .search-component .search-bar {
-	max-width: 300px;
+	max-width: 320px;
 	float: right;
     }
     header .account-component {
 	flex: none;
+	paddin-left: 16px;
 	order: 3;
     }
     header .auth-component {
@@ -426,6 +471,12 @@ header .logo-component .logo-icon {
     header .navigation-component {
 	display: flex;
 	order: 6;
+    }
+}
+
+@media (max-width: 620px) {
+    header .search-bar-input input {
+	width: 100%;
     }
 }
 
@@ -449,7 +500,7 @@ header .logo-component .logo-icon {
 	order: 3;
     }
     header .search-component .search-bar {
-	min-width: 300px;
+	min-width: 320px;
 	float: right;
     }
     header .navigation-component {
@@ -1522,8 +1573,8 @@ a.generic-button {
 
 a.gb-primary {
     text-decoration: none;
-    border: 1px solid #333; /*#389ad4;*/
-    color: #333;
+    background: #389ad4;
+    color: #fff !important;
     padding: 1px 10px;
     border-radius: 3px;
 }
