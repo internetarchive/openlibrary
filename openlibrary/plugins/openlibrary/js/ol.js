@@ -28,7 +28,7 @@ function setupSearch() {
     var B = A.parent().parent();
     var C = B.find("a#searchHead");
     var t1 = C.text();
-    var t2 = "Hide";
+    var t2 = "Hide Advanced";
     C.click(function(){
         var D = $(this);
         $('#footerSearch').toggle();
@@ -357,14 +357,13 @@ $().ready(function(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-
-    $('header .search-component .search-bar-submit').click(function() {
-	var val = $('header .search-component .search-bar-input input').val()
-	window.location.href = "/search?q=" + val;
+    $('.dropclick').click(function(){
+        $(this).next('.dropdown').slideToggle();
+        $(this).parent().find('.arrow').toggleClass("up");
     });
 
     function hideUser(){
-        $('#main-account-dropdown').fadeOut();
+        $('#main-account-dropdown').slideUp(25);
         $('header .dropdown-avatar').removeClass('hover');
     };
 
@@ -373,7 +372,7 @@ $().ready(function(){
 	if (dropdown.is(':visible') === true) {
 	    hideUser();
 	} else {
-	    dropdown.slideToggle();
+	    dropdown.slideToggle(25);
             $(this).toggleClass('hover');
             var offUser = $(this);
             $(document).mouseup(function(offUser){
