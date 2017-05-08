@@ -265,8 +265,9 @@ header ul.navigation-component li {
 }
 
 header ul.navigation-component li a {
-    color: #333 !important;
+    color: #fff !important;
     text-decoration: none;
+    display: block;
 }
 
 header ul.navigation-component li a:visited {
@@ -275,7 +276,9 @@ header ul.navigation-component li a:visited {
 }
 
 header .account-component a {
-    color: #333;
+    color: #fff !important;
+    text-decoration: none;
+    display: block;
 }
 
 .menu-component {
@@ -296,7 +299,6 @@ header .account-component .down-arrow {
 }
 
 .logo-component {
-    height: 53px;
     margin: 5px 0px;
 }
 
@@ -308,8 +310,10 @@ header .account-component .down-arrow {
 
 .logo-component .logo-icon {
     margin-right: 5px;
-    margin-top: 3px;
-    height: 45px;
+    height: 25px;
+    padding-right: 5px;
+    border-right: 1px solid #babbad;
+    align-self: center;
 }
 
 header .logo-component .logo-icon {
@@ -329,13 +333,12 @@ header .logo-component .logo-icon {
 
 .logo-component .logo-txt {
     padding-top: 3px;
-    
 }
 
 .logo-component .logo-txt h1 {
-    font-size: 1.3em;
+    font-size: 1.4em;
     font-family: 'Poppins', sans-serif;
-    font-weight: 500;
+    font-weight: 300;
     color: #333;
     padding: 0px;
     margin: 0px;
@@ -343,6 +346,7 @@ header .logo-component .logo-icon {
 
 .logo-component .logo-bold {
     font-weight: 700;
+    color: #036DAA;
 }
 
 .search-component {
@@ -390,6 +394,10 @@ header .logo-component .logo-icon {
     transition: all 0.5s;
 }
 
+.search-component .search-dropdown {
+}
+
+
 .search-component .search-bar-advanced-btn {
     margin-top: 13px;
     border: 0 none;
@@ -399,13 +407,16 @@ header .logo-component .logo-icon {
     cursor: pointer;
 }
 
+.search-component .search-results {
+    
+}
+
 .account-component {
     flex: 1;
     position: relative;
 }
 
 .account-component .dropdown-avatar {
-    float: right;
     display: flex;
     align-items: center;
     margin-top: 3px;
@@ -423,37 +434,40 @@ header .logo-component .logo-icon {
 
 header .account-component .account-dropdown {
     position: absolute;
-    top: 50px;
-    right: 10px;
-    width: 95px;
+    font-family: 'Poppins', sans-serif;
     z-index: 999;
     background-color: #333;
     text-align: right;
     border-radius: 3px;
+    color: #fff;
+    width: 125px;
+    margin-top: 5px;
+    right: 11px;
 }
 
 header .account-component .account-dropdown ul li {
-    padding: 5px 0px;
+    padding: 5px;
 }
 
 header .account-component .account-dropdown ul li:hover {
     background-color: #464646;
 }
 
-header .account-component .account-dropdown ul li a {
+header .account-component .account-dropdown ul a li{
+    width: 150px;
     text-decoration: none;
     color: #fff;
     text-align: left;
     padding: 5px;
 }
 
-@media (max-width: 540px) {
+@media only screen and (max-width: 540px) {
     #topNotice {
 	display: none
     }
 }
 
-@media (max-width: 450px) {
+@media only screen and (max-width: 450px) {
     #topNotice {
 	display: none
     }
@@ -489,7 +503,7 @@ header .account-component .account-dropdown ul li a {
     }
 }
 
-@media (min-width: 450px) {
+@media only screen and  (min-width: 450px) {
     header .navigation-component li.nav-item-selected {
 	border-bottom: 2px solid #e44028;
     }
@@ -512,7 +526,7 @@ header .account-component .account-dropdown ul li a {
     }
 }
 
-@media (min-width: 532px) {
+@media only screen and (min-width: 532px) {
     header {
 	margin: 0 auto;
     }
@@ -531,7 +545,6 @@ header .account-component .account-dropdown ul li a {
     }
     header .account-component {
 	flex: none;
-	paddin-left: 16px;
 	order: 3;
     }
     header .auth-component {
@@ -543,20 +556,20 @@ header .account-component .account-dropdown ul li a {
     }
 }
 
-@media (max-width: 620px) {
+@media only screen and (max-width: 620px) {
     header .search-bar-input input {
 	width: 100%;
     }
 }
 
-@media (max-width: 768px) {
+@media only screen and (max-width: 768px) {
     header .auth-component .hide-me {
 	display: none;
     }
 }
 
 /* Full screen mode */
-@media (min-width: 960px) {
+@media only screen and (min-width: 960px) {
     header {
 	margin: 20px auto;
 	flex-direction: row;
@@ -565,7 +578,7 @@ header .account-component .account-dropdown ul li a {
 	display: none;
     }
     header .logo-component {
-	border-right: 1px solid #babbad;
+	/* border-right: 1px solid #babbad; */
 	padding-right: 15px;
     }
     header .logo-component .logo-icon {
@@ -1653,7 +1666,7 @@ a.generic-button {
 a.gb-primary {
     margin-top: 3px;
     text-decoration: none;
-    background: #006aac;
+    background: #e44028;
     color: #fff !important;
     padding: 13px 10px;
     border-radius: 3px;
@@ -4384,6 +4397,22 @@ span.actions a span.checked-out {
 .page-banner a {
     color: white;
 }
+
+.page-banner-black {
+    background-color: #036DAA;
+    padding: 5px;
+}
+
+.page-banner-black .cta {
+    padding: 4px 8px;
+    border-radius: 5px;
+    border: 1px solid #555;
+    font-weight: 500;
+    text-decoration: none;
+    background: #464646;
+    margin: 0px 5px;
+}
+
 .page-banner .button {
     color: white;
     border-radius: 5px;
