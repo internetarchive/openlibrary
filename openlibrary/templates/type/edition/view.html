@@ -1,6 +1,6 @@
 $def with (page)
 
-$ title_suffix = cond(page.publish_date, "({0} edition)".format(page.publish_date), "(edition)")
+$ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = page.title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
 $ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
