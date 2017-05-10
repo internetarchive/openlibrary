@@ -44,7 +44,7 @@ class search_inside(delegate.page):
             if not hasattr(config, 'plugin_inside'):
                 return {'error': 'Unable to prepare search engine'}
             search_endpoint = config.plugin_inside['search_endpoint']
-            search_select = search_endpoint + '?' + urllib.urlencode(params)
+            search_select = search_endpoint + '?' + urllib.urlencode(params, 'utf-8')
 
             # TODO: Update for Elastic
             # stats.begin("solr", url=search_select)
