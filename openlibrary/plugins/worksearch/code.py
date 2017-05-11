@@ -670,7 +670,7 @@ class subject_search(delegate.page):
         else:
             params['sort'] = 'count desc'
 
-        solr_select = solr_subject_select_url + "?" + urllib.urlencode(params)
+        solr_select = solr_subject_select_url + "?" + urllib.urlencode(params, 'utf-8')
         results = run_solr_search(solr_select)
         response = results['response']
 
