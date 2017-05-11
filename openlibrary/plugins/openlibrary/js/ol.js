@@ -118,10 +118,19 @@ function aboutFeeds() {
 };
 
 
-var create_subject_carousel = function(subject_name) {
+var create_subject_carousel = function(subject_name, options) {
+    var ITEMS_PER_PAGE = 6;
+    var apiurl = '/subjects/' + subject_name + '.json?has_fulltext=true';
+    options = options || {};
+    options.pagesize = ITEMS_PER_PAGE;
+    options.readable = true;
+    options.sort = options.sort || "";
+    if (options.published_id) {
+	url += '&published_in=' + options.published_in;
+    }
     $.ajax({
 	dataType: "json",
-        url: '/carousels/subjects/' + subject_name,
+        url: apiurl,
         type: "GET",
         contentType: "text/html",
         beforeSend: function(xhr) {
@@ -130,15 +139,15 @@ var create_subject_carousel = function(subject_name) {
         },
         success: function(data) {
 	    // TODO: Filter `data` by available
-	    var page = new Subject(data, {pagesize: 6});
-	    
+	    var page = new Subject(data, options)
+
 	    function loadCoverCarousels (carousel, state) {
 		if (!page.coverCarousel) {
 		    page.coverCarousel = carousel;
 		    page.coverCarousel.size(page.getPageCount());
 		}
 		var index = carousel.first;
-		page.pos = (index-1)*6;
+		page.pos = (index - 1) * ITEMS_PER_PAGE;
 
 		if (window.set_hash) {
 		    var _p = (index == 1) ? null : index;
@@ -148,18 +157,18 @@ var create_subject_carousel = function(subject_name) {
 		if (carousel.has(index)) {
 		    return;
 		}
-		
+
 		page.loadPage(index-1, function(data) {
 		    var works = data.works;
 		    $.each(works, function(widx, work) {
-			carousel.add(index+widx, page.renderWork(work));
+			carousel.add(index + widx, page.renderWork(work));
 		    });
 		    updateBookAvailability("#carousel-" + subject_name + " li ");
 		});
 	    }
-	    
+
 	    $("#carousel-" + subject_name).jcarousel({
-		scroll:6,
+		scroll: ITEMS_PER_PAGE,
 		itemLoadCallback: {onBeforeAnimation: loadCoverCarousels}
 	    });
         }

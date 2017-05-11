@@ -1,9 +1,10 @@
-$def with(subject, description="")
+$def with(subject, title="", options=None, description="")
 
 <div class="head">
-  <h2 class="inline"><a href="/subjects/$(subject.lower().replace(' ', '_'))">$subject</a></h2>
+  <h2 class="home-h2"><a href="/subjects/$(subject.lower().replace(' ', '_'))">$(title or subject)</a></h2>
+  <hr/>
   $if description:
-    <p class="inline sansserif large collapse">$description</p>
+    <p class="sansserif large collapse">$description</p>
 </div>
 
 <div class="contentLists results">
@@ -15,6 +16,7 @@ $def with(subject, description="")
 
 <script type="text/javascript">
 \$().ready(function() {
-  create_subject_carousel("$(subject.lower().replace(' ', '_'))")
+  var options = $:(json_encode(options));
+  create_subject_carousel("$(subject.lower().replace(' ', '_'))", options)
 });
 </script>

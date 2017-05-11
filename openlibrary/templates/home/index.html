@@ -10,21 +10,42 @@ $var title: $_("Welcome to Open Library")
     or <a href="/search?subject_facet=Accessible%20book">search for accessible books</a>.
 </div>
 
-$:render_template("home/splash")
+<div class="page-banner page-banner-home sansserief">
+  Help us improve Open Library — <a class="button" href="https://goo.gl/forms/CLq6kZhVR3Pn7sBz2">Answer 10 short questions
+</div>
 
-<div id="contentBody">
-
+<div id="contentBody"> 
     $:render_template("home/categories")
     <div class="clearfix"></div>
 
     $:render_template("home/popular", books=popular_books)
     <div class="clearfix"></div>
 
+    $:render_template("home/returncart")
+    <div class="clearfix"></div>
+
     $:render_template("home/read")
     <div class="clearfix"></div>
 
-    $:render_template("home/returncart")
+    $:render_template("home/subject_carousel", "Textbooks", options={})
     <div class="clearfix"></div>
+
+    $:render_template("home/subject_carousel", "Success", title="Business Success", options={})
+    <div class="clearfix"></div>
+
+    $:render_template("home/subject_carousel", "Science Fiction", options={})
+    <div class="clearfix"></div>
+
+    $:render_template("home/subject_carousel", "Biographies", options={"published_in": "2000-2018", "sort": "edition_count"})
+    <div class="clearfix"></div>
+
+    $:render_template("home/subject_carousel", "mystery_and_detective_stories", title="Mysteries", options={"published_in": "2000-2018", "sort": "edition_count"})
+    <div class="clearfix"></div>
+
+    $:render_template("home/subject_carousel", "Romance", options={"published_in": "2000-2018", "sort": "edition_count"})
+    <div class="clearfix"></div>
+
+
 
     $:render_template("home/waitlist", books=waitlisted_books)
     <div class="clearfix"></div>

@@ -15,14 +15,18 @@
 ;(function() {
 
 function Subject(data, options) {
+    options = options || {};
     var defaults = {
         pagesize: 12
     }
+
     this.settings = $.extend(defaults, options);
 
+    this.name = data.name.replace(' ', '-')
     this.filter = {};
-    this.has_fulltext = "false";
-    this.sort = "editions";
+    this.published_in = options.published_in ? options.published_in : undefined;
+    this.has_fulltext = options.readable ? "true" : "false";
+    this.sort = options.sort ? options.sort : "editions";
 
     this.init(data);
     this._data = data;
@@ -37,6 +41,28 @@ function urlencode(query) {
         parts.push(k + "=" + query[k]);
     }
     return parts.join("&");
+}
+
+function renderTag(tag, keyvals, child) {
+    var html = '<' + tag + ' ';
+    for (var key in keyvals) {
+	var val =  keyvals[key];
+	if (val == '') {
+	    html += key + ' ';
+	} else {
+	    html += key + '="' + val + '" ';
+	}
+    }
+    if (tag === 'img') {
+	html += '/>';
+	return html;
+    }
+    html += '>';
+    if (child) {
+	html += child;
+    }
+    html += '</' + tag + '>';
+    return html;
 }
 
 function slice(array, begin, end) {
@@ -74,13 +100,35 @@ $.extend(Subject.prototype, {
     },
 
     renderWork: function(work) {
-	var titlestring = work.title + " by " + work.authors.join(', ') +
-	    ' (' + work.edition_count + ' editions)';
-	return '<div class="SRPCover">' +
-	    '<a href="' + work.key + '" title="' + titlestring + '">' +
-	    '<img src="//covers.openlibrary.org/b/id/' + work.cover_id +
-	    '-M.jpg" alt="' + titlestring + ' class="cover"/></a>' +
-	    '</div>';
+	var ia = work.lending_identifier;
+	var authors = [];
+	for (var author in work.authors)
+	    authors.push(work.authors[author].name);
+	var ed = 'edition' + (work.edition_count > 1 ? 's' : '');
+	var titlestring = work.title + " by " + authors.join(', ') +
+	    ' (' + work.edition_count + ' ' + ed + ')';
+	var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
+	var bookread_url = work.public_scan ? ('//archive.org/stream/' + work.ia + '?ref=ol') :
+	    '/borrow/ia/' + work.ia;
+	var html = renderTag('span', {
+	      'itemtype': 'https://schema.org/Book',
+	      'itemscope': ''},
+          renderTag('div', {'class': 'SRPCover'},
+            renderTag('div', {'class': 'coverEbook'},
+              renderTag('a', {'href': work.key, 'title': titlestring,
+  				   'data-ol-link-track': 'subject-' + this.name},
+  	      renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
+  				   'alt': titlestring, 'class': 'cover'})))) +
+          renderTag('div', {'class': 'coverEbook coverEbookSubject'},
+              renderTag('span', {'class': 'actions read'},
+                renderTag('a', {
+  		    'href': bookread_url, 
+		    'title': 'Read this book',
+		    'class': 'borrow-link',
+		    'data-ocaid': work.ia,
+		    'data-key': work.key
+		}, renderTag('span', {'class': 'read-icon image borrow'})))));
+	return html;
     },
 
     loadPage: function(pagenum, callback) {
@@ -103,6 +151,9 @@ $.extend(Subject.prototype, {
                 "has_fulltext": this.has_fulltext,
                 "sort": this.sort
             }
+	    if(this.published_in) {
+		params.published_in = this.published_in;
+	    }
             $.extend(params, this.filter);
 
             var url = this.key + ".json?" + urlencode(params);

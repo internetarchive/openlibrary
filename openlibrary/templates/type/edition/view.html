@@ -123,46 +123,6 @@ $add_metatag(property="og:description", content=description)
 
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
-<style type="text/css">
-.page-banner {
-    background: #95A865;
-    color: black;
-    background: #036DAA;
-    color: white;
-    text-align: left;
-    padding: 20px;
-}
-.page-banner a {
-    color: white;
-}
-.page-banner .button {
-    /*
-    background: #62AAD4;
-    */
-    color: white;
-    border-radius: 5px;
-    padding: 10px;
-    cursor: pointer;
-    display: inline;
-    border: 1px solid #389AD4;
-    color: #95A865;
-}
-.page-banner a.button {
-    color: #95A865;
-    color: white;
-    text-decoration: none;
-    color: #95A865;
-    background: #389AD4;
-    color: #ffe;
-}
-.page-banner a.button:hover {
-    /*background: #95A865;*/
-    background: #62AAD4;
-    color: white;
-}
-
-</style>
-
 $ ebook_status = page.get_ebook_status()
 
 $if ebook_status == "read-online":

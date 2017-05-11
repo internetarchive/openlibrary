@@ -45,14 +45,6 @@ class subjects_index(delegate.page):
     def GET(self):
         return render_template("subjects/index.html")
 
-class subjects_partial(delegate.page):
-    path = '/carousels/subjects/([^/]+)'
-
-    def GET(self, key):
-        i = web.input(head=None)
-        subject = get_subject('/subjects/' + key, details=True)
-        return delegate.RawText(json.dumps(subject), content_type="application/json")
-
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
@@ -114,6 +106,8 @@ class subjects_json(delegate.page):
         i.offset = safeint(i.offset, 0)
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
+        if i.has_fulltext:
+            subject['ebook_count'] = subject['work_count']
         return json.dumps(subject)
 
     def normalize_key(self, key):
