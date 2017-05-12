@@ -114,12 +114,12 @@ div.head h1,div.head h2,div.head h3,div.head h4,div.head h5,div.head h6{margin:0
 div.head.rel {position:relative;}
 div.superNav {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;color:#666;margin-bottom:5px;}
 h1,h2,h3,h4,h5,h6 {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#00636a;font-weight:600;}
-h1 {font-size: 1.875em;} /*30px (30/16=1.875)*/
+h1 {font-size: 1.875em;} 
 h1.title {font-size:1.25em;}
 h1 span.subtitle {font-size:0.65em;font-weight:normal;}
 #contentHead h1 {margin:0;padding:0;}
 h1.publisher {color: #615132;font-size:1.375em;font-family:Georgia,"Palatino Linotype", "Book Antiqua", Palatino, serif!important;font-weight:normal!important;margin:0;}
-h2 {font-size: 1.375em;} /*22px (22/16=1.375)*/
+h2 {font-size: 1.375em;} 
 h2.author {color:#615132;font-size:1.125em;font-weight:normal;}
 h1.edition, h2.edition {color:#000;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;font-size:1.125em;margin:0;padding:0;font-weight:normal;}
 h2.authorEdition {color:#615132;font-size:1em;font-weight:normal;margin:0;padding:0;}
@@ -133,7 +133,7 @@ h2 a:hover{color:#35672e;text-decoration:underline;}
 h3 {font-size: 1.0em;}
 h4 {font-size: 0.8125em;}
 h4.publisher {font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;color:#000;margin:0;padding:0;font-weight:normal;}
-h5 {font-size: 0.875em;font-family:Georgia,"Palatino Linotype", "Book Antiqua", Palatino, serif!important;font-weight:normal!important;} /*14px (14/16=.875)*/
+h5 {font-size: 0.875em;font-family:Georgia,"Palatino Linotype", "Book Antiqua", Palatino, serif!important;font-weight:normal!important;}
 h6 {font-size: 0.6875em;}
 span.link {font-size:12px;color: #929292;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;white-space:nowrap;}
 span.tools {font-size:12px;color:#333;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;}
@@ -1018,15 +1018,15 @@ div#headerLogin {
 }
 
 .modal-overlay {
-    position: fixed; /* Stay in place */
-    z-index: 9999; /* Sit on top */
+    position: fixed;
+    z-index: 9999;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
 }
 
 .modal-content {
@@ -1034,7 +1034,7 @@ div#headerLogin {
     font-size: 14px;
     border-radius: 10px;
     background-color: #fefefe;
-    margin: 150px auto 15% auto; /* 15% from the top and centered */
+    margin: 150px auto 15% auto;
     border: 1px solid #888;
     width: 350px;
 }
@@ -1478,7 +1478,6 @@ div#homeBlurb {
 div#homeBlurb p {
     margin: 0;
     padding: 15px 0;
-/*    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif; */
     font-size: 1.875em;
     line-height: normal;
     color: #fff;
@@ -1576,7 +1575,6 @@ div#content div.contentLists {
 /* HOME PAGE CAROUSEL SKIN */
 .resultsCovers {
     width: 958px;
-    /*height: 240px;*/
 }
 .resultsCovers .jcarousel-container {
     width: 918px;
@@ -1908,7 +1906,7 @@ button.addAnother {
     background-image: url("/images/icons/icon_add.png");
     background-position: 0 0;
     background-color: transparent;
-    display: none; /*temporarily hidden*/
+    display: none;
 }
 button.addAnother:hover {
     background-position: -32px 0;
@@ -2666,11 +2664,6 @@ span.actions a {
     display: block;
     float: left;
     min-width: 35px;
-
-    /* Anand: commented to fix alignment of "Checked out" */
-    /*
-    max-width: 45px;
-    */
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
     font-size: 10px;
     margin-left: 10px;
@@ -3645,6 +3638,7 @@ body#plain ul.link li {font-size:1.125em;}
 body#plain #faq h4 {font-size: 0.75em;color:#000;text-transform: uppercase;margin-bottom:0;}
 body#plain #faq p {font-size:0.75em;color:#333;}
 body#plain p.help {font-size:14px;}
+
 /* BORROWING */
 body#plain div.alert {background:#fffdcd url("/images/icons/icon_alert-gold.png") no-repeat 15px 50%!important;margin-bottom:10px;margin-top:20px;}
 body#plain div.stop {background:#fffdcd url("/images/icons/icon_stop.png") no-repeat 15px 50%!important;margin-bottom:45px;margin-top:20px;}
