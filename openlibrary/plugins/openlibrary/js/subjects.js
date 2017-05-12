@@ -20,7 +20,6 @@ function Subject(data, options, callback) {
         pagesize: 12
     }
     this.settings = $.extend(defaults, options);
-    this.name = data.name.replace(/\s+/g, '').toLowerCase();
     this.slug = data.name.replace(/\s+/g, '-').toLowerCase();
     this.filter = {};
     this.published_in = options.published_in ? options.published_in : undefined;
@@ -116,13 +115,13 @@ $.extend(Subject.prototype, {
           renderTag('div', {'class': 'SRPCover'},
             renderTag('div', {'class': 'coverEbook'},
               renderTag('a', {'href': work.key, 'title': titlestring,
-  				   'data-ol-link-track': 'subject-' + this.name},
+  				   'data-ol-link-track': 'subject-' + this.slug},
   	      renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
   				   'alt': titlestring, 'class': 'cover'})))) +
           renderTag('div', {'class': 'coverEbook coverEbookSubject'},
               renderTag('span', {'class': 'actions read'},
                 renderTag('a', {
-  		    'href': bookread_url, 
+  		    'href': bookread_url,
 		    'title': 'Read this book',
 		    'class': 'borrow-link',
 		    'data-ocaid': work.ia,

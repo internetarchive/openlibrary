@@ -139,7 +139,7 @@ $().ready(function() {
             xhr.setRequestHeader("Accept", "application/json");
         },
         success: function(data) {
-	    // TODO: Filter `data` by available	    
+	    // TODO: Filter `data` by available
 	    var primed = false;
 	    var subject = new Subject(data, options);
   	    function fetchPageOfBooks(carousel) {
