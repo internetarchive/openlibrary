@@ -117,10 +117,11 @@ function aboutFeeds() {
     });
 };
 
-
-var create_subject_carousel = function(subject_name, options) {
+var create_subject_carousel;
+$().ready(function() {
+  create_subject_carousel = function(subject_name, type, options) {
     var ITEMS_PER_PAGE = 6;
-    var apiurl = '/subjects/' + subject_name + '.json?has_fulltext=true';
+    var apiurl = '/' + type + '/' + subject_name + '.json?has_fulltext=true';
     options = options || {};
     options.pagesize = ITEMS_PER_PAGE;
     options.readable = true;
@@ -138,16 +139,17 @@ var create_subject_carousel = function(subject_name, options) {
             xhr.setRequestHeader("Accept", "application/json");
         },
         success: function(data) {
-	    // TODO: Filter `data` by available
-	    var page = new Subject(data, options)
-
-	    function loadCoverCarousels (carousel, state) {
-		if (!page.coverCarousel) {
-		    page.coverCarousel = carousel;
-		    page.coverCarousel.size(page.getPageCount());
+	    // TODO: Filter `data` by available	    
+	    var primed = false;
+	    var subject = new Subject(data, options);
+  	    function fetchPageOfBooks(carousel) {
+		primed = true;
+		if (!subject.coverCarousel) {
+		    subject.coverCarousel = carousel;
+		    subject.coverCarousel.size(subject.getPageCount());
 		}
 		var index = carousel.first;
-		page.pos = (index - 1) * ITEMS_PER_PAGE;
+		subject.pos = (index - 1) * ITEMS_PER_PAGE;
 
 		if (window.set_hash) {
 		    var _p = (index == 1) ? null : index;
@@ -158,22 +160,25 @@ var create_subject_carousel = function(subject_name, options) {
 		    return;
 		}
 
-		page.loadPage(index-1, function(data) {
+		subject.loadPage(index-1, function(data) {
 		    var works = data.works;
 		    $.each(works, function(widx, work) {
-			carousel.add(index + widx, page.renderWork(work));
+			carousel.add(index + widx, subject.renderWork(work));
 		    });
 		    updateBookAvailability("#carousel-" + subject_name + " li ");
 		});
 	    }
-
 	    $("#carousel-" + subject_name).jcarousel({
 		scroll: ITEMS_PER_PAGE,
-		itemLoadCallback: {onBeforeAnimation: loadCoverCarousels}
+		itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
 	    });
+	    if (!primed) {
+		$("#carousel-" + subject_name).data('jcarousel').reload();
+	    }
         }
     });
-};
+  };
+});
 
 // BUILD CAROUSEL
 function carouselSetup(loadCovers, loadLists) {

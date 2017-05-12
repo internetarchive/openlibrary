@@ -1,7 +1,7 @@
-$def with(subject, title="", options=None, description="")
+$def with(subject, title="", options=None, description="", delay=0, type="subjects")
 
 <div class="head">
-  <h2 class="home-h2"><a href="/subjects/$(subject.lower().replace(' ', '_'))">$(title or subject)</a></h2>
+  <h2 class="home-h2"><a href="/$(type)/$(subject)">$(title or subject)</a></h2>
   <hr/>
   $if description:
     <p class="sansserif large collapse">$description</p>
@@ -9,14 +9,19 @@ $def with(subject, title="", options=None, description="")
 
 <div class="contentLists results">
     <div class="covers resultsCovers">
-        <ul id="carousel-$(subject.lower().replace(' ', '_'))" class="topicalCarousel jcarousel-skin-OL">
+        <ul id="carousel-$(subject)" class="topicalCarousel jcarousel-skin-OL">
         </ul>
     </div>
 </div>
 
 <script type="text/javascript">
 \$().ready(function() {
+  var delay = $:(json_encode(delay));
   var options = $:(json_encode(options));
-  create_subject_carousel("$(subject.lower().replace(' ', '_'))", options)
+  var type = "$(type)";
+  var subject = "$(subject)";
+  setTimeout(function() {
+    create_subject_carousel(subject, type, options);
+  }, delay);
 });
 </script>

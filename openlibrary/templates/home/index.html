@@ -11,7 +11,8 @@ $var title: $_("Welcome to Open Library")
 </div>
 
 <div class="page-banner page-banner-home sansserief">
-  Help us improve Open Library — <a class="button" href="https://goo.gl/forms/CLq6kZhVR3Pn7sBz2">Answer 10 short questions
+  New to the Open Library? — <a data-ol-link-track="header-learn-more" href="/help/faq/about">Learn how it works</a> or <a class="button" href="/account/create" data-ol-link-track="header-signup">Get your free library card</a>
+  $# Help us improve Open Library — <a class="button" href="https://goo.gl/forms/CLq6kZhVR3Pn7sBz2">Answer 10 short questions
 </div>
 
 <div id="contentBody"> 
@@ -27,25 +28,29 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/read")
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "Textbooks", options={})
+    $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "Success", title="Business Success", options={})
+    $:render_template("home/subject_carousel", "success", title="Business Success", options={}, delay=2000)
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "Science Fiction", options={})
+    $:render_template("home/subject_carousel", "science_fiction", title="Science Fiction", options={}, delay=2500)
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "Biographies", options={"published_in": "2000-2018", "sort": "edition_count"})
+    $:render_template("home/subject_carousel", "biographies", title="Biographies", options={"published_in": "2000-2018", "sort": "edition_count"}, delay=3000)
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "mystery_and_detective_stories", title="Mysteries", options={"published_in": "2000-2018", "sort": "edition_count"})
+    $:render_template("home/subject_carousel", "mystery_and_detective_stories", title="Mysteries", options={"published_in": "2000-2018", "sort": "edition_count"}, delay=3500)
     <div class="clearfix"></div>
 
-    $:render_template("home/subject_carousel", "Romance", options={"published_in": "2000-2018", "sort": "edition_count"})
+    $:render_template("home/subject_carousel", "popular_print_disabled_books", title="Print Disabled (Blind Accessible)", options={"sort": "new"}, delay=3500)
     <div class="clearfix"></div>
 
+    $:render_template("home/subject_carousel", "romance", title="Romance", options={"published_in": "2000-2018", "sort": "edition_count"}, delay=4000)
+    <div class="clearfix"></div>
 
+    $:render_template("home/subject_carousel", "Authors_Alliance", title="Author's Alliance", options={}, delay=3500, type="publishers")
+    <div class="clearfix"></div>
 
     $:render_template("home/waitlist", books=waitlisted_books)
     <div class="clearfix"></div>

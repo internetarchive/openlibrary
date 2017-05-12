@@ -14,15 +14,14 @@
 
 ;(function() {
 
-function Subject(data, options) {
+function Subject(data, options, callback) {
     options = options || {};
     var defaults = {
         pagesize: 12
     }
-
     this.settings = $.extend(defaults, options);
-
-    this.name = data.name.replace(' ', '-')
+    this.name = data.name.replace(/\s+/g, '').toLowerCase();
+    this.slug = data.name.replace(/\s+/g, '-').toLowerCase();
     this.filter = {};
     this.published_in = options.published_in ? options.published_in : undefined;
     this.has_fulltext = options.readable ? "true" : "false";
@@ -43,6 +42,7 @@ function urlencode(query) {
     return parts.join("&");
 }
 
+/* Should really use createElement() */
 function renderTag(tag, keyvals, child) {
     var html = '<' + tag + ' ';
     for (var key in keyvals) {
@@ -54,8 +54,7 @@ function renderTag(tag, keyvals, child) {
 	}
     }
     if (tag === 'img') {
-	html += '/>';
-	return html;
+	return html + '/>';
     }
     html += '>';
     if (child) {
@@ -108,7 +107,8 @@ $.extend(Subject.prototype, {
 	var titlestring = work.title + " by " + authors.join(', ') +
 	    ' (' + work.edition_count + ' ' + ed + ')';
 	var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
-	var bookread_url = work.public_scan ? ('//archive.org/stream/' + work.ia + '?ref=ol') :
+	var bookread_url = work.public_scan ?
+	    ('//archive.org/stream/' + work.ia + '?ref=ol') :
 	    '/borrow/ia/' + work.ia;
 	var html = renderTag('span', {
 	      'itemtype': 'https://schema.org/Book',
@@ -156,7 +156,8 @@ $.extend(Subject.prototype, {
 	    }
             $.extend(params, this.filter);
 
-            var url = this.key + ".json?" + urlencode(params);
+	    key = this.key.replace(/\s+/g, '_');
+            var url = key + ".json?" + urlencode(params);
             var t = this;
 
             $.getJSON(url, function(data) {
@@ -167,8 +168,10 @@ $.extend(Subject.prototype, {
     },
 
     _ajax: function(params, callback) {
-        params = $.extend({"limit": this.settings.pagesize, "offset": 0}, this.filter, params);
-        var url = this.key + ".json?" + urlencode(params);
+        params = $.extend({"limit": this.settings.pagesize, "offset": 0},
+			  this.filter, params);
+	key = this.key.replace(/\s+/g, '_');
+        var url = key + ".json?" + urlencode(params);
         $.getJSON(url, callback);
     },
 
@@ -212,6 +215,5 @@ $.extend(Subject.prototype, {
         this.init(this._data);
 		callback && callback();
     }
-});
-
+  });
 })();
