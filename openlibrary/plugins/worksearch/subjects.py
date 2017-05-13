@@ -12,7 +12,7 @@ import datetime
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
-from infogami.utils.view import render_template, safeint
+from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
 from openlibrary.utils import str_to_key, finddict
@@ -106,6 +106,8 @@ class subjects_json(delegate.page):
         i.offset = safeint(i.offset, 0)
 
         subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
+        if i.has_fulltext:
+            subject['ebook_count'] = subject['work_count']
         return json.dumps(subject)
 
     def normalize_key(self, key):

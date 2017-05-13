@@ -1,10 +1,10 @@
 $def with (id='categories_carousel', pixel='CarouselCategories')
 
 <div class="head">
-  <h2 class="inline"><a href="/subjects">Browse by Category</a></h2>
-  <p class="inline sansserif large collapse">
-    &nbsp; Browse books by popular categories or <a href="/subjects">explore other categories.</a>
-  </p>
+  <h2 class="home-h2">
+    <a href="/subjects">Browse by Category</a>
+  </h2>
+  <hr/>
 </div>
 
 <script type="text/javascript">
@@ -29,17 +29,17 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
         render: function(subject, key) {
             return '<li class="category-item">' +
                 '<a class="category-nostyle" ' +
-		'data-ol-link-track="$(pixel)" ' +
-		'href="/subjects/' + key +
-		'#sort=' + subject.sort + '&ebooks=true">' +
+                'data-ol-link-track="$(pixel)" ' +
+                'href="/subjects/' + key +
+                '#sort=' + subject.sort + '&ebooks=true">' +
                 '<div class="category-icon">' +
                 '<img class="category-img"' +
                 'src="/static/images/categories/' + key + '.svg"/>' +
-		'</div>' +
+                '</div>' +
                 '<p class="category-title">' + subject.name + '</p>' +
                 '<p class="category-count" name="' + key + '"></p>' +
                 '</a>' +
-		'</li>';
+                '</li>';
         }
     };
 

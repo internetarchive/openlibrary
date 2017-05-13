@@ -117,6 +117,68 @@ function aboutFeeds() {
     });
 };
 
+var create_subject_carousel;
+$().ready(function() {
+  create_subject_carousel = function(subject_name, type, options) {
+    var ITEMS_PER_PAGE = 6;
+    var apiurl = '/' + type + '/' + subject_name + '.json?has_fulltext=true';
+    options = options || {};
+    options.pagesize = ITEMS_PER_PAGE;
+    options.readable = true;
+    options.sort = options.sort || "";
+    if (options.published_id) {
+	url += '&published_in=' + options.published_in;
+    }
+    $.ajax({
+	dataType: "json",
+        url: apiurl,
+        type: "GET",
+        contentType: "text/html",
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Accept", "application/json");
+        },
+        success: function(data) {
+	    // TODO: Filter `data` by available
+	    var primed = false;
+	    var subject = new Subject(data, options);
+  	    function fetchPageOfBooks(carousel) {
+		primed = true;
+		if (!subject.coverCarousel) {
+		    subject.coverCarousel = carousel;
+		    subject.coverCarousel.size(subject.getPageCount());
+		}
+		var index = carousel.first;
+		subject.pos = (index - 1) * ITEMS_PER_PAGE;
+
+		if (window.set_hash) {
+		    var _p = (index == 1) ? null : index;
+		    set_hash({"page": _p});
+		}
+
+		if (carousel.has(index)) {
+		    return;
+		}
+
+		subject.loadPage(index-1, function(data) {
+		    var works = data.works;
+		    $.each(works, function(widx, work) {
+			carousel.add(index + widx, subject.renderWork(work));
+		    });
+		    updateBookAvailability("#carousel-" + subject_name + " li ");
+		});
+	    }
+	    $("#carousel-" + subject_name).jcarousel({
+		scroll: ITEMS_PER_PAGE,
+		itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
+	    });
+	    if (!primed) {
+		$("#carousel-" + subject_name).data('jcarousel').reload();
+	    }
+        }
+    });
+  };
+});
 
 // BUILD CAROUSEL
 function carouselSetup(loadCovers, loadLists) {
@@ -195,6 +257,7 @@ function Place(key) {
     this.covers = {};
     this.bookCount = 0;
 }
+
 
 /**
  * Gets the covers using AJAX call and calls the callback with covers as argument.

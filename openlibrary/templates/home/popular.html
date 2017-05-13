@@ -1,10 +1,10 @@
 $def with(books=None)
 
 <div class="head">
-  <h2 class="inline"><a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a></h2>
-  <p class="inline sansserif large collapse">
-    &nbsp; Discover <a href="/people/openlibrary/lists/OL104411L/Popular">hundreds of books</a> you're bound to love. (Or see what others are <a href="/lists">favoriting</a>.)
-  </p>
+  <h2 class="home-h2">
+    <a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a>
+  </h2>
+  <hr/>
 </div>
 
 $:render_template('books/carousel_shell', books or [], id='popular_carousel', pixel='CarouselPopular')
