@@ -310,9 +310,10 @@ header .account-component .down-arrow {
 
 .logo-component .logo-icon {
     margin-right: 5px;
-    height: 25px;
+    height: 44px;
+    /* height: 25px; */
     padding-right: 5px;
-    border-right: 1px solid #babbad;
+    /* border-right: 1px solid #babbad; */
     align-self: center;
 }
 
@@ -4390,6 +4391,7 @@ span.actions a span.checked-out {
 }
 
 .page-banner {
+    color: #fff;
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background: #95A865;
     padding: 15px;
