@@ -5,6 +5,7 @@ import time
 import datetime
 import hmac
 import random
+import string
 import simplejson
 import uuid
 import urllib
@@ -198,6 +199,11 @@ class Account(web.storage):
             self['last_login'] = datetime.datetime.utcnow().isoformat()
             self._save()
             return "ok"
+
+    @classmethod
+    def generate_random_password(cls, n=12):
+        return ''.join(random.SystemRandom().choice(string.ascii_uppercase + string.digits) \
+                       for _ in range(n))
 
     def generate_login_code(self):
         """Returns a string that can be set as login cookie to log in as this user.
@@ -484,6 +490,9 @@ class InternetArchiveAccount(web.storage):
 
         if cls.get(email=email):
             raise ValueError('email_registered')
+
+        if not screenname:
+            raise ValueError('screenname required')
 
         _screenname = screenname
         attempt = 0

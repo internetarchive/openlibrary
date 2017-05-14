@@ -110,7 +110,7 @@ class OLSession(object):
     def unlink(self, email):
         import requests
         email = email.replace('+', '%2b')
-        r = requests.get(self.url('/internal/account/unlink?key=%s&email=%s'
+        r = requests.get(self.url('/internal/account/audit?key=%s&email=%s&unlink=true'
                % (self.config['internal_tests_api_key'], email)))
 
     def wait_for_clickable(self, css_id, by=By.ID):
