@@ -115,11 +115,10 @@ $.extend(Subject.prototype, {
               'itemtype': 'https://schema.org/Book',
               'itemscope': ''},
             renderTag('div', {'class': 'SRPCover'},
-              //renderTag('div', {'class': 'coverEbook'},
-                renderTag('a', {'href': work.key, 'title': titlestring,
-                                'data-ol-link-track': 'subject-' + this.slug},
-                  renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
-                                    'alt': titlestring, 'class': 'cover'}))) +
+              renderTag('a', {'href': work.key, 'title': titlestring,
+                              'data-ol-link-track': 'subject-' + this.slug},
+                renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
+                                  'alt': titlestring, 'class': 'cover'}))) +
             renderTag('div', {'class': 'coverEbook'},
               (format === 'public' ?
                renderTag('a', {'href': bookread_url, "title": "Read online"},

@@ -10,6 +10,10 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
 <script type="text/javascript">
   \$(function() {
 
+    function addCommasToNumber(n) {
+      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
     var Subject = {
         get_featured: function (callback) {
             var url = '/home/subjects';
@@ -70,9 +74,8 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
             Subject.get_featured(function(results) {
                 for (var subject_key in results) {
                     var subject = results[subject_key];
-                    console.log(subject);
-                    var cnt = (subject.work_count || 0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                    \$('[name="' + subject_key + '"]').text(cnt + ' books');
+                    var count = addCommasToNumber(subject.work_count || 0);
+                    \$('[name="' + subject_key + '"]').text(count + ' books');
                 }
             });
         }
