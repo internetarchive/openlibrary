@@ -106,7 +106,6 @@ $var title: $_("Welcome to Open Library")
         } else {
             getPopularEditionIds(start, limit, function(editions) {
                 if (editions.error) {
-                    console.log(editions.error);
                     return callback(available, waitlist);
                 }
                 var batch = editions.books;

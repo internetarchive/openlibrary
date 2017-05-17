@@ -127,10 +127,10 @@ $().ready(function() {
     options.readable = true;
     options.sort = options.sort || "";
     if (options.published_id) {
-	url += '&published_in=' + options.published_in;
+        url += '&published_in=' + options.published_in;
     }
     $.ajax({
-	dataType: "json",
+        dataType: "json",
         url: apiurl,
         type: "GET",
         contentType: "text/html",
@@ -139,42 +139,42 @@ $().ready(function() {
             xhr.setRequestHeader("Accept", "application/json");
         },
         success: function(data) {
-	    // TODO: Filter `data` by available
-	    var primed = false;
-	    var subject = new Subject(data, options);
-  	    function fetchPageOfBooks(carousel) {
-		primed = true;
-		if (!subject.coverCarousel) {
-		    subject.coverCarousel = carousel;
-		    subject.coverCarousel.size(subject.getPageCount());
-		}
-		var index = carousel.first;
-		subject.pos = (index - 1) * ITEMS_PER_PAGE;
+            // TODO: Filter `data` by available
+            var primed = false;
+            var subject = new Subject(data, options);
+            function fetchPageOfBooks(carousel) {
+                primed = true;
+                if (!subject.coverCarousel) {
+                    subject.coverCarousel = carousel;
+                    subject.coverCarousel.size(subject.getPageCount());
+                }
+                var index = carousel.first;
+                subject.pos = (index - 1) * ITEMS_PER_PAGE;
 
-		if (window.set_hash) {
-		    var _p = (index == 1) ? null : index;
-		    set_hash({"page": _p});
-		}
+                if (window.set_hash) {
+                    var _p = (index == 1) ? null : index;
+                    set_hash({"page": _p});
+                }
 
-		if (carousel.has(index)) {
-		    return;
-		}
+                if (carousel.has(index)) {
+                    return;
+                }
 
-		subject.loadPage(index-1, function(data) {
-		    var works = data.works;
-		    $.each(works, function(widx, work) {
-			carousel.add(index + widx, subject.renderWork(work));
-		    });
-		    updateBookAvailability("#carousel-" + subject_name + " li ");
-		});
-	    }
-	    $("#carousel-" + subject_name).jcarousel({
-		scroll: ITEMS_PER_PAGE,
-		itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
-	    });
-	    if (!primed) {
-		$("#carousel-" + subject_name).data('jcarousel').reload();
-	    }
+                subject.loadPage(index-1, function(data) {
+                    var works = data.works;
+                    $.each(works, function(widx, work) {
+                        carousel.add(index + widx, subject.renderWork(work));
+                    });
+                    updateBookAvailability("#carousel-" + subject_name + " li ");
+                });
+            }
+            $("#carousel-" + subject_name).jcarousel({
+                scroll: ITEMS_PER_PAGE,
+                itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
+            });
+            if (!primed) {
+                $("#carousel-" + subject_name).data('jcarousel').reload();
+            }
         }
     });
   };

@@ -45,19 +45,19 @@ function urlencode(query) {
 function renderTag(tag, keyvals, child) {
     var html = '<' + tag + ' ';
     for (var key in keyvals) {
-	var val =  keyvals[key];
-	if (val == '') {
-	    html += key + ' ';
-	} else {
-	    html += key + '="' + val + '" ';
-	}
+        var val =  keyvals[key];
+        if (val == '') {
+            html += key + ' ';
+        } else {
+            html += key + '="' + val + '" ';
+        }
     }
     if (tag === 'img') {
-	return html + '/>';
+        return html + '/>';
     }
     html += '>';
     if (child) {
-	html += child;
+        html += child;
     }
     html += '</' + tag + '>';
     return html;
@@ -98,36 +98,45 @@ $.extend(Subject.prototype, {
     },
 
     renderWork: function(work) {
-	var ia = work.lending_identifier;
-	var authors = [];
-	for (var author in work.authors)
-	    authors.push(work.authors[author].name);
-	var ed = 'edition' + (work.edition_count > 1 ? 's' : '');
-	var titlestring = work.title + " by " + authors.join(', ') +
-	    ' (' + work.edition_count + ' ' + ed + ')';
-	var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
-	var bookread_url = work.public_scan ?
-	    ('//archive.org/stream/' + work.ia + '?ref=ol') :
-	    '/borrow/ia/' + work.ia;
-	var html = renderTag('span', {
-	      'itemtype': 'https://schema.org/Book',
-	      'itemscope': ''},
-          renderTag('div', {'class': 'SRPCover'},
-            renderTag('div', {'class': 'coverEbook'},
+        var ia = work.lending_identifier;
+        var authors = [];
+        for (var author in work.authors)
+            authors.push(work.authors[author].name);
+        var ed = 'edition' + (work.edition_count > 1 ? 's' : '');
+        var titlestring = work.title + " by " + authors.join(', ') +
+            ' (' + work.edition_count + ' ' + ed + ')';
+        var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
+        var format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
+        var bookread_url = work.public_scan ?
+            ('//archive.org/stream/' + work.ia + '?ref=ol') :
+            '/borrow/ia/' + work.ia;
+        var html = renderTag('div', {'class': 'coverMagic'},
+          renderTag('span', {
+              'itemtype': 'https://schema.org/Book',
+              'itemscope': ''},
+            renderTag('div', {'class': 'SRPCover'},
               renderTag('a', {'href': work.key, 'title': titlestring,
-  				   'data-ol-link-track': 'subject-' + this.slug},
-  	      renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
-  				   'alt': titlestring, 'class': 'cover'})))) +
-          renderTag('div', {'class': 'coverEbook coverEbookSubject'},
-              renderTag('span', {'class': 'actions read'},
-                renderTag('a', {
-  		    'href': bookread_url,
-		    'title': 'Read this book',
-		    'class': 'borrow-link',
-		    'data-ocaid': work.ia,
-		    'data-key': work.key
-		}, renderTag('span', {'class': 'read-icon image borrow'})))));
-	return html;
+                              'data-ol-link-track': 'subject-' + this.slug},
+                renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
+                                  'alt': titlestring, 'class': 'cover'}))) +
+            renderTag('div', {'class': 'coverEbook'},
+              (format === 'public' ?
+               renderTag('a', {'href': bookread_url, "title": "Read online"},
+                 renderTag('img', {'src': '/images/icons/icon_ebook-avail.png', 'border': "0",
+                                   'width': "32", 'height': "33", 'alt': "Read online"})) :
+               format === 'daisy' ?
+               renderTag('a', {'href': work.key, "title": "Download a protected DAISY"},
+                 renderTag('img', {'src': '/images/icons/icon_pdaisy-avail.png', 'border': "0",
+                                   'width': "32", 'height': "33", 'alt': "Download a protected DAISY"})) :
+               renderTag('span', {'class': 'actions read'},
+                 renderTag('a', {
+                    'href': bookread_url,
+                    'title': 'Read this book',
+                    'class': 'borrow-link',
+                    'data-ocaid': work.ia,
+                    'data-key': work.key
+                }, renderTag('span', {'class': 'read-icon image borrow'})))))));
+        return html;
     },
 
     loadPage: function(pagenum, callback) {
@@ -150,12 +159,12 @@ $.extend(Subject.prototype, {
                 "has_fulltext": this.has_fulltext,
                 "sort": this.sort
             }
-	    if(this.published_in) {
-		params.published_in = this.published_in;
-	    }
+            if(this.published_in) {
+                params.published_in = this.published_in;
+            }
             $.extend(params, this.filter);
 
-	    key = this.key.replace(/\s+/g, '_');
+            key = this.key.replace(/\s+/g, '_');
             var url = key + ".json?" + urlencode(params);
             var t = this;
 
@@ -168,8 +177,8 @@ $.extend(Subject.prototype, {
 
     _ajax: function(params, callback) {
         params = $.extend({"limit": this.settings.pagesize, "offset": 0},
-			  this.filter, params);
-	key = this.key.replace(/\s+/g, '_');
+                          this.filter, params);
+        key = this.key.replace(/\s+/g, '_');
         var url = key + ".json?" + urlencode(params);
         $.getJSON(url, callback);
     },
@@ -212,7 +221,7 @@ $.extend(Subject.prototype, {
     reset: function(callback) {
         this.filter = {};
         this.init(this._data);
-		callback && callback();
+                callback && callback();
     }
   });
 })();
