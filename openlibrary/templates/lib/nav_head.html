@@ -20,7 +20,7 @@ $def with (page)
 
   <div class="search-component">
     <div class="search-bar">
-      <a class="search-bar-submit"></a>
+      <a class="search-bar-submit" href="/search"></a>
       <form class="search-bar-input" action="/search" method="get">
 	<input type="text" name="q" placeholder="Search" autocomplete="off">
       </form>
@@ -55,10 +55,11 @@ $def with (page)
   </ul>
 
   $if not ctx.user:
-    <div class="auth-component">
-      <li class="hide-me"><a class="generic-button" href="/account/login" class="white">$_("Log in")</a></li>
-      <li><a class="generic-button gb-primary" href="/account/create">$_("Sign Up")</a></li>
-    </div>
+    <ul class="auth-component">
+      <li class="hide-me"><a class="generic-button generic-button-secondary"
+			     href="/account/login" class="white">$_("Log In")</a></li>
+      <li><a class="generic-button generic-button-primary" href="/account/create">$_("Sign Up")</a></li>
+    </ul>
 
   $if ctx.user:
     <div class="account-component">
