@@ -186,7 +186,7 @@ p.info {background-image:url("/images/icons/icon_info.png");}
 
 header {    
     max-width: 960px;
-    min-width: 310px;
+    min-width: 300px;
     margin: 0px auto;
     flex-direction: column;
     /*font-family: 'Poppins', sans-serif;*/
@@ -197,88 +197,8 @@ header {
     align-items: center;
 }
 
-header .menu-component {
-    order: 0;
-    margin-right: 5px;
-}
-
-header .menu-component img {
-    width: 44px;
-    height: 44px;
-    padding: 0px 3px;
-}
-
-header .logo-component {
-    min-width: 135px;
-    order: 1;
-}
-
-header .navigation-component {
-    font-family: 'Poppins', sans-serif;
-    display: flex;
-    flex-basis: 100%;
-    order: 5;
-}
-
-header .navigation-component li {
-	flex-basis: 100%;
-}
-
-header .search-component {
-    flex: 1;
-    margin-top: 4px;
-    order: 4;
-}
-
-header .auth-component {
-    padding: 5px;
-    padding-right: 0px;
-    order: 6;
-}
-
-header .auth-component li {
-    text-align: left;
-    display: inline-flex;
-}
-
-header .search-component .search-bar-input input[type=text] {
-    max-width: 100%;
-}
-
-header .auth-component li a {
-    color: #333;
-}
-
-header .account-component {
-    padding-left: 5px;
-    font-size: 1em;
-    order: 3;
-}
-
 #main-account-dropdown {
     display: none;
-}
-
-header ul.navigation-component li {
-    padding: 15px;
-    font-size: 1em;
-}
-
-header ul.navigation-component li a {
-    color: #fff !important;
-    text-decoration: none;
-    display: block;
-}
-
-header ul.navigation-component li a:visited {
-    color: #333 !important;
-    text-decoration: none;
-}
-
-header .account-component a {
-    color: #fff !important;
-    text-decoration: none;
-    display: block;
 }
 
 .menu-component {
@@ -294,10 +214,6 @@ header .account-component a {
     top: -2px;
 }
 
-header .account-component .down-arrow {
-    margin-top: 1px;
-}
-
 .logo-component {
     margin: 5px 0px;
 }
@@ -306,19 +222,6 @@ header .account-component .down-arrow {
     display: flex;
     color: #000;
     text-decoration: none !important;
-}
-
-.logo-component .logo-icon {
-    margin-right: 5px;
-    height: 44px;
-    /* height: 25px; */
-    padding-right: 5px;
-    /* border-right: 1px solid #babbad; */
-    align-self: center;
-}
-
-header .logo-component .logo-icon {
-    display: none;
 }
 
 .logo-component .logo-org {
@@ -332,43 +235,19 @@ header .logo-component .logo-icon {
     line-height: 0px;
 }
 
-.logo-component .logo-txt {
-    padding-top: 3px;
-}
-
-.logo-component .logo-txt h1 {
-    font-size: 1.4em;
-    font-family: 'Poppins', sans-serif;
-    font-weight: 300;
-    color: #333;
-    padding: 0px;
-    margin: 0px;
-}
-
-.logo-component .logo-bold {
-    font-weight: 700;
-    color: #036DAA;
-}
-
-.search-component {
-    min-width: 150px;
-}
-
 .search-component .search-bar {
     max-width: none;
     min-width: none;
-    margin: 0 auto;
-    float: none;
     transition: all 0.5s;
     border: 1px solid #babbad;
     background: #fafafa;
-    border-radius: .3em;
+    border-radius:.3em;
     flex: 1;
     display: flex;
 }
 
 .search-component .search-bar-submit {
-    background: url(/static/images/search-lens.png) right no-repeat;
+    background: url(/static/images/search-lens.png) center no-repeat;
     width: 45px;
     height: 45px;
     border-top-left-radius: .3em;
@@ -380,6 +259,7 @@ header .logo-component .logo-icon {
     width: 100%;
     display: flex;
     margin: 3px;
+    display: none;
 }
 
 .search-component .search-bar-input input[type=text] {
@@ -400,12 +280,13 @@ header .logo-component .logo-icon {
 
 
 .search-component .search-bar-advanced-btn {
-    margin-top: 13px;
+    margin-top: 10px;
     border: 0 none;
     width: 40px;
     padding: 0;
     text-align: center;
     cursor: pointer;
+    display: none;
 }
 
 .search-component .search-results {
@@ -420,7 +301,6 @@ header .logo-component .logo-icon {
 .account-component .dropdown-avatar {
     display: flex;
     align-items: center;
-    margin-top: 3px;
 }
 
 .account-component .dropdown-avatar .avatar {
@@ -431,6 +311,115 @@ header .logo-component .logo-icon {
     height: 45px;
     background-color: #AAA;
     border-radius: 3px;
+}
+
+header .menu-component {
+    order: 0;
+    margin-right: 5px;
+}
+
+header .menu-component img {
+    width: 44px;
+    height: 44px;
+    padding: 0px 3px;
+}
+
+header .logo-component {
+    flex: 1;
+    order: 1;
+}
+
+header .logo-component a {
+    display: inline-block;
+    text-align: center;
+}
+
+header .logo-component .logo-icon {
+    position: relative;
+    top: -1px;
+    height: 30px;
+    margin-right: 5px;
+    padding-right: 5px;
+    align-self: center;
+}
+
+header .navigation-component {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    flex-basis: 100%;
+    order: 5;
+}
+
+header .navigation-component li {
+	flex-basis: 100%;
+}
+
+header .search-component {
+    width: 45px;
+    order: 2;
+    margin-right: 5px;
+}
+
+header .search-component .search-bar {
+    width: 45px;
+}
+
+header .search-component .search-bar-input input[type=text] {
+    max-width: 100%;
+}
+
+
+header .auth-component {
+    display: none;
+    padding: 5px;
+    padding-right: 0px;
+    order: 4;
+}
+
+header .auth-component .hide-me {
+    display: none;
+}
+
+header .auth-component li {
+    text-align: left;
+    display: inline-flex;
+}
+
+header .auth-component li a {
+    color: #333;
+}
+
+header .account-component {
+    flex: none;
+    padding-left: 5px;
+    font-size: 1em;
+    order: 3;
+}
+
+header ul.navigation-component li {
+    padding: 5px 0px;
+    font-size: 1em;
+}
+
+header ul.navigation-component li a {
+    color: #333;
+    text-decoration: none;
+    display: block;
+}
+
+header ul.navigation-component li a:visited {
+    color: #333 !important;
+    text-decoration: none;
+}
+
+header .account-component a {
+    color: #fff;
+    text-decoration: none;
+    display: block;
+}
+
+header .account-component .down-arrow {
+    margin-top: 1px;
 }
 
 header .account-component .account-dropdown {
@@ -447,7 +436,7 @@ header .account-component .account-dropdown {
 }
 
 header .account-component .account-dropdown ul li {
-    padding: 5px;
+    padding: 10px;
 }
 
 header .account-component .account-dropdown ul li:hover {
@@ -462,115 +451,122 @@ header .account-component .account-dropdown ul a li{
     padding: 5px;
 }
 
-@media only screen and (max-width: 540px) {
-    #topNotice {
-	display: none
+/* GLOBAL TOP NOTICE */
+#topNotice {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 100;
+    font-size: .9em;
+    margin-bottom: 5px;
+    display: none;
+}
+#topNotice .topNotice-container {
+    margin: 0 auto;
+    width: 958px;
+}
+#topNotice .topNotice-left {
+    float: left;
+    display: table;
+}
+#topNotice .topNotice-left a {
+    display: table-cell;
+    vertical-align: middle;
+    height: 30px;
+    padding-right: 8px;
+    text-decoration: none;
+    color: white;
+}
+#topNotice .topNotice-left a:hover {
+    color: white;
+}
+#topNotice .topNotice-logo {
+    font-size: 24px;
+}
+
+@media only screen and (min-width: 400px) {
+    header .logo-component .logo-icon {
+	top: -3px;
+	height: 47px;
     }
 }
 
-@media only screen and (max-width: 450px) {
-    #topNotice {
-	display: none
-    }
-    header .navigation-component li.nav-item-selected {
-	border-bottom: 2px solid #e44028;
-    }
-    header .logo-component {
-	flex: 1;
-    }
-    header .account-component {
-	flex: none;
-    }
-    header .search-component {
-	flex: none;
-	order: 2;
-	min-width: 10px;
-    }
-    header .search-component .search-bar-input {
-	display: none;
-    }
-    header .search-component .search-bar-advanced-btn {
-	display: none;
-    }
-    header .search-component .search-bar {
-	width: 45px;
-    }
-    header .search-component .search-bar-submit {
-	width: 31px;
-	height: 45px;
-    }
-    header .auth-component {
-	order: 4;
-    }
-}
-
-@media only screen and  (min-width: 450px) {
-    header .navigation-component li.nav-item-selected {
-	border-bottom: 2px solid #e44028;
-    }
-    header .search-component {
-	order: 2;
-	margin-left: 15px;
-	margin-right: 10px;
-    }
-    header .search-component .search-bar-input {
-	display: flex;
-    }
-    header .search-component .search-bar-advanced-btn {
-	display: block;
-    }
-    header .account-component {
-	flex: none;
-    }
-    header .auth-component {
-	order: 4;
-    }
-}
-
-@media only screen and (min-width: 532px) {
+@media only screen and (min-width: 480px) {
     header {
 	margin: 0 auto;
     }
     header .logo-component {
+	flex: 1;
 	border-right: none;
-	flex: none;
 	padding: 0px 5px;
     }
+
+    header .navigation-component li.nav-item-selected {
+	border-bottom: 2px solid #e44028;
+    }
     header .search-component {
-	order: 2;
+	margin-right: 0px;
+    }
+    header .account-component {
+	flex: none;
+    }
+    header .auth-component {
+	margin-right: 5px;
+	display: block;
+    }
+}
+
+@media only screen and (min-width: 568px) {
+    #topNotice {
+	display: block;
+    }
+    header .logo-component {
+	flex: none;
+    }
+    header .search-component {
 	flex: 1;
     }
     header .search-component .search-bar {
-	max-width: 320px;
 	float: right;
+	width: auto;
+	max-width: 250px;
+    }
+    header .search-component .search-bar .search-bar-input {
+	display: flex;
+    }
+    header .search-component .search-bar-advanced-btn {
+	float: right;
+	display: block;
     }
     header .account-component {
 	flex: none;
 	order: 3;
     }
-    header .auth-component {
-	order: 4;
-    }
     header .navigation-component {
 	display: flex;
 	order: 6;
     }
-}
-
-@media only screen and (max-width: 620px) {
     header .search-bar-input input {
 	width: 100%;
     }
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (min-width: 768px) {
     header .auth-component .hide-me {
-	display: none;
+	display: inline;
+    }
+    header .search-component .search-bar {
+	min-width: 320px;
+	float: right;
+    }
+    header .search-component {
+	order: 3;
     }
 }
 
 /* Full screen mode */
 @media only screen and (min-width: 960px) {
+    #topNotice {
+	display: block;
+    }
     header {
 	margin: 20px auto;
 	flex-direction: row;
@@ -588,13 +584,6 @@ header .account-component .account-dropdown ul a li{
     header .navigation-component li.nav-item-selected {
 	border: none;
     }
-    header .search-component {
-	order: 3;
-    }
-    header .search-component .search-bar {
-	min-width: 320px;
-	float: right;
-    }
     header .navigation-component {
 	order: 2;
 	min-width: 250px;
@@ -603,6 +592,9 @@ header .account-component .account-dropdown ul a li{
     header .account-component {
 	flex: none;
 	order: 4;
+    }
+    header .auth-component {
+	order: 6;
     }
     .desktop-only {
 	display: inherit;
@@ -1663,9 +1655,11 @@ a.generic-button {
     text-decoration: none;
     padding: 13px 10px;
 }
+a.generic-button-secondary {
+    text-decoration: underline;
+}
 
-a.gb-primary {
-    margin-top: 3px;
+a.generic-button-primary {
     text-decoration: none;
     background: #e44028;
     color: #fff !important;
@@ -4046,35 +4040,6 @@ div.mergeThis {
 #mergeHead {background-color: #f5f5f5;padding:15px;}
 #mergeHead #recordMaster {margin-bottom:15px;}
 
-/* GLOBAL TOP NOTICE */
-#topNotice {
-    font-family: 'Poppins', sans-serif;
-    font-weight: 100;
-    font-size: .9em;
-    margin-bottom: 5px;
-}
-#topNotice .topNotice-container {
-    margin: 0 auto;
-    width: 958px;
-}
-#topNotice .topNotice-left {
-    float: left;
-    display: table;
-}
-#topNotice .topNotice-left a {
-    display: table-cell;
-    vertical-align: middle;
-    height: 30px;
-    padding-right: 8px;
-    text-decoration: none;
-    color: white;
-}
-#topNotice .topNotice-left a:hover {
-    color: white;
-}
-#topNotice .topNotice-logo {
-    font-size: 24px;
-}
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
 body#plain,body#plain div#content {background-color: #e2dcc5;}
