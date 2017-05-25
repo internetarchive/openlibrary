@@ -113,14 +113,22 @@ $(function(){
 
 	getAvailability(ocaids, function(response) {
             for (var book_ocaid in response) {
-		if (response[book_ocaid].status === "available") {
+		if (response[book_ocaid].status === "not_lendable") {
+		    $(selector + "[data-key=" + book_ocaid  + "] span.read-icon")
+			.removeClass("borrow");
+		    $(selector + "[data-key=" + book_ocaid  + "] span.read-icon")
+			.addClass("daisy");
+		    $(selector + "[data-key=" + book_ocaid  + "] span.read-label")
+			.html("Daisy");
+		    delete books[book_ocaid];	    
+		} else if (response[book_ocaid].status === "available") {
                     // check all the books on this page
                     for (var book_key in books) {
 			var book_ocaids = books[book_key];
 			// check if available book_ocaid is in
 			// this book_key's book_ocaids
 			if (book_ocaids.indexOf(book_ocaid) > -1) {
-                            // update icon, ocaid, and , url (to ia:)
+                            // update icon, ocaid, and url (to ia:)
 			    // should limit scope to `selector` ! XXX
                             $(selector + "[data-key=" + book_key  + "]")
 				.attr("href", "/borrow/ia/" + book_ocaid);
