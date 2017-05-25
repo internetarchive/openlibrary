@@ -117,12 +117,16 @@ $(function(){
                     for (var book_key in books) {
 			var book_ocaids = books[book_key];
 			if (book_ocaids.indexOf(book_ocaid) > -1) {
+			    $(selector + "[data-key=" + book_key  + "]")
+				.removeClass("borrow-link");
 			    $(selector + "[data-key=" + book_key  + "] span.read-icon")
 				.removeClass("borrow");
 			    $(selector + "[data-key=" + book_key  + "] span.read-icon")
 				.addClass("daisy");
 			    $(selector + "[data-key=" + book_key  + "] span.read-label")
 				.html("Daisy");
+                            $(selector + "[data-key=" + book_key  + "]")
+				.attr("href", book_key);
 			    delete books[book_key];
 			}
 		    }
