@@ -15,7 +15,7 @@ import lepl.apps.rfc3696
 import web
 
 from infogami import config
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats
@@ -837,3 +837,8 @@ def link_accounts(email, password, bridgeEmail="", bridgePassword="",
             return {'error': _resp}
         return {'error': 'account_not_found'}
     return {'error': 'missing_fields'}
+
+@public
+def get_internet_archive_id(key):
+    username = key.split('/')[-1]
+    return OpenLibraryAccount.get(username=username).internetarchive_itemname
