@@ -44,18 +44,22 @@ $def with (page)
   </div>
 
   <ul class="navigation-component">
-    <li class="nav-item-selected browse-menu">
+    <li class="browse-menu">
       <a>Browse <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
-      <ul class="dropdown browse">
-	<li><a href="/subjects">Subjects</a></li>
-      </ul>
+      <div class="navigation-dropdown-component">
+	<ul class="dropdown browse">
+	  <li><a href="/subjects">Subjects</a></li>
+	</ul>
+      </div>
     </li>
     <li class="my-books-menu">
       <a>My Books <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
-      <ul class="dropdown my-books">
-	<li><a href="/account/loans">My Loans</a></li>
-	<li><a href="/account/lists">My Lists</a></li>
-      </ul>
+      <div class="navigation-dropdown-component">
+	<ul class="dropdown my-books">
+	  <li><a href="/account/loans">My Loans</a></li>
+	  <li><a href="/account/lists">My Lists</a></li>
+	</ul>
+      </div>
     </li>
   </ul>
   
@@ -73,7 +77,7 @@ $def with (page)
         <div class="avatar" href="javascript:;" id="userToggle" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></div>
         <img class="down-arrow" src="/static/images/down-arrow.png"/>
       </div>
-      <div class="account-dropdown" id="main-account-dropdown">
+      <div class="account-dropdown dropdown" id="main-account-dropdown">
         <ul>
           <li><a href="$homepath()/account/loans">$_("My Books")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
