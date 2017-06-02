@@ -527,26 +527,40 @@ header ul.navigation-component li a:visited {
     text-decoration: none;
 }
 
+header ul.navigation-component li .navigation-dropdown-component {
+    position: relative;
+}
+
+header .dropdown {
+    font-family: 'Poppins', sans-serif;
+    background-color: #fcfcfc;
+    border: 1px solid #babbad;
+    border-radius: 3px;
+}
+
+
+header .dropdown li a {
+    color: #333;
+}
+
+header .dropdown li:hover {
+    background-color: #fff;
+}
+
 header ul.navigation-component li ul.dropdown {
     position: absolute;
-    font-family: 'Poppins', sans-serif;
     z-index: 999;
-    background-color: #333;
-    text-align: right;
-    border-radius: 3px;
-    width: 125px;
+    text-align: left;
+    width: 100%;
+    top: 8px;
 }
 
 header ul.navigation-component li ul.dropdown li {
     padding: 10px;
 }
 
-header ul.navigation-component li ul.dropdown li:hover {
-    background-color: #464646;
-}
-
 header ul.navigation-component li ul.dropdown li a {
-    color: #fff;
+    color: #444;
 }
 
 
@@ -570,12 +584,8 @@ header .account-component .down-arrow {
 
 header .account-component .account-dropdown {
     position: absolute;
-    font-family: 'Poppins', sans-serif;
     z-index: 999;
-    background-color: #333;
     text-align: right;
-    border-radius: 3px;
-    color: #fff;
     width: 125px;
     margin-top: 5px;
     right: 11px;
@@ -585,14 +595,10 @@ header .account-component .account-dropdown ul li {
     padding: 10px;
 }
 
-header .account-component .account-dropdown ul li:hover {
-    background-color: #464646;
-}
 
 header .account-component .account-dropdown ul a li{
     width: 150px;
     text-decoration: none;
-    color: #fff;
     text-align: left;
     padding: 5px;
 }
@@ -633,6 +639,12 @@ header .account-component .account-dropdown ul a li{
         top: -3px;
         height: 47px;
     }
+
+    header .navigation-component .dropdown {
+	border-top: none;
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
+    }
 }
 
 @media only screen and (min-width: 30em) {
@@ -644,9 +656,10 @@ header .account-component .account-dropdown ul a li{
         border-right: none;
         padding: 0px 5px;
     }
-
-    header .navigation-component li.nav-item-selected {
-        border-bottom: 2px solid #e44028;
+    header .navigation-component .dropdown {
+	border-top: none;
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
     }
     header .search-component {
         margin-right: 0px;
@@ -695,6 +708,9 @@ header .account-component .account-dropdown ul a li{
     header .search-component .search-facet {
         display: block;
     }
+    header .search-bar-input input {
+        width: 100%;
+    }
     header .account-component {
         flex: none;
         order: 3;
@@ -703,8 +719,10 @@ header .account-component .account-dropdown ul a li{
         display: flex;
         order: 6;
     }
-    header .search-bar-input input {
-        width: 100%;
+    header .navigation-component .dropdown {
+	border-top: none;
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
     }
 }
 
@@ -724,6 +742,11 @@ header .account-component .account-dropdown ul a li{
     }
     header .search-component {
         order: 3;
+    }
+    header .navigation-component .dropdown {
+	border-top: none;
+	border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
     }
 }
 
@@ -746,14 +769,16 @@ header .account-component .account-dropdown ul a li{
     header .logo-component .logo-icon {
         display: inherit;
     }
-    header .navigation-component li.nav-item-selected {
-        border: none;
-    }
     header .navigation-component {
         order: 2;
         min-width: 250px;
         flex: none;
     }
+    header .navigation-component .dropdown {
+	border-radius: 3px;
+	border: 1px solid #babbad;
+    }
+
     header .account-component {
         flex: none;
         order: 4;
