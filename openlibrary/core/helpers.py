@@ -168,6 +168,8 @@ def commify(number, lang=None):
 
 def truncate(text, limit):
     """Truncate text and add ellipses if it longer than specified limit."""
+    if not text:
+        return ''
     if len(text) <= limit:
         return text
     return text[:limit] + "..."

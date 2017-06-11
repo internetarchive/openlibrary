@@ -20,8 +20,8 @@ $else:
         <a href="$book.url" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') title="$long_title">
             <div class="SRPCoverBlank" style="display:block;">
                 <div class="innerBorder">
-                    <div itemprop="name" class="BookTitle">$truncate(book.title, 40)
-                        <div class="Author">$truncate(authors, 40)</div>
+                    <div itemprop="name" class="BookTitle">$truncate(book.title or '', 40)
+                        <div class="Author">$truncate(authors or '', 40)</div>
                     </div>
                 </div>
             </div>
