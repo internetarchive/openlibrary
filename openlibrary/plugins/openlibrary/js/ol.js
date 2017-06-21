@@ -375,9 +375,55 @@ $().ready(function(){
 	};
     };
 
-    /* Search bar expansion */
-    if (document.documentElement.clientWidth < 568) {
-	// scripts
+    $('.trigger').live('submit', function(e) {
+        e.preventDefault(e);
+	toggleSearchbar();
+    });
+
+
+    var enteredSearchMinimized = false;
+    var searchExpansionActivated = false;
+    if ($(window).width() < 568) {
+	if (!enteredSearchMinimized) {		
+	    $('.search-bar-input').addClass('trigger')
+	}
+	enteredSearchMinimized = true;
+    }
+    $(window).resize(function(){
+	if($(this).width() < 568){
+	    if (!enteredSearchMinimized) {		
+		$('.search-bar-input').addClass('trigger')
+	    }
+	    enteredSearchMinimized = true;
+	} else {
+	    if (enteredSearchMinimized) {
+		$('.search-bar-input').removeClass('trigger');
+	    }
+	    enteredSearchMinimized = false;
+	}
+    });
+
+    // testing code to activate searchbarExpansion
+    $(document).keyup(function(e) {
+	var code = e.keyCode || e.which;
+	if (code === 56) {
+	    toggleSearchbar();
+	}
+    });
+
+    var toggleSearchbar = function() {
+	searchExpansionActivated = !searchExpansionActivated;
+	if (searchExpansionActivated) {
+	    $('header .logo-component').addClass('hidden');
+	    $('header .search-component').addClass('search-component-expand');
+	    $('.search-bar-input').removeClass('trigger')
+	    console.log('searchExpansionActivated');
+	} else {
+	    console.log('toggle off');
+	    $('header .logo-component').removeClass('hidden');
+	    $('header .search-component').removeClass('search-component-expand');
+	    $('.search-bar-input').addClass('trigger')
+	}
     }
 
     $('header .search-facet-selector select').change(function() {
