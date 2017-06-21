@@ -673,6 +673,47 @@ header .account-component .account-dropdown ul a li{
     }
 }
 
+header .search-component-expand {
+    flex: 1;
+    margin-top: 7px;
+    align-self: center;
+    height: 54px;
+}
+header .search-component-expand .search-bar-component {
+    width: 100%;
+}
+header .search-component-expand .search-bar {
+    width: auto;
+}
+
+header .search-component-expand .search-bar-input input[type=text] {
+    display: block;
+    width: 100%;
+}
+header .search-component-expand .search-bar-submit {
+    margin-right: 5px;
+}
+
+header .search-component-expand .search-facet {
+    display: block;
+}
+
+header .search-component-expand .search-facet-selector {
+    display: block;
+}
+header .search-component-expand .search-bar .search-bar-input {
+    display: flex;
+}
+header .search-component .expand .search-bar-advanced-btn {
+    display: block;
+}
+header .search-component .expand .search-facet {
+    display: block;
+}
+header .expand .search-bar-input input {
+    width: 100%;
+}
+
 @media only screen and (min-width: 35.5em) {
     #topNotice {
         display: block;
@@ -690,10 +731,10 @@ header .account-component .account-dropdown ul a li{
         width: auto;
         max-width: 205px;
     }
-    .search-component .search-bar-input input[type=text] {
+    header .search-component .search-bar-input input[type=text] {
         display: block;
     }
-    .search-component .search-bar-submit {
+    header .search-component .search-bar-submit {
         margin-right: 5px;
     }
     header .search-component .search-facet-selector {
