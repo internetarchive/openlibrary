@@ -364,12 +364,24 @@ header .search-component .search-dropdown ul.search-results li a .book-desc .boo
     border-radius: 3px;
 }
 
-header .menu-component {
+header .hamburger-component {
     order: 0;
     margin-right: 5px;
 }
 
-header .menu-component img {
+header .hamburger-dropdown-component {
+    position: absolute;
+    display: none;
+    z-index: 999;
+}
+
+header .hamburger-component button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+header .hamburger-component img {
     width: 44px;
     height: 44px;
     padding: 0px 3px;
@@ -531,44 +543,66 @@ header ul.navigation-component li .navigation-dropdown-component {
     position: relative;
 }
 
-header .dropdown {
+header .dropdown-menu {
+    text-align: left;
     font-family: 'Poppins', sans-serif;
-    background-color: #fcfcfc;
+    background-color: #f3f1e9;
     border: 1px solid #babbad;
     border-radius: 3px;
 }
 
+header .dropdown-menu li {
+    padding: 10px;
+    border-bottom: 1px solid #dfe0ca;
+    padding-right: 20px;
+}
 
-header .dropdown li a {
+header .dropdown-menu li:last-child {
+    border: none;
+}
+
+header .dropdown-menu li a {
+    text-decoration: none;
     color: #333;
 }
 
-header .dropdown li:hover {
+header .dropdown-menu li:hover {
     background-color: #fff;
 }
 
-header ul.navigation-component li ul.dropdown {
+header ul.navigation-component li ul.dropdown-menu {
     position: absolute;
     z-index: 999;
     text-align: left;
     width: 100%;
-    top: 8px;
+    top: 6px;
 }
 
-header ul.navigation-component li ul.dropdown li {
+header ul.navigation-component li ul.dropdown-menu li {
     padding: 10px;
 }
 
-header ul.navigation-component li ul.dropdown li a {
+header ul.dropdown-menu li a {
+    font-size: .9em;
+}
+
+header ul.navigation-component li ul.dropdown-menu li a {
     color: #444;
 }
 
-
-header ul.navigation-component li ul.browse {
+header ul.navigation-component .more-menu {
     display: none;
 }
 
-header ul.navigation-component li ul.my-books {
+header ul.navigation-component li ul.browse-menu-options {
+    display: none;
+}
+
+header ul.navigation-component li ul.my-books-menu-options {
+    display: none;
+}
+
+header ul.navigation-component li ul.more-menu-options {
     display: none;
 }
 
@@ -590,11 +624,6 @@ header .account-component .account-dropdown {
     margin-top: 5px;
     right: 11px;
 }
-
-header .account-component .account-dropdown ul li {
-    padding: 10px;
-}
-
 
 header .account-component .account-dropdown ul a li{
     width: 150px;
@@ -636,11 +665,10 @@ header .account-component .account-dropdown ul a li{
 
 @media only screen and (min-width: 25em) {
     header .logo-component .logo-icon {
-        top: -3px;
         height: 47px;
     }
 
-    header .navigation-component .dropdown {
+    header .navigation-component .dropdown-menu {
 	border-top: none;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 0px;
@@ -656,7 +684,7 @@ header .account-component .account-dropdown ul a li{
         border-right: none;
         padding: 0px 5px;
     }
-    header .navigation-component .dropdown {
+    header .navigation-component .dropdown-menu {
 	border-top: none;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 0px;
@@ -675,7 +703,7 @@ header .account-component .account-dropdown ul a li{
 
 header .search-component-expand {
     flex: 1;
-    margin-top: 7px;
+    margin-top: 8px;
     align-self: center;
     height: 54px;
 }
@@ -715,9 +743,6 @@ header .expand .search-bar-input input {
 }
 
 @media only screen and (min-width: 35.5em) {
-    #topNotice {
-        display: block;
-    }
     header .logo-component {
         flex: none;
     }
@@ -760,7 +785,7 @@ header .expand .search-bar-input input {
         display: flex;
         order: 6;
     }
-    header .navigation-component .dropdown {
+    header .navigation-component .dropdown-menu {
 	border-top: none;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 0px;
@@ -768,6 +793,9 @@ header .expand .search-bar-input input {
 }
 
 @media only screen and (min-width: 48em) {
+    #topNotice {
+        display: block;
+    }
     header .auth-component .hide-me {
         display: inline;
     }
@@ -784,7 +812,7 @@ header .expand .search-bar-input input {
     header .search-component {
         order: 3;
     }
-    header .navigation-component .dropdown {
+    header .navigation-component .dropdown-menu {
 	border-top: none;
 	border-top-right-radius: 0px;
 	border-top-left-radius: 0px;
@@ -800,7 +828,7 @@ header .expand .search-bar-input input {
         margin: 20px auto;
         flex-direction: row;
     }
-    header .menu-component {
+    header .hamburger-component {
         display: none;
     }
     header .logo-component {
@@ -813,13 +841,18 @@ header .expand .search-bar-input input {
     header .navigation-component {
         order: 2;
         min-width: 250px;
-        flex: none;
+        flex: 1;
     }
-    header .navigation-component .dropdown {
+    header .navigation-component .dropdown-menu {
 	border-radius: 3px;
 	border: 1px solid #babbad;
     }
-
+    header .search-component .search-bar-component {
+        width: 100%;
+    }
+    header .search-component .search-bar {
+        max-width: 100%;
+    }
     header .account-component {
         flex: none;
         order: 4;
@@ -829,6 +862,13 @@ header .expand .search-bar-input input {
     }
     .desktop-only {
         display: inherit;
+    }
+    header ul.navigation-component .more-menu {
+	display: block;
+    }
+    header ul.navigation-component li ul.dropdown-menu {
+	width: auto;
+	white-space: nowrap;
     }
 }
 
@@ -1896,6 +1936,7 @@ a.generic-button-primary {
     color: #fff !important;
     padding: 13px 10px;
     border-radius: 3px;
+    border: 1px solid #bf3622;
 }
 
 .modal-form button {
@@ -4586,10 +4627,22 @@ span.actions a span.checked-out {
     background-repeat: no-repeat;
 }
 
+.iaBar {
+    display: flex;
+    max-width: 960px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+.iaBarMessage {
+    flex: 1;
+    text-align: right;
+}
+
 .page-banner {
     color: #fff;
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    background: #95A865;
+    background: #036DAA;
     padding: 15px;
 }
 .page-banner a {
@@ -4597,7 +4650,7 @@ span.actions a span.checked-out {
 }
 
 .page-banner-black {
-    background-color: #036DAA;
+    background-color: #333333;
     padding: 5px;
 }
 
