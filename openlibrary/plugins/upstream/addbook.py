@@ -148,7 +148,10 @@ class addbook(delegate.page):
         if not web.ctx.site.get_user():
             recap = get_recaptcha()
             if recap and not recap.validate():
-                return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+                return render_template("message.html",
+                    'Recaptcha solution was incorrect',
+                    'Please <a href="javascript:history.back()">go back</a> and try again.'
+                )
 
         saveutil = DocSaveHelper()
 
@@ -642,8 +645,10 @@ class book_edit(delegate.page):
         recap = get_recaptcha()
 
         if recap and not recap.validate():
-            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
-
+            return render_template("message.html",
+                'Recaptcha solution was incorrect',
+                'Please <a href="javascript:history.back()">go back</a> and try again.'
+            )
         v = i.v and safeint(i.v, None)
         edition = web.ctx.site.get(key, v)
 
@@ -698,7 +703,10 @@ class work_edit(delegate.page):
         recap = get_recaptcha()
 
         if recap and not recap.validate():
-            return 'Recaptcha solution was incorrect. Please <a href="javascript:history.back()">go back</a> and try again.'
+            return render_template("message.html",
+                'Recaptcha solution was incorrect',
+                'Please <a href="javascript:history.back()">go back</a> and try again.'
+            )
 
         v = i.v and safeint(i.v, None)
         work = web.ctx.site.get(key, v)
