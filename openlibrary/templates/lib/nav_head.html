@@ -3,14 +3,18 @@ $def with (page)
 
 <header>
   <div class="hamburger-component">
-    <button class="hamburger-button"><img src="/static/images/menu.png"/></button>
+    <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
     <div class="hamburger-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
-	<li><a href="/books/add">Add a Book</a></li>
-	<li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
-	<li><a href="/recentchanges">Recent Community Edits</a></li>
-	<li><a href="/developers">Resources for Developers</a></li>
-	<li><a href="/help">Help &amp; Support</a></li>
+        $if not ctx.user:
+          <li><a href="/account/login">Log in</a></li>
+          <li><a href="/account/create">Sign up</a></li>
+
+        <li><a href="/books/add">Add a Book</a></li>
+        <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
+        <li><a href="/recentchanges">Recent Community Edits</a></li>
+        <li><a href="/developers">Developer Center</a></li>
+        <li><a href="/help">Help &amp; Support</a></li>
       </ul>
     </div>
   </div>
@@ -18,7 +22,7 @@ $def with (page)
   <div class="logo-component">
     <a alt="The Internet Archive's Open Library: One page for every book" href="/">
       <div class="logo-txt">
-        <img class="logo-icon" src="/static/images/openlibrary-logo.png"/>
+        <img class="logo-icon" src="/static/images/openlibrary-logo.png" alt="Open Library logo"/>
       </div>
     </a>
   </div>
@@ -40,7 +44,7 @@ $def with (page)
         </div>
         <form class="search-bar-input" action="/search" method="get">
           <input type="text" name="q" placeholder="Search" autocomplete="off">
-          <input type="submit" value="" class="search-bar-submit" type="submit">
+          <input type="submit" value="" class="search-bar-submit" type="submit" aria-label="Search submit">
         </form>
       </div>
       <div class="search-dropdown">
@@ -52,43 +56,43 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>Browse <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+      <a>Browse <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
-	<ul class="dropdown-menu browse-menu-options">
-	  <li><a href="/subjects/science">Science</a></li>
-	  <li><a href="/subjects/biographies">Biographies</a></li>
-	  <li><a href="/subjects/textbooks">Textbooks</a></li>
-	  <li><a href="/subjects/science_fiction">Sci-Fi</a></li>
-	  <li><a href="/subjects/romance">Romance</a></li>
-	  <li><a href="/subjects/fantasy">Fantasy</a></li>
-	  <li><a href="/subjects">More Subjects</a></li>
-	  <li><a href="/lists">Reading Lists</a></li>
-	</ul>
+        <ul class="dropdown-menu browse-menu-options">
+          <li><a href="/subjects/science">Science</a></li>
+          <li><a href="/subjects/biographies">Biographies</a></li>
+          <li><a href="/subjects/textbooks">Textbooks</a></li>
+          <li><a href="/subjects/science_fiction">Sci-Fi</a></li>
+          <li><a href="/subjects/romance">Romance</a></li>
+          <li><a href="/subjects/fantasy">Fantasy</a></li>
+          <li><a href="/subjects">More Subjects</a></li>
+          <li><a href="/lists">Reading Lists</a></li>
+        </ul>
       </div>
     </li>
     <li class="my-books-menu">
-      <a>My Books <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+      <a>My Books <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
-	<ul class="dropdown-menu my-books-menu-options">
-	  <li><a href="/account/loans">My Loans</a></li>
-	  <li><a href="/account/lists">My Lists</a></li>
-	</ul>
+        <ul class="dropdown-menu my-books-menu-options">
+          <li><a href="/account/loans">My Loans</a></li>
+          <li><a href="/account/lists">My Lists</a></li>
+        </ul>
       </div>
     </li>
     <li class="more-menu">
-      <a>More <img class="down-arrow" src="/static/images/down-arrow.png"/></a>
+      <a>More <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
-	<ul class="dropdown-menu more-menu-options">
-	  <li><a href="/books/add">Add a Book</a></li>
-	  <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
-	  <li><a href="/recentchanges">Recent Community Edits</a></li>
-	<li><a href="/developers">Resources for Developers</a></li>
-	  <li><a href="/help">Help &amp; Support</a></li>
-	</ul>
+        <ul class="dropdown-menu more-menu-options">
+          <li><a href="/books/add">Add a Book</a></li>
+          <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
+          <li><a href="/recentchanges">Recent Community Edits</a></li>
+        <li><a href="/developers">Developer Center</a></li>
+          <li><a href="/help">Help &amp; Support</a></li>
+        </ul>
       </div>
     </li>
   </ul>
-  
+
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
@@ -100,8 +104,8 @@ $def with (page)
   $if ctx.user:
     <div class="account-component">
       <div class="dropdown-avatar">
-        <div class="avatar" href="javascript:;" id="userToggle" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></div>
-        <img class="down-arrow" src="/static/images/down-arrow.png"/>
+        <button class="avatar" href="javascript:;" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
+        <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
       </div>
       <div class="account-dropdown" id="main-account-dropdown">
         <ul class="dropdown-menu">
