@@ -260,6 +260,7 @@ header {
 }
 
 .search-component .search-bar-input input[type=text] {
+    min-width: 0;
     margin: 3px;
     flex: 1;
     padding: 5px 0 2px 3px;
@@ -331,12 +332,15 @@ header .search-component .search-dropdown ul.search-results li a .book-desc .boo
     color: #036;
 }
 
+header .search-component .search-bar-advanced-btn {
+    text-align: center;
+}
+
 .search-component .search-bar-advanced-btn {
     margin: 10px;
     border: 0 none;
     width: 40px;
     padding: 0;
-    text-align: center;
     cursor: pointer;
     display: none;
 }
@@ -356,8 +360,9 @@ header .search-component .search-dropdown ul.search-results li a .book-desc .boo
 }
 
 .account-component .dropdown-avatar .avatar {
+    border: none;
     margin-right: 5px;
-    background-size: 100% 100%;
+    background-size: cover;
     width: 45px;
     height: 45px;
     background-color: #AAA;
@@ -519,6 +524,7 @@ header .auth-component li a {
 header .account-component {
     flex: none;
     padding-left: 5px;
+    padding-right: 5px;
     font-size: 1em;
     order: 3;
 }
@@ -663,11 +669,26 @@ header .account-component .account-dropdown ul a li{
     font-size: 24px;
 }
 
+.iaBar {
+    display: flex;
+    max-width: 960px;
+    margin: 0 auto;
+    align-items: center;
+}
+
+.iaBarLogo {
+    margin-left: 9px;
+}
+
+.iaBarMessage {
+    flex: 1;
+    text-align: right;
+}
+
 @media only screen and (min-width: 25em) {
     header .logo-component .logo-icon {
         height: 47px;
     }
-
     header .navigation-component .dropdown-menu {
 	border-top: none;
 	border-top-right-radius: 0px;
@@ -824,6 +845,9 @@ header .expand .search-bar-input input {
     #topNotice {
         display: block;
     }
+    .iaBarLogo {
+	margin-left: 0px;
+    }
     header {
         margin: 20px auto;
         flex-direction: row;
@@ -856,6 +880,7 @@ header .expand .search-bar-input input {
     header .account-component {
         flex: none;
         order: 4;
+ 	 padding-right: 0px;
     }
     header .auth-component {
         order: 6;
@@ -886,7 +911,7 @@ div#legal{width:905px;margin:0 auto;padding:0 10px;text-align:left;}
 
 /* PALETTE */
 
-body#user {background-color: #cbc4a7;}
+body#user {background-color: #e2dcc5;}
 body#user div#background {width:100%;float:left;background-color: #e2dcc5;}
 body#user div#bottom {background-color: transparent;}
 body#admin {background-color: #b9b9b9;}
@@ -4627,18 +4652,6 @@ span.actions a span.checked-out {
     background-repeat: no-repeat;
 }
 
-.iaBar {
-    display: flex;
-    max-width: 960px;
-    margin: 0 auto;
-    align-items: center;
-}
-
-.iaBarMessage {
-    flex: 1;
-    text-align: right;
-}
-
 .page-banner {
     color: #fff;
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
@@ -4714,3 +4727,4 @@ span.actions a span.checked-out {
     0 0.25em 0 0 black,
     0 0.5em 0 0 black;
 }
+
