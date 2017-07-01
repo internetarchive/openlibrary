@@ -109,7 +109,7 @@ hr {
 /* TYPOGRAPHY */
 
 div.unordered {margin-top:10px;line-height:150%;}
-div.head {margin-bottom: 20px;margin-top: 20px;}
+div.head {margin-bottom: 10px;margin-top: 20px;}
 div.head h1,div.head h2,div.head h3,div.head h4,div.head h5,div.head h6{margin:0;padding:0;}
 div.head.rel {position:relative;}
 div.superNav {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;color:#666;margin-bottom:5px;}
@@ -2301,7 +2301,6 @@ ul#olBlog li {list-style-type: none;margin:1em 0;}
 .contentLists.results .SRPCover img {height:200px;max-width:133px;}
 .contentLists.results .SRPCoverBlank {position:relative;width:115px;height:200px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 .contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
-.contentLists {margin-bottom:20px;}
 
 .coverEbook img {
   opacity: .85;

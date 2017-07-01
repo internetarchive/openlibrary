@@ -1,3 +1,40 @@
+var Browser = {
+    getUrlParameter: function(key) {
+	var query = window.location.search.substring(1);
+	var params = query.split("&");
+	if (key) {
+            for (var i=0;i<params.length;i++) {
+		var item = params[i].split("=");
+		var val = item[1];
+		if(item[0] == key){return(decodeURIComponent(val));}
+            }
+            return(undefined);
+	}
+	return(items);
+    },
+    getJsonFromUrl: function () {
+	var query = location.search.substr(1);
+	var result = {};
+	query.split("&").forEach(function(part) {
+            var item = part.split("=");
+            result[item[0]] = decodeURIComponent(item[1]);
+	});
+	return result;
+    },
+
+    change_url: function(query) {
+	var getUrl = window.location;
+	var baseUrl = getUrl .protocol + "//" + getUrl.host +
+            "/" + getUrl.pathname.split('/')[1];
+	window.history.pushState({
+            "html": document.html,
+            "pageTitle": document.title + " " + query,
+	}, "", baseUrl + "?id=" + query);
+    }
+}
+
+
+
 function linkbuttons() {
     $(".linkButton").click(function(){
         window.location = $(this).attr("name");
@@ -356,6 +393,25 @@ $().ready(function(){
 	return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
 
+    var capitalize = function(word) {
+	return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+
+    var setFacet = function(facet) {
+	localStorage.setItem("facet", facet.toLowerCase());
+	$('header .search-facet-selector select').val(capitalize(localStorage.getItem("facet")))
+	$('header .search-facet-value').html(capitalize(localStorage.getItem("facet")));
+    	var url = ((localStorage.getItem("facet") === 'books')? '/search' : "/search/" + localStorage.getItem("facet"));
+	console.log(url);
+	$('.search-bar-input').attr("action", url);
+    }
+    var options = Browser.getJsonFromUrl();
+    setFacet(options.facet || localStorage.getItem("facet") || "books");
+
+    if (options.q) {	
+	$('.search-bar-input [type=text]').val(options.q.replace(/\+/g, " "));
+    }
+
     var debounce = function (func, threshold, execAsap) {
 	var timeout;
 	return function debounced () {
@@ -394,11 +450,16 @@ $().ready(function(){
 	if($(this).width() < 568){
 	    if (!enteredSearchMinimized) {		
 		$('.search-bar-input').addClass('trigger')
+		$('header .search-component ul.search-results').empty()
 	    }
 	    enteredSearchMinimized = true;
 	} else {
 	    if (enteredSearchMinimized) {
-		$('.search-bar-input').removeClass('trigger');
+		$('.search-bar-input').removeClass('trigger');		
+		var search_query = $('header .search-component .search-bar-input input').val()
+		if (search_query) {
+		    renderSearchResults(search_query);
+		}
 	    }
 	    enteredSearchMinimized = false;
 	    searchExpansionActivated = false;
@@ -421,11 +482,8 @@ $().ready(function(){
     }
 
     $('header .search-facet-selector select').change(function() {
-	var facet = $('header .search-facet-selector select').val().toLowerCase();
-	var url = ((facet === 'books')? '/search' : "/search/" + facet);
-	$('.search-bar-input').attr("action", url);
-	var val = $(this).val();
-	$('header .search-facet-value').html(val);
+	var facet = $('header .search-facet-selector select').val();
+	setFacet(facet);
     })
     
     var renderSearchResult = {
@@ -440,7 +498,7 @@ $().ready(function(){
 	},
 	authors: function(author) {
 	    $('header .search-component ul.search-results').append(
-		'<li><a href="' + author.key + '"><img src="' + cover_url(author.cover_i) +
+		'<li><a href="/authors/' + author.key + '"><img src="' + cover_url(author.cover_i) +
 		    '"/><span class="author-desc"><div class="author-name">' + 
 		    author.name + '</div></span></a></li>'
 	    );
@@ -459,15 +517,15 @@ $().ready(function(){
         });
     }
 
-    $('header .search-component .search-results li a').live('click', function(event) {
+    $('header .search-component .search-results li a').live('click', debounce(function(event) {
 	$(document.body).css({'cursor' : 'wait'});
-    });
+    }, 300, false));
 
     $('header .search-component .search-bar-input input').keyup(debounce(function() {
 	renderSearchResults($(this).val());
     }, 300, false));
     
-    $(document).click(function(event) { 
+    $(document).click(debounce(function(event) { 
 	if(!$(event.target).closest('header .search-component').length) {
 	    $('header .search-component ul.search-results').empty();
 	}
@@ -483,32 +541,36 @@ $().ready(function(){
 	if(!$(event.target).closest('header .hamburger-component .hamburger-button').length) {
 	    $('header .hamburger-dropdown-component').hide();
 	}
-    });
+	if(!$(event.target).closest('.dropclick').length) {
+            $('.dropclick').next('.dropdown').slideUp();
+            $('.dropclick').parent().find('.arrow').removeClass("up");
+	}
+    }, 300, false));
 
-    $('header .search-component .search-bar-input input').focus(function() {
+    $('header .search-component .search-bar-input input').focus(debounce(function() {
 	var val = $(this).val();
 	renderSearchResults(val);
-    });
+    }, 300, false));
 
     /* Browse menu */
-    $('header .navigation-component .browse-menu').click(function() {
+    $('header .navigation-component .browse-menu').click(debounce(function() {
 	$('header .navigation-component .browse-menu-options').toggle();
-    });
+    }, 300, false));
 
     /* My Books menu */
-    $('header .navigation-component .my-books-menu').click(function() {
+    $('header .navigation-component .my-books-menu').click(debounce(function() {
 	$('header .navigation-component .my-books-menu-options').toggle();
-    });
+    }, 300, false));
 
     /* More menu */
-    $('header .navigation-component .more-menu').click(function() {
+    $('header .navigation-component .more-menu').click(debounce(function() {
 	$('header .navigation-component .more-menu-options').toggle();
-    });
+    }, 300, false));
 
     /* Hamburger menu */
-    $('header .hamburger-component .hamburger-button').live('click', function() {
+    $('header .hamburger-component .hamburger-button').live('click', debounce(function() {
 	$('header .hamburger-dropdown-component').toggle();
-    });
+    }, 300, false));
 
     $('textarea.markdown').focus(function(){
         $('.wmd-preview').show();
@@ -516,17 +578,17 @@ $().ready(function(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-    $('.dropclick').click(function(){
-        $(this).next('.dropdown-menu').slideToggle();
+    $('.dropclick').click(debounce(function(){
+        $(this).next('.dropdown').slideToggle();
         $(this).parent().find('.arrow').toggleClass("up");
-    });
+    }, 300, false));
 
     function hideUser(){
         $('#main-account-dropdown').slideUp(25);
         $('header .dropdown-avatar').removeClass('hover');
     };
 
-    $('header .dropdown-avatar').click(function() {
+    $('header .dropdown-avatar').click(debounce(function() {
 	var dropdown = $('#main-account-dropdown');
 	if (dropdown.is(':visible') === true) {
 	    hideUser();
@@ -541,6 +603,6 @@ $().ready(function(){
             });
 	    
 	}
-    });
+    }, 300, false));
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
