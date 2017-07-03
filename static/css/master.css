@@ -188,9 +188,13 @@ header {
     max-width: 960px;
     min-width: 300px;
     margin: 0px auto;
+    display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     flex-direction: column;
     /*font-family: 'Poppins', sans-serif;*/
-    display: flex;
     /*justify-content: center;*/
     flex-flow: row wrap;
     flex-wrap: wrap;
@@ -220,6 +224,10 @@ header {
 
 .logo-component a {
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     color: #000;
     text-decoration: none !important;
 }
@@ -243,6 +251,10 @@ header {
     border-radius:.3em;
     flex: 1;
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
 }
 
 .search-component .search-bar-submit {
@@ -257,6 +269,10 @@ header {
     min-width: 50px;
     width: 100%;
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
 }
 
 .search-component .search-bar-input input[type=text] {
@@ -306,6 +322,10 @@ header .search-component .search-dropdown ul.search-results li:hover {
 
 header .search-component .search-dropdown ul.search-results li a {
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     text-decoration: none;
     color: #333;
 }
@@ -356,6 +376,10 @@ header .search-component .search-bar-advanced-btn {
 
 .account-component .dropdown-avatar {
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     align-items: center;
 }
 
@@ -414,6 +438,10 @@ header .logo-component .logo-icon {
 header .navigation-component {
     font-family: 'Poppins', sans-serif;
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     flex-basis: 100%;
     order: 5;
 }
@@ -671,6 +699,10 @@ header .account-component .account-dropdown ul a li{
 
 .iaBar {
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     max-width: 960px;
     margin: 0 auto;
     align-items: center;
@@ -752,6 +784,10 @@ header .search-component-expand .search-facet-selector {
 }
 header .search-component-expand .search-bar .search-bar-input {
     display: flex;
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
 }
 header .search-component .expand .search-bar-advanced-btn {
     display: block;
@@ -787,7 +823,11 @@ header .expand .search-bar-input input {
         display: block;
     }
     header .search-component .search-bar .search-bar-input {
-        display: flex;
+	display: flex;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
     }
     header .search-component .search-bar-advanced-btn {
         display: block;
@@ -803,7 +843,11 @@ header .expand .search-bar-input input {
         order: 3;
     }
     header .navigation-component {
-        display: flex;
+	display: flex;
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
         order: 6;
     }
     header .navigation-component .dropdown-menu {
