@@ -473,8 +473,13 @@ class account_email_forgot(delegate.page):
 
         if act:
             if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
-                return render_template('account/email/forgot', email=act.email)
-            err = "Incorrect password"
+                if act.itemname:
+                    iact = act.get_linked_ia_account()
+                    return render_template('account/email/forgot', email=iact.email)
+                else:
+                    err = "No such Archive.org account linked"
+            else:
+                err = "Incorrect password"
 
         elif valid_email(i.username):
             err = "Please enter a username, not an email"

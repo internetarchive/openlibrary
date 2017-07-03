@@ -296,8 +296,10 @@ class Account(web.storage):
         return getattr(self, 'internetarchive_itemname', None)
 
     def get_linked_ia_account(self):
-        link = self.itemname
-        return InternetArchiveAccount.get(itemname=link) if link else None
+        if self.itemname:
+            act = InternetArchiveAccount.xauth('info', itemname=self.itemname)
+            if 'values' in act and 'email' in act['values']:
+                return InternetArchiveAccount.get(email=act['values']['email'])
 
 class OpenLibraryAccount(Account):
 
@@ -652,15 +654,16 @@ def audit_accounts(email, password, test=False):
         audit['has_ol'] = email
 
         ia_account = InternetArchiveAccount.get(email=email, test=test)
-
-        # Should get the IA account linked to this OL account, if one
-        # exists. However, xauthn API doesn't yet support `info` by
-        # itemname. Fortunately, we have all the info we need at this
-        # stage for the client to be satisfied.
         if ol_account.itemname:
-            audit['has_ia'] = ol_account.itemname  # XXX should be email
+            audit['has_ia'] = ol_account.itemname
             audit['link'] = ol_account.itemname
-            return audit  # special case; unable to get ia acc
+
+            # This used to allow users to continue logging in with
+            # their Open Library credentials. Now, we allow only
+            # Internet Archive (Archive.org) credentials. Therefore,
+            # we return an error instead of `audit`.
+            return {'error': 'ia_login_only'}
+            #return audit
 
         # If the OL account is not linked but there exists an IA
         # account having the same email,
