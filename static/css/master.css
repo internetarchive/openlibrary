@@ -690,9 +690,9 @@ header .account-component .account-dropdown ul a li{
         height: 47px;
     }
     header .navigation-component .dropdown-menu {
-	border-top: none;
-	border-top-right-radius: 0px;
-	border-top-left-radius: 0px;
+        border-top: none;
+        border-top-right-radius: 0px;
+        border-top-left-radius: 0px;
     }
 }
 
@@ -706,9 +706,9 @@ header .account-component .account-dropdown ul a li{
         padding: 0px 5px;
     }
     header .navigation-component .dropdown-menu {
-	border-top: none;
-	border-top-right-radius: 0px;
-	border-top-left-radius: 0px;
+        border-top: none;
+        border-top-right-radius: 0px;
+        border-top-left-radius: 0px;
     }
     header .search-component {
         margin-right: 0px;
@@ -807,9 +807,9 @@ header .expand .search-bar-input input {
         order: 6;
     }
     header .navigation-component .dropdown-menu {
-	border-top: none;
-	border-top-right-radius: 0px;
-	border-top-left-radius: 0px;
+        border-top: none;
+        border-top-right-radius: 0px;
+        border-top-left-radius: 0px;
     }
 }
 
@@ -834,9 +834,9 @@ header .expand .search-bar-input input {
         order: 3;
     }
     header .navigation-component .dropdown-menu {
-	border-top: none;
-	border-top-right-radius: 0px;
-	border-top-left-radius: 0px;
+        border-top: none;
+        border-top-right-radius: 0px;
+        border-top-left-radius: 0px;
     }
 }
 
@@ -846,7 +846,7 @@ header .expand .search-bar-input input {
         display: block;
     }
     .iaBarLogo {
-	margin-left: 0px;
+        margin-left: 0px;
     }
     header {
         margin: 20px auto;
@@ -868,8 +868,8 @@ header .expand .search-bar-input input {
         flex: 1;
     }
     header .navigation-component .dropdown-menu {
-	border-radius: 3px;
-	border: 1px solid #babbad;
+        border-radius: 3px;
+        border: 1px solid #babbad;
     }
     header .search-component .search-bar-component {
         width: 100%;
@@ -880,7 +880,7 @@ header .expand .search-bar-input input {
     header .account-component {
         flex: none;
         order: 4;
- 	 padding-right: 0px;
+         padding-right: 0px;
     }
     header .auth-component {
         order: 6;
@@ -889,11 +889,11 @@ header .expand .search-bar-input input {
         display: inherit;
     }
     header ul.navigation-component .more-menu {
-	display: block;
+        display: block;
     }
     header ul.navigation-component li ul.dropdown-menu {
-	width: auto;
-	white-space: nowrap;
+        width: auto;
+        white-space: nowrap;
     }
 }
 
@@ -4726,4 +4726,3 @@ span.actions a span.checked-out {
     0 0.25em 0 0 black,
     0 0.5em 0 0 black;
 }
-
