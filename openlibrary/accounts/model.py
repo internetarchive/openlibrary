@@ -662,8 +662,8 @@ def audit_accounts(email, password, test=False):
             # their Open Library credentials. Now, we allow only
             # Internet Archive (Archive.org) credentials. Therefore,
             # we return an error instead of `audit`.
-            return {'error': 'ia_login_only'}
-            #return audit
+            #return {'error': 'ia_login_only'}
+            return audit
 
         # If the OL account is not linked but there exists an IA
         # account having the same email,
