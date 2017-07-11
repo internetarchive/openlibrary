@@ -1122,6 +1122,10 @@ div#headerLogin {
     margin-top: 10px;
 }
 
+hr.forgot-padding {
+    margin: 30px 0 15px 0;
+}
+
 .forgot-email-form {
     padding: 10px 0px;
 }

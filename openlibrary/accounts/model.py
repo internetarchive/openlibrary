@@ -658,11 +658,10 @@ def audit_accounts(email, password, test=False):
             audit['has_ia'] = ol_account.itemname
             audit['link'] = ol_account.itemname
 
-            # This used to allow users to continue logging in with
-            # their Open Library credentials. Now, we allow only
-            # Internet Archive (Archive.org) credentials. Therefore,
-            # we return an error instead of `audit`.
-            #return {'error': 'ia_login_only'}
+            # When enabled, this will prevent users from logging in
+            # with their Open Library credentials and instead require
+            # Internet Archive (Archive.org) credentials. 
+            # return {'error': 'ia_login_only'}
             return audit
 
         # If the OL account is not linked but there exists an IA

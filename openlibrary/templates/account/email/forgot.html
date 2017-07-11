@@ -3,7 +3,14 @@ $def with(email=None, err="")
 $var title: $("Forgot Your Email?")
 
 <div id="contentHead">
-    <h1>$_('Forgot Your Archive.org Email?')</h1>
+    <h2>$_('Forgot Your Internet Archive Email?')</h2>
+    <p class="instruct">To lookup your Archive.org email, <a href="/account/email/forgot-ia">click here</a>.</p>
+
+    <hr class="forgot-padding"/>
+
+    <h2>$_('Forgot Your Open Library Email?')</h2>
+    $if not email:
+        <p class="instruct">Please enter your Open Library username and password, and we’ll retrieve your email.</p>
 </div>
 
 <div id="contentBody" class="defaultstyling">
@@ -16,10 +23,9 @@ $var title: $("Forgot Your Email?")
       <div class="note">$err</div>
 
     <form class="forgot-email-form"  action="/account/email/forgot" method="POST">
-      <p>Please enter your username and password, and we’ll retrieve your email.</p>
       <div class="form-row">
 	<div>
-	  <label>Username</label>
+	  <label>Open Library Username</label>
 	</div>
 	<input type="text" name="username"/>
       </div>

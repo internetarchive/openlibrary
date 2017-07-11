@@ -3,8 +3,14 @@ $def with (form)
 $var title: $_("Username/Password Reminder")
 
 <div id="contentHead">
-    <h1>$_("Username/Password Reminder")</h1>
-    <p class="instruct">$_("Please enter the email address associated with your Open Library account. We'll send you an email to help you remember your username and/or reset your Open Library password.")</p>
+  <h2>$_("Forgot your Internet Archive Password?")</h2>
+  <p class="instruct">Forgot your Archive.org password? <a href="https://archive.org/account/login.forgotpw.php">Click here.</a></p>
+  
+  <hr class="forgot-padding"/>
+
+  <h2>$_("Forgot your Open Library Password?")</h2>
+  <p class="instruct">$_("Please enter the email address associated with your Open Library account. We'll send you an email to help you remember your Open Library email and/or reset your password.")</p>
+
 </div>
 
 <div id="contentBody">
@@ -16,9 +22,11 @@ $var title: $_("Username/Password Reminder")
             <div class="input">
                 <br/>
                 <button type="submit" class="larger" name="sendit" title="$_('Send It')">$_("Send It")</button>
-                &nbsp;
-                <a href="javascript:;" onclick="history.go(-1);" class="large attn">$_("Cancel")</a>
             </div>
         </div>
     </form>
+</div>
+
+<div>
+
 </div>
