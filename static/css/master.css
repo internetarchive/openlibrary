@@ -1102,11 +1102,16 @@ div#headerLogin {
 }
 
 .xauth-switch {
-    background-color: #e44028;
+    background-color: #036DAA;
     padding: 15px 20px;
     color: #fff;
     line-height: 1em;
     clear: both;
+    border-radius: 5px;
+}
+
+.xauth-switch a {
+    color: #fff;
 }
 
 .defaultstyling {
@@ -1115,6 +1120,10 @@ div#headerLogin {
 
 .defaultstyling .padtop {
     margin-top: 10px;
+}
+
+hr.forgot-padding {
+    margin: 30px 0 15px 0;
 }
 
 .forgot-email-form {

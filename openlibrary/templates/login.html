@@ -82,7 +82,7 @@ $var title: $("Log In")
 
 <div id="contentBody">
   $if not ctx.user:
-      <p class="xauth-switch">Open Library now uses <strong><u>email</u></strong> to login. You can use your Internet Archive or Open Library account <strong><u>email</u></strong> address.</p>
+      <p class="xauth-switch">Starting August 1st, your <a href="/account/email/forgot-ia">Archive.org email</a> and password will be required to log in to Open Library.</a></p>
 
   $if ctx.user:
       <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
@@ -130,12 +130,10 @@ $var title: $("Log In")
         <div class="formElement bottom">
             <br/>
             <input value="$_('Log In')" type="submit" class="login-submit" name="login" title="$_('Log In')"/>
-            &nbsp;
-            <a href="javascript:;" onclick="history.go(-1);" class="attn">$_("Cancel")</a>
         </div>
         <div class="formElement">
             <div class="label"></div>
-            <div class="input smaller">$:_('<a href="/account/password/forgot">Forgot Password</a>?')
+            <div class="input smaller">$:_('<a href="/account/password/forgot">Forgot your Password</a>?')
             <br/><br/>
             $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>
@@ -177,6 +175,7 @@ $var title: $("Log In")
         "missing_fields": "Please fill out all fields and try again",
         "email_registered": "This email is already registered",
         "username_registered": "This username is already registered",
+        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
         "max_retries_exceeded": "A problem occurred and we were unable to log you in."
       }
 

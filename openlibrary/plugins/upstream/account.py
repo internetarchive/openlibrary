@@ -460,7 +460,34 @@ class account_password(delegate.page):
         account = accounts.find(username=username)
         return account and account.verify_password(password)
 
-class account_email_forgot(delegate.page):
+class account_ia_email_forgot(delegate.page):
+    path = "/account/email/forgot-ia"
+
+    def GET(self):
+        return render_template('account/email/forgot-ia')
+
+    def POST(self):
+        i = web.input(email='', password='')
+        err = ""
+
+        if valid_email(i.email):
+            act = OpenLibraryAccount.get(email=i.email)
+            if act:
+                if OpenLibraryAccount.authenticate(i.email, i.password) == "ok":
+                    ia_act = act.get_linked_ia_account()
+                    if ia_act:
+                        return render_template('account/email/forgot-ia', email=ia_act.email)
+                    else:
+                        err = "Open Library Account not linked. Login with your Open Library credentials to connect or create an Archive.org account"
+                else:
+                    err = "Incorrect password"
+            else:
+                err = "Sorry, this Open Library account does not exist"
+        else:
+            err = "Please enter a valid Open Library email"
+        return render_template('account/email/forgot-ia', err=err)
+
+class account_ol_email_forgot(delegate.page):
     path = "/account/email/forgot"
 
     def GET(self):
@@ -474,7 +501,8 @@ class account_email_forgot(delegate.page):
         if act:
             if OpenLibraryAccount.authenticate(act.email, i.password) == "ok":
                 return render_template('account/email/forgot', email=act.email)
-            err = "Incorrect password"
+            else:
+                err = "Incorrect password"
 
         elif valid_email(i.username):
             err = "Please enter a username, not an email"
