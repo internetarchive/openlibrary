@@ -823,11 +823,11 @@ header .expand .search-bar-input input {
         display: block;
     }
     header .search-component .search-bar .search-bar-input {
-	display: flex;
-	display: -webkit-box;
-	display: -moz-box;
-	display: -ms-flexbox;
-	display: -webkit-flex;
+        display: flex;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
     }
     header .search-component .search-bar-advanced-btn {
         display: block;
@@ -843,11 +843,11 @@ header .expand .search-bar-input input {
         order: 3;
     }
     header .navigation-component {
-	display: flex;
-	display: -webkit-box;
-	display: -moz-box;
-	display: -ms-flexbox;
-	display: -webkit-flex;
+        display: flex;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -webkit-flex;
         order: 6;
     }
     header .navigation-component .dropdown-menu {
