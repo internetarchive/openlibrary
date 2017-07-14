@@ -1362,6 +1362,12 @@ div.searchOptions .formElement {
 div.searchOptions label {
     margin-bottom: 2px;
 }
+
+.siteSearch .formElement{
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-size: 1.1em;
+}
+
 p.searchSuggest {
     padding: 0;
     margin: -10px 0 20px 0;
