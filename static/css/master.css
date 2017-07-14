@@ -1324,6 +1324,11 @@ div.searchFilter .searchCheckboxes {
     margin-top: 5px;
     font-size: 0.6875em;
 }
+.searchCheckboxes ul li label {
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-size: 1.1em;
+}
+
 .searchCheckboxes > ul {
     list-style-type: none;
     margin: 0;
