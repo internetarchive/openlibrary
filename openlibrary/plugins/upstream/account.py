@@ -649,6 +649,14 @@ class account_notifications(delegate.page):
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
+class account_lists(delegate.page):
+    path = "/account/lists"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        raise web.seeother(user.key + '/lists')
+
 class account_loans(delegate.page):
     path = "/account/loans"
 

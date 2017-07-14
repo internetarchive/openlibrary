@@ -112,11 +112,6 @@ function less(header) {
 </script>
 
 <div id="contentHead">
-    <div id="pullOut" class="sansserif searchInside">
-        <p><a href="/search/inside">Search inside</a>
-        over 2 million books</p>
-        <div class="label new"></div>
-    </div>
     $if param:
         <h1>
             $_("Search Results")
@@ -145,6 +140,8 @@ function less(header) {
                 <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
             $else:
                 <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+
+            <span class="advanced-search"><a href="/advancedsearch">Advanced Search</a></span>
             </span>
 </p>
 
