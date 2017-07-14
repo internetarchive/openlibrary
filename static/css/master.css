@@ -941,8 +941,9 @@ header .expand .search-bar-input input {
     }
 }
 
-
-
+.advanced-search {
+    float: right;
+}
 
 /* LAYOUT */
 
@@ -1313,22 +1314,13 @@ div#headerSearch div.searchPlacement {
 }
 div#footerSearch div.searchPlacement {
 }
-div.searchFilter {
-    height: 15px;
-}
-div#footerSearch div.searchFilter {
-    height: 19px;
-}
+
 div.searchFilter .searchOpener {
-    position: absolute;
-    width: 60px;
     right: 0;
     margin-top: 5px;
     font-size: 0.6875em;
 }
 div.searchFilter .searchCheckboxes {
-    position: absolute;
-    left: 12px;
     margin-top: 5px;
     font-size: 0.6875em;
 }
@@ -1392,7 +1384,7 @@ fieldset.home legend {
     font-family: "Lucida Grande", Verdana, Arial, sans-serif;
     font-size: 0.75em;
     color: #333;
-    width: 203px;
+    padding: 15px 0px;
 }
 #topOptions .searchPlus {
     padding: 8px 0;
@@ -1991,15 +1983,20 @@ hr.forgot-padding {
     webkit-text-fill-color: transparent !important;
 }
 
-a.generic-button {
+.generic-button {
     text-decoration: none;
     padding: 13px 10px;
 }
-a.generic-button-secondary {
+
+a.generic-button {
+    text-decoration: none;
+}
+
+.generic-button-secondary {
     text-decoration: underline;
 }
 
-a.generic-button-primary {
+.generic-button-primary {
     text-decoration: none;
     background: #e44028;
     color: #fff !important;

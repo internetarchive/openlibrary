@@ -13,6 +13,7 @@ $def with (page)
         <li><a href="/books/add">Add a Book</a></li>
         <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
         <li><a href="/recentchanges">Recent Community Edits</a></li>
+        <li><a href="/advancedsearch">Advanced Search</a></li>
         <li><a href="/developers">Developer Center</a></li>
         <li><a href="/help">Help &amp; Support</a></li>
       </ul>
@@ -44,6 +45,7 @@ $def with (page)
         </div>
         <form class="search-bar-input" action="/search" method="get">
           <input type="text" name="q" placeholder="Search" autocomplete="off">
+	  <input name="has_fulltext" type="checkbox" aria-hidden="true" checked="checked" value="true" id="ftokenstop" class="hidden">
           <input type="submit" value="" class="search-bar-submit" type="submit" aria-label="Search submit">
         </form>
       </div>
@@ -85,6 +87,7 @@ $def with (page)
         <ul class="dropdown-menu more-menu-options">
           <li><a href="/books/add">Add a Book</a></li>
           <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
+          <li><a href="/advancedsearch">Advanced Search</a></li>
           <li><a href="/recentchanges">Recent Community Edits</a></li>
         <li><a href="/developers">Developer Center</a></li>
           <li><a href="/help">Help &amp; Support</a></li>
