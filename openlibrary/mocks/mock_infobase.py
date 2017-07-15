@@ -42,9 +42,6 @@ class MockSite:
         site = web.storage(store=store, save_many=self.save_many)
         return account.AccountManager(site, config.infobase['secret_key'])
 
-    def save(self, query, comment=None, action=None, data=None, timestamp=None):
-        timestamp = timestamp or datetime.datetime.utcnow()
-
     def _save_doc(self, query, timestamp):
         key = query['key']
 
