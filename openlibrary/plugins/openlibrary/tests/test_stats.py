@@ -10,7 +10,8 @@ from openlibrary.core.admin import Stats
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
-        super(MockDoc,self).__init__(*largs, **kargs)
+        kargs['_key'] = _id
+        super(MockDoc, self).__init__(*largs, **kargs)
 
     def __repr__(self):
         o = super(MockDoc, self).__repr__()
