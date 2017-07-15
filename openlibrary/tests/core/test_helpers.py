@@ -22,7 +22,7 @@ def test_sanitize():
     assert h.sanitize('<script>alert("dhoom")</script>hello') == 'hello'
 
     # rel="nofollow" must be added absolute links
-    assert h.sanitize('<a href="http://example.com">hello</a>') == '<a href="http://example.com" rel="nofollow">hello</a>'
+    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="nofollow">hello</a>'
     # relative links should pass through
     assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
 
@@ -84,16 +84,16 @@ def test_urlsafe():
     assert h.urlsafe("a?") == "a"
 
 def test_get_coverstore_url(monkeypatch):
-    assert h.get_coverstore_url() == "http://covers.openlibrary.org"
+    assert h.get_coverstore_url() == "https://covers.openlibrary.org"
 
     from infogami import config
 
-    monkeypatch.setattr(config, "coverstore_url", "http://0.0.0.0:8090", raising=False)
-    assert h.get_coverstore_url() == "http://0.0.0.0:8090"
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090", raising=False)
+    assert h.get_coverstore_url() == "https://0.0.0.0:8090"
 
     # make sure trailing / is always stripped
-    monkeypatch.setattr(config, "coverstore_url", "http://0.0.0.0:8090/", raising=False)
-    assert h.get_coverstore_url() == "http://0.0.0.0:8090"
+    monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090/", raising=False)
+    assert h.get_coverstore_url() == "https://0.0.0.0:8090"
 
 def test_texsafe():
     assert h.texsafe("hello") == r"hello"
