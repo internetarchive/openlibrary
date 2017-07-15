@@ -30,7 +30,7 @@ def pytest_funcarg__data0(request):
         },
         "result": {
             "data": {
-                "url": "http://openlibrary.org/books/OL0M/book-0",
+                "url": "https://openlibrary.org/books/OL0M/book-0",
                 "key": "/books/OL0M",
                 "title": "book-0",
                 "identifiers": {
@@ -117,19 +117,19 @@ def pytest_funcarg__data9(request):
         },
         "result": {
             "viewapi": {
-                "info_url": "http://openlibrary.org/books/OL9M",
-                "thumbnail_url": "http://covers.openlibrary.org/b/id/42-S.jpg",
+                "info_url": "https://openlibrary.org/books/OL9M",
+                "thumbnail_url": "https://covers.openlibrary.org/b/id/42-S.jpg",
                 "preview": "noview",
-                "preview_url": "http://openlibrary.org/books/OL9M",
+                "preview_url": "https://openlibrary.org/books/OL9M",
             },
             "data": {
-                "url": "http://openlibrary.org/books/OL9M/foo",
+                "url": "https://openlibrary.org/books/OL9M/foo",
                 "key": "/books/OL9M",
                 "title": "foo",
                 "subtitle": "bar",
                 "by_statement": "Mark Twain",
                 "authors": [{
-                    "url": "http://openlibrary.org/authors/OL9A/Mark_Twain",
+                    "url": "https://openlibrary.org/authors/OL9A/Mark_Twain",
                     "name": "Mark Twain"
                 }],
                 "identifiers": {
@@ -154,25 +154,25 @@ def pytest_funcarg__data9(request):
                     "url": "http://en.wikipedia.org/wiki/foo"
                 }],
                 'subjects': [{
-                    'url': 'http://openlibrary.org/subjects/test_subject',
+                    'url': 'https://openlibrary.org/subjects/test_subject',
                     'name': 'Test Subject'
                 }],
                 'subject_places': [{
-                    'url': 'http://openlibrary.org/subjects/place:test_place',
+                    'url': 'https://openlibrary.org/subjects/place:test_place',
                     'name': 'Test Place'
                 }],
                 'subject_people': [{
-                    'url': 'http://openlibrary.org/subjects/person:test_person',
+                    'url': 'https://openlibrary.org/subjects/person:test_person',
                     'name': 'Test Person'
                 }],
                 'subject_times': [{
-                    'url': 'http://openlibrary.org/subjects/time:test_time',
+                    'url': 'https://openlibrary.org/subjects/time:test_time',
                     'name': 'Test Time'
                 }],
                 "cover": {
-                    "small": "http://covers.openlibrary.org/b/id/42-S.jpg",
-                    "medium": "http://covers.openlibrary.org/b/id/42-M.jpg",
-                    "large": "http://covers.openlibrary.org/b/id/42-L.jpg",
+                    "small": "https://covers.openlibrary.org/b/id/42-S.jpg",
+                    "medium": "https://covers.openlibrary.org/b/id/42-M.jpg",
+                    "large": "https://covers.openlibrary.org/b/id/42-L.jpg",
                 },
                 "excerpts": [{
                     "text": "This is an excerpt.",
@@ -182,18 +182,18 @@ def pytest_funcarg__data9(request):
                     "comment": "bar"
                 }],
                 "ebooks": [{
-                    "preview_url": "http://www.archive.org/details/foo12bar",
-                    "read_url": "http://www.archive.org/stream/foo12bar",
+                    "preview_url": "https://archive.org/details/foo12bar",
+                    "read_url": "https://archive.org/stream/foo12bar",
                     "availability": "full",
                     "formats": {
                         "pdf": {
-                            "url": "http://www.archive.org/download/foo12bar/foo12bar.pdf"
+                            "url": "https://archive.org/download/foo12bar/foo12bar.pdf"
                         },
                         "epub": {
-                            "url": "http://www.archive.org/download/foo12bar/foo12bar.epub"
+                            "url": "https://archive.org/download/foo12bar/foo12bar.epub"
                         },
                         "text": {
-                            "url": "http://www.archive.org/download/foo12bar/foo12bar_djvu.txt"
+                            "url": "https://archive.org/download/foo12bar/foo12bar_djvu.txt"
                         }
                     }
                 }],
@@ -254,19 +254,19 @@ def test_process_doc_for_view_api(monkeypatch):
     doc = {"key": "/books/OL1M", "title": "foo"}
     expected_result = {
         "bib_key": "isbn:1234567890",
-        "info_url": "http://openlibrary.org/books/OL1M/foo",
+        "info_url": "https://openlibrary.org/books/OL1M/foo",
         "preview": "noview",
-        "preview_url": "http://openlibrary.org/books/OL1M/foo"
+        "preview_url": "https://openlibrary.org/books/OL1M/foo"
     }
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
     doc['ocaid'] = "ia-foo"
     expected_result["preview"] = "full"
-    expected_result["preview_url"] = "http://www.archive.org/details/ia-foo"
+    expected_result["preview_url"] = "https://archive.org/details/ia-foo"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
     doc['covers'] = [42, 53]
-    expected_result["thumbnail_url"] = "http://covers.openlibrary.org/b/id/42-S.jpg"
+    expected_result["thumbnail_url"] = "https://covers.openlibrary.org/b/id/42-S.jpg"
     assert dynlinks.process_doc_for_viewapi(bib_key, doc) == expected_result
 
 def test_process_result_for_details(monkeypatch):
@@ -274,9 +274,9 @@ def test_process_result_for_details(monkeypatch):
         "isbn:1234567890": {"key": "/books/OL1M", "title": "foo"}}) == {
             "isbn:1234567890": {
                     "bib_key": "isbn:1234567890",
-                    "info_url": "http://openlibrary.org/books/OL1M/foo",
+                    "info_url": "https://openlibrary.org/books/OL1M/foo",
                     "preview": "noview",
-                    "preview_url": "http://openlibrary.org/books/OL1M/foo",
+                    "preview_url": "https://openlibrary.org/books/OL1M/foo",
                     "details": {
                         "key": "/books/OL1M",
                         "title": "foo"
@@ -303,9 +303,9 @@ def test_process_result_for_details(monkeypatch):
     expected_result = {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
-            "info_url": "http://openlibrary.org/books/OL1M/foo",
+            "info_url": "https://openlibrary.org/books/OL1M/foo",
             "preview": "noview",
-            "preview_url": "http://openlibrary.org/books/OL1M/foo",
+            "preview_url": "https://openlibrary.org/books/OL1M/foo",
             "details": {
                 "key": "/books/OL1M",
                 "title": "foo",
@@ -325,9 +325,9 @@ def test_dynlinks(monkeypatch):
     expected_result = {
         "isbn:1234567890": {
             "bib_key": "isbn:1234567890",
-            "info_url": "http://openlibrary.org/books/OL1M/foo",
+            "info_url": "https://openlibrary.org/books/OL1M/foo",
             "preview": "noview",
-            "preview_url": "http://openlibrary.org/books/OL1M/foo"
+            "preview_url": "https://openlibrary.org/books/OL1M/foo"
         }
     }
 
@@ -363,9 +363,9 @@ def test_dynlinks_ia(monkeypatch):
     expected_result = {
         "OL2M": {
             "bib_key": "OL2M",
-            "info_url": "http://openlibrary.org/books/OL2M/bar",
+            "info_url": "https://openlibrary.org/books/OL2M/bar",
             "preview": "full",
-            "preview_url": "http://www.archive.org/details/ia-bar"
+            "preview_url": "https://archive.org/details/ia-bar"
         }
     }
     json = dynlinks.dynlinks(["OL2M"], {"format": "json"})
@@ -377,9 +377,9 @@ def test_dynlinks_details(monkeypatch):
     expected_result = {
         "OL2M": {
             "bib_key": "OL2M",
-            "info_url": "http://openlibrary.org/books/OL2M/bar",
+            "info_url": "https://openlibrary.org/books/OL2M/bar",
             "preview": "full",
-            "preview_url": "http://www.archive.org/details/ia-bar",
+            "preview_url": "https://archive.org/details/ia-bar",
             "details": {
                 "key": "/books/OL2M",
                 "title": "bar",
@@ -399,7 +399,7 @@ class TestDataProcessor:
     def test_get_authors1(self, data1):
         p = dynlinks.DataProcessor()
         p.authors = data1
-        assert p.get_authors(data1['/works/OL1W']) == [{"url": "http://openlibrary.org/authors/OL1A/Mark_Twain", "name": "Mark Twain"}]
+        assert p.get_authors(data1['/works/OL1W']) == [{"url": "https://openlibrary.org/authors/OL1A/Mark_Twain", "name": "Mark Twain"}]
 
     def test_process_doc0(self, data0):
         p = dynlinks.DataProcessor()
