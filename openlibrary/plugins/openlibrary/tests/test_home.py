@@ -101,12 +101,14 @@ class TestHomeTemplates:
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
         monkeypatch.setattr(home, "get_returncart", lambda limit: [])
-        monkeypatch.setattr(web.ctx, "library", "somelibrary", raising=False)
+        monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
         html = unicode(render_template("home/index",
             stats=stats,
             lending_list="/people/foo/lists/OL1L"))
-        #assert "Books to Read" in html
-        assert "Return Cart" in html
+        #TODO: Test something more useful here?
+        assert "Popular Books" in html
+        assert "Recently Returned" in html
+        assert "Worth the Wait" in html
         assert "Around the Library" in html
         assert "About the Project" in html
 
@@ -115,13 +117,8 @@ class TestCarouselItem:
         context.context.features = []
 
     def render(self, book):
-        # Anand: sorry for the hack.
-        print sys._getframe(1)
-        render_template = sys._getframe(1).f_locals['render_template']
-
         if "authors" in book:
             book["authors"] = [web.storage(a) for a in book['authors']]
-
         return unicode(render_template("books/carousel_item", web.storage(book)))
 
     def link_count(self, html):
@@ -192,13 +189,12 @@ class TestCarouselItem:
             "inlibrary_borrow_url": "/books/OL1M/foo/borrow-inlibrary",
         }
 
+        monkeypatch.setitem(web.template.Template.globals, "get_library", lambda: {"name": "IA"})
+
         assert book['inlibrary_borrow_url'] not in self.render(book)
         assert self.link_count(self.render(book)) == 1
 
-        g = web.template.Template.globals
-        monkeypatch.setattr(web.template.Template, "globals", dict(g, get_library=lambda: {"name": "IA"}))
         monkeypatch.setattr(context.context, "features", ["inlibrary"], raising=False)
-        monkeypatch.setattr(web.ctx, "library", "somelibrary", raising=False)
         assert book['inlibrary_borrow_url'] in self.render(book)
         assert self.link_count(self.render(book)) == 2
 
