@@ -36,7 +36,7 @@ $else:
     $elif book.get("borrow_url"):
         <div class="coverEbook">
           <span class="actions read">
-            <a href="$book.borrow_url" title="$_('Read this book')" class="borrow-link"
+            <a href="$book.borrow_url" title="$_('Borrow this book')" class="borrow-link"
 	       $:(('data-ol-link-track="%s"' % pixel) if pixel else '') data-key="$(book.key)"
 	       data-ocaid="$(book.get('ocaid', '') or ','.join(book.get('ia', '')))">
               <span class="read-icon image borrow"></span>

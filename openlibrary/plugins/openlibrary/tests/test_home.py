@@ -36,6 +36,7 @@ def pytest_funcarg__olconfig(request):
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
+        kargs['_key'] = _id
         super(MockDoc,self).__init__(*largs, **kargs)
 
     def __repr__(self):
@@ -100,11 +101,10 @@ class TestHomeTemplates:
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
         monkeypatch.setattr(home, "get_returncart", lambda limit: [])
-
+        monkeypatch.setattr(web.ctx, "library", "somelibrary", raising=False)
         html = unicode(render_template("home/index",
             stats=stats,
             lending_list="/people/foo/lists/OL1L"))
-        assert '<div class="homeSplash"' in html
         #assert "Books to Read" in html
         assert "Return Cart" in html
         assert "Around the Library" in html
@@ -154,6 +154,7 @@ class TestCarouselItem:
 
     def test_urls(self, render_template):
         book = {
+            "key": "/books/OL1M",
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
@@ -183,6 +184,7 @@ class TestCarouselItem:
 
     def test_inlibrary(self, monkeypatch, render_template):
         book = {
+            "key": "/books/OL1M",
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
@@ -196,7 +198,7 @@ class TestCarouselItem:
         g = web.template.Template.globals
         monkeypatch.setattr(web.template.Template, "globals", dict(g, get_library=lambda: {"name": "IA"}))
         monkeypatch.setattr(context.context, "features", ["inlibrary"], raising=False)
-
+        monkeypatch.setattr(web.ctx, "library", "somelibrary", raising=False)
         assert book['inlibrary_borrow_url'] in self.render(book)
         assert self.link_count(self.render(book)) == 2
 
