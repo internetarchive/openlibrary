@@ -221,7 +221,7 @@ class Mock:
 
 def monkeypatch_ol(monkeypatch):
     mock = Mock()
-    mock.setup_call("isbn_10", "1234567890", _return="/books/OL1M")
+    mock.setup_call("isbn_", "1234567890", _return="/books/OL1M")
     mock.setup_call("key", "/books/OL2M", _return="/books/OL2M")
     monkeypatch.setattr(dynlinks, "ol_query", mock)
 
@@ -235,7 +235,6 @@ def monkeypatch_ol(monkeypatch):
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)
-
     assert dynlinks.query_keys(["isbn:1234567890"]) == {"isbn:1234567890": "/books/OL1M"}
     assert dynlinks.query_keys(["isbn:9876543210"]) == {}
     assert dynlinks.query_keys(["isbn:1234567890", "isbn:9876543210"]) == {"isbn:1234567890": "/books/OL1M"}
@@ -349,7 +348,7 @@ def test_isbnx(monkeypatch):
     site.save({
         "key": "/books/OL1M",
         "type": {"key": "/type/edition"},
-        "isbn_10": "123456789X"
+        "isbn_": "123456789X"
     })
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
