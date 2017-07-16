@@ -13,6 +13,11 @@ def escape_q(q):
 class search_inside(delegate.page):
     path = '/search/inside'
 
+    def quote_snippet(self, snippet):
+        trans = { '\n': ' ', '{{{': '<b>', '}}}': '</b>', }
+        re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
+        return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
+
     def GET(self):
         def get_results(q, offset=0, limit=100):
             q = escape_q(q)
@@ -65,9 +70,7 @@ class search_inside(delegate.page):
                 return {'error': 'Error converting search engine data to JSON'}
 
         def quote_snippet(snippet):
-            trans = { '\n': ' ', '{{{': '<b>', '}}}': '</b>', }
-            re_trans = re.compile(r'(\n|\{\{\{|\}\}\})')
-            return re_trans.sub(lambda m: trans[m.group(1)], web.htmlquote(snippet))
+            return self.quote_snippet(snippet)
 
         def editions_from_ia(ia):
             q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
@@ -79,7 +82,7 @@ class search_inside(delegate.page):
             return editions
 
         def read_from_archive(ia):
-            meta_xml = 'http://archive.org/download/' + ia + '/' + ia + '_meta.xml'
+            meta_xml = 'https://archive.org/download/' + ia + '/' + ia + '_meta.xml'
             stats.begin("archive.org", url=meta_xml)
             try:
                 xml_data = urllib2.urlopen(meta_xml, timeout=5)
@@ -107,7 +110,6 @@ class search_inside(delegate.page):
                 if len(v):
                     item[k] = [i.text for i in v if i.text]
             return item
-
         return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 class snippets(delegate.page):
