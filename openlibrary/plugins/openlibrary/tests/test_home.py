@@ -167,7 +167,7 @@ class TestCarouselItem:
         assert self.link_count(self.render(book)) == 2
 
         del book['read_url']
-        assert 'Borrow this book' in self.render(book)
+        assert 'Read this book' in self.render(book)
         assert book['borrow_url'] in self.render(book)
         assert self.link_count(self.render(book)) == 2
 
