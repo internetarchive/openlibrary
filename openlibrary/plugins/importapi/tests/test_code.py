@@ -40,13 +40,13 @@ class Test_ils_search:
             }
         }
 
-    def test_prepare_data(self):
-        prepare_data = code.ils_search().prepare_data
+    def test_prepare_input_data(self):
+        prepare_input_data = code.ils_search().prepare_input_data
 
         data = {
             'isbn': ['1234567890', '9781234567890', '123-4-56789-0', '978-1-935928-32-4']
         }
-        assert prepare_data(data) == {
+        assert prepare_input_data(data) == {
             'isbn_10': ['1234567890', '123-4-56789-0'],
             'isbn_13': ['9781234567890', '978-1-935928-32-4']
         }
