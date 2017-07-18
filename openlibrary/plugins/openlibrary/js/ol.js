@@ -402,14 +402,20 @@ $().ready(function(){
 	$('header .search-facet-selector select').val(capitalize(localStorage.getItem("facet")))
 	$('header .search-facet-value').html(capitalize(localStorage.getItem("facet")));
     	var url = ((localStorage.getItem("facet") === 'books')? '/search' : "/search/" + localStorage.getItem("facet"));
-	console.log(url);
 	$('.search-bar-input').attr("action", url);
     }
     var options = Browser.getJsonFromUrl();
     setFacet(options.facet || localStorage.getItem("facet") || "books");
 
     if (options.q) {	
-	$('.search-bar-input [type=text]').val(options.q.replace(/\+/g, " "));
+	var q = options.q.replace(/\+/g, " ")
+	if (q.indexOf('title:') != -1) {
+	    var parts = q.split('"');
+	    if (parts.length === 3) {
+		q = parts[1];
+	    }
+	}
+	$('.search-bar-input [type=text]').val(q);
     }
 
     var debounce = function (func, threshold, execAsap) {
@@ -505,12 +511,33 @@ $().ready(function(){
 	}
     }
 
+    var marshalBookSearchQuery = function(q) {
+	if (q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+	   q = 'title: "' + q + '"';
+	}
+	return q;
+    }
+
+    $('form.search-bar-input').submit(function(e) {
+	q = $('header .search-component .search-bar-input input').val();
+	console.log(q);
+	var facet = $('header .search-facet-selector select').val().toLowerCase();	
+	if (facet === 'books') {
+	    $('header .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
+	}
+    });
+
     var renderSearchResults = function(q) { 
 	var facet = $('header .search-facet-selector select').val().toLowerCase();
-	var url = ((facet === 'books')? '/search' : "/search/" + facet) + ".json?q=" + q + "&limit=10";
+	if (q === '') {
+	    return;
+	}
+	if (facet === 'books') {
+	    q = marshalBookSearchQuery(q);
+	}
+	var url = ((facet === 'books')? '/search' : "/search/" + facet) + ".json?q=" + q + "&limit=10&has_fulltext=true";
 	$('header .search-component ul.search-results').empty()
 	$.getJSON(url, function(data) {
-	    console.log(data.docs);
 	    for (var d in data.docs) {
 		renderSearchResult[facet](data.docs[d]);
 	    }
@@ -521,9 +548,12 @@ $().ready(function(){
 	$(document.body).css({'cursor' : 'wait'});
     }, 300, false));
 
-    $('header .search-component .search-bar-input input').keyup(debounce(function() {
-	renderSearchResults($(this).val());
-    }, 300, false));
+    $('header .search-component .search-bar-input input').keyup(debounce(function(e) {
+	// ignore directional keys and enter for callback
+	if (![13,37,38,39,40].includes(e.keyCode)){
+	    renderSearchResults($(this).val());
+	}
+    }, 500, false));
     
     $(document).click(debounce(function(event) { 
 	if(!$(event.target).closest('header .search-component').length) {
