@@ -15,6 +15,7 @@ from infogami.utils.context import context
 
 from utils import render_template
 
+from openlibrary.core.lending import amazon_api
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -25,6 +26,8 @@ import covers
 import borrow
 import recentchanges
 import merge_authors
+
+HALF_DAY = 60 * 60 * 12
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -64,6 +67,32 @@ def static_url(path):
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
     digest = md5.md5(open(fullpath).read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
+
+
+@public
+def get_amazon_metadata(isbn):
+    try:
+        isbn = isbn.replace(' ', '').strip()
+        if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
+            return _get_amazon_metadata(isbn)
+    except Exception:
+        return None
+
+def _get_amazon_metadata(isbn):
+    product = amazon_api.lookup(ItemId=isbn)
+    formatted_price =  product.formatted_price
+    if not formatted_price:
+        list_price, list_currency = product.list_price
+        if list_price:
+            formatted_price = '$%s %s' % (list_price, list_currency)
+
+    return {
+        'price': formatted_price
+    }
+
+cached_get_amazon_metadata = cache.memcache_memoize(
+    _get_amazon_metadata, "home._get_amazon_metadata", timeout=HALF_DAY)
+
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.

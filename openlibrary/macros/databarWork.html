@@ -13,6 +13,7 @@ $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
 $ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+$ prices = page.key.startswith('/books/')
 $ downloadbook = page.get_ia_download_link(".pdf")
 $ pdfbw = page.get_ia_download_link("_bw.pdf")
 $ daisy = page.get_ia_download_link("_daisy.zip")
@@ -189,7 +190,7 @@ $if isbn or asin or scribd:
             <span class="head">Buy</span>
         </h3>
         <div class="panel">
-            $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd})
+            $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
         </div>
     </div>
 $else:

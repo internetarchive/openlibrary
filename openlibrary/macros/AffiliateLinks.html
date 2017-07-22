@@ -1,5 +1,6 @@
 $def with (opts)
 
+$ prices = opts.get('prices')
 $ isbn = opts.get('isbn')
 $ asin = opts.get('asin')
 $ scribd = opts.get('scribd')
@@ -7,7 +8,12 @@ $ scribd = opts.get('scribd')
 <ul>
 $if asin:
     $ amazon = "http://www.amazon.com/dp/%s/?tag=%s" % (asin, affiliate_id('amazon'))
-    <li><a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a></li>
+    <li><a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>    
+        $if prices:
+            $ amazon_metadata = get_amazon_metadata(isbn)
+            $if amazon_metadata and 'price' in amazon_metadata and amazon_metadata['price']:
+                <span name="price">- $(amazon_metadata['price'])</span>
+    </li>
 $if isbn:
     $ better_world_books = "http://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx" % (affiliate_id('betterworldbooks'), isbn)
     <li><a href="$better_world_books" title="Look for this edition for sale at Better World Books" target="_blank">Better World Books</a></li>

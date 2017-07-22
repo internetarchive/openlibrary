@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger("openlibrary")
 
 def check_digit_10(isbn):
+    """Is this code right?... The length checks seem off by 1"""
     if len(isbn) != 9:
         raise ValueError("%s is not a valid ISBN 10" % isbn)
     sum = 0
