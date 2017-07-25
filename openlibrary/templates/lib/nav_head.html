@@ -1,6 +1,5 @@
 $def with (page)
 
-
 <header>
   <div class="hamburger-component">
     <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
@@ -33,19 +32,19 @@ $def with (page)
       <div class="search-bar">
         <div class="search-facet">
           <label class="search-facet-selector">
-            <span aria-hidden="true" class="search-facet-value">Books</span>
+            <span aria-hidden="true" class="search-facet-value">Title</span>
             <select aria-label="Search by">
-              <option>Books</option>
-              <option>Authors</option>
-              <option>Publishers</option>
-              <option>Subjects</option>
+              <option>Title</option>
+              <option>Author</option>
+              <option>Subject</option>
+              <option>Advanced</option>
               <!-- <option>Lists</option> -->
             </select>
           </label>
         </div>
         <form class="search-bar-input" action="/search" method="get">
           <input type="text" name="q" placeholder="Search" autocomplete="off">
-	  <input name="has_fulltext" type="checkbox" aria-hidden="true" checked="checked" value="true" id="ftokenstop" class="hidden">
+          <input name="has_fulltext" type="checkbox" aria-hidden="true" checked="checked" value="true" id="ftokenstop" class="hidden">
           <input type="submit" value="" class="search-bar-submit" type="submit" aria-label="Search submit">
         </form>
       </div>
@@ -124,4 +123,3 @@ $def with (page)
       </div>
     </div>
 </header>
-
