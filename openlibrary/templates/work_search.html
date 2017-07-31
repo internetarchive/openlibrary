@@ -223,6 +223,7 @@ function less(header) {
             \$().ready(bookCovers);
         //-->
         </script>
+	<div class="resultsContainer">
         <div id="searchResults">
         <ul id="siteSearch">
         $ work_keys = []
@@ -230,7 +231,7 @@ function less(header) {
             $ doc = get_doc(result_doc)
             $ key = doc.key
             $ work_keys.append(key)
-            <li itemscope itemtype="https://schema.org/Book">
+            <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
             <span class="bookcover">
                 $if doc.cover_edition_key:
                     $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
@@ -266,29 +267,15 @@ function less(header) {
                     </span>
                 </span>
             </span>
-            $if doc.public_scan and doc.get('has_fulltext'):
-                <span class="actions">
-                    <a href="//archive.org/stream/$doc.ia[0]?ref=ol" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
-                        <span class="image read"></span>
-                        <span class="label">$_("Read")</span>
-                    </a>
-                </span>
-
-            $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                <span class="actions read">
-                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book"
-                       data-key="$(doc.key)" data-ocaid="$(doc.get('ocaid', '') or ','.join(doc.get('ia', '')))">
-                        <span class="read-icon image borrow"></span>
-                        <span class="read-label label">Borrow</span>
-                    </a>
-                </span>
-            $elif not doc.public_scan and 'printdisabled' in doc.collections:
-                <span class="actions">
-                    <a href="$doc.key" title="Protected DAISY">
-                        <span class="image daisy"></span>
-                        <span class="label">DAISY</span>
-                    </a>
-                </span>
+	    <div class="searchResultItenCTA">
+            $#if not doc.public_scan and 'printdisabled' in doc.collections:
+            $#    <span class="actions">
+            $#        <a href="$doc.key" title="Protected DAISY">
+            $#            <span class="image daisy"></span>
+            $#            <span class="label">DAISY</span>
+            $#        </a>
+            $#    </span>
+            </div>
             </li>
         </ul>
         </div>
@@ -335,8 +322,8 @@ $if param and not error:
                 <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="orange">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="orange hidden">$_("less")</a></span></div>
             </div>
         </div>
-
 <!-- /facets -->
+        </div>
 
     $if param and not error:
         $:macros.Pager(page, num_found, rows)

@@ -39,7 +39,8 @@ LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
-config_ia_availability_api_url = None
+config_ia_availability_api_v1_url = None
+config_ia_availability_api_v2_url = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
@@ -59,8 +60,9 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_ia_availability_api_url, config_ia_xauth_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api
+        config_http_request_timeout, config_amz_api, amazon_api, \
+        config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
+        config_ia_xauth_api_url, config_http_request_timeout
 
     if config.get("content_server"):
         try:
@@ -73,7 +75,8 @@ def setup(config):
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
-    config_ia_availability_api_url = config.get('ia_availability_api_url')
+    config_ia_availability_api_v1_url = config.get('ia_availability_api_v1_url')
+    config_ia_availability_api_v2_url = config.get('ia_availability_api_v2_url')
     config_ia_xauth_api_url = config.get('ia_xauth_api_url')
     config_ia_access_secret = config.get('ia_access_secret')
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
@@ -103,7 +106,7 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     """
     _acs = '1' if acs else '0'
     _restricted = '1' if restricted else '0'
-    url = (config_ia_availability_api_url + '?action=availability&exact=%s&validate=%s'
+    url = (config_ia_availability_api_v1_url + '?action=availability&exact=%s&validate=%s'
            % (_acs, _restricted))
     data = urllib.urlencode({
         'identifiers': ','.join(identifiers)
@@ -115,6 +118,13 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     except Exception as e:
         return {'error': 'request_timeout'}
 
+def is_work_borrowable(ol_work_ids):
+    url = config_ia_availability_api_v2_url + '?openlibrary_work=' + ','.join(ol_work_ids)
+    try:
+        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        return simplejson.loads(content).get('responses', {})
+    except Exception as e:
+        return {'error': 'request_timeout'}
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.

@@ -1660,6 +1660,14 @@ header .expand .search-bar-input input {
     float: right;
 }
 
+/* Search v2 */
+
+ul.serp {
+    float: left;
+    width: 660px;
+    margin-left: 0;
+}
+
 /* LAYOUT */
 
 div#placement {width:960px;margin:0 auto;text-align:left;clear:both;}
@@ -2948,9 +2956,6 @@ div#contentHead {
     padding: 20px;
 }
 div#contentBody, div.contentBody {
-    float: left;
-    clear: both;
-    width: 918px;
     padding: 0 20px 20px;
 }
 div.contentBody.indent {
@@ -3205,16 +3210,8 @@ div.chartEnd {margin-right:0!important;}
 
 div#searchResults,
 div#searchResults ul {
-    float: left;
-    width: 660px;
+    flex: 1;
     margin-left: 0;
-}
-div#searchResults li {
-    float: left;
-    display: block;
-    width: 660px;
-    clear: both;
-    padding-bottom: 20px;
 }
 a.results:link { color: #000; text-decoration: none;}
 a.results:visited { color: #000; text-decoration: none;}
@@ -3260,6 +3257,66 @@ div#searchResults li img {
     height: 60px;
     max-width: 75px;
 }
+
+li.searchResultItem {
+    background-color: #fafafa;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 3px;
+}
+
+.searchResultItem .details {
+    width: 100%;
+    padding: 5px;
+}
+
+.searchResultItenCTA {
+    display: flex;
+    width: 245px;
+    align-items: center;
+    justify-content: center;
+    padding: 0px 5px 0px 15px;
+}
+
+.searchResultItenCTA .cta-btn {
+    border: none;
+    color: #fff;
+    width: 100%;
+    border: 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer; 
+    text-decoration: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-align: center;
+    padding: 5px 20px;
+    font-size: 0.9em;
+}
+
+.searchResultItenCTA .borrow_unavailable .badge {
+    background-color: #e6881a;
+    padding: 4px 7px;
+    border-radius: 30px;
+    font-size: .7em;
+}
+
+.borrow_available {
+    //background: rgb(66, 133, 244);
+    //background-color: #036DAA;
+    background-color: #3b99fc;
+}
+
+.borrow_unavailable {
+    background-color: #ffa337;
+}
+
+.borrow_missing {
+    //background-color: #e44028;
+    background-color: #ccc;
+}
+
+
 div#searchResults .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
 div#searchResults .SRPCover img {height:185px;}
 div#searchResults .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;margin:0 15px 20px 0;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
@@ -3277,11 +3334,19 @@ div#searchResults .SRPCoverBlank a {text-decoration: none;}
 
 /* SEARCH FACETS */
 
-div#searchFacets {
-    float: left;
-    width: 220px;
-    padding-right: 20px;
+.resultsContainer {
+    display: flex;
 }
+
+ul#siteSearch li {
+    display: flex;
+}
+
+div#searchFacets {
+    width: 220px;
+    padding: 0px 15px;
+}
+
 div.facet {
     margin-bottom: 20px;
 }
@@ -4116,10 +4181,11 @@ div#resultsCovers a {text-decoration: none;}
 .BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;font-size:0.875em;line-height:normal;}
 .Author {color:#666;font-style:italic;padding:4px 4px 0;font-size:11px;}
 
+ul#siteSearch li span.bookcover img {
+    width: 50px;
+}
 
 li span.bookcover {
-    display: block;
-    float: left;
     height: 60px;
     max-width: 75px;
     margin-right: 10px;
@@ -4143,10 +4209,6 @@ div#editionsList li img {
     max-width: 75px;
 }
 span.resultTitle {
-    display: block;
-    float: left;
-    max-width: 520px;
-    margin: 0!important;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     color: #666;
 }
@@ -4247,8 +4309,6 @@ span.actions span.daisy:hover {background-position: -408px 0!important;}
 
 ul#siteSearch span.resultTitle {
     display: block;
-    float: left;
-    max-width: 510px;
     margin: 0!important;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     color: #666;
