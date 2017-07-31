@@ -15,7 +15,7 @@
   stored as metadata within their Archive.org user account.
 */
 
-var getAvailability, getEditions, updateBookAvailability;
+var getAvailability, getAvailabilityV2, getEditions, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
@@ -80,10 +80,27 @@ $(function(){
         });
     };
 
+    getAvailabilityV2 = function(work_ids, callback) {
+        var url = '/availability/v2?openlibrary_work=' + work_ids.join(',');
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("Accept", "application/json");
+            },
+            success: function(result) {
+		return callback(result);
+            }
+        });
+    };
+
     /*
      * Finds DOM elements for borrowable books (i.e. they have a
      * data-ocaid field and a data-key field) within the specified
-     * scope of `selector` and updates they displayed borrow status
+     * scope of `selector` and updates the displayed borrow status
      * and ebook links to reflect correct statuses and available
      * copies.
      */
@@ -160,5 +177,63 @@ $(function(){
 	});
     };
 
+    updateWorkAvailability = function() {
+	var works = [];
+	var results = $('a.results');
+	$.each(results, function(index, e) {
+	    var href = $(e).attr('href');
+	    var _type_key_slug = href.split('/')
+	    var _type = _type_key_slug[1];
+	    var key = _type_key_slug[2];
+	    if (_type === 'works') {
+		works.push(key)
+	    }
+	});
+	getAvailabilityV2(works, function(response) {
+	    $.each(results, function(index, e) {
+		var href = $(e).attr('href');
+		var _type_key_slug = href.split('/')
+		var _type = _type_key_slug[1];
+		var key = _type_key_slug[2];
+		if (_type === 'works') {
+		    var work = response[key];
+		    var li = $(e).closest("li");
+		    var cta = li.find(".searchResultItenCTA");
+		    var msg = '';
+		    var link = '';
+		    if (work.status == 'error') {
+			li.remove();
+			// $(cta).append('<span class="cta-btn borrow_missing">No e-book</span>');
+		    } else {
+			var cls = 'borrow_available';
+			if (work.status === 'open') {
+			    msg = 'Read';
+			    link = '//archive.org/stream/' + work.identifier + '?ref=ol';
+			} else {
+			    msg = (work.status === 'borrow_available' || work.status === 'open')? 'Read' : 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span>';
+			    cls = work.status;
+			    link = '/books/' + work.openlibrary_edition + '/x/borrow';
+			}
+			$(cta).append(
+			    '<a href="' + link +  '" class="' + cls +
+				' borrow-link cta-btn">' + msg + '</button>'
+			);
+		    }
+		}
+	    });
+
+	    /*
+	    $('#searchResults').prepend('<ul class="serp"></ul>')
+	    $.each(results, function(index, result) {
+		$('#searchResults ul.serp').append(
+		    '<li>' + result + '</li>'
+		);
+	    });
+	    */
+	    
+	})
+    }
+
     updateBookAvailability();
+    updateWorkAvailability();
 });
