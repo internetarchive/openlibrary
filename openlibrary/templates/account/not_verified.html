@@ -1,4 +1,4 @@
-$def with (username, password, email)
+$def with (email, password)
 
 $var title: $_("Oops!")
 
@@ -23,7 +23,7 @@ div.alert {
 <p>If you can't find the email, just hit this button to send a fresh one:</p>
 
 <form method="POST" class="olform">
-    <input type="hidden" name="username" value="$username"/>
+    <input type="hidden" name="email" value="$email"/>
     <input type="hidden" name="password" value="$password"/>
     <input type="hidden" name="action" value="resend_verification_email"/>
 

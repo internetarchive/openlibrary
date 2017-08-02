@@ -176,7 +176,7 @@ class account(delegate.page):
 class account_create(delegate.page):
     """New account creation.
 
-    Account will in the pending state until the email is activated.
+    Account remains in the pending state until the email is activated.
     """
     path = "/account/create"
 
@@ -213,6 +213,21 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
+        if lending.config_ia_auth_only:
+            ia_account = InternetArchiveAccount.get(email=i.email)
+            ol_account = OpenLibraryAccount.get(email=i.email)
+            # Require email to not already be used in IA or OL
+            if ia_account or ol_account:
+                f.note = utils.get_error("email_not_already_used")  # email_should_not_already_be_used
+                return render['account/create'](f)
+
+            # Create ia_account: require they activate via IA email
+            # and then login to OL. Logging in after activation with
+            # IA credentials will auto create and link OL account.
+            ia_account = InternetArchiveAccount.create(
+                username=i.username, email=i.email, password=i.password,
+                verified=False)
+
         try:
             accounts.register(username=i.username,
                               email=i.email,
@@ -238,6 +253,32 @@ class account_login(delegate.page):
     """
     path = "/account/login"
 
+    LOGIN_ERRORS = {
+        "invalid_email": "The email address you entered is invalid",
+        "account_blocked": "This account has been blocked",
+        "account_locked": "This account has been blocked",
+        "account_not_found": "No account was found with this email. Please try again",
+        "account_incorrect_password": "The password you entered is incorrect. Please try again",
+        "account_bad_password": "Wrong password. Please try again",
+        "account_not_verified": "Please verify your Open Library account before logging in",
+        "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
+        "accounts_not_connected": "This account hasn't been connected yet",
+        "invalid_bridgeEmail": "Failed to link account: invalid email",
+        "account_already_linked": "This account has already been linked",
+        "missing_fields": "Please fill out all fields and try again",
+        "email_registered": "This email is already registered",
+        "username_registered": "This username is already registered",
+        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
+        "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+        "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
+    }
+
+    def render_error(self, error_key, i):
+        f = forms.Login()
+        f.fill(i)
+        f.note = self.LOGIN_ERRORS[error_key]
+        return render.login(f)
+
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         i = web.input(redirect=referer)
@@ -246,45 +287,14 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(email='', connect=None, remember=False,
-                      redirect='/', action="login")
+        i = web.input(username="", connect=None, password="", remember=False,
+                      redirect='/', test=False)
+        email = i.username  # XXX username is now email
+        audit = audit_accounts(email, i.password, require_link=True, test=i.test)
+        error = audit.get('error')
 
-        if i.action == "resend_verification_email":
-            return self.POST_resend_verification_email(i)
-        else:
-            return self.POST_login(i)
-
-    def error(self, name, i):
-        f = forms.Login()
-        f.fill(i)
-        f.note = utils.get_error(name)
-        return render.login(f)
-
-    def error_check(self, audit, i):
-        if 'error' in audit:
-            error = audit['error']
-            if error == "account_not_verified":
-                return render_template(
-                    "account/not_verified", username=account.username,
-                    password=i.password, email=account.email)
-            elif error == "account_not_found":
-                return self.error("account_user_notfound", i)
-            elif error == "account_blocked":
-                return self.error("account_blocked", i)
-            else:
-                return self.error(audit['error'], i)
-        if not audit['link']:
-            # This needs to be overriden w/ `test`
-            return self.error("accounts_not_connected", i)
-        return None
-
-    def POST_login(self, i):
-        i = web.input(username="", password="", remember=False, redirect='')
-
-        audit = audit_accounts(i.username, i.password)
-        errors = self.error_check(audit, i)
-        if errors:
-            return errors
+        if error:
+            return self.render_error(error, i)
 
         blacklist = ["/account/login", "/account/password", "/account/email",
                      "/account/create"]
@@ -298,13 +308,13 @@ class account_login(delegate.page):
 
     def POST_resend_verification_email(self, i):
         try:
-            accounts.login(i.username, i.password)
+            ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = accounts.find(username=i.username)
+        account = OpenLibraryAccount.get(email=i.email)
         account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
@@ -366,11 +376,6 @@ class account_email(delegate.page):
     def get_email(self):
         user = accounts.get_current_user()
         return user.get_account()['email']
-
-    @require_login
-    def GET(self):
-        f = forms.ChangeEmail()
-        return render['account/email'](self.get_email(), f)
 
     @require_login
     def POST(self):

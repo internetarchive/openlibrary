@@ -18,7 +18,7 @@ Login = Form(
 forms.login = Login
 
 email_already_used = Validator(_("No user registered with this email address"), lambda email: find_account(email=email) is not None)
-email_not_already_used = Validator(_("Email already used"), lambda email: find_account(email=email) is None)
+email_not_already_used = Validator(_("Email already registered"), lambda email: find_account(email=email) is None)
 email_not_disposable = Validator(_("Disposable email not permitted"), lambda email: not email.lower().endswith('dispostable.com'))
 email_domain_not_blocked = Validator(_("Your email provider is not recognized."), lambda email: not spamcheck.is_spam_email(email))
 username_validator = Validator(_("Username already used"), lambda username: not find_account(lusername=username.lower()))
