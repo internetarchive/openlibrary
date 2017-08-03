@@ -598,8 +598,8 @@ def audit_accounts(email, password, require_link=False, test=False):
 
     if ia_login != "ok":
         # Prioritize returning other errors over `account_not_found`
-        if resp != "account_not_found":
-            return {'error': resp}
+        if ia_login != "account_not_found":
+            return {'error': ia_login}
         return {'error': 'account_not_found'}
 
     else:
@@ -646,6 +646,7 @@ def audit_accounts(email, password, require_link=False, test=False):
             except ValueError as e:
                 return {'error': 'max_retries_exceeded'}
 
+            ol_account.link(ia_account.itemname)
             stats.increment('ol.account.xauth.ia-auto-created-ol')
 
         # So long as there's either a linked OL account, or an unlinked OL
@@ -663,8 +664,10 @@ def audit_accounts(email, password, require_link=False, test=False):
             if ol_account.blocked:
                 return {'error': 'account_blocked'}
 
-    if require_link and not ol_account.itemname:
-        return {'error': 'accounts_not_connected'}
+    if require_link:
+        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)        
+        if ol_account and not ol_account.itemname:
+            return {'error': 'accounts_not_connected'}
 
     # When a user logs in with OL credentials, the
     # web.ctx.site.login() is called with their OL user

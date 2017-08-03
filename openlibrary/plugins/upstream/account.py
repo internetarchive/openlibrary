@@ -237,8 +237,7 @@ class account_create(delegate.page):
         ol_account = OpenLibraryAccount.get(email=i.email)
         # Require email to not already be used in IA or OL
         if ia_account or ol_account:
-            # email_should_not_already_be_used
-            f.note = utils.get_error("email_not_already_used")  
+            f.note = LOGIN_ERRORS['email_registered']
             return render['account/create'](f)
 
         try:
