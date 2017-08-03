@@ -590,33 +590,20 @@ def audit_accounts(email, password, require_link=False, test=False):
     if not valid_email(email):
         return {'error': 'invalid_email'}
 
-    audit = {
-        'authenticated': False,
-        'has_ia': False,
-        'has_ol': False,
-        'link': False
-    }
-
-    ol_login = OpenLibraryAccount.authenticate(email, password)
     ia_login = InternetArchiveAccount.authenticate(email, password)
 
-    if any([err in (ol_login, ia_login) for err
-            in ['account_blocked', 'account_locked']]):
+    if any(ia_login == err for err
+            in ['account_blocked', 'account_locked']):
         return {'error': 'account_locked'}
 
-    if "ok" not in (ol_login, ia_login):
-        # Neither login succeeded. Prioritize returning other errors
-        # over `account_not_found`
-        for resp in (ol_login, ia_login):
-            if resp != "account_not_found":
-                return {'error': resp}
+    if ia_login != "ok":
+        # Prioritize returning other errors over `account_not_found`
+        if resp != "account_not_found":
+            return {'error': resp}
         return {'error': 'account_not_found'}
 
-    if ia_login == "ok":
+    else:
         ia_account = InternetArchiveAccount.get(email=email, test=test)
-
-        audit['authenticated'] = 'ia'  # XXX authenticated_with
-        audit['has_ia'] = email  # XXX change to ia_email
 
         # Get the OL account which links to this IA account
         ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
@@ -647,252 +634,60 @@ def audit_accounts(email, password, require_link=False, test=False):
         # `ol_account` shares the same email as our IA account and
         # thus can and should be safely linked to our IA account, or
         # (c) no `ol_account` which is linked or can be linked has
-        # been found and therefore, asuming
+        # been found and therefore, assuming
         # lending.config_ia_auth_only is enabled, we need to create
         # and link it.
         if not ol_account:
-            if lending.config_ia_auth_only:
-                try:
-                    ol_account = OpenLibraryAccount.create(
-                        ia_account.itemname, email, password,
-                        displayname=ia_account.screenname,
-                        verified=True, test=test)
-                except ValueError as e:
-                    return {'error': 'max_retries_exceeded', 'msg': str(e)}
+            try:
+                ol_account = OpenLibraryAccount.create(
+                    ia_account.itemname, email, password,
+                    displayname=ia_account.screenname,
+                    verified=True, test=test)
+            except ValueError as e:
+                return {'error': 'max_retries_exceeded'}
 
-                if not ol_account.itemname:
-                    ol_account.link(ia_account.itemname)
-                    stats.increment('ol.account.xauth.ia-auto-created-ol')
-
-                audit['link'] = ia_account.itemname
-                audit['has_ol'] = ol_account.email
-                web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+            stats.increment('ol.account.xauth.ia-auto-created-ol')
 
         # So long as there's either a linked OL account, or an unlinked OL
         # account with the same email, set them as linked (and let the
         # finalize logic link them, if needed)
         else:
-            if lending.config_ia_auth_only:
-                if not ol_account.itemname:
-                    ol_account.link(ia_account.itemname)
-                    stats.increment('ol.account.xauth.auto-linked')
+            if not ol_account.itemname:
+                ol_account.link(ia_account.itemname)
+                stats.increment('ol.account.xauth.auto-linked')
             if not ol_account.verified:
-                if lending.config_ia_auth_only:
-                    # The IA account is activated (verifying the
-                    # integrity of their email), so we make a judgement
-                    # call to safely activate them.
-                    ol_account.activate()
-                else:
-                    return {'error': 'ia_account_not_verified'}
+                # The IA account is activated (verifying the
+                # integrity of their email), so we make a judgement
+                # call to safely activate them.
+                ol_account.activate()
             if ol_account.blocked:
                 return {'error': 'account_blocked'}
-            audit['link'] = ia_account.itemname
-            audit['has_ol'] = ol_account.email  # XXX ol_email
 
-            # When a user logs in with OL credentials, the
-            # web.ctx.site.login() is called with their OL user
-            # credentials, which internally sets an auth_token
-            # enabling the user's session.  The web.ctx.site.login
-            # method requires OL credentials which are not present in
-            # the case where a user logs in with their IA
-            # credentials. As a result, when users login with their
-            # valid IA credentials, the following kludge allows us to
-            # fetch the OL account linked to their IA account, bypass
-            # this web.ctx.site.login method (which requires OL
-            # credentials), and directly set an auth_token to
-            # enable the user's session.
-            web.ctx.conn.set_auth_token(ol_account.generate_login_code())
-
-    elif ol_login == "ok":
-        ol_account = OpenLibraryAccount.get(email=email, test=test)
-        audit['authenticated'] = 'ol'
-        audit['has_ol'] = email
-
-        ia_account = InternetArchiveAccount.get(email=email, test=test)
-        if ol_account.itemname:
-            audit['has_ia'] = ol_account.itemname
-            audit['link'] = ol_account.itemname
-
-            if lending.config_ia_auth_only:
-                # When enabled, this will prevent users from logging in
-                # with their Open Library credentials and instead require
-                # Internet Archive (Archive.org) credentials.
-                return {'error': 'ia_login_only'}
-
-        # If the OL account is not linked but there exists an IA
-        # account having the same email,
-        elif ia_account:
-            if not ia_account.verified:
-                return {'error': 'ia_account_not_verified'}
-            if ia_account.locked:
-                return {'error': 'account_blocked'}
-            audit['has_ia'] = ia_account.itemname
-            audit['link'] = ia_account.itemname
-
-    # Links the accounts if they can be and are not already:
-    if (audit['has_ia'] and audit['has_ol'] and audit['authenticated']):
-        ol_account = OpenLibraryAccount.get(email=audit['has_ol'], test=test)
-        if not ol_account.itemname:
-            ol_account.link(audit['link'])
-            stats.increment('ol.account.xauth.auto-linked')
-
-    if require_link and not audit.get('link', None):
+    if require_link and not ol_account.itemname:
         return {'error': 'accounts_not_connected'}
-    return audit
 
-def create_accounts(email, password, username="", retries=10, test=False):
-    """Retrieves the IA or OL account having correct email and password
-    credentials
-    """
-    retries = 0 if test else retries
-    audit = audit_accounts(email, password)
+    # When a user logs in with OL credentials, the
+    # web.ctx.site.login() is called with their OL user
+    # credentials, which internally sets an auth_token
+    # enabling the user's session.  The web.ctx.site.login
+    # method requires OL credentials which are not present in
+    # the case where a user logs in with their IA
+    # credentials. As a result, when users login with their
+    # valid IA credentials, the following kludge allows us to
+    # fetch the OL account linked to their IA account, bypass
+    # this web.ctx.site.login method (which requires OL
+    # credentials), and directly set an auth_token to
+    # enable the user's session.
+    web.ctx.conn.set_auth_token(ol_account.generate_login_code())
+    return {
+        'authenticated': True,
+        'ia_email': ia_account.email,
+        'ol_email': ol_account.email,
+        'ia_username': ia_account.screenname,
+        'ol_username': ol_account.username,
+        'link': ol_account.itemname,
+    }
 
-    if 'error' in audit or (audit['link'] and audit['authenticated']):
-        return audit
-
-    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
-                  if audit.get('has_ia', False) else None)
-    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
-                  if audit.get('has_ol', False) else None)
-
-    # Make sure at least one account exists
-    # XXX should never get here, move to audit
-    if ia_account and ol_account:
-        if not audit['link']:
-            if ia_account.locked or ol_account.blocked():
-                return {'error': 'account_blocked'}
-            audit['link'] = ia_account.itemname
-            ol_account.link(ia_account.itemname)
-            stats.increment('ol.account.xauth.auto-linked')
-        return audit
-    elif not (ia_account or ol_account):
-        return {'error': 'account_not_found'}
-
-    # Create and link new account
-    if email and password:
-        if ol_account:
-            try:
-                ol_account_username = (
-                    username or ol_account.displayname
-                    or ol_account.username)
-
-                ia_account = InternetArchiveAccount.create(
-                    ol_account_username, email, password,
-                    retries=retries, verified=True, test=test)
-
-                audit['link'] = ia_account.itemname
-                audit['has_ia'] = ia_account.email
-                audit['has_ol'] = ol_account.email
-                if not test:
-                    ol_account.link(ia_account.itemname)
-                    stats.increment('ol.account.xauth.ol-created-ia')
-                return audit
-            except ValueError as e:
-                return {'error': 'max_retries_exceeded', 'msg': str(e)}
-        elif ia_account:
-            try:
-                # always take screen name
-                ia_account_screenname = ia_account.screenname
-                ia_account_itemname = ia_account.itemname
-                ol_account = OpenLibraryAccount.create(
-                    ia_account_itemname, email, password,
-                    displayname=ia_account_screenname,
-                    retries=retries, verified=True, test=test)
-                audit['has_ol'] = ol_account.email
-                audit['has_ia'] = ia_account.email
-                audit['link'] = ia_account.itemname
-                if not test:
-                    ol_account.link(ia_account.itemname)
-                    stats.increment('ol.account.xauth.ia-created-ol')
-                return audit
-            except ValueError as e:
-                return {'error': 'max_retries_exceeded', 'msg': str(e)}
-        return {'error': 'account_not_found'}
-    return {'error': 'missing_fields'}
-
-def link_accounts(email, password, bridgeEmail="", bridgePassword="",
-                  test=False):
-    """Takes the correct email and password for an archive.org or
-    openlibrary.org account and then links this account to an existing
-    account for the complimentary service (using the bridge credentials)
-
-    Args:
-        email (unicode) - the email of the user's primary account
-        password (unicode) - the password for the user's primary account
-        bridgeEmail (unicode) - the email of the secondary account which
-                                to connect
-        bridgePassword (unicode) - the password of the secondary
-                                   account to connect
-        test (bool) - isn't currently used in the link_accounts case
-                      because linking is a safely reversable operation.
-                      Test *is* used in the create_accounts case
-                      (where it prevents real accounts from being
-                      created)
-    """
-    audit = audit_accounts(email, password)
-
-    if 'error' in audit or (audit['link'] and audit['authenticated']):
-        return audit
-
-    ia_account = (InternetArchiveAccount.get(email=audit['has_ia'])
-                  if audit.get('has_ia', False) else None)
-    ol_account = (OpenLibraryAccount.get(email=audit['has_ol'])
-                  if audit.get('has_ol', False) else None)
-
-    # Make sure at least one account exists
-    # XXX should never get here, move to audit
-    if ia_account and ol_account:
-        if not audit['link']:
-            if ia_account.locked or ol_account.blocked():
-                return {'error': 'account_blocked'}
-            audit['link'] = ia_account.itemname
-            ol_account.link(ia_account.itemname)
-            if not test:
-                stats.increment('ol.account.xauth.auto-linked')
-        return audit
-    elif not (ia_account or ol_account):
-        return {'error': 'account_not_found'}
-
-    # Link existing accounts
-    if bridgeEmail and bridgePassword:
-        if not valid_email(bridgeEmail):
-            return {'error': 'invalid_bridgeEmail'}
-        if ol_account:
-            _res = InternetArchiveAccount.authenticate(
-                email=bridgeEmail, password=bridgePassword, test=test)
-            if _res == "ok":
-                ia_account = InternetArchiveAccount.get(
-                    email=bridgeEmail, test=test)
-                if OpenLibraryAccount.get_by_link(ia_account.itemname):
-                    return {'error': 'account_already_linked'}
-
-                ol_account.link(ia_account.itemname)
-                audit['link'] = ia_account.itemname
-                audit['has_ia'] = ia_account.email
-                audit['has_ol'] = ol_account.email
-                if not test:
-                    stats.increment('ol.account.xauth.ol-existing-ia')
-                return audit
-            return {'error': _res}
-        elif ia_account:
-            _resp = OpenLibraryAccount.authenticate(
-                bridgeEmail, bridgePassword)
-            if _resp == "ok":
-                ol_account = OpenLibraryAccount.get(
-                    email=bridgeEmail, test=test)
-                if ol_account.itemname:
-                    return {'error': 'account_already_linked'}
-
-                audit['has_ia'] = ia_account.email
-                audit['has_ol'] = ol_account.email
-                audit['link'] = ia_account.itemname
-                ol_account.link(ia_account.itemname)
-                if not test:
-                    stats.increment('ol.account.xauth.ia-existing-ol')
-                return audit
-            return {'error': _resp}
-        return {'error': 'account_not_found'}
-    return {'error': 'missing_fields'}
 
 @public
 def get_internet_archive_id(key):

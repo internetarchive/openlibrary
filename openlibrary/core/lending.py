@@ -42,7 +42,6 @@ config_ia_availability_api_url = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
-config_ia_auth_only = None
 config_http_request_timeout = None
 config_content_server = None
 config_loanstatus_url = None
@@ -57,7 +56,7 @@ def setup(config):
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
         config_ia_availability_api_url, config_ia_xauth_api_url, \
-        config_http_request_timeout, config_ia_auth_only
+        config_http_request_timeout
 
     if config.get("content_server"):
         try:
@@ -66,13 +65,6 @@ def setup(config):
             logger.exception('Failed to assign config_content_server')
     else:
         logger.error('content_server unassigned')
-
-    _ia_auth_only = False
-    if config.get('ia_auth_only'):
-        try:
-            _ia_auth_only = bool(int(config.get('ia_auth_only')))
-        except:
-            logger.exception('Invalid value for ia_auth_only -- should be int 1 or 0')
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -85,7 +77,7 @@ def setup(config):
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    config_ia_auth_only = False or _ia_auth_only
+
 
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating

@@ -23,7 +23,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
 from openlibrary.accounts import (
-    audit_accounts, link_accounts, create_accounts,
+    audit_accounts, 
     Account, OpenLibraryAccount, InternetArchiveAccount,
     valid_email
 )
@@ -39,6 +39,25 @@ send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
+LOGIN_ERRORS = {
+        "invalid_email": "The email address you entered is invalid",
+        "account_blocked": "This account has been blocked",
+        "account_locked": "This account has been blocked",
+        "account_not_found": "No account was found with this email. Please try again",
+        "account_incorrect_password": "The password you entered is incorrect. Please try again",
+        "account_bad_password": "Wrong password. Please try again",
+        "account_not_verified": "Please verify your Open Library account before logging in",
+        "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
+        "accounts_not_connected": "This account hasn't been connected yet",
+        "invalid_bridgeEmail": "Failed to link account: invalid email",
+        "account_already_linked": "This account has already been linked",
+        "missing_fields": "Please fill out all fields and try again",
+        "email_registered": "This email is already registered",
+        "username_registered": "This username is already registered",
+        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
+        "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+        "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
+    }
 
 class availability(delegate.page):
     path = "/internal/fake/availability"
@@ -213,31 +232,26 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
-        if lending.config_ia_auth_only:
-            ia_account = InternetArchiveAccount.get(email=i.email)
-            ol_account = OpenLibraryAccount.get(email=i.email)
-            # Require email to not already be used in IA or OL
-            if ia_account or ol_account:
-                f.note = utils.get_error("email_not_already_used")  # email_should_not_already_be_used
-                return render['account/create'](f)
 
+        ia_account = InternetArchiveAccount.get(email=i.email)
+        ol_account = OpenLibraryAccount.get(email=i.email)
+        # Require email to not already be used in IA or OL
+        if ia_account or ol_account:
+            # email_should_not_already_be_used
+            f.note = utils.get_error("email_not_already_used")  
+            return render['account/create'](f)
+
+        try:
             # Create ia_account: require they activate via IA email
             # and then login to OL. Logging in after activation with
             # IA credentials will auto create and link OL account.
             ia_account = InternetArchiveAccount.create(
-                username=i.username, email=i.email, password=i.password,
+                screenname=i.username, email=i.email, password=i.password,
                 verified=False)
-
-        try:
-            accounts.register(username=i.username,
-                              email=i.email,
-                              password=i.password,
-                              displayname=i.displayname)
-        except ClientException, e:
-            f.note = str(e)
+        except ValueError as e:
+            f.note = LOGIN_ERRORS['max_retries_exceeded']
             return render['account/create'](f)
 
-        send_verification_email(i.username, i.email)
         return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
@@ -253,30 +267,10 @@ class account_login(delegate.page):
     """
     path = "/account/login"
 
-    LOGIN_ERRORS = {
-        "invalid_email": "The email address you entered is invalid",
-        "account_blocked": "This account has been blocked",
-        "account_locked": "This account has been blocked",
-        "account_not_found": "No account was found with this email. Please try again",
-        "account_incorrect_password": "The password you entered is incorrect. Please try again",
-        "account_bad_password": "Wrong password. Please try again",
-        "account_not_verified": "Please verify your Open Library account before logging in",
-        "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
-        "accounts_not_connected": "This account hasn't been connected yet",
-        "invalid_bridgeEmail": "Failed to link account: invalid email",
-        "account_already_linked": "This account has already been linked",
-        "missing_fields": "Please fill out all fields and try again",
-        "email_registered": "This email is already registered",
-        "username_registered": "This username is already registered",
-        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
-        "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
-        "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
-    }
-
     def render_error(self, error_key, i):
         f = forms.Login()
         f.fill(i)
-        f.note = self.LOGIN_ERRORS[error_key]
+        f.note = LOGIN_ERRORS[error_key]
         return render.login(f)
 
     def GET(self):
@@ -570,41 +564,6 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
-
-class account_connect(delegate.page):
-
-    path = "/account/connect"
-
-    def POST(self):
-        """When a user logs in with either an OL or IA account which have not
-        been linked, and if the user's credentials for this account
-        have been verified, the next step is for the user to (a)
-        connect their account to an account for whichever service is
-        missing, or (b) to create a new account for this service and
-        then link them. The /account/connect endpoint handles this
-        linking case and dispatches to the correct method (either
-        'link' or 'create' depending on the parameters POSTed to the
-        endpoint).
-
-        Note: Emails are case sensitive behind the scenes and
-        functions which require them as lower will make them so
-        """
-
-        i = web.input(email="", password="", username="",
-                      bridgeEmail="", bridgePassword="",
-                      token="", service="link")
-        test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
-        if i.service == "link":
-            result = link_accounts(i.get('email'), i.password,
-                                   bridgeEmail=i.bridgeEmail,
-                                   bridgePassword=i.bridgePassword)
-        elif i.service == "create":
-            result = create_accounts(i.get('email'), i.password,
-                                   username=i.username, test=test)
-        else:
-            result = {'error': 'invalid_option'}
-        return delegate.RawText(simplejson.dumps(result),
-                                content_type="application/json")
 
 class account_audit(delegate.page):
 
