@@ -398,6 +398,7 @@ $().ready(function(){
     }
 
     // Maps search facet label with value
+    var defaultFacet = "title";
     var searchFacets = {
         'title': 'books',
         'author': 'authors',
@@ -463,7 +464,10 @@ $().ready(function(){
         renderSearchResults(q);
     }
     var options = Browser.getJsonFromUrl();
-    setFacet(options.facet || localStorage.getItem("facet") || "title");
+    if (!searchFacets[localStorage.getItem("facet")]) {
+	localStorage.setItem("facet", defaultFacet)
+    }
+    setFacet(options.facet || localStorage.getItem("facet") || defaultFacet);
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
@@ -563,7 +567,7 @@ $().ready(function(){
             );
         },
         authors: function(author) {
-            console.log(author.photograph);
+	    // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
             $('header .search-component ul.search-results').append(
                 '<li><a href="/authors/' + author.key + '"><img src="' + ("http://covers.openlibrary.org/a/olid/" + author.key + "-S.jpg") + '"/><span class="author-desc"><div class="author-name">' +
                     author.name + '</div></span></a></li>'
