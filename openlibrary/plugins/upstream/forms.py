@@ -5,10 +5,15 @@ from infogami.core import forms
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
+from openlibrary.accounts import InternetArchiveAccount
 from . import spamcheck
 
 def find_account(username=None, lusername=None, email=None):
     return accounts.find(username=username, lusername=lusername, email=email)
+
+def find_ia_account(email=None):
+    ia_account = InternetArchiveAccount.get(email=email)
+    return ia_account
 
 Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
@@ -18,7 +23,7 @@ Login = Form(
 forms.login = Login
 
 email_already_used = Validator(_("No user registered with this email address"), lambda email: find_account(email=email) is not None)
-email_not_already_used = Validator(_("Email already registered"), lambda email: find_account(email=email) is None)
+email_not_already_used = Validator(_("Email already registered"), lambda email: not find_ia_account(email=email))
 email_not_disposable = Validator(_("Disposable email not permitted"), lambda email: not email.lower().endswith('dispostable.com'))
 email_domain_not_blocked = Validator(_("Your email provider is not recognized."), lambda email: not spamcheck.is_spam_email(email))
 username_validator = Validator(_("Username already used"), lambda username: not find_account(lusername=username.lower()))

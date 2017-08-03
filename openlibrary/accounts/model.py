@@ -445,6 +445,8 @@ class OpenLibraryAccount(Account):
         """Careful, this will save any other changes to the ol user object as
         well
         """
+        itemname = itemname if itemname.startswith('@') else '@%s' % itemnamek
+
         _ol_account = web.ctx.site.store.get(self._key)
         _ol_account['internetarchive_itemname'] = itemname
         web.ctx.site.store[self._key] = _ol_account
@@ -665,7 +667,7 @@ def audit_accounts(email, password, require_link=False, test=False):
                 return {'error': 'account_blocked'}
 
     if require_link:
-        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)        
+        ol_account = OpenLibraryAccount.get(link=ia_account.itemname, test=test)
         if ol_account and not ol_account.itemname:
             return {'error': 'accounts_not_connected'}
 

@@ -23,7 +23,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
 from openlibrary.accounts import (
-    audit_accounts, 
+    audit_accounts,
     Account, OpenLibraryAccount, InternetArchiveAccount,
     valid_email
 )
@@ -232,11 +232,9 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
-
         ia_account = InternetArchiveAccount.get(email=i.email)
-        ol_account = OpenLibraryAccount.get(email=i.email)
         # Require email to not already be used in IA or OL
-        if ia_account or ol_account:
+        if ia_account:
             f.note = LOGIN_ERRORS['email_registered']
             return render['account/create'](f)
 
