@@ -44,20 +44,19 @@ class EqualToValidator(Validator):
 
 class RegisterForm(Form):
     INPUTS = [
-        Textbox("displayname", description=_("Your Full Name")),
-        Textbox('email', description=_('Your Email Address'),
+        Textbox('email', description=_('Your email address'),
             klass='required',
             validators=[vemail, email_not_already_used, email_not_disposable, email_domain_not_blocked]),
-        Textbox('email2', description=_('Confirm Your Email Address'),
-            klass='required',
-            validators=[EqualToValidator('email', _('Your emails do not match. Please try again.'))]),
-        Textbox('username', description=_('Choose a Username'),
+        Textbox('username', description=_('Choose a screen name'),
             klass='required',
             help=_("Only letters and numbers, please, and at least 3 characters."),
             validators=[vlogin, username_validator]),
-        Password('password', description=_('Choose a Password'),
+        Password('password', description=_('Choose a password'),
             klass='required',
-            validators=[vpass])
+            validators=[vpass]),
+        Textbox('password2', description=_('Confirm password'),
+            klass='required',
+            validators=[vpass, EqualToValidator('password', _("Passwords didn't match."))]),
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
