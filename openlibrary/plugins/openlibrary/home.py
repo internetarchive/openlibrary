@@ -42,7 +42,10 @@ class home(delegate.page):
         returncart_list = config.get("home", {}).get("returncart_list")
 
         user = accounts.get_current_user()
-        loans = borrow.get_loans(user) if user else None
+        try:
+            loans = borrow.get_loans(user) if user else None
+        except:
+            loans = None
 
         return render_template(
             "home/index", stats=stats,
