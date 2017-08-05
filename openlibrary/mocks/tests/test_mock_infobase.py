@@ -34,7 +34,12 @@ class TestMockSite:
             "type": {"key": "/type/edition"},
             "title": "The Test Book",
             "revision": 1,
+            "latest_revision": 1,
             "last_modified": {
+                "type": "/type/datetime",
+                "value": "2010-01-02T03:04:05"
+            },
+            "created": {
                 "type": "/type/datetime",
                 "value": "2010-01-02T03:04:05"
             }
