@@ -51,9 +51,18 @@ class Test_ils_search:
         prepare_input_data = code.ils_search().prepare_input_data
 
         data = {
-            'isbn': ['1234567890', '9781234567890', '123-4-56789-0', '978-1-935928-32-4']
+            'isbn': ['1234567890', '9781234567890'],
+            'ocaid': ['abc123def'],
+            'publisher': 'Some Books',
+            'authors': ['baz']
         }
         assert prepare_input_data(data) == {
-            'isbn_10': ['1234567890', '123-4-56789-0'],
-            'isbn_13': ['9781234567890', '978-1-935928-32-4']
+            'doc': {
+                'identifiers': {
+                     'isbn': ['1234567890', '9781234567890'],
+                      'ocaid': ['abc123def']
+                },
+                'publisher': 'Some Books',
+                'authors': [{'name': 'baz'}]
+            }
         }
