@@ -52,10 +52,15 @@ class MockSite:
 
         doc = dict(query)
         doc['revision'] = rev
+        doc['latest_revision'] = rev
         doc['last_modified'] = {
             "type": "/type/datetime",
             "value": timestamp.isoformat()
         }
+        if rev == 1:
+            doc['created'] = doc['last_modified']
+        else:
+            doc['created'] = self.docs[key]['created']
 
         self.docs[key] = doc
 
