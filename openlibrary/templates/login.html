@@ -14,7 +14,7 @@ $var title: $("Log In")
 
 <div id="contentBody">
   $if not ctx.user:
-      <p>Please enter your Internet Archive (<a href="https://archive.org">Archive.org</a>) email and password to access your Open Library account.</p>
+      <p>Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.</p>
 
   $if ctx.user:
       <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))</p>
