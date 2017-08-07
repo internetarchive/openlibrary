@@ -130,123 +130,15 @@ class Xauth_Test(unittest.TestCase):
         error = olsession.driver.find_element_by_class_name('note').text
         self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
-
-    # ======================================================
-    # All combos of initial OL login audit
-    # ======================================================
-
-    def test_ol_missing_password(self):
-        olsession.login(OL_VERIFIED['email'], u'password')
-        _error = errorLookup['account_bad_password']
-        error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_incorrect_password(self):
-        olsession.login(OL_VERIFIED['email'], u'password')
-        _error = errorLookup['account_bad_password']
-        error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_blocked(self):
-        olsession.login(**OL_BLOCKED)
-        _error = errorLookup['account_blocked']
-        error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_blocked_incorrect_password(self):
-        olsession.login(OL_BLOCKED['email'], 'password')
-        _error = errorLookup['account_blocked']
-        error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_unverified(self):
-        olsession.login(**OL_UNVERIFIED)
-        _error = errorLookup['account_not_verified']
-        error = olsession.driver.find_element_by_class_name('note').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-
     # ======================================================
     # All combinations of connect attempts after initial
     # successful audit for an IA account
     # ======================================================
 
-    def test_ia_verified_connect_unregistered_email(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(**UNREGISTERED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_missing_email(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect('', 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['missing_fields']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_ol_missing_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(OL_VERIFIED['email'], '')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['missing_fields']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_ia_missing_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(IA_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_ol_incorrect_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(OL_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_incorrect_password']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_ia_incorrect_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(IA_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
     def test_ia_verified_connect_ol_blocked(self):
         olsession.unlink(OL_VERIFIED['email'])
         olsession.login(**IA_VERIFIED)
         olsession.connect(**OL_BLOCKED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_blocked']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_ia_blocked(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(**IA_BLOCKED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ia_verified_connect_linked_blocked(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**IA_VERIFIED)
-        olsession.connect(**LINKED_BLOCKED)
         olsession.wait_for_visible('connectError')
         _error = errorLookup['account_blocked']
         error = olsession.driver.find_element_by_id('connectError').text
@@ -323,83 +215,6 @@ class Xauth_Test(unittest.TestCase):
 
         # finalize by unlinking for future tests
         olsession.unlink(OL_VERIFIED['email'])
-
-    # ======================================================
-    # All combinations of connect attempts after initial
-    # successful audit for an OL account
-    # ======================================================
-
-    def test_ol_verified_connect_invalid_email(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(IA_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_incorrect_password']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_unregistered_email(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(**UNREGISTERED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_missing_email(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect('', 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['missing_fields']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_ia_missing_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(IA_VERIFIED['email'], '')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['missing_fields']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_ol_incorrect_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(OL_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_ia_incorrect_password(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(IA_VERIFIED['email'], 'password')
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_incorrect_password']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_ol_blocked(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(**OL_BLOCKED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_not_found']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
-
-    def test_ol_verified_connect_ia_blocked(self):
-        olsession.unlink(OL_VERIFIED['email'])
-        olsession.login(**OL_VERIFIED)
-        olsession.connect(**IA_BLOCKED)
-        olsession.wait_for_visible('connectError')
-        _error = errorLookup['account_locked']
-        error = olsession.driver.find_element_by_id('connectError').text
-        self.assertTrue(error == _error, '%s != %s' % (error, _error))
 
     def test_ol_verified_connect_ol_blocked_linked(self):
         olsession.unlink(IA_VERIFIED['email'])

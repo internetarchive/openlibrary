@@ -5,10 +5,15 @@ from infogami.core import forms
 from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
+from openlibrary.accounts import InternetArchiveAccount
 from . import spamcheck
 
 def find_account(username=None, lusername=None, email=None):
     return accounts.find(username=username, lusername=lusername, email=email)
+
+def find_ia_account(email=None):
+    ia_account = InternetArchiveAccount.get(email=email)
+    return ia_account
 
 Login = Form(
     Textbox('username', description=_('Username'), klass='required'),
@@ -18,7 +23,7 @@ Login = Form(
 forms.login = Login
 
 email_already_used = Validator(_("No user registered with this email address"), lambda email: find_account(email=email) is not None)
-email_not_already_used = Validator(_("Email already used"), lambda email: find_account(email=email) is None)
+email_not_already_used = Validator(_("Email already registered"), lambda email: not find_ia_account(email=email))
 email_not_disposable = Validator(_("Disposable email not permitted"), lambda email: not email.lower().endswith('dispostable.com'))
 email_domain_not_blocked = Validator(_("Your email provider is not recognized."), lambda email: not spamcheck.is_spam_email(email))
 username_validator = Validator(_("Username already used"), lambda username: not find_account(lusername=username.lower()))
@@ -39,20 +44,19 @@ class EqualToValidator(Validator):
 
 class RegisterForm(Form):
     INPUTS = [
-        Textbox("displayname", description=_("Your Full Name")),
-        Textbox('email', description=_('Your Email Address'),
+        Textbox('email', description=_('Your email address'),
             klass='required',
             validators=[vemail, email_not_already_used, email_not_disposable, email_domain_not_blocked]),
-        Textbox('email2', description=_('Confirm Your Email Address'),
-            klass='required',
-            validators=[EqualToValidator('email', _('Your emails do not match. Please try again.'))]),
-        Textbox('username', description=_('Choose a Username'),
+        Textbox('username', description=_('Choose a screen name'),
             klass='required',
             help=_("Only letters and numbers, please, and at least 3 characters."),
             validators=[vlogin, username_validator]),
-        Password('password', description=_('Choose a Password'),
+        Password('password', description=_('Choose a password'),
             klass='required',
-            validators=[vpass])
+            validators=[vpass]),
+        Textbox('password2', description=_('Confirm password'),
+            klass='required',
+            validators=[vpass, EqualToValidator('password', _("Passwords didn't match."))]),
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)

@@ -78,6 +78,7 @@ def setup(config):
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
 
+
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating
     whether each of these books represented by these identifiers are

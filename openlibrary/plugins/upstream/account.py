@@ -23,7 +23,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 
 from openlibrary import accounts
 from openlibrary.accounts import (
-    audit_accounts, link_accounts, create_accounts,
+    audit_accounts,
     Account, OpenLibraryAccount, InternetArchiveAccount,
     valid_email
 )
@@ -39,6 +39,22 @@ send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
 sendmail = accounts.sendmail
 
+LOGIN_ERRORS = {
+        "invalid_email": "The email address you entered is invalid",
+        "account_blocked": "This account has been blocked",
+        "account_locked": "This account has been blocked",
+        "account_not_found": "No account was found with this email. Please try again",
+        "account_incorrect_password": "The password you entered is incorrect. Please try again",
+        "account_bad_password": "Wrong password. Please try again",
+        "account_not_verified": "Please verify your Open Library account before logging in",
+        "ia_account_not_verified": "Please verify your Internet Archive account before logging in",
+        "missing_fields": "Please fill out all fields and try again",
+        "email_registered": "This email is already registered",
+        "username_registered": "This username is already registered",
+        "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
+        "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+        "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
+    }
 
 class availability(delegate.page):
     path = "/internal/fake/availability"
@@ -176,7 +192,7 @@ class account(delegate.page):
 class account_create(delegate.page):
     """New account creation.
 
-    Account will in the pending state until the email is activated.
+    Account remains in the pending state until the email is activated.
     """
     path = "/account/create"
 
@@ -213,16 +229,23 @@ class account_create(delegate.page):
             f.note = utils.get_error("account_create_tos_not_selected")
             return render['account/create'](f)
 
-        try:
-            accounts.register(username=i.username,
-                              email=i.email,
-                              password=i.password,
-                              displayname=i.displayname)
-        except ClientException, e:
-            f.note = str(e)
+        ia_account = InternetArchiveAccount.get(email=i.email)
+        # Require email to not already be used in IA or OL
+        if ia_account:
+            f.note = LOGIN_ERRORS['email_registered']
             return render['account/create'](f)
 
-        send_verification_email(i.username, i.email)
+        try:
+            # Create ia_account: require they activate via IA email
+            # and then login to OL. Logging in after activation with
+            # IA credentials will auto create and link OL account.
+            ia_account = InternetArchiveAccount.create(
+                screenname=i.username, email=i.email, password=i.password,
+                verified=False)
+        except ValueError as e:
+            f.note = LOGIN_ERRORS['max_retries_exceeded']
+            return render['account/create'](f)
+
         return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
@@ -238,6 +261,12 @@ class account_login(delegate.page):
     """
     path = "/account/login"
 
+    def render_error(self, error_key, i):
+        f = forms.Login()
+        f.fill(i)
+        f.note = LOGIN_ERRORS[error_key]
+        return render.login(f)
+
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         i = web.input(redirect=referer)
@@ -246,45 +275,14 @@ class account_login(delegate.page):
         return render.login(f)
 
     def POST(self):
-        i = web.input(email='', connect=None, remember=False,
-                      redirect='/', action="login")
+        i = web.input(username="", connect=None, password="", remember=False,
+                      redirect='/', test=False)
+        email = i.username  # XXX username is now email
+        audit = audit_accounts(email, i.password, require_link=True, test=i.test)
+        error = audit.get('error')
 
-        if i.action == "resend_verification_email":
-            return self.POST_resend_verification_email(i)
-        else:
-            return self.POST_login(i)
-
-    def error(self, name, i):
-        f = forms.Login()
-        f.fill(i)
-        f.note = utils.get_error(name)
-        return render.login(f)
-
-    def error_check(self, audit, i):
-        if 'error' in audit:
-            error = audit['error']
-            if error == "account_not_verified":
-                return render_template(
-                    "account/not_verified", username=account.username,
-                    password=i.password, email=account.email)
-            elif error == "account_not_found":
-                return self.error("account_user_notfound", i)
-            elif error == "account_blocked":
-                return self.error("account_blocked", i)
-            else:
-                return self.error(audit['error'], i)
-        if not audit['link']:
-            # This needs to be overriden w/ `test`
-            return self.error("accounts_not_connected", i)
-        return None
-
-    def POST_login(self, i):
-        i = web.input(username="", password="", remember=False, redirect='')
-
-        audit = audit_accounts(i.username, i.password)
-        errors = self.error_check(audit, i)
-        if errors:
-            return errors
+        if error:
+            return self.render_error(error, i)
 
         blacklist = ["/account/login", "/account/password", "/account/email",
                      "/account/create"]
@@ -298,13 +296,13 @@ class account_login(delegate.page):
 
     def POST_resend_verification_email(self, i):
         try:
-            accounts.login(i.username, i.password)
+            ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
         except ClientException, e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
 
-        account = accounts.find(username=i.username)
+        account = OpenLibraryAccount.get(email=i.email)
         account.send_verification_email()
 
         title = _("Hi %(user)s", user=account.displayname)
@@ -366,11 +364,6 @@ class account_email(delegate.page):
     def get_email(self):
         user = accounts.get_current_user()
         return user.get_account()['email']
-
-    @require_login
-    def GET(self):
-        f = forms.ChangeEmail()
-        return render['account/email'](self.get_email(), f)
 
     @require_login
     def POST(self):
@@ -565,41 +558,6 @@ class account_password_reset(delegate.page):
         link.delete()
         return render_template("account/password/reset_success", username=username)
 
-
-class account_connect(delegate.page):
-
-    path = "/account/connect"
-
-    def POST(self):
-        """When a user logs in with either an OL or IA account which have not
-        been linked, and if the user's credentials for this account
-        have been verified, the next step is for the user to (a)
-        connect their account to an account for whichever service is
-        missing, or (b) to create a new account for this service and
-        then link them. The /account/connect endpoint handles this
-        linking case and dispatches to the correct method (either
-        'link' or 'create' depending on the parameters POSTed to the
-        endpoint).
-
-        Note: Emails are case sensitive behind the scenes and
-        functions which require them as lower will make them so
-        """
-
-        i = web.input(email="", password="", username="",
-                      bridgeEmail="", bridgePassword="",
-                      token="", service="link")
-        test = 'openlibrary' if i.token == lending.config_internal_tests_api_key else None
-        if i.service == "link":
-            result = link_accounts(i.get('email'), i.password,
-                                   bridgeEmail=i.bridgeEmail,
-                                   bridgePassword=i.bridgePassword)
-        elif i.service == "create":
-            result = create_accounts(i.get('email'), i.password,
-                                   username=i.username, test=test)
-        else:
-            result = {'error': 'invalid_option'}
-        return delegate.RawText(simplejson.dumps(result),
-                                content_type="application/json")
 
 class account_audit(delegate.page):
 
