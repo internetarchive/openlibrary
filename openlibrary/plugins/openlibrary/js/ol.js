@@ -403,12 +403,14 @@ $().ready(function(){
         'title': 'books',
         'author': 'authors',
         'subject': 'subjects',
+	'all': 'all',
         'advanced': 'advancedsearch'
     };
 
     var composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
-        var url = ((facet_value === 'books')? '/search' : "/search/" + facet_value);
+        var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
+	console.log(url);
         if (json) {
             url += '.json';
         }
@@ -438,9 +440,10 @@ $().ready(function(){
         var url = composeSearchUrl(q, true, 10);
 
         $('header .search-component ul.search-results').empty()
+	var facet = facet_value === 'all'? 'books' : facet_value;
         $.getJSON(url, function(data) {
             for (var d in data.docs) {
-                renderSearchResult[facet_value](data.docs[d]);
+                renderSearchResult[facet](data.docs[d]);
             }
         });
     }
