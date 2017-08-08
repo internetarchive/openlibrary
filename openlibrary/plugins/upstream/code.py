@@ -74,7 +74,7 @@ def static_url(path):
 
 
 def normalize_isbn(isbn):
-    _isbn = isbn.replace(' ', '').strip()    
+    _isbn = isbn.replace(' ', '').strip()
     if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
         return _isbn
 
@@ -143,16 +143,6 @@ def _get_betterworldbooks_metadata(isbn):
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
     _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=HALF_DAY)
-
-
-class test(delegate.page):
-    path = "/testing/prices"
-
-    def GET(self):
-        i = web.input(isbn=None)
-        data = _get_amazon_metadata(i.isbn)
-        return delegate.RawText(simplejson.dumps({'amz': data}))
-
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
@@ -350,4 +340,3 @@ def setup():
 
     setup_jquery_urls()
 setup()
-
