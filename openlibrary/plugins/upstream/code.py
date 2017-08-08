@@ -5,7 +5,9 @@ import web
 import random
 import simplejson
 import md5
+import re
 import datetime
+import urllib2
 
 from infogami import config
 from infogami.infobase import client
@@ -15,6 +17,7 @@ from infogami.utils.context import context
 
 from utils import render_template
 
+from openlibrary.core import cache
 from openlibrary.core.lending import amazon_api
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
@@ -28,6 +31,7 @@ import recentchanges
 import merge_authors
 
 HALF_DAY = 60 * 60 * 12
+BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -69,29 +73,85 @@ def static_url(path):
     return "/static/%s?v=%s" % (path, digest)
 
 
+def normalize_isbn(isbn):
+    _isbn = isbn.replace(' ', '').strip()    
+    if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
+        return _isbn
+
 @public
 def get_amazon_metadata(isbn):
     try:
-        isbn = isbn.replace(' ', '').strip()
-        if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
+        isbn = normalize_isbn(isbn)
+        if isbn:
             return _get_amazon_metadata(isbn)
     except Exception:
         return None
 
 def _get_amazon_metadata(isbn):
     product = amazon_api.lookup(ItemId=isbn)
-    formatted_price =  product.formatted_price
-    if not formatted_price:
-        list_price, list_currency = product.list_price
-        if list_price:
-            formatted_price = '$%s %s' % (list_price, list_currency)
-
+    price = product._safe_get_element_text('Offers.Offer.OfferListing.Price.Amount')
+    price = ('$' + str((int(price) / 100.)) + ' (new)') if price else None
     return {
-        'price': formatted_price
+        'price': price
     }
 
 cached_get_amazon_metadata = cache.memcache_memoize(
     _get_amazon_metadata, "home._get_amazon_metadata", timeout=HALF_DAY)
+
+@public
+def get_betterworldbooks_metadata(isbn):
+    try:
+        isbn = normalize_isbn(isbn)
+        if isbn:
+            return _get_betterworldbooks_metadata(isbn)
+    except Exception:
+        return None
+
+def _get_betterworldbooks_metadata(isbn):
+    url = BETTERWORLDBOOKS_API_URL + isbn
+    try:
+        req = urllib2.Request(url)
+        f = urllib2.urlopen(req)
+        response = f.read()
+        f.close()
+        product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
+        result = {
+            'url': product_url[0] if product_url else None,
+        }
+        new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
+        new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
+        used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
+        used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
+        if new_qty and new_qty[0] and new_qty[0] != '0':
+            result['new'] = {
+                'price': new_price[0] if new_price else None,
+                'qty': new_qty[0] if new_qty else None
+            }
+        if used_qty and used_qty[0] and used_qty[0] != '0':
+            result['used'] = {
+                'price': used_price[0] if used_price else None,
+                'qty': used_qty[0] if used_qty else None
+            }
+        return result
+    except urllib2.HTTPError as e:
+        try:
+            response = e.read()
+        except simplejson.decoder.JSONDecodeError:
+            return {'error': e.read(), 'code': e.code}
+        return simplejson.loads(response)
+
+
+cached_get_betterworldbooks_metadata = cache.memcache_memoize(
+    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=HALF_DAY)
+
+
+class test(delegate.page):
+    path = "/testing/prices"
+
+    def GET(self):
+        i = web.input(isbn=None)
+        data = _get_amazon_metadata(i.isbn)
+        return delegate.RawText(simplejson.dumps({'amz': data}))
 
 
 class DynamicDocument:
