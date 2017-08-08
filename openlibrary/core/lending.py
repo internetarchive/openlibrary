@@ -83,9 +83,10 @@ def setup(config):
     config_http_request_timeout = config.get('http_request_timeout')
     config_amz_api = config.get('amazon_api')
 
-    amazon_api = AmazonAPI(config_amz_api.key, config_amz_api.secret, config_amz_api.id)
-
-
+    try:
+        amazon_api = AmazonAPI(config_amz_api.key, config_amz_api.secret, config_amz_api.id)
+    except AttributeError:
+        amazon_api = None
 
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating

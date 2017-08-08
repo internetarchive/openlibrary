@@ -88,6 +88,8 @@ def get_amazon_metadata(isbn):
         return None
 
 def _get_amazon_metadata(isbn):
+    if not amazon_api:
+        return None  # likely dev instance and keys not set
     product = amazon_api.lookup(ItemId=isbn)
     price = product._safe_get_element_text('Offers.Offer.OfferListing.Price.Amount')
     price = ('$' + str((int(price) / 100.)) + ' (new)') if price else None
