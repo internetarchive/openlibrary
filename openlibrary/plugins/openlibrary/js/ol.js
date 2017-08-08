@@ -403,12 +403,13 @@ $().ready(function(){
         'title': 'books',
         'author': 'authors',
         'subject': 'subjects',
+        'all': 'all',
         'advanced': 'advancedsearch'
     };
 
     var composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
-        var url = ((facet_value === 'books')? '/search' : "/search/" + facet_value);
+        var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
             url += '.json';
         }
@@ -438,9 +439,10 @@ $().ready(function(){
         var url = composeSearchUrl(q, true, 10);
 
         $('header .search-component ul.search-results').empty()
+        var facet = facet_value === 'all'? 'books' : facet_value;
         $.getJSON(url, function(data) {
             for (var d in data.docs) {
-                renderSearchResult[facet_value](data.docs[d]);
+                renderSearchResult[facet](data.docs[d]);
             }
         });
     }
@@ -465,7 +467,7 @@ $().ready(function(){
     }
     var options = Browser.getJsonFromUrl();
     if (!searchFacets[localStorage.getItem("facet")]) {
-	localStorage.setItem("facet", defaultFacet)
+        localStorage.setItem("facet", defaultFacet)
     }
     setFacet(options.facet || localStorage.getItem("facet") || defaultFacet);
 
@@ -567,7 +569,7 @@ $().ready(function(){
             );
         },
         authors: function(author) {
-	    // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
+            // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
             $('header .search-component ul.search-results').append(
                 '<li><a href="/authors/' + author.key + '"><img src="' + ("http://covers.openlibrary.org/a/olid/" + author.key + "-S.jpg") + '"/><span class="author-desc"><div class="author-name">' +
                     author.name + '</div></span></a></li>'
