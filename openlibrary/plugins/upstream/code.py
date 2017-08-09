@@ -97,7 +97,7 @@ def _get_amazon_metadata(isbn):
     price, qlt = (None, None)
 
     if used and new:
-        price, qlt = (used, 'used') if used < new else (new, 'new')
+        price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
     elif used or new:
         price, qlt = (used, 'used') if used else (new, 'new')
 
