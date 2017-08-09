@@ -125,23 +125,28 @@ def _get_betterworldbooks_metadata(isbn):
         response = f.read()
         f.close()
         product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
-        result = {
-            'url': product_url[0] if product_url else None,
-        }
         new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
         new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
         used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
+
+        price, qlt = None, None
+
         if used_qty and used_qty[0] and used_qty[0] != '0':
-            result['used'] = {
-                'price': used_price[0] if used_price else None,
-                'qty': used_qty[0] if used_qty else None
-            }
-        elif new_qty and new_qty[0] and new_qty[0] != '0':
-            result['new'] = {
-                'price': new_price[0] if new_price else None,
-                'qty': new_qty[0] if new_qty else None
-            }
+            price = float(used_price[0]) if used_price else ''
+            qlt = 'used'
+
+        if new_qty and new_qty[0] and new_qty[0] != '0':
+            _price = used_price[0] if used_price else None
+            if price and _price and _price < price:
+                price = _price
+                qlt = 'new'
+        
+        return {
+            'url': product_url[0] if product_url else None,
+            'price': price,
+            'qlt': qlt
+        }
         return result
     except urllib2.HTTPError as e:
         try:
