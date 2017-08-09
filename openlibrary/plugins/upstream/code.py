@@ -90,11 +90,19 @@ def get_amazon_metadata(isbn):
 def _get_amazon_metadata(isbn):
     if not amazon_api:
         return ''  # likely dev instance and keys not set
+
     product = amazon_api.lookup(ItemId=isbn)
-    price = product._safe_get_element_text('Offers.Offer.OfferListing.Price.Amount')
-    price = ('$' + str((int(price) / 100.)) + ' (new)') if price else None
+    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
+    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')    
+    price, qlt = (None, None)
+
+    if used and new:
+        price, qlt = (used, 'used') if used < new else (new, 'new')
+    elif used or new:
+        price, qlt = (used, 'used') if used else (new, 'new')
+
     return {
-        'price': price
+        'price': "$%s (%s)" % ('{:0,.2f}'.format(int(price)/100.), qlt) if price and qlt else ''
     }
 
 cached_get_amazon_metadata = cache.memcache_memoize(
@@ -124,15 +132,15 @@ def _get_betterworldbooks_metadata(isbn):
         new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
         used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
-        if new_qty and new_qty[0] and new_qty[0] != '0':
-            result['new'] = {
-                'price': new_price[0] if new_price else None,
-                'qty': new_qty[0] if new_qty else None
-            }
         if used_qty and used_qty[0] and used_qty[0] != '0':
             result['used'] = {
                 'price': used_price[0] if used_price else None,
                 'qty': used_qty[0] if used_qty else None
+            }
+        elif new_qty and new_qty[0] and new_qty[0] != '0':
+            result['new'] = {
+                'price': new_price[0] if new_price else None,
+                'qty': new_qty[0] if new_qty else None
             }
         return result
     except urllib2.HTTPError as e:
