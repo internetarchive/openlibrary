@@ -15,7 +15,7 @@ $if asin:
           <td>
             <a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
           </td>
-          <td>
+          <td class="price">
             $if prices:
                 $ amazon_metadata = get_amazon_metadata(isbn)
                 $if amazon_metadata and 'price' in amazon_metadata and amazon_metadata['price']:
@@ -26,7 +26,7 @@ $if asin:
             <tr>
               $ better_world_books = "http://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx" % (affiliate_id('betterworldbooks'), isbn)
               <td><a href="$better_world_books" title="Look for this edition for sale at Better World Books" target="_blank">Better World Books</a></td>
-              <td>
+              <td class="price">
               $if prices:
                   $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
                   $if 'price' in betterworldbooks_metadata:
