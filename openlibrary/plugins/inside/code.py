@@ -69,9 +69,6 @@ class search_inside(delegate.page):
             except:
                 return {'error': 'Error converting search engine data to JSON'}
 
-        def quote_snippet(snippet):
-            return self.quote_snippet(snippet)
-
         def editions_from_ia(ia):
             q = {'type': '/type/edition', 'ocaid': ia, 'title': None, 'covers': None, 'works': None, 'authors': None}
             editions = web.ctx.site.things(q)
@@ -110,7 +107,7 @@ class search_inside(delegate.page):
                 if len(v):
                     item[k] = [i.text for i in v if i.text]
             return item
-        return render_template('search/inside.tmpl', get_results, quote_snippet, editions_from_ia, read_from_archive)
+        return render_template('search/inside.tmpl', get_results, self.quote_snippet, editions_from_ia, read_from_archive)
 
 class snippets(delegate.page):
     path = '/search/inside/(.+)'
