@@ -202,8 +202,11 @@ $(function(){
 		    var msg = '';
 		    var link = '';
 		    if (work.status == 'error') {
-			li.remove();
-			// $(cta).append('<span class="cta-btn borrow_missing">No e-book</span>');
+			if (localStorage.getItem('mode') === "ebooks") {
+			    li.remove();
+			} else {
+			    $(cta).append('<span class="cta-btn borrow_missing">Unavailable</span>');
+			}
 		    } else {
 			var cls = 'borrow_available';
 			if (work.status === 'open') {

@@ -3253,6 +3253,15 @@ div#searchResults.work .resultTitle {
 }
 
 
+.mode-options {
+    font-size: .8em;
+}
+
+.mode-options input {
+    margin-left: 10px;
+    margin-right: 3px;
+}
+
 div#searchResults li img {
     height: 60px;
     max-width: 75px;
