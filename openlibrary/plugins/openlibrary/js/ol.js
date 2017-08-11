@@ -388,6 +388,7 @@ function passwordHide(){
 })(jQuery);
 };
 
+var searchMode;
 $().ready(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
@@ -396,6 +397,10 @@ $().ready(function(){
     var capitalize = function(word) {
         return word.charAt(0).toUpperCase() + word.slice(1);
     }
+
+    // Search mode
+    var searchModes = new Set(['everything', 'ebooks', 'printdisabled'])
+    var searchModeDefault = 'ebooks';
 
     // Maps search facet label with value
     var defaultFacet = "title";
@@ -407,7 +412,7 @@ $().ready(function(){
         'advanced': 'advancedsearch'
     };
 
-    var composeSearchUrl = function(q, json, limit) {
+    var composeSearchUrl = function(q, json, limit, options) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
@@ -417,7 +422,13 @@ $().ready(function(){
         if (limit) {
             url += '&limit=' + limit;
         }
-        return url + '&has_fulltext=true';
+	// If we're not searching everything, only return
+	// ebooks. We'll filter out the daisy-only after we get the
+	// results, as necessary
+	if (localStorage.getItem('mode') !== 'everything') {
+	    url += '&has_fulltext=true';
+	}
+        return url + '&mode=' + localStorage.getItem('mode');
     }
 
     var marshalBookSearchQuery = function(q) {
@@ -465,11 +476,24 @@ $().ready(function(){
         $('.search-bar-input').attr("action", url);
         renderSearchResults(q);
     }
+
+    var setSearchMode = function(mode) {
+	var searchMode = mode || localStorage.getItem("mode");
+	var isValidMode = searchModes.has(searchMode);
+	localStorage.setItem('mode', isValidMode? 
+			     searchMode : searchModeDefault);
+	$('.instantsearch-mode').val(localStorage.getItem("mode"));
+	$('input[name=mode][value=' + localStorage.getItem("mode") + ']')
+	    .attr('checked', 'true');
+    }
+
     var options = Browser.getJsonFromUrl();
+
     if (!searchFacets[localStorage.getItem("facet")]) {
         localStorage.setItem("facet", defaultFacet)
     }
     setFacet(options.facet || localStorage.getItem("facet") || defaultFacet);
+    setSearchMode(options.mode);
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
@@ -500,6 +524,10 @@ $().ready(function(){
             timeout = setTimeout(delayed, threshold || 100);
         };
     };
+
+    $('.search-mode').live('click', function(e) {	
+	$('.olform').submit();
+    });
 
     $('.trigger').live('submit', function(e) {
         e.preventDefault(e);
