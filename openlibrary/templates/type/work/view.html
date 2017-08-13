@@ -232,12 +232,13 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $:render_template("lists/widget", page)
                 </div>
 
-        <a name="editions"></a>
+        <div id="editions" class="section">
         $if page.edition_count == 1:
             $:render_template("books/edition-show", page.get_one_edition())
         $elif page.edition_count > 1:
             <div class="clearfix"></div>
             $:render_template("type/work/editions_datatable", page)
+        </div>
 
         $:render_template("lib/history", page)
     </div>
