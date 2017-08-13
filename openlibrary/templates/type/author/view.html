@@ -255,7 +255,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $if page.remote_ids.wikidata:
                         <li><a href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">Wikidata</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
-                    <li><a href="$page.wikipedia" class="sidebar">Wikipedia</a></li>
+                    <li><a href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
