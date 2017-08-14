@@ -249,7 +249,7 @@ function less(header) {
                         <a itemprop="name" href="$doc.url"
                         class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
                     </h3>
-                    <span class="bookauthor">by
+                    <div class="bookauthor">by
                     $if not doc.authors:
                         <em>Unknown author</em>
                     $else:
@@ -266,7 +266,7 @@ function less(header) {
                                 <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
                             $else:
                                 $doc.first_publish_year
-                    </span>
+                    </div>
                 </span>
             </span>
 	    <div class="searchResultItenCTA">
