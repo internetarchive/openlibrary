@@ -3,6 +3,9 @@ import logging
 logger = logging.getLogger("openlibrary")
 
 def check_digit_10(isbn):
+    """I believe this is checking the case where ISBNs start with a
+    leading X? It only appears to be used in isbn_13_to_isbn_10 and
+    isbn_10_to_isbn_13"""
     if len(isbn) != 9:
         raise ValueError("%s is not a valid ISBN 10" % isbn)
     sum = 0
@@ -17,6 +20,9 @@ def check_digit_10(isbn):
         return str(r)
 
 def check_digit_13(isbn):
+    """I believe this is checking the case where ISBNs start with a
+    leading X? It only appears to be used in isbn_13_to_isbn_10 and
+    isbn_10_to_isbn_13"""
     if len(isbn) != 12:
         raise ValueError
     sum = 0

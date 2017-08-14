@@ -2343,6 +2343,18 @@ div.Tools table {width:250px;}
 div.Tools table td {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
 div.Tools table td.vendor {padding:3px 10px 0 42px;}
 div.Tools table td.price {padding:3px 0 0 0;text-align:right;}
+div.Tools table.buy-options-table {
+    border-spacing: 5px;
+    margin-left: 45px;
+    width: 210px;
+}
+div.Tools table.buy-options-table td {
+    padding: 5px 0px;
+}
+div.Tools table.buy-options-table td.price {
+    text-align: right;
+}
+
 div.Tools li {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
@@ -2360,6 +2372,8 @@ div.Tools div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bot
 div.Tools div.dropper div.dropdown p span {font-size:.8125em;}
 div.Tools div.dropper div.dropdown p a {font-size:.875em;}
 div.Tools div.dropper div.dropdown {display:none;padding-top:10px;}
+
+
 
 /* MESSAGING */
 div.alert, div.verify {

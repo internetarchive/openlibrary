@@ -5,7 +5,9 @@ import web
 import random
 import simplejson
 import md5
+import re
 import datetime
+import urllib2
 
 from infogami import config
 from infogami.infobase import client
@@ -15,6 +17,8 @@ from infogami.utils.context import context
 
 from utils import render_template
 
+from openlibrary.core import cache
+from openlibrary.core.lending import amazon_api
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -25,6 +29,9 @@ import covers
 import borrow
 import recentchanges
 import merge_authors
+
+HALF_DAY = 60 * 60 * 12
+BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -64,6 +71,93 @@ def static_url(path):
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
     digest = md5.md5(open(fullpath).read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
+
+
+def normalize_isbn(isbn):
+    _isbn = isbn.replace(' ', '').strip()
+    if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
+        return _isbn
+
+@public
+def get_amazon_metadata(isbn):
+    try:
+        isbn = normalize_isbn(isbn)
+        if isbn:
+            return _get_amazon_metadata(isbn)
+    except Exception:
+        return None
+
+def _get_amazon_metadata(isbn):
+    if not amazon_api:
+        return ''  # likely dev instance and keys not set
+
+    product = amazon_api.lookup(ItemId=isbn)
+    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
+    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')    
+    price, qlt = (None, None)
+
+    if used and new:
+        price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
+    elif used or new:
+        price, qlt = (used, 'used') if used else (new, 'new')
+
+    return {
+        'price': "$%s (%s)" % ('{:0,.2f}'.format(int(price)/100.), qlt) if price and qlt else ''
+    }
+
+cached_get_amazon_metadata = cache.memcache_memoize(
+    _get_amazon_metadata, "home._get_amazon_metadata", timeout=HALF_DAY)
+
+@public
+def get_betterworldbooks_metadata(isbn):
+    try:
+        isbn = normalize_isbn(isbn)
+        if isbn:
+            return _get_betterworldbooks_metadata(isbn)
+    except Exception:
+        return None
+
+def _get_betterworldbooks_metadata(isbn):
+    url = BETTERWORLDBOOKS_API_URL + isbn
+    try:
+        req = urllib2.Request(url)
+        f = urllib2.urlopen(req)
+        response = f.read()
+        f.close()
+        product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
+        new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
+        new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
+        used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
+        used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
+
+        price, qlt = None, None
+
+        if used_qty and used_qty[0] and used_qty[0] != '0':
+            price = float(used_price[0]) if used_price else ''
+            qlt = 'used'
+
+        if new_qty and new_qty[0] and new_qty[0] != '0':
+            _price = used_price[0] if used_price else None
+            if price and _price and _price < price:
+                price = _price
+                qlt = 'new'
+        
+        return {
+            'url': product_url[0] if product_url else None,
+            'price': price,
+            'qlt': qlt
+        }
+        return result
+    except urllib2.HTTPError as e:
+        try:
+            response = e.read()
+        except simplejson.decoder.JSONDecodeError:
+            return {'error': e.read(), 'code': e.code}
+        return simplejson.loads(response)
+
+
+cached_get_betterworldbooks_metadata = cache.memcache_memoize(
+    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=HALF_DAY)
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
@@ -261,4 +355,3 @@ def setup():
 
     setup_jquery_urls()
 setup()
-

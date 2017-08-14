@@ -9,6 +9,7 @@ import uuid
 import hmac
 import urllib
 import urllib2
+from amazon.api import AmazonAPI
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from . import ia
@@ -47,6 +48,9 @@ config_content_server = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
+config_amz_api = None
+
+amazon_api = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
@@ -56,7 +60,7 @@ def setup(config):
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
         config_ia_availability_api_url, config_ia_xauth_api_url, \
-        config_http_request_timeout
+        config_http_request_timeout, config_amz_api, amazon_api
 
     if config.get("content_server"):
         try:
@@ -77,7 +81,12 @@ def setup(config):
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
+    config_amz_api = config.get('amazon_api')
 
+    try:
+        amazon_api = AmazonAPI(config_amz_api.key, config_amz_api.secret, config_amz_api.id)
+    except AttributeError:
+        amazon_api = None
 
 def is_borrowable(identifiers, acs=False, restricted=False):
     """Takes a list of archive.org ocaids and returns json indicating
