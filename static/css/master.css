@@ -134,7 +134,7 @@ table.display td.center {
 
 .sorting_asc {
         background-image: url('/images/sort_asc.png');
-        background-repeat: no-repeat; 
+        background-repeat: no-repeat;
         background-position: 90% 6px;
 }
 .sorting_desc {
@@ -494,7 +494,7 @@ div.box {
 /* Diff comparison table */
 
 .diff .revisions { clear: both; margin-top: 20px; padding: 0; float: left; width: 100%;}
-.diff .revisions th { 
+.diff .revisions th {
     padding: 10px;
     font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
     font-size: 11px;
@@ -502,11 +502,11 @@ div.box {
     color: #000;
 }
 .diff .revisions .heading { text-transform: uppercase; }
-.diff .revisions td { 
+.diff .revisions td {
     padding: 10px;
     font-family:"Lucida Console","Courier New", monospace;font-size:0.875em;
-    background: #eee; 
-    vertical-align: top; 
+    background: #eee;
+    vertical-align: top;
     font-size: 0.875em;
     border-right: 1px solid #fff;
     border-bottom: 1px solid #fff;
@@ -520,7 +520,7 @@ div.box {
 .diff table tbody.add td.r { background: #adc07f }
 .diff table tbody.rem td.l { color: #e44028; text-decoration: line-through;  }
 .diff table tbody.rem td.r { color: #e44028; text-decoration: line-through;  }
-.diff table tbody.mod del, 
+.diff table tbody.mod del,
 .diff table tbody.mod ins { background: #f0f; }
 
 td.l {padding-left: 12px; width: 50%;}
@@ -547,15 +547,15 @@ del { color: #e44028; text-decoration: line-through; }.ac_results {
 	padding: 5px;
 	cursor: default;
 	display: block;
-	/* 
-	if width will be 100% horizontal scrollbar will apear 
+	/*
+	if width will be 100% horizontal scrollbar will apear
 	when scroll mode will be used
 	*/
 	/*width: 100%;*/
 	font: menu;
 	font-size: 12px;
-	/* 
-	it is very important, if line-height not set or set 
+	/*
+	it is very important, if line-height not set or set
 	in relative units scroll will be broken in firefox
 	*/
 	line-height: 16px;
@@ -589,9 +589,9 @@ del { color: #e44028; text-decoration: line-through; }.ac_results {
     text-align: left;
 }
 
-li.ac_over { 
+li.ac_over {
     background-color: #fffdcd;
-    cursor: pointer; 
+    cursor: pointer;
 }
 
 .ac_results .ac_author {
@@ -3295,7 +3295,7 @@ li.searchResultItem {
     border-radius: 5px;
     box-sizing: border-box;
     color: #fff;
-    cursor: pointer; 
+    cursor: pointer;
     text-decoration: none;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     text-align: center;
@@ -5585,7 +5585,7 @@ span.actions a span.checked-out {
     background-color: Aquamarine;
 }
 
-.wmd-button-bar 
+.wmd-button-bar
 {
     background-color: transparent;
 }
@@ -5604,8 +5604,8 @@ form#addAuthor.olform .wmd-button-bar {
 }
 
 
-.wmd-input 
-{ 
+.wmd-input
+{
     height: 500px;
     width: 100%;
     background-color: #fff;
@@ -5643,14 +5643,14 @@ form#addAuthor.olform .wmd-preview {
     min-height: 47px;
 }
 
-.wmd-output 
-{ 
+.wmd-output
+{
     background-color: #fff;
 }
 
-.wmd-button-row 
+.wmd-button-row
 {
-    position: relative; 
+    position: relative;
     margin-bottom: 5px!important;
     margin-left: 0!important;
     margin-top: 10px;
@@ -5660,35 +5660,35 @@ form#addAuthor.olform .wmd-preview {
 
 .wmd-spacer
 {
-    width: 1px; 
-    height: 20px; 
+    width: 1px;
+    height: 20px;
     margin-left: 14px;
     position: absolute;
-    display: inline-block; 
+    display: inline-block;
     list-style: none;
 }
 
 .wmd-button
 {
-    width: 20px; 
+    width: 20px;
     height: 20px;
     margin-right: 10px;
     position: absolute;
     background-image: url("/images/wmd-buttons.png");
     background-repeat: no-repeat;
     background-position: 0 0;
-    display: inline-block; 
+    display: inline-block;
     list-style: none;
 }
 
 .wmd-button > a
 {
-    width: 20px; 
-    height: 20px; 
+    width: 20px;
+    height: 20px;
     margin-left: 5px;
     margin-right: 5px;
     position: absolute;
-    display: inline-block; 
+    display: inline-block;
 }
 
 
@@ -5720,8 +5720,8 @@ form#addAuthor.olform .wmd-preview {
 
 .wmd-prompt-dialog
 {
-    width: 400px; 
-    border:10px solid #615132; 
+    width: 400px;
+    border:10px solid #615132;
     background-color: #fff;
     border-radius:12px;
     -webkit-box-shadow: 1px 3px 10px #000;
