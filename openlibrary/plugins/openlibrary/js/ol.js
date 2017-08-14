@@ -427,6 +427,8 @@ $().ready(function(){
 	// results, as necessary
 	if (localStorage.getItem('mode') !== 'everything') {
 	    url += '&has_fulltext=true';
+	} if (localStorage.getItem('mode') === 'printdisabled') {
+	    url += '&subject_facet=Protected+DAISY';
 	}
         return url + '&mode=' + localStorage.getItem('mode');
     }
@@ -525,7 +527,14 @@ $().ready(function(){
         };
     };
 
-    $('.search-mode').live('click', function(e) {	
+    $('.search-mode').live('change', function(e) {
+	$("input[value='Protected+DAISY']").remove();
+	$("input[value='has_fulltext']").remove();
+	if (localStorage.getItem('mode') !== 'everything') {
+	    $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
+	} if (localStorage.getItem('mode') === 'printdisabled') {
+	    $('.olform').append('<input type="hidden" name="subject_facet" value="Protected+DAISY"/>');
+	}
 	$('.olform').submit();
     });
 
@@ -611,6 +620,8 @@ $().ready(function(){
         if (facet_value === 'books') {
             $('header .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
         }
+
+	// XXX also have to do logic for `mode`
     });
 
     $('header .search-component .search-results li a').live('click', debounce(function(event) {
