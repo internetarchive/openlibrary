@@ -201,26 +201,29 @@ $(function(){
                     var cta = li.find(".searchResultItenCTA");
                     var msg = '';
                     var link = '';
-                    if (work.status == 'error') {
-                        if (localStorage.getItem('mode') === "ebooks") {
-                            li.remove();
-                        } else {
-                            $(cta).append('<span class="cta-btn borrow_missing">Unavailable</span>');
-                        }
-                    } else {
-                        var cls = 'borrow_available';
-                        if (work.status === 'open') {
-                            msg = 'Read';
-                            link = '//archive.org/stream/' + work.identifier + '?ref=ol';
-                        } else {
-                            msg = (work.status === 'borrow_available' || work.status === 'open')? 'Read' : 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span>';
-                            cls = work.status;
-                            link = '/books/' + work.openlibrary_edition + '/x/borrow';
-                        }
-                        $(cta).append(
-                            '<a href="' + link +  '" class="' + cls +
-                                ' borrow-link cta-btn">' + msg + '</button>'
-                        );
+
+                    if (localStorage.getItem('mode') === "printdisabled") {
+			$(cta).append('<a class="cta-btn print-disabled-only" href="/works/' + work.identifier + '/' + work.identifier + '_daisy.zip">Download DAISY</a>');
+		    } else {
+			if (work.status === 'error') {
+			    if (localStorage.getItem('mode') === "ebooks") {
+				li.remove();
+			    }
+			} else {
+			    var cls = 'borrow_available';
+			    if (work.status === 'open') {
+				msg = 'Read';
+				link = '//archive.org/stream/' + work.identifier + '?ref=ol';
+			    } else {
+				msg = (work.status === 'borrow_available' || work.status === 'open')? 'Borrow' : 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span>';
+				cls = work.status;
+				link = '/books/' + work.openlibrary_edition + '/x/borrow';
+			    }
+			    $(cta).append(
+				'<a href="' + link +  '" class="' + cls +
+				    ' borrow-link cta-btn">' + msg + '</a>'
+			    );
+			}
                     }
                 }
             });

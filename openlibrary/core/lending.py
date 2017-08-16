@@ -118,13 +118,25 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     except Exception as e:
         return {'error': 'request_timeout'}
 
-def is_work_borrowable(ol_work_ids):
-    url = config_ia_availability_api_v2_url + '?openlibrary_work=' + ','.join(ol_work_ids)
+def get_availability(key, ids):
+    url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
         return {'error': 'request_timeout'}
+
+def get_edition_availability(ol_edition_id):
+    return get_availability_of_editions([ol_edition_id])
+
+def get_availability_of_editions(ol_edition_ids):
+    """Given a list of Open Library edition IDs, returns a list of
+    Availability v2 results.
+    """
+    return get_availability('openlibrary_edition', ol_edition_ids)
+
+def get_availablility_of_works(ol_work_ids):
+    return get_availability('openlibrary_work', ol_work_ids)
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.

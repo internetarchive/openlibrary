@@ -106,6 +106,15 @@ class borrow(delegate.page):
         if not edition:
             raise web.notfound()
 
+        # Make a call to availability v2
+        # update the subjects according to result
+        # if `open`, redirect to bookreader
+        olid = key.split('/')[-1]
+        availability = lending.get_edition_availability(olid)[olid]
+        if availability['status'] == 'open':
+            ocaid = availability['identifier']
+            raise web.seeother('https://archive.org/stream/' + ocaid)
+
         edition.update_loan_status()
 
         loans = []
@@ -124,6 +133,7 @@ class borrow(delegate.page):
         else:
             have_returned = False
 
+
         #ab.participate("borrow-layout")
         return render_template("borrow", edition, loans, have_returned)
 
@@ -140,6 +150,15 @@ class borrow(delegate.page):
         edition = web.ctx.site.get(key)
         if not edition:
             raise web.notfound()
+
+        # Make a call to availability v2
+        # update the subjects according to result
+        # if `open`, redirect to bookreader
+        olid = key.split('/')[-1]
+        availability = lending.get_edition_availability(olid)[olid]
+        if availability['status'] == 'open':
+            ocaid = availability['identifier']
+            raise web.seeother('https://archive.org/stream/' + ocaid)
 
         error_redirect = edition.url("/borrow")
         user = accounts.get_current_user()

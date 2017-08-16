@@ -269,14 +269,14 @@ function less(header) {
                     </div>
                 </span>
             </span>
-            <div class="searchResultItenCTA">
-            $#if not doc.public_scan and 'printdisabled' in doc.collections:
-            $#    <span class="actions">
-            $#        <a href="$doc.key" title="Protected DAISY">
-            $#            <span class="image daisy"></span>
-            $#            <span class="label">DAISY</span>
-            $#        </a>
-            $#    </span>
+            <div class="searchResultItenCTA" style="flex-direction: column">
+            $if not doc.public_scan and 'printdisabled' in doc.collections:
+                <span class="actions" style="order:1">
+                    <a href="$doc.key" title="Protected DAISY">
+                        <span class="image daisy"></span>
+                        <span class="label">DAISY</span>
+                    </a>
+                </span>
             </div>
             </li>
         </ul>
