@@ -271,12 +271,12 @@ function less(header) {
             </span>
             <div class="searchResultItenCTA" style="flex-direction: column">
             $if not doc.public_scan and 'printdisabled' in doc.collections:
-                <span class="actions" style="order:1">
-                    <a href="$doc.key" title="Protected DAISY">
-                        <span class="image daisy"></span>
-                        <span class="label">DAISY</span>
-                    </a>
-                </span>
+                <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
+		  <span class="actions">
+                    <span class="image daisy"></span>
+		  </span>
+                  <span class="label">Download DAISY</span>
+                </a>
             </div>
             </li>
         </ul>
