@@ -178,6 +178,14 @@ $(function(){
     };
 
     updateWorkAvailability = function() {
+        if (localStorage.getItem('mode') === "printdisabled") {
+	    var daisies = $('.print-disabled-only');
+	    $.each(daisies, function() {
+		$(this).removeClass('hidden');
+	    });
+	    return
+	}
+
         var works = [];
         var results = $('a.results');
         $.each(results, function(index, e) {
@@ -189,6 +197,7 @@ $(function(){
                 works.push(key)
             }
         });
+
         getAvailabilityV2(works, function(response) {
             $.each(results, function(index, e) {
                 var href = $(e).attr('href');
@@ -202,9 +211,7 @@ $(function(){
                     var msg = '';
                     var link = '';
 
-                    if (localStorage.getItem('mode') === "printdisabled") {
-			$(cta).append('<a class="cta-btn print-disabled-only" href="/works/' + work.identifier + '/' + work.identifier + '_daisy.zip">Download DAISY</a>');
-		    } else {
+                    if (localStorage.getItem('mode') !== "printdisabled") {
 			if (work.status === 'error') {
 			    if (localStorage.getItem('mode') === "ebooks") {
 				li.remove();
