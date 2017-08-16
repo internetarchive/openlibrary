@@ -129,7 +129,7 @@ class works_availability(delegate.page):
 
     def GET(self):
         ol_work_ids = web.input(openlibrary_work='').openlibrary_work.split(',')
-        result = lending.is_work_borrowable(ol_work_ids)
+        result = lending.get_availablility_of_works(ol_work_ids)
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
@@ -137,6 +137,7 @@ class editions_availability(delegate.page):
     path = "/availability"
 
     def POST(self):
+        """XXX should be switched to use availability v2, i.e. get_"""
         i = simplejson.loads(web.data())
         ocaids = i.get('ocaids', [])
         j = web.input(acs='1', restricted='0')

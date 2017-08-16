@@ -3325,6 +3325,9 @@ li.searchResultItem {
     background-color: #ccc;
 }
 
+.print-disabled-only {
+    background-color: #c43bfc;
+}
 
 div#searchResults .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
 div#searchResults .SRPCover img {height:185px;}
