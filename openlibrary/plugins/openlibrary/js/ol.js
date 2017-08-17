@@ -34,20 +34,20 @@ var Browser = {
 
     removeURLParameter: function(url, parameter) {
         var urlparts = url.split('?');
-	var prefix = urlparts[0];
+        var prefix = urlparts[0];
         if (urlparts.length>=2 ) {
             var query = urlparts[1];
-	    var paramPrefix = encodeURIComponent(parameter)+'=';
+            var paramPrefix = encodeURIComponent(parameter)+'=';
             var params= query.split(/[&;]/g);
-        
+
             //reverse iteration as may be destructive
-            for (var i= params.length; i-- > 0;) {    
+            for (var i= params.length; i-- > 0;) {
                 //idiom for string.startsWith
-                if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {  
+                if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
                     params.splice(i, 1);
                 }
             }
-        
+
             url = prefix + (params.length > 0 ? '?' + params.join('&') : "");
             return url;
         } else {
@@ -495,37 +495,37 @@ $().ready(function(){
     }
 
     var setMode = function(form) {
-	if (!$(form).length) {
-	    return;
-	}
+        if (!$(form).length) {
+            return;
+        }
 
-	$("input[value='Protected DAISY']").remove();
-	$("input[name='has_fulltext']").remove();
+        $("input[value='Protected DAISY']").remove();
+        $("input[name='has_fulltext']").remove();
 
-	var url = $(form).attr('action')
-	url = Browser.removeURLParameter(url, 'has_fulltext');
-	url = Browser.removeURLParameter(url, 'subject_facet');
+        var url = $(form).attr('action')
+        url = Browser.removeURLParameter(url, 'has_fulltext');
+        url = Browser.removeURLParameter(url, 'subject_facet');
 
-	if (localStorage.getItem('mode') !== 'everything') {
-	    $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
-	    url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'has_fulltext=true';
-	} if (localStorage.getItem('mode') === 'printdisabled') {
-	    $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-	    url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
-	}
-	$(form).attr('action', url);
+        if (localStorage.getItem('mode') !== 'everything') {
+            $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
+            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'has_fulltext=true';
+        } if (localStorage.getItem('mode') === 'printdisabled') {
+            $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
+        }
+        $(form).attr('action', url);
     }
 
     var setSearchMode = function(mode) {
-	var searchMode = mode || localStorage.getItem("mode");
-	var isValidMode = searchModes.has(searchMode);
-	localStorage.setItem('mode', isValidMode? 
-			     searchMode : searchModeDefault);
-	$('.instantsearch-mode').val(localStorage.getItem("mode"));
-	$('input[name=mode][value=' + localStorage.getItem("mode") + ']')
-	    .attr('checked', 'true');
-	setMode('.olform');
-	setMode('.search-bar-input');
+        var searchMode = mode || localStorage.getItem("mode");
+        var isValidMode = searchModes.has(searchMode);
+        localStorage.setItem('mode', isValidMode?
+                             searchMode : searchModeDefault);
+        $('.instantsearch-mode').val(localStorage.getItem("mode"));
+        $('input[name=mode][value=' + localStorage.getItem("mode") + ']')
+            .attr('checked', 'true');
+        setMode('.olform');
+        setMode('.search-bar-input');
     }
 
     var options = Browser.getJsonFromUrl();
@@ -538,7 +538,8 @@ $().ready(function(){
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
-        if (q.indexOf('title:') && q.indexOf('title:') > -1) {
+	console.log(localStorage.getItem("facet"));
+        if (localStorage.getItem("facet") === 'title' && q.indexOf('title:') != -1) {
             var parts = q.split('"');
             if (parts.length === 3) {
                 q = parts[1];
@@ -627,7 +628,7 @@ $().ready(function(){
         books: function(work) {
             var author_name = work.author_name ? work.author_name[0] : '';
             $('header .search-component ul.search-results').append(
-                '<li><a href="' + work.key + '"><img src="' + cover_url(work.cover_i) +
+                '<li class="instant-result"><a href="' + work.key + '"><img src="' + cover_url(work.cover_i) +
                     '"/><span class="book-desc"><div class="book-title">' +
                     work.title + '</div>by <span class="book-author">' +
                     author_name + '</span></span></a></li>'
@@ -648,21 +649,27 @@ $().ready(function(){
         if (facet_value === 'books') {
             $('header .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
         }
-	setMode('.search-bar-input');
+        setMode('.search-bar-input');
     });
 
     $('.search-mode').change(function() {
-	setSearchMode($(this).val());
-	$('.olform').submit();
+        $('html,body').css('cursor', 'wait');
+        setSearchMode($(this).val());
+        $('.olform').submit();
     });
 
     $('.olform').submit(function() {
-	if (localStorage.getItem('mode') !== 'everything') {
-	    $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
-	} if (localStorage.getItem('mode') === 'printdisabled') {
-	    $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-	}
+        if (localStorage.getItem('mode') !== 'everything') {
+            $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
+        } if (localStorage.getItem('mode') === 'printdisabled') {
+            $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+        }
 
+    });
+
+    $('li.instant-result a').live('click', function() {
+        $('html,body').css('cursor', 'wait');
+        $(this).css('cursor', 'wait');
     });
 
     $('header .search-component .search-results li a').live('click', debounce(function(event) {

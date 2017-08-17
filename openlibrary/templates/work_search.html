@@ -12,7 +12,7 @@ $    ('publisher_facet', 'Publisher'),
 $    ('language', 'Language'),
 $    ('public_scan_b', 'Classic eBooks'),
 $ )
-$ fulltext_names = {'true': 'Only ebooks', 'false': 'eBooks hidden'}
+$ fulltext_names = {'true': 'ebooks', 'false': 'exclude ebooks'}
 
 $ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
 
@@ -210,6 +210,8 @@ function less(header) {
                             <span title="Written in">$display</span>
                         $elif header == 'publisher_facet':
                             <span title="Published by">$display</span>
+                        $elif header == 'author_key':
+                            <span title="Author">$display</span>
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
