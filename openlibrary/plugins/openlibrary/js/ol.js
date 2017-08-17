@@ -568,7 +568,6 @@ $().ready(function(){
     };
 
     $('.trigger').live('submit', function(e) {
-        e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
     });
