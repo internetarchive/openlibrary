@@ -210,6 +210,8 @@ $(function(){
                     var cta = li.find(".searchResultItenCTA");
                     var msg = '';
                     var link = '';
+		    var annotation = '';
+		    var tag = 'a';
 
                     if (localStorage.getItem('mode') !== "printdisabled") {
 			if (work.status === 'error') {
@@ -218,18 +220,37 @@ $(function(){
 			    }
 			} else {
 			    var cls = 'borrow_available';
+			    // link = '//archive.org/stream/' + work.identifier + '?ref=ol';
+                            link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
+
 			    if (work.status === 'open') {
 				msg = 'Read';
-				link = '//archive.org/stream/' + work.identifier + '?ref=ol';
-			    } else {
-				msg = (work.status === 'borrow_available' || work.status === 'open')? 'Borrow' : 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span>';
+			    } else if (work.status === 'borrow_available') {
 				cls = work.status;
-				link = '/books/' + work.openlibrary_edition + '/x/borrow';
+				msg = 'Borrow';
+			    } else if (work.status === 'borrow_unavailable') {
+				tag = 'span';
+				link = '';
+				cls = work.status;
+				msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
+				if (work.num_waitlist !== '0') {
+				    msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+				    
+				} else {
+				    msg += 'Join Waitlist</form>';
+				    annotation = '<div class="waitlist-msg">You will be first in line!</div>';
+				}
 			    }
 			    $(cta).append(
-				'<a href="' + link +  '" class="' + cls +
-				    ' borrow-link cta-btn">' + msg + '</a>'
+				'<' + tag + ' ' + link + ' class="' + cls +
+				    ' borrow-link cta-btn" data-ol-link-track="' + 
+				    work.status
+				    + '">' + msg + '</' + tag + '>'
 			    );
+			    
+			    if (annotation) {
+				$(cta).append(annotation);
+			    }
 			}
                     }
                 }
@@ -246,6 +267,11 @@ $(function(){
 
         })
     }
+
+    $('.searchResultItenCTA form.join-waitlist').live('click', function(e) {
+	// consider submitting form async and refreshing search results page
+	$(this).submit()
+    })
 
     updateBookAvailability();
     updateWorkAvailability();

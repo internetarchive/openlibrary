@@ -3300,13 +3300,13 @@ li.searchResultItem {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     text-align: center;
     padding: 5px 20px;
-    font-size: 0.9em;
+    font-size: 0.8em;
 }
 
 .searchResultItenCTA .borrow_unavailable .badge {
     background-color: #e6881a;
     padding: 4px 7px;
-    border-radius: 30px;
+    border-radius: 5px;
     font-size: .7em;
 }
 
@@ -3327,6 +3327,14 @@ li.searchResultItem {
 
 .print-disabled-only {
     background-color: #c43bfc;
+}
+
+.waitlist-msg {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size: .7em;
+    margin-bottom: -1.5em;
+    color: #757373;
+    padding: .2em;
 }
 
 div#searchResults .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
@@ -4194,16 +4202,17 @@ div#resultsCovers a {text-decoration: none;}
 .Author {color:#666;font-style:italic;padding:4px 4px 0;font-size:11px;}
 
 ul#siteSearch li span.bookcover img {
-    width: 60px;
+    width: 100%;
 }
 
 li span.bookcover {
-    height: 60px;
+    min-width: 40px;
     max-width: 75px;
-    margin-right: 10px;
+    margin: 10px 10px 0px 5px;
     text-align: right;
     overflow: hidden;
 }
+
 li span.snippet {
     display: block;
     margin: 10px 0;
