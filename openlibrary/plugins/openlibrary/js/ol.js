@@ -449,7 +449,7 @@ $().ready(function(){
     }
 
     var marshalBookSearchQuery = function(q) {
-        if (q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
            q = 'title: "' + q + '"';
         }
         return q;
