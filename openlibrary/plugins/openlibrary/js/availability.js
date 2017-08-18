@@ -232,7 +232,7 @@ $(function(){
 				tag = 'span';
 				link = '';
 				cls = work.status;
-				msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
+				msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
 				if (work.num_waitlist !== '0') {
 				    msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
 				    
