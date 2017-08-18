@@ -101,41 +101,7 @@ class borrow(delegate.page):
     path = "(/books/.*)/borrow"
 
     def GET(self, key):
-        edition = web.ctx.site.get(key)
-
-        if not edition:
-            raise web.notfound()
-
-        # Make a call to availability v2
-        # update the subjects according to result
-        # if `open`, redirect to bookreader
-        olid = key.split('/')[-1]
-        availability = lending.get_edition_availability(olid)[olid]
-        if availability['status'] == 'open':
-            ocaid = availability['identifier']
-            raise web.seeother('https://archive.org/stream/' + ocaid)
-
-        edition.update_loan_status()
-
-        loans = []
-        user = accounts.get_current_user()
-        error_redirect = "/account/login?redirect=%s/borrow" % edition.url()
-        if not user:
-            raise web.seeother(error_redirect)
-
-        user.update_loan_status()
-        loans = get_loans(user)
-
-        # Check if we recently did a return
-        i = web.input(r=None)
-        if i.r == 't':
-            have_returned = True
-        else:
-            have_returned = False
-
-
-        #ab.participate("borrow-layout")
-        return render_template("borrow", edition, loans, have_returned)
+        return self.POST(key)
 
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
@@ -155,12 +121,13 @@ class borrow(delegate.page):
         # update the subjects according to result
         # if `open`, redirect to bookreader
         olid = key.split('/')[-1]
-        availability = lending.get_edition_availability(olid)[olid]
-        if availability['status'] == 'open':
-            ocaid = availability['identifier']
+        response = lending.get_edition_availability(olid)
+        availability = response[olid] if response else {}
+        ocaid = availability.get('identifier')
+        if availability and availability['status'] == 'open':
             raise web.seeother('https://archive.org/stream/' + ocaid)
 
-        error_redirect = edition.url("/borrow")
+        error_redirect = ('https://archive.org/stream/' + ocaid) if ocaid else edition.url()
         user = accounts.get_current_user()
 
         if user:
@@ -169,7 +136,8 @@ class borrow(delegate.page):
 
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=%s/borrow" % edition.url())
+            raise web.seeother("/account/login?redirect=%s/borrow?action=%s" % (
+                edition.url(), i.action))
 
         action = i.action
 
@@ -182,23 +150,14 @@ class borrow(delegate.page):
             action = 'read'
 
         if action == 'borrow':
-            resource_type = i.format
+            resource_type = i.format or 'bookreader'
 
             if resource_type not in ['epub', 'pdf', 'bookreader']:
-                raise web.seeother(error_redirect)
-
-            if resource_type == 'bookreader':
-                #ab.convert("borrow-layout")
-                pass
+                raise web.seeother(error_redirect)            
 
             if user_can_borrow_edition(user, edition, resource_type):
 
-                # XXX-Anand - Sept 2014:
-                # Extra check to avoid book being given to someone when people are already
-                # waiting on it. There are some reports of this happening.
-                # Redirect back to the same page if there is waitinglist.
-                wl = edition.get_waitinglist()
-                if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
+                if availability['status'] != 'borrow_available':
                     raise web.seeother(error_redirect)
 
                 loan = lending.create_loan(
@@ -221,7 +180,6 @@ class borrow(delegate.page):
                 else:
                     raise web.seeother(error_redirect)
             else:
-                # Send to the borrow page
                 raise web.seeother(error_redirect)
 
         elif action == 'return':
@@ -833,22 +791,10 @@ def user_can_borrow_edition(user, edition, type):
 
     global user_max_loans
 
-    if not can_borrow(edition):
-        return False
     if user.get_loan_count() >= user_max_loans:
         return False
-    if edition.get_waitinglist_size() > 0:
-        # There some people are already waiting for the book,
-        # it can't be borrowed unless the user is the first in the waiting list.
-        waiting_loan = user.get_waiting_loan_for(edition)
+    return True
 
-        if not waiting_loan or waiting_loan['status'] != 'available':
-            return False
-
-    if type in [loan['resource_type'] for loan in edition.get_available_loans()]:
-        return True
-
-    return False
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
