@@ -109,7 +109,8 @@ class internal_audit(delegate.page):
         """Internal API endpoint used for authorized test cases and
         administrators to unlink linked OL and IA accounts.
         """
-        i = web.input(email='', username='', itemname='', key='', unlink='')
+        i = web.input(email='', username='', itemname='', key='', unlink='',
+                      new_itemname='')
         if i.key != lending.config_internal_tests_api_key:
             result = {'error': 'Authentication failed for private API'}
         else:
@@ -120,6 +121,8 @@ class internal_audit(delegate.page):
                     raise ValueError('Invalid Open Library account email ' \
                                      'or itemname')
                 result.enc_password = 'REDACTED'
+                if i.new_itemname:
+                    result.link(i.new_itemname)
                 if i.unlink:
                     result.unlink()
             except ValueError as e:
