@@ -207,7 +207,7 @@ $(function(){
                 if (_type === 'works') {
                     var work = response[key];
                     var li = $(e).closest("li");
-                    var cta = li.find(".searchResultItenCTA");
+                    var cta = li.find(".searchResultItemCTA");
                     var msg = '';
                     var link = '';
 		    var annotation = '';
@@ -219,14 +219,13 @@ $(function(){
 				li.remove();
 			    }
 			} else {
-			    var cls = 'borrow_available';
+			    var cls = 'borrow_available borrow-link';
 			    // link = '//archive.org/stream/' + work.identifier + '?ref=ol';
                             link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
 
 			    if (work.status === 'open') {
 				msg = 'Read';
 			    } else if (work.status === 'borrow_available') {
-				cls = work.status;
 				msg = 'Borrow';
 			    } else if (work.status === 'borrow_unavailable') {
 				tag = 'span';
@@ -243,7 +242,7 @@ $(function(){
 			    }
 			    $(cta).append(
 				'<' + tag + ' ' + link + ' class="' + cls +
-				    ' borrow-link cta-btn" data-ol-link-track="' + 
+				    ' cta-btn" data-ol-link-track="' + 
 				    work.status
 				    + '">' + msg + '</' + tag + '>'
 			    );
@@ -268,7 +267,7 @@ $(function(){
         })
     }
 
-    $('.searchResultItenCTA form.join-waitlist').live('click', function(e) {
+    $('.searchResultItemCTA form.join-waitlist').live('click', function(e) {
 	// consider submitting form async and refreshing search results page
 	$(this).submit()
     })

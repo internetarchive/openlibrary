@@ -1,45 +1,53 @@
-$def with (results, fulltext=False)
+$def with (doc)
 
-$ _ = i18n.get_namespace('/search')
-
-
-<ul>
-
-$for b in results:
-    $if fulltext:
-        $ book = b[0]
-        $ ocaid = b[1]
-        $ pages = b[2]
+<li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
+  <span class="bookcover">
+    $if doc.get('cover_i'):
+        $ cover =  get_coverstore_url() + "/b/id/%s-S.jpg" % doc.cover_i
+    $elif doc.get('cover_edition_key'):
+        $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
+    $elif doc.ia:
+        $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
     $else:
-        $ book = b
-        $ ocaid = None
-    $ title = book.title
-    <li>
-    <span class="bookcover">
-        $ olid = book.key.split('/')[-1]
-        <a href="$book.key"><img src="https://covers.openlibrary.org/b/olid/$olid-S.jpg?default=http://upstream.openlibrary.org/images/icons/avatar_book-sm.png" height="60"/></a>
-    </span>
-    <span class="resultTitle">
-        <span class="details">
-            <span class="resultPublisher">
-            $if book.publishers:
-                <a href="$book.key/$title.replace(' ', '-')"><strong>$book.publish_date,</strong> $(', '.join(book.publishers))</a>
-            $else:
-                <a href="$book.key/$title.replace(' ', '-')"><strong>$book.publish_date</strong></a>
-            </span>
-            <span class="resultType">
-                $book.physical_format.replace('[', '').replace(']','')
-            </span>
-            <br/>
-            <span class="booktitle">$book.title_prefix $title</span>
-        </span>
-        $if book.ocaid:
-            <span class="actions">
-                <a href="//archive.org/stream/$book.ocaid">
-                    <span class="image read"></span>
-                    <span class="label">Read</span>
-                </a>
-            </span>
-    </span>
-    </li>
-</ul>
+        $ cover = "/images/icons/avatar_book-sm.png"
+    <a href="$(doc.get('url', doc.key + '/' + doc.title))"><img itemprop="image" src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+  </span>
+
+
+  <span class="details">
+      <span class="resultTitle">
+         <h3 class="booktitle">
+              <a itemprop="name" href="$(doc.get('url', doc.key + '/' + doc.title))"
+                 class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
+         </h3>
+      </span>
+      <div class="bookauthor">by
+        $if not doc.authors:
+          <em>Unknown author</em>
+        $else:
+          $for a in doc.authors:
+            <a itemprop="author" href="$a.key" class="results">$a.name</a>$(',' if not loop.last else '')
+      </div>
+      <span class="resultPublisher">
+              $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
+              $if len(doc.ia):
+                  ($len(doc.ia) ebook$("s" if len(doc.ia) != 1 else ""))
+              $if doc.first_publish_year:
+                  - first published in
+                  $if doc.get('first_edition'):
+                      <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
+                  $else:
+                      $doc.first_publish_year
+      </span>
+  </span>
+
+  <div class="searchResultItemCTA">
+      $if not doc.public_scan and 'printdisabled' in doc.collections:
+          <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
+	    <span class="actions">
+	      <span class="image daisy"></span>
+	    </span>
+	    <span class="label">Download DAISY</span>
+	  </a>
+  </div>
+</li>

@@ -842,17 +842,17 @@ header {
     display: -webkit-flex;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
-        -ms-flex-direction: column;
-            flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
     /*font-family: 'Poppins', sans-serif;*/
     /*justify-content: center;*/
     -ms-flex-flow: row wrap;
-        flex-flow: row wrap;
+    flex-flow: row wrap;
     -ms-flex-wrap: wrap;
-        flex-wrap: wrap;
+    flex-wrap: wrap;
     -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
 }
 
 #main-account-dropdown {
@@ -905,8 +905,8 @@ header {
     background: #fafafa;
     border-radius:.3em;
     -webkit-box-flex: 1;
-        -ms-flex: 1;
-            flex: 1;
+    -ms-flex: 1;
+    flex: 1;
     display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
@@ -1970,8 +1970,8 @@ div.siteSearch {
 }
 body#user div.siteSearch {
     -webkit-box-ordinal-group: 4;
-        -ms-flex-order: 3;
-            order: 3;
+    -ms-flex-order: 3;
+    order: 3;
 }
 
 div#headerSearch {
@@ -2477,8 +2477,8 @@ body#user div#headerPlace {
 
 div#headerTools {
     -webkit-box-ordinal-group: 5;
-        -ms-flex-order: 4;
-            order: 4;
+    -ms-flex-order: 4;
+    order: 4;
     width: 50px;
 }
 body#user div#headerTools {
@@ -3282,15 +3282,25 @@ li.searchResultItem {
     padding: 5px;
 }
 
-.searchResultItenCTA {
+.searchResultItemCTA {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
     width: 245px;
+    -webkit-box-align: center;
+    -ms-flex-align: center;
     align-items: center;
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
     padding: 0px 5px 0px 15px;
 }
 
-.searchResultItenCTA .cta-btn {
+.searchResultItemCTA .cta-btn {
     border: none;
     color: #fff;
     width: 100%;
@@ -3306,7 +3316,7 @@ li.searchResultItem {
     font-size: 0.8em;
 }
 
-.searchResultItenCTA .borrow_unavailable .badge {
+.searchResultItemCTA .borrow_unavailable .badge {
     background-color: #e6881a;
     padding: 4px 7px;
     border-radius: 5px;
@@ -3358,10 +3368,14 @@ div#searchResults .SRPCoverBlank a {text-decoration: none;}
 /* SEARCH FACETS */
 
 .resultsContainer {
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
 }
 
 ul#siteSearch li {
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
 }
 

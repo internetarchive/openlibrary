@@ -133,7 +133,6 @@ class borrow(delegate.page):
         if user:
             account = OpenLibraryAccount.get_by_email(user.email)
             ia_itemname = account.itemname if account else None
-
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             raise web.seeother("/account/login?redirect=%s/borrow?action=%s" % (
@@ -226,10 +225,12 @@ class borrow(delegate.page):
 
     def POST_join_waitinglist(self, edition, user):
         waitinglist.join_waitinglist(user.key, edition.key)
+        stats.increment('ol.loans.joinWaitlist')
         raise web.redirect(edition.url())
 
     def POST_leave_waitinglist(self, edition, user, i):
         waitinglist.leave_waitinglist(user.key, edition.key)
+        stats.increment('ol.loans.leaveWaitlist')
         if i.get("redirect"):
             raise web.redirect(i.redirect)
         else:

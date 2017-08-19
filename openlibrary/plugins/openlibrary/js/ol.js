@@ -538,7 +538,6 @@ $().ready(function(){
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
-	console.log(localStorage.getItem("facet"));
         if (localStorage.getItem("facet") === 'title' && q.indexOf('title:') != -1) {
             var parts = q.split('"');
             if (parts.length === 3) {
@@ -654,7 +653,11 @@ $().ready(function(){
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
         setSearchMode($(this).val());
-        $('.olform').submit();
+	if ($('.olform').length) {
+            $('.olform').submit();
+	} else {
+	    location.reload();
+	}
     });
 
     $('.olform').submit(function() {
