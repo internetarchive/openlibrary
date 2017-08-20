@@ -729,10 +729,9 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        try:
-            return "https://" + web.ctx.host + web.ctx.get('readable_path', web.ctx.path) + web.ctx.query
-        except:
-            return None
+        readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
+        query = web.ctx.query or ''
+        return ("https://" + web.ctx.host + readable_path + query) or ''
 
 
 def setup():
