@@ -18,7 +18,8 @@ def test_set_share_links():
     utils.set_share_links(url='https://foo.com', title="bar", view_context=test_context)
     assert test_context.share_links == [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com'},
-        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar'}
+        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar'},
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/button/?url=https%3A%2F%2Ffoo.com&media=&description=Check+this+out%3A+bar'}
     ]
 
 def test_set_share_links_unicode():
@@ -30,7 +31,8 @@ def test_set_share_links_unicode():
     utils.set_share_links(url=u'https://foo.\xe9', title=u'b\u0101', view_context=test_context)
     assert test_context.share_links == [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9'},
-        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81'}
+        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81'},
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/button/?url=https%3A%2F%2Ffoo.%C3%A9&media=&description=Check+this+out%3A+b%C4%81'}
     ]
 
 def test_item_image():
