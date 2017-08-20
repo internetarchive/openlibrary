@@ -413,7 +413,7 @@ def entity_decode(text):
     return HTMLParser().unescape(text)
 
 @public
-def set_share_links(url='#', title='', view_context=None):
+def set_share_links(url='#', title='', img='', view_context=None):
     """
     Constructs list share links for social platforms and assigns to view context attribute
 
@@ -423,10 +423,11 @@ def set_share_links(url='#', title='', view_context=None):
         view_context (object that has/can-have share_links attribute)
     """
     encoded_url = url_quote(url)
-    twitter_text = url_quote("Check this out: " + entity_decode(title))
+    text = url_quote("Check this out: " + entity_decode(title))
     links = [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=' + encoded_url},
-        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, twitter_text)}
+        {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, text)},
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/button/?url=%s&media=%s&description=%s' % (encoded_url, text, img)}
     ]
     view_context.share_links = links
 
@@ -728,7 +729,10 @@ class Request:
         Used for adding <meta rel="canonical" ..> tag in all web pages.
         Required to make OL retain the page rank after https migration.
         """
-        return "https://" + web.ctx.host + web.ctx.get('readable_path', web.ctx.path) + web.ctx.query
+        try:
+            return "https://" + web.ctx.host + web.ctx.get('readable_path', web.ctx.path) + web.ctx.query
+        except:
+            return None
 
 
 def setup():
