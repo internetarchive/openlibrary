@@ -169,14 +169,14 @@ function get_seed_count() {
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
                 $if cover:
-                    $ cover_url = item_image(cover.url("M"), default=default_image)
+                    $ cover_url = item_image(cover.url("S"), default=default_image)
                 $else:
                     $ cover_url = default_image
 
                 $# Use first found image as the OpenGraph image
                 $if not meta_cover_url:
                     $ meta_cover_url = cover_url
-                <span class="image">
+                <span class="bookcover">
                     <a href="$seed.url">
                       <img src="$cover_url" height="70"/>
                     </a>
@@ -188,7 +188,7 @@ function get_seed_count() {
                             $ ebook = seed.document.get_ebook_info()
                             $ doc = seed.document
                             <!-- $:json_encode(ebook) -->
-                        <h3>
+                        <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
                         $if seed.type == "work" or seed.type == "edition":
@@ -199,7 +199,7 @@ function get_seed_count() {
                                     $ authors = seed.document.works[0].get_authors()
                                 $else:
                                     $ authors = seed.document.get_authors()
-                            <div class="small">by $:render_authors(authors)</div>
+                            <div class="author">by $:render_authors(authors)</div>
                         <span class="meta">
                         $if seed.type == "author":
                             <span class="type author small">$seed.type</span>

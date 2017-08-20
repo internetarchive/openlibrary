@@ -4224,11 +4224,14 @@ ul#siteSearch li span.bookcover img {
 }
 
 li span.bookcover {
-    min-width: 40px;
-    max-width: 75px;
+    width: 80px;
     margin: 10px 10px 0px 5px;
     text-align: right;
     overflow: hidden;
+}
+
+li span.bookcover img {
+    width: 100%;
 }
 
 li span.snippet {

@@ -26,7 +26,7 @@ $def with (doc)
           <em>Unknown author</em>
         $else:
           $for a in doc.authors:
-            <a itemprop="author" href="$a.key" class="results">$a.name</a>$(',' if not loop.last else '')
+            <a itemprop="author" href="$(a.get('url') or a.key)" class="results">$a.name</a>$(',' if not loop.last else '')
       </div>
       <span class="resultPublisher">
               $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
