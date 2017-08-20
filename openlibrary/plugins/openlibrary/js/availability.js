@@ -80,8 +80,11 @@ $(function(){
         });
     };
 
-    getAvailabilityV2 = function(work_ids, callback) {
-        var url = '/availability/v2?openlibrary_work=' + work_ids.join(',');
+    getAvailabilityV2 = function(_type, _ids, callback) {
+	if (!_ids.length) {
+	    return callback({});
+	}
+        var url = '/availability/v2?' + _type + '_ids=' + _ids.join(',');
         $.ajax({
             url: url,
             type: "GET",
@@ -186,6 +189,7 @@ $(function(){
 	    return
 	}
 
+	var editions = [];
         var works = [];
         var results = $('a.results');
         $.each(results, function(index, e) {
@@ -194,18 +198,22 @@ $(function(){
             var _type = _type_key_slug[1];
             var key = _type_key_slug[2];
             if (_type === 'works') {
-                works.push(key)
-            }
+                works.push(key);
+            } else if (_type === 'books') {
+		editions.push(key);
+	    }
         });
 
-        getAvailabilityV2(works, function(response) {
+        getAvailabilityV2('edition', editions, function(editions_response) {
+          getAvailabilityV2('work', works, function(works_response) {
+	    var response = {'books': editions_response, 'works': works_response};
             $.each(results, function(index, e) {
                 var href = $(e).attr('href');
                 var _type_key_slug = href.split('/')
                 var _type = _type_key_slug[1];
                 var key = _type_key_slug[2];
-                if (_type === 'works') {
-                    var work = response[key];
+                if (response[_type]) {
+                    var work = response[_type][key];
                     var li = $(e).closest("li");
                     var cta = li.find(".searchResultItemCTA");
                     var msg = '';
@@ -254,16 +262,7 @@ $(function(){
                     }
                 }
             });
-
-            /*
-            $('#searchResults').prepend('<ul class="serp"></ul>')
-            $.each(results, function(index, result) {
-                $('#searchResults ul.serp').append(
-                    '<li>' + result + '</li>'
-                );
-            });
-            */
-
+          });
         })
     }
 

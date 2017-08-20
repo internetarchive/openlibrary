@@ -3275,6 +3275,7 @@ li.searchResultItem {
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 3px;
+    border-bottom:1px solid #f3f1ea;
 }
 
 .searchResultItem .details {
@@ -5373,7 +5374,14 @@ p#postBorrowList {font-size:.75em;padding-left:55px;}
 #listTools li span.alert {background-position: -56px 0;}
 
 ul#listResults {list-style-type:none;margin:0;padding:0;border-top:1px dotted #ebebeb;}
-ul#listResults li {float:left;width:100%;list-style-type:none;padding:15px 0;border-bottom:1px solid #ebebeb;}
+ul#listResults li {
+    display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    width:100%;
+    list-style-type:none;
+}
 ul.clean {border-top:none!important;}
 ul.clean li {border-bottom:none!important;}
 ul#listResults li span {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
@@ -5393,8 +5401,17 @@ ul#listResults li span.subject {background-color:#ffa337;color:#fff;padding: 1px
 ul#listResults li span.place {background-color:#e44028;color:#fff;padding: 1px;opacity:0.50}
 ul#listResults li span.book {background-color:#35672e;color:#fff;padding: 1px;opacity:0.50}
 ul#listResults li span.people {background-color:#615132;color:#fff;padding: 1px;opacity:0.50}
-ul#listResults li span.listDelete {display:block;float:right;white-space:nowrap;padding-left:15px;max-width:150px;line-height:28px;}
-ul#listResults li span.listDelete a span {display:block;float:right;margin-left:10px;background-image:url("/images/back_list-trash.png");background-repeat:no-repeat;background-position:0 0;height:28px;width:21px;}
+ul#listResults li span.listDelete {
+    white-space:nowrap;
+    max-width:150px;
+    line-height:28px;
+    display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    margin-bottom: 5px;
+}
+ul#listResults li span.listDelete a span {margin-right:5px; background-image:url("/images/back_list-trash.png");background-repeat:no-repeat;background-position:0 0;height:28px;width:21px; display: inline-block; position: relative; top: 5px}
 ul#listResults li span.listDelete a:hover span{background-position:-21px 0;}
 
 ul.listLists {margin-bottom:0!important;margin-left:0!important;padding:0;}
