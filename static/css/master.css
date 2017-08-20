@@ -3255,14 +3255,14 @@ div#searchResults.work .resultTitle {
 
 .mode-options {
     font-size: .8em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
 
 .mode-options input {
     margin-left: 15px;
     margin-right: 5px;
     position: relative;
-    top: 2px;
-    left: 2px;
+
 }
 
 div#searchResults li img {
@@ -3808,7 +3808,7 @@ table.meta td.descrip {white-space:nowrap;width:65px;}
 
 /* HISTORY */
 
-#pageHistory {float:left;width:100%;margin-top:30px;}
+#pageHistory {width:100%;margin-top:30px;}
 #pageHistory h2 {margin-bottom: 0}
 table.history {width:100%;margin-top:10px;border-top:1px solid #e6e6e6;}
 table.history td {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#666;border-bottom:1px solid #e6e6e6;}
@@ -4254,13 +4254,13 @@ span.resultTitle h3.booktitle {
     display: inline;
     margin: 0;
     padding: 0;
-    color: #000;
+    color: #333;
     font-size: 1.0em;
     font-weight: 700;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
-span.resultTitle span.bookauthor,
-span.resultTitle span.resultPublisher {
+span.resultTitle .bookauthor,
+span.resultTitle .resultPublisher {
     font-size: 0.75em;
     color: #666;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
@@ -4357,12 +4357,16 @@ div.wide ul#siteSearch span.resultTitle {
 div.narrow ul#siteSearch span.resultTitle {
     max-width: 500px!important;
 }
-ul#siteSearch span.resultTitle span.bookauthor,
+ul#siteSearch span.resultTitle .bookauthor,
 ul#siteSearch span.resultPublisher {
     font-size: 0.75em;
     color: #666;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
+.bookauthor {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+}
+
 ul#siteSearch span.resultPublisher {
     display: block;
 }
