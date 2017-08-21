@@ -844,10 +844,10 @@ header {
     max-width: 960px;
     min-width: 300px;
     margin: 0px auto;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     -webkit-box-orient: vertical;
     -webkit-box-direction: normal;
     -ms-flex-direction: column;
@@ -885,10 +885,10 @@ header {
 }
 
 .logo-component a {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     color: #000;
     text-decoration: none !important;
 }
@@ -913,12 +913,12 @@ header {
     background: #fafafa;
     border-radius:.3em;
     -webkit-box-flex: 1;
-    -ms-flex: 1;
+    -ms-flex: 1 0 0%;
     flex: 1;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
 }
 
 .search-component .search-bar-submit {
@@ -932,10 +932,10 @@ header {
 .search-component .search-bar-input {
     min-width: 50px;
     width: 100%;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
 }
 
 .search-component .search-bar-input input[type=text] {
@@ -989,10 +989,10 @@ header .search-component .search-dropdown ul.search-results li:hover {
 }
 
 header .search-component .search-dropdown ul.search-results li a {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     text-decoration: none;
     color: #333;
 }
@@ -1044,10 +1044,10 @@ header .search-component .search-bar-advanced-btn {
 }
 
 .account-component .dropdown-avatar {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     -webkit-box-align: center;
         -ms-flex-align: center;
             align-items: center;
@@ -1114,10 +1114,10 @@ header .logo-component .logo-icon {
 
 header .navigation-component {
     font-family: 'Poppins', sans-serif;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     -ms-flex-preferred-size: 100%;
         flex-basis: 100%;
     -webkit-box-ordinal-group: 6;
@@ -1389,10 +1389,10 @@ header .account-component .account-dropdown ul a li{
 }
 
 .iaBar {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     max-width: 960px;
     margin: 0 auto;
     -webkit-box-align: center;
@@ -1484,10 +1484,10 @@ header .search-component-expand .search-facet-selector {
     display: block;
 }
 header .search-component-expand .search-bar .search-bar-input {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
 }
 header .search-component .expand .search-bar-advanced-btn {
     display: block;
@@ -1527,10 +1527,10 @@ header .expand .search-bar-input input {
         display: block;
     }
     header .search-component .search-bar .search-bar-input {
-        display: flex;
         display: -webkit-box;
         display: -ms-flexbox;
         display: -webkit-flex;
+        display: flex;
     }
     header .search-component .search-bar-advanced-btn {
         display: block;
@@ -1550,10 +1550,10 @@ header .expand .search-bar-input input {
                 order: 3;
     }
     header .navigation-component {
-        display: flex;
         display: -webkit-box;
         display: -ms-flexbox;
         display: -webkit-flex;
+        display: flex;
         -webkit-box-ordinal-group: 7;
             -ms-flex-order: 6;
                 order: 6;
@@ -3279,6 +3279,7 @@ div#searchResults li img {
 }
 
 li.searchResultItem {
+    list-style-type: none;
     background-color: #fafafa;
     border-radius: 5px;
     padding: 10px;
