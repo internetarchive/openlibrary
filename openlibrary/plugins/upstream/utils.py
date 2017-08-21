@@ -731,7 +731,9 @@ class Request:
         """
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
-        return ("https://" + web.ctx.host + readable_path + query) or ''
+        host = web.ctx.host or ''
+        url = (host + readable_path + query)
+        return ("https://" + url) if url else ''
 
 
 def setup():
