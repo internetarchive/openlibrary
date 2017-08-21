@@ -2314,10 +2314,10 @@ div#editButton button,div#editHistory button,div.revert.notice button {font-size
 div#editInfo {float:right;white-space:nowrap;text-align:right;}
 
 #content .shareLinks {float:left;clear:both;margin-top:10px;}
-#content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;width: 300px;}
+#content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;;}
 #content .shareLinks li {list-style-type:none;float:left;margin-right:12px;line-height: 24px;}
 #content .shareLinks a {line-height: 24px;}
-
+#content .shareLinks a img { height: 30px; }
 div#revertNotice {
     width: 958px;
     height: 45px;
