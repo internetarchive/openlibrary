@@ -3262,15 +3262,14 @@ div#searchResults.work .resultTitle {
 
 
 .mode-options {
-    font-size: .8em;
+    font-size: .7em;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
 
 .mode-options input {
     margin-left: 15px;
-    margin-right: 5px;
+    margin-right: 4px;
     position: relative;
-
 }
 
 div#searchResults li img {

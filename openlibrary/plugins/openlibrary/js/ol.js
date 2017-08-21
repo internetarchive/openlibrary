@@ -422,7 +422,7 @@ $().ready(function(){
     }
 
     // Search mode
-    var searchModes = new Set(['everything', 'ebooks', 'printdisabled'])
+    var searchModes = ['everything', 'ebooks', 'printdisabled'];
     var searchModeDefault = 'ebooks';
 
     // Maps search facet label with value
@@ -518,7 +518,7 @@ $().ready(function(){
 
     var setSearchMode = function(mode) {
         var searchMode = mode || localStorage.getItem("mode");
-        var isValidMode = searchModes.has(searchMode);
+        var isValidMode = searchModes.indexOf(searchMode) != -1;
         localStorage.setItem('mode', isValidMode?
                              searchMode : searchModeDefault);
         $('.instantsearch-mode').val(localStorage.getItem("mode"));
@@ -546,6 +546,8 @@ $().ready(function(){
         }
         $('.search-bar-input [type=text]').val(q);
     }
+
+    updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {
         var timeout;

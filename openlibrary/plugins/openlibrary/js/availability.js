@@ -272,5 +272,5 @@ $(function(){
     })
 
     updateBookAvailability();
-    updateWorkAvailability();
+
 });
