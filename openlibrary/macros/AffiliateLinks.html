@@ -29,7 +29,7 @@ $if asin:
               <td class="price">
               $if prices:
                   $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
-                  $if 'price' in betterworldbooks_metadata and betterworldbooks_metadata['price']:
+                  $if betterworldbooks_metadata and 'price' in betterworldbooks_metadata and betterworldbooks_metadata['price']:
                       \$$betterworldbooks_metadata['price'] ($betterworldbooks_metadata['qlt'])
               </td>
             </tr>
