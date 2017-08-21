@@ -427,7 +427,7 @@ def set_share_links(url='#', title='', view_context=None):
     links = [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=' + encoded_url},
         {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=%s&via=openlibrary&text=%s' % (encoded_url, text)},
-        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/button/?url=%s&description=%s' % (encoded_url, text)}
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=%s&description=%s' % (encoded_url, text)}
     ]
     view_context.share_links = links
 
