@@ -19,7 +19,7 @@ def test_set_share_links():
     assert test_context.share_links == [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.com'},
         {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.com&via=openlibrary&text=Check+this+out%3A+bar'},
-        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar'}
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.com&media=https%3A%2F%2Ffoo.com&description=Check+this+out%3A+bar'}
     ]
 
 def test_set_share_links_unicode():
@@ -32,7 +32,7 @@ def test_set_share_links_unicode():
     assert test_context.share_links == [
         {'text': 'Facebook', 'url': 'https://www.facebook.com/sharer/sharer.php?u=https%3A%2F%2Ffoo.%C3%A9'},
         {'text': 'Twitter', 'url': 'https://twitter.com/intent/tweet?url=https%3A%2F%2Ffoo.%C3%A9&via=openlibrary&text=Check+this+out%3A+b%C4%81'},
-        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81'}
+        {'text': 'Pinterest', 'url': 'https://pinterest.com/pin/create/link/?url=https%3A%2F%2Ffoo.%C3%A9&media=https%3A%2F%2Ffoo.%C3%A9&description=Check+this+out%3A+b%C4%81'}
     ]
 
 def test_item_image():
