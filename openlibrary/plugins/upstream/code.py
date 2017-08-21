@@ -83,9 +83,9 @@ def get_amazon_metadata(isbn):
     try:
         isbn = normalize_isbn(isbn)
         if isbn:
-            return _get_amazon_metadata(isbn)
+            return cached_get_amazon_metadata(isbn)
     except Exception:
-        return None
+        return {}
 
 def _get_amazon_metadata(isbn):
     if not amazon_api:
@@ -106,7 +106,7 @@ def _get_amazon_metadata(isbn):
     }
 
 cached_get_amazon_metadata = cache.memcache_memoize(
-    _get_amazon_metadata, "home._get_amazon_metadata", timeout=HALF_DAY)
+    _get_amazon_metadata, "upstream.code._get_amazon_metadata", timeout=HALF_DAY)
 
 @public
 def get_betterworldbooks_metadata(isbn):
@@ -115,7 +115,7 @@ def get_betterworldbooks_metadata(isbn):
         if isbn:
             return _get_betterworldbooks_metadata(isbn)
     except Exception:
-        return None
+        return {}
 
 def _get_betterworldbooks_metadata(isbn):
     url = BETTERWORLDBOOKS_API_URL + isbn
