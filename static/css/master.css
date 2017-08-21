@@ -737,8 +737,16 @@ button.plainText:hover {color:#35672e;}
 button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#000;background-color:transparent!important;cursor:pointer;}
 button.plain:hover {color:#35672e;}
 #tooltip{position:absolute;display:none;border:1px solid #dedede;padding:4px;background-color:#fff;font-size:0.75em;opacity:0.80}
-.pagination {float:left;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;margin-top:30px;}
-.pagination a {display:block;float:left;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
+.pagination {
+    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size:0.75em;
+    margin: 5px 0px;
+    display: flex;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+}
+.pagination a {display:block;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
 .pagination a:hover {background:#036daa;color:#fff;display:block;float:left;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
 .pagination span.this {display:block;float:left;color:#000;padding:7px;border:1px solid #ddd;margin-right:10px;background-color:#efefef;}
 .onTop{z-index:20000!important;}
