@@ -125,9 +125,9 @@ class borrow(delegate.page):
         availability = response[olid] if response else {}
         ocaid = availability.get('identifier')
         if availability and availability['status'] == 'open':
-            raise web.seeother('https://archive.org/stream/' + ocaid)
+            raise web.seeother('https://archive.org/stream/' + ocaid + '?ref=ol')
 
-        error_redirect = ('https://archive.org/stream/' + ocaid) if ocaid else edition.url()
+        error_redirect = ('https://archive.org/stream/' + ocaid + '?ref=ol') if ocaid else edition.url()
         user = accounts.get_current_user()
 
         if user:
