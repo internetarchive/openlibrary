@@ -12,7 +12,7 @@ $    ('publisher_facet', 'Publisher'),
 $    ('language', 'Language'),
 $    ('public_scan_b', 'Classic eBooks'),
 $ )
-$ fulltext_names = {'true': 'Only ebooks', 'false': 'eBooks hidden'}
+$ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
 $ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
 
@@ -148,15 +148,17 @@ function less(header) {
 </div>
 
 <div id="contentBody">
+  <div class="section">
 
-    <div class="section">
-
-        <form method="get" action="/search" class="siteSearch olform">
-        <label for="q" class="hidden">Keywords</label>
-        <input type="text" name="q" id="q" value="$q_param" size="100" style="width:505px;"/>
-        <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
-        &nbsp;<input name="has_fulltext" type="checkbox" value="true" $('checked="checked"' if 'has_fulltext' in param else '') id="ftokensmid"/>
-        <label for="ftokensmid"><span class="tools">$_("Only show ebooks")</span></label>
+    <form method="get" action="/search" class="siteSearch olform">
+      <label for="q" class="hidden">Keywords</label>
+      <input type="text" name="q" id="q" value="$q_param" size="100" style="width:505px;"/>
+      <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
+      <span class="mode-options">
+        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">Everything</input>
+        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>Ebooks</input>
+        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">Print Disabled</input>
+      </span>
         $for k, values in param.items():
             $if k not in sticky:
                 $continue
@@ -208,6 +210,8 @@ function less(header) {
                             <span title="Written in">$display</span>
                         $elif header == 'publisher_facet':
                             <span title="Published by">$display</span>
+                        $elif header == 'author_key':
+                            <span title="Author">$display</span>
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
@@ -223,74 +227,16 @@ function less(header) {
             \$().ready(bookCovers);
         //-->
         </script>
+        <div class="resultsContainer">
         <div id="searchResults">
-        <ul id="siteSearch">
-        $ work_keys = []
-        $for result_doc in docs:
-            $ doc = get_doc(result_doc)
-            $ key = doc.key
-            $ work_keys.append(key)
-            <li itemscope itemtype="https://schema.org/Book">
-            <span class="bookcover">
-                $if doc.cover_edition_key:
-                    $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
-                $elif doc.ia:
-                    $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
-                $else:
-                    $ cover = "/images/icons/avatar_book-sm.png"
-                <a href="$doc.url"><img itemprop="image" src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
-            </span>
-            <span class="details">
-                <span class="resultTitle">
-                    <h3 class="booktitle">
-                        <a itemprop="name" href="$doc.url"
-                        class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
-                    </h3>
-                    <span class="bookauthor">by
-                    $if not doc.authors:
-                        <em>Unknown author</em>
-                    $else:
-                        $for a in doc.authors:
-                            <a itemprop="author" href="$a.url" class="results">$a.name</a>$(',' if not loop.last else '')
-                    </span>
-                    <span class="resultPublisher">
-                        $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
-                        $if len(doc.ia):
-                            ($len(doc.ia) ebook$("s" if len(doc.ia) != 1 else ""))
-                        $if doc.first_publish_year:
-                            - first published in
-                            $if doc.first_edition:
-                                <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
-                            $else:
-                                $doc.first_publish_year
-                    </span>
-                </span>
-            </span>
-            $if doc.public_scan and doc.get('has_fulltext'):
-                <span class="actions">
-                    <a href="//archive.org/stream/$doc.ia[0]?ref=ol" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
-                        <span class="image read"></span>
-                        <span class="label">$_("Read")</span>
-                    </a>
-                </span>
-
-            $elif doc.lending_edition and (library or 'inlibrary' not in doc.collections):
-                <span class="actions read">
-                    <a href="/books/$doc.lending_edition/x/borrow" class="borrow-link" title="Read book"
-                       data-key="$(doc.key)" data-ocaid="$(doc.get('ocaid', '') or ','.join(doc.get('ia', '')))">
-                        <span class="read-icon image borrow"></span>
-                        <span class="read-label label">Borrow</span>
-                    </a>
-                </span>
-            $elif not doc.public_scan and 'printdisabled' in doc.collections:
-                <span class="actions">
-                    <a href="$doc.key" title="Protected DAISY">
-                        <span class="image daisy"></span>
-                        <span class="label">DAISY</span>
-                    </a>
-                </span>
-            </li>
-        </ul>
+          <ul id="siteSearch">
+            $ work_keys = []
+            $for result_doc in docs:
+                $ doc = get_doc(result_doc)
+                $ key = doc.key
+                $ work_keys.append(key)
+                $:macros.SearchResultsWork(doc)
+          </ul>
         </div>
 
 <!-- /results -->
@@ -335,8 +281,8 @@ $if param and not error:
                 <div class="facetMoreLess"><span class="small" onclick="more('$header');false"><a href="javascript:;" id="${header}_more" class="orange">$_("more")</a></span> <span id="${header}_bull" class="header_bull small gray">&bull;</span> <span class="small" onclick="less('$header');false"><a href="javascript:;" id="${header}_less" class="orange hidden">$_("less")</a></span></div>
             </div>
         </div>
-
 <!-- /facets -->
+        </div>
 
     $if param and not error:
         $:macros.Pager(page, num_found, rows)

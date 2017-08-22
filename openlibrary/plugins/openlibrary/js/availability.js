@@ -15,7 +15,7 @@
   stored as metadata within their Archive.org user account.
 */
 
-var getAvailability, getEditions, updateBookAvailability;
+var getAvailability, getAvailabilityV2, getEditions, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
@@ -42,9 +42,9 @@ $(function(){
         if (decoration) {
             url += '&decoration=' + decoration;
         }
-	if (pixel) {
-	    url += '&pixel=' + pixel;
-	}
+        if (pixel) {
+            url += '&pixel=' + pixel;
+        }
         $.ajax({
             url: url,
             type: "GET",
@@ -80,85 +80,196 @@ $(function(){
         });
     };
 
+    getAvailabilityV2 = function(_type, _ids, callback) {
+        if (!_ids.length) {
+            return callback({});
+        }
+        var url = '/availability/v2?' + _type + '_ids=' + _ids.join(',');
+        $.ajax({
+            url: url,
+            type: "GET",
+            dataType: "json",
+            contentType: "application/json",
+            beforeSend: function(xhr) {
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.setRequestHeader("Accept", "application/json");
+            },
+            success: function(result) {
+                return callback(result);
+            }
+        });
+    };
+
     /*
      * Finds DOM elements for borrowable books (i.e. they have a
      * data-ocaid field and a data-key field) within the specified
-     * scope of `selector` and updates they displayed borrow status
+     * scope of `selector` and updates the displayed borrow status
      * and ebook links to reflect correct statuses and available
      * copies.
      */
     updateBookAvailability = function(selector) {
         selector = (selector || '') + '[data-ocaid]';
-	var books = {};  // lets us keep track of which ocaids came from
+        var books = {};  // lets us keep track of which ocaids came from
         // which book (i.e. edition or work). As we learn
         // ocaids are available, we'll need a way to
         // determine which edition or work this ocaid
         // comes from.
-	var ocaids = [];  // a full set of ocaids spanning all books
+        var ocaids = [];  // a full set of ocaids spanning all books
         // which can be checked in a single request
         // to the availability API.
-	$(selector).each(function(index, elem) {
+        $(selector).each(function(index, elem) {
             var data_ocaid = $(elem).attr('data-ocaid');
             if(data_ocaid) {
                 var book_ocaids = data_ocaid.split(',')
-		    .filter(function(book) { return book !== "" });
+                    .filter(function(book) { return book !== "" });
                 var book_key = $(elem).attr('data-key');
 
                 if(book_ocaids.length) {
-	            books[book_key] = book_ocaids;
-		    Array.prototype.push.apply(ocaids, book_ocaids);
+                    books[book_key] = book_ocaids;
+                    Array.prototype.push.apply(ocaids, book_ocaids);
                 }
             }
-	});
+        });
 
-	getAvailability(ocaids, function(response) {
+        getAvailability(ocaids, function(response) {
             for (var book_ocaid in response) {
-		if (response[book_ocaid].status === "not_lendable") {
+                if (response[book_ocaid].status === "not_lendable") {
                     for (var book_key in books) {
-			var book_ocaids = books[book_key];
-			if (book_ocaids.indexOf(book_ocaid) > -1) {
-			    $(selector + "[data-key=" + book_key  + "]")
-				.removeClass("borrow-link");
-			    $(selector + "[data-key=" + book_key  + "]")
-				.parent().remove();
-			    delete books[book_key];
-			}
-		    }
-		} else if (response[book_ocaid].status === "available") {
+                        var book_ocaids = books[book_key];
+                        if (book_ocaids.indexOf(book_ocaid) > -1) {
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .removeClass("borrow-link");
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .parent().remove();
+                            delete books[book_key];
+                        }
+                    }
+                } else if (response[book_ocaid].status === "available") {
                     // check all the books on this page
                     for (var book_key in books) {
-			var book_ocaids = books[book_key];
-			// check if available book_ocaid is in
-			// this book_key's book_ocaids
-			if (book_ocaids.indexOf(book_ocaid) > -1) {
+                        var book_ocaids = books[book_key];
+                        // check if available book_ocaid is in
+                        // this book_key's book_ocaids
+                        if (book_ocaids.indexOf(book_ocaid) > -1) {
                             // update icon, ocaid, and url (to ia:)
-			    // should limit scope to `selector` ! XXX
+                            // should limit scope to `selector` ! XXX
                             $(selector + "[data-key=" + book_key  + "]")
-				.attr("href", "/borrow/ia/" + book_ocaid);
+                                .attr("href", "/borrow/ia/" + book_ocaid);
 
                             // since we've found an available edition to
                             // represent this book, we can stop and remove
                             // book_ocaid from book_ocaids (one less book
                             // to check against).
                             delete books[book_key];
-			}
+                        }
                     }
-		}
+                }
             };
 
             // for anything remaining in books, set to checked-out
             for (var book_key in books) {
-		$(selector + "[data-key=" + book_key  + "] span.read-icon")
-		    .removeClass("borrow");
-		$(selector + "[data-key=" + book_key  + "] span.read-icon")
-		    .addClass("checked-out");
-		$(selector + "[data-key=" + book_key  + "] span.read-label")
-		    .html("Checked-out");
-		delete books[book_key];
+                $(selector + "[data-key=" + book_key  + "] span.read-icon")
+                    .removeClass("borrow");
+                $(selector + "[data-key=" + book_key  + "] span.read-icon")
+                    .addClass("checked-out");
+                $(selector + "[data-key=" + book_key  + "] span.read-label")
+                    .html("Checked-out");
+                delete books[book_key];
             }
 
-	});
+        });
     };
 
+    updateWorkAvailability = function() {
+        if (localStorage.getItem('mode') === "printdisabled") {
+            var daisies = $('.print-disabled-only');
+            $.each(daisies, function() {
+                $(this).removeClass('hidden');
+            });
+            return;
+        }
+
+        var editions = [];
+        var works = [];
+        var results = $('a.results');
+        $.each(results, function(index, e) {
+            var href = $(e).attr('href');
+            var _type_key_slug = href.split('/')
+            var _type = _type_key_slug[1];
+            var key = _type_key_slug[2];
+            if (_type === 'works') {
+                works.push(key);
+            } else if (_type === 'books') {
+                editions.push(key);
+            }
+        });
+
+        getAvailabilityV2('edition', editions, function(editions_response) {
+          getAvailabilityV2('work', works, function(works_response) {
+            var response = {'books': editions_response, 'works': works_response};
+            $.each(results, function(index, e) {
+                var href = $(e).attr('href');
+                var _type_key_slug = href.split('/')
+                var _type = _type_key_slug[1];
+                var key = _type_key_slug[2];
+                if (response[_type]) {
+                    var work = response[_type][key];
+                    var li = $(e).closest("li");
+                    var cta = li.find(".searchResultItemCTA");
+                    var msg = '';
+                    var link = '';
+                    var annotation = '';
+                    var tag = 'a';
+
+                    if (localStorage.getItem('mode') !== "printdisabled") {
+                        if (work.status === 'error') {
+                            if (localStorage.getItem('mode') === "ebooks") {
+                                li.remove();
+                            }
+                        } else {
+                            var cls = 'borrow_available borrow-link';
+                            link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
+
+                            if (work.status === 'open') {
+                                msg = 'Read';
+                            } else if (work.status === 'borrow_available') {
+                                msg = 'Borrow';
+                            } else if (work.status === 'borrow_unavailable') {
+                                tag = 'span';
+                                link = '';
+                                cls = work.status;
+                                msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
+                                if (work.num_waitlist !== '0') {
+                                    msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+
+                                } else {
+                                    msg += 'Join Waitlist</form>';
+                                    annotation = '<div class="waitlist-msg">You will be first in line!</div>';
+                                }
+                            }
+                            $(cta).append(
+                                '<' + tag + ' ' + link + ' class="' + cls +
+                                    ' cta-btn" data-ol-link-track="' +
+                                    work.status
+                                    + '">' + msg + '</' + tag + '>'
+                            );
+
+                            if (annotation) {
+                                $(cta).append(annotation);
+                            }
+                        }
+                    }
+                }
+            });
+          });
+        })
+    }
+
+    $('.searchResultItemCTA form.join-waitlist').live('click', function(e) {
+        // consider submitting form async and refreshing search results page
+        $(this).submit()
+    })
+
     updateBookAvailability();
+
 });

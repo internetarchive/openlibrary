@@ -30,6 +30,29 @@ var Browser = {
             "html": document.html,
             "pageTitle": document.title + " " + query,
         }, "", baseUrl + "?id=" + query);
+    },
+
+    removeURLParameter: function(url, parameter) {
+        var urlparts = url.split('?');
+        var prefix = urlparts[0];
+        if (urlparts.length >= 2 ) {
+            var query = urlparts[1];
+            var paramPrefix = encodeURIComponent(parameter) + '=';
+            var params= query.split(/[&;]/g);
+
+            //reverse iteration as may be destructive
+            for (var i = params.length; i-- > 0;) {
+                //idiom for string.startsWith
+                if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
+                    params.splice(i, 1);
+                }
+            }
+
+            url = prefix + (params.length > 0 ? '?' + params.join('&') : "");
+            return url;
+        } else {
+            return url;
+        }
     }
 }
 
@@ -388,6 +411,7 @@ function passwordHide(){
 })(jQuery);
 };
 
+var searchMode;
 $().ready(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
@@ -396,6 +420,10 @@ $().ready(function(){
     var capitalize = function(word) {
         return word.charAt(0).toUpperCase() + word.slice(1);
     }
+
+    // Search mode
+    var searchModes = ['everything', 'ebooks', 'printdisabled'];
+    var searchModeDefault = 'ebooks';
 
     // Maps search facet label with value
     var defaultFacet = "title";
@@ -407,7 +435,7 @@ $().ready(function(){
         'advanced': 'advancedsearch'
     };
 
-    var composeSearchUrl = function(q, json, limit) {
+    var composeSearchUrl = function(q, json, limit, options) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
@@ -417,17 +445,17 @@ $().ready(function(){
         if (limit) {
             url += '&limit=' + limit;
         }
-        return url + '&has_fulltext=true';
+        return url + '&mode=' + localStorage.getItem('mode');
     }
 
     var marshalBookSearchQuery = function(q) {
-        if (q.indexOf(':') == -1 && q.indexOf('"') == -1) {
+        if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
            q = 'title: "' + q + '"';
         }
         return q;
     }
 
-    var renderSearchResults = function(q) {
+    var renderInstantSearchResults = function(q) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         if (q === '') {
             return;
@@ -442,7 +470,7 @@ $().ready(function(){
         var facet = facet_value === 'all'? 'books' : facet_value;
         $.getJSON(url, function(data) {
             for (var d in data.docs) {
-                renderSearchResult[facet](data.docs[d]);
+                renderInstantSearchResult[facet](data.docs[d]);
             }
         });
     }
@@ -463,17 +491,54 @@ $().ready(function(){
         q = $('header .search-component .search-bar-input input').val();
         var url = composeSearchUrl(q)
         $('.search-bar-input').attr("action", url);
-        renderSearchResults(q);
+        renderInstantSearchResults(q);
     }
+
+    var setMode = function(form) {
+        if (!$(form).length) {
+            return;
+        }
+
+        $("input[value='Protected DAISY']").remove();
+        $("input[name='has_fulltext']").remove();
+
+        var url = $(form).attr('action')
+        url = Browser.removeURLParameter(url, 'has_fulltext');
+        url = Browser.removeURLParameter(url, 'subject_facet');
+
+        if (localStorage.getItem('mode') !== 'everything') {
+            $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
+            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'has_fulltext=true';
+        } if (localStorage.getItem('mode') === 'printdisabled') {
+            $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
+        }
+        $(form).attr('action', url);
+    }
+
+    var setSearchMode = function(mode) {
+        var searchMode = mode || localStorage.getItem("mode");
+        var isValidMode = searchModes.indexOf(searchMode) != -1;
+        localStorage.setItem('mode', isValidMode?
+                             searchMode : searchModeDefault);
+        $('.instantsearch-mode').val(localStorage.getItem("mode"));
+        $('input[name=mode][value=' + localStorage.getItem("mode") + ']')
+            .attr('checked', 'true');
+        setMode('.olform');
+        setMode('.search-bar-input');
+    }
+
     var options = Browser.getJsonFromUrl();
+
     if (!searchFacets[localStorage.getItem("facet")]) {
         localStorage.setItem("facet", defaultFacet)
     }
     setFacet(options.facet || localStorage.getItem("facet") || defaultFacet);
+    setSearchMode(options.mode);
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
-        if (q.indexOf('title:') != -1) {
+        if (localStorage.getItem("facet") === 'title' && q.indexOf('title:') != -1) {
             var parts = q.split('"');
             if (parts.length === 3) {
                 q = parts[1];
@@ -481,6 +546,8 @@ $().ready(function(){
         }
         $('.search-bar-input [type=text]').val(q);
     }
+
+    updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {
         var timeout;
@@ -502,7 +569,6 @@ $().ready(function(){
     };
 
     $('.trigger').live('submit', function(e) {
-        e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
     });
@@ -527,7 +593,7 @@ $().ready(function(){
                 $('.search-bar-input').removeClass('trigger');
                 var search_query = $('header .search-component .search-bar-input input').val()
                 if (search_query) {
-                    renderSearchResults(search_query);
+                    renderInstantSearchResults(search_query);
                 }
             }
             enteredSearchMinimized = false;
@@ -558,11 +624,11 @@ $().ready(function(){
         setFacet(facet);
     })
 
-    var renderSearchResult = {
+    var renderInstantSearchResult = {
         books: function(work) {
             var author_name = work.author_name ? work.author_name[0] : '';
             $('header .search-component ul.search-results').append(
-                '<li><a href="' + work.key + '"><img src="' + cover_url(work.cover_i) +
+                '<li class="instant-result"><a href="' + work.key + '"><img src="' + cover_url(work.cover_i) +
                     '"/><span class="book-desc"><div class="book-title">' +
                     work.title + '</div>by <span class="book-author">' +
                     author_name + '</span></span></a></li>'
@@ -583,6 +649,31 @@ $().ready(function(){
         if (facet_value === 'books') {
             $('header .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
         }
+        setMode('.search-bar-input');
+    });
+
+    $('.search-mode').change(function() {
+        $('html,body').css('cursor', 'wait');
+        setSearchMode($(this).val());
+        if ($('.olform').length) {
+            $('.olform').submit();
+        } else {
+            location.reload();
+        }
+    });
+
+    $('.olform').submit(function() {
+        if (localStorage.getItem('mode') !== 'everything') {
+            $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
+        } if (localStorage.getItem('mode') === 'printdisabled') {
+            $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+        }
+
+    });
+
+    $('li.instant-result a').live('click', function() {
+        $('html,body').css('cursor', 'wait');
+        $(this).css('cursor', 'wait');
     });
 
     $('header .search-component .search-results li a').live('click', debounce(function(event) {
@@ -592,7 +683,7 @@ $().ready(function(){
     $('header .search-component .search-bar-input input').keyup(debounce(function(e) {
         // ignore directional keys and enter for callback
         if (![13,37,38,39,40].includes(e.keyCode)){
-            renderSearchResults($(this).val());
+            renderInstantSearchResults($(this).val());
         }
     }, 500, false));
 
@@ -620,7 +711,7 @@ $().ready(function(){
 
     $('header .search-component .search-bar-input input').focus(debounce(function() {
         var val = $(this).val();
-        renderSearchResults(val);
+        renderInstantSearchResults(val);
     }, 300, false));
 
     /* Browse menu */

@@ -43,7 +43,7 @@ function setup_account_create() {
             required: ""
         }
     });
-    
+
     // CHECK USERNAME AVAILABILITY
     $('#usernameLoading').hide();
     $('#emailLoading').hide();
@@ -55,7 +55,7 @@ function setup_account_create() {
     $('#usernameLoading').hide();
     $('#'+id).html(unescape(response));
     $('#'+id).customFadeIn();
-  } 
+  }
   //finishAjax
 
   // CHECK EMAIL ASSOCIATION
@@ -77,8 +77,8 @@ function setup_account_create() {
     $('#emailLoading').hide();
     $('#'+id).html(unescape(response));
     $('#'+id).customFadeIn();
-  } 
-  //finishAjax 
+  }
+  //finishAjax
   */
 
 //RECAPTCHA

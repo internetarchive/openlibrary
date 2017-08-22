@@ -11,6 +11,7 @@ $if doc.key.startswith("/subjects/"):
 $else:
     $ seed = {"key": doc.key}
 
+
 $if "type" in doc and doc.type.key == "/type/user":
     <style type="text/css">
         span.list-owner { display: none; }

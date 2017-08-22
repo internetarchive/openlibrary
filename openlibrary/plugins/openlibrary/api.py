@@ -124,6 +124,18 @@ def get_featured_subjects():
 get_featured_subjects = cache.memcache_memoize(
     get_featured_subjects, "get_featured_subjects", timeout=ONE_HOUR)
 
+class works_availability(delegate.page):
+    path = "/availability/v2"
+
+    def GET(self):
+        i = web.input(work_ids='', edition_ids='')
+        ol_work_ids = i.work_ids.split(',')
+        ol_edition_ids = i.edition_ids.split(',')
+        result = lending.get_availablility_of_works(ol_work_ids) if i.work_ids else \
+                 lending.get_availability_of_editions(ol_edition_ids)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
 class editions_availability(delegate.page):
     path = "/availability"
 
