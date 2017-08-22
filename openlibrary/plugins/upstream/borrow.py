@@ -152,7 +152,7 @@ class borrow(delegate.page):
             resource_type = i.format or 'bookreader'
 
             if resource_type not in ['epub', 'pdf', 'bookreader']:
-                raise web.seeother(error_redirect)            
+                raise web.seeother(error_redirect)
 
             if user_can_borrow_edition(user, edition, resource_type):
 

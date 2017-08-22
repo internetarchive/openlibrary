@@ -146,9 +146,9 @@ function get_seed_count() {
 </script>
 
 <div id="contentBody">
-    <div id="remove-seed-dialog" class="hidden" title="Remove seed">Are you sure you want to remove this seed from the list?</div>
+    <div id="remove-seed-dialog" class="hidden" title="Remove seed">Are you sure you want to remove this item from the list?</div>
     <div id="delete-list-dialog" class="hidden" title="Remove Seed">
-        You are about the remove the last seed in the list. That will delete the whole list. Are you sure you want to continue?
+        You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?
     </div>
 
     $def render_authors(authors):
@@ -237,16 +237,16 @@ function get_seed_count() {
                 <span class="searchResultItemCTA">
                     $if ctx.user and ctx.user.key == list.get_owner().key:
                         <span class="listDelete sansserif smaller">
-			  <a href="javascript:;"><span></span>Remove this seed?</a>
-			</span>
+                          <a href="javascript:;"><span></span>Remove this item?</a>
+                        </span>
                     $if 'daisy_url' in ebook:
                         <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
                           <span class="actions">
                             <span class="image daisy"></span>
-			  </span>
-			  <span class="label">Download DAISY</span>
-			</a>
-		</span>
+                          </span>
+                          <span class="label">Download DAISY</span>
+                        </a>
+                </span>
             </li>
         </ul>
     </div>

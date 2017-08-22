@@ -160,18 +160,18 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
                 </span>
 
-		<span class="mode-options">
-		  <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">Everything</input>
-		  <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode">Ebooks</input>
-		  <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">Print Disabled</input>
-		</span>
+                <span class="mode-options">
+                  <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">Everything</input>
+                  <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode">Ebooks</input>
+                  <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">Print Disabled</input>
+                </span>
 </p>
 
 
                 <div id="searchResults">
                     <ul id="siteSearch">
                       $for doc in books.works:
-		         $:macros.SearchResultsWork(doc)
+                         $:macros.SearchResultsWork(doc)
                     </ul>
                 </div>
         </div>

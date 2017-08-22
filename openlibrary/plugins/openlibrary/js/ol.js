@@ -35,13 +35,13 @@ var Browser = {
     removeURLParameter: function(url, parameter) {
         var urlparts = url.split('?');
         var prefix = urlparts[0];
-        if (urlparts.length>=2 ) {
+        if (urlparts.length >= 2 ) {
             var query = urlparts[1];
-            var paramPrefix = encodeURIComponent(parameter)+'=';
+            var paramPrefix = encodeURIComponent(parameter) + '=';
             var params= query.split(/[&;]/g);
 
             //reverse iteration as may be destructive
-            for (var i= params.length; i-- > 0;) {
+            for (var i = params.length; i-- > 0;) {
                 //idiom for string.startsWith
                 if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
                     params.splice(i, 1);
@@ -655,11 +655,11 @@ $().ready(function(){
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
         setSearchMode($(this).val());
-	if ($('.olform').length) {
+        if ($('.olform').length) {
             $('.olform').submit();
-	} else {
-	    location.reload();
-	}
+        } else {
+            location.reload();
+        }
     });
 
     $('.olform').submit(function() {

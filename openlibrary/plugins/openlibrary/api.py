@@ -140,7 +140,6 @@ class editions_availability(delegate.page):
     path = "/availability"
 
     def POST(self):
-        """XXX should be switched to use availability v2, i.e. get_"""
         i = simplejson.loads(web.data())
         ocaids = i.get('ocaids', [])
         j = web.input(acs='1', restricted='0')
