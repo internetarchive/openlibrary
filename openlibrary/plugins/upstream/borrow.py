@@ -117,17 +117,14 @@ class borrow(delegate.page):
         if not edition:
             raise web.notfound()
 
-        # Make a call to availability v2
-        # update the subjects according to result
-        # if `open`, redirect to bookreader
-        olid = key.split('/')[-1]
-        response = lending.get_edition_availability(olid)
-        availability = response[olid] if response else {}
-        ocaid = availability.get('identifier')
+        # Make a call to availability v2 update the subjects according
+        # to result if `open`, redirect to bookreader
+        response = lending.get_availability_of_ocaid(edition.ocaid)
+        availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
-            raise web.seeother('https://archive.org/stream/' + ocaid + '?ref=ol')
+            raise web.seeother('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
 
-        error_redirect = ('https://archive.org/stream/' + ocaid + '?ref=ol') if ocaid else edition.url()
+        error_redirect = ('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
         user = accounts.get_current_user()
 
         if user:
@@ -149,6 +146,7 @@ class borrow(delegate.page):
             action = 'read'
 
         if action == 'borrow':
+
             resource_type = i.format or 'bookreader'
 
             if resource_type not in ['epub', 'pdf', 'bookreader']:
