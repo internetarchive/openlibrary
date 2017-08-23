@@ -19,6 +19,10 @@ var getAvailability, getAvailabilityV2, getEditions, updateBookAvailability, upd
 
 $(function(){
 
+    var isListPage = function() {
+        return window.location.pathname.match('\/people\/[^/]+\/lists');
+    }
+
     /**
      * params:
      *
@@ -221,9 +225,11 @@ $(function(){
                     var annotation = '';
                     var tag = 'a';
 
-                    if (localStorage.getItem('mode') !== "printdisabled") {
+                    var mode = isListPage() ? 'everything' : localStorage.getItem('mode');
+
+                    if (mode !== "printdisabled") {
                         if (work.status === 'error') {
-                            if (localStorage.getItem('mode') === "ebooks") {
+                            if (mode === "ebooks") {
                                 li.remove();
                             }
                         } else {
