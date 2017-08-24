@@ -42,9 +42,6 @@ class MockSite:
         site = web.storage(store=store, save_many=self.save_many)
         return account.AccountManager(site, config.infobase['secret_key'])
 
-    def save(self, query, comment=None, action=None, data=None, timestamp=None):
-        timestamp = timestamp or datetime.datetime.utcnow()
-
     def _save_doc(self, query, timestamp):
         key = query['key']
 
@@ -55,10 +52,15 @@ class MockSite:
 
         doc = dict(query)
         doc['revision'] = rev
+        doc['latest_revision'] = rev
         doc['last_modified'] = {
             "type": "/type/datetime",
             "value": timestamp.isoformat()
         }
+        if rev == 1:
+            doc['created'] = doc['last_modified']
+        else:
+            doc['created'] = self.docs[key]['created']
 
         self.docs[key] = doc
 

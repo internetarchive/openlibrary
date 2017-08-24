@@ -5,7 +5,7 @@ Tests for the services module used by the admin interface.
 def test_loader(serviceconfig):
     "Make sure services are loaded"
     from .. import services
-    services = services.load_all(serviceconfig)
+    services = services.load_all(serviceconfig, "http://nagios.url")
     assert len(services.keys()) == 2
     s = sorted(services.keys())
     assert s[0] == "ol-web0"

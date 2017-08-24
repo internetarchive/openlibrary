@@ -1,4 +1,6 @@
 from .. import code
+import datetime
+from openlibrary.mocks.mock_infobase import MockSite
 
 class Test_ils_cover_upload:
     def test_build_url(self):
@@ -7,10 +9,10 @@ class Test_ils_cover_upload:
         assert build_url("http://example.com/foo?bar=true", status="ok") == "http://example.com/foo?bar=true&status=ok"
 
 class Test_ils_search:
-    def test_format_result(self):
+    def test_format_result(self, mock_site):
         format_result = code.ils_search().format_result
 
-        assert format_result(None) == {
+        assert format_result({"doc": {}}, False, "") == {
             'status': 'notfound'
         }
 
@@ -18,7 +20,9 @@ class Test_ils_search:
             'key': '/books/OL1M',
             'type': {'key': '/type/edition'}
         }
-        assert format_result(doc) == {
+        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
+        mock_site.save(doc, timestamp=timestamp)
+        assert format_result({'doc': doc}, False, "") == {
             'status': 'found',
             'olid': 'OL1M',
             'key': '/books/OL1M'
@@ -29,10 +33,13 @@ class Test_ils_search:
             'type': {'key': '/type/edition'},
             'covers': [12345]
         }
-        assert format_result(doc) == {
+        timestamp = datetime.datetime(2011, 1, 2, 3, 4, 5)
+        mock_site.save(doc, timestamp=timestamp)
+        assert format_result({'doc': doc}, False, "") == {
             'status': 'found',
             'olid': 'OL1M',
             'key': '/books/OL1M',
+            'covers': [12345],
             'cover': {
                 'small': 'https://covers.openlibrary.org/b/id/12345-S.jpg',
                 'medium': 'https://covers.openlibrary.org/b/id/12345-M.jpg',
@@ -40,13 +47,22 @@ class Test_ils_search:
             }
         }
 
-    def test_prepare_data(self):
-        prepare_data = code.ils_search().prepare_data
+    def test_prepare_input_data(self):
+        prepare_input_data = code.ils_search().prepare_input_data
 
         data = {
-            'isbn': ['1234567890', '9781234567890', '123-4-56789-0', '978-1-935928-32-4']
+            'isbn': ['1234567890', '9781234567890'],
+            'ocaid': ['abc123def'],
+            'publisher': 'Some Books',
+            'authors': ['baz']
         }
-        assert prepare_data(data) == {
-            'isbn_10': ['1234567890', '123-4-56789-0'],
-            'isbn_13': ['9781234567890', '978-1-935928-32-4']
+        assert prepare_input_data(data) == {
+            'doc': {
+                'identifiers': {
+                     'isbn': ['1234567890', '9781234567890'],
+                      'ocaid': ['abc123def']
+                },
+                'publisher': 'Some Books',
+                'authors': [{'name': 'baz'}]
+            }
         }
