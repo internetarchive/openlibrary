@@ -102,7 +102,7 @@ def _get_amazon_metadata(isbn):
         price, qlt = (used, 'used') if used else (new, 'new')
 
     return {
-        'price': "$%s (%s)" % ('{:0,.2f}'.format(int(price)/100.), qlt) if price and qlt else ''
+        'price': "$%s (%s)" % ('{:00,.2f}'.format(int(price)/100.), qlt) if price and qlt else ''
     }
 
 cached_get_amazon_metadata = cache.memcache_memoize(
@@ -133,7 +133,7 @@ def _get_betterworldbooks_metadata(isbn):
         price, qlt = None, None
 
         if used_qty and used_qty[0] and used_qty[0] != '0':
-            price = float(used_price[0]) if used_price else ''
+            price = used_price[0] if used_price else ''
             qlt = 'used'
 
         if new_qty and new_qty[0] and new_qty[0] != '0':
