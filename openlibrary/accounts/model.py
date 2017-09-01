@@ -644,7 +644,7 @@ def audit_accounts(email, password, require_link=False, test=False):
                 ol_account = OpenLibraryAccount.create(
                     ia_account.itemname, email, password,
                     displayname=ia_account.screenname,
-                    verified=True, test=test)
+                    verified=True, retries=5, test=test)
             except ValueError as e:
                 return {'error': 'max_retries_exceeded'}
 
