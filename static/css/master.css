@@ -1119,15 +1119,16 @@ header .navigation-component {
     display: -webkit-flex;
     display: flex;
     -ms-flex-preferred-size: 100%;
-        flex-basis: 100%;
+    flex-basis: 100%;
     -webkit-box-ordinal-group: 6;
-        -ms-flex-order: 5;
-            order: 5;
+    -ms-flex-order: 5;
+    order: 5;
 }
 
 header .navigation-component li {
-        -ms-flex-preferred-size: 100%;
-            flex-basis: 100%;
+    -ms-flex-preferred-size: 100%;
+    flex-basis: 100%;
+    cursor:pointer;
 }
 
 header .search-component {
@@ -1201,6 +1202,7 @@ header .search-component .search-facet select {
     width: 100%;
     z-index: 1;
     opacity: 0;
+    cursor:pointer;
 }
 
 header .search-component .search-bar {
@@ -1274,6 +1276,7 @@ header .dropdown-menu {
     background-color: #f3f1e9;
     border: 1px solid #babbad;
     border-radius: 3px;
+    cursor: pointer;
 }
 
 header .dropdown-menu li {
@@ -1321,6 +1324,7 @@ header ul.navigation-component .more-menu {
 
 header ul.navigation-component li ul.browse-menu-options {
     display: none;
+    cursor: pointer;
 }
 
 header ul.navigation-component li ul.my-books-menu-options {
@@ -1474,6 +1478,7 @@ header .search-component-expand .search-bar-input input[type=text] {
 }
 header .search-component-expand .search-bar-submit {
     margin-right: 5px;
+    cursor: pointer;
 }
 
 header .search-component-expand .search-facet {
