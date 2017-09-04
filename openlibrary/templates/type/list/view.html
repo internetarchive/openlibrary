@@ -184,6 +184,7 @@ function get_seed_count() {
                 <span class="seed-key hidden">$seed.key</span>
                 <span class="details">
                     <span class="resultTitle">
+                        $ ebook = {}
                         $if seed.type in ['edition', 'work']:
                             $ ebook = seed.document.get_ebook_info()
                             $ doc = seed.document
@@ -191,7 +192,7 @@ function get_seed_count() {
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
-                        $if seed.type == "work" or seed.type == "edition":
+                        $if seed.type in ['edition', 'work']:
                             $if seed.type == "work":
                                 $ authors = seed.document.get_authors()
                             $else:
