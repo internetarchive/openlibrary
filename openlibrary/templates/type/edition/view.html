@@ -409,8 +409,8 @@ $elif ebook_status == "borrow-user-checkedout":
                 Wikipedia citation
                 <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">Close</span></a>
             </div>
-            <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_new" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
-            <form method="get" action="">
+            <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+            <form method="get">
                 <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
     $for k, v in page.wp_citation_fields.iteritems():
        |$k = $v

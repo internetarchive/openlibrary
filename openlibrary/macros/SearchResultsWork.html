@@ -21,13 +21,13 @@ $def with (doc)
                  class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
          </h3>
       </span>
-      <div class="bookauthor">by
+      <span class="bookauthor">by
         $if not doc.authors:
           <em>Unknown author</em>
         $else:
           $for a in doc.authors:
             <a itemprop="author" href="$(a.get('url') or a.key)" class="results">$a.name</a>$(',' if not loop.last else '')
-      </div>
+      </span>
       <span class="resultPublisher">
               $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
               $if len(doc.ia):

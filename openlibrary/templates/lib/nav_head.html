@@ -20,7 +20,7 @@ $def with (page)
   </div>
 
   <div class="logo-component">
-    <a alt="The Internet Archive's Open Library: One page for every book" href="/">
+    <a href="/" title="The Internet Archive's Open Library: One page for every book">
       <div class="logo-txt">
         <img class="logo-icon" src="/static/images/openlibrary-logo.png" alt="Open Library logo"/>
       </div>
@@ -46,7 +46,7 @@ $def with (page)
         <form class="search-bar-input" action="/search" method="get">
           <input type="text" name="q" placeholder="Search" autocomplete="off">
           <input name="mode" type="checkbox" aria-hidden="true" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
-          <input type="submit" value="" class="search-bar-submit" type="submit" aria-label="Search submit">
+          <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
         </form>
       </div>
       <div class="search-dropdown">
@@ -99,15 +99,15 @@ $def with (page)
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
-        <a class="generic-button generic-button-secondary"
-           href="/account/login" class="white">$_("Log In")</a></li>
+        <a class="generic-button generic-button-secondary white"
+           href="/account/login">$_("Log In")</a></li>
       <li><a class="generic-button generic-button-primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
   $if ctx.user:
     <div class="account-component">
       <div class="dropdown-avatar">
-        <button class="avatar" href="javascript:;" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
+        <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
         <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
       </div>
       <div class="account-dropdown" id="main-account-dropdown">
@@ -118,8 +118,9 @@ $def with (page)
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">
-              <a href="#" onclick="document.forms['logout'].submit()">Log out</a></li>
-          </form>
+              <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+            </form>
+          </li>
         </ul>
       </div>
     </div>

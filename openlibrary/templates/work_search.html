@@ -155,9 +155,12 @@ function less(header) {
       <input type="text" name="q" id="q" value="$q_param" size="100" style="width:505px;"/>
       <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
       <span class="mode-options">
-        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">Everything</input>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>Ebooks</input>
-        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">Print Disabled</input>
+        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
+        <label for="mode-search-everything">Everything</label>
+        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
+        <label for="mode-search-ebooks">Ebooks</label>
+        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
+        <label for="mode-search-printdisabled">Print Disabled</label>
       </span>
         $for k, values in param.items():
             $if k not in sticky:
