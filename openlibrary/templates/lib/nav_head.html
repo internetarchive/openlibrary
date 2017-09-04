@@ -107,7 +107,7 @@ $def with (page)
   $if ctx.user:
     <div class="account-component">
       <div class="dropdown-avatar">
-        <button class="avatar" href="javascript:;" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
+        <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
         <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/>
       </div>
       <div class="account-dropdown" id="main-account-dropdown">
