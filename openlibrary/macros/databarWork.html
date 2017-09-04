@@ -57,11 +57,8 @@ $ library = None
 
 </style>
 
-
-
 <div class="Tools">
-<a name="read"></a>
-
+<div id="read">
 $ collections = set()
 $ meta_fields = page.get_ia_meta_fields()
 $if meta_fields:
@@ -72,7 +69,6 @@ $if meta_fields:
 
 
 $if page.volumes:
-    <div>
     <h3 class="header">
         <span class="icon read"></span>
         <span class="head">Browse</span>
@@ -82,9 +78,7 @@ $if page.volumes:
             <div class="panel">
                 <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
             </div>
-    </div>
 $elif page.is_access_restricted():
-    <div>
         <h3 class="header">
             <span class="icon read"></span>
             <span class="head">Read</span>
@@ -92,9 +86,7 @@ $elif page.is_access_restricted():
         <div class="panel">
             <p><a href="$page.url('/daisy')" title="Download Protected DAISY" class="plain"><meta itemprop="bookFormat" content="EBook/DAISY3"/><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Download Protected DAISY"/></a></p>
         </div>
-    </div>
 $elif page.get('ocaid'):
-    <div>
         <h3 class="header">
             <span class="icon read"></span>
             <span class="head">Read</span>
@@ -112,9 +104,7 @@ $elif page.get('ocaid'):
             $if mobi:
                 <p><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a>
         </div>
-    </div>
 $else:
-    <div>
         <h3 class="closed">
             <span class="icon readinact"></span>
             <span class="head">Read</span>
@@ -122,7 +112,8 @@ $else:
 	<div class="panel">
             <p class="smaller">No readable version available.</p>
 	</div>
-    </div>
+
+</div>
 
 $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
     <div>
