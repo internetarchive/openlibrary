@@ -5,8 +5,6 @@ $ isbn = opts.get('isbn')
 $ asin = opts.get('asin')
 $ scribd = opts.get('scribd')
 
-
-<ul>
 $if asin:
     $ amazon = "http://www.amazon.com/dp/%s/?tag=%s" % (asin, affiliate_id('amazon'))
     <table class="buy-options-table">
