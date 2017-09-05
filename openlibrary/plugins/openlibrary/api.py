@@ -11,12 +11,21 @@ import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.core import ia, lending, cache, helpers as h
 from openlibrary.data import popular
 
 ONE_HOUR = 60 * 60
 popular_editions = popular.popular
 
+class get_available_books(delegate.page):
+
+    path = '/available'
+
+    def GET(self):
+        books = [format_book_data(book) for book in lending.get_available()]
+        return delegate.RawText(simplejson.dumps(books),
+                                content_type="application/json")
 
 class popular_books(delegate.page):
     path = '/popular'

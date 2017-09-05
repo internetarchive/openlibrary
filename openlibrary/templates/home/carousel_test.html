@@ -1,0 +1,70 @@
+
+<link rel="stylesheet" type="text/css" href="/static/css/slick.css"/>
+
+<div class="responsive"></div>
+
+<script type="text/javascript">
+\$('.responsive').slick({
+    dots: false,
+    infinite: false,
+    speed: 100,
+    slidesToShow: 4,
+    slidesToScroll: 4,
+    responsive: [
+        {
+            breakpoint: 1024,
+            settings: {
+                slidesToShow: 3,
+                slidesToScroll: 3,
+                infinite: true,
+                dots: true
+            }
+        },
+        {
+            breakpoint: 600,
+            settings: {
+                slidesToShow: 2,
+                slidesToScroll: 2
+            }
+        },
+        {
+            breakpoint: 480,
+            settings: {
+                slidesToShow: 4,
+                slidesToScroll: 4
+            }
+        }
+        // You can unslick at a given breakpoint now by adding:
+        // settings: "unslick"
+        // instead of a settings object
+    ]
+});
+
+
+\$('.responsive').slick('unslick');
+
+var carouselItem = {
+    render: function(item) {
+      return '<div class="carousel-item">' +
+        '<img src="https://archive.org/services/img/' + item.ocaid  + '"/>' +
+        '<button>Borrow</button>' +
+        '</div>'
+    }
+};
+
+\$.ajax({
+    type: 'get',
+    url: "/available",
+    success: function(items) {
+        console.log(items);
+        for (var i in items) {
+            if(items[i].openlibrary_work) {
+                \$('.responsive').append('<div>' + carouselItem.render(items[i]) + '</div>')
+            }
+        }
+        \$('.responsive').slick(items);
+
+    }
+});
+
+</script>

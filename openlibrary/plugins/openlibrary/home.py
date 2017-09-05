@@ -21,6 +21,13 @@ from openlibrary.plugins.openlibrary import lists
 
 logger = logging.getLogger("openlibrary.home")
 
+class carousel_demo(delegate.page):
+
+    path = "/carousel"
+
+    def GET(self):
+        return render_template("home/carousel_test")
+
 class home(delegate.page):
     path = "/"
 
@@ -309,6 +316,9 @@ def format_book_data(book):
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
+
+    if 'work_id' in book:
+        d.work_id = book['work_id']
 
     work = book.works and book.works[0]
     if work:

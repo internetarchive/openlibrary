@@ -72,9 +72,12 @@ function twitterOn() {
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
-    var elemTop = $(elem).offset().top;
-    var elemBottom = elemTop + $(elem).height();
-    return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
+    if ($(elem).offset()) {
+        var elemTop = $(elem).offset().top;
+        var elemBottom = elemTop + $(elem).height();
+        return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
+    }
+    return false;
 }
 $(window).scroll(function(){
   var scroller = $("#formScroll");
