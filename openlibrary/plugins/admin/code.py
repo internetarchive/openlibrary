@@ -8,16 +8,19 @@ import datetime
 import urllib, urllib2
 import traceback
 import logging
-
+import simplejson
 import yaml
 
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
-
 from infogami.utils.view import add_flash_message
+
+import internetarchive as ia
+
 import openlibrary
+from openlibrary.core import lending
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -142,6 +145,35 @@ class people:
                 raise web.seeother("/admin/people/" + account.username)
         return render_template("admin/people/index", email=i.email)
 
+class sync_ol_ia:
+    def GET(self):
+        """Updates an Open Library edition's Archive.org item by writing its
+        latest openlibrary_work and openlibrary_edition to the
+        Archive.org item's metadata.
+        """
+        i = web.input(edition_id='')
+        data = {'error': 'No qualifying edition'}
+        if i.edition_id:
+            ed = web.ctx.site.get('/books/%s' % i.edition_id)
+            if ed.ocaid:
+                work = ed.works[0] if ed.get('works') else None
+                if work.key:
+                    access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
+                    secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
+                    cfg = {'general': {'secure': False}}
+                    item = ia.get_item(ed.ocaid, config=cfg)
+                    work_id = work.key.split('/')[2]
+                    r = item.modify_metadata({
+                        'openlibrary_work': work_id,
+                        'openlibrary_edition': i.edition_id
+                    }, access_key=access_key, secret_key=secret_key)
+                    if r.status_code != 200:
+                        data = {'error': '%s failed: %s' % (item.identifier, r.content)}
+                    else:
+                        data = ia.metadata
+        return delegate.RawText(simplejson.dumps(data),
+                                content_type="application/json")
+
 class people_view:
     def GET(self, key):
         account = accounts.find(username = key) or accounts.find(email = key)
@@ -202,7 +234,9 @@ class people_view:
         account.block()
         changes = account.get_recentchanges(limit=1000)
         changeset_ids = [c.id for c in changes]
-        ipaddress_view().revert(changeset_ids, "Reverted Spam")
+        ipaddress_view().revert(changeset_ids
+
+        , "Reverted Spam")
         add_flash_message("info", "Blocked the account and reverted all edits.")
         raise web.seeother(web.ctx.path)
 
@@ -668,6 +702,7 @@ def setup():
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
+    register_admin_page('/admin/sync', sync_ol_ia, label="")
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
