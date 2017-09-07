@@ -121,9 +121,9 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     except Exception as e:
         return {'error': 'request_timeout'}
 
-def get_available():
+def get_available(limit=6, page=1):
     """Retrieves a list of available works for carousels from archive.org"""
-    url = "https://archive.org/advancedsearch.php?q=collection%3Ainlibrary+AND+loans__status__status%3AAVAILABLE&fl%5B%5D=identifier&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&sort%5B%5D=&sort%5B%5D=&sort%5B%5D=&rows=50&page=1&output=json"
+    url = "https://archive.org/advancedsearch.php?q=collection%3Ainlibrary+AND+loans__status__status%3AAVAILABLE&fl%5B%5D=identifier&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&sort%5B%5D=&sort%5B%5D=&sort%5B%5D=&rows=" + limit + "&page=" + page + "&output=json"
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = {}

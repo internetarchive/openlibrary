@@ -23,7 +23,8 @@ class get_available_books(delegate.page):
     path = '/available'
 
     def GET(self):
-        books = [format_book_data(book) for book in lending.get_available()]
+        i = web.input(limit=6, page=1)
+        books = [format_book_data(book) for book in lending.get_available(limit=i.limit, page=i.page)]
         return delegate.RawText(simplejson.dumps(books),
                                 content_type="application/json")
 

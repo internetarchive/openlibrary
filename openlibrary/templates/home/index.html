@@ -10,6 +10,9 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/categories")
     <div class="clearfix"></div>
 
+    $:render_template("home/homepage.html")
+    <div class="clearfix"></div>
+
     $:render_template("home/popular", books=popular_books)
     <div class="clearfix"></div>
 

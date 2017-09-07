@@ -21,13 +21,6 @@ from openlibrary.plugins.openlibrary import lists
 
 logger = logging.getLogger("openlibrary.home")
 
-class carousel_demo(delegate.page):
-
-    path = "/carousel"
-
-    def GET(self):
-        return render_template("home/carousel_test")
-
 class home(delegate.page):
     path = "/"
 
@@ -54,16 +47,22 @@ class home(delegate.page):
         except:
             loans = None
 
-        return render_template(
+        page = render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
             user=user, loans=loans,
             popular_books=[],
-            waitlisted_books=[]
+            waitlisted_books=[],
         )
+        page.homepage = True
+        return page
 
+
+@public
+def objhas(a, b, default=None):
+    return getattr(a, b, default)
 
 @public
 def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_size=100):
