@@ -28,7 +28,7 @@ and out-of-print books, which can be read online.
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
-- [Visit the Blog](http://blog.openlibrary.org)
+- [Visit the Blog](https://blog.openlibrary.org)
 
 ## Installation
 
@@ -70,7 +70,7 @@ For instructions on administrating your Open Library instance and
 build instructions for developers, refer the Developer's
 [Quickstart.md](Quickstart.md) document.
 
-You can find more info digging into this old (and in part outdated) document here: http://code.openlibrary.org/en/latest/
+You can find more info digging into this old (and in part outdated) document here: https://code.openlibrary.org/en/latest/
 
 ## Code Organization
 
@@ -84,7 +84,7 @@ You can find more info digging into this old (and in part outdated) document her
 
 ### The Frontend
 
-- [Overview of Frontend Technologies](http://code.openlibrary.org/en/latest/dev/index.html)
+- [Overview of Frontend Technologies](https://code.openlibrary.org/en/latest/dev/index.html)
 
 ### The Backend
 
