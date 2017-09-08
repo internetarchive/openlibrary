@@ -17,7 +17,7 @@ from infogami.utils.view import render, public
 from infogami.utils.context import context
 from infogami.utils.view import add_flash_message
 
-import internetarchive as ia
+from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition
 
 import openlibrary
 from openlibrary.core import lending
@@ -152,25 +152,7 @@ class sync_ol_ia:
         Archive.org item's metadata.
         """
         i = web.input(edition_id='')
-        data = {'error': 'No qualifying edition'}
-        if i.edition_id:
-            ed = web.ctx.site.get('/books/%s' % i.edition_id)
-            if ed.ocaid:
-                work = ed.works[0] if ed.get('works') else None
-                if work.key:
-                    access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
-                    secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
-                    cfg = {'general': {'secure': False}}
-                    item = ia.get_item(ed.ocaid, config=cfg)
-                    work_id = work.key.split('/')[2]
-                    r = item.modify_metadata({
-                        'openlibrary_work': work_id,
-                        'openlibrary_edition': i.edition_id
-                    }, access_key=access_key, secret_key=secret_key)
-                    if r.status_code != 200:
-                        data = {'error': '%s failed: %s' % (item.identifier, r.content)}
-                    else:
-                        data = ia.metadata
+        data = update_ia_metadata_for_ol_edition(i.edition_id)
         return delegate.RawText(simplejson.dumps(data),
                                 content_type="application/json")
 
