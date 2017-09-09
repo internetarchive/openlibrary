@@ -3094,10 +3094,20 @@ ul#olBlog {margin:0}
 ul#olBlog li {list-style-type: none;margin:1em 0;}
 
 .contentLists.results .coverMagic {position:relative;height:200px;margin:0;float:left;}
-.contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000; }
+.contentLists.results .coverMagic .coverEbook {
+    position:absolute;
+    bottom: -3px;
+    left: 0px;
+    right: 0px;
+    cursor:pointer;
+    z-index:1000;
+}
 .coverEbookSubject {    position: absolute; bottom: 40px; padding-right: 75px;}
 .contentLists.results .SRPCover {float:left;height:200px;vertical-align:middle;}
-.contentLists.results .SRPCover img {height:200px;max-width:133px;}
+.contentLists.results .SRPCover img {
+    height: 100%;
+    width: 130px;
+}
 .contentLists.results .SRPCoverBlank {position:relative;width:115px;height:200px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 .contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
 
@@ -3314,7 +3324,7 @@ li.searchResultItem {
     padding: 0px 5px 0px 15px;
 }
 
-.searchResultItemCTA .cta-btn {
+a.cta-btn  {
     border: none;
     color: #fff;
     width: 100%;
@@ -3328,6 +3338,15 @@ li.searchResultItem {
     text-align: center;
     padding: 5px 20px;
     font-size: 0.8em;
+}
+
+.coverEbook a.cta-btn  {
+    position: absolute;
+    padding: 2px 5px;
+    border-radius: 0px;
+    right: 0px;
+    bottom: 0px;
+    border-top: 1px solid #fff;
 }
 
 .searchResultItemCTA .borrow_unavailable .badge {
@@ -4086,7 +4105,7 @@ div#historyExplore a#historyFwd {
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/images/carousel_next.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_next.png") no-repeat -30px 0;
 }
 .jcarousel-prev-horizontal {
     position: absolute;
@@ -4095,7 +4114,7 @@ div#historyExplore a#historyFwd {
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/images/carousel_prev.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_prev.png") no-repeat -30px 0;
 }
 .jcarousel-next-vertical {
     position: absolute;
@@ -4221,7 +4240,12 @@ div#historyExplore a#historyFwd {
 
 div#resultsCovers a {text-decoration: none;}
 #contentLists.results .coverMagic {position:relative;height:185px;margin: 0 15px 20px 0;float:left;}
-#contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000;}
+.coverMagic .coverEbook {
+    position:absolute;
+    bottom:5px;
+    cursor:pointer;
+    z-index:1000;
+}
 #contentLists.results .SRPCover {float:left;height:185px;vertical-align:middle;}
 #contentLists.results .SRPCover img {max-height:185px;max-width:135px;}
 #contentLists.results .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
@@ -4335,28 +4359,20 @@ span.actions span.daisy:hover {background-position: -408px 0!important;}
 
 .jcarousel-skin-OL span.actions a span.borrow {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-avail.png");
-    background-repeat: no-repeat;
-    background-position: 0% 0%!important;
     position: absolute;
     right: 0px;
+    left: 0px;
 }
 
 .jcarousel-skin-OL span.actions a span.checked-out {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-not-avail.png");
-    background-repeat: no-repeat;
-    background-position: 0% 0%!important;
     position: absolute;
     right: 0px;
+    left: 0px;
 }
 
 ul#siteSearch span.resultTitle {
@@ -5551,12 +5567,8 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 /* Added by Anand July 29, 2011*/
 span.actions a span.checked-out {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-in-list-not-avail.png");
-    background-repeat: no-repeat;
 }
 
 .page-banner {

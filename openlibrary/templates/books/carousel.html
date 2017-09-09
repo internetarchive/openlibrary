@@ -1,4 +1,4 @@
-$def with (books, id="ol-carousel", pixel='')
+$def with (books, id="ol-carousel", pixel='', loans=False)
 
 <script type="text/javascript">
 \$(function() {
@@ -27,7 +27,7 @@ $def with (books, id="ol-carousel", pixel='')
         <ul class="homeCarousel jcarousel-skin-OL" id="$id">
             $for book in books:
                 <li>
-                    $:render_template("books/carousel_item", book, id=id)
+                    $:render_template("books/carousel_item", book, id=id, loans=loans)
                 </li>
         </ul>
     </div>

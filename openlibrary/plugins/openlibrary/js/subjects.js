@@ -121,21 +121,15 @@ $.extend(Subject.prototype, {
                                   'alt': titlestring, 'class': 'cover'}))) +
             renderTag('div', {'class': 'coverEbook'},
               (format === 'public' ?
-               renderTag('a', {'href': bookread_url, "title": "Read online"},
-                 renderTag('img', {'src': '/images/icons/icon_ebook-avail.png', 'border': "0",
-                                   'width': "32", 'height': "33", 'alt': "Read online"})) :
-               format === 'daisy' ?
-               renderTag('a', {'href': work.key, "title": "Download a protected DAISY"},
-                 renderTag('img', {'src': '/images/icons/icon_pdaisy-avail.png', 'border': "0",
-                                   'width': "32", 'height': "33", 'alt': "Download a protected DAISY"})) :
-               renderTag('span', {'class': 'actions read'},
-                 renderTag('a', {
-                    'href': bookread_url,
-                    'title': 'Read this book',
-                    'class': 'borrow-link',
-                    'data-ocaid': work.ia,
-                    'data-key': work.key
-                }, renderTag('span', {'class': 'read-icon image borrow'})))))));
+               renderTag('a', {'href': bookread_url, "title": "",
+                               'class': 'borrow_available cta-btn'}, 'Read') :
+               renderTag('a', {
+                   'href': bookread_url,
+                   'title': 'Read this book',
+                   'class': 'borrow-link',
+                   'data-ocaid': work.ia,
+                   'data-key': work.key
+                })))));
         return html;
     },
 

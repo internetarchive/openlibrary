@@ -119,7 +119,7 @@ def get_available(limit=None, page=1, subject=None):
             if item.get('openlibrary_work'):
                 items[item['openlibrary_work']] = item['identifier']
         keys = web.ctx.site.things({"type": "/type/edition", "ocaid": items.values()})
-        books = web.ctx.site.get_many(keys)
+        books = [book for book in web.ctx.site.get_many(keys) if book]
         return books
     except Exception as e:
         return {'error': 'request_timeout'}

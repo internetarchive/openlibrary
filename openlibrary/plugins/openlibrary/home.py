@@ -58,7 +58,7 @@ class home(delegate.page):
 def get_staff_picks():
     return [format_book_data(book) for book in lending.get_available(
         limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')]
-get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=60)
+get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.staff_picks", timeout=60)
 
 @public
 def popular_carousel():
@@ -109,7 +109,7 @@ def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
         if loan_book:
             books.append(format_book_data(loan_book))
     return render_template(
-        'books/carousel', storify(books), id=cssid, pixel=pixel
+        'books/carousel', storify(books), id=cssid, pixel=pixel, loans=True
     ) if books else ''
 
 
