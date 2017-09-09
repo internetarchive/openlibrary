@@ -3093,7 +3093,7 @@ div.homeBlurb a {
 ul#olBlog {margin:0}
 ul#olBlog li {list-style-type: none;margin:1em 0;}
 
-.contentLists.results .coverMagic {position:relative;height:200px;margin:0;float:left;}
+.contentLists.results .coverMagic {position:relative;height:225px;margin:0;float:left;}
 .contentLists.results .coverMagic .coverEbook {
     position:absolute;
     bottom: -3px;
@@ -3103,12 +3103,12 @@ ul#olBlog li {list-style-type: none;margin:1em 0;}
     z-index:1000;
 }
 .coverEbookSubject {    position: absolute; bottom: 40px; padding-right: 75px;}
-.contentLists.results .SRPCover {float:left;height:200px;vertical-align:middle;}
+.contentLists.results .SRPCover {float:left;height:230px;vertical-align:middle;}
 .contentLists.results .SRPCover img {
-    height: 100%;
+    height: 200px;
     width: 130px;
 }
-.contentLists.results .SRPCoverBlank {position:relative;width:115px;height:200px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
+.contentLists.results .SRPCoverBlank {position:relative;width:115px;height:230px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 .contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
 
 .coverEbook img {
@@ -3132,12 +3132,12 @@ div#content div.contentLists {
 }
 .resultsCovers .jcarousel-clip {
     width: 918px;
-    height: 200px;
+    height: 225px;
 }
 .resultsCovers .jcarousel-list-horizontal {padding-left:0;}
 .resultsCovers .jcarousel-item-horizontal {
     width: 153px;
-    height: 200px;
+    height: 225px;
     margin-right: 0;
 }
 .resultsCovers h3 {
@@ -3214,7 +3214,7 @@ div.chartHome a {color:#000;text-decoration:none;}
 
 /* RESULTS CAROUSEL SKIN */
 
-ul.homeCarousel {list-style-type:none;height:200px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
+ul.homeCarousel {list-style-type:none;height:230px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
 ul.homeCarousel li {position:relative;float:left;list-style:none!important;}
 ul.homeCarousel .hiddenCoverMagic {width:100px;height:200px;}
 ul.homeCarousel .hiddenCoverMagic div, .hiddenCoverMagic a {display:none;}
