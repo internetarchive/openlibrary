@@ -56,11 +56,9 @@ class home(delegate.page):
         return page
 
 def get_staff_picks():
-    return [format_book_data(book) for book in
-            lending.get_available(
-                limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')]
-
-get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=60)
+    return [format_book_data(book) for book in lending.get_available(
+        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks') if book != 'error']
+#get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=120)
 
 @public
 def popular_carousel():
@@ -80,25 +78,8 @@ def carousel_from_list(key, randomize=False, limit=60):
     if randomize:
         random.shuffle(data)
     data = data[:limit]
-    add_checkedout_status(data)
     return render_template(
         "books/carousel", storify(data), id=css_id, pixel="CarouselList")
-
-def add_checkedout_status(books):
-    """OBSOLETE -- will be deleted.
-    """
-    # This is not very efficient approach.
-    # Todo: Implement the following apprach later.
-    # * Store the borrow status of all books in the list in memcache
-    # * Use that info to add checked_out status
-    # * Invalidate that on any borrow/return
-    for book in books:
-        if book.get("borrow_url"):
-            doc = web.ctx.site.store.get("ebooks" + book['key']) or {}
-            checked_out = doc.get("borrowed") == "true"
-        else:
-            checked_out = False
-        book['checked_out'] = checked_out
 
 @public
 def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
@@ -228,7 +209,7 @@ def pick_best_edition(work):
 
 def format_book_data(book):
     d = web.storage()
-    d.key = book.key
+    d.key = book.get('key')
     d.url = book.url()
     d.title = book.title or None
 
@@ -250,13 +231,9 @@ def format_book_data(book):
     if ia_id:
         d.ocaid = ia_id
         collections = ia.get_meta_xml(ia_id).get("collection", [])
-        if 'printdisabled' in collections or 'lendinglibrary' in collections:
-            d.daisy_url = book.url("/daisy")
 
-        if 'lendinglibrary' in collections:
+        if 'lendinglibrary' in collections or 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")
-        elif 'inlibrary' in collections:
-            d.inlibrary_borrow_url = book.url("/borrow")
         else:
             d.read_url = book.url("/borrow")
     return d

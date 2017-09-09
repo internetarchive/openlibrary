@@ -10,77 +10,10 @@ import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.core import ia, lending, cache, helpers as h
 
 ONE_HOUR = 60 * 60
 BOOKS_PER_CAROUSEL = 6
-
-class get_available_books(delegate.page):
-
-    path = '/available'
-
-    def GET(self):
-        books = lending.get_available(
-            limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
-        return delegate.RawText(simplejson.dumps(books),
-                                content_type="application/json")
-
-def format_edition(edition):
-    """This should be moved to a books or carousel model"""
-    collections = ia.get_meta_xml(edition.get('ocaid')).get("collection", [])
-    book = {
-        'ocaid': edition.get('ocaid'),
-        'title': edition.title or None,
-        'key': edition.key,
-        'url': edition.url(),
-        'authors': [web.storage(key=a.key, name=a.name or None)
-                    for a in edition.get_authors()],
-        'collections': collections,
-        'protected': any([c in collections for c in
-                          ['lendinglibrary', 'browserlending', 'inlibrary']])
-    }
-
-    cover = edition.get_cover()
-    if cover:
-        book['cover_url'] = cover.url(u'M')
-
-    if 'printdisabled' in collections or 'lendinglibrary' in collections:
-        book['daisy_url'] = edition.url("/daisy")
-    if 'lendinglibrary' in collections:
-        book['borrow_url'] = edition.url("/borrow")
-    elif 'inlibrary' in collections:
-        book['inlibrary_borrow_url'] = edition.url("/borrow")
-    else:
-        book['read_url'] = "//archive.org/stream/" + book['ocaid']
-    return book
-
-class get_editions(delegate.page):
-    path = '/api/editions'
-
-    def GET(self, max_limit=100):
-        i = web.input(olids='', decoration=None, pixel=None)
-        keys = i.olids.split(',')
-
-        if i.decoration == "carousel_item":
-            decorate = lambda book: render_template(
-                'books/carousel_item', web.storage(book), pixel=i.pixel).__body__
-        else:
-            decorate = lambda book: book  # identity
-
-        if len(keys) > max_limit:
-            result = {'error': 'max_limit_%s' % max_limit}
-        else:
-            result = {
-                'books': []
-            }
-            for edition in web.ctx.site.get_many(keys):
-                try:
-                    result['books'].append(decorate(format_edition(edition)))
-                except:
-                    pass
-        return delegate.RawText(simplejson.dumps(result),
-                                content_type="application/json")
 
 class featured_subjects(delegate.page):
     path = "/home/subjects"
