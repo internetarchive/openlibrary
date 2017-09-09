@@ -238,11 +238,11 @@ def format_book_data(book):
     work = book.works and book.works[0]
     if work:
         d.authors = get_authors(work)
+        cover = work.get_cover()
     else:
         d.authors = get_authors(book)
+        cover = book.get_cover()
 
-    #cover = book.get_cover()
-    cover = work.get_cover()
     if cover:
         d.cover_url = cover.url("M")
 
