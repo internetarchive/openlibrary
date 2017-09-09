@@ -23,13 +23,16 @@ A record is loaded by calling the load function.
 
 """
 
+import re
+import json
 from time import sleep
 from pprint import pprint
 from collections import defaultdict
-from infogami import config
-import web, re, unicodedata, urllib, json
+import urllib
+import unicodedata
 
-import internetarchive as ia
+import web
+from infogami import config
 
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
@@ -403,6 +406,7 @@ def add_cover(cover_url, ekey):
 
 def update_ia_metadata_for_ol_edition(edition_id):
     """An ol_edition is of the form OL...M"""
+    import internetarchive as ia
     data = {'error': 'No qualifying edition'}
     if edition_id:
         ed = web.ctx.site.get('/books/%s' % edition_id)
