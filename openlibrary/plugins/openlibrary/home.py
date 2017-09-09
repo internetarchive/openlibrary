@@ -10,7 +10,6 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.data import popular
 from openlibrary import accounts
 from openlibrary.core import admin, cache, ia, inlibrary, lending, \
     helpers as h

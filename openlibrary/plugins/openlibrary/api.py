@@ -13,10 +13,8 @@ from infogami.utils.view import render_template
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.core import ia, lending, cache, helpers as h
-from openlibrary.data import popular
 
 ONE_HOUR = 60 * 60
-popular_editions = popular.popular
 
 class get_available_books(delegate.page):
 
@@ -27,29 +25,6 @@ class get_available_books(delegate.page):
         books = [format_book_data(book) for book in lending.get_available(
             limit=i.limit, page=i.page)]
         return delegate.RawText(simplejson.dumps(books),
-                                content_type="application/json")
-
-class popular_books(delegate.page):
-    path = '/popular'
-
-    def GET(self, start=0, limit=100):
-        """Returns `limit` popular book tuples of form [ocaid, olid] starting
-        at `start`
-
-        Popular books may be requested in pages of up to 100.
-
-        TODO: Add memcached caching (see plugins/openlibrary/home.py)
-        """
-        i = web.input(start=start, limit=limit)
-        start, limit = int(i.start), int(i.limit),
-        books = popular_editions[start : start + limit]
-        result = {
-            'books': books,
-            'limit': limit,
-            'start': start,
-            'next': start + limit
-        } if books else {'error': 'out_of_range'}
-        return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
 def format_edition(edition):

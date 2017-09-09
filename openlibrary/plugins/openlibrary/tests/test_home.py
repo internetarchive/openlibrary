@@ -106,7 +106,7 @@ class TestHomeTemplates:
             stats=stats,
             lending_list="/people/foo/lists/OL1L"))
         #TODO: Test something more useful here?
-        assert "Popular Books" in html
+        assert "Staff Picks" in html
         assert "Recently Returned" in html
         assert "Worth the Wait" in html
         assert "Around the Library" in html
