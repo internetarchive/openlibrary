@@ -4134,14 +4134,7 @@ div#historyExplore a#historyFwd {
     cursor: pointer;
     background: transparent url("/images/carousel_up.png") no-repeat 0 0;
 }
-.jcarousel-next-horizontal:hover,
-.jcarousel-prev-horizontal:hover {
-    background-position: -30px 0;
-}
-.jcarousel-next-horizontal:active,
-.jcarousel-prev-horizontal:active {
-    background-position: -60px 0;
-}
+
 .jcarousel-next-disabled-horizontal,
 .jcarousel-next-disabled-horizontal:hover,
 .jcarousel-next-disabled-horizontal:active,
