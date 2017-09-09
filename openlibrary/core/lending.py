@@ -104,22 +104,25 @@ def get_available(limit=None, page=1, subject=None):
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    return_keys = ['identifier', 'openlibrary_edition', 'openlibrary_work']
-    encoded_return_keys = '&'.join(['fl[]=' + k for k in return_keys])
+    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work']
+    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
     q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
     if subject:
         q += " AND openlibrary_subject:" + subject
-    rows = limit or MAX_IA_LIMIT
+    rows = limit or MAX_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&rows=%s&page=%s&output=json" % (
-        config_bookreader_host, q, encoded_return_keys, str(rows), str(page))
+        config_bookreader_host, q, encoded_fields, str(rows), str(page))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        items = {}
-        for item in simplejson.loads(content).get('response', {}).get('docs', []):
+        items = simplejson.loads(content).get('response', {}).get('docs', [])
+        results = {}
+        for item in items:
             if item.get('openlibrary_work'):
-                items[item['openlibrary_work']] = item['identifier']
-        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": items.values()})
-        books = web.ctx.site.get_many(keys)
+                results[item['openlibrary_work']] = item['openlibrary_edition']
+
+        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": results.values()})
+
+        books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
     except Exception as e:
         return {'error': 'request_timeout'}

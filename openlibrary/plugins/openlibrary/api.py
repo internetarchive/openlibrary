@@ -21,9 +21,8 @@ class get_available_books(delegate.page):
     path = '/available'
 
     def GET(self):
-        i = web.input(limit=BOOKS_PER_CAROUSEL, page=1)
-        books = [format_book_data(book) for book in lending.get_available(
-            limit=i.limit, page=i.page)]
+        books = lending.get_available(
+            limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
         return delegate.RawText(simplejson.dumps(books),
                                 content_type="application/json")
 

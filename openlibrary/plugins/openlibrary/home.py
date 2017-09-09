@@ -55,10 +55,12 @@ class home(delegate.page):
         )
         return page
 
-def staff_picks():
-    return [format_book_data(book) for book in lending.get_available(
-        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')]
-get_staff_picks = cache.memcache_memoize(staff_picks, "home.staffpicks", timeout=60)
+def get_staff_picks():
+    return [format_book_data(book) for book in
+            lending.get_available(
+                limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')]
+
+get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=60)
 
 @public
 def popular_carousel():
