@@ -30,6 +30,7 @@ from pprint import pprint
 from collections import defaultdict
 import urllib
 import unicodedata
+from copy import copy
 
 import web
 from infogami import config
@@ -404,24 +405,49 @@ def add_cover(cover_url, ekey):
     cover_id = int(reply['id'])
     return cover_id
 
+def get_ia_item(ocaid):
+    import internetarchive as ia
+    cfg = {'general': {'secure': False}}
+    item = ia.get_item(ocaid, config=cfg)
+    return item
+
+def modify_ia_item(item, data):
+    access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
+    secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
+    return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
+def create_ol_subjects_for_ocaid(ocaid, subjects):
+    item = get_ia_item(ocaid)
+    openlibrary_subjects = copy(item.metadata.get('openlibrary_subject')) or []
+
+    if not isinstance(openlibrary_subjects, list):
+        openlibrary_subjects = [openlibrary_subjects]
+
+    for subject in subjects:
+        if subject not in openlibrary_subjects:
+            openlibrary_subjects.append(subject)
+
+    r = modify_ia_item(item, {'openlibrary_subject': openlibrary_subjects})
+    if r.status_code != 200:
+        return ('%s failed: %s' % (item.identifier, r.content))
+    else:
+        return ("success for %s" % item.identifier)
+
 def update_ia_metadata_for_ol_edition(edition_id):
     """An ol_edition is of the form OL...M"""
-    import internetarchive as ia
+
     data = {'error': 'No qualifying edition'}
     if edition_id:
         ed = web.ctx.site.get('/books/%s' % edition_id)
         if ed.ocaid:
             work = ed.works[0] if ed.get('works') else None
             if work.key:
-                access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
-                secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
-                cfg = {'general': {'secure': False}}
-                item = ia.get_item(ed.ocaid, config=cfg)
+                item = get_ia_item(ed.ocaid)
                 work_id = work.key.split('/')[2]
-                r = item.modify_metadata({
+                r = modify_ia_item(item, {
                     'openlibrary_work': work_id,
                     'openlibrary_edition': edition_id
-                }, access_key=access_key, secret_key=secret_key)
+                })
                 if r.status_code != 200:
                     data = {'error': '%s failed: %s' % (item.identifier, r.content)}
                 else:
