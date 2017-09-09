@@ -126,7 +126,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .removeClass('borrow-link');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('print-disabled-only').addClass('cta-btn');
+                                .addClass('check-book-availability').addClass('cta-btn');
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Check Availability');
                              delete books[book_key];

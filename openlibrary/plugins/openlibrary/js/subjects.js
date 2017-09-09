@@ -121,7 +121,7 @@ $.extend(Subject.prototype, {
                                   'alt': titlestring, 'class': 'cover'}))) +
             renderTag('div', {'class': 'coverEbook'},
               (format === 'public' ?
-               renderTag('a', {'href': bookread_url, "title": "",
+               renderTag('a', {'href': bookread_url, "title": "Read online",
                                'class': 'borrow_available cta-btn'}, 'Read') :
                renderTag('a', {
                    'href': bookread_url,

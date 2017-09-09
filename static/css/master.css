@@ -3372,6 +3372,10 @@ a.cta-btn  {
     background-color: #c43bfc;
 }
 
+.check-book-availability {
+    background-color: rgba(88, 88, 88, 0.80);
+}
+
 .waitlist-msg {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     font-size: .7em;
