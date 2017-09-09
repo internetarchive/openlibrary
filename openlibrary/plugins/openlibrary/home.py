@@ -52,9 +52,7 @@ class home(delegate.page):
             blog_posts=blog_posts,
             lending_list=lending_list,
             returncart_list=returncart_list,
-            user=user, loans=loans,
-            popular_books=[],
-            waitlisted_books=[],
+            user=user, loans=loans
         )
         page.homepage = True
         return page
@@ -65,93 +63,15 @@ def objhas(a, b, default=None):
     return getattr(a, b, default)
 
 @public
-def popular_carousel(available_limit=30, waitlist_limit=18, loan_check_batch_size=100):
+def popular_carousel():
     """Renders a carousel of popular editions, which are available for
     reading or borrowing, from user lists (borrowable or downloadable;
     excludes daisy only).
-
-    Args:
-        available_limit (int) - Load the popular carousel with how
-        many items?  (preferably divisible by 6; number of books shown
-        per page)
-
-        waitlist_limit (int)) - limit waitlist to how many books
-
-        loan_check_batch_size (int) - Bulk submits this many
-        archive.org itemids at a time to see if they are available to
-        be borrowed (only considers waitinglist and bookreader
-        borrows, no acs4)
-
-    Selected Lists:
-        popular.popular is a mapping of OL ids to archive.org identifiers
-        for popular book editions coming from the following OL lists:
-
-        /people/mekBot/lists/OL104041L is a manually curated
-        collection of popular available books which was constructed by
-        looking at goodreads
-        (http://www.goodreads.com/list/show/1.Best_Books_Ever) Best
-        Ever list. Because this list is more highly curated and has
-        more overall recognizable and popular books, we prioritize
-        drawing from this list (shuffled) first and then fallback to
-        other lists as this one is depleted (i.e. all books become
-        unavailable for checking out).
-
-        /people/openlibrary/lists/OL104411L comes from the "top 2000+
-        most requested print disabled eBooks in California" displayed
-        from the /lists page.
-
-    Popular List Construction:
-
-        https://github.com/internetarchive/openlibrary/pull/406#issuecomment-268090607
-        The expensive part about automatically checking the list seeds above
-        for availability is there's no apparent easy way to get ocaids for a
-        collection of editions at once. Thus, web.ctx.site.get needs be used
-        on each Edition (which is expensive) before a batch of editions can
-        be checked for availability. If we had the ocaids of list seeds upfront
-        and could query them in bulk, this would eliminate the problem.
-
-        As a work-around, we periodically create a flatfile cache of
-        the above list.seed keys mapped ahead of time to their ocaids
-        (i.e. `popular.popular`).
-
-        For steps on (re)generating `popular.popular`, see:
-        data.py  popular.generate_popular_list()
-
-        Ideally, solr should be used as cache instead of hard-coded as `popular.popular`.
-
-    Returns:
-        returns a tuple (available_books, waitlisted_books)
-
     """
-    available_books = []
-    waitlisted_books = []
-    seeds = popular.popular
-
-    while seeds and len(available_books) < available_limit:
-        batch = seeds[:loan_check_batch_size]
-        seeds = seeds[loan_check_batch_size:]
-        random.shuffle(batch)
-
-        responses = lending.is_borrowable([seed[0] for seed in batch])
-
-        for seed in batch:
-            ocaid, key = seed
-            if len(available_books) == available_limit:
-                continue
-
-            book_data = web.ctx.site.get(key)
-            if book_data:
-                book = format_book_data(book_data)
-
-                if ocaid not in responses:
-                    # If book is not accounted for, err on the side of inclusion
-                    available_books.append(book)
-                elif 'status' in responses[ocaid]:
-                    if responses[ocaid]['status'] == 'available':
-                        available_books.append(book)
-                    elif len(waitlisted_books) < waitlist_limit:
-                        waitlisted_books.append(book)
-    return storify(available_books), storify(waitlisted_books)
+    books = [format_book_data(book) for book in lending.get_available(
+        limit=10000, subject='openlibrary_staff_picks')]
+    random.shuffle(books)
+    return render_template("books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -316,16 +236,14 @@ def format_book_data(book):
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
-    if 'work_id' in book:
-        d.work_id = book['work_id']
-
     work = book.works and book.works[0]
     if work:
         d.authors = get_authors(work)
     else:
         d.authors = get_authors(book)
 
-    cover = book.get_cover()
+    #cover = book.get_cover()
+    cover = work.get_cover()
     if cover:
         d.cover_url = cover.url("M")
 

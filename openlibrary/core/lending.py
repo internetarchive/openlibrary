@@ -36,6 +36,7 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     "not yet downloaded" for the duration of the timeout.
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
+MAX_IA_RESULTS = 10000
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -121,19 +122,21 @@ def is_borrowable(identifiers, acs=False, restricted=False):
     except Exception as e:
         return {'error': 'request_timeout'}
 
-def get_available(limit=6, page=1):
+def get_available(limit=None, page=1, subject=None):
     """Retrieves a list of available works for carousels from archive.org"""
-    url = "https://archive.org/advancedsearch.php?q=collection%3Ainlibrary+AND+loans__status__status%3AAVAILABLE&fl%5B%5D=identifier&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&sort%5B%5D=&sort%5B%5D=&sort%5B%5D=&rows=" + limit + "&page=" + page + "&output=json"
+    url = "https://archive.org/advancedsearch.php?q=collection%3Ainlibrary"
+    limit = limit or MAX_IA_LIMIT
+    if subject:
+        url += "+AND+openlibrary_subject%3A" + subject
+    url += "+AND+loans__status__status%3AAVAILABLE&fl%5B%5D=identifier&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&&fl%5B%5D=openlibrary_edition&sort%5B%5D=&sort%5B%5D=&sort%5B%5D=&rows=" + str(limit) + "&page=" + str(page) + "&output=json"
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()        
         items = {}
         for item in simplejson.loads(content).get('response', {}).get('docs', []):
             if item.get('openlibrary_work'):
-                items[item.get('identifier')] = item
-        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": items.keys()})
+                items[item['openlibrary_work']] = item['identifier']
+        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": items.values()})
         books = web.ctx.site.get_many(keys)
-        for i, _ in enumerate(books):
-            books[i]['work_id'] = items[books[i].ocaid].get('openlibrary_work')
         return books
     except Exception as e:
         return {'error': 'request_timeout'}
