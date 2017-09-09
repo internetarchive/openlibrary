@@ -12,7 +12,7 @@ $else:
     $if "cover_url" in book:
         <div class="SRPCover">
             <a href="$book.url" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') title="$long_title">
-              <img itemprop="image" xsrc="$book.cover_url" src="$book.cover_url" alt="$book.title" class="cover"/>
+              <img itemprop="image" xsrc="$book.cover_url" src="$get_coverstore_url()/b/id/0-S.jpg" alt="$book.title" class="cover"/>
             </a>
         </div>
     $else:
