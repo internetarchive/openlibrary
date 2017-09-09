@@ -15,13 +15,14 @@ from openlibrary.plugins.openlibrary.home import format_book_data
 from openlibrary.core import ia, lending, cache, helpers as h
 
 ONE_HOUR = 60 * 60
+BOOKS_PER_CAROUSEL = 6
 
 class get_available_books(delegate.page):
 
     path = '/available'
 
     def GET(self):
-        i = web.input(limit=6, page=1)
+        i = web.input(limit=BOOKS_PER_CAROUSEL, page=1)
         books = [format_book_data(book) for book in lending.get_available(
             limit=i.limit, page=i.page)]
         return delegate.RawText(simplejson.dumps(books),

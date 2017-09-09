@@ -53,13 +53,12 @@ class home(delegate.page):
             returncart_list=returncart_list,
             user=user, loans=loans
         )
-        page.homepage = True
         return page
 
-
-@public
-def objhas(a, b, default=None):
-    return getattr(a, b, default)
+def get_staff_picks():
+    return [format_book_data(book) for book in lending.get_available(
+        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')]
+get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=60)
 
 @public
 def popular_carousel():
@@ -67,8 +66,7 @@ def popular_carousel():
     reading or borrowing, from user lists (borrowable or downloadable;
     excludes daisy only).
     """
-    books = [format_book_data(book) for book in lending.get_available(
-        limit=10000, subject='openlibrary_staff_picks')]
+    books = get_staff_picks()
     random.shuffle(books)
     return render_template("books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
 

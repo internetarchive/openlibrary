@@ -123,12 +123,22 @@ def is_borrowable(identifiers, acs=False, restricted=False):
         return {'error': 'request_timeout'}
 
 def get_available(limit=None, page=1, subject=None):
-    """Retrieves a list of available works for carousels from archive.org"""
-    url = "https://archive.org/advancedsearch.php?q=collection%3Ainlibrary"
-    limit = limit or MAX_IA_LIMIT
+    """Experimental. Retrieves a list of available editions from
+    archive.org advancedsearch which are available, in the inlibrary
+    collection, and optionally apart of an `openlibrary_subject`.
+
+    Returns a list of editions (one available edition per work). Is
+    used in such things as 'Staff Picks' carousel to retrieve a list
+    of unique available books.
+    """
+    return_keys = ['identifier', 'openlibrary_edition', 'openlibrary_work']
+    encoded_return_keys = '&'.join(['fl[]=' + k for k in return_keys])
+    q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
     if subject:
-        url += "+AND+openlibrary_subject%3A" + subject
-    url += "+AND+loans__status__status%3AAVAILABLE&fl%5B%5D=identifier&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&&fl%5B%5D=openlibrary_edition&sort%5B%5D=&sort%5B%5D=&sort%5B%5D=&rows=" + str(limit) + "&page=" + str(page) + "&output=json"
+        q += " AND openlibrary_subject:" + subject
+    rows = limit or MAX_IA_LIMIT
+    url = "https://%s/advancedsearch.php?q=%s&%s&rows=%s&page=%s&output=json" % (
+        config_bookreader_host, q, encoded_return_keys, str(rows), str(page))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()        
         items = {}
