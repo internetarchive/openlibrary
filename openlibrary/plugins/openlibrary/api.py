@@ -1,4 +1,3 @@
-
 """
 This file should be for internal APIs which Open Library requires for
 its experience. This does not include public facing APIs with LTS
@@ -111,29 +110,36 @@ def get_featured_subjects():
 get_featured_subjects = cache.memcache_memoize(
     get_featured_subjects, "get_featured_subjects", timeout=ONE_HOUR)
 
-class works_availability(delegate.page):
+class book_availability(delegate.page):
     path = "/availability/v2"
 
     def GET(self):
-        i = web.input(work_ids='', edition_ids='')
-        ol_work_ids = i.work_ids.split(',')
-        ol_edition_ids = i.edition_ids.split(',')
-        result = lending.get_availablility_of_works(ol_work_ids) if i.work_ids else \
-                 lending.get_availability_of_editions(ol_edition_ids)
+        i = web.input(type='', ids='')
+        id_type = i.type
+        ids = i.ids.split(',')
+        result = self.get_book_availability(id_type, ids)
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
-
-class editions_availability(delegate.page):
-    path = "/availability"
 
     def POST(self):
-        i = simplejson.loads(web.data())
-        ocaids = i.get('ocaids', [])
-        j = web.input(acs='1', restricted='0')
-        acs, restricted = bool(int(j.acs)), bool(int(j.restricted))
-        result = lending.is_borrowable(ocaids, acs=acs, restricted=restricted)
+        i = web.input(type='')
+        j = simplejson.loads(web.data())
+        id_type = i.type
+        ids = j.get('ids', [])
+        result = self.get_book_availability(id_type, ids)
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
+
+    def get_book_availability(self, id_type, ids):
+        return (
+            lending.get_availability_of_works(ids) if id_type == "openlibrary_work"
+            else
+            lending.get_availability_of_editions(ids) if id_type == "openlibrary_edition"
+            else
+            lending.get_availability_of_ocaids(ids) if id_type == "identifier"
+            else []
+        )
+
 
 class work_editions(delegate.page):
     path = "(/works/OL\d+W)/editions"

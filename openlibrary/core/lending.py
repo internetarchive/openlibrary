@@ -95,33 +95,6 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
-def is_borrowable(identifiers, acs=False, restricted=False):
-    """Takes a list of archive.org ocaids and returns json indicating
-    whether each of these books represented by these identifiers are
-    available (i.e. not on waiting list and not checked out via
-    bookreader. Does not check acs4 (by default) because the queries
-    are prohibitively slow.
-
-    params:
-        identifiers (list) - ocaids; Internet Archive item identifiers
-        acs (int) - do a check to mark acs loans as unavailable
-        restricted (int) - flag book is apart of a restricted collection
-
-    """
-    _acs = '1' if acs else '0'
-    _restricted = '1' if restricted else '0'
-    url = (config_ia_availability_api_v1_url + '?action=availability&exact=%s&validate=%s'
-           % (_acs, _restricted))
-    data = urllib.urlencode({
-        'identifiers': ','.join(identifiers)
-    })
-    try:
-        content = urllib2.urlopen(
-            url=url, data=data, timeout=config_http_request_timeout).read()
-        return simplejson.loads(content).get('responses', {})
-    except Exception as e:
-        return {'error': 'request_timeout'}
-
 def get_available(limit=None, page=1, subject=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
@@ -140,7 +113,7 @@ def get_available(limit=None, page=1, subject=None):
     url = "https://%s/advancedsearch.php?q=%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_return_keys, str(rows), str(page))
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()        
+        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = {}
         for item in simplejson.loads(content).get('response', {}).get('docs', []):
             if item.get('openlibrary_work'):
@@ -172,7 +145,11 @@ def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
     return get_availability('identifier', [ocaid])
 
-def get_availablility_of_works(ol_work_ids):
+def get_availability_of_ocaids(ocaids):
+    """Retrieves availability based on ocaids/archive.org identifiers"""
+    return get_availability('identifier', ocaids)
+
+def get_availability_of_works(ol_work_ids):
     return get_availability('openlibrary_work', ol_work_ids)
 
 def is_loaned_out(identifier):
