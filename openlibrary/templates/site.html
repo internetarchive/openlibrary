@@ -1,15 +1,11 @@
 $def with (page)
 
-$if False and objhas(page, 'homepage') is True:
-  <p>hello</p>
-
-$else:
-  $if not ctx.get("sent_head"):
+$if not ctx.get("sent_head"):
     $:render_template("site/head.tmpl")
 
-  $if not ctx.get("sent_neck"):
+$if not ctx.get("sent_neck"):
     $:render_template("site/neck.tmpl", title=page.title)
 
-  $:render_template("site/body", page)
+$:render_template("site/body", page)
 
-  $:render_template("site/footer")
+$:render_template("site/footer")
