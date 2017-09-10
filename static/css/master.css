@@ -3349,6 +3349,22 @@ a.cta-btn  {
     border-top: 1px solid #fff;
 }
 
+.searchResultItemCTA .borrow_unavailable {
+    border: none;
+    color: #fff;
+    width: 100%;
+    border: 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-align: center;
+    padding: 5px 20px;
+    font-size: 0.8em;
+}
+
 .searchResultItemCTA .borrow_unavailable .badge {
     background-color: #e6881a;
     padding: 4px 7px;
@@ -3384,10 +3400,31 @@ a.cta-btn  {
     padding: .2em;
 }
 
-div#searchResults .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
-div#searchResults .SRPCover img {height:185px;}
-div#searchResults .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;margin:0 15px 20px 0;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
-div#searchResults .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
+div#searchResults .SRPCover {
+    margin: 0 15px 20px 0;
+    float:left;
+    vertical-align:middle;
+    width: 130px;
+    height:200px;
+}
+div#searchResults .SRPCover img {
+    height:20px;
+}
+div#searchResults .SRPCoverBlank {
+    position:relative;
+    width:130px;
+    height:200px;
+    padding:10px;
+    margin:0 15px 20px 0;
+    text-align:center;
+    float:left;
+    background:#dedede;
+    cursor:pointer;
+    display:none;
+}
+div#searchResults .SRPCoverBlank .innerBorder {
+    float:left;width:130px;height:200px;border:1px solid #fff;
+}
 div#searchResults .SRPCoverBlank a {text-decoration: none;}
 
 #pullOut {float:right;position:relative;padding:10px;background:#fffdcd;}
@@ -4169,7 +4206,6 @@ div#historyExplore a#historyFwd {
 /* RESULTS CAROUSEL SKIN */
 #resultsCovers {
     width: 958px;
-    height: 442px;
 }
 
 #resultsCovers .jcarousel-container,
@@ -4177,15 +4213,16 @@ div#historyExplore a#historyFwd {
     width: 918px;
     padding: 20px;
 }
+
 #resultsCovers .jcarousel-clip,
 #resultsList .jcarousel-clip {
     width: 918px;
-    height: 402px;
+    height: 100%;
 }
 #resultsCovers .jcarousel-item-horizontal {
     width: 918px;
-    height: 402px;
     margin-right: 0;
+    height: 100%;
 }
 #resultsList .jcarousel-item-vertical {
     width: 918px;
@@ -4228,7 +4265,7 @@ div#historyExplore a#historyFwd {
     left: 0;
     background: #fff url("/images/back_results.png") repeat-x;
     width: 958px;
-    height: 442px;
+    height: 485px;
     z-index: 3000;
 }
 #coversNone {
@@ -4236,15 +4273,25 @@ div#historyExplore a#historyFwd {
 }
 
 div#resultsCovers a {text-decoration: none;}
-#contentLists.results .coverMagic {position:relative;height:185px;margin: 0 15px 20px 0;float:left;}
+#contentLists.results .coverMagic {
+    position:relative;
+    height: 235px;
+    margin: 0 15px 20px 0;
+    float:left;
+}
 .coverMagic .coverEbook {
     position:absolute;
+    left: 0px;
+    right: 0px;
     bottom:5px;
     cursor:pointer;
     z-index:1000;
 }
 #contentLists.results .SRPCover {float:left;height:185px;vertical-align:middle;}
-#contentLists.results .SRPCover img {max-height:185px;max-width:135px;}
+#contentLists.results .SRPCover img {
+    height:200px;
+    width:130px;
+}
 #contentLists.results .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 #contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
 .BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;font-size:0.875em;line-height:normal;}
@@ -6435,3 +6482,19 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-First{}
 .iconochive-Invisible{}
 .iconochive-Computer{}
+
+#resultsCovers .jcarousel-clip .jcarousel-clip-horizontal {
+    height: 100%;
+}
+
+#resultsCovers .jcarousel-container,
+#resultsList .jcarousel-container {
+    width: 918px;
+    padding: 20px;
+}
+
+#resultsCovers .jcarousel-item-horizontal {
+    width: 918px;
+    height: 510px;
+    margin-right: 0;
+}

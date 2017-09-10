@@ -25,7 +25,7 @@ class borrow(delegate.page):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
         is_inlibrary = inlibrary.get_library() is not None
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=is_inlibrary, limit=24, sort=sort)
+        subject = get_lending_library(web.ctx.site, details=True, inlibrary=is_inlibrary, limit=12, sort=sort)
         return render_template("borrow/index", subject, stats=LoanStats(), rand=rand, inlibrary=is_inlibrary)
 
 class borrow(delegate.page):
@@ -37,7 +37,7 @@ class borrow(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=24, rand=-1, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=12, rand=-1, details="false", has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":
@@ -77,7 +77,7 @@ class read(delegate.page):
     def GET(self):
         rand = random.randint(0, 9999)
         sort = "random_%d desc" % rand
-        subject = get_readable_books(web.ctx.site, details=True, limit=24, sort=sort)
+        subject = get_readable_books(web.ctx.site, details=True, limit=12, sort=sort)
         return render_template("borrow/read", subject, stats=LoanStats(), rand=rand)
 
 class read(delegate.page):
@@ -86,7 +86,7 @@ class read(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(offset=0, limit=24, rand=-1, details="false", has_fulltext="false")
+        i = web.input(offset=0, limit=12, rand=-1, details="false", has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":

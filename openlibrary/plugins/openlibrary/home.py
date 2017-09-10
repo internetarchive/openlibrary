@@ -55,10 +55,12 @@ class home(delegate.page):
         )
         return page
 
-def get_staff_picks():
-    return [format_book_data(book) for book in lending.get_available(
-        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks') if book != 'error']
-#get_staff_picks = cache.memcache_memoize(get_staff_picks, "home.get_staff_picks", timeout=120)
+def staff_picks():
+    books = lending.get_available(limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
+    formatted_books = [format_book_data(book) for book in books if book != 'error']
+    return formatted_books
+                       
+render_staff_picks = cache.memcache_memoize(staff_picks, "home.staffs_choice", timeout=60)
 
 @public
 def popular_carousel():
@@ -66,7 +68,7 @@ def popular_carousel():
     reading or borrowing, from user lists (borrowable or downloadable;
     excludes daisy only).
     """
-    books = get_staff_picks()
+    books = render_staff_picks()
     random.shuffle(books)
     return render_template("books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
 
