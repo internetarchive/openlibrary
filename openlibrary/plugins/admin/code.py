@@ -238,9 +238,7 @@ class people_view:
         account.block()
         changes = account.get_recentchanges(limit=1000)
         changeset_ids = [c.id for c in changes]
-        ipaddress_view().revert(changeset_ids
-
-        , "Reverted Spam")
+        ipaddress_view().revert(changeset_ids, "Reverted Spam")
         add_flash_message("info", "Blocked the account and reverted all edits.")
         raise web.seeother(web.ctx.path)
 

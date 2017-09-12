@@ -441,7 +441,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
         ed = web.ctx.site.get('/books/%s' % edition_id)
         if ed.ocaid:
             work = ed.works[0] if ed.get('works') else None
-            if work.key:
+            if work and work.key:
                 item = get_ia_item(ed.ocaid)
                 work_id = work.key.split('/')[2]
                 r = modify_ia_item(item, {

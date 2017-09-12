@@ -56,7 +56,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 <div class="contentContainer" itemscope itemtype="https://schema.org/Book">
     <div id="contentHead">
 
-        $if ctx.user.is_admin():
+        $if ctx.user and ctx.user.is_admin():
           <div>
             <form action="/admin/staffpicks" method="POST">
               <input type="hidden" value="add" name="action"/>
