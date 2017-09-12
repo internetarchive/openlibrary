@@ -105,7 +105,7 @@ class TestSubjects:
     def test_subjects_xml(self):
         for item, expect in xml_samples:
             #print item
-            filename = 'test_data/' + item + '_marc.xml'
+            filename = 'test_data/xml_input/' + item + '_marc.xml'
             element = etree.parse(filename).getroot()
             if element.tag != record_tag and element[0].tag == record_tag:
                 element = element[0]
@@ -114,7 +114,7 @@ class TestSubjects:
 
     def test_subjects_bin(self):
         for item, expect in bin_samples:
-            filename = 'test_data/' + item
+            filename = 'test_data/bin_input/' + item
 
             data = open(filename).read()
             if len(data) != int(data[:5]):
@@ -124,7 +124,7 @@ class TestSubjects:
 
 subjects = []
 for item, expect in xml_samples:
-    filename = 'test_data/' + item + '_marc.xml'
+    filename = 'test_data/xml_input/' + item + '_marc.xml'
     element = etree.parse(filename).getroot()
     if element.tag != record_tag and element[0].tag == record_tag:
         element = element[0]
@@ -132,7 +132,7 @@ for item, expect in xml_samples:
     subjects.append(read_subjects(rec))
 
 for item, expect in bin_samples:
-    filename = 'test_data/' + item
+    filename = 'test_data/bin_input/' + item
 
     data = open(filename).read()
     if len(data) != int(data[:5]):
