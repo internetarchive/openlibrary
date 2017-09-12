@@ -8,16 +8,21 @@ import datetime
 import urllib, urllib2
 import traceback
 import logging
-
+import simplejson
 import yaml
+from copy import copy
 
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render, public
 from infogami.utils.context import context
-
 from infogami.utils.view import add_flash_message
+
+from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
+    create_ol_subjects_for_ocaid
+
 import openlibrary
+from openlibrary.core import lending
 from openlibrary.core import admin as admin_stats
 from openlibrary.plugins.upstream import forms
 from openlibrary.plugins.upstream.account import send_forgot_password_email
@@ -141,6 +146,37 @@ class people:
             if account:
                 raise web.seeother("/admin/people/" + account.username)
         return render_template("admin/people/index", email=i.email)
+
+class add_work_to_staff_picks:
+    def GET(self):
+        return render_template("admin/sync")
+
+    def POST(self):
+        i = web.input(action="add", work_id='')
+        results = {}
+        work_ids = i.work_id.split(',')
+        for work_id in work_ids:
+            work = web.ctx.site.get('/works/%s' % work_id)
+            editions = work.editions
+            ocaids = [edition.ocaid for edition in editions if edition.ocaid]
+            results[work_id] = {}
+            for ocaid in ocaids:
+                results[work_id][ocaid] = create_ol_subjects_for_ocaid(
+                    ocaid, subjects=['openlibrary_staff_picks'])
+        
+        return delegate.RawText(simplejson.dumps(results), content_type="application/json")
+                                
+
+class sync_ol_ia:
+    def GET(self):
+        """Updates an Open Library edition's Archive.org item by writing its
+        latest openlibrary_work and openlibrary_edition to the
+        Archive.org item's metadata.
+        """
+        i = web.input(edition_id='')
+        data = update_ia_metadata_for_ol_edition(i.edition_id)
+        return delegate.RawText(simplejson.dumps(data),
+                                content_type="application/json")
 
 class people_view:
     def GET(self, key):
@@ -668,6 +704,9 @@ def setup():
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
+    register_admin_page('/admin/sync', sync_ol_ia, label="")
+    register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
+
     register_admin_page('/admin/imports', imports_home, label="")
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")

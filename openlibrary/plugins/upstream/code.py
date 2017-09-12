@@ -91,7 +91,10 @@ def _get_amazon_metadata(isbn):
     if not amazon_api:
         return ''  # likely dev instance and keys not set
 
-    product = amazon_api.lookup(ItemId=isbn)
+    try:
+        product = amazon_api.lookup(ItemId=isbn)
+    except Exception:
+        return {'price': ''}
     used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
     new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')    
     price, qlt = (None, None)

@@ -22,17 +22,27 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-from openlibrary.catalog.merge.merge_marc import build_marc
-from infogami import config
-from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
-import web, re, unicodedata, urllib, json
-from merge import try_merge
-from openlibrary.catalog.utils import mk_norm
+
+import re
+import json
+from time import sleep
 from pprint import pprint
 from collections import defaultdict
+import urllib
+import unicodedata
+from copy import copy
+
+import web
+from infogami import config
+
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.utils import mk_norm
+from openlibrary.core import lending
 from openlibrary.catalog.utils import flip_name
-from time import sleep
 from openlibrary import accounts
+
+from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
+from merge import try_merge
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 
@@ -395,6 +405,56 @@ def add_cover(cover_url, ekey):
     cover_id = int(reply['id'])
     return cover_id
 
+def get_ia_item(ocaid):
+    import internetarchive as ia
+    cfg = {'general': {'secure': False}}
+    item = ia.get_item(ocaid, config=cfg)
+    return item
+
+def modify_ia_item(item, data):
+    access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
+    secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
+    return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
+def create_ol_subjects_for_ocaid(ocaid, subjects):
+    item = get_ia_item(ocaid)
+    openlibrary_subjects = copy(item.metadata.get('openlibrary_subject')) or []
+
+    if not isinstance(openlibrary_subjects, list):
+        openlibrary_subjects = [openlibrary_subjects]
+
+    for subject in subjects:
+        if subject not in openlibrary_subjects:
+            openlibrary_subjects.append(subject)
+
+    r = modify_ia_item(item, {'openlibrary_subject': openlibrary_subjects})
+    if r.status_code != 200:
+        return ('%s failed: %s' % (item.identifier, r.content))
+    else:
+        return ("success for %s" % item.identifier)
+
+def update_ia_metadata_for_ol_edition(edition_id):
+    """An ol_edition is of the form OL...M"""
+
+    data = {'error': 'No qualifying edition'}
+    if edition_id:
+        ed = web.ctx.site.get('/books/%s' % edition_id)
+        if ed.ocaid:
+            work = ed.works[0] if ed.get('works') else None
+            if work and work.key:
+                item = get_ia_item(ed.ocaid)
+                work_id = work.key.split('/')[2]
+                r = modify_ia_item(item, {
+                    'openlibrary_work': work_id,
+                    'openlibrary_edition': edition_id
+                })
+                if r.status_code != 200:
+                    data = {'error': '%s failed: %s' % (item.identifier, r.content)}
+                else:
+                    data = ia.metadata
+    return data
+
+
 def load(rec):
     """Given a record, tries to add/match that edition in the system.
 
@@ -568,4 +628,7 @@ def load(rec):
             assert isinstance(i, dict)
 
         web.ctx.site.save_many(edits, 'import new book')
+
+    # update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
+
     return reply

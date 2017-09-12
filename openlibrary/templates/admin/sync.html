@@ -1,0 +1,23 @@
+$def with ()
+
+<div id="contentBody">
+  <h1>Sync</h1>
+  <p>Sync the metadata of various types of Open Library items (e.g. lists, subjects, works) with Archive.org.</p>
+
+  <h2>Add Works to Staff Picks</h2>
+  <p>This utility will add your work to an Open Library list called `Staff Picks` under the `openlibrary` user. It will then take the added work and explode it into a list of all its readable editions. For each Open Library edition, a metadata field called `openlibrary_subject` will be injected into the archive.org metadata of the edition's corresponding archive.org item.
+  </p>
+
+  <form method="POST">
+    <select name="action" method="/admin/staffpicks">
+      <option>add</option>
+      <option>remove</option>
+    </select>
+    <input type="text" name="work_id"/>
+    <input type="submit"/>
+  </form>
+
+  <h2>Update edition</h2>
+  <p>Updates an edition on archive.org by writing in its latest  openlibrary_edition and openlibrary_work identifier values</p>
+  <p>TODO</p>
+</div>
