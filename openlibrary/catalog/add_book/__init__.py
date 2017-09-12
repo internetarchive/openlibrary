@@ -451,7 +451,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
                 if r.status_code != 200:
                     data = {'error': '%s failed: %s' % (item.identifier, r.content)}
                 else:
-                    data = ia.metadata
+                    data = item.metadata
     return data
 
 
