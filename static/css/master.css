@@ -6700,30 +6700,16 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-Invisible{}
 .iconochive-Computer{}
 
-.carousel-item img {
-    width: 125px;
-    height: 200px;
+.work-likes input[type=submit] {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid #999;
 }
 
-.carousel-item h1 {
-    font-size: 1em;
-    color: #311;
+.work-likes input[type=submit].activated {
+    color: rgba(255, 38, 158, 0.78)
 }
 
-
-.responsive button.slick-previous {
-    width: 50px;
-    height: 50px;
-    color: #333;
-}
-
-.responsive button.slick-next {
-    width: 50px;
-    height: 50px;
-    color: #333;
-}
-
-
-.responsive button.slick-prev:before, .slick-next:before {
-    color: #fff;
+.work-likes input[type=submit].unactivated {
+    background-color: #fff;
 }

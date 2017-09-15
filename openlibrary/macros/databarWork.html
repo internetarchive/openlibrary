@@ -59,6 +59,22 @@ $ library = None
 </style>
 
 <div class="Tools">
+
+  $if ctx.user:
+      $if work:
+        $ work_likes = work.likes(username=ctx.user.key.split('/')[2])
+        <div class="work-likes">
+          <form method="POST" action="$(work.key)/likes.json?debug=true">
+            $if 'user_likes_work' in work_likes:
+                <input type="hidden" name="action"
+                       value="$('unlike' if work_likes.get('user_likes_work') else 'like')"/>
+            <input type="hidden" name="edition_id" value="$(page.key)"/>
+            <input class="$('activated' if work_likes.get('user_likes_work') else 'unactivated')" type="submit" value="♥ ($(work_likes['work_like_count']))"/>
+          </form>
+        </div>
+
+
+
 <div id="read">
 $ collections = set()
 $ meta_fields = page.get_ia_meta_fields()
@@ -132,17 +148,6 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                             $ user_loan = current_loan
                             $ break
 
-                    $if work:
-                      $ works_likes = work.likes(username=ctx.user.key.split('/')[2])
-                      <div class="work-like">
-                        <form method="POST" action="$(work.key)/likes.json?debug=true">
-                          $if 'user_likes_work' in works_likes:
-                              <input type="hidden" name="action"
-                                     value="$('unlike' if works_likes.get('user_likes_work') else 'like')"/>
-                          <input type="hidden" name="edition_id" value="$(page.key)"/>
-                          <input class="$('unlike' if works_likes.get('user_likes_work') else 'like')" type="submit" value="♥ ($(works_likes['work_like_count']))"/>
-                        </form>
-                      </div>
                 $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing

@@ -394,11 +394,10 @@ class Likes(object):
         }
         try:
             if like:
-                oldb.insert('likes', **data)
+                oldb.insert('likes', username=username, work_id=work_id, edition_id=edition_id)
             else:
                 oldb.delete('likes',
-                            where=(' AND '.join(["%s=$%s" % (x, x) for x in data])),
-                            vars=data)
+                            where=('work_id=$work_id AND username=$username'), vars=data)
         except:  # we want to except entry already exists or no entry exists
             # log
             pass
