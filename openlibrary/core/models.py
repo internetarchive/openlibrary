@@ -11,15 +11,14 @@ from infogami.infobase import client
 import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
+from openlibrary import accounts
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
-from openlibrary import accounts
-from openlibrary.core import loanstats, lending
 from openlibrary.core.helpers import private_collection_in
 
 # relative imports
 from lists.model import ListMixin, Seed
-from . import cache, iprange, inlibrary, waitinglist
+from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -381,6 +380,52 @@ def some(values):
         if v:
             return v
 
+class Likes(object):
+
+    @classmethod
+    def register(cls, username, work_id, edition_id=None, like=True):
+        oldb = db.get_db()
+        work_id = int(work_id)
+        edition_id = int(edition_id) if edition_id else None
+        data = {
+            'username': username,
+            'work_id': work_id,
+            'edition_id': edition_id
+        }
+        try:
+            if like:
+                oldb.insert('likes', **data)
+            else:
+                oldb.delete('likes',
+                            where=(' AND '.join(["%s=$%s" % (x, x) for x in data])),
+                            vars=data)
+        except:  # we want to except entry already exists or no entry exists
+            # log
+            pass
+        url = ('/books/OL%sM' % edition_id) if edition_id else ('/works/OL%sW' % work_id)
+        raise web.seeother(url)
+
+    @classmethod
+    def get_users_likes(cls, username):
+        pass
+
+    @classmethod
+    def get_most_liked_works(cls):
+        pass
+
+    @classmethod
+    def user_has_liked_work(cls, username, work_id):
+        pass
+
+    @classmethod
+    def count(cls, work_id, username=None, edition_id=None):
+        """Retrieves a count of likes for a work (or a specific edition of a work"""
+        oldb = db.get_db()
+        work_id = int(work_id)
+        query = 'SELECT COUNT(*) AS work_likes_count FROM likes where likes.work_id=$work_id'
+        if username:
+            query = "SELECT (SELECT COUNT(*) FROM likes where likes.work_id=$work_id) AS work_like_count, (SELECT EXISTS(SELECT 1 FROM likes where likes.username=$username AND likes.work_id=$work_id)) AS user_likes_work"
+        return oldb.query(query, vars={'work_id': work_id, 'username': username})[0]
 
 class Work(Thing):
     """Class to represent /type/work objects in OL.
@@ -413,6 +458,10 @@ class Work(Thing):
 
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
+
+    def likes(self, username=None):
+        work_id = self.key.split('/')[2][2:-1]
+        return Likes.count(work_id, username=username)
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.

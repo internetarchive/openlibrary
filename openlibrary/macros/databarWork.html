@@ -7,6 +7,7 @@ $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
+$ work = page.works and page.works[0]
 $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
@@ -130,6 +131,18 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $if current_loan['user'] == ctx.user.key:
                             $ user_loan = current_loan
                             $ break
+
+                    $if work:
+                      $ works_likes = work.likes(username=ctx.user.key.split('/')[2])
+                      <div class="work-like">
+                        <form method="POST" action="$(work.key)/likes.json?debug=true">
+                          $if 'user_likes_work' in works_likes:
+                              <input type="hidden" name="action"
+                                     value="$('unlike' if works_likes.get('user_likes_work') else 'like')"/>
+                          <input type="hidden" name="edition_id" value="$(page.key)"/>
+                          <input class="$('unlike' if works_likes.get('user_likes_work') else 'like')" type="submit" value="♥ ($(works_likes['work_like_count']))"/>
+                        </form>
+                      </div>
                 $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing
@@ -144,8 +157,7 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                 </script>
 
                 $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-                $if checkedout and not user_loan:
-                    $ work = page.works and page.works[0]
+                $if checkedout and not user_loan:                
                     $if work and work.edition_count > 1:
                         <p class="btn-notice">
                             <span class="smaller">Other editions of this book may be available.</span>

@@ -8,8 +8,11 @@ import web
 import simplejson
 
 from infogami.utils import delegate
-from openlibrary.core import ia, lending, cache, helpers as h
-from openlibrary.plugins.openlibrary import home
+from infogami.utils.view import render_template
+from openlibrary import accounts
+from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.core import ia, db, models, lending, cache, helpers as h
+
 
 
 class book_availability(delegate.page):
@@ -42,6 +45,43 @@ class book_availability(delegate.page):
             else []
         )
 
+class work_likes(delegate.page):
+    path = "/works/OL(\d+)W/likes"
+    encoding = "json"
+
+    def GET(self, work_id):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[2] if user else None
+        work_likes = models.Likes.count(work_id=work_id, username=username)
+        result = {
+            'work_id': int(work_id),
+            'work_like_count': work_likes['work_like_count']
+        }
+        if username and 'user_likes_work' in work_likes:
+            result['user_likes_work'] = work_likes.user_likes_work
+        return delegate.RawText(simplejson.dumps(result), content_type="application/json")
+
+    def POST(self, work_id):
+        user = accounts.get_current_user()
+        result = {'error': 'No username findable: Login required'}
+        if user:
+            username = user.key.split('/')[2]
+            i = web.input(edition_id=None, action=None)
+            if i.action in ['like', 'unlike']:
+                like = (i.action == 'like')
+                edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+                work_likes = models.Likes.register(
+                    username=username, work_id=work_id, edition_id=edition_id,
+                    like=like)
+                result = {
+                    'work_id': int(work_id),
+                    'work_like_count': work_likes['work_like_count'],
+                    'user_likes_work': work_likes['user_likes_work']
+                }
+            else:
+                result['error'] = 'Invalid action: must be "like" or "unlike"'
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class work_editions(delegate.page):
     path = "(/works/OL\d+W)/editions"

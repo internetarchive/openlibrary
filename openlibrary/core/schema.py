@@ -39,6 +39,16 @@ def get_schema():
 
     CREATE INDEX thing_olid_idx ON thing(get_olid(key));
 
+    CREATE TABLE likes (
+        username text NOT NULL,
+        work_id integer NOT NULL,
+        edition_id integer default null,
+        updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+        created timestamp without time zone default (current_timestamp at time zone 'utc'),
+        primary key (username, work_id)
+    );
+
+
     CREATE TABLE stats (
         id serial primary key,
         key text unique,
