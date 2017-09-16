@@ -6703,13 +6703,18 @@ form#addAuthor.olform .wmd-preview {
 .work-likes input[type=submit] {
     padding: 5px 10px;
     border-radius: 5px;
-    border: 1px solid #999;
+    color: #333;
+    border: 2px solid #999;
+    cursor:pointer;
+    font-size: .9em;
 }
 
-.work-likes input[type=submit].activated {
-    color: rgba(255, 38, 158, 0.78)
+.work-likes button[type=submit].activated {
+    color: rgba(255, 38, 158, 0.78);
+    background: #fff;
+    border: 2px solid rgba(255, 38, 158, 0.78);
 }
 
-.work-likes input[type=submit].unactivated {
+.work-likes button[type=submit].unactivated {
     background-color: #fff;
 }

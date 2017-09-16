@@ -423,7 +423,7 @@ class Likes(object):
         work_id = int(work_id)
         query = 'SELECT COUNT(*) AS work_likes_count FROM likes where likes.work_id=$work_id'
         if username:
-            query = "SELECT (SELECT COUNT(*) FROM likes where likes.work_id=$work_id) AS work_like_count, (SELECT EXISTS(SELECT 1 FROM likes where likes.username=$username AND likes.work_id=$work_id)) AS user_likes_work"
+            query = "SELECT (SELECT COUNT(*) FROM likes where likes.work_id=$work_id) AS work_likes_count, (SELECT EXISTS(SELECT 1 FROM likes where likes.username=$username AND likes.work_id=$work_id)) AS user_likes_work"
         return oldb.query(query, vars={'work_id': work_id, 'username': username})[0]
 
 class Work(Thing):

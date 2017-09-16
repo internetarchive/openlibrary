@@ -60,18 +60,18 @@ $ library = None
 
 <div class="Tools">
 
-  $if ctx.user:
-      $if work:
-        $ work_likes = work.likes(username=ctx.user.key.split('/')[2])
-        <div class="work-likes">
-          <form method="POST" action="$(work.key)/likes.json?debug=true">
-            $if 'user_likes_work' in work_likes:
-                <input type="hidden" name="action"
-                       value="$('unlike' if work_likes.get('user_likes_work') else 'like')"/>
-            <input type="hidden" name="edition_id" value="$(page.key)"/>
-            <input class="$('activated' if work_likes.get('user_likes_work') else 'unactivated')" type="submit" value="♥ ($(work_likes['work_like_count']))"/>
-          </form>
-        </div>
+  $if work:
+    $ work_likes = work.likes(username=ctx.user.key.split('/')[2] if ctx.user else None)
+    <div class="work-likes">
+      <form method="POST" action="$(work.key)/likes.json" aria-label="$(work.title)">
+        $if 'user_likes_work' in work_likes:
+            <input type="hidden" name="action"
+                   value="$('unlike' if work_likes.get('user_likes_work') else 'like')"/>
+        <input type="hidden" name="edition_id" value="$(page.key)"/>
+        <button class="$('activated' if work_likes.get('user_likes_work') else 'unactivated')" 
+                type="submit"/>♥ ($(work_likes['work_likes_count']))</button>
+      </form>
+    </div>
 
 
 
