@@ -14,7 +14,7 @@ import helpers as h
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary import accounts
-from openlibrary.core import loanstats
+from openlibrary.core import loanstats, lending
 from openlibrary.core.helpers import private_collection_in
 
 # relative imports
@@ -288,7 +288,10 @@ class Edition(Thing):
     def get_waitinglist_size(self):
         """Returns the number of people on waiting list to borrow this book.
         """
-        return waitinglist.get_waitinglist_size(self.key)
+        ocaid = self.ocaid
+        response = lending.get_availability_of_ocaid(ocaid)
+        availability = response[ocaid] if response else {}
+        return int(availability.get('num_waitlist', 0) or 0)
 
     def get_waitinglist_position(self, user):
         """Returns the position of this user in the waiting list."""

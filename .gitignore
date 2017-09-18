@@ -37,3 +37,4 @@ htmlcov
 .vagrant
 .DS_Store
 .cache
+node_modules/
