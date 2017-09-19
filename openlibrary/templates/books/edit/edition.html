@@ -659,9 +659,12 @@ $if ctx.user and ctx.user.is_admin():
                 if (data.name == "" || data.name == "---") {
                     return error("#id-errors", "select-id", "$_('Please select an identifier.')")
                 }
+                var label = \$("#select-id").find("option[value=" + data.name + "]").html();
                 if (data.value == "") {
-                    var label = \$("#select-id").find("option[value=" + data.name + "]").html();
                     return error("#id-errors", "id-value", "$_('You need to give a value to ID.')".replace(/ID/, label));
+                }
+                if (['ocaid'].includes(data.name) && /\s/g.test(data.value)) {
+                    return error("#id-errors", "id-value", "$_('ID ids cannot contain whitespace.')".replace(/ID/, label));
                 }
                 \$("id-errors").hide();
                 return true;
