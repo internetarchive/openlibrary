@@ -36,6 +36,7 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     "not yet downloaded" for the duration of the timeout.
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
+DEFAULT_IA_RESULTS = 75
 MAX_IA_RESULTS = 10000
 
 config_ia_loan_api_url = None
@@ -95,7 +96,7 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
-def get_available(limit=None, page=1, subject=None):
+def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -106,10 +107,15 @@ def get_available(limit=None, page=1, subject=None):
     """
     fields = ['identifier', 'openlibrary_edition', 'openlibrary_work']
     encoded_fields = '&'.join(['fl[]=' + f for f in fields])
+    sort = ('&'.join(['sort[]=%s' % s for s in
+                      (sorts if sorts and isinstance(sorts, list)
+                       else [''])]))
     q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
+    if query:
+        q += " AND " + query
     if subject:
         q += " AND openlibrary_subject:" + subject
-    rows = limit or MAX_IA_RESULTS
+    rows = limit or DEFAULT_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, str(rows), str(page))
     try:
@@ -121,11 +127,13 @@ def get_available(limit=None, page=1, subject=None):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
 
         keys = web.ctx.site.things({"type": "/type/edition", "ocaid": results.values()})
-
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
     except Exception as e:
         return {'error': 'request_timeout'}
+
+def get_recently_available(limit=200, page=1):
+    return get_available(limit=limit, page=page, sorts=['loans__status__last_loan_date'])
 
 def get_availability(key, ids):
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
@@ -271,12 +279,6 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     """
     logger.info("BEGIN sync_loan %s %s", identifier, loan)
 
-    ## XXX-Anand: Disabled as this seems to be going in recursive loop.
-    ## IA calling OL hook and OL calling IA back.
-
-    ## update the loan and waiting lists on archive.org
-    # ia_lending_api.request(method="loan.sync", identifier=identifier)
-
     if loan is NOT_INITIALIZED:
         loan = get_loan(identifier)
 
@@ -288,19 +290,13 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         ocaid=loan['ocaid'],
         book=loan['book'])
 
-    try:
-        wl = ia_lending_api.get_waitinglist_of_book(identifier)
-    except urllib2.URLError:
-        pass
-    if wl is None:
-        logger.error("failed to get waitinglist for %s", identifier, exc_info=True)
-        return
-
-    # for the end user, a book is not available if it is either
-    # checked out or someone is waiting.
-    borrowed = bool(is_loaned_out(identifier) or wl)
+    responses = get_availability_of_ocaid(identifier)
+    response = responses[identifier] if responses else {}
+    if response:
+        num_waiting = int(response['num_waitlist']) if response['num_waitlist'] else 0
 
     ebook = EBookRecord.find(identifier)
+
     # The loan known to us is deleted
     is_loan_completed = ebook.get("loan") and ebook.get("loan") != loan_data
 
@@ -310,13 +306,16 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     else:
         ebook_loan_data = None
 
+    kwargs = {
+        "type": "ebook",
+        "identifier": identifier,
+        "loan": ebook_loan_data,
+        "borrowed": str(
+            response['status'] not in ['open', 'borrow_available']).lower(),
+        "wl_size": num_waiting
+    }
     try:
-        ebook.update(
-            type="ebook",
-            identifier=identifier,
-            loan=ebook_loan_data,
-            borrowed=str(borrowed).lower(),
-            wl_size=len(wl))
+        ebook.update(**kwargs)
     except Exception:
         # updating ebook document is sometimes failing with
         # "Document update conflict" error.

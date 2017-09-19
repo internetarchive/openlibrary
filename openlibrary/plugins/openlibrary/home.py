@@ -18,6 +18,8 @@ from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search
 from openlibrary.plugins.openlibrary import lists
 
+DEFAULT_CACHE_LIFETIME = 120  # seconds
+
 logger = logging.getLogger("openlibrary.home")
 
 class home(delegate.page):
@@ -55,12 +57,36 @@ class home(delegate.page):
         )
         return page
 
+
+CUSTOM_QUERIES = {}
+def get_carousel_by_ia_query(key):
+    def render_ia_carousel(query):
+        books = lending.get_available(
+            limit=lending.DEFAULT_IA_RESULTS, query=query)
+        formatted_books = [format_book_data(book) for book in books if book != 'error']
+        return formatted_books
+    memcache_key = None  # "home.%s" % key
+    return cache.memcache_memoize(
+        render_ia_carousel, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
+
+@public
+def generic_carousel(key, query):
+    if key not in CUSTOM_QUERIES:
+        CUSTOM_QUERIES[key] = get_carousel_by_ia_query(key)
+    books = CUSTOM_QUERIES[key](query)
+    random.shuffle(books)
+    return render_template("books/carousel", storify(books), id=key, pixel=key)
+
 def staff_picks():
-    books = lending.get_available(limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
+    books = lending.get_available(
+        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
-                       
-render_staff_picks = cache.memcache_memoize(staff_picks, "home.staffs_choice", timeout=60)
+
+staff_picks_memcache_key = None #"home.new_staff_picks"
+render_staff_picks = cache.memcache_memoize(
+    staff_picks, staff_picks_memcache_key,
+    timeout=DEFAULT_CACHE_LIFETIME)
 
 @public
 def popular_carousel():
@@ -70,7 +96,8 @@ def popular_carousel():
     """
     books = render_staff_picks()
     random.shuffle(books)
-    return render_template("books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
+    return render_template(
+        "books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -97,32 +124,27 @@ def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
         'books/carousel', storify(books), id=cssid, pixel=pixel, loans=True
     ) if books else ''
 
-
 @public
-def render_returncart(limit=60, randomize=True):
-    data = get_returncart(limit*5)
-
-    # Remove all inlibrary books if we not in a participating library
-    if not inlibrary.get_library():
-        data = [d for d in data if 'inlibrary_borrow_url' not in d]
-
+def render_returncart(randomize=True):
+    books = get_returncart()
     if randomize:
-        random.shuffle(data)
-    data = data[:limit]
-    return render_template("books/carousel", storify(data), id="returncart_carousel", pixel="CarouselReturns")
+        random.shuffle(books)
+    return render_template(
+        "books/carousel", storify(books), id="returncart_carousel",
+        pixel="CarouselReturns")
 
-def get_returncart(limit):
+def get_returncart():
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    items = web.ctx.site.store.items(type='ebook', name='borrowed', value='false', limit=limit)
-    identifiers = [doc['identifier'] for k, doc in items if 'identifier' in doc]
-    keys = web.ctx.site.things({"type": "/type/edition", "ocaid": identifiers})
-    books = web.ctx.site.get_many(keys)
-    return [format_book_data(book) for book in books if book.type.key == '/type/edition']
+    books = lending.get_recently_available(limit=lending.DEFAULT_IA_RESULTS)
+    formatted_books = [format_book_data(book) for book in books if book != 'error']
+    return formatted_books
 
 # cache the results of get_returncart in memcache for 60 sec
-get_returncart = cache.memcache_memoize(get_returncart, "home.get_returncart", timeout=60)
+recently_returned_memcache_key = None # "home.new_recently_returned"
+get_returncart = cache.memcache_memoize(
+    get_returncart, recently_returned_memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
 
 @public
 def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
@@ -214,25 +236,22 @@ def format_book_data(book):
     d.key = book.get('key')
     d.url = book.url()
     d.title = book.title or None
+    d.ocaid = book.get("ocaid")
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
 
     work = book.works and book.works[0]
-    if work:
-        d.authors = get_authors(work)
-        cover = work.get_cover()
-    else:
-        d.authors = get_authors(book)
-        cover = book.get_cover()
+    d.authors = get_authors(work if work else book)
+    cover = work.get_cover() if work and work.get_cover() else book.get_cover()
 
     if cover:
         d.cover_url = cover.url("M")
+    elif d.ocaid:
+        d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
-    ia_id = book.get("ocaid")
-    if ia_id:
-        d.ocaid = ia_id
-        collections = ia.get_meta_xml(ia_id).get("collection", [])
+    if d.ocaid:
+        collections = ia.get_meta_xml(d.ocaid).get("collection", [])
 
         if 'lendinglibrary' in collections or 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")

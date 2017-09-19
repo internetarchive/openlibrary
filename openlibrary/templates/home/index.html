@@ -19,6 +19,9 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/read")
     <div class="clearfix"></div>
 
+    $:render_template("home/custom_ia_carousel", title="For Dummies", key="for_dummies", query="for dummies")
+    <div class="clearfix"></div>
+
     $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
     <div class="clearfix"></div>
 
@@ -38,9 +41,6 @@ $var title: $_("Welcome to Open Library")
     <div class="clearfix"></div>
 
     $:render_template("home/subject_carousel", "Authors_Alliance", title="Author's Alliance", options={}, delay=3500, type="publishers")
-    <div class="clearfix"></div>
-
-    $:render_template("home/loans", loans)
     <div class="clearfix"></div>
 
     $:render_template("home/stats", stats)
