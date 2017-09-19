@@ -6483,18 +6483,30 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-Invisible{}
 .iconochive-Computer{}
 
-#resultsCovers .jcarousel-clip .jcarousel-clip-horizontal {
-    height: 100%;
+.book-carousel-item img {
+    width: 125px;
+    height: 200px;
 }
 
-#resultsCovers .jcarousel-container,
-#resultsList .jcarousel-container {
-    width: 918px;
-    padding: 20px;
+.book-carousel-item h1 {
+    font-size: 1em;
+    color: #311;
 }
 
-#resultsCovers .jcarousel-item-horizontal {
-    width: 918px;
-    height: 510px;
-    margin-right: 0;
+
+.responsive button.slick-previous {
+    width: 50px;
+    height: 50px;
+    color: #333;
+}
+
+.responsive button.slick-next {
+    width: 50px;
+    height: 50px;
+    color: #333;
+}
+
+
+.responsive button.slick-prev:before, .slick-next:before {
+    color: #fff;
 }
