@@ -19,6 +19,7 @@ from utils import render_template
 
 from openlibrary.core import cache
 from openlibrary.core.lending import amazon_api
+from openlibrary import accounts
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -271,10 +272,13 @@ class revert(delegate.mode):
     def POST(self, key):
         i = web.input("v", _comment=None)
         v = i.v and safeint(i.v, None)
+
         if v is None:
             raise web.seeother(web.changequery({}))
 
-        if not web.ctx.site.can_write(key):
+        user = accounts.get_current_user()
+        admin = user and user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
+        if not (admin and web.ctx.site.can_write(key)):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)
