@@ -34,6 +34,8 @@ import borrow
 
 logger = logging.getLogger("openlibrary.account")
 
+USERNAME_RETRIES = 3
+
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
 create_link_doc = accounts.create_link_doc
@@ -175,7 +177,7 @@ class account_migration(delegate.page):
                 password = OpenLibraryAccount.generate_random_password(16)
                 ia_account = InternetArchiveAccount.create(
                     ol_account.username or ol_account.displayname,
-                    ol_account.email, password, verified=True, retries=3)
+                    ol_account.email, password, verified=True, retries=USERNAME_RETRIES)
                 return delegate.RawText(simplejson.dumps({
                     'username': ol_account.username,
                     'email': ol_account.email,
@@ -244,7 +246,7 @@ class account_create(delegate.page):
             # IA credentials will auto create and link OL account.
             ia_account = InternetArchiveAccount.create(
                 screenname=i.username, email=i.email, password=i.password,
-                verified=False)
+                verified=False, retries=USERNAME_RETRIES)
         except ValueError as e:
             f.note = LOGIN_ERRORS['max_retries_exceeded']
             return render['account/create'](f)
