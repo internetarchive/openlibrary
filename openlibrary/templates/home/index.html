@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None, lending_list=None, returncart_list=None, user=None, loans=None)
+$def with (stats=None, blog_posts=None)
 
 $var title: $_("Welcome to Open Library")
 
@@ -10,16 +10,19 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/categories")
     <div class="clearfix"></div>
 
-    $:render_template("home/popular")
+    $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", limit=60)
     <div class="clearfix"></div>
 
-    $:render_template("home/returncart")
+    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date"], limit=60)
+    <div class="clearfix"></div>
+
+    $#:render_template("home/returncart")
     <div class="clearfix"></div>
 
     $:render_template("home/read")
     <div class="clearfix"></div>
 
-    $:render_template("home/custom_ia_carousel", title="For Dummies", key="for_dummies", query="for dummies")
+    $:render_template("home/custom_ia_carousel", title="For Dummies", key="for_dummies", query="for dummies", limit=36)
     <div class="clearfix"></div>
 
     $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
@@ -35,12 +38,6 @@ $var title: $_("Welcome to Open Library")
     <div class="clearfix"></div>
 
     $:render_template("home/subject_carousel", "mystery_and_detective_stories", title="Mysteries", options={"published_in": "2000-2018", "sort": "edition_count"}, delay=3500)
-    <div class="clearfix"></div>
-
-    $:render_template("home/subject_carousel", "romance", title="Romance", options={"published_in": "2000-2018", "sort": "edition_count"}, delay=4000)
-    <div class="clearfix"></div>
-
-    $:render_template("home/subject_carousel", "Authors_Alliance", title="Author's Alliance", options={}, delay=3500, type="publishers")
     <div class="clearfix"></div>
 
     $:render_template("home/stats", stats)

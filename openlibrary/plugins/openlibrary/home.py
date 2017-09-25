@@ -41,63 +41,32 @@ class home(delegate.page):
 
         lending_list = config.get("home", {}).get("lending_list")
         returncart_list = config.get("home", {}).get("returncart_list")
-
-        user = accounts.get_current_user()
-        try:
-            loans = borrow.get_loans(user) if user else None
-        except:
-            loans = None
-
         page = render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
-            lending_list=lending_list,
-            returncart_list=returncart_list,
-            user=user, loans=loans
         )
         return page
 
 
 CUSTOM_QUERIES = {}
-def get_carousel_by_ia_query(key):
-    def render_ia_carousel(query):
-        books = lending.get_available(
-            limit=lending.DEFAULT_IA_RESULTS, query=query)
+def get_carousel_by_ia_query(key, usekey=False):
+    def render_ia_carousel(query=None, subject=None, sorts=None, limit=None):
+        limit = limit or lending.DEFAULT_IA_RESULTS
+        books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
         formatted_books = [format_book_data(book) for book in books if book != 'error']
         return formatted_books
-    memcache_key = None  # "home.%s" % key
+    memcache_key = None if not usekey else "home.%s" % key
     return cache.memcache_memoize(
         render_ia_carousel, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
 
 @public
-def generic_carousel(key, query):
+def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
     if key not in CUSTOM_QUERIES:
         CUSTOM_QUERIES[key] = get_carousel_by_ia_query(key)
-    books = CUSTOM_QUERIES[key](query)
+    books = CUSTOM_QUERIES[key](query=query, subject=subject, sorts=sorts, limit=limit)
     random.shuffle(books)
     return render_template("books/carousel", storify(books), id=key, pixel=key)
 
-def staff_picks():
-    books = lending.get_available(
-        limit=lending.MAX_IA_RESULTS, subject='openlibrary_staff_picks')
-    formatted_books = [format_book_data(book) for book in books if book != 'error']
-    return formatted_books
-
-staff_picks_memcache_key = None #"home.new_staff_picks"
-render_staff_picks = cache.memcache_memoize(
-    staff_picks, staff_picks_memcache_key,
-    timeout=DEFAULT_CACHE_LIFETIME)
-
-@public
-def popular_carousel():
-    """Renders a carousel of popular editions, which are available for
-    reading or borrowing, from user lists (borrowable or downloadable;
-    excludes daisy only).
-    """
-    books = render_staff_picks()
-    random.shuffle(books)
-    return render_template(
-        "books/carousel", storify(books), id="StaffPicks", pixel="StaffPicks")
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -123,28 +92,6 @@ def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
     return render_template(
         'books/carousel', storify(books), id=cssid, pixel=pixel, loans=True
     ) if books else ''
-
-@public
-def render_returncart(randomize=True):
-    books = get_returncart()
-    if randomize:
-        random.shuffle(books)
-    return render_template(
-        "books/carousel", storify(books), id="returncart_carousel",
-        pixel="CarouselReturns")
-
-def get_returncart():
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    books = lending.get_recently_available(limit=lending.DEFAULT_IA_RESULTS)
-    formatted_books = [format_book_data(book) for book in books if book != 'error']
-    return formatted_books
-
-# cache the results of get_returncart in memcache for 60 sec
-recently_returned_memcache_key = None # "home.new_recently_returned"
-get_returncart = cache.memcache_memoize(
-    get_returncart, recently_returned_memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
 
 @public
 def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):

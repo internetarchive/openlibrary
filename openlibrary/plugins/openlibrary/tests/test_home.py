@@ -79,11 +79,11 @@ class TestHomeTemplates:
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
-        docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
-                        human_edits = 1, bot_edits = 1, lists = 1,
-                        visitors = 1, loans = 1, members = 1,
-                        works = 1, editions = 1, ebooks = 1,
-                        covers = 1, authors = 1, subjects = 1)]* 100
+        docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
+                        human_edits=1, bot_edits=1, lists=1,
+                        visitors=1, loans=1, members=1,
+                        works=1, editions=1, ebooks=1,
+                        covers=1, authors=1, subjects=1)]* 100
         stats = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
                      bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
                      lists       = Stats(docs, "lists", "total_lists"),
@@ -100,11 +100,10 @@ class TestHomeTemplates:
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
-        monkeypatch.setattr(home, "get_returncart", lambda limit: [])
+        monkeypatch.setattr(home, "generic_carousel", lambda limit: [])
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
-        html = unicode(render_template("home/index",
-            stats=stats,
-            lending_list="/people/foo/lists/OL1L"))
+        html = unicode(render_template("home/index", stats=stats))
+
         #TODO: Test something more useful here?
         assert "Staff Picks" in html
         assert "Recently Returned" in html

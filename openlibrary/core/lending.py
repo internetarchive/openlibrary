@@ -36,8 +36,8 @@ BOOKREADER_AUTH_SECONDS = 10*60
 #     "not yet downloaded" for the duration of the timeout.
 #     BookReader loan status is always current.
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
-DEFAULT_IA_RESULTS = 75
-MAX_IA_RESULTS = 10000
+DEFAULT_IA_RESULTS = 42
+MAX_IA_RESULTS = 1000
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -131,9 +131,6 @@ def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
         return books
     except Exception as e:
         return {'error': 'request_timeout'}
-
-def get_recently_available(limit=200, page=1):
-    return get_available(limit=limit, page=page, sorts=['loans__status__last_loan_date'])
 
 def get_availability(key, ids):
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))

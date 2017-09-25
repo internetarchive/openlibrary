@@ -1,4 +1,4 @@
-$def with(title, key, query)
+$def with(title, key, query=None, subject=None, sorts=None, limit=None)
 
 <div class="head">
   <h2 class="home-h2">
@@ -7,4 +7,4 @@ $def with(title, key, query)
   <hr/>
 </div>
 
-$:generic_carousel(key, query)
+$:generic_carousel(key, query=query, subject=subject, sorts=sorts, limit=limit)
