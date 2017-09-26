@@ -100,8 +100,8 @@ def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
     """
     try:
         data = random_ebooks()
-        if len(data) > 120:
-            data = random.sample(data, 120)
+        if len(data) > 60:
+            data = random.sample(data, 60)
         return render_template(
             "books/carousel", storify(data), id=cssid, pixel=pixel)
     except Exception:

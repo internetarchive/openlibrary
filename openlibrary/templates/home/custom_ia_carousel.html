@@ -2,7 +2,7 @@ $def with(title, key, query=None, subject=None, sorts=None, limit=None)
 
 <div class="head">
   <h2 class="home-h2">
-    <a href="/search?q=$query">$title</a>
+    <a href="$(compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False))">$title</a>
   </h2>
   <hr/>
 </div>

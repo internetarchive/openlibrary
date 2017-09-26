@@ -107,6 +107,8 @@ class TestHomeTemplates:
         #TODO: Test something more useful here?
         assert "Staff Picks" in html
         assert "Recently Returned" in html
+        assert "Technical Books" in html
+        assert "How To Guides" in html
         assert "Around the Library" in html
         assert "About the Project" in html
 

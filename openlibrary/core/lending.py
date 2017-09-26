@@ -10,6 +10,8 @@ import hmac
 import urllib
 import urllib2
 from amazon.api import AmazonAPI
+
+from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from . import ia
@@ -96,6 +98,33 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
+@public
+def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, advanced=True):
+    q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
+    if query:
+        q += " AND " + query
+    if subject:
+        q += " AND openlibrary_subject:" + subject
+
+    if not advanced:        
+        _sort = sorts[0] if sorts else ''
+        if '+desc' in _sort:
+            _sort = '-' + _sort.split('+desc')[0] 
+        elif '+asc' in _sort:
+            _sort = _sort.split('+asc')[0]
+        return ('https://archive.org/search.php?query=%s' % q) + \
+            (('&sort=%s' % _sort) if _sort else '')
+
+    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work']
+    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
+    sort = ('&'.join(['sort[]=%s' % s for s in
+                      (sorts if sorts and isinstance(sorts, list)
+                       else [''])]))
+    rows = limit or DEFAULT_IA_RESULTS
+    url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
+        config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
+    return url
+
 def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
@@ -105,19 +134,8 @@ def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work']
-    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
-    sort = ('&'.join(['sort[]=%s' % s for s in
-                      (sorts if sorts and isinstance(sorts, list)
-                       else [''])]))
-    q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
-    if query:
-        q += " AND " + query
-    if subject:
-        q += " AND openlibrary_subject:" + subject
-    rows = limit or DEFAULT_IA_RESULTS
-    url = "https://%s/advancedsearch.php?q=%s&%s&rows=%s&page=%s&output=json" % (
-        config_bookreader_host, q, encoded_fields, str(rows), str(page))
+    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query, sorts=sorts)
+
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])

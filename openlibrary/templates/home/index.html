@@ -13,7 +13,7 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", limit=60)
     <div class="clearfix"></div>
 
-    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date"], limit=60)
+    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=60)
     <div class="clearfix"></div>
 
     $#:render_template("home/returncart")
@@ -22,7 +22,13 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/read")
     <div class="clearfix"></div>
 
-    $:render_template("home/custom_ia_carousel", title="For Dummies", key="for_dummies", query="for dummies", limit=36)
+    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(title:(24 hours) OR publisher:(O'Reilly))", sorts=["downloads+desc"], limit=36)
+    <div class="clearfix"></div>
+
+    $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36)
+    <div class="clearfix"></div>
+
+    $#:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36)
     <div class="clearfix"></div>
 
     $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
