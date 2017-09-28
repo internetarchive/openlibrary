@@ -44,7 +44,6 @@ from openlibrary import accounts
 from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
 from merge import try_merge
 
-import internetarchive as ia
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 
