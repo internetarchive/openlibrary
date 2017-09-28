@@ -38,9 +38,6 @@ class home(delegate.page):
             logger.error("Error in getting stats", exc_info=True)
             stats = None
         blog_posts = get_blog_feeds()
-
-        lending_list = config.get("home", {}).get("lending_list")
-        returncart_list = config.get("home", {}).get("returncart_list")
         page = render_template(
             "home/index", stats=stats,
             blog_posts=blog_posts,
@@ -54,7 +51,7 @@ def get_carousel_by_ia_query(key, usekey=False):
         limit = limit or lending.DEFAULT_IA_RESULTS
         books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
         formatted_books = [format_book_data(book) for book in books if book != 'error']
-        return formatted_books
+        return storify(formatted_books)
     memcache_key = None if not usekey else "home.%s" % key
     return cache.memcache_memoize(
         render_ia_carousel, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
@@ -65,8 +62,7 @@ def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
         CUSTOM_QUERIES[key] = get_carousel_by_ia_query(key)
     books = CUSTOM_QUERIES[key](query=query, subject=subject, sorts=sorts, limit=limit)
     random.shuffle(books)
-    return render_template("books/carousel", storify(books), id=key, pixel=key)
-
+    return books
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):
@@ -94,7 +90,7 @@ def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
     ) if books else ''
 
 @public
-def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
+def readonline_carousel():
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.
     """
@@ -102,8 +98,8 @@ def readonline_carousel(cssid='classics_carousel', pixel="CarouselClassics"):
         data = random_ebooks()
         if len(data) > 60:
             data = random.sample(data, 60)
-        return render_template(
-            "books/carousel", storify(data), id=cssid, pixel=pixel)
+        return storify(data)
+
     except Exception:
         logger.error("Failed to compute data for readonline_carousel", exc_info=True)
         return None

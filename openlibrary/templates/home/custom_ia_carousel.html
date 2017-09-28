@@ -1,10 +1,6 @@
 $def with(title, key, query=None, subject=None, sorts=None, limit=None)
 
-<div class="head">
-  <h2 class="home-h2">
-    <a href="$(compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False))">$title</a>
-  </h2>
-  <hr/>
-</div>
+$ url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
+$ books = generic_carousel(key, query=query, subject=subject, sorts=sorts, limit=limit)
 
-$:generic_carousel(key, query=query, subject=subject, sorts=sorts, limit=limit)
+$:render_template("home/carousel", title, url, books, key)

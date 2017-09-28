@@ -3054,9 +3054,11 @@ ul#olBlog {
     font-size: 0.8125em;
 }
 .home-h2 {
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: normal;
     color: #036daa;
+    margin-bottom: .5em;
+    margin-top: 1.75em;
 }
 
 /* NEW HOME PAGE */
@@ -3105,7 +3107,7 @@ ul#olBlog li {list-style-type: none;margin:1em 0;}
 .coverEbookSubject {    position: absolute; bottom: 40px; padding-right: 75px;}
 .contentLists.results .SRPCover {float:left;height:230px;vertical-align:middle;}
 .contentLists.results .SRPCover img {
-    height: 200px;
+    height: 195px;
     width: 130px;
     border-radius: 3px;
 }
@@ -3131,6 +3133,18 @@ div#content div.contentLists {
     padding: 0px 20px;
     padding-top: 0px;
 }
+
+
+.carousel-section .resultsCovers .jcarousel-container {
+    width: 918px;
+    padding: 0px 20px;
+    background: #f3edd7;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e1cc;
+    border-top: 1px solid rgb(235, 232, 216);
+}
+
 .resultsCovers .jcarousel-clip {
     width: 918px;
     height: 225px;
@@ -3348,7 +3362,6 @@ a.cta-btn  {
     right: 0px;
     bottom: 3px;
     border-radius: 3px;
-    border-top: 1px solid #fff;
 }
 
 .searchResultItemCTA .borrow_unavailable {
@@ -4291,9 +4304,14 @@ div#resultsCovers a {text-decoration: none;}
 }
 #contentLists.results .SRPCover {float:left;height:185px;vertical-align:middle;}
 #contentLists.results .SRPCover img {
-    height:200px;
+    height:195px;
     width:130px;
 }
+
+.carousel-section .SRPCover img {
+    box-shadow: 1px 2px 5px 0px #c3b683;
+}
+
 #contentLists.results .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 #contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
 .BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;font-size:0.875em;line-height:normal;}

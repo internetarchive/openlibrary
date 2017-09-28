@@ -1,4 +1,4 @@
-$def with (book, id=None, pixel='', loans=False)
+$def with (book, id=None, pixel='')
 
 $if "authors" in book:
     $ authors = ", ".join(a.name for a in book.authors)
@@ -25,9 +25,9 @@ $else:
                 </div>
             </div>
         </a>
-    $if book.get("read_url") or loans:
+    $if book.get("read_url"):
         <div class="coverEbook">
-            <a href="$((book.get('inlibrary_borrow_url') or book.get('borrow_url')) if loans else book.read_url)?ref=ol" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') title="$_('Read online')" class="borrow_available cta-btn">
+            <a href="$(book.read_url)?ref=ol" $:(('data-ol-link-track="%s"' % pixel) if pixel else '') title="$_('Read online')" class="borrow_available cta-btn">
               Read
             </a>
         </div>
