@@ -46,13 +46,13 @@ class home(delegate.page):
 
 
 CUSTOM_QUERIES = {}
-def get_carousel_by_ia_query(key, usekey=False):
+def get_carousel_by_ia_query(key):
     def render_ia_carousel(query=None, subject=None, sorts=None, limit=None):
         limit = limit or lending.DEFAULT_IA_RESULTS
         books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
         formatted_books = [format_book_data(book) for book in books if book != 'error']
         return storify(formatted_books)
-    memcache_key = None if not usekey else "home.%s" % key
+    memcache_key = "home.%s_carousel" % key
     return cache.memcache_memoize(
         render_ia_carousel, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
 
