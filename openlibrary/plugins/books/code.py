@@ -29,6 +29,15 @@ class books:
 
 add_hook("books", books)
 
+class books_json(delegate.page):
+    path = "/api/books"
+    encoding = "json"
+
+    @jsonapi
+    def GET(self):
+        i = web.input(bibkeys='', callback=None, details="false")
+        i.format = "json"
+        return dynlinks.dynlinks(i.bibkeys.split(","), i)
 
 class read_singleget(delegate.page):
     """Handle the single-lookup form of the Hathi-style API
