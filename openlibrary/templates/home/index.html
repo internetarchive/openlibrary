@@ -1,4 +1,4 @@
-$def with (stats=None, blog_posts=None)
+$def with (stats=None, blog_posts=None, test=False)
 
 $var title: $_("Welcome to Open Library")
 
@@ -8,28 +8,20 @@ $var title: $_("Welcome to Open Library")
 
 <div id="contentBody">
     $:render_template("home/categories")
-    <div class="clearfix"></div>
 
-    $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=60)
-    <div class="clearfix"></div>
+    $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=60)
-    <div class="clearfix"></div>
+    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
 
-    $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain")
+    $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
     
+    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["downloads+desc"], limit=36, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["downloads+desc"], limit=36)
-    <div class="clearfix"></div>
+    $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36)
-    <div class="clearfix"></div>
+    $#:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36, test=test)
 
-    $#:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36)
-    <div class="clearfix"></div>
-
-    $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=36)
-    <div class="clearfix"></div>
+    $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 
     $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
     <div class="clearfix"></div>

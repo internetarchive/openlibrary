@@ -8,6 +8,7 @@ from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
 from BeautifulSoup import BeautifulSoup
 
+from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
 def pytest_funcarg__olconfig(request):
@@ -75,7 +76,10 @@ class TestHomeTemplates:
     def test_read_template(self, render_template):
         # getting read-online books fails because solr is not defined.
         # Empty list should be returned when there is error.
-        html = unicode(render_template("home/read"))
+
+        books = home.readonline_carousel()
+        html = unicode(render_template("home/carousel", title="Classic Literature", url="/read",
+                                       books=books, key="public_domain"))
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
@@ -100,15 +104,27 @@ class TestHomeTemplates:
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
-        monkeypatch.setattr(home, "generic_carousel", lambda limit: [])
+        def spoofed_generic_carousel(*args, **kwargs):
+            return [{
+                "work": None,
+                "key": "/books/OL1M",
+                "url": "/books/OL1M",
+                "title": "The Great Book",
+                "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
+                "read_url": "http://archive.org/stream/foo",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
+                "cover_url": ""
+            }]
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
-        html = unicode(render_template("home/index", stats=stats))
+        html = unicode(render_template("home/index", stats=stats, test=True))
 
         #TODO: Test something more useful here?
         assert "Staff Picks" in html
         assert "Recently Returned" in html
         assert "Technical Books" in html
         assert "How To Guides" in html
+        assert "Classic Literature" in html
         assert "Around the Library" in html
         assert "About the Project" in html
 
@@ -137,17 +153,16 @@ class TestCarouselItem:
             "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
             "cover_url": ""
         }
-        #assert book['title'] in self.render(book)
-        #assert self.link_count(self.render(book)) == 1
+        assert book['title'] in self.render(book)
+        assert self.link_count(self.render(book)) == 2
 
-        #del book['authors']
-        #assert book['title'] in self.render(book)
-        #assert self.link_count(self.render(book)) == 1
+        del book['authors']
+        assert book['title'] in self.render(book)
 
 class Test_carousel:
     def test_carousel(self, render_template):
         book = web.storage({
-            "work": None,
+            "work": "/works/OL1W",
             "key": "/books/OL1M",
             "url": "/books/OL1M",
             "title": "The Great Book",
@@ -163,8 +178,8 @@ class Test_carousel:
         assert book['title'] in html
 
         soup = BeautifulSoup(html)
-        #assert len(soup.findAll("li")) == 1
-        #assert len(soup.findAll("a")) == 1
+        assert len(soup.findAll("li")) == 1
+        assert len(soup.findAll("a")) == 2
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):
