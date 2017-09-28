@@ -16,7 +16,7 @@ $var title: $_("Welcome to Open Library")
 
     $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
     
-    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["downloads+desc"], limit=36, test=test)
+    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
 
     $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36, test=test)
 
