@@ -8,6 +8,7 @@ $var title: $_("Welcome to Open Library")
 
 <div id="contentBody">
     $:render_template("home/categories")
+    <div class="clearfix"></div>
 
     $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
 
