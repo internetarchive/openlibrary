@@ -10,7 +10,7 @@ $var title: $_("Welcome to Open Library")
     $:render_template("home/categories")
     <div class="clearfix"></div>
 
-    $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
+    $:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=120, test=test)
 
     $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
 
