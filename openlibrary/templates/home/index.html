@@ -12,15 +12,15 @@ $var title: $_("Welcome to Open Library")
 
     $:render_template("home/custom_ia_carousel", title="Staff Picks", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
 
+    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
+
     $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
 
     $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
-
     $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36, test=test)
 
-    $#:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36, test=test)
+    $:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36, test=test)
 
     $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 

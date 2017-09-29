@@ -1,4 +1,4 @@
-$def with (books, id="ol-carousel", pixel='')
+$def with (books, id="ol-carousel")
 
 <script type="text/javascript">
 \$(function() {
@@ -15,7 +15,7 @@ $def with (books, id="ol-carousel", pixel='')
         }
     }
 
-    \$("#$id").jcarousel({
+    \$("#carousel-$id").jcarousel({
         scroll:6,
         itemLoadCallback: {onBeforeAnimation: load_covers}
     });
@@ -24,7 +24,7 @@ $def with (books, id="ol-carousel", pixel='')
 
 <div class="contentLists results">
     <div class="covers resultsCovers">
-        <ul class="homeCarousel jcarousel-skin-OL" id="$id">
+        <ul class="homeCarousel jcarousel-skin-OL" id="carousel-$id">
             $for book in books:
                 <li>
                     $:render_template("books/carousel_item", book, id=id)
