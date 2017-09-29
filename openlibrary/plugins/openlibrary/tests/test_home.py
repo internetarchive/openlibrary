@@ -120,7 +120,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/index", stats=stats, test=True))
 
         #TODO: Test something more useful here?
-        assert "Staff Picks" in html
+        assert "Books We Love" in html
         assert "Recently Returned" in html
         assert "Technical Books" in html
         assert "How To Guides" in html
