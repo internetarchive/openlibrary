@@ -1,0 +1,6 @@
+$def with(title, key, query=None, subject=None, sorts=None, limit=None, test=False)
+
+$ url = compose_ia_url(query=query, subject=subject, sorts=sorts, limit=limit, advanced=False)
+$ books = generic_carousel(key, query=query, subject=subject, sorts=sorts, limit=limit)
+
+$:render_template("home/carousel", title, url, books, key, test=test)

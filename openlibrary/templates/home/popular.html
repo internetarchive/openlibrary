@@ -1,10 +1,11 @@
-$def with(books=None)
+$def with()
 
 <div class="head">
   <h2 class="home-h2">
-    <a href="/people/openlibrary/lists/OL104411L/Popular">Popular Books</a>
+    <a href="/people/openlibrary/lists/OL104411L/Popular">Staff Picks</a>
   </h2>
   <hr/>
 </div>
 
-$:render_template('books/carousel_shell', books or [], id='popular_carousel', pixel='CarouselPopular')
+$:popular_carousel()
+

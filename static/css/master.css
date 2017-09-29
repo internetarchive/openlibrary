@@ -3054,9 +3054,11 @@ ul#olBlog {
     font-size: 0.8125em;
 }
 .home-h2 {
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: normal;
     color: #036daa;
+    margin-bottom: .5em;
+    margin-top: 1.75em;
 }
 
 /* NEW HOME PAGE */
@@ -3093,12 +3095,23 @@ div.homeBlurb a {
 ul#olBlog {margin:0}
 ul#olBlog li {list-style-type: none;margin:1em 0;}
 
-.contentLists.results .coverMagic {position:relative;height:200px;margin:0;float:left;}
-.contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000; }
+.contentLists.results .coverMagic {position:relative;height:225px;margin:0;float:left;}
+.contentLists.results .coverMagic .coverEbook {
+    position:absolute;
+    bottom: -3px;
+    left: 0px;
+    right: 0px;
+    cursor:pointer;
+    z-index:1000;
+}
 .coverEbookSubject {    position: absolute; bottom: 40px; padding-right: 75px;}
-.contentLists.results .SRPCover {float:left;height:200px;vertical-align:middle;}
-.contentLists.results .SRPCover img {height:200px;max-width:133px;}
-.contentLists.results .SRPCoverBlank {position:relative;width:115px;height:200px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
+.contentLists.results .SRPCover {float:left;height:230px;vertical-align:middle;}
+.contentLists.results .SRPCover img {
+    height: 195px;
+    width: 130px;
+    border-radius: 3px;
+}
+.contentLists.results .SRPCoverBlank {position:relative;width:115px;height:230px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 .contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:178px;border:1px solid #fff;}
 
 .coverEbook img {
@@ -3120,14 +3133,26 @@ div#content div.contentLists {
     padding: 0px 20px;
     padding-top: 0px;
 }
+
+
+.carousel-section .resultsCovers .jcarousel-container {
+    width: 918px;
+    padding: 0px 20px;
+    background: #f3edd7;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e1cc;
+    border-top: 1px solid rgb(235, 232, 216);
+}
+
 .resultsCovers .jcarousel-clip {
     width: 918px;
-    height: 200px;
+    height: 225px;
 }
 .resultsCovers .jcarousel-list-horizontal {padding-left:0;}
 .resultsCovers .jcarousel-item-horizontal {
     width: 153px;
-    height: 200px;
+    height: 225px;
     margin-right: 0;
 }
 .resultsCovers h3 {
@@ -3204,7 +3229,7 @@ div.chartHome a {color:#000;text-decoration:none;}
 
 /* RESULTS CAROUSEL SKIN */
 
-ul.homeCarousel {list-style-type:none;height:200px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
+ul.homeCarousel {list-style-type:none;height:230px;overflow:hidden;margin-left:0!important;margin-bottom:0!important;}
 ul.homeCarousel li {position:relative;float:left;list-style:none!important;}
 ul.homeCarousel .hiddenCoverMagic {width:100px;height:200px;}
 ul.homeCarousel .hiddenCoverMagic div, .hiddenCoverMagic a {display:none;}
@@ -3314,7 +3339,32 @@ li.searchResultItem {
     padding: 0px 5px 0px 15px;
 }
 
-.searchResultItemCTA .cta-btn {
+a.cta-btn  {
+    border: none;
+    color: #fff;
+    width: 100%;
+    border: 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-align: center;
+    padding: 5px 20px;
+    font-size: 0.8em;
+}
+
+.coverEbook a.cta-btn  {
+    position: absolute;
+    padding: 0px 5px;
+    border-radius: 0px;
+    right: 0px;
+    bottom: 3px;
+    border-radius: 3px;
+}
+
+.searchResultItemCTA .borrow_unavailable {
     border: none;
     color: #fff;
     width: 100%;
@@ -3353,6 +3403,10 @@ li.searchResultItem {
     background-color: #c43bfc;
 }
 
+.check-book-availability {
+    background-color: rgba(88, 88, 88, 0.80);
+}
+
 .waitlist-msg {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     font-size: .7em;
@@ -3361,10 +3415,31 @@ li.searchResultItem {
     padding: .2em;
 }
 
-div#searchResults .SRPCover {margin: 0 15px 20px 0;float:left;height:185px;vertical-align:middle;}
-div#searchResults .SRPCover img {height:185px;}
-div#searchResults .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;margin:0 15px 20px 0;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
-div#searchResults .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
+div#searchResults .SRPCover {
+    margin: 0 15px 20px 0;
+    float:left;
+    vertical-align:middle;
+    width: 130px;
+    height:200px;
+}
+div#searchResults .SRPCover img {
+    height:20px;
+}
+div#searchResults .SRPCoverBlank {
+    position:relative;
+    width:130px;
+    height:200px;
+    padding:10px;
+    margin:0 15px 20px 0;
+    text-align:center;
+    float:left;
+    background:#dedede;
+    cursor:pointer;
+    display:none;
+}
+div#searchResults .SRPCoverBlank .innerBorder {
+    float:left;width:130px;height:200px;border:1px solid #fff;
+}
 div#searchResults .SRPCoverBlank a {text-decoration: none;}
 
 #pullOut {float:right;position:relative;padding:10px;background:#fffdcd;}
@@ -4086,7 +4161,7 @@ div#historyExplore a#historyFwd {
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/images/carousel_next.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_next.png") no-repeat -30px 0;
 }
 .jcarousel-prev-horizontal {
     position: absolute;
@@ -4095,7 +4170,7 @@ div#historyExplore a#historyFwd {
     width: 30px;
     height: 60px;
     cursor: pointer;
-    background: transparent url("/images/carousel_prev.png") no-repeat 0 0;
+    background: transparent url("/images/carousel_prev.png") no-repeat -30px 0;
 }
 .jcarousel-next-vertical {
     position: absolute;
@@ -4115,14 +4190,7 @@ div#historyExplore a#historyFwd {
     cursor: pointer;
     background: transparent url("/images/carousel_up.png") no-repeat 0 0;
 }
-.jcarousel-next-horizontal:hover,
-.jcarousel-prev-horizontal:hover {
-    background-position: -30px 0;
-}
-.jcarousel-next-horizontal:active,
-.jcarousel-prev-horizontal:active {
-    background-position: -60px 0;
-}
+
 .jcarousel-next-disabled-horizontal,
 .jcarousel-next-disabled-horizontal:hover,
 .jcarousel-next-disabled-horizontal:active,
@@ -4153,7 +4221,6 @@ div#historyExplore a#historyFwd {
 /* RESULTS CAROUSEL SKIN */
 #resultsCovers {
     width: 958px;
-    height: 442px;
 }
 
 #resultsCovers .jcarousel-container,
@@ -4161,15 +4228,16 @@ div#historyExplore a#historyFwd {
     width: 918px;
     padding: 20px;
 }
+
 #resultsCovers .jcarousel-clip,
 #resultsList .jcarousel-clip {
     width: 918px;
-    height: 402px;
+    height: 100%;
 }
 #resultsCovers .jcarousel-item-horizontal {
     width: 918px;
-    height: 402px;
     margin-right: 0;
+    height: 100%;
 }
 #resultsList .jcarousel-item-vertical {
     width: 918px;
@@ -4212,7 +4280,7 @@ div#historyExplore a#historyFwd {
     left: 0;
     background: #fff url("/images/back_results.png") repeat-x;
     width: 958px;
-    height: 442px;
+    height: 485px;
     z-index: 3000;
 }
 #coversNone {
@@ -4220,10 +4288,30 @@ div#historyExplore a#historyFwd {
 }
 
 div#resultsCovers a {text-decoration: none;}
-#contentLists.results .coverMagic {position:relative;height:185px;margin: 0 15px 20px 0;float:left;}
-#contentLists.results .coverMagic .coverEbook {position:absolute;bottom:5px;right:5px;width:32px;height:33px;cursor:pointer;z-index:1000;}
+#contentLists.results .coverMagic {
+    position:relative;
+    height: 235px;
+    margin: 0 15px 20px 0;
+    float:left;
+}
+.coverMagic .coverEbook {
+    position:absolute;
+    left: 0px;
+    right: 0px;
+    bottom:5px;
+    cursor:pointer;
+    z-index:1000;
+}
 #contentLists.results .SRPCover {float:left;height:185px;vertical-align:middle;}
-#contentLists.results .SRPCover img {max-height:185px;max-width:135px;}
+#contentLists.results .SRPCover img {
+    height:195px;
+    width:130px;
+}
+
+.carousel-section .SRPCover img {
+    box-shadow: 1px 2px 5px 0px #c3b683;
+}
+
 #contentLists.results .SRPCoverBlank {position:relative;width:115px;height:165px;padding:10px;text-align:center;float:left;background:#dedede;cursor:pointer;display:none;}
 #contentLists.results .SRPCoverBlank .innerBorder {float:left;width:113px;height:163px;border:1px solid #fff;}
 .BookTitle {position:absolute;top:50%;left:50%;width:105px;margin-left:-52px;height:100px;margin-top:-50px;vertical-align:middle;color:#333;font-size:0.875em;line-height:normal;}
@@ -4335,28 +4423,20 @@ span.actions span.daisy:hover {background-position: -408px 0!important;}
 
 .jcarousel-skin-OL span.actions a span.borrow {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-avail.png");
-    background-repeat: no-repeat;
-    background-position: 0% 0%!important;
     position: absolute;
     right: 0px;
+    left: 0px;
 }
 
 .jcarousel-skin-OL span.actions a span.checked-out {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-not-avail.png");
-    background-repeat: no-repeat;
-    background-position: 0% 0%!important;
     position: absolute;
     right: 0px;
+    left: 0px;
 }
 
 ul#siteSearch span.resultTitle {
@@ -5551,12 +5631,8 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 /* Added by Anand July 29, 2011*/
 span.actions a span.checked-out {
     display: block;
-    width: 32px;
-    height: 32px;
     margin: 0 auto;
     padding: 0;
-    background-image: url("/images/icons/icon_borrow-in-list-not-avail.png");
-    background-repeat: no-repeat;
 }
 
 .page-banner {
@@ -6426,3 +6502,31 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-First{}
 .iconochive-Invisible{}
 .iconochive-Computer{}
+
+.book-carousel-item img {
+    width: 125px;
+    height: 200px;
+}
+
+.book-carousel-item h1 {
+    font-size: 1em;
+    color: #311;
+}
+
+
+.responsive button.slick-previous {
+    width: 50px;
+    height: 50px;
+    color: #333;
+}
+
+.responsive button.slick-next {
+    width: 50px;
+    height: 50px;
+    color: #333;
+}
+
+
+.responsive button.slick-prev:before, .slick-next:before {
+    color: #fff;
+}

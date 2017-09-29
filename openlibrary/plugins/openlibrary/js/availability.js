@@ -15,7 +15,7 @@
   stored as metadata within their Archive.org user account.
 */
 
-var getAvailability, getAvailabilityV2, getEditions, updateBookAvailability, updateWorkAvailability;
+var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
@@ -23,75 +23,17 @@ $(function(){
         return window.location.pathname.match('\/people\/[^/]+\/lists');
     }
 
-    /**
-     * params:
-     *
-     *     olids - a csv of open library editions ids
-     *
-     *     callback - a method to which to return results
-     *
-     *     decoration - decoration allows us to return an html
-     *                  component partial instead of raw json.
-     *                  value of `carousel_item` is a decoration type
-     *                  which allows the api to return results as a
-     *                  list of html partials instead of dicts.
-     *
-     *     pixel - an option of decoration which enables analytics
-     *             tracking to be set. E.g. a 'CarouselPopular' is
-     *             sent to the decorate partial so we can add pixel
-     *             tracking to it
-     */
-    getEditions = function(olids, callback, decoration, pixel) {
-        var url = '/api/editions?olids=' + olids.join(',');
-        if (decoration) {
-            url += '&decoration=' + decoration;
-        }
-        if (pixel) {
-            url += '&pixel=' + pixel;
-        }
-        $.ajax({
-            url: url,
-            type: "GET",
-            dataType: "json",
-            contentType: "application/json",
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.setRequestHeader("Accept", "application/json");
-            },
-            success: function(result) {
-                return callback(result);
-            }
-        });
-    }
-
-    getAvailability = function(ocaids, callback) {
-        var url = '/availability?acs=0&restricted=1';
-        $.ajax({
-            url: url,
-            type: "POST",
-            data: JSON.stringify({
-                "ocaids": ocaids
-            }),
-            dataType: "json",
-            contentType: "application/json",
-            beforeSend: function(xhr) {
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.setRequestHeader("Accept", "application/json");
-            },
-            success: function(result) {
-                return callback(result);
-            }
-        });
-    };
-
     getAvailabilityV2 = function(_type, _ids, callback) {
         if (!_ids.length) {
             return callback({});
         }
-        var url = '/availability/v2?' + _type + '_ids=' + _ids.join(',');
+        var url = '/availability/v2?type=' + _type;
         $.ajax({
             url: url,
-            type: "GET",
+            type: "POST",
+            data: JSON.stringify({
+                "ids": _ids
+            }),
             dataType: "json",
             contentType: "application/json",
             beforeSend: function(xhr) {
@@ -135,20 +77,9 @@ $(function(){
             }
         });
 
-        getAvailability(ocaids, function(response) {
+        getAvailabilityV2('identifier', ocaids, function(response) {
             for (var book_ocaid in response) {
-                if (response[book_ocaid].status === "not_lendable") {
-                    for (var book_key in books) {
-                        var book_ocaids = books[book_key];
-                        if (book_ocaids.indexOf(book_ocaid) > -1) {
-                            $(selector + "[data-key=" + book_key  + "]")
-                                .removeClass("borrow-link");
-                            $(selector + "[data-key=" + book_key  + "]")
-                                .parent().remove();
-                            delete books[book_key];
-                        }
-                    }
-                } else if (response[book_ocaid].status === "available") {
+                if (response[book_ocaid].status === "borrow_available") {
                     // check all the books on this page
                     for (var book_key in books) {
                         var book_ocaids = books[book_key];
@@ -159,7 +90,10 @@ $(function(){
                             // should limit scope to `selector` ! XXX
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr("href", "/borrow/ia/" + book_ocaid);
-
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .addClass('borrow_available').addClass('cta-btn')
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .text('Borrow');
                             // since we've found an available edition to
                             // represent this book, we can stop and remove
                             // book_ocaid from book_ocaids (one less book
@@ -167,20 +101,39 @@ $(function(){
                             delete books[book_key];
                         }
                     }
+                } else if (response[book_ocaid].status === "borrow_unavailable"){
+                    for (var book_key in books) {
+                        var book_ocaids = books[book_key];
+                        if (book_ocaids.indexOf(book_ocaid) > -1) {
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .attr('title', 'Join waitlist');
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .addClass('borrow_unavailable').addClass('cta-btn');
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .text('Join Waitlist');
+                            delete books[book_key];
+                        }
+                    }
+                } else {
+                    for (var book_key in books) {
+                        var book_ocaids = books[book_key];
+                        if (book_ocaids.indexOf(book_ocaid) > -1) {
+ 
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .attr('href', $(selector + "[data-key=" + book_key  + "]").attr('data-key'))
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .attr('title', 'Check Availability');
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .removeClass('borrow-link');
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .addClass('check-book-availability').addClass('cta-btn');
+                            $(selector + "[data-key=" + book_key  + "]")
+                                .text('Check Availability');
+                             delete books[book_key];
+                        }
+                    }
                 }
             };
-
-            // for anything remaining in books, set to checked-out
-            for (var book_key in books) {
-                $(selector + "[data-key=" + book_key  + "] span.read-icon")
-                    .removeClass("borrow");
-                $(selector + "[data-key=" + book_key  + "] span.read-icon")
-                    .addClass("checked-out");
-                $(selector + "[data-key=" + book_key  + "] span.read-label")
-                    .html("Checked-out");
-                delete books[book_key];
-            }
-
         });
     };
 
@@ -208,8 +161,8 @@ $(function(){
             }
         });
 
-        getAvailabilityV2('edition', editions, function(editions_response) {
-          getAvailabilityV2('work', works, function(works_response) {
+        getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
+          getAvailabilityV2('openlibrary_work', works, function(works_response) {
             var response = {'books': editions_response, 'works': works_response};
             $.each(results, function(index, e) {
                 var href = $(e).attr('href');

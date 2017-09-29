@@ -1,0 +1,13 @@
+$def with(title, url, books, key, test=False)
+
+$if books or test:
+  <div class="carousel-section">
+    <div class="carousel-section-header">
+      <h2 class="home-h2">
+        <a href="$url">$title</a>
+      </h2>
+    </div>
+    $if books:
+      $:render_template("books/carousel", books, id=key)
+  </div>
+  <div class="clearfix"></div>

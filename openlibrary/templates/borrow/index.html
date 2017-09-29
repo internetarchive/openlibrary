@@ -9,41 +9,30 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>$_("Borrow Modern eBooks")</h1>
 </div>
 
-<style type="text/css">
+<div id="contentBody">
 
-/* Reset height to support 4 rows. */
+  <div class="head">
+    <h2>Search the Lending Library</h2>
+  </div>
+  
+  <div class="section">
+    <form method="get" action="/search" class="siteSearch olform">
+      <label for="q" class="hidden">Keywords</label>
+      <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
+      $if inlibrary:
+          <input type="hidden" name="subject_facet" value="In library">
+      $else:
+          <input type="hidden" name="subject_facet" value="Lending library">
+      <button type="submit" class="larger" id="searchsubmit">Search</button>
+    </form>
+  </div>
+</div>
 
-#resultsCovers {
-    width: 958px;
-    /*height: 442px;
-    */
-    height: 844px;
-}
-
-#resultsCovers .jcarousel-container,
-#resultsList .jcarousel-container {
-    width: 918px;
-    padding: 20px;
-}
-#resultsCovers .jcarousel-clip,
-#resultsList .jcarousel-clip {
-    width: 918px;
-    /*height: 402px;
-    */
-    height: 804px;
-}
-#resultsCovers .jcarousel-item-horizontal {
-    width: 918px;
-    /*height: 402px;
-    */
-    height: 804px;
-    margin-right: 0;
-}
-</style>
+<div class="clearfix"></div>
 
 <script type="text/javascript">
 <!--
-var page = new Subject($:json_encode(page), {pagesize: 24});
+var page = new Subject($:json_encode(page), {pagesize: 12});
 page.filter.rand = $:json_encode(rand);
 //-->
 </script>
@@ -103,25 +92,7 @@ function resetCounts() {
 });
 </script>
 
-<div id="contentBody">
 
-<div class="head">
-    <h2>Search the Lending Library</h2>
-</div>
-
-<div class="section">
-    <form method="get" action="/search" class="siteSearch olform">
-    <label for="q" class="hidden">Keywords</label>
-    <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
-    $if inlibrary:
-        <input type="hidden" name="subject_facet" value="In library">
-    $else:
-        <input type="hidden" name="subject_facet" value="Lending library">
-    <button type="submit" class="larger" id="searchsubmit">Search</button>
-    </form>
-</div>
-
-<div class="clearfix"></div>
 
 <!--
 <div class="head">

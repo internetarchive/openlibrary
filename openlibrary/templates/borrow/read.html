@@ -9,41 +9,29 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     <h1>$_("Read Classic eBooks")</h1>
 </div>
 
-<style type="text/css">
+<div id="contentBody">
 
-/* Reset height to support 4 rows. */
+<div class="head">
+    <h2>Search Classic eBooks</h2>
+</div>
 
-#resultsCovers {
-    width: 958px;
-    /*height: 442px;
-    */
-    height: 844px;
-}
+<div class="section">
+    <form method="get" action="/search" class="siteSearch olform">
+    <label for="q" class="hidden">Keywords</label>
+    <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
+    <input type="hidden" name="public_scan_b" value="true">
+    <button type="submit" class="larger" id="searchsubmit">Search</button>
+    </form>
+</div>
 
-#resultsCovers .jcarousel-container,
-#resultsList .jcarousel-container {
-    width: 918px;
-    padding: 20px;
-}
-#resultsCovers .jcarousel-clip,
-#resultsList .jcarousel-clip {
-    width: 918px;
-    /*height: 402px;
-    */
-    height: 804px;
-}
-#resultsCovers .jcarousel-item-horizontal {
-    width: 918px;
-    /*height: 402px;
-    */
-    height: 804px;
-    margin-right: 0;
-}
-</style>
+<div class="clearfix"></div>
+
+</div>
+
 
 <script type="text/javascript">
 <!--
-var page = new Subject($:json_encode(page), {pagesize: 24});
+var page = new Subject($:json_encode(page), {pagesize: 12});
 page.filter.rand = $:json_encode(rand);
 //-->
 </script>
@@ -103,21 +91,3 @@ function resetCounts() {
 });
 </script>
 
-<div id="contentBody">
-
-<div class="head">
-    <h2>Search Classic eBooks</h2>
-</div>
-
-<div class="section">
-    <form method="get" action="/search" class="siteSearch olform">
-    <label for="q" class="hidden">Keywords</label>
-    <input type="text" name="q" id="q" value="" size="100" style="width:505px;"/>
-    <input type="hidden" name="public_scan_b" value="true">
-    <button type="submit" class="larger" id="searchsubmit">Search</button>
-    </form>
-</div>
-
-<div class="clearfix"></div>
-
-</div>

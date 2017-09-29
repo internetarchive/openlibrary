@@ -8,6 +8,7 @@ from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
 from BeautifulSoup import BeautifulSoup
 
+from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
 def pytest_funcarg__olconfig(request):
@@ -75,15 +76,18 @@ class TestHomeTemplates:
     def test_read_template(self, render_template):
         # getting read-online books fails because solr is not defined.
         # Empty list should be returned when there is error.
-        html = unicode(render_template("home/read"))
+
+        books = home.readonline_carousel()
+        html = unicode(render_template("home/carousel", title="Classic Literature", url="/read",
+                                       books=books, key="public_domain"))
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
-        docs = [MockDoc(_id = datetime.datetime.now().strftime("counts-%Y-%m-%d"),
-                        human_edits = 1, bot_edits = 1, lists = 1,
-                        visitors = 1, loans = 1, members = 1,
-                        works = 1, editions = 1, ebooks = 1,
-                        covers = 1, authors = 1, subjects = 1)]* 100
+        docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
+                        human_edits=1, bot_edits=1, lists=1,
+                        visitors=1, loans=1, members=1,
+                        works=1, editions=1, ebooks=1,
+                        covers=1, authors=1, subjects=1)]* 100
         stats = dict(human_edits = Stats(docs, "human_edits", "human_edits"),
                      bot_edits   = Stats(docs, "bot_edits", "bot_edits"),
                      lists       = Stats(docs, "lists", "total_lists"),
@@ -100,15 +104,27 @@ class TestHomeTemplates:
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
         olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
-        monkeypatch.setattr(home, "get_returncart", lambda limit: [])
+        def spoofed_generic_carousel(*args, **kwargs):
+            return [{
+                "work": None,
+                "key": "/books/OL1M",
+                "url": "/books/OL1M",
+                "title": "The Great Book",
+                "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
+                "read_url": "http://archive.org/stream/foo",
+                "borrow_url": "/books/OL1M/foo/borrow",
+                "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
+                "cover_url": ""
+            }]
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
-        html = unicode(render_template("home/index",
-            stats=stats,
-            lending_list="/people/foo/lists/OL1L"))
+        html = unicode(render_template("home/index", stats=stats, test=True))
+
         #TODO: Test something more useful here?
-        assert "Popular Books" in html
+        assert "Staff Picks" in html
         assert "Recently Returned" in html
-        assert "Worth the Wait" in html
+        assert "Technical Books" in html
+        assert "How To Guides" in html
+        assert "Classic Literature" in html
         assert "Around the Library" in html
         assert "About the Project" in html
 
@@ -125,107 +141,50 @@ class TestCarouselItem:
         links = BeautifulSoup(html).findAll("a") or []
         return len(links)
 
-    def test_with_cover_url(self, render_template):
-        book = {
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg"
-        }
-        assert book['title'] in self.render(book)
-        assert book['cover_url'] in self.render(book)
-        assert self.link_count(self.render(book)) == 1
-
     def test_without_cover_url(self, render_template):
         book = {
+            "work": None,
+            "key": "/books/OL1M",
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
+            "read_url": "http://archive.org/stream/foo",
+            "borrow_url": "/books/OL1M/foo/borrow",
+            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
+            "cover_url": ""
         }
         assert book['title'] in self.render(book)
-        assert self.link_count(self.render(book)) == 1
+        assert self.link_count(self.render(book)) == 2
 
         del book['authors']
         assert book['title'] in self.render(book)
-        assert self.link_count(self.render(book)) == 1
-
-    def test_urls(self, render_template):
-        book = {
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg",
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "daisy_url": "/books/OL1M/foo/daisy",
-        }
-
-        # Remove urls on order and make sure the template obeys the expected priority
-        assert 'Read online' in self.render(book)
-        assert book['read_url'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['read_url']
-        assert 'Read this book' in self.render(book)
-        assert book['borrow_url'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['borrow_url']
-        assert 'DAISY' in self.render(book)
-        assert book['daisy_url'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['daisy_url']
-        assert self.link_count(self.render(book)) == 1
-
-    def test_inlibrary(self, monkeypatch, render_template):
-        book = {
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow-inlibrary",
-        }
-
-        monkeypatch.setitem(web.template.Template.globals, "get_library", lambda: {"name": "IA"})
-
-        assert book['inlibrary_borrow_url'] not in self.render(book)
-        assert self.link_count(self.render(book)) == 1
-
-        monkeypatch.setattr(context.context, "features", ["inlibrary"], raising=False)
-        assert book['inlibrary_borrow_url'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
 
 class Test_carousel:
     def test_carousel(self, render_template):
         book = web.storage({
+            "work": "/works/OL1W",
+            "key": "/books/OL1M",
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "cover_url": "https://covers.openlibrary.org/b/id/1-M.jpg"
+            "read_url": "http://archive.org/stream/foo",
+            "borrow_url": "/books/OL1M/foo/borrow",
+            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
+            "cover_url": ""
         })
+
         html = unicode(render_template("books/carousel", [book]))
 
         assert book['title'] in html
-        assert book['cover_url'] in html
 
         soup = BeautifulSoup(html)
         assert len(soup.findAll("li")) == 1
-        assert len(soup.findAll("a")) == 1
+        assert len(soup.findAll("a")) == 2
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
         work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
-
-    def test_cover_url(self, mock_site, mock_ia):
-        book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        assert home.format_book_data(book).get("cover_url") is None
-
-        book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo", covers=[1, 2])
-        assert home.format_book_data(book).get("cover_url") == "https://covers.openlibrary.org/b/id/1-M.jpg"
 
     def test_authors(self, mock_site, mock_ia):
         a1 = mock_site.quicksave("/authors/OL1A", "/type/author", name="A1")

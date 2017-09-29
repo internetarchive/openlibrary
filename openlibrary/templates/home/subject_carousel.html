@@ -1,16 +1,20 @@
 $def with(subject, title="", options=None, description="", delay=0, type="subjects")
 
-<div class="head">
-  <h2 class="home-h2"><a href="/$(type)/$(subject)">$(title or subject)</a></h2>
-  <hr/>
-  $if description:
-    <p class="sansserif large collapse">$description</p>
-</div>
 
-<div class="contentLists results">
-  <div class="covers resultsCovers">
-    <ul id="carousel-$(subject)" class="topicalCarousel jcarousel-skin-OL">
-    </ul>
+<div class="carousel-section">
+  <div class="carousel-section-header">
+    <h2 class="home-h2">
+      <a href="/$(type)/$(subject)">$(title or subject)</a>
+    </h2>
+    $if description:
+      <p class="sansserif large collapse">$description</p>
+  </div>
+
+  <div class="contentLists results">
+    <div class="covers resultsCovers">
+      <ul id="carousel-$(subject)" class="topicalCarousel jcarousel-skin-OL">
+      </ul>
+    </div>
   </div>
 </div>
 
