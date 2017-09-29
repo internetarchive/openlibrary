@@ -45,24 +45,23 @@ class home(delegate.page):
         return page
 
 
-CUSTOM_QUERIES = {}
-def get_carousel_by_ia_query(key):
-    def render_ia_carousel(query=None, subject=None, sorts=None, limit=None):
-        limit = limit or lending.DEFAULT_IA_RESULTS
-        books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
-        formatted_books = [format_book_data(book) for book in books if book != 'error']
-        return storify(formatted_books)
-    memcache_key = "home.%s_carousel" % key
-    return cache.memcache_memoize(
-        render_ia_carousel, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
+def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
+    limit = limit or lending.DEFAULT_IA_RESULTS
+    books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
+    formatted_books = [format_book_data(book) for book in books if book != 'error']
+    return formatted_books
 
 @public
 def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
-    if key not in CUSTOM_QUERIES:
-        CUSTOM_QUERIES[key] = get_carousel_by_ia_query(key)
-    books = CUSTOM_QUERIES[key](query=query, subject=subject, sorts=sorts, limit=limit)
+    memcache_key = 'home.ia_carousel_books5'
+    cached_ia_carousel_books = cache.memcache_memoize(
+        get_ia_carousel_books, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
+    books = cached_ia_carousel_books(query=query, subject=subject, sorts=sorts, limit=limit)
     random.shuffle(books)
-    return books
+    return storify(books)
 
 @public
 def carousel_from_list(key, randomize=False, limit=60):

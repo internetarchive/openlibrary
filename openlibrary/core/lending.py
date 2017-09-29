@@ -106,10 +106,10 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, adv
     if subject:
         q += " AND openlibrary_subject:" + subject
 
-    if not advanced:        
+    if not advanced:
         _sort = sorts[0] if sorts else ''
         if '+desc' in _sort:
-            _sort = '-' + _sort.split('+desc')[0] 
+            _sort = '-' + _sort.split('+desc')[0]
         elif '+asc' in _sort:
             _sort = _sort.split('+asc')[0]
         return ('https://archive.org/search.php?query=%s' % q) + \
@@ -143,7 +143,6 @@ def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-
         keys = web.ctx.site.things({"type": "/type/edition", "ocaid": results.values()})
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
