@@ -56,7 +56,7 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
 
 @public
 def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
-    memcache_key = 'home.ia_carousel_books5'
+    memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
     books = cached_ia_carousel_books(query=query, subject=subject, sorts=sorts, limit=limit)
