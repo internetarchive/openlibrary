@@ -15,28 +15,14 @@ import urlparse
 import re
 import urllib2
 
-class books:
-    def GET(self):
-        i = web.input(bibkeys='', callback=None, details="false")
-
-        web.ctx.headers = []
-        if i.get("format") == "json":
-            web.header('Content-Type', 'application/json')
-        else:
-            web.header('Content-Type', 'text/javascript')
-
-        return dynlinks.dynlinks(i.bibkeys.split(","), i)
-
-add_hook("books", books)
-
 class books_json(delegate.page):
     path = "/api/books"
-    encoding = "json"
 
     @jsonapi
     def GET(self):
         i = web.input(bibkeys='', callback=None, details="false")
-        i.format = "json"
+        if web.ctx.path.endswith('.json'):
+            i.format = 'json'
         return dynlinks.dynlinks(i.bibkeys.split(","), i)
 
 class read_singleget(delegate.page):
