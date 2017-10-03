@@ -613,10 +613,10 @@ def audit_accounts(email, password, require_link=False,
 
     if s3_access_key and s3_secret_key:
         r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
-        ia_login = 'invalid_s3keys'
-        if r.get('authorized', False):
-            ia_login = "ok"
-            email = r['username']
+        if not r.get('authorized', False):
+            return {'error': 'invalid_s3keys'}
+        ia_login = "ok"
+        email = r['username']
     else:
         if not valid_email(email):
             return {'error': 'invalid_email'}
