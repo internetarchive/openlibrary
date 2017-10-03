@@ -281,9 +281,11 @@ class account_login(delegate.page):
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
-                      redirect='/', test=False)
+                      redirect='/', test=False, s3_access_key=None, s3_secret_key=None)
         email = i.username  # XXX username is now email
-        audit = audit_accounts(email, i.password, require_link=True, test=i.test)
+        audit = audit_accounts(email, i.password, require_link=True,
+                               s3_access_key=i.s3_access_key,
+                               s3_secret_key=i.s3_secret_key, test=i.test)
         error = audit.get('error')
 
         if error:
