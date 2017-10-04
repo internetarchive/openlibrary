@@ -12,22 +12,21 @@ $var title: $_("Welcome to Open Library")
 
     $:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=120, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
+    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=60, test=test)
+    $:render_template("home/custom_ia_carousel", title="Success", key="success", query="subject:(success)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+
+    $:render_template("home/custom_ia_carousel", title="College Prep", key="college_prep", query="subject:(\"college\") AND subject:(\"Universities and colleges\") AND subject:(\"Study Aids\") AND subject:(\"Test Prep\")", sorts=["date+desc"], limit=42, test=test)
+
+    $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+
+    $:render_template("home/custom_ia_carousel", title="Cooking", key="cooking", query="subject:(cooking)", sorts=["downloads+desc"], limit=42, test=test)
+
+    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
 
     $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
 
-    $:render_template("home/custom_ia_carousel", title="How To Guides", key="how_to", query="(title:(idiot's guide) OR title:(for dummies))", sorts=["downloads+desc"], limit=36, test=test)
-
-    $:render_template("home/custom_ia_carousel", title="Chicken Soup", key="chicken_soup", query="chicken soup", limit=36, test=test)
-
-    $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
-
-    $:render_template("home/subject_carousel", "textbooks", title="Educational", options={}, delay=1500)
-    <div class="clearfix"></div>
-
-    $:render_template("home/subject_carousel", "success", title="Business Success", options={}, delay=2000)
+    $:render_template("home/subject_carousel", "textbooks", title="Textbooks", options={}, delay=1500)
     <div class="clearfix"></div>
 
     $:render_template("home/subject_carousel", "science_fiction", title="Science Fiction", options={}, delay=2500)
