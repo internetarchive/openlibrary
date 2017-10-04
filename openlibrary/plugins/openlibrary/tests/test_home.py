@@ -119,12 +119,11 @@ class TestHomeTemplates:
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
         html = unicode(render_template("home/index", stats=stats, test=True))
 
-        #TODO: Test something more useful here?
-        assert "Books We Love" in html
-        assert "Recently Returned" in html
-        assert "Technical Books" in html
-        assert "How To Guides" in html
-        assert "Classic Literature" in html
+        headers = ["Books We Love", "Recently Returned", "Success", "College Prep", "Romance", "Cooking", "Technical Books", "Classic Literature", "Textbooks", "Science Fiction", "Biographies", "Mysteries"]
+
+        for h in headers:
+            assert h in html
+
         assert "Around the Library" in html
         assert "About the Project" in html
 
