@@ -547,6 +547,28 @@ class InternetArchiveAccount(web.storage):
         return simplejson.loads(response)
 
     @classmethod
+    def s3auth(cls, access_key, secret_key):
+        """Authenticates an Archive.org user based on s3 keys"""
+        from openlibrary.core import lending
+        url = lending.config_ia_s3_auth_url
+        try:
+            req = urllib2.Request(url, headers={
+                'Content-Type': 'application/json',
+                'authorization': 'LOW %s:%s' % (access_key, secret_key)
+            })
+            f = urllib2.urlopen(req)
+            response = f.read()
+            f.close()
+        except urllib2.HTTPError as e:
+            try:
+                response = e.read()
+            except simplejson.decoder.JSONDecodeError:
+                return {'error': e.read(), 'code': e.code}
+        return simplejson.loads(response)
+
+
+
+    @classmethod
     def get(cls, email, test=False, _json=False, s3_key=None, s3_secret=None, xauth_url=None):
         email = email.strip().lower()
         response = cls.xauth(email=email, test=test, service="info",
@@ -569,7 +591,8 @@ class InternetArchiveAccount(web.storage):
             return reason
         return "ok"
 
-def audit_accounts(email, password, require_link=False, test=False):
+def audit_accounts(email, password, require_link=False,
+                   s3_access_key=None, s3_secret_key=None, test=False):
     """Performs an audit of the IA or OL account having this email.
 
     The audit:
@@ -589,10 +612,16 @@ def audit_accounts(email, password, require_link=False, test=False):
     """
     from openlibrary.core import lending
 
-    if not valid_email(email):
-        return {'error': 'invalid_email'}
-
-    ia_login = InternetArchiveAccount.authenticate(email, password)
+    if s3_access_key and s3_secret_key:
+        r = InternetArchiveAccount.s3auth(s3_access_key, s3_secret_key)
+        if not r.get('authorized', False):
+            return {'error': 'invalid_s3keys'}
+        ia_login = "ok"
+        email = r['username']
+    else:
+        if not valid_email(email):
+            return {'error': 'invalid_email'}
+        ia_login = InternetArchiveAccount.authenticate(email, password)
 
     if any(ia_login == err for err
             in ['account_blocked', 'account_locked']):
@@ -640,6 +669,8 @@ def audit_accounts(email, password, require_link=False, test=False):
         # lending.config_ia_auth_only is enabled, we need to create
         # and link it.
         if not ol_account:
+            if not password:
+                raise {'error': 'link_attempt_requires_password'}
             try:
                 ol_account = OpenLibraryAccount.create(
                     ia_account.itemname, email, password,

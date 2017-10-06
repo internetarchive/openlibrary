@@ -152,9 +152,10 @@ class add_work_to_staff_picks:
         return render_template("admin/sync")
 
     def POST(self):
-        i = web.input(action="add", work_id='')
+        i = web.input(action="add", work_id='', subjects='openlibrary_staff_picks')
         results = {}
         work_ids = i.work_id.split(',')
+        subjects = i.subjects.split(',')
         for work_id in work_ids:
             work = web.ctx.site.get('/works/%s' % work_id)
             editions = work.editions
@@ -162,7 +163,7 @@ class add_work_to_staff_picks:
             results[work_id] = {}
             for ocaid in ocaids:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
-                    ocaid, subjects=['openlibrary_staff_picks'])
+                    ocaid, subjects=subjects)
         
         return delegate.RawText(simplejson.dumps(results), content_type="application/json")
                                 

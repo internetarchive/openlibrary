@@ -55,6 +55,7 @@ LOGIN_ERRORS = {
         "username_registered": "This username is already registered",
         "ia_login_only": "Sorry, you must use your Internet Archive email and password to log in",
         "max_retries_exceeded": "A problem occurred and we were unable to log you in.",
+        "invalid_s3keys": "Login attempted with invalid Internet Archive s3 credentials.",
         "wrong_ia_account": "An Open Library account with this email is already linked to a different Internet Archive account. Please contact info@openlibrary.org."
     }
 
@@ -255,6 +256,30 @@ class account_create(delegate.page):
 
 del delegate.pages['/account/register']
 
+class account_login_json(delegate.page):
+
+    encoding = "json"
+    path = "/account/login"
+
+    def POST(self):
+        """Overrides `account_login` and infogami.login to prevent users from
+        logging in with Open Library username and password if the
+        payload is json. Instead, if login attempted w/ json
+        credentials, requires Archive.org s3 keys.
+        """
+        d = simplejson.loads(web.data())
+        access = d.get('access', None)
+        secret = d.get('secret', None)
+        test = d.get('test', False)
+        audit = audit_accounts(None, None, require_link=True,
+                               s3_access_key=access,
+                               s3_secret_key=secret, test=test)
+        error = audit.get('error')
+        if error:
+            raise BadRequest(error)
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+
+
 class account_login(delegate.page):
     """Account login.
 
@@ -281,22 +306,22 @@ class account_login(delegate.page):
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
-                      redirect='/', test=False)
+                      redirect='/', test=False, access=None, secret=None)
         email = i.username  # XXX username is now email
-        audit = audit_accounts(email, i.password, require_link=True, test=i.test)
+        audit = audit_accounts(email, i.password, require_link=True,
+                               s3_access_key=i.access,
+                               s3_secret_key=i.secret, test=i.test)
         error = audit.get('error')
-
         if error:
             return self.render_error(error, i)
 
+        expires = (i.remember and 3600 * 24 * 7) or ""
+        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
+                      expires=expires)
         blacklist = ["/account/login", "/account/password", "/account/email",
                      "/account/create"]
         if i.redirect == "" or any([path in i.redirect for path in blacklist]):
             i.redirect = "/"
-        expires = (i.remember and 3600 * 24 * 7) or ""
-
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(),
-                      expires=expires)
         raise web.seeother(i.redirect)
 
     def POST_resend_verification_email(self, i):
