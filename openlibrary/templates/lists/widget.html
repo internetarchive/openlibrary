@@ -34,9 +34,6 @@ $code:
                 title = page.get("title", "untitled")
         return seed, seed_type, title
 
-    def foo():
-        return ''
-
     def get_list_data(list, include_cover_url=True):
         d = storage({
             "name": list.name or "",
@@ -52,8 +49,7 @@ $code:
 
     def get_user_lists():
         lists = ctx.user and ctx.user.get_lists(sort=False) or []
-        # No need to get cover_url for user lists. They are only displayed in the dropdown
-        return [get_list_data(list, include_cover_url=False) for list in lists]
+        return [get_list_data(list, include_cover_url=True) for list in lists]
 
     def get_page_lists():
         user_key = ctx.user and ctx.user.key
@@ -292,6 +288,7 @@ $if ctx.user:
     function reload_widget() {
         \$("#widget-head").html(render_head());
         \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, user_likes, next_action, activation_status));
+
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
 
@@ -365,6 +362,7 @@ $if ctx.user:
                     reload_widget();
                 }, function(){
                     // re-enable form now that the request is finished
+                    reload_widget();
                     \$("#new-list button").attr("disabled", false);
                 });
                 return false;
@@ -392,7 +390,7 @@ $if ctx.user:
             Lists.add(list.key, seed, function() {
                 list.active = true;
                 add_page_list(list);
-            }, function(){
+            }, function(data){
                 reload_widget();    // reload widget regardless of success or failure
             });
             return false;

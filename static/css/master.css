@@ -6753,7 +6753,7 @@ form#addAuthor.olform .wmd-preview {
 .work-likes button[type=submit].activated {
     color: #333;
     background: #5a5a5a;
-    border: 2px solid #b1b1b1;
+    border: 2px solid #525252;
     border-right: 1px solid #ddd;
     color: #fff;
 }
