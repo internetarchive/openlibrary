@@ -2543,11 +2543,12 @@ div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;z-index:100
 div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div.dropper.on div.arrow {
     width:23px;
-    margin-top: 6px;
+    margin: 6px 5px;
 }
 
 div.dropper.on div.arrow-unactivated {
     background-image:url("/images/icons/icon_dropit2.png");
+    background-repeat:no-repeat;
     background-position:0 0;
     background-size: 45px;
 }
@@ -6742,7 +6743,9 @@ form#addAuthor.olform .wmd-preview {
 }
 
 .dropclick-unactivated {
-    background-color: rgb(50, 152, 67);
+    background-color: rgb(62, 169, 79);
+    //background-color: rgb(57, 173, 76);
+    //background-color: rgb(50, 152, 67);
 }
 
 .dropclick h3 {
@@ -6776,6 +6779,7 @@ form#addAuthor.olform .wmd-preview {
     font-size: .75em;
     width: 100%;
     padding: 7px 0px;
+    margin: 0px;
 }
 
 .work-likes button[type=submit].activated {
@@ -6789,7 +6793,8 @@ form#addAuthor.olform .wmd-preview {
     color: #fff;
     background: rgb(50, 152, 67);
     border: 2px solid #319041;
-    border-right: 2px solid rgb(72, 167, 87);
+    border-right: 1px solid rgb(86, 144, 95);
+    //border-right: 2px solid rgb(72, 167, 87);
 }
 
 .work-likes span.activated-check {
