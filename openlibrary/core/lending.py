@@ -48,6 +48,7 @@ config_ia_availability_api_v2_url = None
 config_ia_access_secret = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
+config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_http_request_timeout = None
 config_content_server = None
@@ -68,7 +69,7 @@ def setup(config):
         config_http_request_timeout, config_amz_api, amazon_api, \
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
-        config_http_request_timeout
+        config_http_request_timeout, config_ia_s3_auth_url
 
     if config.get("content_server"):
         try:
@@ -88,6 +89,7 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
+    config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')

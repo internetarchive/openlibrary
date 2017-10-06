@@ -549,7 +549,8 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def s3auth(cls, access_key, secret_key):
         """Authenticates an Archive.org user based on s3 keys"""
-        url = "http://s3.us.archive.org?check_auth=1"
+        from openlibrary.core import lending
+        url = lending.config_ia_s3_auth_url
         try:
             req = urllib2.Request(url, headers={
                 'Content-Type': 'application/json',
