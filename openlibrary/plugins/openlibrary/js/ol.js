@@ -695,7 +695,9 @@ $().ready(function(){
         if(!$(event.target).closest('header#header-bar .hamburger-component .hamburger-button').length) {
             $('header#header-bar .hamburger-dropdown-component').hide();
         }
-        if(!$(event.target).closest('.dropclick').length) {
+
+        if(!$(event.target).closest('.dropclick').length) {            
+            $('.dropclick').parent().next('.dropdown').slideUp();
             $('.dropclick').next('.dropdown').slideUp();
             $('.dropclick').parent().find('.arrow').removeClass("up");
         }
@@ -732,9 +734,15 @@ $().ready(function(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-    $('.dropclick').click(debounce(function(){
+    $('.dropclick').live('click', debounce(function(){
         $(this).next('.dropdown').slideToggle();
+        $(this).parent().next('.dropdown').slideToggle();
         $(this).parent().find('.arrow').toggleClass("up");
+    }, 300, false));
+
+    $('a.add-to-list').live('click', debounce(function(){
+        $(this).closest('.dropdown').slideToggle();
+        $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
 
     function hideUser(){

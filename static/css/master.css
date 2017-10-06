@@ -837,7 +837,6 @@ button.larger{font-size:18px!important;}
 .bold {font-weight: bold!important}
 .sansserif {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
 .arial{font-family:"Arial","Helvetica",sans-serif!important;}
-.serif {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif!important;}
 .headline {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
 .nowrap{white-space:nowrap!important;}
 .wrap{white-space:normal!important;}
@@ -845,7 +844,7 @@ button.larger{font-size:18px!important;}
 .clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
 .right.illustration {margin:0 0 30px 30px;}
 .left.illustration {margin:0 30px 30px 0;}
-.illustration {text-align:center;margin-bottom:35px;}
+.illustration {text-align:center;margin-bottom:15px;}
 button.plainText {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#e44028;background-color: #fff;cursor:pointer;}
 button.plainText:hover {color:#35672e;}
 button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#000;background-color:transparent!important;cursor:pointer;}
@@ -910,7 +909,7 @@ span.tools span.label {background-color:#ffa337;color:#fff;font-weight:normal!im
 span.tools span.list {padding:3px;}
 span.title,h6.title {font-size:12px;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Geneva,Helvetica, sans-serif;color:#666;margin:0;padding:0;}
 .titleSmall {font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;font-size:11px;font-weight: 600;}
-span.tag {font-size:13px;font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;color:#333;}
+span.tag {font-size:13px;color:#333;}
 span.object, span.subject {font-size: 12px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#333;}
 span.count {font-size:12px!important;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;color:#615132;white-space:nowrap;padding:5px 5px 0 5px;}
 h1 span.count {font-size:14px!important;}
@@ -924,7 +923,6 @@ p{font-size:1.0em;color:#333;line-height:1.5em}
 #contentBody li,#contentBody blockquote {line-height:1.5em;}
 #contentBody ul,#contentBody ol{margin-bottom:20px;}
 body {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#333;}
-body#user div#content{font-family:Georgia,"Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman",serif;}
 body#admin div#content,body#edit div#content{font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;font-size:0.875em;}
 input[type=text]{margin: 0 10px 5px 0;}
@@ -2536,20 +2534,30 @@ div.Tools table.buy-options-table td.price {
 div.Tools li {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
-div.Tools div.dropit {position:relative;width:250px;min-height:45px;}
+div.Tools div.dropit {min-height:45px;}
 div.Tools div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 0 42px;margin:0 0 5px;}
 div.Tools div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div.Tools div.icon.list {background-position:0 0;}
 div.Tools div.icon.listed {background-position:-32px 0;}
-div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;padding:8px 10px;z-index:10000;}
-div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div.Tools div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div.Tools div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;z-index:10000;}
+div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
+div.dropper.on div.arrow {
+    width:32px;
+    background-image:url("/images/icons/icon_dropit.png");
+    background-repeat:no-repeat;
+    filter: grayscale(100%);
+    margin-top: 3px;
+    background-position:0 0;
+}
+div.dropper.on div.arrow.up {background-position:-32px 0!important;}
 div.Tools div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div.Tools div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;margin-top:0;color:#666;}
 div.Tools div.dropper div.dropdown p span {font-size:.8125em;}
 div.Tools div.dropper div.dropdown p a {font-size:.875em;}
-div.Tools div.dropper div.dropdown {display:none;padding-top:10px;}
+div.Tools div.dropper div.dropdown {
+    border-top: 1px solid #ddd;
+    display:none;
+}
 
 
 
@@ -3770,6 +3778,7 @@ div.list .owner {
 div.workDetails {float:left;width:915px;}
 div.editionCover {float:left;width:180px;min-height:10px;padding-right:35px;}
 div.editionAbout {float:left;width:430px;min-height:10px;}
+div.editionAbout p {font-size: .8em;}
 div.editionTools {float:left;width:270px;min-height:10px;}
 div.navEdition {font-size:0.8125em;}
 div.workCover {float:right;width:270px;min-height:10px;}
@@ -5665,10 +5674,10 @@ p#postBorrowList {font-size:.75em;padding-left:55px;}
 
 ul#listResults {list-style-type:none;margin:0;padding:0;border-top:1px dotted #ebebeb;}
 ul#listResults li {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     width:100%;
     list-style-type:none;
 }
@@ -5679,7 +5688,6 @@ ul#listResults li span.image {display: block; float:left;height:70px;margin-righ
 ul#listResults li span.imageLg {display: block; float:left;height:110px;margin-right:15px;width:90px;overflow: hidden;text-align:center;}
 ul#listResults li h3 {display:inline;font-size: 1em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-weight:bold;}
 ul#listResults li span.detail {display: block;color:#333;font-size: .8125em;font-family:"Georgia","Times New Roman",serif;line-height:1.5em;}
-ul#listResults p {font-family:"Georgia","Times New Roman",serif;}
 ul#listResults li span.editions {display:block;color:#666;font-size:.75em;}
 ul#listResults li span.editions strong {color:#000;}
 ul#listResults li span.type {font-size:.875em;}
@@ -5695,10 +5703,10 @@ ul#listResults li span.listDelete {
     white-space:nowrap;
     max-width:150px;
     line-height:28px;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     margin-bottom: 5px;
 }
 ul#listResults li span.listDelete a span {margin-right:5px; background-image:url("/images/back_list-trash.png");background-repeat:no-repeat;background-position:0 0;height:28px;width:21px; display: inline-block; position: relative; top: 5px}
@@ -5731,15 +5739,17 @@ div.Tools span.owner { font-size: 10px; }
 .heart-adjust { position: relative; top: -3px; left: 4px; }
 div#listsWork div.icon.list {background-position:0 0;}
 div#listsWork div.icon.listed {background-position:-32px 0;}
-div#listsWork div.dropper {position:absolute;top:0;left:32px;width:161px;padding:8px 10px;z-index:1001;}
-div#listsWork div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div#listsWork div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div#listsWork div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div#listsWork div.dropper {position:absolute;top:0;left:32px;width:161px;z-index:1001;}
+div#listsWork div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div#listsWork div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div#listsWork div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;color:#666;}
 div#listsWork div.dropper div.dropdown p span {font-size:.8125em;}
 div#listsWork div.dropper div.dropdown p a {font-size:.875em;}
-div#listsWork div.dropper div.dropdown {display:none;padding-top:10px;}
+div#listsWork div.dropper div.dropdown {
+    border-top: 1px solid #ddd;    
+    display:none;
+    padding-top:10px;
+}
 
 div#subjectLists ul.listLists {float:left;margin-left:0!important;padding:0;}
 div#subjectLists ul.listLists li {list-style-type:none;display:block;float:left;width:282px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-bottom:10px;padding-top:0;}
@@ -5747,7 +5757,7 @@ div#subjectLists ul.listLists li .image {display:block;float:left;width:34px;min
 div#subjectLists ul.listLists li .image img {width:24px;}
 div#subjectLists ul.listLists li .data {display:block;float:left;width:248px;}
 
-div#subjectLists div.dropit h3 {font-size:100%;min-height:32px;width:250px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;font-weight:normal;outline:0;position:relative;margin:0;padding:0;zoom:1;}
+div#subjectLists div.dropit h3 {font-weight: normal; margin: 0px; padding: 5px;}
 div#subjectLists p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 
 div#subjectLists div.dropit {float:left;position:relative;width:282px;min-height:50px;}
@@ -5755,17 +5765,20 @@ div#subjectLists div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 
 div#subjectLists div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div#subjectLists div.icon.list {background-position:0 0;}
 div#subjectLists div.icon.listed {background-position:-32px 0;}
-div#subjectLists div.dropper {position:absolute;top:0;left:32px;width:230px;padding:8px 10px;z-index:1001;}
-div#subjectLists div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div#subjectLists div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div#subjectLists div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div#subjectLists div.dropper {position:absolute;top:0;left:32px;width:230px;z-index:1001;}
+div#subjectLists div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div#subjectLists div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div#subjectLists div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin:0 0 5px 0;color:#666;}
 div#subjectLists div.dropper div.dropdown p span {font-size:.8125em;}
 div#subjectLists div.dropper div.dropdown p a {font-size:.875em;}
-div#subjectLists div.dropper div.dropdown {display:none;padding-top:10px;}
+div#subjectLists div.dropper div.dropdown {
+    border-top: 1px solid #ddd;
+    display:none;
+    padding-top:10px;
+}
 
 div.dropper div.dropdown p.create{padding-top:3px;margin-top:3px;border-top:1px dotted #ababab;}
+
 
 .lists table#editions th {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;background-color: transparent;text-align: left;font-weight: normal;font-size: .6875em;color: #615132;padding: 0 0 10px 0;border-left: none;border-right: none;}
 .lists table#editions td {color: #333;vertical-align: top;}
@@ -5800,7 +5813,7 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists .listEntry .data {width:245px;float:left;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;}
 #lists .listEntry .name {font-size:.6875em;color:#666;}
 #lists .listEntry .name a.title {font-weight: bold; font-size: 1.375em;}
-#lists .listEntry .description p,#lists .listEntry .description li {font-size:.8125em;font-family:"Georgia","Times New Roman",serif;color:#333;margin:0!important;}
+#lists .listEntry .description p,#lists .listEntry .description li {font-size:.8125em;color:#333;margin:0!important;}
 #lists .listEntry .meta {font-size:.6875em;color:#666;line-height:1.5em;margin:3px 0;}
 
 /* SEARCH INSIDE */
@@ -5951,7 +5964,6 @@ form#addAuthor.olform .wmd-button-bar {
 .wmd-preview {
     background-color: #fff;
     border: 1px solid #dedede;
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
     display: none;
     margin-bottom: 10px;
 }
@@ -6700,21 +6712,104 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-Invisible{}
 .iconochive-Computer{}
 
-.work-likes input[type=submit] {
-    padding: 5px 10px;
-    border-radius: 5px;
-    color: #333;
-    border: 2px solid #999;
+.dropclick {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.dropclick h3 {
+    flex: 1;
+}
+
+.dropclick .arrow {
+    width: 20px;
+}
+
+.work-likes {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.work-likes form {
+    flex: 1;
+}
+
+.work-likes button[type=submit] {
+    background-color: inherit;
+    border: none;
+    border-radius: 3px;
+    border-bottom-right-radius: 0px;
+    border-top-right-radius: 0px;
     cursor:pointer;
     font-size: .9em;
+    width: 100%;
+    padding: 7px 0px;
 }
 
 .work-likes button[type=submit].activated {
-    color: rgba(255, 38, 158, 0.78);
-    background: #fff;
-    border: 2px solid rgba(255, 38, 158, 0.78);
+    color: #333;
+    background: #5a5a5a;
+    border: 2px solid #b1b1b1;
+    border-right: 1px solid #ddd;
+    color: #fff;
 }
 
 .work-likes button[type=submit].unactivated {
-    background-color: #fff;
+    color: #fff;
+    text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.50);
+    background: #628014;
+    border: 2px solid #707b53;
+}
+
+.work-likes span.activated-check {
+    color: #aad631;
+    margin-right: 2px;
+}
+
+.manageCovers {
+    margin: 0 auto;
+    width: 166px;
+    padding: 7px;
+    background-color: #f6f6f6;
+    position: relative;
+    top: -30px;
+    z-index: 99999;
+    opacity: .8;
+}
+
+div.tools-override {
+    min-height: 45px;
+    padding-left: 0px;
+    margin: 0px;
+    padding: 0px;
+}
+
+.user-book-options div.tools-override div.dropit {
+    margin: 0px;
+    position: relative;
+    width: auto;
+}
+
+div.tools-override div.dropper {
+    z-index:10000;
+    width: 180px;
+    top: unset;
+    left: unset;
+}
+
+.tools-override #widget-lists li {
+    padding-left: 0px;
+}
+
+.user-book-options .dropper div.dropdown {
+    padding: 10px;
+}
+
+.editionCover .illustration {
+    margin-bottom: 5px;
+    height: 270px;
 }

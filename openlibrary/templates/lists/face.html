@@ -1,0 +1,23 @@
+$def with(work=None, edition=None, work_likes=None)
+
+$if work:
+  <div class="work-likes">
+    <form method="POST" action="$(work.key)/likes.json" aria-label="$(work.title)">
+      $if 'user_likes_work' in work_likes:
+        <input type="hidden" name="action"
+               value="$('unlike' if work_likes.get('user_likes_work') else 'like')"/>
+        $if edition:
+          <input type="hidden" name="edition_id" value="$(edition.key)"/>
+
+        <button class="$('activated' if work_likes.get('user_likes_work') else 'unactivated')" type="submit"/>Want to Read ($(work_likes['work_likes_count']))</button>
+    </form>
+    <a href="javascript:;" class="dropclick plain">
+      <div class="arrow"></div>
+    </a>
+  </div>
+
+$else:
+  <a href="javascript:;" class="dropclick plain">
+    <h3>Add to List</h3>
+    <div class="arrow"></div>
+  </a>

@@ -1,4 +1,13 @@
-$def with (page, user_lists_only=False)
+$def with (page, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False)
+
+$ edition = page if page.key.startswith("/books/") else None
+$ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
+$ work_key = work.key if work else None
+$ edition_key = edition.key if edition else None
+$ work_likes = work.likes(username=ctx.user.key.split('/')[2] if ctx.user else None) if work else None
+$ user_likes_work = 'user_likes_work' in work_likes if work_likes else False
+$ next_action = 'unlike' if work_likes and work_likes.get('user_likes_work') else 'like'
+$ activation_status = 'activated' if work_likes and work_likes.get('user_likes_work') else 'unactivated'
 
 $if "lists" not in ctx.features:
     $return
@@ -24,6 +33,9 @@ $code:
                 seed_type = "edition"
                 title = page.get("title", "untitled")
         return seed, seed_type, title
+
+    def foo():
+        return ''
 
     def get_list_data(list, include_cover_url=True):
         d = storage({
@@ -83,23 +95,48 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists):
+$jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, activation_status):
     <div class="dropit">
       <div class="icon list hidetool"></div>
         <div class="dropper on">
-            <a href="javascript:;" class="dropclick plain">
-                <h3>Add to list</h3>
-                <div class="arrow"></div>
-            </a>
-            <div class="dropdown">
-                $for i, list in enumerate(lists):
-                    $if not list.active:
-                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
-                <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                    <a href="javascript:;" class="hidden listClick"></a>
-                </p>
+          $if work_key:
+            <div class="work-likes">
+              <form method="POST" action="$(work_key)/likes.json?debug=true">
+                $if user_likes:
+                  <input type="hidden" name="action" value="$(next_action)"/>
+                  $if edition_key:
+                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
+
+                  <button class="$(activation_status)" type="submit">
+                    $if(activation_status == "activated"):
+                      <span class="activated-check">✓</span> Want to Read
+                    $else:
+                      Want to Read
+                  </button>
+                </form>
+                <a href="javascript:;" class="dropclick plain">
+                  <div class="arrow"></div>
+                </a>
             </div>
-        </div>
+          $else:
+            <a href="javascript:;" class="dropclick plain">
+              <h3>Add to List</h3>
+              <div class="arrow"></div>
+            </a>
+
+          <div class="dropdown">
+            <p>Currently Reading</p>
+            <p>Already Read</p>
+            <hr/>
+            <p style="text-align: center;">My Reading Lists</p>
+              $for i, list in enumerate(lists):
+                  $if not list.active:
+                      <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+              <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                  <a href="javascript:;" class="hidden listClick"></a>
+              </p>
+          </div>
+      </div>
     </div>
 
 $jsdef render_widget_display(lists, limit):
@@ -125,22 +162,24 @@ $jsdef render_head():
           </h3>
         </div>
 
-
-<div id="widget-head">
+$if include_header:
+  <div id="widget-head">
     $:render_head()
-</div>
+  </div>
 
-$if not ctx.user and not page_lists:
+$if not ctx.user and not page_lists and include_widget:
     <div class="sansserif small">You <em>could</em> add <strong>$title</strong> to a <a href="/lists" title="Learn more about lists">list</a> if you <a href="/account/login" title="Log in or sign up now">log in</a>.</div>
 
-$if ctx.user:
+$if ctx.user and include_widget:
     <div id="widget-add">
-        $:render_widget_add(user_lists)
+        $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status)
     </div>
 
-<ul class="listLists" id="widget-lists">
+$if include_showcase:
+  <ul class="listLists" id="widget-lists">
     $:render_widget_display(page_lists, 3)
-</ul>
+  </ul>
+
 <div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$title</strong> from your list?</div>
 
 $if ctx.user:
@@ -243,16 +282,23 @@ $if ctx.user:
     var user_key = $:json_encode(user_key);
     var page_url = $:(json_encode(page_url));
 
+    var user_likes = $('true' if user_likes_work else 'false');
+    var next_action = '$(next_action)';
+    var activation_status = '$(activation_status)';
+
+    var work_key = '$(work_key)';
+    var edition_key = '$(edition_key)';
+
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, user_likes, next_action, activation_status));
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
 
         // We've added new .dropclick element. Need to setup listeners again.
         \$('.dropclick').click(function(){
-            \$(this).next('.dropdown').slideToggle();
-            \$(this).parent().find('.arrow').toggleClass("up");
+            \$(this).closest('.dropdown').slideToggle();
+            \$(this).closest('.arrow').toggleClass("up");
         });
 
         // Trigger an event to allow adding listeners

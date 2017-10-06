@@ -207,6 +207,15 @@ $elif ebook_status == "borrow-user-checkedout":
                     $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
 
+            $# pages like /books/ia:foo00bar are fake records created from metadata API.
+            $# Adding them to lists doesn't work. Disabling it to avoid any issues.
+            $if "lists" in ctx.features and not page.is_fake_record():
+              <div class="user-book-options">
+                <div class="Tools tools-override">
+                  $:render_template("lists/widget", page, include_header=False)
+                </div>
+              </div>
+
         $ contributors = page.get('contributors', [])
         $if contributors:
             <div class="section">
@@ -346,13 +355,6 @@ $elif ebook_status == "borrow-user-checkedout":
 
         <div class="editionTools">
             $:macros.databarWork(page)
-
-            $# pages like /books/ia:foo00bar are fake records created from metadata API.
-            $# Adding them to lists doesn't work. Disabling it to avoid any issues.
-            $if "lists" in ctx.features and not page.is_fake_record():
-                <div class="Tools">
-                    $:render_template("lists/widget", page)
-                </div>
 
             $ links = page.get_links()
             $if links:
