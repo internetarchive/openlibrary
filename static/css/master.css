@@ -2542,14 +2542,27 @@ div.Tools div.icon.listed {background-position:-32px 0;}
 div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;z-index:10000;}
 div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div.dropper.on div.arrow {
-    width:32px;
+    width:23px;
+    margin-top: 6px;
+}
+
+div.dropper.on div.arrow-unactivated {
+    background-image:url("/images/icons/icon_dropit2.png");
+    background-position:0 0;
+    background-size: 45px;
+}
+
+div.dropper.on div.arrow-activated {
     background-image:url("/images/icons/icon_dropit.png");
     background-repeat:no-repeat;
     filter: grayscale(100%);
-    margin-top: 3px;
     background-position:0 0;
+    background-size: 45px;
 }
-div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+
+div.dropper.on div.arrow.up {
+    background-position:-22px 0!important;
+}
 div.Tools div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div.Tools div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;margin-top:0;color:#666;}
 div.Tools div.dropper div.dropdown p span {font-size:.8125em;}
@@ -3956,7 +3969,7 @@ select#select-id {
 .borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn {
     margin: 1px auto;
     color: white;
-    background: #036DAA;
+    background: #3b99fc;
     border-radius: 5px;
     padding: 5px 8px;
     cursor: pointer;
@@ -3967,6 +3980,8 @@ select#select-id {
 .wait-btn {
     background: #389ad4;
     border: none;
+    background-color: #ffa337;    
+
 }
 
 .unwait-btn {
@@ -4002,12 +4017,12 @@ div.Tools .btn-notice p {
 }
 
 .borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {
-    font-size: 12px!important;
+    font-size: 12px;
     color: white;
     text-decoration: none;
 }
 .borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover, .check-btn:hover {
-    font-size: 12px!important;
+    font-size: 12px;
     color: white;
     text-decoration: underline;
 }
@@ -5850,6 +5865,7 @@ span.actions a span.checked-out {
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background: #036DAA;
     padding: 15px;
+    font-size: .8em;
 }
 .page-banner a {
     color: white;
@@ -5873,7 +5889,7 @@ span.actions a span.checked-out {
 .page-banner .button {
     color: white;
     border-radius: 5px;
-    padding: 10px;
+    padding: 8px 10px;
     cursor: pointer;
     display: inline;
     border: 1px solid #389AD4;
@@ -5890,7 +5906,6 @@ span.actions a span.checked-out {
 }
 
 .page-banner-home {
-    font-size: .8em;
     padding: 10px;
     margin-bottom: 15px;
     text-align: center;
@@ -6719,12 +6734,25 @@ form#addAuthor.olform .wmd-preview {
     display: flex;
 }
 
+.dropclick-prevent {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.dropclick-unactivated {
+    background-color: rgb(50, 152, 67);
+}
+
 .dropclick h3 {
     flex: 1;
 }
 
 .dropclick .arrow {
     width: 20px;
+    margin: 5px;
+    margin-top: 10px;
 }
 
 .work-likes {
@@ -6745,28 +6773,27 @@ form#addAuthor.olform .wmd-preview {
     border-bottom-right-radius: 0px;
     border-top-right-radius: 0px;
     cursor:pointer;
-    font-size: .9em;
+    font-size: .75em;
     width: 100%;
     padding: 7px 0px;
 }
 
 .work-likes button[type=submit].activated {
     color: #333;
-    background: #5a5a5a;
-    border: 2px solid #525252;
+    background: #ececec;
+    border: 2px solid #f3f3f3;
     border-right: 1px solid #ddd;
-    color: #fff;
 }
 
 .work-likes button[type=submit].unactivated {
     color: #fff;
-    text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.50);
-    background: #628014;
-    border: 2px solid #707b53;
+    background: rgb(50, 152, 67);
+    border: 2px solid #319041;
+    border-right: 2px solid rgb(72, 167, 87);
 }
 
 .work-likes span.activated-check {
-    color: #aad631;
+    color: rgb(33, 136, 50);
     margin-right: 2px;
 }
 
@@ -6779,6 +6806,27 @@ form#addAuthor.olform .wmd-preview {
     top: -30px;
     z-index: 99999;
     opacity: .8;
+}
+
+.manageCovers a {
+    color: #333;
+}
+
+.waitinglist-form input[type=submit] {
+    background-color: #ffa337
+}
+
+.Tools div.btn-notice p a.borrow-btn:hover {
+    font-size: 1.6em;
+}
+
+.Tools div.btn-notice p a.borrow-btn {
+    background-color: #3b99fc;
+    padding: 7px 20px;
+    font-size: 1.6em;
+    width: 155px;
+    text-align: center;
+    margin-top: 8px;
 }
 
 div.tools-override {
@@ -6805,7 +6853,7 @@ div.tools-override div.dropper {
     padding-left: 0px;
 }
 
-.user-book-options .dropper div.dropdown {
+.dropper div.dropdown {
     padding: 10px;
 }
 

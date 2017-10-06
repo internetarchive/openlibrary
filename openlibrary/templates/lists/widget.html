@@ -110,8 +110,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
                       Want to Read
                   </button>
                 </form>
-                <a href="javascript:;" class="dropclick plain">
-                  <div class="arrow"></div>
+                <a href="javascript:;" class="dropclick dropclick-$(activation_status) plain">
+                  <div class="arrow arrow-$(activation_status)"></div>
                 </a>
             </div>
           $else:
@@ -121,9 +121,11 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
             </a>
 
           <div class="dropdown">
+            <!--
             <p>Currently Reading</p>
             <p>Already Read</p>
             <hr/>
+            -->
             <p style="text-align: center;">My Reading Lists</p>
               $for i, list in enumerate(lists):
                   $if not list.active:
@@ -166,9 +168,29 @@ $if include_header:
 $if not ctx.user and not page_lists and include_widget:
     <div class="sansserif small">You <em>could</em> add <strong>$title</strong> to a <a href="/lists" title="Learn more about lists">list</a> if you <a href="/account/login" title="Log in or sign up now">log in</a>.</div>
 
-$if ctx.user and include_widget:
+$if include_widget:
+  $if ctx.user and include_widget:
     <div id="widget-add">
         $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status)
+    </div>
+  $else:
+    <div class="dropit">
+      <div class="icon list hidetool"></div>
+        <div class="dropper on">
+          $if work:
+            <div class="work-likes">
+              <form method="POST" action="$(work.key)/likes.json?debug=true">
+                <input type="hidden" name="action" value="activate"/>
+                  $if edition_key:
+                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
+
+                  <button class="unactivated" type="submit">Want to Read</button>
+                </form>
+                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent plain ">
+                  <div class="arrow">▾</div>
+                </a>
+            </div>
+        </div>
     </div>
 
 $if include_showcase:
