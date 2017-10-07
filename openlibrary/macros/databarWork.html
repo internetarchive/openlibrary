@@ -119,10 +119,6 @@ $else:
 
 $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
     <div>
-        <h3 class="header">
-            <span class="icon borrow"></span>
-            <span class="head">Borrow</span>
-	</h3>
 	<div class="panel">
             $if 'lendinglibrary' in collections or library:
                 $ current_and_available_loans = page.get_current_and_available_loans()
@@ -200,5 +196,18 @@ $else:
 	</div>
     </div>
 
-</div>
-<div class="clearfix"></div>
+$ links = page.get_links()
+$if links:
+  <div id="external-links">
+    <h3 class="header">
+      <span class="icon download"></span>
+      <span class="head">External Links</span>
+    </h3>
+    <div class="panel">
+      <ul class="booklinks sansserif">
+        $for link in links:
+          <li><a href="$link.url">$link.title</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="clearfix"></div>

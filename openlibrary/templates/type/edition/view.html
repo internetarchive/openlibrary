@@ -355,16 +355,6 @@ $elif ebook_status == "borrow-user-checkedout":
 
         <div class="editionTools">
             $:macros.databarWork(page)
-
-            $ links = page.get_links()
-            $if links:
-                <div class="section">
-                   <h3>Links <span class="gray small sansserif">($_("that leave Open Library"))</span></h3>
-                   <ul class="booklinks sansserif">
-                   $for link in links:
-                       <li><a href="$link.url">$link.title</a></li>
-                   </ul>
-                </div>
         </div>
 
     </div>
