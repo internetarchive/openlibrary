@@ -796,8 +796,8 @@ a:hover {color: #35672e;text-decoration:underline;outline:none;}
 a:visited {color: #036;text-decoration:underline;outline:none;}
 .collapse{margin:0!important;padding:0!important;}
 .small{font-size:12px!important;font-weight:normal!important;}
-.smaller{font-size:11px!important;font-weight:normal!important;}
-.smallest{font-size:10px!important;font-weight:normal!important;}
+.smaller{font-size:11px;font-weight:normal;}
+.smallest{font-size:10px;font-weight:normal;}
 .reduce{font-size: 50%!important;}
 .large{font-size:14px!important;}
 .larger{font-size:16px!important;}
@@ -2495,7 +2495,7 @@ body#edit div#revertLink {
 }
 body#user div#revertLink, body#form div#revertLink {display:none;}
 
-div.Tools {width:250px;margin:0 0 25px 20px;}
+div.Tools {width:250px;margin:0 0 25px 20px; position: relative;}
 div.Tools h3 {font-size:100%;min-height:32px;width:250px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;font-weight:normal;outline:0;position:relative;margin:0;padding:0;zoom:1;}
 div.Tools h3 span.icon {display:block;width:32px;height:32px;float:left;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div.Tools h4 {font-size:1em;font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#00636a;font-weight:600;margin:0 0 10px 0;padding:0;zoom:1;}
@@ -3972,15 +3972,15 @@ select#select-id {
     max-width: 300px;
 }
 
-.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn {
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn  {
     margin: 1px auto;
     color: white;
     background: #3b99fc;
     border-radius: 5px;
-    padding: 5px 8px;
+    padding: 7px 20px;
     cursor: pointer;
     display: inline-block;
-    font-size: 12px;
+    font-size: 1.1em;
     line-height: 1.5em;
 }
 .wait-btn {
@@ -3995,13 +3995,12 @@ select#select-id {
     border: none;
 }
 
-.check-btn {
-    background-color: rgb(164, 181, 122);
+.waitinglist-form input[type=submit].wait-btn {
+    background-color: #ffa337
 }
 
 .waitinglist-form input[type=submit] {
     line-height: 1.5em;
-    font-size: 12px!important;
 }
 
 #editions .btn-notice {
@@ -4011,24 +4010,24 @@ select#select-id {
 
 .Tools .btn-notice {
     line-height: 1.5em;
-    font-size: 12px;
-    margin-left: 37px;
-    padding: 7px;
+    font-size: 1em;
+    margin-left: 35px;
+    padding: 10px;
     margin-bottom: 10px;
-    background-color: rgba(226, 220, 197, 0.28);
+    background-color: rgb(252, 252, 252);
+    border-radius: 5px;
+    border-bottom: 1px solid #eee;
 }
 
 div.Tools .btn-notice p {
     padding-left: 0px !important;
 }
 
-.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {
-    font-size: 12px;
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {
     color: white;
     text-decoration: none;
 }
-.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover, .check-btn:hover {
-    font-size: 12px;
+.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover {
     color: white;
     text-decoration: underline;
 }
@@ -5729,20 +5728,33 @@ ul#listResults li span.listDelete {
     display: flex;
     margin-bottom: 5px;
 }
+
 ul#listResults li span.listDelete a span {margin-right:5px; background-image:url("/images/back_list-trash.png");background-repeat:no-repeat;background-position:0 0;height:28px;width:21px; display: inline-block; position: relative; top: 5px}
 ul#listResults li span.listDelete a:hover span{background-position:-21px 0;}
 
-ul.listLists {margin-bottom:0!important;margin-left:0!important;padding:0;}
-ul.listLists div {display:inline;}
-ul.listLists li {list-style-type:none;display:block;float:left;width:250px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-top:10px;}
 ul.listLists span {display:block;color:#666;}
-ul.listLists li .image {float:left;width:42px;min-height:35px;}
+ul.listLists {
+    margin: 0px;
+    padding: 0px;
+}
+ul.listLists li {
+    border-radius: 3px;
+    padding: 5px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    background-color: #fcfcfc;
+    border-bottom: 1px solid #eee;
+}
+ul.listLists li .image {width:42px;min-height:35px;padding: 0px 10px;}
 ul.listLists li .image img {width:32px;}
-ul.listLists li .data {float:left;width:208px;}
+ul.listLists li .data {width:208px; padding: 3px 0px;}
 ul.listLists li .label {font-size:.8125em;line-height:1.125em; font-size: 12px;}
-ul.listLists li .meta, ul.listLists li .owner {font-size:.6875em;line-height:1.125em;}
-
-div#listsWork ul.listLists {float:left;clear:both;}
+ul.listLists li .meta, ul.listLists li .owner {
+    font-size:.6875em;line-height:1.125em;
+    margin: 5px 0px;
+}
 div#listsWork ul.listLists li {width:209px;padding-right:19px;padding-top:0;min-height:35px;}
 div#listsWork ul.listLists li .data {width:167px;}
 
@@ -5769,6 +5781,10 @@ div#listsWork div.dropper div.dropdown {
     border-top: 1px solid #ddd;    
     display:none;
     padding-top:10px;
+}
+div.dropper div.dropdown div.my-lists {
+    height: 250px;
+    overflow-y: scroll;
 }
 
 div#subjectLists ul.listLists {float:left;margin-left:0!important;padding:0;}
@@ -6747,9 +6763,7 @@ form#addAuthor.olform .wmd-preview {
 }
 
 .dropclick-unactivated {
-    background-color: rgb(62, 169, 79);
-    //background-color: rgb(57, 173, 76);
-    //background-color: rgb(50, 152, 67);
+    background-color: rgb(52, 160, 70);
 }
 
 .dropclick h3 {
@@ -6795,10 +6809,9 @@ form#addAuthor.olform .wmd-preview {
 
 .work-likes button[type=submit].unactivated {
     color: #fff;
-    background: rgb(50, 152, 67);
-    border: 2px solid #319041;
-    border-right: 1px solid rgb(86, 144, 95);
-    //border-right: 2px solid rgb(72, 167, 87);
+    background: rgb(62, 169, 79);
+    border: 2px solid #41a552;
+    border-right: 1px solid rgb(67, 152, 80);
 }
 
 .work-likes span.activated-check {
@@ -6806,26 +6819,32 @@ form#addAuthor.olform .wmd-preview {
     margin-right: 2px;
 }
 
+
 .manageCovers {
-    width: 140px;
+    max-width: 140px;
     margin: 0 auto;
-    padding: 7px;
-    border-radius: 5px;
-    border: 4px solid #333;
-    background-color: #666;
-    color: #fff;
+    padding: 8px;
+    border-radius: 3px;
+    border: 3px solid #333;
+    background-color: #ffffff;
+    color: #333;
 }
 
 .manageCoversContainer {
     width: 100%;
     z-index: 99999;
     position: absolute;
-    bottom: 20px;
+    bottom: 15px;
 }
 
 .manageCoversContainer a {
     display: block;
+    text-decoration: none;
     opacity: 0;    
+}
+
+.manageCoversContainer a:hover, .manageCoversContainer a:focus {
+    text-decoration: underline;;
 }
 
 .illustration:hover .manageCoversContainer a, .manageCoversContainer a:focus {
@@ -6836,27 +6855,11 @@ form#addAuthor.olform .wmd-preview {
     color: #333;
 }
 
-.waitinglist-form input[type=submit] {
-    background-color: #ffa337
-}
-
-.Tools div.btn-notice p a.borrow-btn:hover {
-    font-size: 1.6em;
-}
-
-.Tools div.btn-notice p a.borrow-btn {
-    background-color: #3b99fc;
-    padding: 7px 20px;
-    font-size: 1.6em;
-    width: 155px;
-    text-align: center;
-    margin-top: 8px;
-}
-
 div.tools-override {
+    width: 180px;
     min-height: 45px;
     padding-left: 0px;
-    margin: 0px;
+    margin: 0px auto;
     padding: 0px;
 }
 
@@ -6873,6 +6876,11 @@ div.tools-override div.dropper {
     left: unset;
 }
 
+.tools-override #widget-lists {
+    margin: 0px;
+    clear: both;
+}
+
 .tools-override #widget-lists li {
     padding-left: 0px;
 }
@@ -6883,4 +6891,84 @@ div.tools-override div.dropper {
 
 .editionCover .illustration {
     margin-bottom: 5px;
+}
+
+.Tools div.btn-notice a {
+    text-decoration: none;
+}
+
+.Tools div.btn-notice p {
+    font-size: 1em;
+}
+
+.Tools div.btn-notice p.primary-cta {
+    text-align: center;
+}
+
+.Tools div.btn-notice input {
+    display: block;
+    width: 100%;
+}
+.Tools div.btn-notice p a.wait-btn, .Tools div.btn-notice p a.borrow-btn {
+    display: block;
+    text-align: center;
+    margin: 0 auto;
+    color: #fff;
+}
+
+.Tools div.btn-notice p a.borrow-btn, #read-options input[type=submit].wait-btn {
+    font-size: 14px;
+    padding: 7px 20px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.Tools .check-availability {
+    padding: 10px;
+    background-color: #f7f7f7;
+    border: 1px solid #eee;
+    border-bottom: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.Tools .check-availability p {
+    padding-top: 7px;
+}
+
+.Tools .check-availability p.check-other-editions {
+    text-align: center;
+}
+
+.Tools .check-availability p.check-other-editions a {
+    color: #fff;
+    font-size: .9em;
+}
+
+Tools .check-availability a {
+    font-size: 1.3em;
+    color: #036;
+}
+
+#read.panel {
+    margin-bottom: 10px;
+}
+
+.worldcat-cta {
+    padding: 15px 10px 0px 10px;
+    padding-bottom: 0px;
+}
+
+p.print-disabled-download {
+    text-align: center;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.print-disabled-download a {
+    font-size: .8em;
+}
+
+.daisy-lock {
+    position: relative;
+    top: 1px;
 }

@@ -117,15 +117,18 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("covers/change", page, ".bookCover img")
             </div>
 
+            $if "lists" in ctx.features:
+              <div class="user-book-options">
+                <div class="Tools tools-override">
+                  $:render_template("lists/widget", page, include_header=False)
+                </div>
+              </div>
+            
             $if page.edition_count == 1:
                 <div class="editionTools">
                     $ book = page.get_one_edition()
                     $ links = book.get_links()
                     $:macros.databarWork(book)
-                    $if "lists" in ctx.features:
-                        <div class="Tools">
-                          $:render_template("lists/widget", page)
-                        </div>
                     $if links:
                         <div class="section">
                           <h3>Links <span class="gray small sansserif">($_("leaves Open Library"))</span></h3>
@@ -226,21 +229,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 \$().ready(function(){
                     \$('#widget-my-lists').children().insertBefore('#widget-my-lists').end().end().remove();
                     \$('#widget-other-lists').children().insertBefore('#widget-other-lists').end().end().remove();
-                    if (\$('.dropit').length) {
-                        \$('#widget-add').addClass('contentQuarter').css('min-height','35px');
-                        \$('#listsWork .listLists').wrap('<div class="contentThreeQuarter" style="min-height:35px;">');
-                        \$('<div class="contentSpacer"></div>').insertBefore('.contentThreeQuarter');
-                        \$('#listsWork').addClass('collapse');
-                    } else {
-                        \$('#listsWork').css('width','100%');
-                        \$('ul.listLists').css('width','100%')
-                    };
                 });
                 </script>
-                <div class="clearfix"></div>
-                <div class="section" id="listsWork" style="float:left;">
-                    $:render_template("lists/widget", page)
-                </div>
 
         $if page.edition_count == 1:
             $:render_template("books/edition-show", page.get_one_edition())

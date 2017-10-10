@@ -1,0 +1,16 @@
+$def with(isbn=None, oclc_numbers=None)
+
+$ worldcat = "https://worldcat.org/isbn/XXX"
+$ worldcatoclc = "https://worldcat.org/oclc/XXX"
+
+$if oclc_numbers or isbn:
+  <div class="worldcat-cta">
+    <p>
+    $if oclc_numbers:
+      <a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
+    $elif isbn:
+      <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
+
+  Find a physical copy near you</a> &mdash; powered by <a href="https://worldcat.org">WorldCat</a></p>
+  </div>
+

@@ -1,0 +1,11 @@
+$def with(page)
+
+$ daisy = page.get_ia_download_link("_daisy.zip")
+
+<p class="print-disabled-download">
+  <a href="$page.url('/daisy')" title="Download Protected DAISY" class="plain">
+    <meta itemprop="bookFormat" content="EBook/DAISY3"/>
+    Download print disabled ebook
+    <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download Protected DAISY"/>
+  </a>
+</p>

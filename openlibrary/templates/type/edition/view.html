@@ -216,15 +216,15 @@ $elif ebook_status == "borrow-user-checkedout":
                 </div>
               </div>
 
-        $ contributors = page.get('contributors', [])
-        $if contributors:
-            <div class="section">
-                <h3 class="collapse">$_("Contributors")</h3>
-                <ul class="contributors">
-                    $for c in contributors:
-                        $:display_contributor(c)
-                </ul>
-            </div>
+          $ contributors = page.get('contributors', [])
+          $if contributors:
+              <div class="section">
+                  <h3 class="collapse">$_("Contributors")</h3>
+                  <ul class="contributors">
+                      $for c in contributors:
+                          $:display_contributor(c)
+                  </ul>
+              </div>
         </div>
 
         <div class="editionAbout">
@@ -354,7 +354,7 @@ $elif ebook_status == "borrow-user-checkedout":
 
 
         <div class="editionTools">
-            $:macros.databarWork(page)
+            $:macros.databarWork(page, editions_page=True)
         </div>
 
     </div>

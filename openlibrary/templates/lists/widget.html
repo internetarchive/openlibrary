@@ -127,9 +127,11 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
             <hr/>
             -->
             <p style="text-align: center;">My Reading Lists</p>
-              $for i, list in enumerate(lists):
+              <div class="my-lists">
+                $for i, list in enumerate(lists):
                   $if not list.active:
                       <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+              </div>
               <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
                   <a href="javascript:;" class="hidden listClick"></a>
               </p>
