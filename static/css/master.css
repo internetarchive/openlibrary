@@ -3986,7 +3986,7 @@ select#select-id {
 .wait-btn {
     background: #389ad4;
     border: none;
-    background-color: #ffa337;    
+    background-color: #ffa337;
 
 }
 
@@ -5778,7 +5778,7 @@ div#listsWork div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin
 div#listsWork div.dropper div.dropdown p span {font-size:.8125em;}
 div#listsWork div.dropper div.dropdown p a {font-size:.875em;}
 div#listsWork div.dropper div.dropdown {
-    border-top: 1px solid #ddd;    
+    border-top: 1px solid #ddd;
     display:none;
     padding-top:10px;
 }
@@ -6840,7 +6840,7 @@ form#addAuthor.olform .wmd-preview {
 .manageCoversContainer a {
     display: block;
     text-decoration: none;
-    opacity: 0;    
+    opacity: 0;
 }
 
 .manageCoversContainer a:hover, .manageCoversContainer a:focus {
