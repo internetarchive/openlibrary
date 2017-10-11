@@ -44,10 +44,16 @@ class home(delegate.page):
         )
         return page
 
+CAROUSELS_PRESETS = {
+    'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"'
+}
 
 def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
+
+    if query in CAROUSELS_PRESETS:
+        query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
     books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
@@ -55,10 +61,10 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
     return formatted_books
 
 @public
-def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
+def generic_carousel(key, query=None, subject=None, sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
+        get_ia_carousel_books, memcache_key, timeout=timeout or DEFAULT_CACHE_LIFETIME)
     books = cached_ia_carousel_books(query=query, subject=subject, sorts=sorts, limit=limit)
     random.shuffle(books)
     return storify(books)
