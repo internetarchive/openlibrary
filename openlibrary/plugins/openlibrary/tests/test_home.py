@@ -120,7 +120,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/index", stats=stats, test=True))
 
         headers = ["Books We Love", "Recently Returned", "Success",
-                   "College Prep", "Romance", "Cooking", "Technical Books",
+                   "Thrillers", "Romance", "Technical Books",
                    "Classic Literature", "Textbooks", "Science Fiction",
                    "Biographies", "Mysteries"]
 

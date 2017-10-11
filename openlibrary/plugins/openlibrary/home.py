@@ -45,7 +45,7 @@ class home(delegate.page):
         return page
 
 CAROUSELS_PRESETS = {
-    'preset:thrillers': '(creator:"Stephen King" OR creator:"Tom Clancy" OR creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Jack Higgins") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"'
+    'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"'
 }
 
 def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
@@ -57,15 +57,14 @@ def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
 
     limit = limit or lending.DEFAULT_IA_RESULTS
     books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
-    print(books)
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
 
 @public
-def generic_carousel(key, query=None, subject=None, sorts=None, limit=None):
+def generic_carousel(key, query=None, subject=None, sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books, memcache_key, timeout=DEFAULT_CACHE_LIFETIME)
+        get_ia_carousel_books, memcache_key, timeout=timeout or DEFAULT_CACHE_LIFETIME)
     books = cached_ia_carousel_books(query=query, subject=subject, sorts=sorts, limit=limit)
     random.shuffle(books)
     return storify(books)
