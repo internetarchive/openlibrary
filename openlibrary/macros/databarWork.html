@@ -95,14 +95,14 @@ $ library = None
           </div>
         </div>
   $elif not page.is_access_restricted():
-	<div class="panel">
+        <div class="panel">
             <p class="smaller">No readable version available.</p>
-	</div>
+        </div>
   </div>
 
   $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
     <div>
-	<div class="panel">
+        <div class="panel">
             $if 'lendinglibrary' in collections or library:
                 $ current_and_available_loans = page.get_current_and_available_loans()
                 $ user_loan = None
@@ -132,10 +132,10 @@ $else:
         <h3 class="closed">
             <span class="icon borrowinact"></span>
             <span class="head">Borrow</span>
-	</h3>
-	<div class="panel">
+        </h3>
+        <div class="panel">
             <p class="smaller">Try a <a href="https://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
-	</div>
+        </div>
     </div>
 
 $if isbn or asin or scribd:
@@ -153,13 +153,13 @@ $else:
         <h3 class="closed">
             <span class="icon buyinact"></span>
             <span class="head">Buy</span>
-	</h3>
-	<div class="panel">
+        </h3>
+        <div class="panel">
             $if page.is_fake_record():
                 <p class="smaller gray"><span id="isbnadd">Add an ISBN</span> <span class="smaller">to link to booksellers</span></p>
-	    $else:
+            $else:
                 <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
-	</div>
+        </div>
     </div>
 
 $ links = page.get_links()
