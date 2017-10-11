@@ -117,18 +117,19 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template("covers/change", page, ".bookCover img")
             </div>
 
-            $if "lists" in ctx.features:
-              <div class="user-book-options">
+            <div class="user-book-options">
+              $if "lists" in ctx.features:
                 <div class="Tools tools-override">
                   $:render_template("lists/widget", page, include_header=False)
                 </div>
-              </div>
-            
-            $if page.edition_count == 1:
-                <div class="editionTools">
+
+              $if page.edition_count == 1:
+                <div class="editionTools tools-override">
                     $ book = page.get_one_edition()
                     $ links = book.get_links()
                     $:macros.databarWork(book)
+
+
                     $if links:
                         <div class="section">
                           <h3>Links <span class="gray small sansserif">($_("leaves Open Library"))</span></h3>
@@ -138,6 +139,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                           </ul>
                         </div>
                 </div>
+            </div>
         </div>
 
         <div class="workAbout">

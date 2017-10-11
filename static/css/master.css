@@ -3972,7 +3972,7 @@ select#select-id {
     max-width: 300px;
 }
 
-.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn  {
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn {
     margin: 1px auto;
     color: white;
     background: #3b99fc;
@@ -6863,10 +6863,22 @@ div.tools-override {
     padding: 0px;
 }
 
+div.tools-override .Tools .btn-notice{
+    width: 160px;
+    margin-left: 45px;
+}
+
 .user-book-options div.tools-override div.dropit {
     margin: 0px;
     position: relative;
     width: auto;
+}
+
+.user-book-options .Tools {
+    margin: 0 auto;
+}
+
+.user-book-options .Tools .btn-notice {
 }
 
 div.tools-override div.dropper {
@@ -6925,8 +6937,7 @@ div.tools-override div.dropper {
 
 .Tools .check-availability {
     padding: 10px;
-    background-color: #f7f7f7;
-    border: 1px solid #eee;
+    background-color: rgba(3, 109, 170, 0.05);
     border-bottom: 1px solid #ddd;
     border-radius: 3px;
 }
@@ -6940,8 +6951,8 @@ div.tools-override div.dropper {
 }
 
 .Tools .check-availability p.check-other-editions a {
-    color: #fff;
-    font-size: .9em;
+    font-size: 1.1em;
+    text-decoration: underline;
 }
 
 Tools .check-availability a {
@@ -6971,4 +6982,14 @@ p.print-disabled-download {
 .daisy-lock {
     position: relative;
     top: 1px;
+}
+
+.lists-loader {
+    position: absolute;
+    margin-left: 70px;
+    height: 20px;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.58);
+    border-radius: 15px;
+    margin-top: 3px;
 }

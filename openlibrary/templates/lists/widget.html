@@ -97,13 +97,15 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
         <div class="dropper on">
           $if work_key:
             <div class="work-likes">
+              <img src="https://openlibrary.org/static/images/ajax-loader.gif" class="hidden lists-loader"/>
+
               <form method="POST" action="$(work_key)/likes.json?debug=true">
                 $if user_likes:
                   <input type="hidden" name="action" value="$(next_action)"/>
                   $if edition_key:
                     <input type="hidden" name="edition_id" value="$(edition_key)"/>
 
-                  <button class="$(activation_status)" type="submit">
+                  <button class="book-progress-btn want-to-read $(activation_status)" type="submit">
                     $if(activation_status == "activated"):
                       <span class="activated-check">✓</span> Want to Read
                     $else:
@@ -242,6 +244,14 @@ $if ctx.user:
     // Lists API
 
     Lists = {
+        wantToRead: function(success) {
+            this.ajax({
+                url: "$(work_key)/likes.json",
+                data: {
+                    action: \$('input[name=action]).val(),
+                    edition_id: \$('input[name=edition_id]).val(),
+                }
+        }),
         create: function(user, data, success, complete) {
             this.ajax({
                 url: user + "/lists.json",
@@ -469,6 +479,12 @@ $if ctx.user:
         })
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
         \$('.dropdown').append(listcreate);
+
+        \$('.book-progress-btn').live('click', function(e) {
+           \$('.lists-loader').removeClass('hidden');
+           //e.preventDefault();
+        });
+
     });
 
     </script>
