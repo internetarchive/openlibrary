@@ -102,6 +102,9 @@ def setup(config):
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, advanced=True):
+    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
+    query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
+
     q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
     if query:
         q += " AND " + query

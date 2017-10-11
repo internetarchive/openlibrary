@@ -44,10 +44,16 @@ class home(delegate.page):
         )
         return page
 
+CAROUSELS_PRESETS = {
+    'preset:thrillers': '(creator:"Stephen King" OR creator:"Tom Clancy" OR creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("James Rollins") OR creator:("Rollins, James") OR creator:("Jack Higgins") OR creator:("Higgins, Jack")) AND languageSorter:"English"'
+}
 
 def get_ia_carousel_books(query=None, subject=None, sorts=None, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
+
+    if query in CAROUSELS_PRESETS:
+        query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
     books = lending.get_available(limit=limit, subject=subject, sorts=sorts, query=query)
