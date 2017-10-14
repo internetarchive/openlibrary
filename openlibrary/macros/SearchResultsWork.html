@@ -2,10 +2,10 @@ $def with (doc)
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if doc.get('cover_i'):
-        $ cover =  get_coverstore_url() + "/b/id/%s-S.jpg" % doc.cover_i
+    $if doc.get('cover_i') or doc.get('covers'):
+        $ cover =  get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or doc.covers[0])
     $elif doc.get('cover_edition_key'):
-        $ cover = get_coverstore_url() + "/b/olid/%s-S.jpg" % doc.cover_edition_key
+        $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
     $elif doc.ia:
         $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.ia[0]
     $else:
@@ -26,7 +26,7 @@ $def with (doc)
           <em>Unknown author</em>
         $else:
           $for a in doc.authors:
-            <a itemprop="author" href="$(a.get('url') or a.key)" class="results">$a.name</a>$(',' if not loop.last else '')
+            <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
               $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")

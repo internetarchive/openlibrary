@@ -406,7 +406,9 @@ class Likes(object):
 
     @classmethod
     def get_users_likes(cls, username):
-        pass
+        oldb = db.get_db()
+        return [x.work_id for x in oldb.select('likes', where="username=$username",
+                           vars={'username': username})]
 
     @classmethod
     def get_most_liked_works(cls):
@@ -575,6 +577,11 @@ class User(Thing):
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
+
+    def get_likes(self):
+        work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
+        works = web.ctx.site.get_many(work_olids)
+        return works
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.

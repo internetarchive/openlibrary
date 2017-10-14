@@ -1,0 +1,19 @@
+$def with (wishlist)
+
+<script type="text/javascript">
+<!--
+    \$().ready(bookCovers);
+//-->
+</script>
+
+<div id="contentHead">
+  <h2>Want to Read</h2>
+  <div class="resultsContainer">
+    <div id="searchResults">
+      <ul id="siteSearch">
+        $for work in wishlist:
+          $:macros.SearchResultsWork(work)
+      </ul>
+    </div>
+  </div>
+</div>
