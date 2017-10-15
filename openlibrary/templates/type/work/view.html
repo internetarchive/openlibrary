@@ -248,6 +248,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             <div class="clearfix"></div>
             $:render_template("type/work/editions_datatable", page)
 
+        <div class="clearfix">
+          $ subject = page.get_random_subject()
+          $if subject:
+              $:render_template("home/subject_carousel", subject.lower().replace(' ', '_'), title="You may also be interested in: " + subject, delay=500)
+        </div>
+
         $:render_template("lib/history", page)
     </div>
 </div>
