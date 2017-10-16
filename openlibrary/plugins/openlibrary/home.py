@@ -66,7 +66,6 @@ def generic_carousel(key, query=None, subject=None, sorts=None, limit=None, time
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books, memcache_key, timeout=timeout or DEFAULT_CACHE_LIFETIME)
     books = cached_ia_carousel_books(query=query, subject=subject, sorts=sorts, limit=limit)
-    random.shuffle(books)
     return storify(books)
 
 @public
