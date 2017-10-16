@@ -101,7 +101,8 @@ def setup(config):
         amazon_api = None
 
 @public
-def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, advanced=True):
+def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
+                   _type=None, sorts=None, advanced=True):
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
 
@@ -110,6 +111,22 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, adv
         q += " AND " + query
     if subject:
         q += " AND openlibrary_subject:" + subject
+
+    if work_id:
+        work = web.ctx.site.get(work_id)
+        if work and _type.lower() in ["authors", "subjects"]:
+            if _type == "authors":
+                authors = []
+                for author in work.get_authors():
+                    authors.append(author.name)
+                    authors.append(','.join(author.name.split(' ', 1)[::-1]))
+                _q = ' OR '.join(['creator:(%s)' % author for author in authors])                
+            elif _type == "subjects":
+                subjects = work.get_realted_books_subjects()
+                _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])
+            if not _q:
+                return []
+            q += ' AND (%s)' % (_q)
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -130,7 +147,8 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, sorts=None, adv
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
     return url
 
-def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
+def get_available(limit=None, page=1, subject=None, query=None,
+                  work_id=None, _type=None, sorts=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -139,8 +157,8 @@ def get_available(limit=None, page=1, subject=None, query=None, sorts=None):
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query, sorts=sorts)
-
+    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
+                         work_id=work_id, _type=_type, sorts=sorts)
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])

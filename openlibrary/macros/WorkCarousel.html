@@ -1,0 +1,5 @@
+$def with(work)
+
+$:render_template("home/custom_ia_carousel", title="You may also like:", key="related-subjects-carousel", work_id=work.key, _type="subjects", limit=42)
+
+$:render_template("home/custom_ia_carousel", title="More by this author:", key="related-authors-carousel", work_id=work.key, _type="authors", limit=42)

@@ -580,7 +580,23 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
-    def get_random_subject(self):
+    def get_realted_books_subjects(self):
+        blacklist = ['accessible_book', 'protected_daisy',
+                     'in_library', 'overdrive', 'large_type_books',
+                     'internet_archive_wishlist', 'fiction',
+                     'popular_print_disabled_books',
+                     'fiction_in_english', 'open_library_staff_picks',
+                     'inlibrary', 'printdisabled', 'browserlending',
+                     'biographies']
+        subjects = self.get_subjects()
+        ok_subjects = []
+        for subject in subjects:
+            # Here, ( breaks our subject carousels. Excluding these for now.
+            if subject.lower().replace(' ', '_') not in blacklist and '(' not in subject:
+                ok_subjects.append(subject)
+        return ok_subjects
+
+    def get_random_subjects(self):
         blacklist = ['accessible_book', 'protected_daisy', 'in_library']
         subjects = self.get_subjects()
         for i, subject in enumerate(subjects):

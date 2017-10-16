@@ -391,9 +391,7 @@ $elif ebook_status == "borrow-user-checkedout":
     </div>
 
     $ work = page.works and page.works[0]
-    $ subject = work.get_random_subject()
-    $if subject:
-        $:render_template("home/subject_carousel", subject.lower().replace(' ', '_'), title=subject, delay=500)
+    $:macros.WorkCarousel(work)
 
     $if ctx.user and ctx.user.is_admin():
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$page.url('/borrow_admin')">View loan debugging information</a></span></div>
