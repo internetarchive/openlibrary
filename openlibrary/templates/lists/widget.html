@@ -97,8 +97,6 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
         <div class="dropper on">
           $if work_key:
             <div class="work-likes">
-              <img src="https://openlibrary.org/static/images/ajax-loader.gif" class="hidden lists-loader"/>
-
               <form method="POST" action="$(work_key)/likes.json?debug=true">
                 $if user_likes:
                   <input type="hidden" name="action" value="$(next_action)"/>
@@ -248,10 +246,11 @@ $if ctx.user:
             this.ajax({
                 url: "$(work_key)/likes.json",
                 data: {
-                    action: \$('input[name=action]).val(),
-                    edition_id: \$('input[name=edition_id]).val(),
+                    action: \$('input[name=action]').val(),
+                    edition_id: \$('input[name=edition_id]').val()
                 }
-        }),
+            });
+        },
         create: function(user, data, success, complete) {
             this.ajax({
                 url: user + "/lists.json",
@@ -481,7 +480,7 @@ $if ctx.user:
         \$('.dropdown').append(listcreate);
 
         \$('.book-progress-btn').live('click', function(e) {
-           \$('.lists-loader').removeClass('hidden');
+           \$('.book-progress-btn').text("saving...");
            //e.preventDefault();
         });
 
