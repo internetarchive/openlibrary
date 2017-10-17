@@ -328,7 +328,7 @@ def test_from_marc(mock_site):
 def test_real_example(mock_site):
     add_languages(mock_site)
 
-    src = 'v38.i37.records.utf8:16478504:1254'
+    src = 'v38.i37.records.utf8--16478504-1254'
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
@@ -338,7 +338,7 @@ def test_real_example(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
-    src = 'v39.i28.records.utf8:5362776:1764'
+    src = 'v39.i28.records.utf8--5362776-1764'
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
@@ -508,7 +508,7 @@ def test_no_extra_author(mock_site):
     }
     mock_site.save(edition)
 
-    src = 'v39.i34.records.utf8:186503:1413'
+    src = 'v39.i34.records.utf8--186503-1413'
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
