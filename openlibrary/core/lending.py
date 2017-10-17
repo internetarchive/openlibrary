@@ -106,7 +106,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
 
-    q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE'
+    q = 'collection:(inlibrary) AND loans__status__status:AVAILABLE AND openlibrary_work:(*)'
     if query:
         q += " AND " + query
     if subject:
@@ -120,7 +120,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                 for author in work.get_authors():
                     authors.append(author.name)
                     authors.append(','.join(author.name.split(' ', 1)[::-1]))
-                _q = ' OR '.join(['creator:(%s)' % author for author in authors])                
+                _q = ' OR '.join(['creator:(%s)' % author for author in authors])
             elif _type == "subjects":
                 subjects = work.get_realted_books_subjects()
                 _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])

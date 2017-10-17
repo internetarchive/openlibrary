@@ -4,7 +4,6 @@ import urllib2
 import simplejson
 import re
 from collections import defaultdict
-import random
 
 from infogami import config
 from infogami.infobase import client
@@ -588,23 +587,15 @@ class Work(models.Work):
                      'fiction_in_english', 'open_library_staff_picks',
                      'inlibrary', 'printdisabled', 'browserlending',
                      'biographies']
+        blacklist_chars = ['(', ',', '\'']
         subjects = self.get_subjects()
         ok_subjects = []
         for subject in subjects:
             # Here, ( breaks our subject carousels. Excluding these for now.
-            if subject.lower().replace(' ', '_') not in blacklist and '(' not in subject:
+            if (subject.lower().replace(' ', '_') not in blacklist and
+                all([not char in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects
-
-    def get_random_subjects(self):
-        blacklist = ['accessible_book', 'protected_daisy', 'in_library']
-        subjects = self.get_subjects()
-        for i, subject in enumerate(subjects):
-            # Here, ( breaks our subject carousels. Excluding these for now.
-            if subject.lower().replace(' ', '_') in blacklist or '(' in subject:
-                subjects.pop(i)
-        if subjects:
-            return random.choice(subjects)
 
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""

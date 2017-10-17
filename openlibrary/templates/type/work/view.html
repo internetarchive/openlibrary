@@ -116,7 +116,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 $:render_template('covers/book_cover', page)
                 $:render_template("covers/change", page, ".bookCover img")
             </div>
-            
+
             $if page.edition_count == 1:
                 <div class="editionTools">
                     $ book = page.get_one_edition()
@@ -248,7 +248,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             <div class="clearfix"></div>
             $:render_template("type/work/editions_datatable", page)
 
-        $:macros.WorkCarousel(page)
+        $:macros.RelatedWorksCarousel(page)
 
         $:render_template("lib/history", page)
     </div>
