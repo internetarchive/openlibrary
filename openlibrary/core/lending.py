@@ -12,6 +12,8 @@ import urllib2
 from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
+from infogami.utils import delegate
+from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from . import ia
@@ -40,6 +42,8 @@ BOOKREADER_AUTH_SECONDS = 10*60
 LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
+
+CACHE_WORKS_DURATION = 60 * 60 * 12
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -100,6 +104,16 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
+def get_works_authors_and_subjects(work_id):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    work = web.ctx.site.get(work_id)
+    return {
+        'authors': [author.name for author in work.get_authors()],
+        'subjects': work.get_related_books_subjects()
+    }
+
+
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
@@ -113,20 +127,29 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
         q += " AND openlibrary_subject:" + subject
 
     if work_id:
-        work = web.ctx.site.get(work_id)
-        if work and _type.lower() in ["authors", "subjects"]:
-            if _type == "authors":
-                authors = []
-                for author in work.get_authors():
-                    authors.append(author.name)
-                    authors.append(','.join(author.name.split(' ', 1)[::-1]))
-                _q = ' OR '.join(['creator:(%s)' % author for author in authors])
-            elif _type == "subjects":
-                subjects = work.get_realted_books_subjects()
-                _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])
+        if _type.lower() in ["authors", "subjects"]:
+            get_cached_works_authors_and_subjects = cache.memcache_memoize(
+                get_works_authors_and_subjects, 'works_authors_and_subjects', timeout=CACHE_WORKS_DURATION)
+
+            _q = None
+            works_authors_and_subjects = get_cached_works_authors_and_subjects(work_id)
+            if works_authors_and_subjects:
+                if _type == "authors":
+                    authors = []
+                    for author in works_authors_and_subjects.get('authors', []):
+                        _author = author if isinstance(author, str) else author.name
+                        authors.append(_author)
+                        authors.append(','.join(_author.split(' ', 1)[::-1]))
+                    if authors:
+                        _q = ' OR '.join(['creator:(%s)' % author for author in authors])
+                elif _type == "subjects":
+                    subjects = works_authors_and_subjects.get('subjects', [])
+                    if subjects:
+                        _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])
+
             if not _q:
                 return []
-            q += ' AND (%s)' % (_q)
+            q += ' AND (%s)' % _q
 
     if not advanced:
         _sort = sorts[0] if sorts else ''
@@ -145,6 +168,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     rows = limit or DEFAULT_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
+    print(url)
     return url
 
 def get_available(limit=None, page=1, subject=None, query=None,

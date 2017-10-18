@@ -579,7 +579,7 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
-    def get_realted_books_subjects(self):
+    def get_related_books_subjects(self):
         blacklist = ['accessible_book', 'protected_daisy',
                      'in_library', 'overdrive', 'large_type_books',
                      'internet_archive_wishlist', 'fiction',
