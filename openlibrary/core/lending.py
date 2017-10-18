@@ -104,7 +104,7 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
-def get_works_authors_and_subjects(work_id):
+def get_work_authors_and_subjects(work_id):
     if 'env' not in web.ctx:
         delegate.fakeload()
     work = web.ctx.site.get(work_id)
@@ -113,7 +113,11 @@ def get_works_authors_and_subjects(work_id):
         'subjects': work.get_related_books_subjects()
     }
 
-
+@public
+def cached_work_authors_and_subjects(work_id):
+    return cache.memcache_memoize(
+        get_work_authors_and_subjects, 'works_authors_and_subjects', timeout=CACHE_WORKS_DURATION)(work_id)
+            
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
@@ -128,11 +132,8 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
 
     if work_id:
         if _type.lower() in ["authors", "subjects"]:
-            get_cached_works_authors_and_subjects = cache.memcache_memoize(
-                get_works_authors_and_subjects, 'works_authors_and_subjects', timeout=CACHE_WORKS_DURATION)
-
             _q = None
-            works_authors_and_subjects = get_cached_works_authors_and_subjects(work_id)
+            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
             if works_authors_and_subjects:
                 if _type == "authors":
                     authors = []
