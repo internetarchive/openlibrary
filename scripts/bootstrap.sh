@@ -105,24 +105,16 @@ chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
 cd $OL_ROOT && make
 
 cp $OL_ROOT/conf/init/* /etc/init/
-cd $OL_ROOT/conf/init
-for name in ol-*
-do
-	echo starting ${name//.conf}
-	initctl start ${name//.conf} || initctl restart ${name//.conf}
-done
+
+ln -sf $OL_ROOT/scripts/ol-start.sh /etc/init.d/ol-start
+chmod +x /etc/init.d/ol-start
+/etc/init.d/ol-start
 
 if [ "$REINDEX_SOLR" == "yes" ]
 then
     cd $OL_ROOT
     sudo -u $OL_USER make reindex-solr
 fi
-
-echo "sudo service nginx restart
-cd /openlibrary/conf/init
-for name in ol-*; do echo starting ${name//.conf}; sudo initctl start ${name//.conf} || sudo initctl restart ${name//.conf}; done" > /etc/init.d/ol-start
-
-chmod +x /etc/init.d/ol-start
 
 echo "/etc/init.d/ol-start
 exit 0" > /etc/rc.local
