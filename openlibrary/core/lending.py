@@ -104,20 +104,21 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
-def get_work_authors_and_subjects(work_id):
+def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
         delegate.fakeload()
     work = web.ctx.site.get(work_id)
     return {
-        'authors': [author.name for author in work.get_authors()],
+        'authors': work.get_author_names(blacklist=['anonymous']),
         'subjects': work.get_related_books_subjects()
     }
 
 @public
 def cached_work_authors_and_subjects(work_id):
     return cache.memcache_memoize(
-        get_work_authors_and_subjects, 'works_authors_and_subjects', timeout=CACHE_WORKS_DURATION)(work_id)
-            
+        get_work_authors_and_related_subjects, 'works_authors_and_subjects',
+        timeout=CACHE_WORKS_DURATION)(work_id)
+
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
@@ -137,17 +138,15 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
             if works_authors_and_subjects:
                 if _type == "authors":
                     authors = []
-                    for author in works_authors_and_subjects.get('authors', []):
-                        _author = author if isinstance(author, str) else author.name
-                        authors.append(_author)
-                        authors.append(','.join(_author.split(' ', 1)[::-1]))
+                    for author_name in works_authors_and_subjects.get('authors', []):
+                        authors.append(author_name)
+                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
                     if authors:
                         _q = ' OR '.join(['creator:(%s)' % author for author in authors])
                 elif _type == "subjects":
                     subjects = works_authors_and_subjects.get('subjects', [])
                     if subjects:
                         _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])
-
             if not _q:
                 return []
             q += ' AND (%s)' % _q
@@ -169,7 +168,6 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     rows = limit or DEFAULT_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
-    print(url)
     return url
 
 def get_available(limit=None, page=1, subject=None, query=None,

@@ -559,6 +559,14 @@ class Work(models.Work):
         cover = self.get_cover(use_solr=use_solr)
         return cover and cover.url(size)
 
+    def get_author_names(self, blacklist=None):
+        author_names = []
+        for author in self.get_authors():
+            author_name = author if isinstance(author, str) else author.name
+            if not blacklist or author_name.lower() not in blacklist:
+                author_names.append(author_name)
+        return author_names
+
     def get_authors(self):
         authors =  [a.author for a in self.authors]
         authors = [follow_redirect(a) for a in authors]
@@ -579,21 +587,22 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
-    def get_related_books_subjects(self):
+    def get_related_books_subjects(self, filter_unicode=True):
         blacklist = ['accessible_book', 'protected_daisy',
                      'in_library', 'overdrive', 'large_type_books',
                      'internet_archive_wishlist', 'fiction',
                      'popular_print_disabled_books',
                      'fiction_in_english', 'open_library_staff_picks',
                      'inlibrary', 'printdisabled', 'browserlending',
-                     'biographies']
-        blacklist_chars = ['(', ',', '\'']
-        subjects = self.get_subjects()
+                     'biographies', 'open_syllabus_project', 'history']
+        blacklist_chars = ['(', ',', '\'', ':', '&']
         ok_subjects = []
-        for subject in subjects:
-            # Here, ( breaks our subject carousels. Excluding these for now.
-            if (subject.lower().replace(' ', '_') not in blacklist and
-                all([not char in subject for char in blacklist_chars])):
+        for subject in self.get_subjects():
+            _subject = subject.lower().replace(' ', '_')
+            subject = subject.replace('_', ' ')
+            if (_subject not in blacklist and
+                (not filter_unicode or type(subject) is not unicode) and
+                all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects
 
