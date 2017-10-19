@@ -559,6 +559,15 @@ class Work(models.Work):
         cover = self.get_cover(use_solr=use_solr)
         return cover and cover.url(size)
 
+    def get_author_names(self, blacklist=None):
+        author_names = []
+        for author in self.get_authors():
+            author_name = (author if isinstance(author, basestring)
+                           else author.name)
+            if not blacklist or author_name.lower() not in blacklist:
+                author_names.append(author_name)
+        return author_names
+
     def get_authors(self):
         authors =  [a.author for a in self.authors]
         authors = [follow_redirect(a) for a in authors]
@@ -578,6 +587,32 @@ class Work(models.Work):
         if subjects and not isinstance(subjects[0], basestring):
             subjects = [flip(s.name) for s in subjects]
         return subjects
+
+    @staticmethod
+    def filter_problematic_subjects(subjects, filter_unicode=True):
+        blacklist = ['accessible_book', 'protected_daisy',
+                     'in_library', 'overdrive', 'large_type_books',
+                     'internet_archive_wishlist', 'fiction',
+                     'popular_print_disabled_books',
+                     'fiction_in_english', 'open_library_staff_picks',
+                     'inlibrary', 'printdisabled', 'browserlending',
+                     'biographies', 'open_syllabus_project', 'history',
+                     'long_now_manual_for_civilization', 'Popular works']
+        blacklist_chars = ['(', ',', '\'', ':', '&', '-', '.']
+        ok_subjects = []
+        for subject in subjects:
+            _subject = subject.lower().replace(' ', '_')
+            subject = subject.replace('_', ' ')
+            if (_subject not in blacklist and
+                (not filter_unicode or (
+                    subject.replace(' ', '').isalnum() and 
+                    type(subject) is not unicode)) and
+                all([char not in subject for char in blacklist_chars])):
+                ok_subjects.append(subject)
+        return ok_subjects        
+
+    def get_related_books_subjects(self, filter_unicode=True):
+        return self.filter_problematic_subjects(self.get_subjects())
 
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""

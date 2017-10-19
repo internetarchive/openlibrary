@@ -93,11 +93,6 @@ $def display_goodreads(label, ids):
                     $for id in ids:
                         <a href="$id.url">$id.value</a>
                     </span>
-                    <div id="gr_add_to_books">
-                        <div class="gr_custom_each_container_">
-                            <iframe height="110" width="280" frameborder="0" scrolling="no" src="//archive.org/openlibrary/goodreads_proxy.php?id=$id.value" /></iframe>
-                        </div>
-                    </div>
                 </td>
             </tr>
             </tbody>
@@ -388,6 +383,9 @@ $elif ebook_status == "borrow-user-checkedout":
         </div>
 
     </div>
+
+    $ work = page.works and page.works[0]
+    $:macros.RelatedWorksCarousel(work)
 
     $if ctx.user and ctx.user.is_admin():
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$page.url('/borrow_admin')">View loan debugging information</a></span></div>
