@@ -109,8 +109,8 @@ def get_work_authors_and_related_subjects(work_id):
         delegate.fakeload()
     work = web.ctx.site.get(work_id)
     return {
-        'authors': work.get_author_names(blacklist=['anonymous']),
-        'subjects': work.get_related_books_subjects()
+        'authors': work.get_author_names(blacklist=['anonymous']) if work else [],
+        'subjects': work.get_related_books_subjects() if work else []
     }
 
 @public
@@ -142,14 +142,14 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                         authors.append(author_name)
                         authors.append(','.join(author_name.split(' ', 1)[::-1]))
                     if authors:
-                        _q = ' OR '.join(['creator:(%s)' % author for author in authors])
+                        _q = ' OR '.join(['creator:"%s"' % author for author in authors])
                 elif _type == "subjects":
                     subjects = works_authors_and_subjects.get('subjects', [])
                     if subjects:
-                        _q = ' OR '.join(['subject:(%s)' % subject for subject in subjects])
+                        _q = ' OR '.join(['subject:"%s"' % subject for subject in subjects])
             if not _q:
                 return []
-            q += ' AND (%s)' % _q
+            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
 
     if not advanced:
         _sort = sorts[0] if sorts else ''

@@ -562,7 +562,7 @@ class Work(models.Work):
     def get_author_names(self, blacklist=None):
         author_names = []
         for author in self.get_authors():
-            author_name = author if isinstance(author, str) else author.name
+            author_name = author if isinstance(author, basestring) else author.name
             if not blacklist or author_name.lower() not in blacklist:
                 author_names.append(author_name)
         return author_names
