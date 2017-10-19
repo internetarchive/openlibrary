@@ -1,7 +1,7 @@
 $def with(work)
 
 $ work_subjects_authors = cached_work_authors_and_subjects(work.key)
-$ authors = ', '.join([author if isinstance(author, str) else author.name for author in work_subjects_authors.get('authors', [])])
+$ authors = ', '.join([author if isinstance(author, basestring) else author.name for author in work_subjects_authors.get('authors', [])])
 
 $if work:
     $:render_template("home/custom_ia_carousel", title="You might also like", key="related-subjects-carousel", work_id=work.key, _type="subjects", limit=42, min_books=1)
