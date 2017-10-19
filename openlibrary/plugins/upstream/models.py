@@ -594,7 +594,8 @@ class Work(models.Work):
                      'popular_print_disabled_books',
                      'fiction_in_english', 'open_library_staff_picks',
                      'inlibrary', 'printdisabled', 'browserlending',
-                     'biographies', 'open_syllabus_project', 'history']
+                     'biographies', 'open_syllabus_project', 'history',
+                     'long_now_manual_for_civilization', 'Popular works']
         blacklist_chars = ['(', ',', '\'', ':', '&']
         ok_subjects = []
         for subject in self.get_subjects():
