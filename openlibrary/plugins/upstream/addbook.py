@@ -826,7 +826,8 @@ class authors_autocomplete(delegate.page):
         q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
         params = {
             'q_op': 'AND',
-            'sort': 'work_count desc'
+            'sort': 'work_count desc',
+            'rows': i.limit
         }
         if config.get('single_core_solr'):
             params['fq'] = 'type:author'
