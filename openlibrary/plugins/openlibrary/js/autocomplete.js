@@ -78,7 +78,7 @@
             autoFill: true,
             mustMatch: true,
             parse: function(text) {
-                var rows = JSON.parse(text).slice(0, options.max-1);
+                var rows = JSON.parse(text);
                 var parsed = [];
                 for (var i=0; i < rows.length; i++) {
                     var row = rows[i];
