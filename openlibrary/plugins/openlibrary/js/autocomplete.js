@@ -4,25 +4,20 @@
     // author-autocomplete
     $.fn.author_autocomplete = function(options) {
         var local_options = {
+            addnew: true,
+
             minChars: 2,
             max: 11,
-            addnew: true,
+            matchSubset: false,
             autoFill: false,
             formatItem: function(item) {
-                var date = '';
-                if (item.key != "__new__") {
-                    if (item.birth_date || item.death_date) {
-                        date = ' (';
-                        if (item.birth_date) {
-                            date += item.birth_date;
-                        }
-                        date += '-';
-                        if (item.death_date) {
-                            date += item.death_date;
-                        }
-                        date += ' )';
-                    }
+                var author_lifespan = '';
+                if (item.birth_date || item.death_date) {
+                    var birth = item.birth_date || ' ';
+                    var death = item.death_date || ' ';
+                    author_lifespan = ' (' + birth + '-' + death + ')';
                 }
+
                 if (item.key == "__new__") {
                     return '' +
                         '<div class="ac_author ac_addnew" title="Add a new author">' +
@@ -32,20 +27,20 @@
                 }
                 else if (item.work_count == 0) {
                     return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item['name'] + date + '</span>' +
-                               '<span class="subject">No books associated with ' + item['name'] +'</span>' +
+                               '<span class="name">' + item.name + author_lifespan + '</span>' +
+                               '<span class="subject">No books associated with ' + item.name +'</span>' +
                            '</div>';
                 }
                 else if (item.work_count == 1) {
                     return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item['name'] + date + '</span>' +
+                               '<span class="name">' + item.name + author_lifespan + '</span>' +
                                '<span class="books">1 book</span> <span class="work">titled <i>' + (item.works[0]) + '</i></span><br/>' +
                                '<span class="subject">Subjects: ' + (item.subjects && item.subjects.join(", ") || "") + '</span>' +
                            '</div>';
                 }
                 else {
                     return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item['name'] + date + '</span>' +
+                               '<span class="name">' + item.name + author_lifespan + '</span>' +
                                '<span class="books">' + (item.work_count) + ' books</span>' +
                                ' <span class="work">including <i>' + (item.works && item.works[0] || "") + '</i></span><br/>' +
                                '<span class="subject">Subjects: ' + (item.subjects && item.subjects.join(", ") || "") + '</span>' +
@@ -83,7 +78,7 @@
             autoFill: true,
             mustMatch: true,
             parse: function(text) {
-                var rows = eval(text).slice(0, options.max-1);
+                var rows = JSON.parse(text);
                 var parsed = [];
                 for (var i=0; i < rows.length; i++) {
                     var row = rows[i];
@@ -104,6 +99,7 @@
                 }
                 return parsed;
             },
+
             formatMatch: function(item) {
                 return item.name;
             }
