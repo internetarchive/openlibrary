@@ -6,11 +6,7 @@ $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 $if oclc_numbers or isbn:
   <div class="worldcat-cta">
     <p>
-    $if oclc_numbers:
-      <a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
-    $elif isbn:
-      <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
-
-  Find a physical copy near you</a> &mdash; powered by <a href="https://worldcat.org">WorldCat</a></p>
+      <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$(worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn))" title="Check WorldCat for an edition near you">Prefer reading the physical book? Find a library with a copy in your area</a> &mdash; powered by <a href="https://worldcat.org">WorldCat</a>
+    </p>
   </div>
 

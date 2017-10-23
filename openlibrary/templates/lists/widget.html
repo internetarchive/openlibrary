@@ -115,7 +115,15 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
                 </a>
             </div>
           $else:
-            <a href="javascript:;" class="dropclick plain">
+            <a href="$('javascript:;' if ctx.user else '/account/login?redir=%s' % page.url())" class="dropclick plain">
+              $if not ctx.user:
+                  <script type="text/javascript">
+                    \$('.dropclick').live('click', debounce(function(){
+                        window.location = "$('/account/login?redir=%s' % page.url())";
+
+                    });
+                  </script>
+              
               <h3>Add to List</h3>
               <div class="arrow"></div>
             </a>
@@ -167,14 +175,11 @@ $if include_header:
     $:render_head()
   </div>
 
-$if not ctx.user and not page_lists and include_widget:
-    <div class="sansserif small">You <em>could</em> add <strong>$title</strong> to a <a href="/lists" title="Learn more about lists">list</a> if you <a href="/account/login" title="Log in or sign up now">log in</a>.</div>
-
 $if include_widget:
-  $if ctx.user and include_widget:
-    <div id="widget-add">
-        $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status)
-    </div>
+  $if include_widget:
+    <div id="widget-add" class="old-style-lists">
+      $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status)
+    </div>      
   $else:
     <div class="dropit">
       <div class="icon list hidetool"></div>

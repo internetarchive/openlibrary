@@ -5784,12 +5784,18 @@ div#listsWork div.dropper div.dropdown {
     padding-top:10px;
 }
 div.dropper div.dropdown div.my-lists {
-    height: 250px;
+    max-height: 250px;
     overflow-y: scroll;
 }
 
-div#subjectLists ul.listLists {float:left;margin-left:0!important;padding:0;}
-div#subjectLists ul.listLists li {list-style-type:none;display:block;float:left;width:282px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-bottom:10px;padding-top:0;}
+div#subjectLists ul.listLists {padding:0;}
+div#subjectLists ul.listLists li {
+    list-style-type:none;display:block;float:left;width:282px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-bottom:10px;padding-top:0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
 div#subjectLists ul.listLists li .image {display:block;float:left;width:34px;min-height:35px;}
 div#subjectLists ul.listLists li .image img {width:24px;}
 div#subjectLists ul.listLists li .data {display:block;float:left;width:248px;}
@@ -6875,6 +6881,12 @@ div.tools-override .Tools .btn-notice{
     width: auto;
 }
 
+div.old-style-lists div.Tools div.dropper {
+    margin: 0px;
+    position: relative;
+    width: auto;
+}
+
 .user-book-options .Tools {
     margin: 0 auto;
 }
@@ -7002,4 +7014,9 @@ p.print-disabled-download {
     padding: 5px;
     margin-bottom: 15px;
     border-radius: 5px;    
+}
+
+a.worldcat-link {
+    text-decoration: underline;
+    
 }
