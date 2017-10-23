@@ -20,7 +20,7 @@ $def with (wishlist)
     <div id="searchResults">
       <ul id="siteSearch">
         $for work in wishlist:
-          $:macros.SearchResultsWork(work)
+          $:macros.SearchResultsWork(work, decorations=macros.LikeButton(work.key.split('/')[-1]))
       </ul>
     </div>
   </div>

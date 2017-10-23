@@ -655,13 +655,13 @@ class account_lists(delegate.page):
         raise web.seeother(user.key + '/lists')
 
 class account_wishlist(delegate.page):
-    path = "/account/wishlist"
+    path = "/account/books-to-read"
 
     @require_login
     def GET(self):
         user = accounts.get_current_user()
         wishlist = user.get_likes()
-        return render['account/wishlist'](wishlist)
+        return render['account/books-to-read'](wishlist)
 
 class account_loans(delegate.page):
     path = "/account/loans"

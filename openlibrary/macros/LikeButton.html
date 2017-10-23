@@ -1,0 +1,8 @@
+$def with (work_key)
+
+<form method="POST" action="/works/$(work_key)/likes.json?debug=true">
+  <input type="hidden" name="action" value="unlike">
+  <button class="book-progress-btn want-to-read activated" type="submit">
+    No longer want to read?
+  </button>
+</form>

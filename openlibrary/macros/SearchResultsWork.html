@@ -1,4 +1,4 @@
-$def with (doc)
+$def with (doc, decorations=None)
 
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
@@ -49,5 +49,9 @@ $def with (doc)
 	    </span>
 	    <span class="label">Download DAISY</span>
 	  </a>
+       $if decorations:
+          <div class="decorations">
+            $:decorations
+          </div>
   </div>
 </li>
