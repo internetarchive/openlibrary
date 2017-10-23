@@ -6884,9 +6884,9 @@ div.tools-override .Tools .btn-notice{
 
 div.tools-override div.dropper {
     z-index:10000;
-    width: 179px;
+    width: 180px;
     top: unset;
-    left: unset;
+    left: -1px;
 }
 
 .tools-override #widget-lists {
