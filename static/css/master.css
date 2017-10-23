@@ -3809,7 +3809,7 @@ div.work {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-
 div.work span.work, div.work span.author {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#615132;font-size:1.125em;}
 div.work span.work {font-weight: 700;}
 div.work span.editions {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#615132;font-size:1.125em;}
-.illustration img {max-width:180px!important;}
+.illustration img {width:180px;}
 #contentOnethird .illustration img, .workCover .illustration img {max-width:270px!important;}
 .illustration .SRPCoverBlank {position:relative;width:148px;height:225px;padding:15px;text-align:center;background:#dedede;font-size:1.0em;display:none;}
 .workCover .illustration .SRPCoverBlank {margin:0 auto;}
