@@ -288,10 +288,7 @@ class Edition(Thing):
     def get_waitinglist_size(self):
         """Returns the number of people on waiting list to borrow this book.
         """
-        ocaid = self.ocaid
-        response = lending.get_availability_of_ocaid(ocaid)
-        availability = response[ocaid] if response else {}
-        return int(availability.get('num_waitlist', 0) or 0)
+        return waitinglist.get_waitinglist_size(self.key)
 
     def get_waitinglist_position(self, user):
         """Returns the position of this user in the waiting list."""
