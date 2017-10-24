@@ -91,7 +91,7 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, activation_status):
+$jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, activation_status, loggedin, pageurl):
     <div class="dropit">
       <div class="icon list hidetool"></div>
         <div class="dropper on">
@@ -115,35 +115,33 @@ $jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, 
                 </a>
             </div>
           $else:
-            <a href="$('javascript:;' if ctx.user else '/account/login?redir=%s' % page.url())" class="dropclick plain">
-              $if not ctx.user:
-                  <script type="text/javascript">
-                    \$('.dropclick').live('click', debounce(function(){
-                        window.location = "$('/account/login?redir=%s' % page.url())";
+              $if loggedin:
+                <a href="javascript:;" class="dropclick plain">
+                  <h3>Add to List</h3>
+                  <div class="arrow"></div>
+                </a>
+                <div class="dropdown">
+                  <!--
+                      <p>Currently Reading</p>
+                  <p>Already Read</p>
+                  <hr/>
+                  -->
+                  <p style="text-align: center;">My Reading Lists</p>
+                  <div class="my-lists">
+                    $for i, list in enumerate(lists):
+                      $if not list.active:
+                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                  </div>
+                  <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                    <a href="javascript:;" class="hidden listClick"></a>
+                  </p>
+                </div>
 
-                    });
-                  </script>
-              
-              <h3>Add to List</h3>
-              <div class="arrow"></div>
-            </a>
-
-          <div class="dropdown">
-            <!--
-            <p>Currently Reading</p>
-            <p>Already Read</p>
-            <hr/>
-            -->
-            <p style="text-align: center;">My Reading Lists</p>
-              <div class="my-lists">
-                $for i, list in enumerate(lists):
-                  $if not list.active:
-                      <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
-              </div>
-              <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                  <a href="javascript:;" class="hidden listClick"></a>
-              </p>
-          </div>
+              $else:
+                <a href="/account/login?redir=$pageurl" class="dropclick plain">              
+                  <h3>Add to List</h3>
+                  <div class="arrow"></div>
+                </a>
       </div>
     </div>
 
@@ -176,10 +174,10 @@ $if include_header:
   </div>
 
 $if include_widget:
-  $if include_widget:
-    <div id="widget-add" class="old-style-lists">
-      $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status)
-    </div>      
+  $if ctx.user or not work_key:
+    <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
+      $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status, ctx.user, page.url())
+    </div>
   $else:
     <div class="dropit">
       <div class="icon list hidetool"></div>
@@ -193,7 +191,7 @@ $if include_widget:
 
                   <button class="unactivated" type="submit">Want to Read</button>
                 </form>
-                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated plain ">
+                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated plain">
                   <div class="arrow arrow-unactivated"></div>
                 </a>
             </div>
@@ -322,10 +320,12 @@ $if ctx.user:
 
     var work_key = '$(work_key)';
     var edition_key = '$(edition_key)';
+    var loggedin = $('true' if ctx.user else 'false');
+    var pageurl = '$(page.url())';
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, user_likes, next_action, activation_status));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, user_likes, next_action, activation_status, loggedin, pageurl));
 
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();

@@ -4106,7 +4106,7 @@ table.identifiers {
 .identifiers.authors td {
         background-color: #fff;
 }
-ul.booklinks li {font-size: .7em; padding-left: 30px;list-style-type:disc;margin:0 0 10px 1.5em}
+ul.booklinks li {font-size: 12px; list-style-type:disc;margin:0 0 10px 20px}
 ul.booklinks li span {display:block;}
 ul.booklinks li div.linkRemove {float:right;padding:0 10px 10px 15px;}
 .section {margin-bottom:25px;}
@@ -6881,10 +6881,20 @@ div.tools-override .Tools .btn-notice{
     width: auto;
 }
 
-div.old-style-lists div.Tools div.dropper {
+/* Author sidebar */
+.Tools #widget-add.old-style-lists div.dropper {
     margin: 0px;
-    position: relative;
-    width: auto;
+    position: absolute;
+    top: 35px;
+    left: 10px;
+    padding: 5px 10px;
+    width: 209px;
+}
+
+#widget-add.old-style-lists div.dropper {
+    margin: 0px;
+    top: 0px;
+    position: absolute;
 }
 
 .user-book-options .Tools {
@@ -7008,15 +7018,23 @@ p.print-disabled-download {
 }
 
 .decorations button {
-    width: 171px;
-    background: #fff;
-    border: 2px solid #333;
-    padding: 5px;
+    cursor: pointer;
+    text-align: center;
+    background: inherit;
+    border: none;
+    padding: 0px;
+    color: #036daa;
+    border-bottom: 1px solid #036daa;
     margin-bottom: 15px;
-    border-radius: 5px;    
+
 }
 
-a.worldcat-link {
+.Tools div.btn-notice a.worldcat-link {
     text-decoration: underline;
-    
+    display: block;
+}
+
+.Tools div.btn-notice span.worldcat-attribution {
+    font-size: .8em;
+    display: block;
 }

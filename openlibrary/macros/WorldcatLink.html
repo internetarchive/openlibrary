@@ -4,9 +4,14 @@ $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 
 $if oclc_numbers or isbn:
+  <hr>
   <div class="worldcat-cta">
     <p>
-      <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$(worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn))" title="Check WorldCat for an edition near you">Prefer reading the physical book? Find a library with a copy in your area</a> &mdash; powered by <a href="https://worldcat.org">WorldCat</a>
+      <strong>Prefer the physical book?</strong>
+      <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$(worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn))" title="Check WorldCat for an edition near you">Check nearby libraries</a>
+      <span class="worldcat-attribution">
+        powered by <a href="https://worldcat.org">WorldCat</a>
+      </span>
     </p>
   </div>
 
