@@ -82,20 +82,21 @@
                 var parsed = [];
                 for (var i=0; i < rows.length; i++) {
                     var row = rows[i];
-                    parsed[parsed.length] = {
+                    parsed.push({
                         data: row,
                         value: row.name,
                         result: row.name
-                    };
+                    });
                 }
                 if (options.addnew) {
                     // XXX: this won't work when _this is multiple values (like $("input"))
                     var name = $(_this).val();
-                    parsed[parsed.length] = {
+                    parsed = parsed.slice(0, options.max - 1);
+                    parsed.push({
                         data: {name: name, key: "__new__"},
                         value: name,
                         result: name
-                    }
+                    });
                 }
                 return parsed;
             },
