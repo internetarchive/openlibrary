@@ -822,8 +822,11 @@ class authors_autocomplete(delegate.page):
 
         solr = get_authors_solr()
 
-        name = solr.escape(i.q) + "*"
-        q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
+        escaped_q = solr.escape(i.q)
+        name_q = escaped_q + "*"
+        key_q = escaped_q.upper() # ensure uppercase; key is case sensitive
+        q = 'name:(%s) OR alternate_names:(%s) OR key:"/authors/%s"' % (
+            name_q, name_q, key_q)
         params = {
             'q_op': 'AND',
             'sort': 'work_count desc',
