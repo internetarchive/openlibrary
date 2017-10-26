@@ -457,9 +457,9 @@ class _yaml(delegate.mode):
         d = self.get_data(key)
 
         if web.input(text="false").text.lower() == "true":
-            web.header('Content-Type', 'text/plain')
+            web.header('Content-Type', 'text/plain; charset=utf-8')
         else:
-            web.header('Content-Type', 'text/x-yaml')
+            web.header('Content-Type', 'text/x-yaml; charset=utf-8')
 
         raise web.ok(self.dump(d))
 
