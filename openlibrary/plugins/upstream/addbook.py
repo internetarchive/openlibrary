@@ -629,7 +629,7 @@ class book_edit(delegate.page):
                 'key': '',
                 'type': {'key': '/type/work'},
                 'title': edition.title,
-                'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])],
+                'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}} for a in edition.get('authors', [])],
                 'subjects': edition.get('subjects', []),
                 'covers': edition.get('covers', [])
             })
