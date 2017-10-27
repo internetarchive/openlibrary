@@ -4,10 +4,8 @@ $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ work_key = work.key if work else None
 $ edition_key = edition.key if edition else None
-$ work_likes = work.likes(username=ctx.user.key.split('/')[2] if ctx.user else None) if work else None
-$ user_likes_work = 'user_likes_work' in work_likes if work_likes else False
-$ next_action = 'unlike' if work_likes and work_likes.get('user_likes_work') else 'like'
-$ activation_status = 'activated' if work_likes and work_likes.get('user_likes_work') else 'unactivated'
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ users_work_read_status = work.get_users_read_status(username) if work and username else None
 
 $if "lists" not in ctx.features:
     $return
@@ -91,41 +89,98 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists, work_key, edition_key, user_likes, next_action, activation_status, loggedin, pageurl):
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
     <div class="dropit">
       <div class="icon list hidetool"></div>
         <div class="dropper on">
           $if work_key:
             <div class="work-likes">
-              <form method="POST" action="$(work_key)/likes.json?debug=true">
-                $if user_likes:
-                  <input type="hidden" name="action" value="$(next_action)"/>
-                  $if edition_key:
-                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
-
-                  <button class="book-progress-btn want-to-read $(activation_status)" type="submit">
-                    $if(activation_status == "activated"):
-                      <span class="activated-check">✓</span> Want to Read
-                    $else:
-                      Want to Read
+              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                $if users_work_read_status == 3:
+                    $ message = "Already Read"
+                $elif users_work_read_status == 2:
+                    $ message = "Currently Reading"
+                $else:
+                    $ message = "Want to Read"
+                $if users_work_read_status:
+                  <input type="hidden" name="action" value="remove"/>
+                  <input type="hidden" name="redir" value="true"/>
+                  <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
+                  <button class="book-progress-btn want-to-read activated"
+                          type="submit">
+                    <span class="activated-check">✓</span> $(message)
                   </button>
-                </form>
-                <a href="javascript:;" class="dropclick dropclick-$(activation_status) plain">
-                  <div class="arrow arrow-$(activation_status)"></div>
+                $else:
+                  <input type="hidden" name="action" value="add"/>
+                  <input type="hidden" name="redir" value="true"/>
+                  <input type="hidden" name="bookshelf_id" value="1"/>
+                  <button class="book-progress-btn want-to-read unactivated"
+                          type="submit">
+                    $(message)
+                  </button>
+
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              </form>
+              $if users_work_read_status:
+                <a href="javascript:;" class="dropclick dropclick-activated  plain">
+                  <div class="arrow arrow-activated"></div>
+                </a>
+              $else:
+                <a href="javascript:;" class="dropclick dropclick-unactivated  plain">
+                  <div class="arrow arrow-unactivated"></div>
                 </a>
             </div>
+            <div class="dropdown">
+              <div class="read-statuses">
+                $if users_work_read_status == 2 or users_work_read_status == 3:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">  
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="1"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Want to Read</button>
+                  </form>
+
+                $if users_work_read_status != 2:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="2"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Currently Reading</button>
+                  </form>
+
+                $if users_work_read_status != 3:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="3"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Already Read</button>
+                  </form>
+              </div>
+
+              <p style="text-align: center;">My Reading Lists</p>
+              <div class="my-lists">
+                $for i, list in enumerate(lists):
+                  $if not list.active:
+                    <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+              </div>
+              <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                <a href="javascript:;" class="hidden listClick"></a>
+              </p>
+            </div>
           $else:
-              $if loggedin:
+              $if username:
                 <a href="javascript:;" class="dropclick plain">
                   <h3>Add to List</h3>
                   <div class="arrow"></div>
                 </a>
                 <div class="dropdown">
-                  <!--
-                      <p>Currently Reading</p>
-                  <p>Already Read</p>
-                  <hr/>
-                  -->
                   <p style="text-align: center;">My Reading Lists</p>
                   <div class="my-lists">
                     $for i, list in enumerate(lists):
@@ -176,7 +231,7 @@ $if include_header:
 $if include_widget:
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
-      $:render_widget_add(user_lists, work_key, edition_key, user_likes_work, next_action, activation_status, ctx.user, page.url())
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
     </div>
   $else:
     <div class="dropit">
@@ -184,8 +239,8 @@ $if include_widget:
         <div class="dropper on">
           $if work:
             <div class="work-likes">
-              <form method="POST" action="$(work.key)/likes.json?debug=true">
-                <input type="hidden" name="action" value="activate"/>
+              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                <input type="hidden" name="action" value="add"/>
                   $if edition_key:
                     <input type="hidden" name="edition_id" value="$(edition_key)"/>
 
@@ -247,7 +302,7 @@ $if ctx.user:
     Lists = {
         wantToRead: function(success) {
             this.ajax({
-                url: "$(work_key)/likes.json",
+                url: "$(work_key)/bookshelves.json",
                 data: {
                     action: \$('input[name=action]').val(),
                     edition_id: \$('input[name=edition_id]').val()
@@ -314,18 +369,15 @@ $if ctx.user:
     var user_key = $:json_encode(user_key);
     var page_url = $:(json_encode(page_url));
 
-    var user_likes = $('true' if user_likes_work else 'false');
-    var next_action = '$(next_action)';
-    var activation_status = '$(activation_status)';
-
+    var users_work_read_status = $(users_work_read_status or 'null');
     var work_key = '$(work_key)';
     var edition_key = '$(edition_key)';
-    var loggedin = $('true' if ctx.user else 'false');
+    var username = '$(username or "")';
     var pageurl = '$(page.url())';
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, user_likes, next_action, activation_status, loggedin, pageurl));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, pageurl));
 
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
@@ -484,7 +536,7 @@ $if ctx.user:
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
         \$('.dropdown').append(listcreate);
 
-        \$('.book-progress-btn').live('click', function(e) {
+        \$('.book-progress-btn, .nostyle-btn').live('click', function(e) {
            \$('.book-progress-btn').text("saving...");
            //e.preventDefault();
         });

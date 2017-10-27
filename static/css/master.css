@@ -6921,7 +6921,6 @@ div.tools-override div.dropper {
 }
 
 .dropper div.dropdown {
-    padding: 10px;
 }
 
 .editionCover .illustration {
@@ -6974,7 +6973,7 @@ div.tools-override div.dropper {
 }
 
 .Tools .check-availability p.check-other-editions a {
-    font-size: 1.1em;
+    font-size: 1em;
     text-decoration: underline;
 }
 
@@ -7037,4 +7036,34 @@ p.print-disabled-download {
 .Tools div.btn-notice span.worldcat-attribution {
     font-size: .8em;
     display: block;
+}
+
+.related-books {
+    border-top: 1px solid #eee;
+    margin-top: 15px;
+}
+
+.related-books h2 {
+    margin-top: 15px;
+}
+
+.nostyle-btn {
+    border: none;
+    background: none;
+    cursor:pointer;
+    color: #333;
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+    font-size: .8em;
+    padding: 7px;
+}
+
+.nostyle-btn:hover {
+    color: #000;
+    background-color: #fff;
+}
+
+.read-statuses {
+    border-bottom: 1px solid #ccc;
 }
