@@ -390,9 +390,47 @@ class Bookshelves(object):
     }
 
     @classmethod
+    def count_users_reads(cls, username, bookshelf_id=None):
+        oldb = db.get_db()
+        data = {'username': username}
+        bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        query = ("SELECT count(*) from bookshelves_books WHERE "
+                 "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
+                 "AND username=$username")
+        if bookshelf_id:
+            data['bookshelf_id'] = bookshelf_id
+            query += ' AND bookshelf_id=$bookshelf_id'
+        result = oldb.query(query, vars=data)
+        return result[0]['count'] if result else 0
+
+    @classmethod
+    def get_users_reads(cls, username, bookshelf_id=None, limit=100, page=1):
+        """Returns a list of books the user has, is, or wants to read
+        """
+        oldb = db.get_db()
+        page = int(page) if page else 1
+        offset = limit * (page - 1)
+        data = {
+            'username': username,
+            'limit': limit,
+            'offset': offset
+        }
+        bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        query = ("SELECT * from bookshelves_books WHERE "
+                 "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
+                 "AND username=$username")
+        if bookshelf_id:
+            data['bookshelf_id'] = bookshelf_id
+            query += ' AND bookshelf_id=$bookshelf_id'
+        query += ' LIMIT $limit OFFSET $offset'
+        return list(oldb.query(query, vars=data))
+
+    @classmethod
     def get_users_read_status_of_work(cls, username, work_id):
         """A user can mark a book as (1) want to read, (2) currently reading,
-        or (3) already read.
+        or (3) already read. Each of these states is mutually
+        exclusive. Returns the user's read state of this work, if one
+        exists.
         """
         oldb = db.get_db()
         data = {
@@ -702,6 +740,14 @@ class User(Thing):
         work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
         works = web.ctx.site.get_many(work_olids)
         return works
+
+    def get_reads_count(self, bookshelf_id=None):
+        return Bookshelves.count_users_reads(self.get_username(), bookshelf_id=bookshelf_id)
+
+    def get_reads(self, bookshelf_id=None, limit=100, page=1):
+        """Returns a list of books this user has, is, or wants to read"""
+        return Bookshelves.get_users_reads(self.get_username(), bookshelf_id=bookshelf_id,
+                                           limit=limit, page=page)
 
     def get_likes(self):
         work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]

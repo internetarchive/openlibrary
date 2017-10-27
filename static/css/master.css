@@ -3520,12 +3520,12 @@ div#searchResults.work .resultTitle {
 }
 
 
-.mode-options {
+.mode-options, .facet-options {
     font-size: .7em;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
 
-.mode-options input {
+.mode-options input, .facet-options input {
     margin-left: 15px;
     margin-right: 4px;
     position: relative;
@@ -6960,7 +6960,6 @@ div.tools-override div.dropper {
 .Tools .check-availability {
     padding: 10px;
     border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
     border-radius: 3px;
 }
 
@@ -7066,4 +7065,37 @@ p.print-disabled-download {
 
 .read-statuses {
     border-bottom: 1px solid #ccc;
+}
+
+ul#myreads-paginator {
+    margin-top: 10px;
+}
+
+ul#myreads-paginator li.selected {
+    background-color: #efefef;
+}
+
+ul#myreads-paginator li {
+    text-align: center;
+    display: inline;
+    list-style-type: none;
+    color: #000;
+    padding: 7px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+    background-color: #fff;
+}
+
+ul#myreads-paginator li:hover {
+    background-color: #036daa;
+    color: #fff;
+}
+
+ul#myreads-paginator li.selected:hover {
+    background-color: #efefef;
+}
+
+.myreads-options {
+    margin-bottom: 5px;
+    clear: both;
 }

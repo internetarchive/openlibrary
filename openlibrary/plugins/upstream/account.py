@@ -654,14 +654,23 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
-class account_to_read_bookshelf(delegate.page):
-    path = "/account/to-read"
+class account_my_reads(delegate.page):
+    path = "/account/reads"
 
     @require_login
     def GET(self):
+        i = web.input(page=1, bookshelf_id=1)
         user = accounts.get_current_user()
-        books_to_read = user.get_likes()
-        return render['account/to-read'](books_to_read)
+        total_reads_cnt = user.get_reads_count(bookshelf_id=i.bookshelf_id)
+
+        # creates a dict, keyed by work olid,
+        page_of_reads = user.get_reads(page=i.page, bookshelf_id=i.bookshelf_id)
+        reads = dict(('/works/OL%sW' % x['work_id'], x) for x in page_of_reads)
+        works = list(web.ctx.site.get_many(reads.keys()))
+        for work in works:
+            reads[work.key]['work'] = work
+
+        return render['account/reads'](reads, count=total_reads_cnt, current_page=i.page)
 
 class account_loans(delegate.page):
     path = "/account/loans"
