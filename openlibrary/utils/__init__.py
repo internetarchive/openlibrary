@@ -61,3 +61,7 @@ def dicthash(d):
     else:
         return d
 
+author_olid_re = re.compile(r'^OL\d+A$')
+def is_author_olid(s):
+    """Case sensitive check for strings like 'OL123A'."""
+    return bool(author_olid_re.match(s))
