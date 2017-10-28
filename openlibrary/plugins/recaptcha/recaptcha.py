@@ -18,8 +18,7 @@ var RecaptchaOptions = {
 <noscript>
    <iframe src="//www.google.com/recaptcha/api/noscript?k=KEY"
        height="300" width="500" frameborder="0"></iframe><br>
-   <textarea name="recaptcha_challenge_field" rows="3" cols="40">
-   </textarea>
+   <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
    <input type="hidden" name="recaptcha_response_field"
        value="manual_challenge">
 </noscript>
