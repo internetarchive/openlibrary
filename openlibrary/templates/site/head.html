@@ -11,7 +11,7 @@
 
     <link rel="canonical" href="$request.canonical_url" />
 
-    <link href="https://github.com/google/fonts/raw/master/ofl/poppins/Poppins-Regular.ttf" rel="stylesheet">
+    <link href="$static_url('/fonts/Poppins-Regular.ttf')" rel="stylesheet">
     <link href="$static_url('build/all.css')" rel="stylesheet" type="text/css" />
 
     $if "dev" in ctx.features:
