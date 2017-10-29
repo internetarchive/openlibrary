@@ -1,0 +1,33 @@
+$def with (works)
+
+<div id="contentHead">
+  <div id="mybooks">
+    <h1>My Books</h1>
+    <div class="mybooks">
+      <div class="mybooks-menu">
+        <ul class="preset-lists">
+          <li><a class="selected" href="">Currently Reading (2)</li>
+          <li><a href="">Waiting to Read (8)</li>
+          <li><a href="">Want to Read (63)</li>
+          <li><a href="">Already Read (14)</li>
+        </ul>
+        <ul class="user-lists">
+          <li><a href="">Books about dogs (2)</a></li>
+        </ul>
+      </div>
+      <div class="mybooks-list">
+        <ul class="list-books" id="siteSearch">
+          $for work in works:
+            $:macros.SearchResultsWork(work)
+        </ul>
+        <div class="loadmore">
+          <button>Load more</button>
+        </div>
+      </div>
+      <div class="mybooks-list-options">
+        <h3>About this list</h3>
+        <p>Export, subscribe, etc.</p>
+      </div>
+    </div>
+  </div>
+</div>

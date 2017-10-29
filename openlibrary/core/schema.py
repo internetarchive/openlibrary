@@ -42,6 +42,7 @@ def get_schema():
     CREATE TABLE likes (
         username text NOT NULL,
         work_id integer NOT NULL,
+        weight integer,
         edition_id integer default null,
         updated timestamp without time zone default (current_timestamp at time zone 'utc'),
         created timestamp without time zone default (current_timestamp at time zone 'utc'),

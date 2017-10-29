@@ -5846,7 +5846,7 @@ ul.narrow li span.resultTitle {width:525px;max-width:525px;}
 ul.clean li span.resultTitle {width:236px;max-width:236px;}
 ul#listResults li span.resultTitle p {margin:0;}
 
-body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 56px 10px no-repeat;}
+body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 35px 100px no-repeat;}
 body#user #description h2 {font-size:1.5em;font-family:"Georgia","Times New Roman",serif;font-weight:normal;color:#333;margin:0 0 10px 0;}
 body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists h2 {font-size:1.25em;}
@@ -7098,4 +7098,72 @@ ul#myreads-paginator li.selected:hover {
 .myreads-options {
     margin-bottom: 5px;
     clear: both;
+}
+
+/* My books ... */
+
+#mybooks {
+    font-size: .9em;
+}
+
+#mybooks ul li {
+    list-style: none;
+    padding: 5px 0px;
+}
+
+.mybooks {
+    border-top: 1px solid #eee;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.mybooks-menu {    
+    padding-right: 10px;
+    border-right: 1px solid #eee;
+}
+
+.mybooks-menu a {
+    text-decoration: none;
+    color: #036daa;
+}
+
+.mybooks-menu ul.preset-lists {
+    padding: 10px;
+    padding-left: 0px;
+    border-bottom: 1px solid #eee;
+}
+
+.mybooks-menu ul.user-lists {
+    padding: 10px;
+    padding-left: 0px;
+}
+
+.mybooks-list {
+    flex: 1;
+    padding: 10px;
+}
+
+.mybooks-list .loadmore {
+    text-align: center;
+}
+
+.mybooks-list-options {
+    padding: 10px;
+}
+
+.mybooks-list-options p {
+    margin: 0px;
+}
+
+.mybooks-list-options h3 {
+    margin: 0px;
+}
+
+.list-books .book {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
 }

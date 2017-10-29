@@ -654,6 +654,19 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
+class account_my_books(delegate.page):
+    path = "/account/my-books"
+
+    @require_login
+    def GET(self):
+        i = web.input(page=1, bookshelf_id=1)
+        user = accounts.get_current_user()
+        works = web.ctx.site.get_many([
+            '/works/OL27448W', '/works/OL15149454W', '/works/OL1923107W',
+            '/works/OL13703612W'
+        ])
+        return render['account/books'](works)
+
 class account_my_reads(delegate.page):
     path = "/account/reads"
 
