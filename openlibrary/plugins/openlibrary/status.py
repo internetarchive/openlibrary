@@ -17,7 +17,9 @@ class status(delegate.page):
 
 @public
 def get_git_revision_short_hash():
-    return status_info.get('Software version')
+    return (status_info.get('Software version')
+            if status_info and isinstance(status_info, dict) 
+            else 'unavailable')
 
 def get_software_version():
     return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()
