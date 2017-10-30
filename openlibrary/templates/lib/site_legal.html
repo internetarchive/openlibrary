@@ -10,9 +10,11 @@ $def with (page)
         -->
         </p>
 
-	<p>
-	  The current version of this webpage is $get_git_revision_short_hash()
-	</p>
+        $ git_rev_hash = get_git_revision_short_hash()
+        $if git_rev_hash:
+          <p>
+	    The current version of this webpage is <a href="https://github.com/internetarchive/openlibrary/tree/$(git_rev_hash)">$git_rev_hash</a>
+	  </p>
 
 
         <!--[if lt IE 7]>
