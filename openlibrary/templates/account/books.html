@@ -5,24 +5,33 @@ $def with (works)
     <h1>My Books</h1>
     <div class="mybooks">
       <div class="mybooks-menu">
+        <ul class="loans-lists">
+          <li class="subsection">My Loans</li>
+          <li><a class="selected" href="">Active Loans (2/5)</a></li>
+          <li><a href="">Waitlists (8)</a></li>
+          <li><a href="">Loan History (46)</a></li>
+        </ul>
         <ul class="preset-lists">
-          <li><a class="selected" href="">Currently Reading (2)</li>
-          <li><a href="">Waiting to Read (8)</li>
-          <li><a href="">Want to Read (63)</li>
-          <li><a href="">Already Read (14)</li>
+          <li class="subsection">My Reads</li>
+          <li><a href="">Currently Reading (2)</a></li>
+          <li><a href="">Want to Read (63)</a></li>
+          <li><a href="">Already Read (14)</a></li>
         </ul>
         <ul class="user-lists">
+          <li class="subsection">My Lists</li>
           <li><a href="">Books about dogs (2)</a></li>
         </ul>
       </div>
       <div class="mybooks-list">
+        <h2><span class="subtitle">Already Read</a></h2>
         <ul class="list-books" id="siteSearch">
           $for work in works:
             $:macros.SearchResultsWork(work)
         </ul>
-        <div class="loadmore">
-          <button>Load more</button>
-        </div>
+        $if len(works) > 100:
+          <div class="loadmore">
+            <button>Load more</button>
+          </div>
       </div>
       <div class="mybooks-list-options">
         <h3>About this list</h3>

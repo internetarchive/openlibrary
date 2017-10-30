@@ -7106,9 +7106,8 @@ ul#myreads-paginator li.selected:hover {
     font-size: .9em;
 }
 
-#mybooks ul li {
+#mybooks .mybooks-menu ul li {
     list-style: none;
-    padding: 5px 0px;
 }
 
 .mybooks {
@@ -7117,6 +7116,7 @@ ul#myreads-paginator li.selected:hover {
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
+    margin-top: 10px;
 }
 
 .mybooks-menu {    
@@ -7129,20 +7129,48 @@ ul#myreads-paginator li.selected:hover {
     color: #036daa;
 }
 
-.mybooks-menu ul.preset-lists {
+.mybooks-menu ul.preset-lists, .mybooks-menu ul.loans-lists, .mybooks-menu ul.user-lists {
     padding: 10px;
     padding-left: 0px;
     border-bottom: 1px solid #eee;
 }
 
-.mybooks-menu ul.user-lists {
-    padding: 10px;
-    padding-left: 0px;
+.mybooks-menu ul:last-child {
+    border-bottom: none;
+}
+
+.mybooks-menu ul li a {
+    display: block;
+    padding: 5px;
+}
+
+.mybooks-menu ul li a:hover {
+    background-color: #e5f1ff;
+}
+
+.mybooks-menu ul li a.selected{
+    background-color: #
+}
+
+.mybooks-menu ul li.subsection {
+    font-weight: bold;
+    padding: 5px 0px;
 }
 
 .mybooks-list {
     flex: 1;
     padding: 10px;
+}
+
+.mybooks-list h2 {
+    padding: 5px 0px;
+    margin: 0px;
+    line-height: 1.5em;
+    margin-bottom: 5px;
+}
+
+.mybooks-list h2.subtitle {
+    font-weight: normal;
 }
 
 .mybooks-list .loadmore {
@@ -7158,7 +7186,10 @@ ul#myreads-paginator li.selected:hover {
 }
 
 .mybooks-list-options h3 {
+    padding: 5px 0px;
     margin: 0px;
+    line-height: 1.5em;
+    margin-bottom: 5px;
 }
 
 .list-books .book {
