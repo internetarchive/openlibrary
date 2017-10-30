@@ -6,7 +6,7 @@ import subprocess
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, public
 
 status_info = {}
 feature_flags = {}
@@ -14,6 +14,10 @@ feature_flags = {}
 class status(delegate.page):
     def GET(self):
         return render_template("status", status_info, feature_flags)
+
+@public
+def get_git_revision_short_hash():
+    return status_info.get('Software version')
 
 def get_software_version():
     return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()

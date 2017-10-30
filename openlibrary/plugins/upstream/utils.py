@@ -400,15 +400,6 @@ def url_quote(text):
     return urllib.quote_plus(text)
 
 @public
-def get_git_revision_short_hash():
-    """Returns the latest short commit hash
-    Consider switching to: subprocess.check_output([
-        'git', 'describe', '--long', '--dirty', '--abbrev=10', '--tags']).strip()
-    """
-    import subprocess
-    return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).strip()
-
-@public
 def entity_decode(text):
     return HTMLParser().unescape(text)
 
