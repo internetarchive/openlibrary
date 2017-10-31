@@ -127,7 +127,7 @@ def add_fields():
                     continue
                 if f == 'genres':
                     found_list = [[g.strip('.') for g in e[f]] for e in editions \
-                        if e.get(f, None) and not any('ranslation' in i for i in e[f])]
+                        if e.get(f, None) and not any('translation' in i for i in e[f])]
                 if f == 'table_of_contents':
                     found_list = []
                     for e in query_iter(q):
