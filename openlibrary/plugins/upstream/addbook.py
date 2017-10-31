@@ -16,6 +16,7 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.utils import is_author_olid
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
@@ -822,25 +823,40 @@ class authors_autocomplete(delegate.page):
 
         solr = get_authors_solr()
 
-        name = solr.escape(i.q) + "*"
-        q = 'name:(%s) OR alternate_names:(%s)' % (name, name)
+        q = solr.escape(i.q).strip()
+        solr_q = ''
+        if is_author_olid(q.upper()):
+            # ensure uppercase; key is case sensitive in solr
+            key_q = q.upper()
+            if config.get('single_core_solr'):
+                key_q = "/authors/" + key_q
+            solr_q = 'key:"%s"' % key_q
+        else:
+            prefix_q = q + "*"
+            solr_q = 'name:(%s) OR alternate_names:(%s)' % (prefix_q, prefix_q)
+
         params = {
             'q_op': 'AND',
             'sort': 'work_count desc',
             'rows': i.limit
         }
+
         if config.get('single_core_solr'):
             params['fq'] = 'type:author'
-        data = solr.select(q, **params)
+        data = solr.select(solr_q, **params)
         docs = data['docs']
-        for d in docs:
-            if not config.get('single_core_solr'):
+
+        if not config.get('single_core_solr'):
+            for d in docs:
                 d.key = "/authors/" + d.key
+
+        for d in docs:
             if 'top_work' in d:
                 d['works'] = [d.pop('top_work')]
             else:
                 d['works'] = []
             d['subjects'] = d.pop('top_subjects', [])
+
         return to_json(docs)
 
 
