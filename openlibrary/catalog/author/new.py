@@ -11,7 +11,7 @@ name = sys.argv[1]
 q = {
     'create': 'unless_exists',
     'name': name,
-    'personal_name': name
+    'personal_name': name,
     'entity_type': 'person',
     'key': infogami.new_key('/type/author'),
     'type': '/type/author',
