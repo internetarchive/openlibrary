@@ -4,7 +4,13 @@
     // author-autocomplete
     $.fn.author_autocomplete = function(options) {
         var local_options = {
-            addnew: true,
+            // Custom option; when returning true for the given query, this
+            // will append a special "__new__" item so the user can enter a
+            // custom value (i.e. new author in this case)
+            addnew: function(query) {
+                // Don't render "Create new author" if searching by key
+                return !/^OL\d+A/i.test(query);
+            },
 
             minChars: 2,
             max: 11,
@@ -23,7 +29,7 @@
                         '<div class="ac_author ac_addnew" title="Add a new author">' +
                             '<span class="action">' + _('Create a new record for') + '</span>' +
                             '<span class="name">' + item.name + '</span>' +
-                        '</div>'
+                        '</div>';
                 }
                 else if (item.work_count == 0) {
                     return '<div class="ac_author" title="Select this author">' +
@@ -88,14 +94,15 @@
                         result: row.name
                     });
                 }
-                if (options.addnew) {
-                    // XXX: this won't work when _this is multiple values (like $("input"))
-                    var name = $(_this).val();
+
+                // XXX: this won't work when _this is multiple values (like $("input"))
+                var query = $(_this).val();
+                if (options.addnew && options.addnew(query)) {
                     parsed = parsed.slice(0, options.max - 1);
                     parsed.push({
-                        data: {name: name, key: "__new__"},
-                        value: name,
-                        result: name
+                        data: {name: query, key: "__new__"},
+                        value: query,
+                        result: query
                     });
                 }
                 return parsed;
