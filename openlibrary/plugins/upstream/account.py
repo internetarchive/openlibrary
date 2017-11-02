@@ -271,13 +271,18 @@ class account_login_json(delegate.page):
         access = d.get('access', None)
         secret = d.get('secret', None)
         test = d.get('test', False)
+        
+        # Try S3 authentication first, fallback to infogami user, pass
         audit = audit_accounts(None, None, require_link=True,
                                s3_access_key=access,
                                s3_secret_key=secret, test=test)
-        error = audit.get('error')
-        if error:
-            raise BadRequest(error)
-        web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+        error = audit.get('error')        
+        if not error:
+            web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
+        else:
+            from infogami.plugins.api.code import login as infogami_login
+            infogami_login().POST()
+            
 
 
 class account_login(delegate.page):
