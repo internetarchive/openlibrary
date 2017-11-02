@@ -20,7 +20,7 @@ import infogami.core.code as core
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.openlibrary.code import BadRequest
+from openlibrary.plugins import openlibrary as olib
 
 from openlibrary import accounts
 from openlibrary.accounts import (
@@ -280,7 +280,7 @@ class account_login_json(delegate.page):
                                    s3_secret_key=secret, test=test)
             error = audit.get('error')
             if error:
-                raise BadRequest(error)
+                raise olib.code.BadRequest(error)
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
         # Fallback to infogami user/pass
         else:
