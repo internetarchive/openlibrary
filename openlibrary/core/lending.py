@@ -99,10 +99,10 @@ def setup(config):
         amazon_api = None
 
 def get_users_loan_history(ol_username):
-    account = OpenLibraryAccount.get(key=user_key)    
+    account = OpenLibraryAccount.get(key=user_key)
     url = '%s?action=loans_json&identifier=%s' % (
         config_ia_users_loan_history, config_ia_users_loan_history)
-    try:        
+    try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         loan_history = simplejson.loads(content).get('loan_history', [])
         return loan_history
