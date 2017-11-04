@@ -268,6 +268,7 @@ class account_login_json(delegate.page):
         payload is json. Instead, if login attempted w/ json
         credentials, requires Archive.org s3 keys.
         """
+        from openlibrary.plugins.openlibrary.code import BadRequest
         d = simplejson.loads(web.data())
         access = d.get('access', None)
         secret = d.get('secret', None)
@@ -654,18 +655,99 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
+class AccountBooks(object):
+
+    def __init__(self, user=None):
+        self.user = user or accounts.get_current_user()
+        #self.user.update_loan_status()
+        self.KEYS = {
+            'waitlists': self.get_waitlisted_editions,
+            'loans': self.get_loans,
+            'want-to-read': self.get_want_to_read,
+            'currently-reading': self.get_currently_reading,
+            'already-read': self.get_already_read
+        }
+
+    @property
+    def lists(self):        
+        return self.user.get_lists()
+
+    @property
+    def reading_log_counts(self):
+        from openlibrary.core.models import Bookshelves
+        counts = self.user.get_reading_log_counts(count_per_shelf=True)
+        return {
+            'want-to-read': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
+            'currently-reading': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
+            'already-read': counts.get(
+                Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+        }
+
+    def get_loans(self):
+        return borrow.get_loans(self.user)
+
+    def get_waitlist_summary(self):
+        return self.user.get_waitinglist()
+
+    def get_waitlisted_editions(self):
+        """Gets a list of records corresponding to a user's waitlisted
+        editions, fetches all the editions, and then inserts the data
+        from each waitlist record (e.g. position in line) into the
+        corresponding edition
+        """
+        waitlist_summary = self.user.get_waitinglist()
+        tmp_lookup = dict([(w['identifier'], w) for w in waitlist_summary])
+        ocaids = [i['identifier'] for i in waitlist_summary]
+        edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
+        editions = web.ctx.site.get_many(edition_keys)
+        for i in xrange(len(editions)):
+            # insert the waitlist_entry corresponding to this edition
+            editions[i].waitlist_entry = tmp_lookup[editions[i].ocaid]
+        return editions
+
+    def get_want_to_read(self, page=1, limit=100):
+        from openlibrary.core.models import Bookshelves
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
+            page=page, limit=limit)]
+        return web.ctx.site.get_many(work_ids)
+
+    def get_currently_reading(self, page=1, limit=100):
+        from openlibrary.core.models import Bookshelves
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
+            page=page, limit=limit)]
+        return web.ctx.site.get_many(work_ids)
+
+    def get_already_read(self, page=1, limit=100):
+        from openlibrary.core.models import Bookshelves
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
+            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+            page=page, limit=limit)]
+        return web.ctx.site.get_many(work_ids)
+
+    def get_works(self, key):
+        key = key.lower()
+        if key in self.KEYS:
+            return self.KEYS[key]()
+        else: # must be a list or invalid page!            
+            #works = web.ctx.site.get_many([ ... ])
+            raise
+
 class account_my_books(delegate.page):
-    path = "/account/my-books"
+    path = "/account/my-books/([a-zA-Z_-]+)"
 
     @require_login
-    def GET(self):
-        i = web.input(page=1, bookshelf_id=1)
-        user = accounts.get_current_user()
-        works = web.ctx.site.get_many([
-            '/works/OL27448W', '/works/OL15149454W', '/works/OL1923107W',
-            '/works/OL13703612W'
-        ])
-        return render['account/books'](works)
+    def GET(self, key='loans'):
+        ab = AccountBooks()
+        # we also need a json endpoint for fetching next pages of
+        # values (in /plugins/openlibrary/api.py)
+        works = ab.get_works(key)
+        return render['account/books'](
+            works, key, loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
+            reading_log=ab.reading_log_counts, lists=ab.lists)
 
 class account_my_reads(delegate.page):
     path = "/account/reads"

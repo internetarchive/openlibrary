@@ -1,4 +1,6 @@
-$def with (works)
+$def with (works, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
+
+$ title = key.capitalize().replace('-', ' ')
 
 <div id="contentHead">
   <div id="mybooks">
@@ -6,27 +8,41 @@ $def with (works)
     <div class="mybooks">
       <div class="mybooks-menu">
         <ul class="loans-lists">
-          <li class="subsection">My Loans</li>
-          <li><a class="selected" href="">Active Loans (2/5)</a></li>
-          <li><a href="">Waitlists (8)</a></li>
-          <li><a href="">Loan History (46)</a></li>
+          <li class="subsection">Loans</li>
+          <li><a href="/account/my-books/loans" $('class="selected"' if key == 'loans' else '') href="">Active Loans ($(len(loans) or 0)/5)</a></li>
+          <li><a href="/account/my-books/waitlists" $('class="selected"' if key == 'waitlists' else '')>Waitlists ($(len(waitlists) or 0))</a></li>
+          $if loan_history:
+            <li><a href="/account/my-books/loan-history" $('class="selected"' if key == 'loan-history' else '')>Loan History (46)</a></li>
         </ul>
         <ul class="preset-lists">
-          <li class="subsection">My Reads</li>
-          <li><a href="">Currently Reading (2)</a></li>
-          <li><a href="">Want to Read (63)</a></li>
-          <li><a href="">Already Read (14)</a></li>
+          <li class="subsection">Reading Log</li>
+          <li><a href="/account/my-books/currently-reading" $('class="selected"' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
+          <li><a href="/account/my-books/want-to-read" $('class="selected"' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
+          <li><a href="/account/my-books/already-read" $('class="selected"' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
         </ul>
-        <ul class="user-lists">
-          <li class="subsection">My Lists</li>
-          <li><a href="">Books about dogs (2)</a></li>
-        </ul>
+        $if lists:
+          <ul class="user-lists">
+            <li class="subsection">Lists</li>
+            <div class="list-overflow">
+              $for lst in lists:
+                $ list_olid = lst['key'].split('/')[2]
+                $ list_key = 'lists/%s' % list_olid
+                
+               <li><a href="/account/my-books/$(list_key)" $('class="selected"' if key == list_key else '')>$lst['name'] ($(len(lst.seeds)))</a></li>
+            </div>
+          </ul>
       </div>
       <div class="mybooks-list">
-        <h2><span class="subtitle">Already Read</a></h2>
+        <h2><span class="subtitle">$title</a></h2>
         <ul class="list-books" id="siteSearch">
-          $for work in works:
-            $:macros.SearchResultsWork(work)
+          $if works:
+            $for work in works:
+              $if work.get('type') == '/type/loan':
+                $:macros.loan_item(work)
+              $else:
+                $:macros.SearchResultsWork(work)
+          $else:
+            <li>No books are on this shelf</li>
         </ul>
         $if len(works) > 100:
           <div class="loadmore">

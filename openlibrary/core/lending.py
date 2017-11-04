@@ -195,7 +195,6 @@ def get_available(limit=None, page=1, subject=None, query=None,
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": results.values()})
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
     except Exception as e:

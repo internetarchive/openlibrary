@@ -385,23 +385,30 @@ class Bookshelves(object):
 
     PRESET_BOOKSHELVES = {
         'Want to Read': 1,
-        'Currently Read': 2,
+        'Currently Reading': 2,
         'Already Read': 3
     }
 
     @classmethod
-    def count_users_reads(cls, username, bookshelf_id=None):
+    def count_users_readlogs(cls, username, bookshelf_id=None, count_per_shelf=False):
         oldb = db.get_db()
         data = {'username': username}
         bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
-        query = ("SELECT count(*) from bookshelves_books WHERE "
+        query = ("SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
                  "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
                  "AND username=$username")
         if bookshelf_id:
             data['bookshelf_id'] = bookshelf_id
             query += ' AND bookshelf_id=$bookshelf_id'
+        elif count_per_shelf:
+            query += ' GROUP BY bookshelf_id'
+       
         result = oldb.query(query, vars=data)
-        return result[0]['count'] if result else 0
+        if result:
+            if count_per_shelf:
+                return dict([(i['bookshelf_id'], i['count']) for i in result])
+            return result[0]['count']
+        return 0
 
     @classmethod
     def get_users_reads(cls, username, bookshelf_id=None, limit=100, page=1):
@@ -741,8 +748,10 @@ class User(Thing):
         works = web.ctx.site.get_many(work_olids)
         return works
 
-    def get_reads_count(self, bookshelf_id=None):
-        return Bookshelves.count_users_reads(self.get_username(), bookshelf_id=bookshelf_id)
+    def get_reading_log_counts(self, bookshelf_id=None, count_per_shelf=False):
+        return Bookshelves.count_users_readlogs(
+            self.get_username(), bookshelf_id=bookshelf_id,
+            count_per_shelf=count_per_shelf)
 
     def get_reads(self, bookshelf_id=None, limit=100, page=1):
         """Returns a list of books this user has, is, or wants to read"""

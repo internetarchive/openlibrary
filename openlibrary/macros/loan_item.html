@@ -1,0 +1,41 @@
+$def with(loan)
+
+$ book = get_document(loan['book'])
+$if book:
+  <tr data-userid="$(loan['userid'])">
+    <td class="cover">
+      $:render_template('covers/book_cover_small', book)
+    </td>
+    <td class="titles">
+      <span class="book">
+        <a href="$book.key" class="borrowResults">
+          <strong>$book.title</strong>
+        </a>
+      </span>
+      <span class="author">
+        $:macros.AuthorList(book.get_authors())
+      </span>
+      <div class="date">
+        Borrowed $datestr(datetime_from_utc_timestamp(loan['loaned_at']))
+      </div>
+      $ wlsize = book.get_waitinglist_size()
+      $if wlsize:
+        <div class="smallest lightgreen sansserif waitrank">
+          $ungettext("There is one person waiting for this book.", "There are %(n)s people waiting for this book.", wlsize, n=wlsize)
+        </div>
+    </td>
+    <td class="expires">
+        $if loan['expiry'] is None:
+            $# Not yet fulfilled
+            <span class="red">Not yet downloaded. </span><br/>
+            <a href="$loan['loan_link']">Download Now</a>
+        $else:
+            $:macros.FormatExpiry(loan['expiry'])
+    </td>
+    <td class="actions">
+    $if loan['resource_type'] == 'bookreader':
+        $:macros.LoanReadForm(loan['book'])
+        $:macros.ReturnForm(loan)
+    $else:
+        <span class="smaller grey sansserif">Return via<br />Adobe Digital Editions</span>
+    </td>
