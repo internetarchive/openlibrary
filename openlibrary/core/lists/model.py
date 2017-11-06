@@ -145,6 +145,8 @@ class ListMixin:
         solr = get_works_solr()
         result = solr.select(q, fields=["edition_key"], rows=10000)
         for doc in result['docs']:
+            if 'edition_key' not in doc:
+                 continue
             for k in doc['edition_key']:
                 yield "/books/" + k
 
