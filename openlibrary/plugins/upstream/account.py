@@ -669,13 +669,13 @@ class AccountBooks(object):
         }
 
     @property
-    def lists(self):        
+    def lists(self):
         return self.user.get_lists()
 
     @property
     def reading_log_counts(self):
         from openlibrary.core.models import Bookshelves
-        counts = self.user.get_reading_log_counts(count_per_shelf=True)
+        counts = self.user.get_reading_log_counts(count_per_shelf=True) or {}
         return {
             'want-to-read': counts.get(
                 Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
@@ -732,9 +732,16 @@ class AccountBooks(object):
         key = key.lower()
         if key in self.KEYS:
             return self.KEYS[key]()
-        else: # must be a list or invalid page!            
+        else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
+
+class account_my_books(delegate.page):
+    path = "/account/my-books"
+
+    @require_login
+    def GET(self):
+        raise web.seeother('/account/my-books/loans')
 
 class account_my_books(delegate.page):
     path = "/account/my-books/([a-zA-Z_-]+)"
@@ -749,33 +756,12 @@ class account_my_books(delegate.page):
             works, key, loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
             reading_log=ab.reading_log_counts, lists=ab.lists)
 
-class account_my_reads(delegate.page):
-    path = "/account/reads"
-
-    @require_login
-    def GET(self):
-        i = web.input(page=1, bookshelf_id=1)
-        user = accounts.get_current_user()
-        total_reads_cnt = user.get_reads_count(bookshelf_id=i.bookshelf_id)
-
-        # creates a dict, keyed by work olid,
-        page_of_reads = user.get_reads(page=i.page, bookshelf_id=i.bookshelf_id)
-        reads = dict(('/works/OL%sW' % x['work_id'], x) for x in page_of_reads)
-        works = list(web.ctx.site.get_many(reads.keys()))
-        for work in works:
-            reads[work.key]['work'] = work
-
-        return render['account/reads'](reads, count=total_reads_cnt, current_page=i.page)
-
 class account_loans(delegate.page):
     path = "/account/loans"
 
     @require_login
     def GET(self):
-        user = accounts.get_current_user()
-        user.update_loan_status()
-        loans = borrow.get_loans(user)
-        return render['account/borrow'](user, loans)
+        raise web.seeother('/account/my-books/loans')
 
 class account_others(delegate.page):
     path = "(/account/.*)"

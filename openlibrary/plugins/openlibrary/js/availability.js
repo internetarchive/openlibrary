@@ -19,8 +19,9 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
-    var isListPage = function() {
-        return window.location.pathname.match('\/people\/[^/]+\/lists');
+    var isExemptPage = function() {
+        return (window.location.pathname.match('\/people\/[^/]+\/lists') ||
+                window.location.pathname.match('\/account\/my-books\/[^/]+'));
     }
 
     getAvailabilityV2 = function(_type, _ids, callback) {
@@ -118,7 +119,7 @@ $(function(){
                     for (var book_key in books) {
                         var book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
- 
+
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('href', $(selector + "[data-key=" + book_key  + "]").attr('data-key'))
                             $(selector + "[data-key=" + book_key  + "]")
@@ -178,7 +179,7 @@ $(function(){
                     var annotation = '';
                     var tag = 'a';
 
-                    var mode = isListPage() ? 'everything' : localStorage.getItem('mode');
+                    var mode = isExemptPage() ? 'everything' : localStorage.getItem('mode');
 
                     if (mode !== "printdisabled") {
                         if (work.status === 'error') {

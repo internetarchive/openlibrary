@@ -58,43 +58,46 @@ class work_bookshelves(delegate.page):
             del shelf['username']
         return delegate.RawText(simplejson.dumps({
             'shelves': list(shelves)
-        }, default=json_serial), content_type="application/json")        
+        }, default=json_serial), content_type="application/json")
 
     def POST(self, work_id):
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False,
-                      bookshelf_id=models.Bookshelves.PRESET_BOOKSHELVES['Want to Read'])
-
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id) 
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
+        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
 
-        bookshelf_id = int(i.bookshelf_id) if i.bookshelf_id else 1
-        if bookshelf_id not in models.Bookshelves.PRESET_BOOKSHELVES.values():
-            print("!!!!")
+        username = user.key.split('/')[2]
+        current_status = models.Bookshelves.get_users_read_status_of_work(username, work_id)
+
+        print(i)
+        print(current_status)
+
+        try:
+            bookshelf_id = int(i.bookshelf_id)
+            if bookshelf_id not in models.Bookshelves.PRESET_BOOKSHELVES.values():
+                raise ValueError
+        except ValueError:
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        username = user.key.split('/')[2]
-        edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+        if bookshelf_id == current_status:
+            work_bookshelf = models.Bookshelves.remove(
+                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
 
-        if i.action == "add":
+        else:
+            edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
             work_bookshelf = models.Bookshelves.add(
                 username=username, work_id=work_id, edition_id=edition_id,
                 bookshelf_id=bookshelf_id, upsert=True)
-        elif i.action == "remove":
-            work_bookshelf = models.Bookshelves.remove(
-                username=username, work_id=work_id, edition_id=edition_id,
-                bookshelf_id=bookshelf_id)
 
         if i.redir:
             raise web.seeother(key)
         return delegate.RawText(simplejson.dumps({
             'bookshelves_affected': work_bookshelf
         }, default=json_serial), content_type="application/json")
-
 
 
 class work_ratings(delegate.page):
@@ -133,7 +136,7 @@ class work_likes(delegate.page):
         user = accounts.get_current_user()
         i = web.input(edition_id=None, action=None)
         if not user:
-            key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id) 
+            key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
             raise web.seeother('/account/login?redirect=%s' % key)
 
         if i.action not in ['like', 'unlike']:
@@ -152,7 +155,7 @@ class work_likes(delegate.page):
             'work_like_count': work_likes['work_like_count'],
             'user_likes_work': work_likes['user_likes_work']
         }), content_type="application/json")
-        
+
 
 class work_editions(delegate.page):
     path = "(/works/OL\d+W)/editions"

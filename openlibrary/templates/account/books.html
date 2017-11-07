@@ -1,10 +1,10 @@
 $def with (works, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
 
-$ title = key.capitalize().replace('-', ' ')
+$ title = key.title().replace('-', ' ')
 
 <div id="contentHead">
   <div id="mybooks">
-    <h1>My Books</h1>
+    <h1>$title</h1>
     <div class="mybooks">
       <div class="mybooks-menu">
         <ul class="loans-lists">
@@ -25,22 +25,20 @@ $ title = key.capitalize().replace('-', ' ')
             <li class="subsection">Lists</li>
             <div class="list-overflow">
               $for lst in lists:
-                $ list_olid = lst['key'].split('/')[2]
-                $ list_key = 'lists/%s' % list_olid
-                
-               <li><a href="/account/my-books/$(list_key)" $('class="selected"' if key == list_key else '')>$lst['name'] ($(len(lst.seeds)))</a></li>
+                <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
       </div>
       <div class="mybooks-list">
-        <h2><span class="subtitle">$title</a></h2>
         <ul class="list-books" id="siteSearch">
           $if works:
+            $ bookshelf_id = 1 if key == 'want-to-read' else 2 if key == 'currently-reading' else 3 if key == 'already-read' else None
             $for work in works:
               $if work.get('type') == '/type/loan':
                 $:macros.loan_item(work)
               $else:
-                $:macros.SearchResultsWork(work)
+                $ decorations = macros.ReadingLogButton(work, read_status=bookshelf_id) if bookshelf_id else None
+                $:macros.SearchResultsWork(work, decorations=decorations)
           $else:
             <li>No books are on this shelf</li>
         </ul>

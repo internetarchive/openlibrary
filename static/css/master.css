@@ -7119,7 +7119,7 @@ ul#myreads-paginator li.selected:hover {
     margin-top: 10px;
 }
 
-.mybooks-menu {    
+.mybooks-menu {
     padding-right: 10px;
     border-right: 1px solid #eee;
 }
@@ -7152,11 +7152,11 @@ ul#myreads-paginator li.selected:hover {
     padding: 5px;
 }
 
-.mybooks-menu ul li a:hover {
+.mybooks-menu ul.preset-lists li a:hover, .mybooks-menu ul.loans-lists li a:hover {
     background-color: #e5f1ff;
 }
 
-.mybooks-menu ul li a.selected{
+.mybooks-menu ul.preset-lists li a:selected, .mybooks-menu ul.loans-lists li a:selected {
     background-color: #e5f1ff;
     border-radius: 5px;
 }
@@ -7169,6 +7169,10 @@ ul#myreads-paginator li.selected:hover {
 .mybooks-list {
     flex: 1;
     padding: 10px;
+}
+
+.user-lists a {
+    text-decoration: underline;
 }
 
 .mybooks-list h2 {
@@ -7206,4 +7210,35 @@ ul#myreads-paginator li.selected:hover {
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
+}
+
+.reading-log-lite {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.reading-log-lite select {
+    background-color: #f6f6f6;
+    border: 1px solid #c3c3c3;
+    border-radius: 4px;
+    height: 2.5em;
+}
+
+.reading-log-lite button {
+    border-radius: 4px;
+    color: #fff;
+    background: rgb(62, 169, 79);
+    border: 2px solid #41a552;
+    border-right: 1px solid rgb(67, 152, 80);
+    height: 2.5em;
+    padding: 0px 10px;
+}
+
+.reading-log-lite span.activated-check {
+    color: rgb(33, 136, 50);
+    margin-right: 2px;
 }

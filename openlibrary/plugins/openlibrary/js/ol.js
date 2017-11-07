@@ -696,7 +696,7 @@ $().ready(function(){
             $('header#header-bar .hamburger-dropdown-component').hide();
         }
 
-        if(!$(event.target).closest('.dropclick').length) {            
+        if(!$(event.target).closest('.dropclick').length) {
             $('.dropclick').parent().next('.dropdown').slideUp();
             $('.dropclick').next('.dropdown').slideUp();
             $('.dropclick').parent().find('.arrow').removeClass("up");
@@ -766,5 +766,40 @@ $().ready(function(){
 
         }
     }, 300, false));
+
+    var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
+    var buildReadingLogCombo = function(status_id) {
+        var template = function(shelf_id, checked, remove) {
+            return '<option value="' + status_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: status_id] + '</option>';
+        }
+        return (status_id == 3)? (template(3, true) + template(1) + template(2) + template(3, false, true)) :
+            (status_id == 2)? (template(2, true) + template(1) + template(3) + template(2, false, true)) :
+            (template(1, true) + template(2) + template(3) + template(1, false, true));
+    }
+
+    $('.reading-log-lite select').change(function(e) {
+        var self = this;
+        var form = $(self).closest("form");
+        var option = $(self).val();
+        var remove = $(self).children("option").filter(':selected').text().toLowerCase() === "remove";
+        var url = $(form).attr('action');
+        $.ajax({
+            'url': url,
+            'type': "POST",
+            'data': {
+                bookshelf_id: $(self).val()
+            },
+            'datatype': 'json',
+            success: function(data) {
+                if (remove) {
+                    $(self).closest('.searchResultItem').remove();
+                } else {
+                    $(self).empty();
+                    $(self).html(buildReadingLogCombo(option));
+                }
+            }
+        });
+        e.preventDefault();
+    });
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}

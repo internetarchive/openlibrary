@@ -402,13 +402,13 @@ class Bookshelves(object):
             query += ' AND bookshelf_id=$bookshelf_id'
         elif count_per_shelf:
             query += ' GROUP BY bookshelf_id'
-       
+
         result = oldb.query(query, vars=data)
         if result:
             if count_per_shelf:
                 return dict([(i['bookshelf_id'], i['count']) for i in result])
             return result[0]['count']
-        return 0
+        return None
 
     @classmethod
     def get_users_reads(cls, username, bookshelf_id=None, limit=100, page=1):
@@ -471,16 +471,19 @@ class Bookshelves(object):
                                bookshelf_id=bookshelf_id, vars=data)
 
     @classmethod
-    def remove(cls, username, bookshelf_id, work_id, edition_id=None):
+    def remove(cls, username, work_id, bookshelf_id=None, edition_id=None):
         oldb = db.get_db()
+        where = {
+            'username': username,
+            'work_id': int(work_id),
+            'edition_id': int(edition_id) if edition_id else None
+        }
+        if bookshelf_id:
+            where['bookshelf_id'] = int(bookshelf_id)
+
         try:
             return oldb.delete('bookshelves_books',
-                               where=('work_id=$work_id AND username=$username'), vars={
-                                   'username': username,
-                                   'work_id': int(work_id),
-                                   'edition_id': int(edition_id) if edition_id else None,
-                                   'bookshelf_id': int(bookshelf_id)
-                               })
+                               where=('work_id=$work_id AND username=$username'), vars=where)
         except:  # we want to catch no entry exists
             return None
 
@@ -494,7 +497,7 @@ class Bookshelves(object):
             return result if lazy else list(result)
         except:
             return None
-        
+
 class Ratings(object):
 
     @classmethod

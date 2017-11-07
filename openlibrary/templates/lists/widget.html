@@ -1,11 +1,11 @@
-$def with (page, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False)
+$def with (page, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
 $ work_key = work.key if work else None
 $ edition_key = edition.key if edition else None
 $ username = ctx.user and ctx.user.key.split('/')[-1]
-$ users_work_read_status = work.get_users_read_status(username) if work and username else None
+$ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 
 $if "lists" not in ctx.features:
     $return
@@ -95,7 +95,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
         <div class="dropper on">
           $if work_key:
             <div class="work-likes">
-              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+              <form method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
                     $ message = "Already Read"
                 $elif users_work_read_status == 2:
@@ -134,7 +134,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="dropdown">
               <div class="read-statuses">
                 $if users_work_read_status == 2 or users_work_read_status == 3:
-                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">  
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
                     <input type="hidden" name="action" value="add"/>
                     <input type="hidden" name="redir" value="true"/>
                     <input type="hidden" name="bookshelf_id" value="1"/>
@@ -164,15 +164,16 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </form>
               </div>
 
-              <p style="text-align: center;">My Reading Lists</p>
-              <div class="my-lists">
-                $for i, list in enumerate(lists):
-                  $if not list.active:
-                    <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
-              </div>
-              <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                <a href="javascript:;" class="hidden listClick"></a>
-              </p>
+              $if not readinglog_only:
+                <p style="text-align: center;">My Reading Lists</p>
+                <div class="my-lists">
+                  $for i, list in enumerate(lists):
+                    $if not list.active:
+                      <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                </div>
+                <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                  <a href="javascript:;" class="hidden listClick"></a>
+                </p>
             </div>
           $else:
               $if username:
@@ -193,7 +194,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 </div>
 
               $else:
-                <a href="/account/login?redir=$pageurl" class="dropclick plain">              
+                <a href="/account/login?redir=$pageurl" class="dropclick plain">
                   <h3>Add to List</h3>
                   <div class="arrow"></div>
                 </a>
