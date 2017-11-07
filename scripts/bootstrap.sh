@@ -106,15 +106,8 @@ cd $OL_ROOT && make
 
 cp $OL_ROOT/conf/init/* /etc/init/
 
-ln -sf $OL_ROOT/scripts/ol-start.sh /etc/init.d/ol-start
-chmod +x /etc/init.d/ol-start
-/etc/init.d/ol-start
-
 if [ "$REINDEX_SOLR" == "yes" ]
 then
     cd $OL_ROOT
     sudo -u $OL_USER make reindex-solr
 fi
-
-echo "/etc/init.d/ol-start
-exit 0" > /etc/rc.local
