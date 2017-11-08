@@ -596,6 +596,7 @@ li.ac_over {
 
 .ac_results .ac_author {
     line-height: normal;
+    color: #999;
 }
 .ac_results .ac_author:hover {
     background-color: #fffdcd;
@@ -607,6 +608,9 @@ li.ac_over {
     display: block;
     color: #000;
 }
+.ac_results .olid {
+    font-family: monospace;
+}
 .ac_results .books {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 12px;
@@ -617,7 +621,6 @@ li.ac_over {
 .ac_results .work {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 11px;
-    color: #999;
 }
 .ac_results .work i {
     color: #615132;
@@ -625,7 +628,6 @@ li.ac_over {
 .ac_results .subject {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 11px;
-    color: #999;
 }
 .ac_results .action {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;

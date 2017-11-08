@@ -4,47 +4,59 @@
     // author-autocomplete
     $.fn.author_autocomplete = function(options) {
         var local_options = {
-            addnew: true,
+            // Custom option; when returning true for the given query, this
+            // will append a special "__new__" item so the user can enter a
+            // custom value (i.e. new author in this case)
+            addnew: function(query) {
+                // Don't render "Create new author" if searching by key
+                return !/^OL\d+A/i.test(query);
+            },
 
             minChars: 2,
             max: 11,
             matchSubset: false,
             autoFill: false,
             formatItem: function(item) {
-                var author_lifespan = '';
-                if (item.birth_date || item.death_date) {
-                    var birth = item.birth_date || ' ';
-                    var death = item.death_date || ' ';
-                    author_lifespan = ' (' + birth + '-' + death + ')';
-                }
-
                 if (item.key == "__new__") {
                     return '' +
                         '<div class="ac_author ac_addnew" title="Add a new author">' +
                             '<span class="action">' + _('Create a new record for') + '</span>' +
                             '<span class="name">' + item.name + '</span>' +
-                        '</div>'
-                }
-                else if (item.work_count == 0) {
-                    return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item.name + author_lifespan + '</span>' +
-                               '<span class="subject">No books associated with ' + item.name +'</span>' +
-                           '</div>';
-                }
-                else if (item.work_count == 1) {
-                    return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item.name + author_lifespan + '</span>' +
-                               '<span class="books">1 book</span> <span class="work">titled <i>' + (item.works[0]) + '</i></span><br/>' +
-                               '<span class="subject">Subjects: ' + (item.subjects && item.subjects.join(", ") || "") + '</span>' +
-                           '</div>';
+                        '</div>';
                 }
                 else {
+                    var subjects_str = item.subjects ? item.subjects.join(', ') : '';
+                    var main_work = item.works ? item.works[0] : '';
+                    var author_lifespan = '';
+                    if (item.birth_date || item.death_date) {
+                        var birth = item.birth_date || ' ';
+                        var death = item.death_date || ' ';
+                        author_lifespan = ' (' + birth + '-' + death + ')';
+                    }
+
+                    var name_html = '<span class="name">' + item.name + author_lifespan + '</span>';
+                    var olid_html = '<span class="olid">' + item.key.match(/OL\d+A/)[0] + '</span>';
+                    var books_html = '<span class="books">' + item.work_count + ' books</span>';
+                    var main_work_html =  '<span class="work">including <i>' + main_work + '</i></span><br/>';
+                    var subjects_html = '<span class="subject">Subjects: ' + subjects_str + '</span>'
+
+                    if (subjects_str == '')
+                        subjects_html = '';
+
+                    if (item.work_count == 0) {
+                        books_html = '';
+                        main_work_html = '<span class="work">No books associated with ' + item.name + '</span>';
+                    }
+                    else if (item.work_count == 1) {
+                        books_html = '<span class="books">1 book</span>';
+                        main_work_html = '<span class="work">titled <i>' + main_work + '</i></span><br/>';
+                    }
+
                     return '<div class="ac_author" title="Select this author">' +
-                               '<span class="name">' + item.name + author_lifespan + '</span>' +
-                               '<span class="books">' + (item.work_count) + ' books</span>' +
-                               ' <span class="work">including <i>' + (item.works && item.works[0] || "") + '</i></span><br/>' +
-                               '<span class="subject">Subjects: ' + (item.subjects && item.subjects.join(", ") || "") + '</span>' +
-                           '</div>';
+                                name_html +
+                                olid_html + ' &bull; ' + books_html + ' ' + main_work_html +
+                                subjects_html +
+                            '</div>';
                 }
             }
         };
@@ -88,14 +100,15 @@
                         result: row.name
                     });
                 }
-                if (options.addnew) {
-                    // XXX: this won't work when _this is multiple values (like $("input"))
-                    var name = $(_this).val();
+
+                // XXX: this won't work when _this is multiple values (like $("input"))
+                var query = $(_this).val();
+                if (options.addnew && options.addnew(query)) {
                     parsed = parsed.slice(0, options.max - 1);
                     parsed.push({
-                        data: {name: name, key: "__new__"},
-                        value: name,
-                        result: name
+                        data: {name: query, key: "__new__"},
+                        value: query,
+                        result: query
                     });
                 }
                 return parsed;
