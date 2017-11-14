@@ -147,7 +147,6 @@ def test_duplicate_ia_book(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -156,10 +155,11 @@ def test_duplicate_ia_book(mock_site):
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
-        'title': 'Different item',
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        # 'title': 'Different item',
         'languages': ['fre'],
     }
-
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
@@ -190,7 +190,6 @@ def test_from_marc_2(mock_site):
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
-
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
@@ -514,13 +513,10 @@ def test_no_extra_author(mock_site):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
 
-    #pprint(rec)
-
     reply = load(rec)
     assert reply['success'] == True
 
     a = mock_site.get(reply['authors'][0]['key'])
-    pprint(a.dict())
 
     if 'authors' in reply:
         assert reply['authors'][0]['key'] == author['key']
@@ -609,7 +605,7 @@ def test_same_twice(mock_site):
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
     reply = load(rec)
-    print reply
+
     assert reply['success'] == True
     assert reply['edition']['status'] != 'created'
     assert reply['work']['status'] != 'created'
