@@ -29,23 +29,20 @@ bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'talis_multi_work_tiles.mrc', 'talis_empty_245.mrc', 'ithaca_two_856u.mrc',
     'collingswood_bad_008.mrc', 'collingswood_520aa.mrc', 'upei_broken_008.mrc',
     'upei_short_008.mrc', 'diebrokeradical400poll_meta.mrc', 'cu31924091184469_meta.mrc',
-    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc', 'thewilliamsrecord_vol29b_meta.mrc' ] # 'lc00adam_meta.mrc' ]
+    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc', 'thewilliamsrecord_vol29b_meta.mrc' ]
 
 class TestParse(unittest.TestCase):
     def test_xml(self):
         for i in xml_samples:
             try:
-                expect_filename = 'test_data/xml_expect/' + i + '_marc.xml'
-                path = 'test_data/xml_input/' + i + '_marc.xml'
+                expect_filename = os.path.dirname(__file__) + '/test_data/xml_expect/' + i + '_marc.xml'
+                path = os.path.dirname(__file__) + '/test_data/xml_input/' + i + '_marc.xml'
                 element = etree.parse(open(path)).getroot()
                 if element.tag != record_tag and element[0].tag == record_tag:
                     element = element[0]
                 rec = MarcXml(element)
                 edition_marc_xml = read_edition(rec)
                 assert edition_marc_xml
-    #            if i.startswith('engin'):
-    #                pprint(edition_marc_xml)
-    #                assert False
                 j = {}
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
@@ -67,17 +64,14 @@ class TestParse(unittest.TestCase):
     def test_binary(self):
         for i in bin_samples:
             try:
-                expect_filename = 'test_data/bin_expect/' + i
-                data = open('test_data/bin_input/' + i).read()
+                expect_filename = os.path.dirname(__file__) + '/test_data/bin_expect/' + i
+                data = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i).read()
                 if len(data) != int(data[:5]):
                     data = data.decode('utf-8').encode('raw_unicode_escape')
                 assert len(data) == int(data[:5])
                 rec = MarcBinary(data)
                 edition_marc_bin = read_edition(rec)
                 assert edition_marc_bin
-    #            if i.startswith('engin'):
-    #                pprint(edition_marc_bin)
-    #                assert False
                 j = {}
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
