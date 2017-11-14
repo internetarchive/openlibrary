@@ -27,5 +27,6 @@
   "publish_places": [
     "Paris", 
     "Lyon"
-  ]
+  ],
+  "subjects": ["Jesuits", "Influence", "History"]
 }

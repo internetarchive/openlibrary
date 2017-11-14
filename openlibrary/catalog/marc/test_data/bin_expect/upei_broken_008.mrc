@@ -26,5 +26,7 @@
   "by_statement": "by Elenore Smith Bowen", 
   "publish_places": [
     "Garden City, N. Y"
-  ]
+  ],
+  "subjects": ["Social life and customs"],
+  "subject_places": ["West Africa"]
 }

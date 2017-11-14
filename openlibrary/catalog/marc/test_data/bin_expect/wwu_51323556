@@ -140,5 +140,6 @@
   ], 
   "isbn_10": [
     "0195152700"
-  ]
+  ],
+  "subjects": ["Statistical methods", "Spatial analysis (Statistics)", "Population geography"]
 }

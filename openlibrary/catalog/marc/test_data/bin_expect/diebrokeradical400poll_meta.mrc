@@ -36,5 +36,6 @@
   ], 
   "isbn_10": [
     "0887308678"
-  ]
+  ],
+  "subjects": ["Personal Finance"]
 }

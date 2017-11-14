@@ -23,5 +23,7 @@
   ],
   "publish_places": [
     "Williamstown, Mass"
-  ]
+  ],
+  "subjects": ["College student newspapers and periodicals", "Periodicals", "Williams College"],
+  "subject_places": ["Williamstown", "Massachusetts"]
 }

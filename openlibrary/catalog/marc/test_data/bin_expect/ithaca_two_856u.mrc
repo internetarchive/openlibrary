@@ -39,5 +39,7 @@
   ], 
   "contributions": [
     "Great Britain. Office for National Statistics"
-  ]
+  ],
+  "subjects": ["Statistics", "Periodicals"],
+  "subject_places": ["Great Britain"]
 }

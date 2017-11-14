@@ -23,5 +23,6 @@
   "by_statement": "Rodman Philbrick. e.", 
   "publish_places": [
     "Greenwitch, CT"
-  ]
+  ],
+  "subjects": ["Learning disabilities", "People with disabilities", "Talking books", "Juvenile literature", "Juvenile fiction", "Friendship"]
 }

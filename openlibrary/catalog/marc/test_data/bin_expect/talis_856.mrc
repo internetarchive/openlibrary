@@ -38,5 +38,7 @@
   ], 
   "contributions": [
     "American-Israeli Cooperative Enterprise"
-  ]
+  ],
+  "subjects": ["Politics and government", "Jewish-Arab relations", "Middle East", "Arab-Israeli conflict"],
+  "subject_times": ["1945-"]
 }
