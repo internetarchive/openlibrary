@@ -257,6 +257,7 @@ class account_create(delegate.page):
 
 del delegate.pages['/account/register']
 
+
 class account_login_json(delegate.page):
 
     encoding = "json"
@@ -742,6 +743,21 @@ class account_my_books(delegate.page):
     @require_login
     def GET(self):
         raise web.seeother('/account/my-books/loans')
+
+class account_books(delegate.page):
+    path = "/account/my-books"
+    encoding = "json"
+
+    @require_login
+    def GET(self):
+        # XXX should be cached for 2 minutes
+        user = accounts.get_current_user()
+        waitlists = user.get_waitinglist()
+        return delegate.RawText(simplejson.dumps({
+            'waitlists': waitlists,
+            'loans': borrow.get_loans(user)
+        }), content_type="application/json")
+
 
 class account_my_books(delegate.page):
     path = "/account/my-books/([a-zA-Z_-]+)"

@@ -169,18 +169,10 @@ $elif ebook_status == "borrow-user-checkedout":
     $:macros.databarView(page)
     <div class="navEdition sansserif">
         $ work = page.works and page.works[0]
+        $ edition_count = work.edition_count if work else 1
+            <a href="$work.url()"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work.title or "", 60)</span> found in the catalog
         $if work:
-            <strong>$work.edition_count edition$("s" if work.edition_count != 1 else "")</strong> of
-            <span title="$_('Go to the main page for %s', page.title)"><a href="$work.url()">$truncate(work.title or "", 60)</a></span>
-        $else:
-            <strong>$:_('1 edition')</strong> record for of $page.title
-        $ authors_byline = get_authors_byline(page)
-        $if authors_byline:
-            $_("by") <span title="$_('Author')">$:authors_byline</span>
-        $else:
-            $:_("by an <em>unknown author</em>")
-        $if work:
-            <span class="smaller">&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add edition")</a>?</span>
+            <span>&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add another edition")</a>?</span>
         <br />
         <div class="shift">
             $if page.ocaid:

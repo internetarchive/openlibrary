@@ -165,24 +165,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
               </div>
 
               $if not readinglog_only:
-                <p style="text-align: center;">My Reading Lists</p>
-                <div class="my-lists">
-                  $for i, list in enumerate(lists):
-                    $if not list.active:
-                      <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
-                </div>
-                <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                  <a href="javascript:;" class="hidden listClick"></a>
-                </p>
-            </div>
-          $else:
-              $if username:
-                <a href="javascript:;" class="dropclick plain">
-                  <h3>Add to List</h3>
-                  <div class="arrow"></div>
-                </a>
-                <div class="dropdown">
-                  <p style="text-align: center;">My Reading Lists</p>
+                <div class="reading-lists">
+                  <p class="reading-list-title">My Reading Lists:</p>
                   <div class="my-lists">
                     $for i, list in enumerate(lists):
                       $if not list.active:
@@ -191,6 +175,25 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
                     <a href="javascript:;" class="hidden listClick"></a>
                   </p>
+                </div>
+            </div>
+          $else:
+              $if username:
+                <div class="reading-lists">
+                  <a href="javascript:;" class="dropclick plain">
+                    <h3>Add to List</h3>
+                    <div class="arrow"></div>
+                  </a>
+                  <div class="dropdown">
+                     <div class="my-lists">
+                      $for i, list in enumerate(lists):
+                        $if not list.active:
+                          <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                    </div>
+                    <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                      <a href="javascript:;" class="hidden listClick"></a>
+                    </p>
+                  </div>
                 </div>
 
               $else:

@@ -90,4 +90,19 @@ $ borrow_link = page.url() + '/borrow'
 $if editions_page:
   $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers)
 
+$if editions_page:
+    $ share_links = ctx.get('share_links')
+    $if share_links:
+      <hr>
+      <div class="shareLinks cta-section">
+        <p class="cta-section-title">Share this book</p>
+        <ul class="shareLinks-list">
+         $for share_link in share_links:
+            $ track_tag = share_link['text'].replace(' ', '-')
+            <li>
+              <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag"><img alt="$(share_link['text'])" class="share-link" src="/static/images/$(share_link['text'].lower()).svg"/></a>
+            </li>
+        </ul>
+      </div>
+
 </div>
