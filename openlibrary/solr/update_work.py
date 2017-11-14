@@ -31,7 +31,7 @@ re_edition_key = re.compile(r"/books/([^/]+)")
 data_provider = None
 _ia_db = None
 
-solr_host = {}
+solr_host = None
 
 def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
@@ -42,7 +42,7 @@ def urlopen(url, data=None):
     req = urllib2.Request(url, data, headers)
     return urllib2.urlopen(req)
 
-def get_solr(index):
+def get_solr():
     global solr_host
 
     if not config.runtime_config:
@@ -50,23 +50,14 @@ def get_solr(index):
         config.load_config('openlibrary.yml')
 
     if not solr_host:
-        solr_host = {
-            'works': config.runtime_config['plugin_worksearch']['solr'],
-            'authors': config.runtime_config['plugin_worksearch']['author_solr'],
-            'subjects': config.runtime_config['plugin_worksearch']['subject_solr'],
-            'editions': config.runtime_config['plugin_worksearch']['edition_solr'],
-        }
-    return solr_host[index]
+        solr_host = config.runtime_config['plugin_worksearch']['solr']
+
+    return solr_host
 
 def load_config():
     if not config.runtime_config:
         config.load('openlibrary.yml')
         config.load_config('openlibrary.yml')
-
-def is_single_core():
-    """Returns True if we are using new single core solr setup that maintains
-    all type of documents in a single core."""
-    return config.runtime_config.get("single_core_solr", False)
 
 re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
 
@@ -447,15 +438,10 @@ class SolrProcessor:
         def add_list(name, values):
             d[name] = list(values)
 
-        # when using common solr core for all types of documents,
         # use the full key and add type to the doc.
-        if is_single_core():
-            add('key', w['key'])
-            add('type', 'work')
-            add('seed', BaseDocBuilder().compute_seeds(w, editions))
-        else:
-            add('key', w['key'][7:]) # strip /works/
-
+        add('key', w['key'])
+        add('type', 'work')
+        add('seed', BaseDocBuilder().compute_seeds(w, editions))
         add('title', w.get('title'))
         add('subtitle', w.get('subtitle'))
         add('has_fulltext', has_fulltext)
@@ -749,18 +735,9 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     return doc
 
-def solr_update(requests, debug=False, index='works', commitWithin=60000):
-    # As of now, only works are added to single core solr.
-    # Need to work on supporting other things later
-    if is_single_core() and index not in ['works', 'authors', 'editions', 'subjects']:
-        return
-
-    h1 = httplib.HTTPConnection(get_solr(index))
-
-    if is_single_core():
-        url = 'http://%s/solr/update' % get_solr(index)
-    else:
-        url = 'http://%s/solr/%s/update' % (get_solr(index), index)
+def solr_update(requests, debug=False, commitWithin=60000):
+    h1 = httplib.HTTPConnection(get_solr())
+    url = 'http://%s/solr/update' % get_solr()
 
     logger.info("POSTing update to %s", url)
     url = url + "?commitWithin=%d" % commitWithin
@@ -934,9 +911,6 @@ def process_edition_data(edition_data):
 def process_work_data(work_data):
     """Returns a solr document corresponding to a work using the given work_data.
     """
-    # Force single core
-    config.runtime_config['single_core_solr'] = True
-
     return build_data2(
         work_data['work'],
         work_data['editions'],
@@ -946,8 +920,6 @@ def process_work_data(work_data):
 
 def update_edition(e):
     return []
-    if not is_single_core():
-        return []
 
     ekey = e['key']
     logger.info("updating edition %s", ekey)
@@ -972,7 +944,6 @@ def update_edition(e):
 
 
 def get_subject(key):
-    # This works only for single-core-solr
     subject_key = key.split("/")[-1]
 
     if ":" in subject_key:
@@ -997,7 +968,7 @@ def get_subject(key):
         'facet.mincount': 1,
         'facet.limit': 100
     }
-    base_url = 'http://' + get_solr('works') + '/solr/select'
+    base_url = 'http://' + get_solr() + '/solr/select'
     url = base_url + '?' + urllib.urlencode(params)
     result = json.load(urlopen(url))
 
@@ -1020,10 +991,6 @@ def get_subject(key):
     }
 
 def update_subject(key):
-    # updating subject is available only for single-core-solr
-    if not is_single_core():
-        return
-
     subject = get_subject(key)
     request_set = SolrRequestSet()
     request_set.delete(subject['key'])
@@ -1055,9 +1022,9 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         edition = w
         w = {
             # Use key as /works/OL1M.
-            # In case of single-core-solr, we are using full path as key. So it is required
-            # to be unique across all types of documents.
-            # The website takes care of redirecting /works/OL1M to /books/OL1M.
+            # In solr we are using full path as key. So it is required to be
+            # unique across all types of documents. The website takes care of
+            # redirecting /works/OL1M to /books/OL1M.
             'key': edition['key'].replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
             'title': edition['title'],
@@ -1080,9 +1047,8 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
                 if d.get('ia'):
                     deletes += ["ia:" + iaid for iaid in d['ia']]
 
-                # In single core solr, we use full path as key, not just the last part
-                if is_single_core():
-                    deletes = ["/works/" + k for k in deletes]
+                # In solr, we use full path as key, not just the last part
+                deletes = ["/works/" + k for k in deletes]
 
                 requests.append(DeleteRequest(deletes))
                 requests.append(UpdateRequest(d))
@@ -1090,10 +1056,9 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
         # Delete the record from solr if the work has been deleted in OL.
         deletes += [wkey[7:]] # strip /works/ from /works/OL1234W
 
-        # In single core solr, we use full path as key, not just the last part
-        if is_single_core():
-            deletes = ["/works/" + k for k in deletes]
-            requests.append(DeleteRequest(deletes))
+        # In solr, we use full path as key, not just the last part
+        deletes = ["/works/" + k for k in deletes]
+        requests.append(DeleteRequest(deletes))
 
     return requests
 
@@ -1110,7 +1075,6 @@ def make_delete_query(keys):
     return tostring(delete_query)
 
 def update_author(akey, a=None, handle_redirects=True):
-    # http://ia331507.us.archive.org:8984/solr/works/select?indent=on&q=author_key:OL22098A&facet=true&rows=1&sort=edition_count%20desc&fl=title&facet.field=subject_facet&facet.mincount=1
     if akey == '/authors/':
         return
     m = re_author_key.match(akey)
@@ -1133,11 +1097,7 @@ def update_author(akey, a=None, handle_redirects=True):
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
-
-    if is_single_core():
-        base_url = 'http://' + get_solr('works') + '/solr/select'
-    else:
-        base_url = 'http://' + get_solr('works') + '/solr/works/select'
+    base_url = 'http://' + get_solr() + '/solr/select'
 
     url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
@@ -1158,20 +1118,10 @@ def update_author(akey, a=None, handle_redirects=True):
             all_subjects.append((num, s))
     all_subjects.sort(reverse=True)
     top_subjects = [s for num, s in all_subjects[:10]]
-
-
-    key = author_id
-    if is_single_core():
-        key = "/authors/:" + key
-
-
-    d = dict(key=key)
-
-    if is_single_core():
-        d['key'] = "/authors/" + author_id
-        d['type'] = 'author'
-    else:
-        d['key'] = author_id
+    d = dict(
+        key="/authors/" + author_id,
+        type='author'
+    )
 
     if a.get('name', None):
         d['name'] = a['name']
@@ -1187,8 +1137,6 @@ def update_author(akey, a=None, handle_redirects=True):
     requests = []
     if handle_redirects:
         redirect_keys = data_provider.find_redirects(akey)
-        if not is_single_core():
-            redirect_keys = [key.split("/")[-1] for key in redirect_keys]
         #redirects = ''.join('<id>{}</id>'.format(k) for k in redirect_keys)
         # q = {'type': '/type/redirect', 'location': akey}
         # try:
@@ -1240,18 +1188,11 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
 
-    if is_single_core():
-        url = 'http://' + get_solr('works') + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
-        reply = json.load(urlopen(url))
-        docs = reply['response'].get('docs', [])
-        if docs:
-            return docs[0]['key'] # /works/ prefix is already added in the case of single-core solr
-    else:
-        url = 'http://' + get_solr('works') + '/solr/works/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
-        reply = json.load(urlopen(url))
-        docs = reply['response'].get('docs', [])
-        if docs:
-            return '/works/' + docs[0]['key'] # Need to add /works/ to make the actual key
+    url = 'http://' + get_solr() + '/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
+    reply = json.load(urlopen(url))
+    docs = reply['response'].get('docs', [])
+    if docs:
+        return docs[0]['key'] # /works/ prefix is in solr
 
 def update_keys(keys, commit=True, output_file=None):
     logger.info("BEGIN update_keys")
@@ -1311,10 +1252,6 @@ def update_keys(keys, commit=True, output_file=None):
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
 
-    if not is_single_core():
-        # strip /books/ or /works/
-        deletes = [k.split("/")[-1] for k in deletes]
-
     data_provider.preload_documents(wkeys)
     data_provider.preload_editions_of_works(wkeys)
 
@@ -1353,7 +1290,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit/>']
-        solr_update(requests, index="editions", debug=True)
+        solr_update(requests, debug=True)
 
     # update authors
     requests = []
@@ -1378,7 +1315,7 @@ def update_keys(keys, commit=True, output_file=None):
             #solr_update(requests, debug=True)
             if commit:
                 requests += ['<commit />']
-            solr_update(requests, index="authors", debug=True, commitWithin=1000)
+            solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))
@@ -1392,7 +1329,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit />']
-        solr_update(requests, index="subjects", debug=True)
+        solr_update(requests, debug=True)
 
     logger.info("END update_keys")
 

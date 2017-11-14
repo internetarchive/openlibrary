@@ -68,7 +68,7 @@ class publisher_search(delegate.page):
 
     def GET(self):
         i = web.input(q="")
-        solr = search.get_works_solr()
+        solr = search.get_solr()
         q = {"publisher": i.q}
 
         result = solr.select(q, facets=["publisher_facet"], fields=["publisher", "publisher_facet"], rows=0)
@@ -76,7 +76,7 @@ class publisher_search(delegate.page):
         return render_template('search/publishers', i.q, result)
 
     def process_result(self, result):
-        solr = search.get_works_solr()
+        solr = search.get_solr()
 
         def process(p):
             return web.storage(
@@ -93,7 +93,7 @@ class PublisherEngine(subjects.SubjectEngine):
 
     def get_ebook_count(self, name, value, publish_year):
         # Query solr for this publish_year and publish_year combination and read the has_fulltext=true facet
-        solr = search.get_works_solr()
+        solr = search.get_solr()
         q = {
             "publisher_facet": value
         }

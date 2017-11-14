@@ -210,7 +210,7 @@ class Solr:
 
     def _solr_commit(self):
         logger.info("BEGIN commit")
-        update_work.solr_update(['<commit/>'], index="works")
+        update_work.solr_update(['<commit/>'])
         logger.info("END commit")
 
 def process_args(args):

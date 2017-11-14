@@ -485,11 +485,8 @@ class Author(models.Author):
 
 re_year = re.compile(r'(\d{4})$')
 
-def get_works_solr():
-    if config.get("single_core_solr"):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
-    else:
-        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
+def get_solr():
+    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
 
 class Work(models.Work):
@@ -521,19 +518,14 @@ class Work(models.Work):
         return []
 
     def _get_solr_data(self):
-        if config.get("single_core_solr"):
-            key = self.key
-        else:
-            key = self.get_olid()
-
         fields = [
             "cover_edition_key", "cover_id", "edition_key", "first_publish_year",
             "has_fulltext", "lending_edition_s", "checked_out", "public_scan_b", "ia"]
 
-        solr = get_works_solr()
-        stats.begin("solr", query={"key": key}, fields=fields)
+        solr = get_solr()
+        stats.begin("solr", query={"key": self.key}, fields=fields)
         try:
-            d = solr.select({"key": key}, fields=fields)
+            d = solr.select({"key": self.key}, fields=fields)
         except Exception as e:
             logging.getLogger("openlibrary").exception("Failed to get solr data")
             return None

@@ -45,8 +45,8 @@ def solr_update_authors(authors_to_update):
             print a['redirects']
             raise
         author_updates += update_author(a['master_key'], a=a['master'], handle_redirects=False)
-    solr_update(author_updates, index='authors', debug=False)
-    solr_update(['<commit/>'], index='authors', debug=True)
+    solr_update(author_updates, debug=False)
+    solr_update(['<commit/>'], debug=True)
 
 def solr_update_subjects():
     global subjects_to_update
@@ -72,8 +72,8 @@ def solr_update_subjects():
     if len(subject_add):
         print 'updating subjects'
         add_xml = tostring(subject_add).encode('utf-8')
-        solr_update([add_xml], debug=False, index='subjects')
-        solr_update(['<commit />'], debug=True, index='subjects')
+        solr_update([add_xml], debug=False)
+        solr_update(['<commit />'], debug=True)
 
     subjects_to_update = set()
 
@@ -132,7 +132,7 @@ def solr_updates(i):
                 ret = update_work(work, debug=True, resolve_redirects=True)
             work_updates += ret
     if work_updates:
-        solr_update(work_updates, debug=False, index='works')
+        solr_update(work_updates, debug=False)
 
     authors_to_update.append({ 'redirects': dup_keys, 'master_key': master_key, 'master': master})
     print 'authors to update:', len(authors_to_update)
@@ -168,7 +168,7 @@ while True:
     if len(data_list) == 0:
         if authors_to_update:
             print 'commit'
-            solr_update(['<commit/>'], debug=True, index='works')
+            solr_update(['<commit/>'], debug=True)
             solr_update_authors(authors_to_update)
             authors_to_update = []
             solr_update_subjects()

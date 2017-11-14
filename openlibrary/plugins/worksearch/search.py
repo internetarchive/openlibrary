@@ -6,32 +6,16 @@ from infogami.utils import stats
 import web
 import logging
 
-def get_works_solr():
-    if config.get('single_core_solr'):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
-    else:
-        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
-
-    return Solr(base_url)
-
-def get_authors_solr():
-    if config.get('single_core_solr'):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
-    else:
-        base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
-    return Solr(base_url)
-
-def get_subjects_solr():
-    if config.get('single_core_solr'):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('subjects_solr')
-    else:
-        base_url = "http://%s/solr/subjects" % config.plugin_worksearch.get('subjects_solr')
+def get_solr():
+    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
 
 def work_search(query, limit=20, offset=0, **kw):
     """Search for works."""
 
     kw.setdefault("doc_wrapper", work_wrapper)
+    kw.setdefault("fq", "type:work")
+
     fields = [
         "key",
         "author_name",
@@ -49,11 +33,8 @@ def work_search(query, limit=20, offset=0, **kw):
     ]
     kw.setdefault("fields", fields)
 
-    if config.get('single_core_solr'):
-        kw.setdefault("fq", "type:work")
-
     query = process_work_query(query)
-    solr = get_works_solr()
+    solr = get_solr()
 
     stats.begin("solr", query=query, start=offset, rows=limit, kw=kw)
     try:

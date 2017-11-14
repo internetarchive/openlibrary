@@ -54,19 +54,6 @@ done_login = False
 config_file = args.config
 config.load(config_file)
 
-solr_works = config.runtime_config["plugin_worksearch"]["solr"]
-solr_subjects = config.runtime_config["plugin_worksearch"]["subject_solr"]
-
-def fix_hardcoded_config():
-    from openlibrary.catalog.utils import query
-    query = query_host = args.server
-
-    from openlibrary.solr import update
-    update.solr_works = solr_works
-    update.solr_subjects = solr_subjects
-
-fix_hardcoded_config()
-
 base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server']
 
 skip_user = set(u.lower() for u in args.skip_user)
@@ -151,7 +138,7 @@ def run_update():
                 print 'akey:', `akey`
                 raise
         if not args.no_commit:
-            solr_update(requests + ['<commit/>'], index='authors', debug=True)
+            solr_update(requests + ['<commit/>'], debug=True)
     subject_add = Element("add")
     print subjects_to_update
     for subject_type, subject_name in subjects_to_update:
@@ -173,7 +160,7 @@ def run_update():
     if len(subject_add):
         print 'updating subjects'
         add_xml = tostring(subject_add).encode('utf-8')
-        solr_update([add_xml, '<commit />'], debug=True, index='subjects')
+        solr_update([add_xml, '<commit />'], debug=True)
 
     authors_to_update = set()
     works_to_update = set()

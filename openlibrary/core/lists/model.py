@@ -15,7 +15,7 @@ from infogami.utils import stats
 from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
-from openlibrary.plugins.worksearch.search import get_works_solr
+from openlibrary.plugins.worksearch.search import get_solr
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -147,7 +147,7 @@ class ListMixin:
         if not query_terms:
             return
         q = " OR ".join(query_terms)
-        solr = get_works_solr()
+        solr = get_solr()
         result = solr.select(q, fields=["edition_key"], rows=10000)
         for doc in result['docs']:
             if 'edition_key' not in doc:
@@ -196,7 +196,7 @@ class ListMixin:
         return " OR ".join(t for t in terms if t)
 
     def _get_all_subjects(self):
-        solr = get_works_solr()
+        solr = get_solr()
         q = self._get_solr_query_for_subjects()
 
         # Solr has a maxBooleanClauses constraint there too many seeds, the
@@ -349,7 +349,7 @@ class Seed:
         elif self.type == 'subject':
             type, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
-            value = get_works_solr().escape(value)
+            value = get_solr().escape(value)
             return "%s_key:%s" % (type, value)
 
     def get_solrdata(self):
@@ -368,7 +368,7 @@ class Seed:
         else:
             q = self.get_solr_query_term()
             if q:
-                solr = get_works_solr()
+                solr = get_solr()
                 result = solr.select(q, fields=["edition_count", "ebook_count_i"])
                 last_update_i = [doc['last_update_i'] for doc in result.docs if 'last_update_i' in doc]
                 if last_update_i:

@@ -798,4 +798,4 @@ if __name__ == '__main__':
         solr_update(requests + ['<commit />'], debug=True)
 
     requests = update_author(akey)
-    solr_update(requests + ['<commit/>'], index='authors', debug=True)
+    solr_update(requests + ['<commit/>'], debug=True)

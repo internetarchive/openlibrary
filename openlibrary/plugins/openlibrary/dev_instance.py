@@ -76,8 +76,8 @@ class process_ebooks(delegate.page):
     path = "/_dev/process_ebooks"
 
     def GET(self):
-        from openlibrary.plugins.worksearch.search import get_works_solr
-        result = get_works_solr().select(query='borrowed_b:false', fields=['key', 'lending_edition_s'], limit=100)
+        from openlibrary.plugins.worksearch.search import get_solr
+        result = get_solr().select(query='borrowed_b:false', fields=['key', 'lending_edition_s'], limit=100)
 
         def make_doc(d):
             # Makes a store doc from solr doc
