@@ -95,11 +95,11 @@ class TestParse(unittest.TestCase):
                 raise
 
         i = 'talis_see_also.mrc'
-        f = open('test_data/bin_input/' + i)
+        f = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i)
         rec = MarcBinary(f.read())
         self.assertRaises(SeeAlsoAsTitle, read_edition, rec)
 
         i = 'talis_no_title2.mrc'
-        f = open('test_data/bin_input/' + i)
+        f = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i)
         rec = MarcBinary(f.read())
         self.assertRaises(NoTitle, read_edition, rec)
