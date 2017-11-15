@@ -212,7 +212,6 @@ def test_from_marc(mock_site):
     assert a.death_date == '1926'
 
 def test_build_pool(mock_site):
-    #assert build_pool({'title': 'test'}) == {'title': []}
     assert build_pool({'title': 'test'}) == {}
     etype = '/type/edition'
     ekey = mock_site.new_key(etype)
