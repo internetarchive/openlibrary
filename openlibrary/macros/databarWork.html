@@ -1,5 +1,6 @@
 $def with (page)
 
+$ edition_page = page.type.key == '/type/edition'
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
 $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
@@ -130,7 +131,7 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $if current_loan['user'] == ctx.user.key:
                             $ user_loan = current_loan
                             $ break
-                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
+                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>', edition_page=edition_page)
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing
                 <script type="text/javascript">

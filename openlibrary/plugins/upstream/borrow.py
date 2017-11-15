@@ -151,12 +151,9 @@ class borrow(delegate.page):
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
 
-            if user_can_borrow_edition(user, edition, resource_type):
+            user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
 
-                wl = edition.get_waitinglist()
-                if wl and (wl[0].get_user_key() != user.key or wl[0]['status'] != 'available'):
-                    raise web.seeother(error_redirect)
-
+            if user_meets_borrow_criteria:
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
@@ -784,7 +781,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, _type):
+def user_can_borrow_edition(user, edition, _type, wlsize=None):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
        user holds a current loan for the edition."""
 
@@ -796,14 +793,12 @@ def user_can_borrow_edition(user, edition, _type):
     if user.get_loan_count() >= user_max_loans:
         return False
 
-    if edition.get_waitinglist_size() > 0:
+    if edition.get_ia_waitlist_size() > 0:
         # There some people are already waiting for the book,
         # it can't be borrowed unless the user is the first in the waiting list.
         waiting_loan = user.get_waiting_loan_for(edition)
-
         if not waiting_loan or waiting_loan['status'] != 'available':
             return False
-
 
     if _type in [loan['resource_type'] for loan in edition.get_available_loans()]:
         return True

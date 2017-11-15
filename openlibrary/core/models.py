@@ -285,9 +285,12 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def get_waitinglist_size(self):
+    def get_ia_waitlist_size(self):
+        return lending.get_bookpage_availability(self.get('ocaid'))
+
+    def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
-        """
+        """            
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_waitinglist_position(self, user):

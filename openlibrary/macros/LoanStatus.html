@@ -1,4 +1,4 @@
-$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break = '')
+$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break = '', edition_page=False)
 
 $# TODO construct list of available formats from available_loans
 
@@ -9,7 +9,8 @@ $else:
   $ current_loans = []
   $ available_loans = []
 
-$ wlsize = page.get_waitinglist_size()
+$ wlsize = page.get_ia_waitlist_size() if edition_page else page.get_waitinglist_size()
+
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 
 $if available_loans:
@@ -61,7 +62,6 @@ $else:
         <span class="smaller">This eBook is checked out.</span>
     </p>
 
-    $ wlsize = page.get_waitinglist_size()
     $if waiting_loan:
         <div class="btn-notice">
           <p>
