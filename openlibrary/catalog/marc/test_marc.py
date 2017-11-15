@@ -11,13 +11,23 @@ class MockField:
         for k, v in subfields:
             self.contents.setdefault(k, []).append(v)
 
+    def get_contents(self, want):
+        contents = {}
+        for k, v in self.get_subfields(want):
+            if v:
+                contents.setdefault(k, []).append(v)
+        return contents
+
+    def get_all_subfields(self):
+        return self.get_subfields(self.contents.keys())
+
     def get_subfields(self, want):
         for w in want:
            if w in self.contents:
                yield w, self.contents.get(w)[0]
 
-    def get_subfield_values(self, subfield_list):
-        return self.contents.get(subfield_list[0])
+    def get_subfield_values(self, want):
+        return [v for k, v in self.get_subfields(want)]
 
 class MockRecord(MarcBase):
     """ usage: MockRecord('020', [('a', 'value'), ('c', 'value'), ('c', 'value')])
@@ -104,18 +114,18 @@ class TestMarcParse(unittest.TestCase):
             output = [i for i in gen(MockRecord(input))]
             self.assertEqual([expect], output)
 
-    def xtest_read_title(self):
-        gen = compile_marc_spec('245:ab clean_name')
+    def test_read_title(self):
         data = [
             ([  ('a', 'Railroad construction.'),
                 ('b', 'Theory and practice.  A textbook for the use of students in colleges and technical schools.'),
                 ('b', 'By Walter Loring Webb.')],
-                'Railroad construction. Theory and practice.  A textbook for the use of students in colleges and technical schools. By Walter Loring Webb.')
+                {'title': 'Railroad construction',
+                 'subtitle': 'Theory and practice.  A textbook for the use of students in colleges and technical schools'})
         ]
 
         for (value, expect) in data:
-            output = [i for i in gen(MockRecord(value))]
-            self.assertEqual([expect], output)
+            output = read_title(MockRecord('245', value))
+            self.assertEqual(expect, output)
 
     def xtest_by_statement(self):
         gen = compile_marc_spec('245:c')
