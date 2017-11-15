@@ -290,7 +290,7 @@ class Edition(Thing):
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
-        """            
+        """
         return waitinglist.get_waitinglist_size(self.key)
 
     def get_waitinglist_position(self, user):

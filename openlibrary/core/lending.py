@@ -131,7 +131,7 @@ def get_bookpage_waitlist_size(ocaid):
     availability = get_bookpage_availability(ocaid)
     return int(availability.get('responses', {}).get(ocaid, {}).get('num_waitlist', 0))
 
-    
+
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
