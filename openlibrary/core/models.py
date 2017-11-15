@@ -246,7 +246,7 @@ class Edition(Thing):
             d['daisy_only'] = True
 
             collections = self.get_ia_collections()
-            borrowable = self.can_borrow()
+            borrowable = self.in_borrowable_collection()
 
             if borrowable:
                 d['borrow_url'] = self.url("/borrow")
@@ -275,18 +275,23 @@ class Edition(Thing):
         """
         return private_collection_in(self.get_ia_collections())
 
-    def can_borrow(self):
+    def in_borrowable_collection(self):
         collections = self.get_ia_collections()
         return ('lendinglibrary' in collections or
             ('inlibrary' in collections and inlibrary.get_library() is not None)
             ) and not self.is_in_private_collection()
+
+    def can_borrow(self):
+        """This method should be deprecated in favor of in_borrowable_collection"""
+        return self.in_borrowable_collection()
 
     def get_waitinglist(self):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
     def get_ia_waitlist_size(self):
-        return lending.get_bookpage_availability(self.get('ocaid'))
+        availability = lending.get_availability_of_ocaid(self.get('ocaid'))
+        return int(availability.get('responses', {}).get(self.get('ocaid'), {}).get('num_waitlist', 0))
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
@@ -338,7 +343,7 @@ class Edition(Thing):
     def is_lendable_book(self):
         """Returns True if the book is lendable.
         """
-        return self.can_borrow()
+        return self.in_borrowable_collection()
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -609,6 +614,9 @@ class User(Thing):
         """
         loan = self.get_loan_for(book)
         return loan is not None
+
+    #def can_borrow_edition(edition, _type):
+
 
     def get_loan_for(self, book):
         """Returns the loan object for given book.

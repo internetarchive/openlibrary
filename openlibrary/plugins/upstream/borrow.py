@@ -782,12 +782,11 @@ def resource_uses_bss(resource_id):
     return False
 
 def user_can_borrow_edition(user, edition, _type):
-    """Returns true if the user can borrow this edition given their current loans.  Returns False if the
-       user holds a current loan for the edition."""
-
-    global user_max_loans
-
-    if not can_borrow(edition):
+    """Returns True if the user can borrow this edition given their
+    current loans.  Returns False if the user holds a current loan
+    for the edition.
+    """
+    if not edition.in_borrowable_collection():
         return False
 
     if user.get_loan_count() >= user_max_loans:

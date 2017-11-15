@@ -43,7 +43,6 @@ LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
 DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
-#CACHE_BOOKPAGE_AVAILABILITY_DURATION = 60 * 3
 CACHE_WORKS_DURATION = 60 * 60 * 12
 
 config_ia_loan_api_url = None
@@ -119,12 +118,6 @@ def cached_work_authors_and_subjects(work_id):
     return cache.memcache_memoize(
         get_work_authors_and_related_subjects, 'works_authors_and_subjects',
         timeout=CACHE_WORKS_DURATION)(work_id)
-
-
-@public
-def get_bookpage_waitlist_size(ocaid):
-    availability = get_availability_of_ocaid(ocaid)
-    return int(availability.get('responses', {}).get(ocaid, {}).get('num_waitlist', 0))
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
