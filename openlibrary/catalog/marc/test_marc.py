@@ -2,13 +2,13 @@
 
 import unittest
 from marc_base import MarcBase
-from parse import read_pagination, read_isbn
+from parse import  read_isbn, read_pagination, read_title
 
 class MockField:
     def __init__(self, subfields):
         self.subfield_sequence = subfields
         self.contents = {}
-        for k, v in subfields.iteritems():
+        for k, v in subfields:
             self.contents.setdefault(k, []).append(v)
 
     def get_subfields(self, want):
@@ -20,13 +20,17 @@ class MockField:
         return self.contents.get(subfield_list[0])
 
 class MockRecord(MarcBase):
-    def __init__(self, subfields):
-        self.contents = {}
-        for k, v in subfields.iteritems():
-            self.contents.setdefault(k, []).append(MockField(v))
+    """ usage: MockRecord('020', [('a', 'value'), ('c', 'value'), ('c', 'value')])
+        Currently only supports a single tag."""
+    def __init__(self, marc_field, subfields):
+        self.tag = marc_field
+        #for k, v in subfields.iteritems():
+        #    self.contents.setdefault(k, []).append(MockField(v))
+        self.field = MockField(subfields)
 
     def get_fields(self, tag):
-        return self.contents.get(tag)
+        if tag == self.tag:
+            return [self.field]
 
 class TestMarcParse(unittest.TestCase):
     def test_read_isbn(self):
@@ -47,7 +51,7 @@ class TestMarcParse(unittest.TestCase):
         ]
 
         for (value, expect) in data:
-            rec = MockRecord({'020': {'a': value}})
+            rec = MockRecord('020', [('a', value)])
             output = read_isbn(rec)
             if len(expect) == 13:
                 isbn_type = 'isbn_13'
@@ -61,7 +65,7 @@ class TestMarcParse(unittest.TestCase):
             ("193 p., 31 p. of plates", 193),
         ]
         for (value, expect) in data:
-            rec = MockRecord({'300': {'a': value}})
+            rec = MockRecord('300', [('a', value)])
             output = read_pagination(rec)
             self.assertEqual(output['number_of_pages'], expect)
             self.assertEqual(output['pagination'], value)
@@ -100,7 +104,7 @@ class TestMarcParse(unittest.TestCase):
             output = [i for i in gen(MockRecord(input))]
             self.assertEqual([expect], output)
 
-    def xtest_title(self):
+    def xtest_read_title(self):
         gen = compile_marc_spec('245:ab clean_name')
         data = [
             ([  ('a', 'Railroad construction.'),
@@ -109,8 +113,8 @@ class TestMarcParse(unittest.TestCase):
                 'Railroad construction. Theory and practice.  A textbook for the use of students in colleges and technical schools. By Walter Loring Webb.')
         ]
 
-        for (input, expect) in data:
-            output = [i for i in gen(MockRecord(input))]
+        for (value, expect) in data:
+            output = [i for i in gen(MockRecord(value))]
             self.assertEqual([expect], output)
 
     def xtest_by_statement(self):
