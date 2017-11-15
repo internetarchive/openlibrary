@@ -120,18 +120,11 @@ def cached_work_authors_and_subjects(work_id):
         get_work_authors_and_related_subjects, 'works_authors_and_subjects',
         timeout=CACHE_WORKS_DURATION)(work_id)
 
-@public
-def get_bookpage_availability(ocaid):
-    #cache.memcache_memoize(get_availability_of_ocaid, 'bookpage_availability',
-    #                       timeout=CACHE_BOOKPAGE_AVAILABILITY_DURATION)(ocaid)
-    return int(get_availability_of_ocaid(ocaid).get('responses', {}).get(ocaid, {}).get('num_waitlist', 0))
 
 @public
 def get_bookpage_waitlist_size(ocaid):
-    availability = get_bookpage_availability(ocaid)
+    availability = get_availability_of_ocaid(ocaid)
     return int(availability.get('responses', {}).get(ocaid, {}).get('num_waitlist', 0))
-
-
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
@@ -226,6 +219,7 @@ def get_availability_of_editions(ol_edition_ids):
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
 
+@public
 def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
     return get_availability('identifier', [ocaid])

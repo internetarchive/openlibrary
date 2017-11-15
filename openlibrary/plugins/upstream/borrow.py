@@ -781,7 +781,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, _type, wlsize=None):
+def user_can_borrow_edition(user, edition, _type):
     """Returns true if the user can borrow this edition given their current loans.  Returns False if the
        user holds a current loan for the edition."""
 

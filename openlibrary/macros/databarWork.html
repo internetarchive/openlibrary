@@ -131,7 +131,7 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $if current_loan['user'] == ctx.user.key:
                             $ user_loan = current_loan
                             $ break
-                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>', edition_page=edition_page)
+                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing
                 <script type="text/javascript">
