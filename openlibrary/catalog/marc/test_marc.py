@@ -1,7 +1,8 @@
 #!/usr/bin/python
 
 import unittest
-from parse import read_pagination
+from marc_base import MarcBase
+from parse import read_pagination, read_isbn
 
 class MockField:
     def __init__(self, subfields):
@@ -10,20 +11,25 @@ class MockField:
         for k, v in subfields.iteritems():
             self.contents.setdefault(k, []).append(v)
 
+    def get_subfields(self, want):
+        for w in want:
+           if w in self.contents:
+               yield w, self.contents.get(w)[0]
+
     def get_subfield_values(self, subfield_list):
         return self.contents.get(subfield_list[0])
 
-class MockRecord:
+class MockRecord(MarcBase):
     def __init__(self, subfields):
         self.contents = {}
         for k, v in subfields.iteritems():
             self.contents.setdefault(k, []).append(MockField(v))
 
-    def get_fields(self, fields):
-        return self.contents.get(fields)
+    def get_fields(self, tag):
+        return self.contents.get(tag)
 
 class TestMarcParse(unittest.TestCase):
-    def xtest_normalize_isbn(self):
+    def test_read_isbn(self):
         data = [
             ('0300067003 (cloth : alk. paper)', '0300067003'),
             ('0197263771 (cased)', '0197263771'),
@@ -33,25 +39,32 @@ class TestMarcParse(unittest.TestCase):
             ('9061791308', '9061791308'),
             ('9788831789530', '9788831789530'),
             ('8831789538', '8831789538'),
-            ('97883178953X ', '97883178953X'),
             ('0-14-118250-4', '0141182504'),
             ('0321434250 (textbook)', '0321434250'),
+            # 12 character ISBNs currently get assigned to isbn_10
+            # unsure whether this is a common / valid usecase:
+            ('97883178953X ', '97883178953X'),
         ]
 
-        for (input, expect) in data:
-            output = normalize_isbn(input)
-            self.assertEqual(expect.lower(), output.lower())
+        for (value, expect) in data:
+            rec = MockRecord({'020': {'a': value}})
+            output = read_isbn(rec)
+            if len(expect) == 13:
+                isbn_type = 'isbn_13'
+            else:
+                isbn_type = 'isbn_10'
+            self.assertEqual(expect, output[isbn_type][0])
 
     def test_read_pagination(self):
         data = [
             ("xx, 1065 , [57] p. :", 1065),
             ("193 p., 31 p. of plates", 193),
         ]
-        for (d, expect) in data:
-            rec = MockRecord({'300': {'a': d}})
+        for (value, expect) in data:
+            rec = MockRecord({'300': {'a': value}})
             output = read_pagination(rec)
             self.assertEqual(output['number_of_pages'], expect)
-            self.assertEqual(output['pagination'], d)
+            self.assertEqual(output['pagination'], value)
 
     def xtest_subject_order(self):
         gen = compile_marc_spec('650:a--x--v--y--z')
