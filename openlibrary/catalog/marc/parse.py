@@ -450,10 +450,10 @@ def read_location(rec):
     fields = rec.get_fields('852')
     if not fields:
         return
-    found = []
+    found = set()
     for f in fields:
-        found += [v for v in f.get_subfield_values(['a']) if v]
-    return found
+        found = found.union({v for v in f.get_subfield_values(['a']) if v})
+    return list(found)
 
 def read_contributions(rec):
     want = dict((

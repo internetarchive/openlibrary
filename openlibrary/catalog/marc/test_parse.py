@@ -29,7 +29,8 @@ bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'talis_multi_work_tiles.mrc', 'talis_empty_245.mrc', 'ithaca_two_856u.mrc',
     'collingswood_bad_008.mrc', 'collingswood_520aa.mrc', 'upei_broken_008.mrc',
     'upei_short_008.mrc', 'diebrokeradical400poll_meta.mrc', 'cu31924091184469_meta.mrc',
-    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc', 'thewilliamsrecord_vol29b_meta.mrc' ]
+    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc',
+    'thewilliamsrecord_vol29b_meta.mrc', '13dipolarcycload00burk_meta.mrc' ]
 
 class TestParse(unittest.TestCase):
     def test_xml(self):
