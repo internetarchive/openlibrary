@@ -575,7 +575,7 @@ def read_edition(rec):
             edition["copyright_date"] = str(f)[11:15]
         publish_country = str(f)[15:18]
         if publish_country not in ('|||', '   ', '\x01\x01\x01', '???'):
-            edition["publish_country"] = publish_country
+            edition["publish_country"] = publish_country.strip()
         lang = str(f)[35:38]
         if lang not in ('   ', '|||', '', '???', 'zxx'):
             # diebrokeradical400poll
