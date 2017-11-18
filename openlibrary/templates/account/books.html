@@ -34,8 +34,8 @@ $ title = key.title().replace('-', ' ')
           $if works:
             $ bookshelf_id = 1 if key == 'want-to-read' else 2 if key == 'currently-reading' else 3 if key == 'already-read' else None
             $for work in works:
-              $if work.get('type') == '/type/loan':
-                $:macros.loan_item(work)
+              $if key == 'loans':
+                $:macros.loan_item(work)              
               $else:
                 $ decorations = macros.ReadingLogButton(work, read_status=bookshelf_id) if bookshelf_id else None
                 $:macros.SearchResultsWork(work, decorations=decorations)

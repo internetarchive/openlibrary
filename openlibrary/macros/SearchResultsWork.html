@@ -50,8 +50,11 @@ $def with (doc, decorations=None)
 	    <span class="label">Download DAISY</span>
 	  </a>
        $if decorations:
+          $# should show reading log status widget if there is one in decorations, or read, or return, or leave waitlist
           <div class="decorations">
             $:decorations
           </div>
+       <div class="searchResultItemCTA-lending">
+       </div>
   </div>
 </li>

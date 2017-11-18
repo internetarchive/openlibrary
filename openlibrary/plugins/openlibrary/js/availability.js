@@ -204,7 +204,7 @@ $(function(){
                 if (response[_type]) {
                     var work = response[_type][key];
                     var li = $(e).closest("li");
-                    var cta = li.find(".searchResultItemCTA");
+                    var cta = li.find(".searchResultItemCTA-lending");
                     var msg = '';
                     var link = '';
                     var annotation = '';
@@ -256,7 +256,7 @@ $(function(){
         })
     }
 
-    $('.searchResultItemCTA form.join-waitlist').live('click', function(e) {
+    $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
         // consider submitting form async and refreshing search results page
         $(this).submit()
     })

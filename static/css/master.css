@@ -3598,7 +3598,7 @@ a.cta-btn  {
     border-radius: 3px;
 }
 
-.searchResultItemCTA .borrow_unavailable {
+.searchResultItemCTA-lending .borrow_unavailable {
     border: none;
     color: #fff;
     width: 100%;
@@ -3614,7 +3614,7 @@ a.cta-btn  {
     font-size: 0.8em;
 }
 
-.searchResultItemCTA .borrow_unavailable .badge {
+.searchResultItemCTA-lending .borrow_unavailable .badge {
     background-color: #e6881a;
     padding: 4px 7px;
     border-radius: 5px;
