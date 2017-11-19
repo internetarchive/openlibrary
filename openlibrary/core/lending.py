@@ -212,6 +212,7 @@ def get_availability_of_editions(ol_edition_ids):
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
 
+@public
 def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
     return get_availability('identifier', [ocaid])

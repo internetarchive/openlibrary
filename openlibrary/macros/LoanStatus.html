@@ -9,7 +9,8 @@ $else:
   $ current_loans = []
   $ available_loans = []
 
-$ wlsize = page.get_waitinglist_size()
+$ wlsize = page.get_ia_waitlist_size()
+
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 
 $if available_loans:
@@ -61,7 +62,6 @@ $else:
         <span class="smaller">This eBook is checked out.</span>
     </p>
 
-    $ wlsize = page.get_waitinglist_size()
     $if waiting_loan:
         <div class="btn-notice">
           <p>
