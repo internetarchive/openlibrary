@@ -15,5 +15,7 @@
       "name": "Charlottetown Area Industrial Commission", 
       "entity_type": "org"
     }
-  ]
+  ],
+  "subjects": ["Social conditions", "Economic conditions", "Guidebooks", "Description and travel"],
+  "subject_places": ["Charlottetown (P.E.I.)", "Prince Edward Island"]
 }

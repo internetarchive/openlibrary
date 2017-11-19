@@ -106,5 +106,6 @@
   "isbn_10": [
     "0061715743", 
     "006176454X"
-  ]
+  ],
+  "subjects": ["Success in business"]
 }

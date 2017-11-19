@@ -28,5 +28,6 @@
   ], 
   "publish_places": [
     "San Francisco?"
-  ]
+  ],
+  "subjects": ["Controversial literature", "Jesuits"]
 }

@@ -46,5 +46,7 @@
   "isbn_10": [
     "0815769768", 
     "081576975X"
-  ]
+  ],
+  "subjects": ["Congresses", "Negative income tax", "Guaranteed annual income", "Labor supply"],
+  "subject_places": ["New Jersey"]
 }

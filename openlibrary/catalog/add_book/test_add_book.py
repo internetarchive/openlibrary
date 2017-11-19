@@ -147,7 +147,6 @@ def test_duplicate_ia_book(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -156,10 +155,11 @@ def test_duplicate_ia_book(mock_site):
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
-        'title': 'Different item',
+        # Titles MUST match to be considered the same
+        'title': 'Test item',
+        # 'title': 'Different item',
         'languages': ['fre'],
     }
-
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
@@ -190,7 +190,6 @@ def test_from_marc_2(mock_site):
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
-
     reply = load(rec)
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
@@ -213,7 +212,7 @@ def test_from_marc(mock_site):
     assert a.death_date == '1926'
 
 def test_build_pool(mock_site):
-    assert build_pool({'title': 'test'}) == {'title': []}
+    assert build_pool({'title': 'test'}) == {}
     etype = '/type/edition'
     ekey = mock_site.new_key(etype)
     e = {
@@ -471,7 +470,7 @@ def test_no_extra_author(mock_site):
 
     author = {
         "name": "Paul Michael Boothe",
-        "key": "/authors/OL2894448A",
+        "key": "/authors/OL1A",
         "type": {"key": "/type/author"},
     }
     mock_site.save(author)
@@ -479,8 +478,8 @@ def test_no_extra_author(mock_site):
     work = {
         "title": "A Separate Pension Plan for Alberta",
         "covers": [1644794],
-        "key": "/works/OL8611498W",
-        "authors": [{"type": "/type/author_role", "author": {"key": "/authors/OL2894448A"}}],
+        "key": "/works/OL1W",
+        "authors": [{"type": "/type/author_role", "author": {"key": "/authors/OL1A"}}],
         "type": {"key": "/type/work"},
     }
     mock_site.save(work)
@@ -498,13 +497,13 @@ def test_no_extra_author(mock_site):
         "physical_dimensions": "9 x 6 x 0.2 inches",
         "publishers": ["The University of Alberta Press"],
         "physical_format": "Paperback",
-        "key": "/books/OL8211505M",
+        "key": "/books/OL1M",
         "authors": [{"key": "/authors/OL2894448A"}],
         "identifiers": {"goodreads": ["4340973"], "librarything": ["5580522"]},
         "isbn_13": ["9780888643513"],
         "isbn_10": ["0888643519"],
         "publish_date": "May 1, 2000",
-        "works": [{"key": "/works/OL8611498W"}]
+        "works": [{"key": "/works/OL1W"}]
     }
     mock_site.save(edition)
 
@@ -513,13 +512,10 @@ def test_no_extra_author(mock_site):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
 
-    #pprint(rec)
-
     reply = load(rec)
     assert reply['success'] == True
 
     a = mock_site.get(reply['authors'][0]['key'])
-    pprint(a.dict())
 
     if 'authors' in reply:
         assert reply['authors'][0]['key'] == author['key']
@@ -608,7 +604,7 @@ def test_same_twice(mock_site):
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
     reply = load(rec)
-    print reply
+
     assert reply['success'] == True
     assert reply['edition']['status'] != 'created'
     assert reply['work']['status'] != 'created'

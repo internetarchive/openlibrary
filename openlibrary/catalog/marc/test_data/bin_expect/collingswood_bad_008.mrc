@@ -26,5 +26,6 @@
   "by_statement": "General editor: Peter Young. Pref. by Aram Bakshian, Jr. War games photographed by Philip O. Stearns", 
   "publish_places": [
     "New York"
-  ]
+  ],
+  "subjects": ["War games", "Battles"]
 }
