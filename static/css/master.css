@@ -1682,18 +1682,26 @@ ul.serp {
 
 /* LAYOUT */
 
-div#placement {width:960px;margin:0 auto;text-align:left;clear:both;}
-div#position {width:960px;float:left;position:relative;}
-div#header{width:960px;clear:both;}div#content{clear:both;float:left;position:relative;width:958px;background-color:#fff;border-radius: 5px;border: 1px solid #babbad;}
-div#footer{margin: 0 auto; width:960px; padding-bottom:15px;}
-div#bottom{width:100%;clear:both;float:left;}
-div#legal{width:905px;margin:0 auto;padding:0 10px;text-align:left;}
+div#placement {width:960px;margin:0 auto;text-align:left;}
+div#position {width:960px;}
+div#header{width:960px;}
+div#content{clear:both;position:relative;width:958px;background-color:#fff;border-radius: 5px;border: 1px solid #babbad;}
+div#footer{
+    margin: 0 auto;
+    max-width: 960px;
+    padding-bottom:15px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+}
+div#bottom{width:100%;clear:both;}
+div#legal{max-width:905px;margin:0 auto;padding:0 10px;text-align:left;}
 
 /* PALETTE */
 
 body#user {background-color: #e2dcc5;}
 body#user div#background {width:100%;background-color: #e2dcc5;}
-body#user div#bottom {background-color: transparent;}
+body#user div#bottom { background-color: #c7bf9f; border-top: 1px solid #f3edd7;}
 body#admin {background-color: #b9b9b9;}
 body#admin div#background {width:100%;background-color: #d3d3d3;padding-bottom: 15px;}
 body#admin div#bottom {background-color: transparent;}
@@ -1992,9 +2000,7 @@ div#headerSearch {
     outline:none;
 }
 div#footerPosition {
-    position: relative;
     width: 960px;
-    height: 130px;
 }
 div#footerSearch {
     bottom: 38px;
@@ -2299,7 +2305,7 @@ body#help div#content {
     margin: 10px 0;
 }
 
-div#abuse {position:absolute;right:0;bottom:0;text-align:right;margin:-20px 10px 0 0;}
+div#abuse {}
 div#abuse a {display:block;width:70px;overflow:visible;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;white-space:nowrap;font-weight:600;}
 div#abuse a span {display:block;margin:0 auto 8px;width:32px;height:32px;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);background-position: -576px 0;}
 div#abuse a:hover {color:#000;}
@@ -2800,9 +2806,12 @@ a.generic-button {
 /* FOOTER */
 
 div.footerNav {
-    float: left;
+    flex: 1;
     margin-top: 15px;
     padding-left: 10px;
+}
+div.footerNav ul{
+    padding: 10px;
 }
 div.subNav {
     float: left;
@@ -2811,28 +2820,23 @@ div.subNav {
     margin-top: 0px;
     margin-bottom: 25px;
 }
-div.footerNav ul,div.subNav ul {
-    float: left;
-}
+
 div.footerNav li,div.subNav li {
-    display: block;
-    float: left;
+    display: inline-block;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     font-size: 0.75em;
     color: #615132;
 }
-div.footerNav li span,div.subNav li span {
+div.footerNav li,div.subNav li span {
     padding: 0 10px;
 }
 div#footerHistory {
     position: relative;
-    float: left;
-    width: 960px;
     min-height: 32px;
+    padding: 10px;
 }
 div#footerHistory h4 {
     font-size: 16px;
-    float: left;
     padding: 0 30px 0 10px;
     margin: 0;
     text-align: right;
@@ -2841,7 +2845,6 @@ div#footerHistory h4 a {color:#00636a;text-decoration:none;}
 div#footerHistory h4 a:hover {color:#036daa;text-decoration:underline;}
 
 div#footerHistory .history {
-    float: left;
     width: 160px;
     overflow: hidden;
     padding-right: 20px;
@@ -2859,14 +2862,14 @@ div#footerHistory .history .timestamp {
 div#footerHistory ul li.around-the-library-link {display: none;}
 
 div#bottom div#legal {
-    padding: 20px 0 100px 35px;
+    padding: 20px 0 20px 35px;
     background: url("/images/logo_IA-sm.png") no-repeat 0 20px;
 
 }
 div#bottom div#legal p {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    font-size: 0.6875em;
-    color: #666;
+    color: #333;
+    font-size: .8em;
     margin: 0 0 20px 0;
 }
 
