@@ -483,7 +483,14 @@ div.box {
         overflow: auto;
         border: 1px solid #8080FF;
         background-color: #E5E5FF;
-}#legend {float: left;font-size: 11px;font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;line-height: 1em;margin-top: 20px;}
+}
+#legend {
+    float: left;
+    font-size: 11px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    line-height: 1em;
+    margin-top: 20px;
+}
 #legend dl, dd {float: left;padding: 0;margin: 0;}
 #legend dd {padding: 5px;border: 1px solid #eee;margin-right: 5px;}
 #legend .mod { background-color: #ffcc90 }
@@ -740,13 +747,12 @@ button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetic
 button.plain:hover {color:#35672e;}
 #tooltip{position:absolute;display:none;border:1px solid #dedede;padding:4px;background-color:#fff;font-size:0.75em;opacity:0.80}
 .pagination {
-    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     font-size:0.75em;
     margin: 5px 0px;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
 }
 .pagination a {display:block;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
 .pagination a:hover {background:#036daa;color:#fff;display:block;float:left;text-decoration:none;padding:7px;border:1px solid #ddd;margin-right:10px;}
@@ -854,8 +860,6 @@ header {
     -webkit-box-direction: normal;
     -ms-flex-direction: column;
     flex-direction: column;
-    /*font-family: 'Poppins', sans-serif;*/
-    /*justify-content: center;*/
     -ms-flex-flow: row wrap;
     flex-flow: row wrap;
     -ms-flex-wrap: wrap;
@@ -896,7 +900,6 @@ header {
 }
 
 .logo-component .logo-org {
-    font-family: 'Poppins', sans-serif;
     text-align: left;
     font-weight: 300;
     font-size: .9em;
@@ -948,7 +951,6 @@ header {
             flex: 1;
     padding: 5px 0 2px 3px;
     font-size: 1em;
-    font-family: 'Poppins', sans-serif;
     font-weight: 500;
     border: 0 none;
     outline: none;
@@ -968,7 +970,6 @@ header {
 }
 
 header .search-component .search-dropdown {
-    font-family: 'Poppins', sans-serif;
     position: relative;
     z-index: 999;
 }
@@ -1115,7 +1116,6 @@ header .logo-component .logo-icon {
 }
 
 header .navigation-component {
-    font-family: 'Poppins', sans-serif;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
@@ -1146,7 +1146,6 @@ header .search-component {
 header .search-component .search-facet {
     display: none;
     position: relative;
-    font-family: 'Poppins', sans-serif;
     border-bottom-left-radius: 3px;
     border-top-left-radius: 3px;
     border-bottom-right-radius: 0px;
@@ -1274,7 +1273,6 @@ header ul.navigation-component li .navigation-dropdown-component {
 
 header .dropdown-menu {
     text-align: left;
-    font-family: 'Poppins', sans-serif;
     background-color: #f3f1e9;
     border: 1px solid #babbad;
     border-radius: 3px;
@@ -1365,7 +1363,6 @@ header .account-component .account-dropdown ul a li{
 
 /* GLOBAL TOP NOTICE */
 #topNotice {
-    font-family: 'Poppins', sans-serif;
     font-weight: 100;
     font-size: .9em;
     margin-bottom: 5px;
@@ -1688,17 +1685,17 @@ ul.serp {
 div#placement {width:960px;margin:0 auto;text-align:left;clear:both;}
 div#position {width:960px;float:left;position:relative;}
 div#header{width:960px;clear:both;}div#content{clear:both;float:left;position:relative;width:958px;background-color:#fff;border-radius: 5px;border: 1px solid #babbad;}
-div#footer{clear:both;float:left;width:960px;position:relative;padding-bottom:15px;}
+div#footer{margin: 0 auto; width:960px; padding-bottom:15px;}
 div#bottom{width:100%;clear:both;float:left;}
 div#legal{width:905px;margin:0 auto;padding:0 10px;text-align:left;}
 
 /* PALETTE */
 
 body#user {background-color: #e2dcc5;}
-body#user div#background {width:100%;float:left;background-color: #e2dcc5;}
+body#user div#background {width:100%;background-color: #e2dcc5;}
 body#user div#bottom {background-color: transparent;}
 body#admin {background-color: #b9b9b9;}
-body#admin div#background {width:100%;float:left;background-color: #d3d3d3;padding-bottom: 15px;}
+body#admin div#background {width:100%;background-color: #d3d3d3;padding-bottom: 15px;}
 body#admin div#bottom {background-color: transparent;}
 
 /* WIDGETS */
