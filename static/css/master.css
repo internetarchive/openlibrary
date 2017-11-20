@@ -1700,7 +1700,6 @@ div#legal{max-width:905px;margin:0 auto;padding:0 10px;text-align:left;}
 
 body#user {background-color: #e2dcc5;}
 body#user div#background {width:100%;background-color: #e2dcc5;}
-body#user div#bottom { background-color: #c7bf9f; border-top: 1px solid #f3edd7;}
 body#admin {background-color: #b9b9b9;}
 body#admin div#background {width:100%;background-color: #d3d3d3;padding-bottom: 15px;}
 body#admin div#bottom {background-color: transparent;}
