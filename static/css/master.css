@@ -1689,7 +1689,6 @@ div#content{clear:both;position:relative;width:958px;background-color:#fff;borde
 div#footer{
     margin: 0 auto;
     max-width: 960px;
-    padding-bottom:15px;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -2807,11 +2806,10 @@ a.generic-button {
 
 div.footerNav {
     flex: 1;
-    margin-top: 15px;
-    padding-left: 10px;
+    text-align: left;
 }
 div.footerNav ul{
-    padding: 10px;
+    padding: 25px 5px;
 }
 div.subNav {
     float: left;
@@ -2824,7 +2822,7 @@ div.subNav {
 div.footerNav li,div.subNav li {
     display: inline-block;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    font-size: 0.75em;
+    font-size: 0.9em;
     color: #615132;
 }
 div.footerNav li,div.subNav li span {
