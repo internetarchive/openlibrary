@@ -4,21 +4,15 @@ $# TODO construct list of available formats from available_loans
 
 $if current_and_available_loans:
   $ current_loans = current_and_available_loans[0]
-  $ available_loans = current_and_available_loans[1]
 $else:
   $ current_loans = []
-  $ available_loans = []
 
 $ realtime_availability = page.get_realtime_availability()
 $ availability = realtime_availability.get('status', 'error')
 $ wlsize = realtime_availability.get('num_waitlist', 0)
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+$ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 
-$if available_loans:
-    $# When the book is available and there are people waiting for the book,
-    $# don't allow anyone other than the first person in the waiting list to borrow the book.
-    $if wlsize > 0 and (not waiting_loan or waiting_loan['status'] != 'available'):
-        $ available_loans = []
 
 $ user_loan = None
 $if user:
@@ -47,7 +41,7 @@ $if user_loan:
       </form>
     </div>
 
-$elif (availability == 'borrow_available') or available_loans:
+$elif (availability == 'borrow_available') or my_turn_to_borrow:
     <div class="btn-notice">
       <p>
         <span class="smaller">Read in-browser or download the ePub / PDF from $contributor</span>
