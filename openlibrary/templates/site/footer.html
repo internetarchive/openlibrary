@@ -2,6 +2,8 @@ $def with (page=None)
 
 $ bodyid = ctx.get('bodyid', 'user')
 
+<div class="clearfix"></div>
+
 $if bodyid == 'user' or 'admin':
     $if ("stats" in ctx.features) and query_param('debug'):
         $:render_template("site/stats")

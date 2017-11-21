@@ -153,15 +153,9 @@ $elif ebook_status == "borrow-user-checkedout":
     </div>
 
 <div id="contentHead">
-    <table width="100%"><tbody><tr>
-
-    <td valign="top" style="padding-right:10px;">
-        $ cover_url = None
-        $# optimization to avoid solr query to find work cover
-        $if work and work.edition_count == 1:
-            $ cover_url = work.get_cover_url('S', use_solr=False) or page.get_cover_url('S')
-        $:render_template('covers/book_cover_small', page.works[0], cover_url=cover_url)
-    </td>
+    <table width="100%">
+      <tbody>
+        <tr>
     $ item_id = None
     $if 'ocaid' in page:
         $ item_id = page['ocaid']
@@ -173,7 +167,7 @@ $elif ebook_status == "borrow-user-checkedout":
 
     <td valign="top" width="100%">
     $:macros.databarView(page)
-    <div class="navEdition brown sansserif small">
+    <div class="navEdition sansserif">
         $ work = page.works and page.works[0]
         $if work:
             <strong>$work.edition_count edition$("s" if work.edition_count != 1 else "")</strong> of
@@ -195,17 +189,6 @@ $elif ebook_status == "borrow-user-checkedout":
             $else:
                 No ebook is available for this edition.
         </div>
-        $if page.works[0].edition_count > 1:
-            $ prev = page.get_prev()
-            $ next = page.get_next()
-            $if prev:
-                <a href="/books/$prev" title="$:_('View the previous edition of %s', page.title)">&larr; $_("Previous")</a>&nbsp;|
-            $else:
-                &larr; $_("Previous")&nbsp;|
-            $if next:
-                <a href="/books/$next" title="$:_('View the next edition of %s', page.title)">$_("Next") &rarr;</a>
-            $else:
-                $_("Next") &rarr;
     </div>
     </td>
     </tr></tbody></table>

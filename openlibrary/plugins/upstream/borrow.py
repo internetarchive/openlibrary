@@ -781,7 +781,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, _type):
+def user_can_borrow_edition(user, edition, resource_type):
     """Returns True if the user can borrow this edition given their
     current loans.  Returns False if the user holds a current loan
     for the edition.
@@ -792,14 +792,21 @@ def user_can_borrow_edition(user, edition, _type):
     if user.get_loan_count() >= user_max_loans:
         return False
 
-    if edition.get_ia_waitlist_size() > 0:
+    realtime_availability = edition.get_realtime_availability()
+    availability_status = realtime_availability['status']
+    waitlist_size = realtime_availability['num_waitlist']
+
+    if waitlist_size > 0:
         # There some people are already waiting for the book,
         # it can't be borrowed unless the user is the first in the waiting list.
         waiting_loan = user.get_waiting_loan_for(edition)
         if not waiting_loan or waiting_loan['status'] != 'available':
             return False
 
-    if _type in [loan['resource_type'] for loan in edition.get_available_loans()]:
+    if availability_status.lower() in 'borrow_available':
+        return True
+
+    elif resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
         return True
 
     return False
