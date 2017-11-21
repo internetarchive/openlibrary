@@ -152,6 +152,8 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
+            print('#' * 100)
+            print(user_meets_borrow_criteria)
 
             if user_meets_borrow_criteria:
                 loan = lending.create_loan(
@@ -796,21 +798,16 @@ def user_can_borrow_edition(user, edition, resource_type):
     availability_status = realtime_availability['status']
     waitlist_size = realtime_availability['num_waitlist']
 
-    if waitlist_size > 0:
+    if waitlist_size:
         # There some people are already waiting for the book,
         # it can't be borrowed unless the user is the first in the waiting list.
         waiting_loan = user.get_waiting_loan_for(edition)
-        if not waiting_loan or waiting_loan['status'] != 'available':
-            return False
+        my_turn_to_borrow = (waiting_loan and waiting_loan['status'] == 'available'
+                             and waiting_loan['position'] == 1)
+        return my_turn_to_borrow
 
-    if availability_status.lower() in 'borrow_available':
-        return True
-
-    elif resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
-        return True
-
-    return False
-
+    #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
+    return availability_status == 'borrow_available'
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
