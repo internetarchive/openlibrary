@@ -9,10 +9,9 @@ $else:
   $ current_loans = []
   $ available_loans = []
 
-
-$ ia_availability = page.get_ia_availability()
-$ availability = ia_availability.get('status', 'error')
-$ wlsize = int(ia_availability.get('num_waitlist', 0))
+$ realtime_availability = page.get_realtime_availability()
+$ availability = realtime_availability.get('status', 'error')
+$ wlsize = realtime_availability.get('num_waitlist', 0)
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 
 $if available_loans:
@@ -48,7 +47,7 @@ $if user_loan:
       </form>
     </div>
 
-$elif availability == 'borrow_available':
+$elif (availability == 'borrow_available') or available_loans:
     <div class="btn-notice">
       <p>
         <span class="smaller">Read in-browser or download the ePub / PDF from $contributor</span>

@@ -151,7 +151,7 @@ class borrow(delegate.page):
             if resource_type not in ['epub', 'pdf', 'bookreader']:
                 raise web.seeother(error_redirect)
 
-            user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type, availability)
+            user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
 
             if user_meets_borrow_criteria:
                 loan = lending.create_loan(
@@ -781,7 +781,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition, _type, availability=None):
+def user_can_borrow_edition(user, edition, resource_type):
     """Returns True if the user can borrow this edition given their
     current loans.  Returns False if the user holds a current loan
     for the edition.
@@ -792,9 +792,9 @@ def user_can_borrow_edition(user, edition, _type, availability=None):
     if user.get_loan_count() >= user_max_loans:
         return False
 
-    ia_availability = availability or edition.get_ia_availability()
-    availability_status = ia_availability.get('status')
-    waitlist_size = int(ia_availability.get('num_waitlist', 0))
+    realtime_availability = edition.get_realtime_availability()
+    availability_status = realtime_availability['status']
+    waitlist_size = realtime_availability['num_waitlist']
 
     if waitlist_size > 0:
         # There some people are already waiting for the book,
@@ -803,10 +803,10 @@ def user_can_borrow_edition(user, edition, _type, availability=None):
         if not waiting_loan or waiting_loan['status'] != 'available':
             return False
 
-    if availability_status.lower() in ['borrow_available', 'open']:
+    if availability_status.lower() in 'borrow_available':
         return True
 
-    elif _type in [loan['resource_type'] for loan in edition.get_available_loans()]:
+    elif resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
         return True
 
     return False
