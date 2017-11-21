@@ -9,8 +9,10 @@ $else:
   $ current_loans = []
   $ available_loans = []
 
-$ wlsize = page.get_ia_waitlist_size()
 
+$ ia_availability = page.get_ia_availability()
+$ availability = ia_availability.get('status', 'error')
+$ wlsize = int(ia_availability.get('num_waitlist', 0))
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 
 $if available_loans:
@@ -27,6 +29,7 @@ $if user:
             $ break
 
 $ borrow_link = page.url() + '/borrow'
+
 
 $if user_loan:
     <div class="btn-notice">
@@ -45,7 +48,7 @@ $if user_loan:
       </form>
     </div>
 
-$elif available_loans:
+$elif availability == 'borrow_available':
     <div class="btn-notice">
       <p>
         <span class="smaller">Read in-browser or download the ePub / PDF from $contributor</span>
@@ -79,7 +82,7 @@ $else:
 
     $else:
         <div class="btn-notice">
-          <p>
+          <p>            
             <span class="smaller">$("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")</span>
           </p>
           <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
