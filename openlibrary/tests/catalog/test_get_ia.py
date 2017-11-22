@@ -25,4 +25,4 @@ class TestGetIA(unittest.TestCase):
         for item in xml_items:
             result = get_ia.get_marc_record_from_ia(item)
             self.assertIsInstance(result, MarcXml)
-
+        m.undo()
