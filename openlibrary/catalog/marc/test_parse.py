@@ -48,7 +48,7 @@ class TestParse(unittest.TestCase):
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
                     if not j:
-                        print expect_filename
+                        print "Unable to open test data: %s" % expect_filename
                     assert j
                 if not j:
                     simplejson.dump(edition_marc_xml, open(expect_filename, 'w'), indent=2)
@@ -77,7 +77,7 @@ class TestParse(unittest.TestCase):
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
                     if not j:
-                        print expect_filename
+                        print "Unable to open test data: %s" % expect_filename
                     assert j
                 if not j:
                     simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
