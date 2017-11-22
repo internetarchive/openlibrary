@@ -6,6 +6,7 @@ from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
 from time import sleep
+import traceback
 from openlibrary.utils.ia import find_item
 from openlibrary.core import ia
 
@@ -67,6 +68,8 @@ def get_marc_ia(ia):
 
 def get_marc_record_from_ia(identifier):
     """Takes IA identifiers and returns MARC record instance.
+    11/2017: currently called by openlibrary/plugins/importapi/code.py
+    when the /api/import/ia endpoint is POSTed to.
     """
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
@@ -79,9 +82,13 @@ def get_marc_record_from_ia(identifier):
     # Try marc.xml first
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
-        if data[:10].find('<?xml') != -1:
+        try:
             root = etree.fromstring(data)
-            return MarcXml(root)
+            if root.tag == "{http://www.loc.gov/MARC21/slim}record":
+                return MarcXml(root)
+        except Exception as e:
+            print "Unable to read MarcXML: %s" % e
+            traceback.print_exc()
 
     # If that fails, try marc.bin
     if marc_bin_filename in filenames:
