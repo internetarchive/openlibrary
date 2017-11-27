@@ -100,7 +100,6 @@ record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 class TestSubjects:
     def _test_subjects(self, rec, expect):
-        print read_subjects(rec)
         assert read_subjects(rec) == expect
 
     def test_subjects_xml(self):

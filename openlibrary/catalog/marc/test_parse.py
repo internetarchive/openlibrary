@@ -55,7 +55,6 @@ class TestParse(unittest.TestCase):
                     continue
                 self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
                 for k in edition_marc_xml.keys():
-                    print `i, k, edition_marc_xml[k]`
                     self.assertEqual(edition_marc_xml[k], j[k])
                 self.assertEqual(edition_marc_xml, j)
             except:
@@ -86,7 +85,6 @@ class TestParse(unittest.TestCase):
                 for k in edition_marc_bin.keys():
                     if isinstance(j[k], list):
                         for item1, item2 in zip(edition_marc_bin[k], j[k]):
-                            #print (i, k, item1)
                             self.assertEqual(item1, item2)
 
                     self.assertEqual(edition_marc_bin[k], j[k])
