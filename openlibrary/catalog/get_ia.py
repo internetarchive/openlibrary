@@ -84,8 +84,7 @@ def get_marc_record_from_ia(identifier):
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         try:
             root = etree.fromstring(data)
-            if root.tag == "{http://www.loc.gov/MARC21/slim}record":
-                return MarcXml(root)
+            return MarcXml(root)
         except Exception as e:
             print "Unable to read MarcXML: %s" % e
             traceback.print_exc()
@@ -94,6 +93,8 @@ def get_marc_record_from_ia(identifier):
     if marc_bin_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_bin_filename).read()
         if len(data) == int(data[:5]):
+            # This checks the reported data length against the actual data length
+            # BinaryMARCs with incorrectly converted unicode characters do not match.
             return MarcBinary(data)
 
 def get_ia(ia):

@@ -9,13 +9,15 @@ from lxml import etree
 import os
 import simplejson
 
+collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll', 'cu31924091184469',
+    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
+    'cu31924091184469', # MARC XML collection record
     'engineercorpsofh00sher',
     ]
 
@@ -40,7 +42,8 @@ class TestParse(unittest.TestCase):
                 expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
                 path            = "%s/xml_input/%s_marc.xml"  % (test_data, i)
                 element = etree.parse(open(path)).getroot()
-                if element.tag != record_tag and element[0].tag == record_tag:
+                # Handle MARC XML collection elements in our test_data expectations:
+                if element.tag == collection_tag and element[0].tag == record_tag:
                     element = element[0]
                 rec = MarcXml(element)
                 edition_marc_xml = read_edition(rec)
