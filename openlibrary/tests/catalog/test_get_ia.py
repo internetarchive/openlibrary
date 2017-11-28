@@ -29,11 +29,32 @@ class TestGetIA(unittest.TestCase):
         """Tests the method returning MARC records from IA
         used by the import API. It should return an XML MARC if one exists."""
         self.m.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
-        self.m.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_marc.xml", itemid + "_meta.mrc"]})
+        self.m.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + '_marc.xml', itemid + '_meta.mrc']})
 
-        xml_items = ["1733mmoiresdel00vill",     # no <?xml
-                     "0descriptionofta1682unit", # has <?xml
-                     "cu31924091184469",         # is <collection>
+        xml_items = ['1733mmoiresdel00vill',     # no <?xml
+                     '0descriptionofta1682unit', # has <?xml
+                     'cu31924091184469',         # is <collection>
+                     #'1893manualofharm00jadauoft', # 0 byte xml file
+                     '00schlgoog',
+                     '13dipolarcycload00burk',
+                     '39002054008678.yale.edu',
+                     'abhandlungender01ggoog',
+                     'bijouorannualofl1828cole',
+                     'dasrmischepriv00rein',
+                     'diebrokeradical400poll',
+                     'engineercorpsofh00sher',
+                     'flatlandromanceo00abbouoft',
+                     'lesabndioeinas00sche',
+                     'lincolncentenary00horn',
+                     'livrodostermosh00bragoog',
+                     'mytwocountries1954asto',
+                     'nybc200247',
+                     'onquietcomedyint00brid',
+                     'scrapbooksofmoun03tupp',
+                     'secretcodeofsucc00stjo',
+                     'soilsurveyrepor00statgoog',
+                     'warofrebellionco1473unit',
+                     'zweibchersatir01horauoft',
                     ]
         for item in xml_items:
             result = get_ia.get_marc_record_from_ia(item)
