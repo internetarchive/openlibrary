@@ -57,6 +57,13 @@ $else:
             <div class="input">
                 <input value="" type="password" class="required" name="password" id="password"/>
                 <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
+                <div class="sanserif smaller lighter">
+                    <ul>
+                        <li>Password must be at least 8 characters in length</li>
+                        <li>Password must not include common names or your login names</li>
+                        <li>Password must contain at least one lower case letter(s), upper case letter(s), numbers and special characters</li>
+                    </ul>
+                </div>
             </div>
         </div>
         <div class="formElement">
