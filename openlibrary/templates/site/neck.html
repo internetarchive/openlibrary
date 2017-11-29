@@ -22,20 +22,3 @@ $putctx("sent_neck", True)
     </script>
 </head>
 
-$ bodyid = ctx.get('bodyid', 'user')
-
-<body id="$bodyid">
-<div id="background">
-<span id="top"></span>
-
-$if bodyid != "form":
-    <p class="shift">
-        <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
-    </p>
-    $:render_template("site/alert")
-
-    $if bodyid == 'user' or bodyid == 'admin':
-        $:render_template("lib/nav_head", None)
-    <div id="placement">
-        <div id="position">
-

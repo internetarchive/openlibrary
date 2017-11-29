@@ -42,6 +42,7 @@ class home(delegate.page):
             "home/index", stats=stats,
             blog_posts=blog_posts,
         )
+        page.v2 = True
         return page
 
 CAROUSELS_PRESETS = {

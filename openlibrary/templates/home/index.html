@@ -7,28 +7,27 @@ $var title: $_("Welcome to Open Library")
 </div>
 
 <div id="contentBody">
-    $:render_template("home/categories")
-    <div class="clearfix"></div>
+    $#:render_template("home/categories")
 
-    $:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=120, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=120, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Kids", key="children", query="preset:children", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Kids", key="children", query="preset:children", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Comics", key="comics", query="preset:comics", limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Comics", key="comics", query="preset:comics", limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Thrillers", key="thrillers", query="preset:thrillers", sorts=["downloads+desc"], limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Thrillers", key="thrillers", query="preset:thrillers", sorts=["downloads+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Success", key="success", query="subject:(success)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Success", key="success", query="subject:(success)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
-    $:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
+    $#:render_template("home/custom_ia_carousel", title="Technical Books", key="technical_books", query="(publisher:(sams) OR publisher:(O'Reilly))", sorts=["date+desc"], limit=36, test=test)
 
-    $:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
+    $#:render_template("home/carousel", title="Classic Literature", url="/read", books=readonline_carousel(), key="public_domain", test=test)
 
     $:render_template("home/stats", stats)
     <div class="clearfix"></div>

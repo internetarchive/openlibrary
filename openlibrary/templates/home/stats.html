@@ -1,42 +1,46 @@
 $def with (stats=None)
 $if stats:
-    <div class="head">
+    <div id="home-stats">
+      <div class="head">
         <h2 class="inline">Around the Library</h2>
         <p class="inline sansserif large collapse">&nbsp;Here's what's happened over the last 28 days. More <a href="/recentchanges">recent changes</a>.</p>
-    </div>
+      </div>
 
-    <div class="chartHome">
-        <div class="chartShow" onClick="window.location.href='//archive.org/stats';" title="See all visitors to OpenLibrary.org">
+      <div id="home-stats-charts">
+        <div class="statschart">
+          <div class="chartShow" onClick="window.location.href='//archive.org/stats';" title="See all visitors to OpenLibrary.org">
             <div id="visitors" style="width:150px;height:60px;"></div>
+            <a href="//archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">Unique Visitors</span></a>
+          </div>
         </div>
-        <a href="//archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">Unique Visitors</span></a>
-    </div>
 
-    <div class="chartHome">
-        <div class="chartShow" onClick="window.location.href='/recentchanges';" title="How many new Open Library members have we welcomed?">
+        <div class="statschart">
+          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="How many new Open Library members have we welcomed?">
             <div id="members" style="width:150px;height:60px;"></div>
+            <a href="/recentchanges" title="How many new Open Library members have we welcomed?"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">New Members</span></a>
+          </div>
         </div>
-        <a href="/recentchanges" title="How many new Open Library members have we welcomed?"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">New Members</span></a>
-    </div>
-    <div class="chartHome">
-        <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog">
+        <div class="statschart">
+          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog">
             <div id="edits" style="width:150px;height:60px;"></div>
+            <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a>
+          </div>
         </div>
-        <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a>
-    </div>
 
-    <div class="chartHome">
-        <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists">
+        <div class="statschart">
+          <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists">
             <div id="lists" style="width:150px;height:60px;"></div>
+            <a href="/lists" title="Members can create Lists"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">Lists Created</span></a>
+          </div>
         </div>
-        <a href="/lists" title="Members can create Lists"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">Lists Created</span></a>
-    </div>
 
-    <div class="chartHome chartEnd">
-        <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too">
+        <div class="statschart">
+          <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too">
             <div id="ebooks" style="width:150px;height:60px;"></div>
+            <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">eBooks Borrowed</span></a>
+          </div>
         </div>
-        <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">eBooks Borrowed</span></a>
+      </div>
     </div>
 
     <script type="text/javascript">

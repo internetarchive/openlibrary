@@ -1,15 +1,44 @@
 $def with (page)
-<div id="content">
-    <div class="flash-messages">
-    $for flash in get_flash_messages():
-        <div class="$flash.type"><span>$flash.message</span></div>
-        <div class="clearfix"></div>
-    </div>
-    <div id="contentMsg">
-        <div class="alert attn"><span></span></div>
+
+$# caution, redirect has no get!
+$if 'v2' in page:
+  <body>
+    <span id="top"></span>
+    $:render_template("site/alert")
+    $:render_template("lib/nav_head", None)
+    <div id="test-body-mobile">
+      $:page
     </div>
 
-    $:page
+$else:
+  $ bodyid = ctx.get('bodyid', 'user')
+  <body id="$bodyid">
+    <div id="background">
+      <span id="top"></span>
 
-    <div class="clearfix"></div>
-</div>
+      $if bodyid != "form":
+        <p class="shift">
+          <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
+        </p>
+
+      $:render_template("site/alert")
+
+      $if bodyid == 'user' or bodyid == 'admin':
+        $:render_template("lib/nav_head", None)
+
+      <div id="placement">
+        <div id="position">
+          <div id="content">
+            <div class="flash-messages">
+              $for flash in get_flash_messages():
+                <div class="$flash.type"><span>$flash.message</span></div>
+                <div class="clearfix"></div>
+            </div>
+            <div id="contentMsg">
+              <div class="alert attn"><span></span></div>
+            </div>
+
+            $:page
+
+            <div class="clearfix"></div>
+          </div>
