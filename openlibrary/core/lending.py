@@ -236,6 +236,9 @@ def is_loaned_out(identifier):
 
     This doesn't worry about waiting lists.
     """
+    # is_loaned_out_on_acs4 is to be deprecated, this logic (in PR)
+    # should be handled by is_loaned_out_on_ia which calls
+    # BorrowBooks.inc in petabox
     return (is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier)
             or is_loaned_out_on_ia(identifier))
 
