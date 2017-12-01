@@ -574,18 +574,6 @@ def get_loan_link(edition, type):
         # link to bookreader
         return (resource_id, get_bookreader_stream_url(edition.ocaid))
 
-    if type in ['pdf','epub']:
-        # ACS4
-        if not content_server:
-            if not config.content_server:
-                # $$$ log
-                return None
-            content_server = lending.ContentServer(config.content_server)
-
-        if not resource_id:
-            raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
-        return (resource_id, content_server.get_loan_link(resource_id))
-
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
 
 
