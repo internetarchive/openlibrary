@@ -18,7 +18,7 @@ To make some part of the template visible only if a feature-flag is enabled::
         <h3>Lists</h3>
         $for list in page.get_lists():
             ...
-            
+
 To enable a URL only if a feature flag is enabled::
 
     class home(delegate.page):
@@ -29,7 +29,7 @@ To enable a URL only if a feature flag is enabled::
         
         def GET(self):
             return render_template("home")
-            
+
 
 Setting Feature Flags
 ---------------------
@@ -41,7 +41,7 @@ In Open Library, the feature flags are specified in the ``openlibrary.yml`` file
         lists: admin
         lending_v2: 
             filter: usergroup
-            usergroup: beta-users
+            usergroup: /usergroup/beta-users
 
 The value of a feature flag is called a *filter*. A filter can be specified either as its name or as a dict containing its name and parameters. 
 For example, the following two examples mean the same. ::
@@ -70,19 +70,19 @@ Available filters are:
 **admin**
 
     Enabled for admin users.
-    
+
 **usergroup**
 
     Enabled for the users part of the specified usergroup. ::
-    
+
         lending_v2: 
             filter: usergroup
-            usergroup: beta-users
-    
+            usergroup: /usergroup/beta-users
+
 **queryparam**
 
     Enabled only if the URL has a specified query parameter. ::
-    
+
         debug:
             filter: queryparam
             name: debug
