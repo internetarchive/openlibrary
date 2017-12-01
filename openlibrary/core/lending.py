@@ -55,7 +55,6 @@ config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_http_request_timeout = None
-config_content_server = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
@@ -66,7 +65,7 @@ amazon_api = None
 def setup(config):
     """Initializes this module from openlibrary config.
     """
-    global config_content_server, config_loanstatus_url, \
+    global config_loanstatus_url, \
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
@@ -74,14 +73,6 @@ def setup(config):
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url
-
-    if config.get("content_server"):
-        try:
-            config_content_server = ContentServer(config.get("content_server"))
-        except Exception as e:
-            logger.exception('Failed to assign config_content_server')
-    else:
-        logger.error('content_server unassigned')
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -245,6 +236,9 @@ def is_loaned_out(identifier):
 
     This doesn't worry about waiting lists.
     """
+    # is_loaned_out_on_acs4 is to be deprecated, this logic (in PR)
+    # should be handled by is_loaned_out_on_ia which calls
+    # BorrowBooks.inc in petabox
     return (is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier)
             or is_loaned_out_on_ia(identifier))
 
@@ -323,9 +317,6 @@ def _get_ia_loans_of_user(userid):
 def create_loan(identifier, resource_type, user_key, book_key=None):
     """Creates a loan and returns it.
     """
-    if config_content_server is None:
-        raise Exception("the lending module is not initialized. Please call lending.setup function first.")
-
     ia_loan = ia_lending_api.create_loan(
          identifier=identifier,
          format=resource_type,
@@ -445,9 +436,7 @@ class Loan(dict):
             t_expiry = datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
             expiry = t_expiry.isoformat()
         else:
-            resource_id = get_resource_id(identifier, resource_type)
-            loan_link = config_content_server.get_loan_link(resource_id)
-            expiry = None
+            raise Exception('No longer supporting ACS borrows directly from Open Library. Please go to Archive.org')
 
         if not resource_id:
             raise Exception('Could not find resource_id for %s - %s' % (identifier, resource_type))
@@ -649,25 +638,6 @@ def update_loan_status(identifier):
             loan['expiry'] = acs4_loan['until']
             loan.save()
             logger.info("%s: updated expiry to %s", identifier, loan['expiry'])
-
-class ContentServer:
-    """Connection to ACS4 content server and book status.
-    """
-    def __init__(self, config):
-        self.host = config.host
-        self.port = config.port
-        self.password = config.password
-        self.distributor = config.distributor
-
-        # Contact server to get shared secret for signing
-        result = acs4.get_distributor_info(self.host, self.password, self.distributor)
-        self.shared_secret = result['sharedSecret']
-        self.name = result['name']
-
-    def get_loan_link(self, resource_id):
-        loan_link = acs4.mint(self.host, self.shared_secret, resource_id, 'enterloan', self.name, port = self.port)
-        return loan_link
-
 
 class ACS4Item(object):
     """Represents an item on ACS4 server.

@@ -38,8 +38,6 @@ in_library_subject = u'In library'
 lending_subjects = set([lending_library_subject, in_library_subject])
 loanstatus_url = config.get('loanstatus_url')
 
-content_server = None
-
 # ACS4 resource ids start with 'urn:uuid:'.  The meta.xml on archive.org
 # adds 'acs:epub:' or 'acs:pdf:' to distinguish the file type.
 acs_resource_id_prefixes = ['urn:uuid:', 'acs:epub:', 'acs:pdf:']
@@ -566,25 +564,11 @@ def get_edition_loans(edition):
 
 def get_loan_link(edition, type):
     """Get the loan link, which may be an ACS4 link or BookReader link depending on the loan type"""
-    global content_server
-
     resource_id = edition.get_lending_resource_id(type)
 
     if type == 'bookreader':
         # link to bookreader
         return (resource_id, get_bookreader_stream_url(edition.ocaid))
-
-    if type in ['pdf','epub']:
-        # ACS4
-        if not content_server:
-            if not config.content_server:
-                # $$$ log
-                return None
-            content_server = lending.ContentServer(config.content_server)
-
-        if not resource_id:
-            raise Exception('Could not find resource_id for %s - %s' % (edition.key, type))
-        return (resource_id, content_server.get_loan_link(resource_id))
 
     raise Exception('Unknown resource type %s for loan of edition %s', edition.key, type)
 
