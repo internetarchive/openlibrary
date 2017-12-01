@@ -206,7 +206,8 @@ class merge_authors(delegate.page):
     path = '/authors/merge'
 
     def is_enabled(self):
-        return "merge-authors" in web.ctx.features
+        user = web.ctx.site.get_user()
+        return "merge-authors" in web.ctx.features or user and user.is_admin()
 
     def filter_authors(self, keys):
         docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
