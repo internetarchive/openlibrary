@@ -15,10 +15,11 @@ from openlibrary.core import admin, cache, ia, inlibrary, lending, \
     helpers as h
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
-from openlibrary.plugins.worksearch import search
+from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.openlibrary import lists
 
 DEFAULT_CACHE_LIFETIME = 120  # seconds
+ONE_HOUR = 60 * 60
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -65,8 +66,27 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
 
+def get_featured_subjects():
+    # web.ctx must be initialized as it won't be avaiable to the background thread.
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
+    FEATURED_SUBJECTS = [
+        'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
+        'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
+        'mystery_and_detective_stories', 'plays', 'music', 'science'
+    ]
+    return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
+                 for subject_name in FEATURED_SUBJECTS])
+
 @public
-def generic_carousel(key, query=None, subject=None, work_id=None, _type=None,
+def get_cached_featured_subjects():
+    return cache.memcache_memoize(
+        get_featured_subjects, "get_featured_subjects", timeout=ONE_HOUR)()
+
+
+@public
+def generic_carousel(query=None, subject=None, work_id=None, _type=None,
                      sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(

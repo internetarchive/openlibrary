@@ -1,0 +1,39 @@
+$def with(books, title, url, key, test=False, min_books=6, cta="Borrow")
+
+$if test or (books and len(books) >= min_books):
+  <div class="clearfix">
+    <div class="carousel-section">
+      <div class="carousel-section-header">
+        <h2 class="home-h2"><a href="$url">$title</a></h2>
+      </div>
+      <div class="carousel-container carousel-container-decorated">
+        <div class="carousel carousel-$key">
+          $for book in books:
+            $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
+            $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
+            <div class="book">
+              <div class="book-cover">
+                <a href="$(book.get('key') or book.url)">
+                  <img class="bookcover" title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
+                </a>
+              </div>
+              $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
+              <div class="book-cta"><a href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
+              <!--
+              <div class="book-metadata">
+                <h2 class="book-title">
+                  <a href="book.key">$book.title</a>
+                  <span class="book-authors">$:byline_links</span>
+                </h2>
+              </div>
+              -->
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script type="text/javascript">
+  \$().ready(function() {
+    Carousel.add('.carousel-$key', 6, 5, 4, 3, 2);
+  });
+  </script>
