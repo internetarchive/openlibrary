@@ -11,20 +11,6 @@ from infogami.utils import delegate
 from openlibrary.core import ia, lending, cache, helpers as h
 from openlibrary.plugins.openlibrary import home
 
-class get_ia_ebooks(delegate.page):
-    path = "/api/ebooks"
-    #encoding = "json"
-
-    def GET(self):
-        """Fetch a set of available works using archive.org advancedsearch queries"""
-        i = web.input(query="", sorts=None, limit=42)
-        sorts = i.sorts.split(',') or i.sorts
-        books = home.generic_carousel(query=i.query, sorts=sorts, limit=i.limit)
-        url = lending.compose_ia_url(query=i.query, sorts=sorts, limit=i.limit)
-        return delegate.RawText(simplejson.dumps({
-            'books': books,
-            'url': url
-        }), content_type="application/json")
 
 class book_availability(delegate.page):
     path = "/availability/v2"
