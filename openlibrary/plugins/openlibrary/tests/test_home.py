@@ -119,9 +119,8 @@ class TestHomeTemplates:
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
         html = unicode(render_template("home/index", stats=stats, test=True))
 
-        headers = ["Books We Love", "Recently Returned", "Success",
-                   "Thrillers", "Romance", "Technical Books",
-                   "Classic Literature", "Textbooks"]
+        headers = ["Books We Love", "Recently Returned", "Kids",
+                   "Thrillers", "Romance", "Classic Literature", "Textbooks"]
         for h in headers:
             assert h in html
 

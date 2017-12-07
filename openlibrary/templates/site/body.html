@@ -20,8 +20,7 @@ $else:
         <p class="shift">
           <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
         </p>
-
-      $:render_template("site/alert")
+        $:render_template("site/alert")
 
       $if bodyid == 'user' or bodyid == 'admin':
         $:render_template("lib/nav_head", None)
