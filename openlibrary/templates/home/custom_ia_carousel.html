@@ -1,6 +1,9 @@
-$def with(title, key, query=None, subject=None, work_id=None, _type=None, sorts=None, limit=None, test=False, min_books=6, cta="Borrow")
+$def with(title, key, query=None, subject=None, work_id=None, _type=None, sorts=None, limit=None, test=False, min_books=6, cta="Borrow", slick=True)
 
 $ url = compose_ia_url(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit, advanced=False)
 $ books = generic_carousel(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit)
 
-$:render_template("books/custom_carousel", books, title=title, url=url, key=key, test=test, min_books=min_books, cta=cta)
+$if slick:
+    $:render_template("books/custom_carousel", books, title=title, url=url, key=key, test=test, min_books=min_books, cta=cta)
+$else:
+    $:render_template("home/carousel", title, url, books, key, min_books=min_books, test=test)

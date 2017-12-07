@@ -1,3 +1,53 @@
+var Carousel = {
+    add: function(selector, a, b, c, d, e) {
+        $(selector).slick({
+            infinite: false,
+            speed: 300,
+            slidesToShow: a,
+            slidesToScroll: a,
+            responsive: [
+                {
+                    breakpoint: 1200,
+                    settings: {
+                        slidesToShow: b,
+                        slidesToScroll: b,
+                        infinite: true,
+                        dots: false
+                    }
+                },
+                {
+                    breakpoint: 1024,
+                    settings: {
+                        slidesToShow: c,
+                        slidesToScroll: c,
+                        infinite: true,
+                        dots: false
+                    }
+                },
+                {
+                    breakpoint: 600,
+                    settings: {
+                        slidesToShow: d,
+                        slidesToScroll: d
+                    }
+                },
+                {
+                    breakpoint: 480,
+                    settings: {
+                        slidesToShow: e,
+                        slidesToScroll: e
+                    }
+                }
+                // You can unslick at a given breakpoint now by adding:
+                // settings: "unslick"
+                // instead of a settings object
+            ]
+
+
+        });
+    }
+};
+
 var Browser = {
     getUrlParameter: function(key) {
         var query = window.location.search.substring(1);
@@ -429,7 +479,7 @@ $().ready(function(){
     var searchModeDefault = 'ebooks';
 
     // Maps search facet label with value
-    var defaultFacet = "title";
+    var defaultFacet = "all";
     var searchFacets = {
         'title': 'books',
         'author': 'authors',

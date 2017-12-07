@@ -92,6 +92,7 @@
 }
 
 .book .book-cta a {
+    display: block;
     color: #fff;
     text-decoration: none;
 }
@@ -3250,17 +3251,15 @@ div#content div.contentLists {
 }
 /* HOME PAGE CAROUSEL SKIN */
 .resultsCovers {
-    /* width: 958px;  XXX:mobile-homepage */
+    width: 958px;
 }
 .resultsCovers .jcarousel-container {
-    /* width: 918px;  XXX:mobile-homepage */
     padding: 0px 20px;
     padding-top: 0px;
 }
 
 
 .carousel-section .resultsCovers .jcarousel-container {
-    /* width: 918px;  XXX:mobile-homepage */
     padding: 0px 20px;
     background: #f3edd7;
     padding-top: 10px;
@@ -3269,10 +3268,6 @@ div#content div.contentLists {
     border-top: 1px solid rgb(235, 232, 216);
 }
 
-.resultsCovers .jcarousel-clip {
-    /* width: 918px;  XXX:mobile-homepage */
-    /* height: 225px; XXX:mobile-homepage */
-}
 .resultsCovers .jcarousel-list-horizontal {padding-left:0;}
 .resultsCovers .jcarousel-item-horizontal {
     width: 153px;
@@ -3334,10 +3329,6 @@ p.category-title {
 .resultsIcons { height: 130px;  }
 .resultsIcons .jcarousel-container {
     width: 958px; padding: 5px 0px;
-}
-.resultsIcons .jcarousel-clip {
-    /* width: 918px;  XXX:mobile-homepage */
-
 }
 .resultsIcons .jcarousel-item-horizontal { width: 153px; margin-right: 0;}
 .resultsIcons .jcarousel-next-horizontal { top: 35px;}
@@ -3423,7 +3414,6 @@ p.category-title {
 
 ul.homeCarousel {
     list-style-type:none;
-    /* height:230px; XXX:homepage-mobile */
     overflow:hidden;
     margin-left:0!important;
     margin-bottom:0!important;
@@ -3605,7 +3595,6 @@ a.cta-btn  {
 
 div#searchResults .SRPCover {
     margin: 0 15px 20px 0;
-    /* float:left;  XXX:homepage-mobile */
     vertical-align:middle;
     width: 130px;
     height:200px;
@@ -6714,6 +6703,3 @@ form#addAuthor.olform .wmd-preview {
 .responsive button.slick-prev:before, .slick-next:before {
     color: #fff;
 }
-
-
-

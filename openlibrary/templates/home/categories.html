@@ -20,7 +20,7 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
                      alt="browse $(presentable_subject_name) books"/>
               </div>
               <p class="category-title">$presentable_subject_name</p>
-              <p class="category-count" name="">$subject.get('work_count', '') Books</p>
+              <p class="category-count" name="">$commify(subject.get('work_count', '')) Books</p>
             </a>
           </div>
       </div>

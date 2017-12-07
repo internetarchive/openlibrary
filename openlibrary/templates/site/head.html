@@ -42,14 +42,7 @@ $def with (page)
     <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
 
     <script src="$static_url('build/vendor.js')" type="text/javascript"></script>
-
-    $if 'v2' in page:
-        <script src="$static_url('build/new.js')" type="text/javascript"></script>
-        <!--
-        <script src="$static_url('build/all.js')" type="text/javascript"></script>
-        -->
-    $else:
-        <script src="$static_url('build/all.js')" type="text/javascript"></script>
+    <script src="$static_url('build/all.js')" type="text/javascript"></script>
 
     $if query_param("_firebug") == "true":
         <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
