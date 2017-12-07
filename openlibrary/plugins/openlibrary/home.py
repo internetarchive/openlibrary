@@ -82,7 +82,7 @@ def get_featured_subjects():
 @public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
-        get_featured_subjects, "get_featured_subjects", timeout=ONE_HOUR)()
+        get_featured_subjects, "home.featured_subjects", timeout=ONE_HOUR)()
 
 
 @public

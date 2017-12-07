@@ -78,8 +78,8 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
 
         books = home.readonline_carousel()
-        html = unicode(render_template("home/carousel", title="Classic Literature", url="/read",
-                                       books=books, key="public_domain"))
+        html = unicode(render_template("books/custom_carousel", books=books, title="Classic Literature", url="/read",
+                                       key="public_domain", cta="Read"))
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):

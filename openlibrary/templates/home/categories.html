@@ -1,6 +1,7 @@
-$def with (id='categories_carousel', pixel='CarouselCategories')
+$def with (test=False)
 
-<div class="clearfix">
+$ subjects = get_cached_featured_subjects() if not test else []
+$if subjects:
   <div class="carousel-section">
     <div class="carousel-section-header">
       <h2 class="home-h2"><a href="/subjects">Browse by Subject</a></h2>
@@ -8,7 +9,6 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
     <hr>
     <div class="carousel-container">
       <div class="carousel" id="categories_carousel">
-        $ subjects = get_cached_featured_subjects()
         $for subject_name in subjects:
           $ subject = subjects[subject_name]
           $ presentable_subject_name = subject_name.replace('_', ' ').title()
@@ -26,10 +26,8 @@ $def with (id='categories_carousel', pixel='CarouselCategories')
       </div>
     </div>
   </div>
-</div>
-
-<script type="text/javascript">
+  <script type="text/javascript">
   \$().ready(function() {
     Carousel.add('#categories_carousel', 6, 5, 4, 3, 2);
   });
-</script>
+  </script>
