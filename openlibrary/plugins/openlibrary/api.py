@@ -8,39 +8,9 @@ import web
 import simplejson
 
 from infogami.utils import delegate
-from infogami.utils.view import render_template
-from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, lending, cache, helpers as h
+from openlibrary.plugins.openlibrary import home
 
-ONE_HOUR = 60 * 60
-BOOKS_PER_CAROUSEL = 6
-
-class featured_subjects(delegate.page):
-    path = "/home/subjects"
-
-    def GET(self):
-        return delegate.RawText(simplejson.dumps(get_featured_subjects()),
-                                content_type="application/json")
-
-def get_featured_subjects():
-    # this function is memozied with background=True option.
-    # web.ctx must be initialized as it won't be avaiable to the background thread.
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-
-    subjects = {}
-    FEATURED_SUBJECTS = [
-        'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
-        'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
-        'mystery_and_detective_stories', 'plays', 'music', 'science'
-    ]
-    for subject in FEATURED_SUBJECTS:
-        subjects[subject] = get_subject('/subjects/' + subject, sort='edition_count')
-    return subjects
-
-# cache the results in memcache for 1 hour
-get_featured_subjects = cache.memcache_memoize(
-    get_featured_subjects, "get_featured_subjects", timeout=ONE_HOUR)
 
 class book_availability(delegate.page):
     path = "/availability/v2"

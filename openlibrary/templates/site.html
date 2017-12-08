@@ -1,7 +1,7 @@
 $def with (page)
 
 $if not ctx.get("sent_head"):
-    $:render_template("site/head.tmpl")
+    $:render_template("site/head.tmpl", page)
 
 $if not ctx.get("sent_neck"):
     $:render_template("site/neck.tmpl", title=page.title)

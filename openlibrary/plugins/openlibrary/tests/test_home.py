@@ -78,8 +78,8 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
 
         books = home.readonline_carousel()
-        html = unicode(render_template("home/carousel", title="Classic Literature", url="/read",
-                                       books=books, key="public_domain"))
+        html = unicode(render_template("books/custom_carousel", books=books, title="Classic Literature", url="/read",
+                                       key="public_domain", cta="Read"))
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
@@ -119,9 +119,8 @@ class TestHomeTemplates:
         monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
         html = unicode(render_template("home/index", stats=stats, test=True))
 
-        headers = ["Books We Love", "Recently Returned", "Success",
-                   "Thrillers", "Romance", "Technical Books",
-                   "Classic Literature", "Textbooks"]
+        headers = ["Books We Love", "Recently Returned", "Kids",
+                   "Thrillers", "Romance", "Classic Literature", "Textbooks"]
         for h in headers:
             assert h in html
 

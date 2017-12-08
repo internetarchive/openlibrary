@@ -20,11 +20,6 @@ jQuery(function($) {
     if($.support.opacity){
         options.fx = {"opacity": "toggle"};
     }
-    $(".tabs:not(.ui-tabs)").tabs(options)
-    $(".tabs.autohash")
-        .bind("tabsselect", function(event, ui) {
-            document.location.hash = ui.panel.id;
-        });
 
     // autocompletes
     $("input.author-autocomplete").author_autocomplete();

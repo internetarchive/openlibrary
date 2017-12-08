@@ -1,110 +1,33 @@
-$def with (id='categories_carousel', pixel='CarouselCategories')
+$def with (test=False)
 
-<div class="head">
-  <h2 class="home-h2">
-    <a href="/subjects">Browse by Subject</a>
-  </h2>
-  <hr/>
-</div>
-
-<script type="text/javascript">
-  \$(function() {
-
-    function addCommasToNumber(n) {
-      return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
-
-    var Subject = {
-        get_featured: function (callback) {
-            var url = '/home/subjects';
-            \$.ajax({
-                type: "GET",
-                url: url,
-                dataType: "json",
-                success: function(result) {
-                    if (callback) {
-                        return callback(result);
-                    }
-                    return result;
-                }
-            });
-        },
-        render: function(subject, key) {
-            return '<li class="category-item">' +
-                '<a class="category-nostyle" ' +
-                'data-ol-link-track="$(pixel)" ' +
-                'href="/subjects/' + key +
-                '#sort=' + subject.sort + '&ebooks=true">' +
-                '<div class="category-icon">' +
-                '<img class="category-img"' +
-                'src="/static/images/categories/' + key + '.svg"/>' +
-                '</div>' +
-                '<p class="category-title">' + subject.name + '</p>' +
-                '<p class="category-count" name="' + key + '"></p>' +
-                '</a>' +
-                '</li>';
-        }
-    };
-
-
-    var Categories = {
-        featured: {
-            'art': {'name': 'Art'},
-            'science_fiction': {'name': 'Sci-Fi'},
-            'fantasy': {'name': 'Fantasy'},
-            'biographies': {'name': 'Biographies'},
-            'recipes': {'name': 'Recipes'},
-            'romance': {'name': 'Romance'},
-            'textbooks': {'name': 'Textbooks'},
-            'children': {'name': 'Children'},
-            'history': {'name': 'History'},
-            'medicine': {'name': 'Medicine'},
-            'religion': {'name': 'Religion'},
-            'mystery_and_detective_stories': {'name': 'Mysteries'},
-            'plays': {'name': 'Plays'},
-            'music': {'name': 'Music'},
-            'science': {'name': 'Science'}
-        },
-        setup: function(categories) {
-            for (var key in categories) {
-                var category = categories[key];
-                \$('.categoryCarousel').append(Subject.render(category, key));
-            }
-
-            Subject.get_featured(function(results) {
-                for (var subject_key in results) {
-                    var subject = results[subject_key];
-                    var count = addCommasToNumber(subject.work_count || 0);
-                    \$('[name="' + subject_key + '"]').text(count + ' books');
-                }
-            });
-        }
-    }
-    Categories.setup(Categories.featured);
-
-    function load_covers(carousel, state) {
-        for (var i = carousel.first; i <= carousel.last; i++) {
-            if (carousel.has(i)) {
-                carousel.get(i).find(".coverMagic").removeClass("hiddenCoverMagic");
-                var cover = carousel.get(i).find("img.cover");
-                if (cover.length > 0) {
-                    cover.attr("src", cover.attr("xsrc"));
-                }
-            }
-        }
-    }
-
-    \$("#$id").jcarousel({
-        scroll:6,
-        itemLoadCallback: {onBeforeAnimation: load_covers}
-    });
-
-})
-</script>
-
-  <div class="contentLists results categoryCarouselContainer">
-    <div class="resultsIcons">
-        <ul class="categoryCarousel" id="$id">
-        </ul>
+$ subjects = get_cached_featured_subjects() if not test else []
+$if subjects:
+  <div class="carousel-section">
+    <div class="carousel-section-header">
+      <h2 class="home-h2"><a href="/subjects">Browse by Subject</a></h2>
+    </div>
+    <hr>
+    <div class="carousel-container">
+      <div class="carousel" id="categories_carousel">
+        $for subject_name in subjects:
+          $ subject = subjects[subject_name]
+          $ presentable_subject_name = subject_name.replace('_', ' ').title()
+          <div class="category-item">
+            <a class="category-nostyle" data-ol-link-track="CarouselCategories"
+               href="/subjects/$(subject_name)#sort=date_published&ebooks=true">
+              <div class="category-icon">
+                <img class="category-img" src="/static/images/categories/$(subject_name).svg"
+                     alt="browse $(presentable_subject_name) books"/>
+              </div>
+              <p class="category-title">$presentable_subject_name</p>
+              <p class="category-count" name="">$commify(subject.get('work_count', '')) Books</p>
+            </a>
+          </div>
+      </div>
     </div>
   </div>
+  <script type="text/javascript">
+  \$().ready(function() {
+    Carousel.add('#categories_carousel', 6, 5, 4, 3, 2);
+  });
+  </script>
