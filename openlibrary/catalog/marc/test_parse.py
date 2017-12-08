@@ -4,19 +4,20 @@ import unittest
 from parse import read_edition, SeeAlsoAsTitle, NoTitle
 from marc_binary import MarcBinary
 from marc_xml import MarcXml, BadSubtag, BlankTag
-from pprint import pprint, pformat
 from urllib import urlopen
 from lxml import etree
 import os
 import simplejson
 
+collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll', 'cu31924091184469',
+    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
+    'cu31924091184469', # MARC XML collection record
     'engineercorpsofh00sher',
     ]
 
@@ -32,14 +33,17 @@ bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc',
     'thewilliamsrecord_vol29b_meta.mrc', '13dipolarcycload00burk_meta.mrc' ]
 
+test_data = "%s/test_data" % os.path.dirname(__file__)
+
 class TestParse(unittest.TestCase):
     def test_xml(self):
         for i in xml_samples:
             try:
-                expect_filename = os.path.dirname(__file__) + '/test_data/xml_expect/' + i + '_marc.xml'
-                path = os.path.dirname(__file__) + '/test_data/xml_input/' + i + '_marc.xml'
+                expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
+                path            = "%s/xml_input/%s_marc.xml"  % (test_data, i)
                 element = etree.parse(open(path)).getroot()
-                if element.tag != record_tag and element[0].tag == record_tag:
+                # Handle MARC XML collection elements in our test_data expectations:
+                if element.tag == collection_tag and element[0].tag == record_tag:
                     element = element[0]
                 rec = MarcXml(element)
                 edition_marc_xml = read_edition(rec)
@@ -47,26 +51,24 @@ class TestParse(unittest.TestCase):
                 j = {}
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
-                    if not j:
-                        print expect_filename
-                    assert j
-                if not j:
+                    assert j, "Unable to open test data: %s" % expect_filename
+                else:
+                    print "WARNING: test data %s not found, recreating it!" % expect_filename
                     simplejson.dump(edition_marc_xml, open(expect_filename, 'w'), indent=2)
                     continue
                 self.assertEqual(sorted(edition_marc_xml.keys()), sorted(j.keys()))
                 for k in edition_marc_xml.keys():
-                    print `i, k, edition_marc_xml[k]`
                     self.assertEqual(edition_marc_xml[k], j[k])
                 self.assertEqual(edition_marc_xml, j)
             except:
-                print 'bad marc:', i
+                print 'Bad MARC:', i
                 raise
 
     def test_binary(self):
         for i in bin_samples:
             try:
-                expect_filename = os.path.dirname(__file__) + '/test_data/bin_expect/' + i
-                data = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i).read()
+                expect_filename = "%s/bin_expect/%s" % (test_data, i)
+                data = open("%s/bin_input/%s" % (test_data, i)).read()
                 if len(data) != int(data[:5]):
                     data = data.decode('utf-8').encode('raw_unicode_escape')
                 assert len(data) == int(data[:5])
@@ -76,31 +78,32 @@ class TestParse(unittest.TestCase):
                 j = {}
                 if os.path.exists(expect_filename):
                     j = simplejson.load(open(expect_filename))
-                    if not j:
-                        print expect_filename
-                    assert j
-                if not j:
+                    assert j, "Unable to open test data: %s" % expect_filename
+                else:
+                    print "WARNING: test data %s not found, recreating it!" % expect_filename
                     simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
                     continue
                 self.assertEqual(sorted(edition_marc_bin.keys()), sorted(j.keys()))
                 for k in edition_marc_bin.keys():
                     if isinstance(j[k], list):
                         for item1, item2 in zip(edition_marc_bin[k], j[k]):
-                            #print (i, k, item1)
                             self.assertEqual(item1, item2)
 
                     self.assertEqual(edition_marc_bin[k], j[k])
                 self.assertEqual(edition_marc_bin, j)
             except:
-                print 'bad marc:', i
+                print 'Bad MARC:', i
                 raise
 
-        i = 'talis_see_also.mrc'
-        f = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i)
-        rec = MarcBinary(f.read())
+    def test_raises_see_also(self):
+        filename = "%s/bin_input/talis_see_also.mrc" % test_data
+        with open(filename, 'r') as f:
+            rec = MarcBinary(f.read())
         self.assertRaises(SeeAlsoAsTitle, read_edition, rec)
 
-        i = 'talis_no_title2.mrc'
-        f = open(os.path.dirname(__file__) + '/test_data/bin_input/' + i)
-        rec = MarcBinary(f.read())
+    def test_raises_no_title(self):
+        filename = "%s/bin_input/talis_no_title2.mrc" % test_data
+        with open(filename, 'r') as f:
+            rec = MarcBinary(f.read())
         self.assertRaises(NoTitle, read_edition, rec)
+
