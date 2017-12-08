@@ -113,13 +113,6 @@ var Browser = {
     }
 }
 
-
-
-function linkbuttons() {
-    $(".linkButton").click(function(){
-        window.location = $(this).attr("name");
-    });
-};
 function twitterOn() {
     if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
     $("input[type=radio]").click(function(){
@@ -140,68 +133,6 @@ $(window).scroll(function(){
   var scroller = $("#formScroll");
   if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();};
 })
-function setupSearch() {
-  $(".optionsNoScript").hide();
-  $(".optionsScript").show();
-
-    var A = $("#topOptions");
-    var B = A.parent().parent();
-    var C = B.find("a#searchHead");
-    var t1 = C.text();
-    var t2 = "Hide Advanced";
-    C.click(function(){
-        var D = $(this);
-        $('#footerSearch').toggle();
-        A.toggle();
-        B.toggleClass("darker");
-        D.toggleClass("attn");
-        D.toggleText(t1, t2);
-        B.mouseup(function(){
-            return false
-        });
-        $(document).mouseup(function(D){
-            if($(D.target).parent("a").length==0){
-                hideSearch()
-            };
-        });
-        function hideSearch(){
-            A.hide();
-            B.removeClass("darker");
-            C.removeClass("attn");
-            C.text(t1);
-        };
-    });
-    var E = $("#bottomOptions");
-    var F = E.parent().parent();
-    var G = F.find("a#searchFoot");
-    var t3 = G.text();
-    var t4 = "Hide Advanced";
-    G.click(function(){
-        var H = $(this);
-        E.toggle();
-        if($("#bottomOptions").is(":visible")){if($("#scrollBtm").is(":hidden")){$.scrollTo($("#formScroll"),800);};};
-        F.toggleClass("darker");
-        H.toggleClass("attn");
-        $("#footerSearch").toggleClass("onTop");
-        H.toggleText(t3, t4);
-        $("#btmSrchLabel").toggle();
-        F.mouseup(function(){
-            return false
-        });
-        $(document).mouseup(function(H){
-            if($(H.target).parent("a").length==0){
-                hideSearch()
-            };
-        });
-        function hideSearch(){
-            E.hide();
-            F.removeClass("darker");
-            G.removeClass("attn");
-            G.text(t3);
-        };
-    });
-
-};
 
 function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};

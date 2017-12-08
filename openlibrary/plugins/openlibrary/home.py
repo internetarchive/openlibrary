@@ -67,7 +67,7 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
     return formatted_books
 
 def get_featured_subjects():
-    # web.ctx must be initialized as it won't be avaiable to the background thread.
+    # web.ctx must be initialized as it won't be available to the background thread.
     if 'env' not in web.ctx:
         delegate.fakeload()
 

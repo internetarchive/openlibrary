@@ -2426,11 +2426,27 @@ body#help div#content {
 }
 
 div#abuse {}
-div#abuse a {display:block;width:70px;overflow:visible;text-align:center;font-size:0.625em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;color:#615132;text-decoration:none;white-space:nowrap;font-weight:600;}
+div#abuse a {
+    display:block;
+    width:70px;
+    overflow:visible;
+    text-align:center;
+    font-size:0.625em;
+    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    color:#615132;
+    text-decoration:none;
+    white-space:nowrap;
+    font-weight:600;
+}
 div#abuse a span {
     display:block;
     margin: 5px 0px 5px 30px;
-    width:32px;height:32px;background-repeat:no-repeat;background-image:url(/images/icons/icons_sprite.png);background-position: -576px 0;}
+    width:32px;
+    height:32px;
+    background-repeat:no-repeat;
+    background-image:url(/images/icons/icons_sprite.png);
+    background-position: -576px 0;
+}
 div#abuse a:hover {color:#000;}
 div#abuse a:hover span {background-position: -608px 0;}
 
@@ -3323,7 +3339,6 @@ p.category-title {
     margin-top: 5px;
 }
 
-
 .resultsIcons .jcarousel-container { height: 130px; padding: 0px;}
 .resultsIcons .jcarousel-container-horizontal { height: 130px; padding: 0px;}
 .resultsIcons { height: 130px;  }
@@ -3335,10 +3350,6 @@ p.category-title {
 .resultsIcons .jcarousel-prev-horizontal { top: 35px; left: -15px;}
 
 /* Homepage about section */
-
-#home-stats {
-
-}
 
 #home-stats-charts {
     display: -webkit-box;
