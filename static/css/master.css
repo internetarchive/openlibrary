@@ -2461,6 +2461,19 @@ body#edit div#editTools{padding:20px;max-width:300px;}
 body#user div#editHistory {display: none;}
 div#editButton button,div#editHistory button,div.revert.notice button {font-size:1.125em;}
 div#editInfo {float:right;white-space:nowrap;text-align:right;}
+.linkButton {
+    border-radius: 5px;
+    background: #eee;
+    padding: 10px;
+    color: #333;
+}
+
+a.linkButton {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    color: #666;
+    border: 1px solid #ccc;
+}
 
 #content .shareLinks {float:left;clear:both;margin-top:10px;}
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}

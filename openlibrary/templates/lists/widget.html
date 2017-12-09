@@ -241,7 +241,7 @@ $if ctx.user:
     var page_lists = $:json_encode(page_lists);
 
     var user_key = $:json_encode(user_key);
-    var page_url = $:json_encode(page_url);
+    var page_url = $:(json_encode(page_url));
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
