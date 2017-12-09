@@ -2466,9 +2466,14 @@ div#editInfo {float:right;white-space:nowrap;text-align:right;}
     background: #eee;
     padding: 10px;
     color: #333;
-    font-family: verdana;
 }
 
+a.linkButton {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    color: #666;
+    border: 1px solid #ccc;
+}
 
 #content .shareLinks {float:left;clear:both;margin-top:10px;}
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
