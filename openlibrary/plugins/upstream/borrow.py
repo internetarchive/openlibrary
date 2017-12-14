@@ -161,7 +161,7 @@ class borrow(delegate.page):
                 if loan:
                     loan_link = loan['loan_link']
                     if resource_type == 'bookreader':
-                        if not is_turn_to_borrow(user, edition):
+                        if not is_users_turn_to_borrow(user, edition):
                             # As of 2017-12-14, Petabox will be
                             # responsible for tracking borrows which
                             # are the result of waitlist redemptions,
@@ -798,7 +798,7 @@ def user_can_borrow_edition(user, edition, resource_type):
     #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
     return availability_status == 'borrow_available'
 
-def is_turn_to_borrow(user, edition):
+def is_users_turn_to_borrow(user, edition):
     """
     There some people are already waiting for the book,
     it can't be borrowed unless the user is the first in the waiting list.
