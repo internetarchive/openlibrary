@@ -150,8 +150,6 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
-            print('#' * 100)
-            print(user_meets_borrow_criteria)
 
             if user_meets_borrow_criteria:
                 loan = lending.create_loan(
@@ -163,7 +161,20 @@ class borrow(delegate.page):
                 if loan:
                     loan_link = loan['loan_link']
                     if resource_type == 'bookreader':
-                        stats.increment('ol.loans.bookreader')
+                        if not is_turn_to_borrow(user, edition):
+                            # As of 2017-12-14, Petabox will be
+                            # responsible for tracking borrows which
+                            # are the result of waitlist redemptions,
+                            # so we don't want to track them here to
+                            # avoid double accounting. When a reader
+                            # is at the head of a waitlist and goes to
+                            # claim their loan, Petabox now checks
+                            # whether the waitlist was initiated from
+                            # OL, and if it was, petabox tracks
+                            # ol.loans.bookreader accordingly via
+                            # lending.create_loan.
+                            stats.increment('ol.loans.bookreader')
+
                         raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
@@ -449,7 +460,6 @@ class borrow_receive_notification(delegate.page):
             # XXX verify signature?  Should be acs4 function...
             notify_obj = acs4.el_to_o(notify_xml)
 
-            # print simplejson.dumps(notify_obj, sort_keys=True, indent=4)
             output = simplejson.dumps({'success':True})
         except Exception, e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
@@ -783,15 +793,20 @@ def user_can_borrow_edition(user, edition, resource_type):
     waitlist_size = realtime_availability['num_waitlist']
 
     if waitlist_size:
-        # There some people are already waiting for the book,
-        # it can't be borrowed unless the user is the first in the waiting list.
-        waiting_loan = user.get_waiting_loan_for(edition)
-        my_turn_to_borrow = (waiting_loan and waiting_loan['status'] == 'available'
-                             and waiting_loan['position'] == 1)
-        return my_turn_to_borrow
+        return is_users_turn_to_borrow(user, edition)
 
     #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
     return availability_status == 'borrow_available'
+
+def is_turn_to_borrow(user, edition):
+    """
+    There some people are already waiting for the book,
+    it can't be borrowed unless the user is the first in the waiting list.
+    """
+    waiting_loan = user.get_waiting_loan_for(edition)
+    return (waiting_loan and waiting_loan['status'] == 'available'
+            and waiting_loan['position'] == 1)
+
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
