@@ -16,7 +16,7 @@ from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe
-from openlibrary.utils import is_author_olid
+from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
@@ -813,6 +813,38 @@ class languages_autocomplete(delegate.page):
         languages = [lang for lang in utils.get_languages() if lang.name.lower().startswith(i.q.lower())]
         return to_json(languages[:i.limit])
 
+class works_autocomplete(delegate.page):
+    path = "/works/_autocomplete"
+
+    def GET(self):
+        i = web.input(q="", limit=5)
+        i.limit = safeint(i.limit, 5)
+
+        solr = get_works_solr()
+
+        q = solr.escape(i.q).strip()
+        if is_work_olid(q.upper()):
+            # ensure uppercase; key is case sensitive in solr
+            solr_q = 'key:"/works/%s"' % q.upper()
+        else:
+            solr_q = 'title:"%s"^2 OR title:(%s*)' % (q, q)
+
+        params = {
+            'q_op': 'AND',
+            'sort': 'edition_count desc',
+            'rows': i.limit,
+            'fq': 'type:work',
+            # limit the fields returned for better performance
+            'fl': 'key,title,first_publish_year,author_name,edition_count'
+        }
+
+        data = solr.select(solr_q, **params)
+        docs = data['docs']
+
+        for d in docs:
+            # Required by the frontend
+            d['name'] = d['title']
+        return to_json(docs)
 
 class authors_autocomplete(delegate.page):
     path = "/authors/_autocomplete"

@@ -676,6 +676,27 @@ del { color: #e44028; text-decoration: line-through; }
     color: #000;
 }
 
+/* WORK AUTOCOMPLETE */
+.ac_results .ac_work .name {
+    display: block;
+}
+.ac_results .ac_work .title {
+    font-size: 16px;
+    color: #000;
+}
+.ac_results .ac_work .first_publish_year {
+    font-size: 12px;
+}
+.ac_results .ac_work .olid {
+    font-family: monospace;
+}
+.ac_results .ac_work .edition_count {
+    font-size: 12px;
+    color: #35672e;
+    font-weight: 700;
+    padding: 0;
+}
+
 /* RESET EVERYTHING */
 
 body,div,dl,dt,dd,ul,ol,li,pre,code,form,fieldset,legend,input,textarea,th,td{margin:0;padding:0;}
