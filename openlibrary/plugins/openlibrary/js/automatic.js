@@ -21,10 +21,6 @@ jQuery(function($) {
         options.fx = {"opacity": "toggle"};
     }
 
-    // autocompletes
-    $("input.author-autocomplete").author_autocomplete();
-    $("input.language-autocomplete").language_autocomplete();
-
     // validate forms
     $("form.validate").ol_validate();
 
