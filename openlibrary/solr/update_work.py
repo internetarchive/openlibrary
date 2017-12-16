@@ -127,7 +127,6 @@ def pick_cover(w, editions):
     return first_with_cover
 
 def get_work_subjects(w):
-    wkey = w['key']
     assert w['type']['key'] == '/type/work'
 
     subjects = {}
@@ -259,8 +258,6 @@ class SolrProcessor:
 
     def extract_authors(self, w):
         authors = [self.get_author(a) for a in w.get("authors", [])]
-        work_authors = [a['key'] for a in authors]
-        author_keys = [a['key'].split("/")[-1] for a in authors]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
             if self.resolve_redirects:
@@ -494,8 +491,6 @@ def dict2element(d):
     return doc
 
 def build_data(w, obj_cache=None, resolve_redirects=False):
-    wkey = w['key']
-
     # Anand - Oct 2013
     # For /works/ia:xxx, editions are already suplied. Querying will empty response.
     if "editions" in w:
@@ -513,14 +508,12 @@ def build_data2(w, editions, authors, ia, duplicates):
     obj_cache = {}
     resolve_redirects = False
 
-    wkey = w['key']
     assert w['type']['key'] == '/type/work'
     title = w.get('title', None)
     if not title:
         return
 
     p = SolrProcessor(obj_cache, resolve_redirects)
-    get_pub_year = p.get_pub_year
 
     identifiers = defaultdict(list)
     editions = p.process_editions(w, editions, ia, identifiers)
@@ -558,8 +551,6 @@ def build_data2(w, editions, authors, ia, duplicates):
     lang = set()
     ia_loaded_id = set()
     ia_box_id = set()
-
-    last_modified_i = datetimestr_to_int(w.get('last_modified'))
 
     for e in editions:
         for l in e.get('languages', []):
@@ -924,7 +915,7 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
             d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
-            doc = dict2element(d)
+            dict2element(d)
         except:
             logger.error("failed to update work %s", w['key'], exc_info=True)
         else:
