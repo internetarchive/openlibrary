@@ -7,6 +7,12 @@ edition_counter = 0
 work_counter = 0
 
 def make_author(**kw):
+    """
+    Create a fake author
+
+    :param kw: author data
+    :rtype: dict
+    """
     global author_counter
     author_counter += 1
     kw.setdefault("key", "/authors/OL%dA" % author_counter)
@@ -20,7 +26,7 @@ def make_edition(work=None, **kw):
 
     :param dict work: Work dict which this is an edition of
     :param kw: edition data
-    :rtype dict:
+    :rtype: dict
     """
     global edition_counter
     edition_counter += 1
@@ -32,6 +38,12 @@ def make_edition(work=None, **kw):
     return kw
 
 def make_work(**kw):
+    """
+    Create a fake work
+
+    :param kw:
+    :rtype: dict
+    """
     global work_counter
     work_counter += 1
     kw.setdefault("key", "/works/OL%dW" % work_counter)
