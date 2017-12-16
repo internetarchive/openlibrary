@@ -245,7 +245,7 @@ class SolrProcessor:
             ia = ia[0]
 
 
-    def get_ia_id(self, edition):
+    def get_ia_id(self, e):
         """Returns ia identifier from an edition dict.
         """
         if "ocaid" in e:
@@ -1678,7 +1678,7 @@ def clear_monkeypatch_cache(max_size=10000):
         _monkeypatch.clear_cache(max_size=max_size)
 
 def solr_escape(query):
-    return re.sub('([\s\-\+\!\(\)\|\&\{\}\[\]\^\"\|\&\~\*\?\:\\\\])', r'\\\1', query)
+    return re.sub('([\s\-\+\!\(\)\|\&\{\}\[\]\^\"\~\*\?\:\\\\])', r'\\\1', query)
 
 
 def load_configs(config_file):
