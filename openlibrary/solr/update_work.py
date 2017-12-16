@@ -162,7 +162,7 @@ def get_work_subjects(w):
     return subjects
 
 def four_types(i):
-    want = set(['subject', 'time', 'place', 'person'])
+    want = {'subject', 'time', 'place', 'person'}
     ret = dict((k, i[k]) for k in want if k in i)
     for j in (j for j in i.keys() if j not in want):
         for k, v in i[j].items():
@@ -973,7 +973,7 @@ def get_subject(key):
     result = json.load(urlopen(url))
 
     work_count = result['response']['numFound']
-    facets = result['facet_counts']['facet_fields'].get(facet_field, []);
+    facets = result['facet_counts']['facet_fields'].get(facet_field, [])
 
     names = [name for name, count in facets if str_to_key(name) == subject_key]
 
@@ -1731,7 +1731,7 @@ def main():
 
     global _ia_db
     if ('ia_db' in config.runtime_config.keys()):
-	_ia_db = get_ia_db(config.runtime_config['ia_db'])
+        _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
     if data_provider is None:
