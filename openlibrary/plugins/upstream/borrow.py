@@ -152,6 +152,11 @@ class borrow(delegate.page):
             user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
 
             if user_meets_borrow_criteria:
+                # This must be called before the loan is initiated,
+                # otherwise the user's waitlist status will be cleared
+                # upon loan creation
+                track_loan = False if is_users_turn_to_borrow(user, edition) else True
+
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
@@ -161,7 +166,7 @@ class borrow(delegate.page):
                 if loan:
                     loan_link = loan['loan_link']
                     if resource_type == 'bookreader':
-                        if not is_users_turn_to_borrow(user, edition):
+                        if track_loan:
                             # As of 2017-12-14, Petabox will be
                             # responsible for tracking borrows which
                             # are the result of waitlist redemptions,
@@ -175,7 +180,8 @@ class borrow(delegate.page):
                             # lending.create_loan.
                             stats.increment('ol.loans.bookreader')
 
-                        raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                        raise web.seeother(make_bookreader_auth_link(
+                            loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
                         raise web.seeother(loan_link)
@@ -776,6 +782,9 @@ def resource_uses_bss(resource_id):
             if resource_id.startswith(prefix):
                 return True
     return False
+
+
+
 
 def user_can_borrow_edition(user, edition, resource_type):
     """Returns True if the user can borrow this edition given their
