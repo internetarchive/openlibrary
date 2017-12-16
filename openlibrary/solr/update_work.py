@@ -26,7 +26,7 @@ logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
-#re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+# re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 re_edition_key = re.compile(r"/books/([^/]+)")
 
 data_provider = None
@@ -1534,7 +1534,7 @@ def load_configs(c_host,c_config,c_data_provider):
     conf_file = c_config
 
     global _ia_db
-    if ('ia_db' in config.runtime_config.keys()):
+    if 'ia_db' in config.runtime_config.keys():
         _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
@@ -1589,7 +1589,7 @@ def main():
     config.load_config(args.config)
 
     global _ia_db
-    if ('ia_db' in config.runtime_config.keys()):
+    if 'ia_db' in config.runtime_config.keys():
         _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider
