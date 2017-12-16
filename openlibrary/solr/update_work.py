@@ -55,13 +55,6 @@ def get_solr():
 
     return solr_host
 
-def load_config():
-    if not config.runtime_config:
-        config.load('openlibrary.yml')
-        config.load_config('openlibrary.yml')
-
-re_collection = re.compile(r'<(collection|boxid)>(.*)</\1>', re.I)
-
 def get_ia_collection_and_box_id(ia):
     """Returns a collection and box_id as a dictiodictionary with boxid and collection
     """
@@ -588,12 +581,6 @@ class SolrProcessor:
 
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
-def build_doc(w, obj_cache=None, resolve_redirects=False):
-    if obj_cache is None:
-        obj_cache = {}
-    d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
-    return dict2element(d)
-
 def dict2element(d):
     doc = Element("doc")
     for k, v in d.items():
@@ -763,11 +750,6 @@ def solr_update(requests, debug=False, commitWithin=60000):
         if debug:
             logger.info(response.reason)
     h1.close()
-
-def withKey_cached(key, obj_cache={}):
-    if key not in obj_cache:
-        obj_cache[key] = withKey(key)
-    return obj_cache[key]
 
 def listify(f):
     """Decorator to transform a generator function into a function
@@ -1153,10 +1135,6 @@ def update_author(akey, a=None, handle_redirects=True):
     #requests.append(tostring(add).encode('utf-8'))
     requests.append(UpdateRequest(d))
     return requests
-
-def commit_and_optimize(debug=False):
-    requests = ['<commit />', '<optimize />']
-    solr_update(requests, debug)
 
 def get_document(key):
     url = get_ol_base_url() + key + ".json"
@@ -1618,22 +1596,6 @@ class MonkeyPatch:
             self.ia_cache[row.identifier] = row
 
         self.preload_ia_redirect_cache(identifiers)
-
-def new_get_metadata(itemid):
-    """Alternate implementation of ia.get_metadata() that uses IA db directly.
-    """
-    from openlibrary.solr.process_stats import get_ia_db
-    db = get_ia_db()
-    fields = 'identifier, boxid, collection, isbn, title, description, publisher, creator, date, collection'
-    rows = db.where('metadata', what=fields, identifier=itemid).list()
-    if not rows:
-        return {}
-    d = rows[0]
-    d.publisher = d.publisher and d.publisher.split(";")
-    d.collection = d.collection and d.collection.split(";")
-    d.isbn = d.isbn and d.isbn.split(";")
-    d.creator = d.creator and d.creator.split(";")
-    return d
 
 _monkeypatch = None
 
