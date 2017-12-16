@@ -182,10 +182,7 @@ def datetimestr_to_int(datestr):
 class SolrProcessor:
     """Processes data to into a form suitable for adding to works solr.
     """
-    def __init__(self, obj_cache=None, resolve_redirects=False):
-        if obj_cache is None:
-            obj_cache = {}
-        self.obj_cache = obj_cache
+    def __init__(self, resolve_redirects=False):
         self.resolve_redirects = resolve_redirects
 
     def process_editions(self, w, editions, ia_metadata, identifiers):
@@ -490,7 +487,7 @@ def dict2element(d):
             add_field(doc, k, v)
     return doc
 
-def build_data(w, obj_cache=None, resolve_redirects=False):
+def build_data(w, resolve_redirects=False):
     # Anand - Oct 2013
     # For /works/ia:xxx, editions are already suplied. Querying will empty response.
     if "editions" in w:
@@ -505,7 +502,6 @@ def build_data(w, obj_cache=None, resolve_redirects=False):
     return build_data2(w, editions, authors, ia, duplicates)
 
 def build_data2(w, editions, authors, ia, duplicates):
-    obj_cache = {}
     resolve_redirects = False
 
     assert w['type']['key'] == '/type/work'
@@ -513,7 +509,7 @@ def build_data2(w, editions, authors, ia, duplicates):
     if not title:
         return
 
-    p = SolrProcessor(obj_cache, resolve_redirects)
+    p = SolrProcessor(resolve_redirects)
 
     identifiers = defaultdict(list)
     editions = p.process_editions(w, editions, ia, identifiers)
@@ -876,10 +872,7 @@ def update_subject(key):
         request_set.add(subject)
     return request_set.get_requests()
 
-def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
-    if obj_cache is None:
-        obj_cache = {}
-
+def update_work(w, debug=False, resolve_redirects=False):
     wkey = w['key']
     #assert wkey.startswith('/works')
     #assert '/' not in wkey[7:]
@@ -914,7 +907,7 @@ def update_work(w, obj_cache=None, debug=False, resolve_redirects=False):
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
-            d = build_data(w, obj_cache=obj_cache, resolve_redirects=resolve_redirects)
+            d = build_data(w, resolve_redirects=resolve_redirects)
             dict2element(d)
         except:
             logger.error("failed to update work %s", w['key'], exc_info=True)
