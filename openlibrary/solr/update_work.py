@@ -1,25 +1,26 @@
-import httplib, re, sys, os
-from openlibrary.catalog.utils.query import query_iter, withKey, has_cover, set_query_host, base_url as get_ol_base_url
-from openlibrary.catalog.utils import query as utils_query
-
-#from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
-from lxml.etree import tostring, Element, SubElement
-from pprint import pprint
-import urllib2, urllib
-from urllib2 import URLError, HTTPError
-import simplejson as json
+import datetime
+import httplib
+import logging
+import os
+import re
+import sys
 import time
-import web
-from openlibrary import config
-from unicodedata import normalize
+import urllib
+import urllib2
 from collections import defaultdict
-from openlibrary.utils.isbn import opposite_isbn
+from unicodedata import normalize
+
+import simplejson as json
+import web
+from lxml.etree import tostring, Element, SubElement
+
+from data_provider import get_data_provider
+from infogami.infobase.client import ClientException
+from openlibrary import config
+from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
-from infogami.infobase.client import ClientException
-import logging
-import datetime
-from data_provider import get_data_provider
+from openlibrary.utils.isbn import opposite_isbn
 
 logger = logging.getLogger("openlibrary.solr")
 
@@ -1640,7 +1641,6 @@ def monkeypatch(config_file):
     """Monkeypatch query functions to avoid hitting openlibrary.org.
     """
     def load_infogami(config_file):
-        import web
         import infogami
         from infogami import config
         from infogami.utils import delegate
