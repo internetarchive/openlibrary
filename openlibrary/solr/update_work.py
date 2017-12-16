@@ -1678,7 +1678,7 @@ def clear_monkeypatch_cache(max_size=10000):
         _monkeypatch.clear_cache(max_size=max_size)
 
 def solr_escape(query):
-    return re.sub('([\s\-\+\!\(\)\|\&\{\}\[\]\^\"\~\*\?\:\\\\])', r'\\\1', query)
+    return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
 
 def load_configs(c_host,c_config,c_data_provider):
     host = web.lstrips(c_host, "http://").strip("/")
