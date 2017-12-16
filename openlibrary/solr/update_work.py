@@ -1215,20 +1215,6 @@ def update_keys(keys, commit=True, output_file=None):
 
     logger.info("END update_keys")
 
-def parse_options(args=None):
-    from optparse import OptionParser
-    parser = OptionParser(args)
-    parser.add_option("-s", "--server", dest="server", default="http://openlibrary.org/", help="URL of the openlibrary website (default: %default)")
-    parser.add_option("-c", "--config", dest="config", default="openlibrary.yml", help="Open Library config file")
-    parser.add_option("-o", "--output-file", dest="output_file", help="Open Library config file")
-    parser.add_option("--nocommit", dest="nocommit", action="store_true", default=False, help="Don't commit to solr")
-    parser.add_option("--monkeypatch", dest="monkeypatch", action="store_true", default=False, help="Monkeypatch query functions to access DB directly")
-    parser.add_option("--profile", dest="profile", action="store_true", default=False, help="Profile this code to identify the bottlenecks")
-    parser.add_option("--data-provider", default='default', help="Name of the data provider to use.")
-
-    options, args = parser.parse_args()
-    return options, args
-
 def new_query_iter(q, limit=500, offset=0):
     """Alternative implementation of query_iter, that talks to the
     database directly instead of accessing the website API.
@@ -1580,19 +1566,36 @@ def get_ia_db(settings):
         ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
         return ia_db
 
+def parse_args():
+    import argparse
+    parser = argparse.ArgumentParser(
+        description="Insert the documents with the given keys into Solr",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("keys", nargs="+", help="The keys of the items to update (ex: /books/OL1M")
+    parser.add_argument("-s", "--server", default="http://openlibrary.org/", help="URL of the openlibrary website")
+    parser.add_argument("-c", "--config", default="openlibrary.yml", help="Open Library config file")
+    parser.add_argument("-o", "--output-file", help="Open Library config file")
+    parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
+    parser.add_argument("--monkeypatch", action="store_true", help="Monkeypatch query functions to access DB directly")
+    parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
+    parser.add_argument("--data-provider", default='default', help="Name of the data provider to use")
+
+    return parser.parse_args()
+
 def main():
-    options, keys = parse_options()
+    args = parse_args()
+    keys = args.keys
 
     # set query host
-    host = web.lstrips(options.server, "http://").strip("/")
+    host = web.lstrips(args.server, "http://").strip("/")
     set_query_host(host)
 
-    if options.monkeypatch:
-        monkeypatch(options.config)
+    if args.monkeypatch:
+        monkeypatch(args.config)
 
     # load config
-    config.load(options.config)
-    config.load_config(options.config)
+    config.load(args.config)
+    config.load_config(args.config)
 
     global _ia_db
     if ('ia_db' in config.runtime_config.keys()):
@@ -1600,17 +1603,17 @@ def main():
 
     global data_provider
     if data_provider is None:
-        data_provider = get_data_provider(options.data_provider,_ia_db)
+        data_provider = get_data_provider(args.data_provider,_ia_db)
 
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
-    if options.profile:
+    if args.profile:
         f = web.profile(update_keys)
-        _, info = f(keys, not options.nocommit)
+        _, info = f(keys, not args.nocommit)
         print info
     else:
-        update_keys(keys, commit=not options.nocommit, output_file=options.output_file)
+        update_keys(keys, commit=not args.nocommit, output_file=args.output_file)
 
 if __name__ == '__main__':
     main()
