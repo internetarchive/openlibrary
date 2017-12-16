@@ -1680,32 +1680,6 @@ def clear_monkeypatch_cache(max_size=10000):
 def solr_escape(query):
     return re.sub('([\s\-\+\!\(\)\|\&\{\}\[\]\^\"\~\*\?\:\\\\])', r'\\\1', query)
 
-
-def load_configs(config_file):
-    c_host = "http://openlibrary.org/"
-    c_config = config_file
-    c_data_provider = 'default'
-
-    host = web.lstrips(c_host, "http://").strip("/")
-    set_query_host(host)
-
-    # load config
-    config.load(c_config)
-    config.load_config(c_config)
-
-    global data_provider
-    global _ia_db
-    if data_provider is None:
-	data_provider = get_data_provider(c_data_provider,_ia_db)
-
-    return data_provider
-
-
-def do_updates(keys):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
-    update_keys(keys, commit=False)
-
 def load_configs(c_host,c_config,c_data_provider):
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
