@@ -40,17 +40,8 @@ update_work.data_provider = FakeDataProvider()
 
 class Test_build_data:
 
-    def strip_empty_lists(self, d):
-        """strips empty lists from a dict"""
-        def emptylist(x):
-            return isinstance(x, list) and len(x) == 0
 
-        return dict((k, v) for k, v  in d.items() if not emptylist(v))
 
-    def match_dicts(self, d, expected):
-        """Returns True if d has all the keys in expected and all those values are equal.
-        """
-        return all(k in d for k in expected) and all(d[k] == expected[k] for k in expected)
 
     def test_simple(self):
         work = {
@@ -60,12 +51,10 @@ class Test_build_data:
         }
 
         d = build_data(work)
-        assert self.match_dicts(self.strip_empty_lists(d), {
-            "key": "/works/OL1M",
-            "title": "Foo",
-            "has_fulltext": False,
-            "edition_count": 0,
-        })
+        assert d["key"] == "/works/OL1M"
+        assert d["title"] == "Foo"
+        assert d["has_fulltext"] == False
+        assert d["edition_count"] == 0
 
     def test_edition_count(self):
         work = make_work()
