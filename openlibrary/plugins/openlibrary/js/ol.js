@@ -701,7 +701,7 @@ $().ready(function(){
             $('.dropclick').next('.dropdown').slideUp(25);
             $('.dropclick').parent().find('.arrow').removeClass("up");
         }
-    }, 300, false));
+    }, 100, false));
 
     $('header#header-bar .search-component .search-bar-input input').focus(debounce(function() {
         var val = $(this).val();
@@ -765,7 +765,7 @@ $().ready(function(){
             });
 
         }
-    }, 300, false));
+    }, 100, false));
 
     var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
     var buildReadingLogCombo = function(status_id) {

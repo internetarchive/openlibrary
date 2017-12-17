@@ -2,7 +2,7 @@ $def with(loan)
 
 $ book = get_document(loan['book'])
 $if book:
-  <tr data-userid="$(loan['userid'])">
+  <div class="searchResultItemCTA" data-userid="$(loan['userid'])">
     <td class="cover">
       $:render_template('covers/book_cover_small', book)
     </td>
@@ -36,6 +36,5 @@ $if book:
     $if loan['resource_type'] == 'bookreader':
         $:macros.LoanReadForm(loan['book'])
         $:macros.ReturnForm(loan)
-    $else:
-        <span class="smaller grey sansserif">Return via<br />Adobe Digital Editions</span>
     </td>
+  </div>

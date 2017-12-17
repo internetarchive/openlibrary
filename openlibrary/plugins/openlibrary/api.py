@@ -58,7 +58,7 @@ class work_bookshelves(delegate.page):
             del shelf['username']
         return delegate.RawText(simplejson.dumps({
             'shelves': list(shelves)
-        }, default=json_serial), content_type="application/json")
+        }), content_type="application/json")
 
     def POST(self, work_id):
         user = accounts.get_current_user()
@@ -97,7 +97,7 @@ class work_bookshelves(delegate.page):
             raise web.seeother(key)
         return delegate.RawText(simplejson.dumps({
             'bookshelves_affected': work_bookshelf
-        }, default=json_serial), content_type="application/json")
+        }), content_type="application/json")
 
 
 class work_ratings(delegate.page):

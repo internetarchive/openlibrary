@@ -1,5 +1,8 @@
 $def with (page)
 
+$ work = page.works and page.works[0] or None
+$ book_title = (work.title if work and work.get('title') else page.title or "").title()
+$ book_subtitle = work.subtitle if work and work.get('subtitle') else page.subtitle if page.get('subtitle') else None
 $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = page.title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
@@ -101,8 +104,6 @@ $def display_goodreads(label, ids):
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
-$ work = page.works and page.works[0] or None
-
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
@@ -168,11 +169,10 @@ $elif ebook_status == "borrow-user-checkedout":
     <td valign="top" width="100%">
     $:macros.databarView(page)
     <div class="navEdition sansserif">
-        $ work = page.works and page.works[0]
         $ edition_count = work.edition_count if work else 1
-            <a href="$work.url()"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work.title or "", 60)</span> found in the catalog
+        <a href="$work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(book_title, 60)</span> found in the catalog.
         $if work:
-            <span>&nbsp;&bull;&nbsp;<a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add another edition")</a>?</span>
+            <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add another edition")</a>?</span>
         <br />
         <div class="shift">
             $if page.ocaid:
@@ -186,7 +186,7 @@ $elif ebook_status == "borrow-user-checkedout":
     </tr></tbody></table>
 </div>
 
-<div id="contentBody" itemscope itemtype="https://schema.org/Book">
+<div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
 
     <div class="workDetails">
 
@@ -220,19 +220,19 @@ $elif ebook_status == "borrow-user-checkedout":
         </div>
 
         <div class="editionAbout">
+            <div class="book-overview section sansserif">
+              <h1 class="work-title" itemprop="name">$book_title.title()</h1>
+              $if book_subtitle:
+                <h2 class="work-subtitle">$book_subtitle</h2>
+              $if page.edition_title or page.edition_name:
+                <h2 class="edition-title">
+                  $page.edition_title $page.edition_name
+                </h2>
+              $ authors_byline = get_authors_byline(page, include_schema=True)
+              $if authors_byline:
+                <h2 class="edition-byline">$_("by") $:authors_byline</h2>
 
-            <div class="section sansserif">
-                <h1 class="edition">
-                    <strong itemprop="name">$page.title</strong>
-                $if page.subtitle:
-                    <br /><em>$page.subtitle</em>
-                $if page.edition_title or page.edition_name:
-                    <br />$page.edition_title $page.edition_name
-                $ authors_byline = get_authors_byline(page, include_schema=True)
-                $if authors_byline:
-                    <br />$_("by") $:authors_byline
-                </h1>
-                <h4 class="publisher">
+              <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
                         Published
                         $if page.publish_date:

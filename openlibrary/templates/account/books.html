@@ -1,4 +1,4 @@
-$def with (works, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
+$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
 
 $ title = key.title().replace('-', ' ')
 
@@ -7,18 +7,20 @@ $ title = key.title().replace('-', ' ')
     <h1>$title</h1>
     <div class="mybooks">
       <div class="mybooks-menu">
+        <!--
         <ul class="loans-lists">
           <li class="subsection">Loans</li>
-          <li><a href="/account/my-books/loans" $('class="selected"' if key == 'loans' else '') href="">Active Loans ($(len(loans) or 0)/5)</a></li>
-          <li><a href="/account/my-books/waitlists" $('class="selected"' if key == 'waitlists' else '')>Waitlists ($(len(waitlists) or 0))</a></li>
+          <li><a href="/account/my-books/loans" $('class="selected"' if key == 'loans' else '') href="">My Loans ($(len(loans or []))/5)</a></li>
+          <li><a href="/account/my-books/waitlists" $('class="selected"' if key == 'waitlists' else '')>Waitlists ($(len(waitlists or [])))</a></li>
           $if loan_history:
             <li><a href="/account/my-books/loan-history" $('class="selected"' if key == 'loan-history' else '')>Loan History (46)</a></li>
         </ul>
+        -->
         <ul class="preset-lists">
           <li class="subsection">Reading Log</li>
-          <li><a href="/account/my-books/currently-reading" $('class="selected"' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
-          <li><a href="/account/my-books/want-to-read" $('class="selected"' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
-          <li><a href="/account/my-books/already-read" $('class="selected"' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
+          <li><a href="/account/my-books/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
+          <li><a href="/account/my-books/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
+          <li><a href="/account/my-books/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
         </ul>
         $if lists:
           <ul class="user-lists">
@@ -31,21 +33,25 @@ $ title = key.title().replace('-', ' ')
       </div>
       <div class="mybooks-list">
         <ul class="list-books" id="siteSearch">
-          $if works:
+          $if items:
             $ bookshelf_id = 1 if key == 'want-to-read' else 2 if key == 'currently-reading' else 3 if key == 'already-read' else None
-            $for work in works:
+            $for item in items:
               $if key == 'loans':
-                $:macros.loan_item(work)              
+                $ edition = get_document(item['book'])
+                $ work = get_document(edition.works[0]) if (edition.get('type', {}).get('key') == '/type/work' and edition.works and edition.works[0]) else None
+                $ decorations = macros.ManageLoansButtons(item, edition)
+                $:macros.SearchResultsWork(work or edition, decorations=decorations, cta=False)
+              $elif key == 'waitlists':
+                $ edition = item
+                $ decorations = macros.ManageWaitlistButton(edition)
+                $:macros.SearchResultsWork(edition, decorations=decorations, cta=False)
               $else:
+                $ work = item
                 $ decorations = macros.ReadingLogButton(work, read_status=bookshelf_id) if bookshelf_id else None
                 $:macros.SearchResultsWork(work, decorations=decorations)
           $else:
             <li>No books are on this shelf</li>
         </ul>
-        $if len(works) > 100:
-          <div class="loadmore">
-            <button>Load more</button>
-          </div>
       </div>
     </div>
   </div>

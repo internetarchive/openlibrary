@@ -881,7 +881,7 @@ div.head {margin-bottom: 10px;margin-top: 20px;}
 div.head h1,div.head h2,div.head h3,div.head h4,div.head h5,div.head h6{margin:0;padding:0;}
 div.head.rel {position:relative;}
 div.superNav {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;color:#666;margin-bottom:5px;}
-h1,h2,h3,h4,h5,h6 {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#00636a;font-weight:600;}
+h1,h2,h3,h4,h5,h6 {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#666;font-weight:600;}
 h1 {font-size: 1.875em;}
 h1.title {font-size:1.25em;}
 h1 span.subtitle {font-size:0.65em;font-weight:normal;}
@@ -2453,8 +2453,15 @@ div#editionBorrow a, div#editionBuy a {background-image:none!important;float:non
 
 /* TOOLS ACCORDION */
 
-div#editTools,div#editButton,div#editHistory {float:right;padding:0 0 0 20px;width:auto;}
-div#editTools{white-space:nowrap;max-width:280px;}
+div#editTools,div#editButton,div#editHistory {
+    float:right;
+    padding: 3px 1px 0px 20px;
+    width:auto;
+}
+div#editTools{
+    white-space:nowrap;
+    max-width:280px;
+}
 body#edit div#editTools{padding:20px;max-width:300px;}
 body#user div#editHistory {display: none;}
 div#editButton button,div#editHistory button,div.revert.notice button {font-size:1.125em;}
@@ -2462,7 +2469,7 @@ div#editInfo {float:right;white-space:nowrap;text-align:right;}
 
 .linkButton {
     border-radius: 5px;
-    background: #eee;
+    background: #fcfcfc;
     padding: 10px;
     color: #333;
 }
@@ -2474,7 +2481,9 @@ a.linkButton {
     border: 1px solid #ccc;
 }
 
-#content .shareLinks {float:left;clear:both;margin-top:10px;}
+#content .shareLinks {
+    margin-top:10px;
+}
 
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
 #content .shareLinks li {list-style-type:none;display: inline;line-height: 24px;}
@@ -2529,7 +2538,7 @@ div.Tools table td.price {padding:3px 0 0 0;text-align:right;}
 div.Tools table.buy-options-table {
     border-spacing: 5px;
     margin-left: 45px;
-    width: 210px;
+    width: 200px;
 }
 div.Tools table.buy-options-table td {
     padding: 5px 0px;
@@ -3153,7 +3162,6 @@ div#contentMsg {
     display: none;
 }
 div#contentHead {
-    float:left;
     width: 918px;
     padding: 20px;
 }
@@ -3598,6 +3606,23 @@ a.cta-btn  {
     border-radius: 3px;
 }
 
+.searchResultItemCTA-lending {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    text-align: center;
+    -webkit-box-align: stretch;
+    -ms-flex-align: stretch;
+    -webkit-box-pack: strech;
+    -ms-flex-pack: stretch;
+    align-items: stretch;
+    justify-content: center;
+}
+
 .searchResultItemCTA-lending .borrow_unavailable {
     border: none;
     color: #fff;
@@ -3799,17 +3824,58 @@ div.list .owner {
 
 /* BOOKS */
 
+.section.book-overview {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 25px;
+}
+
+h1.work-title {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 0px;
+    color: #333;
+    font-size: 1.3em;
+}
+
+h2.work-subtitle {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 5px 0px 5px 0px;
+    color: #666;
+    font-size: 1.1em;
+    font-weight: normal;
+    font-style: italic;
+}
+
+h2.edition-title {
+    margin: 7px 0px 0px 0px;
+    color: #888;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-weight: normal;
+    font-size: 1.1em;
+}
+
+.editionAbout h2.edition-byline {
+    font-size: .9em;
+    font-weight: normal;
+    color: #333;
+    margin: 15px 0px;
+}
+
 div.workDetails {float:left;width:915px;}
 div.editionCover {float:left;width:180px;min-height:10px;padding-right: 1.5em;}
 div.editionAbout {float:left;width:430px;min-height:10px;}
-div.editionAbout p {font-size: .8em; margin: 1.5em 0;}
-div.editionTools {float:left;width:270px;min-height:10px;}
+div.editionAbout p {
+    margin: 1.5em 0;
+    font-size: .9em;
+}
+div.editionTools {float:right;width:270px;min-height:10px;}
+div.editionTools.tools-override {
+    float: left;
+}
 div.navEdition {font-size: .9em; margin-top: 5px; color: #555;}
 span.booktitle {
     color: #333;
-
-
-    font-style: italic;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-weight: bold;
 }
 div.workCover {float:right;width:270px;min-height:10px;}
 div.workAbout {float:left;clear:left;width:610px;padding-right:38px;}
@@ -3947,7 +4013,10 @@ td.toc-title {}
 td.toc-pagenum {
     text-align: right;
 }
-
+img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0px #c3b683;
+}
 #cover {
     border: 2px solid #615132;
     background-color: #fff;
@@ -5066,7 +5135,9 @@ div.floaterAdd form.floatform textarea {
     padding: 3px;
 }
 /* COLORBOX POP-UP */
-
+a.coverLook {
+    display: block;
+}
 #colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:999999;}
 #cboxOverlay{position:fixed; width:100%; height:100%;background:#3a301e;opacity:0.5;filter:Alpha(Opacity=50);}
 #cboxMiddleLeft, #cboxBottomLeft{clear:left;}
@@ -5547,7 +5618,6 @@ div.mergeThis {
 
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
-body#plain,body#plain div#content {background-color: #e2dcc5;}
 body#plain #contentBody, body#plain #contentHead {width:690px;padding:0 134px;margin:0;}
 body#plain div.contentOnethird {width: 210px;}
 body#plain div.contentSpacer {width:30px;height:15px;}
@@ -5927,6 +5997,9 @@ span.actions a span.checked-out {
     background: #036DAA;
     padding: 15px;
     font-size: .8em;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border-bottom: 1px solid #e2dcc5;
 }
 .page-banner a {
     color: white;
@@ -6961,10 +7034,6 @@ div.tools-override div.dropper {
     margin-bottom: 5px;
 }
 
-.Tools div.btn-notice a {
-    text-decoration: none;
-}
-
 .Tools div.btn-notice p {
     font-size: 1em;
 }
@@ -7042,8 +7111,9 @@ p.print-disabled-download {
     padding: 5px;
 }
 
-.print-disabled-download a {
+.Tools .print-disabled-download a {
     font-size: .8em;
+    text-decoration: underline;
 }
 
 .daisy-lock {
@@ -7086,6 +7156,7 @@ p.print-disabled-download {
 .related-books {
     border-top: 1px solid #eee;
     margin-top: 15px;
+    clear: both;
 }
 
 .related-books h2 {

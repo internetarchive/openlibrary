@@ -1,0 +1,44 @@
+$def with (book)
+
+$ status = book.waitlist_record.get('status', '')
+
+<p>
+  $ ndays = book.waitlist_record.get_waiting_in_days()
+  $ungettext("Waiting for %d day", "Waiting for %d days", ndays, ndays)
+</p>
+
+<div>
+$if status == "waiting":
+  $ wsize = book.waitlist_record.get_waitinglist_size()
+  $ pos = book.waitlist_record.get_position()
+  $if pos == 1:
+    You are the next person to receive this book.
+  $else:
+    $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)s people ahead of you in the waiting list.", pos-1, count=pos-1)
+</div>
+
+<div class="status">
+  <span class="status-value">$book.waitinglist_record['status'].title()</span><br/>
+  $if status == "available":
+    $ delta_hours = book.waitinglist_record.get_expiry_in_hours()
+    <div class="smaller" style="padding-top: 5px;">
+      $if delta_hours == 0:
+        You have less than an hour to borrow it.
+      $elif delta_hours == 1:
+        You have one more hour to borrow it.
+      $else:
+        You have $delta_hours more hours to borrow it.
+    </div>
+</div>
+
+<div class="actions">
+  $if status == "available":
+    <form action="$book.url('/borrow')" method="post">
+      <input type="hidden" name="action" value="borrow" />
+      <input type="submit" value="Borrow Now" />
+    </form>
+  <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
+    <input type="hidden" name="action" value="leave-waitinglist"/>
+    <a href="javascript:;" class="leave">Leave the waiting list?</a>
+  </form>
+</div>

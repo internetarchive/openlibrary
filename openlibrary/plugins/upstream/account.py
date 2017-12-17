@@ -698,14 +698,14 @@ class AccountBooks(object):
         from each waitlist record (e.g. position in line) into the
         corresponding edition
         """
-        waitlist_summary = self.user.get_waitinglist()
-        tmp_lookup = dict([(w['identifier'], w) for w in waitlist_summary])
-        ocaids = [i['identifier'] for i in waitlist_summary]
+        waitlists = self.user.get_waitinglist()
+        keyed_waitlists = dict([(w['identifier'], w) for w in waitlists])
+        ocaids = [i['identifier'] for i in waitlists]
         edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
         editions = web.ctx.site.get_many(edition_keys)
         for i in xrange(len(editions)):
             # insert the waitlist_entry corresponding to this edition
-            editions[i].waitlist_entry = tmp_lookup[editions[i].ocaid]
+            editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
 
     def get_want_to_read(self, page=1, limit=100):
@@ -742,22 +742,7 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/my-books/loans')
-
-class account_books(delegate.page):
-    path = "/account/my-books"
-    encoding = "json"
-
-    @require_login
-    def GET(self):
-        # XXX should be cached for 2 minutes
-        user = accounts.get_current_user()
-        waitlists = user.get_waitinglist()
-        return delegate.RawText(simplejson.dumps({
-            'waitlists': waitlists,
-            'loans': borrow.get_loans(user)
-        }), content_type="application/json")
-
+        raise web.seeother('/account/my-books/want-to-read')
 
 class account_my_books(delegate.page):
     path = "/account/my-books/([a-zA-Z_-]+)"
@@ -765,19 +750,23 @@ class account_my_books(delegate.page):
     @require_login
     def GET(self, key='loans'):
         ab = AccountBooks()
-        # we also need a json endpoint for fetching next pages of
-        # values (in /plugins/openlibrary/api.py)
         works = ab.get_works(key)
         return render['account/books'](
-            works, key, loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
+            works, key,
+            #loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
             reading_log=ab.reading_log_counts, lists=ab.lists)
+
+
 
 class account_loans(delegate.page):
     path = "/account/loans"
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/my-books/loans')
+        user = accounts.get_current_user()
+        user.update_loan_status()
+        loans = borrow.get_loans(user)
+        return render['account/borrow'](user, loans)
 
 class account_others(delegate.page):
     path = "(/account/.*)"
