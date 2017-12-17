@@ -608,22 +608,21 @@ def get_loan_key(resource_id):
 def get_loan_status(resource_id):
     """Should only be used for ACS4 loans.  Get the status of the loan from the ACS4 server,
        via the Book Status Server (BSS)
+
+    Typical BSS response for ACS4 looks like this:
+        [
+        {
+            "loanuntil": "2010-06-25T00:52:04",
+            "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254",
+            "returned": "F",
+            "until": "2010-06-25T00:52:04"
+        }
+    ]
     """
     global loanstatus_url
 
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
-
-    # BSS response looks like this:
-    #
-    # [
-    #     {
-    #         "loanuntil": "2010-06-25T00:52:04",
-    #         "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254",
-    #         "returned": "F",
-    #         "until": "2010-06-25T00:52:04"
-    #     }
-    # ]
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
@@ -783,13 +782,11 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-
-
-
 def user_can_borrow_edition(user, edition, resource_type):
-    """Returns True if the user can borrow this edition given their
-    current loans.  Returns False if the user holds a current loan
-    for the edition.
+    """Returns True if the book is eligible for lending and available, and
+    if the user is pemitted to borrow this edition given their current
+    number of loans and their position on the waiting list (if
+    applicable)
     """
     if not edition.in_borrowable_collection():
         return False
@@ -808,14 +805,12 @@ def user_can_borrow_edition(user, edition, resource_type):
     return availability_status == 'borrow_available'
 
 def is_users_turn_to_borrow(user, edition):
-    """
-    There some people are already waiting for the book,
-    it can't be borrowed unless the user is the first in the waiting list.
+    """If this user is waiting on this edition, it can only borrowed if
+    user is the user is the first in the waiting list.
     """
     waiting_loan = user.get_waiting_loan_for(edition)
     return (waiting_loan and waiting_loan['status'] == 'available'
             and waiting_loan['position'] == 1)
-
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
@@ -824,7 +819,7 @@ def is_admin():
 
 def return_resource(resource_id):
     """Return the book to circulation!  This object is invalid and should not be used after
-       this is called.  Currently only possible for bookreader loans."""
+    this is called.  Currently only possible for bookreader loans."""
     loan_key = get_loan_key(resource_id)
     if not loan_key:
         raise Exception('Asked to return %s but no loan recorded' % resource_id)
