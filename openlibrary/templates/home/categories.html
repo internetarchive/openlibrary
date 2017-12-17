@@ -20,7 +20,8 @@ $if subjects:
                      alt="browse $(presentable_subject_name) books"/>
               </div>
               <p class="category-title">$presentable_subject_name</p>
-              <p class="category-count" name="">$commify(subject.get('work_count', '')) Books</p>
+              $if subject:
+                <p class="category-count" name="">$commify(subject.get('work_count', '')) Books</p>
             </a>
           </div>
       </div>
