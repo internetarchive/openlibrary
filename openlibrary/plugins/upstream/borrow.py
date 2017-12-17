@@ -150,10 +150,13 @@ class borrow(delegate.page):
                 raise web.seeother(error_redirect)
 
             user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
-            print('#' * 100)
-            print(user_meets_borrow_criteria)
 
             if user_meets_borrow_criteria:
+                # This must be called before the loan is initiated,
+                # otherwise the user's waitlist status will be cleared
+                # upon loan creation
+                track_loan = False if is_users_turn_to_borrow(user, edition) else True
+
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
                     resource_type=resource_type,
@@ -163,8 +166,22 @@ class borrow(delegate.page):
                 if loan:
                     loan_link = loan['loan_link']
                     if resource_type == 'bookreader':
-                        stats.increment('ol.loans.bookreader')
-                        raise web.seeother(make_bookreader_auth_link(loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                        if track_loan:
+                            # As of 2017-12-14, Petabox will be
+                            # responsible for tracking borrows which
+                            # are the result of waitlist redemptions,
+                            # so we don't want to track them here to
+                            # avoid double accounting. When a reader
+                            # is at the head of a waitlist and goes to
+                            # claim their loan, Petabox now checks
+                            # whether the waitlist was initiated from
+                            # OL, and if it was, petabox tracks
+                            # ol.loans.bookreader accordingly via
+                            # lending.create_loan.
+                            stats.increment('ol.loans.bookreader')
+
+                        raise web.seeother(make_bookreader_auth_link(
+                            loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
                         raise web.seeother(loan_link)
@@ -449,7 +466,6 @@ class borrow_receive_notification(delegate.page):
             # XXX verify signature?  Should be acs4 function...
             notify_obj = acs4.el_to_o(notify_xml)
 
-            # print simplejson.dumps(notify_obj, sort_keys=True, indent=4)
             output = simplejson.dumps({'success':True})
         except Exception, e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
@@ -592,22 +608,21 @@ def get_loan_key(resource_id):
 def get_loan_status(resource_id):
     """Should only be used for ACS4 loans.  Get the status of the loan from the ACS4 server,
        via the Book Status Server (BSS)
+
+    Typical BSS response for ACS4 looks like this:
+        [
+        {
+            "loanuntil": "2010-06-25T00:52:04",
+            "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254",
+            "returned": "F",
+            "until": "2010-06-25T00:52:04"
+        }
+    ]
     """
     global loanstatus_url
 
     if not loanstatus_url:
         raise Exception('No loanstatus_url -- cannot check loan status')
-
-    # BSS response looks like this:
-    #
-    # [
-    #     {
-    #         "loanuntil": "2010-06-25T00:52:04",
-    #         "resourceid": "a8b600e2-32fd-4aeb-a2b5-641103583254",
-    #         "returned": "F",
-    #         "until": "2010-06-25T00:52:04"
-    #     }
-    # ]
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
@@ -768,9 +783,10 @@ def resource_uses_bss(resource_id):
     return False
 
 def user_can_borrow_edition(user, edition, resource_type):
-    """Returns True if the user can borrow this edition given their
-    current loans.  Returns False if the user holds a current loan
-    for the edition.
+    """Returns True if the book is eligible for lending and available, and
+    if the user is pemitted to borrow this edition given their current
+    number of loans and their position on the waiting list (if
+    applicable)
     """
     if not edition.in_borrowable_collection():
         return False
@@ -783,15 +799,18 @@ def user_can_borrow_edition(user, edition, resource_type):
     waitlist_size = realtime_availability['num_waitlist']
 
     if waitlist_size:
-        # There some people are already waiting for the book,
-        # it can't be borrowed unless the user is the first in the waiting list.
-        waiting_loan = user.get_waiting_loan_for(edition)
-        my_turn_to_borrow = (waiting_loan and waiting_loan['status'] == 'available'
-                             and waiting_loan['position'] == 1)
-        return my_turn_to_borrow
+        return is_users_turn_to_borrow(user, edition)
 
     #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
     return availability_status == 'borrow_available'
+
+def is_users_turn_to_borrow(user, edition):
+    """If this user is waiting on this edition, it can only borrowed if
+    user is the user is the first in the waiting list.
+    """
+    waiting_loan = user.get_waiting_loan_for(edition)
+    return (waiting_loan and waiting_loan['status'] == 'available'
+            and waiting_loan['position'] == 1)
 
 def is_admin():
     """"Returns True if the current user is in admin usergroup."""
@@ -800,7 +819,7 @@ def is_admin():
 
 def return_resource(resource_id):
     """Return the book to circulation!  This object is invalid and should not be used after
-       this is called.  Currently only possible for bookreader loans."""
+    this is called.  Currently only possible for bookreader loans."""
     loan_key = get_loan_key(resource_id)
     if not loan_key:
         raise Exception('Asked to return %s but no loan recorded' % resource_id)
