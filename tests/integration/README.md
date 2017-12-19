@@ -13,9 +13,16 @@ Tested on Python 2.7.6, 2.7.12, 3.5.4
 
 Google Chrome needs to be installed.
 
-$ brew install chromedriver (on Mac)
+````
+$ port install chromedriver (MacPorts)
+ or
+$ brew install chromedriver (Homebrew)
+
+$ source activate openlibrary
 $ pip install splinter
 $ pip install pytest
+$ pip install pyyaml
+````
 
 ## Running tests
 
@@ -24,5 +31,7 @@ Verify correct Open Library host in test files.
 
 For now, need to manually add an Edition to a new List just once.
 
+````
 $ cd tests/integration
 $ pytest
+````
