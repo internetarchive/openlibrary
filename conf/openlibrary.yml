@@ -97,8 +97,10 @@ features:
     cache_most_recent: enabled
     recentchanges_v2: enabled
     history_v2: admin
-    merge-authors: enabled
-    merge-editions: enabled
+    merge-authors:
+        filter: usergroup
+        usergroup: /usergroup/librarians
+    merge-editions: admin
     undo: enabled
     dev: enabled
     lists: enabled
