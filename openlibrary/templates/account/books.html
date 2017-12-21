@@ -7,15 +7,6 @@ $ title = key.title().replace('-', ' ')
     <h1>$title</h1>
     <div class="mybooks">
       <div class="mybooks-menu">
-        <!--
-        <ul class="loans-lists">
-          <li class="subsection">Loans</li>
-          <li><a href="/account/my-books/loans" $('class="selected"' if key == 'loans' else '') href="">My Loans ($(len(loans or []))/5)</a></li>
-          <li><a href="/account/my-books/waitlists" $('class="selected"' if key == 'waitlists' else '')>Waitlists ($(len(waitlists or [])))</a></li>
-          $if loan_history:
-            <li><a href="/account/my-books/loan-history" $('class="selected"' if key == 'loan-history' else '')>Loan History (46)</a></li>
-        </ul>
-        -->
         <ul class="preset-lists">
           <li class="subsection">Reading Log</li>
           <li><a href="/account/my-books/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>

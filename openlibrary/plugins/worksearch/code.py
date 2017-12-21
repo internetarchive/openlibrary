@@ -779,7 +779,7 @@ class search_json(delegate.page):
                                                 offset=offset,
                                                 fields="*")
 
-            response = json.loads(reply)['response']
+            response = json.loads(reply)['response'] or ''
         except (ValueError, IOError), e:
             logger.error("Error in processing search API.")
             response = dict(start=0, numFound=0, docs=[], error=str(e))

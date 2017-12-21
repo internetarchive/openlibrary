@@ -92,7 +92,7 @@ $jsdef show_list(list):
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
     <div class="dropit">
       <div class="icon list hidetool"></div>
-        <div class="dropper on">
+        <div class="dropper on $('edition-page-lists-dropdown' if (edition and not work_key) else '')">
           $if work_key:
             <div class="work-likes">
               <form method="POST" action="$(work_key)/bookshelves.json">
@@ -123,11 +123,11 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   <input type="hidden" name="edition_id" value="$(edition_key)"/>
               </form>
               $if users_work_read_status:
-                <a href="javascript:;" class="dropclick dropclick-activated  plain">
+                <a href="javascript:;" class="dropclick dropclick-activated">
                   <div class="arrow arrow-activated"></div>
                 </a>
               $else:
-                <a href="javascript:;" class="dropclick dropclick-unactivated  plain">
+                <a href="javascript:;" class="dropclick dropclick-unactivated">
                   <div class="arrow arrow-unactivated"></div>
                 </a>
             </div>
@@ -180,9 +180,9 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
           $else:
               $if username:
                 <div class="reading-lists">
-                  <a href="javascript:;" class="dropclick plain">
+                  <a href="javascript:;" class="dropclick">
                     <h3>Add to List</h3>
-                    <div class="arrow"></div>
+                    <div class="arrow arrow-activated"></div>
                   </a>
                   <div class="dropdown">
                      <div class="my-lists">
@@ -250,7 +250,7 @@ $if include_widget:
 
                   <button class="unactivated" type="submit">Want to Read</button>
                 </form>
-                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated plain">
+                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
                   <div class="arrow arrow-unactivated"></div>
                 </a>
             </div>

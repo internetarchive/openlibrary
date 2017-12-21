@@ -770,7 +770,7 @@ $().ready(function(){
     var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
     var buildReadingLogCombo = function(status_id) {
         var template = function(shelf_id, checked, remove) {
-            return '<option value="' + status_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: status_id] + '</option>';
+            return '<option value="' + shelf_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: shelf_id] + '</option>';
         }
         return (status_id == 3)? (template(3, true) + template(1) + template(2) + template(3, false, true)) :
             (status_id == 2)? (template(2, true) + template(1) + template(3) + template(2, false, true)) :
@@ -790,12 +790,11 @@ $().ready(function(){
                 bookshelf_id: $(self).val()
             },
             'datatype': 'json',
-            success: function(data) {
+            success: function(data) {                
                 if (remove) {
                     $(self).closest('.searchResultItem').remove();
                 } else {
-                    $(self).empty();
-                    $(self).html(buildReadingLogCombo(option));
+                    location.reload();
                 }
             }
         });

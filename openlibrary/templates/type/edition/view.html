@@ -170,7 +170,7 @@ $elif ebook_status == "borrow-user-checkedout":
     $:macros.databarView(page)
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work else 1
-        <a href="$work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(book_title, 60)</span> found in the catalog.
+        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(book_title, 60)</span> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $page.title">$_("Add another edition")</a>?</span>
         <br />

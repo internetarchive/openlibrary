@@ -2581,7 +2581,7 @@ div.dropper.on div.arrow-activated {
 }
 
 div.dropper.on div.arrow.up {
-    background-position:-22px 0!important;
+    background-position:-22px 0;
 }
 div.Tools div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div.Tools div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;margin-top:0;color:#666;}
@@ -6998,6 +6998,32 @@ div.tools-override .Tools .btn-notice{
     width: 209px;
 }
 
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown {
+    margin: 0px;
+    left: 0px;
+    width: 157px;
+    top: 0px;
+    padding: 0px 10px;
+}
+
+.Tools #widget-add.old-style-lists .dropclick {
+    text-decoration: none;
+}
+
+.Tools #widget-add.old-style-lists .dropclick h3 {
+    font-size: .75em;
+    text-align: center;
+    padding: 8px 10px;
+}
+
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow-unactivated {
+    background-position: 6px -7px;
+}
+
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow.up {
+    background-position: -22px -7px;
+}
+
 #widget-add.old-style-lists div.dropper {
     margin: 0px;
     top: 0px;
@@ -7232,6 +7258,10 @@ ul#myreads-paginator li.selected:hover {
     list-style: none;
 }
 
+#mybooks .mybooks-menu ul li a.selected {
+    background-color: #d8e2ed;
+}
+
 .mybooks {
     border-top: 1px solid #eee;
     display: -webkit-box;
@@ -7275,13 +7305,9 @@ ul#myreads-paginator li.selected:hover {
     padding: 5px;
 }
 
-.mybooks-menu ul.preset-lists li a:hover, .mybooks-menu ul.loans-lists li a:hover {
-    background-color: #e5f1ff;
-}
-
 .mybooks-menu ul.preset-lists li a:selected, .mybooks-menu ul.loans-lists li a:selected {
     background-color: #e5f1ff;
-    border-radius: 5px;
+    border-radius: 3px;
 }
 
 .mybooks-menu ul li.subsection {
