@@ -1,6 +1,6 @@
 $def with (page)
 
-$if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+$if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
     <script type="text/javascript">
     // <!--
     \$().ready(function() {
@@ -95,7 +95,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 <div id="contentBody">
 
-    $if "merge-authors" in ctx.features and query_param('merge', 'false') == 'true':
+    $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
        <div class="message hidden">
             <div id="preMerge" class="hidden">
                 <p class="larger collapse"><strong>Merging Authors...</strong></p>
