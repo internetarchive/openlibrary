@@ -207,7 +207,7 @@ class merge_authors(delegate.page):
 
     def is_enabled(self):
         user = web.ctx.site.get_user()
-        return "merge-authors" in web.ctx.features or user and user.is_admin()
+        return "merge-authors" in web.ctx.features or (user and user.is_admin())
 
     def filter_authors(self, keys):
         docs = web.ctx.site.get_many(["/authors/" + k for k in keys])
@@ -255,7 +255,8 @@ class merge_authors_json(delegate.page):
     encoding = "json"
 
     def is_enabled(self):
-        return "merge-authors" in web.ctx.features
+        user = web.ctx.site.get_user()
+        return "merge-authors" in web.ctx.features or (user and user.is_admin())
 
     def POST(self):
         json = web.data()
