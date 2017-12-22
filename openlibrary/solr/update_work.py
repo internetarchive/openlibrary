@@ -44,6 +44,11 @@ def urlopen(url, data=None):
     return urllib2.urlopen(req)
 
 def get_solr():
+    """
+    Get Solr host
+
+    :rtype: str
+    """
     global solr_host
 
     if not config.runtime_config:
@@ -56,12 +61,25 @@ def get_solr():
     return solr_host
 
 def get_ia_collection_and_box_id(ia):
-    """Returns a collection and box_id as a dictiodictionary with boxid and collection
+    """
+    Get the collections and boxids of the provided IA id
+
+    TODO Make the return type of this a namedtuple so that it's easier to reference
+    :param str ia: Internet Archive ID
+    :return: A dict of the form `{ boxid: set[str], collection: set[str] }`
+    :rtype: dict[str, set]
     """
     if len(ia) == 1:
         return
 
     def get_list(d, key):
+        """
+        Return d[key] as some form of list, regardless of if it is or isn't.
+
+        :param dict or None d:
+        :param str key:
+        :rtype: list
+        """
         if not d:
             return []
         value = d.get(key, [])
@@ -90,6 +108,18 @@ def strip_bad_char(s):
     return re_bad_char.sub('', s)
 
 def add_field(doc, name, value):
+    """
+    Add an XML element to the provided doc of the form `<field name="$name">$value</field>`.
+
+    Example:
+
+    >>> tostring(add_field(Element("doc"), "foo", "bar"))
+    "<doc><field name="foo">bar</field></doc>"
+
+    :param lxml.etree.ElementBase doc: Parent document to append to.
+    :param str name:
+    :param value:
+    """
     field = Element("field", name=name)
     try:
         field.text = normalize('NFC', unicode(strip_bad_char(value)))
@@ -99,19 +129,51 @@ def add_field(doc, name, value):
     doc.append(field)
 
 def add_field_list(doc, name, field_list):
+    """
+    Add multiple XML elements to the provided element of the form `<field name="$name">$value[i]</field>`.
+
+    Example:
+
+    >>> tostring(add_field_list(Element("doc"), "foo", [1,2]))
+    "<doc><field name="foo">1</field><field name="foo">2</field></doc>"
+
+    :param lxml.etree.ElementBase doc: Parent document to append to.
+    :param str name:
+    :param list field_list:
+    """
     for value in field_list:
         add_field(doc, name, value)
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 
 def str_to_key(s):
+    """
+    Convert a string to a valid Solr field name.
+
+    :param str s:
+    :rtype: str
+    """
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 re_not_az = re.compile('[^a-zA-Z]')
 def is_sine_nomine(pub):
+    """
+    Check if the publisher is 'sn' (excluding non-letter characters).
+
+    :param str pub:
+    :rtype: bool
+    """
     return re_not_az.sub('', pub).lower() == 'sn'
 
 def pick_cover(w, editions):
+    """
+    Get edition that's used as the cover of the work. Otherwise get the first English edition, or otherwise any edition.
+
+    :param dict w:
+    :param list[dict] editions:
+    :return: Edition key (ex: "/books/OL1M")
+    :rtype: str or None
+    """
     w_cover = w['covers'][0] if w.get('covers', []) else None
     first_with_cover = None
     for e in editions:
@@ -127,6 +189,14 @@ def pick_cover(w, editions):
     return first_with_cover
 
 def get_work_subjects(w):
+    """
+    Get's the subjects of the work grouped by type and then by count.
+
+    :param dict w: Work
+    :rtype: dict[str, dict[str, int]]
+    :return: Subjects grouped by type, then by subject and count. Example:
+    `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
+    """
     assert w['type']['key'] == '/type/work'
 
     subjects = {}
@@ -143,6 +213,7 @@ def get_work_subjects(w):
         cur = subjects.setdefault(solr_field, {})
         for v in w[db_field]:
             try:
+                # TODO Is this still a valid case? Can the subject of a work be an object?
                 if isinstance(v, dict):
                     if 'value' not in v:
                         continue
@@ -155,6 +226,14 @@ def get_work_subjects(w):
     return subjects
 
 def four_types(i):
+    """
+    Moves any subjects not of type subject, time, place, or person into type subject.
+    TODO Remove; this is only used after get_work_subjects, which already returns dict with valid keys.
+
+    :param dict[str, dict[str, int]] i: Counts of subjects of the form `{ <subject_type>: { <subject>: <count> }}`
+    :return: dict of the same form as the input, but subject_type can only be one of subject, time, place, or person.
+    :rtype: dict[str, dict[str, int]]
+    """
     want = {'subject', 'time', 'place', 'person'}
     ret = dict((k, i[k]) for k in want if k in i)
     for j in (j for j in i.keys() if j not in want):
@@ -166,6 +245,13 @@ def four_types(i):
     return ret
 
 def datetimestr_to_int(datestr):
+    """
+    Convert an OL datetime to a timestamp integer.
+
+    :param str or dict datestr: Either a string like `"2017-09-02T21:26:46.300245"` or a dict like
+        `{"value": "2017-09-02T21:26:46.300245"}`
+    :rtype: int
+    """
     if isinstance(datestr, dict):
         datestr = datestr['value']
 
@@ -186,10 +272,23 @@ class SolrProcessor:
         self.resolve_redirects = resolve_redirects
 
     def process_editions(self, w, editions, ia_metadata, identifiers):
+        """
+        Add extra fields to the editions dicts (ex: pub_year, public_scan, ia_collection, etc.).
+        Also gets all the identifiers from the editions and puts them in identifiers.
+
+        :param dict w: Work dict
+        :param list[dict] editions: Editions of work
+        :param ia_metadata: boxid/collection of each associated IA id
+            (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
+        :param defaultdict[str, list] identifiers: Where to store the identifiers from each edition
+        :return: edition dicts with extra fields
+        :rtype: list[dict]
+        """
         for e in editions:
             pub_year = self.get_pub_year(e)
             if pub_year:
                 e['pub_year'] = pub_year
+
             ia = None
             if 'ocaid' in e:
                 ia = e['ocaid']
@@ -217,6 +316,7 @@ class SolrProcessor:
                         e['ia_box_id'].append(box_id)
                 e['ia_collection'] = collection
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
+
             if 'identifiers' in e:
                 for k, id_list in e['identifiers'].iteritems():
                     k_orig = k
@@ -232,10 +332,16 @@ class SolrProcessor:
         return sorted(editions, key=lambda e: e.get('pub_year', None))
 
     def get_author(self, a):
-        """Returns the author dict from author entry in the work.
-
-            get_author({"author": {"key": "/authors/OL1A"}})
         """
+        Get author dict from author entry in the work.
+
+        get_author({"author": {"key": "/authors/OL1A"}})
+
+        :param dict a: An element of work['authors']
+        :return: Full author document
+        :rtype: dict or None
+        """
+        # TODO is this still an active problem?
         if 'author' not in a: # OL Web UI bug
             return # http://openlibrary.org/works/OL15365167W.yml?m=edit&v=1
 
@@ -254,6 +360,12 @@ class SolrProcessor:
         return data_provider.get_document(key)
 
     def extract_authors(self, w):
+        """
+        Get the full author objects of the given work
+
+        :param dict w:
+        :rtype: list[dict]
+        """
         authors = [self.get_author(a) for a in w.get("authors", [])]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
@@ -264,9 +376,9 @@ class SolrProcessor:
                     return a
                 authors = [resolve(a) for a in authors]
             else:
-                # we dont want to raise and exception but just write a warning on the log
+                # we don't want to raise an exception but just write a warning on the log
                 # raise AuthorRedirect
-                logger.warning('author redirect arror: %s', w['key'])
+                logger.warning('author redirect error: %s', w['key'])
 
         ## Consider only the valid authors instead of raising an error.
         #assert all(a['type']['key'] == '/type/author' for a in authors)
@@ -275,6 +387,13 @@ class SolrProcessor:
         return authors
 
     def get_pub_year(self, e):
+        """
+        Get the year the given edition was published.
+
+        :param dict e: Full edition dict
+        :return: Year edition was published
+        :rtype: str or None
+        """
         pub_date = e.get('publish_date', None)
         if pub_date:
             m = re_iso_date.match(pub_date)
@@ -285,12 +404,24 @@ class SolrProcessor:
                 return m.group(1)
 
     def get_subject_counts(self, w, editions, has_fulltext):
+        """
+        Get the counts of the work's subjects grouped by subject type.
+        Also includes subjects like "Accessible book" or "Protected DAISY" based on editions.
+
+        :param dict w: Work
+        :param list[dict] editions: Editions of Work
+        :param bool has_fulltext: Whether this work has a copy on IA
+        :rtype: dict[str, dict[str, int]]
+        :return: Subjects grouped by type, then by subject and count. Example:
+        `{ subject: { "some subject": 1 }, person: { "some person": 1 } }`
+        """
         try:
             subjects = four_types(get_work_subjects(w))
         except:
             logger.error('bad work: %s', w['key'])
             raise
 
+        # FIXME THIS IS ALL DONE IN get_work_subjects! REMOVE
         field_map = {
             'subjects': 'subject',
             'subject_places': 'place',
@@ -312,7 +443,9 @@ class SolrProcessor:
                 except:
                     logger.error("bad subject: %r", v)
                     raise
+        # FIXME END_REMOVE
 
+        # TODO This literally *exactly* how has_fulltext is calculated
         if any(e.get('ocaid', None) for e in editions):
             subjects.setdefault('subject', {})
             subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
@@ -321,6 +454,15 @@ class SolrProcessor:
         return subjects
 
     def build_data(self, w, editions, subjects, has_fulltext):
+        """
+        Get the Solr document to insert for the provided work.
+
+        :param dict w: Work
+        :param list[dict] editions: Editions of work
+        :param dict[str, dict[str, int]] subjects: subject counts grouped by subject_type
+        :param bool has_fulltext:
+        :rtype: dict
+        """
         d = {}
         def add(name, value):
             if value is not None:
@@ -381,6 +523,13 @@ class SolrProcessor:
 
 
     def get_alternate_titles(self, w, editions):
+        """
+        Get titles from the editions as alternative titles.
+
+        :param dict w:
+        :param list[dict] editions:
+        :rtype: set[str]
+        """
         result = set()
         for e in editions:
             result.add(e.get('title'))
@@ -394,10 +543,24 @@ class SolrProcessor:
         return result
 
     def get_alternate_subtitles(self, w, editions):
+        """
+        Get subtitles from the editions as alternative titles.
+
+        :param dict w:
+        :param list[dict] editions:
+        :rtype: set[str]
+        """
         subtitle = w.get('subtitle')
         return set(e['subtitle'] for e in editions if e.get('subtitle') and e['subtitle'] != subtitle)
 
     def get_isbns(self, editions):
+        """
+        Get all ISBNs of the given editions. Calculates complementary ISBN13 for each ISBN10 and vice-versa.
+        Does not remove '-'s.
+
+        :param list[dict] editions: editions
+        :rtype: set[str]
+        """
         isbns = set()
 
         isbns.update(v.replace("_", "").strip() for e in editions for v in e.get("isbn_10", []))
@@ -410,9 +573,22 @@ class SolrProcessor:
         return isbns
 
     def get_last_modified(self, work, editions):
+        """
+        Get timestamp of latest last_modified date between the provided documents.
+
+        :param dict work:
+        :param list[dict] editions:
+        :rtype: int
+        """
         return max(datetimestr_to_int(doc.get('last_modified')) for doc in [work] + editions)
 
     def add_ebook_info(self, doc, editions):
+        """
+        Add ebook information from the editions to the work Solr document.
+
+        :param dict doc: Solr document for the work these editions belong to.
+        :param list[dict] editions: Editions with extra data from process_editions
+        """
         def add(name, value):
             if value is not None:
                 doc[name] = value
@@ -479,6 +655,12 @@ class SolrProcessor:
 re_solr_field = re.compile('^[-\w]+$', re.U)
 
 def dict2element(d):
+    """
+    Convert the dict to insert into Solr into Solr XML <doc>.
+
+    :param dict d:
+    :rtype: lxml.etree.ElementBase
+    """
     doc = Element("doc")
     for k, v in d.items():
         if isinstance(v, (list, set)):
@@ -488,8 +670,15 @@ def dict2element(d):
     return doc
 
 def build_data(w, resolve_redirects=False):
+    """
+    Construct the Solr document to insert into Solr for the given work
+
+    :param dict w: Work to insert/update
+    :param bool resolve_redirects: FIXME unused
+    :rtype: dict
+    """
     # Anand - Oct 2013
-    # For /works/ia:xxx, editions are already suplied. Querying will empty response.
+    # For /works/ia:xxx, editions are already supplied. Querying will empty response.
     if "editions" in w:
         editions = w['editions']
     else:
@@ -502,6 +691,17 @@ def build_data(w, resolve_redirects=False):
     return build_data2(w, editions, authors, ia, duplicates)
 
 def build_data2(w, editions, authors, ia, duplicates):
+    """
+    Construct the Solr document to insert into Solr for the given work
+
+    :param dict w: Work to get data for
+    :param list[dict] editions: Editions of work
+    :param list[dict] authors: Authors of work
+    :param dict[str, dict[str, set[str]]] ia: boxid/collection of each associated IA id
+        (ex: `{foobar: {boxid: {"foo"}, collection: {"lendinglibrary"}}}`)
+    :param duplicates: FIXME unused
+    :rtype: dict
+    """
     resolve_redirects = False
 
     assert w['type']['key'] == '/type/work'
@@ -654,9 +854,13 @@ class BaseDocBuilder:
 
     @listify
     def compute_seeds(self, work, editions, authors=None):
-        """Computes seeds from given work, editions and authors.
+        """
+        Compute seeds from given work, editions, and authors.
 
-        If authors is not supplied, it is infered from the work.
+        :param dict work:
+        :param list[dict] editions:
+        :param list[dict] or None authors: If not provided taken from work.
+        :rtype: list[str]
         """
 
         for e in editions:
@@ -755,23 +959,48 @@ class SolrRequestSet:
         pass
 
 class UpdateRequest:
+    """A Solr <add> request."""
+
     def __init__(self, doc):
+        """
+        :param dict doc: Document to be inserted into Solr.
+        """
         self.doc = doc
 
     def toxml(self):
+        """
+        Create the XML <add> element of this request to send to Solr.
+
+        :rtype: str
+        """
         node = dict2element(self.doc)
         root = Element("add")
         root.append(node)
         return tostring(root).encode('utf-8')
 
     def tojson(self):
+        """
+        Get a JSON string for the document to insert into Solr.
+
+        :rtype: str
+        """
         return json.dumps(self.doc)
 
 class DeleteRequest:
+    """A Solr <delete> request."""
+
     def __init__(self, keys):
+        """
+        :param list[str] keys: Keys to mark for deletion (ex: ["/books/OL1M"]).
+        """
         self.keys = keys
 
     def toxml(self):
+        """
+        Create the XML <delete> element of this request to send to Solr.
+
+        :rtype: str or None
+        """
         if self.keys:
             return make_delete_query(self.keys)
 
@@ -873,6 +1102,14 @@ def update_subject(key):
     return request_set.get_requests()
 
 def update_work(w, debug=False, resolve_redirects=False):
+    """
+    Get the Solr requests necessary to insert/update this work into Solr.
+
+    :param dict w: Work to insert/update
+    :param bool debug: FIXME unused
+    :param bool resolve_redirects:
+    :rtype: list[UpdateRequest or DeleteRequest]
+    """
     wkey = w['key']
     #assert wkey.startswith('/works')
     #assert '/' not in wkey[7:]
@@ -933,10 +1170,19 @@ def update_work(w, debug=False, resolve_redirects=False):
     return requests
 
 def make_delete_query(keys):
-    # Escape ":" in the keys.
-    # ":" is a special charater and keys like "ia:foo00bar" will
-    # fail if ":" is not escaped
-    # keys = [key.replace(":", r"\:") for key in keys]
+    """
+    Create a solr <delete> tag with subelements for each key.
+
+    Example:
+
+    >>> make_delete_query(["/books/OL1M"])
+    "<delete><query>key:/books/OL1M</query></delete>"
+
+    :param list[str] keys: Keys to create delete tags for. (ex: ["/books/OL1M"])
+    :return: <delete> XML element as a string
+    :rtype: str
+    """
+    # Escape ":" in keys like "ia:foo00bar"
     keys = [solr_escape(key) for key in keys]
     delete_query = Element('delete')
     for key in keys:
@@ -1044,7 +1290,12 @@ def get_document(key):
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
 
 def solr_select_work(edition_key):
-    """Returns work for given edition key in solr.
+    """
+    Get corresponding work key for given edition key in Solr.
+
+    :param str edition_key: (ex: /books/OL1M)
+    :return: work_key
+    :rtype: str or None
     """
     # solr only uses the last part as edition_key
     edition_key = edition_key.split("/")[-1]
@@ -1061,6 +1312,15 @@ def solr_select_work(edition_key):
         return docs[0]['key'] # /works/ prefix is in solr
 
 def update_keys(keys, commit=True, output_file=None):
+    """
+    Insert/update the documents with the provided keys in Solr.
+
+    :param list[str] keys: Keys to update (ex: ["/books/OL1M"]).
+    :param bool commit: Create <commit> tags to make Solr persist the changes (and make the public/searchable).
+    :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
+        Each line will be JSON object.
+        FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
+    """
     logger.info("BEGIN update_keys")
 
     global data_provider
@@ -1513,6 +1773,12 @@ def clear_monkeypatch_cache(max_size=10000):
         _monkeypatch.clear_cache(max_size=max_size)
 
 def solr_escape(query):
+    """
+    Escape special characters in Solr query.
+
+    :param str query:
+    :rtype: str
+    """
     return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
 
 def load_configs(c_host,c_config,c_data_provider):
