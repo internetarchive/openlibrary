@@ -1032,7 +1032,7 @@ header#header-bar {
     display: flex;
 }
 
-.search-component .search-bar-submit {
+header#header-bar .search-component .search-bar-submit {
     background: url(/static/images/search-lens.png) center no-repeat;
     width: 45px;
     height: 45px;
