@@ -953,7 +953,7 @@ p.info {background-image:url("/images/icons/icon_info.png");}
     display: none;
 }
 
-header {
+header#header-bar {
     max-width: 960px;
     min-width: 300px;
     margin: 0px auto;
@@ -1075,29 +1075,29 @@ header {
          appearance: none;
 }
 
-header .search-component .search-dropdown {
+header#header-bar .search-component .search-dropdown {
     position: relative;
     z-index: 999;
 }
 
-header .search-component .search-dropdown ul.search-results {
+header#header-bar .search-component .search-dropdown ul.search-results {
     background: #fcfcfc;
     border-top-left-radius: .3em;
     border-top-right-radius: .3em;
 }
 
-header .search-component .search-dropdown ul.search-results li {
+header#header-bar .search-component .search-dropdown ul.search-results li {
     text-align: left;
     padding: 7px;
     border-top: 1px solid #ddd;
     font-size: .9rem;
 }
 
-header .search-component .search-dropdown ul.search-results li:hover {
+header#header-bar .search-component .search-dropdown ul.search-results li:hover {
     background-color: #fff;
 }
 
-header .search-component .search-dropdown ul.search-results li a {
+header#header-bar .search-component .search-dropdown ul.search-results li a {
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
@@ -1106,7 +1106,7 @@ header .search-component .search-dropdown ul.search-results li a {
     color: #333;
 }
 
-header .search-component .search-dropdown ul.search-results li a img {
+header#header-bar .search-component .search-dropdown ul.search-results li a img {
     width: 40px;
     min-width: 40px;
     height: 60px;
@@ -1115,20 +1115,20 @@ header .search-component .search-dropdown ul.search-results li a img {
     margin-right: 10px;
 }
 
-header .search-component .search-dropdown ul.search-results li a .book-desc {
+header#header-bar .search-component .search-dropdown ul.search-results li a .book-desc {
     font-weight: 300;
     text-decoration: none;
 }
 
-header .search-component .search-dropdown ul.search-results li a .book-desc .book-title {
+header#header-bar .search-component .search-dropdown ul.search-results li a .book-desc .book-title {
     font-weight: 500;
 }
 
-header .search-component .search-dropdown ul.search-results li a .book-desc .book-author {
+header#header-bar .search-component .search-dropdown ul.search-results li a .book-desc .book-author {
     color: #036;
 }
 
-header .search-component .search-bar-advanced-btn {
+header#header-bar .search-component .search-bar-advanced-btn {
     text-align: center;
 }
 
@@ -1172,32 +1172,32 @@ header .search-component .search-bar-advanced-btn {
     border-radius: 3px;
 }
 
-header .hamburger-component {
+header#header-bar .hamburger-component {
     -webkit-box-ordinal-group: 1;
         -ms-flex-order: 0;
             order: 0;
     margin-right: 5px;
 }
 
-header .hamburger-dropdown-component {
+header#header-bar .hamburger-dropdown-component {
     position: absolute;
     display: none;
     z-index: 999;
 }
 
-header .hamburger-component button {
+header#header-bar .hamburger-component button {
     background: transparent;
     border: none;
     cursor: pointer;
 }
 
-header .hamburger-component img {
+header#header-bar .hamburger-component img {
     width: 44px;
     height: 44px;
     padding: 0px 3px;
 }
 
-header .logo-component {
+header#header-bar .logo-component {
     -webkit-box-flex: 1;
         -ms-flex: 1;
             flex: 1;
@@ -1206,12 +1206,12 @@ header .logo-component {
             order: 1;
 }
 
-header .logo-component a {
+header#header-bar .logo-component a {
     display: inline-block;
     text-align: center;
 }
 
-header .logo-component .logo-icon {
+header#header-bar .logo-component .logo-icon {
     position: relative;
     top: -1px;
     height: 30px;
@@ -1221,7 +1221,7 @@ header .logo-component .logo-icon {
         align-self: center;
 }
 
-header .navigation-component {
+header#header-bar .navigation-component {
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
@@ -1233,13 +1233,13 @@ header .navigation-component {
     order: 5;
 }
 
-header .navigation-component li {
+header#header-bar .navigation-component li {
     -ms-flex-preferred-size: 100%;
     flex-basis: 100%;
     cursor:pointer;
 }
 
-header .search-component {
+header#header-bar .search-component {
     width: 45px;
     -webkit-box-ordinal-group: 3;
         -ms-flex-order: 2;
@@ -1249,7 +1249,7 @@ header .search-component {
     text-align: right;
 }
 
-header .search-component .search-facet {
+header#header-bar .search-component .search-facet {
     display: none;
     position: relative;
     border-bottom-left-radius: 3px;
@@ -1269,13 +1269,13 @@ header .search-component .search-facet {
     padding-right: 10px;
 }
 
-header .search-component .search-facet select {
+header#header-bar .search-component .search-facet select {
     -moz-appearance: none;
          appearance: none;
     -webkit-appearance: none;
 }
 
-header .search-component .search-bar-component {
+header#header-bar .search-component .search-bar-component {
     display: inline-block;
     border: 1px solid #babbad;
     border-radius: .3em;
@@ -1284,17 +1284,17 @@ header .search-component .search-bar-component {
     position: relative;
 }
 
-header .search-component .search-facet-selector {
+header#header-bar .search-component .search-facet-selector {
     display: none;
     width: 100%;
     height: 100%;
     z-index: 2;
     margin-top: 3px;
 }
-header .search-component .search-facet-value {
+header#header-bar .search-component .search-facet-value {
 }
 
-header .search-component .search-facet-value::after {
+header#header-bar .search-component .search-facet-value::after {
     position: relative;
     left: 5px;
     top: 10px;
@@ -1305,7 +1305,7 @@ header .search-component .search-facet-value::after {
     border-right: 4px solid transparent;
     border-top: 4px solid currentColor;
 }
-header .search-component .search-facet select {
+header#header-bar .search-component .search-facet select {
     position: absolute;
     top: 0px;
     left: 0px;
@@ -1316,16 +1316,16 @@ header .search-component .search-facet select {
     cursor:pointer;
 }
 
-header .search-component .search-bar {
+header#header-bar .search-component .search-bar {
     width: 45px;
 }
 
-header .search-component .search-bar-input input[type=text] {
+header#header-bar .search-component .search-bar-input input[type=text] {
     max-width: 100%;
 }
 
 
-header .auth-component {
+header#header-bar .auth-component {
     display: none;
     padding: 5px;
     padding-right: 0px;
@@ -1334,22 +1334,22 @@ header .auth-component {
             order: 4;
 }
 
-header .auth-component .hide-me {
+header#header-bar .auth-component .hide-me {
     display: none;
 }
 
-header .auth-component li {
+header#header-bar .auth-component li {
     text-align: left;
     display: -webkit-inline-box;
     display: -ms-inline-flexbox;
     display: inline-flex;
 }
 
-header .auth-component li a {
+header#header-bar .auth-component li a {
     color: #333;
 }
 
-header .account-component {
+header#header-bar .account-component {
     -webkit-box-flex: 0;
         -ms-flex: none;
             flex: none;
@@ -1361,27 +1361,27 @@ header .account-component {
             order: 3;
 }
 
-header ul.navigation-component li {
+header#header-bar ul.navigation-component li {
     padding: 5px 0px;
     font-size: 1em;
 }
 
-header ul.navigation-component li a {
+header#header-bar ul.navigation-component li a {
     color: #333;
     text-decoration: none;
     display: block;
 }
 
-header ul.navigation-component li a:visited {
+header#header-bar ul.navigation-component li a:visited {
     color: #333;
     text-decoration: none;
 }
 
-header ul.navigation-component li .navigation-dropdown-component {
+header#header-bar ul.navigation-component li .navigation-dropdown-component {
     position: relative;
 }
 
-header .dropdown-menu {
+header#header-bar .dropdown-menu {
     text-align: left;
     background-color: #f3f1e9;
     border: 1px solid #babbad;
@@ -1389,26 +1389,26 @@ header .dropdown-menu {
     cursor: pointer;
 }
 
-header .dropdown-menu li {
+header#header-bar .dropdown-menu li {
     padding: 10px;
     border-bottom: 1px solid #dfe0ca;
     padding-right: 20px;
 }
 
-header .dropdown-menu li:last-child {
+header#header-bar .dropdown-menu li:last-child {
     border: none;
 }
 
-header .dropdown-menu li a {
+header#header-bar .dropdown-menu li a {
     text-decoration: none;
     color: #333;
 }
 
-header .dropdown-menu li:hover {
+header#header-bar .dropdown-menu li:hover {
     background-color: #fff;
 }
 
-header ul.navigation-component li ul.dropdown-menu {
+header#header-bar ul.navigation-component li ul.dropdown-menu {
     position: absolute;
     z-index: 999;
     text-align: left;
@@ -1416,46 +1416,46 @@ header ul.navigation-component li ul.dropdown-menu {
     top: 6px;
 }
 
-header ul.navigation-component li ul.dropdown-menu li {
+header#header-bar ul.navigation-component li ul.dropdown-menu li {
     padding: 10px;
 }
 
-header ul.dropdown-menu li a {
+header#header-bar ul.dropdown-menu li a {
     font-size: .9em;
 }
 
-header ul.navigation-component li ul.dropdown-menu li a {
+header#header-bar ul.navigation-component li ul.dropdown-menu li a {
     color: #444;
 }
 
-header ul.navigation-component .more-menu {
+header#header-bar ul.navigation-component .more-menu {
     display: none;
 }
 
-header ul.navigation-component li ul.browse-menu-options {
+header#header-bar ul.navigation-component li ul.browse-menu-options {
     display: none;
     cursor: pointer;
 }
 
-header ul.navigation-component li ul.my-books-menu-options {
+header#header-bar ul.navigation-component li ul.my-books-menu-options {
     display: none;
 }
 
-header ul.navigation-component li ul.more-menu-options {
+header#header-bar ul.navigation-component li ul.more-menu-options {
     display: none;
 }
 
-header .account-component a {
+header#header-bar .account-component a {
     color: #fff;
     text-decoration: none;
     display: block;
 }
 
-header .account-component .down-arrow {
+header#header-bar .account-component .down-arrow {
     margin-top: 1px;
 }
 
-header .account-component .account-dropdown {
+header#header-bar .account-component .account-dropdown {
     position: absolute;
     z-index: 999;
     text-align: right;
@@ -1464,7 +1464,7 @@ header .account-component .account-dropdown {
     right: 11px;
 }
 
-header .account-component .account-dropdown ul a li{
+header#header-bar .account-component .account-dropdown ul a li{
     width: 150px;
     text-decoration: none;
     text-align: left;
@@ -1525,10 +1525,10 @@ header .account-component .account-dropdown ul a li{
 }
 
 @media only screen and (min-width: 25em) {
-    header .logo-component .logo-icon {
+    header#header-bar .logo-component .logo-icon {
         height: 47px;
     }
-    header .navigation-component .dropdown-menu {
+    header#header-bar .navigation-component .dropdown-menu {
         border-top: none;
         border-top-right-radius: 0px;
         border-top-left-radius: 0px;
@@ -1536,36 +1536,36 @@ header .account-component .account-dropdown ul a li{
 }
 
 @media only screen and (min-width: 30em) {
-    header {
+    header#header-bar {
         margin: 0 auto;
     }
-    header .logo-component {
+    header#header-bar .logo-component {
         -webkit-box-flex: 1;
             -ms-flex: 1;
                 flex: 1;
         border-right: none;
         padding: 0px 5px;
     }
-    header .navigation-component .dropdown-menu {
+    header#header-bar .navigation-component .dropdown-menu {
         border-top: none;
         border-top-right-radius: 0px;
         border-top-left-radius: 0px;
     }
-    header .search-component {
+    header#header-bar .search-component {
         margin-right: 0px;
     }
-    header .account-component {
+    header#header-bar .account-component {
         -webkit-box-flex: 0;
             -ms-flex: none;
                 flex: none;
     }
-    header .auth-component {
+    header#header-bar .auth-component {
         margin-right: 5px;
         display: block;
     }
 }
 
-header .search-component-expand {
+header#header-bar .search-component-expand {
     -webkit-box-flex: 1;
         -ms-flex: 1;
             flex: 1;
@@ -1574,88 +1574,88 @@ header .search-component-expand {
         align-self: center;
     height: 54px;
 }
-header .search-component-expand .search-bar-component {
+header#header-bar .search-component-expand .search-bar-component {
     width: 100%;
 }
-header .search-component-expand .search-bar {
+header#header-bar .search-component-expand .search-bar {
     width: auto;
 }
 
-header .search-component-expand .search-bar-input input[type=text] {
+header#header-bar .search-component-expand .search-bar-input input[type=text] {
     display: block;
     width: 100%;
 }
-header .search-component-expand .search-bar-submit {
+header#header-bar .search-component-expand .search-bar-submit {
     margin-right: 5px;
     cursor: pointer;
 }
 
-header .search-component-expand .search-facet {
+header#header-bar .search-component-expand .search-facet {
     display: block;
 }
 
-header .search-component-expand .search-facet-selector {
+header#header-bar .search-component-expand .search-facet-selector {
     display: block;
 }
-header .search-component-expand .search-bar .search-bar-input {
+header#header-bar .search-component-expand .search-bar .search-bar-input {
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
 }
-header .search-component .expand .search-bar-advanced-btn {
+header#header-bar .search-component .expand .search-bar-advanced-btn {
     display: block;
 }
-header .search-component .expand .search-facet {
+header#header-bar .search-component .expand .search-facet {
     display: block;
 }
-header .expand .search-bar-input input {
+header#header-bar .expand .search-bar-input input {
     width: 100%;
 }
 
 @media only screen and (min-width: 35.5em) {
-    header .logo-component {
+    header#header-bar .logo-component {
         -webkit-box-flex: 0;
             -ms-flex: none;
                 flex: none;
     }
-    header .search-component {
+    header#header-bar .search-component {
         -webkit-box-flex: 1;
             -ms-flex: 1;
                 flex: 1;
     }
-    header .search-component .search-bar-component {
+    header#header-bar .search-component .search-bar-component {
         width: 207px;
     }
-    header .search-component .search-bar {
+    header#header-bar .search-component .search-bar {
         width: auto;
         max-width: 205px;
     }
-    header .search-component .search-bar-input input[type=text] {
+    header#header-bar .search-component .search-bar-input input[type=text] {
         display: block;
     }
-    header .search-component .search-bar-submit {
+    header#header-bar .search-component .search-bar-submit {
         margin-right: 5px;
     }
-    header .search-component .search-facet-selector {
+    header#header-bar .search-component .search-facet-selector {
         display: block;
     }
-    header .search-component .search-bar .search-bar-input {
+    header#header-bar .search-component .search-bar .search-bar-input {
         display: -webkit-box;
         display: -ms-flexbox;
         display: -webkit-flex;
         display: flex;
     }
-    header .search-component .search-bar-advanced-btn {
+    header#header-bar .search-component .search-bar-advanced-btn {
         display: block;
     }
-    header .search-component .search-facet {
+    header#header-bar .search-component .search-facet {
         display: block;
     }
-    header .search-bar-input input {
+    header#header-bar .search-bar-input input {
         width: 100%;
     }
-    header .account-component {
+    header#header-bar .account-component {
         -webkit-box-flex: 0;
             -ms-flex: none;
                 flex: none;
@@ -1663,7 +1663,7 @@ header .expand .search-bar-input input {
             -ms-flex-order: 3;
                 order: 3;
     }
-    header .navigation-component {
+    header#header-bar .navigation-component {
         display: -webkit-box;
         display: -ms-flexbox;
         display: -webkit-flex;
@@ -1672,7 +1672,7 @@ header .expand .search-bar-input input {
             -ms-flex-order: 6;
                 order: 6;
     }
-    header .navigation-component .dropdown-menu {
+    header#header-bar .navigation-component .dropdown-menu {
         border-top: none;
         border-top-right-radius: 0px;
         border-top-left-radius: 0px;
@@ -1683,25 +1683,25 @@ header .expand .search-bar-input input {
     .iaBarMessage {
         display: block;
     }
-    header .auth-component .hide-me {
+    header#header-bar .auth-component .hide-me {
         display: inline;
     }
-    header .search-component .search-bar-component {
+    header#header-bar .search-component .search-bar-component {
         width: 300px;
     }
-    header .search-component .search-justify-right {
+    header#header-bar .search-component .search-justify-right {
         min-width: 210px;
     }
-    header .search-component .search-bar {
+    header#header-bar .search-component .search-bar {
         width: auto;
         max-width: 310px;
     }
-    header .search-component {
+    header#header-bar .search-component {
         -webkit-box-ordinal-group: 4;
             -ms-flex-order: 3;
                 order: 3;
     }
-    header .navigation-component .dropdown-menu {
+    header#header-bar .navigation-component .dropdown-menu {
         border-top: none;
         border-top-right-radius: 0px;
         border-top-left-radius: 0px;
@@ -1716,63 +1716,63 @@ header .expand .search-bar-input input {
     .iaBarLogo {
         margin-left: 0px;
     }
-    header {
+    header#header-bar {
         margin: 20px auto;
         -webkit-box-orient: horizontal;
         -webkit-box-direction: normal;
             -ms-flex-direction: row;
                 flex-direction: row;
     }
-    header .hamburger-component {
+    header#header-bar .hamburger-component {
         display: none;
     }
-    header .logo-component {
+    header#header-bar .logo-component {
         /* border-right: 1px solid #babbad; */
         padding-right: 15px;
     }
-    header .logo-component .logo-icon {
+    header#header-bar .logo-component .logo-icon {
         display: inherit;
     }
-    header .navigation-component {
+    header#header-bar .navigation-component {
         -webkit-box-ordinal-group: 3;
-            -ms-flex-order: 2;
-                order: 2;
+        -ms-flex-order: 2;
+        order: 2;
         min-width: 250px;
         -webkit-box-flex: 1;
-            -ms-flex: 1;
-                flex: 1;
+        -ms-flex: 1;
+        flex: 1;
     }
-    header .navigation-component .dropdown-menu {
+    header#header-bar .navigation-component .dropdown-menu {
         border-radius: 3px;
         border: 1px solid #babbad;
     }
-    header .search-component .search-bar-component {
+    header#header-bar .search-component .search-bar-component {
         width: 100%;
     }
-    header .search-component .search-bar {
+    header#header-bar .search-component .search-bar {
         max-width: 100%;
     }
-    header .account-component {
+    header#header-bar .account-component {
         -webkit-box-flex: 0;
-            -ms-flex: none;
-                flex: none;
+        -ms-flex: none;
+        flex: none;
         -webkit-box-ordinal-group: 5;
-            -ms-flex-order: 4;
-                order: 4;
-         padding-right: 0px;
+        -ms-flex-order: 4;
+        order: 4;
+        padding-right: 0px;
     }
-    header .auth-component {
+    header#header-bar .auth-component {
         -webkit-box-ordinal-group: 7;
-            -ms-flex-order: 6;
-                order: 6;
+        -ms-flex-order: 6;
+        order: 6;
     }
     .desktop-only {
         display: inherit;
     }
-    header ul.navigation-component .more-menu {
+    header#header-bar ul.navigation-component .more-menu {
         display: block;
     }
-    header ul.navigation-component li ul.dropdown-menu {
+    header#header-bar ul.navigation-component li ul.dropdown-menu {
         width: auto;
         white-space: nowrap;
     }
