@@ -17,7 +17,7 @@ $var title: Search Open Library for "$q"
         $if 'error' not in results:
             $ response = results['response']
             $ num_found = int(response['numFound'])
-            $if num_found >= 2 and "merge-authors" in ctx.features and ctx.user:
+            $if num_found >= 2 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
                 $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
                 <div class="mergeThis">
                     <p class="smaller brown sansserif collapse">Is the same author listed twice?</p>

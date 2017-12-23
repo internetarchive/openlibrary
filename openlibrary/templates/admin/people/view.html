@@ -179,6 +179,8 @@ $ has_profile = person.get_user() is not None
             </form>
         </td>
     </tr>
+    $if person.get_user().is_admin():
+        <tr><td>$_("Admin")</td><td>Yes</td></tr>
     <tr>
         <td>$_("Bot")</td>
         <td>
