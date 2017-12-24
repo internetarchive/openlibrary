@@ -2,11 +2,11 @@ $def with (doc, decorations=None, cta=True)
 
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
-
+$ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 <li class="searchResultItem" itemscope itemtype="https://schema.org/Book">
   <span class="bookcover">
-    $if doc.get('cover_i') or doc.get('covers'):
-        $ cover =  get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or doc.covers[0])
+    $if doc.get('cover_i') or cover_ids:
+        $ cover =  get_coverstore_url() + "/b/id/%s-M.jpg" % (doc.cover_i or cover_ids[0])
     $elif doc.get('cover_edition_key'):
         $ cover = get_coverstore_url() + "/b/olid/%s-M.jpg" % doc.cover_edition_key
     $elif doc.get('ocaid'):
