@@ -221,8 +221,6 @@ def get_waitinglist_position(user_key, book_key):
     book = web.ctx.site.get(book_key)
     if book and book.ocaid:
         w = WaitingLoan.find(user_key, book.ocaid)
-        print("!" * 100)
-        print(w)
         if w:
             return w['position']
     return -1

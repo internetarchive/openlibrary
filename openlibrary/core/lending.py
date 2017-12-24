@@ -98,18 +98,6 @@ def setup(config):
     except AttributeError:
         amazon_api = None
 
-def get_users_loan_history(ol_username):
-    account = OpenLibraryAccount.get(key=user_key)
-    url = '%s?action=loans_json&identifier=%s' % (
-        config_ia_users_loan_history, config_ia_users_loan_history)
-    try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        loan_history = simplejson.loads(content).get('loan_history', [])
-        return loan_history
-    except:
-        return []
-
-
 def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
         delegate.fakeload()
