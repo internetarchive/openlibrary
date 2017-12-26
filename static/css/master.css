@@ -5950,7 +5950,7 @@ ul.narrow li span.resultTitle {width:525px;max-width:525px;}
 ul.clean li span.resultTitle {width:236px;max-width:236px;}
 ul#listResults li span.resultTitle p {margin:0;}
 
-body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 35px 100px no-repeat;}
+body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 35px 35px no-repeat;}
 body#user #description h2 {font-size:1.5em;font-family:"Georgia","Times New Roman",serif;font-weight:normal;color:#333;margin:0 0 10px 0;}
 body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists h2 {font-size:1.25em;}
