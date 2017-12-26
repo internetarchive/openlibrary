@@ -1415,11 +1415,12 @@ header#header-bar ul.navigation-component li ul.dropdown-menu {
 }
 
 header#header-bar ul.navigation-component li ul.dropdown-menu li {
-    padding: 10px;
 }
 
 header#header-bar ul.dropdown-menu li a {
     font-size: .9em;
+    padding: 10px;
+    display: block;
 }
 
 header#header-bar ul.navigation-component li ul.dropdown-menu li a {
