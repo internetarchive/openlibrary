@@ -1,4 +1,11 @@
-$def with (page, user_lists_only=False)
+$def with (page, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None)
+
+$ edition = page if page.key.startswith("/books/") else None
+$ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
+$ work_key = work.key if work else None
+$ edition_key = edition.key if edition else None
+$ username = ctx.user and ctx.user.key.split('/')[-1]
+$ users_work_read_status = read_status or work.get_users_read_status(username) if work and username else None
 
 $if "lists" not in ctx.features:
     $return
@@ -40,8 +47,7 @@ $code:
 
     def get_user_lists():
         lists = ctx.user and ctx.user.get_lists(sort=False) or []
-        # No need to get cover_url for user lists. They are only displayed in the dropdown
-        return [get_list_data(list, include_cover_url=False) for list in lists]
+        return [get_list_data(list, include_cover_url=True) for list in lists]
 
     def get_page_lists():
         user_key = ctx.user and ctx.user.key
@@ -83,23 +89,119 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists):
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
     <div class="dropit">
       <div class="icon list hidetool"></div>
-        <div class="dropper on">
-            <a href="javascript:;" class="dropclick plain">
-                <h3>Add to list</h3>
-                <div class="arrow"></div>
-            </a>
-            <div class="dropdown">
-                $for i, list in enumerate(lists):
-                    $if not list.active:
-                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
-                <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                    <a href="javascript:;" class="hidden listClick"></a>
-                </p>
+        <div class="dropper on $('edition-page-lists-dropdown' if (edition and not work_key) else '')">
+          $if work_key:
+            <div class="work-likes">
+              <form method="POST" action="$(work_key)/bookshelves.json">
+                $if users_work_read_status == 3:
+                    $ message = "Already Read"
+                $elif users_work_read_status == 2:
+                    $ message = "Currently Reading"
+                $else:
+                    $ message = "Want to Read"
+                $if users_work_read_status:
+                  <input type="hidden" name="action" value="remove"/>
+                  <input type="hidden" name="redir" value="true"/>
+                  <input type="hidden" name="bookshelf_id" value="$(users_work_read_status)"/>
+                  <button class="book-progress-btn want-to-read activated"
+                          type="submit">
+                    <span class="activated-check">✓</span> $(message)
+                  </button>
+                $else:
+                  <input type="hidden" name="action" value="add"/>
+                  <input type="hidden" name="redir" value="true"/>
+                  <input type="hidden" name="bookshelf_id" value="1"/>
+                  <button class="book-progress-btn want-to-read unactivated"
+                          type="submit">
+                    $(message)
+                  </button>
+
+                $if edition_key:
+                  <input type="hidden" name="edition_id" value="$(edition_key)"/>
+              </form>
+              $if users_work_read_status:
+                <a href="javascript:;" class="dropclick dropclick-activated">
+                  <div class="arrow arrow-activated"></div>
+                </a>
+              $else:
+                <a href="javascript:;" class="dropclick dropclick-unactivated">
+                  <div class="arrow arrow-unactivated"></div>
+                </a>
             </div>
-        </div>
+            <div class="dropdown">
+              <div class="read-statuses">
+                $if users_work_read_status == 2 or users_work_read_status == 3:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="1"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Want to Read</button>
+                  </form>
+
+                $if users_work_read_status != 2:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="2"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Currently Reading</button>
+                  </form>
+
+                $if users_work_read_status != 3:
+                  <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                    <input type="hidden" name="action" value="add"/>
+                    <input type="hidden" name="redir" value="true"/>
+                    <input type="hidden" name="bookshelf_id" value="3"/>
+                    $if edition_key:
+                      <input type="hidden" name="edition_id" value="$(edition_key)"/>
+                    <button class="nostyle-btn" type="submit">Already Read</button>
+                  </form>
+              </div>
+
+              $if not readinglog_only:
+                <div class="reading-lists">
+                  <p class="reading-list-title">My Reading Lists:</p>
+                  <div class="my-lists">
+                    $for i, list in enumerate(lists):
+                      $if not list.active:
+                        <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                  </div>
+                  <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                    <a href="javascript:;" class="hidden listClick"></a>
+                  </p>
+                </div>
+            </div>
+          $else:
+              $if username:
+                <div class="reading-lists">
+                  <a href="javascript:;" class="dropclick">
+                    <h3>Add to List</h3>
+                    <div class="arrow arrow-activated"></div>
+                  </a>
+                  <div class="dropdown">
+                     <div class="my-lists">
+                      $for i, list in enumerate(lists):
+                        $if not list.active:
+                          <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
+                    </div>
+                    <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                      <a href="javascript:;" class="hidden listClick"></a>
+                    </p>
+                  </div>
+                </div>
+
+              $else:
+                <a href="/account/login?redir=$pageurl" class="dropclick plain">
+                  <h3>Add to List</h3>
+                  <div class="arrow"></div>
+                </a>
+      </div>
     </div>
 
 $jsdef render_widget_display(lists, limit):
@@ -125,22 +227,41 @@ $jsdef render_head():
           </h3>
         </div>
 
-
-<div id="widget-head">
+$if include_header:
+  <div id="widget-head">
     $:render_head()
-</div>
+  </div>
 
-$if not ctx.user and not page_lists:
-    <div class="sansserif small">You <em>could</em> add <strong>$title</strong> to a <a href="/lists" title="Learn more about lists">list</a> if you <a href="/account/login" title="Log in or sign up now">log in</a>.</div>
+$if include_widget:
+  $if ctx.user or not work_key:
+    <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
+    </div>
+  $else:
+    <div class="dropit">
+      <div class="icon list hidetool"></div>
+        <div class="dropper on">
+          $if work:
+            <div class="work-likes">
+              <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
+                <input type="hidden" name="action" value="add"/>
+                  $if edition_key:
+                    <input type="hidden" name="edition_id" value="$(edition_key)"/>
 
-$if ctx.user:
-    <div id="widget-add">
-        $:render_widget_add(user_lists)
+                  <button class="unactivated" type="submit">Want to Read</button>
+                </form>
+                <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
+                  <div class="arrow arrow-unactivated"></div>
+                </a>
+            </div>
+        </div>
     </div>
 
-<ul class="listLists" id="widget-lists">
+$if include_showcase:
+  <ul class="listLists" id="widget-lists">
     $:render_widget_display(page_lists, 3)
-</ul>
+  </ul>
+
 <div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$title</strong> from your list?</div>
 
 $if ctx.user:
@@ -183,6 +304,15 @@ $if ctx.user:
     // Lists API
 
     Lists = {
+        wantToRead: function(success) {
+            this.ajax({
+                url: "$(work_key)/bookshelves.json",
+                data: {
+                    action: \$('input[name=action]').val(),
+                    edition_id: \$('input[name=edition_id]').val()
+                }
+            });
+        },
         create: function(user, data, success, complete) {
             this.ajax({
                 url: user + "/lists.json",
@@ -243,16 +373,23 @@ $if ctx.user:
     var user_key = $:json_encode(user_key);
     var page_url = $:(json_encode(page_url));
 
+    var users_work_read_status = $(users_work_read_status or 'null');
+    var work_key = '$(work_key)';
+    var edition_key = '$(edition_key)';
+    var username = '$(username or "")';
+    var pageurl = '$(page.url())';
+
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, pageurl));
+
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
 
         // We've added new .dropclick element. Need to setup listeners again.
         \$('.dropclick').click(function(){
-            \$(this).next('.dropdown').slideToggle();
-            \$(this).parent().find('.arrow').toggleClass("up");
+            \$(this).closest('.dropdown').slideToggle();
+            \$(this).closest('.arrow').toggleClass("up");
         });
 
         // Trigger an event to allow adding listeners
@@ -319,6 +456,7 @@ $if ctx.user:
                     reload_widget();
                 }, function(){
                     // re-enable form now that the request is finished
+                    reload_widget();
                     \$("#new-list button").attr("disabled", false);
                 });
                 return false;
@@ -346,7 +484,7 @@ $if ctx.user:
             Lists.add(list.key, seed, function() {
                 list.active = true;
                 add_page_list(list);
-            }, function(){
+            }, function(data){
                 reload_widget();    // reload widget regardless of success or failure
             });
             return false;
@@ -401,6 +539,12 @@ $if ctx.user:
         })
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
         \$('.dropdown').append(listcreate);
+
+        \$('.book-progress-btn, .nostyle-btn').live('click', function(e) {
+           \$('.book-progress-btn').text("saving...");
+           //e.preventDefault();
+        });
+
     });
 
     </script>

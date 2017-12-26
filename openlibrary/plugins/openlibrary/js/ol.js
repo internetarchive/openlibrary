@@ -695,11 +695,13 @@ $().ready(function(){
         if(!$(event.target).closest('header#header-bar .hamburger-component .hamburger-button').length) {
             $('header#header-bar .hamburger-dropdown-component').hide();
         }
+
         if(!$(event.target).closest('.dropclick').length) {
-            $('.dropclick').next('.dropdown').slideUp();
+            $('.dropclick').parent().next('.dropdown').slideUp(25);
+            $('.dropclick').next('.dropdown').slideUp(25);
             $('.dropclick').parent().find('.arrow').removeClass("up");
         }
-    }, 300, false));
+    }, 100, false));
 
     $('header#header-bar .search-component .search-bar-input input').focus(debounce(function() {
         var val = $(this).val();
@@ -732,9 +734,15 @@ $().ready(function(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-    $('.dropclick').click(debounce(function(){
-        $(this).next('.dropdown').slideToggle();
+    $('.dropclick').live('click', debounce(function(){
+        $(this).next('.dropdown').slideToggle(25);
+        $(this).parent().next('.dropdown').slideToggle(25);
         $(this).parent().find('.arrow').toggleClass("up");
+    }, 300, false));
+
+    $('a.add-to-list').live('click', debounce(function(){
+        $(this).closest('.dropdown').slideToggle(25);
+        $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
 
     function hideUser(){
@@ -757,6 +765,40 @@ $().ready(function(){
             });
 
         }
-    }, 300, false));
+    }, 100, false));
+
+    var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
+    var buildReadingLogCombo = function(status_id) {
+        var template = function(shelf_id, checked, remove) {
+            return '<option value="' + shelf_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: shelf_id] + '</option>';
+        }
+        return (status_id == 3)? (template(3, true) + template(1) + template(2) + template(3, false, true)) :
+            (status_id == 2)? (template(2, true) + template(1) + template(3) + template(2, false, true)) :
+            (template(1, true) + template(2) + template(3) + template(1, false, true));
+    }
+
+    $('.reading-log-lite select').change(function(e) {
+        var self = this;
+        var form = $(self).closest("form");
+        var option = $(self).val();
+        var remove = $(self).children("option").filter(':selected').text().toLowerCase() === "remove";
+        var url = $(form).attr('action');
+        $.ajax({
+            'url': url,
+            'type': "POST",
+            'data': {
+                bookshelf_id: $(self).val()
+            },
+            'datatype': 'json',
+            success: function(data) {                
+                if (remove) {
+                    $(self).closest('.searchResultItem').remove();
+                } else {
+                    location.reload();
+                }
+            }
+        });
+        e.preventDefault();
+    });
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}

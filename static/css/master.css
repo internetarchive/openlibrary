@@ -796,8 +796,8 @@ a:hover {color: #35672e;text-decoration:underline;outline:none;}
 a:visited {color: #036;text-decoration:underline;outline:none;}
 .collapse{margin:0!important;padding:0!important;}
 .small{font-size:12px!important;font-weight:normal!important;}
-.smaller{font-size:11px!important;font-weight:normal!important;}
-.smallest{font-size:10px!important;font-weight:normal!important;}
+.smaller{font-size:11px;font-weight:normal;}
+.smallest{font-size:10px;font-weight:normal;}
 .reduce{font-size: 50%!important;}
 .large{font-size:14px!important;}
 .larger{font-size:16px!important;}
@@ -837,7 +837,6 @@ button.larger{font-size:18px!important;}
 .bold {font-weight: bold!important}
 .sansserif {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
 .arial{font-family:"Arial","Helvetica",sans-serif!important;}
-.serif {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif!important;}
 .headline {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;}
 .nowrap{white-space:nowrap!important;}
 .wrap{white-space:normal!important;}
@@ -845,7 +844,7 @@ button.larger{font-size:18px!important;}
 .clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
 .right.illustration {margin:0 0 30px 30px;}
 .left.illustration {margin:0 30px 30px 0;}
-.illustration {text-align:center;margin-bottom:35px;}
+.illustration {text-align:center;margin-bottom:15px;position: relative;}
 button.plainText {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#e44028;background-color: #fff;cursor:pointer;}
 button.plainText:hover {color:#35672e;}
 button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#000;background-color:transparent!important;cursor:pointer;}
@@ -882,7 +881,7 @@ div.head {margin-bottom: 10px;margin-top: 20px;}
 div.head h1,div.head h2,div.head h3,div.head h4,div.head h5,div.head h6{margin:0;padding:0;}
 div.head.rel {position:relative;}
 div.superNav {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;color:#666;margin-bottom:5px;}
-h1,h2,h3,h4,h5,h6 {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#00636a;font-weight:600;}
+h1,h2,h3,h4,h5,h6 {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#666;font-weight:600;}
 h1 {font-size: 1.875em;}
 h1.title {font-size:1.25em;}
 h1 span.subtitle {font-size:0.65em;font-weight:normal;}
@@ -910,7 +909,7 @@ span.tools span.label {background-color:#ffa337;color:#fff;font-weight:normal!im
 span.tools span.list {padding:3px;}
 span.title,h6.title {font-size:12px;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Geneva,Helvetica, sans-serif;color:#666;margin:0;padding:0;}
 .titleSmall {font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;font-size:11px;font-weight: 600;}
-span.tag {font-size:13px;font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;color:#333;}
+span.tag {font-size:13px;color:#333;}
 span.object, span.subject {font-size: 12px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#333;}
 span.count {font-size:12px!important;font-weight:normal!important;font-family:"Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;color:#615132;white-space:nowrap;padding:5px 5px 0 5px;}
 h1 span.count {font-size:14px!important;}
@@ -924,7 +923,6 @@ p{font-size:1.0em;color:#333;line-height:1.5em}
 #contentBody li,#contentBody blockquote {line-height:1.5em;}
 #contentBody ul,#contentBody ol{margin-bottom:20px;}
 body {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#333;}
-body#user div#content{font-family:Georgia,"Palatino Linotype", "Book Antiqua", Palatino, "Times New Roman",serif;}
 body#admin div#content,body#edit div#content{font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;font-size:0.875em;}
 input[type=text]{margin: 0 10px 5px 0;}
@@ -1417,11 +1415,12 @@ header#header-bar ul.navigation-component li ul.dropdown-menu {
 }
 
 header#header-bar ul.navigation-component li ul.dropdown-menu li {
-    padding: 10px;
 }
 
 header#header-bar ul.dropdown-menu li a {
     font-size: .9em;
+    padding: 10px;
+    display: block;
 }
 
 header#header-bar ul.navigation-component li ul.dropdown-menu li a {
@@ -2455,15 +2454,23 @@ div#editionBorrow a, div#editionBuy a {background-image:none!important;float:non
 
 /* TOOLS ACCORDION */
 
-div#editTools,div#editButton,div#editHistory {float:right;padding:0 0 0 20px;width:auto;}
-div#editTools{white-space:nowrap;max-width:280px;}
+div#editTools,div#editButton,div#editHistory {
+    float:right;
+    padding: 3px 1px 0px 20px;
+    width:auto;
+}
+div#editTools{
+    white-space:nowrap;
+    max-width:280px;
+}
 body#edit div#editTools{padding:20px;max-width:300px;}
 body#user div#editHistory {display: none;}
 div#editButton button,div#editHistory button,div.revert.notice button {font-size:1.125em;}
 div#editInfo {float:right;white-space:nowrap;text-align:right;}
+
 .linkButton {
     border-radius: 5px;
-    background: #eee;
+    background: #fcfcfc;
     padding: 10px;
     color: #333;
 }
@@ -2475,9 +2482,12 @@ a.linkButton {
     border: 1px solid #ccc;
 }
 
-#content .shareLinks {float:left;clear:both;margin-top:10px;}
+#content .shareLinks {
+    margin-top:10px;
+}
+
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
-#content .shareLinks li {list-style-type:none;float:left;margin-right:12px;line-height: 24px;}
+#content .shareLinks li {list-style-type:none;display: inline;line-height: 24px;}
 #content .shareLinks a {line-height: 24px;}
 #content .shareLinks a img { height: 30px; }
 div#revertNotice {
@@ -2497,7 +2507,7 @@ body#edit div#revertLink {
 }
 body#user div#revertLink, body#form div#revertLink {display:none;}
 
-div.Tools {width:250px;margin:0 0 25px 20px;}
+div.Tools {width:250px;margin:0 0 25px 20px; position: relative;}
 div.Tools h3 {font-size:100%;min-height:32px;width:250px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;font-weight:normal;outline:0;position:relative;margin:0;padding:0;zoom:1;}
 div.Tools h3 span.icon {display:block;width:32px;height:32px;float:left;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div.Tools h4 {font-size:1em;font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#00636a;font-weight:600;margin:0 0 10px 0;padding:0;zoom:1;}
@@ -2514,9 +2524,14 @@ div.Tools h3 span.head {padding-left:10px;font-size:1.125em;font-weight:700;colo
 div.Tools h3.closed span.head {color:#666;}
 div.Tools h3 span.subhead {padding-left:10px;font-size:0.6875em;color:#969696;}
 div.Tools div.panel {width:250px;margin-bottom:30px;}
-div.Tools div.panel ul {list-style-type:none;margin-left:0!important;}
-div.Tools div.panel li {list-style-type:none!important;font-size:.75em;margin-top:0;color:#666}
+div.Tools div.panel ul {list-style-type:none;margin-left:0;}
+div.Tools div.panel li {list-style-type:none;font-size:.75em;margin-top:0;color:#666}
 div.Tools div.panel p {font-size:.75em;margin-top:0;color:#666;}
+#external-links div.panel ul.booklinks li {
+    list-style:none;
+    padding-left: 20px;
+    font-size: .7em;
+}
 div.Tools table {width:250px;}
 div.Tools table td {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;}
 div.Tools table td.vendor {padding:3px 10px 0 42px;}
@@ -2524,7 +2539,7 @@ div.Tools table td.price {padding:3px 0 0 0;text-align:right;}
 div.Tools table.buy-options-table {
     border-spacing: 5px;
     margin-left: 45px;
-    width: 210px;
+    width: 200px;
 }
 div.Tools table.buy-options-table td {
     padding: 5px 0px;
@@ -2533,23 +2548,50 @@ div.Tools table.buy-options-table td.price {
     text-align: right;
 }
 
-div.Tools li {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
-div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
+div.Tools li {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
+#content div.Tools ul.shareLinks-list li { display: inline-block; padding: 10px 13px 0px 13px; margin: 0px;}
+#content div.Tools ul.shareLinks-list li a { display: block; }
+#content div.Tools ul.shareLinks-list li a img { display: block; }
+div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
-div.Tools div.dropit {position:relative;width:250px;min-height:45px;}
+div.Tools div.dropit {min-height:45px;}
 div.Tools div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 0 42px;margin:0 0 5px;}
 div.Tools div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div.Tools div.icon.list {background-position:0 0;}
 div.Tools div.icon.listed {background-position:-32px 0;}
-div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;padding:8px 10px;z-index:10000;}
-div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div.Tools div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div.Tools div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div.Tools div.dropper {position:absolute;top:0;left:32px;width:198px;z-index:10000;}
+div.Tools div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
+div.dropper.on div.arrow {
+    width:23px;
+    margin: 6px 5px;
+}
+
+div.dropper.on div.arrow-unactivated {
+    background-image:url("/images/icons/icon_dropit2.png");
+    background-repeat:no-repeat;
+    background-position:0 0;
+    background-size: 45px;
+}
+
+div.dropper.on div.arrow-activated {
+    background-image:url("/images/icons/icon_dropit.png");
+    background-repeat:no-repeat;
+    filter: grayscale(100%);
+    background-position:0 0;
+    background-size: 45px;
+}
+
+div.dropper.on div.arrow.up {
+    background-position:-22px 0;
+}
 div.Tools div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div.Tools div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;margin-top:0;color:#666;}
 div.Tools div.dropper div.dropdown p span {font-size:.8125em;}
 div.Tools div.dropper div.dropdown p a {font-size:.875em;}
-div.Tools div.dropper div.dropdown {display:none;padding-top:10px;}
+div.Tools div.dropper div.dropdown {
+    border-top: 1px solid #ddd;
+    display:none;
+}
 
 
 
@@ -3121,7 +3163,6 @@ div#contentMsg {
     display: none;
 }
 div#contentHead {
-    float:left;
     width: 918px;
     padding: 20px;
 }
@@ -3493,19 +3534,19 @@ div#searchResults.work .resultTitle {
 }
 
 
-.mode-options {
+.mode-options, .facet-options {
     font-size: .7em;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
 }
 
-.mode-options input {
+.mode-options input, .facet-options input {
     margin-left: 15px;
     margin-right: 4px;
     position: relative;
 }
 
 div#searchResults li img {
-    height: 60px;
+    height: 80px;
     max-width: 75px;
 }
 
@@ -3532,11 +3573,11 @@ li.searchResultItem {
     display: -ms-flexbox;
     display: flex;
     width: 245px;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
-    -webkit-box-pack: center;
-    -ms-flex-pack: center;
+    -webkit-box-align: stretch;
+    -ms-flex-align: stretch;
+    -webkit-box-pack: strech;
+    -ms-flex-pack: stretch;
+    align-items: stretch;
     justify-content: center;
     padding: 0px 5px 0px 15px;
 }
@@ -3566,7 +3607,24 @@ a.cta-btn  {
     border-radius: 3px;
 }
 
-.searchResultItemCTA .borrow_unavailable {
+.searchResultItemCTA-lending {
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    text-align: center;
+    -webkit-box-align: stretch;
+    -ms-flex-align: stretch;
+    -webkit-box-pack: strech;
+    -ms-flex-pack: stretch;
+    align-items: stretch;
+    justify-content: center;
+}
+
+.searchResultItemCTA-lending .borrow_unavailable {
     border: none;
     color: #fff;
     width: 100%;
@@ -3582,7 +3640,7 @@ a.cta-btn  {
     font-size: 0.8em;
 }
 
-.searchResultItemCTA .borrow_unavailable .badge {
+.searchResultItemCTA-lending .borrow_unavailable .badge {
     background-color: #e6881a;
     padding: 4px 7px;
     border-radius: 5px;
@@ -3767,11 +3825,59 @@ div.list .owner {
 
 /* BOOKS */
 
+.section.book-overview {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 25px;
+}
+
+h1.work-title {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 0px;
+    color: #333;
+    font-size: 1.3em;
+}
+
+h2.work-subtitle {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 5px 0px 5px 0px;
+    color: #666;
+    font-size: 1.1em;
+    font-weight: normal;
+    font-style: italic;
+}
+
+h2.edition-title {
+    margin: 7px 0px 0px 0px;
+    color: #888;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-weight: normal;
+    font-size: 1.1em;
+}
+
+.editionAbout h2.edition-byline {
+    font-size: .9em;
+    font-weight: normal;
+    color: #333;
+    margin: 15px 0px;
+}
+
 div.workDetails {float:left;width:915px;}
-div.editionCover {float:left;width:180px;min-height:10px;padding-right:35px;}
+div.editionCover {float:left;width:180px;min-height:10px;padding-right: 1.5em;}
 div.editionAbout {float:left;width:430px;min-height:10px;}
-div.editionTools {float:left;width:270px;min-height:10px;}
-div.navEdition {font-size:0.8125em;}
+div.editionAbout p {
+    margin: 1.5em 0;
+    font-size: .9em;
+}
+div.editionTools {float:right;width:270px;min-height:10px;}
+div.editionTools.tools-override {
+    float: left;
+}
+div.navEdition {font-size: .9em; margin-top: 5px; color: #555;}
+span.booktitle {
+    color: #333;
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-weight: bold;
+}
 div.workCover {float:right;width:270px;min-height:10px;}
 div.workAbout {float:left;clear:left;width:610px;padding-right:38px;}
 div.workPadding {margin-top:10px;margin-bottom:30px;margin-left: 20px;}
@@ -3781,7 +3887,7 @@ div.work {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-
 div.work span.work, div.work span.author {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#615132;font-size:1.125em;}
 div.work span.work {font-weight: 700;}
 div.work span.editions {font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;color:#615132;font-size:1.125em;}
-.illustration img {max-width:180px!important;}
+.illustration img {width:180px;}
 #contentOnethird .illustration img, .workCover .illustration img {max-width:270px!important;}
 .illustration .SRPCoverBlank {position:relative;width:148px;height:225px;padding:15px;text-align:center;background:#dedede;font-size:1.0em;display:none;}
 .workCover .illustration .SRPCoverBlank {margin:0 auto;}
@@ -3908,7 +4014,10 @@ td.toc-title {}
 td.toc-pagenum {
     text-align: right;
 }
-
+img.cover {
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0px #c3b683;
+}
 #cover {
     border: 2px solid #615132;
     background-color: #fff;
@@ -3944,20 +4053,22 @@ select#select-id {
     max-width: 300px;
 }
 
-.borrow-btn, .read-btn, .wait-btn, .unwait-btn, .check-btn {
+.borrow-btn, .read-btn, .wait-btn, .unwait-btn {
     margin: 1px auto;
     color: white;
-    background: #036DAA;
+    background: #3b99fc;
     border-radius: 5px;
-    padding: 5px 8px;
+    padding: 7px 20px;
     cursor: pointer;
     display: inline-block;
-    font-size: 12px;
+    font-size: 1.1em;
     line-height: 1.5em;
 }
 .wait-btn {
     background: #389ad4;
     border: none;
+    background-color: #ffa337;
+
 }
 
 .unwait-btn {
@@ -3965,13 +4076,12 @@ select#select-id {
     border: none;
 }
 
-.check-btn {
-    background-color: rgb(164, 181, 122);
+.waitinglist-form input[type=submit].wait-btn {
+    background-color: #ffa337
 }
 
 .waitinglist-form input[type=submit] {
     line-height: 1.5em;
-    font-size: 12px!important;
 }
 
 #editions .btn-notice {
@@ -3981,24 +4091,25 @@ select#select-id {
 
 .Tools .btn-notice {
     line-height: 1.5em;
-    font-size: 12px;
-    margin-left: 37px;
-    padding: 7px;
+    font-size: 1em;
+    margin-left: 35px;
+    padding: 10px;
     margin-bottom: 10px;
-    background-color: rgba(226, 220, 197, 0.28);
+    background-color: rgb(252, 252, 252);
+    border-radius: 5px;
+    border: 1px solid #ddd;
+    border-bottom: 1px solid #ccc;
 }
 
 div.Tools .btn-notice p {
     padding-left: 0px !important;
 }
 
-.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited, .check-btn:link, .check-btn:visited {
-    font-size: 12px!important;
+.borrow-btn:link, .borrow-btn:visited, .read-btn:link, .read-btn:visited, .wait-btn:link, .wait-btn:visited, .unwait-btn:link, .unwait-btn:visited {
     color: white;
     text-decoration: none;
 }
-.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover, .check-btn:hover {
-    font-size: 12px!important;
+.borrow-btn:hover, .read-btn:hover, .wait-btn:hover, .unwait-btn:hover {
     color: white;
     text-decoration: underline;
 }
@@ -4076,10 +4187,9 @@ table.identifiers {
 .identifiers.authors td {
         background-color: #fff;
 }
-ul.booklinks li {list-style-type:disc;margin:0 0 10px 1.5em}
+ul.booklinks li {font-size: 12px; list-style-type:disc;margin:0 0 10px 20px}
 ul.booklinks li span {display:block;}
 ul.booklinks li div.linkRemove {float:right;padding:0 10px 10px 15px;}
-
 .section {margin-bottom:25px;}
 .section .sansserif {font-size:0.75em;}
 .section p {margin-bottom: 1em; margin-top: 0;}
@@ -5026,7 +5136,9 @@ div.floaterAdd form.floatform textarea {
     padding: 3px;
 }
 /* COLORBOX POP-UP */
-
+a.coverLook {
+    display: block;
+}
 #colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:999999;}
 #cboxOverlay{position:fixed; width:100%; height:100%;background:#3a301e;opacity:0.5;filter:Alpha(Opacity=50);}
 #cboxMiddleLeft, #cboxBottomLeft{clear:left;}
@@ -5507,7 +5619,6 @@ div.mergeThis {
 
 /* PLAIN PAGE STYLES */
 body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
-body#plain,body#plain div#content {background-color: #e2dcc5;}
 body#plain #contentBody, body#plain #contentHead {width:690px;padding:0 134px;margin:0;}
 body#plain div.contentOnethird {width: 210px;}
 body#plain div.contentSpacer {width:30px;height:15px;}
@@ -5665,10 +5776,10 @@ p#postBorrowList {font-size:.75em;padding-left:55px;}
 
 ul#listResults {list-style-type:none;margin:0;padding:0;border-top:1px dotted #ebebeb;}
 ul#listResults li {
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     width:100%;
     list-style-type:none;
 }
@@ -5679,7 +5790,6 @@ ul#listResults li span.image {display: block; float:left;height:70px;margin-righ
 ul#listResults li span.imageLg {display: block; float:left;height:110px;margin-right:15px;width:90px;overflow: hidden;text-align:center;}
 ul#listResults li h3 {display:inline;font-size: 1em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-weight:bold;}
 ul#listResults li span.detail {display: block;color:#333;font-size: .8125em;font-family:"Georgia","Times New Roman",serif;line-height:1.5em;}
-ul#listResults p {font-family:"Georgia","Times New Roman",serif;}
 ul#listResults li span.editions {display:block;color:#666;font-size:.75em;}
 ul#listResults li span.editions strong {color:#000;}
 ul#listResults li span.type {font-size:.875em;}
@@ -5695,26 +5805,39 @@ ul#listResults li span.listDelete {
     white-space:nowrap;
     max-width:150px;
     line-height:28px;
-    display: flex;
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
+    display: flex;
     margin-bottom: 5px;
 }
+
 ul#listResults li span.listDelete a span {margin-right:5px; background-image:url("/images/back_list-trash.png");background-repeat:no-repeat;background-position:0 0;height:28px;width:21px; display: inline-block; position: relative; top: 5px}
 ul#listResults li span.listDelete a:hover span{background-position:-21px 0;}
 
-ul.listLists {margin-bottom:0!important;margin-left:0!important;padding:0;}
-ul.listLists div {display:inline;}
-ul.listLists li {list-style-type:none;display:block;float:left;width:250px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-top:10px;}
 ul.listLists span {display:block;color:#666;}
-ul.listLists li .image {float:left;width:42px;min-height:35px;}
+ul.listLists {
+    margin: 0px;
+    padding: 0px;
+}
+ul.listLists li {
+    border-radius: 3px;
+    padding: 5px;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    background-color: #fcfcfc;
+    border-bottom: 1px solid #eee;
+}
+ul.listLists li .image {width:42px;min-height:35px;padding: 0px 10px;}
 ul.listLists li .image img {width:32px;}
-ul.listLists li .data {float:left;width:208px;}
+ul.listLists li .data {width:208px; padding: 3px 0px;}
 ul.listLists li .label {font-size:.8125em;line-height:1.125em; font-size: 12px;}
-ul.listLists li .meta, ul.listLists li .owner {font-size:.6875em;line-height:1.125em;}
-
-div#listsWork ul.listLists {float:left;clear:both;}
+ul.listLists li .meta, ul.listLists li .owner {
+    font-size:.6875em;line-height:1.125em;
+    margin: 5px 0px;
+}
 div#listsWork ul.listLists li {width:209px;padding-right:19px;padding-top:0;min-height:35px;}
 div#listsWork ul.listLists li .data {width:167px;}
 
@@ -5731,23 +5854,48 @@ div.Tools span.owner { font-size: 10px; }
 .heart-adjust { position: relative; top: -3px; left: 4px; }
 div#listsWork div.icon.list {background-position:0 0;}
 div#listsWork div.icon.listed {background-position:-32px 0;}
-div#listsWork div.dropper {position:absolute;top:0;left:32px;width:161px;padding:8px 10px;z-index:1001;}
-div#listsWork div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div#listsWork div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div#listsWork div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div#listsWork div.dropper {position:absolute;top:0;left:32px;width:161px;z-index:1001;}
+div#listsWork div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div#listsWork div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
 div#listsWork div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin-bottom:5px;color:#666;}
 div#listsWork div.dropper div.dropdown p span {font-size:.8125em;}
 div#listsWork div.dropper div.dropdown p a {font-size:.875em;}
-div#listsWork div.dropper div.dropdown {display:none;padding-top:10px;}
+div#listsWork div.dropper div.dropdown {
+    border-top: 1px solid #ddd;
+    display:none;
+    padding-top:10px;
+}
 
-div#subjectLists ul.listLists {float:left;margin-left:0!important;padding:0;}
-div#subjectLists ul.listLists li {list-style-type:none;display:block;float:left;width:282px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-bottom:10px;padding-top:0;}
+div.dropper div.dropdown div.reading-lists p.reading-list-title {
+    background: #fdfcfd;
+    padding: 5px 0px 0px 10px;
+    margin: 0px;
+    font-size: .8em;
+}
+div.dropper div.dropdown div.my-lists {
+    background: #fcfcfc;
+    max-height: 250px;
+    overflow-y: scroll;
+    padding: 10px 15px;
+}
+
+div.dropper div.dropdown div.my-lists p a {
+    display: block;
+}
+
+div#subjectLists ul.listLists {padding:0;}
+div#subjectLists ul.listLists li {
+    list-style-type:none;display:block;float:left;width:282px;font-family: "Lucida Grande", Verdana, Arial, sans-serif;padding-bottom:10px;padding-top:0;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
 div#subjectLists ul.listLists li .image {display:block;float:left;width:34px;min-height:35px;}
 div#subjectLists ul.listLists li .image img {width:24px;}
 div#subjectLists ul.listLists li .data {display:block;float:left;width:248px;}
 
-div#subjectLists div.dropit h3 {font-size:100%;min-height:32px;width:250px;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;font-weight:normal;outline:0;position:relative;margin:0;padding:0;zoom:1;}
+div#subjectLists div.dropit h3 {font-weight: normal; margin: 0px; padding: 5px;}
 div#subjectLists p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px!important;}
 
 div#subjectLists div.dropit {float:left;position:relative;width:282px;min-height:50px;}
@@ -5755,17 +5903,29 @@ div#subjectLists div.dropit p.listed {color:#666;font-size:0.8125em;padding:0 0 
 div#subjectLists div.icon {position:absolute;top:0;left:0;width:32px;height:32px;background-image:url("/images/icons/icons_sprite.png");background-repeat:no-repeat;}
 div#subjectLists div.icon.list {background-position:0 0;}
 div#subjectLists div.icon.listed {background-position:-32px 0;}
-div#subjectLists div.dropper {position:absolute;top:0;left:32px;width:230px;padding:8px 10px;z-index:1001;}
-div#subjectLists div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;-webkit-box-shadow: 1px 1px 1px #666;box-shadow:1px 1px 1px #666;}
-div#subjectLists div.dropper.on div.arrow {position:absolute;top:0;right:0;width:32px;height:32px;background-image:url("/images/icons/icon_dropit.png");background-repeat:no-repeat;background-position:0 0;}
-div#subjectLists div.dropper.on div.arrow.up {background-position:-32px 0!important;}
+div#subjectLists div.dropper {position:absolute;top:0;left:32px;width:230px;z-index:1001;}
+div#subjectLists div.dropper.on {background-color:#f6f6f6;border:1px solid #c3c3c3;border-radius:4px;}
 div#subjectLists div.dropper h3 {font-size:1.125em;font-weight:700;color:#000;min-height:1.125em;width:auto;}
-div#subjectLists div.dropper div.dropdown p {font-size:.875em;padding-left:0;margin:0 0 5px 0;color:#666;}
+div#subjectLists div.dropper div.dropdown p {font-size:.875em; margin:0 0 5px 0;color:#666;}
 div#subjectLists div.dropper div.dropdown p span {font-size:.8125em;}
 div#subjectLists div.dropper div.dropdown p a {font-size:.875em;}
-div#subjectLists div.dropper div.dropdown {display:none;padding-top:10px;}
+div#subjectLists div.dropper div.dropdown {
+    display:none;
+    padding-top:10px;
+}
 
-div.dropper div.dropdown p.create{padding-top:3px;margin-top:3px;border-top:1px dotted #ababab;}
+#widget-add div.dropper div.dropdown p.create{
+    border-top: 1px solid #eee;
+    padding: 5px 10px;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+div.dropper div.dropdown p.create a {
+    color: #333;
+    text-decoration: none;
+}
+
 
 .lists table#editions th {font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;background-color: transparent;text-align: left;font-weight: normal;font-size: .6875em;color: #615132;padding: 0 0 10px 0;border-left: none;border-right: none;}
 .lists table#editions td {color: #333;vertical-align: top;}
@@ -5790,7 +5950,7 @@ ul.narrow li span.resultTitle {width:525px;max-width:525px;}
 ul.clean li span.resultTitle {width:236px;max-width:236px;}
 ul#listResults li span.resultTitle p {margin:0;}
 
-body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 56px 10px no-repeat;}
+body#user #description {padding-left:130px;padding-right:60px;background:url("/images/icons/icon_fav-big.png") 35px 100px no-repeat;}
 body#user #description h2 {font-size:1.5em;font-family:"Georgia","Times New Roman",serif;font-weight:normal;color:#333;margin:0 0 10px 0;}
 body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists h2 {font-size:1.25em;}
@@ -5800,7 +5960,7 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists .listEntry .data {width:245px;float:left;font-family:"Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;}
 #lists .listEntry .name {font-size:.6875em;color:#666;}
 #lists .listEntry .name a.title {font-weight: bold; font-size: 1.375em;}
-#lists .listEntry .description p,#lists .listEntry .description li {font-size:.8125em;font-family:"Georgia","Times New Roman",serif;color:#333;margin:0!important;}
+#lists .listEntry .description p,#lists .listEntry .description li {font-size:.8125em;color:#333;margin:0!important;}
 #lists .listEntry .meta {font-size:.6875em;color:#666;line-height:1.5em;margin:3px 0;}
 
 /* SEARCH INSIDE */
@@ -5837,6 +5997,10 @@ span.actions a span.checked-out {
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background: #036DAA;
     padding: 15px;
+    font-size: .8em;
+    border-top-right-radius: 3px;
+    border-top-left-radius: 3px;
+    border-bottom: 1px solid #e2dcc5;
 }
 .page-banner a {
     color: white;
@@ -5860,7 +6024,7 @@ span.actions a span.checked-out {
 .page-banner .button {
     color: white;
     border-radius: 5px;
-    padding: 10px;
+    padding: 8px 10px;
     cursor: pointer;
     display: inline;
     border: 1px solid #389AD4;
@@ -5877,7 +6041,6 @@ span.actions a span.checked-out {
 }
 
 .page-banner-home {
-    font-size: .8em;
     padding: 10px;
     margin-bottom: 15px;
     text-align: center;
@@ -5951,7 +6114,6 @@ form#addAuthor.olform .wmd-button-bar {
 .wmd-preview {
     background-color: #fff;
     border: 1px solid #dedede;
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
     display: none;
     margin-bottom: 10px;
 }
@@ -6700,30 +6862,539 @@ form#addAuthor.olform .wmd-preview {
 .iconochive-Invisible{}
 .iconochive-Computer{}
 
-.carousel-item img {
-    width: 125px;
-    height: 200px;
+.dropclick {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
 }
 
-.carousel-item h1 {
-    font-size: 1em;
-    color: #311;
+.dropclick-prevent {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
 }
 
+.dropclick-unactivated {
+    background-color: rgb(52, 160, 70);
+}
 
-.responsive button.slick-previous {
-    width: 50px;
-    height: 50px;
+.dropclick h3 {
+    flex: 1;
+}
+
+.dropclick .arrow {
+    width: 20px;
+    margin: 5px;
+    margin-top: 10px;
+}
+
+.work-likes {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.work-likes form {
+    flex: 1;
+}
+
+.work-likes button[type=submit] {
+    background-color: inherit;
+    border: none;
+    border-radius: 3px;
+    border-bottom-right-radius: 0px;
+    border-top-right-radius: 0px;
+    cursor:pointer;
+    font-size: .75em;
+    width: 100%;
+    padding: 7px 0px;
+    margin: 0px;
+}
+
+.work-likes button[type=submit].activated {
     color: #333;
+    background: #ececec;
+    border: 2px solid #f3f3f3;
+    border-right: 1px solid #ddd;
 }
 
-.responsive button.slick-next {
-    width: 50px;
-    height: 50px;
-    color: #333;
-}
-
-
-.responsive button.slick-prev:before, .slick-next:before {
+.work-likes button[type=submit].unactivated {
     color: #fff;
+    background: rgb(62, 169, 79);
+    border: 2px solid #41a552;
+    border-right: 1px solid rgb(67, 152, 80);
+}
+
+.work-likes span.activated-check {
+    color: rgb(33, 136, 50);
+    margin-right: 2px;
+}
+
+
+.manageCovers {
+    max-width: 140px;
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: 3px;
+    border: 3px solid #333;
+    background-color: #ffffff;
+    color: #333;
+}
+
+.manageCoversContainer {
+    width: 100%;
+    z-index: 99999;
+    position: absolute;
+    bottom: 15px;
+}
+
+.manageCoversContainer a {
+    display: block;
+    text-decoration: none;
+    opacity: 0;
+}
+
+.manageCoversContainer a:hover, .manageCoversContainer a:focus {
+    text-decoration: underline;
+}
+
+.illustration:hover .manageCoversContainer a, .manageCoversContainer a:focus {
+    opacity: .9;
+}
+
+.manageCovers a {
+    color: #333;
+}
+
+div.tools-override {
+    width: 180px;
+    min-height: 45px;
+    padding-left: 0px;
+    margin: 0px auto;
+    padding: 0px;
+}
+
+div.tools-override .Tools .btn-notice{
+    width: 160px;
+    margin-left: 45px;
+    font-size: .9em;
+}
+
+.user-book-options div.tools-override div.dropit {
+    margin: 0px;
+    position: relative;
+    width: auto;
+}
+
+/* Author sidebar */
+.Tools #widget-add.old-style-lists div.dropper {
+    margin: 0px;
+    position: absolute;
+    top: 35px;
+    left: 10px;
+    padding: 5px 10px;
+    width: 209px;
+}
+
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown {
+    margin: 0px;
+    left: 0px;
+    width: 157px;
+    top: 0px;
+    padding: 0px 10px;
+}
+
+.Tools #widget-add.old-style-lists .dropclick {
+    text-decoration: none;
+}
+
+.Tools #widget-add.old-style-lists .dropclick h3 {
+    font-size: .75em;
+    text-align: center;
+    padding: 8px 10px;
+}
+
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow-unactivated {
+    background-position: 6px -7px;
+}
+
+.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow.up {
+    background-position: -22px -7px;
+}
+
+#widget-add.old-style-lists div.dropper {
+    margin: 0px;
+    top: 0px;
+    position: absolute;
+}
+
+.user-book-options .Tools {
+    margin: 0 auto;
+}
+
+.user-book-options .Tools .btn-notice {
+}
+
+div.tools-override div.dropper {
+    z-index:10000;
+    width: 180px;
+    top: unset;
+    left: -1px;
+}
+
+.tools-override #widget-lists {
+    margin: 0px;
+    clear: both;
+}
+
+.tools-override #widget-lists li {
+    padding-left: 0px;
+}
+
+.dropper div.dropdown {
+}
+
+.editionCover .illustration {
+    margin-bottom: 5px;
+}
+
+.Tools div.btn-notice p {
+    font-size: 1em;
+}
+
+.Tools div.btn-notice p.primary-cta {
+    text-align: center;
+}
+
+.Tools div.btn-notice p.primary-cta a {
+    display: block;
+}
+
+.Tools div.btn-notice input {
+    display: block;
+    width: 100%;
+}
+.Tools div.btn-notice p a.wait-btn, .Tools div.btn-notice p a.borrow-btn {
+    display: block;
+    text-align: center;
+    margin: 0 auto;
+    color: #fff;
+}
+
+.Tools div.btn-notice p a.borrow-btn, #read-options input[type=submit].wait-btn, #read-options input[type=submit].unwait-btn {
+    font-size: 14px;
+    padding: 7px 20px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+.Tools .check-availability {
+    padding: 10px;
+    border-top: 1px solid #eee;
+    border-radius: 3px;
+}
+
+.Tools .check-availability p {
+    padding-top: 7px;
+}
+
+.Tools .check-availability p.check-other-editions {
+    text-align: center;
+}
+
+.Tools .check-availability p.check-other-editions a {
+    font-size: 1em;
+    text-decoration: underline;
+}
+
+Tools .check-availability a {
+    font-size: 1.3em;
+    color: #036;
+}
+
+#read.panel {
+    margin-bottom: 10px;
+}
+
+div.Tools .cta-section {
+    padding: 5px 5px 0px 5px;
+    margin: 0px;
+}
+
+div.Tools div.panel .cta-section p {
+    margin: 0px;
+}
+
+.cta-section-title {
+    font-weight: bold;
+}
+
+p.print-disabled-download {
+    text-align: center;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.Tools .print-disabled-download a {
+    font-size: .8em;
+    text-decoration: underline;
+}
+
+.daisy-lock {
+    position: relative;
+    top: 1px;
+}
+
+.lists-loader {
+    position: absolute;
+    margin-left: 70px;
+    height: 20px;
+    padding: 2px;
+    background: rgba(255, 255, 255, 0.58);
+    border-radius: 15px;
+    margin-top: 3px;
+}
+
+.decorations button {
+    cursor: pointer;
+    text-align: center;
+    background: inherit;
+    border: none;
+    padding: 0px;
+    color: #036daa;
+    border-bottom: 1px solid #036daa;
+    margin-bottom: 15px;
+
+}
+
+.Tools div.btn-notice a.worldcat-link {
+    text-decoration: underline;
+    display: block;
+}
+
+.Tools div.btn-notice span.worldcat-attribution {
+    font-size: .8em;
+    display: block;
+}
+
+.related-books {
+    border-top: 1px solid #eee;
+    margin-top: 15px;
+    clear: both;
+}
+
+.related-books h2 {
+    margin-top: 15px;
+}
+
+.nostyle-btn {
+    border: none;
+    background: none;
+    cursor:pointer;
+    color: #333;
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+    font-size: .8em;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.read-statuses form:last-child  button.nostyle-btn {
+    border: none;
+}
+
+.nostyle-btn:hover {
+    color: #000;
+    background-color: #fff;
+}
+
+.read-statuses {
+    border-bottom: 1px solid #eee;
+}
+
+ul#myreads-paginator {
+    margin-top: 10px;
+}
+
+ul#myreads-paginator li.selected {
+    background-color: #efefef;
+}
+
+ul#myreads-paginator li {
+    text-align: center;
+    display: inline;
+    list-style-type: none;
+    color: #000;
+    padding: 7px;
+    border: 1px solid #ddd;
+    margin-right: 10px;
+    background-color: #fff;
+}
+
+ul#myreads-paginator li:hover {
+    background-color: #036daa;
+    color: #fff;
+}
+
+ul#myreads-paginator li.selected:hover {
+    background-color: #efefef;
+}
+
+.myreads-options {
+    margin-bottom: 5px;
+    clear: both;
+}
+
+/* My books ... */
+
+#mybooks {
+    font-size: .9em;
+}
+
+#mybooks .mybooks-menu ul li {
+    list-style: none;
+}
+
+#mybooks .mybooks-menu ul li a.selected {
+    background-color: #d8e2ed;
+}
+
+.mybooks {
+    border-top: 1px solid #eee;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    margin-top: 10px;
+}
+
+.mybooks-menu {
+    padding-right: 10px;
+    border-right: 1px solid #eee;
+    max-width: 200px;
+}
+
+.mybooks-menu a {
+    text-decoration: none;
+    color: #036daa;
+}
+
+.mybooks-menu ul.preset-lists, .mybooks-menu ul.loans-lists, .mybooks-menu ul.user-lists {
+    padding: 10px;
+    padding-left: 0px;
+    border-bottom: 1px solid #eee;
+}
+
+.mybooks-menu ul.user-lists {
+}
+
+.mybooks-menu ul.user-lists .list-overflow {
+    max-height: 150px;
+    overflow: auto;
+}
+
+.mybooks-menu ul:last-child {
+    border-bottom: none;
+}
+
+.mybooks-menu ul li a {
+    display: block;
+    padding: 5px;
+}
+
+.mybooks-menu ul.preset-lists li a:selected, .mybooks-menu ul.loans-lists li a:selected {
+    background-color: #e5f1ff;
+    border-radius: 3px;
+}
+
+.mybooks-menu ul li.subsection {
+    font-weight: bold;
+    padding: 5px 0px;
+}
+
+.mybooks-list {
+    flex: 1;
+    padding: 10px;
+}
+
+.user-lists a {
+    text-decoration: underline;
+}
+
+.mybooks-list h2 {
+    padding: 5px 0px;
+    margin: 0px;
+    line-height: 1.5em;
+    margin-bottom: 5px;
+}
+
+.mybooks-list h2.subtitle {
+    font-weight: normal;
+}
+
+.mybooks-list .loadmore {
+    text-align: center;
+}
+
+.mybooks-list-options {
+    padding: 10px;
+}
+
+.mybooks-list-options p {
+    margin: 0px;
+}
+
+.mybooks-list-options h3 {
+    padding: 5px 0px;
+    margin: 0px;
+    line-height: 1.5em;
+    margin-bottom: 5px;
+}
+
+.list-books .book {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+.reading-log-lite {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
+
+.reading-log-lite select {
+    background-color: #fff;
+    color: #333;
+    border: 1px solid #c3c3c3;
+    border-radius: 4px;
+    height: 2.5em;
+    width: 100%;
+}
+
+.reading-log-lite button {
+    border-radius: 4px;
+    color: #fff;
+    background: rgb(62, 169, 79);
+    border: 2px solid #41a552;
+    border-right: 1px solid rgb(67, 152, 80);
+    height: 2.5em;
+    padding: 0px 10px;
+}
+
+.reading-log-lite span.activated-check {
+    color: rgb(33, 136, 50);
+    margin-right: 2px;
+}
+
+.reading-lists-title {
+    padding: 10px;
 }

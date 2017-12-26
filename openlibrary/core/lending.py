@@ -54,6 +54,7 @@ config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
+config_ia_users_loan_history = None
 config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -72,7 +73,8 @@ def setup(config):
         config_http_request_timeout, config_amz_api, amazon_api, \
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
-        config_http_request_timeout, config_ia_s3_auth_url
+        config_http_request_timeout, config_ia_s3_auth_url, \
+        config_ia_users_loan_history
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -84,8 +86,9 @@ def setup(config):
     config_ia_ol_shared_key = config.get('ia_ol_shared_key')
     config_ia_ol_auth_key = config.get('ia_ol_auth_key')
     config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
-    config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
+    config_ia_s3_auth_url = config.get('ia_s3_auth_url')
+    config_ia_users_loan_history = config.get('ia_users_loan_history')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
     config_amz_api = config.get('amazon_api')
@@ -180,7 +183,6 @@ def get_available(limit=None, page=1, subject=None, query=None,
         for item in items:
             if item.get('openlibrary_work'):
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        keys = web.ctx.site.things({"type": "/type/edition", "ocaid": results.values()})
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
     except Exception as e:

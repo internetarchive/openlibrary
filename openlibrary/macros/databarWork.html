@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, editions_page=False)
 
 $if page.type.key == '/type/work' and page.edition_count == 1:
     $ edit_url = page.editions[0].key + '?m=edit'
@@ -7,6 +7,7 @@ $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
+$ work = page.works and page.works[0]
 $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 $ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
@@ -49,79 +50,59 @@ $if isbn_10 and not asin:
 $ library = None
 <style type="text/css">
 #edit-identifiers {
-                    font-size: 75%;
-                    }
+  font-size: 75%;
+}
 .hidden {
-          display:none;
- }
-
+  display:none;
+}
 </style>
 
 <div class="Tools">
-<div id="read">
-$ collections = set()
-$ meta_fields = page.get_ia_meta_fields()
-$if meta_fields:
-    $ collections = meta_fields.get('collection', [])
-    $ contrib = meta_fields.get('contributor')
-    $if 'inlibrary' in collections and 'inlibrary' in ctx.features:
-        $ library = get_library()
+  <div id="read">
+  $ collections = set()
+  $ meta_fields = page.get_ia_meta_fields()
+    $if meta_fields:
+      $ collections = meta_fields.get('collection', [])
+      $ contrib = meta_fields.get('contributor')
+      $if 'inlibrary' in collections and 'inlibrary' in ctx.features:
+          $ library = get_library()
 
+  $if page.volumes:
+      <h3 class="header">
+          <span class="icon read"></span>
+          <span class="head">Browse</span>
+      </h3>
+      $for v in page.volumes:
+          $if v.ia_id != "-":
+              <div class="panel">
+                  <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
+              </div>
 
-$if page.volumes:
-    <h3 class="header">
-        <span class="icon read"></span>
-        <span class="head">Browse</span>
-    </h3>
-    $for v in page.volumes:
-        $if v.ia_id != "-":
-            <div class="panel">
-                <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
-            </div>
-$elif page.is_access_restricted():
-        <h3 class="header">
-            <span class="icon read"></span>
-            <span class="head">Read</span>
-        </h3>
-        <div class="panel">
-            <p><a href="$page.url('/daisy')" title="Download Protected DAISY" class="plain"><meta itemprop="bookFormat" content="EBook/DAISY3"/><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Download Protected DAISY"/></a></p>
-        </div>
-$elif page.get('ocaid'):
-        <h3 class="header">
-            <span class="icon read"></span>
-            <span class="head">Read</span>
-        </h3>
+  $elif page.get('ocaid') and not page.is_access_restricted():
         <div class="panel" id="readBooks">
-            <p><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn"><strong>Read online</strong></a></p>
+          <div class="btn-notice" id="read-options">
+            <p class="primary-cta"><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn">Read eBook</a></p>
             $if downloadbook:
                 <p><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></p>
             $if djvutxt:
                 <p><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></p>
             $if daisy:
-                <p><a href="$page.url('/daisy')" title="Download a DAISY file from Internet Archive"><meta itemprop="bookFormat" content="EBook/DAISY3"/><meta itemprop="accessibilityFeature" content="unlocked"/>DAISY</a></p>
+                <p><a href="$daisy" title="Download a DAISY file from Internet Archive"><meta itemprop="bookFormat" content="EBook/DAISY3"/><meta itemprop="accessibilityFeature" content="unlocked"/>DAISY</a></p>
             $if epub:
                 <p><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></p>
             $if mobi:
                 <p><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a>
+          </div>
         </div>
-$else:
-        <h3 class="closed">
-            <span class="icon readinact"></span>
-            <span class="head">Read</span>
-	</h3>
-	<div class="panel">
+  $elif not page.is_access_restricted():
+        <div class="panel">
             <p class="smaller">No readable version available.</p>
-	</div>
+        </div>
+  </div>
 
-</div>
-
-$if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
+  $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
     <div>
-        <h3 class="header">
-            <span class="icon borrow"></span>
-            <span class="head">Borrow</span>
-	</h3>
-	<div class="panel">
+        <div class="panel">
             $if 'lendinglibrary' in collections or library:
                 $ current_and_available_loans = page.get_current_and_available_loans()
                 $ user_loan = None
@@ -130,7 +111,9 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                         $if current_loan['user'] == ctx.user.key:
                             $ user_loan = current_loan
                             $ break
-                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>')
+
+                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>', editions_page=editions_page, isbn=isbn, oclc_numbers=oclc_numbers)
+
                 $# Added here instead of LoanStatus to avoid the js being bound to every item
                 $# in a work's edition listing
                 <script type="text/javascript">
@@ -142,25 +125,6 @@ $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not
                     });
                 });
                 </script>
-
-                $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-                $if checkedout and not user_loan:
-                    $ work = page.works and page.works[0]
-                    $if work and work.edition_count > 1:
-                        <p class="btn-notice">
-                            <span class="smaller">Other editions of this book may be available.</span>
-                            </br>
-                            <a data-ol-link-track="EditionPageCheckOtherEditionsButton" href="$work.url()" class="check-btn">Check Other Editions</a>
-                        </p>
-
-            <p>
-                $if oclc_numbers:
-                    <p><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Check WorldCat for an edition near you">
-                $elif isbn:
-                    <a href="$worldcat.replace('XXX', isbn)" title="Check WorldCat for an edition near you">
-
-		Find a physical copy near you</a> &mdash; <span class="smaller">powered by <a href="https://worldcat.org">WorldCat</a></span>
-            </p>
         </div>
     </div>
 $else:
@@ -168,10 +132,10 @@ $else:
         <h3 class="closed">
             <span class="icon borrowinact"></span>
             <span class="head">Borrow</span>
-	</h3>
-	<div class="panel">
+        </h3>
+        <div class="panel">
             <p class="smaller">Try a <a href="https://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
-	</div>
+        </div>
     </div>
 
 $if isbn or asin or scribd:
@@ -189,14 +153,29 @@ $else:
         <h3 class="closed">
             <span class="icon buyinact"></span>
             <span class="head">Buy</span>
-	</h3>
-	<div class="panel">
+        </h3>
+        <div class="panel">
             $if page.is_fake_record():
                 <p class="smaller gray"><span id="isbnadd">Add an ISBN</span> <span class="smaller">to link to booksellers</span></p>
-	    $else:
+            $else:
                 <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> <span class="smaller">to link to booksellers</span></p>
-	</div>
+        </div>
     </div>
 
+$ links = page.get_links()
+$if links:
+  <div id="external-links">
+    <h3 class="header">
+      <span class="icon download"></span>
+      <span class="head">External Links</span>
+    </h3>
+    <div class="panel">
+      <ul class="booklinks sansserif">
+        $for link in links:
+          <li><a href="$link.url">$link.title</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="clearfix"></div>
+
 </div>
-<div class="clearfix"></div>

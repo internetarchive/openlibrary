@@ -12,6 +12,7 @@ import openlibrary.core.helpers as h
 
 from openlibrary.plugins.worksearch import subjects
 
+
 class lists_home(delegate.page):
     path = "/lists"
 

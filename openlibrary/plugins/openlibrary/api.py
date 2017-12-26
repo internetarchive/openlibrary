@@ -8,8 +8,10 @@ import web
 import simplejson
 
 from infogami.utils import delegate
-from openlibrary.core import ia, lending, cache, helpers as h
-from openlibrary.plugins.openlibrary import home
+from infogami.utils.view import render_template
+from openlibrary import accounts
+from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.core import ia, db, models, lending, cache, helpers as h
 
 
 class book_availability(delegate.page):
@@ -41,6 +43,58 @@ class book_availability(delegate.page):
             lending.get_availability_of_ocaids(ids) if id_type == "identifier"
             else []
         )
+
+# The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
+# not a value tied to this logged in user. This is being used as debugging.
+
+class work_bookshelves(delegate.page):
+    path = "/works/OL(\d+)W/bookshelves"
+    encoding = "json"
+
+    # GET  # TODO, the bookshelves this book is on
+    def GET(self, work_id):
+        shelves = models.Bookshelves.get_works_shelves(work_id)
+        for shelf in shelves:
+            del shelf['username']
+        return delegate.RawText(simplejson.dumps({
+            'shelves': list(shelves)
+        }), content_type="application/json")
+
+    def POST(self, work_id):
+        user = accounts.get_current_user()
+        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
+        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+        current_status = models.Bookshelves.get_users_read_status_of_work(username, work_id)
+
+        try:
+            bookshelf_id = int(i.bookshelf_id)
+            if bookshelf_id not in models.Bookshelves.PRESET_BOOKSHELVES.values():
+                raise ValueError
+        except ValueError:
+            return delegate.RawText(simplejson.dumps({
+                'error': 'Invalid bookshelf'
+            }), content_type="application/json")
+
+        if bookshelf_id == current_status:
+            work_bookshelf = models.Bookshelves.remove(
+                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
+
+        else:
+            edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+            work_bookshelf = models.Bookshelves.add(
+                username=username, work_id=work_id, edition_id=edition_id,
+                bookshelf_id=bookshelf_id, upsert=True)
+
+        if i.redir:
+            raise web.seeother(key)
+        return delegate.RawText(simplejson.dumps({
+            'bookshelves_affected': work_bookshelf
+        }), content_type="application/json")
 
 
 class work_editions(delegate.page):

@@ -1,0 +1,19 @@
+$def with (work, read_status)
+
+<form method="POST" action="$(work.key)/bookshelves.json?debug=true" class="reading-log-lite">
+  <select name="bookshelf_id">
+    $if read_status == 3:
+      <option value="3"><span class="activated-check">✓</span> Already Read</option>
+      <option value="1">Want to Read</option>
+      <option value="2">Currently Read</option>
+    $elif read_status == 2:
+      <option value="2"><span class="activated-check">✓</span> Currently Reading</option>
+      <option value="1">Want to Read</option>
+      <option value="3">Already Read</option>
+    $else:
+      <option value="1"><span class="activated-check">✓</span> Want to Read</option>
+      <option value="2">Currently Reading</option>
+      <option value="3">Already Read</option>
+    <option value="$(read_status)">Remove</option>
+  </select>
+</form>
