@@ -10,54 +10,31 @@ $def radiobuttons(name, options, value):
         <label for="$id">$v</label>
         &nbsp;&nbsp;
 
+$jsdef render_language_autocomplete_item(item):
+    <div class="ac_language" title="$_('Select this language')">
+        <span class="name">$item.name</span>
+    </div>
+
+$# Render the ith language input field
 $jsdef render_language(i, language):
-    <div class="input" id="languages-input-$i">
+    <div class="input">
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
-      <br/><a href="javascript:;" class="add small librarian hidden">Add another language?</a>
+      <br/><a href="javascript:;" class="add small">Add another language?</a>
     </div>
 
 <script type="text/javascript">
-  <!--
-  \$(function() {
-      function update_visible() {
-          if (\$("#languages div.input").length > 1) {
-              \$("#languages a.remove").show();
-          }
-          else {
-              \$("#languages a.remove").hide();
-          }
-
-          $# The add link should be made visible only if both librarian-on and it is the last element.
-          \$("#languages a.add:not(:last)").attr("style", "display: none");
-          \$("#languages a.add:last").attr("style", "");
-
-          if (\$("#translated-from").hasClass("librarian-on")) {
-              \$("#languages a.add:last").addClass("librarian-on");
-          }
-      }
-      update_visible();
-
-     \$("#languages a.remove").live("click", function() {
-         if (\$("#languages div.input").length > 1) {
-             \$(this).closest("div.input").remove();
-             update_visible();
-         }
-     });
-
-     \$("#languages a.add").live("click", function(event) {
-         event.preventDefault();
-
-         var n = \$("#languages div.input:last").attr("id").substr("languages-input-".length);
-         n = parseInt(n);
-
-         \$("#languages").append(render_language(n+1, {key:"", name: ""}));
-         \$("#languages input.language-autocomplete:last").language_autocomplete();
-         update_visible();
-     });
-  });
-  -->
+\$(function() {
+    \$("#languages").setup_multi_input_autocomplete(
+        "input.language-autocomplete",
+        render_language,
+        { endpoint: "/languages/_autocomplete" },
+        {
+            max: 6,
+            formatItem: render_language_autocomplete_item
+        });
+});
 </script>
 
 

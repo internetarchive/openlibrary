@@ -638,129 +638,44 @@ div.box {
 td.l {padding-left: 12px; width: 50%;}
 td.r {padding-left: 12px; width: 50%;}
 ins { background: #adc07f; text-decoration: none; }
-del { color: #e44028; text-decoration: line-through; }.ac_results {
-        padding: 0px;
-        border: 1px solid black;
-        background-color: white;
-        overflow: hidden;
-        z-index: 99999;
-}
+del { color: #e44028; text-decoration: line-through; }
 
-.ac_results ul {
-        width: 100%;
-        list-style-position: outside;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-}
+/* AUTHOR AUTOCOMPLETE */
 
-.ac_results li {
-        margin: 0px;
-        padding: 5px;
-        cursor: default;
-        display: block;
-        /*
-        if width will be 100% horizontal scrollbar will apear
-        when scroll mode will be used
-        */
-        /*width: 100%;*/
-        font: menu;
-        font-size: 12px;
-        /*
-        it is very important, if line-height not set or set
-        in relative units scroll will be broken in firefox
-        */
-        line-height: 16px;
-        overflow: hidden;
-}
-
-.ac_loading {
-        background: white url('/images/indicator.gif') right center no-repeat;
-}
-
-.ac_odd {
-        background-color: #eee;
-}
-
-.ac_over {
-        background-color: #0A246A;
-        color: white;
-}
-
-/* Customizations */
-
-.ac_results {
-    position: absolute;
-    display: none;
-    top: -5px;
-    width: 493px;
-    max-height: 290px;
-    background-color: #fff;
-    border: 1px solid #999;
-    opacity: .95;
-    text-align: left;
-}
-
-li.ac_over {
-    background-color: #fffdcd;
-    cursor: pointer;
-}
-
-.ac_results .ac_author {
-    line-height: normal;
-    color: #999;
-}
-.ac_results .ac_author:hover {
-    background-color: #fffdcd;
-    cursor: pointer;
-}
-.ac_results .name {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+.ac_results .ac_author .name {
     font-size: 16px;
     display: block;
     color: #000;
 }
-.ac_results .olid {
+.ac_results .ac_author .olid {
     font-family: monospace;
 }
-.ac_results .books {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+.ac_results .ac_author .books {
     font-size: 12px;
     color: #35672e;
     font-weight: 700;
     padding: 0;
 }
-.ac_results .work {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+.ac_results .ac_author .work {
     font-size: 11px;
 }
-.ac_results .work i {
+.ac_results .ac_author .work i {
     color: #615132;
 }
-.ac_results .subject {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+.ac_results .ac_author .subject {
     font-size: 11px;
 }
-.ac_results .action {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+.ac_results .ac_author .action {
     font-size: 9px;
     color: #748d36;
 }
 
-.ac_even, .ac_odd {
-    background-color: inherit;
+/* LANGUAGE AUTOCOMPLETE */
+.ac_results .ac_language {
+    font-size: 16px;
+    color: #000;
 }
 
-input.accept {
-}
-input.reject {
-}
-
-.ac_addnew {
-    border-top: 1px solid #ccc;
-    padding: 5px 0 0!important;
-    margin-top: -5px;
-}
 /* RESET EVERYTHING */
 
 body,div,dl,dt,dd,ul,ol,li,pre,code,form,fieldset,legend,input,textarea,th,td{margin:0;padding:0;}

@@ -61,48 +61,15 @@
     text-align: left;
 }
 
-li.ac_over { 
-    background-color: #fffdcd;
-    cursor: pointer; 
-}
-
-.ac_results .ac_author {
+.ac_results ul li {
+    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+    cursor: pointer;
+    color: #999;
     line-height: normal;
 }
-.ac_results .ac_author:hover {
+
+.ac_results li.ac_over {
     background-color: #fffdcd;
-    cursor: pointer;
-}
-.ac_results .name {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    font-size: 16px;
-    display: block;
-    color: #000;
-}
-.ac_results .books {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    font-size: 12px;
-    color: #35672e;
-    font-weight: 700;
-    padding: 0;
-}
-.ac_results .work {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    font-size: 11px;
-    color: #999;
-}
-.ac_results .work i {
-    color: #615132;
-}
-.ac_results .subject {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    font-size: 11px;
-    color: #999;
-}
-.ac_results .action {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    font-size: 9px;
-    color: #748d36;
 }
 
 .ac_even, .ac_odd {
