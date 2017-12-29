@@ -24,6 +24,35 @@ $jsdef render_language(i, language):
       <br/><a href="javascript:;" class="add small">Add another language?</a>
     </div>
 
+$# Render the ith work input field
+$jsdef render_work_field(i, work):
+    <div class="input">
+        <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.title"/>
+        <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
+        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this work')">[x]</a>
+        $# Limit to only 1 work
+        $# <a href="javascript:;" class="add hidden">Add another work?</a>
+    </div>
+
+$jsdef render_work_autocomplete_item(item):
+    <div class="ac_work" title="Select this work">
+        <span class="name">
+            <span class="title">$item.title</span>
+            $if item.first_publish_year:
+            <span class="first_publish_year">($item.first_publish_year)</span>
+        </span>
+        <span class="olid">$item.key.split('/')[2]</span>
+        &bull;
+        $if item.edition_count == 1:
+            <span class="edition_count">$item.edition_count edition</span>
+        $else:
+            <span class="edition_count">$item.edition_count editions</span>
+        <span class="byline">
+            $if item.author_name:
+                by <span class="authors">${', '.join(item.author_name)}</span>
+        </span>
+    </div>
+
 <script type="text/javascript">
 \$(function() {
     \$("#languages").setup_multi_input_autocomplete(
@@ -33,6 +62,18 @@ $jsdef render_language(i, language):
         {
             max: 6,
             formatItem: render_language_autocomplete_item
+        });
+
+    \$("#works").setup_multi_input_autocomplete(
+        "input.work-autocomplete",
+        render_work_field,
+        { endpoint: "/works/_autocomplete" },
+        {
+            minChars: 2,
+            max: 11,
+            matchSubset: false,
+            autoFill: false,
+            formatItem: render_work_autocomplete_item
         });
 });
 </script>
@@ -116,10 +157,28 @@ $jsdef render_language(i, language):
 
 <fieldset class="major">
     <legend>$_("This Edition")</legend>
+
     <div class="formBack">
 
-    <div class="formBackLeft">
+        <div class="formElement librarian hidden">
+            <div class="label">
+                <label for="edition--works--$0">$_("What work is this an edition of?")</label>
+                <span class="tip">
+                    $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
+                    <br/>
+                    $:_("WARNING: Any edits made to the work from this page will be applied to the <b>old work</b>.")
+                </span>
+            </div>
+            <div id="works">
+                $if book.works:
+                    $for i, work in enumerate(book.works):
+                        $:render_work_field(i, work)
+                $else:
+                    $:render_work_field(0, storage(title="", key=""))
+            </div>
+        </div>
 
+    <div class="formBackLeft">
         <div class="formElement">
             <div class="label">
                 <label for="edition-title">Title</label>

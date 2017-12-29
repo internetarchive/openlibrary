@@ -65,3 +65,8 @@ author_olid_re = re.compile(r'^OL\d+A$')
 def is_author_olid(s):
     """Case sensitive check for strings like 'OL123A'."""
     return bool(author_olid_re.match(s))
+
+work_olid_re = re.compile(r'^OL\d+W$')
+def is_work_olid(s):
+    """Case sensitive check for strings like 'OL123W'."""
+    return bool(work_olid_re.match(s))
