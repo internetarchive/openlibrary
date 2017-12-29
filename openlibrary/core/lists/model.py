@@ -97,12 +97,17 @@ class ListMixin:
 
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
-        # Anand - Dec 2014: Disabled it is wasn't working from long time.
+        edition_keys = set([
+                seed.key for seed in self.seeds
+                if seed and seed.type.key == '/type/edition'])
+        
+        editions = web.ctx.site.get_many(list(edition_keys))
+        
         return {
-            "count": 0,
+            "count": len(editions),
             "offset": offset,
             "limit": limit,
-            "editions": []
+            "editions": editions
         }
         # TODO
         # We should be able to get the editions from solr and return that.
