@@ -20,25 +20,9 @@ re_to_esc = re.compile(r'[\[\]:]')
 class edition_search(_edition_search):
     path = "/search/edition"
 
-def get_solr_select_url(host, core):
-    if config.get('single_core_solr'):
-        return "http://%s/solr/select" % host
-    else:
-        return "http://%s/solr/%s/select" % (host, core)
-
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
-
-    solr_select_url = get_solr_select_url(solr_host, 'works')
-
-    solr_subject_host = config.plugin_worksearch.get('subject_solr', 'localhost')
-    solr_subject_select_url = get_solr_select_url(solr_subject_host, 'subjects')
-
-    solr_author_host = config.plugin_worksearch.get('author_solr', 'localhost')
-    solr_author_select_url = get_solr_select_url(solr_author_host, 'authors')
-
-    solr_edition_host = config.plugin_worksearch.get('edition_solr', 'localhost')
-    solr_edition_select_url = get_solr_select_url(solr_edition_host, 'editions')
+    solr_select_url = "http://%s/solr/select" % solr_host
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
@@ -221,7 +205,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
             'cover_i','cover_edition_key', 'public_scan_b',
             'lending_edition_s', 'ia_collection_s']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?q.op=AND&start=%d&rows=%d&fl=%s" % (offset, rows, fl)
+    solr_select = solr_select_url + "?fq=type:work&q.op=AND&start=%d&rows=%d&fl=%s" % (offset, rows, fl)
     if q_list:
         if use_dismax:
             q = web.urlquote(' '.join(q_list))
@@ -264,10 +248,6 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         solr_select += "&sort=" + url_quote(sort)
 
     solr_select += '&wt=' + url_quote(param.get('wt', 'standard'))
-
-    # For single-core solr, filter the results by type:work
-    if config.get("single_core_solr"):
-        solr_select += "&fq=type:work"
 
     solr_result = execute_solr_query(solr_select)
     if solr_result is None:
@@ -370,10 +350,8 @@ def get_doc(doc): # called from work_search template
         subtitle = work_subtitle,
         cover_edition_key = (cover.text if cover is not None else None),
     )
-    if config.get("single_core_solr"):
-        doc.url = doc.key + '/' + urlsafe(doc.title)
-    else:
-        doc.url = '/works/' + doc.key + '/' + urlsafe(doc.title)
+
+    doc.url = doc.key + '/' + urlsafe(doc.title)
 
     if not doc.public_scan and doc.lending_identifier:
         store_doc = web.ctx.site.store.get("ebooks/" + doc.lending_identifier) or {}
@@ -397,22 +375,16 @@ re_year_range = re.compile('^(\d{4})-(\d{4})$')
 
 def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
-
-    if config.get("single_core_solr"):
-        key = w['key']
-    else:
-        key = '/works/' + w['key']
-
     obj = dict(
         authors = [web.storage(key='/authors/' + k, name=n) for k, n in zip(w['author_key'], w['author_name'])],
         edition_count = w['edition_count'],
-        key = key,
+        key = w['key'],
         title = w['title'],
         public_scan = w.get('public_scan_b', bool(ia)),
         lending_edition = w.get('lending_edition_s', ''),
         lending_identifier = w.get('lending_identifier_s', ''),
         collections = set(w['ia_collection_s'].split(';') if 'ia_collection_s' in w else []),
-        url = key + '/' + urlsafe(w['title']),
+        url = w['key'] + '/' + urlsafe(w['title']),
         cover_edition_key = w.get('cover_edition_key'),
         first_publish_year = (w['first_publish_year'] if 'first_publish_year' in w else None),
         ia = w.get('ia', []),
@@ -527,9 +499,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
-    if config.get("single_core_solr"):
-        solr_select += "&fq=type:work"
+    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
@@ -655,40 +625,29 @@ class subject_search(delegate.page):
         return render_template('search/subjects.tmpl', self.get_results)
 
     def get_results(self, q, offset=0, limit=100):
-        if config.get('single_core_solr'):
-            valid_fields = ['key', 'name', 'subject_type', 'work_count']
-        else:
-            valid_fields = ['key', 'name', 'type', 'count']
-
+        valid_fields = ['key', 'name', 'subject_type', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
         params = {
+            "fq": "type:subject",
             "q.op": "AND",
             "q": q,
             "start": offset,
             "rows": limit,
             "fl": ",".join(valid_fields),
             "qt": "standard",
-            "wt": "json"
+            "wt": "json",
+            "sort": "work_count desc"
         }
-        if config.get('single_core_solr'):
-            params['fq'] = 'type:subject'
-            params['sort'] = 'work_count desc'
-        else:
-            params['sort'] = 'count desc'
 
-        solr_select = solr_subject_select_url + "?" + urllib.urlencode(params, 'utf-8')
+        solr_select = solr_select_url + "?" + urllib.urlencode(params, 'utf-8')
         results = run_solr_search(solr_select)
         response = results['response']
 
-        if config.get('single_core_solr'):
-            response['docs'] = [self.process_doc(doc) for doc in response['docs']]
+        for doc in response['docs']:
+            doc['type'] = doc.get('subject_type', 'subject')
+            doc['count'] = doc.get('work_count', 0)
 
         return results
-
-    def process_doc(self, doc):
-        doc['type'] = doc.get('subject_type', 'subject')
-        doc['count'] = doc.get('work_count', 0)
-        return doc
 
 class author_search(delegate.page):
     path = '/search/authors'
@@ -699,20 +658,15 @@ class author_search(delegate.page):
         valid_fields = ['key', 'name', 'alternate_names', 'birth_date', 'death_date', 'date', 'work_count']
         q = escape_colon(escape_bracket(q), valid_fields)
 
-        solr_select = solr_author_select_url + "?q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
+        solr_select = solr_select_url + "?fq=type:author&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
         solr_select += '&sort=work_count+desc'
-
-        if config.get('single_core_solr'):
-            solr_select += '&fq=type:author'
-
         d = run_solr_search(solr_select)
 
-        if config.get('single_core_solr'):
-            docs = d.get('response', {}).get('docs', [])
-            for doc in docs:
-                # replace /authors/OL1A with OL1A
-                # The template still expects the key to be in the old format
-                doc['key'] = doc['key'].split("/")[-1]
+        docs = d.get('response', {}).get('docs', [])
+        for doc in docs:
+            # replace /authors/OL1A with OL1A
+            # The template still expects the key to be in the old format
+            doc['key'] = doc['key'].split("/")[-1]
         return d
 
 class author_search_json(author_search):
@@ -734,12 +688,9 @@ class edition_search(delegate.page):
     def GET(self):
         def get_results(q, offset=0, limit=100):
             q = escape_bracket(q)
-            solr_select = solr_edition_select_url + "?q.op=AND&q=%s&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-
-            if config.get('single_core_solr'):
-                solr_select += '&fq=type:edition'
-
+            solr_select = solr_select_url + "?fq=type:edition&q.op=AND&q=%s&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
             return run_solr_search(solr_select)
+
         return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):

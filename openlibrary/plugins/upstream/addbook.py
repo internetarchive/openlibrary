@@ -34,20 +34,8 @@ logger = logging.getLogger("openlibrary.book")
 SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
 
-def get_works_solr():
-    if config.get('single_core_solr'):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
-    else:
-        base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
-
-    return Solr(base_url)
-
-
-def get_authors_solr():
-    if config.get('single_core_solr'):
-        base_url = "http://%s/solr" % config.plugin_worksearch.get('author_solr')
-    else:
-        base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
+def get_solr():
+    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
     return Solr(base_url)
 
 
@@ -223,7 +211,7 @@ class addbook(delegate.page):
         if edition:
             return edition
 
-        solr = get_works_solr()
+        solr = get_solr()
         author_key = i.author_key and i.author_key.split("/")[-1]
         result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
 
@@ -266,7 +254,7 @@ class addbook(delegate.page):
                 id_value = id_value.replace('-', '')
             q[mapping[id_name]] = id_value
 
-        solr = get_works_solr()
+        solr = get_solr()
         result = solr.select(q, doc_wrapper=make_work, q_op="AND")
 
         if len(result.docs) > 1:
@@ -820,7 +808,7 @@ class works_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        solr = get_works_solr()
+        solr = get_solr()
 
         q = solr.escape(i.q).strip()
         if is_work_olid(q.upper()):
@@ -853,16 +841,13 @@ class authors_autocomplete(delegate.page):
         i = web.input(q="", limit=5)
         i.limit = safeint(i.limit, 5)
 
-        solr = get_authors_solr()
+        solr = get_solr()
 
         q = solr.escape(i.q).strip()
         solr_q = ''
         if is_author_olid(q.upper()):
             # ensure uppercase; key is case sensitive in solr
-            key_q = q.upper()
-            if config.get('single_core_solr'):
-                key_q = "/authors/" + key_q
-            solr_q = 'key:"%s"' % key_q
+            solr_q = 'key:"/authors/%s"' % q.upper()
         else:
             prefix_q = q + "*"
             solr_q = 'name:(%s) OR alternate_names:(%s)' % (prefix_q, prefix_q)
@@ -870,17 +855,12 @@ class authors_autocomplete(delegate.page):
         params = {
             'q_op': 'AND',
             'sort': 'work_count desc',
-            'rows': i.limit
+            'rows': i.limit,
+            'fq': 'type:author'
         }
 
-        if config.get('single_core_solr'):
-            params['fq'] = 'type:author'
         data = solr.select(solr_q, **params)
         docs = data['docs']
-
-        if not config.get('single_core_solr'):
-            for d in docs:
-                d.key = "/authors/" + d.key
 
         for d in docs:
             if 'top_work' in d:

@@ -36,13 +36,13 @@ class search_api:
             traceback.print_exc()
             return {'status':'error'}
 
-    def get_editions_solr(self):
+    def get_solr(self):
         c = config.get("plugin_worksearch")
-        host = c and c.get('edition_solr')
-        return host and solr.Solr("http://" + host + "/solr/editions")
+        host = c and c.get('solr')
+        return host and solr.Solr("http://" + host + "/solr")
 
     def solr_select(self, query):
-        solr = self.get_editions_solr()
+        solr = self.get_solr()
         response = solr.select(query)
         docs = response['docs']
         return ["/books/" + doc["key"] for doc in docs]

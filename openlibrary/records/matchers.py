@@ -31,15 +31,6 @@ import web
 logger = Logging.getLogger(__name__)
 
 
-def get_works_solr():
-    base_url = "http://%s/solr/works" % config.plugin_worksearch.get('solr')
-    return Solr(base_url)
-
-def get_authors_solr():
-    base_url = "http://%s/solr/authors" % config.plugin_worksearch.get('author_solr')
-    return Solr(base_url)
-
-
 def match_isbn(params):
     "Search by ISBN for exact matches"
     if "isbn" in params.get("identifiers",{}):
@@ -91,8 +82,6 @@ def match_tap_solr(params):
 
     """
 
-    asolr = get_authors_solr()
-    wsolr = get_works_solr()
     # First find author keys. (if present in query) (TODO: This could be improved)
     # if "authors" in params:
     #     q = 'name:(%s) OR alternate_names:(%s)' % (name, name)

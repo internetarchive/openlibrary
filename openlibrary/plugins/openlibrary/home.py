@@ -137,7 +137,7 @@ def readonline_carousel():
         return None
 
 def random_ebooks(limit=2000):
-    solr = search.get_works_solr()
+    solr = search.get_solr()
     sort = "edition_count desc"
     result = solr.select(
         query='has_fulltext:true -public_scan_b:false',

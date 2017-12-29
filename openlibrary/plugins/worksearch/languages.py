@@ -65,7 +65,7 @@ class index(delegate.page):
 
     def GET(self):
         from . import search
-        result = search.get_works_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
+        result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]
         print >> web.debug, languages[:10]
@@ -79,7 +79,7 @@ class language_search(delegate.page):
 
     def GET(self):
         i = web.input(q="")
-        solr = search.get_works_solr()
+        solr = search.get_solr()
         q = {"language": i.q}
 
         result = solr.select(q, facets=["language"], fields=["language"], rows=0)
@@ -87,7 +87,7 @@ class language_search(delegate.page):
         return render_template('search/languages', i.q, result)
 
     def process_result(self, result):
-        solr = search.get_works_solr()
+        solr = search.get_solr()
 
         def process(p):
             return web.storage(
@@ -104,7 +104,7 @@ class LanguageEngine(subjects.SubjectEngine):
 
     def get_ebook_count(self, name, value, publish_year):
         # Query solr for this publish_year and publish_year combination and read the has_fulltext=true facet
-        solr = search.get_works_solr()
+        solr = search.get_solr()
         q = {
             "language": value
         }

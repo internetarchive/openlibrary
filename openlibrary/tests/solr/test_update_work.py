@@ -61,7 +61,7 @@ class Test_build_data:
 
         d = build_data(work)
         assert self.match_dicts(self.strip_empty_lists(d), {
-            "key": "OL1M",
+            "key": "/works/OL1M",
             "title": "Foo",
             "has_fulltext": False,
             "edition_count": 0,
