@@ -18,8 +18,6 @@ from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.openlibrary import lists
 
-DEFAULT_CACHE_LIFETIME = 120  # seconds
-ONE_HOUR = 60 * 60
 
 logger = logging.getLogger("openlibrary.home")
 
@@ -82,7 +80,7 @@ def get_featured_subjects():
 @public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
-        get_featured_subjects, "home.featured_subjects", timeout=ONE_HOUR)()
+        get_featured_subjects, "home.featured_subjects", timeout=cache.HOUR)()
 
 
 @public
@@ -90,7 +88,7 @@ def generic_carousel(query=None, subject=None, work_id=None, _type=None,
                      sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
-        get_ia_carousel_books, memcache_key, timeout=timeout or DEFAULT_CACHE_LIFETIME)
+        get_ia_carousel_books, memcache_key, timeout=timeout or cache.DEFAULT_CACHE_LIFETIME)
     books = cached_ia_carousel_books(
         query=query, subject=subject, work_id=work_id, _type=_type,
         sorts=sorts, limit=limit)

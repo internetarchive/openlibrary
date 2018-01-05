@@ -390,6 +390,36 @@ class Bookshelves(object):
     }
 
     @classmethod
+    def total_books_logged(cls, shelf_ids=None, since=None):
+        oldb = db.get_db()
+        query = "SELECT count(*) from bookshelves_books"
+        if shelf_ids:
+            query += " WHERE bookshelf_id IN ($shelf_ids)"
+            if since:
+                query += " AND created >= $since"
+        elif since:
+            query += " WHERE created >= $since"
+        results = oldb.query(query, vars={'since': since, 'shelf_ids': shelf_ids})
+        return results[0] if results else None
+
+    @classmethod
+    def total_unique_users(cls, since=None):
+        oldb = db.get_db()
+        query = "select count(DISTINCT username) from bookshelves_books"
+        if since:
+            query += " WHERE created >= $since"
+        results = oldb.query(query, vars={'since': since})
+        return results[0] if results else None
+
+    @classmethod
+    def most_logged_books(cls, shelf_id, limit=10, since=False):
+        oldb = db.get_db()
+        query = 'select work_id, count(*) as cnt from bookshelves_books where bookshelf_id=$shelf_id group by work_id order by cnt desc limit $limit'
+        if since:
+            query += " WHERE created >= $since"
+        return list(oldb.query(query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}))
+
+    @classmethod
     def count_users_readlogs(cls, username, bookshelf_id=None, count_per_shelf=False):
         oldb = db.get_db()
         data = {'username': username}
