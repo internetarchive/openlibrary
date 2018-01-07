@@ -72,11 +72,11 @@ $elif (availability == 'borrow_unavailable'):
           <input type="submit" class="submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
         </form>
 
-$elif page.get('ocaid') and not page.is_access_restricted():
+$elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     <p class="primary-cta"><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn">Read eBook</a></p>
 
-$elif page.is_access_restricted():
+$elif page.is_access_restricted() and editions_page:
     <p class="smaller">No ebook available.</p>
 
 
