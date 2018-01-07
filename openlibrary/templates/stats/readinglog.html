@@ -42,7 +42,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books" id="siteSearch">
         $for book in stats['leaderboard']['most_wanted']: 
-            $:macros.SearchResultsWork(book['work'], decorations="Added %s times" % book['cnt'])
+            $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
       </ul>
     </div>
 
@@ -51,7 +51,7 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books" id="siteSearch">
         $for book in stats['leaderboard']['most_read']:
-            $:macros.SearchResultsWork(book['work'], decorations="Added %s times" % book['cnt'])
+            $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
       </ul>
     </div>
   </div>
