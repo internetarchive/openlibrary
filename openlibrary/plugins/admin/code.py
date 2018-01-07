@@ -22,17 +22,15 @@ from openlibrary.catalog.add_book import update_ia_metadata_for_ol_edition, \
     create_ol_subjects_for_ocaid
 
 import openlibrary
-from openlibrary.core import lending
-from openlibrary.core import admin as admin_stats
-from openlibrary.plugins.upstream import forms
-from openlibrary.plugins.upstream.account import send_forgot_password_email
-from openlibrary.plugins.upstream import spamcheck
-from openlibrary import accounts
-from openlibrary.core import helpers as h
 
-from openlibrary.plugins.admin import services
-from openlibrary.core import imports
+from openlibrary import accounts
+
+from openlibrary.core import lending, admin as admin_stats, helpers as h, imports, cache
 from openlibrary.core.waitinglist import Stats as WLStats
+from openlibrary.plugins.upstream import forms, spamcheck
+from openlibrary.plugins.upstream.account import send_forgot_password_email
+from openlibrary.plugins.admin import services
+
 
 logger = logging.getLogger("openlibrary.admin")
 
@@ -572,7 +570,6 @@ class inspect:
         i = web.input(action="read")
         i.setdefault("keys", "")
 
-        from openlibrary.core import cache
         mc = cache.get_memcache()
 
         keys = [k.strip() for k in i["keys"].split() if k.strip()]
@@ -698,7 +695,6 @@ def setup():
     register_admin_page('/admin/block', block, label='')
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
-
     register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")

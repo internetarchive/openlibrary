@@ -1,3 +1,23 @@
+.admin-section {
+    border-left: 4px solid #a7cee4;
+    padding: 0px 10px 10px 10px;
+    margin: 25px 10px;
+}
+
+table.readinglog-stats {
+    width: 100%;
+    border-radius: 5px;
+    padding: 10px;
+}
+
+table.readinglog-stats th {
+    font-weight: bold;
+}
+
+table.readinglog-stats tr:nth-child(even) {
+    background-color: #eee;
+}
+
 .carousel-container {
     margin: 0px -20px;
     padding: 3px 15px;
