@@ -21,7 +21,8 @@ $(function(){
 
     var isExemptPage = function() {
         return (window.location.pathname.match('\/people\/[^/]+\/lists') ||
-                window.location.pathname.match('\/account\/my-books\/[^/]+'));
+                window.location.pathname.match('\/account\/my-books\/[^/]+') ||
+                window.location.pathname.match('\/stats/[^/]+'));
     }
 
     getUsersLoansAndWaitlists = function(callback) {

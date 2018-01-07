@@ -134,7 +134,7 @@ class readinglog_stats(app.view):
             readinglog_stats, 'stats.readlinglog_stats', timeout=cache.HOUR)(limit)
 
         # Fetch works from solr and inject into leaderboard
-        for i in range(len(stats['leaderboard']['most_wanted'])):
+        for i in range(len(stats['leaderboard']['most_read'])):
             stats['leaderboard']['most_read'][i]['work'] = web.ctx.site.get(
                 '/works/OL%sW' % stats['leaderboard']['most_read'][i]['work_id'])
         for i in range(len(stats['leaderboard']['most_wanted'])):
