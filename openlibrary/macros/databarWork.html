@@ -8,23 +8,8 @@ $else:
     $ edit_url = page.key + "?m=edit"
 
 $ work = page.works and page.works[0]
-$ worldcat = "https://worldcat.org/isbn/XXX"
-$ worldcatoclc = "https://worldcat.org/oclc/XXX"
-$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
-$ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
-
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
-$ downloadbook = page.get_ia_download_link(".pdf")
-$ pdfbw = page.get_ia_download_link("_bw.pdf")
-$ daisy = page.get_ia_download_link("_daisy.zip")
-$ epub = page.get_ia_download_link(".epub")
-$ mobi = page.get_ia_download_link(".mobi")
-$ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&itemid=XXX&docid=XXX"
-
-$ djvutxt = page.get_ia_download_link("_djvu.txt")
-$ seeall = "//archive.org/download/XXX"
-$ google = ""
 
 $ isbn = (page.isbn_10 and page.isbn_10[0]) or (page.isbn_13 and page.isbn_13[0]) or ""
 $ isbn = isbn.replace("-", "")
@@ -47,7 +32,6 @@ $if page.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-$ library = None
 <style type="text/css">
 #edit-identifiers {
   font-size: 75%;
@@ -59,96 +43,54 @@ $ library = None
 
 <div class="Tools">
   <div id="read">
-  $ collections = set()
-  $ meta_fields = page.get_ia_meta_fields()
-    $if meta_fields:
-      $ collections = meta_fields.get('collection', [])
-      $ contrib = meta_fields.get('contributor')
-      $if 'inlibrary' in collections and 'inlibrary' in ctx.features:
-          $ library = get_library()
-
-  $if page.volumes:
+    $if page.volumes:
       <h3 class="header">
-          <span class="icon read"></span>
-          <span class="head">Browse</span>
+        <span class="icon read"></span>
+        <span class="head">Browse</span>
       </h3>
       $for v in page.volumes:
-          $if v.ia_id != "-":
-              <div class="panel">
-                  <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
-              </div>
-
-  $elif page.get('ocaid') and not page.is_access_restricted():
-        <div class="panel" id="readBooks">
-          <div class="btn-notice" id="read-options">
-            <p class="primary-cta"><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn">Read eBook</a></p>
-            $if downloadbook:
-                <p><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></p>
-            $if djvutxt:
-                <p><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></p>
-            $if daisy:
-                <p><a href="$daisy" title="Download a DAISY file from Internet Archive"><meta itemprop="bookFormat" content="EBook/DAISY3"/><meta itemprop="accessibilityFeature" content="unlocked"/>DAISY</a></p>
-            $if epub:
-                <p><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></p>
-            $if mobi:
-                <p><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a>
+        $if v.ia_id != "-":
+          <div class="panel">
+            <p><a href="$viewbook.replace('XXX', v.ia_id)">View Volume $v.volume_number</a></p>
           </div>
-        </div>
-  $elif not page.is_access_restricted():
-        <div class="panel">
-            <p class="smaller">No readable version available.</p>
-        </div>
+
+    <div class="panel">
+      <div class="btn-notice" id="read-options">
+        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page)
+
+        $# Added here instead of LoanStatus to avoid the js being bound to every item
+        $# in a work's edition listing
+        <script type="text/javascript">
+          \$(function() {
+            \$('.return-book').submit(function(event) {
+              if (!confirm("Really return this book?")) {
+                event.preventDefault();
+              }
+            });
+          });
+        </script>
+
+        $if page.get('ocaid') and not page.is_access_restricted():
+            $:macros.DownloadOptions(page)
+
+        $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers)
+        $:macros.SocialShare()
+      </div>
+    </div>
   </div>
 
-  $if (isbn or oclc_numbers or 'lendinglibrary' in collections or library) and not private_collection_in(collections):
+  $if isbn or asin or scribd:
     <div>
-        <div class="panel">
-            $if 'lendinglibrary' in collections or library or page.get('ocaid'):
-                $ current_and_available_loans = page.get_current_and_available_loans()
-                $ user_loan = None
-                $if ctx.user:
-                    $for current_loan in current_and_available_loans[0]:
-                        $if current_loan['user'] == ctx.user.key:
-                            $ user_loan = current_loan
-                            $ break
-
-                $:macros.LoanStatus(page, 'eBook', ctx.user, current_and_available_loans, contrib, '<br/>', editions_page=editions_page, isbn=isbn, oclc_numbers=oclc_numbers)
-
-                $# Added here instead of LoanStatus to avoid the js being bound to every item
-                $# in a work's edition listing
-                <script type="text/javascript">
-                \$(function() {
-                    \$('.return-book').submit(function(event) {
-                        if (!confirm("Really return this book?")) {
-                            event.preventDefault();
-                        }
-                    });
-                });
-                </script>
-        </div>
-    </div>
-$else:
-    <div>
-        <h3 class="closed">
-            <span class="icon borrowinact"></span>
-            <span class="head">Borrow</span>
-        </h3>
-        <div class="panel">
-            <p class="smaller">Try a <a href="https://www.worldcat.org/" title="Search WorldCat for an available edition">WorldCat</a> search?</p>
-        </div>
+      <h3 class="header">
+        <span class="icon buy"></span>
+        <span class="head">Buy</span>
+      </h3>
+      <div class="panel">
+        $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
+      </div>
     </div>
 
-$if isbn or asin or scribd:
-    <div>
-        <h3 class="header">
-            <span class="icon buy"></span>
-            <span class="head">Buy</span>
-        </h3>
-        <div class="panel">
-            $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
-        </div>
-    </div>
-$else:
+  $else:
     <div>
         <h3 class="closed">
             <span class="icon buyinact"></span>

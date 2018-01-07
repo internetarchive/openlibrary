@@ -44,7 +44,6 @@ $ collection = set()
 $ meta_fields = book.get_ia_meta_fields()
 $if meta_fields:
     $ collection = meta_fields.get('collection', [])
-    $ contrib = meta_fields.get('contributor')
     $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
         $ library = get_library()
 
@@ -95,12 +94,12 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         <div class="aaaa"></div>
         <div class="links">
             <ul>
-            <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn">Read online</a></strong><br/></li>
-            <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
-            <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
-            <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
-            <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-            <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
+              <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn">Read online</a></strong><br/></li>
+              <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
+              <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
+              <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
+              <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
+              <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
             </ul>
         </div>
         </td>
@@ -116,15 +115,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             <div class="aaaa"></div>
             <div class="links">
                 <ul>
-                $if 'lendinglibrary' in collection or library:
-                    $ current_and_available_loans = book.get_current_and_available_loans()
-                    $ user_loan = None
-                    $if ctx.user:
-                        $for current_loan in current_and_available_loans[0]:
-                            $if current_loan['user'] == ctx.user.key:
-                                $ user_loan = current_loan
-                                $ break
-                    <li>$:macros.LoanStatus(book, 'eBook', ctx.user, current_and_available_loans, contrib, '')</li>
+                    <li>$:macros.LoanStatus(book, ctx.user)</li>
                 $if oclc_numbers:
                     <li><a href="$worldcatoclc.replace('XXX', oclc_numbers)" title="Look for this edition at WorldCat">Physical copy</a><br /><span class="gray smaller">via WorldCat</span></li>
                 $elif isbn:
