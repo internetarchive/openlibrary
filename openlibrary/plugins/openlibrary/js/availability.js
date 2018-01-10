@@ -19,7 +19,10 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
-    var isExemptPage = function() {
+    /* For some pages, we should not filter out ebook results,
+     * regardless of what "mode" (e.g. ebooks, daisy, everything) is
+     * currently selected */
+    var isAvailabilityFilteringDisabledForPage = function() {
         return (window.location.pathname.match('\/people\/[^/]+\/lists') ||
                 window.location.pathname.match('\/account\/my-books\/[^/]+') ||
                 window.location.pathname.match('\/stats/[^/]+'));
@@ -180,7 +183,7 @@ $(function(){
                     var annotation = '';
                     var tag = 'a';
 
-                    var mode = isExemptPage() ? 'everything' : localStorage.getItem('mode');
+                    var mode = isAvailabilityFilteringDisabledForPage() ? 'everything' : localStorage.getItem('mode');
 
                     if (mode !== "printdisabled") {
                         if (work.status === 'error' || work.status === 'private') {
