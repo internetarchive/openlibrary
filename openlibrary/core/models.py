@@ -420,10 +420,6 @@ class Work(Thing):
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 
-    def likes(self, username=None):
-        work_id = self.key.split('/')[2][2:-1]
-        return Likes.count(work_id, username=username)
-
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.
@@ -537,16 +533,6 @@ class User(Thing):
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
-
-    def get_books_to_read(self):
-        work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
-        works = web.ctx.site.get_many(work_olids)
-        return works
-
-    def get_likes(self):
-        work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
-        works = web.ctx.site.get_many(work_olids)
-        return works
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
