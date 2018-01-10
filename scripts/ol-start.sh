@@ -7,8 +7,8 @@
 sudo service nginx restart
 
 cd /openlibrary/conf/init
-for name in ol-*
+for name in ol-*.service
 do
-	echo starting ${name//.conf}
-	initctl start ${name//.conf} || initctl restart ${name//.conf}
+	echo starting $name
+	systemctl start $name || systemctl restart $name
 done

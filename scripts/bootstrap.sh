@@ -111,7 +111,7 @@ chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
 # run make to initialize git submodules, build css and js files
 cd $OL_ROOT && make
 
-cp $OL_ROOT/conf/init/* /etc/init/
+cp $OL_ROOT/conf/init/* /lib/systemd/system/
 
 ln -sf $OL_ROOT/scripts/ol-start.sh /etc/init.d/ol-start
 chmod +x /etc/init.d/ol-start
