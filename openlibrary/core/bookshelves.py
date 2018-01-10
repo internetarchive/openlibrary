@@ -138,14 +138,13 @@ class Bookshelves(object):
         return result[0].bookshelf_id if result else None
 
     @classmethod
-    def add(cls, username, bookshelf_id, work_id, edition_id=None, upsert=False):
+    def add(cls, username, bookshelf_id, work_id, edition_id=None):
         """Adds a book with `work_id` to user's bookshelf designated by
         `bookshelf_id`"""
         oldb = db.get_db()
         work_id = int(work_id)
-        edition_id = int(edition_id) if edition_id else None
         bookself_id = int(bookshelf_id)
-        data = {'work_id': work_id, 'username': username, 'edition_id': edition_id}
+        data = {'work_id': work_id, 'username': username}
 
         users_status = cls.get_users_read_status_of_work(username, work_id)
         if not users_status:
