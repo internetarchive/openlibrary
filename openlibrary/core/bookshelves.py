@@ -156,12 +156,11 @@ class Bookshelves(object):
                                bookshelf_id=bookshelf_id, vars=data)
 
     @classmethod
-    def remove(cls, username, work_id, bookshelf_id=None, edition_id=None):
+    def remove(cls, username, work_id, bookshelf_id=None):
         oldb = db.get_db()
         where = {
             'username': username,
-            'work_id': int(work_id),
-            'edition_id': int(edition_id) if edition_id else None
+            'work_id': int(work_id)
         }
         if bookshelf_id:
             where['bookshelf_id'] = int(bookshelf_id)
