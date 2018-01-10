@@ -10,6 +10,20 @@ class Bookshelves(object):
 
     @classmethod
     def total_books_logged(cls, shelf_ids=None, since=None):
+        """Returns (int) number of books logged across all Reading Log shelves (e.g. those
+        specified in PRESET_BOOKSHELVES). One may alternatively specify a
+        `list` of `shelf_ids` to isolate or span multiple
+        shelves. `since` may be used to limit the result to those
+        books logged since a specific date. Any python datetime.date
+        type should work.
+
+        Args:
+            shelf_ids (list) - one or more bookshelf_id values, see
+                also the default values specified in PRESET_BOOKSHELVES
+            since (datetime.date) - returns all logged books after date
+
+        """
+        
         oldb = db.get_db()
         query = "SELECT count(*) from bookshelves_books"
         if shelf_ids:
@@ -23,6 +37,10 @@ class Bookshelves(object):
 
     @classmethod
     def total_unique_users(cls, since=None):
+        """Returns the total number of unique users who have logged a
+        book. `since` may be provided to only return the number of users after
+        a certain datetime.date.
+        """
         oldb = db.get_db()
         query = "select count(DISTINCT username) from bookshelves_books"
         if since:
@@ -32,6 +50,11 @@ class Bookshelves(object):
 
     @classmethod
     def most_logged_books(cls, shelf_id, limit=10, since=False):
+        """Returns a ranked list of work OLIDs (in the form of an integer --
+        i.e. OL123W would be 123) which have been most logged by
+        users. This query is limited to a specific shelf_id (e.g. 1
+        for "Want to Read").
+        """
         oldb = db.get_db()
         query = 'select work_id, count(*) as cnt from bookshelves_books where bookshelf_id=$shelf_id group by work_id order by cnt desc limit $limit'
         if since:
@@ -39,25 +62,38 @@ class Bookshelves(object):
         return list(oldb.query(query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}))
 
     @classmethod
-    def count_users_readlogs(cls, username, bookshelf_id=None, count_per_shelf=False):
+    def count_users_(cls, username, bookshelf_id):
+        """Counts (int) how many books are on user's specific shelf"""
+        pass
+
+    @classmethod
+    def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):
+        """Counts the (int) total number of books logged by this `username`,
+        with the option of limiting the count to specific bookshelves
+        by `bookshelf_id`
+        """
+        return sum(cls.count_total_books_logged_by_user_per_shelf(
+            username, bookshelf_ids=bookshelf_ids).values())
+
+    @classmethod
+    def count_total_books_logged_by_user_per_shelf(cls, username, bookshelf_ids=None):
+        """Returns a dict mapping the specified user's bookshelves_ids to the
+        number of number of books logged per each shelf, i.e. {bookshelf_id:
+        count}. By default, we limit bookshelf_ids to those in PRESET_BOOKSHELVES
+
+        TODO: add `since` to fetch books logged after a certain
+        date. Useful for following/subscribing-to users and being
+        notified of books they log. Also add to
+        count_total_books_logged_by_user
+        """
         oldb = db.get_db()
         data = {'username': username}
-        bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        _bookshelf_ids = ','.join([str(x) for x in bookshelf_ids or cls.PRESET_BOOKSHELVES.values()])
         query = ("SELECT bookshelf_id, count(*) from bookshelves_books WHERE "
-                 "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
-                 "AND username=$username")
-        if bookshelf_id:
-            data['bookshelf_id'] = bookshelf_id
-            query += ' AND bookshelf_id=$bookshelf_id'
-        elif count_per_shelf:
-            query += ' GROUP BY bookshelf_id'
-
+                 "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
+                 "AND username=$username GROUP BY bookshelf_id")
         result = oldb.query(query, vars=data)
-        if result:
-            if count_per_shelf:
-                return dict([(i['bookshelf_id'], i['count']) for i in result])
-            return result[0]['count']
-        return None
+        return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
 
     @classmethod
     def get_users_reads(cls, username, bookshelf_id=None, limit=100, page=1):
