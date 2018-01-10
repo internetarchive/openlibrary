@@ -656,6 +656,8 @@ class account_lists(delegate.page):
 
 class AccountBooks(object):
 
+    """Manages the user's account page books (reading log, waitlists, loans)"""
+
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
         #self.user.update_loan_status()

@@ -1,10 +1,11 @@
 $def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
 
-$ title = key.title().replace('-', ' ')
+$ title = "My Books"
+$ header_title = key.title().replace('-', ' ')
 
 <div id="contentHead">
   <div id="mybooks">
-    <h1>$title</h1>
+    <h1>$header_title</h1>
     <div class="mybooks">
       <div class="mybooks-menu">
         <ul class="preset-lists">
