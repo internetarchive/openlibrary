@@ -1,5 +1,7 @@
 $def with (page, user, editions_page=False)
 
+$# editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
+
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
 $ contributor = meta_fields.get('contributor')
