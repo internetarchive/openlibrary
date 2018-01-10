@@ -51,15 +51,6 @@ class work_bookshelves(delegate.page):
     path = "/works/OL(\d+)W/bookshelves"
     encoding = "json"
 
-    # GET  # TODO, the bookshelves this book is on
-    def GET(self, work_id):
-        shelves = models.Bookshelves.get_works_shelves(work_id)
-        for shelf in shelves:
-            del shelf['username']
-        return delegate.RawText(simplejson.dumps({
-            'shelves': list(shelves)
-        }), content_type="application/json")
-
     def POST(self, work_id):
         user = accounts.get_current_user()
         i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
