@@ -96,28 +96,27 @@ class Bookshelves(object):
         return dict([(i['bookshelf_id'], i['count']) for i in result]) if result else {}
 
     @classmethod
-    def get_users_reads(cls, username, bookshelf_id=None, limit=100, page=1):
-        """Returns a list of books the user has, is, or wants to read
+    def get_users_logged_books(cls, username, bookshelf_id, limit=100, page=1):
+        """Returns a list of Reading Log database records for books which the user has logged. Records are described in core/schema.py and include:
+
+        username (str) - who logged this book
+        work_id (int) - the Open Library work ID as an int (e.g. OL123W becomes 123)
+        bookshelf_id (int) - the ID of the bookshelf, see: PRESET_BOOKSHELVES
+        edition_id (int) [optional] - the specific edition logged, if applicable
+        created (datetime) - date the book was logged
         """
         oldb = db.get_db()
         page = int(page) if page else 1
-        offset = limit * (page - 1)
         data = {
             'username': username,
             'limit': limit,
-            'offset': offset
+            'offset': limit * (page - 1),
+            'bookshelf_id': bookshelf_id
         }
-        bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
         query = ("SELECT * from bookshelves_books WHERE "
-                 "bookshelf_id=ANY('{" + bookshelf_ids + "}'::int[]) "
-                 "AND username=$username")
-        if bookshelf_id:
-            data['bookshelf_id'] = bookshelf_id
-            query += ' AND bookshelf_id=$bookshelf_id'
-        query += ' LIMIT $limit OFFSET $offset'
+                 "bookshelf_id=$bookshelf_id AND username=$username "
+                 "LIMIT $limit OFFSET $offset")
         return list(oldb.query(query, vars=data))
-
-
 
     @classmethod
     def get_users_read_status_of_work(cls, username, work_id):

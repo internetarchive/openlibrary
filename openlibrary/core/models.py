@@ -15,7 +15,7 @@ from openlibrary import accounts
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.plugins.upstream.account import Account
 from openlibrary.core.helpers import private_collection_in
-from openlibrary.core import bookshelves
+from openlibrary.core.bookshelves import Bookshelves
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -417,7 +417,7 @@ class Work(Thing):
         if not username:
             return None
         work_id = self.key.split('/')[2][2:-1]
-        status_id = bookshelves.Bookshelves.get_users_read_status_of_work(username, work_id)
+        status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 
     def likes(self, username=None):
@@ -542,11 +542,6 @@ class User(Thing):
         work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
         works = web.ctx.site.get_many(work_olids)
         return works
-
-    def get_reads(self, bookshelf_id=None, limit=100, page=1):
-        """Returns a list of books this user has, is, or wants to read"""
-        return bookshelves.Bookshelves.get_users_reads(
-            self.get_username(), bookshelf_id=bookshelf_id, limit=limit, page=page)
 
     def get_likes(self):
         work_olids = ['/works/OL%sW' % work_olid for work_olid in Likes.get_users_likes(self.get_username())]
