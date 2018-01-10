@@ -183,7 +183,7 @@ $(function(){
                     var mode = isExemptPage() ? 'everything' : localStorage.getItem('mode');
 
                     if (mode !== "printdisabled") {
-                        if (work.status === 'error') {
+                        if (work.status === 'error' || work.status === 'private') {
                             if (mode === "ebooks") {
                                 li.remove();
                             }
