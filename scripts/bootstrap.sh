@@ -101,9 +101,9 @@ setup_database
 setup_nginx
 
 # change solr/tomcat port to 8983
-perl -i -pe 's/8080/8983/'  /etc/tomcat6/server.xml
+perl -i -pe 's/8080/8983/'  /etc/tomcat7/server.xml
 cp $OL_ROOT/conf/solr/conf/schema.xml /etc/solr/conf/
-/etc/init.d/tomcat6 restart
+/etc/init.d/tomcat7 restart
 
 mkdir -p /var/log/openlibrary /var/lib/openlibrary
 chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
