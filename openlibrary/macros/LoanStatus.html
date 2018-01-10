@@ -1,22 +1,27 @@
-$def with (page, ebook_text, user, current_and_available_loans, contributor, line_break = '', editions_page=False, isbn=None, oclc_numbers=None)
-
-$# TODO construct list of available formats from available_loans
+$def with (page, user, editions_page=False)
 
 $ work = page.works and page.works[0]
-
-$if current_and_available_loans:
-  $ current_loans = current_and_available_loans[0]
-$else:
-  $ current_loans = []
-
+$ meta_fields = page.get_ia_meta_fields() or {}
+$ contributor = meta_fields.get('contributor')
+$ user_loan = None
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+$ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
 $ realtime_availability = page.get_realtime_availability()
 $ availability = realtime_availability.get('status', 'error')
 $ wlsize = realtime_availability.get('num_waitlist', 0)
-$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
-$ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
+$ current_and_available_loans = []
 
+$if page.get('ocaid'):
+  $ current_and_available_loans = page.get_current_and_available_loans()
+  $ user_loan = None
+  $if ctx.user:
+    $for current_loan in current_and_available_loans[0]:
+      $if current_loan['user'] == ctx.user.key:
+        $ user_loan = current_loan
+        $ break
 
-$ user_loan = None
+$ current_loans = current_and_available_loans[0] if current_and_available_loans else []
+
 $if user:
     $for current_loan in current_loans:
         $if current_loan['user'] == user.key:
@@ -25,81 +30,69 @@ $if user:
 
 $ borrow_link = page.url() + '/borrow'
 
-<div class="btn-notice" id="read-options">
-  $if user_loan:
-      <p>
-        <a href="$borrow_link" title="Borrow from $contributor"
-           data-userid="$(user_loan['userid'])" id="read_ebook"
-           class="borrow-btn borrow-link">Read eBook</a>
-      </p>
-      $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
-      <form action="$return_url" method="post" class="waitinglist-form return-book">
-        <input type="hidden" name="action" value="return" />
-        <input type="submit" value="Return eBook" class="submit unwait-btn" id="return_ebook"/>
-      </form>
-      $:macros.daisy(page)
+$if user_loan:
+    <p>
+      <a href="$borrow_link" title="Borrow from $contributor"
+         data-userid="$(user_loan['userid'])" id="read_ebook"
+         class="borrow-btn borrow-link">Read eBook</a>
+    </p>
+    $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
+    <form action="$return_url" method="post" class="waitinglist-form return-book">
+      <input type="hidden" name="action" value="return" />
+      <input type="submit" value="Return eBook" class="submit unwait-btn" id="return_ebook"/>
+    </form>
 
-  $elif (availability == 'borrow_available') or my_turn_to_borrow:
-      <p>
-        <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="borrow-btn borrow-link">
-          Borrow eBook
-        </a>
-      </p>
-      $:macros.daisy(page)
+$elif (availability == 'borrow_available') or my_turn_to_borrow:
+    <p>
+      <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="borrow-btn borrow-link">
+        Borrow eBook
+      </a>
+    </p>
 
-  $else:
-      $if waiting_loan:
-          <p>
-            $ spot = ctx.user.get_waiting_loan_for(page)['position']
-            $if spot == 1:
-                You are <strong>next</strong> on the waiting list
-            $else:
-                You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
-          </p>
-          <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
-            <input type="hidden" name="action" value="leave-waitinglist"/>
-            <input type="submit" class="submit unwait-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
-          </form>
-          $:macros.daisy(page)
-      $else:  
-          <p>
-            $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
-          </p>
-          <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
-            <input type="hidden" name="action" value="join-waitinglist"/>
-            <input type="submit" class="submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
-          </form>
-          $:macros.daisy(page)
+$elif (availability == 'borrow_unavailable'):
+    $if waiting_loan:
+        <p>
+          $ spot = ctx.user.get_waiting_loan_for(page)['position']
+          $if spot == 1:
+              You are <strong>next</strong> on the waiting list
+          $else:
+              You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
+        </p>
+        <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
+          <input type="hidden" name="action" value="leave-waitinglist"/>
+          <input type="submit" class="submit unwait-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+        </form>
 
-          $if editions_page:
-            $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-            $if checkedout and not user_loan:
-              $if work and work.edition_count > 1:
-                <div class="check-availability">
-                  <p>
-                    Other editions of this book may be available:
-                  </p>
-                  <p class="check-other-editions">
-                    <a data-ol-link-track="EditionPageCheckOtherEditionsButton" href="$work.url()">Check Other Editions</a>
-                  </p>
-                </div>
+    $else:  
+        <p>
+          $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
+        </p>
+        <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
+          <input type="hidden" name="action" value="join-waitinglist"/>
+          <input type="submit" class="submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
+        </form>
 
-$if editions_page:
-  $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers)
+$elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
+    $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+    <p class="primary-cta"><a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn">Read eBook</a></p>
 
-$if editions_page:
-    $ share_links = ctx.get('share_links')
-    $if share_links:
-      <hr>
-      <div class="shareLinks cta-section">
-        <p class="cta-section-title">Share this book</p>
-        <ul class="shareLinks-list">
-         $for share_link in share_links:
-            $ track_tag = share_link['text'].replace(' ', '-')
-            <li>
-              <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag"><img alt="$(share_link['text'])" class="share-link" src="/static/images/$(share_link['text'].lower()).svg"/></a>
-            </li>
-        </ul>
-      </div>
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+    <p class="smaller">No ebook available.</p>
 
-</div>
+
+$if editions_page and page.get('ocaid'):
+  $:macros.daisy(page)
+
+  $# If waitlisted, show other possible editions after daisy download link
+  $if (availability == 'borrow_unavailble'):
+      $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
+      $if checkedout and not user_loan:
+        $if work and work.edition_count > 1:
+          <div class="check-availability">
+            <p>
+              Other editions of this book may be available:
+            </p>
+            <p class="check-other-editions">
+              <a data-ol-link-track="EditionPageCheckOtherEditionsButton" href="$work.url()">Check Other Editions</a>
+            </p>
+          </div>

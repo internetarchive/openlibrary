@@ -2504,10 +2504,32 @@ div.Tools table.buy-options-table td.price {
     text-align: right;
 }
 
-div.Tools li {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
-#content div.Tools ul.shareLinks-list li { display: inline-block; padding: 10px 13px 0px 13px; margin: 0px;}
-#content div.Tools ul.shareLinks-list li a { display: block; }
-#content div.Tools ul.shareLinks-list li a img { display: block; }
+div.Tools li {
+    font-size:0.6875em;
+    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding-left:42px;
+    margin-bottom:5px;
+}
+
+div.Tools ul.ebook-download-options li {
+    padding-left: 0px;
+    margin: 10px 10px 0px 10px;
+}
+
+#content div.Tools ul.shareLinks-list {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+}
+#content div.Tools ul.shareLinks-list li {
+    display: inline-block;
+    margin: 0px;
+    padding: 0px;
+    margin-top: 5px;
+    flex: 1; 
+}
+#content div.Tools ul.shareLinks-list li a { display: block; text-align: center;}
+#content div.Tools ul.shareLinks-list li a img { display: block; margin: 0 auto; }
 div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
 div.Tools div.dropit {min-height:45px;}
