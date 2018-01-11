@@ -23,7 +23,7 @@ class Bookshelves(object):
             since (datetime.date) - returns all logged books after date
 
         """
-        
+
         oldb = db.get_db()
         query = "SELECT count(*) from bookshelves_books"
         if shelf_ids:
@@ -60,11 +60,6 @@ class Bookshelves(object):
         if since:
             query += " WHERE created >= $since"
         return list(oldb.query(query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}))
-
-    @classmethod
-    def count_users_(cls, username, bookshelf_id):
-        """Counts (int) how many books are on user's specific shelf"""
-        pass
 
     @classmethod
     def count_total_books_logged_by_user(cls, username, bookshelf_ids=None):
