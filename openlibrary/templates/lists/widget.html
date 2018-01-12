@@ -94,7 +94,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
       <div class="icon list hidetool"></div>
         <div class="dropper on $('edition-page-lists-dropdown' if (edition and not work_key) else '')">
           $if work_key:
-            <div class="work-likes">
+            <div class="log-work">
               <form method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
                     $ message = "Already Read"
@@ -242,7 +242,7 @@ $if include_widget:
       <div class="icon list hidetool"></div>
         <div class="dropper on">
           $if work:
-            <div class="work-likes">
+            <div class="log-work">
               <form method="POST" action="$(work_key)/bookshelves.json?debug=true">
                 <input type="hidden" name="action" value="add"/>
                   $if edition_key:
@@ -542,7 +542,6 @@ $if ctx.user:
 
         \$('.book-progress-btn, .nostyle-btn').live('click', function(e) {
            \$('.book-progress-btn').text("saving...");
-           //e.preventDefault();
         });
 
     });
