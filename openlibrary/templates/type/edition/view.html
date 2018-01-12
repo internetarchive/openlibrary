@@ -2,6 +2,7 @@ $def with (page)
 
 $ work = page.works and page.works[0] or None
 $ book_title = page.get('title') or work.title
+$ work_title = work.title or page.get('title')
 $ book_subtitle = page.subtitle if page.get('subtitle') else work.subtitle if work and work.get('subtitle') else None
 $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = book_title + " " + title_suffix
@@ -170,7 +171,7 @@ $elif ebook_status == "borrow-user-checkedout":
     $:macros.databarView(page)
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
-        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(book_title, 60)</span> found in the catalog.
+        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work_title, 60)</span> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') book_title">$_("Add another edition")</a>?</span>
         <br />
