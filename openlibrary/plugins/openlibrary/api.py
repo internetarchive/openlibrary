@@ -78,8 +78,8 @@ class work_bookshelves(delegate.page):
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
             work_bookshelf = models.Bookshelves.add(
-                username=username, work_id=work_id, edition_id=edition_id,
-                bookshelf_id=bookshelf_id, upsert=True)
+                username=username, bookshelf_id=bookshelf_id,
+                work_id=work_id, edition_id=edition_id)
 
         if i.redir:
             raise web.seeother(key)

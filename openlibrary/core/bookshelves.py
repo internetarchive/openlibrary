@@ -147,7 +147,8 @@ class Bookshelves(object):
                                bookshelf_id=bookshelf_id,
                                work_id=work_id, edition_id=edition_id)
         else:
-            return oldb.update('bookshelves_books', where="work_id=$work_id AND username=$username",
+            where = "work_id=$work_id AND username=$username"
+            return oldb.update('bookshelves_books', where=where,
                                bookshelf_id=bookshelf_id, vars=data)
 
     @classmethod
