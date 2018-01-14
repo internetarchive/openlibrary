@@ -19,7 +19,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
 
   <span class="details">
       <span class="resultTitle">
-         <h3 class="booktitle">           
+         <h3 class="booktitle">
            <a itemprop="name" href="$(book_url)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
          </h3>

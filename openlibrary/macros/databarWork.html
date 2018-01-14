@@ -7,7 +7,6 @@ $elif page.type.key in ["/type/work", "/type/edition", "/type/author"]:
 $else:
     $ edit_url = page.key + "?m=edit"
 
-$ work = page.works and page.works[0]
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
 

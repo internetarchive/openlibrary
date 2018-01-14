@@ -8,7 +8,8 @@ $if oclc_numbers or isbn:
   <div class="cta-section">
     <p>
       <span class="cta-section-title">Prefer the physical book?</span>
-      <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$(worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn))" title="Check WorldCat for an edition near you">Check nearby libraries</a>
+      $ worldcat_href = worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn)
+      <a class="worldcat-link" data-ol-link-track="worldcat-search" href="$worldcat_href" title="Check WorldCat for an edition near you">Check nearby libraries</a>
       <span class="worldcat-attribution">
         powered by <a href="https://worldcat.org">WorldCat</a>
       </span>

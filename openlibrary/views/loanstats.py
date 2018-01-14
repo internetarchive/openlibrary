@@ -8,7 +8,7 @@ from infogami.utils import delegate
 
 from .. import app
 from ..core import cache
-from ..core.models import Bookshelves
+from ..core.bookshelves import Bookshelves
 from ..core.loanstats import LoanStats
 from ..core.waitinglist import Stats as WLStats
 

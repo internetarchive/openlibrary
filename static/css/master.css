@@ -6868,18 +6868,18 @@ form#addAuthor.olform .wmd-preview {
     margin-top: 10px;
 }
 
-.work-likes {
+.log-work {
     display: -webkit-box;
     display: -ms-flexbox;
     display: -webkit-flex;
     display: flex;
 }
 
-.work-likes form {
+.log-work form {
     flex: 1;
 }
 
-.work-likes button[type=submit] {
+.log-work button[type=submit] {
     background-color: inherit;
     border: none;
     border-radius: 3px;
@@ -6892,21 +6892,21 @@ form#addAuthor.olform .wmd-preview {
     margin: 0px;
 }
 
-.work-likes button[type=submit].activated {
+.log-work button[type=submit].activated {
     color: #333;
     background: #ececec;
     border: 2px solid #f3f3f3;
     border-right: 1px solid #ddd;
 }
 
-.work-likes button[type=submit].unactivated {
+.log-work button[type=submit].unactivated {
     color: #fff;
     background: rgb(62, 169, 79);
     border: 2px solid #41a552;
     border-right: 1px solid rgb(67, 152, 80);
 }
 
-.work-likes span.activated-check {
+.log-work span.activated-check {
     color: rgb(33, 136, 50);
     margin-right: 2px;
 }

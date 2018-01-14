@@ -17,17 +17,15 @@ from infogami.infobase.client import ClientException
 from infogami.utils.context import context
 import infogami.core.code as core
 
+from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
-
-from openlibrary import accounts
 from openlibrary.accounts import (
-    audit_accounts,
-    Account, OpenLibraryAccount, InternetArchiveAccount,
-    valid_email
-)
+    audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+
 import forms
 import utils
 import borrow
@@ -658,6 +656,8 @@ class account_lists(delegate.page):
 
 class AccountBooks(object):
 
+    """Manages the user's account page books (reading log, waitlists, loans)"""
+
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
         #self.user.update_loan_status()
@@ -674,16 +674,13 @@ class AccountBooks(object):
         return self.user.get_lists()
 
     @property
-    def reading_log_counts(self):
-        from openlibrary.core.models import Bookshelves
-        counts = self.user.get_reading_log_counts(count_per_shelf=True) or {}
+    def reading_log_counts(self):        
+        counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
+            self.user.get_username())
         return {
-            'want-to-read': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
-            'currently-reading': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': counts.get(
-                Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'want-to-read': counts[Bookshelves.PRESET_BOOKSHELVES['Want to Read']],
+            'currently-reading': counts[Bookshelves.PRESET_BOOKSHELVES['Currently Reading']],
+            'already-read': counts[Bookshelves.PRESET_BOOKSHELVES['Already Read']]
         }
 
     def get_loans(self):
@@ -709,23 +706,20 @@ class AccountBooks(object):
         return editions
 
     def get_want_to_read(self, page=1, limit=100):
-        from openlibrary.core.models import Bookshelves
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
     def get_currently_reading(self, page=1, limit=100):
-        from openlibrary.core.models import Bookshelves
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
     def get_already_read(self, page=1, limit=100):
-        from openlibrary.core.models import Bookshelves
-        work_ids = ['/works/OL%sW' % i['work_id'] for i in self.user.get_reads(
-            bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
+        work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
+            self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
