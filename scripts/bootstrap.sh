@@ -44,16 +44,17 @@ pip install -r $PYTHON_PACKAGES
 REINDEX_SOLR=no
 
 function setup_database() {
-    echo "finding if posgres user vagrant already exists."
-    x=`sudo -u postgres psql -t -c "select count(*) FROM pg_catalog.pg_user where usename='$OL_USER'"`
+    echo "finding if posgres user already exists."
+    x=`sudo -u postgres psql -tAc "SELECT 1 FROM pg_roles WHERE rolname='$OL_USER'"`
     echo "result = $x"
-    if [ "$x" -eq 0 ]; then
+    if [ -z "$x" ]; then
         echo "setting up database..."
-        echo "  creating postgres user 'OL_USER'"
+        echo "  creating postgres user '$OL_USER'"
         sudo -u postgres createuser -s $OL_USER
 
         echo "  creating openlibrary database"
         sudo -u $OL_USER createdb openlibrary
+        sudo -u $OL_USER psql openlibrary < $OL_ROOT/openlibrary/core/schema.sql
         sudo -u $OL_USER createdb coverstore
         sudo -u $OL_USER psql coverstore < $OL_ROOT/openlibrary/coverstore/schema.sql
 
