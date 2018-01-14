@@ -678,9 +678,9 @@ class AccountBooks(object):
         counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
             self.user.get_username())
         return {
-            'want-to-read': counts[Bookshelves.PRESET_BOOKSHELVES['Want to Read']],
-            'currently-reading': counts[Bookshelves.PRESET_BOOKSHELVES['Currently Reading']],
-            'already-read': counts[Bookshelves.PRESET_BOOKSHELVES['Already Read']]
+            'want-to-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
+            'currently-reading': counts.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
+            'already-read': counts.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
         }
 
     def get_loans(self):
