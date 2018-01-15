@@ -214,17 +214,10 @@ function get_seed_count() {
                             <span class="type people small">$seed.type</span>
                         $else:
                             <span class="type small">$seed.type</span>
-                        $if seed.type == "edition":
-                            $if seed.ebook_count:
-                                - eBook available
                         $elif seed.type == "work":
                             - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
                         $else:
                             - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
                         </span>
 
 
