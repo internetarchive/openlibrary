@@ -192,11 +192,13 @@ function get_seed_count() {
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
+                        $ work_editions_count = 0
                         $if seed.type in ['edition', 'work']:
                             $if seed.type == "work":
                                 $ authors = seed.document.get_authors()
                             $else:
                                 $if seed.document.works:
+                                    $ work_editions_count = seed.document.works[0].edition_count
                                     $ authors = seed.document.works[0].get_authors()
                                 $else:
                                     $ authors = seed.document.get_authors()
@@ -214,19 +216,16 @@ function get_seed_count() {
                             <span class="type people small">$seed.type</span>
                         $else:
                             <span class="type small">$seed.type</span>
-                        $if seed.type == "edition":
-                            $if seed.ebook_count:
-                                - eBook available
+                        $if seed.type == "edition" and seed.document.get('works'):
+                            - <a href="$seed.document.works[0].url()">$commify(work_editions_count) editions$("s" if seed.work_count != 1 else "")</a> in catalog
                         $elif seed.type == "work":
-                            - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                            - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")
                         $else:
-                            - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
-                            $if seed.ebook_count:
-                                $commify(seed.ebook_count) ebook$("s" if seed.ebook_count != 1 else "")
+                            - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")
                         </span>
 
+                        $if 'daisy_url' in ebook:
+                            <span class="type small"><a href="$ebook['daisy_url']" title="Protected DAISY">Download DAISY eBook for print disabled</a></span>
 
                         $if seed.last_update:
                             <span class="time">
