@@ -44,6 +44,16 @@ class home(delegate.page):
         page.v2 = True
         return page
 
+class random(delegate.page):
+    path = "/random"
+
+    def GET(self):
+        olid = lending.get_random_available_ia_edition()
+        if olid:
+            raise web.seeother('/books/%s' % olid)
+        raise web.seeother("/")
+
+
 CAROUSELS_PRESETS = {
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
     'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
