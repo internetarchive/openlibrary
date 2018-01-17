@@ -120,7 +120,7 @@ $jsdef render_author_autocomplete_item(item):
             <span class="name">
                 $item.name
                 $if item.birth_date or item.death_date:
-                    (${item.birth_date or ' '}&ndash;${item.birth_date or ' '})
+                    (${item.birth_date or ' '}&ndash;${item.death_date or ' '})
             </span>
             <span class="olid">$item.key.split('/')[2]</span>
             &bull;
