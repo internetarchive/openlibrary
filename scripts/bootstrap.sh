@@ -67,9 +67,8 @@ function setup_database() {
 }
 
 function setup_ol() {
-    # Download sample dev-instance database from archive.org
-    wget https://archive.org/download/ol_vendor/openlibrary-devinstance.pg_dump.gz -O /tmp/openlibrary-devinstance.pg_dump.gz
-    zcat /tmp/openlibrary-devinstance.pg_dump.gz | sudo -u $OL_USER psql openlibrary
+    # Load the dev instance database
+    sudo -u $OL_USER psql openlibrary < "$OL_ROOT/scripts/dev-instance/dev_db.pg_dump"
 
     # This is an alternative way to install OL from scratch
     #cd $OL_ROOT
