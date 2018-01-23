@@ -32,7 +32,7 @@ class readinglog_stats(app.view):
                 delegate.fakeload()
             most_read = Bookshelves.most_logged_books(
                 Bookshelves.PRESET_BOOKSHELVES['Already Read'], limit=limit)
-            most_wanted = Bookshelves.most_logged_books(                
+            most_wanted = Bookshelves.most_logged_books(
                 Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit)
 
             return {
