@@ -1,4 +1,5 @@
 """Loan Stats"""
+
 import re
 import datetime
 import web
@@ -14,9 +15,11 @@ class stats(app.view):
     def GET(self):
         raise web.seeother("/")
 
-re_time_period1 = re.compile("(\d+)days")
-re_time_period2 = re.compile("(\d\d\d\d)(\d\d)(\d\d)-(\d\d\d\d)(\d\d)(\d\d)")
+class lending_stats(app.view):
+    path = "/stats/lending(?:/(libraries|regions|countries|collections|subjects|format)/(.+))?"
 
+    def GET(self):
+        raise web.seeother("/")
 
 class readinglog_stats(app.view):
     path = "/stats/readinglog"
