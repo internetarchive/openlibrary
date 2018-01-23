@@ -36,11 +36,7 @@ $def render_counts(label, counts, klass="contentQuarter"):
     </div>
 
 <div id="contentBody">
-    <h2>Loans Per Day
-        <span class="tools">
-            <a href="$changequery(download='csv')">Download as CSV</a>
-        </span>
-    </h2>
+    <h2>Loans Per Day</h2>
 
     <div class="chart">
         <div id="loans-per-day" class="graph">
@@ -48,47 +44,7 @@ $def render_counts(label, counts, klass="contentQuarter"):
         </div>
     </div>
 
-    Total Loans during this period: $commify(stats.get_total_loans())
-
-    <div>
-        <div class="contentHalf">
-            <h2>Loans Per Type</h2>
-            <div id="loans-types-pie-chart" class="pie">
-                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-            </div>
-        </div>
-        <div class="contentHalf">
-            <h2>Loan Duration</h2>
-            <div id="duration-pie-chart" class="pie">
-                <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-            </div>
-        </div>
-    </div>
-    <div class="clearfix"></div>
-
-    <h2>Loans by Published Year</h2>
-    <div class="chart">
-        <div id="loans-by-published-year" class="graph">
-            <noscript>$_("You need to have JavaScript turned on to see the nifty chart!")</noscript>
-        </div>
-    </div>
-
-    <br/>
-    <br/>
-    $if not stats.country:
-        <div>
-            $:render_counts("Countries", stats.get_facet_counts("country_s"))
-        </div>
-        <div class="clearfix"></div>
-
-
-    $if not stats.library and not stats.region:
-        <div>
-            $:render_counts("Libraries", stats.get_facet_counts("library_s"), klass="contentHalf")
-            <div class="contentSpacer"></div>
-            $:render_counts("Regions", stats.get_facet_counts("region_s"), klass="contentHalf")
-        </div>
-        <div class="clearfix"></div>
+    <h3>Total Loans during this period: $commify(stats.get_total_loans())</h3>
 
     <div>
         $:render_counts("Popular Books", stats.get_facet_counts("book_key_s"), klass="contentHalf")
@@ -103,22 +59,6 @@ $def render_counts(label, counts, klass="contentQuarter"):
             $:render_counts("Subjects", stats.get_facet_counts("subject_facet"), klass="")
         </div>
         <div class="clearfix"></div>
-    <br/>
-    <br/>
-
-
-    $if not stats.collection:
-        <div>
-            $:render_counts("Collections", stats.get_facet_counts("ia_collections_id"))
-            <div class="contentSpacer"></div>
-            $:render_counts("Scanning Sponsor", stats.get_facet_counts("sponsor_s"))
-            <div class="contentSpacer"></div>
-            $:render_counts("Contributor", stats.get_facet_counts("contributor_s"))
-        </div>
-        <div class="clearfix"></div>
-
-
-
 </div>
 
 <script type="text/javascript">
@@ -165,69 +105,6 @@ $def render_counts(label, counts, klass="contentQuarter"):
         }
     });
 
-    \$.plot("#loans-types-pie-chart", $:json_encode(stats.get_loans_per_type()), {
-        series: {
-            pie: {
-                show: true,
-                label: {
-                    show: true,
-                }
-            }
-        },
-        legend: {
-            show: false
-        }
-    });
-
-    \$.plot("#duration-pie-chart", $:json_encode(stats.get_loan_durations()), {
-        series: {
-            pie: {
-                show: true,
-                label: {
-                    show: true,
-                }
-            }
-        },
-        legend: {
-            show: false
-        }
-    });
-
-    \$.plot("#loans-by-published-year", [{data: $:json_encode(stats.get_loans_by_published_year())}], {
-        series: {
-            bars: {
-                show: true,
-                fill: 0.6,
-                color: "#ffa337",
-                align: "center"
-            },
-            points: {
-                show: true
-            },
-            color: "#ffa337"
-        },
-        grid: {
-            /*
-            hoverable: true,
-            clickable: true,
-            autoHighlight: true,
-            */
-            tickColor: "#d9d9d9",
-            borderWidth: 1,
-            borderColor: "#d9d9d9",
-            backgroundColor: "#fff"
-        },
-        xaxis: { tickDecimals: 0 },
-        yaxis: { tickDecimals: 0 }
-        /*
-        selection: { mode: "xy", color: "#00636a" },
-        crosshair: {
-            mode: "xy",
-            color: "rgba(000, 099, 106, 0.4)",
-            lineWidth: 1
-        }
-        */
-    });
 });
 </script>
 
