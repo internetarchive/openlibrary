@@ -167,7 +167,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url="http://%s/advancedsearch.php?q=_exists_:openlibrary_work+AND+loans__status__status:AVAILABLE&fl=identifier,openlibrary_edition,loans__status__status&output=json&rows=1&sort[]=random" % (config_bookreader_host)
+        url="https://%s/advancedsearch.php?q=_exists_:openlibrary_work+AND+loans__status__status:AVAILABLE&fl=identifier,openlibrary_edition,loans__status__status&output=json&rows=1&sort[]=random" % (config_bookreader_host)
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
