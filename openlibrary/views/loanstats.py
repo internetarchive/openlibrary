@@ -18,7 +18,7 @@ class stats(app.view):
 class lending_stats(app.view):
     path = "/stats/lending(?:/(libraries|regions|countries|collections|subjects|format)/(.+))?"
 
-    def GET(self):
+    def GET(self, key, value):
         raise web.seeother("/")
 
 class readinglog_stats(app.view):
