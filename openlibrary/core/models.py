@@ -13,7 +13,6 @@ import helpers as h
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.plugins.upstream.utils import get_history
-from openlibrary.plugins.upstream.account import Account
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 

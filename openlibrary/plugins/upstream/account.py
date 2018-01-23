@@ -654,7 +654,7 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
-class AccountBooks(object):
+class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
@@ -731,26 +731,41 @@ class AccountBooks(object):
             #works = web.ctx.site.get_many([ ... ])
             raise
 
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/my-books"
+
+    def GET(self, username):
+        raise web.seeother('/people/%s/my-books/want-to-read' % username)
+
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+
+    def GET(self, username, key='loans'):
+        """check if user's reading log is public"""
+        user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
+        notifications = (user_preferences or {}).get('notifications')
+        if notifications and notifications.get('public_readlog', 'yes') == 'yes':
+            readlog = ReadingLog()
+            works = readlog.get_works(key)
+            return render['account/books'](
+                works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists)
+
 class account_my_books(delegate.page):
-    path = "/account/my-books"
+    path = "/account/books"
 
     @require_login
     def GET(self):
         raise web.seeother('/account/my-books/want-to-read')
 
 class account_my_books(delegate.page):
-    path = "/account/my-books/([a-zA-Z_-]+)"
+    path = "/account/books/([a-zA-Z_-]+)"
 
     @require_login
     def GET(self, key='loans'):
-        ab = AccountBooks()
-        works = ab.get_works(key)
+        readlog = ReadingLog()
+        works = readlog.get_works(key)
         return render['account/books'](
-            works, key,
-            #loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
-            reading_log=ab.reading_log_counts, lists=ab.lists)
-
-
+            works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists)
 
 class account_loans(delegate.page):
     path = "/account/loans"

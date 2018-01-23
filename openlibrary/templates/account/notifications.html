@@ -7,10 +7,6 @@ $var title: $_("Notifications from Open Library")
     /
     <a href="$homepath()/account">$_("Settings")</a>
     /</div>    <h1>$_("Notifications from Open Library")</h1>
-    <p class="instruct">
-        <a href="/account/email">$_("Update your email address?")</a>
-        $:_("We have %(email)s for you at the moment.", email='<b>' + email + '</b>')
-    </p>
 </div>
 
 $def selected(value, value2):
@@ -18,6 +14,7 @@ $def selected(value, value2):
 
 $ notify = d.get('notify', 'no')
 $ updates = d.get('updates', 'no')
+$ public_readlog = d.get('public_readlog', 'yes')
 
 <div id="contentBody">
     <form method="post" class="olform" action="" id="notifications">
@@ -25,7 +22,27 @@ $ updates = d.get('updates', 'no')
         <br/>
 
 
-
+        <div class="formElement">
+            <h3 class="collapse">$_("Would you like your reading log to be public?")</h3>
+        </div>
+        <br/>
+        <div class="formElement">
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="public_readlog" id="r0" value="yes" $selected(public_readlog, "yes")/>
+                    <label for="u0">$_("Yes, make my reading log public")</label>
+                    <br/><br/>
+                </div>
+            </div>
+            <div class="input radio">
+                <div class="sansserif larger">
+                    <input type="radio" name="public_readlog" id="r1" value="no" $selected(public_readlog, "no")/>
+                    <label for="u1">$_("No, please keep my reading log private")</label>
+                    <br/><br/>
+                </div>
+            </div>
+        </div>
+        <br/>
         <div class="formElement">
             <h3 class="collapse">$_("Would you like to receive remarkably low traffic update-style emails from Open Library?")</h3>
         </div>
