@@ -23,7 +23,7 @@ $var title: $_("Welcome to Open Library")
 
   $:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Authors Alliance", key="authors_alliance", borrowable_only=False, subject="authorsalliance", cta="Read", test=test)
+  $:render_template("home/custom_ia_carousel", title="Authors Alliance", key="authors_alliance", borrowable_only=False, subject="authorsalliance", collections=["*"], cta="Read", test=test)
 
   $:render_template("home/stats", stats)
 
