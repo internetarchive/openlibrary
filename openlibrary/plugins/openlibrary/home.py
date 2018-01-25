@@ -60,7 +60,8 @@ class random_book(delegate.page):
         raise web.seeother("/")
 
 
-def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
+def get_ia_carousel_books(query=None, subject=None, work_id=None,
+                          collections=None, borrowable_only=True, sorts=None,
                           _type=None, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -69,8 +70,12 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
         query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(limit=limit, subject=subject, work_id=work_id,
-                                  _type=_type, sorts=sorts, query=query)
+    books = lending.get_available(limit=limit, subject=subject,
+                                  work_id=work_id,
+                                  collections=collections,
+                                  borrowable_only=borrowable_only,
+                                  _type=_type, sorts=sorts,
+                                  query=query)
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
 
@@ -94,14 +99,18 @@ def get_cached_featured_subjects():
 
 
 @public
-def generic_carousel(query=None, subject=None, work_id=None, _type=None,
+def generic_carousel(query=None, subject=None, work_id=None,
+                     collections=None, borrowable_only=True, _type=None,
                      sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books, memcache_key, timeout=timeout or cache.DEFAULT_CACHE_LIFETIME)
-    books = cached_ia_carousel_books(
-        query=query, subject=subject, work_id=work_id, _type=_type,
-        sorts=sorts, limit=limit)
+    books = cached_ia_carousel_books(query=query, subject=subject,
+                                     work_id=work_id,
+                                     collections=collections,
+                                     borrowable_only=borrowable_only,
+                                     _type=_type, sorts=sorts,
+                                     limit=limit)
     return storify(books)
 
 @public
