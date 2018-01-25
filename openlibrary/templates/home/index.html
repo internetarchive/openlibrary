@@ -9,6 +9,8 @@ $var title: $_("Welcome to Open Library")
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
+  $:render_template("books/custom_carousel", books=readonline_carousel(), title="Classic Books", url="/read", key="public_domain", cta="Read", test=test)
+
   $:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=120, test=test)
 
   $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
@@ -21,9 +23,9 @@ $var title: $_("Welcome to Open Library")
 
   $:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 
-  $:render_template("books/custom_carousel", books=readonline_carousel(), title="Classic Literature", url="/read", key="public_domain", cta="Read", test=test)
-  
+  $:render_template("home/custom_ia_carousel", title="Authors Alliance", key="authors_alliance", borrowable_only=False, subject="authorsalliance", cta="Read", test=test)
+
   $:render_template("home/stats", stats)
-   
+
   $:render_template("home/about", blog_posts)
  </div>
