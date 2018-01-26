@@ -377,7 +377,7 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     responses = get_availability_of_ocaid(identifier)
     response = responses[identifier] if responses else {}
     if response:
-        num_waiting = int(response.get('num_waitlist', 0))
+        num_waiting = int(response.get('num_waitlist', 0) or 0)
 
     ebook = EBookRecord.find(identifier)
 
