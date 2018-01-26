@@ -24,7 +24,8 @@ logger = logging.getLogger("openlibrary.home")
 CAROUSELS_PRESETS = {
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
     'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
-    'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))'
+    'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
+    'preset:authorsalliance_mitpress': '(collection:(mitpress) OR openlibrary_subject:(authorsalliance) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
 }
 
 class home(delegate.page):
@@ -60,8 +61,7 @@ class random_book(delegate.page):
         raise web.seeother("/")
 
 
-def get_ia_carousel_books(query=None, subject=None, work_id=None,
-                          collections=None, borrowable_only=True, sorts=None,
+def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
                           _type=None, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
@@ -70,12 +70,8 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None,
         query = CAROUSELS_PRESETS[query]
 
     limit = limit or lending.DEFAULT_IA_RESULTS
-    books = lending.get_available(limit=limit, subject=subject,
-                                  work_id=work_id,
-                                  collections=collections,
-                                  borrowable_only=borrowable_only,
-                                  _type=_type, sorts=sorts,
-                                  query=query)
+    books = lending.get_available(limit=limit, subject=subject, work_id=work_id,
+                                  _type=_type, sorts=sorts, query=query)
     formatted_books = [format_book_data(book) for book in books if book != 'error']
     return formatted_books
 
@@ -99,18 +95,14 @@ def get_cached_featured_subjects():
 
 
 @public
-def generic_carousel(query=None, subject=None, work_id=None,
-                     collections=None, borrowable_only=True, _type=None,
+def generic_carousel(query=None, subject=None, work_id=None, _type=None,
                      sorts=None, limit=None, timeout=None):
     memcache_key = 'home.ia_carousel_books'
     cached_ia_carousel_books = cache.memcache_memoize(
         get_ia_carousel_books, memcache_key, timeout=timeout or cache.DEFAULT_CACHE_LIFETIME)
-    books = cached_ia_carousel_books(query=query, subject=subject,
-                                     work_id=work_id,
-                                     collections=collections,
-                                     borrowable_only=borrowable_only,
-                                     _type=_type, sorts=sorts,
-                                     limit=limit)
+    books = cached_ia_carousel_books(
+        query=query, subject=subject, work_id=work_id, _type=_type,
+        sorts=sorts, limit=limit)
     return storify(books)
 
 @public
