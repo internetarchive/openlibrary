@@ -114,15 +114,15 @@ def cached_work_authors_and_subjects(work_id):
         timeout=CACHE_WORKS_DURATION)(work_id)
 
 @public
-def compose_ia_url(limit=None, page=1, subject=None, query=None,
-                   work_id=None, collections=None, borrowable_only=True,
+def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
-    collections = '(%s)' % ' OR '.join(['collection:%s' % c for c in (collections or ['inlibrary'])])
-    q = 'openlibrary_work:(*) AND %s' % (collections)
+    q = 'openlibrary_work:(*)'
 
-    if borrowable_only:
+    if (not subject) and (not query or 'collection:' not in query):
+        q += ' AND collection:(inlibrary)'
+    if (not query) or ('loans__status__status' not in query):
         q += ' AND loans__status__status:AVAILABLE'
     if query:
         q += " AND " + query
@@ -179,8 +179,7 @@ def get_random_available_ia_edition():
         return None
 
 def get_available(limit=None, page=1, subject=None, query=None,
-                  work_id=None, collections=None, borrowable_only=True,
-                  _type=None, sorts=None):
+                  work_id=None, _type=None, sorts=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -189,9 +188,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    url = compose_ia_url(limit=limit, page=page, subject=subject,
-                         query=query, collections=collections,
-                         borrowable_only=borrowable_only,
+    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
                          work_id=work_id, _type=_type, sorts=sorts)
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
