@@ -24,8 +24,8 @@ $var title: $_("Welcome to Open Library")
   $:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=36, test=test)
 
   $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", cta="Read", limit=36, test=test)
-  
+
   $:render_template("home/stats", stats)
-   
+
   $:render_template("home/about", blog_posts)
  </div>
