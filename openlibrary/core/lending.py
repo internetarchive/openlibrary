@@ -178,7 +178,6 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     rows = limit or DEFAULT_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
-    print(url)
     return url
 
 def get_random_available_ia_edition():
