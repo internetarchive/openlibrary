@@ -120,9 +120,21 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
     q = 'openlibrary_work:(*)'
 
+    # If we don't provide an openlibrary_subject and no collection is
+    # specified in our query, we restrict our query to the `inlibrary`
+    # collection (i.e. those books which are borrowable)
     if (not subject) and (not query or 'collection:' not in query):
         q += ' AND collection:(inlibrary)'
-    if (not query) or ('loans__status__status' not in query):
+    # In the only case where we are not restricting our search to
+    # borrowable books (i.e. `inlibrary`), we remove all the books
+    # which are `printdisabled` *outside* of `inlibrary`.
+    if 'collection:(inlibrary)' not in q:
+        q += ' AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
+
+    # If no lending restrictions (e.g. borrow, read) are imposed in
+    # our query, we assume only borrowable books will be included in
+    # results (not unrestricted/open books).
+    if (not query) or ('loans__status__status:' not in query):
         q += ' AND loans__status__status:AVAILABLE'
     if query:
         q += " AND " + query
@@ -158,7 +170,7 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
         return ('https://archive.org/search.php?query=%s' % q) + \
             (('&sort=%s' % _sort) if _sort else '')
 
-    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work']
+    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work', 'loans__status__status']
     encoded_fields = '&'.join(['fl[]=' + f for f in fields])
     sort = ('&'.join(['sort[]=%s' % s for s in
                       (sorts if sorts and isinstance(sorts, list)
@@ -166,12 +178,16 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     rows = limit or DEFAULT_IA_RESULTS
     url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
+    print(url)
     return url
 
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url="https://%s/advancedsearch.php?q=_exists_:openlibrary_work+AND+loans__status__status:AVAILABLE&fl=identifier,openlibrary_edition,loans__status__status&output=json&rows=1&sort[]=random" % (config_bookreader_host)
+        url=("https://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
+             "+AND+loans__status__status:AVAILABLE"\
+             "&fl=identifier,openlibrary_edition,loans__status__status"\
+             "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
@@ -189,7 +205,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     of unique available books.
     """
     url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
-                         work_id=work_id, _type=_type, sorts=sorts)
+                         work_id=work_id, _type=_type, sorts=sorts)    
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])

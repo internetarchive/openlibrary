@@ -1,4 +1,4 @@
-$def with(books=None, title="", url="", key="", min_books=7, cta="Borrow", test=False)
+$def with(books=None, title="", url="", key="", min_books=7, test=False)
 
 $if test or (books and len(books) >= min_books):
     <div class="carousel-section">
@@ -17,6 +17,7 @@ $if test or (books and len(books) >= min_books):
                 </a>
               </div>
               $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
+              $ cta = 'Read' if book.get('read_url') else 'Borrow'
               <div class="book-cta"><a href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
             </div>
         </div>
@@ -27,4 +28,3 @@ $if test or (books and len(books) >= min_books):
         </script>
       </div>
     </div>
-
