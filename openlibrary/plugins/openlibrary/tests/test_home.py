@@ -79,7 +79,7 @@ class TestHomeTemplates:
 
         books = home.readonline_carousel()
         html = unicode(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
-                                       key="public_domain", cta="Read"))
+                                       key="public_domain"))
         assert html.strip() == ""
 
     def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
