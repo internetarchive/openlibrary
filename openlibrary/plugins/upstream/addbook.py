@@ -411,7 +411,7 @@ class SaveBookHelper:
         if work_data:
             if self.work is None:
                 self.work = self.new_work(self.edition)
-                self.edition.works = [{'key': self.work.key}]
+                edition_data.works = [{'key': self.work.key}]
             self.work.update(work_data)
             saveutil.save(self.work)
 
@@ -436,10 +436,11 @@ class SaveBookHelper:
         saveutil.commit(comment=comment, action="edit-book")
 
     def new_work(self, edition):
-        work_key = web.ctx.site.new_key("/type/work")
+        work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
-            "key": work_key,
-            "type": {'key': '/type/work'},
+            'key': work_key,
+            'type': {'key': '/type/work'},
+            'covers': edition.get('covers', []),
         })
         return work
 
@@ -613,14 +614,13 @@ class book_edit(delegate.page):
         work = edition.works and edition.works[0]
 
         if not work:
-            # HACK: create dummy work when work is not available to make edit form work
+            # HACK: create dummy work when work is not available
             work = web.ctx.site.new('', {
                 'key': '',
                 'type': {'key': '/type/work'},
                 'title': edition.title,
                 'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}} for a in edition.get('authors', [])],
                 'subjects': edition.get('subjects', []),
-                'covers': edition.get('covers', [])
             })
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
