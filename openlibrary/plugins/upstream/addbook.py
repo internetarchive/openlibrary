@@ -436,10 +436,11 @@ class SaveBookHelper:
         saveutil.commit(comment=comment, action="edit-book")
 
     def new_work(self, edition):
-        work_key = web.ctx.site.new_key("/type/work")
+        work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
-            "key": work_key,
-            "type": {'key': '/type/work'},
+            'key': work_key,
+            'type': {'key': '/type/work'},
+            'covers': edition.get('covers', []),
         })
         return work
 
@@ -620,7 +621,6 @@ class book_edit(delegate.page):
                 'title': edition.title,
                 'authors': [{'type': {'key': '/type/author_role'}, 'author': {'key': a['key']}} for a in edition.get('authors', [])],
                 'subjects': edition.get('subjects', []),
-                'covers': edition.get('covers', [])
             })
 
         return render_template('books/edit', work, edition, recaptcha=get_recaptcha())
