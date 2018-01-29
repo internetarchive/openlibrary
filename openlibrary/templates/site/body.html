@@ -1,5 +1,8 @@
 $def with (page)
 
+$ announcement = '<strong>Good news!</strong> Starting February, the grace period for redeeming waitlisted books will increase to 48 hours.'
+
+
 $# caution, redirect has no get!
 $if 'v2' in page:
   <body>
@@ -7,6 +10,9 @@ $if 'v2' in page:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
     <div id="test-body-mobile">
+      <div class="page-banner page-banner-home">
+        $:announcement
+      </div>
       $:page
     </div>
 
@@ -35,6 +41,10 @@ $else:
             </div>
             <div id="contentMsg">
               <div class="alert attn"><span></span></div>
+            </div>
+
+            <div class="page-banner page-banner-home">
+              $:announcement
             </div>
 
             $:page

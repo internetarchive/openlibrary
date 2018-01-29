@@ -2,10 +2,6 @@ $def with (stats=None, blog_posts=None, test=False)
 
 $var title: $_("Welcome to Open Library")
 
-<div class="page-banner page-banner-home">
-  Learn more about our Open Libraries Project: bringing millions of ebooks to billions of people: <a href="http://openlibraries.online">OpenLibraries.online</a>
-</div>
-
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
