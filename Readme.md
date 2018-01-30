@@ -119,7 +119,7 @@ Integration tests use the Splinter webdriver with Google Chrome. For instruction
 
 ## Contributing
 
-[Check out our contributor's guide](https://gist.github.com/mekarpeles/d4268370aceb14fd1cd648fc1a1ee6f8) to learn how you can contribute!
+[Check out our contributor's guide](CONTRIBUTING.md) to learn how you can contribute!
 
 ## License
 
