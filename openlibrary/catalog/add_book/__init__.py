@@ -413,8 +413,8 @@ def get_ia_item(ocaid):
     return item
 
 def modify_ia_item(item, data):
-    access_key = lending.config_ia_ol_metadata_write_s3['s3_key']
-    secret_key = lending.config_ia_ol_metadata_write_s3['s3_secret']
+    access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
+    secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
     return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
 
 def create_ol_subjects_for_ocaid(ocaid, subjects):
