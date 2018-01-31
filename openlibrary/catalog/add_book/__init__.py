@@ -630,6 +630,8 @@ def load(rec):
 
         web.ctx.site.save_many(edits, 'import new book')
 
-    # update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
+    # Writes back `openlibrary_edition` and `openlibrary_work` to
+    # archive.org item after successful import:
+    update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
 
     return reply
