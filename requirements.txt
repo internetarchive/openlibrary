@@ -62,7 +62,7 @@ requests==2.12.3
 schema==0.5.0
 simplegeneric==0.8.1
 simplejson==2.3.0
-six==1.10.0
+six==1.11.0
 supervisor==3.0a12
 traitlets==4.3.1
 wcwidth==0.1.7
