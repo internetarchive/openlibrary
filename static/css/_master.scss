@@ -278,7 +278,7 @@ table.display td.center {
         background-position: 90% 6px;
 }
 .sorting_desc_disabled {
-        background-position: url('/images/sort_desc_disabled.png')
+        background-position: url('/images/sort_desc_disabled.png');
         background-repeat: no-repeat;
         background-position: 90% 6px;
 }
@@ -2115,7 +2115,7 @@ div.siteSearch.darker {
     box-shadow: 1px 1px 10px #333;
 }
 body#user div.siteSearch.darker {
-    background-color: ##f3f3f3;
+    background-color: #f3f3f3;
     padding-right: 22px;
 }
 body#admin div.siteSearch.darker {

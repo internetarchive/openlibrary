@@ -19,7 +19,8 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	bash static/css/all.cssh > $(BUILD)/all.css
+	sass static/css/all.scss $(BUILD)/all.css
+#	bash static/css/all.cssh > $(BUILD)/all.css
 
 js:
 	mkdir -p $(BUILD)
