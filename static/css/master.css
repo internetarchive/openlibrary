@@ -5762,7 +5762,7 @@ div.tools-override div.dropper {
     text-decoration: underline;
 }
 
-Tools .check-availability a {
+.Tools .check-availability a {
     font-size: 1.3em;
     color: #036;
 }
