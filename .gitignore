@@ -35,7 +35,6 @@ TAGS
 env/
 .coverage
 htmlcov
-.sass-cache/
 .vagrant
 .DS_Store
 .cache
