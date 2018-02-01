@@ -80,7 +80,6 @@ table#editions div.links {font-size:12px;color:#333;line-height:1.5em;}
 
 .dataTables_paginate {
 	width: 44px;
-	* width: 50px;
 	float: right;
 	text-align: right;
         font-size: 12px;
@@ -117,7 +116,7 @@ table#editions div.links {font-size:12px;color:#333;line-height:1.5em;}
  * DataTables display
  */
 table.display {
-        float: left;
+    float: left;
 	margin: 0 auto;
 	width: 918px;
 	clear: both;
@@ -125,7 +124,6 @@ table.display {
 
 table.display thead th {
 	cursor: pointer;
-	* cursor: hand;
 }
 
 table.display tfoot th {
@@ -145,8 +143,8 @@ table.display td.center {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables sorting
  */
-/*
-.sorting_asc {
+
+ .sorting_asc {
         background-image: url('/images/sort_asc.png');
         background-repeat: no-repeat; 
         background-position: 90% 6px;
@@ -167,14 +165,13 @@ table.display td.center {
         background-position: 90% 6px;
 }
 .sorting_desc_disabled {
-        background-position: url('/images/sort_desc_disabled.png')
+        background-position: url('/images/sort_desc_disabled.png');
         background-repeat: no-repeat;
         background-position: 90% 6px;
 }
 .sorting:hover {
         text-decoration: none;
 }
-*/
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables row classes
