@@ -47,8 +47,9 @@ from merge import try_merge
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 
-# http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
 def strip_accents(s):
+    """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
+    """
     if isinstance(s, str):
         return s
     assert isinstance(s, unicode)
@@ -632,6 +633,7 @@ def load(rec):
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
     # archive.org item after successful import:
-    update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
+    if reply.get('edition') and reply['edition'].get('key'):
+        update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
 
     return reply
