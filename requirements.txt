@@ -35,7 +35,6 @@ ipython==5.1.0
 ipython-genutils==0.1.0
 jsonpatch==0.4
 kombu==1.5.1
-lesscpy==0.11.2
 lxml==2.3.2
 meld3==0.6.7
 mockcache==1.0.1
