@@ -27,6 +27,7 @@ libxml2-dev
 libxslt-dev
 curl
 screen
+npm
 python-dev
 python-pip
 
@@ -36,6 +37,11 @@ python-psycopg2
 python-yaml"
 
 apt-get install -y $APT_PACKAGES
+
+# Install `lessc` dependencies for css pre-processing
+npm install -g less
+npm update -g less
+ln -s /usr/bin/nodejs /usr/bin/node
 
 PYTHON_PACKAGES=$OL_ROOT/test_requirements.txt
 

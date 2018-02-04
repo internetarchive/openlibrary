@@ -19,7 +19,7 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	bash static/css/all.cssh > $(BUILD)/all.css
+	lessc static/css/all.less $(BUILD)/all.css
 
 js:
 	mkdir -p $(BUILD)
