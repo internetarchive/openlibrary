@@ -168,7 +168,7 @@ def update_keys(keys):
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])
     update_work.clear_monkeypatch_cache(max_size=10000)
     print str(args)
-    update_work.load_configs(args.ol_url,args.config,'default')
+    update_work.load_configs(args.ol_url, args.config, 'default')
 
     count = 0
     for chunk in web.group(keys, 100):
