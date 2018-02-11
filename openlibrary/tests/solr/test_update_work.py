@@ -63,11 +63,11 @@ class FakeDataProvider(DataProvider):
         self.docs = docs
         self.docs_by_key = {doc["key"]: doc for doc in docs}
 
+    def find_redirects(self, key):
+        return []
+
     def get_document(self, key):
         return self.docs_by_key.get(key)
-
-    def find_redirects(self, key):
-        raise NotImplementedError()
 
     def get_editions_of_work(self, work):
         return [doc for doc in self.docs
@@ -337,3 +337,64 @@ class Test_build_data:
         assert d['author_facet'] == ['OL1A Author One', 'OL2A Author Two']
         assert d['author_alternative_name'] == ["Author 1"]
 
+class Test_update_items():
+    @classmethod
+    def setup_class(cls):
+        update_work.data_provider = FakeDataProvider()
+
+    def test_delete_author(self):
+        update_work.data_provider = FakeDataProvider([
+            make_author(key='/authors/OL23A', type={'key': '/type/delete'})
+        ])
+        requests = update_work.update_author('/authors/OL23A')
+        assert isinstance(requests, list)
+        assert isinstance(requests[0], basestring)
+        assert requests[0] == '<delete><query>key:OL23A</query></delete>'
+
+    def test_redirect_author(self):
+        update_work.data_provider = FakeDataProvider([
+            make_author(key='/authors/OL24A', type={'key': '/type/redirect'})
+        ])
+        requests = update_work.update_author('/authors/OL24A')
+        assert isinstance(requests, list)
+        assert isinstance(requests[0], basestring)
+        assert requests[0] == '<delete><query>key:OL24A</query></delete>'
+
+    def test_update_author(self):
+        #TODO: Investigate inconsistent update_author return values:
+        # a list of strings in 2 out of 3 cases, but a list of UpdateRequests in this case:
+        update_work.data_provider = FakeDataProvider([
+            make_author(key='/authors/OL25A', name='Somebody')
+        ])
+        requests = update_work.update_author('/authors/OL25A')
+        assert len(requests) == 1
+        assert isinstance(requests, list)
+        assert isinstance(requests[0], update_work.UpdateRequest)
+        assert requests[0].toxml().startswith('<add>')
+
+    def test_delete_edition(self):
+        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
+        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+
+    def test_update_edition(self):
+        editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/edition'}})
+        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+
+    def test_delete_requests(self):
+        olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
+        del_req = update_work.DeleteRequest(olids)
+        assert isinstance(del_req, update_work.DeleteRequest)
+        assert del_req.toxml().startswith("<delete>")
+        for olid in olids:
+            assert "<query>key:%s</query>" % olid in del_req.toxml()
+
+    def test_delete_work(self):
+        del_work = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/delete'}})
+        del_edition = update_work.update_work({'key': '/works/OL23M', 'type': {'key': '/type/delete'}})
+        assert len(del_work) == 1
+        assert len(del_edition) == 1
+        assert isinstance(del_work, list)
+        assert isinstance(del_work[0], update_work.DeleteRequest)
+        assert del_work[0].toxml() == '<delete><query>key:/works/OL23W</query></delete>'
+        assert isinstance(del_edition[0], update_work.DeleteRequest)
+        assert del_edition[0].toxml() == '<delete><query>key:/works/OL23M</query></delete>'
