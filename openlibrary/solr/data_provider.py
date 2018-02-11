@@ -121,7 +121,7 @@ class BetterDataProvider(LegacyDataProvider):
 
     def preload_metadata(self, identifiers):
         identifiers = [id for id in identifiers if id not in self.metadata_cache]
-        if not identifiers:
+        if not (identifiers and self.ia_db):
             return
 
         logger.info("preload_metadata %s", identifiers)
