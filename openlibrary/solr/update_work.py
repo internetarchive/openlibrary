@@ -26,8 +26,11 @@ logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
 re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
-# re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
+re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
+re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
+re_solr_field = re.compile('^[-\w]+$', re.U)
+re_year = re.compile(r'(\d{4})$')
 
 data_provider = None
 _ia_db = None
@@ -51,9 +54,7 @@ def get_solr():
     """
     global solr_host
 
-    if not config.runtime_config:
-        config.load('openlibrary.yml')
-        config.load_config('openlibrary.yml')
+    load_config()
 
     if not solr_host:
         solr_host = config.runtime_config['plugin_worksearch']['solr']
@@ -99,9 +100,6 @@ def get_ia_collection_and_box_id(ia):
 class AuthorRedirect (Exception):
     pass
 
-re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
-re_year = re.compile(r'(\d{4})$')
-re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 def strip_bad_char(s):
     if not isinstance(s, basestring):
         return s
@@ -144,15 +142,14 @@ def add_field_list(doc, name, field_list):
     for value in field_list:
         add_field(doc, name, value)
 
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
-
 def str_to_key(s):
     """
     Convert a string to a valid Solr field name.
-
+    TODO: this exists in openlibrary/utils/__init__.py str_to_key(), DRY
     :param str s:
     :rtype: str
     """
+    to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
 re_not_az = re.compile('[^a-zA-Z]')
@@ -484,7 +481,6 @@ class SolrProcessor:
 
         add('edition_count', len(editions))
 
-
         add_list("edition_key", [re_edition_key.match(e['key']).group(1) for e in editions])
         add_list("by_statement", set(e["by_statement"] for e in editions if "by_statement" in e))
 
@@ -520,7 +516,6 @@ class SolrProcessor:
             subjects['subject']['Protected DAISY'] = 1
 
         return d
-
 
     def get_alternate_titles(self, w, editions):
         """
@@ -651,9 +646,6 @@ class SolrProcessor:
         if printdisabled:
             add('printdisabled_s', ';'.join(list(printdisabled)))
 
-
-re_solr_field = re.compile('^[-\w]+$', re.U)
-
 def dict2element(d):
     """
     Convert the dict to insert into Solr into Solr XML <doc>.
@@ -774,7 +766,6 @@ def build_data2(w, editions, authors, ia, duplicates):
                 ia_box_id.update(e['ia_box_id'])
     if lang:
         add_field_list(doc, 'language', lang)
-
 
     #if lending_edition or in_library_edition:
     #    add_field(doc, "borrowed_b", is_borrowed(lending_edition or in_library_edition))
@@ -1044,7 +1035,6 @@ def update_edition(e):
     request_set.add(doc)
     return request_set.get_requests()
 
-
 def get_subject(key):
     subject_key = key.split("/")[-1]
 
@@ -1285,8 +1275,6 @@ def get_document(key):
         print >> sys.stderr, "Failed to get document from %s" % url
         print >> sys.stderr, "retry", i
 
-
-
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
 
 def solr_select_work(edition_key):
@@ -1326,7 +1314,7 @@ def update_keys(keys, commit=True, output_file=None):
     global data_provider
     global _ia_db
     if data_provider is None:
-        data_provider = get_data_provider('default',_ia_db)
+        data_provider = get_data_provider('default', _ia_db)
 
     wkeys = set()
 
@@ -1581,7 +1569,6 @@ class MonkeyPatch:
         keys = [k for k in keys if k not in self.cache]
         if not keys:
             return
-        # print "preload_keys0", keys
         for chunk in web.group(keys, 100):
             docs = web.ctx.site.get_many(list(chunk))
             for doc in docs:
@@ -1592,11 +1579,9 @@ class MonkeyPatch:
         """
         keys = []
         for doc in self.cache.values():
-            # print "preload_works", doc['key'], doc
             if doc and doc['type']['key'] == '/type/edition' and doc.get('works'):
                 print "success"
                 keys.append(doc['works'][0]['key'])
-        # print "preload_works, found keys", keys
         self.preload_keys0(keys)
 
     def _preload_authors(self):
@@ -1639,11 +1624,9 @@ class MonkeyPatch:
         """Returns all the keys that are redirected to this.
         """
         self.populate_redirect_cache([key])
-        # print "find_redirects", key, self.redirect_cache[key]
         return self.redirect_cache[key]
 
     def populate_redirect_cache(self, keys):
-        # print "populate_redirect_cache", keys
         keys = [k for k in keys if k not in self.redirect_cache]
         if not keys:
             return
@@ -1652,7 +1635,6 @@ class MonkeyPatch:
             self.preload_redirect_cache0(list(chunk))
 
     def preload_redirect_cache0(self, keys):
-        # print "preload_redirect_cache0", keys
         query = {
             "type": "/type/redirect",
             "location": keys,
@@ -1675,8 +1657,6 @@ class MonkeyPatch:
             self.preload_ia_redirect_cache0(list(chunk))
 
     def preload_ia_redirect_cache0(self, identifiers):
-        # print "preload_ia_redirect_cache", identifiers
-
         # query by ocaid
         query = {
             "type": "/type/edition",
@@ -1688,7 +1668,7 @@ class MonkeyPatch:
             #self.cache[thing.key] = thing
             self.ia_redirect_cache[thing.ocaid] = thing.key
 
-        # queery by source_records
+        # query by source_records
         query = {
             "type": "/type/edition",
             "source_records": ["ia:" + x for x in identifiers],
@@ -1781,16 +1761,20 @@ def solr_escape(query):
     """
     return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
 
-def load_configs(c_host,c_config,c_data_provider):
+def do_updates(keys):
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+    update_keys(keys, commit=False)
+
+def load_config(c_config='/openlibrary/conf/openlibrary.yml'):
+    if not config.runtime_config:
+        config.load(c_config)
+        config.load_config(c_config)
+
+def load_configs(c_host, c_config, c_data_provider='default'):
     host = web.lstrips(c_host, "http://").strip("/")
     set_query_host(host)
 
-    # load config
-    config.load(c_config)
-    config.load_config(c_config)
-
-    global conf_file
-    conf_file = c_config
+    load_config(c_config)
 
     global _ia_db
     if 'ia_db' in config.runtime_config.keys():
@@ -1798,23 +1782,16 @@ def load_configs(c_host,c_config,c_data_provider):
 
     global data_provider
     if data_provider is None:
-       data_provider = get_data_provider(c_data_provider,_ia_db)
-
+        data_provider = get_data_provider(c_data_provider, _ia_db)
     return data_provider
 
-
-def do_updates(keys):
-    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
-
-    update_keys(keys, commit=False)
-
 def get_ia_db(settings):
-        host = settings['host']
-        db = settings['db']
-        user = settings['user']
-        pw = os.popen(settings['pw_file']).read().strip()
-        ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
-        return ia_db
+    host = settings['host']
+    db = settings['db']
+    user = settings['user']
+    pw = os.popen(settings['pw_file']).read().strip()
+    ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
+    return ia_db
 
 def parse_args():
     import argparse
@@ -1836,25 +1813,10 @@ def main():
     args = parse_args()
     keys = args.keys
 
-    # set query host
-    host = web.lstrips(args.server, "http://").strip("/")
-    set_query_host(host)
-
     if args.monkeypatch:
         monkeypatch(args.config)
 
-    # load config
-    config.load(args.config)
-    config.load_config(args.config)
-
-    global _ia_db
-    if 'ia_db' in config.runtime_config.keys():
-        _ia_db = get_ia_db(config.runtime_config['ia_db'])
-
-    global data_provider
-    if data_provider is None:
-        data_provider = get_data_provider(args.data_provider,_ia_db)
-
+    load_configs(args.server, args.config, args.data_provdider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
@@ -1867,4 +1829,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
