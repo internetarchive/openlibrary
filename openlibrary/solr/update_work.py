@@ -1765,7 +1765,7 @@ def do_updates(keys):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     update_keys(keys, commit=False)
 
-def load_config(c_config='/openlibrary/conf/openlibrary.yml'):
+def load_config(c_config='conf/openlibrary.yml'):
     if not config.runtime_config:
         config.load(c_config)
         config.load_config(c_config)
