@@ -181,7 +181,10 @@ class ia_importapi:
         if not can_write():
             return json.dumps({'success':False, 'error':'Permission Denied'})
 
-        i = web.input()
+        i = web.input()        
+
+        require_marc = not (i.get('require_marc') == 'false')
+
         if "identifier" not in i:
             self.error("bad-input", "identifier not provided")
         identifier = i.identifier
@@ -224,26 +227,34 @@ class ia_importapi:
 
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
-        if not marc_record:
+        if marc_record:
+            # Is the item a serial instead of a book?
+            marc_leaders = marc_record.leader()
+            if marc_leaders[7] == 's':
+                return self.error("item-is-serial")
+
+            # insider note: follows Archive.org's approach of
+            # Item::isMARCXMLforMonograph() which excludes non-books
+            if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+                return self.error("item-not-book")
+
+            edition_data = self.get_edition_data(identifier, marc_record)
+            if not edition_data:
+                return self.error("invalid-marc-record")
+
+        elif require_marc:
             return self.error("no-marc-record")
 
-        # Case 5 - Is the item a serial instead of a book?
-        marc_leaders = marc_record.leader()
-        if marc_leaders[7] == 's':
-            return self.error("item-is-serial")
+        else:
+            edition_data = self.get_ia_record(metadata)
+            return self.error("invalid-ia-metadata")
+            if not edition_data:
+                return self.error("invalid-ia-metadata")
 
-        # insider note: follows Archive.org's approach of
-        # Item::isMARCXMLforMonograph() which excludes non-books
-        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-            return self.error("item-not-book")
-
-        edition_data = self.get_edition_data(identifier, marc_record)
-        if not edition_data:
-            return self.error("invalid-marc-record")
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
-        """In lieu of a MARC record, retrieves necessarily data from
+        """In lieu of a MARC record, retrieves necessary data from
         Archive.org metadata API
         """
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
@@ -254,7 +265,7 @@ class ia_importapi:
             "ocaid": ocaid,
             "authors": authors,
             "language": metadata.get('language', ''),
-            "cover":  "https://archive.org/download/{0}/{0}/page/title.jpg".format(ocaid),
+            "cover": "https://archive.org/download/{0}/{0}/page/title.jpg".format(ocaid),
         }
         return d
 

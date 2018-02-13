@@ -20,7 +20,7 @@ def get_ol(servername=None):
     ol.autologin()
     return ol
 
-def ol_import_request(item, retries=5, servername=None):
+def ol_import_request(item, retries=5, servername=None, require_marc=True):
     """Requests OL to import an item and retries on server errors.
     """
     logger.info("importing %s", item.ia_id)
@@ -30,13 +30,13 @@ def ol_import_request(item, retries=5, servername=None):
             time.sleep(5)
         try:
             ol = get_ol(servername=servername)
-            return ol.import_ocaid(item.ia_id)
+            return ol.import_ocaid(item.ia_id, require_marc=require_marc)
         except (IOError, OLError), e:
             logger.warn("Failed to contact OL server. error=%s", e)
 
 
-def do_import(item, servername=None):
-    response = ol_import_request(item, servername=servername)
+def do_import(item, servername=None, require_marc=True):
+    response = ol_import_request(item, servername=servername, require_marc=require_marc)
     print >> sys.stderr, "Response:", response
     if response and response.startswith("{"):
         d = json.loads(response)
@@ -71,6 +71,8 @@ def import_ocaids(*ocaids, **kwargs):
                 import-all
     """
     servername = kwargs.get('servername', None)
+    require_marc = not kwargs.get('no_marc', False)
+
     date = datetime.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
@@ -87,7 +89,7 @@ def import_ocaids(*ocaids, **kwargs):
     for ocaid in ocaids:
         item = ImportItem.find_by_identifier(ocaid)
         if item:
-            do_import(item, servername=servername)
+            do_import(item, servername=servername, require_marc=require_marc)
         else:
             logger.error("%s is not found in the import queue", ia_id)
 
@@ -108,7 +110,8 @@ def add_new_scans(args):
     batch = Batch.find(batch_name) or Batch.new(batch_name)
     batch.add_items(items)
 
-def import_batch(args, servername=None):
+def import_batch(args, **kwargs):
+    servername = kwargs.get('servername', None)
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
@@ -118,7 +121,8 @@ def import_batch(args, servername=None):
     for item in batch.get_items():
         do_import(item, servername=servername)
 
-def import_item(args, servername=None):
+def import_item(args, **kwargs):
+    servername = kwargs.get('servername', None)
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
     if item:
@@ -126,7 +130,8 @@ def import_item(args, servername=None):
     else:
         logger.error("%s is not found in the import queue", ia_id)
 
-def import_all(args, servername=None):
+def import_all(args, **kwargs):
+    servername = kwargs.get('servername', None)
     while True:
         items = ImportItem.find_pending()
         if not items:
@@ -141,7 +146,6 @@ def retroactive_import(start=None, stop=None, servername=None):
     (through all time) in the Archive.org database which were
     created after scribe3 was released (when we switched repub states
     from 4 to [19, 20, 22]).
-
     """
     scribe3_repub_states = [19, 20, 22]
     items = get_candidate_ocaids(
@@ -167,27 +171,31 @@ def main():
     load_config(configfile)
 
     from infogami import config
-    servername = config.get('servername', 'https://openlibrary.org')
 
     cmd = sys.argv[1]
-    args = sys.argv[2:]
+    args, flags = [], {'servername': config.get('servername', 'https://openlibrary.org')}
+    for i in sys.argv[2:]:
+        if i.startswith('--'):
+            flags[i[2:]] = True
+        else:
+            args.append(i)
 
     if cmd == "import-retro":
         start, stop = (int(a) for a in args) if \
                       (args and len(args) == 2) else (None, None)
         return retroactive_import(start=start, stop=stop, servername=servername)
     if cmd == "import-ocaids":
-        return import_ocaids(*args, servername=servername)
+        return import_ocaids(*args, **flags)
     if cmd == "add-items":
         return add_items(args)
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":
-        return import_batch(args, servername=servername)
+        return import_batch(args, **kwargs)
     elif cmd == "import-all":
-        return import_all(args, servername=servername)
+        return import_all(args, **kwargs)
     elif cmd == "import-item":
-        return import_item(args, servername=servername)
+        return import_item(args, **kwargs)
     else:
         logger.error("Unknown command: %s", cmd)
 
