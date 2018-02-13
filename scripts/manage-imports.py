@@ -73,8 +73,6 @@ def import_ocaids(*ocaids, **kwargs):
     servername = kwargs.get('servername', None)
     require_marc = not kwargs.get('no_marc', False)
 
-    print("require_marc?!?!?!: %s" % require_marc)
-
     date = datetime.date.today()
     if not ocaids:
         raise ValueError("Must provide at least one ocaid")
@@ -176,7 +174,7 @@ def main():
 
     cmd = sys.argv[1]
     args, flags = [], {'servername': config.get('servername', 'https://openlibrary.org')}
-    for i in  sys.argv[2:]:
+    for i in sys.argv[2:]:
         if i.startswith('--'):
             flags[i[2:]] = True
         else:

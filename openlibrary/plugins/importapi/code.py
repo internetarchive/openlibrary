@@ -183,7 +183,7 @@ class ia_importapi:
 
         i = web.input()        
 
-        require_marc = False if i.get('require_marc') == 'false' else True
+        require_marc = not (i.get('require_marc') == 'false')
 
         if "identifier" not in i:
             self.error("bad-input", "identifier not provided")
@@ -247,8 +247,6 @@ class ia_importapi:
 
         else:
             edition_data = self.get_ia_record(metadata)
-            print("!" * 100)
-            print(edition_data)
             return self.error("invalid-ia-metadata")
             if not edition_data:
                 return self.error("invalid-ia-metadata")
