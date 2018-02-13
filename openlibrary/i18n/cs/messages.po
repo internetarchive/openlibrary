@@ -142,7 +142,7 @@ msgstr "Vyberte si nové heslo"
 
 #: forms.py:53 templates/account/email.html:20
 msgid "Your New Email Address"
-msgstr Vaše nová meailová adresa""
+msgstr "Vaše nová meailová adresa"
 
 #: utils.py:232
 #, python-format
