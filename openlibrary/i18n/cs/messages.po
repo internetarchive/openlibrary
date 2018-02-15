@@ -130,11 +130,11 @@ msgstr "Vyberte heslo"
 
 #: forms.py:45
 msgid "Invalid password"
-msgstr "neplatné heslo"
+msgstr "Neplatné heslo"
 
 #: forms.py:48
 msgid "Current Password"
-msgstr "současné heslo"
+msgstr "Současné heslo"
 
 #: forms.py:49
 msgid "Choose a New Password"
@@ -1723,11 +1723,11 @@ msgstr "Nastavení"
 
 #: templates/lib/nav_head.html:36
 msgid "Log out"
-msgstr "odhlásit"
+msgstr "Odhlásit"
 
 #: templates/lib/nav_head.html:38
 msgid "Log in"
-msgstr "přihlásit"
+msgstr "Přihlásit"
 
 #: templates/lib/pagination.html:18 templates/type/edition/view.html:57
 msgid "Previous"
