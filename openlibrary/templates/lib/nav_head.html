@@ -6,16 +6,16 @@ $def with (page)
     <div class="hamburger-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
-          <li><a href="/account/login">Log in</a></li>
-          <li><a href="/account/create">Sign up</a></li>
+          <li><a href="/account/login">$_("Log in")</a></li>
+          <li><a href="/account/create">$_("Sign up")</a></li>
 
-        <li><a href="/books/add">Add a Book</a></li>
-        <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
-        <li><a href="/random">Random Book</a></li>
-        <li><a href="/recentchanges">Recent Community Edits</a></li>
-        <li><a href="/advancedsearch">Advanced Search</a></li>
-        <li><a href="/developers">Developer Center</a></li>
-        <li><a href="/help">Help &amp; Support</a></li>
+        <li><a href="/books/add">$_("Add a Book")</a></li>
+        <li><a href="https://archive.org/search.php?sin=TXT">$_("Full-Text Search on Archive.org")</a></li>
+        <li><a href="/random">$_("Random Book")</a></li>
+        <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
+        <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+        <li><a href="/developers">$_("Developer Center")</a></li>
+        <li><a href="/help">$_("Help & Support")</a></li>
       </ul>
     </div>
   </div>
@@ -35,17 +35,17 @@ $def with (page)
           <label class="search-facet-selector">
             <span aria-hidden="true" class="search-facet-value"></span>
             <select aria-label="Search by">
-              <option>All</option>
-              <option>Title</option>
-              <option>Author</option>
-              <option>Subject</option>
-              <option>Advanced</option>
-              <!-- <option>Lists</option> -->
+              <option>$_("All")</option>
+              <option>$_("Title")</option>
+              <option>$_("Author")</option>
+              <option>$_("Subject")</option>
+              <option>$_("Advanced")</option>
+              <!-- <option>$_("Lists")</option> -->
             </select>
           </label>
         </div>
         <form class="search-bar-input" action="/search" method="get">
-          <input type="text" name="q" placeholder="Search" autocomplete="off">
+          <input type="text" name="q" placeholder="$_('Search')" autocomplete="off">
           <input name="mode" type="checkbox" aria-hidden="true" checked="checked" value="" id="ftokenstop" class="hidden instantsearch-mode">
           <input type="submit" value="" class="search-bar-submit" aria-label="Search submit">
         </form>
@@ -59,41 +59,41 @@ $def with (page)
 
   <ul class="navigation-component">
     <li class="browse-menu">
-      <a>Browse <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <a>$_("Browse") <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu browse-menu-options">
-          <li><a href="/subjects/science">Science</a></li>
-          <li><a href="/subjects/biographies">Biographies</a></li>
-          <li><a href="/subjects/textbooks">Textbooks</a></li>
-          <li><a href="/subjects/science_fiction">Sci-Fi</a></li>
-          <li><a href="/subjects/romance">Romance</a></li>
-          <li><a href="/subjects/fantasy">Fantasy</a></li>
-          <li><a href="/subjects">More Subjects</a></li>
-          <li><a href="/lists">Reading Lists</a></li>
+          <li><a href="/subjects/science">$_("Science")</a></li>
+          <li><a href="/subjects/biographies">$_("Biographies")</a></li>
+          <li><a href="/subjects/textbooks">$_("Textbooks")</a></li>
+          <li><a href="/subjects/science_fiction">$_("Sci-Fi")</a></li>
+          <li><a href="/subjects/romance">$_("Romance")</a></li>
+          <li><a href="/subjects/fantasy">$_("Fantasy")</a></li>
+          <li><a href="/subjects">$_("More Subjects")</a></li>
+          <li><a href="/lists">$_("Reading Lists")</a></li>
         </ul>
       </div>
     </li>
     <li class="my-books-menu">
-      <a>My Books <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <a>$_("My Books") <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu my-books-menu-options">
-          <li><a href="/account/loans">My Loans</a></li>
-          <li><a href="/account/books/want-to-read">My Reading Log</a></li>
-          <li><a href="/account/lists">My Lists</a></li>
+          <li><a href="/account/loans">$_("My Loans")</a></li>
+          <li><a href="/account/my-books/want-to-read">$("My Reading Log")</a></li>
+          <li><a href="/account/lists">$_("My Lists")</a></li>
         </ul>
       </div>
     </li>
     <li class="more-menu">
-      <a>More <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
+      <a>$_("More") <img class="down-arrow" aria-hidden="true" alt="" role="presentation" src="/static/images/down-arrow.png"/></a>
       <div class="navigation-dropdown-component">
         <ul class="dropdown-menu more-menu-options">
-          <li><a href="/books/add">Add a Book</a></li>
-          <li><a href="https://archive.org/search.php?sin=TXT">Full-Text Search on Archive.org</a></li>
-          <li><a href="/random">Random Book</a></li>
-          <li><a href="/advancedsearch">Advanced Search</a></li>
-          <li><a href="/recentchanges">Recent Community Edits</a></li>
-          <li><a href="/developers">Developer Center</a></li>
-          <li><a href="/help">Help &amp; Support</a></li>
+          <li><a href="/books/add">$_("Add a Book")</a></li>
+          <li><a href="https://archive.org/search.php?sin=TXT">$("Full-Text Search on Archive.org")</a></li>
+          <li><a href="/random">$_("Random Book")</a></li>
+          <li><a href="/advancedsearch">$_("Advanced Search")</a></li>
+          <li><a href="/recentchanges">$_("Recent Community Edits")</a></li>
+        <li><a href="/developers">$_("Developer Center")</a></li>
+          <li><a href="/help">$("Help & Support")</a></li>
         </ul>
       </div>
     </li>
@@ -121,7 +121,7 @@ $def with (page)
           <li><a href="$homepath()/account">$_("Settings")</a></li>
           <li>
             <form name="logout" action="/account/logout" method="post">
-              <a href="#" onclick="document.forms['logout'].submit()">Log out</a>
+              <a href="#" onclick="document.forms['logout'].submit()">$_("Log out")</a>
             </form>
           </li>
         </ul>
