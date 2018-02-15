@@ -100,7 +100,7 @@ def extract_messages(dirs):
 
     for d in dirs:
         extracted = extract_from_dir(d, METHODS, comment_tags=COMMENT_TAGS, strip_comment_tags=True)
-        for filename, lineno, message, comments in extracted:
+        for filename, lineno, message, comments, context in extracted:
             catalog.add(message, None, [(filename, lineno)], auto_comments=comments)
 
     path = os.path.join(root, 'messages.pot')
