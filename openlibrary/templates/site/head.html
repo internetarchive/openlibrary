@@ -12,8 +12,8 @@ $def with (page)
     <meta name="author" content="OpenLibrary.org" />
     <meta name="creator" content="OpenLibrary.org" />
     <meta name="copyright" content="Original content copyright; 2007-2015" />
-    <meta name="distribution" content="Global" />
-
+    <meta name="distribution" content="Global, India" />
+    
     <link rel="canonical" href="$request.canonical_url" />
 
     <link href="/static/images/openlibrary-120x120.png" rel="apple-touch-icon" />
@@ -53,5 +53,9 @@ $def with (page)
 
     $if query_param("_firebug") == "true":
         <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
+
+    $if '/account/create' in request.canonical_url:
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+   
 
 $putctx("sent_head", True)
