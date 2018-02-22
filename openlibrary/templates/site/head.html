@@ -54,4 +54,12 @@ $def with (page)
     $if query_param("_firebug") == "true":
         <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
 
+    $if '/account/create' in request.canonical_url or '/books/add' in request.canonical_url:
+        <!-- Must be loaded in Sign Up and Add new Books page -->
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+    $if '/edit' in request.canonical_url and '/books' in request.canonical_url:
+        <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
 $putctx("sent_head", True)

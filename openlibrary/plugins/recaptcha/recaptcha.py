@@ -5,25 +5,6 @@ import urllib
 import urllib2
 import logging
 
-_recaptcha_html = """
-<script type="text/javascript">
-var RecaptchaOptions = {
-    theme : 'clean'
-};
-</script>
-<script type="text/javascript"
-   src="//www.google.com/recaptcha/api/challenge?k=KEY">
-</script>
-
-<noscript>
-   <iframe src="//www.google.com/recaptcha/api/noscript?k=KEY"
-       height="300" width="500" frameborder="0"></iframe><br>
-   <textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
-   <input type="hidden" name="recaptcha_response_field"
-       value="manual_challenge">
-</noscript>
-"""
-
 class Recaptcha(web.form.Input):
     def __init__(self, public_key, private_key):
         self.public_key = public_key
@@ -36,24 +17,17 @@ class Recaptcha(web.form.Input):
 
         self.error = None
 
-    def render(self):
-        if self.error:
-            key = self.public_key + '&error=' + self.error
-        else:
-            key = self.public_key
-        return _recaptcha_html.replace('KEY', key)
-
     def validate(self, value=None):
         i = web.input(recaptcha_challenge_field="", recaptcha_response_field="")
 
-        data = dict(
-            privatekey=self._private_key,
-            challenge=i.recaptcha_challenge_field,
-            response=i.recaptcha_response_field,
-            remoteip=web.ctx.ip)
+        privatekey=self._private_key
+        response=i.recaptcha_response_field
+        remoteip=web.ctx.ip
+
+        data = "https://www.google.com/recaptcha/api/siteverify?secret=" + privatekey + "&response=" + response + "&remoteip=" + remoteip
 
         try:
-            response = urllib2.urlopen('http://www.google.com/recaptcha/api/verify', urllib.urlencode(data), timeout=3).read()
+            response = urllib2.urlopen(data, timeout=3).read()
         except urllib2.URLError:
             logging.getLogger("openlibrary").exception('Recaptcha call failed: letting user through')
             return True

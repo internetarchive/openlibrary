@@ -15,7 +15,7 @@
      - [Memcache](#memcache)
      - [Log Files](#logs)
      - [Database](#database)
-     - [Recaptcha](#recaptcha)
+     - [reCAPTCHA v2](#recaptcha)
 
 ## Using the Open Library Website
 
@@ -180,22 +180,24 @@ Every raw contains:
               openlibrary=# SELECT count(*) as count FROM thing WHERE type='22';
 
 
-### reCAPTCHA
+### Recaptcha
 
-- To develop with reCAPTCHA locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required): `https://developers.google.com/recaptcha/docs/start`
+- Currently we use reCAPTCHA v2, which validates users based on the "I'm not a robot" checkbox. 
 
-- On the *Manage your reCAPTCHA API keys* page under *Register a new site* enter the following values:
+- To develop with reCAPTCHA v2 locally, for testing new user signups and edits that require a user to prove they are human, you will need to [sign up for a reCAPTCHA API key pair](https://www.google.com/recaptcha/admin#list) from Google Developers (Google account required): `https://developers.google.com/recaptcha/docs/display`
+
+- On the *Manage your reCAPTCHA v2 API keys* page under *Register a new site* enter the following values:
 
 | | |
 | --- | --- |
 | **Label**   | *Local OL dev* |
 | **Domains** | *0.0.0.0* |
 
-- All reCAPTCHA API keys work for local testing, so you do not need to enter the actual OpenLibrary domain. For example, `0.0.0.0` will work for the purpose of local development:
+- All reCAPTCHA v2 API keys work for local testing, so you do not need to enter the actual OpenLibrary domain. For example, `0.0.0.0` will work for the purpose of local development:
 
 - Once you have generated the keys, add them to your local `conf/openlibrary.yml` file by filling in the public and private keys under the `plugin_recaptcha` section.
 
-- From within vagrant, restart the Open Library service via /etc/init.d/ol-start
+- From within vagrant, restart the Open Library service via /etc/init.d/ol-start. You can simply run `vagrant reload` as well for the same.
 
 ### Credits and special thanks
 
