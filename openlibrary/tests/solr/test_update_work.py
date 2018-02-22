@@ -1,6 +1,7 @@
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import build_data
+from StringIO import StringIO
 
 author_counter = 0
 edition_counter = 0
@@ -360,12 +361,22 @@ class Test_update_items():
         assert isinstance(requests[0], basestring)
         assert requests[0] == '<delete><query>key:OL24A</query></delete>'
 
-    def test_update_author(self):
+    def test_update_author(self, monkeypatch):
         #TODO: Investigate inconsistent update_author return values:
         # a list of strings in 2 out of 3 cases, but a list of UpdateRequests in this case:
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL25A', name='Somebody')
         ])
+        # Minimal SOLR response, author not found in SOLR
+        solr_response = """{
+            "facet_counts": {
+                "facet_fields": {
+                    "place_facet": [], "person_facet": [], "subject_facet": [], "time_facet": []
+                }
+            },
+            "response": {"numFound": 0}
+        }"""
+        monkeypatch.setattr(update_work, 'urlopen', lambda url: StringIO(solr_response))
         requests = update_work.update_author('/authors/OL25A')
         assert len(requests) == 1
         assert isinstance(requests, list)

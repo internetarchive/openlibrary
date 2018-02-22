@@ -1268,7 +1268,7 @@ def get_document(key):
             return json.loads(contents)
         except urllib2.HTTPError, e:
             contents = e.read()
-            # genueue 404, not a server error
+            # genuine 404, not a server error
             if e.getcode() == 404 and '"error": "notfound"' in contents:
                 return {"key": key, "type": {"key": "/type/delete"}}
 
