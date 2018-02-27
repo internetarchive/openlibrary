@@ -1,8 +1,7 @@
 """Recapcha Input to use in web.py forms."""
 
 import web
-import urllib
-import urllib2
+import requests
 import logging
 
 class Recaptcha(web.form.Input):
@@ -12,33 +11,25 @@ class Recaptcha(web.form.Input):
         validator = web.form.Validator('Recaptcha failed', self.validate)
 
         web.form.Input.__init__(self, 'recaptcha', validator)
-        self.description = ''
+        self.description = 'Validator for recaptcha v2'
         self.help = ''
 
         self.error = None
 
     def validate(self, value=None):
-        i = web.input(recaptcha_challenge_field="", recaptcha_response_field="")
-
-        privatekey=self._private_key
-        response=i.recaptcha_response_field
-        remoteip=web.ctx.ip
-
-        data = "https://www.google.com/recaptcha/api/siteverify?secret=" + privatekey + "&response=" + response + "&remoteip=" + remoteip
+        i = web.input()
+        url = "https://www.google.com/recaptcha/api/siteverify"
+        params = {
+            'secret': self._private_key,
+            'response': i.get('g-recaptcha-response'),
+            'remoteip': web.ctx.ip
+        }
 
         try:
-            response = urllib2.urlopen(data, timeout=3).read()
-        except urllib2.URLError:
-            logging.getLogger("openlibrary").exception('Recaptcha call failed: letting user through')
+            r = requests.get(url, params=params, timeout=3)
+        except requests.exceptions.RequestException as e:
+            logging.getLogger("openlibrary").exception(
+                'Recaptcha call failed: letting user through')
             return True
-
-        if '\n' in response:
-            success, error = response.split('\n', 1)
-            if success.lower() != 'true':
-                self.error = error.strip()
-                return False
-            else:
-                return True
-        else:
-            return False
-
+        
+        return r.json().get('success', '')
