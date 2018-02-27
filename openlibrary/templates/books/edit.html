@@ -209,7 +209,7 @@ $jsdef render_author(i, author):
         $if recaptcha:
             <div class="formElement">
                 <div class="label">$_("Please type in the text in the image below.")</div>
-                <div class="g-recaptcha" data-sitekey="{{$:recaptcha.public_key}}"></div>
+                <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
             </div>
 
         $:macros.EditButtons(comment=work.comment_)
