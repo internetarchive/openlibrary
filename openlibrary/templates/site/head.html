@@ -47,6 +47,11 @@ $def with (page)
 
     <!-- Must be loaded after jquery -->
     <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
+    <script> <!-- anonymized analytics -->
+      window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
+        archive_analytics.send_pageview({});
+      });
+    </script>
 
     <script src="$static_url('build/vendor.js')" type="text/javascript"></script>
     <script src="$static_url('build/all.js')" type="text/javascript"></script>
