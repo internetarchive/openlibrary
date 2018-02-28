@@ -71,7 +71,7 @@ $var title: $_("Add a book")
         $if recaptcha and not ctx.user:
             <div class="formElement">
                 <div class="label">$_("Since you are not logged in, please type in the text or number(s) below.")</div>
-                $:recaptcha.render()
+                <div class="g-recaptcha" data-sitekey="$:recaptcha.public_key"></div>
             </div>
 
         <div class="formElement bottom">
