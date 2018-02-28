@@ -1,6 +1,6 @@
 $def with (page)
 
-$ announcement = '<strong>Want to support Open Library?</strong> Until April 30, we\'ll <strong>double your donation</strong>! <a href="https://archive.org/donate?platform=ol">Help us build the great digital library</a>.' 
+$ announcement = 'Is Open Library useful to you? Chip in to keep it growing. Your gift will be matched today! &nbsp; <a href="https://archive.org/donate?platform=ol" class="btn primary">Donate</a>' 
 
 $if 'v2' in page:
   <body>
@@ -8,7 +8,7 @@ $if 'v2' in page:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
     <div id="test-body-mobile">
-      <div class="page-banner page-banner-home">
+      <div class="page-banner page-banner-body">
         $:announcement
       </div>
       $:page
@@ -41,7 +41,7 @@ $else:
               <div class="alert attn"><span></span></div>
             </div>
 
-            <div class="page-banner page-banner-home">
+            <div class="page-banner page-banner-body">
               $:announcement
             </div>
 

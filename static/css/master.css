@@ -1685,7 +1685,7 @@ fieldset.home legend {
 .ui-icon-closethick {background-image:url("/images/icons/icon_close-pop.png");background-position:0 0;background-repeat:no-repeat; }
 .ui-icon-closethick:hover {background-position:0 -32px;}
 
-.ui-widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; filter:Alpha(Opacity=50); z-index: 9999!important;}
+.ui-widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #000; opacity: 0.5; filter: alpha(opacity=50); z-index: 9999!important;}
 
 .ui-helper-hidden { display: none; }
 .ui-helper-hidden-accessible { position: absolute; left: -99999999px; }
@@ -1696,7 +1696,7 @@ fieldset.home legend {
 * html .ui-helper-clearfix { height:1%; }
 .ui-helper-clearfix { display:block; }
 
-.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter:Alpha(Opacity=0); }
+.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter: alpha(opacity=0); }
 
 .ui-dialog { position: relative; padding: 0; width: 400px; border:10px solid #615132; background-color: #fff;border-radius:12px;-webkit-box-shadow: 1px 3px 10px #000;box-shadow: 1px 3px 10px #000;z-index:10000!important;}
 .ui-dialog .ui-dialog-titlebar { padding: 10px; position: relative; background-color: #615132; color: #fff;font-size: 1.75em;margin: 0;padding: 0;}
@@ -4579,7 +4579,7 @@ a.coverLook {
     display: block;
 }
 #colorbox, #cboxOverlay, #cboxWrapper{position:absolute; top:0; left:0; z-index:999999;}
-#cboxOverlay{position:fixed; width:100%; height:100%;background:#3a301e;opacity:0.5;filter:Alpha(Opacity=50);}
+#cboxOverlay{position:fixed; width:100%; height:100%;background:#3a301e;opacity:0.5;filter: alpha(opacity=50);}
 #cboxMiddleLeft, #cboxBottomLeft{clear:left;}
 #cboxContent{position:relative;}
 #cboxLoadedContent{overflow:visible!important;}
@@ -5403,7 +5403,12 @@ body#user #description p {font-size:.875em;margin:0 0 30px 0;}
 #lists .listEntry .meta {font-size:.6875em;color:#666;line-height:1.5em;margin:3px 0;}
 
 /* SEARCH INSIDE */
-.snipHL {opacity: 0.20;filter: alpha(opacity = 20);background-color: #00f;position:absolute;}
+.snipHL {
+    opacity: 0.20;
+    filter: alpha(opacity=20);
+    background-color: #00f;
+    position:absolute;
+}
 
 /* LIBRARIES */
 .branches th {border-bottom: 1px solid #ddd; font-size: .625em; font-weight:700; padding: 4px;}
@@ -5479,20 +5484,13 @@ span.actions a span.checked-out {
     color: white;
 }
 
-.page-banner-home {
+.page-banner-body {
+    font-size: .85em;
     padding: 10px;
+    line-height: 25px;
     margin-bottom: 15px;
     text-align: center;
 }
-
-.page-banner-home .button {
-    padding: 3px 6px;
-}
-
-.page-banner-center {
-    text-align: center;
-}
-
 
 .box-shadow-menu {
   position: relative;
@@ -6049,4 +6047,21 @@ ul#myreads-paginator li.selected:hover {
 
 .reading-lists-title {
     padding: 10px;
+}
+
+@primary-blue: #3c99fc;
+
+/* This button should be used for now on */
+.btn {
+    text-align: center;
+    padding: 5px 10px;
+}
+
+.btn.primary {
+    background-color: @primary-blue;
+    border-radius: 3px;
+}
+
+a.btn {
+    text-decoration: none;
 }
