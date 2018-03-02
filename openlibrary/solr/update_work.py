@@ -1012,6 +1012,14 @@ def process_work_data(work_data):
         work_data['duplicates'])
 
 def update_edition(e):
+    """
+    Get the Solr requests necessary to insert/update this edition into Solr.
+    Currently editions are not indexed by SOLR
+    (unless they are orphaned editions passed into update_work() as fake works.
+    This always returns an empty list.
+    :param dict e: Edition to update
+    :rtype: list
+    """
     return []
 
     ekey = e['key']
@@ -1097,12 +1105,10 @@ def update_work(w, debug=False, resolve_redirects=False):
 
     :param dict w: Work to insert/update
     :param bool debug: FIXME unused
-    :param bool resolve_redirects:
+    :param bool resolve_redirects: FIXME unused (see build_data())
     :rtype: list[UpdateRequest or DeleteRequest]
     """
     wkey = w['key']
-    #assert wkey.startswith('/works')
-    #assert '/' not in wkey[7:]
     deletes = []
     requests = []
 
@@ -1113,8 +1119,8 @@ def update_work(w, debug=False, resolve_redirects=False):
     # deletes += redirect_keys
     # deletes += [wkey[7:]] # strip /works/ from /works/OL1234W
 
-    # handle edition records as well
-    # When an edition is not belonged to a work, create a fake work and index it.
+    # Handle edition records as well
+    # When an edition does not contain a works list, create a fake work and index it.
     if w['type']['key'] == '/type/edition' and w.get('title'):
         edition = w
         w = {
@@ -1181,6 +1187,13 @@ def make_delete_query(keys):
     return tostring(delete_query)
 
 def update_author(akey, a=None, handle_redirects=True):
+    """
+    Get the Solr requests necessary to insert/update/delete an Author in Solr.
+    :param string akey: The author key, e.g. /authors/OL23A
+    :param dict a: Optional Author
+    :param bool handle_redirects: If true, remove from SOLR all authors that redirect to this one
+    :rtype: list[string or UpdateRequest or DeleteRequest]
+    """
     if akey == '/authors/':
         return
     m = re_author_key.match(akey)
@@ -1191,9 +1204,10 @@ def update_author(akey, a=None, handle_redirects=True):
     if not a:
         a = data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
+        # FIXME: should return a DeleteRequest
         author_id = solr_escape(author_id)
         delete_query = Element('delete')
-        query = SubElement(delete_query,'query')
+        query = SubElement(delete_query, 'query')
         query.text = 'key:%s' % author_id
         return [tostring(delete_query)]
     try:
@@ -1254,8 +1268,6 @@ def update_author(akey, a=None, handle_redirects=True):
         #    requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
             requests.append(DeleteRequest(redirect_keys))
-
-    #requests.append(tostring(add).encode('utf-8'))
     requests.append(UpdateRequest(d))
     return requests
 
@@ -1320,7 +1332,7 @@ def update_keys(keys, commit=True, output_file=None):
 
     # To delete the requested keys before updating
     # This is required because when a redirect is found, the original
-    # key specified is never otherwise get deleted from solr.
+    # key specified is never otherwise deleted from solr.
     deletes = []
 
     # Get works for all the editions
@@ -1335,7 +1347,7 @@ def update_keys(keys, commit=True, output_file=None):
             logger.warn("Found redirect to %s", edition['location'])
             edition = data_provider.get_document(edition['location'])
 
-        # When the given key is not found or redirect to another edition/work,
+        # When the given key is not found or redirects to another edition/work,
         # explicitly delete the key. It won't get deleted otherwise.
         if not edition or edition['key'] != k:
             deletes.append(k)
