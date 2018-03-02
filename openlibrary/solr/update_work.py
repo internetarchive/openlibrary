@@ -661,12 +661,11 @@ def dict2element(d):
             add_field(doc, k, v)
     return doc
 
-def build_data(w, resolve_redirects=False):
+def build_data(w):
     """
     Construct the Solr document to insert into Solr for the given work
 
     :param dict w: Work to insert/update
-    :param bool resolve_redirects: FIXME unused
     :rtype: dict
     """
     # Anand - Oct 2013
@@ -1099,13 +1098,12 @@ def update_subject(key):
         request_set.add(subject)
     return request_set.get_requests()
 
-def update_work(w, debug=False, resolve_redirects=False):
+def update_work(w, debug=False):
     """
     Get the Solr requests necessary to insert/update this work into Solr.
 
     :param dict w: Work to insert/update
     :param bool debug: FIXME unused
-    :param bool resolve_redirects: FIXME unused (see build_data())
     :rtype: list[UpdateRequest or DeleteRequest]
     """
     wkey = w['key']
@@ -1140,7 +1138,7 @@ def update_work(w, debug=False, resolve_redirects=False):
 
     if w['type']['key'] == '/type/work' and w.get('title'):
         try:
-            d = build_data(w, resolve_redirects=resolve_redirects)
+            d = build_data(w)
             dict2element(d)
         except:
             logger.error("failed to update work %s", w['key'], exc_info=True)
