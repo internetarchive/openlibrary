@@ -771,8 +771,6 @@ class Changeset(client.Changeset):
             }
         else:
             d = web.ctx.site.get(key, revision).dict()
-            if d['type']['key'] == '/type/edition':
-                d.pop('authors', None)
             return d
 
     def process_docs_before_undo(self, docs):
