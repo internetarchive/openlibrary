@@ -1,3 +1,5 @@
+var startTime = new Date(); // This is used by ol.analytics.js
+
 var Browser = {
     getUrlParameter: function(key) {
         var query = window.location.search.substring(1);
