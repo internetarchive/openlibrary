@@ -413,14 +413,19 @@ class Edition(models.Edition):
         result = {
             "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
             "publication-date": self.get('publish_date'),
-            "url": "http://openlibrary.org%s" % self.url()
+            "ol": str(self.get_olid()),
         }
+        data = self.get_ia_meta_fields()
+
+
+        if data['identifier-access']:
+            result['url'] = data['identifier-access']
 
         if self.title != self.works[0].title:
             result['edition'] = self.title
 
         if self.get('isbn_10'):
-            result['id'] = self['isbn_10'][0]
+            # result['id'] = self['isbn_10'][0]
             result['isbn'] = self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
 
         if self.get('oclc_numbers'):
