@@ -148,11 +148,14 @@ def build_q_list(param):
         if 'author' in param:
             v = param['author'].strip()
             m = re_author_key.search(v)
-            if m: # FIXME: 'OL123A OR OL234A'
-                q_list.append('author_key:(' + m.group(1) + ')')
+            if m:
+                q_list.append("author_key:(%s)" % m.group(1))
             else:
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), v)
-                q_list.append('(author_name:(' + v + ') OR author_alternative_name:(' + v + '))')
+                # Somehow v can be empty at this point,
+                #   passing the following with empty strings causes a severe error in SOLR
+                if v:
+                    q_list.append("(author_name:(%(name)s) OR author_alternative_name:(%(name)s))" % {'name': v})
 
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
@@ -251,7 +254,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
 
     solr_result = execute_solr_query(solr_select)
     if solr_result is None:
-        return (None, None, None)
+        return (None, solr_select, q_list)
     reply = solr_result.read()
     return (reply, solr_select, q_list)
 
