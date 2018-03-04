@@ -748,7 +748,12 @@ class public_my_books(delegate.page):
             readlog = ReadingLog()
             works = readlog.get_works(key)
             return render['account/books'](
-                works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists)
+                works, key, reading_log=readlog.reading_log_counts,
+                lists=readlog.lists, username=username)
+        return render['generic'](
+            '<h3>Sorry, this user has choosen not to make their reading log public.</h3>' \
+            '<ul><li><a href="/people/%s/lists">See %s\'s public lists</li>' \
+            '<li><a href="/lists">Browse lists from other users</a></li></ul>' % (username, username))
 
 class account_my_books(delegate.page):
     path = "/account/books"
@@ -762,10 +767,16 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self, key='loans'):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
+        notifications = (user_preferences or {}).get('notifications')
+        is_public = notifications and notifications.get('public_readlog', 'yes') == 'yes'
         readlog = ReadingLog()
         works = readlog.get_works(key)
         return render['account/books'](
-            works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists)
+            works, key, reading_log=readlog.reading_log_counts,
+            lists=readlog.lists, username=username, public=is_public)
 
 class account_loans(delegate.page):
     path = "/account/loans"

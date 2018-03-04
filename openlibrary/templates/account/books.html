@@ -1,13 +1,22 @@
-$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None)
+$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, username=None, public=False)
 
 $ title = "My Books"
 $ urlbase = ctx.path.rsplit('/', 1)[0]
+$ owners_page = not urlbase.startswith('/people')
 $ header_title = (("%s: " % urlbase.split('/')[2]) if urlbase.startswith('/people') else '') + key.title().replace('-', ' ')
-
 
 <div id="contentHead">
   <div id="mybooks">
     <h1>$header_title</h1>
+
+    $if owners_page:
+      <h3 class="context-banner">
+        Your reading log is currently set to <i>$("public" if public else "private")</i> &mdash;          
+        $if public:
+          <button onclick="prompt('Copy to clipboard: Ctrl+C, Enter', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
+        <a href="/account/notifications">Manage your privacy settings</a>
+      </h3>
+
     <div class="mybooks">
       <div class="mybooks-menu">
         <ul class="preset-lists">          

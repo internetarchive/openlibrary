@@ -6063,3 +6063,17 @@ ul#myreads-paginator li.selected:hover {
 a.btn {
     text-decoration: none;
 }
+
+.generic-msg {
+    padding: 5px 40px 35px 40px;
+
+    ul {
+        margin-left: 40px;
+    }
+}
+
+.context-banner {
+    background-color: #fffdcd;
+    border: 1px solid #e2de8b;
+    padding: 10px;
+}
