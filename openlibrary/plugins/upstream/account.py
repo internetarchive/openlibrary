@@ -674,7 +674,7 @@ class ReadingLog(object):
         return self.user.get_lists()
 
     @property
-    def reading_log_counts(self):        
+    def reading_log_counts(self):
         counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
             self.user.get_username())
         return {
@@ -732,10 +732,10 @@ class ReadingLog(object):
             raise
 
 class public_my_books(delegate.page):
-    path = "/people/([^/]+)/my-books"
+    path = "/people/([^/]+)/books"
 
     def GET(self, username):
-        raise web.seeother('/people/%s/my-books/want-to-read' % username)
+        raise web.seeother('/people/%s/books/want-to-read' % username)
 
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
