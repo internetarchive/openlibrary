@@ -760,7 +760,7 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/my-books/want-to-read')
+        raise web.seeother('/account/books/want-to-read')
 
 class account_my_books(delegate.page):
     path = "/account/books/([a-zA-Z_-]+)"
