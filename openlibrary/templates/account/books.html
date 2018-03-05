@@ -14,7 +14,7 @@ $ header_title = (("%s: " % urlbase.split('/')[2]) if urlbase.startswith('/peopl
         Your reading log is currently set to <i>$("public" if public else "private")</i> &mdash;          
         $if public:
           <button onclick="prompt('Copy to clipboard: Ctrl+C, Enter', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
-        <a href="/account/notifications">Manage your privacy settings</a>
+        <a href="/account/privacy">Manage your privacy settings</a>
       </h3>
 
     <div class="mybooks">

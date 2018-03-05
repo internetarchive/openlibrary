@@ -620,6 +620,32 @@ class account_audit(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
+class account_privacy(delegate.page):
+    path = "/account/privacy"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        prefs = web.ctx.site.get(user.key + "/preferences")
+        d = (prefs and prefs.get('notifications')) or {}
+        email = accounts.get_current_user().email
+        return render['account/privacy'](d, email)
+
+    @require_login
+    def POST(self):
+        user = accounts.get_current_user()
+        key = user.key + '/preferences'
+        prefs = web.ctx.site.get(key)
+
+        d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
+
+        d['notifications'].update(web.input())
+
+        web.ctx.site.save(d, 'save notifications')
+
+        add_flash_message('note', _("Notification preferences have been updated successfully."))
+        web.seeother("/account")
+
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
@@ -639,7 +665,7 @@ class account_notifications(delegate.page):
 
         d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
 
-        d['notifications'] = web.input()
+        d['notifications'].update(web.input())
 
         web.ctx.site.save(d, 'save notifications')
 

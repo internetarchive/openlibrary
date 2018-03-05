@@ -1,42 +1,38 @@
 $def with (d, email)
 
-$var title: $_("Notifications from Open Library")
+$var title: $_("Your Privacy on Open Library")
 
 <div id="contentHead">
     <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
     /
     <a href="$homepath()/account">$_("Settings")</a>
-    /</div>    <h1>$_("Notifications from Open Library")</h1>
+    /</div>    <h1>$_("Privacy Settings")</h1>
 </div>
 
 $def selected(value, value2):
     $if value == value2: checked="checked"
 
-$ notify = d.get('notify', 'no')
-$ updates = d.get('updates', 'no')
 $ public_readlog = d.get('public_readlog', 'yes')
 
 <div id="contentBody">
-    <form method="post" class="olform" action="" id="notifications">
-        <p class="sansserif larger">$_("Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want.")</p>
-        <br/>
+    <form method="post" class="olform" action="" id="privacy">
 
         <div class="formElement">
-            <h3 class="collapse">$_("Would you like to receive remarkably low-frequency update-style emails from Open Library?")</h3>
+            <h3 class="collapse">Would you like to make your <a href="/account/books">Reading Log</a> public?</h3>
         </div>
         <br/>
         <div class="formElement">
             <div class="input radio">
                 <div class="sansserif larger">
-                    <input type="radio" name="updates" id="u0" value="no" $selected(updates, "no")/>
-                    <label for="u0">$_("No, thank you")</label>
+                    <input type="radio" name="public_readlog" id="r0" value="yes" $selected(public_readlog, "yes")/>
+                    <label for="u0">$_("Yes")</label>
                     <br/><br/>
                 </div>
             </div>
             <div class="input radio">
                 <div class="sansserif larger">
-                    <input type="radio" name="updates" id="u1" value="yes" $selected(updates, "yes")/>
-                    <label for="u1">$_("Yes! Please!")</label>
+                    <input type="radio" name="public_readlog" id="r1" value="no" $selected(public_readlog, "no")/>
+                    <label for="u1">$_("No")</label>
                     <br/><br/>
                 </div>
             </div>
@@ -52,7 +48,3 @@ $ public_readlog = d.get('public_readlog', 'yes')
     </form>
 </div>
 
-
-<script type="text/javascript">
-    \$().ready(twitterOn);
-</script>
