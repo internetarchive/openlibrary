@@ -630,7 +630,8 @@ class account_privacy(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        prefs = web.ctx.site.get(user.key + "/preferences")
+        key = user.key + "/preferences"
+        prefs = web.ctx.site.get(key)
         d = (prefs and prefs.get('notifications')) or {'key': key, 'type': {'key': '/type/object'}}
         email = accounts.get_current_user().email
         return render['account/privacy'](d, email)
