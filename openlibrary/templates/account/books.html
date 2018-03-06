@@ -1,17 +1,28 @@
-$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, username=None, public=False)
+$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, user=None, public=False)
 
 $ title = "My Books"
 $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ owners_page = not urlbase.startswith('/people')
-$ header_title = (("%s: " % urlbase.split('/')[2]) if urlbase.startswith('/people') else '') + key.title().replace('-', ' ')
+$ header_title = key.title().replace('-', ' ')
+$ username = user.key.split('/')[-1]
 
 <div id="contentHead">
   <div id="mybooks">
-    <h1>$header_title</h1>
+    <div class="small sansserif grey account-settings-menu">
+      $:_("%(user)s", user='<a href="%s">%s</a>' % (user.key, user.displayname))
+      &raquo;
+      $_("Reading Log")
+    </div>
+    <h1>
+      $if not owners_page:
+        $username &raquo; $header_title
+      $else:
+        $header_title
+    </h1>
 
     $if owners_page:
-      <h3 class="context-banner">
-        Your reading log is currently set to <i>$("public" if public else "private")</i> &mdash;          
+      <h3>
+        Your reading log is currently set to $("public" if public else "private") &mdash;          
         $if public:
           <button onclick="prompt('Copy to clipboard: Ctrl+C, Enter', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
         <a href="/account/privacy">Manage your privacy settings</a>

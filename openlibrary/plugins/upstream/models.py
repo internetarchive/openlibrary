@@ -713,6 +713,10 @@ class User(models.User):
     def get_edit_history(self, limit=10, offset=0):
         return web.ctx.site.versions({"author": self.key, "limit": limit, "offset": offset})
 
+    def get_users_settings(self):
+        settings = web.ctx.site.get('%s/preferences' % self.key)
+        return settings.dict().get('notifications') if settings else {}
+
     def get_creation_info(self):
         if web.ctx.path.startswith("/admin"):
             d = web.ctx.site.versions({'key': self.key, "sort": "-created", "limit": 1})[0]

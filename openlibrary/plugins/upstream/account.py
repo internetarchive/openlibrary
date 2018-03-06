@@ -34,6 +34,10 @@ import borrow
 logger = logging.getLogger("openlibrary.account")
 
 USERNAME_RETRIES = 3
+DEFAULT_SETTINGS = {
+    'updates': 'no',
+    'public_readlog': 'yes'
+}
 
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
@@ -627,7 +631,7 @@ class account_privacy(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         prefs = web.ctx.site.get(user.key + "/preferences")
-        d = (prefs and prefs.get('notifications')) or {}
+        d = (prefs and prefs.get('notifications')) or {'key': key, 'type': {'key': '/type/object'}}
         email = accounts.get_current_user().email
         return render['account/privacy'](d, email)
 
@@ -638,7 +642,8 @@ class account_privacy(delegate.page):
         prefs = web.ctx.site.get(key)
 
         d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
-
+        if 'notifications' not in d:
+            d['notifications'] = DEFAULT_SETTINGS
         d['notifications'].update(web.input())
 
         web.ctx.site.save(d, 'save notifications')
@@ -653,7 +658,7 @@ class account_notifications(delegate.page):
     def GET(self):
         user = accounts.get_current_user()
         prefs = web.ctx.site.get(user.key + "/preferences")
-        d = (prefs and prefs.get('notifications')) or {}
+        d = (prefs and prefs.get('notifications')) or {'key': key, 'type': {'key': '/type/object'}}
         email = accounts.get_current_user().email
         return render['account/notifications'](d, email)
 
@@ -665,6 +670,8 @@ class account_notifications(delegate.page):
 
         d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
 
+        if 'notifications' not in d:
+            d['notifications'] = DEFAULT_SETTINGS
         d['notifications'].update(web.input())
 
         web.ctx.site.save(d, 'save notifications')
@@ -768,14 +775,15 @@ class public_my_books(delegate.page):
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
+        user = web.ctx.site.get('/people/%s' % username)
         user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
         notifications = (user_preferences or {}).get('notifications')
         if notifications and notifications.get('public_readlog', 'yes') == 'yes':
-            readlog = ReadingLog()
+            readlog = ReadingLog(user=user)
             works = readlog.get_works(key)
             return render['account/books'](
                 works, key, reading_log=readlog.reading_log_counts,
-                lists=readlog.lists, username=username)
+                lists=readlog.lists, user=user)
         return render['generic'](
             '<h3>Sorry, this user has choosen not to make their reading log public.</h3>' \
             '<ul><li><a href="/people/%s/lists">See %s\'s public lists</li>' \
@@ -797,12 +805,12 @@ class account_my_books(delegate.page):
         username = user.key.split('/')[-1]
         user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
         notifications = (user_preferences or {}).get('notifications')
-        is_public = notifications and notifications.get('public_readlog', 'yes') == 'yes'
+        is_public = notifications and notifications.get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
         works = readlog.get_works(key)
         return render['account/books'](
             works, key, reading_log=readlog.reading_log_counts,
-            lists=readlog.lists, username=username, public=is_public)
+            lists=readlog.lists, user=user, public=is_public)
 
 class account_loans(delegate.page):
     path = "/account/loans"

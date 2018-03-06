@@ -1263,7 +1263,6 @@ div.flash-messages span {
     background-color: #fffdcd;
     background-position: 10px 50%;
     background-repeat: no-repeat;
-    margin: 0 auto 15px;
     padding: 15px 52px;
     text-align: left;
 }
@@ -6072,8 +6071,6 @@ a.btn {
     }
 }
 
-.context-banner {
-    background-color: #fffdcd;
-    border: 1px solid #e2de8b;
-    padding: 10px;
+.account-settings-menu {
+    margin-bottom: 15px;
 }

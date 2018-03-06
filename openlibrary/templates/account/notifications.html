@@ -3,10 +3,12 @@ $def with (d, email)
 $var title: $_("Notifications from Open Library")
 
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
-    /
+    <div class="small sansserif grey account-settings-menu">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+    &raquo;
     <a href="$homepath()/account">$_("Settings")</a>
-    /</div>    <h1>$_("Notifications from Open Library")</h1>
+    &raquo; Notifications
+    </div>
+    <h1>$_("Notifications from Open Library")</h1>
 </div>
 
 $def selected(value, value2):
@@ -14,7 +16,6 @@ $def selected(value, value2):
 
 $ notify = d.get('notify', 'no')
 $ updates = d.get('updates', 'no')
-$ public_readlog = d.get('public_readlog', 'yes')
 
 <div id="contentBody">
     <form method="post" class="olform" action="" id="notifications">
@@ -22,7 +23,7 @@ $ public_readlog = d.get('public_readlog', 'yes')
         <br/>
 
         <div class="formElement">
-            <h3 class="collapse">$_("Would you like to receive remarkably low-frequency update-style emails from Open Library?")</h3>
+            <h3 class="collapse">$_("Would you like to receive very occassional emails from Open Library?")</h3>
         </div>
         <br/>
         <div class="formElement">
