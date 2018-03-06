@@ -29,9 +29,11 @@ $else:
 </div>
 
 <div id="contentBody">
+    <h2>Reading Log</h2>
     $if settings.get('public_readlog') == "yes":
-      <h2>Reading Log</h2>
-      <p>This user has chosen to publicly share the books they are <a href="$(page.key)/books/currently-reading">currently reading</a>, <a href="$(page.key)/books/already-read">have finished</a>, and <a href="$(page.key)/books/want-to-read">want to read</a>!</p>
+      <p>This user has chosen to publicly share the books they are <a href="$(page.key)/books/currently-reading">currently reading</a>, <a href="$(page.key)/books/already-read">have already read</a>, and <a href="$(page.key)/books/want-to-read">want to read</a>!</p>
+    $else:
+      <p>This user has chosen to keep their Reading Log private</p>
 
     $if page.website:
         <p>

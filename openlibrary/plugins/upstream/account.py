@@ -775,7 +775,8 @@ class public_my_books(delegate.page):
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
-        user = web.ctx.site.get('/people/%s' % username)
+        user_key = '/people/%s' % username
+        user = web.ctx.site.get(user_key)
         user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
         notifications = (user_preferences or {}).get('notifications')
         if notifications and notifications.get('public_readlog', 'yes') == 'yes':
@@ -784,10 +785,7 @@ class public_my_books(delegate.page):
             return render['account/books'](
                 works, key, reading_log=readlog.reading_log_counts,
                 lists=readlog.lists, user=user)
-        return render['generic'](
-            '<h3>Sorry, this user has choosen not to make their reading log public.</h3>' \
-            '<ul><li><a href="/people/%s/lists">See %s\'s public lists</li>' \
-            '<li><a href="/lists">Browse lists from other users</a></li></ul>' % (username, username))
+        raise web.seeother(user_key)
 
 class account_my_books(delegate.page):
     path = "/account/books"
