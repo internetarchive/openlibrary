@@ -6063,14 +6063,6 @@ a.btn {
     text-decoration: none;
 }
 
-.generic-msg {
-    padding: 5px 40px 35px 40px;
-
-    ul {
-        margin-left: 40px;
-    }
-}
-
 .account-settings-menu {
     margin-bottom: 15px;
 }
