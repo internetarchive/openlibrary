@@ -746,8 +746,10 @@ class public_my_books(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
 
     def GET(self, username, key='loans'):
-        """check if user's reading log is public"""
+        """check if user's reading log is public"""        
         user = web.ctx.site.get('/people/%s' % username)
+        if not user:
+            return render.notfound("User %s"  % username, create=False)
         if user.preferences().get('public_readlog', 'yes') == 'yes':
             readlog = ReadingLog(user=user)
             works = readlog.get_works(key)
