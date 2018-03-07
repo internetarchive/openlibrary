@@ -626,8 +626,6 @@ class account_privacy(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        print(user.preferences())
-        print("!" * 10)
         return render['account/privacy'](user.preferences())
 
     @require_login
