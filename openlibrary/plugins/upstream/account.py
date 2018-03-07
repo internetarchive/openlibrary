@@ -750,7 +750,7 @@ class public_my_books(delegate.page):
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
-        if user.preferences().get('public_readlog', 'yes') == 'yes':
+        if user.preferences().get('public_readlog', 'no') == 'yes':
             readlog = ReadingLog(user=user)
             works = readlog.get_works(key)
             return render['account/books'](
