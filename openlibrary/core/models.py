@@ -546,7 +546,7 @@ class User(Thing):
         old_prefs = web.ctx.site.get(key)
         prefs = (old_prefs and old_prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
         if 'notifications' not in prefs:
-            new_prefs['notifications'] = self.DEFAULT_PREFERENCES
+            prefs['notifications'] = self.DEFAULT_PREFERENCES
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
