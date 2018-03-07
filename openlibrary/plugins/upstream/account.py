@@ -620,29 +620,34 @@ class account_audit(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
+class account_privacy(delegate.page):
+    path = "/account/privacy"
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        return render['account/privacy'](user.preferences())
+
+    @require_login
+    def POST(self):
+        user = accounts.get_current_user()
+        user.save_preferences(web.input())
+        add_flash_message('note', _("Notification preferences have been updated successfully."))
+        web.seeother("/account")
+
 class account_notifications(delegate.page):
     path = "/account/notifications"
 
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        prefs = web.ctx.site.get(user.key + "/preferences")
-        d = (prefs and prefs.get('notifications')) or {}
-        email = accounts.get_current_user().email
-        return render['account/notifications'](d, email)
+        email = user.email
+        return render['account/notifications'](user.preferences(), email)
 
     @require_login
     def POST(self):
         user = accounts.get_current_user()
-        key = user.key + '/preferences'
-        prefs = web.ctx.site.get(key)
-
-        d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
-
-        d['notifications'] = web.input()
-
-        web.ctx.site.save(d, 'save notifications')
-
+        user.save_preferences(web.input())
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
@@ -654,7 +659,7 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
-class AccountBooks(object):
+class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
 
@@ -674,7 +679,7 @@ class AccountBooks(object):
         return self.user.get_lists()
 
     @property
-    def reading_log_counts(self):        
+    def reading_log_counts(self):
         counts = Bookshelves.count_total_books_logged_by_user_per_shelf(
             self.user.get_username())
         return {
@@ -731,26 +736,47 @@ class AccountBooks(object):
             #works = web.ctx.site.get_many([ ... ])
             raise
 
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/books"
+
+    def GET(self, username):
+        raise web.seeother('/people/%s/books/want-to-read' % username)
+
+class public_my_books(delegate.page):
+    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+
+    def GET(self, username, key='loans'):
+        """check if user's reading log is public"""        
+        user = web.ctx.site.get('/people/%s' % username)
+        if not user:
+            return render.notfound("User %s"  % username, create=False)
+        if user.preferences().get('public_readlog', 'yes') == 'yes':
+            readlog = ReadingLog(user=user)
+            works = readlog.get_works(key)
+            return render['account/books'](
+                works, key, reading_log=readlog.reading_log_counts,
+                lists=readlog.lists, user=user)
+        raise web.seeother(user.key)
+
 class account_my_books(delegate.page):
-    path = "/account/my-books"
+    path = "/account/books"
 
     @require_login
     def GET(self):
-        raise web.seeother('/account/my-books/want-to-read')
+        raise web.seeother('/account/books/want-to-read')
 
 class account_my_books(delegate.page):
-    path = "/account/my-books/([a-zA-Z_-]+)"
+    path = "/account/books/([a-zA-Z_-]+)"
 
     @require_login
     def GET(self, key='loans'):
-        ab = AccountBooks()
-        works = ab.get_works(key)
+        user = accounts.get_current_user()
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
+        readlog = ReadingLog()
+        works = readlog.get_works(key)
         return render['account/books'](
-            works, key,
-            #loans=ab.get_loans(), waitlists=ab.get_waitlist_summary(),
-            reading_log=ab.reading_log_counts, lists=ab.lists)
-
-
+            works, key, reading_log=readlog.reading_log_counts,
+            lists=readlog.lists, user=user, public=is_public)
 
 class account_loans(delegate.page):
     path = "/account/loans"
