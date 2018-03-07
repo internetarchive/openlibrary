@@ -508,6 +508,12 @@ class Author(Thing):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
 class User(Thing):
+
+    DEFAULT_PREFERENCES = {
+        'updates': 'no',
+        'public_readlog': 'no'
+    }
+
     def get_status(self):
         account = self.get_account() or {}
         return account.get("status")
@@ -529,6 +535,20 @@ class User(Thing):
 
     def get_username(self):
         return self.key.split("/")[-1]
+
+    def preferences(self):
+        key = "%s/preferences" % self.key
+        prefs = web.ctx.site.get(key)
+        return (prefs and prefs.dict().get('notifications')) or self.DEFAULT_PREFERENCES
+
+    def save_preferences(self, new_prefs, msg='updating user preferences'):
+        key = '%s/preferences' % self.key
+        old_prefs = web.ctx.site.get(key)
+        prefs = (old_prefs and old_prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
+        if 'notifications' not in prefs:
+            new_prefs['notifications'] = self.DEFAULT_PREFERENCES
+        prefs['notifications'].update(new_prefs)
+        web.ctx.site.save(prefs, msg)
 
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]

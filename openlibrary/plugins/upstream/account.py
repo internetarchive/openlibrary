@@ -34,10 +34,6 @@ import borrow
 logger = logging.getLogger("openlibrary.account")
 
 USERNAME_RETRIES = 3
-DEFAULT_SETTINGS = {
-    'updates': 'no',
-    'public_readlog': 'yes'
-}
 
 # XXX: These need to be cleaned up
 send_verification_email = accounts.send_verification_email
@@ -630,25 +626,14 @@ class account_privacy(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        key = user.key + "/preferences"
-        prefs = web.ctx.site.get(key)
-        d = (prefs and prefs.get('notifications')) or {'key': key, 'type': {'key': '/type/object'}}
-        email = accounts.get_current_user().email
-        return render['account/privacy'](d, email)
+        print(user.preferences())
+        print("!" * 10)
+        return render['account/privacy'](user.preferences())
 
     @require_login
     def POST(self):
         user = accounts.get_current_user()
-        key = user.key + '/preferences'
-        prefs = web.ctx.site.get(key)
-
-        d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
-        if 'notifications' not in d:
-            d['notifications'] = DEFAULT_SETTINGS
-        d['notifications'].update(web.input())
-
-        web.ctx.site.save(d, 'save notifications')
-
+        user.save_preferences(web.input())
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
@@ -658,25 +643,13 @@ class account_notifications(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        prefs = web.ctx.site.get(user.key + "/preferences")
-        d = (prefs and prefs.get('notifications')) or {'key': key, 'type': {'key': '/type/object'}}
-        email = accounts.get_current_user().email
-        return render['account/notifications'](d, email)
+        email = user.email
+        return render['account/notifications'](user.preferences(), email)
 
     @require_login
     def POST(self):
         user = accounts.get_current_user()
-        key = user.key + '/preferences'
-        prefs = web.ctx.site.get(key)
-
-        d = (prefs and prefs.dict()) or {'key': key, 'type': {'key': '/type/object'}}
-
-        if 'notifications' not in d:
-            d['notifications'] = DEFAULT_SETTINGS
-        d['notifications'].update(web.input())
-
-        web.ctx.site.save(d, 'save notifications')
-
+        user.save_preferences(web.input())
         add_flash_message('note', _("Notification preferences have been updated successfully."))
         web.seeother("/account")
 
@@ -776,17 +749,14 @@ class public_my_books(delegate.page):
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
-        user_key = '/people/%s' % username
-        user = web.ctx.site.get(user_key)
-        user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
-        notifications = (user_preferences or {}).get('notifications')
-        if notifications and notifications.get('public_readlog', 'yes') == 'yes':
+        user = web.ctx.site.get('/people/%s' % username)
+        if user.preferences().get('public_readlog', 'yes') == 'yes':
             readlog = ReadingLog(user=user)
             works = readlog.get_works(key)
             return render['account/books'](
                 works, key, reading_log=readlog.reading_log_counts,
                 lists=readlog.lists, user=user)
-        raise web.seeother(user_key)
+        raise web.seeother(user.key)
 
 class account_my_books(delegate.page):
     path = "/account/books"
@@ -801,10 +771,7 @@ class account_my_books(delegate.page):
     @require_login
     def GET(self, key='loans'):
         user = accounts.get_current_user()
-        username = user.key.split('/')[-1]
-        user_preferences = web.ctx.site.get('/people/%s/preferences' % username)
-        notifications = (user_preferences or {}).get('notifications')
-        is_public = notifications and notifications.get('public_readlog', 'no') == 'yes'
+        is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
         works = readlog.get_works(key)
         return render['account/books'](
