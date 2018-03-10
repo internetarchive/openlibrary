@@ -413,13 +413,17 @@ class Edition(models.Edition):
         result = {
             "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
             "publication-date": self.get('publish_date'),
-            "ol": str(self.get_olid()),
+            "ol": str(self.get_olid())[2:],
         }
-        data = self.ocaid()
 
+        if self.ocaid:
+            result['url'] = "https://archive.org/details/"+self.ocaid
 
-        if data!=None and data:
-            result['url'] = 'https://archive.org/details/' + str(data)
+        if self.lccn:
+            result['lccn'] = self.lccn[0]
+
+        if self.issn:
+            result['issn'] = self.issn
 
         if self.title != self.works[0].title:
             result['edition'] = self.title
