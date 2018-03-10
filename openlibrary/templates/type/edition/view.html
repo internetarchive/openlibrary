@@ -74,8 +74,11 @@ $def display_identifiers(label, ids, itemprop=None):
             $return
         <tr>
             <td class="title"><span class="title">$label</span></td>
-            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
+            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>                
                 $for id in ids:
+                    $if label == "Wikidata": 
+                        $id.value = "https://www.wikidata.org/wiki/"+str(id.value)
+                        
                     $ sep = cond(loop.last, "", ", ")
                     $if -1 != id.value.find('openlib-'):
                         $continue
@@ -298,8 +301,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             <table class="meta">
             <tbody>
                 $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
+                
                 $for name, values in page.get_identifiers().multi_items():
-                    $ identifier_label = values[0].label
+                    $ identifier_label = values[0].label.title()
                     $if not (page.is_in_private_collection() and identifier_label == 'Internet Archive'):
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
             </tbody>
