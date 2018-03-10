@@ -415,11 +415,11 @@ class Edition(models.Edition):
             "publication-date": self.get('publish_date'),
             "ol": str(self.get_olid()),
         }
-        data = self.get_ia_meta_fields()
+        data = self.ocaid()
 
 
-        if data['identifier-access']:
-            result['url'] = data['identifier-access']
+        if data!=None and data:
+            result['url'] = 'https://archive.org/details/' + str(data)
 
         if self.title != self.works[0].title:
             result['edition'] = self.title
