@@ -74,7 +74,7 @@ $def display_identifiers(label, ids, itemprop=None):
             $return
         <tr>
             <td class="title"><span class="title">$label</span></td>
-            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>                
+            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
                 $for id in ids:
                     $if label == "Wikidata": 
                         $id.value = "https://www.wikidata.org/wiki/"+str(id.value)
