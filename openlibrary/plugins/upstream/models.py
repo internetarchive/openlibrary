@@ -413,7 +413,7 @@ class Edition(models.Edition):
         result = {
             "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
             "publication-date": self.get('publish_date'),
-            "ol": str(self.get_olid())[2:],
+            "ol": str(self.get_olid())[2:]
         }
 
         if self.ocaid:
@@ -429,7 +429,6 @@ class Edition(models.Edition):
             result['edition'] = self.title
 
         if self.get('isbn_10'):
-            # result['id'] = self['isbn_10'][0]
             result['isbn'] = self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
 
         if self.get('oclc_numbers'):
