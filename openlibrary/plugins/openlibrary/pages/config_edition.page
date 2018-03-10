@@ -111,8 +111,8 @@
             "label": "Amazon ASIN"
         },
         {
-            "url": "http://www.biodiversitylibrary.org/bibliography/@@@",
-            "website": "http://www.biodiversitylibrary.org",
+            "url": "https://www.biodiversitylibrary.org/bibliography/@@@",
+            "website": "https://www.biodiversitylibrary.org",
             "notes": "",
             "name": "bhl",
             "label": "Biodiversity Heritage Library"
@@ -159,8 +159,8 @@
             "label": "Hathi Trust"
         },
         {
-            "url": "http://discovery.lib.harvard.edu/?itemid=|library/m/aleph|@@@",
-            "website": "http://harvard.edu",
+            "url": "https://hollis.harvard.edu/primo_library/libweb/action/display.do?doc=HVD_ALEPH@@@",
+            "website": "https://library.harvard.edu",
             "notes": "",
             "name": "harvard",
             "label": "Harvard University Library"
@@ -177,42 +177,45 @@
         },
         {
             "url": "https://www.lulu.com/product/@@@",
-            "website": "http://www.lulu.com",
+            "website": "https://www.lulu.com",
             "name": "lulu",
             "label": "Lulu"
         },
         {
-            "url": "http://catalogue.nla.gov.au/Record/@@@",
-            "website": "http://www.nla.gov.au/",
+            "url": "https://catalogue.nla.gov.au/Record/@@@",
+            "website": "https://www.nla.gov.au/",
             "notes": "",
             "name": "nla",
             "label": "National Library of Australia"
         },
         {
             "url": "https://www.worldcat.org/oclc/@@@?tab=details",
+            "website": "https://www.worldcat.org/",
             "name": "oclc_numbers",
             "label": "OCLC/WorldCat"
         },
         {
             "url": "http://www.paperbackswap.com/book/details/@@@",
+            "website": "http://www.paperbackswap.com/",
             "name": "paperback_swap",
             "label": "Paperback Swap"
         },
         {
             "url": "https://www.gutenberg.org/etext/@@@",
-            "website": "www.gutenberg.org",
+            "website": "https://www.gutenberg.org/",
             "name": "project_gutenberg",
             "label": "Project Gutenberg"
         },
         {
             "url": "https://www.scribd.com/doc/@@@/",
-            "website": "http://www.scribd.com/",
+            "website": "https://www.scribd.com/",
             "name": "scribd",
             "label": "Scribd"
         },
         {
             "url": "http://www.shelfari.com/books/@@@/",
             "website": "http://www.shelfari.com/",
+            "notes": "Merged with Goodreads",
             "name": "shelfari",
             "label": "Shelfari"
         },
@@ -235,16 +238,18 @@
             "label": "ISSN"
         },
         {
-            "website": "http://www.alibris.com",
+            "url": "https://www.alibris.com/booksearch?qwork=@@@",
+            "website": "https://www.alibris.com",
             "notes": "",
             "name": "alibris",
             "label": "Alibris"
         },
         {
-            "website": "http://www.isfdb.org/wiki/index.php/Publisher:Triad",
+            "url": "url: http://www.isfdb.org/cgi-bin/pl.cgi?@@@",
+            "website": "http://www.isfdb.org/",
             "notes": "",
             "name": "isfdb",
-            "label": "isfdb"
+            "label": "Internet Speculative Fiction Database"
         },
         {
             "website": "http://www.elviejolibro.tk",
