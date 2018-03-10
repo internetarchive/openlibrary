@@ -1,6 +1,7 @@
 $def with (page)
 
 $var title: $page.displayname
+$ settings = page.get_users_settings()
 
 $if "lists" in ctx.features:
     $ lists = page.get_lists(limit=3)
@@ -21,7 +22,6 @@ $else:
     $elif ctx.user and ctx.user.is_admin():
         &bull;
         <span class="adminOnly"><a href="/admin$page.key">admin page</a></span>
-
     $if "lists" in ctx.features and lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
@@ -29,6 +29,7 @@ $else:
 </div>
 
 <div id="contentBody">
+
     $if page.website:
         <p>
         $for url in page.website:
@@ -36,6 +37,12 @@ $else:
         </p>
 
     $:sanitize(format(page.description))
+
+    <h2>Reading Log</h2>
+    $if settings.get('public_readlog') == "yes":
+      <p>This user has chosen to publicly share the books they are <a href="$(page.key)/books/currently-reading">currently reading</a>, <a href="$(page.key)/books/already-read">have already read</a>, and <a href="$(page.key)/books/want-to-read">want to read</a>!</p>
+    $else:
+      <p>This user has chosen to keep their Reading Log private</p>
 
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">

@@ -1263,7 +1263,6 @@ div.flash-messages span {
     background-color: #fffdcd;
     background-position: 10px 50%;
     background-repeat: no-repeat;
-    margin: 0 auto 15px;
     padding: 15px 52px;
     text-align: left;
 }
@@ -6062,4 +6061,8 @@ ul#myreads-paginator li.selected:hover {
 
 a.btn {
     text-decoration: none;
+}
+
+.account-settings-menu {
+    margin-bottom: 15px;
 }

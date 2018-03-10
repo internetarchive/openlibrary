@@ -23,8 +23,8 @@ $(function(){
      * regardless of what "mode" (e.g. ebooks, daisy, everything) is
      * currently selected */
     var isAvailabilityFilteringDisabledForPage = function() {
-        return (window.location.pathname.match('\/people\/[^/]+\/lists') ||
-                window.location.pathname.match('\/account\/my-books\/[^/]+') ||
+        return (window.location.pathname.match('\/people\/[^/]+') ||
+                window.location.pathname.match('\/account\/books\/[^/]+') ||
                 window.location.pathname.match('\/stats/[^/]+'));
     }
 

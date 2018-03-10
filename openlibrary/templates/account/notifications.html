@@ -3,14 +3,12 @@ $def with (d, email)
 $var title: $_("Notifications from Open Library")
 
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
-    /
+    <div class="small sansserif grey account-settings-menu">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+    &raquo;
     <a href="$homepath()/account">$_("Settings")</a>
-    /</div>    <h1>$_("Notifications from Open Library")</h1>
-    <p class="instruct">
-        <a href="/account/email">$_("Update your email address?")</a>
-        $:_("We have %(email)s for you at the moment.", email='<b>' + email + '</b>')
-    </p>
+    &raquo; Notifications
+    </div>
+    <h1>$_("Notifications from Open Library")</h1>
 </div>
 
 $def selected(value, value2):
@@ -24,10 +22,8 @@ $ updates = d.get('updates', 'no')
         <p class="sansserif larger">$_("Notifications are connected to Lists at the moment. If one of the books on your list gets edited, or a new book comes into the catalog, we'll let you know, if you want.")</p>
         <br/>
 
-
-
         <div class="formElement">
-            <h3 class="collapse">$_("Would you like to receive remarkably low traffic update-style emails from Open Library?")</h3>
+            <h3 class="collapse">$_("Would you like to receive very occasional emails from Open Library?")</h3>
         </div>
         <br/>
         <div class="formElement">
