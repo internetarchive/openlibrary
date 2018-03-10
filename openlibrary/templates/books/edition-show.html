@@ -18,7 +18,7 @@ $def display_identifiers(label, ids):
             <td class="object"><span class="object">
                 $for id in ids:
                     $if label == "Wikidata": 
-                        $id.value = "https://www.wikidata.org/wiki/"+str(id.value)
+                        $ id.url = "https://www.wikidata.org/wiki/"+str(id.value)
 
                     $ sep = cond(loop.last, "", ", ")
                     $if id.url:

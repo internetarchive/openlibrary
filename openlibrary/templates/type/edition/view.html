@@ -77,7 +77,7 @@ $def display_identifiers(label, ids, itemprop=None):
             <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
                 $for id in ids:
                     $if label == "Wikidata": 
-                        $id.value = "https://www.wikidata.org/wiki/"+str(id.value)
+                        $ id.url = "https://www.wikidata.org/wiki/"+str(id.value)
                         
                     $ sep = cond(loop.last, "", ", ")
                     $if -1 != id.value.find('openlib-'):
