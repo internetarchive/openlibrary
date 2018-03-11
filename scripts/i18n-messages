@@ -20,7 +20,23 @@ def help():
     
 def main(cmd):
     if cmd == 'extract':
-        i18n.extract_messages(["openlibrary/plugins/upstream", "openlibrary/plugins/search/templates", "openlibrary/macros", "openlibrary/templates"])
+        message_sources = [
+            "openlibrary/plugins/upstream",
+        ]
+        template_dir = "openlibrary/templates/"
+        templates = [
+            "account", # Main user account UI
+            "books",   # books view and edit pages
+            "covers",  # author photos and book cover adding UI
+            "history", # minimal messaging, but useful
+            "home",    # main site pages, review
+            "lib",     # needs review
+            "search",  # main search interface
+            "account.html",
+            "login.html",
+        ]
+        message_sources += [template_dir + template for template in templates]
+        i18n.extract_messages(message_sources)
     elif cmd == 'compile':
         i18n.compile_translations()
     elif cmd == 'update':
