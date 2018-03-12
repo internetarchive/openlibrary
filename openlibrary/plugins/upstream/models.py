@@ -411,7 +411,7 @@ class Edition(models.Edition):
         Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
         """
         result = {
-            "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
+            "title": self.title,
             "publication-date": self.get('publish_date'),
             "ol": str(self.get_olid())[2:]
         }
@@ -423,10 +423,7 @@ class Edition(models.Edition):
             result['lccn'] = self.lccn[0]
 
         if self.issn:
-            result['issn'] = self.issn
-
-        if self.title != self.works[0].title:
-            result['edition'] = self.title
+            result['issn'] = self.issn[0]
 
         if self.get('isbn_10'):
             result['isbn'] = self['isbn_13'][0] if self.get('isbn_13') else self['isbn_10'][0]
