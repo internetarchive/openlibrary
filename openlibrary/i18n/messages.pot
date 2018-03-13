@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 07:13+0000\n"
+"POT-Creation-Date: 2018-03-13 07:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -211,9 +211,10 @@ msgstr ""
 
 #: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
 #: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
-#: edit/addfield.html:109 edit/addfield.html:145 edit/edition.html:135
-#: edit/edition.html:214 edit/edition.html:225 edit/edition.html:245
-#: edit/edition.html:320 edit/edition.html:571 edit/excerpts.html:15
+#: edit/addfield.html:109 edit/addfield.html:145 edit/edition.html:114
+#: edit/edition.html:135 edit/edition.html:184 edit/edition.html:216
+#: edit/edition.html:227 edit/edition.html:247 edit/edition.html:322
+#: edit/edition.html:573 edit/excerpts.html:15 edit/web.html:31
 msgid "For example:"
 msgstr ""
 
@@ -685,8 +686,8 @@ msgid "Add this book now"
 msgstr ""
 
 #: add.html:80 edit/addfield.html:81 edit/addfield.html:127
-#: edit/addfield.html:171 edit/edition.html:281 edit/edition.html:446
-#: edit/edition.html:512 edit/excerpts.html:46
+#: edit/addfield.html:171 edit/edition.html:283 edit/edition.html:448
+#: edit/edition.html:514 edit/excerpts.html:46
 msgid "Add"
 msgstr ""
 
@@ -849,11 +850,11 @@ msgstr ""
 msgid "Translated From"
 msgstr ""
 
-#: edit/edition.html:485 edition-show.html:138
+#: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
 msgstr ""
 
-#: edit/edition.html:542 edition-show.html:149
+#: edit/edition.html:544 edition-show.html:149
 msgid "The Physical Object"
 msgstr ""
 
@@ -869,7 +870,7 @@ msgstr ""
 msgid "Number of pages"
 msgstr ""
 
-#: edit/edition.html:593 edition-show.html:155
+#: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
 msgstr ""
 
@@ -877,11 +878,11 @@ msgstr ""
 msgid "Weight"
 msgstr ""
 
-#: edit/edition.html:255 edition-show.html:164
+#: edit/edition.html:257 edition-show.html:164
 msgid "Contributors"
 msgstr ""
 
-#: edit/edition.html:411 edition-show.html:172
+#: edit/edition.html:413 edition-show.html:172
 msgid "ID Numbers"
 msgstr ""
 
@@ -998,7 +999,7 @@ msgstr ""
 msgid "Publishing Info"
 msgstr ""
 
-#: edit/edition.html:94 edit/edition.html:114
+#: edit/edition.html:94
 msgid "For example"
 msgstr ""
 
@@ -1062,203 +1063,201 @@ msgstr ""
 msgid "Subtitle"
 msgstr ""
 
-#: edit/edition.html:183
-msgid ""
-"Usually distinguished by different or smaller type. For example: "
-"<i>envisioning the next 50 years</i>"
+#: edit/edition.html:184
+msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
-#: edit/edition.html:192
+#: edit/edition.html:194
 msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
 "new lines. Like this:"
 msgstr ""
 
-#: edit/edition.html:209
+#: edit/edition.html:211
 msgid "Is it known by any other titles?"
 msgstr ""
 
-#: edit/edition.html:210
+#: edit/edition.html:212
 msgid "Perhaps in another language?"
 msgstr ""
 
-#: edit/edition.html:214
+#: edit/edition.html:216
 msgid "is an alternate title for"
 msgstr ""
 
-#: edit/edition.html:224
+#: edit/edition.html:226
 msgid "Does this edition have a specific name?"
 msgstr ""
 
-#: edit/edition.html:244
+#: edit/edition.html:246
 msgid "Any notes about this specific edition?"
 msgstr ""
 
-#: edit/edition.html:245
+#: edit/edition.html:247
 msgid "Anything about the book that may be of interest."
 msgstr ""
 
-#: edit/edition.html:259
+#: edit/edition.html:261
 msgid "List the people involved"
 msgstr ""
 
-#: edit/edition.html:269
+#: edit/edition.html:271
 msgid "Select role"
 msgstr ""
 
-#: edit/edition.html:274
+#: edit/edition.html:276
 msgid "Add a new role"
 msgstr ""
 
-#: edit/edition.html:294 edit/edition.html:310
+#: edit/edition.html:296 edit/edition.html:312
 msgid "Remove this contributor"
 msgstr ""
 
-#: edit/edition.html:319
+#: edit/edition.html:321
 msgid "Is there a By Statement?"
 msgstr ""
 
-#: edit/edition.html:337
+#: edit/edition.html:339
 msgid "What language is this edition written in?"
 msgstr ""
 
-#: edit/edition.html:349
+#: edit/edition.html:351
 msgid "Is it a translation of another book?"
 msgstr ""
 
-#: edit/edition.html:363
+#: edit/edition.html:365
 msgid "No"
 msgstr ""
 
-#: edit/edition.html:367
+#: edit/edition.html:369
 msgid "Yes, it's a translation"
 msgstr ""
 
-#: edit/edition.html:372
+#: edit/edition.html:374
 msgid "What's the original book?"
 msgstr ""
 
-#: edit/edition.html:381
+#: edit/edition.html:383
 msgid "What language was the original written in?"
 msgstr ""
 
-#: edit/edition.html:398
+#: edit/edition.html:400
 msgid "Description of this edition"
 msgstr ""
 
-#: edit/edition.html:399
+#: edit/edition.html:401
 msgid "Only if it's different from the work's description"
 msgstr ""
 
-#: edit/edition.html:417
+#: edit/edition.html:419
 msgid "Do you know any identifiers for this edition?"
 msgstr ""
 
-#: edit/edition.html:418
+#: edit/edition.html:420
 msgid "Like, ISBN?"
 msgstr ""
 
-#: edit/edition.html:491
+#: edit/edition.html:493
 msgid "Do you know any classifications of this edition?"
 msgstr ""
 
-#: edit/edition.html:492
+#: edit/edition.html:494
 msgid "Like, Dewey Decimal?"
 msgstr ""
 
-#: edit/edition.html:500
+#: edit/edition.html:502
 msgid "Select one of many..."
 msgstr ""
 
-#: edit/edition.html:505
+#: edit/edition.html:507
 msgid "Add a new classification type"
 msgstr ""
 
-#: edit/edition.html:522 edit/edition.html:531
+#: edit/edition.html:524 edit/edition.html:533
 msgid "Remove this classification"
 msgstr ""
 
-#: edit/edition.html:548
+#: edit/edition.html:550
 msgid "What sort of book is it?"
 msgstr ""
 
-#: edit/edition.html:549
+#: edit/edition.html:551
 msgid "Paperback; Hardcover, etc."
 msgstr ""
 
-#: edit/edition.html:557
+#: edit/edition.html:559
 msgid "How many pages?"
 msgstr ""
 
-#: edit/edition.html:566
+#: edit/edition.html:568
 msgid "Pagination?"
 msgstr ""
 
-#: edit/edition.html:567
+#: edit/edition.html:569
 msgid "Note the highest number in each pagination pattern."
 msgstr ""
 
-#: edit/edition.html:577
+#: edit/edition.html:579
 msgid "How much does the book weigh?"
 msgstr ""
 
-#: edit/edition.html:601
+#: edit/edition.html:603
 msgid "Height:"
 msgstr ""
 
-#: edit/edition.html:605
+#: edit/edition.html:607
 msgid "Width:"
 msgstr ""
 
-#: edit/edition.html:613
+#: edit/edition.html:615
 msgid "Depth:"
 msgstr ""
 
-#: edit/edition.html:627 edit/edition.html:641
+#: edit/edition.html:629 edit/edition.html:643
 msgid "Admin Only"
 msgstr ""
 
-#: edit/edition.html:630
+#: edit/edition.html:632
 msgid "Additional Metadata"
 msgstr ""
 
-#: edit/edition.html:644
+#: edit/edition.html:646
 msgid "First sentence"
 msgstr ""
 
-#: edit/edition.html:668
+#: edit/edition.html:670
 msgid "Please select a role."
 msgstr ""
 
-#: edit/edition.html:672
+#: edit/edition.html:674
 msgid "You need to give this ROLE a name."
 msgstr ""
 
-#: edit/edition.html:685
+#: edit/edition.html:687
 msgid "Please select an identifier."
 msgstr ""
 
-#: edit/edition.html:689
+#: edit/edition.html:691
 msgid "You need to give a value to ID."
 msgstr ""
 
-#: edit/edition.html:692
+#: edit/edition.html:694
 msgid "ID ids cannot contain whitespace."
 msgstr ""
 
-#: edit/edition.html:695
+#: edit/edition.html:697
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr ""
 
-#: edit/edition.html:698
+#: edit/edition.html:700
 msgid "ID must be exactly 13 digits [0-9]."
 msgstr ""
 
-#: edit/edition.html:710
+#: edit/edition.html:712
 msgid "Please select a classification."
 msgstr ""
 
-#: edit/edition.html:715
+#: edit/edition.html:717
 msgid "You need to give a value to CLASS."
 msgstr ""
 
@@ -1320,10 +1319,6 @@ msgstr ""
 
 #: edit/web.html:18
 msgid "Give your link a label"
-msgstr ""
-
-#: edit/web.html:31
-msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: edit/web.html:56 edit/web.html:65

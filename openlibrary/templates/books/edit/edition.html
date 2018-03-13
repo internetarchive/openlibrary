@@ -111,7 +111,7 @@ $jsdef render_work_autocomplete_item(item):
         <div class="formElement">
             <div class="label">
                 <label for="edition-publish_places">$_("Where was the book published?")</label>
-                <span class="tip">$_("City, Country please.") $_("For example"): <i>New York, USA; Sydney, Australia</i></span>
+                <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
             </div>
             <div class="input">
                 <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
@@ -180,7 +180,9 @@ $jsdef render_work_autocomplete_item(item):
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="edition-subtitle">$_("Subtitle")</label> <span class="tip">$:_("Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i>")</span></div>
+            <div class="label"><label for="edition-subtitle">$_("Subtitle")</label>
+                <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
+            </div>
             <div class="input">
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
             </div>
