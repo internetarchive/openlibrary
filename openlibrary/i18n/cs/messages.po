@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 04:36+0000\n"
+"POT-Creation-Date: 2018-03-13 07:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: cs <LL@li.org>\n"
@@ -164,6 +164,89 @@ msgstr "Vyberte si nové heslo"
 #: email.html:24 forms.py:96
 msgid "Your new email address"
 msgstr "Vaše nová meailová adresa"
+
+#: edit.html:20
+msgid "Edit Author"
+msgstr ""
+
+#: edit.html:33
+msgid "Name"
+msgstr "Název"
+
+#: edit.html:35
+msgid ""
+"Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
+"<strong>Tolstoy, Leo</strong>."
+msgstr ""
+
+#: edit.html:50
+msgid "About"
+msgstr ""
+
+#: edit.html:51 edit.html:177
+msgid "Links"
+msgstr ""
+
+#: edit.html:60
+msgid "A short bio?"
+msgstr ""
+
+#: edit.html:61
+msgid ""
+"If you \"borrow\" information from somewhere, please make sure to cite "
+"the source."
+msgstr ""
+
+#: edit.html:70
+msgid "Date of birth"
+msgstr ""
+
+#: edit.html:79
+msgid "Date of death"
+msgstr ""
+
+#: edit.html:88
+msgid ""
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
+"is recommended."
+msgstr ""
+
+#: edit.html:96
+msgid "Does this author go by any other names?"
+msgstr ""
+
+#: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
+#: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
+#: edit/addfield.html:109 edit/addfield.html:145 edit/edition.html:114
+#: edit/edition.html:135 edit/edition.html:184 edit/edition.html:216
+#: edit/edition.html:227 edit/edition.html:247 edit/edition.html:322
+#: edit/edition.html:573 edit/excerpts.html:15 edit/web.html:31
+msgid "For example:"
+msgstr ""
+
+#: edit.html:108
+msgid "Websites"
+msgstr ""
+
+#: edit.html:109
+msgid "Deprecated"
+msgstr ""
+
+#: edit.html:138 edit.html:217 openlibrary/macros/EditButtons.html:21
+msgid "Delete Record"
+msgstr "Smazat záznam"
+
+#: view.html:132
+msgid "Website"
+msgstr ""
+
+#: view.html:138
+msgid "Location"
+msgstr ""
+
+#: view.html:237
+msgid "Alternative names"
+msgstr ""
 
 #: borrow.html:3 borrow.html:66
 msgid "Books You've Checked Out"
@@ -337,7 +420,7 @@ msgstr ""
 #: add.html:82 add.html:120 create.html:94 edit/addcover.html:32
 #: edit/addfield.html:83 edit/addfield.html:129 edit/addfield.html:173
 #: email.html:37 manage.html:65 notifications.html:55
-#: openlibrary/macros/EditButtonsMacros.html:26 password.html:43
+#: openlibrary/macros/EditButtons.html:19 password.html:43
 #: password/reset.html:20
 msgid "Cancel"
 msgstr "Zrušit"
@@ -410,8 +493,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: manage.html:64 notifications.html:53
-#: openlibrary/macros/EditButtonsMacros.html:24
+#: manage.html:64 notifications.html:53 openlibrary/macros/EditButtons.html:17
 msgid "Save"
 msgstr "Uložit"
 
@@ -559,11 +641,13 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: add.html:20 nav_head.html:38 search_foot.html:4 search_head.html:4
+#: add.html:20 edit.html:153 nav_head.html:38 search_foot.html:4
+#: search_head.html:4
 msgid "Title"
 msgstr "Název"
 
-#: add.html:30 nav_head.html:39 search_foot.html:5 search_head.html:5
+#: add.html:30 edit.html:159 nav_head.html:39 search_foot.html:5
+#: search_head.html:5
 msgid "Author"
 msgstr "Autor"
 
@@ -610,8 +694,8 @@ msgid "Add this book now"
 msgstr "Přidat tuto knihu"
 
 #: add.html:80 edit/addfield.html:81 edit/addfield.html:127
-#: edit/addfield.html:171 edit/edition.html:281 edit/edition.html:446
-#: edit/edition.html:512 edit/excerpts.html:46
+#: edit/addfield.html:171 edit/edition.html:283 edit/edition.html:448
+#: edit/edition.html:514 edit/excerpts.html:46
 msgid "Add"
 msgstr "Přidat"
 
@@ -677,6 +761,14 @@ msgstr ""
 msgid "Remove this author"
 msgstr "Smazat tohoto tvůrce"
 
+#: edit.html:144
+msgid "Add another author?"
+msgstr ""
+
+#: edit.html:153
+msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+msgstr ""
+
 #: edit.html:153 edit/addfield.html:96 edit/addfield.html:141
 msgid "Required field"
 msgstr ""
@@ -692,10 +784,6 @@ msgstr ""
 #: edit.html:210
 msgid "Please type in the text in the image below."
 msgstr ""
-
-#: edit.html:217 openlibrary/macros/EditButtonsMacros.html:27
-msgid "Delete Record"
-msgstr "Smazat záznam"
 
 #: edit.html:217
 msgid "Delete this book?"
@@ -770,11 +858,11 @@ msgstr ""
 msgid "Translated From"
 msgstr ""
 
-#: edit/edition.html:485 edition-show.html:138
+#: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
 msgstr "Klasifikace"
 
-#: edit/edition.html:542 edition-show.html:149
+#: edit/edition.html:544 edition-show.html:149
 msgid "The Physical Object"
 msgstr "Fyzický předmět"
 
@@ -790,7 +878,7 @@ msgstr ""
 msgid "Number of pages"
 msgstr ""
 
-#: edit/edition.html:593 edition-show.html:155
+#: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
 msgstr "Rozměry"
 
@@ -798,11 +886,11 @@ msgstr "Rozměry"
 msgid "Weight"
 msgstr ""
 
-#: edit/edition.html:255 edition-show.html:164
+#: edit/edition.html:257 edition-show.html:164
 msgid "Contributors"
 msgstr "Autoři"
 
-#: edit/edition.html:411 edition-show.html:172
+#: edit/edition.html:413 edition-show.html:172
 msgid "ID Numbers"
 msgstr "Identifikační čísla"
 
@@ -831,14 +919,6 @@ msgstr ""
 
 #: edit/about.html:17
 msgid "Please separate with commas."
-msgstr ""
-
-#: edit/about.html:17 edit/about.html:31 edit/about.html:45 edit/about.html:59
-#: edit/addfield.html:73 edit/addfield.html:100 edit/addfield.html:109
-#: edit/addfield.html:145 edit/edition.html:135 edit/edition.html:214
-#: edit/edition.html:225 edit/edition.html:245 edit/edition.html:320
-#: edit/edition.html:571 edit/excerpts.html:15
-msgid "For example:"
 msgstr ""
 
 #: edit/about.html:30
@@ -928,7 +1008,7 @@ msgstr "Knihovnický režim"
 msgid "Publishing Info"
 msgstr ""
 
-#: edit/edition.html:94 edit/edition.html:114
+#: edit/edition.html:94
 msgid "For example"
 msgstr ""
 
@@ -992,203 +1072,201 @@ msgstr ""
 msgid "Subtitle"
 msgstr ""
 
-#: edit/edition.html:183
-msgid ""
-"Usually distinguished by different or smaller type. For example: "
-"<i>envisioning the next 50 years</i>"
+#: edit/edition.html:184
+msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
-#: edit/edition.html:192
+#: edit/edition.html:194
 msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
 "new lines. Like this:"
 msgstr ""
 
-#: edit/edition.html:209
+#: edit/edition.html:211
 msgid "Is it known by any other titles?"
 msgstr ""
 
-#: edit/edition.html:210
+#: edit/edition.html:212
 msgid "Perhaps in another language?"
 msgstr ""
 
-#: edit/edition.html:214
+#: edit/edition.html:216
 msgid "is an alternate title for"
 msgstr ""
 
-#: edit/edition.html:224
+#: edit/edition.html:226
 msgid "Does this edition have a specific name?"
 msgstr "Má toto vydání vlastní název"
 
-#: edit/edition.html:244
+#: edit/edition.html:246
 msgid "Any notes about this specific edition?"
 msgstr ""
 
-#: edit/edition.html:245
+#: edit/edition.html:247
 msgid "Anything about the book that may be of interest."
 msgstr ""
 
-#: edit/edition.html:259
+#: edit/edition.html:261
 msgid "List the people involved"
 msgstr ""
 
-#: edit/edition.html:269
+#: edit/edition.html:271
 msgid "Select role"
 msgstr "Vybrat roli"
 
-#: edit/edition.html:274
+#: edit/edition.html:276
 msgid "Add a new role"
 msgstr "Přidat novou roli"
 
-#: edit/edition.html:294 edit/edition.html:310
+#: edit/edition.html:296 edit/edition.html:312
 msgid "Remove this contributor"
 msgstr "Smazat tohoto tvůrce"
 
-#: edit/edition.html:319
+#: edit/edition.html:321
 msgid "Is there a By Statement?"
 msgstr ""
 
-#: edit/edition.html:337
+#: edit/edition.html:339
 msgid "What language is this edition written in?"
 msgstr ""
 
-#: edit/edition.html:349
+#: edit/edition.html:351
 msgid "Is it a translation of another book?"
 msgstr ""
 
-#: edit/edition.html:363
+#: edit/edition.html:365
 msgid "No"
 msgstr "Ne"
 
-#: edit/edition.html:367
+#: edit/edition.html:369
 msgid "Yes, it's a translation"
 msgstr ""
 
-#: edit/edition.html:372
+#: edit/edition.html:374
 msgid "What's the original book?"
 msgstr ""
 
-#: edit/edition.html:381
+#: edit/edition.html:383
 msgid "What language was the original written in?"
 msgstr ""
 
-#: edit/edition.html:398
+#: edit/edition.html:400
 msgid "Description of this edition"
 msgstr ""
 
-#: edit/edition.html:399
+#: edit/edition.html:401
 msgid "Only if it's different from the work's description"
 msgstr ""
 
-#: edit/edition.html:417
+#: edit/edition.html:419
 msgid "Do you know any identifiers for this edition?"
 msgstr "Znáte neějaké identifikátory pro tohle vydání"
 
-#: edit/edition.html:418
+#: edit/edition.html:420
 msgid "Like, ISBN?"
 msgstr "Jako ISBN?"
 
-#: edit/edition.html:491
+#: edit/edition.html:493
 msgid "Do you know any classifications of this edition?"
 msgstr ""
 
-#: edit/edition.html:492
+#: edit/edition.html:494
 msgid "Like, Dewey Decimal?"
 msgstr ""
 
-#: edit/edition.html:500
+#: edit/edition.html:502
 msgid "Select one of many..."
 msgstr ""
 
-#: edit/edition.html:505
+#: edit/edition.html:507
 msgid "Add a new classification type"
 msgstr ""
 
-#: edit/edition.html:522 edit/edition.html:531
+#: edit/edition.html:524 edit/edition.html:533
 msgid "Remove this classification"
 msgstr ""
 
-#: edit/edition.html:548
+#: edit/edition.html:550
 msgid "What sort of book is it?"
 msgstr "Jaký je druh vazby"
 
-#: edit/edition.html:549
+#: edit/edition.html:551
 msgid "Paperback; Hardcover, etc."
 msgstr ""
 
-#: edit/edition.html:557
+#: edit/edition.html:559
 msgid "How many pages?"
 msgstr "Kolik stránek"
 
-#: edit/edition.html:566
+#: edit/edition.html:568
 msgid "Pagination?"
 msgstr "Stránkování?"
 
-#: edit/edition.html:567
+#: edit/edition.html:569
 msgid "Note the highest number in each pagination pattern."
 msgstr "Zadejte nejvyšší číslo stránkování"
 
-#: edit/edition.html:577
+#: edit/edition.html:579
 msgid "How much does the book weigh?"
 msgstr "Kolik kniha váží"
 
-#: edit/edition.html:601
+#: edit/edition.html:603
 msgid "Height:"
 msgstr "Výška:"
 
-#: edit/edition.html:605
+#: edit/edition.html:607
 msgid "Width:"
 msgstr "Šířka:"
 
-#: edit/edition.html:613
+#: edit/edition.html:615
 msgid "Depth:"
 msgstr "Hloubka:"
 
-#: edit/edition.html:627 edit/edition.html:641
+#: edit/edition.html:629 edit/edition.html:643
 msgid "Admin Only"
 msgstr ""
 
-#: edit/edition.html:630
+#: edit/edition.html:632
 msgid "Additional Metadata"
 msgstr ""
 
-#: edit/edition.html:644
+#: edit/edition.html:646
 msgid "First sentence"
 msgstr ""
 
-#: edit/edition.html:668
+#: edit/edition.html:670
 msgid "Please select a role."
 msgstr ""
 
-#: edit/edition.html:672
+#: edit/edition.html:674
 msgid "You need to give this ROLE a name."
 msgstr ""
 
-#: edit/edition.html:685
+#: edit/edition.html:687
 msgid "Please select an identifier."
 msgstr ""
 
-#: edit/edition.html:689
+#: edit/edition.html:691
 msgid "You need to give a value to ID."
 msgstr ""
 
-#: edit/edition.html:692
+#: edit/edition.html:694
 msgid "ID ids cannot contain whitespace."
 msgstr ""
 
-#: edit/edition.html:695
+#: edit/edition.html:697
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr ""
 
-#: edit/edition.html:698
+#: edit/edition.html:700
 msgid "ID must be exactly 13 digits [0-9]."
 msgstr ""
 
-#: edit/edition.html:710
+#: edit/edition.html:712
 msgid "Please select a classification."
 msgstr ""
 
-#: edit/edition.html:715
+#: edit/edition.html:717
 msgid "You need to give a value to CLASS."
 msgstr ""
 
@@ -1250,10 +1328,6 @@ msgstr ""
 
 #: edit/web.html:18
 msgid "Give your link a label"
-msgstr ""
-
-#: edit/web.html:31
-msgid "For example: <em>New York Times review</em>"
 msgstr ""
 
 #: edit/web.html:56 edit/web.html:65
@@ -1427,6 +1501,10 @@ msgid ""
 "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
 "rather than emphasizing text) place a backslash \\ prior to the "
 "character."
+msgstr ""
+
+#: nav_foot.html:7
+msgid "Go to the top of this page"
 msgstr ""
 
 #: nav_foot.html:8
@@ -2174,15 +2252,15 @@ msgstr "více"
 msgid "less"
 msgstr "méně"
 
-#: openlibrary/macros/EditButtonsMacros.html:11
+#: openlibrary/macros/EditButtons.html:5
 msgid "Please, leave a short note about what you changed:"
 msgstr "Zanechte prosím krátkou poznámku o tom co jste upravily:"
 
-#: openlibrary/macros/EditButtonsMacros.html:12
+#: openlibrary/macros/EditButtons.html:5
 msgid "(Optional, but very useful!)"
 msgstr "(Volitelné, ale velmi užitečné!)"
 
-#: openlibrary/macros/EditButtonsMacros.html:20
+#: openlibrary/macros/EditButtons.html:13
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -2190,10 +2268,6 @@ msgid ""
 "target=\"_blank\" title=\"This link to Creative Commons will open in a "
 "new window\">CC0</a>. Yippee!"
 msgstr ""
-
-#: openlibrary/macros/EditButtonsMacros.html:27
-msgid "Delete this record"
-msgstr "Smazat tento záznam"
 
 #~ msgid "Edit Summary (briefly describe the changes you have made):"
 #~ msgstr "Shrnutí editace (stručně popište změny které jste provedly):"
