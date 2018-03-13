@@ -14,7 +14,7 @@ $ cover_lg = book.get_cover_url("L")
 $if size == "M":
     <div class="coverMagic">
             <div class="SRPCover bookCover" style="display: $cond(cover_url, 'block', 'none');">
-                <a href="$cover_lg" class="coverLook" title="Pull up a bigger book cover"><img itemprop="image" src="$cover_url" class="cover" alt="Cover of: $title $_('by') $author_names"/></a>
+                <a href="$cover_lg" class="coverLook" title="Pull up a bigger book cover"><img itemprop="image" src="$cover_url" class="cover" alt="Cover of: $title | $author_names"/></a>
             </div>
             <div class="SRPCoverBlank" style="display: $cond(not cover_url, 'block', 'none');">
                 <div class="innerBorder">
