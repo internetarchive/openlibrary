@@ -9,7 +9,7 @@ $ username = user.key.split('/')[-1]
 <div id="contentHead">
   <div id="mybooks">
     <div class="small sansserif grey account-settings-menu">
-      $:_("%(user)s", user='<a href="%s">%s</a>' % (user.key, user.displayname))
+      <a href="$ctx.user.key">$ctx.user.displayname</a>
       &raquo;
       $_("Reading Log")
     </div>
