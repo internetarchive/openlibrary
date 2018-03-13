@@ -88,18 +88,18 @@ def verify_password(password):
 validate_password = Validator(_("Invalid password"), verify_password)
 
 ChangePassword = Form(
-    Password('password', description=_("Current Password"), klass='pwmask required', validators=[validate_password]),
-    Password('new_password', description=_("Choose a New Password"), klass='pwmask required')
+    Password('password', description=_("Current password"), klass='pwmask required', validators=[validate_password]),
+    Password('new_password', description=_("Choose a new password"), klass='pwmask required')
 )
 
 ChangeEmail = Form(
-    Textbox('email', description=_("Your New Email Address"), validators=[vemail, email_not_already_used])
+    Textbox('email', description=_("Your new email address"), validators=[vemail, email_not_already_used])
 )
 
 ForgotPassword = Form(
-    Textbox('email', description=_("Your Email Address"), validators=[vemail, email_already_used])
+    Textbox('email', description=_("Your email address"), validators=[vemail, email_already_used])
 )
 
 ResetPassword = Form(
-    Password('password', description=_("Choose a Password"), validators=[vpass])
+    Password('password', description=_("Choose a password"), validators=[vpass])
 )
