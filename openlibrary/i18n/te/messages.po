@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 08:22+0000\n"
+"POT-Creation-Date: 2018-03-13 23:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -431,7 +431,7 @@ msgstr ""
 
 #: add.html:82 add.html:120 create.html:94 edit/addcover.html:32
 #: edit/addfield.html:83 edit/addfield.html:129 edit/addfield.html:173
-#: email.html:37 manage.html:65 notifications.html:53
+#: email.html:37 manage.html:65 notifications.html:52
 #: openlibrary/macros/EditButtons.html:19 password.html:43
 #: password/reset.html:20 privacy.html:49
 msgid "Cancel"
@@ -445,7 +445,7 @@ msgstr "మీ ఖాతా తొలగించండి"
 msgid "Sorry, this functionality is not yet implemented."
 msgstr ""
 
-#: email.html:6 nav_head.html:121 notifications.html:10
+#: email.html:6 nav_head.html:121 notifications.html:9
 #: openlibrary/templates/account.html:3 openlibrary/templates/account.html:8
 #: password.html:6 privacy.html:9 search_head.html:67
 msgid "Settings"
@@ -471,34 +471,34 @@ msgstr ""
 msgid "Resend the verification email"
 msgstr ""
 
-#: notifications.html:3 notifications.html:13
+#: notifications.html:3 notifications.html:12
 msgid "Notifications from Open Library"
 msgstr ""
 
-#: notifications.html:11
+#: notifications.html:10
 msgid "Notifications"
 msgstr ""
 
-#: notifications.html:25
+#: notifications.html:24
 msgid ""
 "Notifications are connected to Lists at the moment. If one of the books "
 "on your list gets edited, or a new book comes into the catalog, we'll let"
 " you know, if you want."
 msgstr ""
 
-#: notifications.html:29
+#: notifications.html:28
 msgid "Would you like to receive very occasional emails from Open Library?"
 msgstr ""
 
-#: notifications.html:36
+#: notifications.html:35
 msgid "No, thank you"
 msgstr "వద్దండి, ఫరవాలేదు"
 
-#: notifications.html:43
+#: notifications.html:42
 msgid "Yes! Please!"
 msgstr "ఓ! తప్పకుండా!"
 
-#: manage.html:64 notifications.html:51 openlibrary/macros/EditButtons.html:17
+#: manage.html:64 notifications.html:50 openlibrary/macros/EditButtons.html:17
 #: privacy.html:47
 msgid "Save"
 msgstr "భద్రపరచు"
@@ -1610,7 +1610,7 @@ msgid "Full-Text Search on Archive.org"
 msgstr ""
 
 #: nav_head.html:14 nav_head.html:92
-#, fuzzy, python-format
+#, fuzzy
 msgid "Random Book"
 msgstr "ఒక పుస్తకం చేర్చు"
 
@@ -2068,6 +2068,14 @@ msgstr "మార్చు"
 
 #: openlibrary/templates/account.html:16
 msgid "Your Profile Page"
+msgstr ""
+
+#: openlibrary/templates/account.html:17
+msgid "View or Edit your Reading Log"
+msgstr ""
+
+#: openlibrary/templates/account.html:18
+msgid "View or Edit your Lists"
 msgstr ""
 
 #: openlibrary/templates/account.html:20
