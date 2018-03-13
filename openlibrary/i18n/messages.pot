@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 04:36+0000\n"
+"POT-Creation-Date: 2018-03-13 07:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -157,6 +157,88 @@ msgstr ""
 
 #: email.html:24 forms.py:96
 msgid "Your new email address"
+msgstr ""
+
+#: edit.html:20
+msgid "Edit Author"
+msgstr ""
+
+#: edit.html:33
+msgid "Name"
+msgstr ""
+
+#: edit.html:35
+msgid ""
+"Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
+"<strong>Tolstoy, Leo</strong>."
+msgstr ""
+
+#: edit.html:50
+msgid "About"
+msgstr ""
+
+#: edit.html:51 edit.html:177
+msgid "Links"
+msgstr ""
+
+#: edit.html:60
+msgid "A short bio?"
+msgstr ""
+
+#: edit.html:61
+msgid ""
+"If you \"borrow\" information from somewhere, please make sure to cite "
+"the source."
+msgstr ""
+
+#: edit.html:70
+msgid "Date of birth"
+msgstr ""
+
+#: edit.html:79
+msgid "Date of death"
+msgstr ""
+
+#: edit.html:88
+msgid ""
+"We're not storing structured dates (yet) so a date like \"21 May 2000\" "
+"is recommended."
+msgstr ""
+
+#: edit.html:96
+msgid "Does this author go by any other names?"
+msgstr ""
+
+#: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
+#: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
+#: edit/addfield.html:109 edit/addfield.html:145 edit/edition.html:135
+#: edit/edition.html:214 edit/edition.html:225 edit/edition.html:245
+#: edit/edition.html:320 edit/edition.html:571 edit/excerpts.html:15
+msgid "For example:"
+msgstr ""
+
+#: edit.html:108
+msgid "Websites"
+msgstr ""
+
+#: edit.html:109
+msgid "Deprecated"
+msgstr ""
+
+#: edit.html:138 edit.html:217 openlibrary/macros/EditButtons.html:21
+msgid "Delete Record"
+msgstr ""
+
+#: view.html:132
+msgid "Website"
+msgstr ""
+
+#: view.html:138
+msgid "Location"
+msgstr ""
+
+#: view.html:237
+msgid "Alternative names"
 msgstr ""
 
 #: borrow.html:3 borrow.html:66
@@ -331,7 +413,7 @@ msgstr ""
 #: add.html:82 add.html:120 create.html:94 edit/addcover.html:32
 #: edit/addfield.html:83 edit/addfield.html:129 edit/addfield.html:173
 #: email.html:37 manage.html:65 notifications.html:55
-#: openlibrary/macros/EditButtonsMacros.html:26 password.html:43
+#: openlibrary/macros/EditButtons.html:19 password.html:43
 #: password/reset.html:20
 msgid "Cancel"
 msgstr ""
@@ -404,8 +486,7 @@ msgstr ""
 msgid "Yes! Please!"
 msgstr ""
 
-#: manage.html:64 notifications.html:53
-#: openlibrary/macros/EditButtonsMacros.html:24
+#: manage.html:64 notifications.html:53 openlibrary/macros/EditButtons.html:17
 msgid "Save"
 msgstr ""
 
@@ -553,11 +634,13 @@ msgid ""
 "those fields."
 msgstr ""
 
-#: add.html:20 nav_head.html:38 search_foot.html:4 search_head.html:4
+#: add.html:20 edit.html:153 nav_head.html:38 search_foot.html:4
+#: search_head.html:4
 msgid "Title"
 msgstr ""
 
-#: add.html:30 nav_head.html:39 search_foot.html:5 search_head.html:5
+#: add.html:30 edit.html:159 nav_head.html:39 search_foot.html:5
+#: search_head.html:5
 msgid "Author"
 msgstr ""
 
@@ -669,6 +752,14 @@ msgstr ""
 msgid "Remove this author"
 msgstr ""
 
+#: edit.html:144
+msgid "Add another author?"
+msgstr ""
+
+#: edit.html:153
+msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
+msgstr ""
+
 #: edit.html:153 edit/addfield.html:96 edit/addfield.html:141
 msgid "Required field"
 msgstr ""
@@ -683,10 +774,6 @@ msgstr ""
 
 #: edit.html:210
 msgid "Please type in the text in the image below."
-msgstr ""
-
-#: edit.html:217 openlibrary/macros/EditButtonsMacros.html:27
-msgid "Delete Record"
 msgstr ""
 
 #: edit.html:217
@@ -823,14 +910,6 @@ msgstr ""
 
 #: edit/about.html:17
 msgid "Please separate with commas."
-msgstr ""
-
-#: edit/about.html:17 edit/about.html:31 edit/about.html:45 edit/about.html:59
-#: edit/addfield.html:73 edit/addfield.html:100 edit/addfield.html:109
-#: edit/addfield.html:145 edit/edition.html:135 edit/edition.html:214
-#: edit/edition.html:225 edit/edition.html:245 edit/edition.html:320
-#: edit/edition.html:571 edit/excerpts.html:15
-msgid "For example:"
 msgstr ""
 
 #: edit/about.html:30
@@ -1417,6 +1496,10 @@ msgid ""
 "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
 "rather than emphasizing text) place a backslash \\ prior to the "
 "character."
+msgstr ""
+
+#: nav_foot.html:7
+msgid "Go to the top of this page"
 msgstr ""
 
 #: nav_foot.html:8
@@ -2140,24 +2223,20 @@ msgstr ""
 msgid "less"
 msgstr ""
 
-#: openlibrary/macros/EditButtonsMacros.html:11
+#: openlibrary/macros/EditButtons.html:5
 msgid "Please, leave a short note about what you changed:"
 msgstr ""
 
-#: openlibrary/macros/EditButtonsMacros.html:12
+#: openlibrary/macros/EditButtons.html:5
 msgid "(Optional, but very useful!)"
 msgstr ""
 
-#: openlibrary/macros/EditButtonsMacros.html:20
+#: openlibrary/macros/EditButtons.html:13
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
 "target=\"_blank\" title=\"This link to Creative Commons will open in a "
 "new window\">CC0</a>. Yippee!"
-msgstr ""
-
-#: openlibrary/macros/EditButtonsMacros.html:27
-msgid "Delete this record"
 msgstr ""
 
