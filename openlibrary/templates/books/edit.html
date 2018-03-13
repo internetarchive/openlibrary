@@ -142,7 +142,7 @@ $jsdef render_author(i, author):
         <input name="authors--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
         <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
         <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
-        <a href="javascript:;" class="add hidden">Add another author?</a>
+        <a href="javascript:;" class="add hidden">$_("Add another author?")</a>
     </div>
 
 <div id="contentBody">
@@ -151,13 +151,13 @@ $jsdef render_author(i, author):
     <div class="formElement title">
         <div class="TitleAuthor sansserif">
             <div class="label">
-                <label for="work-title">Title</label> <span class="tip">Use <b><i>Title: Subtitle</i></b> to add a subtitle.</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
+                <label for="work-title">$_('Title')</label> <span class="tip">$:_("Use <b><i>Title: Subtitle</i></b> to add a subtitle.")</span> <span class="red">*<span class="tip">$_("Required field")</span></span>
             </div>
             <div class="input">
                 <input name="work--title" type="text" id="work-title" class="required" value="$this_title"/>
             </div>
             <div class="label">
-                <label for="author-$0">Author</label>
+                <label for="author-$0">$_('Author')</label>
                 <span class="tip">You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).</span>
             </div>
             $ authors = work.authors and [a.author for a in work.authors]
@@ -175,7 +175,7 @@ $jsdef render_author(i, author):
             <ul>
                 <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
                 <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>
-                <li><a href="#web" id="link_web">$("Links")</a></li>
+                <li><a href="#web" id="link_web">$_("Links")</a></li>
                 $if edition:
                     $if edition.publishers:
                         $ edition_name = "; ".join(edition.publishers) + ' edition'
