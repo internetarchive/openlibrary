@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 07:28+0000\n"
+"POT-Creation-Date: 2018-03-13 07:46+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: cs <LL@li.org>\n"
@@ -1507,6 +1507,10 @@ msgstr ""
 msgid "Go to the top of this page"
 msgstr ""
 
+#: nav_foot.html:7
+msgid "Top"
+msgstr ""
+
 #: nav_foot.html:8
 msgid "Go home"
 msgstr "Jít domů"
@@ -2415,3 +2419,4 @@ msgstr ""
 
 #~ msgid "Preferences"
 #~ msgstr "Nastavení"
+
