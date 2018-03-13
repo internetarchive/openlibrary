@@ -70,19 +70,19 @@ $if q and 'error' not in results:
                         return "other"
                 type = find_type()
                 if type == "type_time":
-                    note = _('<span class="teal">time</span>')
+                    note = '<span class="teal">time</span>'
                 elif type == "type_subject":
-                    note = _('<span class="darkgreen">subject</span>')
+                    note = '<span class="darkgreen">subject</span>'
                 elif type == "type_place":
-                    note = _('<span class="orange">place</span>')
+                    note = '<span class="orange">place</span>'
                 elif type == "type_org":
-                    note = _('<span class="blue">org</span>')
+                    note = '<span class="blue">org</span>'
                 elif type == "type_event":
-                    note = _('<span class="grey">event</span>')
+                    note = '<span class="grey">event</span>'
                 elif type == "type_person":
-                    note = _('<span class="red">person</span>')
+                    note = '<span class="red">person</span>'
                 elif type == "type_work":
-                    note = _('<span class="black">work</span>')
+                    note = '<span class="black">work</span>'
                 else:
                     note = doc['type']
             <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $:note</span>
