@@ -22,6 +22,7 @@ def main(cmd):
     if cmd == 'extract':
         message_sources = [
             'openlibrary/plugins/upstream',
+            'openlibrary/templates/type/author',
         ]
         template_dir = 'openlibrary/templates/'
         templates = [
@@ -46,7 +47,7 @@ def main(cmd):
         ]
         macro_dir = 'openlibrary/macros/'
         macros = [
-            'EditButtonsMacros.html',
+            'EditButtons.html',
         ]
         message_sources += [template_dir + template for template in templates]
         message_sources += [macro_dir + macro for macro in macros]
