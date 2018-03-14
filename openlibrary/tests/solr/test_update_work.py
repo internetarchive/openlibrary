@@ -365,7 +365,7 @@ class Test_update_items():
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL25A', name='Somebody')
         ])
-        # Minimal SOLR response, author not found in SOLR
+        # Minimal Solr response, author not found in Solr
         solr_response = """{
             "facet_counts": {
                 "facet_fields": {
@@ -384,11 +384,11 @@ class Test_update_items():
 
     def test_delete_edition(self):
         editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
-        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
 
     def test_update_edition(self):
         editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/edition'}})
-        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
 
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']

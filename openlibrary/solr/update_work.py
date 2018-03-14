@@ -804,6 +804,12 @@ def build_data2(w, editions, authors, ia, duplicates):
     return doc
 
 def solr_update(requests, debug=False, commitWithin=60000):
+    """POSTs a collection of update requests to Solr.
+    TODO: Deprecate and remove string requests. Is anything else still generating them?
+    :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
+    :param bool debug:
+    :param int commitWithin: Solr commitWithin, in ms
+    """
     h1 = httplib.HTTPConnection(get_solr())
     url = 'http://%s/solr/update' % get_solr()
 
@@ -1013,7 +1019,7 @@ def process_work_data(work_data):
 def update_edition(e):
     """
     Get the Solr requests necessary to insert/update this edition into Solr.
-    Currently editions are not indexed by SOLR
+    Currently editions are not indexed by Solr
     (unless they are orphaned editions passed into update_work() as fake works.
     This always returns an empty list.
     :param dict e: Edition to update
@@ -1189,8 +1195,8 @@ def update_author(akey, a=None, handle_redirects=True):
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param string akey: The author key, e.g. /authors/OL23A
     :param dict a: Optional Author
-    :param bool handle_redirects: If true, remove from SOLR all authors that redirect to this one
-    :rtype: list[string or UpdateRequest or DeleteRequest]
+    :param bool handle_redirects: If true, remove from Solr all authors that redirect to this one
+    :rtype: list[UpdateRequest or DeleteRequest]
     """
     if akey == '/authors/':
         return
