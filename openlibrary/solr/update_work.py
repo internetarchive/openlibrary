@@ -1206,7 +1206,7 @@ def update_author(akey, a=None, handle_redirects=True):
         author_id = solr_escape(author_id)
         delete_query = Element('delete')
         query = SubElement(delete_query, 'query')
-        query.text = 'key:%s' % author_id
+        query.text = 'key:/authors/%s' % author_id
         return [tostring(delete_query)]
     try:
         assert a['type']['key'] == '/type/author'
