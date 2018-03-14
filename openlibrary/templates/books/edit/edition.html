@@ -111,7 +111,7 @@ $jsdef render_work_autocomplete_item(item):
         <div class="formElement">
             <div class="label">
                 <label for="edition-publish_places">$_("Where was the book published?")</label>
-                <span class="tip">$_("City, Country please.") $_("For example"): <i>New York, USA; Sydney, Australia</i></span>
+                <span class="tip">$_("City, Country please.") $_("For example:") <i>New York, USA; Sydney, Australia</i></span>
             </div>
             <div class="input">
                 <input type="text" name="edition--publish_places" id="edition-publish_places" value="$'; '.join(book.publish_places)"/>
@@ -138,20 +138,6 @@ $jsdef render_work_autocomplete_item(item):
                 <input type="text" name="edition--series--0" id="edition-series" value="$(book.series and book.series[0] or "")"/>
             </div>
         </div>
-
-        <!--
-        <div class="formElement librarian hidden">
-            <div class="label fixthis">
-                <label for="edition-collections">$_("Is it a volume in a collection?")</label>
-                <span class="tip">$_("What collection does it belong to?")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition-collections-0" id="edition-collections" value=""/>
-                <div class="tip">$:_("i.e. <i>The <strong>Pocket Atlas of Anatomy</strong> collection consists of Vol I: Head and Neck, Vol. II: Thorax, Heart, Abdomen and Pelvis &amp; Vol. III: Spines Extremities and Joints</i>")</div>
-            </div>
-        </div>
-        -->
-
     </div>
 </fieldset>
 
@@ -194,7 +180,9 @@ $jsdef render_work_autocomplete_item(item):
         </div>
 
         <div class="formElement">
-            <div class="label"><label for="edition-subtitle">$_("Subtitle")</label> <span class="tip">$:_("Usually distinguished by different or smaller type. For example: <i>envisioning the next 50 years</i>")</span></div>
+            <div class="label"><label for="edition-subtitle">$_("Subtitle")</label>
+                <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
+            </div>
             <div class="input">
                 <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
             </div>
@@ -225,7 +213,7 @@ $jsdef render_work_autocomplete_item(item):
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])" style="width:620px!important;"/>
-                <div class="tip">$_("For example:") $:_("<i>Der Zauberberg</i> is an alternate title for <i>The Magic Mountain</i>.")</div>
+                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):

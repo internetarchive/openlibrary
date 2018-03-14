@@ -62,7 +62,7 @@ $if len(loans) >= 5:
 </script>
 
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname)) /</div>
+    <div class="small sansserif grey" style="margin-bottom:5px;""><a href="$ctx.user.key">$ctx.user.displayname</a> /</div>
     <h1>$_("Books You've Checked Out")</h1>
 
 </div>
@@ -269,7 +269,7 @@ $if len(loans) == 0 and len(waitinglist) == 0:
         <p style="line-height:1em;margin:1.5em 0 1em;">
             <strong>
             <span style="font-size:1.875em;">2.</span>
-            <span style="font-size:1.125em;">$_("WorldCat"),</span>
+            <span style="font-size:1.125em;">WorldCat,</span>
             </strong>
             <span class="larger"><em>$_("physical books from your local library")</em></span>
         </p>

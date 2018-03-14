@@ -31,7 +31,10 @@ $putctx("robots", "noindex,nofollow")
         <div class="formElement" style="margin-bottom:12px;">
             <div class="label">
                 <label for="name">$_("Name")</label>
-                <span class="tip">$:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>. <span class="attn"><em>* Required field.</em></span>')</span>
+                <span class="tip">
+                    $:_('Please use natural order. For example: <strong>Leo Tolstoy</strong> not <strong>Tolstoy, Leo</strong>.')
+                    <span class="attn"><em>* $_('Required field').</em></span>
+                </span>
             </div>
             <div class="input">
                 <input type="text" name="author--name" id="name" style="font-size:1.875em!important;width:900px!important;" value="$page.name" class="required"/>
@@ -132,7 +135,7 @@ $putctx("robots", "noindex,nofollow")
             </div>
 
         $if ctx.user and ctx.user.is_admin():
-            <div class="adminOnly" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this macro?')" id="deleteTop">$_("Delete Record")</button></div>
+            <div class="adminOnly" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="deleteTop">$_("Delete Record")</button></div>
 
 
     </form>

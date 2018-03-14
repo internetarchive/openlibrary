@@ -33,9 +33,9 @@ $def display_revision(page):
         <a href="$changequery({}, v=page.revision)"><span class="uppercase"><strong>$_("Revision %d", page.revision)</strong></span></a>
         $ v = get_version(page.key, page.revision)
         $if v.author:
-            <span class="brown">$:_('by <a href="%s">%s</a> %s', v.author.key, v.author.displayname, datestr(v.created))</span>
+            <span class="brown">$_('by') <a href="$v.author.key">$v.author.displayname</a> $datestr(v.created)</span>
         $else:
-            <span class="brown">$:_('by Anonymous %s', datestr(v.created))</span>
+            <span class="brown">$_('by Anonymous') $datestr(v.created)</span>
     </div>
 
 $def diff_covers(p, a, b):

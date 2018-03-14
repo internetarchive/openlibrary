@@ -1,7 +1,7 @@
 $def with (email, form)
 
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;"">$:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+    <div class="small sansserif grey" style="margin-bottom:5px;"><a href="$ctx.user.key">$ctx.user.displayname</a>
     /
     <a href="$homepath()/account">$_("Settings")</a>
     /</div>
@@ -21,7 +21,7 @@ $def with (email, form)
             <div class="note">$form.note</div>
 
         <div class="formElement">
-            <div class="label"><label for="email">$_("Your New Email Address")</label> <span class="smaller lighter"></span></div>
+            <div class="label"><label for="email">$_("Your new email address")</label> <span class="smaller lighter"></span></div>
             <div class="input">
                 <input type="text" id="email" value="$form.email.value" name="email" />
 

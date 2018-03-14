@@ -1,9 +1,10 @@
-# Translations template for Open Library.
-# Copyright (C) 2009 Internet Archive
+# Translation for Open Library.
+# Copyright (C) 2010 Internet Archive
 # This file is distributed under the same license as the Open Library
 # project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+# Clonewayx <EMAIL@ADDRESS>, 2017.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
@@ -11,7 +12,7 @@ msgstr ""
 "POT-Creation-Date: 2018-03-14 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language-Team: cs <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,7 +21,7 @@ msgstr ""
 #: account.py:347 account.py:382 account.py:422
 #, python-format
 msgid "Hi %(user)s"
-msgstr "స్వాగతం %(user)s"
+msgstr "Ahoj %(user)"
 
 #: account.py:348 account.py:383
 #, fuzzy, python-format
@@ -28,8 +29,8 @@ msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
 "and click on the verification link to verify your email."
 msgstr ""
-"మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
-"\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
+"Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na "
+"Pveřovací odkaz pro změnu emailu."
 
 #: account.py:423
 #, python-format
@@ -37,67 +38,68 @@ msgid ""
 "We've sent an email to %(email)s. You'll need to read that and click on "
 "the verification link to update your email."
 msgstr ""
-"మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
-"\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
+"Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na "
+"Pveřovací odkaz pro změnu emailu."
 
 #: account.py:441
 msgid "Email address is already used."
-msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
+msgstr "Emailová adresa už je použita"
 
 #: account.py:442
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
 msgstr ""
+"Vaše emailová adresa nemůže být aktualizována. Zadaný email je už "
+"používán."
 
 #: account.py:446
 msgid "Email verification successful."
-msgstr "ఈమెయిలు దృవీకరణ విజయవంతమయింది."
+msgstr "Ověření emailu bylo úspěšné"
 
 #: account.py:447
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
-msgstr ""
+msgstr "Váš email úspěšně ověřen a aktualizován ve vašem účtu."
 
 #: account.py:451
 msgid "Email address couldn't be verified."
-msgstr "ఈమెయిలు చిరునామా దృవీకరించబడలేదు."
+msgstr "Email se nepodařilo ověřit."
 
 #: account.py:452
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr "మీ ఈమెయిలు చిరునామా దృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
+msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný."
 
 #: account.py:485
 msgid "Your password has been updated successfully."
-msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
+msgstr "Vaše heslo bylo změněno"
 
 #: account.py:579 account.py:589
 msgid "Password reset failed."
-msgstr ""
+msgstr "Selhalo obnovení hesla"
 
 #: account.py:635 account.py:651
 msgid "Notification preferences have been updated successfully."
-msgstr "మీ సందేశాల అభిరుచులు విజయవంతంగా మార్చబడ్డాయి."
+msgstr "Nastavení upozornění byla aktualizována"
 
 #: forms.py:19
 msgid "Username"
-msgstr "సభ్యనామము"
+msgstr "Uživatelské jméno"
 
 #: forms.py:20 openlibrary/templates/login.html:43
 msgid "Password"
-msgstr "సంకేతపదము"
+msgstr "Heslo"
 
 #: forms.py:25
 msgid "No user registered with this email address"
-msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో ఏ సభ్యడూ నమోదు కాలేదు."
+msgstr "Nebyl nalezen uživatel s tímto emailem"
 
 #: forms.py:26
-#, fuzzy
 msgid "Email already registered"
-msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
+msgstr "Email už je používán"
 
 #: forms.py:27
 msgid "Disposable email not permitted"
@@ -109,42 +111,39 @@ msgstr ""
 
 #: forms.py:29
 msgid "Username already used"
-msgstr "సభ్యనామము ఇప్పటికే వాడబడింది"
+msgstr "Uživatelské jméno už je použito"
 
 #: forms.py:31
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "Musí mýt 3 až 20 písmen a čísel"
 
 #: forms.py:32
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "Musí mýt 3 až 20 znaků"
 
 #: forms.py:33
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "Musí být platná emailová adresa"
 
 #: forms.py:47 forms.py:100
 msgid "Your email address"
-msgstr "మీ ఈమెయిలు చిరునామా"
+msgstr "Vaše emailová adresa"
 
 #: create.html:44 forms.py:50
-#, fuzzy
 msgid "Choose a screen name"
-msgstr "ఒక సభ్యనామము ఎంచుకోండి"
+msgstr "Vyberte si uživatelské jméno"
 
 #: forms.py:52
 msgid "Only letters and numbers, please, and at least 3 characters."
-msgstr ""
+msgstr "Prosím, pouze písmena a čísla, a nejméně 3 znaky."
 
 #: forms.py:54 forms.py:104
-#, fuzzy
 msgid "Choose a password"
-msgstr "ఒక సంకేతపదం ఎంచుకోండి"
+msgstr "Vyberte heslo"
 
 #: forms.py:57
-#, fuzzy
 msgid "Confirm password"
-msgstr "సంకేతపదము తప్పు"
+msgstr ""
 
 #: forms.py:59
 msgid "Passwords didn't match."
@@ -152,21 +151,19 @@ msgstr ""
 
 #: forms.py:88
 msgid "Invalid password"
-msgstr "సంకేతపదము తప్పు"
+msgstr "Neplatné heslo"
 
 #: forms.py:91
-#, fuzzy
 msgid "Current password"
-msgstr "మీ ప్రస్తుత సంకేతపదం"
+msgstr "Současné heslo"
 
 #: forms.py:92
-#, fuzzy
 msgid "Choose a new password"
-msgstr "ఒక క్రొత్త సంకేతపదం ఎంచుకోండి"
+msgstr "Vyberte si nové heslo"
 
 #: email.html:24 forms.py:96
 msgid "Your new email address"
-msgstr "మీ క్రొత్త ఈమెయిలు చిరునామా"
+msgstr "Vaše nová meailová adresa"
 
 #: edit.html:20
 msgid "Edit Author"
@@ -174,7 +171,7 @@ msgstr ""
 
 #: edit.html:33
 msgid "Name"
-msgstr ""
+msgstr "Název"
 
 #: edit.html:35
 msgid ""
@@ -192,7 +189,7 @@ msgstr ""
 
 #: edit.html:51 edit.html:177
 msgid "Links"
-msgstr "లంకెలు"
+msgstr ""
 
 #: edit.html:60
 msgid "A short bio?"
@@ -229,7 +226,7 @@ msgstr ""
 #: edit/edition.html:227 edit/edition.html:247 edit/edition.html:322
 #: edit/edition.html:573 edit/excerpts.html:15 edit/web.html:31
 msgid "For example:"
-msgstr "ఉదాహరణకు:"
+msgstr ""
 
 #: edit.html:108
 msgid "Websites"
@@ -241,7 +238,7 @@ msgstr ""
 
 #: edit.html:138 edit.html:216 openlibrary/macros/EditButtons.html:21
 msgid "Delete Record"
-msgstr ""
+msgstr "Smazat záznam"
 
 #: view.html:132
 msgid "Website"
@@ -268,18 +265,16 @@ msgid "1 Current Loan"
 msgstr ""
 
 #: borrow.html:83
-#, fuzzy
 msgid "Current Loans"
-msgstr "మీ ప్రస్తుత సంకేతపదం"
+msgstr ""
 
 #: borrow.html:85
 msgid "Loan Expires"
 msgstr ""
 
 #: borrow.html:86
-#, fuzzy
 msgid "Loan actions"
-msgstr "చర్యలు"
+msgstr "Akce"
 
 #: borrow.html:114
 #, python-format
@@ -293,11 +288,11 @@ msgid "Books You're Waiting For"
 msgstr ""
 
 #: borrow.html:190
-#, fuzzy, python-format
+#, python-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] "ఒక పుస్తకం చేర్చు"
-msgstr[1] ""
+msgstr[0] "kniha"
+msgstr[1] "%d knihy"
 
 #: borrow.html:213
 #, python-format
@@ -386,14 +381,11 @@ msgstr ""
 
 #: create.html:6 create.html:92 nav_head.html:107 search_head.html:74
 msgid "Sign Up"
-msgstr "సైన్ అప్"
+msgstr ""
 
 #: create.html:8
-#, fuzzy
 msgid "Complete the form below to create a new Internet Archive account."
 msgstr ""
-"మీ క్రొత్త  సార్వత్రిక గ్రంధాలయ ఖాతా సృష్టించటానికి ఈ క్రింది ఫామ్ "
-"నింపండి."
 
 #: create.html:9
 msgid "Each field is required"
@@ -439,11 +431,11 @@ msgstr ""
 #: openlibrary/macros/EditButtons.html:19 password.html:43
 #: password/reset.html:20 privacy.html:49
 msgid "Cancel"
-msgstr "రద్దుచేయి"
+msgstr "Zrušit"
 
 #: delete.html:2 delete.html:6
 msgid "Delete Account"
-msgstr "మీ ఖాతా తొలగించండి"
+msgstr "Smazat účet"
 
 #: delete.html:11
 msgid "Sorry, this functionality is not yet implemented."
@@ -457,15 +449,15 @@ msgstr ""
 
 #: email.html:8
 msgid "Change Your Email Address"
-msgstr "మీ ఈమెయిలు చిరునామా మార్చుకోండి"
+msgstr ""
 
 #: email.html:18
 msgid "Your current email address is"
-msgstr "మీ ప్రస్తుత ఈమెయిలు చిరునామా"
+msgstr ""
 
 #: email.html:35
 msgid "Change It"
-msgstr "మార్చండి"
+msgstr ""
 
 #: not_verified.html:3 not_verified.html:14 verify/failed.html:6
 msgid "Oops!"
@@ -480,8 +472,9 @@ msgid "Notifications from Open Library"
 msgstr ""
 
 #: notifications.html:10
+#, fuzzy
 msgid "Notifications"
-msgstr ""
+msgstr "Vaše upozornění"
 
 #: notifications.html:24
 msgid ""
@@ -496,32 +489,30 @@ msgstr ""
 
 #: notifications.html:35
 msgid "No, thank you"
-msgstr "వద్దండి, ఫరవాలేదు"
+msgstr ""
 
 #: notifications.html:42
 msgid "Yes! Please!"
-msgstr "ఓ! తప్పకుండా!"
+msgstr ""
 
 #: manage.html:64 notifications.html:50 openlibrary/macros/EditButtons.html:17
 #: privacy.html:47
 msgid "Save"
-msgstr "భద్రపరచు"
+msgstr "Uložit"
 
 #: openlibrary/templates/account.html:12 password.html:8
 msgid "Change Password"
-msgstr "మీ సంకేత పదం మార్చుకోండి"
+msgstr "Změnit heslo"
 
 #: password.html:9
 msgid ""
 "Provide your existing password (to verify that it's you) and select a new"
 " password to replace it."
 msgstr ""
-"మీ ప్రస్తుత సంకేతపదానన్ని ఇచ్చి (ఇది మీరేని దృవీకరించుకోవటానికి) దాని "
-"స్థానంలో మరొక క్రొత్త సంకేతపదాన్ని ఎంచుకోండి"
 
 #: password.html:41
 msgid "Change"
-msgstr "మార్చండి"
+msgstr ""
 
 #: privacy.html:3
 msgid "Your Privacy on Open Library"
@@ -537,7 +528,7 @@ msgstr ""
 
 #: edit/edition.html:365 privacy.html:39
 msgid "No"
-msgstr "కాదు"
+msgstr "Ne"
 
 #: verify.html:3
 msgid "Verification email sent"
@@ -546,7 +537,7 @@ msgstr ""
 #: password/reset_success.html:6 verify.html:5 verify/success.html:6
 #, python-format
 msgid "Hi, %(user)s!"
-msgstr "స్వాగతం %(user)s"
+msgstr ""
 
 #: email/forgot-ia.html:6 email/forgot.html:6
 msgid "Forgot Your Internet Archive Email?"
@@ -561,9 +552,8 @@ msgid "Forgot Your Open Library Email?"
 msgstr ""
 
 #: email/forgot.html:44 openlibrary/templates/login.html:68
-#, fuzzy
 msgid "Forgot your Password?"
-msgstr "మీ సంకేత పదం మార్చుకోండి"
+msgstr ""
 
 #: password/forgot.html:3 password/sent.html:3
 msgid "Username/Password Reminder"
@@ -575,7 +565,7 @@ msgstr ""
 
 #: password/forgot.html:19
 msgid "Send It"
-msgstr "పంపించు"
+msgstr ""
 
 #: password/reset.html:3 password/reset.html:6
 msgid "Reset Password"
@@ -590,9 +580,8 @@ msgid "Reset"
 msgstr ""
 
 #: password/reset_success.html:3
-#, fuzzy
 msgid "Password Reset Successful"
-msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
+msgstr ""
 
 #: password/reset_success.html:10
 msgid ""
@@ -605,23 +594,21 @@ msgid "Done."
 msgstr ""
 
 #: password/sent.html:10
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "We've sent an email to %(email)s with a reminder of your username and "
 "instructions to help you reset your Open Library password. Please check "
 "your inbox for a note from us."
 msgstr ""
-"సంకేతపదం మార్చుకోవటానికి సూచనలను %(email)sకు ఈమెయిలు పంపాము.\"\n"
-"\"దయచేసి మీ ఈమెయిలు చూసుకొని అందులోని సూచనలను పాటించండి."
 
 #: verify/activated.html:3
 msgid "Account already activated"
 msgstr ""
 
 #: verify/activated.html:6
-#, fuzzy, python-format
+#, python-format
 msgid "Hi, %s"
-msgstr "%sని మార్చు"
+msgstr ""
 
 #: verify/activated.html:11
 #, python-format
@@ -635,40 +622,37 @@ msgid "Email Verification Failed"
 msgstr ""
 
 #: verify/failed.html:10
-#, fuzzy
 msgid ""
 "Your email address couldn't be verified. Your verification link seems "
 "invalid or expired."
-msgstr "మీ ఈమెయిలు చిరునామా దృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
+msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný."
 
 #: verify/failed.html:18
-#, fuzzy
 msgid "Enter your email address here"
-msgstr "మీ ఈమెయిలు చిరునామా మార్చాలా?"
+msgstr "Vaše emailová adresa"
 
 #: verify/failed.html:21
-#, fuzzy
 msgid "No user registered with this email address."
-msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో ఏ సభ్యడూ నమోదు కాలేదు."
+msgstr "Nebyl nalezen uživatel s tímto emailem"
 
 #: verify/success.html:3
 msgid "Email Verification Successful"
-msgstr "ఈమెయిలు దృవీకరణ విజయవంతం"
+msgstr ""
 
 #: verify/success.html:11
-#, python-format
+#, fuzzy, python-format
 msgid ""
 "Yay! Your email address has been verified. Please <a href='%s'>log in to "
 "continue</a>."
-msgstr ""
+msgstr "Váš email úspěšně ověřen a aktualizován ve vašem účtu."
 
 #: add.html:3 check.html:3
 msgid "Add a book"
-msgstr "ఒక పుస్తకం చేర్చు"
+msgstr "Přidat knihu"
 
 #: add.html:7
 msgid "Add a book to Open Library"
-msgstr ""
+msgstr "Přidat knhu do Open Library"
 
 #: add.html:9
 msgid ""
@@ -679,26 +663,28 @@ msgstr ""
 #: add.html:20 edit.html:153 nav_head.html:39 search_foot.html:4
 #: search_head.html:4
 msgid "Title"
-msgstr "శీర్షిక:"
+msgstr "Název"
 
 #: add.html:30 edit.html:159 nav_head.html:40 search_foot.html:5
 #: search_head.html:5
 msgid "Author"
-msgstr "రచయితల"
+msgstr "Autor"
 
 #: add.html:30
 msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
+"Například, \"Agatha Christie\" nebo \"Jean-Paul Sartre.\" Rovnou ověříme "
+"zda již takového autora známe."
 
 #: add.html:42 edit/edition.html:93
 msgid "Who is the publisher?"
-msgstr ""
+msgstr "Kdo je vydavatel?"
 
 #: add.html:49 edit/edition.html:103
 msgid "When was it published?"
-msgstr ""
+msgstr "Kdy byla vydána?"
 
 #: add.html:49
 msgid "The year it was published is plenty."
@@ -708,7 +694,7 @@ msgstr ""
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be "
 "helpful..."
-msgstr ""
+msgstr "A volitelně, identifikační číslo - jako ISBN"
 
 #: add.html:57
 msgid "ID Type"
@@ -716,7 +702,7 @@ msgstr ""
 
 #: add.html:60
 msgid "Select"
-msgstr "ఎంచుకో"
+msgstr "Vybrat"
 
 #: add.html:73
 msgid "Since you are not logged in, please type in the text or number(s) below."
@@ -724,26 +710,25 @@ msgstr ""
 
 #: add.html:80
 msgid "Add this book now"
-msgstr ""
+msgstr "Přidat tuto knihu"
 
 #: add.html:80 edit/addfield.html:81 edit/addfield.html:127
 #: edit/addfield.html:171 edit/edition.html:283 edit/edition.html:448
 #: edit/edition.html:514 edit/excerpts.html:46
 msgid "Add"
-msgstr ""
+msgstr "Přidat"
 
 #: carousel_item.html:32 covers.html:104
 msgid "Read online"
 msgstr ""
 
 #: carousel_item.html:38
-#, fuzzy
 msgid "Borrow this book"
-msgstr "ఈ పుస్తకం గురించి"
+msgstr ""
 
 #: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:90
 msgid "Add a Book"
-msgstr "పుస్తకం చేర్చు"
+msgstr "Přidat knihu"
 
 #: check.html:8
 #, python-format
@@ -760,7 +745,7 @@ msgstr ""
 
 #: edit.html:74 edit.html:77 edit.html:80
 msgid "Add a little more?"
-msgstr "ఇంకొంచెం చేరుస్తారా?"
+msgstr ""
 
 #: edit.html:75
 msgid ""
@@ -793,12 +778,11 @@ msgstr ""
 
 #: edit.html:143
 msgid "Remove this author"
-msgstr ""
+msgstr "Smazat tohoto tvůrce"
 
 #: edit.html:144
-#, fuzzy
 msgid "Add another author?"
-msgstr "ఇంకొక చిత్రం చేర్చండి"
+msgstr ""
 
 #: edit.html:153
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
@@ -814,7 +798,7 @@ msgstr ""
 
 #: edit.html:216
 msgid "Delete this book?"
-msgstr ""
+msgstr "Smazat tento záznam"
 
 #: edition-show.html:57
 msgid "There is only 1 edition record, so we'll show it here..."
@@ -843,7 +827,7 @@ msgstr ""
 
 #: edition-show.html:94
 msgid "About the Book"
-msgstr "ఈ పుస్తకం గురించి"
+msgstr ""
 
 #: edition-show.html:98
 msgid "First Sentence"
@@ -851,7 +835,7 @@ msgstr ""
 
 #: edition-show.html:104
 msgid "Table of Contents"
-msgstr "విషయ సూచిక"
+msgstr ""
 
 #: edition-show.html:119
 msgid "Edition Notes"
@@ -871,7 +855,7 @@ msgstr ""
 
 #: edition-show.html:127
 msgid "Other Titles"
-msgstr "ఇతర శీర్షికలు"
+msgstr ""
 
 #: edition-show.html:128
 msgid "Copyright Date"
@@ -887,11 +871,11 @@ msgstr ""
 
 #: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
-msgstr ""
+msgstr "Klasifikace"
 
 #: edit/edition.html:544 edition-show.html:149
 msgid "The Physical Object"
-msgstr ""
+msgstr "Fyzický předmět"
 
 #: edition-show.html:152
 msgid "Format"
@@ -903,23 +887,23 @@ msgstr ""
 
 #: edition-show.html:154
 msgid "Number of pages"
-msgstr "పేజీల సంఖ్య"
+msgstr ""
 
 #: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
-msgstr "పరిమాణాలు"
+msgstr "Rozměry"
 
 #: edition-show.html:156
 msgid "Weight"
-msgstr "బరువు"
+msgstr ""
 
 #: edit/edition.html:257 edition-show.html:164
 msgid "Contributors"
-msgstr ""
+msgstr "Autoři"
 
 #: edit/edition.html:413 edition-show.html:172
 msgid "ID Numbers"
-msgstr ""
+msgstr "Identifikační čísla"
 
 #: book_cover.html:17 book_cover.html:36 book_cover_single_edition.html:13
 #: book_cover_single_edition.html:31 book_cover_small.html:14
@@ -930,15 +914,15 @@ msgstr ""
 
 #: inside.html:80 show.html:30
 msgid "Read"
-msgstr "చదువు"
+msgstr "Číst"
 
 #: edit/about.html:6
 msgid "How would you describe this book?"
-msgstr "ఈ పుస్తకం గురించి ఏలా వివరిస్తారు?"
+msgstr ""
 
 #: edit/about.html:7
 msgid "There's no wrong answer here."
-msgstr "దీనికి తప్పు సమాధానం అంటూ ఉండదు."
+msgstr ""
 
 #: edit/about.html:16
 msgid "Some tags perhaps?"
@@ -978,7 +962,7 @@ msgstr ""
 
 #: edit/addfield.html:66
 msgid "Add a New Contributor Role"
-msgstr ""
+msgstr "Přidat novou roli"
 
 #: edit/addfield.html:73 edit/addfield.html:100 edit/addfield.html:145
 msgid "What should we show in the menu?"
@@ -997,8 +981,9 @@ msgid "Please leave a note: Why is this ID useful?"
 msgstr ""
 
 #: edit/addfield.html:137
+#, fuzzy
 msgid "Add a New Classification System"
-msgstr ""
+msgstr "Klasifikace"
 
 #: edit/addfield.html:154
 msgid "Please leave a note: Why is this classification useful?"
@@ -1020,7 +1005,7 @@ msgstr ""
 
 #: edit/edition.html:32
 msgid "Remove this work"
-msgstr ""
+msgstr "Smazat tento záznam"
 
 #: edit/edition.html:83
 msgid "Expose another 20 fields about the edition"
@@ -1028,7 +1013,7 @@ msgstr ""
 
 #: edit/edition.html:83
 msgid "Librarian Mode"
-msgstr ""
+msgstr "Knihovnický režim"
 
 #: edit/edition.html:87
 msgid "Publishing Info"
@@ -1036,7 +1021,7 @@ msgstr ""
 
 #: edit/edition.html:94
 msgid "For example"
-msgstr "ఉదాహరణకు"
+msgstr ""
 
 #: edit/edition.html:104
 msgid "You should be able to find this in the first few pages of the book."
@@ -1044,7 +1029,7 @@ msgstr ""
 
 #: edit/edition.html:113
 msgid "Where was the book published?"
-msgstr "ఈ పుస్తకం ఎక్కడ ప్రచురించబడింది?"
+msgstr ""
 
 #: edit/edition.html:114
 msgid "City, Country please."
@@ -1096,7 +1081,7 @@ msgstr ""
 
 #: edit/edition.html:183
 msgid "Subtitle"
-msgstr "ఉపశీర్షిక:"
+msgstr ""
 
 #: edit/edition.html:184
 msgid "Usually distinguished by different or smaller type."
@@ -1114,7 +1099,7 @@ msgstr ""
 
 #: edit/edition.html:212
 msgid "Perhaps in another language?"
-msgstr "ఏదైనా వేరే భాషలో"
+msgstr ""
 
 #: edit/edition.html:216
 msgid "is an alternate title for"
@@ -1122,7 +1107,7 @@ msgstr ""
 
 #: edit/edition.html:226
 msgid "Does this edition have a specific name?"
-msgstr ""
+msgstr "Má toto vydání vlastní název"
 
 #: edit/edition.html:246
 msgid "Any notes about this specific edition?"
@@ -1138,15 +1123,15 @@ msgstr ""
 
 #: edit/edition.html:271
 msgid "Select role"
-msgstr ""
+msgstr "Vybrat roli"
 
 #: edit/edition.html:276
 msgid "Add a new role"
-msgstr ""
+msgstr "Přidat novou roli"
 
 #: edit/edition.html:296 edit/edition.html:312
 msgid "Remove this contributor"
-msgstr ""
+msgstr "Smazat tohoto tvůrce"
 
 #: edit/edition.html:321
 msgid "Is there a By Statement?"
@@ -1158,11 +1143,11 @@ msgstr ""
 
 #: edit/edition.html:351
 msgid "Is it a translation of another book?"
-msgstr "ఇది వేరే పుస్తకానికి అనువాదమా?"
+msgstr ""
 
 #: edit/edition.html:369
 msgid "Yes, it's a translation"
-msgstr "అవును, ఇది అనువాదమే"
+msgstr ""
 
 #: edit/edition.html:374
 msgid "What's the original book?"
@@ -1182,11 +1167,11 @@ msgstr ""
 
 #: edit/edition.html:419
 msgid "Do you know any identifiers for this edition?"
-msgstr ""
+msgstr "Znáte neějaké identifikátory pro tohle vydání"
 
 #: edit/edition.html:420
 msgid "Like, ISBN?"
-msgstr ""
+msgstr "Jako ISBN?"
 
 #: edit/edition.html:493
 msgid "Do you know any classifications of this edition?"
@@ -1210,7 +1195,7 @@ msgstr ""
 
 #: edit/edition.html:550
 msgid "What sort of book is it?"
-msgstr "ఇది ఎటువంటి పుస్తకం?"
+msgstr "Jaký je druh vazby"
 
 #: edit/edition.html:551
 msgid "Paperback; Hardcover, etc."
@@ -1218,31 +1203,31 @@ msgstr ""
 
 #: edit/edition.html:559
 msgid "How many pages?"
-msgstr ""
+msgstr "Kolik stránek"
 
 #: edit/edition.html:568
 msgid "Pagination?"
-msgstr ""
+msgstr "Stránkování?"
 
 #: edit/edition.html:569
 msgid "Note the highest number in each pagination pattern."
-msgstr ""
+msgstr "Zadejte nejvyšší číslo stránkování"
 
 #: edit/edition.html:579
 msgid "How much does the book weigh?"
-msgstr ""
+msgstr "Kolik kniha váží"
 
 #: edit/edition.html:603
 msgid "Height:"
-msgstr "ఎత్తు:"
+msgstr "Výška:"
 
 #: edit/edition.html:607
 msgid "Width:"
-msgstr "వెడల్:పు"
+msgstr "Šířka:"
 
 #: edit/edition.html:615
 msgid "Depth:"
-msgstr "లావు:"
+msgstr "Hloubka:"
 
 #: edit/edition.html:629 edit/edition.html:643
 msgid "Admin Only"
@@ -1300,7 +1285,7 @@ msgstr ""
 
 #: edit/excerpts.html:14
 msgid "Page number?"
-msgstr "పేజి సంఖ్య"
+msgstr ""
 
 #: edit/excerpts.html:26
 msgid "Transcribe the excerpt"
@@ -1424,7 +1409,7 @@ msgstr ""
 
 #: saved.html:21
 msgid "Saved!"
-msgstr "భద్రపరచబడింది!"
+msgstr ""
 
 #: saved.html:24
 msgid "Notes:"
@@ -1432,16 +1417,15 @@ msgstr ""
 
 #: saved.html:34
 msgid "Add another image"
-msgstr "ఇంకొక చిత్రం చేర్చండి"
+msgstr ""
 
 #: saved.html:41
 msgid "Finished"
-msgstr "అవిపోయింది"
+msgstr ""
 
 #: comment.html:28
-#, fuzzy
 msgid "Edited without comment."
-msgstr "వ్యాఖ్య లేకుండా మార్చబడింది"
+msgstr "Editováno bez komentáře"
 
 #: about.html:11
 msgid ""
@@ -1450,22 +1434,21 @@ msgid ""
 msgstr ""
 
 #: about.html:12 nav_head.html:87
-#, fuzzy
 msgid "More"
-msgstr "ఇంకా"
+msgstr "více"
 
 #: index.html:3
 #, fuzzy
 msgid "Welcome to Open Library"
-msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
+msgstr "Přidat knhu do Open Library"
 
 #: edit_head.html:9
 msgid "You're in edit mode."
-msgstr ""
+msgstr "Jste v editačním režimu."
 
 #: edit_head.html:10
 msgid "Cancel, and go back."
-msgstr "రద్దుచేసి, వెనక్కు పో"
+msgstr "Zrušit, a jít zpět."
 
 #: edit_head.html:14 view_head.html:10
 msgid "This doc was last edited by"
@@ -1477,26 +1460,25 @@ msgstr ""
 
 #: history.html:15
 msgid "History"
-msgstr "చరిత్ర"
+msgstr "Historie"
 
 #: history.html:18
-#, python-format
+#, fuzzy, python-format
 msgid "Created %s"
-msgstr ""
+msgstr "Vytvořte to"
 
 #: history.html:25
-#, fuzzy
 msgid "revision"
-msgstr "రివిజన్ %d"
+msgstr "revize"
 
 #: history.html:51 openlibrary/templates/history.html:36
 #, python-format
 msgid "View revision %s"
-msgstr "రివిజన్ %s చూడు"
+msgstr ""
 
 #: history.html:56 history.html:58
 msgid "an anonymous user"
-msgstr ""
+msgstr "Anonymní uživatel"
 
 #: history.html:60
 #, python-format
@@ -1504,9 +1486,9 @@ msgid "Created by %s"
 msgstr ""
 
 #: history.html:62
-#, fuzzy, python-format
+#, python-format
 msgid "Edited by %s"
-msgstr "%sని మార్చు"
+msgstr ""
 
 #: markdown.html:14
 msgid ""
@@ -1538,15 +1520,15 @@ msgstr ""
 
 #: nav_foot.html:8
 msgid "Go home"
-msgstr ""
+msgstr "Jít domů"
 
 #: nav_foot.html:8
 msgid "Home"
-msgstr ""
+msgstr "Domů"
 
 #: nav_foot.html:9
 msgid "Add a new book to Open Library"
-msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
+msgstr "Přida do Open Library novou knihu"
 
 #: nav_foot.html:10
 msgid "Explore subjects"
@@ -1554,7 +1536,7 @@ msgstr ""
 
 #: nav_foot.html:10
 msgid "Subjects"
-msgstr "సబ్జక్టులు"
+msgstr "Témata"
 
 #: nav_foot.html:11
 msgid "Explore authors"
@@ -1562,7 +1544,7 @@ msgstr ""
 
 #: nav_foot.html:11 view.html:531
 msgid "Authors"
-msgstr "రచయితలు"
+msgstr "Autoři"
 
 #: nav_foot.html:12
 msgid "About the Open Library staff"
@@ -1570,15 +1552,15 @@ msgstr ""
 
 #: nav_foot.html:12
 msgid "About Us"
-msgstr "మా గురించి"
+msgstr "O nás"
 
 #: nav_foot.html:13
 msgid "Get help"
-msgstr "సహాయం పొందండి"
+msgstr "Získat pomoc"
 
 #: nav_foot.html:13
 msgid "Help"
-msgstr "సహాయం"
+msgstr "Pomoc"
 
 #: nav_foot.html:14
 msgid "Visit the Developers Center"
@@ -1598,12 +1580,11 @@ msgstr ""
 
 #: nav_head.html:9 search_head.html:72
 msgid "Log in"
-msgstr "లాగిన్"
+msgstr "Přihlásit"
 
 #: nav_head.html:10
-#, fuzzy
 msgid "Sign up"
-msgstr "సైన్ అప్"
+msgstr ""
 
 #: nav_head.html:13 nav_head.html:91
 msgid "Full-Text Search on Archive.org"
@@ -1612,7 +1593,7 @@ msgstr ""
 #: nav_head.html:14 nav_head.html:92
 #, fuzzy
 msgid "Random Book"
-msgstr "ఒక పుస్తకం చేర్చు"
+msgstr "kniha"
 
 #: nav_head.html:15 nav_head.html:94
 msgid "Recent Community Edits"
@@ -1635,9 +1616,8 @@ msgid "All"
 msgstr ""
 
 #: nav_head.html:41 search_foot.html:7 search_head.html:7
-#, fuzzy
 msgid "Subject"
-msgstr "సబ్జక్టులు"
+msgstr "Témata"
 
 #: nav_head.html:42 search_foot.html:59 search_head.html:25
 msgid "Advanced"
@@ -1645,14 +1625,14 @@ msgstr ""
 
 #: nav_head.html:43 search_head.html:66
 msgid "Lists"
-msgstr ""
+msgstr "Seznamy"
 
 #: authors.html:43 editions.html:34 inside.html:39 nav_head.html:48
 #: notfound.html:17 openlibrary/templates/subjects.html:46
 #: openlibrary/templates/work_search.html:156 publishers.html:15
 #: search_head.html:20 subjects.html:32 view.html:584
 msgid "Search"
-msgstr "వెతుకు"
+msgstr "Hledat"
 
 #: nav_head.html:62
 msgid "Browse"
@@ -1667,8 +1647,9 @@ msgid "Biographies"
 msgstr ""
 
 #: nav_head.html:67
+#, fuzzy
 msgid "Textbooks"
-msgstr ""
+msgstr "knihy"
 
 #: nav_head.html:68
 msgid "Sci-Fi"
@@ -1677,7 +1658,7 @@ msgstr ""
 #: nav_head.html:69
 #, fuzzy
 msgid "Romance"
-msgstr "రద్దుచేయి"
+msgstr "Zrušit"
 
 #: nav_head.html:70
 msgid "Fantasy"
@@ -1686,15 +1667,16 @@ msgstr ""
 #: nav_head.html:71
 #, fuzzy
 msgid "More Subjects"
-msgstr "సబ్జక్టులు"
+msgstr "Témata"
 
 #: nav_head.html:72
 msgid "Reading Lists"
 msgstr ""
 
 #: nav_head.html:77
+#, fuzzy
 msgid "My Books"
-msgstr ""
+msgstr "knihy"
 
 #: nav_head.html:80 nav_head.html:118
 msgid "My Loans"
@@ -1705,18 +1687,19 @@ msgid "My Reading Log"
 msgstr ""
 
 #: nav_head.html:82 nav_head.html:119
+#, fuzzy
 msgid "My Lists"
-msgstr ""
+msgstr "do vašeho seznamu"
 
 #: nav_head.html:106 openlibrary/templates/login.html:6
 #: openlibrary/templates/login.html:64
 msgid "Log In"
-msgstr "లాగిన్"
+msgstr "Přihlásit se"
 
 #: nav_head.html:114
 #, fuzzy
 msgid "My Account"
-msgstr "మీ ఖాతా"
+msgstr "Váš účet"
 
 #: nav_head.html:120
 msgid "My Profile"
@@ -1724,20 +1707,20 @@ msgstr ""
 
 #: nav_head.html:124
 msgid "Log out"
-msgstr "లాగౌట్"
+msgstr "Odhlásit"
 
 #: pagination.html:18
 msgid "Previous"
-msgstr "వెనక్కు"
+msgstr "Předchozí"
 
 #: openlibrary/templates/history.html:80 pagination.html:33
 msgid "Next"
-msgstr "ముందుకు"
+msgstr "Další"
 
 #: search_foot.html:8 search_head.html:8
 #, fuzzy
 msgid "Place"
-msgstr "ప్రదేశాలు"
+msgstr "Místa"
 
 #: search_foot.html:9 search_head.html:9
 msgid "Person"
@@ -1745,11 +1728,11 @@ msgstr ""
 
 #: search_foot.html:10 search_head.html:10
 msgid "Publisher"
-msgstr "ప్రచురణ"
+msgstr "Vydavatel"
 
 #: search_foot.html:25
 msgid "Language"
-msgstr "భాష"
+msgstr "Jazyk"
 
 #: search_foot.html:27
 msgid "any"
@@ -1800,17 +1783,17 @@ msgid "Polish"
 msgstr ""
 
 #: search_foot.html:64 search_head.html:30
-#, fuzzy
 msgid "Only eBooks"
-msgstr "ఈ-పుస్తకాలు మాత్రమే చూపించండి"
+msgstr "Zobrazit jen eKnihy"
 
 #: search_foot.html:66 search_head.html:32
 msgid "Search eBook text"
 msgstr ""
 
 #: search_head.html:64
+#, fuzzy
 msgid "Your Profile"
-msgstr ""
+msgstr "Stránka vašeho profilu"
 
 #: search_head.html:65
 msgid "Loans"
@@ -1852,7 +1835,7 @@ msgstr ""
 #: notfound.html:6
 #, fuzzy
 msgid "Publishers"
-msgstr "ప్రచురణ"
+msgstr "Vydavatel"
 
 #: notfound.html:11
 #, python-format
@@ -1871,10 +1854,10 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: openlibrary/templates/subjects.html:17 view.html:15
-#, python-format
+#, fuzzy, python-format
 msgid "%s ebook"
 msgid_plural "%s ebooks"
-msgstr[0] ""
+msgstr[0] "kniha"
 msgstr[1] ""
 
 #: openlibrary/templates/subjects.html:23 view.html:21
@@ -1883,7 +1866,7 @@ msgstr ""
 
 #: openlibrary/templates/subjects.html:62 view.html:54
 msgid "Publishing History"
-msgstr "ప్రచురణ చరిత్ర"
+msgstr "Publikační historie"
 
 #: view.html:55
 msgid ""
@@ -1916,11 +1899,11 @@ msgstr ""
 
 #: openlibrary/templates/subjects.html:381 view.html:327
 msgid "published in"
-msgstr ""
+msgstr "vydáno v"
 
 #: openlibrary/templates/subjects.html:383 view.html:329
 msgid "published between"
-msgstr ""
+msgstr "vydáno mezi"
 
 #: openlibrary/templates/subjects.html:498 view.html:487
 msgid "You need to have JavaScript turned on to see the nifty chart!"
@@ -1929,20 +1912,20 @@ msgstr ""
 #: openlibrary/templates/subjects.html:500 view.html:489
 #, fuzzy
 msgid "Editions Published"
-msgstr "ముదటి ప్రచురణ"
+msgstr "Poprvé vydáno"
 
 #: openlibrary/templates/subjects.html:501 view.html:490
 msgid "Year of Publication"
-msgstr ""
+msgstr "Rok vydání"
 
 #: view.html:496
 #, fuzzy
 msgid "Common Subjects"
-msgstr "సబ్జక్టులు"
+msgstr "Témata"
 
 #: openlibrary/templates/subjects.html:521 view.html:508
 msgid "None found."
-msgstr ""
+msgstr "Nenalezeno"
 
 #: openlibrary/templates/subjects.html:538 view.html:525
 msgid "See more books by, and learn about, this author"
@@ -1952,8 +1935,8 @@ msgstr ""
 #, python-format
 msgid "%s book"
 msgid_plural "%s books"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "kniha"
+msgstr[1] "%s knihy"
 
 #: view.html:532
 msgid "published most by this publisher"
@@ -1964,39 +1947,39 @@ msgid "Get more information about this publisher"
 msgstr ""
 
 #: openlibrary/templates/subjects.html:570 view.html:557
-#, python-format
+#, fuzzy, python-format
 msgid "%s edition"
 msgid_plural "%s editions"
-msgstr[0] ""
+msgstr[0] "Njvíc vydání"
 msgstr[1] ""
 
 #: header.html:25 index.html:3 index.html:7
 msgid "Recent Changes"
-msgstr "ఇటీవలి మార్పులు"
+msgstr "Poslední změny"
 
 #: openlibrary/templates/history.html:26 render.html:28 updated_records.html:21
 msgid "When"
-msgstr "ఎప్పుడు"
+msgstr "Kdy"
 
 #: render.html:29 updated_records.html:22
 msgid "What"
-msgstr "ఏమిటి"
+msgstr "Co"
 
 #: openlibrary/templates/history.html:27 render.html:30
 msgid "Who"
-msgstr "ఎవరు"
+msgstr "Kdo"
 
 #: render.html:59
 msgid "Older"
-msgstr "పాతవి"
+msgstr "Starší"
 
 #: render.html:62
 msgid "Newer"
-msgstr "క్రొత్తవి"
+msgstr "Novější"
 
 #: default/message.html:25 edit-book/message.html:25
 msgid "opened a new Open Library account!"
-msgstr "క్రొత్త సార్వత్రిక గ్రంధాలయ ఖాతా తెరిచారు!"
+msgstr ""
 
 #: merge-authors/message.html:9
 #, python-format
@@ -2015,16 +1998,15 @@ msgstr[1] ""
 #: authors.html:27
 #, fuzzy
 msgid "Author Search"
-msgstr "రచయితలు"
+msgstr "Autoři"
 
 #: editions.html:14
 msgid "Edition Search"
 msgstr ""
 
 #: inside.html:27
-#, fuzzy
 msgid "Search Inside"
-msgstr "మరిన్ని శోధనావిధానాలు"
+msgstr ""
 
 #: inside.html:78
 msgid ""
@@ -2035,20 +2017,20 @@ msgstr ""
 #: publishers.html:5
 #, fuzzy
 msgid "Publishers Search"
-msgstr "ప్రచురణ"
+msgstr "vydáno v"
 
 #: subjects.html:15
 #, fuzzy
 msgid "Subject Search"
-msgstr "సబ్జక్టులు"
+msgstr "Témata"
 
 #: openlibrary/templates/account.html:13
 msgid "Update Email Address"
-msgstr "ఈమెయిలు చిరునామా మార్చుకోండి"
+msgstr "Aktualizovat emailovou adresu"
 
 #: openlibrary/templates/account.html:14
 msgid "Your Notifications"
-msgstr ""
+msgstr "Vaše upozornění"
 
 #: openlibrary/templates/account.html:15
 msgid "Your Privacy Settings"
@@ -2056,19 +2038,19 @@ msgstr ""
 
 #: openlibrary/templates/account.html:16
 msgid "View"
-msgstr "చూడు"
+msgstr "Zobrazit"
 
 #: openlibrary/templates/account.html:16
 msgid "or"
-msgstr "లేదా"
+msgstr "nebo"
 
 #: openlibrary/templates/account.html:16
 msgid "Edit"
-msgstr "మార్చు"
+msgstr "Editovat"
 
 #: openlibrary/templates/account.html:16
 msgid "Your Profile Page"
-msgstr ""
+msgstr "Stránka vašeho profilu"
 
 #: openlibrary/templates/account.html:17
 msgid "View or Edit your Reading Log"
@@ -2089,33 +2071,33 @@ msgstr ""
 
 #: openlibrary/templates/diff.html:22
 msgid "Added"
-msgstr ""
+msgstr "Přidáno"
 
 #: openlibrary/templates/diff.html:23
 msgid "Modified"
-msgstr "మార్చబడింది"
+msgstr "Upraveno"
 
 #: openlibrary/templates/diff.html:24
 msgid "Removed"
-msgstr "తొలగించబడింది"
+msgstr "Smazáno"
 
 #: openlibrary/templates/diff.html:25
-#, fuzzy
 msgid "Not changed"
-msgstr "మార్చండి"
+msgstr "Neupraveno"
 
 #: openlibrary/templates/diff.html:33
 #, python-format
 msgid "Revision %d"
-msgstr "రివిజన్ %d"
+msgstr "Verze %d"
 
 #: openlibrary/templates/diff.html:38
+#, fuzzy
 msgid "by Anonymous"
-msgstr ""
+msgstr "Anonymní uživatel"
 
 #: openlibrary/templates/diff.html:94
 msgid "Differences"
-msgstr "తేడాలు"
+msgstr "Rozdíly"
 
 #: openlibrary/templates/diff.html:151
 msgid "Both the revisions are identical."
@@ -2127,7 +2109,7 @@ msgstr ""
 
 #: openlibrary/templates/history.html:25
 msgid "Revision"
-msgstr ""
+msgstr "Revize"
 
 #: openlibrary/templates/history.html:28
 msgid "¿Qué?"
@@ -2136,62 +2118,67 @@ msgstr ""
 #: openlibrary/templates/history.html:29
 #, fuzzy
 msgid "Diff"
-msgstr "తేడా"
+msgstr "rozdíl"
 
 #: openlibrary/templates/history.html:53
 msgid "Compare"
-msgstr "పోల్చు"
+msgstr "Porovnat"
 
 #: openlibrary/templates/history.html:53
 #, fuzzy
 msgid "See Diff"
-msgstr "తేడా"
+msgstr "rozdíl"
 
 #: openlibrary/templates/history.html:78
 msgid "Back"
-msgstr "వెనక్కు"
+msgstr "Zpět"
 
 #: openlibrary/templates/internalerror.html:10
 msgid "Sorry. There seems to be a problem with what you were just looking at."
-msgstr ""
+msgstr "Promiňte. Oběvil se problém s obsahem který jste právě prohlížely."
 
 #: openlibrary/templates/internalerror.html:11
-#, python-format
+#, fuzzy, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head "
 "for <a href=\"/\">home</a>?"
 msgstr ""
+"Zaznamenaly jsme chybu a co nejdříve se na ni podíváme. Vrátit se <a "
+"href=\"/\">domů</a>?"
 
 #: openlibrary/templates/login.html:31
-#, fuzzy
 msgid "Email"
-msgstr "ఈ-మెయిలు"
+msgstr ""
 
 #: openlibrary/templates/login.html:70
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
+"Nejste členem Open Library? <a href=\"/account/create\">Registrujte "
+"se</a>."
 
 #: openlibrary/templates/notfound.html:3
 #, python-format
 msgid "%s is not found"
-msgstr ""
+msgstr "%s nebylo nalezeno"
 
 #: openlibrary/templates/notfound.html:10
 msgid "404 - Page Not Found"
-msgstr ""
+msgstr "404 - nebylo nalezeno"
 
 #: openlibrary/templates/notfound.html:14
 #, python-format
 msgid "%s does not exist."
-msgstr ""
+msgstr "%s neexistuje."
 
 #: openlibrary/templates/notfound.html:18
+#, fuzzy
 msgid "Create it?"
-msgstr ""
+msgstr "Vytvořte to"
 
 #: openlibrary/templates/permission_denied.html:6
+#, fuzzy
 msgid "Permission denied."
-msgstr ""
+msgstr "Přístup odepřen"
 
 #: openlibrary/templates/permission_denied.html:26
 #, python-format
@@ -2214,7 +2201,7 @@ msgstr ""
 
 #: openlibrary/templates/subjects.html:507
 msgid "Related..."
-msgstr ""
+msgstr "Související..."
 
 #: openlibrary/templates/subjects.html:544
 msgid "Prolific Authors"
@@ -2226,12 +2213,11 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:117
 msgid "Search Results"
-msgstr "శోధనా ఫలితాలు"
+msgstr "Výsledky hledání"
 
 #: openlibrary/templates/work_search.html:122
-#, fuzzy
 msgid "Open Library Search"
-msgstr "సార్వత్రిక గ్రంధాలయం"
+msgstr ""
 
 #: openlibrary/templates/work_search.html:128
 msgid "No hits"
@@ -2239,35 +2225,35 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:134
 msgid "Sorting by"
-msgstr ""
+msgstr "Řadit dle"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "Relevance"
-msgstr ""
+msgstr "Relevance"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "Most Editions"
-msgstr ""
+msgstr "Njvíc vydání"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "First Published"
-msgstr "ముదటి ప్రచురణ"
+msgstr "Prvního vydání"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "Most Recent"
-msgstr ""
+msgstr "Nejčerstvější"
 
 #: openlibrary/templates/work_search.html:218
 msgid "Click to remove this facet"
@@ -2276,7 +2262,7 @@ msgstr ""
 #: openlibrary/templates/work_search.html:255
 #, fuzzy
 msgid "Zoom In"
-msgstr "లాగిన్"
+msgstr "kniha v"
 
 #: openlibrary/templates/work_search.html:256
 msgid "Focus your results using these"
@@ -2288,19 +2274,19 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:284
 msgid "more"
-msgstr "ఇంకా"
+msgstr "více"
 
 #: openlibrary/templates/work_search.html:284
 msgid "less"
-msgstr ""
+msgstr "méně"
 
 #: openlibrary/macros/EditButtons.html:5
 msgid "Please, leave a short note about what you changed:"
-msgstr "దయచేసి, మీ చేసిన మార్పు గురించి ఒక చిన్న వ్యాఖ్య వ్రాయండి:"
+msgstr "Zanechte prosím krátkou poznámku o tom co jste upravily:"
 
 #: openlibrary/macros/EditButtons.html:5
 msgid "(Optional, but very useful!)"
-msgstr ""
+msgstr "(Volitelné, ale velmi užitečné!)"
 
 #: openlibrary/macros/EditButtons.html:13
 msgid ""
@@ -2312,186 +2298,157 @@ msgid ""
 msgstr ""
 
 #~ msgid "Edit Summary (briefly describe the changes you have made):"
-#~ msgstr "మార్పు సారాంశము (మీరు చేసిన మార్పులను క్లుప్తంగా వివరించండి):"
+#~ msgstr "Shrnutí editace (stručně popište změny které jste provedly):"
+
+#~ msgid "Preview"
+#~ msgstr "Náhled"
 
 #~ msgid "Delete"
-#~ msgstr "తొలగించు"
+#~ msgstr "Smazat"
+
+#~ msgid ""
+#~ "Except where otherwise noted, content on"
+#~ " this site is licensed under a "
+#~ "<a href=\"http://creativecommons.org/choose/zero\">Creative "
+#~ "Commons CC0 License"
+#~ msgstr ""
+#~ "Kde není uvedeno jinak,je obsah těchto"
+#~ " stránek licencován <a "
+#~ "href=\"http://creativecommons.org/choose/zero\">Creative Commons"
+#~ " CC0"
 
 #~ msgid "Path"
-#~ msgstr "ఎక్కడ"
+#~ msgstr "Cesta"
 
 #~ msgid "view"
-#~ msgstr "చూడు"
+#~ msgstr "zobrazit"
 
 #~ msgid "edit"
-#~ msgstr "మార్చు"
+#~ msgstr "editovat"
 
 #~ msgid "Comments"
-#~ msgstr "వ్యాఖ్యలు"
+#~ msgstr "Komentáře"
 
 #~ msgid "Prev"
-#~ msgstr "వెనక్కు"
+#~ msgstr "Předchozí"
 
 #~ msgid "Page Type:"
-#~ msgstr "పేజి రకము"
+#~ msgstr "Druh stránky:"
+
+#~ msgid "Edit the information about"
+#~ msgstr "Editovat informace o"
+
+#~ msgid "Collect"
+#~ msgstr "Sbírka"
+
+#~ msgid "Download a PDF version of"
+#~ msgstr "Stáhnout PDF verzi"
 
 #~ msgid "Purchase"
-#~ msgstr "కొనుక్కో"
+#~ msgstr "Koupit"
+
+#~ msgid "Borrow"
+#~ msgstr "Půjčit"
 
 #~ msgid "Last modified by"
-#~ msgstr "చివరి మార్పు"
+#~ msgstr "Poslední upravil"
+
+#~ msgid "Last modified anonymously"
+#~ msgstr "Naposledy upraveno anonymě"
 
 #~ msgid "Last modified"
-#~ msgstr "చివరి మార్పు"
+#~ msgstr "Naposledy upraveno"
 
 #~ msgid "Delete Your Account"
-#~ msgstr "మీ ఖాతా తొలగించండి"
+#~ msgstr "Samzat váš účet"
+
+#~ msgid "eBook?"
+#~ msgstr "eKniha?"
 
 #~ msgid "Times"
-#~ msgstr "కాలం"
-
-#~ msgid "Fiction?"
-#~ msgstr "చర్యలు"
+#~ msgstr "Obdobý"
 
 #~ msgid "We found <strong>%s results</strong> that match your query."
-#~ msgstr "మీ శోధను సరిపడే <strong>%s ఫలితాలు</strong> లభించాయి"
+#~ msgstr "Našli jsme <strong>%s výsledky</strong> které odpovídají vašemu zadání."
 
 #~ msgid "Unmodified"
-#~ msgstr "మార్చబడలేదు"
+#~ msgstr "Neupraveno"
+
+#~ msgid "YAML Representation:"
+#~ msgstr "Reprezentace YAML:"
 
 #~ msgid ""
 #~ "The username you entered isn't in "
 #~ "the Open Library system. Please try "
 #~ "again?"
+#~ msgstr "Zadané uživatelské jméno není v systému Open Library. Zkusteto znovu."
+
+#~ msgid ""
+#~ "That password seems incorrect. Please "
+#~ "try again, or, if you've forgotten "
+#~ "it, have your <a "
+#~ "href=\"/acount/password/forgot\">password reset</a>."
 #~ msgstr ""
-#~ "మీరు ఇచ్చిన సభ్యనామము సార్వత్రిక గ్రంధాలయ "
-#~ "వ్యవస్తలో లేదు. మళ్ళీ ప్రయత్నిస్తారా?"
+#~ "Heslo není správně. Zkuste to prosím "
+#~ "znovu, nebo pokud jste ho zapoměli "
+#~ ", zkuste <a "
+#~ "href=\"/acount/password/forgot\">obnovení hesla</a>."
+
+#~ msgid "You need to choose an image to upload."
+#~ msgstr "Musíte vybrat obrázek k nahrání."
+
+#~ msgid "Currently viewing the history for"
+#~ msgstr "Nyní prohlížíte historii "
 
 #~ msgid "Did you <a href=\"/account/password/forgot\">forget your password</a>?"
-#~ msgstr "మీరు <a href=\"/account/password/forgot\">మీ సంకేతపదం మరచిపోయారా</a>?"
+#~ msgstr "<a href=\"/account/password/forgot\">Zapoměli jste heslo</a>?"
+
+#~ msgid "Not Found"
+#~ msgstr "Nebylo nalezeno"
+
+#~ msgid "The Open Library is closed!"
+#~ msgstr "Open Library je zavřená!"
+
+#~ msgid ""
+#~ "<strong>Open Library is temporarily "
+#~ "offline.</strong><br/>Please <a "
+#~ "href=\"http://blog.openlibrary.org/\">visit our blog</a>"
+#~ " for updates about site status."
+#~ msgstr ""
+#~ "<strong>Open Library je dočasně "
+#~ "offline.</strong><br/>Prosím <a "
+#~ "href=\"http://blog.openlibrary.org/\">navštivte náš "
+#~ "blog</a> pro informace o stavu stránek."
+
+#~ msgid "books in"
+#~ msgstr "knihy v"
+
+#~ msgid "Books Published"
+#~ msgstr "Vydané knihy"
+
+#~ msgid "Try again?"
+#~ msgstr "Zkusit znovu?"
 
 #~ msgid "Add a New Book"
-#~ msgstr "ఒక క్రొత్త పుస్తకం చేర్చు"
+#~ msgstr "Přidat novou knihu"
 
-#~ msgid "Each field is required, and you'll need to verify your email address."
-#~ msgstr ""
-#~ "ప్రతి ఫీల్డ్ అవసరమే, మరియు మీరు మీ "
-#~ "ఈమెయిలు చిరునామాను దృవీకరించవలసి ఉంటంది."
+#~ msgid "Report this page or content as spam"
+#~ msgstr "Nahlásit tuto stránku nebo obsah jako spam"
 
-#~ msgid "How would you like to receive List updates?"
-#~ msgstr "లిష్టు మార్పులు మీరు ఎలా పొందాలనుకుంటున్నారు?"
-
-#~ msgid "A weekly email, but only if something's changed"
-#~ msgstr "వారానికొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
-
-#~ msgid "A daily email, but only if something's changed"
-#~ msgstr "రోజుకొక ఈమెయిలు, కానీ ఏదైనా మారితే మాత్రమే"
-
-#~ msgid "An email, pretty soon after any update"
-#~ msgstr "ఏదైనా మారిన వెంటనే ఒక ఈమెయిలు"
-
-#~ msgid "Send me a Twitter"
-#~ msgstr "నాకు ట్విట్టర్ పంపు"
-
-#~ msgid "Just pop a note on my Open Library home page"
-#~ msgstr "నా సార్వత్రిక గ్రంధాలయ హోంపేజిలో ఒక నోటు చూపించు"
-
-#~ msgid "Edit History"
-#~ msgstr "మార్పుల చరిత్ర"
-
-#~ msgid "Name"
-#~ msgstr "పేరు"
-
-#~ msgid "Email Address:"
-#~ msgstr "ఈమెయిలు చిరునామా:"
-
-#~ msgid "Read all"
-#~ msgstr "అన్నీ చూడండి"
-
-#~ msgid "Recent edits and additions"
-#~ msgstr "ఇటీవలి మార్పులు చేర్పులు"
-
-#~ msgid "Recently"
-#~ msgstr "ఇటీవలి"
-
-#~ msgid "A page on the web for every book."
-#~ msgstr "ప్రతి పుస్తకానికి ఒక వెబ్ పేజి"
+#~ msgid "Report spam"
+#~ msgstr "Nahlásit spam"
 
 #~ msgid "Welcome %(user)s"
-#~ msgstr "స్వాగతం %(user)s"
+#~ msgstr "Výtejte %(user)"
 
 #~ msgid "Preferences"
-#~ msgstr "అభిరుచులు"
-
-#~ msgid "View all recent changes"
-#~ msgstr "ఇటీవలి మార్పులన్నీ చూడండి"
-
-#~ msgid "About"
-#~ msgstr "మా గురించి"
-
-#~ msgid "Website"
-#~ msgstr "వెబ్సైటు"
-
-#~ msgid "Location"
-#~ msgstr "ప్రదేశం"
-
-#~ msgid "Alternate names"
-#~ msgstr "ఇతర పేర్లు"
-
-#~ msgid "View the previous version"
-#~ msgstr "పాత రివిజన్ చూడు"
-
-#~ msgid "Publish Date"
-#~ msgstr "ప్రచురణా కాలం:"
-
-#~ msgid "Published in"
-#~ msgstr "ప్రచురణా స్థలం:"
-
-#~ msgid "Edit %(title)s"
-#~ msgstr "(title)s ని మార్చు"
-
-#~ msgid "Description"
-#~ msgstr "వివరణ:"
-
-#~ msgid "Add another"
-#~ msgstr "ఇంకొకటి చేర్చండి"
-
-#~ msgid "languages"
-#~ msgstr "భాషలు"
-
-#~ msgid "Page"
-#~ msgstr "పేజి"
-
-#~ msgid "Choose a Password"
-#~ msgstr "ఒక సంకేతపదం ఎంచుకోండి"
-
-#~ msgid ""
-#~ "Please use natural order. For example:"
-#~ " <strong>Leo Tolstoy</strong> not "
-#~ "<strong>Tolstoy, Leo</strong>. <span "
-#~ "class=\"attn\"><em>* Required field.</em></span>"
-#~ msgstr ""
-
-#~ msgid "Delete this macro?"
-#~ msgstr ""
-
-#~ msgid "Delete this record"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Usually distinguished by different or "
-#~ "smaller type. For example: <i>envisioning "
-#~ "the next 50 years</i>"
-#~ msgstr ""
-
-#~ msgid "For example: <em>New York Times review</em>"
-#~ msgstr ""
+#~ msgstr "Nastavení"
 
 #~ msgid "Update your email address?"
-#~ msgstr "మీ ఈమెయిలు చిరునామా మార్చాలా?"
+#~ msgstr ""
 
 #~ msgid "We have %(email)s for you at the moment."
-#~ msgstr "మా దగ్గర ఇప్పుడు %(email)s ఉంది."
+#~ msgstr ""
 
 #~ msgid ""
 #~ "Would you like to receive remarkably "

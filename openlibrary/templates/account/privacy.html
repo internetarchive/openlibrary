@@ -4,7 +4,7 @@ $var title: $_("Your Privacy on Open Library")
 
 <div id="contentHead">
     <div class="small sansserif grey account-settings-menu">
-      $:_("%(user)s", user='<a href="%s">%s</a>' % (ctx.user.key, ctx.user.displayname))
+      <a href="$ctx.user.key">$ctx.user.displayname</a>
       &raquo;
       <a href="$homepath()/account">$_("Settings")</a>
       &raquo; Privacy
