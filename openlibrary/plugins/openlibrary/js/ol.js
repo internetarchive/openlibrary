@@ -421,8 +421,9 @@ $().ready(function(){
         }
 
         localStorage.setItem("facet", facet_key);
-        $('header#header-bar .search-facet-selector select').val(capitalize(facet_key))
-        $('header#header-bar .search-facet-value').html(capitalize(facet_key));
+        $('header#header-bar .search-facet-selector select').val(facet_key)
+        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $('header#header-bar .search-component .search-bar-input input').val();
         var url = composeSearchUrl(q)
