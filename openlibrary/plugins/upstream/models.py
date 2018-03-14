@@ -411,7 +411,7 @@ class Edition(models.Edition):
         Builds a wikipedia citation as defined by http://en.wikipedia.org/wiki/Template:Cite#Citing_books
         """
         result = {
-            "title": self.title,
+            "title": self.works[0].title.replace("[", "&#91").replace("]", "&#93"),
             "publication-date": self.get('publish_date'),
             "ol": str(self.get_olid())[2:]
         }
