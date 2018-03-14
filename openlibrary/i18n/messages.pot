@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-13 23:18+0000\n"
+"POT-Creation-Date: 2018-03-14 00:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -171,6 +171,10 @@ msgstr ""
 msgid ""
 "Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
 "<strong>Tolstoy, Leo</strong>."
+msgstr ""
+
+#: edit.html:36 edit.html:153 edit/addfield.html:96 edit/addfield.html:141
+msgid "Required field"
 msgstr ""
 
 #: edit.html:50
@@ -773,10 +777,6 @@ msgstr ""
 
 #: edit.html:153
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
-msgstr ""
-
-#: edit.html:153 edit/addfield.html:96 edit/addfield.html:141
-msgid "Required field"
 msgstr ""
 
 #: edit.html:175
