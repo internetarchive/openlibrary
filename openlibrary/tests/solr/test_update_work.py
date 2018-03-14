@@ -349,8 +349,8 @@ class Test_update_items():
         ])
         requests = update_work.update_author('/authors/OL23A')
         assert isinstance(requests, list)
-        assert isinstance(requests[0], basestring)
-        assert requests[0] == '<delete><query>key:/authors/OL23A</query></delete>'
+        assert isinstance(requests[0], update_work.DeleteRequest)
+        assert requests[0].toxml() == '<delete><query>key:/authors/OL23A</query></delete>'
 
     def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider([
@@ -358,12 +358,10 @@ class Test_update_items():
         ])
         requests = update_work.update_author('/authors/OL24A')
         assert isinstance(requests, list)
-        assert isinstance(requests[0], basestring)
-        assert requests[0] == '<delete><query>key:/authors/OL24A</query></delete>'
+        assert isinstance(requests[0], update_work.DeleteRequest)
+        assert requests[0].toxml() == '<delete><query>key:/authors/OL24A</query></delete>'
 
     def test_update_author(self, monkeypatch):
-        #TODO: Investigate inconsistent update_author return values:
-        # a list of strings in 2 out of 3 cases, but a list of UpdateRequests in this case:
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL25A', name='Somebody')
         ])

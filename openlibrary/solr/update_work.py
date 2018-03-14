@@ -1202,12 +1202,7 @@ def update_author(akey, a=None, handle_redirects=True):
     if not a:
         a = data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
-        # FIXME: should return a DeleteRequest
-        author_id = solr_escape(author_id)
-        delete_query = Element('delete')
-        query = SubElement(delete_query, 'query')
-        query.text = 'key:/authors/%s' % author_id
-        return [tostring(delete_query)]
+        return [DeleteRequest([akey])]
     try:
         assert a['type']['key'] == '/type/author'
     except AssertionError:
