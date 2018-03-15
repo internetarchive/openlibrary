@@ -344,7 +344,7 @@ class account_login(delegate.page):
         account = OpenLibraryAccount.get(email=i.email)
         account.send_verification_email()
 
-        title = _("Hi %(user)s", user=account.displayname)
+        title = _("Hi, %(user)s", user=account.displayname)
         message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
         return render.message(title, message)
 
@@ -379,7 +379,7 @@ class account_verify(delegate.page):
             return render['account/verify/activated'](account)
         else:
             account.send_verification_email()
-            title = _("Hi %(user)s", user=account.displayname)
+            title = _("Hi, %(user)s", user=account.displayname)
             message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
             return render.message(title, message)
 
@@ -419,7 +419,7 @@ class account_email(delegate.page):
 
             send_email_change_email(username, i.email)
 
-            title = _("Hi %(user)s", user=user.displayname or username)
+            title = _("Hi, %(user)s", user=user.displayname or username)
             message = _("We've sent an email to %(email)s. You'll need to read that and click on the verification link to update your email.", email=i.email)
             return render.message(title, message)
 

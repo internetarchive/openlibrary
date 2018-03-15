@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-14 00:00+0000\n"
+"POT-Creation-Date: 2018-03-15 22:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: cs <LL@li.org>\n"
@@ -18,9 +18,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.5.3\n"
 
-#: account.py:347 account.py:382 account.py:422
-#, python-format
-msgid "Hi %(user)s"
+#: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
+#: verify.html:5 verify/activated.html:6 verify/success.html:6
+#, fuzzy, python-format
+msgid "Hi, %(user)s"
 msgstr "Ahoj %(user)"
 
 #: account.py:348 account.py:383
@@ -379,7 +380,7 @@ msgstr ""
 msgid "Sign Up to Open Library"
 msgstr ""
 
-#: create.html:6 create.html:92 nav_head.html:107 search_head.html:74
+#: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
 msgid "Sign Up"
 msgstr ""
 
@@ -441,7 +442,7 @@ msgstr "Smazat účet"
 msgid "Sorry, this functionality is not yet implemented."
 msgstr ""
 
-#: email.html:6 nav_head.html:121 notifications.html:9
+#: email.html:6 nav_head.html:120 notifications.html:9
 #: openlibrary/templates/account.html:3 openlibrary/templates/account.html:8
 #: password.html:6 privacy.html:9 search_head.html:67
 msgid "Settings"
@@ -534,11 +535,6 @@ msgstr "Ne"
 msgid "Verification email sent"
 msgstr ""
 
-#: password/reset_success.html:6 verify.html:5 verify/success.html:6
-#, python-format
-msgid "Hi, %(user)s!"
-msgstr ""
-
 #: email/forgot-ia.html:6 email/forgot.html:6
 msgid "Forgot Your Internet Archive Email?"
 msgstr ""
@@ -603,11 +599,6 @@ msgstr ""
 
 #: verify/activated.html:3
 msgid "Account already activated"
-msgstr ""
-
-#: verify/activated.html:6
-#, python-format
-msgid "Hi, %s"
 msgstr ""
 
 #: verify/activated.html:11
@@ -726,7 +717,7 @@ msgstr ""
 msgid "Borrow this book"
 msgstr ""
 
-#: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:90
+#: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
 msgid "Add a Book"
 msgstr "Přidat knihu"
 
@@ -905,7 +896,7 @@ msgstr "Autoři"
 msgid "ID Numbers"
 msgstr "Identifikační čísla"
 
-#: book_cover.html:17 book_cover.html:36 book_cover_single_edition.html:13
+#: book_cover.html:36 book_cover_single_edition.html:13
 #: book_cover_single_edition.html:31 book_cover_small.html:14
 #: book_cover_work.html:13 book_cover_work.html:27
 #: openlibrary/templates/diff.html:36 show.html:12
@@ -1433,7 +1424,7 @@ msgid ""
 " page for every book ever published."
 msgstr ""
 
-#: about.html:12 nav_head.html:87
+#: about.html:12 nav_head.html:86
 msgid "More"
 msgstr "více"
 
@@ -1586,28 +1577,28 @@ msgstr "Přihlásit"
 msgid "Sign up"
 msgstr ""
 
-#: nav_head.html:13 nav_head.html:91
+#: nav_head.html:13 nav_head.html:90
 msgid "Full-Text Search on Archive.org"
 msgstr ""
 
-#: nav_head.html:14 nav_head.html:92
+#: nav_head.html:14 nav_head.html:91
 #, fuzzy
 msgid "Random Book"
 msgstr "kniha"
 
-#: nav_head.html:15 nav_head.html:94
+#: nav_head.html:15 nav_head.html:93
 msgid "Recent Community Edits"
 msgstr ""
 
-#: nav_head.html:16 nav_head.html:93
+#: nav_head.html:16 nav_head.html:92
 msgid "Advanced Search"
 msgstr ""
 
-#: nav_head.html:17 nav_head.html:95
+#: nav_head.html:17 nav_head.html:94
 msgid "Developer Center"
 msgstr ""
 
-#: nav_head.html:18 nav_head.html:96
+#: nav_head.html:18 nav_head.html:95
 msgid "Help & Support"
 msgstr ""
 
@@ -1623,89 +1614,86 @@ msgstr "Témata"
 msgid "Advanced"
 msgstr ""
 
-#: nav_head.html:43 search_head.html:66
-msgid "Lists"
-msgstr "Seznamy"
-
-#: authors.html:43 editions.html:34 inside.html:39 nav_head.html:48
+#: authors.html:43 editions.html:34 inside.html:39 nav_head.html:47
 #: notfound.html:17 openlibrary/templates/subjects.html:46
+#: openlibrary/templates/work_search.html:122
 #: openlibrary/templates/work_search.html:156 publishers.html:15
 #: search_head.html:20 subjects.html:32 view.html:584
 msgid "Search"
 msgstr "Hledat"
 
-#: nav_head.html:62
+#: nav_head.html:61
 msgid "Browse"
 msgstr ""
 
-#: nav_head.html:65
+#: nav_head.html:64
 msgid "Science"
 msgstr ""
 
-#: nav_head.html:66
+#: nav_head.html:65
 msgid "Biographies"
 msgstr ""
 
-#: nav_head.html:67
+#: nav_head.html:66
 #, fuzzy
 msgid "Textbooks"
 msgstr "knihy"
 
-#: nav_head.html:68
+#: nav_head.html:67
 msgid "Sci-Fi"
 msgstr ""
 
-#: nav_head.html:69
+#: nav_head.html:68
 #, fuzzy
 msgid "Romance"
 msgstr "Zrušit"
 
-#: nav_head.html:70
+#: nav_head.html:69
 msgid "Fantasy"
 msgstr ""
 
-#: nav_head.html:71
+#: nav_head.html:70
 #, fuzzy
 msgid "More Subjects"
 msgstr "Témata"
 
-#: nav_head.html:72
+#: nav_head.html:71
 msgid "Reading Lists"
 msgstr ""
 
-#: nav_head.html:77
+#: nav_head.html:76
 #, fuzzy
 msgid "My Books"
 msgstr "knihy"
 
-#: nav_head.html:80 nav_head.html:118
+#: nav_head.html:79 nav_head.html:117
 msgid "My Loans"
 msgstr ""
 
-#: nav_head.html:81
+#: nav_head.html:80
 msgid "My Reading Log"
 msgstr ""
 
-#: nav_head.html:82 nav_head.html:119
+#: nav_head.html:81 nav_head.html:118
 #, fuzzy
 msgid "My Lists"
 msgstr "do vašeho seznamu"
 
-#: nav_head.html:106 openlibrary/templates/login.html:6
+#: nav_head.html:105 openlibrary/templates/login.html:6
 #: openlibrary/templates/login.html:64
 msgid "Log In"
 msgstr "Přihlásit se"
 
-#: nav_head.html:114
+#: nav_head.html:113
 #, fuzzy
 msgid "My Account"
 msgstr "Váš účet"
 
-#: nav_head.html:120
+#: nav_head.html:119
 msgid "My Profile"
 msgstr ""
 
-#: nav_head.html:124
+#: nav_head.html:123
 msgid "Log out"
 msgstr "Odhlásit"
 
@@ -1798,6 +1786,10 @@ msgstr "Stránka vašeho profilu"
 #: search_head.html:65
 msgid "Loans"
 msgstr ""
+
+#: search_head.html:66
+msgid "Lists"
+msgstr "Seznamy"
 
 #: site_legal.html:5
 msgid ""
@@ -2215,10 +2207,6 @@ msgstr ""
 msgid "Search Results"
 msgstr "Výsledky hledání"
 
-#: openlibrary/templates/work_search.html:122
-msgid "Open Library Search"
-msgstr ""
-
 #: openlibrary/templates/work_search.html:128
 msgid "No hits"
 msgstr ""
@@ -2323,14 +2311,8 @@ msgstr ""
 #~ msgid "view"
 #~ msgstr "zobrazit"
 
-#~ msgid "edit"
-#~ msgstr "editovat"
-
 #~ msgid "Comments"
 #~ msgstr "Komentáře"
-
-#~ msgid "Prev"
-#~ msgstr "Předchozí"
 
 #~ msgid "Page Type:"
 #~ msgstr "Druh stránky:"
@@ -2443,19 +2425,3 @@ msgstr ""
 
 #~ msgid "Preferences"
 #~ msgstr "Nastavení"
-
-#~ msgid "Update your email address?"
-#~ msgstr ""
-
-#~ msgid "We have %(email)s for you at the moment."
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Would you like to receive remarkably "
-#~ "low traffic update-style emails from "
-#~ "Open Library?"
-#~ msgstr ""
-
-#~ msgid "Please type in the text in the image below."
-#~ msgstr ""
-
