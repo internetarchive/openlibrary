@@ -19,7 +19,7 @@ msgstr ""
 
 #: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
-#, fuzzy, python-format
+#, python-format
 msgid "Hi, %(user)s"
 msgstr "స్వాగతం %(user)s"
 
