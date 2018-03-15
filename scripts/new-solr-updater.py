@@ -170,7 +170,6 @@ def update_keys(keys):
         chunk = list(chunk)
         count += len(chunk)
         update_work.do_updates(chunk)
-    #    update_work.update_keys(chunk, commit=False)
 
     if count:
         logger.info("updated %d documents", count)
@@ -258,7 +257,6 @@ def main():
             f.write(offset)
 
         if COMMIT:
-            logger.info("solr commit")
             solr.commit(ndocs=count)
         else:
             logger.info("not doing solr commit as commit is off")

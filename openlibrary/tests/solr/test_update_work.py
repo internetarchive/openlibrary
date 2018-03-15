@@ -349,8 +349,8 @@ class Test_update_items():
         ])
         requests = update_work.update_author('/authors/OL23A')
         assert isinstance(requests, list)
-        assert isinstance(requests[0], basestring)
-        assert requests[0] == '<delete><query>key:OL23A</query></delete>'
+        assert isinstance(requests[0], update_work.DeleteRequest)
+        assert requests[0].toxml() == '<delete><query>key:/authors/OL23A</query></delete>'
 
     def test_redirect_author(self):
         update_work.data_provider = FakeDataProvider([
@@ -358,16 +358,14 @@ class Test_update_items():
         ])
         requests = update_work.update_author('/authors/OL24A')
         assert isinstance(requests, list)
-        assert isinstance(requests[0], basestring)
-        assert requests[0] == '<delete><query>key:OL24A</query></delete>'
+        assert isinstance(requests[0], update_work.DeleteRequest)
+        assert requests[0].toxml() == '<delete><query>key:/authors/OL24A</query></delete>'
 
     def test_update_author(self, monkeypatch):
-        #TODO: Investigate inconsistent update_author return values:
-        # a list of strings in 2 out of 3 cases, but a list of UpdateRequests in this case:
         update_work.data_provider = FakeDataProvider([
             make_author(key='/authors/OL25A', name='Somebody')
         ])
-        # Minimal SOLR response, author not found in SOLR
+        # Minimal Solr response, author not found in Solr
         solr_response = """{
             "facet_counts": {
                 "facet_fields": {
@@ -382,14 +380,15 @@ class Test_update_items():
         assert isinstance(requests, list)
         assert isinstance(requests[0], update_work.UpdateRequest)
         assert requests[0].toxml().startswith('<add>')
+        assert '<field name="key">/authors/OL25A</field>' in requests[0].toxml()
 
     def test_delete_edition(self):
         editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/delete'}})
-        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
 
     def test_update_edition(self):
         editions = update_work.update_edition({'key': '/books/OL23M', 'type': {'key': '/type/edition'}})
-        assert editions == [], "Editions are not indexed by SOLR, expecting empty set regardless of input. Got: %s" % editions
+        assert editions == [], "Editions are not indexed by Solr, expecting empty set regardless of input. Got: %s" % editions
 
     def test_delete_requests(self):
         olids = ['/works/OL1W', '/works/OL2W', '/works/OL3W']
