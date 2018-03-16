@@ -31,13 +31,13 @@ We usually discuss weekly goals via our Tuesday Community Call and using slack.
 
 # Development
 
-Whenever working on a new feature/hotfix/refactor, the first step is to make sure a corresponding issue exists. We then take this issue number is affix it to the brach name which we will use for development.
+Whenever working on a new feature/hotfix/refactor, the first step is to make sure a corresponding issue exists. We then take this issue number and affix it to the branch name which we will use for development.
 
-A branch name consists of the issue number, whether it is a feature/hotfix/refactor, and a human readable slug, e.g:
+A branch name consists of the: issue number, whether it is a feature/hotfix/refactor, and a human readable slug, e.g:
 
     123/refactor/simplifying-authentication-using-xauthn
 
-When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md)
+When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding issue.
 
 # Pull Requests
 
