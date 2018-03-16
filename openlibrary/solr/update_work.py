@@ -1827,7 +1827,7 @@ def main():
     if args.monkeypatch:
         monkeypatch(args.config)
 
-    load_configs(args.server, args.config, args.data_provdider)
+    load_configs(args.server, args.config, args.data_provider)
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
