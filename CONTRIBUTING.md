@@ -29,6 +29,16 @@ We usually discuss weekly goals via our Tuesday Community Call and using slack.
 **Picking 1st task**
 - Look for issues with labels such as `good first issue` and `easy`
 
+# Development
+
+Whenever working on a new feature/hotfix/refactor, the first step is to make sure a corresponding issue exists. We then take this issue number is affix it to the brach name which we will use for development.
+
+A branch name consists of the issue number, whether it is a feature/hotfix/refactor, and a human readable slug, e.g:
+
+    123/refactor/simplifying-authentication-using-xauthn
+
+When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md)
+
 # Pull Requests
 
 - Pull Requests (PRs) must link to the issue they resolve. Please expect PRs without corresponding issues to be rejected until an issue is retroactively created and linked to it.
