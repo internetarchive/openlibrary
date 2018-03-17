@@ -690,6 +690,13 @@
             "notes": "",
             "name": "biblioth\u00e8que_nationale_de_france_(bnf)",
             "label": "Biblioth\u00e8que nationale de France (BnF)"
+        },
+        {
+            "url": "https://tools.wmflabs.org/reasonator/?q=@@@",
+            "website": "https://wikidata.org",
+            "notes": "",
+            "name": "wikidata",
+            "label": "Wikidata"
         }
     ],
     "key": "/config/edition",
