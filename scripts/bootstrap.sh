@@ -41,7 +41,7 @@ apt-get install -y $APT_PACKAGES
 # Install `lessc` dependencies for css pre-processing
 npm install -g less
 npm update -g less
-ln -s /usr/bin/nodejs /usr/bin/node
+ln -nsf /usr/bin/nodejs /usr/bin/node
 
 PYTHON_PACKAGES=$OL_ROOT/test_requirements.txt
 
