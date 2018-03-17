@@ -695,5 +695,5 @@
     "key": "/config/edition",
     "type": {
         "key": "/type/object"
-    },
+    }
 }
