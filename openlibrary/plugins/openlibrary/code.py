@@ -185,6 +185,17 @@ class addbook(delegate.page):
         web.ctx.path = key
         return edit().POST(key)
 
+class widget(delegate.page):
+    path = "/widget"
+
+    def GET(self):
+        i = web.input(olid=None)
+        if i.olid:
+            book = web.ctx.site.get('/works/%s' % i.olid)
+            return delegate.RawText(simplejson.dumps(
+                book.dict()), content_type="application/json")
+        raise web.seeother("/")
+
 class addauthor(delegate.page):
     path = '/addauthor'
 
