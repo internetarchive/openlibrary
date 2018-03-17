@@ -1245,6 +1245,10 @@ def update_author(akey, a=None, handle_redirects=True):
     if a.get('name', None):
         d['name'] = a['name']
 
+    alternate_names = a.get('alternate_names', [])
+    if alternate_names:
+        d['alternate_names'] = alternate_names
+
     for f in 'birth_date', 'death_date', 'date':
         if a.get(f, None):
             d[f] = a[f]
