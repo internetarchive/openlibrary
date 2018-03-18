@@ -49,27 +49,27 @@ msgstr "ఈమెయిలు ఇప్పటికే వాడబడింద�
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
-msgstr ""
+msgstr "మీ ఈమెయిల్ చిరునామా అప్డేట్ చేయబడలేదు. మీరు పేర్కొన్న ఈమెయిల్ చిరునామా ముందుగానే ఉపయోగించబడినది. "
 
 #: account.py:446
 msgid "Email verification successful."
-msgstr "ఈమెయిలు దృవీకరణ విజయవంతమయింది."
+msgstr "ఈమెయిలు ధ్రువీకరణ విజయవంతమయింది."
 
 #: account.py:447
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
-msgstr ""
+msgstr "మీ ఈమెయిల్ చిరునామా విజయవంతంగా ధృవీకరించబడింది మరియు మీ యొక్క అకౌంట్లో అప్డేట్ చేయబడింది."
 
 #: account.py:451
 msgid "Email address couldn't be verified."
-msgstr "ఈమెయిలు చిరునామా దృవీకరించబడలేదు."
+msgstr "ఈమెయిలు చిరునామా ధృవీకరించబడలేదు."
 
 #: account.py:452
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
-msgstr "మీ ఈమెయిలు చిరునామా దృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
+msgstr "మీ ఈమెయిలు చిరునామా ధృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
 
 #: account.py:485
 msgid "Your password has been updated successfully."
@@ -77,7 +77,7 @@ msgstr "మీ సంకేతపదం విజయవంతంగా మార
 
 #: account.py:579 account.py:589
 msgid "Password reset failed."
-msgstr ""
+msgstr "సంకేతపదం మరలమార్చుట విఫలమయినది. "
 
 #: account.py:635 account.py:651
 msgid "Notification preferences have been updated successfully."
@@ -102,11 +102,11 @@ msgstr "ఈమెయిలు ఇప్పటికే వాడబడింద�
 
 #: forms.py:27
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "పునర్వినియోగపరచలేని ఈమెయిలుకు అనుమతిలేదు."
 
 #: forms.py:28
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "మీ ఈమెయిల్ సేవలను అందించేవారిని  గుర్తించలేదు."
 
 #: forms.py:29
 msgid "Username already used"
@@ -114,15 +114,15 @@ msgstr "సభ్యనామము ఇప్పటికే వాడబడి�
 
 #: forms.py:31
 msgid "Must be between 3 and 20 letters and numbers"
-msgstr ""
+msgstr "ఖచ్చితంగా 3 మరియు 20 అక్షరాలు మరియు అంకెల మధ్యలోనే ఉండాలి."
 
 #: forms.py:32
 msgid "Must be between 3 and 20 characters"
-msgstr ""
+msgstr "ఖచ్చితంగా 3 మరియు 20 అక్షరాల మధ్యలోనే ఉండాలి."
 
 #: forms.py:33
 msgid "Must be a valid email address"
-msgstr ""
+msgstr "ఖచ్చితంగా ఈమెయిల్  చిరునామా చెల్లుబాటు అయ్యేలా ఉండాలి."
 
 #: forms.py:47 forms.py:100
 msgid "Your email address"
@@ -135,7 +135,7 @@ msgstr "ఒక సభ్యనామము ఎంచుకోండి"
 
 #: forms.py:52
 msgid "Only letters and numbers, please, and at least 3 characters."
-msgstr ""
+msgstr "దయచేసి అక్షరాలను మరియు అంకెలను మాత్రమే ఎంచుకోండి,మరియు కనీసం మూడు అక్షరాలు ఉండేలా చూడండి."
 
 #: forms.py:54 forms.py:104
 #, fuzzy
@@ -171,11 +171,11 @@ msgstr "మీ క్రొత్త ఈమెయిలు చిరునామ
 
 #: edit.html:20
 msgid "Edit Author"
-msgstr ""
+msgstr "మారు రచయత"
 
 #: edit.html:33
 msgid "Name"
-msgstr ""
+msgstr "పేరు "
 
 #: edit.html:35
 msgid ""
@@ -185,11 +185,11 @@ msgstr ""
 
 #: edit.html:36 edit.html:153 edit/addfield.html:96 edit/addfield.html:141
 msgid "Required field"
-msgstr ""
+msgstr "కావలసిన విభాగం"
 
 #: edit.html:50
 msgid "About"
-msgstr ""
+msgstr "గురించి "
 
 #: edit.html:51 edit.html:177
 msgid "Links"
@@ -197,7 +197,7 @@ msgstr "లంకెలు"
 
 #: edit.html:60
 msgid "A short bio?"
-msgstr ""
+msgstr "ఓ చిన్న జీవితకథ?"
 
 #: edit.html:61
 msgid ""
@@ -207,21 +207,21 @@ msgstr ""
 
 #: edit.html:70
 msgid "Date of birth"
-msgstr ""
+msgstr "పుట్టిన తేదీ"
 
 #: edit.html:79
 msgid "Date of death"
-msgstr ""
+msgstr "మరణించిన తేదీ "
 
 #: edit.html:88
 msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" "
 "is recommended."
-msgstr ""
+msgstr "మేము ఇంకా సరైన విధంగా తేదీలను పొందుపరచట్లేదు కనుక ఉదాహరణకి \"20  మే 2000 \" లాంటిది సిఫార్సు చేయబడింది."
 
 #: edit.html:96
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "ఈ రచయితకు మరో పేరు ఏమైనా ఉందా?"
 
 #: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
 #: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
@@ -234,39 +234,39 @@ msgstr "ఉదాహరణకు:"
 
 #: edit.html:108
 msgid "Websites"
-msgstr ""
+msgstr "వెబ్సైట్లు"
 
 #: edit.html:109
 msgid "Deprecated"
-msgstr ""
+msgstr "డిప్రికాట్ అవ్వబడింది"
 
 #: edit.html:138 edit.html:216 openlibrary/macros/EditButtons.html:21
 msgid "Delete Record"
-msgstr ""
+msgstr "రికార్డును తొలగించు "
 
 #: view.html:132
 msgid "Website"
-msgstr ""
+msgstr "వెబ్సైట్లు"
 
 #: view.html:138
 msgid "Location"
-msgstr ""
+msgstr "ప్రదేశం"
 
 #: view.html:237
 msgid "Alternative names"
-msgstr ""
+msgstr "ప్రత్యామ్నాయ పేర్లు"
 
 #: books.html:14
 msgid "Reading Log"
-msgstr ""
+msgstr "చదివే ప్రదేశం "
 
 #: borrow.html:3 borrow.html:66
 msgid "Books You've Checked Out"
-msgstr ""
+msgstr "మీరు తీసుకువెళ్తున్న పుస్తకాలు "
 
 #: borrow.html:81
 msgid "1 Current Loan"
-msgstr ""
+msgstr "ప్రస్తుతం ఉన్న ఒక రుణం "
 
 #: borrow.html:83
 #, fuzzy
@@ -275,78 +275,78 @@ msgstr "మీ ప్రస్తుత సంకేతపదం"
 
 #: borrow.html:85
 msgid "Loan Expires"
-msgstr ""
+msgstr "రుణం గడువు"
 
 #: borrow.html:86
 #, fuzzy
 msgid "Loan actions"
-msgstr "చర్యలు"
+msgstr " రుణం చర్యలు"
 
 #: borrow.html:114
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "ఒకేఒక్క మనిషి మాత్రం ఈ పుస్తకం కోసం వేచిఉన్నాడు."
+msgstr[1] "అక్కడ %n (s ) మనుషులు ఈ పుస్తకం కోసం వేచిఉన్నారు."
 
 #: borrow.html:151
 msgid "Books You're Waiting For"
-msgstr ""
+msgstr "మీరు ఎదురు చూస్తున్న పుస్తకాలు "
 
 #: borrow.html:190
 #, fuzzy, python-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] "ఒక పుస్తకం చేర్చు"
-msgstr[1] ""
+msgstr[0] "%d పుస్తకం"
+msgstr[1] "%d పుస్తకాలు "
 
 #: borrow.html:213
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "%d రోజు కోసం ఎదురు చూస్తున్నారు "
+msgstr[1] "%d రోజుల కోసం ఎదురు చూస్తున్నారు "
 
 #: borrow.html:222
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)s people ahead of you in the waiting list."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "ఒక్క మనిషి  మాత్రమే మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు"
+msgstr[1] "%s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
 
 #: borrow.html:260
 msgid "There are 2 different sources for borrowing books through Open Library:"
-msgstr ""
+msgstr "గ్రంథలయం నుండి పుస్తకాలను తెచుకోవాడిని కేవలం రెండు మార్గాలు మాత్రమే ఉన్నాయి."
 
 #: borrow.html:264
 msgid "Internet Archive"
-msgstr ""
+msgstr "అంతర్జాలపు ఆర్కైవ్"
 
 #: borrow.html:266
 msgid "eBooks everywhere"
-msgstr ""
+msgstr "అన్ని చోట్లా ఈ-పుస్తకాలే"
 
 #: borrow.html:268
 msgid ""
 "The <a href=\"//archive.org/\">Internet Archive</a> and several partner "
 "libraries are offering thousands of eBooks for loan to anyone with an "
 "Open Library account, anywhere in the world."
-msgstr ""
+msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్ మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
 
 #: borrow.html:274
 msgid "physical books from your local library"
-msgstr ""
+msgstr "మీ స్థానిక గ్రంథాలయపు పుస్తకాలు."
 
 #: borrow.html:276
 msgid ""
 "We connect our records to WorldCat wherever possible. You can tell "
 "WorldCat your postcode/zip code, and it will tell you the closest library"
 " with a copy of the book."
-msgstr ""
+msgstr "ఎక్కడ అందుబాటులో ఉంటే అక్కడ ఉండే వరల్డ్ కాట్ రికార్డులకు జత పరుస్తాం.మీరు వరల్డ్ కాట్కు మీ యొక్క పోస్టుసంకేతం/జిప్ సంకేతాన్ని చెప్పగలరు,మరియు అది మీ దగ్గరలో ఉన్న గ్రంథాలయం గురించి మరియు అందులో మీకు లభించే పుస్తకం యొక్క ప్రతుల వివరాలను తెలియజేస్తుంది."
 
 #: borrow.html:281
 msgid "Getting Started"
-msgstr ""
+msgstr "మొదలు అవుతోంది."
 
 #: borrow.html:282
 msgid ""
@@ -358,7 +358,7 @@ msgstr ""
 msgid ""
 "Loans through WorldCat are managed through your local libraries, not "
 "through Open Library."
-msgstr ""
+msgstr "వరల్డ్ కాట్ నుంచి తీసుకున్న రుణాలు స్థానిక గ్రంథాల నుంచి వ్యవహరించబడతాయి కానీ సార్వత్రిక గ్రంథాలయం నుంచి కాదు."
 
 #: borrow.html:284
 msgid ""
@@ -383,7 +383,7 @@ msgstr ""
 
 #: create.html:3
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "సార్వత్రిక గ్రంథాలయం కోసం సైన్ అప్ అవ్వండి "
 
 #: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
 msgid "Sign Up"
@@ -398,12 +398,12 @@ msgstr ""
 
 #: create.html:9
 msgid "Each field is required"
-msgstr ""
+msgstr "ప్రతి ఒక్క విభాగం అవసరమే "
 
 #: create.html:25 openlibrary/templates/login.html:20
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr ""
+msgstr "మీరు ముందు గానే సార్వత్రిక గ్రంథలయంలో ఈ %(యూసర్)s గా లాగిన్ అయ్యారు."
 
 #: create.html:26 openlibrary/templates/login.html:21
 msgid ""
@@ -419,7 +419,7 @@ msgstr ""
 
 #: create.html:74
 msgid "Please type in the text or number(s) below."
-msgstr ""
+msgstr "దయచేసి అక్షరాలలో లేదా అంకెల రూపంలోనే కింద రాయండి."
 
 #: create.html:74
 msgid ""
@@ -448,7 +448,7 @@ msgstr "మీ ఖాతా తొలగించండి"
 
 #: delete.html:11
 msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
+msgstr "క్షమించండి ఈ సౌకర్యం ఇంకా అందుబాటులో లేదు."
 
 #: email.html:6 nav_head.html:120 notifications.html:9
 #: openlibrary/templates/account.html:3 openlibrary/templates/account.html:8
@@ -470,19 +470,19 @@ msgstr "మార్చండి"
 
 #: not_verified.html:3 not_verified.html:14 verify/failed.html:6
 msgid "Oops!"
-msgstr ""
+msgstr "అయ్యో!"
 
 #: not_verified.html:32 verify/failed.html:25
 msgid "Resend the verification email"
-msgstr ""
+msgstr "మరల ధృవీరనా ఈ-మెయిల్ ను  పంపండి "
 
 #: notifications.html:3 notifications.html:12
 msgid "Notifications from Open Library"
-msgstr ""
+msgstr "సార్వత్రిక గ్రంథాలయం నుండి సందేశాలు  "
 
 #: notifications.html:10
 msgid "Notifications"
-msgstr ""
+msgstr "సందేశాలు  "
 
 #: notifications.html:24
 msgid ""
@@ -493,7 +493,7 @@ msgstr ""
 
 #: notifications.html:28
 msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr ""
+msgstr "అప్పుడప్పుడు మీరు సార్వత్రిక గ్రంథాలయం నుండి వచ్చే సందేశాలను శ్వీకరిస్తారా?"
 
 #: notifications.html:35
 msgid "No, thank you"
@@ -526,15 +526,15 @@ msgstr "మార్చండి"
 
 #: privacy.html:3
 msgid "Your Privacy on Open Library"
-msgstr ""
+msgstr "సార్వత్రిక గ్రంథలయం లో మీ గోప్యత "
 
 #: privacy.html:12
 msgid "Privacy Settings"
-msgstr ""
+msgstr "గోప్యంగా ఉంచే సెట్టింగ్స్ "
 
 #: privacy.html:32
 msgid "Yes"
-msgstr ""
+msgstr "అవును"
 
 #: edit/edition.html:365 privacy.html:39
 msgid "No"
@@ -542,19 +542,19 @@ msgstr "కాదు"
 
 #: verify.html:3
 msgid "Verification email sent"
-msgstr ""
+msgstr "ధృవీరనా ఈ-మెయిల్ పంపబడినది "
 
 #: email/forgot-ia.html:6 email/forgot.html:6
 msgid "Forgot Your Internet Archive Email?"
-msgstr ""
+msgstr "అంతర్జాలపు ఆర్కైవ్ ఈ-మెయిల్ ను మర్చిపోయారా?"
 
 #: email/forgot-ia.html:39 password/forgot.html:6
 msgid "Forgot your Archive.org Password?"
-msgstr ""
+msgstr "అంతర్జాలపు ఆర్కైవ్.ఆర్గ్ సంకేత పదాన్ని  ను మర్చిపోయారా?"
 
 #: email/forgot.html:11
 msgid "Forgot Your Open Library Email?"
-msgstr ""
+msgstr "సార్వత్రిక గ్రంథాలయానికి సంభందించిన ఈ-మెయిల్ ను మర్చిపోయారా?"
 
 #: email/forgot.html:44 openlibrary/templates/login.html:68
 #, fuzzy
@@ -567,7 +567,7 @@ msgstr ""
 
 #: password/forgot.html:7
 msgid "Forgot your Archive.org password?"
-msgstr ""
+msgstr "అంతర్జాలపు ఆర్కైవ్.ఆర్గ్ సంకేత పదాన్ని  ను మర్చిపోయారా?"
 
 #: password/forgot.html:19
 msgid "Send It"
@@ -583,7 +583,7 @@ msgstr ""
 
 #: password/reset.html:19
 msgid "Reset"
-msgstr ""
+msgstr "v"
 
 #: password/reset_success.html:3
 #, fuzzy
@@ -598,7 +598,7 @@ msgstr ""
 
 #: password/sent.html:6
 msgid "Done."
-msgstr ""
+msgstr "అయిపోయింది "
 
 #: password/sent.html:10
 #, fuzzy, python-format
@@ -612,7 +612,7 @@ msgstr ""
 
 #: verify/activated.html:3
 msgid "Account already activated"
-msgstr ""
+msgstr "అకౌంట్ ముందుగానే సక్రియం చేయబడింది "
 
 #: verify/activated.html:11
 #, python-format
@@ -623,7 +623,7 @@ msgstr ""
 
 #: verify/failed.html:3
 msgid "Email Verification Failed"
-msgstr ""
+msgstr "ఈ-మెయిల్ ధ్రువీకరణ విఫలమైంది."
 
 #: verify/failed.html:10
 #, fuzzy
