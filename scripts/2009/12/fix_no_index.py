@@ -11,7 +11,7 @@ num = 0
 for line in open('no_index'):
     for e in query({'type': '/type/edition', 'title': None, 'ocaid': line[:-1]}):
         num += 1
-        print num, e['key'], `e['title']`, line[:-1]
+        print(num, e['key'], repr(e['title']), line[:-1])
         e2 = ol.get(e['key'])
         del e2['ocaid']
         to_fix.append(e2)

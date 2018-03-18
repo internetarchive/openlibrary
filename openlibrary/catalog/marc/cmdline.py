@@ -32,9 +32,9 @@ def fmt_subfields(line, is_marc8=False):
 
 def show_book(data):
     is_marc8 = data[9] == ' '
-    print 'leader:', data[:24]
+    print('leader:', data[:24])
     for tag, line in get_all_tag_lines(data):
-        print tag, `line`
+        print(tag, repr(line))
         continue
         if tag.startswith('00'):
             print tag, line[:-1]

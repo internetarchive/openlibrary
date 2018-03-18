@@ -119,7 +119,7 @@ class merge_editions(delegate.page):
                         continue
                     if k == 'edition_name' and v.endswith(' ed edition'):
                         v = v[:-len(' edition')]
-                    uniq_values[re_nonword.sub('', `v`.lower())].append(num)
+                    uniq_values[re_nonword.sub('', repr(v).lower())].append(num)
 
             if len(uniq_values) == 1:
                 merged[k] = editions[uniq_values.values()[0][0]][k]

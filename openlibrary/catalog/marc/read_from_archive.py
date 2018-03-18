@@ -63,7 +63,7 @@ def read_marc_file(part, f, pos = 0):
         if data.find('\x1d') == -1:
             data += f.read(40)
             int_length = data.find('\x1d') + 1
-            print `data[-40:]`
+            print(repr(data[-40:]))
             assert int_length
             buf = data[int_length:]
             data = data[:int_length]
@@ -85,8 +85,8 @@ def read_marc_file(part, f, pos = 0):
         except ValueError:
             rec = 'bad'
         except EOFError:
-            print "EOF"
-            print `data`
+            print("EOF")
+            print(repr(data))
             rec = 'bad'
         except MARC21Exn:
             rec = 'bad'

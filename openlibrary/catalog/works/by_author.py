@@ -262,15 +262,15 @@ def by_authors():
             'authors': akey,
         }
         if query(q):
-            print akey, `a['name']`, 'has works'
+            print(akey, repr(a['name']), 'has works')
             continue
 
     #    print akey, a['name']
         found = find_works(akey)
         works = [i for i in found if len(i['editions']) > 2]
         if works:
-            #open('found/' + akey[3:], 'w').write(`works`)
-            print akey, `a['name']`
+            #open('found/' + akey[3:], 'w').write(repr(works))
+            print(akey, repr(a['name']))
             #pprint(works)
             #print_works(works)
             add_works(akey, works)

@@ -123,7 +123,7 @@ def author_from_data(loc, data):
     assert 'authors' in edition
     east = east_in_by_statement(edition)
     assert len(edition['authors']) == 1
-    print `edition['authors'][0]`
+    print(repr(edition['authors'][0]))
     a = import_author(edition['authors'][0], eastern=east)
     if 'key' in a:
         return {'key': a['key']}

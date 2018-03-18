@@ -17,8 +17,8 @@ def translate(bytes_in, leader_says_marc8=False):
             data = bytes_in.decode('utf-8')
         return normalize('NFC', data)
     except:
-        print 'translate error for:', `bytes_in`
-        print 'marc8:', leader_says_marc8
+        print('translate error for:', repr(bytes_in))
+        print('marc8:', leader_says_marc8)
         raise
 
 re_question = re.compile('^\?+$')
@@ -50,7 +50,7 @@ def read_file(f):
             try:
                 int_length = int(length)
             except:
-                print `buf`
+                print(repr(buf))
                 raise
         else:
             length = f.read(5)
@@ -58,7 +58,7 @@ def read_file(f):
         if length == "":
             break
         if not length.isdigit():
-            print 'not a digit:', `length`
+            print('not a digit:', repr(length))
             raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))

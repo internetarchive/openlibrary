@@ -26,7 +26,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print 'bad abbyy:', `href, ia`
+            print('bad abbyy:', repr(href, ia))
 
 item_queue = Queue(maxsize=10000)
 item_and_host_queue = Queue(maxsize=10000)
@@ -156,7 +156,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print 'bad abbyy:', `href, ia`
+            print('bad abbyy:', repr(href, ia))
 
 
 def index_items():

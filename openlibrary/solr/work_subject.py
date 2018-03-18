@@ -71,7 +71,7 @@ re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 def tidy_subject(s):
     s = s.strip()
     if len(s) < 2:
-        print 'short subject:', `s`
+        print('short subject:', repr(s))
     else:
         s = s[0].upper() + s[1:]
     m = re_etc.search(s)

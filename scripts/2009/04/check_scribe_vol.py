@@ -72,5 +72,5 @@ for line in open('vol_ia'):
     except urllib2.URLError:
         continue
     #print >> out, (vol, ia, vol_line)
-    print >> out, `(vol, ia, txt)`
+    print >> out, repr((vol, ia, txt))
 out.close()

@@ -70,7 +70,7 @@ def read_authors(by_span):
     try:
         assert by_span.text in ('\n\n', '\n\n~ ')
     except:
-        print `by_span.text`
+        print(repr(by_span.text))
         raise
     expect_end = False
     for e in by_span:
@@ -122,20 +122,20 @@ def get_title_and_authors(doc, title_from_html):
         book['authors'] = read_authors(by_span)
     title_text = title_id.text_content()
     if not title_text.startswith(full_title):
-        print 'alt:', `prodImage.attrib['alt']`
-        print 'title mistmach:', `full_title`, '!=', `title_text`
+        print('alt:', repr(prodImage.attrib['alt']))
+        print('title mistmach:', repr(full_title), '!=', repr(title_text))
         title_text = title_from_html.decode('latin-1')
-        print 'title_text:', `title_text`
-        print 'full_title:', `full_title`
+        print('title_text:', repr(title_text))
+        print('full_title:', repr(full_title))
     if not title_text.startswith(full_title):
-        print 'alt:', `prodImage.attrib['alt']`
-        print 'title mistmach:', `full_title`, '!=', `title_text`
+        print('alt:', repr(prodImage.attrib['alt']))
+        print('title mistmach:', repr(full_title), '!=', repr(title_text))
         raise BrokenTitle
     if full_title != title_text:
         btAsinTitle = title_text[len(full_title):]
         m = re_title.match(btAsinTitle)
         if not m:
-            print 'title:', `btAsinTitle`
+            print('title:', repr(btAsinTitle))
         (flag, binding) = m.groups()
         if binding is not None:
             book['binding'] = binding
@@ -598,7 +598,7 @@ def edition_to_ol(edition):
     for k, v in ol.iteritems():
         if isinstance(v, basestring) and v[-1] == '(':
             pprint(edition)
-            print 'ends with "(":', `k, v`
+            print('ends with "(":', repr(k, v))
             sys.exit(0)
 
     return ol

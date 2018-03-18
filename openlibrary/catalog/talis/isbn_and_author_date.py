@@ -45,8 +45,7 @@ def find_authors(isbn_list, name):
         if not match_name(a.name, name, last_name_only_ok=False):
             continue
         books = site.things({'type': '/type/edition', 'authors': a.key})
-        print `a.key, a.name, a.birth_date, a.death_date, len(books)`
-    print
+        print(repr(a.key, a.name, a.birth_date, a.death_date, len(books)))
 
 for data, length in read_file(open(filename)):
     fields = build_fields(data)

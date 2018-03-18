@@ -31,9 +31,9 @@ def build_pool(index_fields): # unused
             try:
                 v = str(v)
             except UnicodeEncodeError:
-                print index_fields
-                print `field, v`
-                print v
+                print(index_fields)
+                print(repr(field, v))
+                print(v)
                 raise
             if v not in dbm[field]:
                 continue

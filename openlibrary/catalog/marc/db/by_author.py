@@ -100,7 +100,7 @@ def search(author, name):
     for key, title, a, locs in books:
         t += '<tr><td><a href="http://openlibrary.org' + key + '">' + web.htmlquote(title) + '</a>'
         t += '<br>' + ', '.join('<a href="http://openlibrary.org/show-marc/%s">%s</a>' % (i, i) for i in locs) + '</td>'
-#        t += '<td>' + web.htmlquote(`a[2]`) + '</td>'
+#        t += '<td>' + web.htmlquote(repr(a[2])) + '</td>'
         if a:
             if a[2] not in author_map:
                 dates = {'birth_date': a[2][0], 'death_date': a[2][1], 'dates': a[2][2]}

@@ -95,7 +95,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print 'bad abbyy:', `href, ia`
+            print('bad abbyy:', repr(href, ia))
 
 nl_meta = 'meta: '
 re_meta = re.compile('meta: ([a-z]+) (\d+)')
@@ -152,7 +152,7 @@ def read_text_from_node(host):
         try:
             (lang, page_count) = re_meta.match(reply[index:-1]).groups()
         except:
-            print 'searching:', index, `reply[index:-1]`
+            print('searching:', index, reply[index:-1])
             raise
         assert page_count.isdigit()
         if body != '':

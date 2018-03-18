@@ -20,12 +20,12 @@ for line in open('test_data/marc_toc'):
     if re_at.match(subtags):
         a = subfields[0][1]
         m = re_end_num.search(a)
-        print bool(m), `a`
+        print(bool(m), repr(a))
         continue
 
         if not m:
             for k, v in subfields:
-                print k, `v`
+                print(k, repr(v))
         assert m
     continue
     if re_gtr.match(subtags):
@@ -34,18 +34,17 @@ for line in open('test_data/marc_toc'):
             g = subfields[i * 3][1]
             t = subfields[i * 3 + 1][1].strip('- /')
             r = subfields[i * 3 + 2][1].strip('- ')
-            print `g, t, r`
-        print
+            print(repr(g, t, r))
         continue
     if re_gt.match(subtags):
         continue
         for i in range(len(subfields)/2):
             g = subfields[i * 2][1]
             t = subfields[i * 2 + 1][1].strip('- /')
-            print `g, t`
+            print(repr(g, t))
         print
         continue
-    print subtags
+    print(subtags)
     for k, v in subfields:
-        print k, `v`
+        print(k, repr(v))
     print

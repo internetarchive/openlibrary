@@ -108,8 +108,8 @@ def write_edition(edition_data, edition_num):
     if edition_num % 1000 == 0:
         t1 = time() - t0
         remaining = total - edition_num
-        print "%9d books loaded. running: %.1f hours. %.1f rec/sec. %.1f hours left: %s %s" % (edition_num, t1/3600, edition_num/t1, ((t1/edition_num) * remaining) / 3600, edition_data['source_record_loc'], `edition_data['title']`)
-        progress.write(`edition_num, int(t1), edition_data['source_record_loc'], edition_data['title']` + "\n")
+        print("%9d books loaded. running: %.1f hours. %.1f rec/sec. %.1f hours left: %s %s" % (edition_num, t1/3600, edition_num/t1, ((t1/edition_num) * remaining) / 3600, edition_data['source_record_loc'], repr(edition_data['title'])))
+        progress.write(repr(edition_num, int(t1), edition_data['source_record_loc'], edition_data['title']) + "\n")
         progress.flush()
     if edition_num % 10000 == 0:
         bulk_load(books)

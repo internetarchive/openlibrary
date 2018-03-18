@@ -89,7 +89,7 @@ class Element:
 				elif isinstance(x, Element):
 					out += x.__repr__(recursive+1, multiline, inprefixes.copy())
 				else:
-					raise TypeError, "I wasn't expecting "+`x`+"."
+					raise TypeError, "I wasn't expecting "+ repr(x) +"."
 			if multiline and content: out += '\n' + ('\t' * (recursive-1))
 		else:
 			if self._dir: out += '...'

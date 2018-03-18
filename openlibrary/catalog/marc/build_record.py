@@ -373,7 +373,7 @@ def read_notes(fields):
             try:
                 x = get_lower_subfields(line)
             except IndexError:
-                print `line`
+                print(repr(line))
                 raise
             if x:
                 found.append(' '.join(x))
@@ -429,8 +429,8 @@ def read_description(fields):
     for line in fields['520']:
         this = get_subfield_values(line, ['a'])
         if len(this) != 1:
-#            print `fields['520']`
-#            print `line`
+#            print repr(fields['520'])
+#            print repr(line)
             print len(this)
         assert len(this) == 1
         found += this

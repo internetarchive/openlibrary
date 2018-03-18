@@ -166,7 +166,7 @@ def import_file(filename):
             # TODO load book
             continue
         #print asin, found
-        #print `edition['title'], edition.get('subtitle', None), edition.get('flags', None), edition.get('binding', None)`
+        #print(repr(edition['title'], edition.get('subtitle', None), edition.get('flags', None), edition.get('binding', None)))
         if 'sims' in edition:
             del edition['sims']
         #print edition

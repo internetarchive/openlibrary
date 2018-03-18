@@ -98,7 +98,7 @@ def post_to_import_api(ia, marc_data, contenttype, subjects = [], boxid = None, 
         try:
             reply = json.loads(body)
         except ValueError:
-            print 'not JSON:', `body`
+            print('not JSON:', repr(body))
             raise BadImport
     assert res.status == 200
     print >> logfile, reply

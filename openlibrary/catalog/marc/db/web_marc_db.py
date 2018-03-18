@@ -59,7 +59,7 @@ def counts_html(v):
         count.setdefault(i, []).append(loc)
     s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
     s = strip_count(s)
-    return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), `loc`, value if value else '<em>empty</em>') for value, loc in s)
+    return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), repr(loc), value if value else '<em>empty</em>') for value, loc in s)
 
 def list_works(this_isbn):
     works = find_others(this_isbn, rc['amazon_other_editions'])
@@ -131,7 +131,7 @@ def show_locs(locs, isbn):
                 v = [ (list_to_html(i), loc) if i else (None, loc) for i, loc in v]
         else:
             v = [ (esc(i), loc) for i, loc in v]
-#        print `[i[0] for i in v]`, '<br>'
+#        print repr([i[0] for i in v]), '<br>'
         ret += counts_html(v)
         if isbn and first_key:
             ret += '<td valign="top" rowspan="%d"><img src="https://covers.openlibrary.org/b/isbn/%s-L.jpg">' % (len(first) + len(keys), isbn)

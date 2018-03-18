@@ -62,7 +62,7 @@ def author_from_data(loc, data):
     assert 'authors' in edition
     east = east_in_by_statement(edition)
     assert len(edition['authors']) == 1
-    print `edition['authors'][0]`
+    print(repr(edition['authors'][0]))
     a = import_author(edition['authors'][0], eastern=east)
     if 'key' in a:
         return {'key': a['key']}
@@ -131,7 +131,7 @@ for name, part, size in files():
         if not oclc.isdigit():
             m = re_oclc.match(oclc)
             if not m:
-                print "can't read:", `oclc`
+                print("can't read:", repr(oclc))
                 continue
             oclc = m.group(1)
         keys = get_keys(loc)

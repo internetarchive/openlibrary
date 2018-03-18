@@ -143,7 +143,7 @@ def do_normalize(author_key, best_key, authors):
                 need_update = True
     if not need_update:
         return
-    #print 'save(%s, %s)' % (author_key, `a`)
+    #print 'save(%s, %s)' % (author_key, repr(a))
     ol.save(author_key, a, 'merge authors')
 
 def has_image(key):
@@ -153,7 +153,7 @@ def has_image(key):
 
 def merge_authors(ol, keys, debug=False):
 #    print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
-#    print 'becomes: "%s"' % `new_name`
+#    print 'becomes: "%s"' % repr(new_name)
     authors = [a for a in (withKey(k) for k in keys) if a['type']['key'] != '/type/redirect']
     not_redirect = set(a['key'] for a in authors)
     if debug:
@@ -163,7 +163,7 @@ def merge_authors(ol, keys, debug=False):
     assert all(a['type']['key'] == '/type/author' for a in authors)
     name1 = authors[0]['name']
     for a in authors:
-        print `a['key'], a['name']`
+        print(repr(a['key'], a['name']))
     assert all(match_with_bad_chars(a['name'], name1) for a in authors[1:])
 
     best_key = pick_best_author(authors)['key']

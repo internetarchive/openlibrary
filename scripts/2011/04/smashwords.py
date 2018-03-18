@@ -90,7 +90,7 @@ for row in csv.reader(open(input_file)):
     #continue
 
     title = book['Book Title']
-    #print `isbn, title`
+    #print(repr(isbn, title))
     assert isbn == '' or isbn.replace('-', '').isdigit()
     assert title not in titles
     titles.add(title)
@@ -187,8 +187,8 @@ for k, v in authors.items():
             })
         print
         continue
-        print 'bio:', `v['bio']`
-        print 'editions'
+        print('bio:', repr(v['bio']))
+        print('editions')
         pprint(v['editions'])
         print
     if authors:

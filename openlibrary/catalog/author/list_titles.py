@@ -18,7 +18,6 @@ for line in open("/1/pharos/edward/titles"):
     with_title[title][fields] = with_title[title].get(fields, 0) + 1
 
 for k, v in sorted(((a, b) for a, b in titles.items() if b > 10), reverse=True, key=lambda x: x[1]):
-    print `k`, v
+    print(repr(k), v)
     for a, b in sorted(((a, b) for a, b in with_title[k].items() if b > 5), reverse=True, key=lambda x: x[1])[0:30]:
-        print '  ', a, b
-    print
+        print('  ', a, b)

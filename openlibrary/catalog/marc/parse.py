@@ -430,7 +430,7 @@ def read_url(rec):
     for f in rec.get_fields('856'):
         contents = f.get_contents(['3', 'u'])
         if not contents.get('u', []):
-            #print `f.ind1(), f.ind2()`, list(f.get_all_subfields())
+            #print repr(f.ind1(), f.ind2()), list(f.get_all_subfields())
             continue
         if '3' not in contents:
             found += [{ 'url': u.strip(' ') } for u in contents['u']]

@@ -115,13 +115,13 @@ iter = db.query("select identifier, updated from metadata where contributor='Cor
 t_start = time()
 for row in iter:
     ia = row.identifier
-    print `ia`, row.updated
+    print(repr(ia), row.updated)
     when = str(row.updated)
     if query({'type': '/type/edition', 'ocaid': ia}):
-        print 'already loaded'
+        print('already loaded')
         continue
     if query({'type': '/type/edition', 'source_records': 'ia:' + ia}):
-        print 'already loaded'
+        print('already loaded')
         continue
     try:
         loc, rec = get_ia(ia)
