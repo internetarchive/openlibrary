@@ -166,7 +166,7 @@ def merge_authors(author, merge_with, name):
 
 print 'running query'
 # limit for test runs
-for thing_row in web.select('thing', what='id, key', where='type='+`author_type_id`, limit=10000):
+for thing_row in web.select('thing', what='id, key', where='type='+repr(author_type_id), limit=10000):
     id = thing_row.id
     author = get_thing(id)
 
@@ -185,16 +185,15 @@ for thing_row in web.select('thing', what='id, key', where='type='+`author_type_
         by_statements = find_by_statements(author['key'])
         print author['name'], "by:", ', '.join('"%s"' % i for i in by_statements)
         if east_in_by_statement(author['name'], name, by_statements):
-            print "east in by statement"
-            print
+            print("east in by statement")
             continue
-        print "rename %s to %s" % (`author['name']`, `name`)
+        print("rename %s to %s" % (repr(author['name']), repr(name)))
         q = {
             'key': key,
             'name': { 'connect': 'update', 'value': name},
             'personal_name': { 'connect': 'update', 'value': name},
         }
-        print `q`
+        print(repr(q))
         continue
 
     if len(other) != 1:

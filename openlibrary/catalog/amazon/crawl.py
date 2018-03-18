@@ -81,7 +81,7 @@ class Scraper:
 
         line = fp.readline()
         if not line.startswith('HTTP/1.1 200'):
-            print 'status:', `line`
+            print('status:', repr(line))
         recv_buf += line
 
         body = ''
@@ -167,8 +167,8 @@ def get_cats(root):
         href = a.attrib['href']
         m1 = re_rh_n.search(href)
         if not m1:
-            print 'no match:'
-            print `href`
+            print('no match:')
+            print(repr(href))
         m2 = re_facet_count.search(span2.text)
         cats.append((int(m1.group(1)), span1.text, int(m2.group(1).replace(',',''))))
 
@@ -216,7 +216,7 @@ def read_page(params):
     print 'cat total:', sum(i[2] for i in cats)
     if total > max_results:
         for n, title, count in cats:
-            print `n, title, count`
+            print(repr(n, title, count))
             params_with_cat = params + ",n:" + str(n)
             root = get_url(params_with_cat)
             cat_total = get_total(root)
@@ -237,8 +237,7 @@ def read_page(params):
                 except PersonalizedBooks:
                     print 'WARNING: Personalized Books'
                     break
-                print `n, title, page, cat_total / page_size, len(books), "%.1f%%" % percent(len(books), grand_total)`
-            print
+                print(repr(n, title, page, cat_total / page_size, len(books), "%.1f%%" % percent(len(books), grand_total)))
 
     return total, books, cats
 
@@ -254,8 +253,8 @@ def write_books(books):
                 page = scraper.get('http://www.amazon.com/dp/' + asin)
                 if re_expect_end.search(page):
                     break
-                print 'bad page ending'
-                print `page[-60:]`
+                print('bad page ending')
+                print(repr(page[-60:]))
                 error_count += 1
                 if error_count == 50:
                     print 'too many bad endings'

@@ -513,9 +513,9 @@ def new_work(akey, w, do_updates, fh_log):
                 if attempt == 4:
                     raise
                 print 'retrying: %d attempt' % attempt
-        print >> fh_log, 'new work:', wkey, `w['title']`
+        print >> fh_log, 'new work:', wkey, repr(w['title'])
     else:
-        print >> fh_log, 'new work:', `w['title']`
+        print >> fh_log, 'new work:', repr(w['title'])
     update = []
     for e in w['editions']:
         try:
@@ -544,9 +544,9 @@ def fix_toc(e):
         if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
             return
     except:
-        print 'toc'
-        print toc
-        print `toc`
+        print('toc')
+        print(toc)
+        print(repr(toc))
     return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
@@ -592,7 +592,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             or ('subtitle' in w and 'subtitle' not in cur_work) \
             or ('subjects' in w and 'subjects' not in cur_work):
         if cur_work['title'] != w['title']:
-            print 'update work title:', best, `cur_work['title']`, '->', `w['title']`
+            print( 'update work title:', best, repr(cur_work['title']), '->', repr(w['title']))
         existing_work = get_with_retry(best)
         if existing_work['type'] != '/type/work':
             pprint(existing_work)
@@ -612,7 +612,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             obj = withKey(new_akey)
             assert obj['type']['key'] == '/type/author'
         print >> fh_log, 'existing:', existing_work
-        print >> fh_log, 'subtitle:', `existing_work['subtitle']` if 'subtitle' in existing_work else 'n/a'
+        print >> fh_log, 'subtitle:', repr(existing_work['subtitle']) if 'subtitle' in existing_work else 'n/a'
         update.append(existing_work)
         work_updated.append(best)
     if do_updates:
@@ -677,15 +677,15 @@ def update_works(akey, works, do_updates=False):
     all_existing = set()
     work_keys = []
     print >> fh_log, 'edition_to_work:'
-    print >> fh_log, `dict(edition_to_work)`
+    print >> fh_log, repr(dict(edition_to_work))
     print >> fh_log
     print >> fh_log, 'work_to_edition'
-    print >> fh_log, `dict(work_to_edition)`
+    print >> fh_log, repr(dict(work_to_edition))
     print >> fh_log
 
-#    open('edition_to_work', 'w').write(`dict(edition_to_work)`)
-#    open('work_to_edition', 'w').write(`dict(work_to_edition)`)
-#    open('work_by_key', 'w').write(`dict(work_by_key)`)
+#    open('edition_to_work', 'w').write(repr(dict(edition_to_work)))
+#    open('work_to_edition', 'w').write(repr(dict(work_to_edition)))
+#    open('work_by_key', 'w').write(repr(dict(work_by_key)))
 
     work_title_match = {}
     works_by_title = {}

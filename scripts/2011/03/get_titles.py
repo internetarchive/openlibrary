@@ -14,7 +14,7 @@ cur.execute(sql)
 properties = dict(cur.fetchall())
 print properties
 
-keys = ', '.join(`k` for k in properties.keys())
+keys = ', '.join(repr(k) for k in properties.keys())
 #sql = "select key, key_id, value, ordering from edition_str, thing where key_id in (%s) and thing_id=thing.id and type=%d" % (keys, edition_id)
 sql = "select thing_id, key_id, value, ordering from edition_str where key_id in (%s)" % (keys,)
 print sql

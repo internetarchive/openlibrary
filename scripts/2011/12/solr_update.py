@@ -129,13 +129,13 @@ def run_update():
     if not args.no_author_updates and authors_to_update:
         requests = []
         for akey in authors_to_update:
-            print 'update author:', `akey`
+            print('update author:', repr(akey))
             try:
                 request = update_author(akey)
                 if request:
                     requests += request
             except AttributeError:
-                print 'akey:', `akey`
+                print('akey:', repr(akey))
                 raise
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], debug=True)

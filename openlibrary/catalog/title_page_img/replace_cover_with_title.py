@@ -123,7 +123,7 @@ def post(ol, ia, ia_host, ia_path, cover, title):
         try:
             ret = eval(data)
         except:
-            print `data`
+            print(repr(data))
         pub_date = ret[0]['publish_date']
         use_cover = pub_date.isdigit() and int(pub_date) > 1955
     leaf = cover if use_cover else title

@@ -150,10 +150,10 @@ for f in to_upload:
                 try:
                     reply = json.loads(body)
                 except ValueError:
-                    print 'not JSON:', `body`
+                    print('not JSON:', repr(body))
                     raise BadImport
             assert res.status == 200
-            print reply
+            print(reply)
             assert reply['success']
             h1.close()
         except BadImport:

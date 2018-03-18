@@ -113,7 +113,7 @@ for ia, ekeys, done in cur.fetchall():
                     continue
                 if k == 'edition_name' and e[k].endswith(' ed edition'):
                     e[k] = e[k][:-len(' edition')]
-                uniq[re_nonword.sub('', `e[k]`.lower())].append(num)
+                uniq[re_nonword.sub('', repr(e[k]).lower())].append(num)
 
         if len(uniq) == 0:
             continue

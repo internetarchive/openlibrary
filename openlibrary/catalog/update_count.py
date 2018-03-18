@@ -6,7 +6,7 @@ from time import time
 
 def commify(n):
     """
-Add commas to an integer `n`.
+Add commas to an integer repr(n).
 
 >>> commify(1)
 '1'

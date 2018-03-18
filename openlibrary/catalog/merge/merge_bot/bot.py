@@ -175,7 +175,7 @@ td { background: #eee; }
         #self.input = web.input(ol=None, isbn=None, title=None)
         self.input = web.input(isbn=None, oclc=None)
         ret = self.head('Merge debug')
-#        ret += web.htmlquote(`dict(self.input)`)
+#        ret += web.htmlquote(repr(dict(self.input)))
         for i in self.form():
             ret += i
         if self.input.isbn:

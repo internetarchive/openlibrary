@@ -167,8 +167,8 @@ def get_work_subjects(w, do_get_mc=True):
             try:
                 subjects.append(read_subjects(rec))
             except:
-                print 'bad MARC:', loc
-                print 'data:', `data`
+                print('bad MARC:', loc)
+                print('data:', repr(data))
                 raise
         else:
             assert sr.startswith('ia:')
@@ -178,7 +178,7 @@ def get_work_subjects(w, do_get_mc=True):
 def tidy_subject(s):
     s = s.strip()
     if len(s) < 2:
-        print 'short subject:', `s`
+        print('short subject:', repr(s))
     else:
         s = s[0].upper() + s[1:]
     m = re_etc.search(s)

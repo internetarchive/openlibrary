@@ -121,7 +121,7 @@ def get_ia(ia):
             print "read_xml BADXML"
             pass
         except xml.parsers.expat.ExpatError:
-            #print 'IA:', `ia`
+            #print 'IA:', repr(ia)
             #print 'XML parse error:', base + loc
             print "read_xml ExpatError"
             pass
@@ -151,7 +151,7 @@ def get_ia(ia):
     try:
         return fast_parse.read_edition(data, accept_electronic = True)
     except (ValueError, AssertionError, fast_parse.BadDictionary):
-        print `data`
+        print(repr(data))
         raise
 
 def files(archive_id):
@@ -244,7 +244,7 @@ def get_from_local(locator):
     try:
         file, offset, length = locator.split(':')
     except:
-        print 'locator:', `locator`
+        print('locator:', repr(locator))
         raise
     f = open(rc['marc_path'] + '/' + file)
     f.seek(int(offset))
@@ -289,7 +289,7 @@ def marc_formats(ia, host=None, path=None):
     try:
         root = etree.fromstring(data)
     except:
-        print 'bad:', `data`
+        print('bad:', repr(data))
         return has
     for e in root:
         name = e.attrib['name']

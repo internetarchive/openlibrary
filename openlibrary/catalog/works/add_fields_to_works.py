@@ -45,7 +45,7 @@ def dates():
             continue
         first = min(years.keys())
         assert first != 0
-        print w['key'], `w['title']`, first
+        print(w['key'], repr(w['title']), first)
         q = {
             'key': w['key'],
             f: { 'connect': 'update', 'value': str(first)}
@@ -79,7 +79,7 @@ def lang():
         first = lang[0]
         if any(l != first for l in lang):
             continue
-        print w['key'], `w['title']`, first, len(lang)
+        print(w['key'], repr(w['title']), first, len(lang))
         q = {
             'key': w['key'],
             f: { 'connect': 'update_list', 'value': [first]}

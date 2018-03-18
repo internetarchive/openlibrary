@@ -405,10 +405,10 @@ def get_work_key(title, akey):
     if not matches:
         return None
     if len(matches) != 1:
-        print 'time to fix duplicate works'
-        print `title`
-        print 'http://openlibrary.org' + akey
-        print matches
+        print('time to fix duplicate works')
+        print(repr(title))
+        print('http://openlibrary.org' + akey)
+        print(matches)
     assert len(matches) == 1
     return matches[0]['key']
 
@@ -425,7 +425,7 @@ def by_authors():
         write_log('author', akey, a.get('name', 'name missing'))
 
         works = find_works(akey, get_books(akey, books_query(akey)))
-        print akey, `a['name']`
+        print(akey, repr(a['name']))
 
         for w in works:
             w['author'] = akey
@@ -450,7 +450,7 @@ if __name__ == '__main__':
         work_queue.append(w)
         if len(work_queue) > 1000:
             for e in run_queue(work_queue):
-                print e['key'], `e['title']`
+                print e['key'], repr(e['title'])
                 edition_queue.append(e)
                 if len(edition_queue) > 1000:
                     save_editions(edition_queue)

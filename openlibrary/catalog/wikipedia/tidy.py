@@ -145,7 +145,7 @@ re_missing_equals = re.compile('^([A-Z ]+) (.+)$')
 
 def parse_pd(pd):
     lines = pd.split('\n')
-    print `lines[-1]`
+    print(repr(lines[-1]))
     assert lines[-1] == '}}'
 
 def read_person_data():
@@ -261,7 +261,7 @@ def load_db():
     c.execute('truncate redirects')
     for person in iter_people():
 #        print person
-        c.execute('insert into people (title, len, infobox, defaultsort, persondata, cats) values (%s, %s, %s, %s, %s, %s)', (person['title'], person['len'], person.get('infobox', None), person.get('defaultsort', None), person.get('persondata', None), `person.get('cats', [])`))
+        c.execute('insert into people (title, len, infobox, defaultsort, persondata, cats) values (%s, %s, %s, %s, %s, %s)', (person['title'], person['len'], person.get('infobox', None), person.get('defaultsort', None), person.get('persondata', None), repr(person.get('cats', []))))
         id = conn.insert_id()
         c.executemany('insert ignore into names (person_id, name) values (%s, %s)', [(id, n) for n in get_names(person)])
         if 'redirects' in person:

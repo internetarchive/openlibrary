@@ -30,9 +30,9 @@ def find_author(name, send_mail=True):
     reply = list(ol.query(q))
     authors = [ol.get(k) for k in reply]
     if any(a['type'] != '/type/author' for a in authors):
-        subject = 'author query redirect: ' + `q['name']`
+        subject = 'author query redirect: ' + repr(q['name'])
         body = 'Error: author query result should not contain redirects\n\n'
-        body += 'query: ' + `q` + '\n\nresult\n'
+        body += 'query: ' + repr(q) + '\n\nresult\n'
         if send_mail:
             result = ''
             for a in authors:

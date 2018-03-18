@@ -126,7 +126,7 @@ class DocumentLoader:
                          data=simplejson.dumps(doc))
                     for doc in documents]
         except UnicodeDecodeError:
-            print `doc`
+            print(repr(doc))
             raise
         self.db.multiple_insert('data', data, seqname=False)
         return result
