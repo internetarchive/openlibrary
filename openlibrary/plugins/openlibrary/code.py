@@ -80,7 +80,7 @@ class hooks(client.hook):
             books = web.ctx.site.things({"type": "/type/edition", "authors": page.key})
             books = books or web.ctx.site.things({"type": "/type/work", "authors": {"author": {"key": page.key}}})
             if page.type.key == '/type/delete' and books:
-                raise ValidationException("Deleting author pages is not allowed.")
+                raise ValidationException("This Author page cannot be deleted as %d record(s) still reference this id. Please remove or reassign before trying again. Referenced by: %s" % (len(books), books))
             elif page.type.key != '/type/author' and books:
                 raise ValidationException("Changing type of author pages is not allowed.")
 
