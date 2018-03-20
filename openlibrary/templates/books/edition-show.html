@@ -17,6 +17,9 @@ $def display_identifiers(label, ids):
             <td class="title"><h6 class="title">$label</h6></td>
             <td class="object"><span class="object">
                 $for id in ids:
+                    $if label == "Wikidata": 
+                        $ id.url = "https://www.wikidata.org/wiki/"+str(id.value)
+
                     $ sep = cond(loop.last, "", ", ")
                     $if id.url:
                         <a href="$id.url">$id.value</a>$sep
@@ -175,7 +178,7 @@ $ publishers = (', '.join(book.publishers))
             <tbody>
                 $:display_identifiers("Open Library", [storage(url=None, value=book.key.split("/")[-1])])
                 $for name, values in book.get_identifiers().multi_items():
-                    $ identifier_label = values[0].label
+                    $ identifier_label = values[0].label.title()
                     $if not (book.is_in_private_collection() and identifier_label == 'Internet Archive'):
                         $:display_identifiers(identifier_label, values)
             </tbody>
