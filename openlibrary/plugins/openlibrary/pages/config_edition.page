@@ -307,6 +307,7 @@
         },
         {
             "url": "https://www.amazon.com/gp/product/@@@",
+            "notes": "ASIN"
             "name": "amazon",
             "label": "Amazon.com"
         },
@@ -425,7 +426,7 @@
             "label": "Cornell University ecommons"
         },
         {
-            "website": "https://newcatalog.library.cornell.edu/catalog/@@",
+            "website": "https://newcatalog.library.cornell.edu/catalog/@@@",
             "notes": "",
             "name": "cornell_university_library",
             "label": "Cornell University ecommons"
