@@ -1,0 +1,15 @@
+$def with (work=None)
+
+$work
+
+<html>
+  <body>
+    <div class="widget">
+      <img src="$(work.get('cover_url', 'https://i.pinimg.com/originals/d8/ef/e1/d8efe15e9b9bb57f7dfc489746e2de7d.jpg'))" alt="$(work.get('title'))" style="width: 200px;"/>
+      <h1>$work.get('title', 'hello world')</h1>
+      <form action="$(work.get('ocaid'))">
+	<button type="submit">Borrow</button>
+      </form>
+    </div>
+  </body>
+</html>

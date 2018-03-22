@@ -19,12 +19,14 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
 from infogami.utils import delegate
-from infogami.utils.view import render, public, safeint, add_flash_message
+from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
+from openlibrary.core.lending import get_work_availability
 import openlibrary.core.stats
+from openlibrary.plugins.openlibrary.home import format_work_data
 
 import processors
 
@@ -191,9 +193,12 @@ class widget(delegate.page):
     def GET(self):
         i = web.input(olid=None)
         if i.olid:
-            book = web.ctx.site.get('/works/%s' % i.olid)
-            return delegate.RawText(simplejson.dumps(
-                book.dict()), content_type="application/json")
+            work = web.ctx.site.get('/works/%s' % i.olid) or {}
+            work['olid'] = i.olid
+            work['availability'] = get_work_availability(i.olid).get('olid')
+            return delegate.RawText(
+                render_template("work/widget", work=format_work_data(work)),
+                content_type="text/html")
         raise web.seeother("/")
 
 class addauthor(delegate.page):
