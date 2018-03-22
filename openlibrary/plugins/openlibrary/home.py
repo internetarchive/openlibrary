@@ -161,27 +161,7 @@ def random_ebooks(limit=2000):
             "author_key", "author_name",
         ])
 
-    def process_doc(doc):
-        d = {}
-
-        key = doc.get('key', '')
-        # New solr stores the key as /works/OLxxxW
-        if not key.startswith("/works/"):
-            key = "/works/" + key
-
-        d['url'] = key
-        d['title'] = doc.get('title', '')
-
-        if 'author_key' in doc and 'author_name' in doc:
-            d['authors'] = [{"key": key, "name": name} for key, name in zip(doc['author_key'], doc['author_name'])]
-
-        if 'cover_edition_key' in doc:
-            d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % doc['cover_edition_key']
-
-        d['read_url'] = "//archive.org/stream/" + doc['ia'][0]
-        return d
-
-    return [process_doc(doc) for doc in result.get('docs', []) if doc.get('ia')]
+    return [format_work_data(doc) for doc in result.get('docs', []) if doc.get('ia')]
 
 # cache the results of random_ebooks in memcache for 15 minutes
 random_ebooks = cache.memcache_memoize(random_ebooks, "home.random_ebooks", timeout=15*60)
@@ -214,6 +194,27 @@ format_list_editions = cache.memcache_memoize(format_list_editions, "home.format
 
 def pick_best_edition(work):
     return (e for e in work.editions if e.ocaid).next()
+
+def format_work_data(work):
+    d = work.dict()
+
+    key = work.get('key', '')
+    # New solr stores the key as /works/OLxxxW
+    if not key.startswith("/works/"):
+        key = "/works/" + key
+
+    d['url'] = key
+    d['title'] = work.get('title', '')
+
+    if 'author_key' in work and 'author_name' in work:
+        d['authors'] = [{"key": key, "name": name} for key, name in
+                        zip(work['author_key'], work['author_name'])]
+
+    if 'cover_edition_key' in work:
+        d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+
+    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
+    return d
 
 def format_book_data(book):
     d = web.storage()

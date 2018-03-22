@@ -223,7 +223,7 @@ def get_availability(key, ids):
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
-        return {'error': 'request_timeout'}
+        return {'error': 'request_timeout', 'details': str(e)}
 
 def get_edition_availability(ol_edition_id):
     return get_availability_of_editions([ol_edition_id])
@@ -258,6 +258,9 @@ def get_availability_of_ocaid(ocaid):
 def get_availability_of_ocaids(ocaids):
     """Retrieves availability based on ocaids/archive.org identifiers"""
     return get_availability('identifier', ocaids)
+
+def get_work_availability(ol_work_id):
+    return get_availability_of_works([ol_work_id])
 
 def get_availability_of_works(ol_work_ids):
     return get_availability('openlibrary_work', ol_work_ids)
