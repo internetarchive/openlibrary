@@ -31,7 +31,7 @@ msgid ""
 "and click on the verification link to verify your email."
 msgstr ""
 "Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na "
-"Pveřovací odkaz pro změnu emailu."
+"Oveřovací odkaz pro ověření emailu."
 
 #: account.py:423
 #, python-format
@@ -40,11 +40,11 @@ msgid ""
 "the verification link to update your email."
 msgstr ""
 "Poslali jsme zprávu na adresu %(email)s. Přečtěte si ji a klikněte na "
-"Pveřovací odkaz pro změnu emailu."
+"Oveřovací odkaz pro změnu emailu."
 
 #: account.py:441
 msgid "Email address is already used."
-msgstr "Emailová adresa už je použita"
+msgstr "Emailová adresa už je použita."
 
 #: account.py:442
 msgid ""
@@ -76,15 +76,15 @@ msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je 
 
 #: account.py:485
 msgid "Your password has been updated successfully."
-msgstr "Vaše heslo bylo změněno"
+msgstr "Vaše heslo bylo změněno."
 
 #: account.py:579 account.py:589
 msgid "Password reset failed."
-msgstr "Selhalo obnovení hesla"
+msgstr "Selhalo obnovení hesla."
 
 #: account.py:635 account.py:651
 msgid "Notification preferences have been updated successfully."
-msgstr "Nastavení upozornění byla aktualizována"
+msgstr "Nastavení upozornění byla aktualizována."
 
 #: forms.py:19
 msgid "Username"
@@ -104,11 +104,11 @@ msgstr "Email už je používán"
 
 #: forms.py:27
 msgid "Disposable email not permitted"
-msgstr ""
+msgstr "Jednorázové emaili nejsou povoleny"
 
 #: forms.py:28
 msgid "Your email provider is not recognized."
-msgstr ""
+msgstr "Váš poskytovatel emailu nebyl rozpoznán."
 
 #: forms.py:29
 msgid "Username already used"
@@ -144,11 +144,11 @@ msgstr "Vyberte heslo"
 
 #: forms.py:57
 msgid "Confirm password"
-msgstr ""
+msgstr "Potvrďte heslo"
 
 #: forms.py:59
 msgid "Passwords didn't match."
-msgstr ""
+msgstr "Hesla se neshodují"
 
 #: forms.py:88
 msgid "Invalid password"
@@ -168,7 +168,7 @@ msgstr "Vaše nová meailová adresa"
 
 #: edit.html:20
 msgid "Edit Author"
-msgstr ""
+msgstr "Upravit autora"
 
 #: edit.html:33
 msgid "Name"
@@ -179,36 +179,39 @@ msgid ""
 "Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
 "<strong>Tolstoy, Leo</strong>."
 msgstr ""
+"Použíjte přirozené pořadí. Například: <strong>Lev Tolstoj</strong> ne "
+"<strong>Tolstoj, Lev</strong>."
 
 #: edit.html:36 edit.html:153 edit/addfield.html:96 edit/addfield.html:141
 msgid "Required field"
-msgstr ""
+msgstr "Požadované pole"
 
 #: edit.html:50
 msgid "About"
-msgstr ""
+msgstr "O autorovi"
 
 #: edit.html:51 edit.html:177
 msgid "Links"
-msgstr ""
+msgstr "Odkazy"
 
 #: edit.html:60
 msgid "A short bio?"
-msgstr ""
+msgstr "Krátký životopis?"
 
 #: edit.html:61
 msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite "
 "the source."
 msgstr ""
+"Pokudsi informaci někde \"vypůjčíte\", uveďte rposím citaci zdroje. "
 
 #: edit.html:70
 msgid "Date of birth"
-msgstr ""
+msgstr "Datum narození"
 
 #: edit.html:79
 msgid "Date of death"
-msgstr ""
+msgstr "Datum úmrtí"
 
 #: edit.html:88
 msgid ""
@@ -218,7 +221,7 @@ msgstr ""
 
 #: edit.html:96
 msgid "Does this author go by any other names?"
-msgstr ""
+msgstr "Má tento autor nějaká další jména"
 
 #: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
 #: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
@@ -227,11 +230,11 @@ msgstr ""
 #: edit/edition.html:227 edit/edition.html:247 edit/edition.html:322
 #: edit/edition.html:573 edit/excerpts.html:15 edit/web.html:31
 msgid "For example:"
-msgstr ""
+msgstr "Například"
 
 #: edit.html:108
 msgid "Websites"
-msgstr ""
+msgstr "Webové stránky"
 
 #: edit.html:109
 msgid "Deprecated"
@@ -243,19 +246,19 @@ msgstr "Smazat záznam"
 
 #: view.html:132
 msgid "Website"
-msgstr ""
+msgstr "Webová stránka"
 
 #: view.html:138
 msgid "Location"
-msgstr ""
+msgstr "Místo"
 
 #: view.html:237
 msgid "Alternative names"
-msgstr ""
+msgstr "Alternativní názvy"
 
 #: books.html:14
 msgid "Reading Log"
-msgstr ""
+msgstr "Čtenářské záznamy"
 
 #: borrow.html:3 borrow.html:66
 msgid "Books You've Checked Out"
@@ -263,15 +266,15 @@ msgstr ""
 
 #: borrow.html:81
 msgid "1 Current Loan"
-msgstr ""
+msgstr "1 současná výpůjčka"
 
 #: borrow.html:83
 msgid "Current Loans"
-msgstr ""
+msgstr "Současné výpůjčky"
 
 #: borrow.html:85
 msgid "Loan Expires"
-msgstr ""
+msgstr "Propadlé výpůjčky"
 
 #: borrow.html:86
 msgid "Loan actions"
@@ -281,12 +284,12 @@ msgstr "Akce"
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "Jeden člověk čeká na tuto knihu."
+msgstr[1] "Na tuto knihu čekají %(n)s lidí."
 
 #: borrow.html:151
 msgid "Books You're Waiting For"
-msgstr ""
+msgstr "Knihy na které čekáte"
 
 #: borrow.html:190
 #, python-format
@@ -341,7 +344,7 @@ msgstr ""
 
 #: borrow.html:281
 msgid "Getting Started"
-msgstr ""
+msgstr "Jak začít"
 
 #: borrow.html:282
 msgid ""
@@ -378,24 +381,24 @@ msgstr ""
 
 #: create.html:3
 msgid "Sign Up to Open Library"
-msgstr ""
+msgstr "Vytvořit účet na Open Library"
 
 #: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
 msgid "Sign Up"
-msgstr ""
+msgstr "Registrovat"
 
 #: create.html:8
 msgid "Complete the form below to create a new Internet Archive account."
-msgstr ""
+msgstr "Vytvořte si nový účet na Internet Archive vyplněním formuláře níže."
 
 #: create.html:9
 msgid "Each field is required"
-msgstr ""
+msgstr "Všechna pole jsou povinná"
 
 #: create.html:25 openlibrary/templates/login.html:20
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr ""
+msgstr "Již jste přihlášeni v Open Library jako uživatel %(user)s."
 
 #: create.html:26 openlibrary/templates/login.html:21
 msgid ""
@@ -407,11 +410,11 @@ msgstr ""
 
 #: create.html:45 create.html:56 create.html:65
 msgid "Letters and numbers only please, and at least 3 characters."
-msgstr ""
+msgstr "Poze čísla  a písmena prosím, a nejméně 3 znaky."
 
 #: create.html:74
 msgid "Please type in the text or number(s) below."
-msgstr ""
+msgstr "Níže prosím vyplňte text nebo čísla."
 
 #: create.html:74
 msgid ""
@@ -425,6 +428,10 @@ msgid ""
 "Archive's <a href='//archive.org/about/terms.php' target='_new' "
 "title='Read the Terms of Use in a new browser.'>Terms of Use</a>."
 msgstr ""
+"Beru na vědomí že používání Open Library podléhá "
+"<a href='//archive.org/about/terms.php' target='_new' "
+"title='Přečtěte si Pravidlům použití v nové panelu.'>Pravidlům použití</a> "
+" Internet Archive."
 
 #: add.html:82 add.html:120 create.html:94 edit/addcover.html:32
 #: edit/addfield.html:83 edit/addfield.html:129 edit/addfield.html:173
@@ -440,37 +447,37 @@ msgstr "Smazat účet"
 
 #: delete.html:11
 msgid "Sorry, this functionality is not yet implemented."
-msgstr ""
+msgstr "Promiňte, tato funkce ještě není implementována."
 
 #: email.html:6 nav_head.html:120 notifications.html:9
 #: openlibrary/templates/account.html:3 openlibrary/templates/account.html:8
 #: password.html:6 privacy.html:9 search_head.html:67
 msgid "Settings"
-msgstr ""
+msgstr "Nastavení"
 
 #: email.html:8
 msgid "Change Your Email Address"
-msgstr ""
+msgstr "Změnit emailovou adresu"
 
 #: email.html:18
 msgid "Your current email address is"
-msgstr ""
+msgstr "Vaše současná emailová adresa je"
 
 #: email.html:35
 msgid "Change It"
-msgstr ""
+msgstr "Změnit ji"
 
 #: not_verified.html:3 not_verified.html:14 verify/failed.html:6
 msgid "Oops!"
-msgstr ""
+msgstr "Hups!"
 
 #: not_verified.html:32 verify/failed.html:25
 msgid "Resend the verification email"
-msgstr ""
+msgstr "Znovu zaslat ověřovací email"
 
 #: notifications.html:3 notifications.html:12
 msgid "Notifications from Open Library"
-msgstr ""
+msgstr "Upozornění od Open Library"
 
 #: notifications.html:10
 #, fuzzy
@@ -490,11 +497,11 @@ msgstr ""
 
 #: notifications.html:35
 msgid "No, thank you"
-msgstr ""
+msgstr "Ne, děkuji"
 
 #: notifications.html:42
 msgid "Yes! Please!"
-msgstr ""
+msgstr "Ano, prosím."
 
 #: manage.html:64 notifications.html:50 openlibrary/macros/EditButtons.html:17
 #: privacy.html:47
@@ -510,22 +517,24 @@ msgid ""
 "Provide your existing password (to verify that it's you) and select a new"
 " password to replace it."
 msgstr ""
+"Zadejte současné heslo (pro ověření vaší že jste to vy) a vyberte nové"
+" heslo které ho nahradí."
 
 #: password.html:41
 msgid "Change"
-msgstr ""
+msgstr "Změnit"
 
 #: privacy.html:3
 msgid "Your Privacy on Open Library"
-msgstr ""
+msgstr "Vaše soukromý na Open Library"
 
 #: privacy.html:12
 msgid "Privacy Settings"
-msgstr ""
+msgstr "Nastavení soukromý"
 
 #: privacy.html:32
 msgid "Yes"
-msgstr ""
+msgstr "Ano"
 
 #: edit/edition.html:365 privacy.html:39
 msgid "No"
@@ -533,61 +542,63 @@ msgstr "Ne"
 
 #: verify.html:3
 msgid "Verification email sent"
-msgstr ""
+msgstr "Ověřovací email odeslán"
 
 #: email/forgot-ia.html:6 email/forgot.html:6
 msgid "Forgot Your Internet Archive Email?"
-msgstr ""
+msgstr "Zapoměli jste váš Internet Archive email"
 
 #: email/forgot-ia.html:39 password/forgot.html:6
 msgid "Forgot your Archive.org Password?"
-msgstr ""
+msgstr "Zapoměli jste vaše heslo pna Archive.org"
 
 #: email/forgot.html:11
 msgid "Forgot Your Open Library Email?"
-msgstr ""
+msgstr "Zapoměli jste váš Open Library email"
 
 #: email/forgot.html:44 openlibrary/templates/login.html:68
 msgid "Forgot your Password?"
-msgstr ""
+msgstr "Zapoměly jste svoje heslo?"
 
 #: password/forgot.html:3 password/sent.html:3
 msgid "Username/Password Reminder"
-msgstr ""
+msgstr "Připomínka jména/hesla"
 
 #: password/forgot.html:7
 msgid "Forgot your Archive.org password?"
-msgstr ""
+msgstr "Zapoměli jste vaše Archive.org heslo?"
 
 #: password/forgot.html:19
 msgid "Send It"
-msgstr ""
+msgstr "Poslat ho"
 
 #: password/reset.html:3 password/reset.html:6
 msgid "Reset Password"
-msgstr ""
+msgstr "Obnovit heslo"
 
 #: password/reset.html:11
 msgid "Please enter a new password for your Open Library account."
-msgstr ""
+msgstr "Zadejte prosím nové heslo pro účet na Open Library"
 
 #: password/reset.html:19
 msgid "Reset"
-msgstr ""
+msgstr "Obnovit"
 
 #: password/reset_success.html:3
 msgid "Password Reset Successful"
-msgstr ""
+msgstr "Obnova hesla proběhla úspěšně"
 
 #: password/reset_success.html:10
 msgid ""
 "Your password has been updated. Please <a "
 "href='/account/login?redirect=/'>log in to continue</a>."
 msgstr ""
+"Vaše heslo bylo aktualizováno. Prosím <a "
+"href='/account/login?redirect=/'>pro pokračování se přihlaste</a>."
 
 #: password/sent.html:6
 msgid "Done."
-msgstr ""
+msgstr "Hotovo."
 
 #: password/sent.html:10
 #, python-format
@@ -599,7 +610,7 @@ msgstr ""
 
 #: verify/activated.html:3
 msgid "Account already activated"
-msgstr ""
+msgstr "Účet již byl aktivován"
 
 #: verify/activated.html:11
 #, python-format
@@ -610,17 +621,17 @@ msgstr ""
 
 #: verify/failed.html:3
 msgid "Email Verification Failed"
-msgstr ""
+msgstr "Ověření meailu selhalo"
 
 #: verify/failed.html:10
 msgid ""
 "Your email address couldn't be verified. Your verification link seems "
 "invalid or expired."
-msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný."
+msgstr "Vaše emailová adredsa nemůže být ověřena. Ověřovací odkaze je neplatný nebo vypršel."
 
 #: verify/failed.html:18
 msgid "Enter your email address here"
-msgstr "Vaše emailová adresa"
+msgstr "Zde zadejte vaši emailovou adresu"
 
 #: verify/failed.html:21
 msgid "No user registered with this email address."
@@ -628,7 +639,7 @@ msgstr "Nebyl nalezen uživatel s tímto emailem"
 
 #: verify/success.html:3
 msgid "Email Verification Successful"
-msgstr ""
+msgstr "Ověření emailu uspělo"
 
 #: verify/success.html:11
 #, fuzzy, python-format
@@ -650,6 +661,8 @@ msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
 msgstr ""
+"Pro vytvoření nového záznamu vyžadujeme vyplnění minimálně těchto "
+"polí."
 
 #: add.html:20 edit.html:153 nav_head.html:39 search_foot.html:4
 #: search_head.html:4
@@ -666,8 +679,8 @@ msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
-"Například, \"Agatha Christie\" nebo \"Jean-Paul Sartre.\" Rovnou ověříme "
-"zda již takového autora známe."
+"Například, \"Agatha Christie\" nebo \"Jean-Paul Sartre.\" Také rovnou "
+"ověříme zda již takového autora známe."
 
 #: add.html:42 edit/edition.html:93
 msgid "Who is the publisher?"
@@ -711,11 +724,11 @@ msgstr "Přidat"
 
 #: carousel_item.html:32 covers.html:104
 msgid "Read online"
-msgstr ""
+msgstr "Číst online"
 
 #: carousel_item.html:38
 msgid "Borrow this book"
-msgstr ""
+msgstr "Půjčit si tuto knihu"
 
 #: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
 msgid "Add a Book"
@@ -736,7 +749,7 @@ msgstr ""
 
 #: edit.html:74 edit.html:77 edit.html:80
 msgid "Add a little more?"
-msgstr ""
+msgstr "Přidat něco navíc?"
 
 #: edit.html:75
 msgid ""
@@ -761,11 +774,11 @@ msgstr ""
 
 #: edit.html:83
 msgid "Editing..."
-msgstr ""
+msgstr "Upravuje..."
 
 #: edit.html:114
 msgid "Create a new record for"
-msgstr ""
+msgstr "Vytvořit nový záznam pro"
 
 #: edit.html:143
 msgid "Remove this author"
@@ -773,7 +786,7 @@ msgstr "Smazat tohoto tvůrce"
 
 #: edit.html:144
 msgid "Add another author?"
-msgstr ""
+msgstr "Přidat dalšího autora?"
 
 #: edit.html:153
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
@@ -781,11 +794,11 @@ msgstr ""
 
 #: edit.html:175
 msgid "What's It About?"
-msgstr ""
+msgstr "O čem je?"
 
 #: edit.html:176
 msgid "Add Excerpts"
-msgstr ""
+msgstr "Přidat výtah"
 
 #: edit.html:216
 msgid "Delete this book?"
@@ -797,20 +810,20 @@ msgstr ""
 
 #: edition-show.html:59
 msgid "Add another edition of"
-msgstr ""
+msgstr "Přidat další vydání"
 
 #: edition-show.html:59
 msgid "Add edition"
-msgstr ""
+msgstr "Přidat vydání"
 
 #: edition-show.html:80
 #, python-format
 msgid "Show for other books from %s"
-msgstr ""
+msgstr "Ukázat další knihy od %s"
 
 #: edition-show.html:82
 msgid "Search for other books from"
-msgstr ""
+msgstr "Hledat další knihy od"
 
 #: edition-show.html:86
 msgid "Search for subjects about"
@@ -818,35 +831,35 @@ msgstr ""
 
 #: edition-show.html:94
 msgid "About the Book"
-msgstr ""
+msgstr "O knize"
 
 #: edition-show.html:98
 msgid "First Sentence"
-msgstr ""
+msgstr "První věta"
 
 #: edition-show.html:104
 msgid "Table of Contents"
-msgstr ""
+msgstr "Obsah"
 
 #: edition-show.html:119
 msgid "Edition Notes"
-msgstr ""
+msgstr "Poznámk vydání"
 
 #: edition-show.html:124
 msgid "Series"
-msgstr ""
+msgstr "Řada"
 
 #: edition-show.html:125
 msgid "Volume"
-msgstr ""
+msgstr "Ćíslo"
 
 #: edition-show.html:126
 msgid "Genre"
-msgstr ""
+msgstr "Źánr"
 
 #: edition-show.html:127
 msgid "Other Titles"
-msgstr ""
+msgstr "Ostatní názvy"
 
 #: edition-show.html:128
 msgid "Copyright Date"
@@ -854,11 +867,11 @@ msgstr ""
 
 #: edition-show.html:129
 msgid "Translation Of"
-msgstr ""
+msgstr "Překlad"
 
 #: edition-show.html:130
 msgid "Translated From"
-msgstr ""
+msgstr "Přeloženo z"
 
 #: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
@@ -878,7 +891,7 @@ msgstr ""
 
 #: edition-show.html:154
 msgid "Number of pages"
-msgstr ""
+msgstr "Počet stran"
 
 #: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
@@ -886,11 +899,11 @@ msgstr "Rozměry"
 
 #: edition-show.html:156
 msgid "Weight"
-msgstr ""
+msgstr "Hmotnost"
 
 #: edit/edition.html:257 edition-show.html:164
 msgid "Contributors"
-msgstr "Autoři"
+msgstr "Přispěvatelé"
 
 #: edit/edition.html:413 edition-show.html:172
 msgid "ID Numbers"
@@ -901,7 +914,7 @@ msgstr "Identifikační čísla"
 #: book_cover_work.html:13 book_cover_work.html:27
 #: openlibrary/templates/diff.html:36 show.html:12
 msgid "by"
-msgstr ""
+msgstr "od"
 
 #: inside.html:80 show.html:30
 msgid "Read"
@@ -909,27 +922,27 @@ msgstr "Číst"
 
 #: edit/about.html:6
 msgid "How would you describe this book?"
-msgstr ""
+msgstr "Jak by jste popsaly tuto knihu?"
 
 #: edit/about.html:7
 msgid "There's no wrong answer here."
-msgstr ""
+msgstr "Neexistuje špatná odpověď."
 
 #: edit/about.html:16
 msgid "Some tags perhaps?"
-msgstr ""
+msgstr "Nějaké štítky?"
 
 #: edit/about.html:17
 msgid "Please separate with commas."
-msgstr ""
+msgstr "Oddělte prosím čárkami."
 
 #: edit/about.html:30
 msgid "A person? Or, people?"
-msgstr ""
+msgstr "Osoba? nebo lidé?"
 
 #: edit/about.html:44
 msgid "Note any places mentioned?"
-msgstr ""
+msgstr "Zínil autor nějaká místa?"
 
 #: edit/about.html:58
 msgid "When is it set or about?"
@@ -949,7 +962,7 @@ msgstr ""
 
 #: edit/addcover.html:31
 msgid "Upload"
-msgstr ""
+msgstr "Nahrát
 
 #: edit/addfield.html:66
 msgid "Add a New Contributor Role"
@@ -988,11 +1001,11 @@ msgstr ""
 
 #: edit/edition.html:14
 msgid "Select this language"
-msgstr ""
+msgstr "Vybrat tento jazyk"
 
 #: edit/edition.html:23
 msgid "Remove this language"
-msgstr ""
+msgstr "Odstranit tento jazyk"
 
 #: edit/edition.html:32
 msgid "Remove this work"
@@ -1008,11 +1021,11 @@ msgstr "Knihovnický režim"
 
 #: edit/edition.html:87
 msgid "Publishing Info"
-msgstr ""
+msgstr "Publikační informace"
 
 #: edit/edition.html:94
 msgid "For example"
-msgstr ""
+msgstr "Například"
 
 #: edit/edition.html:104
 msgid "You should be able to find this in the first few pages of the book."
@@ -1020,11 +1033,11 @@ msgstr ""
 
 #: edit/edition.html:113
 msgid "Where was the book published?"
-msgstr ""
+msgstr "Kde byla kniha publikována?"
 
 #: edit/edition.html:114
 msgid "City, Country please."
-msgstr ""
+msgstr "Město, stát prosím."
 
 #: edit/edition.html:124
 msgid "Is there a copyright date?"
@@ -1036,7 +1049,7 @@ msgstr ""
 
 #: edit/edition.html:134
 msgid "Is the book part of a series?"
-msgstr ""
+msgstr "Je kniha součástí nějaké řady?"
 
 #: edit/edition.html:135
 msgid "The name of the publisher's series."
@@ -1044,11 +1057,11 @@ msgstr ""
 
 #: edit/edition.html:145
 msgid "This Edition"
-msgstr ""
+msgstr "Toto vydání"
 
 #: edit/edition.html:151
 msgid "What work is this an edition of?"
-msgstr ""
+msgstr "Jakého díla je tohle vydání?"
 
 #: edit/edition.html:153
 msgid ""
@@ -1072,7 +1085,7 @@ msgstr ""
 
 #: edit/edition.html:183
 msgid "Subtitle"
-msgstr ""
+msgstr "Podtitul"
 
 #: edit/edition.html:184
 msgid "Usually distinguished by different or smaller type."
@@ -1110,7 +1123,7 @@ msgstr ""
 
 #: edit/edition.html:261
 msgid "List the people involved"
-msgstr ""
+msgstr "Zapište zapojené lidi"
 
 #: edit/edition.html:271
 msgid "Select role"
@@ -1130,27 +1143,27 @@ msgstr ""
 
 #: edit/edition.html:339
 msgid "What language is this edition written in?"
-msgstr ""
+msgstr "V jaké jazyce je vydání napsáno?"
 
 #: edit/edition.html:351
 msgid "Is it a translation of another book?"
-msgstr ""
+msgstr "Je tohle překlad jiné kinhy?"
 
 #: edit/edition.html:369
 msgid "Yes, it's a translation"
-msgstr ""
+msgstr "Ano, je to překlad"
 
 #: edit/edition.html:374
 msgid "What's the original book?"
-msgstr ""
+msgstr "Jaká kniha je originál?"
 
 #: edit/edition.html:383
 msgid "What language was the original written in?"
-msgstr ""
+msgstr "V jaké jazyce byl originál napsán?"
 
 #: edit/edition.html:400
 msgid "Description of this edition"
-msgstr ""
+msgstr "Popis tohoto vydání"
 
 #: edit/edition.html:401
 msgid "Only if it's different from the work's description"
@@ -1226,15 +1239,15 @@ msgstr ""
 
 #: edit/edition.html:632
 msgid "Additional Metadata"
-msgstr ""
+msgstr "Další metadata"
 
 #: edit/edition.html:646
 msgid "First sentence"
-msgstr ""
+msgstr "První věta"
 
 #: edit/edition.html:670
 msgid "Please select a role."
-msgstr ""
+msgstr "Prosím vyberte roli."
 
 #: edit/edition.html:674
 msgid "You need to give this ROLE a name."
@@ -1381,12 +1394,12 @@ msgstr ""
 
 #: add.html:119
 msgid "Submit"
-msgstr ""
+msgstr "Odeslat"
 
 #: author_photo.html:16 book_cover.html:34 book_cover_single_edition.html:29
 #: book_cover_work.html:25 change.html:111
 msgid "Close"
-msgstr ""
+msgstr "Zvařít"
 
 #: change.html:81
 msgid "One sec, we're searching for covers..."
@@ -1400,11 +1413,11 @@ msgstr ""
 
 #: saved.html:21
 msgid "Saved!"
-msgstr ""
+msgstr "Uloženo!"
 
 #: saved.html:24
 msgid "Notes:"
-msgstr ""
+msgstr "Poznámky:"
 
 #: saved.html:34
 msgid "Add another image"
@@ -1412,7 +1425,7 @@ msgstr ""
 
 #: saved.html:41
 msgid "Finished"
-msgstr ""
+msgstr "Dokončeno"
 
 #: comment.html:28
 msgid "Edited without comment."
@@ -1426,7 +1439,7 @@ msgstr ""
 
 #: about.html:12 nav_head.html:86
 msgid "More"
-msgstr "více"
+msgstr "Další"
 
 #: index.html:3
 #, fuzzy
@@ -1559,15 +1572,15 @@ msgstr ""
 
 #: nav_foot.html:14
 msgid "Developers"
-msgstr ""
+msgstr "Vývojáři"
 
 #: nav_foot.html:20
 msgid "Report a problem."
-msgstr ""
+msgstr "Nahlásit problém"
 
 #: nav_foot.html:21
 msgid "Problems?"
-msgstr ""
+msgstr "Problémy?"
 
 #: nav_head.html:9 search_head.html:72
 msgid "Log in"
@@ -1575,7 +1588,7 @@ msgstr "Přihlásit"
 
 #: nav_head.html:10
 msgid "Sign up"
-msgstr ""
+msgstr "Registrovat"
 
 #: nav_head.html:13 nav_head.html:90
 msgid "Full-Text Search on Archive.org"
@@ -1584,7 +1597,7 @@ msgstr ""
 #: nav_head.html:14 nav_head.html:91
 #, fuzzy
 msgid "Random Book"
-msgstr "kniha"
+msgstr "Náhodna kniha"
 
 #: nav_head.html:15 nav_head.html:93
 msgid "Recent Community Edits"
@@ -1592,19 +1605,19 @@ msgstr ""
 
 #: nav_head.html:16 nav_head.html:92
 msgid "Advanced Search"
-msgstr ""
+msgstr "Pokročilé vyhledávání"
 
 #: nav_head.html:17 nav_head.html:94
 msgid "Developer Center"
-msgstr ""
+msgstr "Vývojářské centrum"
 
 #: nav_head.html:18 nav_head.html:95
 msgid "Help & Support"
-msgstr ""
+msgstr "Pomoc &  podpora"
 
 #: nav_head.html:38
 msgid "All"
-msgstr ""
+msgstr "Vše"
 
 #: nav_head.html:41 search_foot.html:7 search_head.html:7
 msgid "Subject"
@@ -1624,15 +1637,15 @@ msgstr "Hledat"
 
 #: nav_head.html:61
 msgid "Browse"
-msgstr ""
+msgstr "Procházet"
 
 #: nav_head.html:64
 msgid "Science"
-msgstr ""
+msgstr "Věda"
 
 #: nav_head.html:65
 msgid "Biographies"
-msgstr ""
+msgstr "Životopisné"
 
 #: nav_head.html:66
 #, fuzzy
@@ -1641,43 +1654,43 @@ msgstr "knihy"
 
 #: nav_head.html:67
 msgid "Sci-Fi"
-msgstr ""
+msgstr "Sci-Fi"
 
 #: nav_head.html:68
 #, fuzzy
 msgid "Romance"
-msgstr "Zrušit"
+msgstr "Romantické"
 
 #: nav_head.html:69
 msgid "Fantasy"
-msgstr ""
+msgstr "Fantasy"
 
 #: nav_head.html:70
 #, fuzzy
 msgid "More Subjects"
-msgstr "Témata"
+msgstr "Další témata"
 
 #: nav_head.html:71
 msgid "Reading Lists"
-msgstr ""
+msgstr "Seznamy četby"
 
 #: nav_head.html:76
 #, fuzzy
 msgid "My Books"
-msgstr "knihy"
+msgstr "Moje knihy"
 
 #: nav_head.html:79 nav_head.html:117
 msgid "My Loans"
-msgstr ""
+msgstr "Moje výpůjčky"
 
 #: nav_head.html:80
 msgid "My Reading Log"
-msgstr ""
+msgstr "Můj záznam četby"
 
 #: nav_head.html:81 nav_head.html:118
 #, fuzzy
 msgid "My Lists"
-msgstr "do vašeho seznamu"
+msgstr "Moje seznamy"
 
 #: nav_head.html:105 openlibrary/templates/login.html:6
 #: openlibrary/templates/login.html:64
@@ -1691,7 +1704,7 @@ msgstr "Váš účet"
 
 #: nav_head.html:119
 msgid "My Profile"
-msgstr ""
+msgstr "Můj profil"
 
 #: nav_head.html:123
 msgid "Log out"
@@ -1712,7 +1725,7 @@ msgstr "Místa"
 
 #: search_foot.html:9 search_head.html:9
 msgid "Person"
-msgstr ""
+msgstr "Osoba"
 
 #: search_foot.html:10 search_head.html:10
 msgid "Publisher"
@@ -1728,47 +1741,47 @@ msgstr ""
 
 #: search_foot.html:28
 msgid "English"
-msgstr ""
+msgstr "Anglicky"
 
 #: search_foot.html:29
 msgid "German"
-msgstr ""
+msgstr "Německy"
 
 #: search_foot.html:30
 msgid "French"
-msgstr ""
+msgstr "Francouzsky"
 
 #: search_foot.html:31
 msgid "Spanish"
-msgstr ""
+msgstr "Španělky"
 
 #: search_foot.html:32
 msgid "Russian"
-msgstr ""
+msgstr "Rusky"
 
 #: search_foot.html:33
 msgid "Italian"
-msgstr ""
+msgstr "Italsky"
 
 #: search_foot.html:34
 msgid "Chinese"
-msgstr ""
+msgstr "Čínsky"
 
 #: search_foot.html:35
 msgid "Arabic"
-msgstr ""
+msgstr "Arabsky"
 
 #: search_foot.html:36
 msgid "Japanese"
-msgstr ""
+msgstr "Japonsky"
 
 #: search_foot.html:37
 msgid "Portuguese"
-msgstr ""
+msgstr "Portugalsky"
 
 #: search_foot.html:38
 msgid "Polish"
-msgstr ""
+msgstr "Polsky"
 
 #: search_foot.html:64 search_head.html:30
 msgid "Only eBooks"
@@ -1785,7 +1798,7 @@ msgstr "Stránka vašeho profilu"
 
 #: search_head.html:65
 msgid "Loans"
-msgstr ""
+msgstr "Výpůjčky"
 
 #: search_head.html:66
 msgid "Lists"
@@ -1801,12 +1814,21 @@ msgid ""
 "href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
 "\">archive-it.org</a>"
 msgstr ""
+"Open Library je iniciativa <a href=\"//archive.org/\">Internet "
+"Archive</a>, a 501(c)(3) nezisková organisace, budující  knihovnu "
+"internetových stránek a dalších kulturních artefaktů v digitální podobě.<br/>Další <a"
+" href=\"//archive.org/projects/\">projekty</a> zahrnují <a "
+"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
+"href=\"//archive.org/\">archive.org</a> a <a href=\"//archive-it.org"
+"\">archive-it.org</a>"
 
 #: site_legal.html:7
 msgid ""
 "Your use of the Open Library is subject to the Internet Archive's <a "
 "href=\"//archive.org/about/terms.php\">Terms of Use</a>."
 msgstr ""
+"Vaše používání Open Library spadá pod <a "
+"href=\"//archive.org/about/terms.php\">Pravidla použití</a> Internet Archive."
 
 #: site_legal.html:21
 msgid ""
@@ -1827,7 +1849,7 @@ msgstr ""
 #: notfound.html:6
 #, fuzzy
 msgid "Publishers"
-msgstr "Vydavatel"
+msgstr "Vydavatelé"
 
 #: notfound.html:11
 #, python-format
@@ -1836,7 +1858,7 @@ msgstr ""
 
 #: notfound.html:13 openlibrary/templates/work_search.html:129
 msgid "Try something else?"
-msgstr ""
+msgstr "Zkusit něco jiného?"
 
 #: openlibrary/templates/subjects.html:15 view.html:13
 #, python-format
@@ -1849,7 +1871,7 @@ msgstr[1] ""
 #, fuzzy, python-format
 msgid "%s ebook"
 msgid_plural "%s ebooks"
-msgstr[0] "kniha"
+msgstr[0] "ekniha"
 msgstr[1] ""
 
 #: openlibrary/templates/subjects.html:23 view.html:21
@@ -1932,11 +1954,11 @@ msgstr[1] "%s knihy"
 
 #: view.html:532
 msgid "published most by this publisher"
-msgstr ""
+msgstr "nejvíce vydáno timto vydavatelem"
 
 #: openlibrary/templates/subjects.html:568 view.html:555
 msgid "Get more information about this publisher"
-msgstr ""
+msgstr "Získat další informace o tomto vydavately"
 
 #: openlibrary/templates/subjects.html:570 view.html:557
 #, fuzzy, python-format
@@ -2026,7 +2048,7 @@ msgstr "Vaše upozornění"
 
 #: openlibrary/templates/account.html:15
 msgid "Your Privacy Settings"
-msgstr ""
+msgstr "Vaše nastavebí soukromý"
 
 #: openlibrary/templates/account.html:16
 msgid "View"
@@ -2046,11 +2068,11 @@ msgstr "Stránka vašeho profilu"
 
 #: openlibrary/templates/account.html:17
 msgid "View or Edit your Reading Log"
-msgstr ""
+msgstr "Zobrazit nebo upravit váš záznam četby"
 
 #: openlibrary/templates/account.html:18
 msgid "View or Edit your Lists"
-msgstr ""
+msgstr "Zobrazit nebo upravit váše seznamy"
 
 #: openlibrary/templates/account.html:20
 msgid "Please contact us if you need help with anything else."
@@ -2165,7 +2187,7 @@ msgstr "%s neexistuje."
 #: openlibrary/templates/notfound.html:18
 #, fuzzy
 msgid "Create it?"
-msgstr "Vytvořte to"
+msgstr "Vytvořit to?"
 
 #: openlibrary/templates/permission_denied.html:6
 #, fuzzy
