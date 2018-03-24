@@ -1388,7 +1388,7 @@ def update_keys(keys, commit=True, output_file=None):
     requests = []
     requests += [DeleteRequest(deletes)]
     for k in wkeys:
-        logger.info("updating %s", k)
+        logger.info("updating work %s", k)
         try:
             w = data_provider.get_document(k)
             requests += update_work(w, debug=True)
@@ -1427,7 +1427,7 @@ def update_keys(keys, commit=True, output_file=None):
 
     data_provider.preload_documents(akeys)
     for k in akeys:
-        logger.info("updating %s", k)
+        logger.info("updating author %s", k)
         try:
             requests += update_author(k)
         except:
@@ -1450,7 +1450,7 @@ def update_keys(keys, commit=True, output_file=None):
     skeys = set(k for k in keys if k.startswith("/subjects/"))
     requests = []
     for k in skeys:
-        logger.info("updating %s", k)
+        logger.info("updating subject %s", k)
         try:
             requests += update_subject(k)
         except:
