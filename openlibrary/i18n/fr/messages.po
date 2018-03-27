@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"Report-Msgid-Bugs-To: traduc@traduc.org\n"
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
-"PO-Revision-Date: 2018-03-18 12:15+0100\n"
+"PO-Revision-Date: 2018-03-27 22:28+0200\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language-Team: fr <traduc@traduc.org>\n"
 "Language: fr\n"
@@ -24,7 +24,7 @@ msgstr ""
 #: verify.html:5 verify/activated.html:6 verify/success.html:6
 #, python-format
 msgid "Hi, %(user)s"
-msgstr "Bienvenu, %(user)s"
+msgstr "Bienvenue, %(user)s"
 
 #: account.py:348 account.py:383
 #, python-format
@@ -33,7 +33,7 @@ msgid ""
 "click on the verification link to verify your email."
 msgstr ""
 "Nous avons envoyé un courriel de vérification à %(email)s. Vous devrez "
-"l'ouvrir et cliquer sur le lien de vérification pour vérifier votre adresse."
+"l'ouvrir et cliquer sur le lien de vérification pour valider votre adresse."
 
 #: account.py:423
 #, python-format
@@ -59,15 +59,14 @@ msgstr ""
 
 #: account.py:446
 msgid "Email verification successful."
-msgstr "Vérification de l'adresse de courriel réussie."
+msgstr "Adresse de courriel vérifiée."
 
 #: account.py:447
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
 msgstr ""
-"Votre adresse de courriel a été correctement vérifiée et mise à jour dans "
-"votre compte."
+"Votre adresse de courriel a été vérifiée et mise à jour dans votre compte."
 
 #: account.py:451
 msgid "Email address couldn't be verified."
@@ -78,11 +77,11 @@ msgid ""
 "Your email address couldn't be verified. The verification link seems invalid."
 msgstr ""
 "Votre adresse de courriel n'a pas pu être vérifiée. Le lien de vérification "
-"semble invalide."
+"semble incorrect."
 
 #: account.py:485
 msgid "Your password has been updated successfully."
-msgstr "Votre mot de passe a bien été mis à jour."
+msgstr "Votre mot de passe a été mis à jour."
 
 #: account.py:579 account.py:589
 msgid "Password reset failed."
@@ -90,7 +89,7 @@ msgstr "La récupération du mot de passe a échoué."
 
 #: account.py:635 account.py:651
 msgid "Notification preferences have been updated successfully."
-msgstr "Les préférences de notifications ont bien été mises à jour."
+msgstr "Les préférences de notifications ont été mises à jour."
 
 #: forms.py:19
 msgid "Username"
@@ -114,7 +113,7 @@ msgstr "Les adresse jetables sont interdites"
 
 #: forms.py:28
 msgid "Your email provider is not recognized."
-msgstr "Votre fournisseur de courriel n'est pas reconnu."
+msgstr "Votre fournisseur de courriel n'a pas été reconnu."
 
 #: forms.py:29
 msgid "Username already used"
@@ -158,7 +157,7 @@ msgstr "Les mots de passe ne correspondent pas."
 
 #: forms.py:88
 msgid "Invalid password"
-msgstr "Mot de passe invalide"
+msgstr "Mot de passe incorrect"
 
 #: forms.py:91
 msgid "Current password"
@@ -209,7 +208,7 @@ msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite the "
 "source."
 msgstr ""
-"Si vous «&nbsp;empruntez&nbsp;» les informations d'ailleurs, assurez-vous de "
+"Si vous «&nbsp;empruntez&nbsp;» des informations ailleurs, assurez-vous d'en "
 "citer la source."
 
 #: edit.html:70
@@ -225,12 +224,12 @@ msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" is "
 "recommended."
 msgstr ""
-"Nous ne stockons pas (encore) de date structurée donc il vaut mieux utiliser "
-"une date comme «&nbsp;21 May 2000&nbsp;»."
+"Nous ne stockons pas (encore) de dates structurées donc il vaut mieux utiliser "
+"une date au format «&nbsp;21 May 2000&nbsp;»."
 
 #: edit.html:96
 msgid "Does this author go by any other names?"
-msgstr "Cet auteur a-t-il d'autres noms&nbsp;?"
+msgstr "Cet auteur est-il connu sous d'autres noms&nbsp;?"
 
 #: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
 #: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
@@ -275,11 +274,11 @@ msgstr "Livres empruntés"
 
 #: borrow.html:81
 msgid "1 Current Loan"
-msgstr "1 emprunt actuellement"
+msgstr "1 emprunt en cours"
 
 #: borrow.html:83
 msgid "Current Loans"
-msgstr "emprunts actuellement"
+msgstr "emprunts en cours"
 
 #: borrow.html:85
 msgid "Loan Expires"
@@ -311,20 +310,20 @@ msgstr[1] "%d livres"
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
-msgstr[0] "Attente pendant %d jour"
-msgstr[1] "Attente pendant %d jours"
+msgstr[0] "En attente depuis %d jour"
+msgstr[1] "En attente depuis %d jours"
 
 #: borrow.html:222
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)s people ahead of you in the waiting list."
-msgstr[0] "Une personne devant vous en liste d'attente."
-msgstr[1] "%(count)s personnes devant vous en liste d'attente."
+msgstr[0] "Il y a 1 personne devant vous en liste d'attente."
+msgstr[1] "Il y a %(count)s personnes devant vous en liste d'attente."
 
 #: borrow.html:260
 msgid "There are 2 different sources for borrowing books through Open Library:"
 msgstr ""
-"Deux sources différentes permettent d'emprunter des livres à travers Open "
+"Deux sources différentes permettent d'emprunter des livres via l'Open "
 "Library&nbsp;:"
 
 #: borrow.html:264
@@ -333,7 +332,7 @@ msgstr "Internet Archive"
 
 #: borrow.html:266
 msgid "eBooks everywhere"
-msgstr "des livres électroniques n'importe où"
+msgstr "des livres électroniques d'un peu partout"
 
 #: borrow.html:268
 msgid ""
@@ -2341,7 +2340,7 @@ msgstr "Trier par"
 #: openlibrary/templates/work_search.html:140
 #: openlibrary/templates/work_search.html:142
 msgid "Relevance"
-msgstr "Pertinance"
+msgstr "Pertinence"
 
 #: openlibrary/templates/work_search.html:136
 #: openlibrary/templates/work_search.html:138
