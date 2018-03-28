@@ -604,8 +604,10 @@
    <copyField source="person" dest="text"/>
    <copyField source="time" dest="text"/>
 
+   <!-- Copy author search fields into default search field "text" -->
    <copyField source="name" dest="text"/>
    <copyField source="name_str" dest="text"/>
+   <copyField source="alternate_names" dest="text"/>
 
    <!-- 
    <copyField source="cat" dest="text"/>
