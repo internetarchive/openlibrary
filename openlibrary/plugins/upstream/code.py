@@ -55,6 +55,14 @@ class change_photo(change_cover):
 
 del delegate.modes['change_cover']     # delete change_cover mode added by openlibrary plugin
 
+class merge_work(delegate.page):
+    path = "(/works/OL\d+W)/merge"
+    def GET(self, key):
+        return "This looks like a good place for a merge UI!"
+
+    def POST(self, key):
+        pass
+
 @web.memoize
 @public
 def vendor_js():
