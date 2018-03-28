@@ -191,11 +191,11 @@ def main():
     elif cmd == "add-new-scans":
         return add_new_scans(args)
     elif cmd == "import-batch":
-        return import_batch(args, **kwargs)
+        return import_batch(args, **flags)
     elif cmd == "import-all":
-        return import_all(args, **kwargs)
+        return import_all(args, **flags)
     elif cmd == "import-item":
-        return import_item(args, **kwargs)
+        return import_item(args, **flags)
     else:
         logger.error("Unknown command: %s", cmd)
 
