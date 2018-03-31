@@ -345,12 +345,11 @@ def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
-def create_loan(identifier, resource_type, user_key, book_key=None):
+def create_loan(identifier, user_key, book_key=None):
     """Creates a loan and returns it.
     """
     ia_loan = ia_lending_api.create_loan(
          identifier=identifier,
-         format=resource_type,
          userid=user_key,
          ol_key=book_key)
 
@@ -385,7 +384,6 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
     loan_data = loan and dict(
         uuid=loan['uuid'],
         loaned_at=loan['loaned_at'],
-        resource_type=loan['resource_type'],
         ocaid=loan['ocaid'],
         book=loan['book'])
 
@@ -461,16 +459,9 @@ class Loan(dict):
         _uuid = uuid.uuid4().hex
         loaned_at = time.time()
 
-        if resource_type == "bookreader":
-            resource_id = "bookreader:" + identifier
-            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            t_expiry = datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
-            expiry = t_expiry.isoformat()
-        else:
-            raise Exception('No longer supporting ACS borrows directly from Open Library. Please go to Archive.org')
-
-        if not resource_id:
-            raise Exception('Could not find resource_id for %s - %s' % (identifier, resource_type))
+        loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
+        t_expiry = datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
+        expiry = t_expiry.isoformat()
 
         key = "loan-" + identifier
         return Loan({
@@ -479,12 +470,11 @@ class Loan(dict):
             'type': '/type/loan',
             'user': user_key,
             'book': book_key,
+            'fulfilled': 1,
             'ocaid': identifier,
             'expiry': expiry,
             'uuid': _uuid,
             'loaned_at': loaned_at,
-            'resource_type': resource_type,
-            'resource_id': resource_id,
             'loan_link': loan_link,
         })
 
@@ -507,10 +497,7 @@ class Loan(dict):
 
         # For historic reasons, OL considers expiry == None as un-fulfilled
         # loan.
-        if data['fulfilled']:
-            expiry = data['until']
-        else:
-            expiry = None
+        expiry = data.get('until') if data.get('fulfilled') else None
 
         d = {
             '_key': "loan-{0}".format(data['identifier']),
@@ -521,11 +508,8 @@ class Loan(dict):
             'book': book_key,
             'ocaid': data['identifier'],
             'expiry': expiry,
-            'fulfilled': data['fulfilled'],
             'uuid': 'loan-{0}'.format(data['id']),
             'loaned_at': time.mktime(created.timetuple()),
-            'resource_type': data['format'],
-            'resource_id': data['resource_id'],
             'loan_link': data['loan_link'],
             'stored_at': 'ia'
         }
@@ -561,11 +545,8 @@ class Loan(dict):
 
     def return_loan(self):
         logger.info("*** return_loan ***")
-        if self['resource_type'] == 'bookreader':
-            self.delete()
-            return True
-        else:
-            return False
+        self.delete()
+        return True
 
     def delete(self):
         loan = dict(self, returned_at=time.time())
@@ -654,21 +635,10 @@ def update_loan_status(identifier):
     if loan is None or loan.get('from_ia'):
         return
 
-    if loan['resource_type'] == 'bookreader':
-        if loan.is_expired():
-            loan.delete()
-            return
-    else:
-        acs4_loan = ACS4Item(identifier).get_loan()
-        if not acs4_loan and not loan.is_yet_to_be_fulfilled():
-            logger.info("%s: loan returned or expired or timedout, deleting...", identifier)
-            loan.delete()
-            return
+    if loan.is_expired():
+        loan.delete()
+        return
 
-        if loan['expiry'] != acs4_loan['until']:
-            loan['expiry'] = acs4_loan['until']
-            loan.save()
-            logger.info("%s: updated expiry to %s", identifier, loan['expiry'])
 
 class ACS4Item(object):
     """Represents an item on ACS4 server.
@@ -694,22 +664,7 @@ class ACS4Item(object):
         """Returns the information about loan in the ACS4 server.
         """
         d = self.get_data() or {}
-        if not d.get('resources'):
-            return
-        for r in d['resources']:
-            if r['loans']:
-                loan = dict(r['loans'][0])
-                loan['resource_id'] = r['resourceid']
-                loan['resource_type'] = self._format2resource_type(r['format'])
-                return loan
-
-    def _format2resource_type(self, format):
-        formats = {
-            "application/epub+zip": "epub",
-            "application/pdf": "pdf"
-        }
-        return formats[format]
-
+        return
 
 class IA_Lending_API:
     """Archive.org waiting list API.
@@ -725,8 +680,8 @@ class IA_Lending_API:
     def find_loans(self, **kw):
         return self._post(method="loan.query", **kw).get('result', [])
 
-    def create_loan(self, identifier, userid, format, ol_key):
-        response = self._post(method="loan.create", identifier=identifier, userid=userid, format=format, ol_key=ol_key)
+    def create_loan(self, identifier, userid, ol_key):
+        response = self._post(method="loan.create", identifier=identifier, format="bookreader", userid=userid, ol_key=ol_key)
         if response['status'] == 'ok':
             return response['result']['loan']
 
