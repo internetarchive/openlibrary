@@ -470,7 +470,6 @@ class Loan(dict):
             'type': '/type/loan',
             'user': user_key,
             'book': book_key,
-            'fulfilled': 1,
             'ocaid': identifier,
             'expiry': expiry,
             'uuid': _uuid,
