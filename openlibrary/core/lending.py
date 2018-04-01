@@ -285,8 +285,11 @@ def is_loaned_out_on_ia(identifier):
     """Returns True if the item is checked out on Internet Archive.
     """
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
-    response = simplejson.loads(urllib2.urlopen(url).read())
-    return response and response.get('checkedout')
+    try:
+        response = simplejson.loads(urllib2.urlopen(url).read())
+        return response and response.get('checkedout')
+    except:
+        return None
 
 
 def is_loaned_out_on_ol(identifier):
