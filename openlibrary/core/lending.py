@@ -468,11 +468,14 @@ class Loan(dict):
             '_key': key,
             '_rev': 1,
             'type': '/type/loan',
+            'fulfilled': 1,
             'user': user_key,
             'book': book_key,
             'ocaid': identifier,
             'expiry': expiry,
             'uuid': _uuid,
+            'resource_type': 'bookreader',
+            'resource_id': 'bookreader:%s' % identifier,
             'loaned_at': loaned_at,
             'loan_link': loan_link,
         })
@@ -496,7 +499,7 @@ class Loan(dict):
 
         # For historic reasons, OL considers expiry == None as un-fulfilled
         # loan.
-        expiry = data.get('until') if data.get('fulfilled') else None
+        expiry = data.get('until')
 
         d = {
             '_key': "loan-{0}".format(data['identifier']),
