@@ -192,7 +192,7 @@ class borrow(delegate.page):
                 # Handle the case of multiple edition records for the same
                 # ocaid and the user borrowed from one and returning from another
                 has_loan = (loan['book'] == edition.key or loan['ocaid'] == edition.ocaid)
-                if has_loan and can_return_resource_type(loan['resource_type']):
+                if has_loan:
                     user_loan = loan
                     break
 
@@ -425,7 +425,8 @@ class ia_auth(delegate.page):
         # check that identifier is valid
 
         user = accounts.get_current_user()
-        auth_json = simplejson.dumps( get_ia_auth_dict(user, item_id, resource_id, i.loan, i.token ) )
+        auth_json = simplejson.dumps(
+            get_ia_auth_dict(user, item_id, i.loan, i.token))
 
         output = auth_json
 
@@ -640,25 +641,21 @@ def get_all_loaned_out():
 
 def is_loaned_out(resource_id):
     # bookreader loan status is stored in the private data store
-    if resource_id.startswith('bookreader'):
-        # Check our local status
-        loan_key = get_loan_key(resource_id)
-        if not loan_key:
-            # No loan recorded
-            identifier = resource_id[len('bookreader:'):]
-            return lending.is_loaned_out_on_ia(identifier)
 
-        # Find the loan and check if it has expired
-        loan = web.ctx.site.store.get(loan_key)
-        if loan:
-            if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
-                return True
+    # Check our local status
+    loan_key = get_loan_key(resource_id)
+    if not loan_key:
+        # No loan recorded
+        identifier = resource_id[len('bookreader:'):]
+        return lending.is_loaned_out_on_ia(identifier)
 
-        return False
+    # Find the loan and check if it has expired
+    loan = web.ctx.site.store.get(loan_key)
+    if loan:
+        if datetime_from_isoformat(loan['expiry']) < datetime.datetime.utcnow():
+            return True
 
-    # Assume ACS4 loan - check status server
-    status = get_loan_status(resource_id)
-    return is_loaned_out_from_status(status)
+    return False
 
 def is_loaned_out_from_status(status):
     if not status:
@@ -804,8 +801,7 @@ def return_resource(resource_id):
         raise Exception('Asked to return %s but no loan recorded' % resource_id)
 
     loan = web.ctx.site.store.get(loan_key)
-    if loan['resource_type'] != 'bookreader':
-        raise Exception('Not possible to return loan %s of type %s' % (loan['resource_id'], loan['resource_type']))
+
     delete_loan(loan_key, loan)
 
 def delete_loan(loan_key, loan = None):
@@ -816,7 +812,7 @@ def delete_loan(loan_key, loan = None):
 
     loan.delete()
 
-def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access_token):
+def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
     """Returns response similar to one of these:
     {'success':true,'token':'1287185207-fa72103dd21073add8f87a5ad8bce845','borrowed':true}
     {'success':false,'msg':'Book is checked out','borrowed':false, 'resolution': 'You can visit <a href="http://openlibary.org/ia/someid">this book\'s page on Open Library</a>.'}
@@ -830,15 +826,13 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
 
     # Sanity checks
     if not ia_identifier_is_valid(item_id):
-        return {'success': False, 'msg': 'Invalid item id', 'resolution': 'This book does not appear to have a valid item identifier.' }
-
-    if not resource_id.startswith('bookreader'):
-        error_message = 'Bad resource id type'
-        resolution_message = 'This book cannot be borrowed for in-browser loan. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to learn more about the book.' % resolution_dict
-        return {'success': False, 'msg': error_message, 'resolution': resolution_message }
+        return {
+            'success': False,
+            'msg': 'Invalid item id',
+            'resolution': 'This book does not appear to have a valid item identifier.'
+        }
 
     # Lookup loan information
-    #loan_key = get_loan_key(resource_id)
     loan = lending.get_loan(item_id)
     loan_key = loan and loan.get_key()
 
@@ -848,22 +842,11 @@ def get_ia_auth_dict(user, item_id, resource_id, user_specified_loan_key, access
         resolution_message = 'This book is part of the <a href="%(base_url)s/subjects/Lending_library">lending library</a>. Please <a href="%(base_url)s/ia/%(item_id)s/borrow">visit this book\'s page on Open Library</a> to access the book.' % resolution_dict
 
     else:
-        # Book is checked out (by someone) - get the loan information
-        #loan = web.ctx.site.store.get(loan_key)
-
-        # Check that this is a bookreader loan
-        if loan['resource_type'] != 'bookreader':
-            error_message = 'No BookReader loan'
-            resolution_message = 'This book was borrowed as ' + loan['resource_type'] + '. You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page</a> on openlibrary.org to access the book in that format.' % resolution_dict
-            return {'success': False, 'msg': error_message, 'resolution': resolution_message }
-
         # If we know who this user is, from third-party cookies and they are logged into openlibrary.org, check if they have the loan
         if user:
+
             if loan['user'] != user.key:
                 # Borrowed by someone else - OR possibly came in through ezproxy and there's a stale login in on openlibrary.org
-
-
-
                 error_message = 'This book is checked out'
                 resolution_message = 'This book is currently checked out.  You can <a href="%(base_url)s/ia/%(item_id)s">visit this book\'s page on Open Library</a> or <a href="%(base_url)s/subjects/Lending_library">look at other books available to borrow</a>.' % resolution_dict
 
