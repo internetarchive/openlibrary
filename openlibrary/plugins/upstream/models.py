@@ -170,7 +170,10 @@ class Edition(models.Edition):
         return lending_resources
 
     def get_lending_resource_id(self, type):
-        desired = 'bookreader:'
+        if type == 'bookreader':
+            desired = 'bookreader:'
+        else:
+            desired = 'acs:%s:' % type
 
         for urn in self.get_lending_resources():
             if urn.startswith(desired):
@@ -213,6 +216,8 @@ class Edition(models.Edition):
 
     def _get_available_loans(self, current_loans):
 
+        default_type = 'bookreader'
+
         loans = []
 
         # Check if we have a possible loan - may not yet be fulfilled in ACS4
@@ -223,15 +228,26 @@ class Edition(models.Edition):
         # Create list of possible loan formats
         resource_pattern = r'acs:(\w+):(.*)'
         for resource_urn in self.get_lending_resources():
-            loans.append({
-                'resource_id': resource_urn,
-                'resource_type': 'bookreader',
-                'size': None
-            })
+            if resource_urn.startswith('acs:'):
+                (type, resource_id) = re.match(resource_pattern, resource_urn).groups()
+                loans.append({
+                    'resource_id': resource_id,
+                    'resource_type': type,
+                    'size': None
+                })
+            elif resource_urn.startswith('bookreader'):
+                loans.append({
+                    'resource_id': resource_urn,
+                    'resource_type': 'bookreader',
+                    'size': None
+                })
 
         # Put default type at start of list, then sort by type name
         def loan_key(loan):
-            return '1-bookreader'
+            if loan['resource_type'] == default_type:
+                return '1-%s' % loan['resource_type']
+            else:
+                return '2-%s' % loan['resource_type']
         loans = sorted(loans, key=loan_key)
 
         # For each possible loan, check if it is available We

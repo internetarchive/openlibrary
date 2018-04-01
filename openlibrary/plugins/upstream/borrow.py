@@ -144,7 +144,12 @@ class borrow(delegate.page):
             action = 'read'
 
         if action == 'borrow':
-            user_meets_borrow_criteria = user_can_borrow_edition(user, edition)
+            resource_type = i.format or 'bookreader'
+
+            if resource_type not in ['epub', 'pdf', 'bookreader']:
+                raise web.seeother(error_redirect)
+
+            user_meets_borrow_criteria = user_can_borrow_edition(user, edition, resource_type)
 
             if user_meets_borrow_criteria:
                 # This must be called before the loan is initiated,
@@ -154,27 +159,35 @@ class borrow(delegate.page):
 
                 loan = lending.create_loan(
                     identifier=edition.ocaid,
+                    resource_type=resource_type,
                     user_key=ia_itemname,
                     book_key=key)
 
                 if loan:
                     loan_link = loan['loan_link']
-                    if track_loan:
-                        # As of 2017-12-14, Petabox will be
-                        # responsible for tracking borrows which
-                        # are the result of waitlist redemptions,
-                        # so we don't want to track them here to
-                        # avoid double accounting. When a reader
-                        # is at the head of a waitlist and goes to
-                        # claim their loan, Petabox now checks
-                        # whether the waitlist was initiated from
-                        # OL, and if it was, petabox tracks
-                        # ol.loans.bookreader accordingly via
-                        # lending.create_loan.
-                        stats.increment('ol.loans.bookreader')
+                    if resource_type == 'bookreader':
+                        if track_loan:
+                            # As of 2017-12-14, Petabox will be
+                            # responsible for tracking borrows which
+                            # are the result of waitlist redemptions,
+                            # so we don't want to track them here to
+                            # avoid double accounting. When a reader
+                            # is at the head of a waitlist and goes to
+                            # claim their loan, Petabox now checks
+                            # whether the waitlist was initiated from
+                            # OL, and if it was, petabox tracks
+                            # ol.loans.bookreader accordingly via
+                            # lending.create_loan.
+                            stats.increment('ol.loans.bookreader')
 
                         raise web.seeother(make_bookreader_auth_link(
                             loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                    elif resource_type == 'pdf':
+                        stats.increment('ol.loans.pdf')
+                        raise web.seeother(loan_link)
+                    elif resource_type == 'epub':
+                        stats.increment('ol.loans.epub')
+                        raise web.seeother(loan_link)
                 else:
                     raise web.seeother(error_redirect)
             else:
@@ -505,6 +518,13 @@ def datetime_from_utc_timestamp(seconds):
     return datetime.datetime.utcfromtimestamp(seconds)
 
 @public
+def can_return_resource_type(resource_type):
+    """Returns true if this resource can be returned from the OL site."""
+    if resource_type.startswith('bookreader'):
+        return True
+    return False
+
+@public
 def ia_identifier_is_valid(item_id):
     """Returns false if the item id is obviously malformed. Not currently checking length."""
     if re.match(r'^[a-zA-Z0-9][a-zA-Z0-9\.\-_]*$', item_id):
@@ -759,7 +779,7 @@ def resource_uses_bss(resource_id):
                 return True
     return False
 
-def user_can_borrow_edition(user, edition):
+def user_can_borrow_edition(user, edition, resource_type):
     """Returns True if the book is eligible for lending and available, and
     if the user is pemitted to borrow this edition given their current
     number of loans and their position on the waiting list (if
@@ -778,6 +798,7 @@ def user_can_borrow_edition(user, edition):
     if waitlist_size:
         return is_users_turn_to_borrow(user, edition)
 
+    #resource_type in [loan['resource_type'] for loan in edition.get_available_loans()]:
     return availability_status == 'borrow_available'
 
 def is_users_turn_to_borrow(user, edition):
