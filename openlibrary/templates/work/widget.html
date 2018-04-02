@@ -1,15 +1,46 @@
 $def with (work=None)
 
-$work
-
+<!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8">
+    <title>book widget</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/work-widget.css">
+        
+  </head>  
   <body>
+
+    $ public_url = "/books/" + work["availability"]["openlibrary_edition"] + "/x/borrow"
+    $ borrow_url = "/borrow/ia/" + work["availability"]["identifier"]
+    $ waitlist_url = "/borrow/ia/" + work["availability"]["identifier"] + "?action=join-waitinglist"
+    <p id="demo1"></p>
+    <p id="demo2"></p>
     <div class="widget">
-      <img src="$(work.get('cover_url', 'https://i.pinimg.com/originals/d8/ef/e1/d8efe15e9b9bb57f7dfc489746e2de7d.jpg'))" alt="$(work.get('title'))" style="width: 200px;"/>
-      <h1>$work.get('title', 'hello world')</h1>
-      <form action="$(work.get('ocaid'))">
-	<button type="submit">Borrow</button>
-      </form>
+      <img class="bookcover" src="$(work.get('cover_url', 'https://i.pinimg.com/originals/d8/ef/e1/d8efe15e9b9bb57f7dfc489746e2de7d.jpg'))" alt="$(work.get('title'))"/>
+      <h1 class="title">$work.get('title', 'hello world')</h1>
+      <h2 class="author">$work.get('author')</h2>
+      $if work["availability"]["status"] == "open" :
+        <div class="open" type="submit">
+        <a target="_blank" href="$public_url" title="book availability">Read</a>
+      $elif work["availability"]["status"] == "available" :
+        <div class="available" type="submit">
+        <a target="_blank" href="$borrow_url" title="book availability">Borrow</a>
+      $elif work["availability"]["status"] == "waitlist" :
+        <form class="waitlist" method="POST" action="$waitlist_url">
+          <input type="hidden" name="action" value="join-waitinglist">
+          <button type="submit" title="book availability">Join waiting list</button>
+        </div>
     </div>
+    <script>
+      //document.getElementById("demo1").innerHTML = "Page path is: " + window.location.href;
+      var olid = ((window.location.href).split('/'))[4];
+      //var urlEnd1 = currentPage.split('/');
+      var urlSample = 'https://openlibrary.org/works/OL16245392W/The_Lord_of_the_Rings'
+      var testOlid = (urlSample.split('/'))[4];
+      //document.getElementById("demo2").innerHTML = urlEnd1; 
+      //console.log(urlEnd1);
+      //var olid = urlEnd1[4];
+      console.log(testOlid);
+      </script>
   </body>
 </html>
