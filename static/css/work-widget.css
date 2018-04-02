@@ -1,0 +1,95 @@
+
+
+
+body {
+    line-height: normal;
+}
+
+.open {
+    background: #3c99fc;
+    border-radius: 3px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    width: 130px;
+    margin: 0px auto;
+    margin-top: 5px;
+    text-align: center;
+    font-size: .9em;
+    padding: 5px 0px;
+}
+
+.open a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+}
+
+.available {
+    background: #3c99fc;
+    border-radius: 3px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    width: 130px;
+    margin: 0px auto;
+    margin-top: 5px;
+    text-align: center;
+    font-size: .9em;
+    padding: 5px 0px;
+}
+
+.available a {
+    display: block;
+    color: #fff;
+    text-decoration: none;
+}
+
+.waitlist {
+    background: #ffa337;
+    border-radius: 3px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    width: 130px;
+    margin: 0px auto;
+    margin-top: 5px;
+    text-align: center;
+    font-size: .9em;
+    padding: 5px 0px;
+    cursor: pointer;
+}
+
+.waitlist button {
+    border: none;
+    color: #fff;
+    background: none;
+    font-size: 1em;
+    text-decoration: none;
+    cursor: pointer;
+ 
+}
+
+
+
+img.bookcover {
+    margin: 0 auto;
+    width: 130px;
+    height: 200px;
+    box-shadow: 1px 2px 5px 0px #5252527e;
+    border-radius: 3px;
+    text-align: center;
+    display: block;
+}
+
+.title {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    margin: 0px auto;
+    color: #333;
+    font-size: 1.0em;
+    width: 130px;
+    
+    
+}
+
+.author {
+    font-size: .9em;
+    font-weight: normal;
+    color: #333;
+    margin: 15px 0px;
+    text-align: center;
+}
