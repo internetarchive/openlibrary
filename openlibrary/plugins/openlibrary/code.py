@@ -195,6 +195,7 @@ class widget(delegate.page):
             work = web.ctx.site.get('/works/%s' % olid) or {}
             work['olid'] = olid
             work['availability'] = get_work_availability(olid).get(work['olid'])
+            work['authors'] = [web.storage(key=a.key, name=a.name or None) for a in work.get_authors()]
             return delegate.RawText(
                 render_template("work/widget", work=format_work_data(work)),
                 content_type="text/html")
