@@ -188,14 +188,13 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class widget(delegate.page):
-    path = "/widget"
+    path = "/works/(OL\d+W)/widget"
 
-    def GET(self):
-        i = web.input(olid=None)
-        if i.olid:
-            work = web.ctx.site.get('/works/%s' % i.olid) or {}
-            work['olid'] = i.olid
-            work['availability'] = get_work_availability(i.olid).get(work['olid'])
+    def GET(self, olid=None):
+        if olid:
+            work = web.ctx.site.get('/works/%s' % olid) or {}
+            work['olid'] = olid
+            work['availability'] = get_work_availability(olid).get(work['olid'])
             return delegate.RawText(
                 render_template("work/widget", work=format_work_data(work)),
                 content_type="text/html")
