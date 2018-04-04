@@ -211,23 +211,26 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             </div>
 
         <div class="section">
-            <h3>Links <span class="gray small sansserif">(outside Open Library)</span></h3>
+            <h3>$_('Links') <span class="gray small sansserif">($_('outside Open Library'))</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
                 $if page.remote_ids:
+                    $if page.remote_ids.isni:
+                        $ isni = page.remote_ids.isni
+                       <li>ISNI: <a href="http://www.isni.org/$isni">$' '.join([isni[i:i+4] for i in range(0, 16, 4)])</a></li>
                     $if page.remote_ids.viaf:
                         $ viaf = page.remote_ids.viaf
-                        <li><a href="https://viaf.org/viaf/$viaf">VIAF ID: $viaf</a></li>
+                        <li>VIAF: <a href="https://viaf.org/viaf/$viaf">$viaf</a></li>
                     $if page.remote_ids.wikidata:
-                        <li><a href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">Wikidata</a></li>
+                        <li>Wikidata: <a href="https://tools.wmflabs.org/reasonator/?q=$page.remote_ids.wikidata">$page.remote_ids.wikidata</a></li>
                 $if page.wikipedia and page.wikipedia.startswith("http"):
                     <li><a href="$page.wikipedia">Wikipedia</a></li>
                 $for link in page.links:
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
             $else:
-                <p class="sansserif small">No links yet. <a href="$page.url('/edit')#web">Add one</a>?</p>
+                <p class="sansserif small">$_('No links yet.') <a href="$page.url('/edit')#web">$_('Add one')</a>?</p>
 
         </div>
 
