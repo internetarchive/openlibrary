@@ -211,7 +211,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             </div>
 
         <div class="section">
-            <h3>Links <span class="gray small sansserif">(outside Open Library)</span></h3>
+            <h3>$_('Links') <span class="gray small sansserif">($_('outside Open Library'))</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
@@ -230,7 +230,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     <li><a href="$link.url">$link.title</a></li>
                 </ul>
             $else:
-                <p class="sansserif small">No links yet. <a href="$page.url('/edit')#web">Add one</a>?</p>
+                <p class="sansserif small">$_('No links yet.') <a href="$page.url('/edit')#web">$_('Add one')</a>?</p>
 
         </div>
 
