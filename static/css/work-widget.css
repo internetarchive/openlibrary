@@ -1,6 +1,3 @@
-
-
-
 body {
     line-height: normal;
 }
@@ -61,10 +58,7 @@ body {
     font-size: 1em;
     text-decoration: none;
     cursor: pointer;
- 
 }
-
-
 
 img.bookcover {
     margin: 0 auto;
@@ -82,8 +76,6 @@ img.bookcover {
     color: #333;
     font-size: 1.0em;
     width: 130px;
-    
-    
 }
 
 .author {
