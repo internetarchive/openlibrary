@@ -68,9 +68,9 @@ If running in Vagrant, but services don't seem to have been properly started -- 
 
 For instructions on administrating your Open Library instance and
 build instructions for developers, refer the Developer's
-[Quickstart.md](Quickstart.md) document.
+[Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
-You can find more info digging into this old (and in part outdated) document here: http://code.openlibrary.org/en/latest/
+You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
 ## Code Organization
 
