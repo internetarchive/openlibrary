@@ -14,7 +14,7 @@ catalog, building towards a web page for every book ever published.
      - [The Backend](#the-backend)
      - [The Service Architecture](#the-service-architecture)
    - [Developer's Guide](#developers-guide)
-   - [Running Tests](#running-tests)
+   - [Running Tests](https://github.com/internetarchive/openlibrary/wiki/Testing)
    - [Contributing](#contributing)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
@@ -80,12 +80,6 @@ You can also find more information regarding Developer Documentation for Open Li
 * openlibrary/templates - all the templates used in the website
 * openlibrary/macros - macros are like templates, but can be called from wikitext
 
-## Architecture
-
-### The Frontend
-
-- [Overview of Frontend Technologies](http://code.openlibrary.org/en/latest/dev/index.html)
-
 ### The Backend
 
 OpenLibrary is developed on top of the Infogami wiki system, which is
@@ -104,22 +98,14 @@ how to use Infogami (and its database, Infobase):
 
 - [Overview of OpenLibrary Service Architecture](https://openlibrary.org/about/architecture)
 
-## Running tests
-
-Open Library tests can be run using pytest (py.test).
-
-Inside vagrant, go to the application base directory:
-
-        cd /openlibrary
-        make test
-
-### Integration Tests
-
-Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
 
 ## Contributing
 
 [Check out our contributor's guide](CONTRIBUTING.md) to learn how you can contribute!
+
+Most of our day-to-day chat has moved to #openlibrary-g -- a public channel on our archive.org slack. If you'd like to be apart of the conversation here, [please let us know](https://github.com/internetarchive/openlibrary/issues/686).
+
+Assuming you meet some basic activity requirements, we'll gladly send you an invite!
 
 ## License
 
