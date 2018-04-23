@@ -117,7 +117,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 <ul>
                     <li>$:macros.LoanStatus(book, ctx.user)</li>
                 $if oclc_numbers or isbn:
-                    <li><a href="$(worldcatoclc if oclc_numbers else worldcat).replace('XXX', oclc_numbers if oclc_numberse else isbn)"
+                    <li><a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
                            title="Look for this edition at WorldCat">Find a Physical Copy</a><br /><span class="gray smaller">via WorldCat</span></li>
                 </ul>
             </div>
@@ -138,7 +138,6 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         </td>
     $else:
         <td class="icon buy inact">
-        <div class="zzzz"></div>
-        <div class="links">
-        </div>
+          <div class="zzzz"></div>
+          <div class="links"></div>
         </td>
