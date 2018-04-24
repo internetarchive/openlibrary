@@ -1985,9 +1985,13 @@ div.Tools ul.ebook-download-options li {
     padding: 0px;
     margin-top: 5px;
     flex: 1; 
+    cursor: pointer;
 }
-#content div.Tools ul.shareLinks-list li a { display: block; text-align: center;}
-#content div.Tools ul.shareLinks-list li a img { display: block; margin: 0 auto; }
+.shareLinks li:hover{
+    cursor: pointer;
+}
+#content div.Tools ul.shareLinks-list li a { display: block; text-align: center; cursor: pointer;}
+#content div.Tools ul.shareLinks-list li a img { display: block; margin: 0 auto; cursor: pointer; }
 div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
 div.Tools div.dropit {min-height:45px;}

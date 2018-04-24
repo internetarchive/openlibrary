@@ -1,5 +1,6 @@
 *.pyc
 *~
+.vscode/
 *.swp
 *.mo
 var/

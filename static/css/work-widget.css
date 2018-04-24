@@ -14,10 +14,20 @@ body {
     padding: 5px 0px;
 }
 
+.widget {
+    padding: 10px 0px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
 .open a {
     display: block;
     color: #fff;
     text-decoration: none;
+}
+
+.cta a {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
 }
 
 .available {
@@ -72,16 +82,30 @@ img.bookcover {
 
 .title {
     font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-    margin: 0px auto;
-    color: #333;
-    font-size: 1.0em;
+    margin: 7px auto 0 auto;
+    color: #555;
+    font-size: 0.8em;
     width: 130px;
 }
 
 .author {
-    font-size: .9em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size: 0.7em;
     font-weight: normal;
-    color: #333;
-    margin: 15px 0px;
-    text-align: center;
+    color: #777;
+    margin: 5px auto 7px auto;
+    width: 130px;
+}
+
+.service {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    color: #999;
+    width: 130px;
+    margin: 7px auto;
+    text-align: right;
+    font-size: .6em;
+}
+
+.service a {
+    color: #999;
 }
