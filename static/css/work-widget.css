@@ -16,8 +16,8 @@ body {
 
 .widget {
     padding: 10px 0px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+//    border-radius: 5px;
+//    border: 1px solid #ccc;
 }
 
 .open a {
@@ -86,6 +86,10 @@ img.bookcover {
     color: #555;
     font-size: 0.8em;
     width: 130px;
+}
+
+a.noshow {
+    text-decoration: none;
 }
 
 .author {
