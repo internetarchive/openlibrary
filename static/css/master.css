@@ -1900,6 +1900,13 @@ a.linkButton {
     margin-top:10px;
 }
 
+.shareLinks .share-source {
+    font-size: .8em;
+    text-align: center;
+    color: #888;
+    
+}
+
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
 #content .shareLinks li {list-style-type:none;display: inline;line-height: 24px;}
 #content .shareLinks a {line-height: 24px;}
@@ -1971,7 +1978,7 @@ div.Tools li {
 
 div.Tools ul.ebook-download-options li {
     padding-left: 0px;
-    margin: 10px 10px 0px 10px;
+    margin: 5px 10px 0px 10px;
 }
 
 #content div.Tools ul.shareLinks-list {
