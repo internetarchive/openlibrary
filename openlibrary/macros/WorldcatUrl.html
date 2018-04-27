@@ -1,0 +1,6 @@
+$def with(text="Check nearby libraries", isbn=None, oclc_numbers=None)
+
+$ worldcat = "https://worldcat.org/isbn/XXX"
+$ worldcatoclc = "https://worldcat.org/oclc/XXX"
+
+$(worldcatoclc.replace('XXX', oclc_numbers) if oclc_numbers else worldcat.replace('XXX', isbn))
