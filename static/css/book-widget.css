@@ -2,22 +2,8 @@ body {
     line-height: normal;
 }
 
-.open {
-    background: #3c99fc;
-    border-radius: 3px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    width: 130px;
-    margin: 0px auto;
-    margin-top: 5px;
-    text-align: center;
-    font-size: .9em;
-    padding: 5px 0px;
-}
-
 .widget {
     padding: 10px 0px;
-//    border-radius: 5px;
-//    border: 1px solid #ccc;
 }
 
 .open a {
@@ -26,20 +12,17 @@ body {
     text-decoration: none;
 }
 
-.cta a {
+.cta {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-}
-
-.available {
     background: #3c99fc;
     border-radius: 3px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     width: 130px;
     margin: 0px auto;
     margin-top: 5px;
     text-align: center;
     font-size: .9em;
     padding: 5px 0px;
+    cursor: pointer;
 }
 
 .available a {
@@ -50,15 +33,6 @@ body {
 
 .waitlist {
     background: #ffa337;
-    border-radius: 3px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    width: 130px;
-    margin: 0px auto;
-    margin-top: 5px;
-    text-align: center;
-    font-size: .9em;
-    padding: 5px 0px;
-    cursor: pointer;
 }
 
 .waitlist button {

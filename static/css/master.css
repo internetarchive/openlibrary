@@ -1904,7 +1904,6 @@ a.linkButton {
     font-size: .8em;
     text-align: center;
     color: #888;
-    
 }
 
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
@@ -1991,7 +1990,7 @@ div.Tools ul.ebook-download-options li {
     margin: 0px;
     padding: 0px;
     margin-top: 5px;
-    flex: 1; 
+    flex: 1;
     cursor: pointer;
 }
 .shareLinks li:hover{
