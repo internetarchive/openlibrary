@@ -19,12 +19,14 @@ if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
 from infogami.utils import delegate
-from infogami.utils.view import render, public, safeint, add_flash_message
+from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
 from openlibrary.utils.isbn import isbn_13_to_isbn_10
+from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
+from openlibrary.plugins.openlibrary.home import format_work_data
 
 import processors
 
@@ -184,6 +186,21 @@ class addbook(delegate.page):
         key = web.ctx.site.new_key('/type/edition')
         web.ctx.path = key
         return edit().POST(key)
+
+class widget(delegate.page):
+    path = "/(works|books)/(OL\d+[W|M])/widget"
+
+    def GET(self, _type, olid=None):
+        if olid:
+            getter = get_work_availability if _type == 'works' else get_edition_availability
+            item = web.ctx.site.get('/%s/%s' % (_type, olid)) or {}
+            item['olid'] = olid
+            item['availability'] = getter(olid).get(item['olid'])
+            item['authors'] = [web.storage(key=a.key, name=a.name or None) for a in item.get_authors()]
+            return delegate.RawText(
+                render_template("widget", item if _type == 'books' else format_work_data(item)),
+                content_type="text/html")
+        raise web.seeother("/")
 
 class addauthor(delegate.page):
     path = '/addauthor'

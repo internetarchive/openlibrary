@@ -1900,6 +1900,12 @@ a.linkButton {
     margin-top:10px;
 }
 
+.shareLinks .share-source {
+    font-size: .8em;
+    text-align: center;
+    color: #888;
+}
+
 #content .shareLinks ul {list-style-type:none;margin:0;padding:0;overflow:hidden;}
 #content .shareLinks li {list-style-type:none;display: inline;line-height: 24px;}
 #content .shareLinks a {line-height: 24px;}
@@ -1971,7 +1977,7 @@ div.Tools li {
 
 div.Tools ul.ebook-download-options li {
     padding-left: 0px;
-    margin: 10px 10px 0px 10px;
+    margin: 5px 10px 0px 10px;
 }
 
 #content div.Tools ul.shareLinks-list {
@@ -1984,10 +1990,14 @@ div.Tools ul.ebook-download-options li {
     margin: 0px;
     padding: 0px;
     margin-top: 5px;
-    flex: 1; 
+    flex: 1;
+    cursor: pointer;
 }
-#content div.Tools ul.shareLinks-list li a { display: block; text-align: center;}
-#content div.Tools ul.shareLinks-list li a img { display: block; margin: 0 auto; }
+.shareLinks li:hover{
+    cursor: pointer;
+}
+#content div.Tools ul.shareLinks-list li a { display: block; text-align: center; cursor: pointer;}
+#content div.Tools ul.shareLinks-list li a img { display: block; margin: 0 auto; cursor: pointer; }
 div.Tools p {font-size:0.6875em;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;padding-left:42px;margin-bottom:5px;}
 div.Tools div#readBooks p {font-size:0.75em!important;}
 div.Tools div.dropit {min-height:45px;}

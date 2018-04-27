@@ -31,11 +31,7 @@ $if page.get('identifiers'):
 $if isbn_10 and not asin:
     $ asin = isbn_10
 
-<style type="text/css">
-.hidden {
-  display: none;
-}
-</style>
+
 
 <div class="Tools">
   <div id="read">
@@ -70,7 +66,7 @@ $if isbn_10 and not asin:
             $:macros.DownloadOptions(page)
 
         $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers)
-        $:macros.SocialShare()
+        $:macros.SocialShare(page)
       </div>
     </div>
   </div>

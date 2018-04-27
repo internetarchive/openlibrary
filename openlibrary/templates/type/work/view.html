@@ -138,6 +138,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                           </ul>
                         </div>
                 </div>
+
             </div>
         </div>
 
@@ -147,6 +148,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¬°Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"])
                     <span id="curses">$exclaim</span> There's no description for this book yet. Can you <b><a href="$page.url('/edit')#about/about">help</a></b>?
                 </div>
+
         <div class="workPadding">
             $if not page.excerpts and page.first_sentence:
                 <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>

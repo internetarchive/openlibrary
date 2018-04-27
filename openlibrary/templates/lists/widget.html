@@ -92,7 +92,10 @@ $jsdef show_list(list):
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
     <div class="dropit">
       <div class="icon list hidetool"></div>
-        <div class="dropper on $('edition-page-lists-dropdown' if (edition and not work_key) else '')">
+          $if edition and not work_key:
+            <div class="dropper on edition-page-lists-dropdown">
+          $else:
+            <div class="dropper on">
           $if work_key:
             <div class="log-work">
               <form method="POST" action="$(work_key)/bookshelves.json">

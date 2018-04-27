@@ -1,15 +1,25 @@
-$def with()
+$def with(page)
 
-    $ share_links = ctx.get('share_links')
-    $if share_links:
-      <hr>
-      <div class="shareLinks cta-section">
-        <p class="cta-section-title">Share this book</p>
-        <ul class="shareLinks-list">
-         $for share_link in share_links:
-            $ track_tag = share_link['text'].replace(' ', '-')
-            <li>
-              <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag"><img alt="$(share_link['text'])" class="share-link" src="/static/images/$(share_link['text'].lower()).svg"/></a>
-            </li>
-        </ul>
-      </div>
+$ share_links = ctx.get('share_links')
+$if share_links:
+  <hr>
+  <div class="shareLinks cta-section">
+    <p class="cta-section-title">Share this book</p>
+    <ul class="shareLinks-list">
+      $for share_link in share_links:
+        $ track_tag = share_link['text'].replace(' ', '-')
+        <li>
+          <a href="$share_link['url']" class="sansserif large" target="_blank" data-ol-link-track="Share|$track_tag"><img title="Share on $(share_link['text'])" alt="$(share_link['text'])" class="share-link" src="/static/images/$(share_link['text'].lower()).svg"/></a>
+          <div class="share-source">$share_link['text']</div>
+        </li>
+      <li>
+        $# rm special characters from url such as single quote which break js prompt/iframe
+        $ clean_url = page.url().replace("'", "\\'")
+        <a title="Embed this book in your website" class="embed-work-btn" onclick="prompt('Copy embed code to clipboard:', '&lt;iframe width=&quot;165&quot; frameBorder=&quot;0&quot; height=&quot;400&quot; src=&quot;' + location.protocol + '//' + location.hostname + (location.port ? ':' + location.port: '') +
+'$(clean_url)/widget&quot;&gt;&lt;/iframe&gt;' );" >
+        <img alt="Embed this book" class="share-link" src="/static/images/embed.png">
+        </a>
+        <div class="share-source">Embed</div>
+      </li>
+    </ul>
+  </div>
