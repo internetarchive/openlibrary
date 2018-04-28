@@ -14,14 +14,14 @@ $ book_title = item.get('title', '')
   </head>
   <body>
     <div class="widget">
-      <a href="$(canonical_url(item['key']))" class="noshow">
+      <a href="$(canonical_url(item['key']))" target="_blank" class="noshow">
         <img class="bookcover" src="$(cover_url)" alt="$book_title"/>
         <h1 class="title">$book_title</h1>
       </a>
       $if item.get('authors'):
         <h2 class="author">
           $ primary_author = item.get('authors')[0]
-          by <a href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
+          by <a target="_blank" href="$(canonical_url(primary_author['key']))">$primary_author['name']</a>
         </h2>
       $if book_status == "open" :
         $ public_url = canonical_url("/books/" + item["availability"]["openlibrary_edition"] + "/x/borrow")
@@ -43,7 +43,7 @@ $ book_title = item.get('title', '')
         <div class="cta open">
           <a data-ol-link-track="embed|learn" target="_blank" href="$(canonical_url(item['key']))" title="Learn more about &quot;$book_title&quot; at OpenLibrary">Learn More</a>
 	</div>
-      <p class="service">on <a href="$(canonical_url('/'))">openlibrary.org</a></p>
+      <p class="service">on <a target="_blank" href="$(canonical_url('/'))">openlibrary.org</a></p>
     </div>
   </body>
 </html>
