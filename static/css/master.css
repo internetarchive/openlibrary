@@ -344,6 +344,9 @@ body#admin div#content,body#edit div#content{font-family: "Lucida Grande", Verda
 input[type=text],select,textarea{font-family:"Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;color:#454545;font-size:0.875em;}
 input[type=text]{margin: 0 10px 5px 0;}
 #contentBody input[type=submit]{font-size:1.125em;}
+.noborder {
+    border: none;
+}
 p.instruct {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 0.875em;
@@ -408,7 +411,7 @@ header#header-bar {
 }
 
 .logo-component {
-    margin: 5px 0px;
+    margin: 0px 0px 5px 0px;
 }
 
 .logo-component a {

@@ -1,6 +1,6 @@
 $def with (page)
 
-$ announcement = 'Is Open Library useful to you? Chip in to keep it growing. Your gift will be matched today! &nbsp; <a href="https://archive.org/donate?platform=ol" data-ol-link-track="AnnouncementsBar|DonateButton" class="btn primary">Donate</a>' 
+$ announcement = 'Is Open Library useful to you? Chip in to keep it growing. &nbsp; <a href="https://archive.org/donate?platform=ol" data-ol-link-track="AnnouncementsBar|DonateButton" class="btn primary">Donate</a>' 
 
 $if 'v2' in page:
   <body>
@@ -31,7 +31,7 @@ $else:
 
       <div id="placement">
         <div id="position">
-          <div id="content">
+          <div id="content$(' noborder' if bodyid == 'form' else '')">
             <div class="flash-messages">
               $for flash in get_flash_messages():
                 <div class="$flash.type"><span>$flash.message</span></div>
@@ -41,9 +41,10 @@ $else:
               <div class="alert attn"><span></span></div>
             </div>
 
-            <div class="page-banner page-banner-body">
-              $:announcement
-            </div>
+            $if bodyid != "form":
+              <div class="page-banner page-banner-body">
+                $:announcement
+              </div>
 
             $:page
 
