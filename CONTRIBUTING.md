@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Installing Open Library
-For instructions on setting up a local developer's instance of Open Library, please refer to https://github.com/internetarchive/openlibrary#installation. Also, refer to the Quickstart Guide: https://github.com/internetarchive/openlibrary/blob/master/Quickstart.md (might be outdated)
+For instructions on setting up a local developer's instance of Open Library, please refer to https://github.com/internetarchive/openlibrary#installation. Also, refer to the Quickstart Guide: https://github.com/internetarchive/openlibrary/wiki/Getting-Started
 
 ## Resources for Contributors
 Look through our issues related to `contributing`:
