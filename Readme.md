@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary) [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Open Library (https://openlibrary.org) is an open, editable library
-catalog, building towards a web page for every book ever published.
+[Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
 
 ## Table of Contents
    - [Overview](#overview)
@@ -22,9 +21,7 @@ catalog, building towards a web page for every book ever published.
 
 ## Overview
 
-Open Library is an effort started in 2006 to create "one web page for
-every book ever published". It provides access to many public domain
-and out-of-print books, which can be read online.
+Open Library is an effort started in 2006 to create "one web page for every book ever published". It provides access to many public domain and out-of-print books, which can be read online.
 
 - [Learn more about the Open Library project](https://openlibrary.org/about)
 - [The Vision (Dream) of OpenLibrary](https://openlibrary.org/about/vision)
@@ -32,33 +29,36 @@ and out-of-print books, which can be read online.
 
 ## Installation
 
-First you need to have installed
-[Virtualbox](https://www.virtualbox.org/) and
-[Vagrant](https://www.vagrantup.com/).
+First you need to have installed [Virtualbox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/).
 
 Next, fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary) to your own [Github](https://www.github.com) account and clone your forked repo to your local machine:
 
-        git clone git@github.com:YOURACCOUNT/openlibrary.git
+```
+git clone git@github.com:YOURACCOUNT/openlibrary.git
+```
 
 Enter the project directory and provision + launch the dev virtual machine instance using vagrant:
 
-      cd openlibrary
-      vagrant up
+```bash
+cd openlibrary
+vagrant up
+```
 
 You can now view your running instance by loading `http://localhost:8080` in a web browser.
 
 You can turn off the virtual machine from the host machine using:
+```
+vagrant halt
+```	
 
-        vagrant halt
-	
 To administrate and ssh into the vagrant dev virtual machine, type:
 
-        vagrant ssh
+```
+vagrant ssh
+```
 
-Note: Remember that, thanks to vagrant and virtual box, your local
-folder `openlibrary` (where you ran `vagrant up`) contains *exactly*
-the same files as `/openlibrary` in the dev virtual machine (the one
-that you login to via `vagrant ssh`).
+**Note:** <br>
+Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
 
 ### Help!
 
@@ -66,9 +66,7 @@ If running in Vagrant, but services don't seem to have been properly started -- 
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance and
-build instructions for developers, refer the Developer's
-[Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
+For instructions on administrating your Open Library instance and build instructions for developers, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
 You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
@@ -84,19 +82,15 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ### The Frontend
 
-- [Overview of Frontend Technologies](http://code.openlibrary.org/en/latest/dev/index.html)
+- [Overview of Frontend Technologies](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
 
 ### The Backend
 
-OpenLibrary is developed on top of the Infogami wiki system, which is
-itself built on top of the web.py Python web framework and the
-Infobase database framework. 
+OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
-Once you've read the overview of OpenLibrary Backend technologies,
-it's highly encouraged you read the developer primer which explains
-how to use Infogami (and its database, Infobase):
+Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase):
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
@@ -106,12 +100,14 @@ how to use Infogami (and its database, Infobase):
 
 ## Running tests
 
-Open Library tests can be run using pytest (py.test).
+Open Library tests can be run using pytest (py.test). Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
 
 Inside vagrant, go to the application base directory:
 
-        cd /openlibrary
-        make test
+```
+cd /openlibrary
+make test
+```
 
 ### Integration Tests
 
@@ -123,6 +119,4 @@ Integration tests use the Splinter webdriver with Google Chrome. For instruction
 
 ## License
 
-All source code published here is available under the terms of the GNU
-Affero General Public License, version 3. Please see
-http://gplv3.fsf.org/ for more information.
+All source code published here is available under the terms of the GNU Affero General Public License, version 3. Please see http://gplv3.fsf.org/ for more information.

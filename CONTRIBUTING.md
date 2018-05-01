@@ -1,9 +1,10 @@
 # Getting Started
 
 ## Installing Open Library
-For instructions on setting up a local developer's instance of Open Library, please refer to https://github.com/internetarchive/openlibrary#installation. Also, refer to the Quickstart Guide: https://github.com/internetarchive/openlibrary/blob/master/Quickstart.md (might be outdated)
+For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation). Also, refer to the [Quickstart Guide](https://github.com/internetarchive/openlibrary/wiki/Getting-Started).
 
 ## Resources for Contributors
+
 Look through our issues related to `contributing`:
 https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Acontributing
 
@@ -38,10 +39,12 @@ Whenever working on a new feature/hotfix/refactor, the first step is to make sur
 
 A branch name consists of the: issue number, whether it is a feature/hotfix/refactor, and a human readable slug, e.g:
 
-    123/refactor/simplifying-authentication-using-xauthn
+```
+123/refactor/simplifying-authentication-using-xauthn
+```
 
 ## Pull Requests
 
 * Pull Requests (PRs) must link to the issue they resolve. Please expect PRs without corresponding issues to be rejected until an issue is retroactively created and linked to it.
 
-* When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding issue.
+* When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding Issue.
