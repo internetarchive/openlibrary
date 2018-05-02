@@ -1,0 +1,12 @@
+$def with (work_key, edition_key=None)
+
+<form method="POST" action="/works/$(work_key)/likes.json?debug=true">
+  <input type="hidden" value="$edition_key" name="edition_key"/>
+  <select>
+    <option value="">Rate this Book</option>
+    $for i in range(11):
+      $ star_val = (i * 0.5)
+      $ star = int(star_val) if star_val == int(star_val) else star_val
+      <option value="$i">$star stars</option>
+  </select>
+</form>
