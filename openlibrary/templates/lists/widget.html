@@ -236,6 +236,7 @@ $if include_header:
   </div>
 
 $if include_widget:
+  $:macros.StarRatings(work_key, edition_key=edition_key)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
