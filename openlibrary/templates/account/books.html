@@ -9,7 +9,10 @@ $ username = user.key.split('/')[-1]
 <div id="contentHead">
   <div id="mybooks">
     <div class="small sansserif grey account-settings-menu">
-      <a href="$ctx.user.key">$ctx.user.displayname</a>
+      $if user:
+        <a href="$user.key">$user.displayname</a>
+      $else:
+        <a href="$ctx.user.key">$ctx.user.displayname</a>
       &raquo;
       $_("Reading Log")
     </div>
