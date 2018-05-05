@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .admin-section {
     border-left: 4px solid #a7cee4;
     padding: 0px 10px 10px 10px;
@@ -261,7 +263,7 @@ button.larger{font-size:18px!important;}
 .clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
 .right.illustration {margin:0 0 30px 30px;}
 .left.illustration {margin:0 30px 30px 0;}
-.illustration {text-align:center;margin-bottom:15px;position: relative;}
+.illustration {text-align:center;margin-bottom:5px;position: relative;}
 button.plainText {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#e44028;background-color: #fff;cursor:pointer;}
 button.plainText:hover {color:#35672e;}
 button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#000;background-color:transparent!important;cursor:pointer;}
@@ -436,9 +438,9 @@ header#header-bar {
 .search-component .search-bar {
     max-width: none;
     min-width: none;
-    -webkit-transition: all 0.5s;
-    -o-transition: all 0.5s;
-    transition: all 0.5s;
+    -webkit-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
     background: #fafafa;
     border-radius:.3em;
     -webkit-box-flex: 1;
@@ -6089,4 +6091,97 @@ a.btn {
 
 .account-settings-menu {
     margin-bottom: 15px;
+}
+
+
+.star {
+    color: #aaa;
+}
+
+#ratingsForm {
+    margin-bottom: 5px;
+}
+
+#ratingsForm .stars {
+  background: url("/static/images/stars.png") repeat-x 0 0;
+  width: 150px;
+  margin: 0px auto;
+  margin-bottom: 7px;
+  cursor: pointer;
+}
+ 
+#ratingsForm .stars input[type="submit"] {
+  position: absolute;
+  opacity: 0;
+  filter: alpha(opacity=0);
+}
+
+form .stars input[type="submit"].star-5.star-selected ~ span {
+  width: 100%;
+}
+form .stars input[type="submit"].star-4.star-selected ~ span {
+  width: 80%;
+}
+form .stars input[type="submit"].star-3.star-selected ~ span {
+  width: 60%;
+}
+form .stars input[type="submit"].star-2.star-selected ~ span {
+  width: 40%;
+}
+form .stars input[type="submit"].star-1.star-selected ~ span {
+  width: 20%;
+}
+form .stars input[type="submit"].star-0.star-selected ~ span {
+  width: 0%;
+}
+
+.star-messaging {
+    color: #aaa;
+    background: none;
+    display: block;
+    margin: 0 auto;
+    border: 0px;
+  cursor: pointer;
+}
+
+form .stars label {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0!important;
+  padding: 0!important;
+  text-indent: -999em;
+  float: left;
+  position: relative;
+  z-index: 10;
+  background: transparent!important;
+  cursor: pointer;
+}
+form .stars label:hover ~ span {
+  background-position: 0 -60px;
+}
+form .stars label.star-5:hover ~ span {
+  width: 100% !important;
+}
+form .stars label.star-4:hover ~ span {
+  width: 80% !important;
+}
+form .stars label.star-3:hover ~ span {
+  width: 60% !important;
+}
+form .stars label.star-2:hover ~ span {
+  width: 40% !important;
+}
+form .stars label.star-1:hover ~ span {
+  width: 20% !important;
+}
+form .stars span {
+  display: block;
+  width: 0;
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 30px;
+  background: url("/static/images/stars.png") repeat-x 0 -60px;
+
 }

@@ -48,8 +48,6 @@ class ratings(delegate.page):
     path = "/works/OL(\d+)W/ratings"
     encoding = "json"
 
-    VALID_STAR_RATINGS = range(11)  # inclusive: [0 - 10] (0-5 star, w/ half stars)
-
     def POST(self, work_id):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
@@ -62,21 +60,31 @@ class ratings(delegate.page):
 
         username = user.key.split('/')[2]
 
-        response = ""
-        if rating and rating in VALID_STAR_RATINGS:
+        def response(msg, status="success"):
+            return delegate.RawText(simplejson.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        if i.rating is None:
+            models.Ratings.remove(username, work_id)
+            r = response('removed rating')
+
+        else:
+            try:
+                rating = int(i.rating)
+                if rating not in models.Ratings.VALID_STAR_RATINGS:
+                    raise ValueError
+            except ValueError:
+                return response('invalid rating', status="error")
+                
             models.Ratings.add(
                 username=username, work_id=work_id,
                 rating=rating, edition_id=edition_id)
-            if i.redir:
-                raise web.seeother(key)
-            response = "success"
-        else:
-            response = "invalid rating value: %s" % rating
-        return delegate.RawText(simplejson.dumps({
-            'response': response
-        }), content_type="application/json")
+            r = response('rating added')
 
-
+        if i.redir:
+            raise web.seeother(key)
+        return r
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.
