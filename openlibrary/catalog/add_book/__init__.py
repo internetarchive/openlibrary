@@ -213,7 +213,8 @@ def load_data(rec):
     assert edits
     web.ctx.site.save_many(edits, 'import new book')
 
-    # write back to IA
+    # Writes back `openlibrary_edition` and `openlibrary_work` to
+    # archive.org item after successful import:
     update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
 
     reply['success'] = True
@@ -595,10 +596,5 @@ def load(rec):
             assert isinstance(i, dict)
 
         web.ctx.site.save_many(edits, 'import new book')
-
-    # Writes back `openlibrary_edition` and `openlibrary_work` to
-    # archive.org item after successful import:
-    if reply.get('edition') and reply['edition'].get('key'):
-        update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
 
     return reply
