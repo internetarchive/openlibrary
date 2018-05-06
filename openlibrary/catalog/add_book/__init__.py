@@ -213,6 +213,10 @@ def load_data(rec):
     assert edits
     web.ctx.site.save_many(edits, 'import new book')
 
+    # Writes back `openlibrary_edition` and `openlibrary_work` to
+    # archive.org item after successful import:
+    update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
+
     reply['success'] = True
     reply['edition'] = { 'key': ekey, 'status': 'created', }
     reply['work'] = { 'key': wkey, 'status': work_state, }
@@ -531,44 +535,6 @@ def load(rec):
     assert e['source_records']
 
     edits = []
-    if False and rec.get('authors'):
-        reply['authors'] = []
-        east = east_in_by_statement(rec)
-        work_authors = list(w.get('authors', []))
-        edition_authors = list(e.authors)
-        author_in = [import_author(a, eastern=east) for a in rec['authors']]
-        for a in author_in:
-            new_author = 'key' not in a
-            add_to_work = False
-            add_to_edition = False
-            if new_author:
-                a['key'] = web.ctx.site.new_key('/type/author')
-                assert isinstance(a, dict)
-                edits.append(a)
-                add_to_work = True
-                add_to_edition = True
-            else:
-                if not any(i['author'] == a for i in work_authors):
-                    add_to_work = True
-                if all(i['key'] != a['key'] for i in edition_authors):
-                    add_to_edition = True
-            if add_to_work:
-                need_work_save = True
-                work_authors.append({
-                    'type': {'key': '/type/author_role'},
-                    'author': {'key': a['key'] },
-                })
-            if add_to_edition:
-                need_edition_save = True
-                edition_authors.append({'key': a['key'] })
-
-            reply['authors'].append({
-                'key': a['key'],
-                'name': a['name'],
-                'status': ('created' if new_author else 'modified'),
-            })
-        w['authors'] = work_authors
-        e['authors'] = edition_authors
     if 'subjects' in rec:
         work_subjects = list(w.get('subjects', []))
         for s in rec['subjects']:
@@ -630,10 +596,5 @@ def load(rec):
             assert isinstance(i, dict)
 
         web.ctx.site.save_many(edits, 'import new book')
-
-    # Writes back `openlibrary_edition` and `openlibrary_work` to
-    # archive.org item after successful import:
-    if reply.get('edition') and reply['edition'].get('key'):
-        update_ia_metadata_for_ol_edition(reply['edition']['key'].split('/')[2])
 
     return reply

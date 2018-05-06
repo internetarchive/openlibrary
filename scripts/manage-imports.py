@@ -112,6 +112,7 @@ def add_new_scans(args):
 
 def import_batch(args, **kwargs):
     servername = kwargs.get('servername', None)
+    require_marc = not kwargs.get('no_marc', False)
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
@@ -119,19 +120,21 @@ def import_batch(args, **kwargs):
         sys.exit(1)
 
     for item in batch.get_items():
-        do_import(item, servername=servername)
+        do_import(item, servername=servername, require_marc=require_marc)
 
 def import_item(args, **kwargs):
     servername = kwargs.get('servername', None)
+    require_marc = not kwargs.get('no_marc', False)
     ia_id = args[0]
     item = ImportItem.find_by_identifier(ia_id)
     if item:
-        do_import(item, servername=servername)
+        do_import(item, servername=servername, require_marc=require_marc)
     else:
         logger.error("%s is not found in the import queue", ia_id)
 
 def import_all(args, **kwargs):
     servername = kwargs.get('servername', None)
+    require_marc = not kwargs.get('no_marc', False)
     while True:
         items = ImportItem.find_pending()
         if not items:
@@ -139,7 +142,7 @@ def import_all(args, **kwargs):
             time.sleep(60)
 
         for item in items:
-            do_import(item, servername=servername)
+            do_import(item, servername=servername, require_marc=require_marc)
 
 def retroactive_import(start=None, stop=None, servername=None):
     """Retroactively searches and imports all previously missed books
@@ -183,7 +186,7 @@ def main():
     if cmd == "import-retro":
         start, stop = (int(a) for a in args) if \
                       (args and len(args) == 2) else (None, None)
-        return retroactive_import(start=start, stop=stop, servername=servername)
+        return retroactive_import(start=start, stop=stop, servername=flags['servername'])
     if cmd == "import-ocaids":
         return import_ocaids(*args, **flags)
     if cmd == "add-items":
