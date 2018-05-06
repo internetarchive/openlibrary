@@ -36,4 +36,9 @@ jQuery(function($) {
 
     // hide all images in .no-img
     $(".no-img img").hide();
+
+    // disable save button after click
+    $("button[name='_save']").click(function() {
+        $(this).attr("disabled", true);
+    });
 });
