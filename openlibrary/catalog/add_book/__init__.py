@@ -213,6 +213,9 @@ def load_data(rec):
     assert edits
     web.ctx.site.save_many(edits, 'import new book')
 
+    # write back to IA
+    update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
+
     reply['success'] = True
     reply['edition'] = { 'key': ekey, 'status': 'created', }
     reply['work'] = { 'key': wkey, 'status': work_state, }
