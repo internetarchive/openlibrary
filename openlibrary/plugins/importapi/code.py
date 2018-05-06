@@ -247,7 +247,6 @@ class ia_importapi:
 
         else:
             edition_data = self.get_ia_record(metadata)
-            return self.error("invalid-ia-metadata")
             if not edition_data:
                 return self.error("invalid-ia-metadata")
 
