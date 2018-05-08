@@ -196,7 +196,7 @@ def pick_best_edition(work):
     return (e for e in work.editions if e.ocaid).next()
 
 def format_work_data(work):
-    d = work.dict()
+    d = dict(work)
 
     key = work.get('key', '')
     # New solr stores the key as /works/OLxxxW
