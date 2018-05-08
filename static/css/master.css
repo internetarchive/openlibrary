@@ -943,6 +943,34 @@ header#header-bar .account-component .account-dropdown ul a li{
     display: none;
 }
 
+ul.iaBarNav {
+    display: inline;
+}
+
+ul.iaBarNav li {
+    display: inline;
+    padding: 5px;
+    list-style-type: none;
+}
+
+ul.iaBarNav li:last-child {
+    padding-right: 0px;
+}
+
+a.ghost-btn {
+    padding: 5px 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-weight: 500;
+    text-decoration: none;
+    font-size: 1.1em;
+    
+}
+
+.heart {
+    color: #ff787c;
+}
+
 @media only screen and (min-width: 25em) {
     header#header-bar .logo-component .logo-icon {
         height: 47px;
