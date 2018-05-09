@@ -38,7 +38,7 @@ jQuery(function($) {
     $(".no-img img").hide();
 
     // disable save button after click
-    $("button[name='_save']").click(function() {
+    $("button[name='_save']").submit(function() {
         $(this).attr("disabled", true);
     });
 });
