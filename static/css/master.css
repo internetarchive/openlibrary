@@ -940,7 +940,19 @@ header#header-bar .account-component .account-dropdown ul a li{
     -ms-flex: 1;
     flex: 1;
     text-align: right;
-    display: none;
+}
+
+a.ghost-btn {
+    padding: 5px 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.heart {
+    color: #ff787c;
+    font-size: 1.2em;
 }
 
 @media only screen and (min-width: 25em) {
@@ -5451,7 +5463,6 @@ span.actions a span.checked-out {
     font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     background: #036DAA;
     padding: 15px;
-    font-size: .8em;
     border-top-right-radius: 3px;
     border-top-left-radius: 3px;
     border-bottom: 1px solid #e2dcc5;
