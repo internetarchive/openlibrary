@@ -822,17 +822,6 @@ class MergeAuthors(Changeset):
     def can_undo(self):
         return self.get_undo_changeset() is None
 
-    def process_docs_before_undo(self, docs):
-        works = [doc for doc in docs if doc['key'].startswith("/works/")]
-        for w in works:
-            if w.get("authors"):
-                authors = [follow_redirect(web.ctx.site.get(a['author']['key']))
-                            for a in w.get('authors')
-                            if 'author' in a
-                            and 'key' in a['author']]
-                w['authors'] = [{"author": {"key": a.key}} for a in authors]
-        return docs
-
     def get_master(self):
         master = self.data.get("master")
         return master and web.ctx.site.get(master, lazy=True)
