@@ -6136,44 +6136,44 @@ form .stars input[type="submit"].star-0.star-selected ~ span {
 }
 
 .star-messaging {
-    color: #aaa;
-    background: none;
-    display: block;
-    margin: 0 auto;
-    border: 0px;
-  cursor: pointer;
+ color: #aaa;
+ background: none;
+ display: block;
+ margin: 0 auto;
+ border: 0px;
+ cursor: pointer;
 }
 
 form .stars label {
   display: block;
   width: 30px;
   height: 30px;
-  margin: 0!important;
-  padding: 0!important;
+  margin: 0;
+  padding: 0;
   text-indent: -999em;
   float: left;
   position: relative;
   z-index: 10;
-  background: transparent!important;
+  background: transparent;
   cursor: pointer;
 }
 form .stars label:hover ~ span {
   background-position: 0 -60px;
 }
 form .stars label.star-5:hover ~ span {
-  width: 100% !important;
+  width: 100%;
 }
 form .stars label.star-4:hover ~ span {
-  width: 80% !important;
+  width: 80%;
 }
 form .stars label.star-3:hover ~ span {
-  width: 60% !important;
+  width: 60%;
 }
 form .stars label.star-2:hover ~ span {
-  width: 40% !important;
+  width: 40%;
 }
 form .stars label.star-1:hover ~ span {
-  width: 20% !important;
+  width: 20%;
 }
 form .stars span {
   display: block;

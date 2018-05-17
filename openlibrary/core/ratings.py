@@ -3,7 +3,7 @@ from openlibrary.core.bookshelves import Bookshelves
 
 class Ratings(object):
 
-    VALID_STAR_RATINGS = range(11)  # inclusive: [0 - 10] (0-5 star, w/ half stars)
+    VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
 
     @classmethod
     def total_num_books_rated(cls, since=None, distinct=False):
