@@ -70,3 +70,25 @@ work_olid_re = re.compile(r'^OL\d+W$')
 def is_work_olid(s):
     """Case sensitive check for strings like 'OL123W'."""
     return bool(work_olid_re.match(s))
+
+def extract_numeric_id_from_olid(olid):
+    """
+    >>> "OL123W"
+    123
+    >>> "/authors/OL123A"
+    123
+    """
+    if '/' in olid:
+        olid = olid.split('/')[-1]
+    if olid.lower().startswith('ol'):
+        olid = olid[2:]
+    if not is_number(olid[-1].lower()):
+        olid = olid[:-1]
+    return olid
+
+def is_number(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False

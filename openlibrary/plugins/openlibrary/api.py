@@ -10,6 +10,7 @@ import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, cache, helpers as h
 
@@ -53,7 +54,7 @@ class ratings(delegate.page):
         user = accounts.get_current_user()
         i = web.input(edition_id=None, rating=None, redir=False)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
-        edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
