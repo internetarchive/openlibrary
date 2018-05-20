@@ -16,7 +16,7 @@ $jsdef render_language_autocomplete_item(item):
     </div>
 
 $# Render the ith language input field
-$jsdef render_language(i, language):
+$jsdef render_language_field(i, language):
     <div class="input">
       <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
@@ -24,13 +24,24 @@ $jsdef render_language(i, language):
       <br/><a href="javascript:;" class="add small">Add another language?</a>
     </div>
 
+$# Render the ith translated_from language input field
+$jsdef render_translated_from_language_field(i, language):
+    <div class="input">
+      <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name" style="width:300px!important;"/>
+      <input type="hidden" name="edition--translated_from--$i--key"  id="edition-translated_from-$i-key" value="$language.key" />
+      <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
+      $# Limit to only 1
+      $# <br/><a href="javascript:;" class="add small">Add another language?</a>
+    </div>
+
+
 $# Render the ith work input field
 $jsdef render_work_field(i, work):
     <div class="input">
         <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.title"/>
         <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
         <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this work')">[x]</a>
-        $# Limit to only 1 work
+        $# Limit to only 1
         $# <a href="javascript:;" class="add hidden">Add another work?</a>
     </div>
 
@@ -57,7 +68,16 @@ $jsdef render_work_autocomplete_item(item):
 \$(function() {
     \$("#languages").setup_multi_input_autocomplete(
         "input.language-autocomplete",
-        render_language,
+        render_language_field,
+        { endpoint: "/languages/_autocomplete" },
+        {
+            max: 6,
+            formatItem: render_language_autocomplete_item
+        });
+
+    \$("#translated_from_languages").setup_multi_input_autocomplete(
+        "input.language-autocomplete",
+        render_translated_from_language_field,
         { endpoint: "/languages/_autocomplete" },
         {
             max: 6,
@@ -341,9 +361,9 @@ $jsdef render_work_autocomplete_item(item):
                 </div>
                 $if book.languages:
                     $for i, lang in enumerate(book.languages):
-                        $:render_language(i, lang)
+                        $:render_language_field(i, lang)
                 $else:
-                    $:render_language(0, storage(name="", key=""))
+                    $:render_language_field(0, storage(name="", key=""))
             </div>
 
             <div class="formElement librarian hidden" id="translated-from">
@@ -378,14 +398,15 @@ $jsdef render_work_autocomplete_item(item):
                     </div>
                 </div>
 
-                <div class="$trans_class">
+                <div class="$trans_class" id="translated_from_languages">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
-                    <div class="input">
-                        <input type="text" name="translated_from" id="edition-translated_from" class="language-autocomplete" value="$(book.translated_from and book.translated_from[0].name)" style="width:300px!important;"/>
-                        <input type="hidden" name="edition--translated_from--0--key" id="edition-translated_from-key" value="$(book.translated_from and book.translated_from[0].key)"/>
-                    </div>
+                    $if book.translated_from:
+                        $for i, lang in enumerate(book.translated_from):
+                            $:render_translated_from_language_field(i, lang)
+                    $else:
+                        $:render_translated_from_language_field(0, storage(name="", key=""))
                 </div>
 
             </div>
