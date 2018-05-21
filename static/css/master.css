@@ -1958,7 +1958,7 @@ div.Tools h3 span.icon.browse {background-position: -512px 0;}
 div.Tools h3 span.head {padding-left:10px;font-size:1.125em;font-weight:700;color:#000;}
 div.Tools h3.closed span.head {color:#666;}
 div.Tools h3 span.subhead {padding-left:10px;font-size:0.6875em;color:#969696;}
-div.Tools div.panel {width:250px;margin-bottom:30px;}
+div.Tools div.panel {width:250px;margin-bottom:10px;}
 div.Tools div.panel ul {list-style-type:none;margin-left:0;}
 div.Tools div.panel li {list-style-type:none;font-size:.75em;margin-top:0;color:#666}
 div.Tools div.panel p {font-size:.75em;margin-top:0;color:#666;}
@@ -1973,11 +1973,11 @@ div.Tools table td.vendor {padding:3px 10px 0 42px;}
 div.Tools table td.price {padding:3px 0 0 0;text-align:right;}
 div.Tools table.buy-options-table {
     border-spacing: 5px;
-    margin-left: 45px;
-    width: 200px;
+    margin-left: 0px;
+    width: 175px;
 }
 div.Tools table.buy-options-table td {
-    padding: 5px 0px;
+    padding: 0px 0px;
 }
 div.Tools table.buy-options-table td.price {
     text-align: right;
@@ -5649,7 +5649,7 @@ div.tools-override {
 }
 
 div.tools-override .Tools .btn-notice{
-    width: 160px;
+    width: 180px;
     margin-left: 45px;
     font-size: .9em;
 }
