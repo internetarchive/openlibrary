@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   config.vm.box = "ubuntu/xenial64"
   config.vm.provision :shell, :path => "scripts/bootstrap.sh"
+  config.vm.provision :shell, :path => "scripts/ol-start.sh", :run => :always
   config.vm.network :forwarded_port, host: 8080, guest: 80
   config.vm.network :forwarded_port, host: 18983, guest: 8983
 
