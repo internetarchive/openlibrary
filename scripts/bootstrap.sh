@@ -101,9 +101,9 @@ setup_database
 setup_nginx
 
 # change solr/tomcat port to 8983
-perl -i -pe 's/8080/8983/'  /etc/tomcat6/server.xml
+perl -i -pe 's/8080/8983/'  /etc/tomcat7/server.xml
 cp $OL_ROOT/conf/solr/conf/schema.xml /etc/solr/conf/
-/etc/init.d/tomcat6 restart
+/etc/init.d/tomcat7 restart
 
 mkdir -p /var/log/openlibrary /var/lib/openlibrary
 chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
@@ -111,17 +111,12 @@ chown $OL_USER:$OL_USER /var/log/openlibrary /var/lib/openlibrary
 # run make to initialize git submodules, build css and js files
 cd $OL_ROOT && make
 
-cp $OL_ROOT/conf/init/* /etc/init/
+cp $OL_ROOT/conf/init/*.service /lib/systemd/system/
 
-ln -sf $OL_ROOT/scripts/ol-start.sh /etc/init.d/ol-start
-chmod +x /etc/init.d/ol-start
-/etc/init.d/ol-start
+$OL_ROOT/scripts/ol-start.sh
 
 if [ "$REINDEX_SOLR" == "yes" ]
 then
     cd $OL_ROOT
     sudo -u $OL_USER make reindex-solr
 fi
-
-echo "/etc/init.d/ol-start
-exit 0" > /etc/rc.local
