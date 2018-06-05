@@ -278,7 +278,6 @@ msgid "Loan Expires"
 msgstr "రుణం గడువు"
 
 #: borrow.html:86
-#, fuzzy
 msgid "Loan actions"
 msgstr " రుణం చర్యలు"
 
@@ -287,14 +286,14 @@ msgstr " రుణం చర్యలు"
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
 msgstr[0] "ఒకేఒక్క మనిషి మాత్రం ఈ పుస్తకం కోసం వేచిఉన్నాడు."
-msgstr[1] "అక్కడ %n (s ) మనుషులు ఈ పుస్తకం కోసం వేచిఉన్నారు."
+msgstr[1] "అక్కడ %(n)s మనుషులు ఈ పుస్తకం కోసం వేచిఉన్నారు."
 
 #: borrow.html:151
 msgid "Books You're Waiting For"
 msgstr "మీరు ఎదురు చూస్తున్న పుస్తకాలు "
 
 #: borrow.html:190
-#, fuzzy, python-format
+#, python-format
 msgid "%d book"
 msgid_plural "%d books"
 msgstr[0] "%d పుస్తకం"
@@ -583,7 +582,7 @@ msgstr ""
 
 #: password/reset.html:19
 msgid "Reset"
-msgstr "v"
+msgstr ""
 
 #: password/reset_success.html:3
 #, fuzzy
