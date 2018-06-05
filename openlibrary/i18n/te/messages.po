@@ -217,7 +217,7 @@ msgstr "మరణించిన తేదీ "
 msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" "
 "is recommended."
-msgstr "మేము ఇంకా సరైన విధంగా తేదీలను పొందుపరచట్లేదు కనుక ఉదాహరణకి \"20  మే 2000 \" లాంటిది సిఫార్సు చేయబడింది."
+msgstr "మేము ఇంకా సరైన విధంగా తేదీలను పొందుపరచట్లేదు కనుక ఉదాహరణకి \"21 May 2000\" లాంటిది సిఫార్సు చేయబడింది."
 
 #: edit.html:96
 msgid "Does this author go by any other names?"
@@ -402,7 +402,7 @@ msgstr "ప్రతి ఒక్క విభాగం అవసరమే "
 #: create.html:25 openlibrary/templates/login.html:20
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
-msgstr "మీరు ముందు గానే సార్వత్రిక గ్రంథలయంలో ఈ %(యూసర్)s గా లాగిన్ అయ్యారు."
+msgstr "మీరు ముందు గానే సార్వత్రిక గ్రంథలయంలో ఈ %(user)s గా లాగిన్ అయ్యారు."
 
 #: create.html:26 openlibrary/templates/login.html:21
 msgid ""
