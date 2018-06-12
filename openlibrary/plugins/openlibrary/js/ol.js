@@ -26,7 +26,7 @@ var Browser = {
 
     change_url: function(query) {
         var getUrl = window.location;
-        var baseUrl = getUrl .protocol + "//" + getUrl.host +
+        var baseUrl = getUrl.protocol + "//" + getUrl.host +
             "/" + getUrl.pathname.split('/')[1];
         window.history.pushState({
             "html": document.html,
@@ -440,10 +440,13 @@ $().ready(function(){
         $("input[name='has_fulltext']").remove();
 
         var url = $(form).attr('action')
+        url = Browser.removeURLParameter(url, 'm');
         url = Browser.removeURLParameter(url, 'has_fulltext');
         url = Browser.removeURLParameter(url, 'subject_facet');
 
         if (localStorage.getItem('mode') !== 'everything') {
+            $(form).append('<input type="hidden" name="m" value="edit"/>');
+            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'm=edit';
             $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
             url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'has_fulltext=true';
         } if (localStorage.getItem('mode') === 'printdisabled') {
