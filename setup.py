@@ -28,7 +28,6 @@ supervisor
 web.py==0.33
 pystatsd
 eventer
-sqlalchemy
 Pygments
 OL-GeoIP
 mockcache

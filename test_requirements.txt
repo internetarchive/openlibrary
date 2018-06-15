@@ -18,7 +18,6 @@ supervisor==3.0a12
 web.py==0.33
 pystatsd==0.1.6
 eventer==0.1.1
-SQLAlchemy==0.7.4
 Pygments==1.4
 OL-GeoIP==1.2.4
 lxml==2.3.2
