@@ -39,7 +39,6 @@
       - python-yaml
       - python-simplejson
       - python-sphinx
-      - python-celery
       - python-sqlalchemy
       - gunicorn
       - curl 

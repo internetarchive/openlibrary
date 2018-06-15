@@ -19,7 +19,6 @@ argparse==1.2.1
 args==0.1.0
 backports.shutil-get-terminal-size==1.0.0
 bottlenose==1.1.2
-celery==2.4.5
 clint==0.5.1
 decorator==4.0.10
 docopt==0.6.2

@@ -27,7 +27,6 @@ sphinx
 supervisor
 web.py==0.33
 pystatsd
-celery
 eventer
 sqlalchemy
 Pygments
