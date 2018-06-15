@@ -13,7 +13,6 @@ pymarc==2.8.4
 pytest==2.2.0
 python-memcached==1.48
 simplejson==2.3.0
-Sphinx==1.1.2
 supervisor==3.0a12
 web.py==0.33
 pystatsd==0.1.6
