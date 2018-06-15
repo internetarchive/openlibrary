@@ -25,6 +25,5 @@ PyYAML==3.10
 mockcache==1.0.1
 internetarchive==1.7.6
 sixpack-client==1.1.0
-six==1.11.0
 lepl==5.1.3
 python-amazon-simple-product-api==2.2.11
