@@ -4,7 +4,6 @@
 Babel==2.5.3
 argparse==1.2.1
 BeautifulSoup==3.2.0
-CouchDB==0.8
 DBUtils==1.1
 Genshi==0.6
 gunicorn==0.13.4
