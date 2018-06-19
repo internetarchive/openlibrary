@@ -38,6 +38,27 @@ $def with (stats)
   </div>
 
   <div class="admin-section">
+    <h2># Books Starred</h2>
+    <p>The total number of books which have been starred</p>
+    <table class="readinglog-stats">
+      <tbody>
+        <tr>
+          <th>All time</th>
+          <td>$stats['total_books_starred']['total']['count']</td>
+        </tr>
+        <tr>
+          <th>This Month</th>
+          <td>$stats['total_books_starred']['month']['count']</td>
+        </tr>
+        <tr>
+          <th>Total # Unique Raters (all time)</th>
+          <td>$stats['total_books_starred']['unique']['count']</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="admin-section">
     <h3>Most Wanted Books (All Time)</h3>
     <div class="mybooks-list">
       <ul class="list-books" id="siteSearch">
