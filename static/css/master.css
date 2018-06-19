@@ -1246,7 +1246,6 @@ footer{
     display: flex;
     width: 100%;
     bottom: 0px;
-    background-color: #e2dcc5;
     font-size: .8em;
 }
 div#bottom{width:100%;clear:both;}
@@ -2458,7 +2457,8 @@ div#footer-content {
 
 div#footer-links {
     display: flex;
-    margin-left: 70px;
+    margin-left: 10px;
+    line-height: 1.5em;
 }
 
 #footer-content div {
@@ -2473,23 +2473,23 @@ div#footer-links {
     padding: 0px;
 }
 
-footer h1 {
-    color: rgb(0, 0, 0);
+footer h2 {
+    color: hsla(0, 0%, 20%, 1);
     font-size: 1em;
     margin: 0px;
 }
 
 footer hr {
     border: 0px;
-    border-top: 1px solid #333;
+    border-top: 1px solid hsla(64, 9%, 71%, 1);
     margin: 20px 0px;
 }
-  
+
 footer ul {
     padding: 0px;
     margin: 0px;
 }
-  
+
 footer ul li {
     font-size: 1em;
     list-style-type: none;
@@ -2497,33 +2497,30 @@ footer ul li {
     margin: 5px 0px;
 }
 
-footer ul li a {
-    color: #000000;
-    text-decoration: none;
+#footer-links ul li a {
+    color: hsla(210, 100%, 20%, 1);
 }
 
 #footer-icons {
-	display: inline-block;
-	width: 35px;
-	height: 35px;
-	cursor: pointer;
-	background-color:  #33383b;
-	border-radius: 3px;
-
-	font-size: 20px;
-	color: #ffffff;
-	text-align: center;
-	line-height: 35px;
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    background-color: hsla(0, 0%, 40%, 1);
+    border-radius: 3px;
+    font-size: 20px;
+    color: hsla(0, 0%, 100%, 1);
+    text-align: center;
+    line-height: 35px;
     margin-top: 10px;
-	margin-right: 3px;
-	margin-bottom: 5px;
+    margin-right: 3px;
+    margin-bottom: 5px;
 }
 
 footer #footer-details {
-    color: rgb(8, 8, 8);
+    color: hsla(0, 0%, 20%, 1);
     display: flex;
     width: 100%;
-    background-color: #e2dcc5;
 }
 
 #archive-details{
@@ -2531,8 +2528,8 @@ footer #footer-details {
 }
 
 .version {
-    color: #000000;
-    border: 1px solid hsla(45, 25%, 35%, 1);
+    color: hsla(0, 0%, 20%, 1);
+    border: 1px solid hsla(64, 9%, 71%, 1);
     border-radius: 3px;
     padding: 8px 10px;
 }
@@ -2542,7 +2539,7 @@ div#legal-details{
 }
 
 div#version-details{
-    text-align: right; 
+    text-align: right;
     flex: 0.1;
     margin-top: 8px
 }
@@ -2551,7 +2548,7 @@ img#archive-logo {
     margin-right: 10px;
     padding: 0px;
     height:27.5px;
-    width: 30px;
+    opacity: 0.7;
 }
 
 /* CONTENT */
@@ -6128,7 +6125,7 @@ a.btn {
   margin-bottom: 7px;
   cursor: pointer;
 }
- 
+
 #ratingsForm .stars input[type="submit"] {
   position: absolute;
   opacity: 0;
@@ -6202,5 +6199,4 @@ form .stars span {
   left: 0;
   height: 30px;
   background: url("/static/images/stars.png") repeat-x 0 -60px;
-
 }
