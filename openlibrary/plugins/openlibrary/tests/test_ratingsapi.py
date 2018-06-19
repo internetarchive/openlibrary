@@ -5,10 +5,16 @@ import simplejson
 import urllib, urllib2
 import cookielib
 
+from openlibrary.plugins.openlibrary.api import ratings
+from openlibrary import accounts
+from openlibrary.core import models
+
+
 def pytest_funcarg__config(request):
     return request.config
 
 class RatingsAPI:
+
     def __init__(self, config):
         self.server = config.getvalue('server')
         self.username = config.getvalue("username")
@@ -35,33 +41,32 @@ class RatingsAPI:
     def login(self):
         data = dict(username=self.username, password=self.password)
         self.urlopen("/account/login", data=urllib.urlencode(data), method="POST")
-        print self.cookiejar
 
-
-    def rate_book(self, work, data):
-        json = simplejson.dumps(data)
+    def rate_book(self, work_key, data):
+        url = '%s/ratings.json' % (work_key)
         headers = {
             "content-type": "application/json"
         }
-        url = work
-
-        # mock
-
-        response = self.urlopen(
-            "%s/widget" % work,
-            data=json,
-            headers=headers)
-        return simplejson.loads(response.read())
+        r = self.urlopen(
+                url, data=simplejson.dumps(data), headers=headers, method="POST")
+        return simplejson.loads(r.read())
 
 
-def test_rating(config):
+def test_rating(config, monkeypatch):
     api = RatingsAPI(config)
     api.login()
 
-    work = "/works/OL123W"
+    work_key = "/works/OL123W"
     data = {
-        "key": work,
         "rating": "5"
     }
-    result = api.rate_book(work, data)
+
+    class FakeUser:
+        def __init__(self, key):
+            self.key = '/users/%s' % key
+    
+    monkeypatch.setattr(accounts, "get_current_user", FakeUser('test'))
+    monkeypatch.setattr(models.Ratings, "remove", {})
+    monkeypatch.setattr(models.Ratings, "add", {})
+    result = api.rate_book(work_key, data)
     assert 'success' in msg
