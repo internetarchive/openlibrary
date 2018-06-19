@@ -7,15 +7,10 @@ var/
 usr/
 static/build/
 build/
-docs/api/openlibrary/
-docs/api/infogami/
 *.tgz
 *.tar.gz
 *.org
 coverage/
-docs/_build/
-docs/appendices/api/infogami/
-docs/appendices/api/openlibrary/
 /*.log
 openlibrary.egg-info/
 pip-log.txt
@@ -31,7 +26,6 @@ openlibrary/mailserver/logs/logger.log
 lamson.out
 openlibrary/mailserver/run/
 bad_data.json
-celerybeat-schedule
 TAGS
 env/
 .coverage
