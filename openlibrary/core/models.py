@@ -12,9 +12,11 @@ import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.ratings import Ratings
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -412,10 +414,17 @@ class Work(Thing):
     def get_lists(self, limit=50, offset=0, sort=True):
         return self._get_lists(limit=limit, offset=offset, sort=sort)
 
+    def get_users_rating(self, username):
+        if not username:
+            return None
+        work_id = extract_numeric_id_from_olid(self.key)
+        rating = Ratings.get_users_rating_for_work(username, work_id)
+        return rating
+
     def get_users_read_status(self, username):
         if not username:
             return None
-        work_id = self.key.split('/')[2][2:-1]
+        work_id = extract_numeric_id_from_olid(self.key)
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 

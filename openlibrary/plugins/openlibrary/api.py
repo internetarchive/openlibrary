@@ -10,6 +10,7 @@ import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary import accounts
+from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, cache, helpers as h
 
@@ -43,6 +44,48 @@ class book_availability(delegate.page):
             lending.get_availability_of_ocaids(ids) if id_type == "identifier"
             else []
         )
+
+class ratings(delegate.page):
+    path = "/works/OL(\d+)W/ratings"
+    encoding = "json"
+
+    def POST(self, work_id):
+        """Registers new ratings for this work"""
+        user = accounts.get_current_user()
+        i = web.input(edition_id=None, rating=None, redir=False)
+        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+
+        if not user:
+            raise web.seeother('/account/login?redirect=%s' % key)
+
+        username = user.key.split('/')[2]
+
+        def response(msg, status="success"):
+            return delegate.RawText(simplejson.dumps({
+                status: msg
+            }), content_type="application/json")
+
+        if i.rating is None:
+            models.Ratings.remove(username, work_id)
+            r = response('removed rating')
+
+        else:
+            try:
+                rating = int(i.rating)
+                if rating not in models.Ratings.VALID_STAR_RATINGS:
+                    raise ValueError
+            except ValueError:
+                return response('invalid rating', status="error")
+                
+            models.Ratings.add(
+                username=username, work_id=work_id,
+                rating=rating, edition_id=edition_id)
+            r = response('rating added')
+
+        if i.redir:
+            raise web.seeother(key)
+        return r
 
 # The GET of work_bookshelves, work_ratings, and work_likes should return some summary of likes,
 # not a value tied to this logged in user. This is being used as debugging.

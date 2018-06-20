@@ -1,3 +1,5 @@
+@charset "UTF-8";
+
 .admin-section {
     border-left: 4px solid #a7cee4;
     padding: 0px 10px 10px 10px;
@@ -261,7 +263,7 @@ button.larger{font-size:18px!important;}
 .clearfix:after {content:".";display:block;height:0;clear:both;visibility:hidden;}
 .right.illustration {margin:0 0 30px 30px;}
 .left.illustration {margin:0 30px 30px 0;}
-.illustration {text-align:center;margin-bottom:15px;position: relative;}
+.illustration {text-align:center;margin-bottom:5px;position: relative;}
 button.plainText {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#e44028;background-color: #fff;cursor:pointer;}
 button.plainText:hover {color:#35672e;}
 button.plain {border:none;font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;font-size:0.75em;color:#000;background-color:transparent!important;cursor:pointer;}
@@ -436,9 +438,9 @@ header#header-bar {
 .search-component .search-bar {
     max-width: none;
     min-width: none;
-    -webkit-transition: all 0.5s;
-    -o-transition: all 0.5s;
-    transition: all 0.5s;
+    -webkit-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
     background: #fafafa;
     border-radius:.3em;
     -webkit-box-flex: 1;
@@ -1244,7 +1246,6 @@ footer{
     display: flex;
     width: 100%;
     bottom: 0px;
-    background-color: #e2dcc5;
     font-size: .8em;
 }
 div#bottom{width:100%;clear:both;}
@@ -1946,7 +1947,7 @@ div.Tools h3 span.icon.browse {background-position: -512px 0;}
 div.Tools h3 span.head {padding-left:10px;font-size:1.125em;font-weight:700;color:#000;}
 div.Tools h3.closed span.head {color:#666;}
 div.Tools h3 span.subhead {padding-left:10px;font-size:0.6875em;color:#969696;}
-div.Tools div.panel {width:250px;margin-bottom:30px;}
+div.Tools div.panel {width:250px;margin-bottom:10px;}
 div.Tools div.panel ul {list-style-type:none;margin-left:0;}
 div.Tools div.panel li {list-style-type:none;font-size:.75em;margin-top:0;color:#666}
 div.Tools div.panel p {font-size:.75em;margin-top:0;color:#666;}
@@ -1961,11 +1962,11 @@ div.Tools table td.vendor {padding:3px 10px 0 42px;}
 div.Tools table td.price {padding:3px 0 0 0;text-align:right;}
 div.Tools table.buy-options-table {
     border-spacing: 5px;
-    margin-left: 45px;
-    width: 200px;
+    margin-left: 0px;
+    width: 175px;
 }
 div.Tools table.buy-options-table td {
-    padding: 5px 0px;
+    padding: 0px 0px;
 }
 div.Tools table.buy-options-table td.price {
     text-align: right;
@@ -2456,7 +2457,8 @@ div#footer-content {
 
 div#footer-links {
     display: flex;
-    margin-left: 70px;
+    margin-left: 10px;
+    line-height: 1.5em;
 }
 
 #footer-content div {
@@ -2471,23 +2473,24 @@ div#footer-links {
     padding: 0px;
 }
 
-footer h1 {
-    color: rgb(0, 0, 0);
+
+footer h2 {
+    color: hsla(0, 0%, 20%, 1);
     font-size: 1em;
     margin: 0px;
 }
 
 footer hr {
     border: 0px;
-    border-top: 1px solid #333;
+    border-top: 1px solid hsla(64, 9%, 71%, 1);
     margin: 20px 0px;
 }
-  
+
 footer ul {
     padding: 0px;
     margin: 0px;
 }
-  
+
 footer ul li {
     font-size: 1em;
     list-style-type: none;
@@ -2495,33 +2498,30 @@ footer ul li {
     margin: 5px 0px;
 }
 
-footer ul li a {
-    color: #000000;
-    text-decoration: none;
+#footer-links ul li a {
+    color: hsla(210, 100%, 20%, 1);
 }
 
 #footer-icons {
-	display: inline-block;
-	width: 35px;
-	height: 35px;
-	cursor: pointer;
-	background-color:  #33383b;
-	border-radius: 3px;
-
-	font-size: 20px;
-	color: #ffffff;
-	text-align: center;
-	line-height: 35px;
+    display: inline-block;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    background-color: hsla(0, 0%, 40%, 1);
+    border-radius: 3px;
+    font-size: 20px;
+    color: hsla(0, 0%, 100%, 1);
+    text-align: center;
+    line-height: 35px;
     margin-top: 10px;
-	margin-right: 3px;
-	margin-bottom: 5px;
+    margin-right: 3px;
+    margin-bottom: 5px;
 }
 
 footer #footer-details {
-    color: rgb(8, 8, 8);
+    color: hsla(0, 0%, 20%, 1);
     display: flex;
     width: 100%;
-    background-color: #e2dcc5;
 }
 
 #archive-details{
@@ -2529,8 +2529,8 @@ footer #footer-details {
 }
 
 .version {
-    color: #000000;
-    border: 1px solid hsla(45, 25%, 35%, 1);
+    color: hsla(0, 0%, 20%, 1);
+    border: 1px solid hsla(64, 9%, 71%, 1);
     border-radius: 3px;
     padding: 8px 10px;
 }
@@ -2540,7 +2540,7 @@ div#legal-details{
 }
 
 div#version-details{
-    text-align: right; 
+    text-align: right;
     flex: 0.1;
     margin-top: 8px
 }
@@ -2549,7 +2549,7 @@ img#archive-logo {
     margin-right: 10px;
     padding: 0px;
     height:27.5px;
-    width: 30px;
+    opacity: 0.7;
 }
 
 /* CONTENT */
@@ -5668,7 +5668,7 @@ div.tools-override {
 }
 
 div.tools-override .Tools .btn-notice{
-    width: 160px;
+    width: 180px;
     margin-left: 45px;
     font-size: .9em;
 }
@@ -6108,4 +6108,96 @@ a.btn {
 
 .account-settings-menu {
     margin-bottom: 15px;
+}
+
+
+.star {
+    color: #aaa;
+}
+
+#ratingsForm {
+    margin-bottom: 5px;
+}
+
+#ratingsForm .stars {
+  background: url("/static/images/stars.png") repeat-x 0 0;
+  width: 150px;
+  margin: 0px auto;
+  margin-bottom: 7px;
+  cursor: pointer;
+}
+
+#ratingsForm .stars input[type="submit"] {
+  position: absolute;
+  opacity: 0;
+  filter: alpha(opacity=0);
+}
+
+form .stars input[type="submit"].star-5.star-selected ~ span {
+  width: 100%;
+}
+form .stars input[type="submit"].star-4.star-selected ~ span {
+  width: 80%;
+}
+form .stars input[type="submit"].star-3.star-selected ~ span {
+  width: 60%;
+}
+form .stars input[type="submit"].star-2.star-selected ~ span {
+  width: 40%;
+}
+form .stars input[type="submit"].star-1.star-selected ~ span {
+  width: 20%;
+}
+form .stars input[type="submit"].star-0.star-selected ~ span {
+  width: 0%;
+}
+
+.star-messaging {
+ color: #aaa;
+ background: none;
+ display: block;
+ margin: 0 auto;
+ border: 0px;
+ cursor: pointer;
+}
+
+form .stars label {
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  text-indent: -999em;
+  float: left;
+  position: relative;
+  z-index: 10;
+  background: transparent;
+  cursor: pointer;
+}
+form .stars label:hover ~ span {
+  background-position: 0 -60px;
+}
+form .stars label.star-5:hover ~ span {
+  width: 100%;
+}
+form .stars label.star-4:hover ~ span {
+  width: 80%;
+}
+form .stars label.star-3:hover ~ span {
+  width: 60%;
+}
+form .stars label.star-2:hover ~ span {
+  width: 40%;
+}
+form .stars label.star-1:hover ~ span {
+  width: 20%;
+}
+form .stars span {
+  display: block;
+  width: 0;
+  position: relative;
+  top: 0;
+  left: 0;
+  height: 30px;
+  background: url("/static/images/stars.png") repeat-x 0 -60px;
 }
