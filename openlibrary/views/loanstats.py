@@ -50,7 +50,7 @@ class readinglog_stats(app.view):
                 },
                 'total_books_starred': {
                     'total': Ratings.total_num_books_rated(),
-                    'unique': Ratings.total_num_unique_rated(),
+                    'unique': Ratings.total_num_unique_raters(),
                     'month': Ratings.total_num_books_rated(since=ONE_MONTH_DATE)
                 },
                 'leaderboard': {
