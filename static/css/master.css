@@ -1240,12 +1240,13 @@ div#placement {width:960px;margin:0 auto;text-align:left;}
 div#position {width:960px;}
 div#header{width:960px;}
 div#content{clear:both;position:relative;width:958px;background-color:#fff;border-radius: 5px;border: 1px solid #babbad;}
-div#footer{
-    margin: 0 auto;
-    max-width: 960px;
+footer{
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    width: 100%;
+    bottom: 0px;
+    font-size: .8em;
 }
 div#bottom{width:100%;clear:both;}
 div#legal{max-width:905px;margin:0 auto;padding:0 10px;text-align:left;}
@@ -1551,14 +1552,7 @@ div#headerSearch {
     padding: 9px;
     outline:none;
 }
-div#footerPosition {
-    width: 960px;
-}
-div#footerSearch {
-    bottom: 38px;
-    padding: 0 9px 30px;
-    outline: none;
-}
+
 div#formScroll {
     display: block;
     position: relative;
@@ -1597,13 +1591,6 @@ body#user div.siteSearch.darker {
 }
 body#admin div.siteSearch.darker {
     background-color: #c1c1c1;
-}
-
-div.searchPlacement {
-}
-div#headerSearch div.searchPlacement {
-}
-div#footerSearch div.searchPlacement {
 }
 
 div.searchFilter .searchOpener {
@@ -1727,7 +1714,7 @@ fieldset.home legend {
 
 
 /* EDITING */
-body#edit div#header,body#edit div#footer,body#edit div#bottom,body#edit .siteSearch {display:none;}
+body#edit div#header,body#edit footer,body#edit div#bottom,body#edit .siteSearch {display:none;}
 body#edit,body#edit div#content {background-color: #e2dcc5;}
 
 body#edit .formElement {
@@ -2462,78 +2449,107 @@ a.generic-button {
 
 /* FOOTER */
 
-div.footerNav {
+div#footer-content {
+    max-width: 960px;
+    margin: 5px auto;
+    padding: 20px;
+}
+
+div#footer-links {
+    display: flex;
+    margin-left: 10px;
+    line-height: 1.5em;
+}
+
+#footer-content div {
     flex: 1;
-    text-align: left;
-}
-div.footerNav ul{
-    padding: 25px 5px;
-}
-div.subNav {
-    float: left;
-    width: 100%;
-    clear: both;
-    margin-top: 0px;
-    margin-bottom: 25px;
+    flex-wrap: wrap;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    min-width: 150px;
 }
 
-div.footerNav li,div.subNav li {
+#footer-links div {
+    margin: 20px 0px;
+    padding: 0px;
+}
+
+footer h2 {
+    color: hsla(0, 0%, 20%, 1);
+    font-size: 1em;
+    margin: 0px;
+}
+
+footer hr {
+    border: 0px;
+    border-top: 1px solid hsla(64, 9%, 71%, 1);
+    margin: 20px 0px;
+}
+
+footer ul {
+    padding: 0px;
+    margin: 0px;
+}
+
+footer ul li {
+    font-size: 1em;
+    list-style-type: none;
+    white-space: nowrap;
+    margin: 5px 0px;
+}
+
+#footer-links ul li a {
+    color: hsla(210, 100%, 20%, 1);
+}
+
+#footer-icons {
     display: inline-block;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    font-size: 0.9em;
-    color: #615132;
-}
-div.footerNav li {
-    padding: 10px;
-    padding-top: 0px;
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    background-color: hsla(0, 0%, 40%, 1);
+    border-radius: 3px;
+    font-size: 20px;
+    color: hsla(0, 0%, 100%, 1);
+    text-align: center;
+    line-height: 35px;
+    margin-top: 10px;
+    margin-right: 3px;
+    margin-bottom: 5px;
 }
 
-div.subNav li span {
-    padding: 0 10px;
+footer #footer-details {
+    color: hsla(0, 0%, 20%, 1);
+    display: flex;
+    width: 100%;
 }
-div#footerHistory {
-    position: relative;
-    min-height: 32px;
-    padding: 10px;
+
+#archive-details{
+    flex:0.8;
 }
-div#footerHistory h4 {
-    font-size: 16px;
-    padding: 0 30px 0 10px;
-    margin: 0;
+
+.version {
+    color: hsla(0, 0%, 20%, 1);
+    border: 1px solid hsla(64, 9%, 71%, 1);
+    border-radius: 3px;
+    padding: 8px 10px;
+}
+
+div#legal-details{
+    flex: 0.9;
+}
+
+div#version-details{
     text-align: right;
-}
-div#footerHistory h4 a {color:#00636a;text-decoration:none;}
-div#footerHistory h4 a:hover {color:#036daa;text-decoration:underline;}
-
-div#footerHistory .history {
-    width: 160px;
-    overflow: hidden;
-    padding-right: 20px;
-    font-family:"Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-    font-size: 0.6875em;
-    color: #666;
-    white-space: normal;
-    word-break: normal;
-    word-wrap: break-word;
-}
-div#footerHistory .history .timestamp {
-    color: #999;
+    flex: 0.1;
+    margin-top: 8px
 }
 
-div#footerHistory ul li.around-the-library-link {display: none;}
-
-div#bottom div#legal {
-    padding: 20px 10px 0px 50px;
-    background: url("/images/logo_IA-sm.png") no-repeat 15px 20px;
+img#archive-logo {
+    margin-right: 10px;
+    padding: 0px;
+    height:27.5px;
+    opacity: 0.7;
 }
-div#bottom div#legal p {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    color: #333;
-    font-size: .8em;
-    margin: 0 0 20px 0;
-}
-
-
 
 /* CONTENT */
 div.contentWide,
@@ -4412,7 +4428,7 @@ body#form #content {
     width: 600px;
     min-height: 440px;
 }
-body#form #footer, body#form #bottom {display:none;}
+body#form footer, body#form #bottom {display:none;}
 form.floatform {
     font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
 }
@@ -5081,7 +5097,7 @@ div.mergeThis {
 #mergeHead #recordMaster {margin-bottom:15px;}
 
 /* PLAIN PAGE STYLES */
-body#plain div#header,body#plain div#footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
+body#plain div#header,body#plain footer,body#plain div#bottom,body#plain .siteSearch {display:none;}
 body#plain #contentBody, body#plain #contentHead {width:690px;padding:0 134px;margin:0;}
 body#plain div.contentOnethird {width: 210px;}
 body#plain div.contentSpacer {width:30px;height:15px;}
@@ -6109,7 +6125,7 @@ a.btn {
   margin-bottom: 7px;
   cursor: pointer;
 }
- 
+
 #ratingsForm .stars input[type="submit"] {
   position: absolute;
   opacity: 0;
@@ -6183,5 +6199,4 @@ form .stars span {
   left: 0;
   height: 30px;
   background: url("/static/images/stars.png") repeat-x 0 -60px;
-
 }

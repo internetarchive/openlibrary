@@ -1,24 +1,62 @@
 $def with (page)
 
-<div id="footer">
-  <div id="footerPosition">
-    <div class="footerNav" title="Main Navigation">
-      <ul>
-        <li><a href="#top" title="$_('Go to the top of this page')">$_("Top")</a></li>
-        <li><a href="/" title="$_('Go home')">$_("Home")</a></li>
-        <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_("Add a Book")</a></li>
-        <li><a href="/subjects" title="$_('Explore subjects')">$_("Subjects")</a></li>
-        <li><a href="/authors" title="$_('Explore authors')">$_("Authors")</a></li>
-        <li><a href="/about" title="$_('About the Open Library staff')">$_("About Us")</a></li>
-        <li><a href="/help" title="$_('Get help')">$_("Help")</a></li>
-        <li><a href="/developers" title="$_('Visit the Developers Center')">$_("Developers")</a></li>
-      </ul>
+<footer>
+  <div id="footer-content" >
+    <div id="footer-links">
+      <div>
+        <h2>Open Library</h2>
+        <ul>
+          <li><a href="/about/vision" title="$_('Vision')">Vision</a></li>
+          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">Careers</a></li>
+          <li><a href="http://blog.openlibrary.org/" title="$_('blog')">Blog</a></li>
+          <li><a href="https://archive.org/about/terms.php" title="$_('Terms of Service')">Terms of Service</a></li>
+          <li><a href="https://archive.org/donate/?platform=ol" title="$_('Donate')">Donate</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Discover</h2>
+        <ul>
+          <li><a href="/" title="$_('Go home')">Home</a></li>
+          <li><a href="/search" title="$_('Explore Books')">Books</a></li>
+          <li><a href="/search/authors" title="$_('Explore authors')">Authors</a></li>
+          <li><a href="/subjects" title="$_('Explore subjects')">Subjects</a></li>
+          <li><a href="/advancedsearch" title="$_('Advanced Search')">Advanced Search</a></li>
+          <li><a href="#top" title="$_('Navigate to top of this page')">Return to Top</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Develop</h2>
+        <ul>
+          <li><a href="/developers" title="$_('Explore Open Library Development Center')">Development Center</a></li>
+          <li><a href="/developers/api" title="$_('Explore Open Library APIs')">API Documentation</a></li>
+          <li><a href="/data" title="$_('Bulk OL Data')">Bulk Data Dumps</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">Writing Bots</a></li>
+          <li><a href="/books/add" title="$_('Add a new book to Open Library')">Add a Book</a></li>
+        </ul>
+      </div>
+      <div>
+        <h2>Help</h2>
+        <ul>
+          <li><a href="/help" title="$_('Help Center')">Help Center</a></li>
+          <li><a href="/contact?path=/" title="$_('Problems')">Contact and Support</a></li> 
+          <li><a href="/help/faq/editing" title="$_('Suggest Edits')">Suggesting Edits</a></li>
+        </ul>
+        <a id="footer-icons" href="https://twitter.com/OpenLibrary"><i class="fa fa-twitter"></i></a>
+        <a id="footer-icons" href="https://github.com/internetarchive/openlibrary"><i class="fa fa-github"></i></a>
+      </div>
+    </div>
+    <hr>
+    <div id="footer-details">
+      <img id="archive-logo" src="/static/images/pantheon.png">
+      <div id="legal-details" >
+        <span>Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a></span>
+      </div>
+      $ git_rev_hash = get_git_revision_short_hash()
+      $if git_rev_hash:
+        <div id="version-details">
+          <span class="version">version <a href="https://github.com/internetarchive/openlibrary/commit/$(git_rev_hash)">$git_rev_hash</a></span>
+        </div>
     </div>
   </div>
+</footer>
 
-  <div id="footerHistory">
-    <div id="abuse" title="$_('Report a problem.')">
-      <a href="/contact?path=$request.path"><span></span>$_("Problems?")</a>
-    </div>
-  </div>
-</div>
