@@ -10,5 +10,7 @@ ENV LANG en_US.UTF-8
 # required for postgres
 ENV LC_ALL POSIX
 
+RUN apt-get -qq update
+
 WORKDIR /openlibrary
 
