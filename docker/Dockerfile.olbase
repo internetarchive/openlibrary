@@ -1,0 +1,14 @@
+FROM ubuntu:xenial
+
+COPY . /openlibrary
+
+# Expose Open Library and SOLR
+EXPOSE 80 8983
+
+ENV LANG en_US.UTF-8
+
+# required for postgres
+ENV LC_ALL POSIX
+
+WORKDIR /openlibrary
+
