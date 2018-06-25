@@ -1,4 +1,4 @@
-$def with (input, q_param, do_search, get_doc)
+$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids)
 
 $ facet_map = (
 $    ('has_fulltext', 'eBook?'),
@@ -234,11 +234,22 @@ function less(header) {
         <div id="searchResults">
           <ul id="siteSearch">
             $ work_keys = []
+            $ works = []
             $for result_doc in docs:
                 $ doc = get_doc(result_doc)
                 $ key = doc.key
                 $ work_keys.append(key)
-                $:macros.SearchResultsWork(doc)
+                $ works.append(doc)
+
+            $# filter by availability check
+            $ ocaids = [work.ia[0] for work in works if work.ia]
+            $ availability = get_availability_of_ocaids(ocaids)
+
+            $for work in works:
+                $ ocaid = work.ia[0] if work.ia else None
+                $ work_availability = availability.get(ocaid)
+                $if 'has_fulltext' not in param or work_availability['status'] not in ['error', 'private']:
+                    $:macros.SearchResultsWork(work, availability=work_availability)
           </ul>
         </div>
 

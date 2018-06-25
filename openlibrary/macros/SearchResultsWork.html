@@ -1,4 +1,4 @@
-$def with (doc, decorations=None, cta=True)
+$def with (doc, decorations=None, cta=True, availability=None)
 
 $ is_work = doc.get('type', {}).get('key') == '/type/work'
 $ book_url = doc.url() if is_work else doc.key
@@ -57,6 +57,9 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
           $:decorations
         </div>
       $if cta:
-        <div class="searchResultItemCTA-lending"></div>
+        <div class="searchResultItemCTA-lending">
+          $if availability:
+            $:macros.AvailabilityButton(doc, availability)
+        </div>
   </div>
 </li>

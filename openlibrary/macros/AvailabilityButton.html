@@ -1,0 +1,79 @@
+$def with(page, availability)
+
+$ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
+$ user_loan = None
+$ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
+$ wlsize = availability.get('num_waitlist', 0)
+$ current_and_available_loans = []
+
+$if page.get('ocaid'):
+  $ current_and_available_loans = page.get_current_and_available_loans()
+  $ user_loan = None
+  $if ctx.user:
+    $for current_loan in current_and_available_loans[0]:
+      $if current_loan['user'] == ctx.user.key:
+        $ user_loan = current_loan
+        $ break
+
+$ current_loans = current_and_available_loans[0] if current_and_available_loans else []
+
+$if ctx.user:
+    $for current_loan in current_loans:
+        $if current_loan['user'] == ctxuser.key:
+            $ user_loan = current_loan
+            $ break
+
+$if availability['status'] in ['open', 'borrow_available', 'borrow_unavailable']:
+  $ read_link = '/borrow/ia/%s' % availability['identifier']
+
+  $if user_loan:
+    <a href="$read_link" title="Borrow"
+       data-userid="$(user_loan['userid'])" id="read_ebook"
+       class="borrow-btn borrow-link">Read eBook</a>
+
+    $ return_url = page.url.rsplit('/', 1)[0] + '/do_return/borrow'
+    <form action="$return_url" method="post" class="waitinglist-form return-book">
+      <input type="hidden" name="action" value="return" />
+      <input type="submit" value="Return eBook" class="submit unwait-btn" id="return_ebook"/>
+    </form>
+
+  $elif (availability['status'] == 'borrow_available') or my_turn_to_borrow:
+    <a href="$read_link" class="borrow_available borrow-link cta-btn" title="Borrow" id="borrow_ebook">
+      Borrow
+    </a>
+
+  $elif (availability['status'] == 'borrow_unavailable'):
+    $if waiting_loan:
+        <span class="borrow_unavailable" data-ol-link-track="borrow_unavailable">
+          <form method="POST" action="$(read_link)?action=join-waitinglist" class="leave-waitlist waitinglist-form">
+            <input type="hidden" name="action" value="leave-waitinglist"/>
+            <input type="submit" class="submit unwait-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+          </form>
+        </span>
+        <div class="waitlist-msg">
+          $ spot = ctx.user.get_waiting_loan_for(page)['position']
+          $if spot == 1:
+              You are <strong>next</strong> on the waiting list
+          $else:
+              You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
+        </div>
+
+    $else:
+        <span class="borrow_unavailable" data-ol-link-track="borrow_unavailable">
+          <form method="POST" action="$(read_link)?action=join-waitinglist" class="join-waitlist waitinglist-form">
+            <input type="hidden" name="action" value="join-waitinglist"/>
+            <button type="submit" class="submit wait-btn" id="waitlist_ebook">
+              Join Waitlist
+              $if wlsize and int(wlsize):
+                <span class="badge">$wlsize</span>
+            </button>
+          </form>
+        </span>
+        $if not wlsize or int(wlsize) == 0:
+          <div class="waitlist-msg">
+            You will be first in line!
+          </div>
+
+  $elif (availability['status'] == 'open'):
+    <a href="$read_link" data-ol-link-track="read_unrestricted" title="Use BookReader to read online"
+       id="read_ebook" class="borrow_available borrow-link cta-btn">Read</a>
