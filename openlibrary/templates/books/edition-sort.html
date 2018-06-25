@@ -2,8 +2,6 @@ $def with (book)
 
 $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
-$ bookmooch = "http://www.bookmooch.com/m/mooch_choice?asin=XXX"
-$ titletrader = "http://www.titletrader.com/invinfo/XXX.html"
 
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ detailbook = "//archive.org/details/XXX"
@@ -16,7 +14,6 @@ $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&it
 
 $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
-$ google = ""
 
 $ isbn = (book.isbn_10 and book.isbn_10[0]) or (book.isbn_13 and book.isbn_13[0]) or ""
 $ isbn = isbn.replace("-", "")
@@ -27,17 +24,6 @@ $if book.isbn_10:
     $ isbn_10 = book.isbn_10[0].replace("-", "")
 $elif isbn_13:
     $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
-
-$ asin = None
-$ scribd = None
-$if book.get('identifiers'):
-    $if book.identifiers.get('scribd'):
-        $ scribd = book.identifiers.scribd[0]
-    $if book.identifiers.get('amazon'):
-        $ asin = book.identifiers.amazon[0]
-
-$if isbn_10 and not asin:
-    $ asin = isbn_10
 
 $ library = None
 $ collection = set()
@@ -129,15 +115,8 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
             </div>
         </td>
 
-    $if isbn or asin or scribd:
-        <td class="icon buy">
-        <div class="aaaa"></div>
-        <div class="links">
-            $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd})
-        </div>
-        </td>
-    $else:
-        <td class="icon buy inact">
-          <div class="zzzz"></div>
-          <div class="links"></div>
-        </td>
+
+    <td class="icon buy inact">
+      <div class="zzzz"></div>
+      <div class="links"></div>
+    </td>

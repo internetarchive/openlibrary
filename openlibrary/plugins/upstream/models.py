@@ -622,7 +622,15 @@ class Work(models.Work):
             editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
 
         if editions:
-            return web.ctx.site.get_many(["/books/" + olid for olid in editions])
+            books = web.ctx.site.get_many(["/books/" + olid for olid in editions])
+
+            availability = lending.get_availability_of_ocaids([
+                book.ocaid for book in books if book.ocaid
+            ])
+
+            for book in books:
+                book.availability = availability.get(book.ocaid) or {"status": "error"}
+            return books
         else:
             return []
 

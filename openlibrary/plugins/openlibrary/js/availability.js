@@ -25,6 +25,7 @@ $(function(){
     var isAvailabilityFilteringDisabledForPage = function() {
         return (window.location.pathname.match('\/people\/[^/]+') ||
                 window.location.pathname.match('\/account\/books\/[^/]+') ||
+                window.location.pathname.match('\/works\/[^/]+') ||
                 window.location.pathname.match('\/stats/[^/]+'));
     }
 
@@ -166,74 +167,75 @@ $(function(){
             }
         });
 
-        getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
-          getAvailabilityV2('openlibrary_work', works, function(works_response) {
-            var response = {'books': editions_response, 'works': works_response};
-            $.each(results, function(index, e) {
-                var href = $(e).attr('href');
-                var _type_key_slug = href.split('/')
-                var _type = _type_key_slug[1];
-                var key = _type_key_slug[2];
-                if (response[_type]) {
-                    var work = response[_type][key];
-                    var li = $(e).closest("li");
-                    var cta = li.find(".searchResultItemCTA-lending");
-                    var msg = '';
-                    var link = '';
-                    var annotation = '';
-                    var tag = 'a';
+        if (!isAvailabilityFilteringDisabledForPage()) {
+            getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
+                getAvailabilityV2('openlibrary_work', works, function(works_response) {
+                    var response = {'books': editions_response, 'works': works_response};
+                    $.each(results, function(index, e) {
+                        var href = $(e).attr('href');
+                        var _type_key_slug = href.split('/')
+                        var _type = _type_key_slug[1];
+                        var key = _type_key_slug[2];
+                        if (response[_type]) {
+                            var work = response[_type][key];
+                            var li = $(e).closest("li");
+                            var cta = li.find(".searchResultItemCTA-lending");
+                            var msg = '';
+                            var link = '';
+                            var annotation = '';
+                            var tag = 'a';
 
-                    var mode = isAvailabilityFilteringDisabledForPage() ? 'everything' : localStorage.getItem('mode');
+                            var mode = isAvailabilityFilteringDisabledForPage() ? 'everything' : localStorage.getItem('mode');
 
-                    if (mode !== "printdisabled") {
-                        if (work.status === 'error' || work.status === 'private') {
-                            if (mode === "ebooks") {
-                                li.remove();
-                            }
-                        } else {
-                            var cls = 'borrow_available borrow-link';
-                            link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
-
-                            if (work.status === 'open') {
-                                msg = 'Read';
-                            } else if (work.status === 'borrow_available') {
-                                msg = 'Borrow';
-                            } else if (work.status === 'borrow_unavailable') {
-                                tag = 'span';
-                                link = '';
-                                cls = work.status;
-                                msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
-                                if (work.num_waitlist !== '0') {
-                                    msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
-
+                            if (mode !== "printdisabled") {
+                                if (work.status === 'error' || work.status === 'private') {
+                                    if (mode === "ebooks") {
+                                        li.remove();
+                                    }
                                 } else {
-                                    msg += 'Join Waitlist</form>';
-                                    annotation = '<div class="waitlist-msg">You will be first in line!</div>';
+                                    var cls = 'borrow_available borrow-link';
+                                    link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
+
+                                    if (work.status === 'open') {
+                                        msg = 'Read';
+                                    } else if (work.status === 'borrow_available') {
+                                        msg = 'Borrow';
+                                    } else if (work.status === 'borrow_unavailable') {
+                                        tag = 'span';
+                                        link = '';
+                                        cls = work.status;
+                                        msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
+                                        if (work.num_waitlist !== '0') {
+                                            msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+
+                                        } else {
+                                            msg += 'Join Waitlist</form>';
+                                            annotation = '<div class="waitlist-msg">You will be first in line!</div>';
+                                        }
+                                    }
+                                    $(cta).append(
+                                        '<' + tag + ' ' + link + ' class="' + cls +
+                                            ' cta-btn" data-ol-link-track="' +
+                                            work.status
+                                            + '">' + msg + '</' + tag + '>'
+                                    );
+
+                                    if (annotation) {
+                                        $(cta).append(annotation);
+                                    }
                                 }
                             }
-                            $(cta).append(
-                                '<' + tag + ' ' + link + ' class="' + cls +
-                                    ' cta-btn" data-ol-link-track="' +
-                                    work.status
-                                    + '">' + msg + '</' + tag + '>'
-                            );
-
-                            if (annotation) {
-                                $(cta).append(annotation);
-                            }
                         }
-                    }
-                }
-            });
-          });
+                    });
+                });
+            })
+        }
+
+        $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
+            // consider submitting form async and refreshing search results page
+            $(this).submit()
         })
+
+        updateBookAvailability();
     }
-
-    $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
-        // consider submitting form async and refreshing search results page
-        $(this).submit()
-    })
-
-    updateBookAvailability();
-
 });

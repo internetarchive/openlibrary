@@ -8,9 +8,8 @@ $ contributor = meta_fields.get('contributor')
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
-$ realtime_availability = page.get_realtime_availability()
-$ availability = realtime_availability.get('status', 'error')
-$ wlsize = realtime_availability.get('num_waitlist', 0)
+$ availability = page.availability or page.get_realtime_availability()
+$ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
 
 $if page.get('ocaid'):
@@ -44,14 +43,15 @@ $if user_loan:
       <input type="submit" value="Return eBook" class="submit unwait-btn" id="return_ebook"/>
     </form>
 
-$elif (availability == 'borrow_available') or my_turn_to_borrow:
+$elif (availability_status == 'borrow_available') or my_turn_to_borrow:
     <p>
       <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="borrow-btn borrow-link">
         Borrow eBook
       </a>
     </p>
 
-$elif (availability == 'borrow_unavailable'):
+$elif (availability_status == 'borrow_unavailable'):
+    $ wlsize = availability.get('num_waitlist', 0)
     $if waiting_loan:
         <p>
           $ spot = ctx.user.get_waiting_loan_for(page)['position']
@@ -86,7 +86,7 @@ $if editions_page and page.get('ocaid'):
   $:macros.daisy(page)
 
   $# If waitlisted, show other possible editions after daisy download link
-  $if (availability == 'borrow_unavailble'):
+  $if (availability_status == 'borrow_unavailable'):
       $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
       $if checkedout and not user_loan:
         $if work and work.edition_count > 1:
