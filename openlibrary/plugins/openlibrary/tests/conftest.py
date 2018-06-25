@@ -1,4 +1,4 @@
-collect_ignore = ['test_listapi.py']
+collect_ignore = ['test_listapi.py', 'test_ratingsapi.py']
 
 def pytest_addoption(parser):
     parser.addoption("--server", default=None)

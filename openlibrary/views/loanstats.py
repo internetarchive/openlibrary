@@ -8,6 +8,7 @@ from infogami.utils import delegate
 from .. import app
 from ..core import cache
 from ..core.bookshelves import Bookshelves
+from ..core.ratings import Ratings
 
 class stats(app.view):
     path = "/stats"
@@ -46,6 +47,11 @@ class readinglog_stats(app.view):
                 'total_users_logged': {
                     'total': Bookshelves.total_unique_users(),
                     'month': Bookshelves.total_unique_users(since=ONE_MONTH_DATE)
+                },
+                'total_books_starred': {
+                    'total': Ratings.total_num_books_rated(),
+                    'unique': Ratings.total_num_unique_raters(),
+                    'month': Ratings.total_num_books_rated(since=ONE_MONTH_DATE)
                 },
                 'leaderboard': {
                     'most_read': most_read,

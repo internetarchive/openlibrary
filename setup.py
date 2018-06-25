@@ -23,13 +23,10 @@ pytest
 python-memcached
 pyyaml
 simplejson
-sphinx
 supervisor
 web.py==0.33
 pystatsd
-celery
 eventer
-sqlalchemy
 Pygments
 OL-GeoIP
 mockcache

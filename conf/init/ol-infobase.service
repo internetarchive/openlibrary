@@ -6,7 +6,6 @@ Type=simple
 User=vagrant
 WorkingDirectory=/openlibrary
 Environment=PYTHONPATH=/openlibrary/conf
-Environment=CELERY_ALWAYS_EAGER=True
 ExecStart=/usr/bin/python scripts/infobase-server conf/infobase.yml 7000
 Restart=on-failure
 
