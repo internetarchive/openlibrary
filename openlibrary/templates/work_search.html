@@ -245,7 +245,9 @@ function less(header) {
             $ ocaids = [work.ia[0] for work in works if work.ia]
             $ availability = get_availability_of_ocaids(ocaids)
 
-            $ user = {'loans': ctx.user.get_loans(), 'waitlists': ctx.user.get_waitinglist()}
+            $ loans = ctx.user.get_loans() if ctx.user else []
+            $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
+            $ user = {'loans': loans, 'waitlists': waiting_loans}
 
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
