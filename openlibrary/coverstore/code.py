@@ -47,14 +47,6 @@ def get_cover_id(olkeys):
         if covers and covers[0] >= 0:
             return covers[0]
 
-def find_coverid_from_couch(db, key, value):
-    rows = db.view("covers/by_id", key=[key, value], limit=10, stale="ok")
-    rows = list(rows)
-
-    if rows:
-        row = max(rows, key=lambda row: row.value['last_modified'])
-        return row.value['cover']
-
 def _query(category, key, value):
     if key == 'olid':
         prefixes = dict(a="/authors/", b="/books/", w="/works/")

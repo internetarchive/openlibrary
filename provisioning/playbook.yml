@@ -31,7 +31,6 @@
       - python-beautifulsoup
       - python-babel
       - python-imaging
-      - python-couchdb
       - python-genshi
       - python-psycopg2
       - python-py

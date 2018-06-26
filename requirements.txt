@@ -1,6 +1,5 @@
 Babel==2.5.3
 BeautifulSoup==3.2.0
-CouchDB==0.8
 DBUtils==1.1
 Fabric==1.10.1
 Genshi==0.6
