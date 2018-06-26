@@ -26,7 +26,8 @@ $(function(){
         return (window.location.pathname.match('\/people\/[^/]+') ||
                 window.location.pathname.match('\/account\/books\/[^/]+') ||
                 window.location.pathname.match('\/works\/[^/]+') ||
-                window.location.pathname.match('\/stats/[^/]+'));
+                window.location.pathname.match('\/stats/[^/]+') ||
+                window.location.pathname.match('\/search'));
     }
 
     getAvailabilityV2 = function(_type, _ids, callback) {
