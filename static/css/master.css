@@ -3095,6 +3095,9 @@ a.cta-btn  {
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
+    width: 100%;
+    color: #fff;
+    cursor: pointer;
     text-align: center;
     -webkit-box-align: stretch;
     -ms-flex-align: stretch;
@@ -3102,19 +3105,21 @@ a.cta-btn  {
     -ms-flex-pack: stretch;
     align-items: stretch;
     justify-content: center;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+}
+
+.searchResultItemCTA-lending input[type=submit]#return_ebook, 
+.searchResultItemCTA-lending input[type=submit]#unwaitlist_ebook, {
+    width: 100%;
+    font-size: .8em;
 }
 
 .searchResultItemCTA-lending .borrow_unavailable {
     border: none;
-    color: #fff;
-    width: 100%;
     border: 0;
     border-radius: 5px;
     box-sizing: border-box;
-    color: #fff;
-    cursor: pointer;
     text-decoration: none;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     text-align: center;
     padding: 5px 0px;
     font-size: 0.8em;

@@ -245,11 +245,14 @@ function less(header) {
             $ ocaids = [work.ia[0] for work in works if work.ia]
             $ availability = get_availability_of_ocaids(ocaids)
 
+            $ user = {'loans': ctx.user.get_loans(), 'waitlists': ctx.user.get_waitinglist()}
+
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
                 $ work_availability = availability.get(ocaid)
+
                 $if 'has_fulltext' not in param or work_availability['status'] not in ['error', 'private']:
-                    $:macros.SearchResultsWork(work, availability=work_availability)
+                    $:macros.SearchResultsWork(work, availability=work_availability, user=user)
           </ul>
         </div>
 
