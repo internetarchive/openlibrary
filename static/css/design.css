@@ -1,0 +1,75 @@
+html {font-size: 1em;}
+
+body {
+    line-height: 1.45;
+    font-family: verdana;
+}
+
+p {
+    margin-bottom: 1.3em;
+}
+
+h1, h2, h3, h4 {
+    margin: 1.414em 0 0.5em;
+    font-weight: inherit;
+    line-height: 1.2;
+}
+
+h1 {
+    color: #333;
+    margin-top: 0;
+    font-size: 2.441em;
+}
+
+h2 {
+    font-size: 1.953em;
+}
+
+h3 {
+    font-size: 1.563em;
+}
+
+h4 {
+    font-size: 1.25em;
+}
+
+.admin-section {
+    border-left: 4px solid #a7cee4; // this is the only instance of this color. depreciate?
+    padding: 0px 10px 10px 10px;
+    margin: 25px 10px;
+}
+
+.design-pattern-library {
+    margin: 15px;
+}
+
+article.design-pattern {
+    margin: 15px;
+}
+
+article.design-pattern section {
+    padding: 15px;
+    box-shadow: 0px 0px 3px 2px #ccc;
+    border-radius: 3px;
+}
+
+ul.color-swatch li {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+}
+
+ul.color-swatch li span.color-block {
+    width: 1em;
+    height: 1em;
+    display: block;
+    margin: 3px;
+}
+
+.color-block-primary-cta { background-color: #3b99fc; }
+.color-block-background { background-color: #e2dcc5; }
+.color-block-link-clicked { background-color: #036; }
+.color-block-link-unclicked { background-color: #036daa; }
+
+
