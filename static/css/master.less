@@ -2,10 +2,307 @@
 
 @import (less) "colors.less";
 
-.admin-section {
-    border-left: 4px solid #a7cee4; // this is the only instance of this color. depreciate?
-    padding: 0px 10px 10px 10px;
-    margin: 25px 10px;
+table#editions {float:left;width:918px;clear:both;font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;}
+table#editions th {
+    font-family:"News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    line-height:normal;
+    text-align:center;
+    background-color: rgb(238,238,238);
+    border-bottom:1px solid rgb(204,204,204);
+    border-left:5px solid #fff;
+    border-right:5px solid #fff;
+    padding:6px 0;
+    outline:none;
+    cursor:pointer;
+}
+table#editions td.book {vertical-align:top;}
+table#editions td.icon {text-align:left;vertical-align:top;padding:10px 0 10px 10px;width:143px;}
+table#editions td.icon ul {margin-bottom:0;}
+table#editions div.cover {text-align:center;padding:10px 10px 10px 0;width:70px;overflow:hidden;float:left;}
+table#editions div.cover img {max-width:70px;max-height:60px;}
+table#editions div.title {font-size:1.0em;padding:10px 0;float:left;width:350px;}
+table#editions div.links {font-size:12px;color:#333;line-height:1.5em;}
+
+.FixedHeader_Cloned th {background-color: #fff;}
+
+.dataTables_wrapper {
+        font-family:"Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+        position: relative;
+        z-index: 1;
+        margin: 15px 0;
+        float: left;
+        clear: both;
+        zoom: 1; /* Feeling sorry for IE */
+}
+
+.dataTables_processing {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 250px;
+        height: 30px;
+        margin-left: -125px;
+        margin-top: -15px;
+        padding: 14px 0 5px 0;
+        border: 1px solid #ddd;
+        text-align: center;
+        color: #999;
+        font-size: 14px;
+        background-color: white;
+}
+
+.dataTables_length {
+        width: 40%;
+        float: left;
+        font-size: 12px;
+        color: #615132;
+        display: none;
+}
+
+.dataTables_filter {
+        width: 50%;
+        float: right;
+        text-align: right;
+        font-size: 12px;
+        color: #615132;
+}
+
+.dataTables_info {
+        width: 40%;
+        float: left;
+        font-size: 12px;
+        color: #615132;
+        margin-top: 20px;
+}
+
+.dataTables_paginate {
+        width: 44px;
+        * width: 50px;
+        float: right;
+        text-align: right;
+        font-size: 12px;
+        color: #615132;
+}
+
+/* Pagination nested */
+.paginate_disabled_previous, .paginate_enabled_previous, .paginate_disabled_next, .paginate_enabled_next {
+        height: 19px;
+        width: 19px;
+        margin-left: 3px;
+        float: left;
+}
+
+.paginate_disabled_previous {
+        background-image: url('/images/back_disabled.png');
+}
+
+.paginate_enabled_previous {
+        background-image: url('/images/back_enabled.png');
+}
+
+.paginate_disabled_next {
+        background-image: url('/images/forward_disabled.png');
+}
+
+.paginate_enabled_next {
+        background-image: url('/images/forward_enabled.png');
+}
+
+
+table.display {
+        float: left;
+        margin: 0 auto;
+        width: 918px;
+        clear: both;
+}
+
+table.display thead th {
+        cursor: pointer;
+        * cursor: hand;
+}
+
+table.display tfoot th {
+}
+
+table.display tr.heading2 td {
+}
+
+table.display td {
+}
+
+table.display td.center {
+}
+
+.sorting_asc {
+        background-image: url('/images/sort_asc.png');
+        background-repeat: no-repeat;
+        background-position: 90% 6px;
+}
+.sorting_desc {
+        background-image: url('/images/sort_desc.png');
+        background-repeat: no-repeat;
+        background-position: 90% 6px;
+}
+.sorting {
+        background-image: url('/images/sort_both.png');
+        background-repeat: no-repeat;
+        background-position: 90% 6px;
+}
+.sorting_asc_disabled {
+        background-image: url('/images/sort_asc_disabled.png');
+        background-repeat: no-repeat;
+        background-position: 90% 6px;
+}
+.sorting_desc_disabled {
+        background-position: url('/images/sort_desc_disabled.png');
+        background-repeat: no-repeat;
+        background-position: 90% 6px;
+}
+.sorting:hover {
+        text-decoration: none;
+}
+
+table.display tr.odd.gradeA {
+        background-color: #ddffdd;
+}
+
+table.display tr.even.gradeA {
+        background-color: #eeffee;
+}
+
+table.display tr.odd.gradeA {
+        background-color: #ddffdd;
+}
+
+table.display tr.even.gradeA {
+        background-color: #eeffee;
+}
+
+table.display tr.odd.gradeC {
+        background-color: #ddddff;
+}
+
+table.display tr.even.gradeC {
+        background-color: #eeeeff;
+}
+
+table.display tr.odd.gradeX {
+        background-color: #ffdddd;
+}
+
+table.display tr.even.gradeX {
+        background-color: #ffeeee;
+}
+
+table.display tr.odd.gradeU {
+        background-color: #ddd;
+}
+
+table.display tr.even.gradeU {
+        background-color: #eee;
+}
+
+
+tr.odd {
+        background-color: #fff;
+        border-bottom: 1px solid rgb(204,204,204);
+}
+
+tr.even {
+        background-color: #fff;
+        border-bottom: 1px solid rgb(204,204,204);
+}
+
+.dataTable_wrapper .top,.dataTable_wrapper .bottom {
+        padding: 15px;
+        background-color: transparent;
+        border: none;
+}
+
+.top .dataTables_info {
+        float: none;
+}
+
+.clear {
+        clear: both;
+}
+
+.dataTables_empty {
+        text-align: center;
+        font-size: 14px;
+        font-weight: normal;
+        padding: 15px 0;
+        color: #e44028;
+}
+
+tfoot input {
+        margin: 0.5em 0;
+        width: 100%;
+        color: #444;
+}
+
+tfoot input.search_init {
+        color: #999;
+}
+
+td.group {
+        background-color: #d1cfd0;
+        border-bottom: 2px solid #A19B9E;
+        border-top: 2px solid #A19B9E;
+}
+
+td.details {
+        background-color: #d1cfd0;
+        border: 2px solid #A19B9E;
+}
+
+
+.example_alt_pagination div.dataTables_info {
+        width: 60%;
+}
+
+.paging_full_numbers {
+        width: auto;
+        margin-top: 15px;
+        height: 30px;
+        line-height: 30px;
+}
+
+.paging_full_numbers span.paginate_button,
+.paging_full_numbers span.paginate_active {
+        font-family:"Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+        font-size: 11px;
+        border: 1px solid #ddd;
+        padding: 7px;
+        margin: 0 5px;
+        color: #036daa;
+        cursor: pointer;
+        *cursor: hand;
+}
+.paging_full_numbers span.paginate_button {
+        background-color: #fff;
+}
+
+.paging_full_numbers span.paginate_button:hover {
+        background:#036daa;
+        color:#fff;
+        text-decoration:none;
+}
+
+.paging_full_numbers span.paginate_active {
+        color:#000;
+        background-color:#efefef;
+}
+
+table.display tr.even.row_selected td {
+        background-color: #B0BED9;
+}
+
+table.display tr.odd.row_selected td {
+        background-color: #9FAFD1;
 }
 
 table.readinglog-stats {
@@ -189,7 +486,7 @@ table{border-collapse:collapse;border-spacing:0;}
 fieldset,img{border:0;}
 address,caption,cite,code,dfn,th,var{font-style:normal;font-weight:normal;}
 li{list-style:none;}
-caption,th{text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}
+caption,th{text-align:left;}
 q:before,q:after{content:'';}
 abbr,acronym{border:0;font-variant:normal;}
 /*SET FONT SIZES AS em, DIVIDING YOUR PIXEL SIZE by 16 (i.e. 12px = 12/16 or 0.75em)*/
@@ -353,12 +650,10 @@ input[type=text]{margin: 0 10px 5px 0;}
     border: none;
 }
 p.instruct {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 0.875em;
     margin-bottom:0;
 }
 p.alert {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     font-size: 0.875em;
     color: @brown;
     background-color: @light-yellow;
@@ -6120,7 +6415,6 @@ a.btn {
     margin-bottom: 15px;
 }
 
-
 .star {
     color: @light-mid-grey;
 }
@@ -6210,4 +6504,7 @@ form .stars span {
   left: 0;
   height: 30px;
   background: url("/static/images/stars.png") repeat-x 0 -60px;
+
+.responsive button.slick-prev:before, .slick-next:before {
+    color: #fff;
 }

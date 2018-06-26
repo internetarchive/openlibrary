@@ -796,9 +796,10 @@ def setup_context_defaults():
 
 def setup():
     import home, inlibrary, borrow_home, libraries, stats, support, \
-        events, status, merge_editions, authors
+        events, design, status, merge_editions, authors
 
     home.setup()
+    design.setup()
     inlibrary.setup()
     borrow_home.setup()
     libraries.setup()
