@@ -1,88 +1,90 @@
 .ac_results {
-	padding: 0px;
-	border: 1px solid black;
-	background-color: white;
-	overflow: hidden;
-	z-index: 99999;
+  padding: 0px;
+  border: 1px solid black;
+  background-color: white;
+  overflow: hidden;
+  z-index: 99999;
 }
 
 .ac_results ul {
-	width: 100%;
-	list-style-position: outside;
-	list-style: none;
-	padding: 0;
-	margin: 0;
+  width: 100%;
+  list-style-position: outside;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .ac_results li {
-	margin: 0px;
-	padding: 5px;
-	cursor: default;
-	display: block;
-	/* 
+  margin: 0px;
+  padding: 5px;
+  cursor: default;
+  display: block;
+  /* 
 	if width will be 100% horizontal scrollbar will apear 
 	when scroll mode will be used
 	*/
-	/*width: 100%;*/
-	font: menu;
-	font-size: 12px;
-	/* 
+  /*width: 100%;*/
+  font: menu;
+  font-size: 12px;
+  /* 
 	it is very important, if line-height not set or set 
 	in relative units scroll will be broken in firefox
 	*/
-	line-height: 16px;
-	overflow: hidden;
+  line-height: 16px;
+  overflow: hidden;
 }
 
 .ac_loading {
-	background: white url('/images/indicator.gif') right center no-repeat;
+  background: white url('/images/indicator.gif') right center no-repeat;
 }
 
 .ac_odd {
-	background-color: #eee;
+  background-color: #eee;
 }
 
 .ac_over {
-	background-color: #0A246A;
-	color: white;
+  background-color: #0a246a;
+  color: white;
 }
 
 /* Customizations */
 
 .ac_results {
-    position: absolute;
-    display: none;
-    top: -5px;
-    width: 493px;
-    max-height: 290px;
-    background-color: #fff;
-    border: 1px solid #999;
-    opacity: .95;
-    text-align: left;
+  position: absolute;
+  display: none;
+  top: -5px;
+  width: 493px;
+  max-height: 290px;
+  background-color: #fff;
+  border: 1px solid #999;
+  opacity: .95;
+  text-align: left;
 }
 
 .ac_results ul li {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    cursor: pointer;
-    color: #999;
-    line-height: normal;
+  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+  cursor: pointer;
+  color: #999;
+  line-height: normal;
 }
 
 .ac_results li.ac_over {
-    background-color: #fffdcd;
+  background-color: #fffdcd;
 }
 
-.ac_even, .ac_odd {
-    background-color: inherit;
+.ac_even,
+.ac_odd {
+  background-color: inherit;
 }
 
 input.accept {
 }
+
 input.reject {
 }
 
 .ac_addnew {
-    border-top: 1px solid #ccc;
-    padding: 5px 0 0!important;
-    margin-top: -5px;
+  border-top: 1px solid #ccc;
+  padding: 5px 0 0 !important;
+  margin-top: -5px;
 }
