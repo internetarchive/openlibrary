@@ -21,7 +21,7 @@ RUN apt-get install -y vim
 WORKDIR /openlibrary
 
 # Setup nginx
-RUN ln -s conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
+RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
     && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
 
 # SOLR
