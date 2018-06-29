@@ -1,9 +1,7 @@
 FROM ubuntu:xenial
 
-COPY . /openlibrary
-
 # Expose Open Library and SOLR
-EXPOSE 80 8983
+EXPOSE 80 7000 8983
 
 ENV LANG en_US.UTF-8
 
@@ -13,4 +11,29 @@ ENV LC_ALL POSIX
 RUN apt-get -qq update
 
 WORKDIR /openlibrary
+
+RUN apt-get -qq update && apt-get install -y \
+    nginx \
+    solr-tomcat \
+    postgresql \
+    build-essential \
+    git-core \
+    memcached \
+    libpq-dev \
+    libxml2-dev \
+    libxslt-dev \
+    curl \
+    screen \
+    npm \
+    python-dev \
+    python-pip \
+    libgeoip-dev \
+    python-lxml \
+    python-psycopg2 \
+    python-yaml
+
+RUN npm install less -g && ln -s /usr/bin/nodejs /usr/bin/node
+
+COPY . /openlibrary
+RUN pip install -r test_requirements.txt
 

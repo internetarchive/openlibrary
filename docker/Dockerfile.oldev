@@ -1,36 +1,53 @@
 FROM olbase 
 
-# Expose Open Library and SOLR
-EXPOSE 80 8080 8983 18983
+# Expose Open Library, Infogami, and SOLR
+EXPOSE 80 7000 8983
 
 ENV LANG en_US.UTF-8
 
 # required for postgres
 ENV LC_ALL POSIX
 
+RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
+
+# enable users to bind to port 80
+RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
+
+# Using vim to change and test things, may want to remove?
+RUN apt-get install -y vim
+
+#COPY . /openlibrary # already copied from olbase
+
 WORKDIR /openlibrary
 
-RUN apt-get -qq update && apt-get install -y \
-    nginx \
-    solr-tomcat \
-    postgresql \
-    build-essential \
-    git-core \
-    memcached \
-    libpq-dev \
-    libxml2-dev \
-    libxslt-dev \
-    curl \
-    screen \
-    npm \
-    python-dev \
-    python-pip \
-    libgeoip-dev \
-    python-lxml \
-    python-psycopg2 \
-    python-yaml
+# Setup nginx
+RUN ln -s conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
+    && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
 
-RUN npm install -g less && npm update -g less
-RUN ln -s /usr/bin/nodejs /usr/bin/node
+# SOLR
+RUN perl -i -pe 's/8080/8983/'  /etc/tomcat7/server.xml \
+  && cp conf/solr/conf/schema.xml /etc/solr/conf/
 
-RUN pip install -r test_requirements.txt
+RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
+    && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
+
+# TODO: remove vagrant bootstrap.sh and conf/init services
+
+# Setup db
+USER postgres
+RUN /etc/init.d/postgresql start \
+  && createuser -s openlibrary \
+  && createdb openlibrary \
+  && psql openlibrary < openlibrary/core/schema.sql \
+  && createdb coverstore \
+  && psql coverstore < openlibrary/coverstore/schema.sql \
+  && psql openlibrary < scripts/dev-instance/dev_db.pg_dump
+
+USER root
+
+# run make to initialize git submodules, build css and js files
+# only root has access to .git
+RUN ln -s vendor/infogami/infogami infogami
+RUN make
+
+CMD scripts/ol-docker-start.sh
