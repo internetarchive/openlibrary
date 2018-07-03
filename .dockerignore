@@ -1,7 +1,6 @@
 .vagrant
 .git/objects/*
 solr-update*
-vendor
 errors
 infogami
 config
