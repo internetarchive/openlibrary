@@ -4,8 +4,8 @@ DIR=`dirname $0`
 OLROOT=$DIR/../..
 
 cat $DIR/datatables.css
-cat $DIR/diff.css
-cat $DIR/jquery.autocomplete.css
-cat $DIR/master.css
-cat $DIR/wmd.css
-cat $DIR/iconochive.css
+cat $DIR/diff.less
+cat $DIR/jquery.autocomplete.less
+cat $DIR/master.less
+cat $DIR/wmd.less
+cat $DIR/iconochive.less

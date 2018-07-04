@@ -9,5 +9,7 @@ $if bodyid == 'user' or 'admin':
         $:render_template("site/stats")
     $:render_template("lib/nav_foot", page)
 
+$if bodyid == 'user' or 'admin':
+    $:render_template('lib/analytics', page)
 </body>
 </html>

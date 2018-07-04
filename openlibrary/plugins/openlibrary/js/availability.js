@@ -19,15 +19,20 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
-    /* For some pages, we should not filter out ebook results,
-     * regardless of what "mode" (e.g. ebooks, daisy, everything) is
-     * currently selected */
-    var isAvailabilityFilteringDisabledForPage = function() {
-        return (window.location.pathname.match('\/people\/[^/]+') ||
-                window.location.pathname.match('\/account\/books\/[^/]+') ||
-                window.location.pathname.match('\/works\/[^/]+') ||
-                window.location.pathname.match('\/stats/[^/]+') ||
-                window.location.pathname.match('\/search'));
+    // pages still relying on legacy client-side availability checking
+    var whitelist = {
+        '^\/account\/books\/[^/]+': { // readinglog
+            filter: false
+        },
+        '^\/authors\/[^/]+': { // authors
+            filter: true
+        },
+        '^\/people\/[^/]+': { // lists
+            filter: false,
+        },
+        '^\/stats/[^/]+': {
+            filter: false
+        }
     }
 
     getAvailabilityV2 = function(_type, _ids, callback) {
@@ -145,6 +150,20 @@ $(function(){
     };
 
     updateWorkAvailability = function() {
+
+        // Determine whether availability check necessary for page
+        var checkAvailability = false;
+        var filter = false;
+        for (var page in whitelist) {
+            if (window.location.pathname.match(page)) {
+                checkAvailability = true;
+                filter = whitelist[page].filter;
+            }
+        }
+        if(!checkAvailability) {
+            return;
+        }
+
         if (localStorage.getItem('mode') === "printdisabled") {
             var daisies = $('.print-disabled-only');
             $.each(daisies, function() {
@@ -168,69 +187,67 @@ $(function(){
             }
         });
 
-        if (!isAvailabilityFilteringDisabledForPage()) {
-            getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
-                getAvailabilityV2('openlibrary_work', works, function(works_response) {
-                    var response = {'books': editions_response, 'works': works_response};
-                    $.each(results, function(index, e) {
-                        var href = $(e).attr('href');
-                        var _type_key_slug = href.split('/')
-                        var _type = _type_key_slug[1];
-                        var key = _type_key_slug[2];
-                        if (response[_type]) {
-                            var work = response[_type][key];
-                            var li = $(e).closest("li");
-                            var cta = li.find(".searchResultItemCTA-lending");
-                            var msg = '';
-                            var link = '';
-                            var annotation = '';
-                            var tag = 'a';
+        getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
+            getAvailabilityV2('openlibrary_work', works, function(works_response) {
+                var response = {'books': editions_response, 'works': works_response};
+                $.each(results, function(index, e) {
+                    var href = $(e).attr('href');
+                    var _type_key_slug = href.split('/')
+                    var _type = _type_key_slug[1];
+                    var key = _type_key_slug[2];
+                    if (response[_type]) {
+                        var work = response[_type][key];
+                        var li = $(e).closest("li");
+                        var cta = li.find(".searchResultItemCTA-lending");
+                        var msg = '';
+                        var link = '';
+                        var annotation = '';
+                        var tag = 'a';
 
-                            var mode = isAvailabilityFilteringDisabledForPage() ? 'everything' : localStorage.getItem('mode');
+                        var mode = filter ? localStorage.getItem('mode') : 'everything';
 
-                            if (mode !== "printdisabled") {
-                                if (work.status === 'error' || work.status === 'private') {
-                                    if (mode === "ebooks") {
-                                        li.remove();
+                        if (mode !== "printdisabled") {
+                            if (work.status === 'error' || work.status === 'private') {
+                                if (mode === "ebooks") {
+                                    li.remove();
+                                }
+                            } else {
+                                var cls = 'borrow_available borrow-link';
+                                link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
+
+                                if (work.status === 'open') {
+                                    msg = 'Read';
+                                } else if (work.status === 'borrow_available') {
+                                    msg = 'Borrow';
+                                } else if (work.status === 'borrow_unavailable') {
+                                    tag = 'span';
+                                    link = '';
+                                    cls = work.status;
+                                    msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
+                                    if (work.num_waitlist !== '0') {
+                                        msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+
+                                    } else {
+                                        msg += 'Join Waitlist</form>';
+                                        annotation = '<div class="waitlist-msg">You will be first in line!</div>';
                                     }
-                                } else {
-                                    var cls = 'borrow_available borrow-link';
-                                    link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
+                                }
+                                $(cta).append(
+                                    '<' + tag + ' ' + link + ' class="' + cls +
+                                        ' cta-btn" data-ol-link-track="' +
+                                        work.status
+                                        + '">' + msg + '</' + tag + '>'
+                                );
 
-                                    if (work.status === 'open') {
-                                        msg = 'Read';
-                                    } else if (work.status === 'borrow_available') {
-                                        msg = 'Borrow';
-                                    } else if (work.status === 'borrow_unavailable') {
-                                        tag = 'span';
-                                        link = '';
-                                        cls = work.status;
-                                        msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
-                                        if (work.num_waitlist !== '0') {
-                                            msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
-
-                                        } else {
-                                            msg += 'Join Waitlist</form>';
-                                            annotation = '<div class="waitlist-msg">You will be first in line!</div>';
-                                        }
-                                    }
-                                    $(cta).append(
-                                        '<' + tag + ' ' + link + ' class="' + cls +
-                                            ' cta-btn" data-ol-link-track="' +
-                                            work.status
-                                            + '">' + msg + '</' + tag + '>'
-                                    );
-
-                                    if (annotation) {
-                                        $(cta).append(annotation);
-                                    }
+                                if (annotation) {
+                                    $(cta).append(annotation);
                                 }
                             }
                         }
-                    });
+                    }
                 });
-            })
-        }
+            });
+        })
 
         $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
             // consider submitting form async and refreshing search results page
