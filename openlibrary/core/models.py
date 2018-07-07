@@ -428,6 +428,15 @@ class Work(Thing):
         status_id = Bookshelves.get_users_read_status_of_work(username, work_id)
         return status_id
 
+    def get_num_users_by_bookshelf(self):
+        work_id = extract_numeric_id_from_olid(self.key)
+        num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        return {
+            'want-to-read': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
+            'currently-reading': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
+            'already-read': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+        }
+
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.
