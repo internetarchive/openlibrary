@@ -220,6 +220,16 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $if page.languages:
                     <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
                 </h4>
+
+                <h4 class="publisher">
+                    $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
+                    $if stats_by_bookshelf['want-to-read']:
+                        $stats_by_bookshelf['want-to-read'] want to read this book
+                    $if stats_by_bookshelf['currently-reading']:
+                        $stats_by_bookshelf['currently-reading'] are currently reading this book
+                    $if stats_by_bookshelf['already-read']:
+                        $stats_by_bookshelf['already-read'] already read this book
+                  </h4>
             </div>
 
         $if page.description:
