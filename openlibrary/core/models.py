@@ -432,9 +432,9 @@ class Work(Thing):
         work_id = extract_numeric_id_from_olid(self.key)
         num_users_by_bookshelf = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
         return {
-            'want-to-read': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
-            'currently-reading': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
-            'already-read': num_users_by_bokshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
+            'want-to-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Want to Read'], 0),
+            'currently-reading': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Currently Reading'], 0),
+            'already-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
         }
 
     def _get_d(self):
