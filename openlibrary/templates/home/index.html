@@ -21,6 +21,8 @@ $var title: $_("Welcome to Open Library")
 
   $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", limit=36, test=test)
 
+  $:render_template("home/custom_ia_carousel": title="Newest Arrivals", key='newest_arrivals', query='preset:newest_arrivals', limit=42, test=test)
+
   $:render_template("home/stats", stats)
 
   $:render_template("home/about", blog_posts)

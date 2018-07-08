@@ -5,6 +5,7 @@ import web
 import simplejson
 import logging
 
+from datetime import datetime, timedelta
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
@@ -20,12 +21,14 @@ from openlibrary.plugins.openlibrary import lists
 
 
 logger = logging.getLogger("openlibrary.home")
+recent_date_string = (datetime.now() - timedelta(days=60)).strftime('%Y-%m-%d')
 
 CAROUSELS_PRESETS = {
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
     'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
     'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
-    'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
+    'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)',
+    'preset:newest_arrivals': 'openlibrary_work:(*) AND date:[2000 TO *] AND publicdate:['+recent_date_string+' TO *] AND (collection:inlibrary)'
 }
 
 class home(delegate.page):
