@@ -440,7 +440,7 @@ class Work(Thing):
     def get_rating_stats(self):
         work_id = extract_numeric_id_from_olid(self.key)
         rating_stats = Ratings.get_rating_stats(work_id)
-        return {'avg_rating': rating_stats['avg_rating'], 'num_ratings': rating_stats['num_ratings']}
+        return {'avg_rating': round(rating_stats['avg_rating'],2), 'num_ratings': rating_stats['num_ratings']}
 
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
