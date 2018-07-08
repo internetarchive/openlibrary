@@ -224,7 +224,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     <span class="sansserif">
                     $ rating_stats = work.get_rating_stats() if work else {}
                     $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
-                    $if rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
+                    $if rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
                         </br> <strong> Average rating: </strong> $rating_stats['avg_rating'] stars
                         - rated by $rating_stats['num_ratings'] readers
 
