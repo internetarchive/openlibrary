@@ -39,6 +39,15 @@ class Ratings(object):
         return list(oldb.query(query, vars={'username': username}))
 
     @classmethod
+    def get_rating_stats(cls, work_id):
+        oldb = db.get_db()
+        query = ("SELECT AVERAGE(rating) as avg_rating, COUNT(DISTINCT username) as num_ratings"
+                 " FROM ratings"
+                 " WHERE work_id = $work_id")
+        result = oldb.query(query, vars={'work_id': int(work_id)})
+        return {'avg_rating': result['average_rating'], 'num_ratings': result['num_ratings']} if result else {}
+
+    @classmethod
     def get_all_works_ratings(cls, work_id):
         oldb = db.get_db()
         query = 'select * from ratings where work_id=$work_id'
