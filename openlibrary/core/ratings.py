@@ -45,7 +45,7 @@ class Ratings(object):
                  " FROM ratings"
                  " WHERE work_id = $work_id")
         result = oldb.query(query, vars={'work_id': int(work_id)})
-        return {'avg_rating': result['average_rating'], 'num_ratings': result['num_ratings']} if result else {}
+        return {'avg_rating': result['avg_rating'], 'num_ratings': result['num_ratings']} if result else {}
 
     @classmethod
     def get_all_works_ratings(cls, work_id):
