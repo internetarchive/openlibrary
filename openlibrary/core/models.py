@@ -437,6 +437,11 @@ class Work(Thing):
             'already-read': num_users_by_bookshelf.get(Bookshelves.PRESET_BOOKSHELVES['Already Read'], 0)
         }
 
+    def get_rating_stats(self):
+        work_id = extract_numeric_id_from_olid(self.key)
+        rating_stats = Ratings.get_rating_stats(work_id)
+        return rating_stats
+
     def _get_d(self):
         """Returns the data that goes into memcache as d/$self.key.
         Used to measure the memcache usage.

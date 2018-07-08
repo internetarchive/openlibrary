@@ -220,15 +220,21 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $if page.languages:
                     <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
                 </h4>
-
                 <h4 class="publisher">
+                    <span class="sansserif">
+                    $ rating_stats = work.get_rating_stats() if work else {}
                     $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
-                    $if stats_by_bookshelf['want-to-read']:
-                        $stats_by_bookshelf['want-to-read'] want to read this book
-                    $if stats_by_bookshelf['currently-reading']:
-                        $stats_by_bookshelf['currently-reading'] are currently reading this book
-                    $if stats_by_bookshelf['already-read']:
-                        $stats_by_bookshelf['already-read'] already read this book
+                    $if rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
+                        </br> <strong> Average rating: </strong> $rating_stats['avg_rating'] stars
+                        - rated by $rating_stats['num_ratings'] readers
+
+                    $if stats_by_bookshelf['want-to-read'] > 1:
+                        </br> <strong> $stats_by_bookshelf['want-to-read'] readers </strong> want to read
+                    $if stats_by_bookshelf['currently-reading'] > 1:
+                        - <strong> $stats_by_bookshelf['currently-reading'] readers </strong> are currently reading
+                    $if stats_by_bookshelf['already-read'] > 1:
+                        - <strong> $stats_by_bookshelf['already-read'] readers </strong> have read
+                    </span>
                   </h4>
             </div>
 
