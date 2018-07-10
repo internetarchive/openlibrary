@@ -1506,6 +1506,24 @@ header#header-bar .search-component .search-bar-submit {
   appearance: none;
 }
 
+.search-results-stats {
+  margin: 0px;
+  margin-bottom: 10px;
+  color: @light-grey;
+  font-size: .9em;
+}
+
+.fulltext-excerpt {
+  padding: 10px;
+}
+
+.serp-extras {
+  border: 1px solid @lighter-grey;
+  background-color: @white;
+  padding: 0px 10px 10px 10px;
+  margin-top: 10px;
+}
+
 header#header-bar .search-component .search-dropdown {
   position: relative;
   z-index: 999;
@@ -5060,6 +5078,9 @@ li.searchResultItem {
   align-items: stretch;
   justify-content: center;
   padding: 0px 5px 0px 15px;
+
+  align-self: flex-start;
+  margin-top: 10px;
 }
 
 a.cta-btn {
@@ -5414,7 +5435,12 @@ h2.edition-title {
   font-size: .9em;
   font-weight: normal;
   color: @dark-grey;
-  margin: 15px 0px;
+  margin: 0px;
+  margin-bottom: 10px;
+}
+
+.readers-stats {
+  font-size: .8em;
 }
 
 div.workDetails {
@@ -10165,4 +10191,16 @@ form .stars span {
 .responsive button.slick-prev:before,
 .slick-next:before {
   color: #fff;
+}
+
+.searchInsideForm input[type=text] {
+  margin: 0px;
+  padding: 5px;
+  width: 100%;
+  max-width: 500px;
+  min-width: 100px;
+}
+
+.searchInsideForm input[type=submit] {
+  padding: 5px;
 }

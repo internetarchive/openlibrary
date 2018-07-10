@@ -2,6 +2,7 @@ from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, public
 from infogami import config
 from lxml import etree
+from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.utils import escape_bracket
 import logging
 import re, web, urllib, urllib2, urlparse, simplejson, httplib
@@ -20,30 +21,26 @@ class search_inside(delegate.page):
 
     def GET(self):
         def get_results(q, offset=0, limit=100):
-            q = escape_q(q)
-            results = inside_search_select({'q': q, 'from': offset, 'size': limit})
-            # If there is any error in gettig the response, return the error
-            if 'error' in results:
-                return results
+            ia_results = inside_search_select({
+                'q': escape_q(q), 'from': offset,
+                'size': limit, 'olonly': 'true'
+            })
 
-            # TODO: This chunk *seems* like it's not achieving anything -- try removing. If all good,
-            #       can collapse `if 'error' in results` condition above.
-            # ekey_doc = {}
-            # for doc in results['hits']['hits']:
-            #     ia = doc['fields']['identifier'][0]
-            #     q = {'type': '/type/edition', 'ocaid': ia}
-            #     ekeys = web.ctx.site.things(q)
-            #     if not ekeys:
-            #         del q['ocaid']
-            #         q['source_records'] = 'ia:' + ia
-            #         ekeys = web.ctx.site.things(q)
-            #     if ekeys:
-            #         ekey_doc[ekeys[0]] = doc
-            # editions = web.ctx.site.get_many(ekey_doc.keys())
-            # for e in editions:
-            #     ekey_doc[e['key']]['edition'] = e
-
-            return results
+            if 'error' not in ia_results and ia_results['hits']:
+                hits = ia_results['hits'].get('hits', [])
+                ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
+                availability = get_availability_of_ocaids(ocaids)                
+                if 'error' in availability:
+                    return []
+                editions = web.ctx.site.get_many([
+                    '/books/%s' % availability[ocaid].get('openlibrary_edition')
+                    for ocaid in availability
+                    if availability[ocaid].get('openlibrary_edition')])
+                for ed in editions:
+                    idx = ocaids.index(ed.ocaid)
+                    ia_results['hits']['hits'][idx]['edition'] = ed
+                    ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
+            return ia_results
 
         def inside_search_select(params):
             if not hasattr(config, 'plugin_inside'):
@@ -107,7 +104,9 @@ class search_inside(delegate.page):
                 if len(v):
                     item[k] = [i.text for i in v if i.text]
             return item
-        return render_template('search/inside.tmpl', get_results, self.quote_snippet, editions_from_ia, read_from_archive)
+        page = render_template('search/inside.tmpl', get_results, self.quote_snippet, editions_from_ia, read_from_archive)
+        page.v2 = True
+        return page
 
 class snippets(delegate.page):
     path = '/search/inside/(.+)'

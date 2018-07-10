@@ -1,0 +1,10 @@
+$def with (q, snippet=None, page_nums=[])
+
+$if page_nums:
+  <p>on page $(', '.join([str(num) for num in page_nums])):</p>
+
+$if snippet:
+  <div class="fulltext-excerpt">
+    &hellip;$:(snippet.replace("{{{", "<span class='highlight'><strong>").replace("}}}", "</strong></span>"))&hellip;
+  </div>
+
