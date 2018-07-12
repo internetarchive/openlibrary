@@ -22,6 +22,8 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
          <h3 class="booktitle">
            <a itemprop="name" href="$(book_url)"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
+           $if doc.get('publish_date'):
+             ($(doc['publish_date']))
          </h3>
       </span>
       <span class="bookauthor">by

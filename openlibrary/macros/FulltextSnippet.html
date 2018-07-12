@@ -1,10 +1,23 @@
-$def with (q, snippet=None, page_nums=[])
+$def with (q, doc=None)
 
-$if page_nums:
-  <p>on page $(', '.join([str(num) for num in page_nums])):</p>
+$ ia = doc.get('fields', {}).get('identifier', [''])[0]
+$ availability = doc.get('availability', {})
+$ snippets = doc.get('highlight', {}).get('text', [''])
+$ page_nums = doc.get('fields', {}).get('page_num', [])
+$ page = ', '.join([str(num) for num in page_nums])
 
-$if snippet:
-  <div class="fulltext-excerpt">
-    &hellip;$:(snippet.replace("{{{", "<span class='highlight'><strong>").replace("}}}", "</strong></span>"))&hellip;
-  </div>
+$if snippets:
+  <section class="fulltext-excerpts">
 
+    $for snippet in snippets:
+      $if snippet: 
+        <div class="fulltext-excerpt">          
+          &hellip;$:(snippet.replace("<", "&laquo;").replace(">", "&raquo;").replace("{{{", "<span class='highlight'><strong>").replace("}}}", "</strong></span>"))&hellip;
+        </div>
+  </section>
+
+$if availability.get('status') == 'open':
+  <p class="center"><a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>
+
+$if availability.get('status') == 'borrow_available':
+  <p class="center">Borrow &amp; <a href="https://archive.org/stream/$(ia)?ref=ol&access=1#search/$(q)">See All Results</a></p>

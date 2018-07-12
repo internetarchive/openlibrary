@@ -28,9 +28,9 @@ $if q:
 
 <div id="contentBody">
 
-  <form class="siteSearch searchInsideForm" action="">
+  <form class="siteSearch searchInsideForm" action="/search/inside">
     <input type="text" class="larger" name="q" value="$q"/>
-    <input type="submit"  class="generic-button" value="$_('Search')">
+    <input type="submit" class="generic-button" value="$_('Search')">
   </form>
 
     $if q:
@@ -49,18 +49,12 @@ $if q:
                 $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
                 $ user = {'loans': loans, 'waitlists': waiting_loans}
 
-                $for doc in hits:
-                  $ doc_fields = doc.get('fields', {})
-                  $ ia = doc_fields.get('identifier', [''])[0]
-                  $ title = doc_fields.get('meta_title', ['no title for: ' + ia])[0]
-                  $ authors = doc_fields.get('meta_creator', [])
-                  $ collection = set(doc_fields.get('meta_collection', []))
-                  $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
-                  $ url = "/ia/" + ia
-                  $ snippet = macros.FulltextSnippet(q, snippet=doc.get('highlight', {}).get('text', [''])[0], page_nums=doc_fields.get('page_num', []))
-
-                  $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
+                $for doc in hits:                
+                  $if doc.get('edition'):
+                    $ snippet = macros.FulltextSnippet(q, doc=doc)
+                    $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
             </ul>
             $:macros.Pager(page, num_found, results_per_page)
         </div>
 </div>
+
