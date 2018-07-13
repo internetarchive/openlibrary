@@ -25,20 +25,8 @@ $var title: Search Open Library for $q
             <p class="sansserif red collapse">No hits for: <strong>$q</strong></span></p>
 
         $else:
-          <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_time) seconds)</p>
+            <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_time) seconds)</p>
 
-          <div id="searchResults">
-            <ul id="siteSearch">
-                $ loans = ctx.user.get_loans() if ctx.user else []
-                $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
-                $ user = {'loans': loans, 'waitlists': waiting_loans}
-
-                $for doc in hits:                
-                  $if doc.get('edition'):
-                    $ snippet = macros.FulltextSnippet(q, doc=doc)
-                    $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
-            </ul>
-            $:macros.Pager(page, num_found, results_per_page)
-          </div>
+        $:macros.FulltextResults(q, results, page=page)
 </div>
 
