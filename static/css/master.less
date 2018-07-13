@@ -985,13 +985,13 @@ button.plain:hover {
   display: -ms-flexbox;
   display: -webkit-flex;
   display: flex;
+  flex-wrap: wrap;
 }
 
 .pagination a {
   display: block;
   text-decoration: none;
   padding: 7px;
-  border: 1px solid @lighter-grey;
   margin-right: 10px;
 }
 
@@ -1002,7 +1002,6 @@ button.plain:hover {
   float: left;
   text-decoration: none;
   padding: 7px;
-  border: 1px solid @lighter-grey;
   margin-right: 10px;
 }
 
@@ -1504,6 +1503,31 @@ header#header-bar .search-component .search-bar-submit {
   -webkit-appearance: none;
   -moz-appearance: none;
   appearance: none;
+}
+
+.search-results-stats {
+  margin: 0px;
+  margin-bottom: 10px;
+  color: @light-grey;
+  font-size: .9em;
+}
+
+.fulltext-excerpt {
+  padding: 10px;
+  border-bottom: 1px solid @lightest-grey;
+  font-size: .8em;
+  overflow: hidden;
+}
+
+.fulltext-excerpt:last-child {
+  border-bottom: none;
+}
+
+.serp-extras {
+  border: 1px solid @lighter-grey;
+  background-color: @white;
+  padding: 0px 10px 10px 10px;
+  margin-top: 10px;
 }
 
 header#header-bar .search-component .search-dropdown {
@@ -2081,6 +2105,7 @@ header#header-bar .expand .search-bar-input input {
     -ms-flex: none;
     flex: none;
   }
+
 
   header#header-bar .search-component {
     -webkit-box-flex: 1;
@@ -4436,7 +4461,7 @@ div#contentMsg {
 }
 
 div#contentHead {
-  width: 918px;
+  max-width: 918px;
   padding: 20px;
 }
 
@@ -5037,6 +5062,7 @@ li.searchResultItem {
   padding: 10px;
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
+  flex-wrap: wrap;
 }
 
 .searchResultItem .details {
@@ -5060,6 +5086,19 @@ li.searchResultItem {
   align-items: stretch;
   justify-content: center;
   padding: 0px 5px 0px 15px;
+  align-self: flex-start;
+  margin-top: 10px;
+  flex: 1;
+}
+
+@media only screen and (min-width: 35.5em) {
+  .searchResultItemCTA {
+    flex: unset;
+  }
+
+  li.searchResultItem {
+    flex-wrap: nowrap;
+  }
 }
 
 a.cta-btn {
@@ -5414,7 +5453,12 @@ h2.edition-title {
   font-size: .9em;
   font-weight: normal;
   color: @dark-grey;
-  margin: 15px 0px;
+  margin: 0px;
+  margin-bottom: 10px;
+}
+
+.readers-stats {
+  font-size: .8em;
 }
 
 div.workDetails {
@@ -10165,4 +10209,16 @@ form .stars span {
 .responsive button.slick-prev:before,
 .slick-next:before {
   color: #fff;
+}
+
+.searchInsideForm input[type=text] {
+  margin: 0px;
+  padding: 5px;
+  width: 100%;
+  max-width: 500px;
+  min-width: 100px;
+}
+
+.searchInsideForm input[type=submit] {
+  padding: 5px;
 }

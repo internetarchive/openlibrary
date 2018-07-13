@@ -194,6 +194,9 @@ plugin_recaptcha:
     public_key: ""
     private_key: ""
 
+plugin_inside:
+    search_endpoint: "https://be-api.us.archive.org/fts/v1/search"
+
 affiliate_ids:
     # Amazon is a book source, not just an affiliate, so we make its affiliate
     # tag generally available

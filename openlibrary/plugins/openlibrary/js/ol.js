@@ -368,7 +368,8 @@ $().ready(function(){
         'author': 'authors',
         'subject': 'subjects',
         'all': 'all',
-        'advanced': 'advancedsearch'
+        'advanced': 'advancedsearch',
+        'text': 'inside'
     };
 
     var composeSearchUrl = function(q, json, limit, options) {

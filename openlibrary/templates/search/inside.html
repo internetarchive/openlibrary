@@ -2,7 +2,6 @@ $def with (get_results, quote_snippet, editions_from_ia, read_from_archive)
 
 $ q = query_param('q')
 $ results_per_page = 20
-$ no_snippet = set(['printdisabled', 'lendinglibrary', 'browserlending'])
 $ page = query_param('page')
 $if page:
     $ page = int(page)
@@ -19,73 +18,43 @@ $if q:
     $ search_start = time()
     $ results = get_results(q, offset=offset, limit=results_per_page)
     $ search_secs = time() - search_start
-    $if 'error' not in results and results['hits']:
+    $if results and 'error' not in results and results['hits']:
         $ hits = results['hits'].get('hits', [])
         $ num_found = results['hits'].get('total', 0)
 
 <div id="contentHead">
-    <h1><span class="word-corner-badge">BETA</span>$_("Search Inside")</h1>
-    $if q:
-        $if num_found:
-            <p class="sansserif darkgreen collapse"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></p>
-        $else:
-            <p class="sansserif red collapse"><strong>No hits</strong></span></p>
+    <h1>$_("Search Inside")</h1>
 </div>
 
 <div id="contentBody">
-    <div class="section">
-        <form class="siteSearch searchInsideForm olform" action="">
-            <input type="text" class="larger" name="q" size="100" style="width: 505px;" value="$q"/>
-            <input type="submit"  class="large" value="$_('Search')"/>
-        </form>
-    </div>
 
-    $if q and 'error' in results:
-        <div class="searchResultsError">$results['error']</div>
-    $if q and 'error' not in results:
-        <div id="searchResults">
-                <p>Search took $("%.2f" % search_secs) seconds</p>
-                <ul id="siteSearch">
-                $for doc in hits:
-                        $ doc_fields = doc.get('fields', {})
-                        $ ia = doc_fields.get('identifier', [''])[0]
-                        <li>
-                        $ title = doc_fields.get('meta_title', ['no title for: ' + ia])[0]
-                        $ authors = doc_fields.get('meta_creator', [])
-                        $ collection = set(doc_fields.get('meta_collection', []))
-                        $ cover = "//archive.org/download/%s/page/cover_thumb.jpg" % ia
-                        $ url = "//archive.org/details/" + ia
-                            <span class="bookcover"><a href="$url"><img src="$cover" /></a></span>
-                            <span class="details">
-                                <span class="resultTitle">
-                                    <h3 class="booktitle sansserif"><a href="$url" class="results">$title</a></h3>
-                                    <span class="bookauthor">by
-                                    $if authors:
-                                        $', '.join(authors)
-                                    $else:
-                                        <em>unknown author</em>
-                                    </span>
-                                    <span class="resultPublisher">
-                                        <a href="//archive.org/details/$ia">View on archive.org</a>
-                                        $ page_nums = doc_fields.get('page_num', [])
-                                        $if page_nums:
-                                            &bull; page $(', '.join([str(num) for num in page_nums]))
-                                    </span>
-                                </span>
-                            </span>
-                            <span class="actions">
-                                    $if not (no_snippet & collection):
-                                            <a href="//archive.org/stream/$ia?ref=ol#search/$q" title="$_('Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT formats from main book page')">
-                                                    <span class="image read"></span>
-                                                    <span class="label">$_("Read")</span>
-                                            </a>
-                            </span>
-                            <div class="clearfix"></div>
-                            <span class="snippet">
-                                    &hellip;$:quote_snippet(doc.get('highlight', {}).get('text', [''])[0])&hellip;
-                            </span>
-                        </li>
-                </ul>
-                $:macros.Pager(page, num_found, results_per_page)
+  <form class="siteSearch searchInsideForm" action="/search/inside">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+  </form>
+
+    $if q:
+        $if 'error' in results:
+            <div class="searchResultsError">$results['error']</div>
+
+        $if not num_found:
+            <p class="sansserif red collapse">No hits for: <strong>$q</strong></span></p>
+
+        $else:
+          <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_secs) seconds)</p>
+
+          <div id="searchResults">
+            <ul id="siteSearch">
+                $ loans = ctx.user.get_loans() if ctx.user else []
+                $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
+                $ user = {'loans': loans, 'waitlists': waiting_loans}
+
+                $for doc in hits:                
+                  $if doc.get('edition'):
+                    $ snippet = macros.FulltextSnippet(q, doc=doc)
+                    $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
+            </ul>
+            $:macros.Pager(page, num_found, results_per_page)
         </div>
 </div>
+
