@@ -25,13 +25,17 @@ RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/si
     && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
 
 # SOLR
-RUN perl -i -pe 's/8080/8983/'  /etc/tomcat7/server.xml \
+RUN sed -i 's/8080/8983/g' /etc/tomcat7/server.xml \
   && cp conf/solr/conf/schema.xml /etc/solr/conf/
 
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
 
 # TODO: remove vagrant bootstrap.sh and conf/init services
+
+# Update dev IA s3 endpoints to use container port 80
+# TODO: update openlibrary.yml directly once we have fully deprecated Vagrant
+RUN sed -i 's/127.0.0.1:8080/127.0.0.1/g' conf/openlibrary.yml
 
 # Replace Vagrant User with `openlibrary` in dev db dump
 RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
