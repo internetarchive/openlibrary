@@ -41,3 +41,7 @@ http://localhost:8983/solr/admin/
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
 **TODO:** Add dev volume mount to `run` command, and provide instructions for refreshing the application.
+
+## Run tests in a temporary container
+
+`docker run -it --rm oldev make test`
