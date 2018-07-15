@@ -33,6 +33,8 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
 
 # TODO: remove vagrant bootstrap.sh and conf/init services
 
+# Replace Vagrant User with `openlibrary` in dev db dump
+RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
 # Setup db
 USER postgres
 RUN /etc/init.d/postgresql start \
