@@ -1,56 +1,118 @@
 #!/olsystem/bin/olenv python
 """
-Temporary script to store unique IPs in a single day by parsing the
-lighttpd log files directly.
+Store count of unique IPs per day to infobase by parsing the nginx log files directly.
+
+This file is currently (17 July 2018) run on production using cron.
 """
-import _init_path
+from datetime import datetime, timedelta
 import os
-import datetime
 import subprocess
-import web
+
+import _init_path
 import infogami
+import web
 
-def store_data(data, date):
-    uid = date.strftime("counts-%Y-%m-%d")
 
+def run_piped(cmds, stdin=None):
+    """
+    Run the commands piping one's output to the next's input.
+    :param list[list[str]] cmds:
+    :param file stdin: The stdin to supply the first command of the pipe
+    :return: the stdout of the last command
+    :rtype: file
+    """
+    prev_stdout = stdin
+    for cmd in cmds:
+        print("           " + ' '.join(cmd))
+        p = subprocess.Popen(cmd, stdin=prev_stdout, stdout=subprocess.PIPE)
+        prev_stdout = p.stdout
+    return prev_stdout
+
+
+def store_data(data, day):
+    """
+    Store stats data about the provided date.
+    :param dict data:
+    :param datetime day:
+    :return:
+    """
+    uid = day.strftime("counts-%Y-%m-%d")
     doc = web.ctx.site.store.get(uid) or {}
     doc.update(data)
     doc['type'] = 'admin-stats'
     web.ctx.site.store[uid] = doc
 
 
-def run_for_day(d):
-    basedir = d.strftime("/var/log/nginx/")
-    awk = ["awk", '$2 == "openlibrary.org" { print $1 }']
-    sort = ["sort", "-u"]
-    count = ["wc", "-l"]
-    print "           ", basedir
-    zipfile = d.strftime("access.log-%Y%m%d.gz")
-    if os.path.exists(basedir + zipfile):
-        print "              Using ",  basedir + zipfile
-        cmd = subprocess.Popen(["zcat", basedir + zipfile], stdout = subprocess.PIPE)
-    elif os.path.exists(basedir + "access.log"):
-        cmd = subprocess.Popen(["cat", "%s/access.log"%basedir], stdout = subprocess.PIPE)
-        print "              Using ",  basedir + "access.log"
-    print "           ", awk
-    cmd = subprocess.Popen(awk,   stdin = cmd.stdout, stdout = subprocess.PIPE)
-    print "           ", sort
-    cmd = subprocess.Popen(sort,  stdin = cmd.stdout, stdout = subprocess.PIPE)
-    print "           ", count
-    cmd = subprocess.Popen(count, stdin = cmd.stdout, stdout = subprocess.PIPE)
-    val = cmd.stdout.read()
-    return dict (visitors = int(val))
+def count_unique_ips_for_day(day):
+    """
+    Get the number of unique visitors for the given day.
+    Throws an IndexError if missing log for the given day.
+    :param datetime day:
+    :return: A dict of the form `{visitors: int}`
+    :rtype: int
+    """
+    basedir = "/var/log/nginx/"
+
+    # Cat the logs we'll be processing
+    print("           " + basedir)
+    log_file = basedir + "access.log"
+    zipped_log_file = log_file + day.strftime("-%Y%m%day.gz")
+
+    if os.path.exists(zipped_log_file):
+        cat_log_cmd = ["zcat", zipped_log_file]
+    elif day > (datetime.today() - timedelta(days=5)):
+        # if recent day, then they haven't been compressed yet
+        cat_log_cmd = ["cat", log_file]
+    else:
+        raise IndexError("Cannot find log file for " + day.strftime("%Y-%m-%day"))
+
+    out = run_piped([
+        cat_log_cmd,  # cat the server logs
+        ["awk", '$2 == "openlibrary.org" { print $1 }'],  # get all the IPs
+        ["sort", "-u"],  # get unique only
+        ["wc", "-l"],  # count number of lines
+    ])
+
+    return int(out.read())
 
 
-def main():
+def main(start, end):
+    """
+    Get the unique visitors per day between the 2 dates (inclusive) and store them
+    in the infogami database. Ignores errors
+    :param datetime start:
+    :param datetime end:
+    :return:
+    """
     infogami._setup()
-    current = datetime.datetime.now()
-    for i in range(2):
+
+    current = start
+    while current <= end:
         print current
-        d = run_for_day(current)
-        store_data(d, current)
-        current = current - datetime.timedelta(days = 1)
+        try:
+            count = count_unique_ips_for_day(current)
+            store_data(dict(visitors=count), current)
+        except IndexError, e:
+            print("           " + e.message)
+        current += timedelta(days=1)
+
 
 if __name__ == "__main__":
+    from argparse import ArgumentParser
     import sys
-    sys.exit(main())
+
+    parser = ArgumentParser(
+        description="Store count of unique IPs per day from the past K days (including today) in infobase.")
+    parser.add_argument('--days', type=int, default=1,
+                        help="how many days to go back")
+    parser.add_argument('--range', nargs=2, type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
+                        help="alternatively, provide a range of dates to visit (like `--range 2018-06-25 2018-07-14`)")
+    args = parser.parse_args()
+
+    if args.range:
+        start, end = args.range
+    else:
+        end = datetime.today()
+        start = end - timedelta(days=args.days)
+
+    sys.exit(main(start, end))
