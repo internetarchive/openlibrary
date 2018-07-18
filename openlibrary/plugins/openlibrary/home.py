@@ -36,10 +36,7 @@ class home(delegate.page):
 
     def GET(self):
         try:
-            if 'counts_db' in config.admin:
-                stats = admin.get_stats()
-            else:
-                stats = None
+            stats = admin.get_stats()
         except Exception:
             logger.error("Error in getting stats", exc_info=True)
             stats = None
