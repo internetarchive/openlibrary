@@ -1,28 +1,10 @@
 # requirements for running tests
 # Expects some apt packages are already installed.
 # see .travis.yml for more details.
-Babel==2.5.3
-argparse==1.2.1
-BeautifulSoup==3.2.0
-DBUtils==1.1
-Genshi==0.6
-gunicorn==0.13.4
-iptools==0.4.0
-pymarc==2.8.4
+
+-r requirements_common.txt
 pytest==2.2.0
-python-memcached==1.48
-simplejson==2.3.0
-supervisor==3.0a12
-web.py==0.33
-pystatsd==0.1.6
-eventer==0.1.1
-Pygments==1.4
-OL-GeoIP==1.2.4
-lxml==2.3.2
-psycopg2==2.7.3.2
-PyYAML==3.10
 mockcache==1.0.1
-internetarchive==1.7.6
-sixpack-client==1.1.0
-lepl==5.1.3
-python-amazon-simple-product-api==2.2.11
+
+
+

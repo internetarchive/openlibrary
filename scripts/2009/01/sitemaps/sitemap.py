@@ -101,7 +101,7 @@ def get_sort_key(key):
 
 def generate_sitemaps(filename):
     rows = (line.strip().split("\t") for line in open(filename))
-    for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):    
+    for sortkey, chunk in itertools.groupby(rows, lambda row: row[0]):
         things = []
 
         _chunk = list(chunk)
@@ -130,8 +130,6 @@ def write(path, text):
         f.write(text)
         f.close()
     except:
-        import ipdb
-        ipdb.set_trace()
         print('write fail')
     #os.system("gzip " + path)
 
@@ -182,4 +180,3 @@ def main(dumpfile):
 if __name__ == "__main__":
     import sys
     main(sys.argv[1])
-
