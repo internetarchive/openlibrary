@@ -20,3 +20,4 @@ sixpack-client==1.1.0
 psycopg2==2.7.3.2
 OL-GeoIP==1.2.4
 Pygments==1.4
+python-amazon-simple-product-api==2.2.11
