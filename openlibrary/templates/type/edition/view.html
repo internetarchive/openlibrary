@@ -199,6 +199,25 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
               $if authors_byline:
                 <h2 class="edition-byline">$_("by") $:authors_byline</h2>
 
+              $ rating_stats = work.get_rating_stats() if work else {}
+              $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
+              $if rating_stats or stats_by_bookshelf:
+                <ul class="readers-stats">
+                  $if rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
+                    <li class="avg-ratings">
+                      $:('<span class="star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
+                    </li>
+                    <li>
+                      $rating_stats['num_ratings'] Ratings
+                    </li>
+                  $if stats_by_bookshelf.get('want-to-read', 0) > 1:
+                    <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] Want to read</li>
+                  $if stats_by_bookshelf.get('currently-reading', 0) > 1:
+                    <li class="reading-log-stat">$stats_by_bookshelf['currently-reading'] Currently reading</li>
+                  $if stats_by_bookshelf.get('already-read', 0) > 1:
+                    <li class="reading-log-stat">$stats_by_bookshelf['already-read'] Have read</li>
+                </ul>
+
               <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
                         Published
@@ -219,7 +238,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         <span class="adjust">.</span>
                     $if page.languages:
                     <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
-                </h4>
+              </h4>
             </div>
 
         $if page.description:

@@ -177,3 +177,16 @@ class Bookshelves(object):
             return result if lazy else list(result)
         except:
             return None
+
+    @classmethod
+    def get_num_users_by_bookshelf_by_work_id(cls, work_id):
+        """Returns a dict mapping a work_id to the
+        number of number of users who have placed that work_id in each shelf, i.e. {bookshelf_id:
+        count}.
+        """
+        oldb = db.get_db()
+        query = ("SELECT bookshelf_id, count(DISTINCT username) as user_count from bookshelves_books where"
+                 " work_id=$work_id"
+                 " GROUP BY bookshelf_id")
+        result = oldb.query(query, vars={'work_id': int(work_id)})
+        return dict([(i['bookshelf_id'], i['user_count']) for i in result]) if result else {}
