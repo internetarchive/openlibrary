@@ -7,11 +7,10 @@ This file is currently (17 July 2018) run on production using cron.
 from datetime import datetime, timedelta
 import os
 import subprocess
-
-import _init_path
-import infogami
 import web
-
+import infogami
+import _init_path
+from openlibrary.config import load_config
 
 def run_piped(cmds, stdin=None):
     """
@@ -23,7 +22,7 @@ def run_piped(cmds, stdin=None):
     """
     prev_stdout = stdin
     for cmd in cmds:
-        print("           " + ' '.join(cmd))
+        print(' '.join(cmd))
         p = subprocess.Popen(cmd, stdin=prev_stdout, stdout=subprocess.PIPE)
         prev_stdout = p.stdout
     return prev_stdout
@@ -54,7 +53,7 @@ def count_unique_ips_for_day(day):
     basedir = "/var/log/nginx/"
 
     # Cat the logs we'll be processing
-    print("           " + basedir)
+    print(basedir)
     log_file = basedir + "access.log"
     zipped_log_file = log_file + day.strftime("-%Y%m%day.gz")
 
@@ -76,7 +75,7 @@ def count_unique_ips_for_day(day):
     return int(out.read())
 
 
-def main(start, end):
+def main(config, start, end):
     """
     Get the unique visitors per day between the 2 dates (inclusive) and store them
     in the infogami database. Ignores errors
@@ -84,16 +83,17 @@ def main(start, end):
     :param datetime end:
     :return:
     """
+    load_config(config)  # loads config for psql db under the hood
     infogami._setup()
 
     current = start
     while current <= end:
-        print current
+        print(current)
         try:
             count = count_unique_ips_for_day(current)
             store_data(dict(visitors=count), current)
-        except IndexError, e:
-            print("           " + e.message)
+        except IndexError as e:
+            print(e.message)
         current += timedelta(days=1)
 
 
@@ -103,6 +103,7 @@ if __name__ == "__main__":
 
     parser = ArgumentParser(
         description="Store count of unique IPs per day from the past K days (including today) in infobase.")
+    parser.add_argument('config', help="openlibrary.yml (e.g. olsystem/etc/openlibrary.yml)")
     parser.add_argument('--days', type=int, default=1,
                         help="how many days to go back")
     parser.add_argument('--range', nargs=2, type=lambda d: datetime.strptime(d, "%Y-%m-%d"),
@@ -115,4 +116,4 @@ if __name__ == "__main__":
         end = datetime.today()
         start = end - timedelta(days=args.days)
 
-    sys.exit(main(start, end))
+    sys.exit(main(args.config, start, end))
