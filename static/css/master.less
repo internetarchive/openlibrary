@@ -5457,8 +5457,25 @@ h2.edition-title {
   margin-bottom: 10px;
 }
 
-.readers-stats {
-  font-size: .8em;
+#contentBody ul.readers-stats {
+  color: @grey;
+  font-size: .7em;
+  margin: 0px;
+  margin: 10px 0px;
+}
+
+ul.readers-stats li {
+  list-style-type: none;
+  display: inline;  
+}
+
+ul.readers-stats li:not(:last-child):after {
+  content:'·';
+  margin: 0px 5px;
+}
+
+#contentBody ul.readers-stats li.reading-log-stat {
+  color: @light-grey;
 }
 
 div.workDetails {
@@ -10104,7 +10121,8 @@ a.btn {
 }
 
 .star {
-  color: @light-mid-grey;
+  color: @steel-blue;
+  font-size: 1.3em;
 }
 
 #ratingsForm {
@@ -10148,6 +10166,7 @@ form .stars input[type="submit"].star-1.star-selected ~ span {
 form .stars input[type="submit"].star-0.star-selected ~ span {
   width: 0%;
 }
+
 
 .star-messaging {
   color: @light-mid-grey;
