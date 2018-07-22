@@ -1,26 +1,6 @@
-$def with (get_results, quote_snippet, editions_from_ia, read_from_archive)
-
-$ q = query_param('q')
-$ results_per_page = 20
-$ page = query_param('page')
-$if page:
-    $ page = int(page)
-$else:
-    $ page = 1
-$ offset = (page - 1) * results_per_page
+$def with (q, results, search_time, page=1, results_per_page=20)
 
 $var title: Search Open Library for $q
-
-$ hits = []
-$ num_found = 0
-
-$if q:
-    $ search_start = time()
-    $ results = get_results(q, offset=offset, limit=results_per_page)
-    $ search_secs = time() - search_start
-    $if results and 'error' not in results and results['hits']:
-        $ hits = results['hits'].get('hits', [])
-        $ num_found = results['hits'].get('total', 0)
 
 <div id="contentHead">
     <h1>$_("Search Inside")</h1>
@@ -34,6 +14,10 @@ $if q:
   </form>
 
     $if q:
+        $if results and 'error' not in results and results['hits']:
+            $ hits = results['hits'].get('hits', [])
+            $ num_found = results['hits'].get('total', 0)
+
         $if 'error' in results:
             <div class="searchResultsError">$results['error']</div>
 
@@ -41,20 +25,8 @@ $if q:
             <p class="sansserif red collapse">No hits for: <strong>$q</strong></span></p>
 
         $else:
-          <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_secs) seconds)</p>
+            <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_time) seconds)</p>
 
-          <div id="searchResults">
-            <ul id="siteSearch">
-                $ loans = ctx.user.get_loans() if ctx.user else []
-                $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
-                $ user = {'loans': loans, 'waitlists': waiting_loans}
-
-                $for doc in hits:                
-                  $if doc.get('edition'):
-                    $ snippet = macros.FulltextSnippet(q, doc=doc)
-                    $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
-            </ul>
-            $:macros.Pager(page, num_found, results_per_page)
-        </div>
+        $:macros.FulltextResults(q, results, page=page)
 </div>
 

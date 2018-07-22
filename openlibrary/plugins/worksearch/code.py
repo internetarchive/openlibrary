@@ -6,6 +6,7 @@ from infogami.utils.view import render, render_template, safeint
 import simplejson as json
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.processors import urlsafe
+from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, read_isbn, escape_bracket
 from unicodedata import normalize
 import logging
@@ -490,9 +491,9 @@ class search(delegate.page):
             if k in i:
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
                 q_list.append(k + ':' + v)
-
-        return render.work_search(i, ' '.join(q_list), do_search, get_doc, get_availability_of_ocaids)
-
+        return render.work_search(
+            i, ' '.join(q_list), do_search, get_doc,
+            get_availability_of_ocaids, fulltext_search)
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100):

@@ -1,24 +1,8 @@
-$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids)
+$def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fulltext_search)
 
-$ facet_map = (
-$    ('has_fulltext', 'eBook?'),
-$    ('author_key', 'Author'),
-$    ('subject_facet', 'Subjects'),
-$    ('person_facet', 'People'),
-$    ('place_facet', 'Places'),
-$    ('time_facet', 'Times'),
-$    ('first_publish_year', 'First published'),
-$    ('publisher_facet', 'Publisher'),
-$    ('language', 'Language'),
-$    ('public_scan_b', 'Classic eBooks'),
-$ )
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
 $ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
-
-$ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
-
-$ library = (get_library() if 'inlibrary' in ctx.features else None)
 
 $def add_facet_url(k, v):
     $if k != 'has_fulltext':
@@ -40,16 +24,6 @@ $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor'
 $if param.keys() == ['has_fulltext']:
     $ param = {}
 
-$ advanced = (
-$    ('title', 'Title'),
-$    ('author', 'Author'),
-$    ('isbn', 'ISBN'),
-$    ('publisher', 'Publisher'),
-$    ('lccn', 'LCCN'),
-$    ('oclc', 'OCLC'),
-$    ('contributor', 'Contributor'),
-$ )
-
 $ sorts = dict(editions='edition_count desc', old='first_publish_year asc', new='first_publish_year desc', scans='ia_count desc')
 
 $ error = None
@@ -66,6 +40,7 @@ $if param:
     $ error = results.error
 $else:
     $ num_found = 0
+
 
 $ start_facet_count = 5
 $ facet_inc = 10
@@ -111,41 +86,39 @@ function less(header) {
 //-->
 </script>
 
-<div id="contentHead">
-    $if param:
-        <h1>
-            $_("Search Results")
-            <span class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</span>
-        </h1>
-    $else:
-        <h1>
-            Open Library $_("Search")
-            <span class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</span>
-        </h1>
-<p class="collapse sansserif">
-    $if param and not error:
-        $if num_found == 0:
-            <span class="red"><strong>$_("No hits")</strong></span>
-            <span class="lightgreen">$_("Try something else?")</span>
-        $if num_found > 0:
-            <span class="darkgreen"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></span>
+<div>
+$if param and not error and num_found:
+    <div id="contentHead">
+      $if num_found > 0:
+        <span class="darkgreen"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></span>
 &nbsp;
-        $if num_found > 1:
-            <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
-            $if sort == 'editions':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-            $elif sort == 'old':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
-            $elif sort == 'new':
-                <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
-            $else:
-                <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+      $if num_found > 1:
+        <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
+          $if sort == 'editions':
+            <a href="$changequery(sort=None)">$_("Relevance")</a> | <strong class="lightgreen">$_("Most Editions")</strong> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+          $elif sort == 'old':
+            <a href="$changequery(sort=None)">$_("Relevance")</a> |  <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <strong class="lightgreen">$_("First Published")</strong> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
+          $elif sort == 'new':
+            <a href="$changequery(sort=None)">$_("Relevance")</a> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <strong class="lightgreen">$_("Most Recent")</strong>
+          $else:
+            <strong class="lightgreen">$_("Relevance")</strong> | <a href="$changequery(sort='editions')">$_("Most Editions")</a> | <a href="$changequery(sort='old')">$_("First Published")</a> | <a href="$changequery(sort='new')">$_("Most Recent")</a>
 
-            <span class="advanced-search"><a href="/advancedsearch">Advanced Search</a></span>
-            </span>
-</p>
+          <span class="advanced-search"><a href="/advancedsearch">Advanced Search</a></span>
+        </span>
+    </div>
 
-</div>
+$ facet_map = (
+$    ('has_fulltext', 'eBook?'),
+$    ('author_key', 'Author'),
+$    ('subject_facet', 'Subjects'),
+$    ('person_facet', 'People'),
+$    ('place_facet', 'Places'),
+$    ('time_facet', 'Times'),
+$    ('first_publish_year', 'First published'),
+$    ('publisher_facet', 'Publisher'),
+$    ('language', 'Language'),
+$    ('public_scan_b', 'Classic eBooks'),
+$ )
 
 <div id="contentBody">
   <div class="section">
@@ -162,6 +135,8 @@ function less(header) {
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
         <label for="mode-search-printdisabled">Print Disabled</label>
       </span>
+        $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
+
         $for k, values in param.items():
             $if k not in sticky:
                 $continue
@@ -224,7 +199,24 @@ function less(header) {
 
 <!-- results -->
 
-    $if param and not error:
+    $if param and not docs:
+        $ query = query_param('q')
+        $ page = int(query_param('page') or 1)
+        $ results = fulltext_search(query, page)
+        <div class="serp-ctx">
+          <div><span class="red">$_("No results found.")</span></div>
+
+          $if results:
+            <div class="show-similar">$_("Showing books with similar text to:") <strong>$(query)</strong></div>
+        </div>
+
+        $if results:
+          $if 'error' in results:
+            <div class="searchResultsError">$results['error']</div>
+          $:macros.FulltextResults(query, results, page=page)
+
+    $elif param and not error and len(docs):
+        <div class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</div>
         <script type="text/javascript">
         <!--
             \$().ready(bookCovers);
@@ -265,8 +257,9 @@ function less(header) {
 $if error:
     <h3>BARF! Search engine ERROR!</h3>
     <pre>$error.decode('utf-8', 'ignore')</pre>
-$if param and not error:
-    $if results.num_found != 0:
+
+$elif param and not error:
+    $if len(docs) != 0:
         <div id="searchFacets">
         <h3 class="collapse">$_("Zoom In")</h3>
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
@@ -303,10 +296,9 @@ $if param and not error:
 <!-- /facets -->
         </div>
 
-    $if param and not error:
+    $if param and not error and len(docs):
         $:macros.Pager(page, num_found, rows)
 
-    $if param and not error:
         $ readapi_percent = 100
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>

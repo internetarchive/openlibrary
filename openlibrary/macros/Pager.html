@@ -1,4 +1,4 @@
-$def with (page, num_found, results_per_page)
+$def with (page, num_found, results_per_page=20)
 
 $ pages = (num_found / results_per_page) + 1
 $if pages != 1:
