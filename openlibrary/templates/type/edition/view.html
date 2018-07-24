@@ -211,7 +211,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                       $rating_stats['num_ratings'] Ratings
                     </li>
                   $if stats_by_bookshelf.get('want-to-read', 0) > 1:
-                    <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] Want to read</li>
+                    <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] In Wishlist</li>
                   $if stats_by_bookshelf.get('currently-reading', 0) > 1:
                     <li class="reading-log-stat">$stats_by_bookshelf['currently-reading'] Currently reading</li>
                   $if stats_by_bookshelf.get('already-read', 0) > 1:
