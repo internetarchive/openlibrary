@@ -534,8 +534,17 @@ class InternetArchiveAccount(web.storage):
             'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
             'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret')
         })
+
+        # Currently, optional parameters, like `service` are passed as
+        # **kwargs (i.e. **data). The xauthn service uses the named
+        # parameter `activation-type` which contains a dash and thus
+        # is unsuitable as a kwarg name. Therefore, if we're
+        # performing an account `create` xauthn operation and the
+        # `service` parameter is present, we need to rename `service`
+        # as `activation-type` so it is forwarded correctly to xauth:
         if op == 'create' and 'service' in data:
             data['activation-type'] = data.pop('service')
+
         payload = simplejson.dumps(data)
         if test:
             url += "&developer=%s" % test
