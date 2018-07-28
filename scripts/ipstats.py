@@ -22,7 +22,6 @@ def run_piped(cmds, stdin=None):
     """
     prev_stdout = stdin
     for cmd in cmds:
-        print(' '.join(cmd))
         p = subprocess.Popen(cmd, stdin=prev_stdout, stdout=subprocess.PIPE)
         prev_stdout = p.stdout
     return prev_stdout
@@ -53,9 +52,8 @@ def count_unique_ips_for_day(day):
     basedir = "/var/log/nginx/"
 
     # Cat the logs we'll be processing
-    print(basedir)
     log_file = basedir + "access.log"
-    zipped_log_file = log_file + day.strftime("-%Y%m%day.gz")
+    zipped_log_file = log_file + day.strftime("-%Y%m%d.gz")
 
     if os.path.exists(zipped_log_file):
         cat_log_cmd = ["zcat", zipped_log_file]
@@ -63,7 +61,7 @@ def count_unique_ips_for_day(day):
         # if recent day, then they haven't been compressed yet
         cat_log_cmd = ["cat", log_file]
     else:
-        raise IndexError("Cannot find log file for " + day.strftime("%Y-%m-%day"))
+        raise IndexError("Cannot find log file for " + day.strftime("%Y-%m-%d"))
 
     out = run_piped([
         cat_log_cmd,  # cat the server logs
@@ -88,7 +86,6 @@ def main(config, start, end):
 
     current = start
     while current <= end:
-        print(current)
         try:
             count = count_unique_ips_for_day(current)
             store_data(dict(visitors=count), current)
