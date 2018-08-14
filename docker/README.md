@@ -12,7 +12,7 @@ docker build -t olbase:latest -f docker/Dockerfile.olbase .
 
 docker build -t oldev:latest -f docker/Dockerfile.oldev .
 ```
-You must build `olbase` first before `oldev`. Currently (July 2018) the division is a bit arbitrary. More should be moved into `olbase` once we clarify
+You must build `olbase` first before `oldev`. Currently (August 2018) the division is a bit arbitrary. More should be moved into `olbase` once we clarify
 the production deployment requirements. Currently these docker images are only intented for development environments.
 
 ## Run container
@@ -37,6 +37,8 @@ Infobase on port 7000, and solr on port 8983.
 
 To access Solr admin:
 http://localhost:8983/solr/admin/
+
+If you are using Docker Toolbox on Windows, use the Docker Machine IP instead of `localhost`. For example, `192.168.99.100:8080`. To find the IP address, use the command `docker-machine ip`
 
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
