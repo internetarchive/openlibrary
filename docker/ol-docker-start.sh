@@ -31,6 +31,5 @@ su openlibrary -c "python scripts/new-solr-updater.py \
   --ol-url http://localhost/" &
 
 # ol server, running in the foreground to avoid exiting container
-su openlibrary -c "authbind --deep scripts/openlibrary-server conf/openlibrary.yml startserver 80"
-#su openlibrary -c "authbind --deep scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w4 -t180 -b:80"
+su openlibrary -c "authbind --deep scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w4 -t180 -b:80"
 
