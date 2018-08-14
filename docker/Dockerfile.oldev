@@ -50,4 +50,4 @@ USER root
 RUN ln -s vendor/infogami/infogami infogami
 RUN make
 
-CMD scripts/ol-docker-start.sh
+CMD docker/ol-docker-start.sh
