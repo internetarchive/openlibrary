@@ -3,11 +3,6 @@ FROM olbase
 # Expose Open Library, Infogami, and SOLR
 EXPOSE 80 7000 8983
 
-ENV LANG en_US.UTF-8
-
-# required for postgres
-ENV LC_ALL POSIX
-
 RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
 
 # enable users to bind to port 80
@@ -15,8 +10,6 @@ RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
 
 # Using vim to change and test things, may want to remove?
 RUN apt-get install -y vim
-
-#COPY . /openlibrary # already copied from olbase
 
 WORKDIR /openlibrary
 
@@ -39,6 +32,7 @@ RUN sed -i 's/127.0.0.1:8080/127.0.0.1/g' conf/openlibrary.yml
 
 # Replace Vagrant User with `openlibrary` in dev db dump
 RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
+
 # Setup db
 USER postgres
 RUN /etc/init.d/postgresql start \
