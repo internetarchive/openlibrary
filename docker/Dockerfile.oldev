@@ -1,15 +1,12 @@
 FROM olbase 
 
-# Expose Open Library, Infogami, and SOLR
-EXPOSE 80 7000 8983
+# Using vim to change and test things, may want to remove?
+RUN apt-get install -y vim
 
 RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
 
 # enable users to bind to port 80
 RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
-
-# Using vim to change and test things, may want to remove?
-RUN apt-get install -y vim
 
 WORKDIR /openlibrary
 
@@ -41,7 +38,8 @@ RUN /etc/init.d/postgresql start \
   && psql openlibrary < openlibrary/core/schema.sql \
   && createdb coverstore \
   && psql coverstore < openlibrary/coverstore/schema.sql \
-  && psql openlibrary < scripts/dev-instance/dev_db.pg_dump
+  && psql openlibrary < scripts/dev-instance/dev_db.pg_dump \
+  && pg_ctlcluster 9.5 main stop
 
 USER root
 
@@ -49,5 +47,8 @@ USER root
 # only root has access to .git
 RUN ln -s vendor/infogami/infogami infogami
 RUN make
+
+# Expose Open Library, Infogami, and SOLR
+EXPOSE 80 7000 8983
 
 CMD docker/ol-docker-start.sh
