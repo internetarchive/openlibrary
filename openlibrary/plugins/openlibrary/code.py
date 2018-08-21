@@ -773,10 +773,17 @@ class backdoor(delegate.page):
 
 def is_bot():
     user_agent_bots = [
-        'ahrefsbot', 'bingbot', 'bot', 'coccocbot', 'dotbot',
-        'femtosearchbot', '`googlebot', 'mojeekbot', 'musobot',
-        'pinterestbot', 'semrushbot', 'uptimerobot', 'yandexbot',
-        'yandexmobilebot', 'yoozbot'
+        'sputnikbot', 'dotbot', 'semrushbot',
+        'googlebot', 'yandexbot', 'monsidobot', 'kazbtbot',
+        'seznambot', 'dubbotbot', '360spider', 'redditbot',
+        'yandexmobilebot', 'linkdexbot', 'musobot', 'mojeekbot',
+        'focuseekbot', 'behloolbot', 'startmebot',
+        'yandexaccessibilitybot', 'uptimerobot', 'femtosearchbot',
+        'pinterestbot', 'toutiaospider', 'yoozbot', 'parsijoobot',
+        'equellaurlbot', 'donkeybot', 'paperlibot', 'nsrbot',
+        'discordbot', 'ahrefsbot', '`googlebot', 'coccocbot',
+        'buzzbot', 'laserlikebot', 'baiduspider', 'bingbot',
+        'mj12bot', 'yoozbotadsbot'
     ]
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
     return any([bot in user_agent for bot in user_agent_bots])

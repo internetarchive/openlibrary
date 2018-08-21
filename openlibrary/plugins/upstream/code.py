@@ -96,7 +96,7 @@ def get_amazon_metadata(isbn):
         if isbn:
             return cached_get_amazon_metadata(isbn)
     except Exception:
-        return {}
+        return None
 
 def _get_amazon_metadata(isbn):
     try:
