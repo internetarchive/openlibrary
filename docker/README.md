@@ -42,8 +42,9 @@ If you are using Docker Toolbox on Windows, use the Docker Machine IP instead of
 
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
-**TODO:** Add dev volume mount to `run` command, and provide instructions for refreshing the application.
-
+**TODO:** 
+* Add dev volume mount to `run` command, and provide instructions for refreshing the application.
+* Fix symlinks that are causing a problem in Windows, see issue https://github.com/internetarchive/openlibrary/issues/1051 
 ## Run tests in a temporary container
 
 `docker run -it --rm oldev make test`
