@@ -94,7 +94,9 @@ def setup(config):
     config_amz_api = config.get('amazon_api')
 
     try:
-        amazon_api = AmazonAPI(config_amz_api.key, config_amz_api.secret, config_amz_api.id)
+        amazon_api = AmazonAPI(
+            config_amz_api.key, config_amz_api.secret,
+            config_amz_api.id, MaxQPS=0.9)
     except AttributeError:
         amazon_api = None
 

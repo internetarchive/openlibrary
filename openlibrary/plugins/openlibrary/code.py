@@ -771,6 +771,30 @@ class backdoor(delegate.page):
             result = delegate.RawText(result)
         return result
 
+def is_bot():
+    """Generated on ol-www1 within /var/log/nginx with:
+
+    cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
+    cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'
+
+    Manually removed singleton `bot` (to avoid overly complex grep regex)
+    """
+    user_agent_bots = [
+        'sputnikbot', 'dotbot', 'semrushbot',
+        'googlebot', 'yandexbot', 'monsidobot', 'kazbtbot',
+        'seznambot', 'dubbotbot', '360spider', 'redditbot',
+        'yandexmobilebot', 'linkdexbot', 'musobot', 'mojeekbot',
+        'focuseekbot', 'behloolbot', 'startmebot',
+        'yandexaccessibilitybot', 'uptimerobot', 'femtosearchbot',
+        'pinterestbot', 'toutiaospider', 'yoozbot', 'parsijoobot',
+        'equellaurlbot', 'donkeybot', 'paperlibot', 'nsrbot',
+        'discordbot', 'ahrefsbot', '`googlebot', 'coccocbot',
+        'buzzbot', 'laserlikebot', 'baiduspider', 'bingbot',
+        'mj12bot', 'yoozbotadsbot'
+    ]
+    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
+    return any([bot in user_agent for bot in user_agent_bots])
+
 def setup_template_globals():
     web.template.Template.globals.update({
         "sorted": sorted,
@@ -781,6 +805,7 @@ def setup_template_globals():
         "random": random.Random(),
 
         # bad use of globals
+        "is_bot": is_bot,
         "time": time,
         "input": web.input,
         "dumps": simplejson.dumps,
