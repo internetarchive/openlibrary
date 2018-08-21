@@ -25,7 +25,7 @@ DEFAULT_CACHE_LIFETIME = 120  # seconds
 HOUR = 60 * 60
 DAY = HOUR * 24
 HALF_DAY = HOUR * 12
-ONE_WEEK = HALF_DAY * 2 * 7
+ONE_WEEK = DAY * 7
 
 
 class memcache_memoize:

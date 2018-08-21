@@ -772,6 +772,13 @@ class backdoor(delegate.page):
         return result
 
 def is_bot():
+    """Generated on ol-www1 within /var/log/nginx with:
+
+    cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
+    cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'
+
+    Manually removed singleton `bot` (to avoid overly complex grep regex)
+    """
     user_agent_bots = [
         'sputnikbot', 'dotbot', 'semrushbot',
         'googlebot', 'yandexbot', 'monsidobot', 'kazbtbot',

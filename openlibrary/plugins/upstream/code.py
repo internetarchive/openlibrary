@@ -132,16 +132,21 @@ def cached_get_amazon_metadata(*args, **kwargs):
     """If the cached data is `None`, likely a 503 throttling occurred on
     Amazon's side. Try again to fetch the value instead of using the
     cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the book has no price
-    data, then {"price": None} will be cached will will not trigger a
-    re-cache (only the value `None` will)
-
+    this page will trigger another re-cache. If the amazon API call
+    succeeds but the book has no price data, then {"price": None} will
+    be cached as to not trigger a re-cache (only the value `None`
+    will cause re-cache)
     """
+    # fetch/compose a cache controller obj for
+    # "upstream.code._get_amazon_metadata"
     memoized_get_amazon_metadata = cache.memcache_memoize(
         _get_amazon_metadata, "upstream.code._get_amazon_metadata",
         timeout=cache.ONE_WEEK)
+    # fetch cached value from this controller
     result = memoized_get_amazon_metadata(*args, **kwargs)
     if result is None:
+        # recache / update this controller's cached value
+        # (corresponding to these input args)
         result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
     return result
 
