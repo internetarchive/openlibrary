@@ -771,6 +771,16 @@ class backdoor(delegate.page):
             result = delegate.RawText(result)
         return result
 
+def is_bot():
+    user_agent_bots = [
+        'ahrefsbot', 'bingbot', 'bot', 'coccocbot', 'dotbot',
+        'femtosearchbot', '`googlebot', 'mojeekbot', 'musobot',
+        'pinterestbot', 'semrushbot', 'uptimerobot', 'yandexbot',
+        'yandexmobilebot', 'yoozbot'
+    ]
+    user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
+    return any([bot in user_agent for bot in user_agent_bots])
+
 def setup_template_globals():
     web.template.Template.globals.update({
         "sorted": sorted,
@@ -781,6 +791,7 @@ def setup_template_globals():
         "random": random.Random(),
 
         # bad use of globals
+        "is_bot": is_bot,
         "time": time,
         "input": web.input,
         "dumps": simplejson.dumps,

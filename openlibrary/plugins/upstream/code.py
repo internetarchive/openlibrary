@@ -8,6 +8,7 @@ import md5
 import re
 import datetime
 import urllib2
+import logging
 
 from infogami import config
 from infogami.infobase import client
@@ -31,7 +32,8 @@ import borrow
 import recentchanges
 import merge_authors
 
-HALF_DAY = 60 * 60 * 12
+logger = logging.getLogger("openlibrary.plugins")
+
 BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 if not config.get('coverstore_url'):
@@ -97,28 +99,51 @@ def get_amazon_metadata(isbn):
         return {}
 
 def _get_amazon_metadata(isbn):
-    if not amazon_api:
-        return ''  # likely dev instance and keys not set
-
     try:
+        if not amazon_api:
+            logger.info("Amazon keys likely misconfigured")
+            raise Exception
         product = amazon_api.lookup(ItemId=isbn)
-    except Exception:
-        return {'price': ''}
-    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
-    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')    
-    price, qlt = (None, None)
+    except Exception as e:
+        return None
 
+    price, qlt = (None, None)
+    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
+    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
+
+    # prioritize lower prices and newer, all things being equal
     if used and new:
         price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
+    # accept whichever is available
     elif used or new:
         price, qlt = (used, 'used') if used else (new, 'new')
 
+    price_fmt = None
+    if price and qlt:
+        price = '{:00,.2f}'.format(int(price)/100.)
+        price_fmt = "$%s (%s)" % (price, qlt)
+
     return {
-        'price': "$%s (%s)" % ('{:00,.2f}'.format(int(price)/100.), qlt) if price and qlt else ''
+        'price': price_fmt
     }
 
-cached_get_amazon_metadata = cache.memcache_memoize(
-    _get_amazon_metadata, "upstream.code._get_amazon_metadata", timeout=HALF_DAY)
+
+def cached_get_amazon_metadata(*args, **kwargs):
+    """If the cached data is `None`, likely a 503 throttling occurred on
+    Amazon's side. Try again to fetch the value instead of using the
+    cached value. It may 503 again, in which case the next access of
+    this page will trigger another re-cache. If the book has no price
+    data, then {"price": None} will be cached will will not trigger a
+    re-cache (only the value `None` will)
+
+    """
+    memoized_get_amazon_metadata = cache.memcache_memoize(
+        _get_amazon_metadata, "upstream.code._get_amazon_metadata",
+        timeout=cache.ONE_WEEK)
+    result = memoized_get_amazon_metadata(*args, **kwargs)
+    if result is None:
+        result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
+    return result
 
 @public
 def get_betterworldbooks_metadata(isbn):
@@ -153,7 +178,7 @@ def _get_betterworldbooks_metadata(isbn):
             if price and _price and _price < price:
                 price = _price
                 qlt = 'new'
-        
+
         return {
             'url': product_url[0] if product_url else None,
             'price': price,
@@ -169,7 +194,7 @@ def _get_betterworldbooks_metadata(isbn):
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=HALF_DAY)
+    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=cache.HALF_DAY)
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.
