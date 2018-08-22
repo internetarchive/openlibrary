@@ -1,6 +1,6 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool, add_db_name
-import py.test
+import pytest
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -46,13 +46,15 @@ def test_build_query(mock_site):
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
-    py.test.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+    pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+
+def test_load_without_required_field(mock_site):
+    add_languages(mock_site)
+    rec = {'ocaid': 'test item'}
+    pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
 
 def test_load(mock_site):
     add_languages(mock_site)
-    rec = {'ocaid': 'test item'}
-    py.test.raises(RequiredField, load, {'ocaid': 'test_item'})
-
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],

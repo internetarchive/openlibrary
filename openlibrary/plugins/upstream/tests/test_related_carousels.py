@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .. import models
 
 def test_related_subjects():

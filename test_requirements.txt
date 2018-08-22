@@ -3,7 +3,7 @@
 # see .travis.yml for more details.
 
 -r requirements_common.txt
-pytest==2.2.0
+pytest==3.7.2
 mockcache==1.0.1
 
 

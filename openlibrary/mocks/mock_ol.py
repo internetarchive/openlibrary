@@ -8,7 +8,6 @@ from infogami.utils import delegate
 from openlibrary.plugins import ol_infobase
 
 from mock_infobase import pytest_funcarg__mock_site, MockConnection
-from _pytest.monkeypatch import pytest_funcarg__monkeypatch
 
 def pytest_funcarg__ol(request):
     """ol funcarg for py.test tests.

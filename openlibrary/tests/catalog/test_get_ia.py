@@ -1,6 +1,4 @@
 import os
-import unittest
-from _pytest.monkeypatch import monkeypatch
 from openlibrary.catalog import get_ia
 from openlibrary.core import ia
 from openlibrary.catalog.marc.marc_xml import MarcXml
@@ -18,18 +16,13 @@ def return_test_marc_data(url, test_data_subdir="xml_input"):
     path = os.path.dirname(__file__) + test_data_dir + filename
     return open(path)
 
-class TestGetIA(unittest.TestCase):
-    def setUp(self):
-        self.m = monkeypatch()
+class TestGetIA():
 
-    def tearDown(self):
-        self.m.undo()
-
-    def test_get_marc_record_from_ia(self):
+    def test_get_marc_record_from_ia(self, monkeypatch):
         """Tests the method returning MARC records from IA
         used by the import API. It should return an XML MARC if one exists."""
-        self.m.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
-        self.m.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + '_marc.xml', itemid + '_meta.mrc']})
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_xml)
+        monkeypatch.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + '_marc.xml', itemid + '_meta.mrc']})
 
         xml_items = ['1733mmoiresdel00vill',     # no <?xml
                      '0descriptionofta1682unit', # has <?xml
@@ -58,13 +51,13 @@ class TestGetIA(unittest.TestCase):
                     ]
         for item in xml_items:
             result = get_ia.get_marc_record_from_ia(item)
-            self.assertIsInstance(result, MarcXml,
-                                  "%s: expected instanceof MarcXml, got %s" % (item, type(result)))
+            assert isinstance(result, MarcXml), \
+                   "%s: expected instanceof MarcXml, got %s" % (item, type(result))
 
-    def test_no_marc_xml(self):
+    def test_no_marc_xml(self, monkeypatch):
         """When no XML MARC is listed in _filenames, the Binary MARC should be fetched."""
-        self.m.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
-        self.m.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]})
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
+        monkeypatch.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]})
 
         bin_items = ['0descriptionofta1682unit',
                      '13dipolarcycload00burk',
@@ -85,16 +78,16 @@ class TestGetIA(unittest.TestCase):
 
         for item in bin_items:
             result = get_ia.get_marc_record_from_ia(item)
-            self.assertIsInstance(result, MarcBinary,
-                                  "%s: expected instanceof MarcBinary, got %s" % (item, type(result)))
+            assert isinstance(result, MarcBinary), \
+                   "%s: expected instanceof MarcBinary, got %s" % (item, type(result))
             #print "%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item,
             #                                             result.leader()[9],
             #                                             unicode.encode(result.read_fields(['245']).next()[1].get_all_subfields().next()[1], 'utf8'))
 
-    def test_incorrect_length_marcs(self):
+    def test_incorrect_length_marcs(self, monkeypatch):
         """If a Binary MARC has a different length than stated in the MARC leader, it is probably due to bad character conversions."""
-        self.m.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
-        self.m.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]})
+        monkeypatch.setattr(get_ia, 'urlopen_keep_trying', return_test_marc_bin)
+        monkeypatch.setattr(ia, 'get_metadata', lambda itemid: {'_filenames': [itemid + "_meta.mrc"]})
 
         bad_marcs = ['1733mmoiresdel00vill', # Binary MARC reports len=734, but actually=742. Has badly converted unicode
                                              # original unicode converted as if it were MARC8
@@ -112,7 +105,7 @@ class TestGetIA(unittest.TestCase):
             result = get_ia.get_marc_record_from_ia(bad_marc)
             #TODO: get_marc_record_from_ia() currently returns None in this case,
             #  It should be handled by MarcBinary and raise a BadMarc exception, or similar.
-            self.assertIsNone(result)
+            assert result is None
             #print "%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (bad_marc,
             #                                             result.leader()[9],
             #                                             unicode.encode(result.read_fields(['245']).next()[1].get_all_subfields().next()[1], 'utf8'))

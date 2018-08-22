@@ -10,8 +10,6 @@ from infogami.utils.view import render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
-pytest_plugins = ["pytest_unittest"]
-
 from openlibrary.mocks.mock_infobase import pytest_funcarg__mock_site
 from openlibrary.mocks.mock_ia import pytest_funcarg__mock_ia
 from openlibrary.mocks.mock_memcache import pytest_funcarg__mock_memcache

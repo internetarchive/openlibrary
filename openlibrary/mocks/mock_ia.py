@@ -2,10 +2,9 @@
 """
 
 from openlibrary.core import ia
-from _pytest.monkeypatch import monkeypatch
 
-def pytest_funcarg__mock_ia(request):
-    """py.test funcarg to mock openlibrary.core.ia module.
+def pytest_funcarg__mock_ia(request, monkeypatch):
+    """pytest funcarg to mock openlibrary.core.ia module.
 
         from openlibrary.core import ia
 
@@ -15,9 +14,6 @@ def pytest_funcarg__mock_ia(request):
             mock_ia.set_meta_xml("foo", {"collection": ["a", "b"]})
             assert ia.get_meta_xml("foo") == {"collection": ["a", "b"]}
     """
-    m = monkeypatch()
-    request.addfinalizer(m.undo)
-
     metaxml = {}
 
     class IA:
@@ -28,6 +24,6 @@ def pytest_funcarg__mock_ia(request):
             return metaxml.get(itemid, {})
 
     mock_ia = IA()
-    m.setattr(ia, "get_meta_xml", ia.get_meta_xml)
+    monkeypatch.setattr(ia, "get_meta_xml", ia.get_meta_xml)
 
     return mock_ia
