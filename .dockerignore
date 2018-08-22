@@ -1,0 +1,7 @@
+.vagrant
+.git/objects/*
+solr-update*
+errors
+infogami
+config
+build
