@@ -101,7 +101,6 @@ class Test_memoize:
         msquare = cache.memoize(engine="memory", key="square")(square)
         assert msquare.__name__ == square.__name__
         assert msquare.__doc__ == square.__doc__
-        assert help(msquare) == help(square)
 
     def test_cache(self):
         @cache.memoize(engine="memory", key="square")
