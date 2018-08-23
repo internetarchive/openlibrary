@@ -1,4 +1,5 @@
 import os
+import pytest
 import re
 import web
 from infogami import config
@@ -7,10 +8,11 @@ from infogami.utils import delegate
 
 from openlibrary.plugins import ol_infobase
 
-from mock_infobase import pytest_funcarg__mock_site, MockConnection
+from mock_infobase import mock_site, MockConnection
 
-def pytest_funcarg__ol(request):
-    """ol funcarg for py.test tests.
+@pytest.fixture
+def ol(request):
+    """ol funcarg for pytest tests.
 
     The ol objects exposes the following:
 

@@ -1,6 +1,7 @@
 import datetime
-import web
+import pytest
 import sys
+import web
 
 from infogami.utils.view import render_template
 from infogami.utils import template, context
@@ -11,7 +12,8 @@ from BeautifulSoup import BeautifulSoup
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
-def pytest_funcarg__olconfig(request):
+@pytest.fixture(scope='session')
+def olconfig(request):
     from infogami import config
     import copy
 

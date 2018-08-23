@@ -1,7 +1,7 @@
-"""py.test configutation for openlibrary
+"""pytest configutation for openlibrary
 """
 import glob
-
+import pytest
 import web
 
 from infogami.infobase.tests.pytest_wildcard import pytest_funcarg__wildcard
@@ -10,10 +10,10 @@ from infogami.utils.view import render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
-from openlibrary.mocks.mock_infobase import pytest_funcarg__mock_site
-from openlibrary.mocks.mock_ia import pytest_funcarg__mock_ia
-from openlibrary.mocks.mock_memcache import pytest_funcarg__mock_memcache
-from openlibrary.mocks.mock_ol import pytest_funcarg__ol
+from openlibrary.mocks.mock_infobase import mock_site
+from openlibrary.mocks.mock_ia import mock_ia
+from openlibrary.mocks.mock_memcache import mock_memcache
+from openlibrary.mocks.mock_ol import ol
 
 def pytest_funcarg__render_template(request):
     """Utility to test templates.

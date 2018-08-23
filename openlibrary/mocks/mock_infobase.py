@@ -3,6 +3,7 @@
 import datetime
 import web
 import glob
+import pytest
 import simplejson
 
 from infogami.infobase import client, common, account, config as infobase_config
@@ -321,8 +322,8 @@ class MockStore(dict):
     def items(self, **kw):
         return [(doc["_key"], doc) for doc in self._query(**kw)]
 
-
-def pytest_funcarg__mock_site(request):
+@pytest.fixture
+def mock_site(request):
     """mock_site funcarg.
 
     Creates a mock site, assigns it to web.ctx.site and returns it.

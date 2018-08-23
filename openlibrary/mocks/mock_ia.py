@@ -1,9 +1,10 @@
 """Mock of openlibrary.core.ia module.
 """
-
+import pytest
 from openlibrary.core import ia
 
-def pytest_funcarg__mock_ia(request, monkeypatch):
+@pytest.fixture
+def mock_ia(request, monkeypatch):
     """pytest funcarg to mock openlibrary.core.ia module.
 
         from openlibrary.core import ia
