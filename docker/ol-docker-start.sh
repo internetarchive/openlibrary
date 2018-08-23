@@ -12,9 +12,6 @@ echo "Starting ol services."
 # postgres
 su postgres -c "/etc/init.d/postgresql start"
 
-# solr Reports FAIL (port already in use) even though it starts solr
-service tomcat7 start
-
 # memcached
 service memcached start
 
@@ -28,7 +25,7 @@ su openlibrary -c "until pg_isready; do sleep 5; done && make reindex-solr" &
 su openlibrary -c "python scripts/new-solr-updater.py \
   -c conf/openlibrary.yml \
   --state-file solr-update.offset \
-  --ol-url http://localhost/" &
+  --ol-url http://web/" &
 
 # ol server, running in the foreground to avoid exiting container
 su openlibrary -c "authbind --deep scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w4 -t180 -b:80"

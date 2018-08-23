@@ -1,18 +1,16 @@
 FROM ubuntu:xenial
 
-# Expose Open Library and SOLR
-EXPOSE 80 7000 8983
+# Expose Open Library and Infobase
+EXPOSE 80 7000
 
 ENV LANG en_US.UTF-8
 
 # required for postgres
 ENV LC_ALL POSIX
 
-WORKDIR /openlibrary
-
 RUN apt-get -qq update && apt-get install -y \
     nginx \
-    solr-tomcat \
+    authbind \
     postgresql \
     build-essential \
     git-core \
@@ -33,5 +31,7 @@ RUN apt-get -qq update && apt-get install -y \
 RUN npm install less -g && ln -s /usr/bin/nodejs /usr/bin/node
 
 COPY . /openlibrary
+WORKDIR /openlibrary
+
 RUN pip install -r test_requirements.txt
 
