@@ -10,6 +10,9 @@ RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
 
 WORKDIR /openlibrary
 
+# Set owner to be openlibrary user
+RUN chown -R openlibrary .
+
 # Setup nginx
 RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
     && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
