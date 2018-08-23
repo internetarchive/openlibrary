@@ -15,6 +15,10 @@ from openlibrary.mocks.mock_ia import mock_ia
 from openlibrary.mocks.mock_memcache import mock_memcache
 from openlibrary.mocks.mock_ol import ol
 
+@pytest.fixture(autouse=True)
+def no_requests(monkeypatch):
+    monkeypatch.delattr("requests.sessions.Session.request")
+
 def pytest_funcarg__render_template(request):
     """Utility to test templates.
     """
