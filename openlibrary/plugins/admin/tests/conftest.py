@@ -1,4 +1,6 @@
-def pytest_funcarg__serviceconfig(request):
+import pytest
+@pytest.fixture
+def serviceconfig(request):
     import os
     import yaml
     root = os.path.dirname(__file__)

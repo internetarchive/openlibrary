@@ -4,6 +4,7 @@ from marc_binary import MarcBinary
 from marc_subject import read_subjects, tidy_subject, four_types
 from collections import defaultdict
 import os
+import pytest
 
 xml_samples = [
     ('bijouorannualofl1828cole', {}),
@@ -99,27 +100,25 @@ bin_samples = [
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
 class TestSubjects:
-    def _test_subjects(self, rec, expect):
-        assert read_subjects(rec) == expect
 
-    def test_subjects_xml(self):
-        for item, expect in xml_samples:
-            filename = os.path.dirname(__file__) + '/test_data/xml_input/' + item + '_marc.xml'
-            element = etree.parse(filename).getroot()
-            if element.tag != record_tag and element[0].tag == record_tag:
-                element = element[0]
-            rec = MarcXml(element)
-            yield self._test_subjects, rec, expect
+    @pytest.mark.parametrize('item,expected', xml_samples)
+    def test_subjects_xml(self, item, expected):
+        filename = os.path.dirname(__file__) + '/test_data/xml_input/' + item + '_marc.xml'
+        element = etree.parse(filename).getroot()
+        if element.tag != record_tag and element[0].tag == record_tag:
+            element = element[0]
+        rec = MarcXml(element)
+        assert read_subjects(rec) == expected
 
-    def test_subjects_bin(self):
-        for item, expect in bin_samples:
-            filename = os.path.dirname(__file__) + '/test_data/bin_input/' + item
+    @pytest.mark.parametrize('item,expected', bin_samples)
+    def test_subjects_bin(self, item, expected):
+        filename = os.path.dirname(__file__) + '/test_data/bin_input/' + item
 
-            data = open(filename).read()
-            if len(data) != int(data[:5]):
-                data = data.decode('utf-8').encode('raw_unicode_escape')
-            rec = MarcBinary(data)
-            yield self._test_subjects, rec, expect
+        data = open(filename).read()
+        if len(data) != int(data[:5]):
+            data = data.decode('utf-8').encode('raw_unicode_escape')
+        rec = MarcBinary(data)
+        assert read_subjects(rec) == expected
 
 subjects = []
 for item, expect in xml_samples:

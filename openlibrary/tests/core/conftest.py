@@ -1,6 +1,8 @@
 import os
+import pytest
 
-def pytest_funcarg__dummy_crontabfile(request):
+@pytest.fixture
+def dummy_crontabfile(request):
     "Creates a dummy crontab file that can be used for to try things"
     cronfile = os.tmpnam()
     ip = """* * * * * /bin/true
@@ -11,7 +13,8 @@ def pytest_funcarg__dummy_crontabfile(request):
     request.addfinalizer(lambda : os.remove(cronfile))
     return cronfile
 
-def pytest_funcarg__crontabfile(request):
+@pytest.fixture
+def crontabfile(request):
     """Creates a file with an actual command that we can use to test
     running of cron lines"""
     if os.path.exists("/tmp/crontest"):
@@ -24,7 +27,8 @@ def pytest_funcarg__crontabfile(request):
     request.addfinalizer(lambda : os.remove(cronfile))
     return cronfile
 
-def pytest_funcarg__counter(request):
+@pytest.fixture
+def counter(request):
     """Returns a decorator that will create a 'counted' version of the
     functions. The number of times it's been called is kept in the
     .invocations attribute"""
@@ -36,8 +40,8 @@ def pytest_funcarg__counter(request):
         return _counted
     return counter
 
-
-def pytest_funcarg__sequence(request):
+@pytest.fixture
+def sequence(request):
     """Returns a function that can be called for sequence numbers
     similar to web.ctx.site.sequence.get_next"""
     t = (x for x in range(100))

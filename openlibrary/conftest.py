@@ -4,9 +4,9 @@ import glob
 import pytest
 import web
 
-from infogami.infobase.tests.pytest_wildcard import pytest_funcarg__wildcard
+from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template as infobase_render_template
 from openlibrary.i18n import gettext
 from openlibrary.core import helpers
 
@@ -19,7 +19,12 @@ from openlibrary.mocks.mock_ol import ol
 def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
-def pytest_funcarg__render_template(request):
+@pytest.fixture
+def wildcard():
+    return Wildcard()
+
+@pytest.fixture
+def render_template(request):
     """Utility to test templates.
     """
     template.load_templates("openlibrary")
@@ -55,7 +60,7 @@ def pytest_funcarg__render_template(request):
 
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
-        d = render_template(name, *a, **kw)
+        d = infobase_render_template(name, *a, **kw)
         if as_string:
             return unicode(d)
         else:
