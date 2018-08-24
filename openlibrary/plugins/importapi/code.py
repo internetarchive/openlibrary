@@ -180,7 +180,7 @@ class ia_importapi:
         require_marc = not (i.get('require_marc') == 'false')
 
         if "identifier" not in i:
-            self.error("bad-input", "identifier not provided")
+            return self.error("bad-input", "identifier not provided")
         identifier = i.identifier
 
         # Case 0 - Is the item already loaded
