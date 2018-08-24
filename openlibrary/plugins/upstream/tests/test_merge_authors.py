@@ -3,8 +3,6 @@ import web
 from infogami.infobase import client, common
 from infogami.utils import delegate
 
-from infogami.infobase.tests.pytest_wildcard import *
-
 from .. import merge_authors
 
 def setup_module(mod):

@@ -1,7 +1,7 @@
 """Library to mock memcache functionality.
 """
-from _pytest.monkeypatch import monkeypatch
 import memcache
+import pytest
 
 class Client:
     """Mock memcache client."""
@@ -28,14 +28,14 @@ class Client:
         except KeyError:
             pass
 
-def pytest_funcarg__mock_memcache(request):
+@pytest.fixture
+def mock_memcache(request, monkeypatch):
     """This patches all the existing memcache connections to use mock memcache instance.
     """
-    m = monkeypatch()
+    m = monkeypatch
     request.addfinalizer(m.undo)
 
     mock_memcache = Client()
-
 
     def proxy(name):
         method = getattr(mock_memcache, name)

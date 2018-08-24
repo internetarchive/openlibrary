@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from .. import utils
 
 def test_url_quote():

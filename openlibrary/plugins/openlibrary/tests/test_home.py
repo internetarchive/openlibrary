@@ -1,6 +1,7 @@
 import datetime
-import web
+import pytest
 import sys
+import web
 
 from infogami.utils.view import render_template
 from infogami.utils import template, context
@@ -11,34 +12,11 @@ from BeautifulSoup import BeautifulSoup
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
-def pytest_funcarg__olconfig(request):
-    from infogami import config
-    import copy
-
-    def safecopy(data):
-        if isinstance(data, list):
-            return [safecopy(d) for d in data]
-        elif isinstance(data, web.storage):
-            return web.storage((k, safecopy(v)) for k, v in data.items())
-        elif isinstance(data, dict):
-            return dict((k, safecopy(v)) for k, v in data.items())
-        else:
-            return data
-
-    old_config = safecopy(config.__dict__)
-
-    def undo():
-        config.__dict__.clear()
-        config.__dict__.update(old_config)
-
-    request.addfinalizer(undo)
-    return config.__dict__
-
 class MockDoc(dict):
     def __init__(self, _id, *largs, **kargs):
         self.id = _id
         kargs['_key'] = _id
-        super(MockDoc,self).__init__(*largs, **kargs)
+        super(MockDoc, self).__init__(*largs, **kargs)
 
     def __repr__(self):
         o = super(MockDoc, self).__repr__()
@@ -73,16 +51,16 @@ class TestHomeTemplates:
         html = unicode(render_template("home/stats"))
         assert html == ""
 
-    def test_read_template(self, render_template):
+    def test_read_template(self, render_template, monkeypatch):
         # getting read-online books fails because solr is not defined.
         # Empty list should be returned when there is error.
-
+        monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         books = home.readonline_carousel()
         html = unicode(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
                                        key="public_domain"))
         assert html.strip() == ""
 
-    def test_home_template(self, render_template, mock_site, olconfig, monkeypatch):
+    def test_home_template(self, render_template, mock_site):
         docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits=1, bot_edits=1, lists=1,
                         visitors=1, loans=1, members=1,
@@ -102,7 +80,6 @@ class TestHomeTemplates:
                      subjects    = Stats(docs, "subjects", "total_subjects"))
 
         mock_site.quicksave("/people/foo/lists/OL1L", "/type/list")
-        olconfig.setdefault("home", {})['lending_list'] = "/people/foo/lists/OL1L"
 
         def spoofed_generic_carousel(*args, **kwargs):
             return [{
@@ -116,9 +93,7 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
-        monkeypatch.setattr(web.ctx, "library", {"name": "IA"}, raising=False)
         html = unicode(render_template("home/index", stats=stats, test=True))
-
         headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]
         for h in headers:

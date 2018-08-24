@@ -100,7 +100,7 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 ## Running tests
 
-Open Library tests can be run using pytest (py.test). Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
+Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
 
 Inside vagrant, go to the application base directory:
 

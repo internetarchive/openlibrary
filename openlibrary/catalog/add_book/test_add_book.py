@@ -1,6 +1,8 @@
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool, add_db_name
-import py.test
+from .. import add_book
+import os
+import pytest
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -8,8 +10,6 @@ from merge import try_merge
 from copy import deepcopy
 from urllib import urlopen
 from collections import defaultdict
-from pprint import pprint
-import os
 
 def open_test_data(filename):
     """Returns a file handle to file with specified filename inside test_data directory.
@@ -18,6 +18,7 @@ def open_test_data(filename):
     fullpath = os.path.join(root, 'test_data', filename)
     return open(fullpath)
 
+@pytest.fixture
 def add_languages(mock_site):
     languages = [
         ('eng', 'English'),
@@ -32,8 +33,13 @@ def add_languages(mock_site):
             'type': {'key': '/type/language'},
         })
 
-def test_build_query(mock_site):
-    add_languages(mock_site)
+@pytest.fixture
+def ia_writeback(monkeypatch):
+    """Prevent ia writeback from making live requests.
+    """
+    monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
+
+def test_build_query(add_languages):
     rec = {
         'title': 'magic',
         'languages': ['eng', 'fre'],
@@ -46,13 +52,13 @@ def test_build_query(mock_site):
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
-    py.test.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+    pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
 
-def test_load(mock_site):
-    add_languages(mock_site)
+def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
-    py.test.raises(RequiredField, load, {'ocaid': 'test_item'})
+    pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
 
+def test_load_test_item(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
@@ -61,7 +67,6 @@ def test_load(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -76,6 +81,7 @@ def test_load(mock_site):
     assert w.title == 'Test item'
     assert w.type.key == '/type/work'
 
+def test_load_with_subjects(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
@@ -88,6 +94,7 @@ def test_load(mock_site):
     assert w.title == 'Test item'
     assert w.subjects == ['Protected DAISY', 'In library']
 
+def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
@@ -101,10 +108,12 @@ def test_load(mock_site):
         assert reply['authors'][0]['status'] == 'created'
         assert reply['authors'][0]['name'] == 'John Doe'
         akey1 = reply['authors'][0]['key']
+        assert akey1 == '/authors/OL1A'
         a = mock_site.get(akey1)
         assert w.authors
         assert a.type.key == '/type/author'
 
+    # Tests existing author is modified
     rec = {
         'ocaid': 'test_item',
         'title': 'Test item',
@@ -113,11 +122,12 @@ def test_load(mock_site):
     }
     reply = load(rec)
     assert reply['success'] == True
-    if 'authors' in reply:
-        assert reply['authors'][0]['status'] == 'modified'
-        akey2 = reply['authors'][0]['key']
-        assert akey1 == akey2
+    # Below asserts imply the existing author should be updated, but these were never run:
+    #assert reply['authors'][0]['status'] == 'modified'
+    #akey2 = reply['authors'][0]['key']
+    #assert akey1 == akey2 == '/authors/OL1A'
 
+    # Tests same title with different ocaid and author is not overwritten
     rec = {
         'ocaid': 'test_item2',
         'title': 'Test item',
@@ -125,6 +135,8 @@ def test_load(mock_site):
         'source_records': 'ia:test_item2',
     }
     reply = load(rec)
+    akey3 = reply['authors'][0]['key']
+    assert akey3 == '/authors/OL2A'
     assert reply['authors'][0]['status'] == 'created'
     assert reply['work']['status'] == 'created'
     assert reply['edition']['status'] == 'created'
@@ -136,9 +148,7 @@ def test_load(mock_site):
 
 #def test_author_matching(mock_site):
 
-def test_duplicate_ia_book(mock_site):
-    add_languages(mock_site)
-
+def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
         'source_records': ['ia:test_item'],
@@ -164,8 +174,7 @@ def test_duplicate_ia_book(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
-def test_from_marc_3(mock_site):
-    add_languages(mock_site)
+def test_from_marc_3(mock_site, add_languages):
     ia = 'treatiseonhistor00dixo'
     data = open_test_data(ia + '_meta.mrc').read()
     assert len(data) == int(data[:5])
@@ -177,8 +186,7 @@ def test_from_marc_3(mock_site):
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
 
-def test_from_marc_2(mock_site):
-    add_languages(mock_site)
+def test_from_marc_2(mock_site, add_languages):
     ia = 'roadstogreatness00gall'
 
     data = open_test_data(ia + '_meta.mrc').read()
@@ -194,11 +202,10 @@ def test_from_marc_2(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
-def test_from_marc(mock_site):
+def test_from_marc(mock_site, add_languages):
     from openlibrary.catalog.marc.marc_binary import MarcBinary
     from openlibrary.catalog.marc.parse import read_edition
 
-    add_languages(mock_site)
     data = open('test_data/flatlandromanceo00abbouoft_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
@@ -299,8 +306,7 @@ def test_add_db_name():
     add_db_name(rec)
     assert rec == {}
 
-def test_from_marc(mock_site):
-    add_languages(mock_site)
+def test_from_marc(mock_site, add_languages):
     ia = 'coursepuremath00hardrich'
     marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
     rec = read_edition(marc)
@@ -324,9 +330,7 @@ def test_from_marc(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'matched'
 
-def test_real_example(mock_site):
-    add_languages(mock_site)
-
+def test_real_example(mock_site, add_languages):
     src = 'v38.i37.records.utf8--16478504-1254'
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
@@ -345,8 +349,7 @@ def test_real_example(mock_site):
     assert reply['success'] == True
     assert reply['edition']['status'] == 'modified'
 
-def test_missing_ocaid(mock_site):
-    add_languages(mock_site)
+def test_missing_ocaid(mock_site, add_languages):
     ia = 'descendantsofhug00cham'
     src = ia + '_meta.mrc'
     marc = MarcBinary(open_test_data(src).read())
@@ -362,9 +365,7 @@ def test_missing_ocaid(mock_site):
     assert e.ocaid == ia
     assert 'ia:' + ia in e.source_records
 
-def test_extra_author(mock_site):
-    add_languages(mock_site)
-
+def test_extra_author(mock_site, add_languages):
     mock_site.save({
         "name": "Hubert Howe Bancroft",
         "death_date": "1918.",
@@ -405,10 +406,7 @@ def test_extra_author(mock_site):
     w = mock_site.get(reply['work']['key'])
     #assert len(w['authors']) == 1
 
-
-def test_missing_source_records(mock_site):
-    add_languages(mock_site)
-
+def test_missing_source_records(mock_site, add_languages):
     mock_site.save({
         'key': '/authors/OL592898A',
         'name': 'Michael Robert Marrus',
@@ -465,9 +463,7 @@ def test_missing_source_records(mock_site):
     e = mock_site.get(reply['edition']['key'])
     assert 'source_records' in e
 
-def test_no_extra_author(mock_site):
-    add_languages(mock_site)
-
+def test_no_extra_author(mock_site, add_languages):
     author = {
         "name": "Paul Michael Boothe",
         "key": "/authors/OL1A",
@@ -594,8 +590,7 @@ def test_don_quixote(mock_site):
 
         assert reply['success'] == True
 
-def test_same_twice(mock_site):
-    add_languages(mock_site)
+def test_same_twice(mock_site, add_languages):
     rec = {
             'source_records': ['ia:test_item'],
             "publishers": ["Ten Speed Press"], "pagination": "20 p.", "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.", "title": "Pat The Zombie", "isbn_13": ["9781607740360"], "languages": ["eng"], "isbn_10": ["1607740362"], "authors": [{"entity_type": "person", "name": "Aaron Ximm", "personal_name": "Aaron Ximm"}], "contributions": ["Kaveh Soofi (Illustrator)"]}

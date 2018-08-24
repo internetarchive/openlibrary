@@ -15,7 +15,6 @@ from openlibrary.core import ia
 
 import web
 
-
 import base64
 import json
 import re
@@ -43,7 +42,6 @@ def parse_meta_headers(edition_builder):
         if m:
             meta_key = m.group(1).lower()
             edition_builder.add(meta_key, v, restrict_keys=False)
-
 
 def parse_data(data):
     data = data.strip()
@@ -136,15 +134,11 @@ def queue_s3_upload(data, format):
     return
 
 class importapi:
-    def GET(self):
-        web.header('Content-Type', 'text/plain')
-        return 'Import API only supports POST requests.'
-
     def POST(self):
         web.header('Content-Type', 'application/json')
 
         if not can_write():
-            return json.dumps({'success':False, 'error':'Permission Denied'})
+            raise web.HTTPError('403 Forbidden')
 
         data = web.data()
         error_code = "unknown_error"
@@ -179,9 +173,9 @@ class ia_importapi:
         web.header('Content-Type', 'application/json')
 
         if not can_write():
-            return json.dumps({'success':False, 'error':'Permission Denied'})
+            raise web.HTTPError('403 Forbidden')
 
-        i = web.input()        
+        i = web.input()
 
         require_marc = not (i.get('require_marc') == 'false')
 

@@ -8,13 +8,15 @@ data9: This contans OL9A, OL9M and OL9W with interconnections and almost all fie
 """
 from .. import dynlinks
 
+import pytest
 import re
 import simplejson
 import web
 from openlibrary.mocks import mock_infobase
 from openlibrary.core import ia
 
-def pytest_funcarg__data0(request):
+@pytest.fixture
+def data0(request):
     return {
         "/books/OL0M": {
             "key": "/books/OL0M",
@@ -40,7 +42,8 @@ def pytest_funcarg__data0(request):
         }
     }
 
-def pytest_funcarg__data1(request):
+@pytest.fixture
+def data1(request):
     return {
         "/books/OL1M": {
             "key": "/books/OL1M",
@@ -60,7 +63,8 @@ def pytest_funcarg__data1(request):
         }
     }
 
-def pytest_funcarg__data9(request):
+@pytest.fixture
+def data9(request):
     return {
         "/authors/OL9A": {
             "key": "/authors/OL9A",
