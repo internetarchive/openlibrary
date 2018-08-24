@@ -196,9 +196,9 @@ class ia_importapi:
         if not metadata:
             return self.error("invalid-ia-identifier")
 
-        # Case 2 - Is the item has openlibrary field specified?
-        # The scan operators search OL before loading the book and adds the
-        # OL key if an match is found. We can trust them as attach the item
+        # Case 2 - Does the item have an openlibrary field specified?
+        # The scan operators search OL before loading the book and add the
+        # OL key if a match is found. We can trust them as attach the item
         # to that edition.
         if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
             d = {
@@ -251,6 +251,7 @@ class ia_importapi:
         Archive.org metadata API
         """
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
+        subject = metadata.get('subject')
         ocaid = metadata['identifier']
         d = {
             "source_records": "ia:%s" % ocaid,
@@ -258,8 +259,11 @@ class ia_importapi:
             "ocaid": ocaid,
             "authors": authors,
             "language": metadata.get('language', ''),
+            "subjects": subject and (isinstance(subject, list) and subject or [subject]),
             "cover": "https://archive.org/download/{0}/{0}/page/title.jpg".format(ocaid),
         }
+        if subject:
+            d["subjects"] = isinstance(subject, list) and subject or [subject]
         return d
 
     def load_book(self, edition_data):
@@ -296,7 +300,7 @@ class ia_importapi:
             return keys[0]
 
         # Match source_records
-        # When there are multiple scan for the same edition, only scan_records is updated.
+        # When there are multiple scans for the same edition, only source_records is updated.
         q = {"type": "/type/edition", "source_records": "ia:" + identifier}
         keys = web.ctx.site.things(q)
         if keys:
