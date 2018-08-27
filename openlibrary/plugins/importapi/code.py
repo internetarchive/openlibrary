@@ -44,10 +44,15 @@ def parse_meta_headers(edition_builder):
             edition_builder.add(meta_key, v, restrict_keys=False)
 
 def parse_data(data):
+    """
+    Takes POSTed data and determines the format, and returns an Edition record
+    suitable for adding to OL.
+    :param str data: Raw data
+    :rtype: (dict, str) (dict Edition record, string format (rdf|opds|marcxml|json|marc) or (None, None)
+    """
     data = data.strip()
     if -1 != data[:10].find('<?xml'):
         root = etree.fromstring(data)
-        #print root.tag
         if '{http://www.w3.org/1999/02/22-rdf-syntax-ns#}RDF' == root.tag:
             edition_builder = import_rdf.parse(root)
             format = 'rdf'
@@ -69,7 +74,7 @@ def parse_data(data):
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     else:
-        # Special case to load IA records
+        # Special case to load IA records, DEPRECATED: use import/ia endpoint
         # Just passing ia:foo00bar is enough to load foo00bar from IA.
         if data.startswith("ia:"):
             source_records = [data]
@@ -134,6 +139,8 @@ def queue_s3_upload(data, format):
     return
 
 class importapi:
+    """/api/import endpoint for general data formats.
+    """
     def POST(self):
         web.header('Content-Type', 'application/json')
 
@@ -151,7 +158,7 @@ class importapi:
 
         #call Edward's code here with the edition dict
         if edition:
-            source_url = None
+            #source_url = None
 
             ## Anand - July 2014
             ## This is adding source_records as [null] as queue_s3_upload is disabled.
@@ -162,13 +169,26 @@ class importapi:
             #     edition['source_records'] = [source_url]
 
             reply = add_book.load(edition)
-            if source_url:
-                reply['source_record'] = source_url
+            #if source_url:
+            #    reply['source_record'] = source_url
             return json.dumps(reply)
         else:
             return json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
 
 class ia_importapi:
+    """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
+    Request Format:
+
+        POST /api/import/ia
+        Content-type: application/json
+        Authorization: Basic base64-of-username:password
+
+        {
+            "identifier": "<ocaid>",
+            "require_marc": "true",
+            "bulk_marc": "false"
+        }
+    """
     def POST(self):
         web.header('Content-Type', 'application/json')
 
@@ -178,6 +198,7 @@ class ia_importapi:
         i = web.input()
 
         require_marc = not (i.get('require_marc') == 'false')
+        bulk_marc = i.get('bulk_marc') == 'true'
 
         if "identifier" not in i:
             return self.error("bad-input", "identifier not provided")
@@ -188,17 +209,20 @@ class ia_importapi:
         if key:
             return self.status_matched(key)
 
-        # Case 1 - Is this a valid item?
-        item_json = ia.get_item_json(identifier)
-        item_server = item_json['server']
-        item_path = item_json['dir']
+        # Case 1 - Is this a valid Archive.org item?
+        try:
+            item_json = ia.get_item_json(identifier)
+            item_server = item_json['server']
+            item_path = item_json['dir']
+        except KeyError:
+            return self.error("invalid-ia-identifier", "%s not found" % identifier)
         metadata = ia.extract_item_metadata(item_json)
         if not metadata:
             return self.error("invalid-ia-identifier")
 
         # Case 2 - Does the item have an openlibrary field specified?
         # The scan operators search OL before loading the book and add the
-        # OL key if a match is found. We can trust them as attach the item
+        # OL key if a match is found. We can trust them and attach the item
         # to that edition.
         if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
             d = {
@@ -232,53 +256,62 @@ class ia_importapi:
             if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
                 return self.error("item-not-book")
 
-            edition_data = self.get_edition_data(identifier, marc_record)
-            if not edition_data:
+            try:
+                edition_data = read_edition(marc_record)
+            except Exception, e:
+                logger.error("failed to read info from marc_record: %s", str(e))
                 return self.error("invalid-marc-record")
 
         elif require_marc:
             return self.error("no-marc-record")
 
         else:
-            edition_data = self.get_ia_record(metadata)
-            if not edition_data:
+            try:
+                edition_data = self.get_ia_record(metadata)
+            except KeyError:
                 return self.error("invalid-ia-metadata")
+
+        # Add IA specific fields: ocaid, source_records, and cover
+        edition_data = self.populate_edition_data(edition_data, identifier)
 
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
-        """In lieu of a MARC record, retrieves necessary data from
-        Archive.org metadata API
         """
+        Generate Edition record from Archive.org metadata, in lieu of a MARC record
+        :param dict metadata: metadata retrieved from metadata API
+        :rtype: dict Edition record
+        """
+        #TODO: include identifiers: isbn, oclc, lccn
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
         subject = metadata.get('subject')
-        ocaid = metadata['identifier']
         d = {
-            "source_records": "ia:%s" % ocaid,
             "title": metadata.get('title', ''),
-            "ocaid": ocaid,
             "authors": authors,
             "language": metadata.get('language', ''),
-            "subjects": subject and (isinstance(subject, list) and subject or [subject]),
-            "cover": "https://archive.org/download/{0}/{0}/page/title.jpg".format(ocaid),
         }
         if subject:
             d["subjects"] = isinstance(subject, list) and subject or [subject]
         return d
 
     def load_book(self, edition_data):
+        """
+        Takes a well constructed full Edition record and sends it to add_book
+        to check whether it is already in the system, and to add it, and a Work
+        if they do not already exist.
+        :param dict edition_data: Edition record
+        :rtype: dict
+        """
         result = add_book.load(edition_data)
         return json.dumps(result)
 
-    def get_edition_data(self, identifier, marc_record):
-        try:
-            edition = read_edition(marc_record)
-        except Exception, e:
-            logger.error("failed to read info from marc_record: %s", str(e))
-            return
-        return self.populate_edition_data(edition, identifier)
-
     def populate_edition_data(self, edition, identifier):
+        """
+        Adds archive.org specific fields to a generic Edition record, based on identifier.
+        :param dict edition: Edition record
+        :param str identifier: ocaid
+        :rtype: dict Edition record
+        """
         edition['ocaid'] = identifier
         edition['source_records'] = "ia:" + identifier
         edition['cover'] = "https://archive.org/download/{0}/{0}/page/title.jpg".format(identifier)
@@ -291,7 +324,10 @@ class ia_importapi:
             return None
 
     def find_edition(self, identifier):
-        """Checks if the given identifier is already been imported into OL.
+        """
+        Checks if the given identifier has already been imported into OL.
+        :param str identifier: ocaid
+        :rtype: str OL item key of matching item: '/books/OL..M'
         """
         # match ocaid
         q = {"type": "/type/edition", "ocaid": identifier}
@@ -314,11 +350,12 @@ class ia_importapi:
         return json.dumps(reply)
 
     def error(self, error_code, error="Invalid item"):
+        #TODO: return a non-200 response code here. 400.
         return json.dumps({
             "success": False,
             "error_code": error_code,
             "error": error
-        });
+        })
 
 
 class ils_search:
