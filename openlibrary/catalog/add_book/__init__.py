@@ -146,6 +146,15 @@ def new_work(q, rec, cover_id):
     return w
 
 def load_data(rec):
+    """
+    Creates a new Edition,
+    searches for an existing Work,
+      creates a new one if required,
+      otherwise adds to existing Work,
+        possibly with modification.
+    :param dict rec: Edition record to load (now we have established it should be added)
+    :rtype: dict {"success": bool, "error": string | "work": {"key": <key>, "status": "created" | "modified" | "matched"} , "edition": {"key": <key>, "status": "created"}}
+    """
     cover_url = None
     if 'cover' in rec:
         cover_url = rec['cover']
@@ -250,6 +259,11 @@ def find_match(e1, edition_pool):
                 return edition_key
 
 def build_pool(rec):
+    """
+    Searches for existing edition matches on title and bibliographic keys.
+    :param dict rec: Edition record
+    :rtype: dict {<identifier: title | isbn | lccn etc>: [ list of /books/OL..M keys that match rec on <identifier>]}
+    """
     pool = defaultdict(set)
 
     ## Find records with matching title
@@ -300,6 +314,10 @@ def add_db_name(rec):
 re_lang = re.compile('^/languages/([a-z]{3})$')
 
 def early_exit(rec):
+    """Attempts to quickly find an existing item match using bibliographic keys.
+    :param dict rec: Edition record
+    :rtype: (str|None) First key matched of format "/books/OL..M" or False if no match found.
+    """
     f = 'ocaid'
     # Anand - August 2014
     # If openlibrary ID is already specified in the record, then use it.
@@ -316,6 +334,7 @@ def early_exit(rec):
         if ekeys:
             return ekeys[0]
 
+    #TODO: Check whether 'isbn' should also be used here.
     if 'isbn_10' or 'isbn_13' in rec:
         isbns = rec.get("isbn_10", []) + rec.get("isbn_13", [])
         isbns = [isbn.strip().replace("-", "") for isbn in isbns]
