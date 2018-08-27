@@ -196,14 +196,21 @@ def get_data(loc):
     return buf
 
 def get_from_archive(locator):
+    """
+    Gets a single binary MARC record from within an Archive.org
+    bulk MARC item.
+
+    :param str locator: Locator ocaid/filename:offset:length
+    """
     if locator.startswith('marc:'):
         locator = locator[5:]
     filename, offset, length = locator.split (":")
     offset = int (offset)
     length = int (length)
 
-    ia, rest = filename.split('/', 1)
-
+    # This looks like it is trying to get host, path
+    # via some now non-working broadcast/socket method?
+    """
     for attempt in range(5):
         try:
             host, path = find_item(ia)
@@ -212,13 +219,14 @@ def get_from_archive(locator):
             if attempt == 4:
                 raise
             print 'retry, attempt', attempt
+    """
 
     r0, r1 = offset, offset+length-1
-    url = 'http://' + host + path + '/' + rest
+    url = 'https://archive.org/download/%s' % filename
 
     assert 0 < length < 100000
 
-    ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
+    ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)},)
 
     f = None
     for i in range(3):
@@ -236,7 +244,11 @@ def get_from_archive(locator):
         except urllib2.URLError:
             pass
     if f:
-        return f.read(100000)
+        result = f.read(100000)
+        len_in_rec = int(result[:5])
+        if len_in_rec != length:
+            result = get_from_archive('%s:%d:%d' % (filename, offset, len_in_rec))
+        return result
     else:
         print locator, url, 'failed'
 

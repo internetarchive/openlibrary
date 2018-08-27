@@ -8,7 +8,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
-from openlibrary.catalog.get_ia import get_ia, get_marc_ia, get_marc_record_from_ia
+from openlibrary.catalog.get_ia import get_ia, get_marc_ia, get_marc_record_from_ia, get_from_archive
 from openlibrary import accounts
 from openlibrary import records
 from openlibrary.core import ia
@@ -201,9 +201,29 @@ class ia_importapi:
         require_marc = not (i.get('require_marc') == 'false')
         bulk_marc = i.get('bulk_marc') == 'true'
 
-        if "identifier" not in i:
-            return self.error("bad-input", "identifier not provided")
+        if 'identifier' not in i:
+            return self.error('bad-input', 'identifier not provided')
         identifier = i.identifier
+
+        # First check whether this is a non-book, bulk-marc item
+        if bulk_marc:
+            # Get binary MARC by identifier = ocaid/filename:offset:length
+            try:
+                data = get_from_archive(identifier)
+                rec = MarcBinary(data)
+                edition = read_edition(rec)
+            except:
+                return self.error('no-marc-record')
+
+            edition['source_records'] = 'marc:%s' % identifier
+            result = add_book.load(edition)
+
+            # Add record_length to the response as location of next record:
+            offset = int(identifier.split(':')[1])
+            record_length = int(data[:5])
+            result['next_record_offset'] = record_length + offset
+
+            return json.dumps(result)
 
         # Case 0 - Is the item already loaded
         key = self.find_edition(identifier)
