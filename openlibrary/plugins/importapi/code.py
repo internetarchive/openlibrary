@@ -173,7 +173,8 @@ class importapi:
             #    reply['source_record'] = source_url
             return json.dumps(reply)
         else:
-            return json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
+            content = json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
+            raise web.HTTPError('400 Bad Request', {}, content)
 
 class ia_importapi:
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
@@ -350,13 +351,12 @@ class ia_importapi:
         return json.dumps(reply)
 
     def error(self, error_code, error="Invalid item"):
-        #TODO: return a non-200 response code here. 400.
-        return json.dumps({
+        content = json.dumps({
             "success": False,
             "error_code": error_code,
             "error": error
         })
-
+        raise web.HTTPError('400 Bad Request', {}, content)
 
 class ils_search:
     """Search and Import API to use in Koha.
