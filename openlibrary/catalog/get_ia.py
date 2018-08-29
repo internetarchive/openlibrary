@@ -1,7 +1,6 @@
-from openlibrary.catalog.marc import fast_parse, read_xml
-from openlibrary.catalog.utils import error_mail
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
+from openlibrary.catalog.marc import parse
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
@@ -18,19 +17,13 @@ def urlopen_keep_trying(url):
     for i in range(3):
         try:
             f = urllib2.urlopen(url)
+            return f
         except urllib2.HTTPError, error:
-            if error.code in (403, 404):
+            if error.code in (403, 404, 416):
                 raise
-            else:
-                print 'error:', error.code, error.msg
-            pass
         except urllib2.URLError:
             pass
-        else:
-            return f
-        print url, "failed"
         sleep(2)
-        print "trying again"
 
 def bad_ia_xml(ia):
     if ia == 'revistadoinstit01paulgoog':
@@ -44,31 +37,13 @@ def get_marc_ia_data(ia, host=None, path=None):
     """
     DEPRECATED
     """
-    ia = ia.strip() # 'cyclopdiaofedu00kidd '
     ending = 'meta.mrc'
     if host and path:
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
+        url = base + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
     return f.read() if f else None
-
-def get_marc_ia(ia):
-    """
-    DEPRECATED
-    """
-    ia = ia.strip() # 'cyclopdiaofedu00kidd '
-    url = base + ia + "/" + ia + "_meta.mrc"
-    data = urlopen_keep_trying(url).read()
-    length = int(data[0:5])
-    if len(data) != length:
-        data = data.decode('utf-8').encode('raw_unicode_escape')
-    assert len(data) == length
-
-    assert 'Internet Archive: Error' not in data
-    print 'leader:', data[:24]
-    return data
-    return fast_parse.read_edition(data, accept_electronic = True)
 
 def get_marc_record_from_ia(identifier):
     """
@@ -104,68 +79,18 @@ def get_marc_record_from_ia(identifier):
             # BinaryMARCs with incorrectly converted unicode characters do not match.
             return MarcBinary(data)
 
-def get_ia(ia):
+def get_ia(identifier):
     """
     DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
       Triggers UnboundLocalError: local variable 'v' referenced before assignment
     Read MARC record of scanned book from archive.org
     try the XML first because it has better character encoding
     if there is a problem with the XML switch to the binary MARC
-    :param str ia: ocaid
-    :rtype: (None | dict) fast_parse's version of read_edition
+    :param str identifier: ocaid
+    :rtype: (None | dict)
     """
-    ia = ia.strip() # 'cyclopdiaofedu00kidd '
-    xml_file = ia + "_marc.xml"
-    loc = ia + "/" + xml_file
-    try:
-        print base + loc
-        f = urlopen_keep_trying(base + loc)
-    except urllib2.HTTPError, error:
-        if error.code == 404:
-            raise NoMARCXML
-        else:
-            print 'error:', error.code, error.msg
-            raise
-    assert f
-    if f:
-        try:
-            return read_xml.read_edition(f)
-        except read_xml.BadXML:
-            print "read_xml BADXML"
-            pass
-        except xml.parsers.expat.ExpatError:
-            #print 'IA:', repr(ia)
-            #print 'XML parse error:', base + loc
-            print "read_xml ExpatError"
-            pass
-    print base + loc
-    if '<title>Internet Archive: Page Not Found</title>' in urllib2.urlopen(base + loc).read(200):
-        raise NoMARCXML
-    url = base + ia + "/" + ia + "_meta.mrc"
-    print url
-    try:
-        f = urlopen_keep_trying(url)
-    except urllib2.URLError:
-        pass
-    if not f:
-        return None
-    data = f.read()
-    length = data[0:5]
-    loc = ia + "/" + ia + "_meta.mrc:0:" + length
-    if len(data) == 0:
-        print 'zero length MARC for', url
-        return None
-    if 'Internet Archive: Error' in data:
-        print 'internet archive error for', url
-        return None
-    if data.startswith('<html>\n<head>'):
-        print 'internet archive error for', url
-        return None
-    try:
-        return fast_parse.read_edition(data, accept_electronic = True)
-    except (ValueError, AssertionError, fast_parse.BadDictionary):
-        print(repr(data))
-        raise
+    marc = get_marc_record_from_ia(identifier)
+    return parse.read_edition(marc)
 
 def files(archive_id):
     url = base + archive_id + "/" + archive_id + "_files.xml"
@@ -211,7 +136,7 @@ def get_data(loc):
 def get_from_archive(locator):
     """
     Gets a single binary MARC record from within an Archive.org
-    bulk MARC item.
+    bulk MARC item - data only.
 
     :param str locator: Locator ocaid/filename:offset:length
     :rtype: (str|None) Binary MARC data
@@ -243,17 +168,8 @@ def get_from_archive_bulk(locator):
     assert 0 < length < 100000
 
     ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
-
-    f = None
-    for i in range(3):
-        try:
-            f = urllib2.urlopen(ureq)
-            break
-        except urllib2.HTTPError, error:
-            if error.code in [404, 416]: # Not Found / Range Not Satisfiable
-                raise
-        except urllib2.URLError:
-            pass
+    f = urlopen_keep_trying(ureq)
+    data = None
     if f:
         data = f.read(100000)
         len_in_rec = int(data[:5])
@@ -268,7 +184,7 @@ def get_from_archive_bulk(locator):
                 next_length = int(next_length)
             else:
                 next_offset = next_length = None
-        return data, next_offset, next_length
+    return data, next_offset, next_length
 
 def get_from_local(locator):
     try:
@@ -308,18 +224,15 @@ def marc_formats(ia, host=None, path=None):
     if host and path:
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = 'http://www.archive.org/download/' + ia + '/' + ia + '_' + ending
+        url = base + ia + '/' + ia + '_' + ending
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:
             break
         sleep(10)
     if f is None:
-        msg_from = 'load_scribe@archive.org'
-        msg_to = ['edward@archive.org']
-        subject = "error reading %s_files.xml" % ia
-        msg = url
-        error_mail(msg_from, msg_to, subject, msg)
+        #TODO: log this, if anything uses this code
+        msg = "error reading %s_files.xml" % ia
         return has
     data = f.read()
     try:
@@ -334,21 +247,3 @@ def marc_formats(ia, host=None, path=None):
         if all(has.values()):
             break
     return has
-
-def test_get_ia():
-    #TODO: Delete me or move when get_ia() issues are resolved.
-    #  This performs live look ups and triggers the bug in get_ia()
-    ia = "poeticalworksoft00grayiala"
-    expect = {
-        'publisher': ['Printed by C. Whittingham for T. N. Longman and O. Rees [etc]'],
-        'number_of_pages': 223,
-        'full_title': 'The poetical works of Thomas Gray with some account of his life and writings ; the whole carefully revised and illustrated by notes ; to which are annexed, Poems addressed to, and in memory of Mr. Gray ; several of which were never before collected.',
-        'publish_date': '1800',
-        'publish_country': 'enk',
-        'authors': [
-            {'db_name': 'Gray, Thomas 1716-1771.', 'name': 'Gray, Thomas'}
-        ],
-        'oclc': ['5047966']
-    }
-    assert get_ia(ia) == expect
-
