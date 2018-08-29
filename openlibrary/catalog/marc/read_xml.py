@@ -122,6 +122,13 @@ def get_subfields(line, want):
     return (i for i in line['seq'] if i[0] in want)
 
 def read_edition(f):
+    """
+    DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
+    Converts MARC Binary into a dict representation of an edition
+    suitable for importing into Open Library.
+    :param f: Raw MARC Binary
+    :rtype: dict Edition representation
+    """
     edition = {}
     want = ['008', '010', '020', '035', \
             '100', '110', '111', '700', '710', '711', '245', '260', '300']

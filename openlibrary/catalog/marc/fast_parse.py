@@ -372,6 +372,14 @@ def index_fields(data, want, check_author=True):
     return edition
 
 def read_edition(data, accept_electronic=False):
+    """
+    DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
+    Converts MARC Binary into a dict representation of an edition
+    suitable for importing into Open Library.
+    :param str data: Raw MARC Binary
+    :param bool accept_electronic: Accept ebooks. If False, this returns None when ebooks are encountered
+    :rtype: (dict | None) Edition representation
+    """
     is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \

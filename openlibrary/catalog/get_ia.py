@@ -21,7 +21,6 @@ def urlopen_keep_trying(url):
             f = urllib2.urlopen(url)
         except urllib2.HTTPError, error:
             if error.code in (403, 404):
-                #print "404 for '%s'" % url
                 raise
             else:
                 print 'error:', error.code, error.msg
@@ -43,6 +42,9 @@ def bad_ia_xml(ia):
     return '<!--' in urlopen_keep_trying(base + loc).read()
 
 def get_marc_ia_data(ia, host=None, path=None):
+    """
+    DEPRECATED
+    """
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
     ending = 'meta.mrc'
     if host and path:
@@ -53,6 +55,9 @@ def get_marc_ia_data(ia, host=None, path=None):
     return f.read() if f else None
 
 def get_marc_ia(ia):
+    """
+    DEPRECATED
+    """
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
     url = base + ia + "/" + ia + "_meta.mrc"
     data = urlopen_keep_trying(url).read()
@@ -67,9 +72,12 @@ def get_marc_ia(ia):
     return fast_parse.read_edition(data, accept_electronic = True)
 
 def get_marc_record_from_ia(identifier):
-    """Takes IA identifiers and returns MARC record instance.
+    """
+    Takes IA identifiers and returns MARC record instance.
     11/2017: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
+    :param str identifier: ocaid
+    :rtype: (MarcXML | MarcBinary)
     """
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
@@ -98,10 +106,15 @@ def get_marc_record_from_ia(identifier):
             return MarcBinary(data)
 
 def get_ia(ia):
+    """
+    DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
+    Read MARC record of scanned book from archive.org
+    try the XML first because it has better character encoding
+    if there is a problem with the XML switch to the binary MARC
+    :param str ia: ocaid
+    :rtype: (None | dict) fast_parse's version of read_edition
+    """
     ia = ia.strip() # 'cyclopdiaofedu00kidd '
-    # read MARC record of scanned book from archive.org
-    # try the XML first because it has better character encoding
-    # if there is a problem with the XML switch to the binary MARC
     xml_file = ia + "_marc.xml"
     loc = ia + "/" + xml_file
     try:
@@ -201,6 +214,7 @@ def get_from_archive(locator):
     bulk MARC item.
 
     :param str locator: Locator ocaid/filename:offset:length
+    :rtype: str Binary MARC data
     """
     if locator.startswith('marc:'):
         locator = locator[5:]

@@ -550,7 +550,13 @@ def update_edition(rec, edition, func, field):
 re_bad_char = re.compile(u'[\xa0\xf6]')
 
 def read_edition(rec):
-    handle_missing_008=True
+    """
+    Converts MARC record object into a dict representation of an edition
+    suitable for importing into Open Library.
+    :param (MarcBinary | MarcXml) rec:
+    :rtype: dict Edition representation
+    """
+    handle_missing_008 = True
     rec.build_fields(want)
     edition = {}
     tag_008 = rec.get_fields('008')
