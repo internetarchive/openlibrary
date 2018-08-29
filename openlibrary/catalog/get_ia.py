@@ -108,6 +108,7 @@ def get_marc_record_from_ia(identifier):
 def get_ia(ia):
     """
     DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
+      Triggers UnboundLocalError: local variable 'v' referenced before assignment
     Read MARC record of scanned book from archive.org
     try the XML first because it has better character encoding
     if there is a problem with the XML switch to the binary MARC
@@ -326,6 +327,8 @@ def marc_formats(ia, host=None, path=None):
     return has
 
 def test_get_ia():
+    #TODO: Delete me or move when get_ia() issues are resolved.
+    #  This performs live look ups and triggers the bug in get_ia()
     ia = "poeticalworksoft00grayiala"
     expect = {
         'publisher': ['Printed by C. Whittingham for T. N. Longman and O. Rees [etc]'],

@@ -43,6 +43,12 @@ class InvalidMarcFile(Exception):
     pass
 
 def read_file(f):
+    """
+    Generator which seeks? for start of a MARC record and
+    returns the proper data and its length.
+    :param str f: Raw binary MARC data
+    :rtype: (str, int) (Data, length)
+    """
     buf = None
     while 1:
         if buf:
@@ -106,6 +112,7 @@ class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False, is_marc8=False):
+    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
     if not accept_sound and v.lower().startswith("[sound"):
         raise SoundRecording
     if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
@@ -114,13 +121,15 @@ def read_full_title(line, accept_sound = False, is_marc8=False):
     return ' '.join([t for t in title if t])
 
 def read_short_title(line, is_marc8=False):
+    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
     title = normalize_str(read_full_title(line, is_marc8))[:25].rstrip()
     if title:
         return [title]
     else:
         return []
 
-def read_title_and_subtitle(data, is_marc8=False): # not currently used
+def read_title_and_subtitle(data, is_marc8=False):
+    # DEPRECATED, not currently used
     line = get_first_tag(data, set(['245']))
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
@@ -296,6 +305,7 @@ def add_oclc(edition):
     edition.setdefault('oclc', []).append(oclc)
 
 def index_fields(data, want, check_author=True):
+    # DEPRECATED, likely/certain? to trigger exception via read_short_title
     if str(data)[6:8] != 'am': # only want books
         return None
     is_marc8 = data[9] != 'a'
@@ -306,7 +316,6 @@ def index_fields(data, want, check_author=True):
         '110': 'org',
         '111': 'even',
     }
-
 
     if check_author:
         want += author.keys()
@@ -374,6 +383,7 @@ def index_fields(data, want, check_author=True):
 def read_edition(data, accept_electronic=False):
     """
     DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
+      Will error if data contains a 245 field.
     Converts MARC Binary into a dict representation of an edition
     suitable for importing into Open Library.
     :param str data: Raw MARC Binary
