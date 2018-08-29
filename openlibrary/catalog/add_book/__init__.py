@@ -397,6 +397,12 @@ def find_exact_match(rec, edition_pool):
     return False
 
 def add_cover(cover_url, ekey):
+    """
+    Adds a cover to coverstore and returns the cover id.
+    :param str cover_url: URL of cover image
+    :param str ekey: Edition key /book/OL..M
+    :rtype: int Cover id
+    """
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
@@ -410,6 +416,7 @@ def add_cover(cover_url, ekey):
         'olid': olid,
         'ip': web.ctx.ip,
     }
+    reply = None
     for attempt in range(10):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
@@ -418,7 +425,7 @@ def add_cover(cover_url, ekey):
             sleep(2)
             continue
         body = res.read()
-        if body != '':
+        if body not in ['', 'None']:
             reply = json.loads(body)
         if res.getcode() == 200 and body != '':
             if 'id' in reply:
