@@ -8,7 +8,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
-from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive
+from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
 from openlibrary import accounts
 from openlibrary import records
 from openlibrary.core import ia
@@ -208,20 +208,26 @@ class ia_importapi:
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
+            re_bulk_identifier = re.compile("([^/]*)/([^:]*):(\d*):(\d*)")
             try:
-                data = get_from_archive(identifier)
+                ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
+                data, next_offset, next_length = get_from_archive_bulk(identifier)
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
-            except:
+            except Exception as e:
+                logger.error("failed to read info from bulk marc_record: %s", str(e))
                 return self.error('no-marc-record')
 
-            edition['source_records'] = 'marc:%s' % identifier
+            actual_length = int(rec.leader()[:5])
+            edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
+
+            #TODO: Look up URN prefixes to support more sources
+            edition['local_id'] = ['urn:trent:%s' % rec.get_fields('001')[0]]
             result = add_book.load(edition)
 
             # Add record_length to the response as location of next record:
-            offset = int(identifier.split(':')[1])
-            record_length = int(data[:5])
-            result['next_record_offset'] = record_length + offset
+            result['next_record_offset'] = next_offset
+            result['next_record_length'] = next_length
 
             return json.dumps(result)
 

@@ -216,18 +216,33 @@ def get_from_archive(locator):
     :param str locator: Locator ocaid/filename:offset:length
     :rtype: (str|None) Binary MARC data
     """
+    data, offset, length = get_from_archive_bulk(locator)
+    return data
+
+def get_from_archive_bulk(locator):
+    """
+    Gets a single binary MARC record from within an Archive.org
+    bulk MARC item, and return the offset and length of the next
+    item.
+    If offset or length are `None`, then there is no next record.
+
+    :param str locator: Locator ocaid/filename:offset:length
+    :rtype: (str, int|None, int|None) (Binary MARC data, Next record offset, Next record length)
+    """
     if locator.startswith('marc:'):
         locator = locator[5:]
     filename, offset, length = locator.split (":")
-    offset = int (offset)
-    length = int (length)
+    offset = int(offset)
+    length = int(length)
 
     r0, r1 = offset, offset+length-1
+    # get the next record's length in this request
+    r1 += 5
     url = base + filename
 
     assert 0 < length < 100000
 
-    ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)},)
+    ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
 
     f = None
     for i in range(3):
@@ -235,24 +250,25 @@ def get_from_archive(locator):
             f = urllib2.urlopen(ureq)
             break
         except urllib2.HTTPError, error:
-            if error.code == 416: # Range Not Satisfiable
+            if error.code in [404, 416]: # Not Found / Range Not Satisfiable
                 raise
-            elif error.code == 404:
-                print "404 for '%s'" % url
-                raise
-            else:
-                print url
-                print 'error:', error.code, error.msg
         except urllib2.URLError:
             pass
     if f:
-        result = f.read(100000)
-        len_in_rec = int(result[:5])
+        data = f.read(100000)
+        len_in_rec = int(data[:5])
         if len_in_rec != length:
-            result = get_from_archive('%s:%d:%d' % (filename, offset, len_in_rec))
-        return result
-    else:
-        print locator, url, 'failed'
+            data, next_offset, next_length = get_from_archive_bulk('%s:%d:%d' % (filename, offset, len_in_rec))
+        else:
+            next_length = data[length:]
+            data = data[:length]
+            if len(next_length) == 5:
+                # We have data for the next record
+                next_offset = offset + len_in_rec
+                next_length = int(next_length)
+            else:
+                next_offset = next_length = None
+        return data, next_offset, next_length
 
 def get_from_local(locator):
     try:
