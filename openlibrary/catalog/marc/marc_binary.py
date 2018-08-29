@@ -1,5 +1,5 @@
-from openlibrary.catalog.marc.fast_parse import get_tag_lines, handle_wrapped_lines, get_all_tag_lines
 from openlibrary.catalog.marc import fast_parse
+#TODO: Move fast_parse get_tag_lines(), handle_wrapped_lines(), get_all_tag_lines() into this class
 from marc_base import MarcBase
 from unicodedata import normalize
 from pymarc import MARC8ToUnicode
@@ -87,7 +87,7 @@ class MarcBinary(MarcBase):
 
     def all_fields(self):
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
+        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_all_tag_lines(self.data)):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
@@ -100,8 +100,7 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
-        #for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
-        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
+        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_tag_lines(self.data, want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):
