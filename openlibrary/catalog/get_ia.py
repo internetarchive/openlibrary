@@ -233,6 +233,7 @@ def get_from_archive(locator):
     for i in range(3):
         try:
             f = urllib2.urlopen(ureq)
+            break
         except urllib2.HTTPError, error:
             if error.code == 416: # Range Not Satisfiable
                 raise
