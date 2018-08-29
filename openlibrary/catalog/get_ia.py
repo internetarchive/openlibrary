@@ -7,7 +7,6 @@ import xml.parsers.expat
 import urllib2, os.path, socket
 from time import sleep
 import traceback
-from openlibrary.utils.ia import find_item
 from openlibrary.core import ia
 
 base = "https://archive.org/download/"
@@ -215,7 +214,7 @@ def get_from_archive(locator):
     bulk MARC item.
 
     :param str locator: Locator ocaid/filename:offset:length
-    :rtype: str Binary MARC data
+    :rtype: (str|None) Binary MARC data
     """
     if locator.startswith('marc:'):
         locator = locator[5:]
@@ -223,21 +222,8 @@ def get_from_archive(locator):
     offset = int (offset)
     length = int (length)
 
-    # This looks like it is trying to get host, path
-    # via some now non-working broadcast/socket method?
-    """
-    for attempt in range(5):
-        try:
-            host, path = find_item(ia)
-            break
-        except socket.timeout:
-            if attempt == 4:
-                raise
-            print 'retry, attempt', attempt
-    """
-
     r0, r1 = offset, offset+length-1
-    url = 'https://archive.org/download/%s' % filename
+    url = base + filename
 
     assert 0 < length < 100000
 
@@ -248,7 +234,7 @@ def get_from_archive(locator):
         try:
             f = urllib2.urlopen(ureq)
         except urllib2.HTTPError, error:
-            if error.code == 416:
+            if error.code == 416: # Range Not Satisfiable
                 raise
             elif error.code == 404:
                 print "404 for '%s'" % url
@@ -280,6 +266,12 @@ def get_from_local(locator):
     return buf
 
 def read_marc_file(part, f, pos=0):
+    """
+    :param str part:
+    :param str f: Full binary MARC data containing many records
+    :param int pos: Start position within the data
+    :rtype: (int, str, str) (Next position, Current source_record name, Current single MARC record)
+    """
     try:
         for data, int_length in fast_parse.read_file(f):
             loc = "marc:%s:%d:%d" % (part, pos, int_length)
