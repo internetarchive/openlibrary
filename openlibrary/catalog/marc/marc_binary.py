@@ -7,6 +7,11 @@ from openlibrary.catalog.marc import mnemonics
 
 marc8 = MARC8ToUnicode(quiet=True)
 
+class BadLength(Exception):
+    pass
+
+class BadMARC(Exception):
+    pass
 
 def norm(s):
     return normalize('NFC', unicode(s))
@@ -80,6 +85,12 @@ class BinaryDataField():
 class MarcBinary(MarcBase):
     def __init__(self, data):
         assert len(data) and isinstance(data, basestring)
+        try:
+            length = int(data[:5])
+        except:
+            raise BadMARC
+        if len(data) != length:
+            raise BadLength
         self.data = data
 
     def leader(self):

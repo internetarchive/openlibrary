@@ -48,7 +48,7 @@ def get_marc_ia_data(ia, host=None, path=None):
 def get_marc_record_from_ia(identifier):
     """
     Takes IA identifiers and returns MARC record instance.
-    11/2017: currently called by openlibrary/plugins/importapi/code.py
+    08/2018: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
     :param str identifier: ocaid
     :rtype: (MarcXML | MarcBinary)
@@ -74,20 +74,13 @@ def get_marc_record_from_ia(identifier):
     # If that fails, try marc.bin
     if marc_bin_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_bin_filename).read()
-        if len(data) == int(data[:5]):
-            # This checks the reported data length against the actual data length
-            # BinaryMARCs with incorrectly converted unicode characters do not match.
-            return MarcBinary(data)
+        return MarcBinary(data)
 
 def get_ia(identifier):
     """
     DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
-      Triggers UnboundLocalError: local variable 'v' referenced before assignment
-    Read MARC record of scanned book from archive.org
-    try the XML first because it has better character encoding
-    if there is a problem with the XML switch to the binary MARC
     :param str identifier: ocaid
-    :rtype: (None | dict)
+    :rtype: (dict)
     """
     marc = get_marc_record_from_ia(identifier)
     return parse.read_edition(marc)

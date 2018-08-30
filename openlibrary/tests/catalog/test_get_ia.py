@@ -1,8 +1,9 @@
 import os
+import pytest
 from openlibrary.catalog import get_ia
 from openlibrary.core import ia
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
 def return_test_marc_bin(url):
     return return_test_marc_data(url, "bin_input")
@@ -102,10 +103,9 @@ class TestGetIA():
                    ]
 
         for bad_marc in bad_marcs:
-            result = get_ia.get_marc_record_from_ia(bad_marc)
-            #TODO: get_marc_record_from_ia() currently returns None in this case,
-            #  It should be handled by MarcBinary and raise a BadMarc exception, or similar.
-            assert result is None
-            #print "%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (bad_marc,
-            #                                             result.leader()[9],
-            #                                             unicode.encode(result.read_fields(['245']).next()[1].get_all_subfields().next()[1], 'utf8'))
+            with pytest.raises(BadLength):
+                result = get_ia.get_marc_record_from_ia(bad_marc)
+
+    def test_bad_binary_data(self):
+        with pytest.raises(BadMARC):
+            result = MarcBinary('nonMARCdata')
