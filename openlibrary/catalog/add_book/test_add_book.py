@@ -66,7 +66,7 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
         'languages': ['eng'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -89,7 +89,7 @@ def test_load_with_subjects(mock_site, ia_writeback):
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert w.title == 'Test item'
     assert w.subjects == ['Protected DAISY', 'In library']
@@ -102,7 +102,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     if 'authors' in reply:
         assert reply['authors'][0]['status'] == 'created'
@@ -121,7 +121,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     # Below asserts imply the existing author should be updated, but these were never run:
     #assert reply['authors'][0]['status'] == 'modified'
     #akey2 = reply['authors'][0]['key']
@@ -156,7 +156,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'languages': ['eng'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -171,7 +171,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'languages': ['fre'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc_3(mock_site, add_languages):
@@ -181,7 +181,7 @@ def test_from_marc_3(mock_site, add_languages):
     rec = read_edition(MarcBinary(data))
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -194,12 +194,12 @@ def test_from_marc_2(mock_site, add_languages):
     rec = read_edition(MarcBinary(data))
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc(mock_site, add_languages):
@@ -210,7 +210,7 @@ def test_from_marc(mock_site, add_languages):
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     akey1 = reply['authors'][0]['key']
     a = mock_site.get(akey1)
     assert a.type.key == '/type/author'
@@ -268,21 +268,21 @@ def test_load_multiple(mock_site):
         'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey1 = reply['edition']['key']
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
 
     reply = load({'title': 'Test item', 'source_records': ['ia:test_item2'], 'lccn': ['456']})
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey3 = reply['edition']['key']
     assert ekey3 != ekey1
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey4 = reply['edition']['key']
 
     assert ekey1 == ekey2 == ekey4
@@ -312,10 +312,10 @@ def test_from_marc(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
     ia = 'flatlandromanceo00abbouoft'
@@ -324,10 +324,10 @@ def test_from_marc(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_real_example(mock_site, add_languages):
@@ -336,9 +336,9 @@ def test_real_example(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
     src = 'v39.i28.records.utf8--5362776-1764'
@@ -346,7 +346,7 @@ def test_real_example(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'modified'
 
 def test_missing_ocaid(mock_site, add_languages):
@@ -356,11 +356,11 @@ def test_missing_ocaid(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:testdata.mrc']
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     rec['source_records'] = ['ia:' + ia]
     rec['ocaid'] = ia
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     e = mock_site.get(reply['edition']['key'])
     assert e.ocaid == ia
     assert 'ia:' + ia in e.source_records
@@ -397,12 +397,12 @@ def test_extra_author(mock_site, add_languages):
     rec['source_records'] = ['ia:' + ia]
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
 
     w = mock_site.get(reply['work']['key'])
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     #assert len(w['authors']) == 1
 
@@ -459,7 +459,7 @@ def test_missing_source_records(mock_site, add_languages):
     rec['source_records'] = ['ia:' + ia]
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     e = mock_site.get(reply['edition']['key'])
     assert 'source_records' in e
 
@@ -509,7 +509,7 @@ def test_no_extra_author(mock_site, add_languages):
     rec['source_records'] = ['marc:' + src]
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
 
     a = mock_site.get(reply['authors'][0]['key'])
 
@@ -588,19 +588,19 @@ def test_don_quixote(mock_site):
         work_keys = list(mock_site.things(q))
         assert work_keys
 
-        assert reply['success'] == True
+        assert reply['success'] is True
 
 def test_same_twice(mock_site, add_languages):
     rec = {
             'source_records': ['ia:test_item'],
             "publishers": ["Ten Speed Press"], "pagination": "20 p.", "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.", "title": "Pat The Zombie", "isbn_13": ["9781607740360"], "languages": ["eng"], "isbn_10": ["1607740362"], "authors": [{"entity_type": "person", "name": "Aaron Ximm", "personal_name": "Aaron Ximm"}], "contributions": ["Kaveh Soofi (Illustrator)"]}
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
     reply = load(rec)
 
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] != 'created'
     assert reply['work']['status'] != 'created'
 
