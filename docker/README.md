@@ -4,36 +4,41 @@ These current Dockerfiles are designed to be an alternative to the previous Vagr
 The setup process and scripts are designed to *NOT* conflict with exisiting Vagrant provisioning, so you should be able to
 chose to develop using the exisiting Vagrant method, or try the new Docker approach if you prefer, using the same code branch.
 
-## Build images
+## Setup/Teardown Commands
 
-From the root directory run:
-```
-docker build -t olbase:latest -f docker/Dockerfile.olbase .
+All commands are from the docker directory:
 
-docker build -t oldev:latest -f docker/Dockerfile.oldev .
+```bash
+# build images
+docker build -t olbase:latest -f Dockerfile.olbase ..
+docker build -t oldev:latest -f Dockerfile.oldev ..
+docker build -t olsolr:latest -f Dockerfile.olsolr ..
+
+# start the app
+docker-compose up # Ctrl-C to stop
+docker-compose up -d # detached (silent) mode
+
+# stop the app
+docker-compose down
+
+# start specific service
+docker-compose up --no-deps -d solr
+
+# remove all volumes (i.e. reset all databases); perform WHILE RUNNING
+docker-compose stop
+docker-compose rm -v
 ```
-You must build `olbase` first before `oldev`. Currently (August 2018) the division is a bit arbitrary. More should be moved into `olbase` once we clarify
+
+Note: You must build `olbase` first before `oldev`. Currently (August 2018) the division is a bit arbitrary. More should be moved into `olbase` once we clarify
 the production deployment requirements. Currently these docker images are only intented for development environments.
 
-## Run container
+This exposes the following ports:
 
-Interactive, all services:
-
-`docker run -it --rm -p8080:80 -p7000:7000 -p8983:8983 oldev`
-
-Interactive bash (for checking the container):
-
-`docker run -it --rm -p8080:80 -p7000:7000 -p8983:8983 oldev bash`
-
-Background, detached, mode:
-
-`docker run -d -p8080:80 -p7000:7000 -p8983:8983 oldev`
-
-
-The commands above expose the main site on host port 8080:
-http://localhost:8080
-
-Infobase on port 7000, and solr on port 8983.
+Port | Service
+---- | -------
+8080 | Open Library main site
+7000 | Infobase
+8983 | Solr
 
 To access Solr admin:
 http://localhost:8983/solr/admin/
@@ -42,9 +47,22 @@ If you are using Docker Toolbox on Windows, use the Docker Machine IP instead of
 
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
-**TODO:** 
+## Useful Runtime Commands
+
+See the docs for more: https://docs.docker.com/compose/reference/overview
+
+```bash
+# Read a service's logs (replace `web` with service name)
+docker-compose logs web # Show all logs (onetime)
+docker-compose logs -f --tail=10 web # Show last 10 lines and follow
+
+# Analyze a container
+docker-compose exec web bash # Launch terminal in `web` service
+```
+
+## TODO
 * Add dev volume mount to `run` command, and provide instructions for refreshing the application.
 * Fix symlinks that are causing a problem in Windows, see issue https://github.com/internetarchive/openlibrary/issues/1051 
-## Run tests in a temporary container
 
-`docker run -it --rm oldev make test`
+## Run tests in a temporary container
+`docker-compose run --rm web make test`

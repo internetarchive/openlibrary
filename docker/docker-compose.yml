@@ -1,0 +1,21 @@
+version: "3"
+services:
+  web:
+    image: oldev
+    ports:
+      - "8080:80"
+      - "7000:7000"
+    networks:
+      - webnet
+  solr:
+    image: olsolr
+    ports:
+      - "8983:8080"
+    volumes:
+      - "solr-data:/var/lib/solr/data"
+    networks:
+      - webnet
+networks:
+  webnet:
+volumes:
+  solr-data:
