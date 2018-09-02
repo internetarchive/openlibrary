@@ -21,10 +21,10 @@
             "label": "Library and Archives Canada Cataloguing in Publication"
         },
         {
-            "website": "http://rvk.uni-regensburg.de/index.php?option=com_rvko&view=show&Itemid=53",
+            "website": "https://rvk.uni-regensburg.de/",
             "notes": "",
             "name": "rvk",
-            "label": "Der Regensburger Verbundklassifikation"
+            "label": "Regensburger Verbundklassifikation"
         },
         {
             "website": "http://www.bne.es/es/LaBNE/Adquisiciones/DepositoLegal/",
@@ -63,7 +63,7 @@
             "label": "SISO"
         },
         {
-            "website": "http://nl.wikipedia.org/wiki/Nederlandse_Uniforme_Rubrieksindeling",
+            "website": "https://nl.wikipedia.org/wiki/Nederlandstalige_Uniforme_Rubrieksindeling",
             "notes": "",
             "name": "nur",
             "label": "NUR"
