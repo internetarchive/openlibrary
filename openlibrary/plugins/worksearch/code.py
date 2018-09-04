@@ -714,6 +714,19 @@ class edition_search(delegate.page):
 
         return render_template('search/editions.tmpl', get_results)
 
+class mobile_search(delegate.page):
+    path = '/search/mobile'
+    def GET(self):
+        def get_results(q, offset=0, limit=100):
+            results = []
+            if type == "authors":
+                results = author_search().get_results(q, limit=i.limit, offset=i.offset)
+            #elif type == "title":
+            #    ...
+            return results
+        i = web.input(q="")
+        return render_template('search/mobile.tmpl', q=i.q, results = get_results)
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
