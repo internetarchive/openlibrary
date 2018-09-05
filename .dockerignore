@@ -5,3 +5,5 @@ errors
 infogami
 config
 build
+**.pyc
+**__pycache__
