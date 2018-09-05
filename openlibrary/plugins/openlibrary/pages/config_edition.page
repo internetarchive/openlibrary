@@ -307,7 +307,7 @@
         },
         {
             "url": "https://www.amazon.com/gp/product/@@@",
-            "notes": "ASIN"
+            "notes": "ASIN",
             "name": "amazon",
             "label": "Amazon.com"
         },
