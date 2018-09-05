@@ -5,8 +5,7 @@ For instructions on setting up a local developer's instance of Open Library, ple
 
 ## Resources for Contributors
 
-Look through our issues related to `contributing`:
-https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Acontributing
+Look through our issues related to [`contributing`](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Acontributing).
 
 ## Want to Participate in the Community?
 - Ask here to join our Open Library slack: https://github.com/internetarchive/openlibrary/issues/686
@@ -21,17 +20,17 @@ https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissu
 - In case you are looking to add data using MARC and ONIX records, possibly in bulk please do it via at https://github.com/internetarchive/openlibrary-bots (the Open Library Bots).
 
 ### Tagging
-- If a task requires immediate fixing, please respond to its corresponding issue by asking if it can be promoted to `blocking` using the blocking issue label.
+- If a task requires immediate fixing, please respond to its corresponding issue by asking if it can be promoted to [`blocker`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3Ablocker) using the blocker issue label.
 
 ## Picking Tasks
 We usually discuss weekly goals via our Tuesday Community Call and using slack.
 
-### Our Roadmap(s)
-- Our weekly tasks are tracked here: https://github.com/internetarchive/openlibrary/projects/4
-- Our quarterly goals can be found on the projects board: https://github.com/internetarchive/openlibrary/projects -- e.g. https://github.com/internetarchive/openlibrary/projects/3 (2018 Q1)
-
 ### Picking 1st task
-- Look for issues with labels such as `good first issue` and `easy`
+- Look for issues with labels such as [`good first issue`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) and [`easy`](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Aeasy)
+
+### Our Roadmap(s)
+- Our on-going tasks are tracked here: https://github.com/internetarchive/openlibrary/projects/1
+- Our quarterly goals can be found on the projects board: https://github.com/internetarchive/openlibrary/projects
 
 ## Development
 
@@ -45,6 +44,6 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 
 ## Pull Requests
 
-* Pull Requests (PRs) must link to the issue they resolve. Please expect PRs without corresponding issues to be rejected until an issue is retroactively created and linked to it.
+* Pull Requests (PRs) should link to the issue they resolve. Please take the time to check whether someone has already raised the issue you are solving. At the very least PRs should contain enough detail in the description to explain the purpose of the PR; what feature it adds, or problem it solves. Please expect PRs without sufficient details to be rejected until an clear description of the benefit is added. Thank you for your contributions!
 
 * When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding Issue.
