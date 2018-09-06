@@ -1,9 +1,7 @@
-#!/usr/bin/python
-
 import unittest
-from get_subjects import subjects_for_work
-from marc_base import MarcBase
-from parse import  read_isbn, read_pagination, read_title
+from openlibrary.catalog.marc.get_subjects import subjects_for_work
+from openlibrary.catalog.marc.marc_base import MarcBase
+from openlibrary.catalog.marc.parse import read_isbn, read_pagination, read_title
 
 class MockField:
     def __init__(self, subfields):
@@ -148,6 +146,3 @@ class TestMarcParse(unittest.TestCase):
         for (value, expect) in data:
             output = read_title(MockRecord('245', value))
             self.assertEqual(expect, output)
-
-if __name__ == '__main__':
-    unittest.main()
