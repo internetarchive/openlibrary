@@ -84,8 +84,8 @@ class BinaryDataField():
 
 class MarcBinary(MarcBase):
     def __init__(self, data):
-        assert len(data) and isinstance(data, basestring)
         try:
+            assert len(data) and isinstance(data, basestring)
             length = int(data[:5])
         except:
             raise BadMARC
