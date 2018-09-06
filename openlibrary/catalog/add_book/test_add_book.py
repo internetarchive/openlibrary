@@ -104,28 +104,29 @@ def test_load_with_new_author(mock_site, ia_writeback):
     reply = load(rec)
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
-    if 'authors' in reply:
-        assert reply['authors'][0]['status'] == 'created'
-        assert reply['authors'][0]['name'] == 'John Doe'
-        akey1 = reply['authors'][0]['key']
-        assert akey1 == '/authors/OL1A'
-        a = mock_site.get(akey1)
-        assert w.authors
-        assert a.type.key == '/type/author'
+    assert reply['authors'][0]['status'] == 'created'
+    assert reply['authors'][0]['name'] == 'John Doe'
+    akey1 = reply['authors'][0]['key']
+    assert akey1 == '/authors/OL1A'
+    a = mock_site.get(akey1)
+    assert w.authors
+    assert a.type.key == '/type/author'
 
-    # Tests existing author is modified
+    # Tests an existing author is modified if an Author match is found, and more data is provided
+    # This represents an edition of another work by the above author.
     rec = {
-        'ocaid': 'test_item',
-        'title': 'Test item',
+        'ocaid': 'test_item1b',
+        'title': 'Test item1b',
         'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
-        'source_records': 'ia:test_item',
+        'source_records': 'ia:test_item1b',
     }
     reply = load(rec)
     assert reply['success'] is True
-    # Below asserts imply the existing author should be updated, but these were never run:
-    #assert reply['authors'][0]['status'] == 'modified'
-    #akey2 = reply['authors'][0]['key']
-    #assert akey1 == akey2 == '/authors/OL1A'
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'created'
+    assert reply['authors'][0]['status'] == 'modified'
+    akey2 = reply['authors'][0]['key']
+    assert akey1 == akey2 == '/authors/OL1A'
 
     # Tests same title with different ocaid and author is not overwritten
     rec = {
@@ -146,8 +147,6 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert len(w.authors) == 1
     assert len(e.authors) == 1
 
-#def test_author_matching(mock_site):
-
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
@@ -167,7 +166,6 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
-        # 'title': 'Different item',
         'languages': ['fre'],
     }
     reply = load(rec)
@@ -203,8 +201,6 @@ def test_from_marc_2(mock_site, add_languages):
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc(mock_site, add_languages):
-    from openlibrary.catalog.marc.marc_binary import MarcBinary
-    from openlibrary.catalog.marc.parse import read_edition
 
     data = open('test_data/flatlandromanceo00abbouoft_meta.mrc').read()
     assert len(data) == int(data[:5])
@@ -253,8 +249,6 @@ def test_try_merge(mock_site):
     e = mock_site.get(ekey)
 
     rec['full_title'] = rec['title']
-    if rec.get('subtitle'):
-        rec['full_title'] += ' ' + rec['subtitle']
     e1 = build_marc(rec)
     add_db_name(e1)
 
@@ -513,8 +507,7 @@ def test_no_extra_author(mock_site, add_languages):
 
     a = mock_site.get(reply['authors'][0]['key'])
 
-    if 'authors' in reply:
-        assert reply['authors'][0]['key'] == author['key']
+    assert reply['authors'][0]['key'] == author['key']
     assert reply['edition']['key'] == edition['key']
     assert reply['work']['key'] == work['key']
 
@@ -575,8 +568,6 @@ def test_don_quixote(mock_site):
     for num, ia in enumerate(dq):
         marc_url = 'http://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         data = urlopen(marc_url).read()
-        if '<title>Internet Archive: Page Not Found</title>' in data:
-            continue
         marc = MarcBinary(data)
         rec = read_edition(marc)
         rec['source_records'] = ['ia:' + ia]
