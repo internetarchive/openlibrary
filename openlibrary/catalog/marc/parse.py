@@ -553,8 +553,10 @@ def read_edition(rec):
     """
     Converts MARC record object into a dict representation of an edition
     suitable for importing into Open Library.
+
     :param (MarcBinary | MarcXml) rec:
-    :rtype: dict Edition representation
+    :rtype: dict
+    :return: Edition representation
     """
     handle_missing_008 = True
     rec.build_fields(want)

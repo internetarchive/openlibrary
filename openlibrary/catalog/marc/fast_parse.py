@@ -46,8 +46,10 @@ def read_file(f):
     """
     Generator which seeks? for start of a MARC record and
     returns the proper data and its length.
+
     :param str f: Raw binary MARC data
-    :rtype: (str, int) (Data, length)
+    :rtype: (str, int)
+    :return: Data, length
     """
     buf = None
     while 1:
@@ -386,9 +388,11 @@ def read_edition(data, accept_electronic=False):
       Will error if data contains a 245 field.
     Converts MARC Binary into a dict representation of an edition
     suitable for importing into Open Library.
+
     :param str data: Raw MARC Binary
     :param bool accept_electronic: Accept ebooks. If False, this returns None when ebooks are encountered
-    :rtype: (dict | None) Edition representation
+    :return: Edition representation
+    :rtype: dict|None
     """
     is_marc8 = data[9] != 'a'
     edition = {}

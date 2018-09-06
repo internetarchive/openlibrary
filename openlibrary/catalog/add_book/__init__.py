@@ -147,13 +147,22 @@ def new_work(q, rec, cover_id):
 
 def load_data(rec):
     """
-    Creates a new Edition,
-    searches for an existing Work,
-      creates a new one if required,
-      otherwise adds to existing Work,
-        possibly with modification.
-    :param dict rec: Edition record to load (now we have established it should be added)
-    :rtype: dict {"success": bool, "error": string | "work": {"key": <key>, "status": "created" | "modified" | "matched"} , "edition": {"key": <key>, "status": "created"}}
+    Adds a new Edition to Open Library. Creates a new Work if required,
+    otherwise associates the new Edition with an existing Work.
+
+    :param dict rec: Edition record to add (no further checks at this point)
+    :rtype: dict
+    :return:
+        {
+            "success": False,
+            "error": <error msg>
+        }
+      OR
+        {
+            "success": True,
+            "work": {"key": <key>, "status": "created" | "modified" | "matched"},
+            "edition": {"key": <key>, "status": "created"}
+        }
     """
     cover_url = None
     if 'cover' in rec:
@@ -172,7 +181,6 @@ def load_data(rec):
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in q.get('authors', [])]
     (authors, author_reply) = build_author_reply(author_in, edits)
 
-    #q['source_records'] = [loc]
     if authors:
         q['authors'] = authors
         reply['authors'] = author_reply
@@ -261,8 +269,10 @@ def find_match(e1, edition_pool):
 def build_pool(rec):
     """
     Searches for existing edition matches on title and bibliographic keys.
+
     :param dict rec: Edition record
-    :rtype: dict {<identifier: title | isbn | lccn etc>: [ list of /books/OL..M keys that match rec on <identifier>]}
+    :rtype: dict
+    :return: {<identifier: title | isbn | lccn etc>: [list of /books/OL..M keys that match rec on <identifier>]}
     """
     pool = defaultdict(set)
 
@@ -314,9 +324,12 @@ def add_db_name(rec):
 re_lang = re.compile('^/languages/([a-z]{3})$')
 
 def early_exit(rec):
-    """Attempts to quickly find an existing item match using bibliographic keys.
+    """
+    Attempts to quickly find an existing item match using bibliographic keys.
+
     :param dict rec: Edition record
-    :rtype: (str|None) First key matched of format "/books/OL..M" or False if no match found.
+    :rtype: str|bool
+    :return: First key matched of format "/books/OL..M" or False if no match found.
     """
     f = 'ocaid'
     # Anand - August 2014
@@ -399,9 +412,11 @@ def find_exact_match(rec, edition_pool):
 def add_cover(cover_url, ekey):
     """
     Adds a cover to coverstore and returns the cover id.
+
     :param str cover_url: URL of cover image
     :param str ekey: Edition key /book/OL..M
-    :rtype: int Cover id
+    :rtype: int
+    :return: Cover id
     """
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')

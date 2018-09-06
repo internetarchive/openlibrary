@@ -126,8 +126,10 @@ def read_edition(f):
     DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcXml)
     Converts MARC XML into a dict representation of an edition
     suitable for importing into Open Library.
+
     :param f: MARC XML
-    :rtype: dict Edition representation
+    :rtype: dict
+    :return: Edition representation
     """
     edition = {}
     want = ['008', '010', '020', '035', \

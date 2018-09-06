@@ -50,8 +50,9 @@ def get_marc_record_from_ia(identifier):
     Takes IA identifiers and returns MARC record instance.
     08/2018: currently called by openlibrary/plugins/importapi/code.py
     when the /api/import/ia endpoint is POSTed to.
+
     :param str identifier: ocaid
-    :rtype: (MarcXML | MarcBinary)
+    :rtype: MarcXML | MarcBinary
     """
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
@@ -79,8 +80,9 @@ def get_marc_record_from_ia(identifier):
 def get_ia(identifier):
     """
     DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
+
     :param str identifier: ocaid
-    :rtype: (dict)
+    :rtype: dict
     """
     marc = get_marc_record_from_ia(identifier)
     return parse.read_edition(marc)
@@ -132,7 +134,8 @@ def get_from_archive(locator):
     bulk MARC item - data only.
 
     :param str locator: Locator ocaid/filename:offset:length
-    :rtype: (str|None) Binary MARC data
+    :rtype: str|None
+    :return: Binary MARC data
     """
     data, offset, length = get_from_archive_bulk(locator)
     return data
@@ -145,7 +148,8 @@ def get_from_archive_bulk(locator):
     If offset or length are `None`, then there is no next record.
 
     :param str locator: Locator ocaid/filename:offset:length
-    :rtype: (str, int|None, int|None) (Binary MARC data, Next record offset, Next record length)
+    :rtype: (str|None, int|None, int|None)
+    :return: (Binary MARC data, Next record offset, Next record length)
     """
     if locator.startswith('marc:'):
         locator = locator[5:]
@@ -193,10 +197,13 @@ def get_from_local(locator):
 
 def read_marc_file(part, f, pos=0):
     """
+    Generator to step through bulk MARC data f.
+
     :param str part:
     :param str f: Full binary MARC data containing many records
     :param int pos: Start position within the data
-    :rtype: (int, str, str) (Next position, Current source_record name, Current single MARC record)
+    :rtype: (int, str, str)
+    :return: (Next position, Current source_record name, Current single MARC record)
     """
     try:
         for data, int_length in fast_parse.read_file(f):

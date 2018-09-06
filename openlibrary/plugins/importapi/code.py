@@ -47,8 +47,10 @@ def parse_data(data):
     """
     Takes POSTed data and determines the format, and returns an Edition record
     suitable for adding to OL.
+
     :param str data: Raw data
-    :rtype: (dict, str) (dict Edition record, string format (rdf|opds|marcxml|json|marc) or (None, None)
+    :rtype: (dict, str)
+    :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
     """
     data = data.strip()
     if -1 != data[:10].find('<?xml'):
@@ -306,8 +308,10 @@ class ia_importapi:
     def get_ia_record(self, metadata):
         """
         Generate Edition record from Archive.org metadata, in lieu of a MARC record
+
         :param dict metadata: metadata retrieved from metadata API
-        :rtype: dict Edition record
+        :rtype: dict
+        :return: Edition record
         """
         #TODO: include identifiers: isbn, oclc, lccn
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
@@ -326,6 +330,7 @@ class ia_importapi:
         Takes a well constructed full Edition record and sends it to add_book
         to check whether it is already in the system, and to add it, and a Work
         if they do not already exist.
+
         :param dict edition_data: Edition record
         :rtype: dict
         """
@@ -335,9 +340,11 @@ class ia_importapi:
     def populate_edition_data(self, edition, identifier):
         """
         Adds archive.org specific fields to a generic Edition record, based on identifier.
+
         :param dict edition: Edition record
         :param str identifier: ocaid
-        :rtype: dict Edition record
+        :rtype: dict
+        :return: Edition record
         """
         edition['ocaid'] = identifier
         edition['source_records'] = "ia:" + identifier
@@ -353,8 +360,10 @@ class ia_importapi:
     def find_edition(self, identifier):
         """
         Checks if the given identifier has already been imported into OL.
+
         :param str identifier: ocaid
-        :rtype: str OL item key of matching item: '/books/OL..M'
+        :rtype: str
+        :return: OL item key of matching item: '/books/OL..M'
         """
         # match ocaid
         q = {"type": "/type/edition", "ocaid": identifier}
