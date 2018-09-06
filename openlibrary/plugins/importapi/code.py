@@ -49,7 +49,7 @@ def parse_data(data):
     suitable for adding to OL.
 
     :param str data: Raw data
-    :rtype: (dict, str)
+    :rtype: (dict|None, str|None)
     :return: (Edition record, format (rdf|opds|marcxml|json|marc)) or (None, None)
     """
     data = data.strip()
