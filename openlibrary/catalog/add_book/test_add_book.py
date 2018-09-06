@@ -5,7 +5,7 @@ import os
 import pytest
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 from merge import try_merge
 from copy import deepcopy
 from urllib import urlopen
@@ -251,8 +251,8 @@ def test_try_merge(mock_site):
     rec['full_title'] = rec['title']
     e1 = build_marc(rec)
     add_db_name(e1)
-
-    assert try_merge(e1, ekey, e)
+    result = try_merge(e1, ekey, e)
+    assert result is True
 
 def test_load_multiple(mock_site):
     rec = {
@@ -398,7 +398,7 @@ def test_extra_author(mock_site, add_languages):
     reply = load(rec)
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
-    #assert len(w['authors']) == 1
+    assert len(w['authors']) == 1
 
 def test_missing_source_records(mock_site, add_languages):
     mock_site.save({
@@ -518,7 +518,14 @@ def test_no_extra_author(mock_site, add_languages):
     assert len(w['authors']) == 1
 
 def test_don_quixote(mock_site):
-    return
+    """
+    All of these items are by 'Miguel de Cervantes Saavedra',
+    only one Author should be created. Some items have bad
+    MARC length, others are missing binary MARC altogether
+    and raise BadMARC exceptions.
+    """
+    pytest.skip("This test make live requests to archive.org")
+
     dq = [u'lifeexploitsofin01cerv', u'cu31924096224518',
         u'elingeniosedcrit04cerv', u'ingeniousgentlem01cervuoft',
         u'historyofingenio01cerv', u'lifeexploitsofin02cerviala',
@@ -561,25 +568,54 @@ def test_don_quixote(mock_site):
         u'firstpartofdelig14cerv', u'donquixotemanofl00cerv',
         u'firstpartofdelig00cerv']
 
+    bad_length = []
+    bad_marc = []
+
     add_languages(mock_site)
     edition_status_counts = defaultdict(int)
     work_status_counts = defaultdict(int)
     author_status_counts = defaultdict(int)
-    for num, ia in enumerate(dq):
-        marc_url = 'http://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+
+    for ocaid in dq:
+        marc_url = 'https://archive.org/download/%s/%s_meta.mrc' % (ocaid, ocaid)
         data = urlopen(marc_url).read()
-        marc = MarcBinary(data)
+        try:
+            marc = MarcBinary(data)
+        except BadLength:
+            bad_length.append(ocaid)
+            continue
+        except BadMARC:
+            bad_marc.append(ocaid)
+            continue
+
         rec = read_edition(marc)
-        rec['source_records'] = ['ia:' + ia]
+        rec['source_records'] = ['ia:' + ocaid]
         reply = load(rec)
+
         q = {
             'type': '/type/work',
             'authors.author': '/authors/OL1A',
         }
         work_keys = list(mock_site.things(q))
-        assert work_keys
-
+        author_keys = list(mock_site.things({'type': '/type/author'}))
+        print("\nReply for %s: %s" % (ocaid, reply))
+        print("Work keys: %s" % work_keys)
+        assert author_keys == ['/authors/OL1A']
         assert reply['success'] is True
+
+        # Increment status counters
+        edition_status_counts[reply['edition']['status']] += 1
+        work_status_counts[reply['work']['status']] += 1
+        if (reply['work']['status'] != 'matched') and (reply['edition']['status'] != 'modified'):
+            # No author key in response if work is 'matched'
+            # No author key in response if edition is 'modified'
+            author_status_counts[reply['authors'][0]['status']] += 1
+
+    print("BAD MARC LENGTH items: %s" % bad_length)
+    print("BAD MARC items: %s" % bad_marc)
+    print("Edition status counts: %s" % edition_status_counts)
+    print("Work status counts: %s" % work_status_counts)
+    print("Author status counts: %s" % author_status_counts)
 
 def test_same_twice(mock_site, add_languages):
     rec = {
@@ -589,9 +625,9 @@ def test_same_twice(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
-    reply = load(rec)
 
+    reply = load(rec)
     assert reply['success'] is True
-    assert reply['edition']['status'] != 'created'
-    assert reply['work']['status'] != 'created'
+    assert reply['edition']['status'] == 'matched'
+    assert reply['work']['status'] == 'matched'
 
