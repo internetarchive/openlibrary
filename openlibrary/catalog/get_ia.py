@@ -9,6 +9,7 @@ import traceback
 from openlibrary.core import ia
 
 base = "https://archive.org/download/"
+MAX_MARC_LENGTH = 100000
 
 class NoMARCXML(IOError):
     pass
@@ -162,13 +163,13 @@ def get_from_archive_bulk(locator):
     r1 += 5
     url = base + filename
 
-    assert 0 < length < 100000
+    assert 0 < length < MAX_MARC_LENGTH
 
     ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
     f = urlopen_keep_trying(ureq)
     data = None
     if f:
-        data = f.read(100000)
+        data = f.read(MAX_MARC_LENGTH)
         len_in_rec = int(data[:5])
         if len_in_rec != length:
             data, next_offset, next_length = get_from_archive_bulk('%s:%d:%d' % (filename, offset, len_in_rec))

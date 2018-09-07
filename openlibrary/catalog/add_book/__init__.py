@@ -452,8 +452,7 @@ def add_cover(cover_url, ekey):
         body = res.read()
         if body not in ['', 'None']:
             reply = json.loads(body)
-        if res.getcode() == 200 and body != '':
-            if 'id' in reply:
+            if res.getcode() == 200 and 'id' in reply:
                 break
         print 'retry, attempt', attempt
         sleep(2)
@@ -554,6 +553,7 @@ def load(rec):
         # No match found, add edition
         return load_data(rec)
 
+    # We have an edition match at this point
     need_work_save = False
     need_edition_save = False
     w = None
@@ -562,6 +562,7 @@ def load(rec):
         w = e.works[0].dict()
         work_created = False
     else:
+        # Found an edition without a work
         work_created = True
         need_work_save = True
         need_edition_save = True
@@ -570,6 +571,7 @@ def load(rec):
             'title': get_title(rec),
             'key': web.ctx.site.new_key('/type/work'),
         }
+        #TODO: add edition covers and author to new work
         e.works = [{'key': w['key']}]
 
     reply = {
