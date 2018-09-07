@@ -266,6 +266,17 @@ def find_match(e1, edition_pool):
             if try_merge(e1, edition_key, thing):
                 return edition_key
 
+def isbns_from_record(rec):
+    """
+    Returns a list of all isbns from the various possible isbn fields.
+
+    :param dict rec: Edition import record
+    :rtype: list
+    """
+    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
+    isbns = [isbn.replace('-', '').strip() for isbn in isbns]
+    return isbns
+
 def build_pool(rec):
     """
     Searches for existing edition matches on title and bibliographic keys.
@@ -289,8 +300,8 @@ def build_pool(rec):
     pool['title'].update(web.ctx.site.things(q))
 
     ## Find records with matching ISBNs
-    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
-    isbns = [isbn.replace("-", "").strip() for isbn in isbns] # strip hyphens
+    isbns = isbns_from_record(rec)
+
     if isbns:
         # Make a single request to find records matching the given ISBNs
         keys = web.ctx.site.things({"isbn_": isbns, 'type': '/type/edition'})
@@ -309,6 +320,10 @@ def build_pool(rec):
     return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
 def add_db_name(rec):
+    """
+    db_name = Author name followed by dates.
+    adds 'db_name' in place for each author.
+    """
     if 'authors' not in rec:
         return
 
@@ -347,11 +362,8 @@ def early_exit(rec):
         if ekeys:
             return ekeys[0]
 
-    #TODO: Check whether 'isbn' should also be used here.
-    if 'isbn_10' or 'isbn_13' in rec:
-        isbns = rec.get("isbn_10", []) + rec.get("isbn_13", [])
-        isbns = [isbn.strip().replace("-", "") for isbn in isbns]
-
+    isbns = isbns_from_record(rec)
+    if isbns:
         q = {
             'type':'/type/edition',
             'isbn_': isbns
