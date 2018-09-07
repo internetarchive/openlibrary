@@ -223,6 +223,7 @@ def test_build_pool(mock_site):
         'type': {'key': etype},
         'lccn': ['123'],
         'oclc_numbers': ['456'],
+        'ocaid': 'test00test',
         'key': ekey,
     }
 
@@ -232,10 +233,11 @@ def test_build_pool(mock_site):
         'lccn': ['/books/OL1M'],
         'oclc_numbers': ['/books/OL1M'],
         'title': ['/books/OL1M'],
+        'ocaid': ['/books/OL1M']
     }
 
-    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test',})
-    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], }
+    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test', 'ocaid': 'test00test'})
+    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], 'ocaid': ['/books/OL1M'] }
 
 def test_try_merge(mock_site):
     rec = {
@@ -501,7 +503,6 @@ def test_no_extra_author(mock_site, add_languages):
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
-
     reply = load(rec)
     assert reply['success'] is True
 
@@ -630,4 +631,3 @@ def test_same_twice(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
     assert reply['work']['status'] == 'matched'
-

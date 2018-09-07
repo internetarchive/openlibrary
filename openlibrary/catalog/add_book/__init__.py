@@ -46,6 +46,7 @@ from merge import try_merge
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
+re_lang = re.compile('^/languages/([a-z]{3})$')
 
 def strip_accents(s):
     """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
@@ -286,37 +287,20 @@ def build_pool(rec):
     :return: {<identifier: title | isbn | lccn etc>: [list of /books/OL..M keys that match rec on <identifier>]}
     """
     pool = defaultdict(set)
+    match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
 
-    ## Find records with matching title
-    assert isinstance(rec.get('title'), basestring)
-    q = {
-        'type': '/type/edition',
-        'normalized_title_': normalize(rec['title'])
-    }
-    pool['title'] = set(web.ctx.site.things(q))
+    # Find records with matching fields
+    for field in match_fields:
+        pool[field] = set(editions_matched(rec, field))
 
-    q['title'] = rec['title']
-    del q['normalized_title_']
-    pool['title'].update(web.ctx.site.things(q))
+    # update title pool with normalized title matches
+    pool['title'].update(set(editions_matched(rec, 'normalized_title_', normalize(rec['title']))))
 
-    ## Find records with matching ISBNs
+    # Find records with matching ISBNs
     isbns = isbns_from_record(rec)
-
     if isbns:
-        # Make a single request to find records matching the given ISBNs
-        keys = web.ctx.site.things({"isbn_": isbns, 'type': '/type/edition'})
-        if keys:
-            pool['isbn'] = set(keys)
+        pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
-    ## Find records with matching oclc_numbers and lccn
-    for field in 'oclc_numbers', 'lccn':
-        values = rec.get(field, [])
-        if values:
-            for v in values:
-                q = {field: v, 'type': '/type/edition'}
-                found = web.ctx.site.things(q)
-                if found:
-                    pool[field] = set(found)
     return dict((k, list(v)) for k, v in pool.iteritems() if v)
 
 def add_db_name(rec):
@@ -336,7 +320,27 @@ def add_db_name(rec):
             date = a.get('birth_date', '') + '-' + a.get('death_date', '')
         a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
 
-re_lang = re.compile('^/languages/([a-z]{3})$')
+def editions_matched(rec, key, value=None):
+    """
+    Search OL for editions matching record's 'key' value.
+
+    :param dict rec: Edition import record
+    :param str key: Key to search on
+    :param list|str value: Value or Values to use, overriding record values
+    :rtpye: list
+    :return: List of edition keys ["/books/OL..M",]
+    """
+    if value is None and key not in rec:
+        return []
+
+    if value is None:
+        value = rec[key]
+    q = {
+        'type':'/type/edition',
+        key: value
+    }
+    ekeys = list(web.ctx.site.things(q))
+    return ekeys
 
 def early_exit(rec):
     """
@@ -346,44 +350,38 @@ def early_exit(rec):
     :rtype: str|bool
     :return: First key matched of format "/books/OL..M" or False if no match found.
     """
-    f = 'ocaid'
-    # Anand - August 2014
-    # If openlibrary ID is already specified in the record, then use it.
-    # This will be the case when the item metadata already has openlibrary field.
-    if 'openlibrary' in rec:
-        return rec['openlibrary']
 
-    if 'ocaid' in rec:
-        q = {
-            'type':'/type/edition',
-            f: rec[f],
-        }
-        ekeys = list(web.ctx.site.things(q))
-        if ekeys:
-            return ekeys[0]
+    if 'openlibrary' in rec:
+        return '/books/' + rec['openlibrary']
+
+    ekeys = editions_matched(rec, 'ocaid')
+    if ekeys:
+        return ekeys[0]
 
     isbns = isbns_from_record(rec)
     if isbns:
-        q = {
-            'type':'/type/edition',
-            'isbn_': isbns
-        }
-        ekeys = list(web.ctx.site.things(q))
+        ekeys = editions_matched(rec, 'isbn_', isbns)
         if ekeys:
             return ekeys[0]
 
+    # only searches for the first value from these lists
     for f in 'source_records', 'oclc_numbers', 'lccn':
         if rec.get(f):
-            q = {
-                'type':'/type/edition',
-                f: rec[f][0],
-            }
-            ekeys = list(web.ctx.site.things(q))
+            ekeys = editions_matched(rec, f, rec[f][0])
             if ekeys:
                 return ekeys[0]
     return False
 
 def find_exact_match(rec, edition_pool):
+    """
+    Returns an edition key match for rec from edition_pool
+    Only returns a key if all values match?
+
+    :param dict rec: Edition import record
+    :param dict edition_pool:
+    :rtype: str|bool
+    :return: edition key
+    """
     seen = set()
     for field, editions in edition_pool.iteritems():
         for ekey in editions:
@@ -532,7 +530,8 @@ def load(rec):
 
     edition_pool = build_pool(rec)
     if not edition_pool:
-        return load_data(rec) # 'no books in pool, loading'
+        # No match candidates found, add edition
+        return load_data(rec)
 
     #matches = set(item for sublist in edition_pool.values() for item in sublist)
     #if len(matches) == 1:
@@ -551,7 +550,8 @@ def load(rec):
 
         match = find_match(e1, edition_pool)
 
-    if not match: # 'match found:', match, rec['ia']
+    if not match:
+        # No match found, add edition
         return load_data(rec)
 
     need_work_save = False
