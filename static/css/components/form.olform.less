@@ -1,0 +1,71 @@
+form.olform {
+  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+
+  .input {
+    width: 838px;
+  }
+
+  .label {
+    width: 838px;
+    padding: 10px 0 2px;
+
+    label {
+      font-size: 1.0em;
+      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-weight: 700;
+    }
+
+    span {
+      font-weight: normal;
+    }
+  }
+
+  input[type=text],
+  input[type=email],
+  input[type=password],
+  textarea {
+    width: 475px;
+    font-size: 1.0em;
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+    max-width: 100%;
+  }
+
+  select {
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+  }
+
+  textarea {
+    font-size: 0.75em;
+  }
+
+  &.books {
+    fieldset.major input[type=text],
+    fieldset.major input[type=email],
+    fieldset.major input[type=password],
+    fieldset.major textarea {
+      width: 848px;
+      font-size: 0.875em;
+    }
+
+    .input,
+    .label {
+      width: auto !important;
+    }
+
+    .TitleAuthor {
+      input#work-title {
+        font-size: 1.875em !important;
+        margin: 0;
+        width: 900px !important;
+      }
+
+      input#author {
+        font-size: 1em !important;
+        width: 550px !important;
+      }
+    }
+  }
+}

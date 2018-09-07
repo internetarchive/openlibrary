@@ -2665,69 +2665,17 @@ div.formDivider {
 
 
 /* ACCOUNT FORMS */
-form.olform {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-}
-
+@import (less) "components/form.olform.less";
 form.pagesearchbox {
   margin-top: 15px;
-}
-
-form.olform .label {
-  width: 838px;
-  padding: 10px 0 2px;
 }
 
 form#addAuthor.olform .label {
   width: auto;
 }
 
-form.olform .label label {
-  font-size: 1.0em;
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-  font-weight: 700;
-}
-
 form.addbook2 .label label {
   font-weight: normal !important;
-}
-
-form.olform .label span {
-  font-weight: normal;
-}
-
-form.olform input[type=text],
-form.olform input[type=email],
-form.olform input[type=password],
-form.olform textarea {
-  width: 475px;
-  font-size: 1.0em;
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-  padding: 3px;
-}
-
-form.olform textarea {
-  font-size: 0.75em;
-}
-
-form.olform.books fieldset.major input[type=text],
-form.olform.books fieldset.major input[type=email],
-form.olform.books fieldset.major input[type=password],
-form.olform.books fieldset.major textarea {
-  width: 848px;
-  font-size: 0.875em;
-}
-
-form.olform.books fieldset.major .formBack input[type=text],
-form.olform.books fieldset.major .formBack input[type=email],
-form.olform.books fieldset.major .formBack input[type=password],
-form.olform.books fieldset.major .formBack textarea {
-  width: 818px;
-  font-size: 0.875em;
-}
-
-form.olform .input {
-  width: 838px;
 }
 
 input.repeat-add {
@@ -2747,12 +2695,6 @@ form#addAuthor.olform textarea {
 form#addAuthor.olform input#comment {
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   font-size: 0.875em;
-}
-
-form.olform select {
-  font-size: 1.125em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  padding: 3px;
 }
 
 form#notifications input[type=radio] {
@@ -5839,11 +5781,6 @@ ul.urlList span.date {
   color: @brown;
 }
 
-form.olform.books .input,
-form.olform.books .label {
-  width: auto !important;
-}
-
 .TitleAuthor {
   margin-bottom: 20px;
   width: 920px;
@@ -5853,17 +5790,6 @@ form.olform.books .label {
 
 .TitleAuthor label {
   font-weight: 700;
-}
-
-form.olform.books .TitleAuthor input#work-title {
-  font-size: 1.875em !important;
-  margin: 0;
-  width: 900px !important;
-}
-
-form.olform.books .TitleAuthor input#author {
-  font-size: 1em !important;
-  width: 550px !important;
 }
 
 #tabsAddbook {
