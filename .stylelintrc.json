@@ -1,5 +1,6 @@
 {
 	"rules": {
+		"block-no-empty": true,
 		"indentation": 2
 	}
 }
