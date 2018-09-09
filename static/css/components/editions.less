@@ -1,3 +1,5 @@
+@import (less) './../colors.less';
+
 table#editions {
   clear: both;
   font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
@@ -11,8 +13,8 @@ table#editions {
     text-align: center;
     background-color: @lightest-grey;
     border-bottom: 1px solid @mid-grey;
-    border-left: 5px solid #fff;
-    border-right: 5px solid #fff;
+    border-left: 5px solid @white;
+    border-right: 5px solid @white;
     padding: 6px 0;
     outline: none;
     cursor: pointer;
@@ -52,7 +54,7 @@ table#editions {
 
   div.links {
     font-size: 12px;
-    color: #333;
+    color: @dark-grey;
     line-height: 1.5em;
   }
   .btn-notice {

@@ -1,3 +1,5 @@
+@import (less) "colors.less";
+
 .ac_results ul {
   width: 100%;
   list-style-position: outside;
@@ -27,16 +29,16 @@
 }
 
 .ac_loading {
-  background: white url('/images/indicator.gif') right center no-repeat;
+  background: @white url('/images/indicator.gif') right center no-repeat;
 }
 
 .ac_odd {
-  background-color: #eee;
+  background-color: @lightest-grey;
 }
 
 .ac_over {
-  background-color: #0a246a;
-  color: white;
+  background-color: @navy-blue;
+  color: @white;
 }
 
 /* Customizations */
@@ -50,8 +52,8 @@
   top: -5px;
   width: 493px;
   max-height: 290px;
-  background-color: #fff;
-  border: 1px solid #999;
+  background-color: @white;
+  border: 1px solid @light-grey;
   opacity: .95;
   text-align: left;
 }
@@ -59,12 +61,12 @@
 .ac_results ul li {
   font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
   cursor: pointer;
-  color: #999;
+  color: @light-grey;
   line-height: normal;
 }
 
 .ac_results li.ac_over {
-  background-color: #fffdcd;
+  background-color: @light-yellow;
 }
 
 .ac_even,
@@ -73,7 +75,7 @@
 }
 
 .ac_addnew {
-  border-top: 1px solid #ccc;
+  border-top: 1px solid @mid-grey;
   padding: 5px 0 0 !important;
   margin-top: -5px;
 }

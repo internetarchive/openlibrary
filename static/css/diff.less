@@ -15,25 +15,25 @@ dd {
 
 #legend dd {
   padding: 5px;
-  border: 1px solid #eee;
+  border: 1px solid @lightest-grey;
   margin-right: 5px;
 }
 
 #legend .mod {
-  background-color: #ffcc90;
+  background-color: @orange-three;
 }
 
 #legend .rem {
-  color: #e44028;
+  color: @red;
   text-decoration: line-through;
 }
 
 #legend .add {
-  background-color: #adc07f;
+  background-color: @light-olive-2;
 }
 
 #legend .unmod {
-  background-color: #eee;
+  background-color: @lightest-grey;
 }
 
 /* Diff comparison table */
@@ -51,7 +51,7 @@ dd {
   font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
   font-size: 11px;
   font-weight: 700;
-  color: #000;
+  color: @black;
 }
 
 .diff .revisions .heading {
@@ -61,39 +61,39 @@ dd {
 .diff .revisions td {
   padding: 10px;
   font-family: "Lucida Console","Courier New", monospace;
-  background: #eee;
+  background: @lightest-grey;
   vertical-align: top;
   font-size: 0.875em;
-  border-right: 1px solid #fff;
-  border-bottom: 1px solid #fff;
+  border-right: 1px solid @white;
+  border-bottom: 1px solid @white;
 }
 
 .revisions table {
   margin-top: 0;
 }
 
-/* .diff table tbody.mod td.l { background: #ffcc90 } */
+/* .diff table tbody.mod td.l { background: @orange-three } */
 .diff table tbody.mod td.r {
-  background: #ffcc90;
+  background: @orange-three;
 }
-/* .diff table tbody.add td.l { background: #adc07f } */
+/* .diff table tbody.add td.l { background: @light-olive-2 } */
 .diff table tbody.add td.r {
-  background: #adc07f;
+  background: @light-olive-2;
 }
 
 .diff table tbody.rem td.l {
-  color: #e44028;
+  color: @red;
   text-decoration: line-through;
 }
 
 .diff table tbody.rem td.r {
-  color: #e44028;
+  color: @red;
   text-decoration: line-through;
 }
 
 .diff table tbody.mod del,
 .diff table tbody.mod ins {
-  background: #f0f;
+  background: @magenta;
 }
 
 td.l {
@@ -107,11 +107,11 @@ td.r {
 }
 
 ins {
-  background: #adc07f;
+  background: @light-olive-2;
   text-decoration: none;
 }
 
 del {
-  color: #e44028;
+  color: @red;
   text-decoration: line-through;
 }
