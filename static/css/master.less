@@ -1,6 +1,7 @@
 @charset "utf-8";
 @import (less) "colors.less";
 @import (less) "breakpoints.less";
+@import (less) "mixins.less";
 
 @import (less) "components/editions.less";
 
@@ -319,10 +320,7 @@ table.readinglog-stats tr:nth-child(even) {
 }
 
 .carousel {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   overflow-x: scroll;
   padding: 10px 20px;
 }
@@ -916,10 +914,7 @@ button.plain:hover {
 .pagination {
   font-size: 0.75em;
   margin: 5px 0px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   flex-wrap: wrap;
 }
 
@@ -1322,10 +1317,7 @@ header#header-bar {
   max-width: 960px;
   min-width: 300px;
   margin: 0px auto;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
@@ -1362,10 +1354,7 @@ header#header-bar {
 }
 
 .logo-component a {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   color: @black;
   text-decoration: none !important;
 }
@@ -1391,10 +1380,7 @@ header#header-bar {
   -webkit-box-flex: 1;
   -ms-flex: 1 0 0%;
   flex: 1;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 header#header-bar .search-component .search-bar-submit {
@@ -1408,10 +1394,7 @@ header#header-bar .search-component .search-bar-submit {
 .search-component .search-bar-input {
   min-width: 50px;
   width: 100%;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 .search-component .search-bar-input input[type=text] {
@@ -1488,10 +1471,7 @@ header#header-bar .search-component .search-dropdown ul.search-results li:hover 
 }
 
 header#header-bar .search-component .search-dropdown ul.search-results li a {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   text-decoration: none;
   color: @dark-grey;
 }
@@ -1539,10 +1519,7 @@ header#header-bar .search-component .search-bar-advanced-btn {
 }
 
 .account-component .dropdown-avatar {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
@@ -1608,10 +1585,7 @@ header#header-bar .logo-component .logo-icon {
 }
 
 header#header-bar .navigation-component {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   -ms-flex-preferred-size: 100%;
   flex-basis: 100%;
   -webkit-box-ordinal-group: 6;
@@ -1888,10 +1862,7 @@ header#header-bar .account-component .account-dropdown ul a li {
 }
 
 .iaBar {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   max-width: 960px;
   margin: 0 auto;
   -webkit-box-align: center;
@@ -2007,10 +1978,7 @@ header#header-bar .search-component-expand .search-facet-selector {
 }
 
 header#header-bar .search-component-expand .search-bar .search-bar-input {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 header#header-bar .search-component .expand .search-bar-advanced-btn {
@@ -2061,10 +2029,7 @@ header#header-bar .expand .search-bar-input input {
   }
 
   header#header-bar .search-component .search-bar .search-bar-input {
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
+    .display-flex();
   }
 
   header#header-bar .search-component .search-bar-advanced-btn {
@@ -2089,10 +2054,7 @@ header#header-bar .expand .search-bar-input input {
   }
 
   header#header-bar .navigation-component {
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
+    .display-flex();
     -webkit-box-ordinal-group: 7;
     -ms-flex-order: 6;
     order: 6;
@@ -2273,9 +2235,7 @@ div#content {
 }
 
 footer {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
   width: 100%;
   bottom: 0px;
   font-size: .8em;
@@ -3486,9 +3446,7 @@ div.Tools ul.ebook-download-options li {
 }
 
 #content div.Tools ul.shareLinks-list {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
 }
 
 #content div.Tools ul.shareLinks-list li {
@@ -4116,7 +4074,7 @@ div#footer-content {
 }
 
 div#footer-links {
-  display: flex;
+  .display-flex();
   margin-left: 10px;
   line-height: 1.5em;
 }
@@ -4179,7 +4137,7 @@ footer ul li {
 
 footer #footer-details {
   color: hsla(0, 0%, 20%, 1);
-  display: flex;
+  .display-flex();
   width: 100%;
 }
 
@@ -4705,9 +4663,7 @@ p.category-title {
 /* Homepage about section */
 
 #home-stats-charts {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
   flex-wrap: wrap;
 }
 
@@ -4767,9 +4723,7 @@ div.chartHome a:hover {
 }
 
 #home-about {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
   flex-wrap: wrap;
   font-size: 13px;
 }
@@ -4934,9 +4888,7 @@ li.searchResultItem {
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
   flex-direction: column;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
   width: 245px;
   -webkit-box-align: stretch;
   -ms-flex-align: stretch;
@@ -4990,9 +4942,7 @@ a.cta-btn {
   -webkit-box-direction: normal;
   -ms-flex-direction: column;
   flex-direction: column;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
   width: 100%;
   color: #fff;
   cursor: pointer;
@@ -5148,15 +5098,11 @@ div#searchResults .SRPCoverBlank a {
 /* SEARCH FACETS */
 
 .resultsContainer {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
 }
 
 ul#siteSearch > li {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
+  .display-flex();
 }
 
 div#searchFacets {
@@ -8479,10 +8425,7 @@ ul#listResults {
 }
 
 ul#listResults li {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   width: 100%;
   list-style-type: none;
 }
@@ -8604,10 +8547,7 @@ ul#listResults li span.listDelete {
   white-space: nowrap;
   max-width: 150px;
   line-height: 28px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   margin-bottom: 5px;
 }
 
@@ -8640,10 +8580,7 @@ ul.listLists {
 ul.listLists li {
   border-radius: 3px;
   padding: 5px;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   background-color: @white;
   border-bottom: 1px solid @lightest-grey;
 }
@@ -8847,10 +8784,7 @@ div#subjectLists ul.listLists li {
   font-family: "Lucida Grande", Verdana, Arial, sans-serif;
   padding-bottom: 10px;
   padding-top: 0;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 div#subjectLists ul.listLists li .image {
@@ -9377,17 +9311,11 @@ span.actions a span.checked-out {
 }
 
 .dropclick {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 .dropclick-prevent {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 .dropclick-unactivated {
@@ -9405,10 +9333,7 @@ span.actions a span.checked-out {
 }
 
 .log-work {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 .log-work form {
@@ -9777,10 +9702,7 @@ ul#myreads-paginator li.selected:hover {
 
 .mybooks {
   border-top: 1px solid @lightest-grey;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   margin-top: 10px;
 }
 
@@ -9868,17 +9790,11 @@ ul#myreads-paginator li.selected:hover {
 }
 
 .list-books .book {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
 }
 
 .reading-log-lite {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: -webkit-flex;
-  display: flex;
+  .display-flex();
   padding-bottom: 5px;
   margin-bottom: 5px;
 }
