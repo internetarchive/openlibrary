@@ -136,7 +136,7 @@ table.display thead th {
 }
 
 .sorting_desc_disabled {
-  background-position: url('/images/sort_desc_disabled.png');
+  background-image: url('/images/sort_desc_disabled.png');
   background-repeat: no-repeat;
   background-position: 90% 6px;
 }
@@ -148,14 +148,6 @@ table.display thead th {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables row classes
  */
-table.display tr.odd.gradeA {
-  background-color: #ddffdd;
-}
-
-table.display tr.even.gradeA {
-  background-color: #eeffee;
-}
-
 table.display tr.odd.gradeA {
   background-color: #ddffdd;
 }
@@ -269,6 +261,8 @@ td.details {
   margin: 0 5px;
   color: #036daa;
   cursor: pointer;
+  // Undocumented IE fix (?) - may not be necessary any more
+  // stylelint-disable-next-line declaration-block-no-duplicate-properties
   *cursor: hand;
 }
 
