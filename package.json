@@ -1,0 +1,11 @@
+{
+  "name": "openlibrary",
+  "version": "1.0.0",
+  "scripts": {
+    "lint:fix": "stylelint --syntax less --fix static/css/",
+    "test": "stylelint  --syntax less static/css/"
+  },
+  "devDependencies": {
+    "stylelint": "^9.5.0"
+  }
+}

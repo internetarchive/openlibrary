@@ -1,67 +1,3 @@
-table#editions {
-  float: left;
-  width: 918px;
-  clear: both;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
-}
-
-table#editions th {
-  font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  line-height: normal;
-  text-align: center;
-  background-color: rgb(238, 238, 238);
-  border-bottom: 1px solid rgb(204, 204, 204);
-  border-left: 5px solid #fff;
-  border-right: 5px solid #fff;
-  padding: 6px 0;
-  outline: none;
-  cursor: pointer;
-}
-
-table#editions td.book {
-  vertical-align: top;
-}
-
-table#editions td.icon {
-  text-align: left;
-  vertical-align: top;
-  padding: 10px 0 10px 10px;
-  width: 143px;
-}
-
-table#editions td.icon ul {
-  margin-bottom: 0;
-}
-
-table#editions div.cover {
-  text-align: center;
-  padding: 10px 10px 10px 0;
-  width: 70px;
-  overflow: hidden;
-  float: left;
-}
-
-table#editions div.cover img {
-  max-width: 70px;
-  max-height: 60px;
-}
-
-table#editions div.title {
-  font-size: 1.0em;
-  padding: 10px 0;
-  float: left;
-  width: 350px;
-}
-
-table#editions div.links {
-  font-size: 12px;
-  color: #333;
-  line-height: 1.5em;
-}
-
 .FixedHeader_Cloned th {
   background-color: #fff;
 }
@@ -171,20 +107,6 @@ table.display thead th {
   cursor: pointer;
 }
 
-table.display tfoot th {
-}
-
-table.display tr.heading2 td {
-}
-
-table.display td {
-}
-
-table.display td.center {
-}
-
-
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables sorting
  */
@@ -214,7 +136,7 @@ table.display td.center {
 }
 
 .sorting_desc_disabled {
-  background-position: url('/images/sort_desc_disabled.png');
+  background-image: url('/images/sort_desc_disabled.png');
   background-repeat: no-repeat;
   background-position: 90% 6px;
 }
@@ -226,14 +148,6 @@ table.display td.center {
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * DataTables row classes
  */
-table.display tr.odd.gradeA {
-  background-color: #ddffdd;
-}
-
-table.display tr.even.gradeA {
-  background-color: #eeffee;
-}
-
 table.display tr.odd.gradeA {
   background-color: #ddffdd;
 }
@@ -347,6 +261,8 @@ td.details {
   margin: 0 5px;
   color: #036daa;
   cursor: pointer;
+  // Undocumented IE fix (?) - may not be necessary any more
+  // stylelint-disable-next-line declaration-block-no-duplicate-properties
   *cursor: hand;
 }
 
