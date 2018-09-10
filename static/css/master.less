@@ -6,7 +6,7 @@
 @import (less) "components/editions.less";
 
 .FixedHeader_Cloned th {
-  background-color: #fff;
+  background-color: @white;
 }
 
 .dataTables_wrapper {
@@ -28,18 +28,18 @@
   margin-left: -125px;
   margin-top: -15px;
   padding: 14px 0 5px 0;
-  border: 1px solid #ddd;
+  border: 1px solid @lighter-grey;
   text-align: center;
-  color: #999;
+  color: @light-grey;
   font-size: 14px;
-  background-color: white;
+  background-color: @white;
 }
 
 .dataTables_length {
   width: 40%;
   float: left;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
   display: none;
 }
 
@@ -48,14 +48,14 @@
   float: right;
   text-align: right;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
 }
 
 .dataTables_info {
   width: 40%;
   float: left;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
   margin-top: 20px;
 }
 
@@ -67,7 +67,7 @@
   float: right;
   text-align: right;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
 }
 
 /* Pagination nested */
@@ -146,45 +146,35 @@ table.display thead th {
 }
 
 table.display tr.odd.gradeA {
-  background-color: #ddffdd;
+  background-color: @baby-green;
 }
 
 table.display tr.even.gradeA {
-  background-color: #eeffee;
+  background-color: @baby-green;
 }
 
 table.display tr.odd.gradeC {
-  background-color: #ddddff;
+  background-color: @baby-blue;
 }
 
 table.display tr.even.gradeC {
-  background-color: #eeeeff;
+  background-color: @baby-blue;
 }
 
 table.display tr.odd.gradeX {
-  background-color: #ffdddd;
+  background-color: @baby-pink;
 }
 
 table.display tr.even.gradeX {
-  background-color: #ffeeee;
+  background-color: @baby-pink;
 }
 
 table.display tr.odd.gradeU {
-  background-color: #ddd;
+  background-color: @lighter-grey;
 }
 
 table.display tr.even.gradeU {
-  background-color: #eee;
-}
-
-tr.odd {
-  background-color: #fff;
-  border-bottom: 1px solid rgb(204, 204, 204);
-}
-
-tr.even {
-  background-color: #fff;
-  border-bottom: 1px solid rgb(204, 204, 204);
+  background-color: @lightest-grey;
 }
 
 .dataTable_wrapper .top,
@@ -207,28 +197,28 @@ tr.even {
   font-size: 14px;
   font-weight: normal;
   padding: 15px 0;
-  color: #e44028;
+  color: @red;
 }
 
 tfoot input {
   margin: 0.5em 0;
   width: 100%;
-  color: #444;
+  color: @darker-grey;
 }
 
 tfoot input.search_init {
-  color: #999;
+  color: @light-grey;
 }
 
 td.group {
-  background-color: #d1cfd0;
-  border-bottom: 2px solid #a19b9e;
-  border-top: 2px solid #a19b9e;
+  background-color: @gray-d1cfd0;
+  border-bottom: 2px solid @gray-a19b9e;
+  border-top: 2px solid @gray-a19b9e;
 }
 
 td.details {
-  background-color: #d1cfd0;
-  border: 2px solid #a19b9e;
+  background-color: @gray-d1cfd0;
+  border: 2px solid @gray-a19b9e;
 }
 
 .example_alt_pagination div.dataTables_info {
@@ -246,10 +236,10 @@ td.details {
 .paging_full_numbers span.paginate_active {
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   font-size: 11px;
-  border: 1px solid #ddd;
+  border: 1px solid @lighter-grey;
   padding: 7px;
   margin: 0 5px;
-  color: #036daa;
+  color: @link-blue;
   // stylelint-disable declaration-block-no-duplicate-properties
   cursor: pointer;
   *cursor: hand;
@@ -257,26 +247,26 @@ td.details {
 }
 
 .paging_full_numbers span.paginate_button {
-  background-color: #fff;
+  background-color: @white;
 }
 
 .paging_full_numbers span.paginate_button:hover {
-  background: #036daa;
-  color: #fff;
+  background: @link-blue;
+  color: @white;
   text-decoration: none;
 }
 
 .paging_full_numbers span.paginate_active {
-  color: #000;
-  background-color: #efefef;
+  color: @black;
+  background-color: @grey-f3f3f3;
 }
 
 table.display tr.even.row_selected td {
-  background-color: #b0bed9;
+  background-color: @blue-b0bed9;
 }
 
 table.display tr.odd.row_selected td {
-  background-color: #9fafd1;
+  background-color: @blue-9fafd1;
 }
 
 table.readinglog-stats {
@@ -959,7 +949,7 @@ button.plain:hover {
 }
 
 .fixthis {
-  background-color: pink !important;
+  background-color: @heart-color !important;
 }
 
 .adminOnly {
@@ -1170,7 +1160,7 @@ h6.title {
 
 span.tag {
   font-size: 13px;
-  color: #333;
+  color: @dark-grey;
 }
 
 span.object,
@@ -2452,14 +2442,14 @@ fieldset.minor {
 fieldset.major legend {
   padding: 5px 0;
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  color: #00636a;
+  color: @teal;
   font-weight: 600;
   font-size: 1.375em;
 }
 
 fieldset.minor legend {
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  color: #00636a;
+  color: @teal;
   font-weight: 600;
   font-size: 1.125em;
 }
@@ -4587,7 +4577,7 @@ img.category-img {
   -ms-filter: grayscale(100%);
   -o-filter: grayscale(100%);
   filter: grayscale(100%);
-  filter: gray; /* IE 6-9 */
+  filter: @grey; /* IE 6-9 */
   // stylelint-enable declaration-block-no-duplicate-properties
 }
 
@@ -4913,7 +4903,7 @@ a.cta-btn {
   flex-direction: column;
   .display-flex();
   width: 100%;
-  color: #fff;
+  color: @white;
   cursor: pointer;
   text-align: center;
   -webkit-box-align: stretch;
@@ -7164,7 +7154,7 @@ a.coverLook {
   position: fixed;
   width: 100%;
   height: 100%;
-  background: #3a301e;/* this is the only instance of this color, but it's a component */
+  background: @brown-3a301e;
   opacity: 0.5;
   filter: alpha(opacity=50);
 }
@@ -9897,7 +9887,7 @@ form .stars span {
 
 .responsive button.slick-prev:before,
 .slick-next:before {
-  color: #fff;
+  color: @white;
 }
 
 .searchInsideForm input[type=text] {

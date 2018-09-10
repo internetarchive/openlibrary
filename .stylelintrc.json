@@ -1,5 +1,7 @@
 {
 	"rules": {
+		"color-no-hex": true,
+		"color-named": "never",
 		"declaration-block-no-duplicate-properties": true,
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,

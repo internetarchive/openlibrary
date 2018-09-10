@@ -1,5 +1,7 @@
+@import (less) "colors.less";
+
 .FixedHeader_Cloned th {
-  background-color: #fff;
+  background-color: @white;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -25,18 +27,18 @@
   margin-left: -125px;
   margin-top: -15px;
   padding: 14px 0 5px 0;
-  border: 1px solid #ddd;
+  border: 1px solid @lighter-grey;
   text-align: center;
-  color: #999;
+  color: @light-grey;
   font-size: 14px;
-  background-color: white;
+  background-color: @white;
 }
 
 .dataTables_length {
   width: 40%;
   float: left;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
   display: none;
 }
 
@@ -45,14 +47,14 @@
   float: right;
   text-align: right;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
 }
 
 .dataTables_info {
   width: 40%;
   float: left;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
   margin-top: 20px;
 }
 
@@ -61,7 +63,7 @@
   float: right;
   text-align: right;
   font-size: 12px;
-  color: #615132;
+  color: @brown;
 }
 
 /* Pagination nested */
@@ -149,49 +151,42 @@ table.display thead th {
  * DataTables row classes
  */
 table.display tr.odd.gradeA {
-  background-color: #ddffdd;
+  background-color: @baby-green;
 }
 
 table.display tr.even.gradeA {
-  background-color: #eeffee;
+  background-color: @baby-green;
 }
 
 table.display tr.odd.gradeC {
-  background-color: #ddddff;
+  background-color: @baby-blue;
 }
 
 table.display tr.even.gradeC {
-  background-color: #eeeeff;
+  background-color: @baby-blue;
 }
 
 table.display tr.odd.gradeX {
-  background-color: #ffdddd;
+  background-color: @baby-pink;
 }
 
 table.display tr.even.gradeX {
-  background-color: #ffeeee;
+  background-color: @baby-pink;
 }
 
 table.display tr.odd.gradeU {
-  background-color: #ddd;
+  background-color: @lighter-grey;
 }
 
 table.display tr.even.gradeU {
-  background-color: #eee;
+  background-color: @lightest-grey;
 }
 
+tr.even,
 tr.odd {
-  background-color: #fff;
-  border-bottom: 1px solid rgb(204, 204, 204);
+  background-color: @white;
+  border-bottom: 1px solid @mid-grey;
 }
-
-tr.even {
-  background-color: #fff;
-  border-bottom: 1px solid rgb(204, 204, 204);
-}
-
-
-
 
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -217,28 +212,28 @@ tr.even {
   font-size: 14px;
   font-weight: normal;
   padding: 15px 0;
-  color: #e44028;
+  color: @red;
 }
 
 tfoot input {
   margin: 0.5em 0;
   width: 100%;
-  color: #444;
+  color: @darker-grey;
 }
 
 tfoot input.search_init {
-  color: #999;
+  color: @light-grey;
 }
 
 td.group {
-  background-color: #d1cfd0;
-  border-bottom: 2px solid #a19b9e;
-  border-top: 2px solid #a19b9e;
+  background-color: @gray-d1cfd0;
+  border-bottom: 2px solid @gray-a19b9e;
+  border-top: 2px solid @gray-a19b9e;
 }
 
 td.details {
-  background-color: #d1cfd0;
-  border: 2px solid #a19b9e;
+  background-color: @gray-d1cfd0;
+  border: 2px solid @gray-a19b9e;
 }
 
 .example_alt_pagination div.dataTables_info {
@@ -256,10 +251,10 @@ td.details {
 .paging_full_numbers span.paginate_active {
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   font-size: 11px;
-  border: 1px solid #ddd;
+  border: 1px solid @lighter-grey;
   padding: 7px;
   margin: 0 5px;
-  color: #036daa;
+  color: @link-blue;
   cursor: pointer;
   // Undocumented IE fix (?) - may not be necessary any more
   // stylelint-disable-next-line declaration-block-no-duplicate-properties
@@ -267,26 +262,26 @@ td.details {
 }
 
 .paging_full_numbers span.paginate_button {
-  background-color: #fff;
+  background-color: @white;
 }
 
 .paging_full_numbers span.paginate_button:hover {
-  background: #036daa;
-  color: #fff;
+  background: @link-blue;
+  color: @white;
   text-decoration: none;
 }
 
 .paging_full_numbers span.paginate_active {
-  color: #000;
-  background-color: #efefef;
+  color: @black;
+  background-color: @grey-f3f3f3;
 }
 
 table.display tr.even.row_selected td {
-  background-color: #b0bed9;
+  background-color: @blue-b0bed9;
 }
 
 table.display tr.odd.row_selected td {
-  background-color: #9fafd1;
+  background-color: @blue-9fafd1;
 }
 
 
@@ -295,27 +290,27 @@ table.display tr.odd.row_selected td {
  */
 /* For the standard odd/even */
 tr.odd td.sorting_1 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 tr.odd td.sorting_2 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 tr.odd td.sorting_3 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 tr.even td.sorting_1 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 tr.even td.sorting_2 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 tr.even td.sorting_3 {
-  background-color: #fff;
+  background-color: @white;
 }
 
 
@@ -330,99 +325,99 @@ tr.even td.sorting_3 {
 	  ee > e2
  */
 tr.odd.gradeA td.sorting_1 {
-  background-color: #c4ffc4;
+  background-color: @mid-baby-green;
 }
 
 tr.odd.gradeA td.sorting_2 {
-  background-color: #d1ffd1;
+  background-color: @baby-green;
 }
 
 tr.odd.gradeA td.sorting_3 {
-  background-color: #d1ffd1;
+  background-color: @baby-green;
 }
 
 tr.even.gradeA td.sorting_1 {
-  background-color: #d5ffd5;
+  background-color: @baby-green;
 }
 
 tr.even.gradeA td.sorting_2 {
-  background-color: #e2ffe2;
+  background-color: @baby-green;
 }
 
 tr.even.gradeA td.sorting_3 {
-  background-color: #e2ffe2;
+  background-color: @baby-green;
 }
 
 tr.odd.gradeC td.sorting_1 {
-  background-color: #c4c4ff;
+  background-color: @mid-baby-blue;
 }
 
 tr.odd.gradeC td.sorting_2 {
-  background-color: #d1d1ff;
+  background-color: @baby-blue;
 }
 
 tr.odd.gradeC td.sorting_3 {
-  background-color: #d1d1ff;
+  background-color: @baby-blue;
 }
 
 tr.even.gradeC td.sorting_1 {
-  background-color: #d5d5ff;
+  background-color: @baby-blue;
 }
 
 tr.even.gradeC td.sorting_2 {
-  background-color: #e2e2ff;
+  background-color: @baby-blue;
 }
 
 tr.even.gradeC td.sorting_3 {
-  background-color: #e2e2ff;
+  background-color: @baby-blue;
 }
 
 tr.odd.gradeX td.sorting_1 {
-  background-color: #ffc4c4;
+  background-color: @mid-baby-pink;
 }
 
 tr.odd.gradeX td.sorting_2 {
-  background-color: #ffd1d1;
+  background-color: @baby-pink;
 }
 
 tr.odd.gradeX td.sorting_3 {
-  background-color: #ffd1d1;
+  background-color: @baby-pink;
 }
 
 tr.even.gradeX td.sorting_1 {
-  background-color: #ffd5d5;
+  background-color: @baby-pink;
 }
 
 tr.even.gradeX td.sorting_2 {
-  background-color: #ffe2e2;
+  background-color: @baby-pink;
 }
 
 tr.even.gradeX td.sorting_3 {
-  background-color: #ffe2e2;
+  background-color: @baby-pink;
 }
 
 tr.odd.gradeU td.sorting_1 {
-  background-color: #c4c4c4;
+  background-color: @mid-grey;
 }
 
 tr.odd.gradeU td.sorting_2 {
-  background-color: #d1d1d1;
+  background-color: @mid-grey;
 }
 
 tr.odd.gradeU td.sorting_3 {
-  background-color: #d1d1d1;
+  background-color: @mid-grey;
 }
 
 tr.even.gradeU td.sorting_1 {
-  background-color: #d5d5d5;
+  background-color: @lighter-grey;
 }
 
 tr.even.gradeU td.sorting_2 {
-  background-color: #e2e2e2;
+  background-color: @lighter-grey;
 }
 
 tr.even.gradeU td.sorting_3 {
-  background-color: #e2e2e2;
+  background-color: @lighter-grey;
 }
 
 
@@ -431,12 +426,12 @@ tr.even.gradeU td.sorting_3 {
  */
 .ex_highlight #example tbody tr.even:hover,
 #example tbody tr.even td.highlighted {
-  background-color: #ecffb3;
+  background-color: @lime-green;
 }
 
 .ex_highlight #example tbody tr.odd:hover,
 #example tbody tr.odd td.highlighted {
-  background-color: #e6ff99;
+  background-color: @lime-green;
 }
 
 
@@ -448,29 +443,29 @@ table.KeyTable td {
 }
 
 table.KeyTable td.focus {
-  border: 3px solid #3366ff;
+  border: 3px solid @blue-3366ff;
 }
 
 table.display tr.gradeA {
-  background-color: #eeffee;
+  background-color: @baby-green;
 }
 
 table.display tr.gradeC {
-  background-color: #ddddff;
+  background-color: @baby-blue;
 }
 
 table.display tr.gradeX {
-  background-color: #ffdddd;
+  background-color: @baby-pink;
 }
 
 table.display tr.gradeU {
-  background-color: #ddd;
+  background-color: @lighter-grey;
 }
 
 div.box {
   height: 100px;
   padding: 10px;
   overflow: auto;
-  border: 1px solid #8080ff;
-  background-color: #e5e5ff;
+  border: 1px solid @dark-baby-blue;
+  background-color: @baby-blue;
 }

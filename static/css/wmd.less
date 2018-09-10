@@ -3,7 +3,7 @@
 }
 
 .wmd-editor {
-  background-color: aquamarine;
+  background-color: @nagios-green;
 }
 
 .wmd-button-bar {
@@ -30,13 +30,13 @@ form#addAuthor.olform .wmd-button-bar {
 .wmd-input {
   height: 500px;
   width: 100%;
-  background-color: #fff;
-  border: 1px solid #454545;
+  background-color: @white;
+  border: 1px solid @darker-grey;
 }
 
 .wmd-preview {
-  background-color: #fff;
-  border: 1px solid #dedede;
+  background-color: @white;
+  border: 1px solid @lighter-grey;
   font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
   display: none;
   margin-bottom: 10px;
@@ -70,7 +70,7 @@ form#addAuthor.olform .wmd-preview {
 }
 
 .wmd-output {
-  background-color: #fff;
+  background-color: @white;
 }
 
 .wmd-button-row {
@@ -193,28 +193,28 @@ form#addAuthor.olform .wmd-preview {
 }
 
 .wmd-prompt-background {
-  background-color: #000;
+  background-color: @black;
   opacity: 0.9;
   filter: Alpha(Opacity=90);
 }
 
 .wmd-prompt-dialog {
   width: 400px;
-  border: 10px solid #615132;
-  background-color: #fff;
+  border: 10px solid @brown;
+  background-color: @white;
   -webkit-border-radius: 12px;
   -moz-border-radius: 12px;
   border-radius: 12px;
-  -moz-box-shadow: 1px 3px 10px #000;
-  -webkit-box-shadow: 1px 3px 10px #000;
-  box-shadow: 1px 3px 10px #000;
+  -moz-box-shadow: 1px 3px 10px @black;
+  -webkit-box-shadow: 1px 3px 10px @black;
+  box-shadow: 1px 3px 10px @black;
   text-align: left;
 }
 
 .wmd-prompt-dialog > div {
   font-size: 14px;
   font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-  color: #454545;
+  color: @darker-grey;
   padding: 20px !important;
 }
 
@@ -228,9 +228,9 @@ form#addAuthor.olform .wmd-preview {
   position: relative;
   top: -20px;
   left: -20px;
-  background-color: #615132;
+  background-color: @brown;
   padding: 0 10px 10px 10px;
-  color: #fff;
+  color: @white;
   font-family: "News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;
   font-size: 1.75em;
   width: 380px;
