@@ -1,5 +1,7 @@
 $def with (book)
 
+$ availability = book.get('availability', {})
+
 $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 
@@ -24,14 +26,6 @@ $if book.isbn_10:
     $ isbn_10 = book.isbn_10[0].replace("-", "")
 $elif isbn_13:
     $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
-
-$ library = None
-$ collection = set()
-$ meta_fields = book.get_ia_meta_fields()
-$if meta_fields:
-    $ collection = meta_fields.get('collection', [])
-    $if 'inlibrary' in collection and 'inlibrary' in ctx.features:
-        $ library = get_library()
 
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
@@ -60,61 +54,58 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
                 $if book.languages:
                     in $', '.join(l.name for l in book.languages)
             $if book.edition_name:
-                -
-                $book.edition_name
+                - $book.edition_name
             </div>
         </div>
     </td>
 
-    $if 'printdisabled' in collection or 'lendinglibrary' in collection:
-        <td class="icon read">
-        <div class="bbbb"></div>
-        <div class="links">
-            <ul>
-            <li><a href="$book.url('/daisy')" class="plain"><span class="underline">DAISY</span> <img src="/images/icons/icon-encrypto-sm.png" width="11" height="14" alt="Protected DAISY"/></a></li>
-            </ul>
-        </div>
-        </td>
-    $elif book.ocaid:
-        <td class="icon read">
-        <div class="aaaa"></div>
-        <div class="links">
-            <ul>
-              <li><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn">Read online</a></strong><br/></li>
-              <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
-              <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
-              <li><a href="$book.url('/daisy')" title="Download a zipped DAISY file">DAISY</a></li>
-              <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-              <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
-            </ul>
-        </div>
-        </td>
-    $else:
-        <td class="icon read inact">
-        <div class="zzzz"></div>
-        <div class="links">
-        </div>
-        </td>
+    $ availability_class = 'zzzz' if (not availability or availability.get('status') == 'error') else 'aaaa' if (availability.get('status') == 'open') else 'bbbb' if (availability.get('status') == 'borrow_available') else 'cccc' if (availability.get('status') == 'borrow_unavailable') else 'dddd'
+    $ active = False if availability_class == 'zzzz' else True
 
-    $if (isbn or oclc_numbers or 'lendinglibrary' in collection or library) and not private_collection_in(collection):
-        <td class="icon borrow">
-            <div class="aaaa"></div>
-            <div class="links">
+    <td class="icon read $('inact' if not active else '')">
+      <div class="$(availability_class)"></div>
+        <div class="links">
+          $if active:
+            <ul>
+              $if availability.get('status') == 'open':
+                <li class="read-option"><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn">Read eBook</a></strong></li>
+
+              $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
+                <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
+
+              <li class="read-option">
+                <a href="$book.url('/daisy')" class="plain print-disabled-download">
+                  <span class="underline">DAISY for print-disabled</span>
+                  <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
+                </a>
+              </li>
+
+              $if availability.get('status') == 'open':
+                <hr>
                 <ul>
-                    <li>$:macros.LoanStatus(book, ctx.user)</li>
-                $if oclc_numbers or isbn:
-                    <li><a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                           title="Look for this edition at WorldCat">Find a Physical Copy</a><br /><span class="gray smaller">via WorldCat</span></li>
+                  <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
+                  <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
+                  <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
+                  <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
                 </ul>
-            </div>
-        </td>
-    $else:
-        <td class="icon borrow inact">
-            <div class="zzzz"></div>
-            <div class="links">
-            </div>
-        </td>
+            </ul>
+        </div>
+    </td>
 
+    <td class="icon locate inact">
+      <div class="zzzz"></div>
+        <div class="links">
+          $if oclc_numbers or isbn:
+            <ul>
+              <li>
+                <a class="plain" 
+                   href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
+                   title="Look for this edition at WorldCat">Find a Physical Copy</a>
+                <br /><span class="gray smaller">via WorldCat</span>
+              </li>
+            </ul>
+        </div>
+    </td>
 
     <td class="icon buy inact">
       <div class="zzzz"></div>

@@ -225,17 +225,7 @@ $ )
         <div class="resultsContainer">
         <div id="searchResults">
           <ul id="siteSearch">
-            $ work_keys = []
-            $ works = []
-            $for result_doc in docs:
-                $ doc = get_doc(result_doc)
-                $ key = doc.key
-                $ work_keys.append(key)
-                $ works.append(doc)
-
-            $# filter by availability check
-            $ ocaids = [work.ia[0] for work in works if work.ia]
-            $ availability = get_availability_of_ocaids(ocaids)
+            $ works = add_availability([get_doc(d) for d in docs])
 
             $ loans = ctx.user.get_loans() if ctx.user else []
             $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
@@ -243,10 +233,11 @@ $ )
 
             $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
-                $ work_availability = availability.get(ocaid)
-
-                $if 'has_fulltext' not in param or work_availability['status'] not in ['error', 'private']:
-                    $:macros.SearchResultsWork(work, availability=work_availability, user=user)
+                $ availability = work.get('availability', {}).get('status')
+                $# if we're explicitly showing *everything*...
+                $# or if we're showing only things with ocaids which are available...
+                $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
+                    $:macros.SearchResultsWork(work, user=user)
           </ul>
         </div>
 
@@ -303,7 +294,7 @@ $elif param and not error:
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
             $ readapi_percent = 100
-        $ wks = '|'.join(work_keys)
+        $ wks = '|'.join([w.key for w in works])
         $ ol = 'openlibrary.org'
         <script type="text/javascript">
         <!--

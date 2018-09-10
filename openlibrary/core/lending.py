@@ -253,6 +253,18 @@ def get_realtime_availability_of_ocaid(ocaid):
         return {'error': 'request_timeout'}
 
 @public
+def add_availability(editions):
+    """Adds API v2 availability info to editions, e.g. for work's editions table
+    """
+    ocaids = [ed.get('ocaid') or ed.ia[0] for ed in editions if (ed.ia or ed.get('ocaid'))]
+    availability = get_availability_of_ocaids(ocaids)
+    for i, ed in enumerate(editions):
+        if ed.get('ocaid') or ed.get('ia'):
+            ocaid = ed.get('ocaid') or ed.get('ia')[0]
+            editions[i]['availability'] = availability.get(ocaid)
+    return editions
+
+@public
 def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
     return get_availability('identifier', [ocaid])
