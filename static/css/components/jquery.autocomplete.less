@@ -1,0 +1,141 @@
+@import (less) "colors.less";
+
+.ac_results {
+  padding: 0px;
+  overflow: hidden;
+  z-index: 99999;
+  position: absolute;
+  display: none;
+  top: -5px;
+  width: 493px;
+  max-height: 290px;
+  background-color: @white;
+  border: 1px solid @light-grey;
+  opacity: .95;
+  text-align: left;
+
+  ul {
+    width: 100%;
+    list-style-position: outside;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+      cursor: pointer;
+      color: @light-grey;
+      line-height: normal;
+
+      &.ac_over {
+        background-color: @light-yellow;
+      }
+    }
+  }
+
+  li {
+    margin: 0px;
+    padding: 5px;
+    cursor: default;
+    display: block;
+    font: menu;
+    font-size: 12px;
+    /*
+    it is very important, if line-height not set or set
+    in relative units scroll will be broken in firefox
+    */
+    line-height: 16px;
+    overflow: hidden;
+  }
+
+  .ac_language {
+    font-size: 16px;
+    color: @black;
+  }
+
+  .ac_author {
+    .action {
+      font-size: 9px;
+      color: @olive;
+    }
+
+    .books {
+      font-size: 12px;
+      color: @dark-green;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .subject {
+      font-size: 11px;
+    }
+
+    .olid {
+      font-family: monospace;
+    }
+
+    .name {
+      font-size: 16px;
+      display: block;
+      color: @black;
+    }
+
+    .work {
+      font-size: 11px;
+
+      i {
+        color: @brown;
+      }
+    }
+  }
+
+  .ac_work {
+    .edition_count {
+      font-size: 12px;
+      color: @dark-green;
+      font-weight: 700;
+      padding: 0;
+    }
+
+    .olid {
+      font-family: monospace;
+    }
+
+    .name {
+      display: block;
+    }
+
+    .title {
+      font-size: 16px;
+      color: @black;
+    }
+
+    .first_publish_year {
+      font-size: 12px;
+    }
+  }
+}
+
+.ac_loading {
+  background: @white url('/images/indicator.gif') right center no-repeat;
+}
+
+.ac_odd {
+  background-color: @lightest-grey;
+}
+
+.ac_over {
+  background-color: @navy-blue;
+  color: @white;
+}
+
+.ac_even,
+.ac_odd {
+  background-color: inherit;
+}
+
+.ac_addnew {
+  border-top: 1px solid @mid-grey;
+  padding: 5px 0 0 !important;
+  margin-top: -5px;
+}
