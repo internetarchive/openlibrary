@@ -1,6 +1,7 @@
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc import parse
+from infogami import config, load_config
 from lxml import etree
 import xml.parsers.expat
 import urllib2, os.path, socket
@@ -8,7 +9,8 @@ from time import sleep
 import traceback
 from openlibrary.core import ia
 
-IA_BASE_URL = 'https://archive.org'
+load_config('conf/openlibrary.yml')
+IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 

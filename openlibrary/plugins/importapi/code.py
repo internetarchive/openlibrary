@@ -26,7 +26,7 @@ import import_edition_builder
 from lxml import etree
 import logging
 
-IA_BASE_URL = 'https://archive.org'
+IA_BASE_URL = config.get('ia_base_url')
 logger = logging.getLogger("openlibrary.importapi")
 
 class DataError(ValueError):
