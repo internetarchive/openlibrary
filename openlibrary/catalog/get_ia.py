@@ -8,7 +8,8 @@ from time import sleep
 import traceback
 from openlibrary.core import ia
 
-base = "https://archive.org/download/"
+IA_BASE_URL = 'https://archive.org'
+IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 
 class NoMARCXML(IOError):
@@ -32,7 +33,8 @@ def bad_ia_xml(ia):
     # need to handle 404s:
     # http://www.archive.org/details/index1858mary
     loc = ia + "/" + ia + "_marc.xml"
-    return '<!--' in urlopen_keep_trying(base + loc).read()
+
+    return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).read()
 
 def get_marc_ia_data(ia, host=None, path=None):
     """
@@ -42,7 +44,7 @@ def get_marc_ia_data(ia, host=None, path=None):
     if host and path:
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = base + ia + '/' + ia + '_' + ending
+        url = IA_DOWNLOAD_URL + ia + '/' + ia + '_' + ending
     f = urlopen_keep_trying(url)
     return f.read() if f else None
 
@@ -58,10 +60,10 @@ def get_marc_record_from_ia(identifier):
     metadata = ia.get_metadata(identifier)
     filenames = metadata['_filenames']
 
-    marc_xml_filename = identifier + "_marc.xml"
-    marc_bin_filename = identifier + "_meta.mrc"
+    marc_xml_filename = identifier + '_marc.xml'
+    marc_bin_filename = identifier + '_meta.mrc'
 
-    item_base = base + "/" + identifier + "/"
+    item_base = IA_DOWNLOAD_URL + '/' + identifier + '/'
 
     # Try marc.xml first
     if marc_xml_filename in filenames:
@@ -89,7 +91,7 @@ def get_ia(identifier):
     return parse.read_edition(marc)
 
 def files(archive_id):
-    url = base + archive_id + "/" + archive_id + "_files.xml"
+    url = IA_DOWNLOAD_URL + archive_id + "/" + archive_id + "_files.xml"
     for i in range(5):
         try:
             tree = etree.parse(urlopen_keep_trying(url))
@@ -161,7 +163,7 @@ def get_from_archive_bulk(locator):
     r0, r1 = offset, offset+length-1
     # get the next record's length in this request
     r1 += 5
-    url = base + filename
+    url = IA_DOWNLOAD_URL + filename
 
     assert 0 < length < MAX_MARC_LENGTH
 
@@ -225,7 +227,7 @@ def marc_formats(ia, host=None, path=None):
     if host and path:
         url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
     else:
-        url = base + ia + '/' + ia + '_' + ending
+        url = IA_DOWNLOAD_URL + ia + '/' + ia + '_' + ending
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:

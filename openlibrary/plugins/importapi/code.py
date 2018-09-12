@@ -26,6 +26,7 @@ import import_edition_builder
 from lxml import etree
 import logging
 
+IA_BASE_URL = 'https://archive.org'
 logger = logging.getLogger("openlibrary.importapi")
 
 class DataError(ValueError):
@@ -348,7 +349,7 @@ class ia_importapi:
         """
         edition['ocaid'] = identifier
         edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "https://archive.org/download/{0}/{0}/page/title.jpg".format(identifier)
+        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
         return edition
 
     def get_marc_record(self, identifier):
