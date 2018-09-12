@@ -1770,7 +1770,7 @@ header#header-bar .expand .search-bar-input input {
   }
 }
 
-@media only screen and (min-width: 48em) {
+@media only screen and (min-width: @width-breakpoint-tablet) {
   .iaBarMessage {
     display: block;
   }
@@ -1802,90 +1802,6 @@ header#header-bar .expand .search-bar-input input {
     border-top: none;
     border-top-right-radius: 0px;
     border-top-left-radius: 0px;
-  }
-}
-
-/* Full screen mode */
-@media only screen and (min-width: 60em) {
-  .iaBarMessage {
-    display: block;
-  }
-
-  .iaBarLogo {
-    margin-left: 0px;
-  }
-
-  header#header-bar {
-    margin: 20px auto;
-    -webkit-box-orient: horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction: row;
-    flex-direction: row;
-  }
-
-  header#header-bar .hamburger-component {
-    display: none;
-  }
-
-  header#header-bar .logo-component {
-    /* border-right: 1px solid @dark-beige; */
-    padding-right: 15px;
-  }
-
-  header#header-bar .logo-component .logo-icon {
-    display: inherit;
-  }
-
-  header#header-bar .navigation-component {
-    -webkit-box-ordinal-group: 3;
-    -ms-flex-order: 2;
-    order: 2;
-    min-width: 250px;
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-  }
-
-  header#header-bar .navigation-component .dropdown-menu {
-    border-radius: 3px;
-    border: 1px solid @dark-beige;
-  }
-
-  header#header-bar .search-component .search-bar-component {
-    width: 100%;
-  }
-
-  header#header-bar .search-component .search-bar {
-    max-width: 100%;
-  }
-
-  header#header-bar .account-component {
-    -webkit-box-flex: 0;
-    -ms-flex: none;
-    flex: none;
-    -webkit-box-ordinal-group: 5;
-    -ms-flex-order: 4;
-    order: 4;
-    padding-right: 0px;
-  }
-
-  header#header-bar .auth-component {
-    -webkit-box-ordinal-group: 7;
-    -ms-flex-order: 6;
-    order: 6;
-  }
-
-  .desktop-only {
-    display: inherit;
-  }
-
-  header#header-bar ul.navigation-component .more-menu {
-    display: block;
-  }
-
-  header#header-bar ul.navigation-component li ul.dropdown-menu {
-    width: auto;
-    white-space: nowrap;
   }
 }
 
@@ -9641,6 +9557,87 @@ form .stars span {
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  .iaBarMessage {
+    display: block;
+  }
+
+  .iaBarLogo {
+    margin-left: 0px;
+  }
+
+  header#header-bar {
+    margin: 20px auto;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction: row;
+    flex-direction: row;
+  }
+
+  header#header-bar .hamburger-component {
+    display: none;
+  }
+
+  header#header-bar .logo-component {
+    /* border-right: 1px solid @dark-beige; */
+    padding-right: 15px;
+  }
+
+  header#header-bar .logo-component .logo-icon {
+    display: inherit;
+  }
+
+  header#header-bar .navigation-component {
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    min-width: 250px;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+  }
+
+  header#header-bar .navigation-component .dropdown-menu {
+    border-radius: 3px;
+    border: 1px solid @dark-beige;
+  }
+
+  header#header-bar .search-component .search-bar-component {
+    width: 100%;
+  }
+
+  header#header-bar .search-component .search-bar {
+    max-width: 100%;
+  }
+
+  header#header-bar .account-component {
+    -webkit-box-flex: 0;
+    -ms-flex: none;
+    flex: none;
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 4;
+    order: 4;
+    padding-right: 0px;
+  }
+
+  header#header-bar .auth-component {
+    -webkit-box-ordinal-group: 7;
+    -ms-flex-order: 6;
+    order: 6;
+  }
+
+  .desktop-only {
+    display: inherit;
+  }
+
+  header#header-bar ul.navigation-component .more-menu {
+    display: block;
+  }
+
+  header#header-bar ul.navigation-component li ul.dropdown-menu {
+    width: auto;
+    white-space: nowrap;
+  }
+
   @import (less) "components/desktop/editions.less";
   @import (less) "components/desktop/form.olform.less";
 }
