@@ -42,6 +42,21 @@ A branch name consists of the: issue number, whether it is a feature/hotfix/refa
 123/refactor/simplifying-authentication-using-xauthn
 ```
 
+With respect to client side patches, before submitting your patch you'll want to check it adheres to code styling rules and tests. We use `npm` to test our client side code.
+
+```
+npm install
+npm test
+```
+
+If it passes your patch is ready for review!
+
+Note, many issues can be fixed automatically without any manual work from your part using the following command:
+
+```
+npm run lint:fix
+```
+
 ## Pull Requests
 
 * Pull Requests (PRs) should link to the issue they resolve. Please take the time to check whether someone has already raised the issue you are solving. At the very least PRs should contain enough detail in the description to explain the purpose of the PR; what feature it adds, or problem it solves. Please expect PRs without sufficient details to be rejected until an clear description of the benefit is added. Thank you for your contributions!
