@@ -20,6 +20,7 @@ all: git css js i18n
 css:
 	mkdir -p $(BUILD)
 	lessc static/css/all.less $(BUILD)/all.css
+	lessc static/css/all-js.less $(BUILD)/all-js.css
 	lessc static/css/books-edit.less $(BUILD)/books-edit.css
 
 js:
