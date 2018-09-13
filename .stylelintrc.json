@@ -5,6 +5,7 @@
 		"declaration-block-no-duplicate-properties": true,
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,
-		"indentation": 2
+		"indentation": 2,
+		"function-url-quotes": "never"
 	}
 }
