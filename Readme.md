@@ -60,6 +60,12 @@ vagrant ssh
 **Note:** <br>
 Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
 
+### Reload vagrant services:
+
+- From within vagrant restart the Open Library service via:
+``` sudo systemctl restart ol-web. ``` <br>
+- If you are not in the vagrant dev virtual machine you can simply run ``` vagrant reload ``` for the same.
+
 ### Help!
 
 If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
