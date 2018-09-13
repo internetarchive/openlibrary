@@ -15,6 +15,7 @@ IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 
 class NoMARCXML(IOError):
+    # DEPRECATED, rely on MarcXml to raise exceptions
     pass
 
 def urlopen_keep_trying(url):
@@ -29,26 +30,14 @@ def urlopen_keep_trying(url):
             pass
         sleep(2)
 
-def bad_ia_xml(ia):
-    if ia == 'revistadoinstit01paulgoog':
+def bad_ia_xml(identifier):
+    # DEPRECATED
+    if identifier == 'revistadoinstit01paulgoog':
         return False
     # need to handle 404s:
     # http://www.archive.org/details/index1858mary
-    loc = ia + "/" + ia + "_marc.xml"
-
+    loc = "{0}/{0}_marc.xml".format(identifier)
     return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).read()
-
-def get_marc_ia_data(ia, host=None, path=None):
-    """
-    DEPRECATED
-    """
-    ending = 'meta.mrc'
-    if host and path:
-        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
-    else:
-        url = IA_DOWNLOAD_URL + ia + '/' + ia + '_' + ending
-    f = urlopen_keep_trying(url)
-    return f.read() if f else None
 
 def get_marc_record_from_ia(identifier):
     """
@@ -65,7 +54,7 @@ def get_marc_record_from_ia(identifier):
     marc_xml_filename = identifier + '_marc.xml'
     marc_bin_filename = identifier + '_meta.mrc'
 
-    item_base = IA_DOWNLOAD_URL + '/' + identifier + '/'
+    item_base = '{}{}/'.format(IA_DOWNLOAD_URL, identifier)
 
     # Try marc.xml first
     if marc_xml_filename in filenames:
@@ -92,8 +81,8 @@ def get_ia(identifier):
     marc = get_marc_record_from_ia(identifier)
     return parse.read_edition(marc)
 
-def files(archive_id):
-    url = IA_DOWNLOAD_URL + archive_id + "/" + archive_id + "_files.xml"
+def files(identifier):
+    url = item_file_url(identifier, 'files.xml')
     for i in range(5):
         try:
             tree = etree.parse(urlopen_keep_trying(url))
@@ -109,29 +98,12 @@ def files(archive_id):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
-        print 'name:', name
         if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
             size = i.find('size')
             if size is not None:
                 yield name, int(size.text)
             else:
                 yield name, None
-
-def get_data(loc):
-    try:
-        filename, p, l = loc.split(':')
-    except ValueError:
-        return None
-    marc_path = rc.get('marc_path')
-    if not marc_path:
-        return None
-    if not os.path.exists(marc_path + '/' + filename):
-        return None
-    f = open(rc['marc_path'] + '/' + filename)
-    f.seek(int(p))
-    buf = f.read(int(l))
-    f.close()
-    return buf
 
 def get_from_archive(locator):
     """
@@ -188,18 +160,6 @@ def get_from_archive_bulk(locator):
                 next_offset = next_length = None
     return data, next_offset, next_length
 
-def get_from_local(locator):
-    try:
-        file, offset, length = locator.split(':')
-    except:
-        print('locator:', repr(locator))
-        raise
-    f = open(rc['marc_path'] + '/' + file)
-    f.seek(int(offset))
-    buf = f.read(int(length))
-    f.close()
-    return buf
-
 def read_marc_file(part, f, pos=0):
     """
     Generator to step through bulk MARC data f.
@@ -210,26 +170,33 @@ def read_marc_file(part, f, pos=0):
     :rtype: (int, str, str)
     :return: (Next position, Current source_record name, Current single MARC record)
     """
-    try:
-        for data, int_length in fast_parse.read_file(f):
-            loc = "marc:%s:%d:%d" % (part, pos, int_length)
-            pos += int_length
-            yield (pos, loc, data)
-    except ValueError:
-        print f
-        raise
+    for data, int_length in fast_parse.read_file(f):
+        loc = "marc:%s:%d:%d" % (part, pos, int_length)
+        pos += int_length
+        yield (pos, loc, data)
 
-def marc_formats(ia, host=None, path=None):
+def item_file_url(identifier, ending, host=None, path=None):
+    if host and path:
+        url = 'http://{}{}/{}_{}'.format(host, path, identifier, ending)
+    else:
+        url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
+    return url
+
+def get_marc_ia_data(identifier, host=None, path=None):
+    """
+    DEPRECATED
+    """
+    url = item_file_url(identifier, 'meta.mrc', host, path)
+    f = urlopen_keep_trying(url)
+    return f.read() if f else None
+
+def marc_formats(identifier, host=None, path=None):
     files = {
-        ia + '_marc.xml': 'xml',
-        ia + '_meta.mrc': 'bin',
+        identifier + '_marc.xml': 'xml',
+        identifier + '_meta.mrc': 'bin',
     }
     has = { 'xml': False, 'bin': False }
-    ending = 'files.xml'
-    if host and path:
-        url = 'http://%s%s/%s_%s' % (host, path, ia, ending)
-    else:
-        url = IA_DOWNLOAD_URL + ia + '/' + ia + '_' + ending
+    url = item_file_url(identifier, 'files.xml', host, path)
     for attempt in range(10):
         f = urlopen_keep_trying(url)
         if f is not None:
@@ -237,7 +204,7 @@ def marc_formats(ia, host=None, path=None):
         sleep(10)
     if f is None:
         #TODO: log this, if anything uses this code
-        msg = "error reading %s_files.xml" % ia
+        msg = "error reading %s_files.xml" % identifier
         return has
     data = f.read()
     try:
@@ -252,3 +219,33 @@ def marc_formats(ia, host=None, path=None):
         if all(has.values()):
             break
     return has
+
+def get_from_local(locator):
+    # DEPRECATED, Broken, undefined rc, will raise exception if called
+    try:
+        file, offset, length = locator.split(':')
+    except:
+        print('locator:', repr(locator))
+        raise
+    f = open(rc['marc_path'] + '/' + file)
+    f.seek(int(offset))
+    buf = f.read(int(length))
+    f.close()
+    return buf
+
+def get_data(loc):
+    # DEPRECATED, Broken, undefined rc, will return None or raise exception if called
+    try:
+        filename, p, l = loc.split(':')
+    except ValueError:
+        return None
+    marc_path = rc.get('marc_path')
+    if not marc_path:
+        return None
+    if not os.path.exists(marc_path + '/' + filename):
+        return None
+    f = open(rc['marc_path'] + '/' + filename)
+    f.seek(int(p))
+    buf = f.read(int(l))
+    f.close()
+    return buf
