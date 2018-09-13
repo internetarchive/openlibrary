@@ -1,4 +1,8 @@
-@import (less) "colors.less";
+/** 
+ * JS only module.
+ * Defined in:
+ * - vendor/js/jquery-datatables/jquery.dataTables.min.js
+ */
 
 .FixedHeader_Cloned th {
   background-color: @white;
@@ -59,7 +63,10 @@
 }
 
 .dataTables_paginate {
+  // stylelint-disable declaration-block-no-duplicate-properties
   width: 44px;
+  *width: 50px;
+  // stylelint-enable declaration-block-no-duplicate-properties
   float: right;
   text-align: right;
   font-size: 12px;
@@ -106,7 +113,10 @@ table.display {
 }
 
 table.display thead th {
+  // stylelint-disable declaration-block-no-duplicate-properties
   cursor: pointer;
+  *cursor: hand;
+  // stylelint-enable declaration-block-no-duplicate-properties
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -201,10 +211,6 @@ tr.odd {
 
 .top .dataTables_info {
   float: none;
-}
-
-.clear {
-  clear: both;
 }
 
 .dataTables_empty {
