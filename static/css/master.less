@@ -3741,102 +3741,6 @@ div#headerLogin {
   display: none;
 }
 
-/* MIGRATE MODAL */
-
-#migrateModal {
-  display: none;
-}
-
-#modal-loader {
-  display: none;
-}
-
-.modal-loading {
-  position: absolute;
-  width: 175px;
-  right: 50%;
-  margin-right: -90px;
-  top: 275px;
-  height: 25px;
-}
-
-.modal-overlay {
-  position: fixed;
-  z-index: 9999;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  // stylelint-disable declaration-block-no-duplicate-properties
-  background-color: @black;
-  background-color: fade(@black, 40);
-  // stylelint-enable declaration-block-no-duplicate-properties
-}
-
-.modal-content {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  border-radius: 10px;
-  background-color: @modal-background-color;
-  margin: 150px auto 15% auto;
-  border: 1px solid @grey;
-  width: 350px;
-}
-
-.modal-header {
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
-  padding: 0px 20px;
-  background-color: @modal-header-background-color;
-  border-bottom: 1px solid @mid-grey;
-}
-
-.modal-header-copy-b {
-  display: none;
-}
-
-.modal-header-copy-c {
-  display: none;
-}
-
-.modal-header-copy {
-  text-shadow: 0 1px 0 @white;
-}
-
-.modal-header-copy h2 {
-  text-align: center;
-  color: @dark-grey;
-  text-shadow: 0 1px 0 @white;
-  font-size: 17px;
-  margin: 10px 0px 0px 0px;
-  font-weight: bold;
-}
-
-.modal-header-copy p {
-  color: @modal-header-color;
-}
-
-.modal-content a {
-  color: @link-blue;
-}
-
-.modal-icon {
-  position: relative;
-  top: -25px;
-  width: 60px;
-  height: 45px;
-  margin: 0 auto;
-}
-
-.modal-icon img {
-  width: 60px;
-  border-radius: 50%;
-  -webkit-box-shadow: 0px 0px 1px @black;
-  box-shadow: 0px 0px 1px @black;
-  border: 3px solid @white;
-}
-
 .formFieldsDecoration.error {
   padding: 5px;
   margin-bottom: 10px;
@@ -3845,19 +3749,6 @@ div#headerLogin {
   background-color: @black;
   background-color: fade(@red-two, 52);
   // stylelint-enable declaration-block-no-duplicate-properties
-}
-
-.xauth-switch {
-  background-color: @link-blue;
-  padding: 15px 20px;
-  color: @white;
-  line-height: 1em;
-  clear: both;
-  border-radius: 5px;
-}
-
-.xauth-switch a {
-  color: @white;
 }
 
 .defaultstyling {
@@ -3900,86 +3791,6 @@ hr.forgot-padding {
   font-size: 14px;
 }
 
-.modal-x {
-  color: @light-mid-grey;
-  float: right;
-  font-size: 20px;
-  position: relative;
-  right: -8px;
-  margin-top: 8px;
-}
-
-.modal-x:hover,
-.modal-x:focus {
-  color: @black;
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.modal-body {
-  border-bottom-left-radius: 10px;
-  border-bottom-right-radius: 10px;
-  background-color: @lightest-grey;
-  padding: 20px;
-  border-top: 1px solid @white;
-  -webkit-transition: all .35s cubic-bezier(.52, 0, .27, 1.01);
-  -o-transition: all .35s cubic-bezier(.52, 0, .27, 1.01);
-  transition: all .35s cubic-bezier(.52, 0, .27, 1.01);
-}
-
-.modal-body ul {
-  margin-left: 20px;
-}
-
-.modal-body ul li a {
-  line-height: 2.5em;
-  cursor: pointer;
-}
-
-.modal-create-form {
-  display: none;
-}
-
-.modal-connect-form {
-  display: none;
-}
-
-.modal-form {
-  margin-bottom: 15px;
-}
-
-.modal-form .formFields {
-  background-color: @white;
-  -webkit-border-radius: 5px;
-  -moz-border-radius: 5px;
-  border: 1px solid @mid-grey;
-  width: 100%;
-}
-
-.modal-form input {
-  padding: 10px;
-  -webkit-box-sizing: border-box;
-  box-sizing: border-box;
-  background-color: transparent;
-  webkit-text-fill-color: transparent !important;
-  border: none;
-  width: 100%;
-  margin: 0px;
-}
-
-.modal-form input.fake {
-  display: none;
-}
-
-.modal-form .inputbr {
-  border-bottom: 1px solid @lighter-grey;
-}
-
-.modal-form input:-webkit-autofill {
-  background-color: transparent !important;
-  webkit-text-fill-color: transparent !important;
-}
-
 .generic-button {
   text-decoration: none;
   padding: 13px 10px;
@@ -4000,37 +3811,6 @@ a.generic-button {
   padding: 13px 10px;
   border-radius: 3px;
   border: 1px solid @dark-red;
-}
-
-.modal-form button {
-  width: 100%;
-  border: none;
-  outline: none;
-  background: @mid-blue;
-  // stylelint-disable declaration-block-no-duplicate-properties
-  background-image: -webkit-linear-gradient(top, @mid-blue, @mid-blue-highlight);
-  background-image: -o-linear-gradient(top, @mid-blue, @mid-blue-highlight);
-  background-image: -webkit-gradient(linear, left top, left bottom, from(@mid-blue), to(@mid-blue-highlight));
-  background-image: linear-gradient(to bottom, @mid-blue, @mid-blue-highlight);
-  // stylelint-enable declaration-block-no-duplicate-properties
-  border-radius: 5px;
-  font-family: Arial;
-  color: @white;
-  font-size: 16px;
-  padding: 10px 20px 10px 20px;
-  text-decoration: none;
-}
-
-.modal-form button:hover {
-  background: @mid-blue-highlight-hover;
-  // stylelint-disable declaration-block-no-duplicate-properties
-  background-image: -webkit-linear-gradient(top, @mid-blue-highlight-hover, @mid-blue);
-  background-image: -o-linear-gradient(top, @mid-blue-highlight-hover, @mid-blue);
-  background-image: -webkit-gradient(linear, left top, left bottom, from(@mid-blue-highlight-hover), to(@mid-blue));
-  background-image: linear-gradient(to bottom, @mid-blue-highlight-hover, @mid-blue);
-  // stylelint-enable declaration-block-no-duplicate-properties
-  text-decoration: none;
-  cursor: pointer;
 }
 
 /* FOOTER */
@@ -4283,83 +4063,11 @@ div#resultsPublishers {
   float: left;
 }
 
-div#resultsAbout {
-  width: 918px;
-  margin-top: 30px;
-}
-
 div.editThis {
   margin-left: 20px;
 }
 
 /* HOME PAGE */
-div#homeSplash {
-  width: 958px;
-  height: 100px;
-  background: @lightest-grey url("/images/homesplash.jpg") no-repeat;
-  text-align: center;
-  padding-top: 100px;
-  overflow: hidden;
-}
-
-div#homeBlurb {
-  margin: 0 20%;
-  background-color: @red;
-  min-height: 100px;
-}
-
-div#homeBlurb p {
-  margin: 0;
-  padding: 15px 0;
-  font-size: 1.875em;
-  line-height: normal;
-  color: @white;
-  word-wrap: break-word;
-}
-
-div#homeStatement {
-  // stylelint-disable declaration-block-no-duplicate-properties
-  background: @lightest-grey -moz-linear-gradient(top, @white, @lighter-grey);
-  background: @lightest-grey -webkit-gradient(linear, left top, left bottom, from(@white), to(@lightest-grey), color-stop(1, @lightest-grey));
-  // stylelint-enable declaration-block-no-duplicate-properties
-  background-color: @lightest-grey;
-  filter: progid:DXImageTransform.Microsoft.Gradient(enabled='true', startColorstr=#ffffffFF, endColorstr=#ffeeeeEE);
-  text-align: center;
-  padding: 20px 0;
-  width: 958px;
-}
-
-div#homeStatement p {
-  font-size: 1.5em;
-  color: @dark-grey;
-  margin: 0;
-  word-wrap: break-word;
-}
-
-.home {
-  padding-top: 15px;
-  margin-bottom: 0 !important;
-}
-
-.home h3 {
-  margin-top: 5px;
-  margin-bottom: 15px;
-}
-
-.home p {
-  font-size: 0.8125em;
-}
-
-div#homeRecent .history {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-  font-size: 0.6875em;
-  padding-bottom: 10px;
-  color: @grey;
-}
-
-div#homeRecent .history .timestamp {
-  color: @grey;
-}
 
 .home-h2 {
   font-size: 1.2em;
@@ -4370,62 +4078,6 @@ div#homeRecent .history .timestamp {
 }
 
 /* NEW HOME PAGE */
-h1 a.header,
-h2 a.header,
-h3 a.header {
-  color: @teal!important;
-  text-decoration: none !important;
-}
-
-h1 a.header:hover,
-h2 a.header:hover,
-h3 a.header:hover {
-  color: @link-blue!important;
-  text-decoration: underline;
-}
-
-div.homeSplash {
-  width: 958px;
-  height: 100px;
-  background: @lightest-grey url("/images/homesplash.jpg") no-repeat 0 -45px;
-  text-align: center;
-  padding-top: 50px;
-  overflow: hidden;
-  margin-bottom: 20px;
-}
-
-div.homeBlurb {
-  margin: 0 20%;
-  background-color: @red;
-  min-height: 100px;
-}
-
-div.homeBlurb p {
-  margin: 0;
-  line-height: normal;
-  color: @white;
-  word-wrap: break-word;
-}
-
-div.homeBlurb a {
-  color: @white;
-}
-
-#homeBlurb1 {
-  font-size: 32px;
-  padding-top: 15px;
-  font-weight: 700;
-}
-
-#homeBlurb2 {
-  font-size: 28px;
-  padding-bottom: 15px;
-}
-
-#homeBlurb2 span.amp {
-  font-family: "Baskerville","Georgia","Times New Roman",serif;
-  font-style: italic;
-}
 
 ul#olBlog {
   margin: 0;
@@ -4450,12 +4102,6 @@ ul#olBlog li {
   right: 0px;
   cursor: pointer;
   z-index: 1000;
-}
-
-.coverEbookSubject {
-  position: absolute;
-  bottom: 40px;
-  padding-right: 75px;
 }
 
 .contentLists.results .SRPCover {
