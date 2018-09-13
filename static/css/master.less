@@ -1,7 +1,14 @@
 @charset "utf-8";
-@import (less) "colors.less";
-@import (less) "breakpoints.less";
-@import (less) "mixins.less";
+
+/**
+ * This is the main entry point for CSS for ALL pages.
+ * Any CSS loaded here will be render blocking.
+ * New components should be placed inside the components folder and imported
+ * either here or one of the other entry points.
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
 
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
