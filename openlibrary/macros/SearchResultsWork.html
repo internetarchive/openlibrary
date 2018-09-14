@@ -66,8 +66,8 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         </div>
       $if cta:
         <div class="searchResultItemCTA-lending">
-          $if availability:
-            $:macros.AvailabilityButton(doc, availability, user)
+          $if availability or doc.get('availability'):
+            $:macros.AvailabilityButton(doc, doc.get('availability') or availability, user)
         </div>
   </div>
 </li>
