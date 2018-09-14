@@ -6,6 +6,8 @@
     "test": "stylelint  --syntax less static/css/*.less"
   },
   "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-clean-css": "^3.10.0",
     "stylelint": "^9.5.0"
   }
 }
