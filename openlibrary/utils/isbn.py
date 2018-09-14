@@ -51,6 +51,8 @@ def isbn_13_to_isbn_10(isbn_13):
 
 def isbn_10_to_isbn_13(isbn_10):
     isbn_10 = isbn_10.replace('-', '')
+    if len(isbn_10) == 13:
+        return isbn_10
     try:
         if len(isbn_10) != 10 or not isbn_10[:-1].isdigit()\
         or check_digit_10(isbn_10[:-1]) != isbn_10[-1]:

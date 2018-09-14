@@ -23,7 +23,7 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
-from openlibrary.utils.isbn import isbn_13_to_isbn_10
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
@@ -801,6 +801,7 @@ def setup_template_globals():
         "zip": zip,
         "tuple": tuple,
         "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
+        'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
         "NEWLINE": "\n",
         "random": random.Random(),
 
