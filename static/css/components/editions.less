@@ -68,3 +68,47 @@ table#editions {
   }
 }
 
+
+.lists {
+  table#editions {
+    h3 {
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-size: .75em;
+      display: inline;
+    }
+    th {
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      background-color: transparent;
+      text-align: left;
+      font-weight: normal;
+      font-size: .6875em;
+      color: @brown;
+      padding: 0 0 10px 0;
+      border-left: none;
+      border-right: none;
+    }
+    td {
+      color: @dark-grey;
+      vertical-align: top;
+
+      &.what {
+        min-width: 410px;
+      }
+      &.when,
+      &.who,
+      &.que {
+        font-size: .75em;
+        padding: 10px 15px 10px 0;
+      }
+      .cover {
+        width: 40px;
+        padding-right: 10px;
+
+        img {
+          max-height: 35px;
+          max-width: 40px;
+        }
+      }
+    }
+  }
+}
