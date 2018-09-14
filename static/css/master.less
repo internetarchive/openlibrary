@@ -1,8 +1,16 @@
 @charset "utf-8";
-@import (less) "colors.less";
-@import (less) "breakpoints.less";
-@import (less) "mixins.less";
 
+/**
+ * This is the main entry point for CSS for ALL pages.
+ * Any CSS loaded here will be render blocking.
+ * New components should be placed inside the components folder and imported
+ * either here or one of the other entry points.
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+
+@import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header-bar.less";
 @import (less) "components/readinglog-stats.less";
@@ -17,98 +25,6 @@
 
 .subNav ul li{
   display: inline;
-}
-
-.carousel-container {
-  margin: 0px -20px;
-  padding: 3px 15px;
-}
-
-.carousel-container-decorated {
-  background: @book-cover-carousel-background;
-  border-bottom: 1px solid @book-cover-carousel-border-bottom;
-  border-top: 1px solid @book-cover-carousel-border-top;
-}
-
-.carousel-container .slick-slider {
-  overflow: visible;
-  margin-bottom: 0px;
-}
-
-.carousel {
-  .display-flex();
-  overflow-x: scroll;
-  padding: 10px 20px;
-}
-
-.carousel .slick-prev:before,
-.carousel .slick-next:before {
-  color: @primary-blue;
-  font-size: 35px;
-}
-
-.carousel .slick-prev:before {
-  margin-left: 15px;
-}
-
-.carousel .slick-prev,
-.carousel .slick-next {
-  width: auto;
-  height: auto;
-}
-
-.carousel .slick-next {
-  margin-right: 11px;
-}
-
-.carousel > div {
-  min-width: 130px;
-  margin: 0px 10px;
-}
-
-.carousel .book:last-child {
-  margin-right: 0px;
-}
-
-.carousel .book img.bookcover {
-  margin: 0 auto;
-  width: 130px;
-  height: 200px;
-  box-shadow: 1px 2px 5px 0px @book-cover-shadow-color;
-  border-radius: 3px;
-}
-
-.carousel .book .book-metadata {
-  width: 130px;
-  margin: 0px auto;
-}
-
-.carousel .book h2.book-title {
-  font-size: .8em;
-  margin: 5px 0px;
-  color: @dark-grey;
-  font-weight: normal;
-}
-
-.carousel .book h2.book-title a {
-  color: @link-blue;
-  text-decoration: none;
-}
-
-.carousel .category-item {
-  font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-}
-
-.carousel .book .book-cta {
-  background: @primary-blue;
-  border-radius: 3px;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  width: 130px;
-  margin: 0px auto;
-  margin-top: 5px;
-  text-align: center;
-  font-size: .9em;
-  padding: 5px 0px;
 }
 
 .book .book-cta a {
@@ -5034,10 +4950,6 @@ div#resultsCovers a {
 #contentLists.results .SRPCover img {
   height: 195px;
   width: 130px;
-}
-
-.carousel-section .SRPCover img {
-  box-shadow: 1px 2px 5px 0px @book-cover-shadow-color;
 }
 
 #contentLists.results .SRPCoverBlank {

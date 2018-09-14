@@ -20,7 +20,11 @@ all: git css js i18n
 css:
 	mkdir -p $(BUILD)
 	lessc static/css/all.less $(BUILD)/all.css
+	lessc static/css/all-js.less $(BUILD)/all-js.css
+	lessc static/css/book-widget.less $(BUILD)/book-widget.css
 	lessc static/css/books-edit.less $(BUILD)/books-edit.css
+	lessc static/css/design.less $(BUILD)/design.css
+	lessc static/css/dev.less $(BUILD)/dev.css
 
 js:
 	mkdir -p $(BUILD)

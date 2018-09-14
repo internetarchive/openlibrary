@@ -1,0 +1,102 @@
+.carousel-container {
+  margin: 0px -20px;
+  padding: 3px 15px;
+
+  .slick-slider {
+    overflow: visible;
+    margin-bottom: 0px;
+  }
+}
+  
+.carousel-container-decorated {
+  background: @book-cover-carousel-background;
+  border-bottom: 1px solid @book-cover-carousel-border-bottom;
+  border-top: 1px solid @book-cover-carousel-border-top;
+}
+  
+.carousel {
+  .display-flex();
+  overflow-x: scroll;
+  padding: 10px 20px;
+
+  > div {
+    min-width: 130px;
+    margin: 0px 10px;
+  }
+
+  .slick-prev,
+  .slick-next {
+    width: auto;
+    height: auto;
+
+    &:before,
+    &:before {
+      color: @primary-blue;
+      font-size: 35px;
+    }
+  }
+
+  .slick-prev:before {
+    margin-left: 15px;
+  }
+
+  .slick-next {
+    margin-right: 11px;
+  }
+
+  .book {
+    &:last-child {
+      margin-right: 0px;
+    }
+
+    img.bookcover {
+      margin: 0 auto;
+      width: 130px;
+      height: 200px;
+      box-shadow: 1px 2px 5px 0px @book-cover-shadow-color;
+      border-radius: 3px;
+    }
+
+    .book-metadata {
+      width: 130px;
+      margin: 0px auto;
+    }
+
+    h2.book-title {
+      font-size: .8em;
+      margin: 5px 0px;
+      color: @dark-grey;
+      font-weight: normal;
+
+      a {
+        color: @link-blue;
+        text-decoration: none;
+      }
+    }
+  }
+
+  .book-cta {
+    background: @primary-blue;
+    border-radius: 3px;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    width: 130px;
+    margin: 0px auto;
+    margin-top: 5px;
+    text-align: center;
+    font-size: .9em;
+    padding: 5px 0px;
+  }
+
+  .category-item {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  }
+}
+
+  
+.carousel-section {
+  .SRPCover {
+    img {
+      box-shadow: 1px 2px 5px 0px @book-cover-shadow-color;
+    }
+  }
+}
