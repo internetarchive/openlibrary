@@ -1,3 +1,8 @@
+/**
+ * Carousel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
+ */
+
 .carousel-container {
   margin: 0px -20px;
   padding: 3px 15px;
@@ -6,12 +11,6 @@
     overflow: visible;
     margin-bottom: 0px;
   }
-}
-  
-.carousel-container-decorated {
-  background: @book-cover-carousel-background;
-  border-bottom: 1px solid @book-cover-carousel-border-bottom;
-  border-top: 1px solid @book-cover-carousel-border-top;
 }
   
 .carousel {
@@ -92,7 +91,18 @@
   }
 }
 
-  
+/**
+ * Carousel (decorated)
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#decorated-carousel
+ */
+
+.carousel-container-decorated {
+  background: @book-cover-carousel-background;
+  border-bottom: 1px solid @book-cover-carousel-border-bottom;
+  border-top: 1px solid @book-cover-carousel-border-top;
+}
+
+// TODO: Document where this is used. This is unlikely to need to be so specific.
 .carousel-section {
   .SRPCover {
     img {
