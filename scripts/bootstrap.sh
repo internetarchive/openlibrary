@@ -40,8 +40,8 @@ apt-get install -y $APT_PACKAGES
 
 # Install `lessc` dependencies for css pre-processing
 npm config set strict-ssl false
-npm install -g less
-npm update -g less
+npm install
+npm update
 ln -nsf /usr/bin/nodejs /usr/bin/node
 
 PYTHON_PACKAGES=$OL_ROOT/test_requirements.txt
