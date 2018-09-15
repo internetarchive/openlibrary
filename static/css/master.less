@@ -13,6 +13,7 @@
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header-bar.less";
+@import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
 
 .clear {
@@ -7286,60 +7287,6 @@ div.dropper div.dropdown p.create a {
   text-decoration: none;
 }
 
-.lists table#editions th {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
-  background-color: transparent;
-  text-align: left;
-  font-weight: normal;
-  font-size: .6875em;
-  color: @brown;
-  padding: 0 0 10px 0;
-  border-left: none;
-  border-right: none;
-}
-
-.lists table#editions td {
-  color: @dark-grey;
-  vertical-align: top;
-}
-
-.lists table#editions td.what {
-  min-width: 410px;
-}
-
-.lists table#editions td.when,
-.lists table#editions td.who,
-.lists table#editions td.que {
-  font-size: .75em;
-  padding: 10px 15px 10px 0;
-}
-
-.lists table#editions .cover {
-  width: 40px;
-  padding-right: 10px;
-}
-
-.lists table#editions .cover img {
-  max-height: 35px;
-  max-width: 40px;
-}
-
-.lists table#editions h3 {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
-  font-size: .75em;
-  display: inline;
-}
-
-.lists table#editions span.author {
-  font-size: .75em;
-}
-
-.lists table#editions .published {
-  font-size: .6875em;
-  font-weight: normal;
-  color: @grey;
-}
-
 #listsDisplay h3 {
   display: inline;
   padding-right: 10px;
@@ -8138,28 +8085,8 @@ ul#myreads-paginator li.selected:hover {
   padding: 5px 0px;
 }
 
-.mybooks-list {
-  flex: 1;
-  padding: 10px;
-}
-
 .user-lists a {
   text-decoration: underline;
-}
-
-.mybooks-list h2 {
-  padding: 5px 0px;
-  margin: 0px;
-  line-height: 1.5em;
-  margin-bottom: 5px;
-}
-
-.mybooks-list h2.subtitle {
-  font-weight: normal;
-}
-
-.mybooks-list .loadmore {
-  text-align: center;
 }
 
 .mybooks-list-options {
