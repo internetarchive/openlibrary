@@ -1,9 +1,9 @@
 #!/usr/bin/python
 import unittest
 
-from parse import read_edition, SeeAlsoAsTitle, NoTitle
-from marc_binary import MarcBinary
-from marc_xml import MarcXml, BadSubtag, BlankTag
+from openlibrary.catalog.marc.parse import read_edition, SeeAlsoAsTitle, NoTitle
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
 from urllib import urlopen
 from lxml import etree
 import os

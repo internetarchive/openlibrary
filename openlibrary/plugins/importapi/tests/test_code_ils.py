@@ -1,6 +1,8 @@
 from .. import code
 import datetime
 from openlibrary.mocks.mock_infobase import MockSite
+"""Tests for Koha ILS (Integrated Library System) code.
+"""
 
 class Test_ils_cover_upload:
     def test_build_url(self):

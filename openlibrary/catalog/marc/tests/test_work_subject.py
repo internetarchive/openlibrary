@@ -1,8 +1,8 @@
-from marc_xml import MarcXml, BadSubtag, BlankTag
-from lxml import etree
-from marc_binary import MarcBinary
-from marc_subject import read_subjects, tidy_subject, four_types
+from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_subject import read_subjects, tidy_subject, four_types
 from collections import defaultdict
+from lxml import etree
 import os
 import pytest
 

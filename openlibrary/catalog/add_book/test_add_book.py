@@ -5,7 +5,7 @@ import os
 import pytest
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 from merge import try_merge
 from copy import deepcopy
 from urllib import urlopen
@@ -66,7 +66,7 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
         'languages': ['eng'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -89,7 +89,7 @@ def test_load_with_subjects(mock_site, ia_writeback):
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert w.title == 'Test item'
     assert w.subjects == ['Protected DAISY', 'In library']
@@ -102,30 +102,31 @@ def test_load_with_new_author(mock_site, ia_writeback):
         'source_records': 'ia:test_item',
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
-    if 'authors' in reply:
-        assert reply['authors'][0]['status'] == 'created'
-        assert reply['authors'][0]['name'] == 'John Doe'
-        akey1 = reply['authors'][0]['key']
-        assert akey1 == '/authors/OL1A'
-        a = mock_site.get(akey1)
-        assert w.authors
-        assert a.type.key == '/type/author'
+    assert reply['authors'][0]['status'] == 'created'
+    assert reply['authors'][0]['name'] == 'John Doe'
+    akey1 = reply['authors'][0]['key']
+    assert akey1 == '/authors/OL1A'
+    a = mock_site.get(akey1)
+    assert w.authors
+    assert a.type.key == '/type/author'
 
-    # Tests existing author is modified
+    # Tests an existing author is modified if an Author match is found, and more data is provided
+    # This represents an edition of another work by the above author.
     rec = {
-        'ocaid': 'test_item',
-        'title': 'Test item',
+        'ocaid': 'test_item1b',
+        'title': 'Test item1b',
         'authors': [{'name': 'Doe, John', 'entity_type': 'person'}],
-        'source_records': 'ia:test_item',
+        'source_records': 'ia:test_item1b',
     }
     reply = load(rec)
-    assert reply['success'] == True
-    # Below asserts imply the existing author should be updated, but these were never run:
-    #assert reply['authors'][0]['status'] == 'modified'
-    #akey2 = reply['authors'][0]['key']
-    #assert akey1 == akey2 == '/authors/OL1A'
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'created'
+    assert reply['authors'][0]['status'] == 'modified'
+    akey2 = reply['authors'][0]['key']
+    assert akey1 == akey2 == '/authors/OL1A'
 
     # Tests same title with different ocaid and author is not overwritten
     rec = {
@@ -146,8 +147,6 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert len(w.authors) == 1
     assert len(e.authors) == 1
 
-#def test_author_matching(mock_site):
-
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
@@ -156,7 +155,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'languages': ['eng'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -167,11 +166,10 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
         'source_records': ['ia:test_item'],
         # Titles MUST match to be considered the same
         'title': 'Test item',
-        # 'title': 'Different item',
         'languages': ['fre'],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc_3(mock_site, add_languages):
@@ -181,7 +179,7 @@ def test_from_marc_3(mock_site, add_languages):
     rec = read_edition(MarcBinary(data))
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
@@ -194,23 +192,21 @@ def test_from_marc_2(mock_site, add_languages):
     rec = read_edition(MarcBinary(data))
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     e = mock_site.get(reply['edition']['key'])
     assert e.type.key == '/type/edition'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc(mock_site, add_languages):
-    from openlibrary.catalog.marc.marc_binary import MarcBinary
-    from openlibrary.catalog.marc.parse import read_edition
 
     data = open('test_data/flatlandromanceo00abbouoft_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     akey1 = reply['authors'][0]['key']
     a = mock_site.get(akey1)
     assert a.type.key == '/type/author'
@@ -227,6 +223,7 @@ def test_build_pool(mock_site):
         'type': {'key': etype},
         'lccn': ['123'],
         'oclc_numbers': ['456'],
+        'ocaid': 'test00test',
         'key': ekey,
     }
 
@@ -236,10 +233,11 @@ def test_build_pool(mock_site):
         'lccn': ['/books/OL1M'],
         'oclc_numbers': ['/books/OL1M'],
         'title': ['/books/OL1M'],
+        'ocaid': ['/books/OL1M']
     }
 
-    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test',})
-    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], }
+    pool = build_pool({'lccn': ['234'], 'oclc_numbers': ['456'], 'title': 'test', 'ocaid': 'test00test'})
+    assert pool == { 'oclc_numbers': ['/books/OL1M'], 'title': ['/books/OL1M'], 'ocaid': ['/books/OL1M'] }
 
 def test_try_merge(mock_site):
     rec = {
@@ -253,12 +251,10 @@ def test_try_merge(mock_site):
     e = mock_site.get(ekey)
 
     rec['full_title'] = rec['title']
-    if rec.get('subtitle'):
-        rec['full_title'] += ' ' + rec['subtitle']
     e1 = build_marc(rec)
     add_db_name(e1)
-
-    assert try_merge(e1, ekey, e)
+    result = try_merge(e1, ekey, e)
+    assert result is True
 
 def test_load_multiple(mock_site):
     rec = {
@@ -268,21 +264,21 @@ def test_load_multiple(mock_site):
         'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
     }
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey1 = reply['edition']['key']
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey2 = reply['edition']['key']
     assert ekey1 == ekey2
 
     reply = load({'title': 'Test item', 'source_records': ['ia:test_item2'], 'lccn': ['456']})
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey3 = reply['edition']['key']
     assert ekey3 != ekey1
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     ekey4 = reply['edition']['key']
 
     assert ekey1 == ekey2 == ekey4
@@ -312,10 +308,10 @@ def test_from_marc(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
     ia = 'flatlandromanceo00abbouoft'
@@ -324,10 +320,10 @@ def test_from_marc(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['ia:' + ia]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
 def test_real_example(mock_site, add_languages):
@@ -336,9 +332,9 @@ def test_real_example(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
     src = 'v39.i28.records.utf8--5362776-1764'
@@ -346,7 +342,7 @@ def test_real_example(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'modified'
 
 def test_missing_ocaid(mock_site, add_languages):
@@ -356,11 +352,11 @@ def test_missing_ocaid(mock_site, add_languages):
     rec = read_edition(marc)
     rec['source_records'] = ['marc:testdata.mrc']
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     rec['source_records'] = ['ia:' + ia]
     rec['ocaid'] = ia
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     e = mock_site.get(reply['edition']['key'])
     assert e.ocaid == ia
     assert 'ia:' + ia in e.source_records
@@ -397,14 +393,14 @@ def test_extra_author(mock_site, add_languages):
     rec['source_records'] = ['ia:' + ia]
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
 
     w = mock_site.get(reply['work']['key'])
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
-    #assert len(w['authors']) == 1
+    assert len(w['authors']) == 1
 
 def test_missing_source_records(mock_site, add_languages):
     mock_site.save({
@@ -459,7 +455,7 @@ def test_missing_source_records(mock_site, add_languages):
     rec['source_records'] = ['ia:' + ia]
 
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     e = mock_site.get(reply['edition']['key'])
     assert 'source_records' in e
 
@@ -507,14 +503,12 @@ def test_no_extra_author(mock_site, add_languages):
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
-
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
 
     a = mock_site.get(reply['authors'][0]['key'])
 
-    if 'authors' in reply:
-        assert reply['authors'][0]['key'] == author['key']
+    assert reply['authors'][0]['key'] == author['key']
     assert reply['edition']['key'] == edition['key']
     assert reply['work']['key'] == work['key']
 
@@ -525,7 +519,14 @@ def test_no_extra_author(mock_site, add_languages):
     assert len(w['authors']) == 1
 
 def test_don_quixote(mock_site):
-    return
+    """
+    All of these items are by 'Miguel de Cervantes Saavedra',
+    only one Author should be created. Some items have bad
+    MARC length, others are missing binary MARC altogether
+    and raise BadMARC exceptions.
+    """
+    pytest.skip("This test make live requests to archive.org")
+
     dq = [u'lifeexploitsofin01cerv', u'cu31924096224518',
         u'elingeniosedcrit04cerv', u'ingeniousgentlem01cervuoft',
         u'historyofingenio01cerv', u'lifeexploitsofin02cerviala',
@@ -568,39 +569,65 @@ def test_don_quixote(mock_site):
         u'firstpartofdelig14cerv', u'donquixotemanofl00cerv',
         u'firstpartofdelig00cerv']
 
+    bad_length = []
+    bad_marc = []
+
     add_languages(mock_site)
     edition_status_counts = defaultdict(int)
     work_status_counts = defaultdict(int)
     author_status_counts = defaultdict(int)
-    for num, ia in enumerate(dq):
-        marc_url = 'http://archive.org/download/%s/%s_meta.mrc' % (ia, ia)
+
+    for ocaid in dq:
+        marc_url = 'https://archive.org/download/%s/%s_meta.mrc' % (ocaid, ocaid)
         data = urlopen(marc_url).read()
-        if '<title>Internet Archive: Page Not Found</title>' in data:
+        try:
+            marc = MarcBinary(data)
+        except BadLength:
+            bad_length.append(ocaid)
             continue
-        marc = MarcBinary(data)
+        except BadMARC:
+            bad_marc.append(ocaid)
+            continue
+
         rec = read_edition(marc)
-        rec['source_records'] = ['ia:' + ia]
+        rec['source_records'] = ['ia:' + ocaid]
         reply = load(rec)
+
         q = {
             'type': '/type/work',
             'authors.author': '/authors/OL1A',
         }
         work_keys = list(mock_site.things(q))
-        assert work_keys
+        author_keys = list(mock_site.things({'type': '/type/author'}))
+        print("\nReply for %s: %s" % (ocaid, reply))
+        print("Work keys: %s" % work_keys)
+        assert author_keys == ['/authors/OL1A']
+        assert reply['success'] is True
 
-        assert reply['success'] == True
+        # Increment status counters
+        edition_status_counts[reply['edition']['status']] += 1
+        work_status_counts[reply['work']['status']] += 1
+        if (reply['work']['status'] != 'matched') and (reply['edition']['status'] != 'modified'):
+            # No author key in response if work is 'matched'
+            # No author key in response if edition is 'modified'
+            author_status_counts[reply['authors'][0]['status']] += 1
+
+    print("BAD MARC LENGTH items: %s" % bad_length)
+    print("BAD MARC items: %s" % bad_marc)
+    print("Edition status counts: %s" % edition_status_counts)
+    print("Work status counts: %s" % work_status_counts)
+    print("Author status counts: %s" % author_status_counts)
 
 def test_same_twice(mock_site, add_languages):
     rec = {
             'source_records': ['ia:test_item'],
             "publishers": ["Ten Speed Press"], "pagination": "20 p.", "description": "A macabre mash-up of the children's classic Pat the Bunny and the present-day zombie phenomenon, with the tactile features of the original book revoltingly re-imagined for an adult audience.", "title": "Pat The Zombie", "isbn_13": ["9781607740360"], "languages": ["eng"], "isbn_10": ["1607740362"], "authors": [{"entity_type": "person", "name": "Aaron Ximm", "personal_name": "Aaron Ximm"}], "contributions": ["Kaveh Soofi (Illustrator)"]}
     reply = load(rec)
-    assert reply['success'] == True
+    assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
+
     reply = load(rec)
-
-    assert reply['success'] == True
-    assert reply['edition']['status'] != 'created'
-    assert reply['work']['status'] != 'created'
-
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'matched'
+    assert reply['work']['status'] == 'matched'
