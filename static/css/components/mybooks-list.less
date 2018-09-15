@@ -1,0 +1,29 @@
+/**
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#mybooks-list
+ * Used in:
+ * - openlibrary/templates/account/books.html
+ * - openlibrary/templates/stats/readinglog.html
+ *
+ * http://localhost:8080/account/books/currently-reading
+ * http://localhost:8080/stats/readinglog
+ */
+
+.mybooks-list {
+  flex: 1;
+  padding: 10px;
+
+  h2 {
+    padding: 5px 0px;
+    margin: 0px;
+    line-height: 1.5em;
+    margin-bottom: 5px;
+
+    &.subtitle {
+      font-weight: normal;
+    }
+  }
+
+  .loadmore {
+    text-align: center;
+  }
+}
