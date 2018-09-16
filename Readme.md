@@ -9,15 +9,15 @@
    - [Installation](#installation)
    - [Code Organization](#code-organization)
    - [Architecture](#architecture)
-     - [The Frontend](#the-frontend)
+     - [The Frontend](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
      - [The Backend](#the-backend)
-     - [The Service Architecture](#the-service-architecture)
+     - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
-   - [Contributing](#contributing)
+   - [Contributing](CONTRIBUTING.md)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
-   - [License](#license)
+   - [License](LICENSE)
 
 ## Overview
 
@@ -86,10 +86,6 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ## Architecture
 
-### The Frontend
-
-- [Overview of Frontend Technologies](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
-
 ### The Backend
 
 OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
@@ -99,10 +95,6 @@ OpenLibrary is developed on top of the Infogami wiki system, which is itself bui
 Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase):
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
-
-### The Service Architecture
-
-- [Overview of OpenLibrary Service Architecture](https://openlibrary.org/about/architecture)
 
 ## Running tests
 
@@ -118,11 +110,3 @@ make test
 ### Integration Tests
 
 Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
-
-## Contributing
-
-[Check out our contributor's guide](CONTRIBUTING.md) to learn how you can contribute!
-
-## License
-
-All source code published here is available under the terms of the GNU Affero General Public License, version 3. Please see http://gplv3.fsf.org/ for more information.
