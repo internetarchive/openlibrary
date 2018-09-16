@@ -6,6 +6,7 @@
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,
 		"indentation": 2,
-		"function-url-quotes": "never"
+		"function-url-quotes": "never",
+		"length-zero-no-unit": true
 	}
 }
