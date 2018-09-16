@@ -122,6 +122,15 @@ def get_subfields(line, want):
     return (i for i in line['seq'] if i[0] in want)
 
 def read_edition(f):
+    """
+    DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcXml)
+    Converts MARC XML into a dict representation of an edition
+    suitable for importing into Open Library.
+
+    :param f: MARC XML
+    :rtype: dict
+    :return: Edition representation
+    """
     edition = {}
     want = ['008', '010', '020', '035', \
             '100', '110', '111', '700', '710', '711', '245', '260', '300']
@@ -174,34 +183,3 @@ def read_edition(f):
                         or max_page_num > edition['number_of_pages']:
                     edition['number_of_pages'] = max_page_num
     return edition
-
-def test_parse():
-    expect = {
-        'publisher': ['Univ. Press'],
-        'number_of_pages': 128,
-        'full_title': 'Human efficiency and levels of intelligence.',
-        'publish_date': '1920',
-        'publish_country': 'nju',
-        'authors': [{
-            'db_name': 'Goddard, Henry Herbert.',
-            'name': 'Goddard, Henry Herbert.'
-        }],
-    }
-
-    assert read_edition("humanefficiencyl00godduoft") == expect
-
-def test_xml():
-    f = open('test_data/nybc200247_marc.xml')
-    lines = get_tag_lines(f, ['245'])
-    for tag, line in lines:
-        title = list(get_subfields(line, ['a']))[0][1]
-        print title
-        print normalize('NFC', title)
-#    print read_edition(open('test_data/nybc200247_marc.xml'))['full_title']
-
-def test_yale_xml():
-    f = open('test_data/39002054008678.yale.edu_marc.xml')
-    read_edition(f)
-    f.close()
-
-#test_yale_xml()

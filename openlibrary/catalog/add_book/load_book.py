@@ -1,5 +1,5 @@
 import web, re, os
-from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
+from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 
 def east_in_by_statement(rec, author):
     if 'by_statement' not in rec:
@@ -15,7 +15,12 @@ def east_in_by_statement(rec, author):
     return rec['by_statement'].find(name) != -1
 
 def do_flip(author):
-    # given an author name flip it in place
+    """
+    Given an author import dict, flip its name in place
+    i.e. Smith, John => John Smith
+
+    :param dict author:
+    """
     if 'personal_name' not in author:
         return
     if author['personal_name'] != author['name']:
@@ -34,7 +39,14 @@ def do_flip(author):
     author['name'] = name
     author['personal_name'] = name
 
-def find_author(name, send_mail=True):
+def find_author(name):
+    """
+    Searches OL for an author by name.
+
+    :param str name: Author's name
+    :rtype: list
+    :return: A list of OL author representations than match name
+    """
     def walk_redirects(obj, seen):
         seen.add(obj['key'])
         while obj['type']['key'] == '/type/redirect':
@@ -51,7 +63,15 @@ def find_author(name, send_mail=True):
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
 
-def pick_from_matches(author, match): # no DB calls in this function
+def pick_from_matches(author, match):
+    """
+    Finds the best match for author from a list of OL authors records, match.
+
+    :param dict author: Author import representation
+    :param list match: List of matching OL author records
+    :rtype: dict
+    :return: A single OL author record from match
+    """
     maybe = []
     if 'birth_date' in author and 'death_date' in author:
         maybe = [m for m in match if 'birth_date' in m and 'death_date' in m]
@@ -63,7 +83,15 @@ def pick_from_matches(author, match): # no DB calls in this function
         return maybe[0]
     return min(maybe, key=key_int)
 
-def find_entity(author): # no direct DB calls
+def find_entity(author):
+    """
+    Looks for an existing Author record in OL
+    and returns it if found.
+
+    :param dict author: Author import dict
+    :rtype: dict|None
+    :return: Existing Author record, if one is found
+    """
     name = author['name']
     things = find_author(name)
     et = author.get('entity_type')
@@ -95,14 +123,18 @@ def find_entity(author): # no direct DB calls
         return None
     if len(match) == 1:
         return match[0]
-    try:
-        return pick_from_matches(author, match)
-    except ValueError:
-        print 'author:', author
-        print 'match:', match
-        raise
+    return pick_from_matches(author, match)
 
 def import_author(author, eastern=False):
+    """
+    Converts an import stlye Author dictionary into an
+    Open Library author representation.
+
+    :param dict author: Author import record
+    :param bool eastern: Eastern name order
+    :rtype: dict
+    :return: Open Library style Author representation
+    """
     existing = find_entity(author)
     if existing:
         assert existing.type.key == '/type/author'
@@ -130,25 +162,32 @@ class InvalidLanguage(Exception):
 type_map = { 'description': 'text', 'notes': 'text', 'number_of_pages': 'int' }
 
 def build_query(rec):
+    """
+    Takes an edition record dict, rec, and returns an Open Library edition
+    suitable for saving.
+
+    :param dict rec: Edition record to add to Open Library
+    :rtype: dict
+    :return: Open Library style edition representation
+    """
     book = {
         'type': { 'key': '/type/edition'},
     }
 
-
     for k, v in rec.iteritems():
         if k == 'authors':
             if v and v[0]:
-                book[k] = []
+                book['authors'] = []
                 for author in v:
                     east = east_in_by_statement(rec, author)
-                    book[k].append(import_author(author, eastern=east))
+                    book['authors'].append(import_author(author, eastern=east))
             continue
         if k == 'languages':
             langs = []
             for l in v:
                 if web.ctx.site.get('/languages/' + l) is None:
                     raise InvalidLanguage(l)
-            book[k] = [{'key': '/languages/' + l} for l in v]
+            book['languages'] = [{'key': '/languages/' + l} for l in v]
             continue
         if k in type_map:
             t = '/type/' + type_map[k]

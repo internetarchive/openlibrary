@@ -19,12 +19,12 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	lessc static/css/all.less $(BUILD)/all.css
-	lessc static/css/all-js.less $(BUILD)/all-js.css
-	lessc static/css/book-widget.less $(BUILD)/book-widget.css
-	lessc static/css/books-edit.less $(BUILD)/books-edit.css
-	lessc static/css/design.less $(BUILD)/design.css
-	lessc static/css/dev.less $(BUILD)/dev.css
+	lessc -x static/css/all.less $(BUILD)/all.css
+	lessc -x static/css/all-js.less $(BUILD)/all-js.css
+	lessc -x static/css/book-widget.less $(BUILD)/book-widget.css
+	lessc -x static/css/books-edit.less $(BUILD)/books-edit.css
+	lessc -x static/css/design.less $(BUILD)/design.css
+	lessc -x static/css/dev.less $(BUILD)/dev.css
 
 js:
 	mkdir -p $(BUILD)
@@ -90,4 +90,5 @@ reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
 
 test:
+	npm install && npm test
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog
