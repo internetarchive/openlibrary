@@ -33,8 +33,7 @@ docker-compose stop
 docker-compose rm -v
 ```
 
-Note: You must build `olbase` first before `oldev`. Currently (August 2018) the division is a bit arbitrary. More should be moved into `olbase` once we clarify
-the production deployment requirements. Currently these docker images are only intented for development environments.
+Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a test databse and any other tools that are helpful for local development. Currently (Sep 2018) these docker images are only intented for development environments.
 
 This exposes the following ports:
 
