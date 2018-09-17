@@ -14,6 +14,7 @@ from infogami import config
 from infogami.utils import stats
 
 from openlibrary.utils import olmemcache
+from openlibrary.utils.dateutil import MINUTE_SECS
 
 __all__ = [
     "cached_property",
@@ -21,11 +22,7 @@ __all__ = [
     "memoize", "memcache_memoize"
 ]
 
-DEFAULT_CACHE_LIFETIME = 120  # seconds
-HOUR = 60 * 60
-DAY = HOUR * 24
-HALF_DAY = HOUR * 12
-ONE_WEEK = DAY * 7
+DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
 
 
 class memcache_memoize:
@@ -43,7 +40,7 @@ class memcache_memoize:
     :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
     """
-    def __init__(self, f, key_prefix=None, timeout=60):
+    def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS):
         """Creates a new memoized function for ``f``.
         """
         self.f = f

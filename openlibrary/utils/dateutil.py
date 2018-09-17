@@ -1,6 +1,36 @@
 """Generic date utilities.
 """
+
 import datetime
+import calendar
+
+
+MINUTE_SECS = 60
+HOUR_SECS = MINUTE_SECS * 60
+HALF_DAY_SECS = HOUR_SECS * 12
+DAY_SECS = HOUR_SECS * 24
+WEEK_SECS = DAY_SECS * 7
+
+
+def days_in_current_month():
+    now = datetime.datetime.now()
+    return calendar.monthrange(now.year, now.month)[1]
+
+
+def date_n_days_ago(n=None, start=None):
+    """
+    Args:
+        n (int) - number of days since start
+        start (date) - date to start counting from (default: today)
+    Returns:
+        A (datetime.date) of `n` days ago if n is provided, else None
+    """
+    _start = start or datetime.date.today()
+    return (_start - datetime.timedelta(days=n)) if n else None
+
+
+DATE_ONE_MONTH_AGO = date_n_days_ago(n=days_in_current_month())
+DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
 
 def parse_date(datestr):
     """Parses date string.
@@ -58,13 +88,3 @@ def _resize_list(x, size):
     if len(x) < size:
         x += [None] * (size - len(x))
 
-def date_n_days_ago(n=None, start=None):
-    """
-    Args:
-        n (int) - number of days since start
-        start (date) - date to start counting from (defaut: today)
-    Returns:
-        A (datetime.date) of `n` days ago if n is provided, else None
-    """
-    _start = start or datetime.date.today()
-    return (_start - datetime.timedelta(days=n)) if n else None

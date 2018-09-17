@@ -1,9 +1,22 @@
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 from . import db
-from openlibrary.core.bookshelves import Bookshelves
+
 
 class Ratings(object):
 
     VALID_STAR_RATINGS = range(6)  # inclusive: [0 - 5] (0-5 star)
+
+    @classmethod
+    def summary(cls):
+        return {
+            'total_books_starred': {
+                'total': Ratings.total_num_books_rated(),
+                'month': Ratings.total_num_books_rated(since=DATE_ONE_MONTH_AGO),
+                'week': Ratings.total_num_books_rated(since=DATE_ONE_WEEK_AGO),
+                'unique': Ratings.total_num_unique_raters()
+            }
+        }
 
     @classmethod
     def total_num_books_rated(cls, since=None, distinct=False):
@@ -26,10 +39,10 @@ class Ratings(object):
     @classmethod
     def most_rated_books(cls, limit=10, since=False):
         oldb = db.get_db()
-        query = ('select work_id, count(*) as cnt from ratings group '
-                 'by work_id order by cnt desc limit $limit')
+        query = 'select work_id, count(*) as cnt from ratings '
         if since:
             query += " WHERE created >= $since"
+        query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={'limit': limit, 'since': since}))
 
     @classmethod
@@ -80,6 +93,8 @@ class Ratings(object):
 
     @classmethod
     def add(cls, username, work_id, rating, edition_id=None):
+        from openlibrary.core.bookshelves import Bookshelves
+
         oldb = db.get_db()
         work_id = int(work_id)
         data = {'work_id': work_id, 'username': username}
