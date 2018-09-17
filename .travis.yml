@@ -10,7 +10,9 @@ addons:
   postgresql: "9.3"
 python:
     - "2.7"
-install: pip install -r test_requirements.txt
+install:
+  - pip install -r test_requirements.txt
+  - npm install
 before_script:
   - psql -c 'create database oltest' -U postgres
   - PYTHONPATH=. python openlibrary/core/schema.py | psql -U postgres oltest
