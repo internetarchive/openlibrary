@@ -5,15 +5,10 @@ addons:
     packages:
       - libgeoip-dev
       - python-lxml
-      - python-psycopg2
       - python-yaml
-  postgresql: "9.3"
 python:
     - "2.7"
 install:
   - pip install -r test_requirements.txt
   - npm install
-before_script:
-  - psql -c 'create database oltest' -U postgres
-  - PYTHONPATH=. python openlibrary/core/schema.py | psql -U postgres oltest
 script: make test
