@@ -2,13 +2,11 @@ FROM olbase
 
 WORKDIR /openlibrary
 
-# TODO: Find safer way to update conf
 USER openlibrary
-RUN sed -i 's/127.0.0.1:8080/127.0.0.1/g' conf/openlibrary.yml # Fix dev IA s3 endpoints
-RUN sed -i 's/localhost:8983/solr:8080/g' conf/openlibrary.yml # Fix Solr endpoint
-RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump # Replace user in dev db dump
 
 # Setup db
+# Replace user in dev db dump
+RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
 USER postgres
 RUN /etc/init.d/postgresql start \
   && createuser -s openlibrary \

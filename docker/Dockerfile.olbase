@@ -52,4 +52,4 @@ RUN make
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
-CMD authbind --deep scripts/openlibrary-server conf/openlibrary.yml --gunicorn -w4 -t180 -b:80
+CMD authbind --deep scripts/openlibrary-server conf/openlibrary-docker.yml --gunicorn -w4 -t180 -b:80
