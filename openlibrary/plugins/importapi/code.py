@@ -227,7 +227,8 @@ class ia_importapi:
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
 
             #TODO: Look up URN prefixes to support more sources
-            edition['local_id'] = ['urn:trent:%s' % rec.get_fields('001')[0]]
+            prefix = 'trent'
+            edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in rec.get_fields('001')]
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
