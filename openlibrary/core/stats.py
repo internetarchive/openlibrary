@@ -53,8 +53,3 @@ def increment(key, n=1):
 
 
 client = create_stats_client()
-
-
-
-
-

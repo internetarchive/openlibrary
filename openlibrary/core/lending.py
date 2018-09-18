@@ -16,21 +16,18 @@ from infogami.utils import delegate
 from openlibrary.core import cache
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
+from openlibrary.utils import dateutil
+
 from . import ia
 from . import msgbroker
 from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
-# How long bookreader loans should last
-BOOKREADER_LOAN_DAYS = 14
-BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
-
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
 # OL periodically to get fresh tokens.
-BOOKREADER_AUTH_SECONDS = 10*60
-
+BOOKREADER_AUTH_SECONDS = dateutil.MINUTE_SECS * 10
 
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
@@ -39,11 +36,15 @@ BOOKREADER_AUTH_SECONDS = 10*60
 # $$$ If a user borrows an ACS4 book and immediately returns book loan will show as
 #     "not yet downloaded" for the duration of the timeout.
 #     BookReader loan status is always current.
-LOAN_FULFILLMENT_TIMEOUT_SECONDS = 60*5
+LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
+
+# How long bookreader loans should last
+BOOKREADER_LOAN_DAYS = 14
+
+BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
 DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 
-CACHE_WORKS_DURATION = 60 * 60 * 12
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -113,7 +114,7 @@ def get_work_authors_and_related_subjects(work_id):
 def cached_work_authors_and_subjects(work_id):
     return cache.memcache_memoize(
         get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-        timeout=CACHE_WORKS_DURATION)(work_id)
+        timeout=dateutil.HALF_DAY_SECS)(work_id)
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
@@ -485,8 +486,7 @@ class Loan(dict):
         if resource_type == "bookreader":
             resource_id = "bookreader:" + identifier
             loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            t_expiry = datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
-            expiry = t_expiry.isoformat()
+            expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
         else:
             raise Exception('No longer supporting ACS borrows directly from Open Library. Please go to Archive.org')
 

@@ -62,7 +62,15 @@ $def with (stats)
     <h3>Most Wanted Books (All Time)</h3>
     <div class="mybooks-list">
       <ul class="list-books" id="siteSearch">
-        $for book in stats['leaderboard']['most_wanted']: 
+        $for book in stats['leaderboard']['most_wanted_all']:
+            $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
+      </ul>
+    </div>
+
+    <h3>Most Wanted Books (This Month)</h3>
+    <div class="mybooks-list">
+      <ul class="list-books" id="siteSearch">
+        $for book in stats['leaderboard']['most_wanted_month']:
             $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
       </ul>
     </div>
@@ -72,6 +80,15 @@ $def with (stats)
     <div class="mybooks-list">
       <ul class="list-books" id="siteSearch">
         $for book in stats['leaderboard']['most_read']:
+            $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
+      </ul>
+    </div>
+
+    <h2>Most Rated Books</h2>
+    <h3>Most Rated Books (All Time)</h3>
+    <div class="mybooks-list">
+      <ul class="list-books" id="siteSearch">
+        $for book in stats['leaderboard']['most_rated_all']:
             $:macros.SearchResultsWork(book['work'], decorations="Added %s %s" % (book['cnt'], 'times' if book['cnt'] > 0 else 'time'))
       </ul>
     </div>

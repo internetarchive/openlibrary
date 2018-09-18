@@ -13,6 +13,7 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.core import admin, cache, ia, inlibrary, lending, \
     helpers as h
+from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
@@ -88,8 +89,7 @@ def get_featured_subjects():
 @public
 def get_cached_featured_subjects():
     return cache.memcache_memoize(
-        get_featured_subjects, "home.featured_subjects", timeout=cache.HOUR)()
-
+        get_featured_subjects, "home.featured_subjects", timeout=dateutil.HOUR_SECS)()
 
 @public
 def generic_carousel(query=None, subject=None, work_id=None, _type=None,

@@ -1,4 +1,7 @@
+from openlibrary.utils.dateutil import DATE_ONE_MONTH_AGO, DATE_ONE_WEEK_AGO
+
 from . import db
+
 
 class Bookshelves(object):
 
@@ -7,6 +10,21 @@ class Bookshelves(object):
         'Currently Reading': 2,
         'Already Read': 3
     }
+
+    @classmethod
+    def summary(cls):
+        return {
+            'total_books_logged': {
+                'total': Bookshelves.total_books_logged(),
+                'month': Bookshelves.total_books_logged(since=DATE_ONE_MONTH_AGO),
+                'week': Bookshelves.total_books_logged(since=DATE_ONE_WEEK_AGO)
+            },
+            'total_users_logged': {
+                'total': Bookshelves.total_unique_users(),
+                'month': Bookshelves.total_unique_users(since=DATE_ONE_MONTH_AGO),
+                'week': Bookshelves.total_unique_users(since=DATE_ONE_WEEK_AGO)
+            }
+        }
 
     @classmethod
     def total_books_logged(cls, shelf_ids=None, since=None):
@@ -56,9 +74,10 @@ class Bookshelves(object):
         for "Want to Read").
         """
         oldb = db.get_db()
-        query = 'select work_id, count(*) as cnt from bookshelves_books where bookshelf_id=$shelf_id group by work_id order by cnt desc limit $limit'
+        query = 'select work_id, count(*) as cnt from bookshelves_books WHERE bookshelf_id=$shelf_id '
         if since:
-            query += " WHERE created >= $since"
+            query += " AND created >= $since"
+        query += ' group by work_id order by cnt desc limit $limit'
         return list(oldb.query(query, vars={'shelf_id': shelf_id, 'limit': limit, 'since': since}))
 
     @classmethod
