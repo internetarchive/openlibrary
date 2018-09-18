@@ -146,38 +146,31 @@ class importapi:
     """
     def POST(self):
         web.header('Content-Type', 'application/json')
-
         if not can_write():
             raise web.HTTPError('403 Forbidden')
 
         data = web.data()
-        error_code = "unknown_error"
 
         try:
             edition, format = parse_data(data)
         except DataError, e:
-            edition = None
-            error_code = str(e)
+            return self.error(str(e), 'Failed to parse Edition data')
 
-        #call Edward's code here with the edition dict
-        if edition:
-            #source_url = None
+        if not edition:
+            return self.error('unknown_error', 'Failed to parse Edition data')
 
-            ## Anand - July 2014
-            ## This is adding source_records as [null] as queue_s3_upload is disabled.
-            ## Disabling this as well to fix the issue.
+        ## Anand - July 2014
+        ## This is adding source_records as [null] as queue_s3_upload is disabled.
+        ## Disabling this as well to fix the issue.
+        #source_url = None
+        # if 'source_records' not in edition:
+        #     source_url = queue_s3_upload(data, format)
+        #     edition['source_records'] = [source_url]
 
-            # if 'source_records' not in edition:
-            #     source_url = queue_s3_upload(data, format)
-            #     edition['source_records'] = [source_url]
-
-            reply = add_book.load(edition)
-            #if source_url:
-            #    reply['source_record'] = source_url
-            return json.dumps(reply)
-        else:
-            content = json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
-            raise web.HTTPError('400 Bad Request', {}, content)
+        reply = add_book.load(edition)
+        #if source_url:
+        #    reply['source_record'] = source_url
+        return json.dumps(reply)
 
 class ia_importapi:
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
