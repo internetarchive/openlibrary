@@ -1,6 +1,8 @@
 {
   "name": "openlibrary",
   "version": "1.0.0",
+  "repository": "github:internetarchive:openlibrary",
+  "license": "AGPL-3.0",
   "scripts": {
     "lint:fix": "stylelint --syntax less --fix static/css/",
     "test": "stylelint  --syntax less static/css/"
