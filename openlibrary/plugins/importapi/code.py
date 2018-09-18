@@ -215,12 +215,13 @@ class ia_importapi:
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
+                next_data = {'next_record_offset': next_offset, 'next_record_length': next_length}
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
             except MarcException as e:
                 details = "%s: %s" % (identifier, str(e))
                 logger.error("failed to read from bulk MARC record %s", details)
-                return self.error('invalid-marc-record', details)
+                return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:5])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
@@ -229,9 +230,8 @@ class ia_importapi:
             edition['local_id'] = ['urn:trent:%s' % rec.get_fields('001')[0]]
             result = add_book.load(edition)
 
-            # Add record_length to the response as location of next record:
-            result['next_record_offset'] = next_offset
-            result['next_record_length'] = next_length
+            # Add next_data to the response as location of next record:
+            result.update(next_data)
 
             return json.dumps(result)
 
@@ -387,13 +387,14 @@ class ia_importapi:
         }
         return json.dumps(reply)
 
-    def error(self, error_code, error="Invalid item"):
-        content = json.dumps({
-            "success": False,
-            "error_code": error_code,
-            "error": error
-        })
-        raise web.HTTPError('400 Bad Request', {}, content)
+    def error(self, error_code, error='Invalid item', **kwargs):
+        content = {
+            'success': False,
+            'error_code': error_code,
+            'error': error
+        }
+        content.update(kwargs)
+        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
 
 class ils_search:
     """Search and Import API to use in Koha.
