@@ -1,16 +1,13 @@
 from openlibrary.catalog.marc import fast_parse
 #TODO: Move fast_parse get_tag_lines(), handle_wrapped_lines(), get_all_tag_lines() into this class
-from marc_base import MarcBase
+from marc_base import MarcBase, MarcException, BadMARC
 from unicodedata import normalize
 from pymarc import MARC8ToUnicode
 from openlibrary.catalog.marc import mnemonics
 
 marc8 = MARC8ToUnicode(quiet=True)
 
-class BadLength(Exception):
-    pass
-
-class BadMARC(Exception):
+class BadLength(MarcException):
     pass
 
 def norm(s):
@@ -88,9 +85,9 @@ class MarcBinary(MarcBase):
             assert len(data) and isinstance(data, basestring)
             length = int(data[:5])
         except:
-            raise BadMARC
+            raise BadMARC("No MARC data found")
         if len(data) != length:
-            raise BadLength
+            raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
         self.data = data
 
     def leader(self):

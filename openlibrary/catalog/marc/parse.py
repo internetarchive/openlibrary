@@ -2,6 +2,7 @@ import re
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 from get_subjects import subjects_for_work
 from collections import defaultdict
+from marc_base import BadMARC, NoTitle, MarcException
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -17,10 +18,7 @@ foc = '[from old catalog]'
 def strip_foc(s):
     return s[:-len(foc)].rstrip() if s.endswith(foc) else s
 
-class NoTitle(Exception):
-    pass
-
-class SeeAlsoAsTitle(Exception):
+class SeeAlsoAsTitle(MarcException):
     pass
 
 want = [
@@ -45,12 +43,6 @@ want = [
     '246', '730', '740', # other titles
     '852', # location
     '856'] # URL
-
-class BadMARC(Exception):
-    pass
-
-class SeaAlsoAsTitle(Exception):
-    pass
 
 def read_lccn(rec):
     fields = rec.get_fields('010')

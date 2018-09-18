@@ -4,7 +4,7 @@
 from infogami.plugins.api.code import add_hook
 from infogami import config
 from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
@@ -217,8 +217,7 @@ class ia_importapi:
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
-            #TODO: subclass MARC exceptions and only return those details to user
-            except Exception as e:
+            except MarcException as e:
                 details = "%s: %s" % (identifier, str(e))
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details)
@@ -290,7 +289,7 @@ class ia_importapi:
 
             try:
                 edition_data = read_edition(marc_record)
-            except Exception as e:
+            except MarcException as e:
                 logger.error("failed to read from MARC record %s: %s", identifier, str(e))
                 return self.error("invalid-marc-record")
 
