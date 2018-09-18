@@ -176,7 +176,7 @@ def read_title(rec):
     if not fields:
         fields = rec.get_fields('740')
     if not fields:
-        raise NoTitle
+        raise NoTitle("No Title found in either 245 or 740 fields.")
 
 #   example MARC record with multiple titles:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
@@ -195,14 +195,14 @@ def read_title(rec):
         title = b_and_p.pop(0).strip(' /,;:')
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle
+        raise SeeAlsoAsTitle("Title is: %s" % title)
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
 # scrapbooksofmoun03tupp
     if title is None:
         subfields = list(fields[0].get_all_subfields())
         title = ' '.join(v for k, v in subfields)
         if not title: # ia:scrapbooksofmoun03tupp
-            raise NoTitle
+            raise NoTitle("No title found from joining subfields.")
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
         ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)

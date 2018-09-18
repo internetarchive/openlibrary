@@ -217,9 +217,11 @@ class ia_importapi:
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
+            #TODO: subclass MARC exceptions and only return those details to user
             except Exception as e:
-                logger.error("failed to read info from bulk marc_record: %s", str(e))
-                return self.error('no-marc-record')
+                details = "%s: %s" % (identifier, str(e))
+                logger.error("failed to read from bulk MARC record %s", details)
+                return self.error('invalid-marc-record', details)
 
             actual_length = int(rec.leader()[:5])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
@@ -288,8 +290,8 @@ class ia_importapi:
 
             try:
                 edition_data = read_edition(marc_record)
-            except Exception, e:
-                logger.error("failed to read info from marc_record: %s", str(e))
+            except Exception as e:
+                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
                 return self.error("invalid-marc-record")
 
         elif require_marc:
