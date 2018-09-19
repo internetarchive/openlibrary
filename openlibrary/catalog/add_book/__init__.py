@@ -596,7 +596,7 @@ def load(rec):
         need_edition_save = True
 
     # add values to edition lists
-    for f in 'source_records', 'ia_box_id', 'ia_loaded_id':
+    for f in 'source_records', 'local_id', 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue
         # ensure values is a list
@@ -623,6 +623,5 @@ def load(rec):
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:
-        web.ctx.site.save_many(edits, 'import new book')
-
+        web.ctx.site.save_many(edits, 'import existing book')
     return reply
