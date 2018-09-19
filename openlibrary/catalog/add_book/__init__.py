@@ -112,6 +112,7 @@ def find_matching_work(e):
                 return wkey
 
 def build_author_reply(author_in, edits):
+    # modifies edits
     authors = []
     author_reply = []
     for a in author_in:
@@ -169,33 +170,35 @@ def load_data(rec):
         cover_url = rec['cover']
         del rec['cover']
     try:
-        q = build_query(rec)
+        # get an OL style edition dict
+        edition = build_query(rec)
     except InvalidLanguage as e:
         return {
             'success': False,
             'error': str(e),
         }
-    edits = []
-
-    reply = {}
-    author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in q.get('authors', [])]
-    (authors, author_reply) = build_author_reply(author_in, edits)
-
-    if authors:
-        q['authors'] = authors
-        reply['authors'] = author_reply
-
-    wkey = None
 
     ekey = web.ctx.site.new_key('/type/edition')
     cover_id = None
     if cover_url:
         cover_id = add_cover(cover_url, ekey)
-        q['covers'] = [cover_id]
+        edition['covers'] = [cover_id]
 
+    edits = []
+    reply = {}
+    author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
+    # build_author_reply() adds authors to edits
+    (authors, author_reply) = build_author_reply(author_in, edits)
+
+    if authors:
+        edition['authors'] = authors
+        reply['authors'] = author_reply
+
+    wkey = None
     work_state = 'created'
-    if 'authors' in q:
-        wkey = find_matching_work(q)
+    # Look for an existing work
+    if 'authors' in edition:
+        wkey = find_matching_work(edition)
     if wkey:
         w = web.ctx.site.get(wkey)
         work_state = 'matched'
@@ -215,14 +218,15 @@ def load_data(rec):
             work_state = 'modified'
             edits.append(w.dict())
     else:
-        w = new_work(q, rec, cover_id)
+        # Create new work
+        w = new_work(edition, rec, cover_id)
         wkey = w['key']
         edits.append(w)
 
     assert wkey
-    q['works'] = [{'key': wkey}]
-    q['key'] = ekey
-    edits.append(q)
+    edition['works'] = [{'key': wkey}]
+    edition['key'] = ekey
+    edits.append(edition)
 
     web.ctx.site.save_many(edits, 'import new book')
 
@@ -231,8 +235,8 @@ def load_data(rec):
     update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
 
     reply['success'] = True
-    reply['edition'] = { 'key': ekey, 'status': 'created', }
-    reply['work'] = { 'key': wkey, 'status': work_state, }
+    reply['edition'] = {'key': ekey, 'status': 'created'}
+    reply['work'] = {'key': wkey, 'status': work_state}
     return reply
 
 def is_redirect(thing):
