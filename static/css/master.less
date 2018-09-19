@@ -16,6 +16,9 @@
 @import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
 @import (less) "components/resultsCovers.less";
+@import (less) "components/Tools.less";
+@import (less) "components/shareLinks.less";
+@import (less) "components/dropper.less";
 
 .clear {
   clear: both;
@@ -542,7 +545,6 @@ hr {
   border: none;
   background: fade(@beige, 66);
 }
-
 
 /* TYPOGRAPHY */
 
@@ -1269,7 +1271,6 @@ div#noLogin {
   height: 16px;
 }
 
-
 /* ALERT MESSAGE */
 body#user div.message {
   float: left;
@@ -1426,7 +1427,6 @@ div.formDivider {
   background-color: @light-yellow;
   padding: 15px;
 }
-
 
 /* ACCOUNT FORMS */
 @import (less) "components/form.olform.less";
@@ -1837,7 +1837,6 @@ fieldset.home legend {
   cursor: move;
 }
 
-
 /* EDITING */
 body#edit div#header,
 body#edit footer,
@@ -2105,37 +2104,6 @@ a.linkButton {
   border: 1px solid @mid-grey;
 }
 
-#content .shareLinks {
-  margin-top: 10px;
-}
-
-.shareLinks .share-source {
-  font-size: .8em;
-  text-align: center;
-  color: @grey;
-}
-
-#content .shareLinks ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-#content .shareLinks li {
-  list-style-type: none;
-  display: inline;
-  line-height: 24px;
-}
-
-#content .shareLinks a {
-  line-height: 24px;
-}
-
-#content .shareLinks a img {
-  height: 30px;
-}
-
 div#revertNotice {
   width: 958px;
   height: 45px;
@@ -2161,317 +2129,6 @@ body#user div#revertLink,
 body#form div#revertLink {
   display: none;
 }
-
-div.Tools {
-  width: 250px;
-  margin: 0 0 25px 20px;
-  position: relative;
-}
-
-div.Tools h3 {
-  font-size: 100%;
-  min-height: 32px;
-  width: 250px;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;
-  font-weight: normal;
-  outline: 0;
-  position: relative;
-  margin: 0;
-  padding: 0;
-  zoom: 1;
-}
-
-div.Tools h3 span.icon {
-  display: block;
-  width: 32px;
-  height: 32px;
-  float: left;
-  background-image: url(/images/icons/icons_sprite.png);
-  background-repeat: no-repeat;
-}
-
-div.Tools h4 {
-  font-size: 1em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  color: @teal;
-  font-weight: 600;
-  margin: 0 0 10px 0;
-  padding: 0;
-  zoom: 1;
-}
-
-div.Tools h3 span.icon.read {
-  background-position: -96px 0;
-}
-
-div.Tools h3 span.icon.readinact {
-  background-position: -160px 0;
-}
-
-div.Tools h3 span.icon.download {
-  background-position: -192px 0;
-}
-
-div.Tools h3 span.icon.downloadinact {
-  background-position: -256px 0;
-}
-
-div.Tools h3 span.icon.buy {
-  background-position: -288px 0;
-}
-
-div.Tools h3 span.icon.buyinact {
-  background-position: -352px 0;
-}
-
-div.Tools h3 span.icon.borrow {
-  background-position: -384px 0;
-}
-
-div.Tools h3 span.icon.borrowinact {
-  background-position: -448px 0;
-}
-
-div.Tools h3 span.icon.browse {
-  background-position: -512px 0;
-}
-
-div.Tools h3 span.head {
-  padding-left: 10px;
-  font-size: 1.125em;
-  font-weight: 700;
-  color: @black;
-}
-
-div.Tools h3.closed span.head {
-  color: @grey;
-}
-
-div.Tools h3 span.subhead {
-  padding-left: 10px;
-  font-size: 0.6875em;
-  color: @light-grey;
-}
-
-div.Tools div.panel {
-  width: 250px;
-  margin-bottom: 10px;
-}
-
-div.Tools div.panel ul {
-  list-style-type: none;
-  margin-left: 0;
-}
-
-div.Tools div.panel li {
-  list-style-type: none;
-  font-size: .75em;
-  margin-top: 0;
-  color: @grey;
-}
-
-div.Tools div.panel p {
-  font-size: .75em;
-  margin-top: 0;
-  color: @grey;
-}
-
-#external-links div.panel ul.booklinks li {
-  list-style: none;
-  padding-left: 20px;
-  font-size: .7em;
-}
-
-div.Tools table {
-  width: 250px;
-}
-
-div.Tools table td {
-  font-size: 0.6875em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-}
-
-div.Tools table td.vendor {
-  padding: 3px 10px 0 42px;
-}
-
-div.Tools table td.price {
-  padding: 3px 0 0 0;
-  text-align: right;
-}
-
-div.Tools table.buy-options-table {
-  border-spacing: 5px;
-  margin-left: 0;
-  width: 175px;
-}
-
-div.Tools table.buy-options-table td {
-  padding: 0 0;
-}
-
-div.Tools table.buy-options-table td.price {
-  text-align: right;
-}
-
-div.Tools li {
-  font-size: 0.6875em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  padding-left: 42px;
-  margin-bottom: 5px;
-}
-
-div.Tools ul li {
-  padding-left: 0;
-  margin: 5px 10px 0 10px;
-}
-
-div.Tools ul.book-locate-options ul {
-  margin-left: 17px;
-}
-
-div.Tools ul.book-locate-options li {
-  padding-left: 0;
-  margin: 5px 10px 0 10px;
-}
-
-#content div.Tools ul.shareLinks-list {
-  .display-flex();
-}
-
-#content div.Tools ul.shareLinks-list li {
-  display: inline-block;
-  margin: 0;
-  padding: 0;
-  margin-top: 5px;
-  flex: 1;
-  cursor: pointer;
-}
-
-.shareLinks li:hover {
-  cursor: pointer;
-}
-
-#content div.Tools ul.shareLinks-list li a {
-  display: block;
-  text-align: center;
-  cursor: pointer;
-}
-
-#content div.Tools ul.shareLinks-list li a img {
-  display: block;
-  margin: 0 auto;
-  cursor: pointer;
-}
-
-div.Tools p {
-  font-size: 0.6875em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  padding-left: 42px;
-  margin-bottom: 5px;
-}
-
-div.Tools div#readBooks p {
-  font-size: 0.75em !important;
-}
-
-div.Tools div.dropit {
-  min-height: 45px;
-}
-
-div.Tools div.dropit p.listed {
-  color: @grey;
-  font-size: 0.8125em;
-  padding: 0 0 0 42px;
-  margin: 0 0 5px;
-}
-
-div.Tools div.icon {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 32px;
-  height: 32px;
-  background-image: url(/images/icons/icons_sprite.png);
-  background-repeat: no-repeat;
-}
-
-div.Tools div.icon.list {
-  background-position: 0 0;
-}
-
-div.Tools div.icon.listed {
-  background-position: -32px 0;
-}
-
-div.Tools div.dropper {
-  position: absolute;
-  top: 0;
-  left: 32px;
-  width: 198px;
-  z-index: 10000;
-}
-
-div.Tools div.dropper.on {
-  background-color: @lightest-grey;
-  border: 1px solid @light-mid-grey;
-  border-radius: 4px;
-}
-
-div.dropper.on div.arrow {
-  width: 23px;
-  margin: 6px 5px;
-}
-
-div.dropper.on div.arrow-unactivated {
-  background-image: url(/images/icons/icon_dropit2.png);
-  background-repeat: no-repeat;
-  background-position: 0 0;
-  background-size: 45px;
-}
-
-div.dropper.on div.arrow-activated {
-  background-image: url(/images/icons/icon_dropit.png);
-  background-repeat: no-repeat;
-  filter: grayscale(100%);
-  background-position: 0 0;
-  background-size: 45px;
-}
-
-div.dropper.on div.arrow.up {
-  background-position: -22px 0;
-}
-
-div.Tools div.dropper h3 {
-  font-size: 1.125em;
-  font-weight: 700;
-  color: @black;
-  min-height: 1.125em;
-  width: auto;
-}
-
-div.Tools div.dropper div.dropdown p {
-  font-size: .875em;
-  padding-left: 0;
-  margin-bottom: 5px;
-  margin-top: 0;
-  color: @grey;
-}
-
-div.Tools div.dropper div.dropdown p span {
-  font-size: .8125em;
-}
-
-div.Tools div.dropper div.dropdown p a {
-  font-size: .875em;
-}
-
-div.Tools div.dropper div.dropdown {
-  border-top: 1px solid @lighter-grey;
-  display: none;
-}
-
-
 
 /* MESSAGING */
 div.alert,
@@ -3618,7 +3275,6 @@ a.facetSubject:active {
   text-decoration: underline;
 }
 
-
 /* RESULTS */
 
 div#resultsLists {
@@ -3759,10 +3415,6 @@ div.editionTools {
   float: right;
   width: 270px;
   min-height: 10px;
-}
-
-div.editionTools.tools-override {
-  float: left;
 }
 
 div.navEdition {
@@ -4209,22 +3861,6 @@ select#select-id {
   line-height: 1.5em;
 }
 
-.Tools .btn-notice {
-  line-height: 1.5em;
-  font-size: 1em;
-  margin-left: 35px;
-  padding: 10px;
-  margin-bottom: 10px;
-  background-color: @white;
-  border-radius: 5px;
-  border: 1px solid @lighter-grey;
-  border-bottom: 1px solid @mid-grey;
-}
-
-div.Tools .btn-notice p {
-  padding-left: 0 !important;
-}
-
 .borrow-btn:link,
 .borrow-btn:visited,
 .read-btn:link,
@@ -4350,8 +3986,6 @@ table.meta td.descrip {
   white-space: nowrap;
   width: 65px;
 }
-
-
 
 /* HISTORY */
 
@@ -4884,7 +4518,6 @@ div.subjects {
   word-break: normal;
   word-wrap: break-word;
 }
-
 
 /* RESULTS CAROUSEL SKIN */
 #editionsCovers .jcarousel-container,
@@ -5472,7 +5105,6 @@ a.coverLook {
   background-position: 0 -32px;
 }
 
-
 /* TABS */
 
 /* Caution! Ensure accessibility in print and other media types... */
@@ -5591,7 +5223,6 @@ a.coverLook {
 *:first-child + html .ui-tabs-nav { /* @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
   display: inline-block;
 }
-
 
 /* ADMIN */
 body#admin div#contentHead {
@@ -6408,18 +6039,6 @@ div.inLibrary {
   color: @white;
 }
 
-.Tools.borrow {
-  position: relative;
-}
-
-.Tools.borrow div.icon.list {
-  background-image: none;
-}
-
-.Tools.borrow #widget-head {
-  display: none;
-}
-
 p#borrowList {
   position: absolute;
   top: 0;
@@ -6733,19 +6352,6 @@ div#listsWork p#listsLess {
   text-align: right;
 }
 
-div#listsWork div.dropit {
-  position: relative;
-  width: 215px;
-  min-height: 45px;
-}
-
-div#listsWork div.dropit p.listed {
-  color: @grey;
-  font-size: 0.8125em;
-  padding: 0 0 0 42px;
-  margin: 0 0 5px;
-}
-
 div#listsWork div.icon {
   position: absolute;
   top: 0;
@@ -6754,14 +6360,6 @@ div#listsWork div.icon {
   height: 32px;
   background-image: url(/images/icons/icons_sprite.png);
   background-repeat: no-repeat;
-}
-
-div.Tools .hidetool {
-  display: none;
-}
-
-div.Tools span.owner {
-  font-size: 10px;
 }
 
 .heart-adjust {
@@ -6776,67 +6374,6 @@ div#listsWork div.icon.list {
 
 div#listsWork div.icon.listed {
   background-position: -32px 0;
-}
-
-div#listsWork div.dropper {
-  position: absolute;
-  top: 0;
-  left: 32px;
-  width: 161px;
-  z-index: 1001;
-}
-
-div#listsWork div.dropper.on {
-  background-color: @lightest-grey;
-  border: 1px solid @light-mid-grey;
-  border-radius: 4px;
-}
-
-div#listsWork div.dropper h3 {
-  font-size: 1.125em;
-  font-weight: 700;
-  color: @black;
-  min-height: 1.125em;
-  width: auto;
-}
-
-div#listsWork div.dropper div.dropdown p {
-  font-size: .875em;
-  padding-left: 0;
-  margin-bottom: 5px;
-  color: @grey;
-}
-
-div#listsWork div.dropper div.dropdown p span {
-  font-size: .8125em;
-}
-
-div#listsWork div.dropper div.dropdown p a {
-  font-size: .875em;
-}
-
-div#listsWork div.dropper div.dropdown {
-  border-top: 1px solid @lighter-grey;
-  display: none;
-  padding-top: 10px;
-}
-
-div.dropper div.dropdown div.reading-lists p.reading-list-title {
-  background: @white;
-  padding: 5px 0 0 10px;
-  margin: 0;
-  font-size: .8em;
-}
-
-div.dropper div.dropdown div.my-lists {
-  background: @white;
-  max-height: 250px;
-  overflow-y: scroll;
-  padding: 10px 15px;
-}
-
-div.dropper div.dropdown div.my-lists p a {
-  display: block;
 }
 
 div#subjectLists ul.listLists {
@@ -6871,31 +6408,11 @@ div#subjectLists ul.listLists li .data {
   width: 248px;
 }
 
-div#subjectLists div.dropit h3 {
-  font-weight: normal;
-  margin: 0;
-  padding: 5px;
-}
-
 div#subjectLists p {
   font-size: 0.6875em;
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   padding-left: 42px;
   margin-bottom: 5px !important;
-}
-
-div#subjectLists div.dropit {
-  float: left;
-  position: relative;
-  width: 282px;
-  min-height: 50px;
-}
-
-div#subjectLists div.dropit p.listed {
-  color: @grey;
-  font-size: 0.8125em;
-  padding: 0 0 0 42px;
-  margin: 0 0 5px;
 }
 
 div#subjectLists div.icon {
@@ -6914,59 +6431,6 @@ div#subjectLists div.icon.list {
 
 div#subjectLists div.icon.listed {
   background-position: -32px 0;
-}
-
-div#subjectLists div.dropper {
-  position: absolute;
-  top: 0;
-  left: 32px;
-  width: 230px;
-  z-index: 1001;
-}
-
-div#subjectLists div.dropper.on {
-  background-color: @lightest-grey;
-  border: 1px solid @light-mid-grey;
-  border-radius: 4px;
-}
-
-div#subjectLists div.dropper h3 {
-  font-size: 1.125em;
-  font-weight: 700;
-  color: @black;
-  min-height: 1.125em;
-  width: auto;
-}
-
-div#subjectLists div.dropper div.dropdown p {
-  font-size: .875em;
-  margin: 0 0 5px 0;
-  color: @grey;
-}
-
-div#subjectLists div.dropper div.dropdown p span {
-  font-size: .8125em;
-}
-
-div#subjectLists div.dropper div.dropdown p a {
-  font-size: .875em;
-}
-
-div#subjectLists div.dropper div.dropdown {
-  display: none;
-  padding-top: 10px;
-}
-
-#widget-add div.dropper div.dropdown p.create {
-  border-top: 1px solid @lightest-grey;
-  padding: 5px 10px;
-  text-decoration: none;
-  font-weight: bold;
-}
-
-div.dropper div.dropdown p.create a {
-  color: @dark-grey;
-  text-decoration: none;
 }
 
 #listsDisplay h3 {
@@ -7322,68 +6786,6 @@ span.actions a span.checked-out {
   box-shadow: 0 0.25em 0 0 @black, 0 0.5em 0 0 @black;
 }
 
-.dropclick {
-  .display-flex();
-}
-
-.dropclick-prevent {
-  .display-flex();
-}
-
-.dropclick-unactivated {
-  background-color: @green-five;
-}
-
-.dropclick h3 {
-  flex: 1;
-}
-
-.dropclick .arrow {
-  width: 20px;
-  margin: 5px;
-  margin-top: 10px;
-}
-
-.log-work {
-  .display-flex();
-}
-
-.log-work form {
-  flex: 1;
-}
-
-.log-work button[type=submit] {
-  background-color: inherit;
-  border: none;
-  border-radius: 3px;
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
-  cursor: pointer;
-  font-size: .75em;
-  width: 100%;
-  padding: 7px 0;
-  margin: 0;
-}
-
-.log-work button[type=submit].activated {
-  color: @dark-grey;
-  background: @lightest-grey;
-  border: 2px solid @grey-f3f3f3;
-  border-right: 1px solid @lighter-grey;
-}
-
-.log-work button[type=submit].unactivated {
-  color: @white;
-  background: @green-three;
-  border: 2px solid @green-four;
-  border-right: 1px solid @green-two;
-}
-
-.log-work span.activated-check {
-  color: @green;
-  margin-right: 2px;
-}
-
 .manageCovers {
   max-width: 140px;
   margin: 0 auto;
@@ -7421,165 +6823,12 @@ span.actions a span.checked-out {
   color: @dark-grey;
 }
 
-div.tools-override {
-  width: 180px;
-  min-height: 45px;
-  padding-left: 0;
-  margin: 0 auto;
-  padding: 0;
-}
-
-div.tools-override .Tools .btn-notice {
-  width: 180px;
-  margin-left: 45px;
-  font-size: .9em;
-}
-
-.user-book-options div.tools-override div.dropit {
-  margin: 0;
-  position: relative;
-  width: auto;
-}
-
-/* Author sidebar */
-.Tools #widget-add.old-style-lists div.dropper {
-  margin: 0;
-  position: absolute;
-  top: 35px;
-  left: 10px;
-  padding: 5px 10px;
-  width: 209px;
-}
-
-.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown {
-  margin: 0;
-  left: 0;
-  width: 157px;
-  top: 0;
-  padding: 0 10px;
-}
-
-.Tools #widget-add.old-style-lists .dropclick {
-  text-decoration: none;
-}
-
-.Tools #widget-add.old-style-lists .dropclick h3 {
-  font-size: .75em;
-  text-align: center;
-  padding: 8px 10px;
-}
-
-.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow-unactivated {
-  background-position: 6px -7px;
-}
-
-.Tools #widget-add.old-style-lists div.edition-page-lists-dropdown .arrow.up {
-  background-position: -22px -7px;
-}
-
-#widget-add.old-style-lists div.dropper {
-  margin: 0;
-  top: 0;
-  position: absolute;
-}
-
-.user-book-options .Tools {
-  margin: 0 auto;
-}
-
-div.tools-override div.dropper {
-  z-index: 10000;
-  width: 180px;
-  top: unset;
-  left: -1px;
-}
-
-.tools-override #widget-lists {
-  margin: 0;
-  clear: both;
-}
-
-.tools-override #widget-lists li {
-  padding-left: 0;
-}
-
 .editionCover .illustration {
   margin-bottom: 5px;
 }
 
-.Tools div.btn-notice p {
-  font-size: 1em;
-}
-
-.Tools div.btn-notice p.primary-cta {
-  text-align: center;
-}
-
-.Tools div.btn-notice p.primary-cta a {
-  display: block;
-}
-
-.Tools div.btn-notice input {
-  display: block;
-  width: 100%;
-}
-
-.Tools div.btn-notice p a.wait-btn,
-.Tools div.btn-notice p a.borrow-btn {
-  display: block;
-  text-align: center;
-  margin: 0 auto;
-  color: @white;
-}
-
-.Tools div.btn-notice p a.borrow-btn,
-#read-options input[type=submit].wait-btn,
-#read-options input[type=submit].unwait-btn {
-  font-size: 14px;
-  padding: 7px 20px;
-  text-align: center;
-  margin-top: 8px;
-}
-
-.Tools .check-availability {
-  padding: 10px;
-  border-top: 1px solid @lightest-grey;
-  border-radius: 3px;
-}
-
-.Tools .check-availability p {
-  padding-top: 7px;
-}
-
-.Tools .check-availability p.check-other-editions {
-  text-align: center;
-}
-
-.Tools .check-availability p.check-other-editions a {
-  font-size: 1em;
-  text-decoration: underline;
-}
-
-Tools .check-availability a {
-  font-size: 1.3em;
-  color: @dark-blue;
-}
-
 #read.panel {
   margin-bottom: 10px;
-}
-
-div.Tools .cta-section {
-  padding: 5px 5px 0 5px;
-  margin: 0;
-}
-
-div.Tools .cta-section ul li {
-  padding-left: 0;
-}
-
-div.Tools div.panel .cta-section p {
-  margin: 0;
 }
 
 .cta-section-title {
@@ -7596,11 +6845,6 @@ p.print-disabled-download {
   font-size: .8em;
   text-align: center;
   margin-top: 5px;
-}
-
-.Tools .print-disabled-download a {
-  font-size: .8em;
-  text-decoration: underline;
 }
 
 .daisy-lock {
@@ -7627,15 +6871,6 @@ p.print-disabled-download {
   color: @link-blue;
   border-bottom: 1px solid @link-blue;
   margin-bottom: 15px;
-}
-
-.Tools div.btn-notice a.worldcat-link {
-  text-decoration: underline;
-}
-
-.Tools div.btn-notice span.worldcat-attribution {
-  font-size: .8em;
-  display: block;
 }
 
 .related-books {
@@ -7828,7 +7063,6 @@ ul#myreads-paginator li.selected:hover {
   padding: 10px;
 }
 
-
 /* This button should be used for now on */
 .btn {
   text-align: center;
@@ -7894,7 +7128,6 @@ form .stars input[type="submit"].star-1.star-selected ~ span {
 form .stars input[type="submit"].star-0.star-selected ~ span {
   width: 0%;
 }
-
 
 .star-messaging {
   color: @light-mid-grey;
