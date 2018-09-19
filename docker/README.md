@@ -64,7 +64,6 @@ docker-compose exec web bash # Launch terminal in `web` service
 ```
 
 ## TODO
-* Add dev volume mount to `run` command, and provide instructions for refreshing the application.
 * Fix symlinks that are causing a problem in Windows, see issue https://github.com/internetarchive/openlibrary/issues/1051 
 
 ## Run tests in a temporary container
