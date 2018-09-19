@@ -8,7 +8,7 @@ from_address: "Open Library <noreply@openlibrary.org>"
 report_spam_address: "Open Library <info@openlibrary.org>"
 
 support_case_notification_address: "Open Library <info@openlibrary.org>"
-support_case_control_address : "support@openlibrary.org"
+support_case_control_address: "support@openlibrary.org"
 
 smtp_server: localhost
 
@@ -51,13 +51,6 @@ plugin_worksearch:
         db: openlibrary_ebook_count
         host: localhost
 
-ia_ol_xauth_s3:
-    s3_key: XXX
-    s3_secret: XXX
-
-ia_loan_api_url: http://127.0.0.1/internal/fake/loans
-ia_availability_api_url: http://127.0.0.1/internal/fake/availability
-ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
 http_request_timeout: 10
 
 stats_solr: solr:8080
@@ -148,10 +141,6 @@ stats: # This section is used to state what stats need to be gathered.
       pattern: /api/volumes/.*
       time: total
 
-libraries_admin_email: admin@dev-instance
-
-geoip_database: var/cache/GeoLiteCity.dat
-
 # prefixes ignored for /books/ia:xxx URLs and new-solr-updater.py
 ia_ignore_prefixes:
     - "jstor-"
@@ -170,6 +159,14 @@ affiliate_ids:
     # Amazon is a book source, not just an affiliate, so we make its affiliate
     # tag generally available
     amazon: internetarchi-20
+
+ia_ol_xauth_s3:
+    s3_key: XXX
+    s3_secret: XXX
+
+ia_loan_api_url: http://127.0.0.1/internal/fake/loans
+ia_availability_api_url: http://127.0.0.1/internal/fake/availability
+ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_url: https://archive.org/services/loans/beta/loan/index.php # to be deprecated in favor of _v1 below
