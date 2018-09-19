@@ -26,7 +26,6 @@ A record is loaded by calling the load function.
 import re
 import json
 from time import sleep
-from pprint import pprint
 from collections import defaultdict
 import urllib
 import unicodedata
@@ -214,9 +213,7 @@ def load_data(rec):
             need_update = True
         if need_update:
             work_state = 'modified'
-            w_dict = w.dict()
-            assert w_dict and isinstance(w_dict, dict)
-            edits.append(w_dict)
+            edits.append(w.dict())
     else:
         w = new_work(q, rec, cover_id)
         wkey = w['key']
@@ -225,10 +222,8 @@ def load_data(rec):
     assert wkey
     q['works'] = [{'key': wkey}]
     q['key'] = ekey
-    assert isinstance(q, dict)
     edits.append(q)
 
-    assert edits
     web.ctx.site.save_many(edits, 'import new book')
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
@@ -240,10 +235,10 @@ def load_data(rec):
     reply['work'] = { 'key': wkey, 'status': work_state, }
     return reply
 
-def is_redirect(i):
-    if not i:
+def is_redirect(thing):
+    if not thing:
         return False
-    return i.type.key == '/type/redirect'
+    return thing.type.key == '/type/redirect'
 
 def find_match(e1, edition_pool):
     seen = set()
@@ -574,22 +569,7 @@ def load(rec):
         #TODO: add edition covers and author to new work
         e.works = [{'key': w['key']}]
 
-    reply = {
-        'success': True,
-        'edition': {'key': match, 'status': 'matched'},
-        'work': {'key': w['key'], 'status': 'matched'},
-    }
-
-    if not e.get('source_records'):
-        e['source_records'] = []
-    existing_source_records = set(e['source_records'])
-    for i in rec['source_records']:
-        if i not in existing_source_records:
-            e['source_records'].append(i)
-            need_edition_save = True
-    assert e['source_records']
-
-    edits = []
+    # Add subjects to work, if not already present
     if 'subjects' in rec:
         work_subjects = list(w.get('subjects', []))
         for s in rec['subjects']:
@@ -598,11 +578,8 @@ def load(rec):
                 need_work_save = True
         if need_work_save and work_subjects:
             w['subjects'] = work_subjects
-    if 'ocaid' in rec:
-        new = 'ia:' + rec['ocaid']
-        if not e.ocaid:
-            e['ocaid'] = rec['ocaid']
-            need_edition_save = True
+
+    # Add cover to edition, and work, if needed
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key)
@@ -612,44 +589,40 @@ def load(rec):
             if not w.get('covers'):
                 w['covers'] = [cover_id]
                 need_work_save = True
-    for f in 'ia_box_id', 'ia_loaded_id':
+
+    # Add ocaid to edition (str), if needed
+    if 'ocaid' in rec and not e.ocaid:
+        e['ocaid'] = rec['ocaid']
+        need_edition_save = True
+
+    # add values to edition lists
+    for f in 'source_records', 'ia_box_id', 'ia_loaded_id':
         if f not in rec:
             continue
-        if e.get(f):
-            assert not isinstance(e[f], basestring)
-            assert isinstance(e[f], list)
-            if isinstance(rec[f], basestring):
-                if rec[f] not in e[f]:
-                    e[f].append(rec[f])
-                    need_edition_save = True
-            else:
-                assert isinstance(rec[f], list)
-                for x in rec[f]:
-                    if x not in e[f]:
-                        e[f].append(x)
-                        need_edition_save = True
-        if isinstance(rec[f], basestring):
-            e[f] = [rec[f]]
-            need_edition_save = True
+        # ensure values is a list
+        values = rec[f] if isinstance(rec[f], list) else [rec[f]]
+        if f in e:
+            # get values from rec that are not currently on the edition
+            to_add = [v for v in values if v not in e[f]]
+            e[f] += to_add
         else:
-            assert isinstance(rec[f], list)
-            e[f] = rec[f]
+            e[f] = to_add = values
+        if to_add:
             need_edition_save = True
-        assert not isinstance(e[f], basestring)
-        assert isinstance(e[f], list)
+
+    edits = []
+    reply = {
+        'success': True,
+        'edition': {'key': match, 'status': 'matched'},
+        'work': {'key': w['key'], 'status': 'matched'},
+    }
     if need_edition_save:
         reply['edition']['status'] = 'modified'
-        e_dict = e.dict()
-        assert e_dict and isinstance(e_dict, dict)
-        edits.append(e_dict)
+        edits.append(e.dict())
     if need_work_save:
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:
-        for i in edits:
-            assert i
-            assert isinstance(i, dict)
-
         web.ctx.site.save_many(edits, 'import new book')
 
     return reply
