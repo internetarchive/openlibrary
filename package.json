@@ -4,10 +4,20 @@
   "repository": "github:internetarchive:openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
+    "build-all-css": "lessc -x static/css/all.less static/build/all.css",
+    "check-css-size": "npm run build-all-css && bundlesize",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "test": "stylelint  --syntax less static/css/"
+    "test": "npm run check-css-size && stylelint  --syntax less static/css/"
   },
+  "bundlesize": [
+    {
+      "path": "static/build/all.css",
+      "maxSize": "26.86KB"
+    }
+  ],
   "devDependencies": {
+    "bundlesize": "^0.17.0",
+    "less": "^3.8.1",
     "stylelint": "^9.5.0"
   }
 }
