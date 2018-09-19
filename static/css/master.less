@@ -29,98 +29,6 @@
   display: inline;
 }
 
-.carousel-container {
-  margin: 0 -20px;
-  padding: 3px 15px;
-}
-
-.carousel-container-decorated {
-  background: @book-cover-carousel-background;
-  border-bottom: 1px solid @book-cover-carousel-border-bottom;
-  border-top: 1px solid @book-cover-carousel-border-top;
-}
-
-.carousel-container .slick-slider {
-  overflow: visible;
-  margin-bottom: 0;
-}
-
-.carousel {
-  .display-flex();
-  overflow-x: scroll;
-  padding: 10px 20px;
-}
-
-.carousel .slick-prev:before,
-.carousel .slick-next:before {
-  color: @primary-blue;
-  font-size: 35px;
-}
-
-.carousel .slick-prev:before {
-  margin-left: 15px;
-}
-
-.carousel .slick-prev,
-.carousel .slick-next {
-  width: auto;
-  height: auto;
-}
-
-.carousel .slick-next {
-  margin-right: 11px;
-}
-
-.carousel > div {
-  min-width: 130px;
-  margin: 0 10px;
-}
-
-.carousel .book:last-child {
-  margin-right: 0;
-}
-
-.carousel .book img.bookcover {
-  margin: 0 auto;
-  width: 130px;
-  height: 200px;
-  box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
-  border-radius: 3px;
-}
-
-.carousel .book .book-metadata {
-  width: 130px;
-  margin: 0 auto;
-}
-
-.carousel .book h2.book-title {
-  font-size: .8em;
-  margin: 5px 0;
-  color: @dark-grey;
-  font-weight: normal;
-}
-
-.carousel .book h2.book-title a {
-  color: @link-blue;
-  text-decoration: none;
-}
-
-.carousel .category-item {
-  font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-}
-
-.carousel .book .book-cta {
-  background: @primary-blue;
-  border-radius: 3px;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  width: 130px;
-  margin: 0 auto;
-  margin-top: 5px;
-  text-align: center;
-  font-size: .9em;
-  padding: 5px 0;
-}
-
 .book .book-cta a {
   display: block;
   color: @white;
@@ -2413,7 +2321,7 @@ div.Tools li {
   margin-bottom: 5px;
 }
 
-div.Tools ul.ebook-download-options li {
+div.Tools ul li {
   padding-left: 0;
   margin: 5px 10px 0 10px;
 }
@@ -4726,10 +4634,6 @@ div#historyExplore a#historyFwd {
 #contentLists.results .SRPCover img {
   height: 195px;
   width: 130px;
-}
-
-.carousel-section .SRPCover img {
-  box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
 }
 
 #contentLists.results .SRPCoverBlank {
@@ -7869,21 +7773,6 @@ ul#myreads-paginator li.selected:hover {
 
 .user-lists a {
   text-decoration: underline;
-}
-
-.mybooks-list h2 {
-  padding: 5px 0;
-  margin: 0;
-  line-height: 1.5em;
-  margin-bottom: 5px;
-}
-
-.mybooks-list h2.subtitle {
-  font-weight: normal;
-}
-
-.mybooks-list .loadmore {
-  text-align: center;
 }
 
 .mybooks-list-options {
