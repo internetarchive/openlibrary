@@ -29,98 +29,6 @@
   display: inline;
 }
 
-.carousel-container {
-  margin: 0 -20px;
-  padding: 3px 15px;
-}
-
-.carousel-container-decorated {
-  background: @book-cover-carousel-background;
-  border-bottom: 1px solid @book-cover-carousel-border-bottom;
-  border-top: 1px solid @book-cover-carousel-border-top;
-}
-
-.carousel-container .slick-slider {
-  overflow: visible;
-  margin-bottom: 0;
-}
-
-.carousel {
-  .display-flex();
-  overflow-x: scroll;
-  padding: 10px 20px;
-}
-
-.carousel .slick-prev:before,
-.carousel .slick-next:before {
-  color: @primary-blue;
-  font-size: 35px;
-}
-
-.carousel .slick-prev:before {
-  margin-left: 15px;
-}
-
-.carousel .slick-prev,
-.carousel .slick-next {
-  width: auto;
-  height: auto;
-}
-
-.carousel .slick-next {
-  margin-right: 11px;
-}
-
-.carousel > div {
-  min-width: 130px;
-  margin: 0 10px;
-}
-
-.carousel .book:last-child {
-  margin-right: 0;
-}
-
-.carousel .book img.bookcover {
-  margin: 0 auto;
-  width: 130px;
-  height: 200px;
-  box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
-  border-radius: 3px;
-}
-
-.carousel .book .book-metadata {
-  width: 130px;
-  margin: 0 auto;
-}
-
-.carousel .book h2.book-title {
-  font-size: .8em;
-  margin: 5px 0;
-  color: @dark-grey;
-  font-weight: normal;
-}
-
-.carousel .book h2.book-title a {
-  color: @link-blue;
-  text-decoration: none;
-}
-
-.carousel .category-item {
-  font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-}
-
-.carousel .book .book-cta {
-  background: @primary-blue;
-  border-radius: 3px;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  width: 130px;
-  margin: 0 auto;
-  margin-top: 5px;
-  text-align: center;
-  font-size: .9em;
-  padding: 5px 0;
-}
-
 .book .book-cta a {
   display: block;
   color: @white;
@@ -568,7 +476,7 @@ button.plain:hover {
 
 .pagination {
   font-size: 0.75em;
-  margin: 5px 0;
+  margin: 5px 0px;
   .display-flex();
   flex-wrap: wrap;
 }
@@ -982,7 +890,7 @@ p.info {
 }
 
 .logo-component {
-  margin: 0 0 5px 0;
+  margin: 0px 0px 5px 0px;
 }
 
 .logo-component a {
@@ -997,8 +905,8 @@ p.info {
   font-size: .9em;
   color: @grey;
   margin: 3px;
-  padding: 0;
-  line-height: 0;
+  padding: 0px;
+  line-height: 0px;
 }
 
 .search-component .search-bar {
@@ -1048,7 +956,7 @@ p.info {
 }
 
 .search-results-stats {
-  margin: 0;
+  margin: 0px;
   margin-bottom: 10px;
   color: @light-grey;
   font-size: .9em;
@@ -1068,7 +976,7 @@ p.info {
 .serp-extras {
   border: 1px solid @lighter-grey;
   background-color: @white;
-  padding: 0 10px 10px 10px;
+  padding: 0px 10px 10px 10px;
   margin-top: 10px;
 }
 
@@ -1190,7 +1098,7 @@ ul.serp {
   box-sizing: border-box;
   max-width: 960px;
   width: 100%;
-  margin: 0 auto;
+  margin: 0px auto;
   margin-top: 20px;
   background-color: @white;
   border-radius: 5px;
@@ -1223,7 +1131,7 @@ div#content {
 footer {
   .display-flex();
   width: 100%;
-  bottom: 0;
+  bottom: 0px;
   font-size: .8em;
 }
 
@@ -1663,7 +1571,7 @@ div.siteSearch input[type=submit] {
 }
 
 div.siteSearch input[type=text] {
-  margin: 0;
+  margin: 0px;
   width: 215px;
   padding: 12px;
   border-radius: 5px;
@@ -1776,7 +1684,7 @@ fieldset.home legend {
   font-family: "Lucida Grande", Verdana, Arial, sans-serif;
   font-size: 0.75em;
   color: @dark-grey;
-  padding: 15px 0;
+  padding: 15px 0px;
 }
 
 #topOptions .searchPlus {
@@ -2103,7 +2011,7 @@ div#abuse a {
 
 div#abuse a span {
   display: block;
-  margin: 5px 0 5px 30px;
+  margin: 5px 0px 5px 30px;
   width: 32px;
   height: 32px;
   background-repeat: no-repeat;
@@ -2153,7 +2061,7 @@ div#editTools,
 div#editButton,
 div#editHistory {
   float: right;
-  padding: 3px 1px 0 20px;
+  padding: 3px 1px 0px 20px;
   width: auto;
 }
 
@@ -2394,12 +2302,12 @@ div.Tools table td.price {
 
 div.Tools table.buy-options-table {
   border-spacing: 5px;
-  margin-left: 0;
+  margin-left: 0px;
   width: 175px;
 }
 
 div.Tools table.buy-options-table td {
-  padding: 0 0;
+  padding: 0px 0px;
 }
 
 div.Tools table.buy-options-table td.price {
@@ -2413,9 +2321,9 @@ div.Tools li {
   margin-bottom: 5px;
 }
 
-div.Tools ul.ebook-download-options li {
-  padding-left: 0;
-  margin: 5px 10px 0 10px;
+div.Tools ul li {
+  padding-left: 0px;
+  margin: 5px 10px 0px 10px;
 }
 
 div.Tools ul.book-locate-options ul {
@@ -2433,8 +2341,8 @@ div.Tools ul.book-locate-options li {
 
 #content div.Tools ul.shareLinks-list li {
   display: inline-block;
-  margin: 0;
-  padding: 0;
+  margin: 0px;
+  padding: 0px;
   margin-top: 5px;
   flex: 1;
   cursor: pointer;
@@ -2783,7 +2691,7 @@ hr.forgot-padding {
 }
 
 .forgot-email-form {
-  padding: 10px 0;
+  padding: 10px 0px;
 }
 
 .forgot-email-form .form-row {
@@ -2805,7 +2713,7 @@ hr.forgot-padding {
 }
 
 .formFieldsErrorMsg {
-  padding: 0 10px;
+  padding: 0px 10px;
   color: @white;
   font-size: 14px;
 }
@@ -2854,32 +2762,32 @@ div#footer-links {
 }
 
 #footer-links div {
-  margin: 20px 0;
-  padding: 0;
+  margin: 20px 0px;
+  padding: 0px;
 }
 
 footer h2 {
   color: hsla(0, 0%, 20%, 1);
   font-size: 1em;
-  margin: 0;
+  margin: 0px;
 }
 
 footer hr {
-  border: 0;
+  border: 0px;
   border-top: 1px solid hsla(64, 9%, 71%, 1);
-  margin: 20px 0;
+  margin: 20px 0px;
 }
 
 footer ul {
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
 }
 
 footer ul li {
   font-size: 1em;
   list-style-type: none;
   white-space: nowrap;
-  margin: 5px 0;
+  margin: 5px 0px;
 }
 
 #footer-links ul li a {
@@ -2931,7 +2839,7 @@ div#version-details {
 
 img#archive-logo {
   margin-right: 10px;
-  padding: 0;
+  padding: 0px;
   height: 27.5px;
   opacity: 0.7;
 }
@@ -3117,8 +3025,8 @@ ul#olBlog li {
 .contentLists.results .coverMagic .coverEbook {
   position: absolute;
   bottom: -3px;
-  left: 0;
-  right: 0;
+  left: 0px;
+  right: 0px;
   cursor: pointer;
   z-index: 1000;
 }
@@ -3193,8 +3101,8 @@ p.category-count {
   font-size: .7em;
   line-height: 1;
   color: @grey;
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
   margin-top: 5px;
   font-style: italic;
 }
@@ -3203,7 +3111,7 @@ p.category-title {
   font-size: 0.875em;
   text-align: center;
   line-height: 1;
-  margin: 0;
+  margin: 0px;
   margin-top: 5px;
 }
 
@@ -3278,8 +3186,8 @@ div.chartHome a:hover {
 }
 
 #home-about-mission-tldr {
-  padding: 0;
-  margin: 0;
+  padding: 0px;
+  margin: 0px;
   font-size: 18px;
   line-height: 1.5em;
   font-family: "Georgia","Times New Roman",serif;
@@ -3293,7 +3201,7 @@ div.chartHome a:hover {
   min-width: 150px;
   min-height: 100px;
   margin-bottom: 20px;
-  padding: 0 10px;
+  padding: 0px 10px;
 }
 
 .stats-spacer {
@@ -3442,7 +3350,7 @@ li.searchResultItem {
   -ms-flex-pack: stretch;
   align-items: stretch;
   justify-content: center;
-  padding: 0 5px 0 15px;
+  padding: 0px 5px 0px 15px;
   align-self: flex-start;
   margin-top: 10px;
   flex: 1;
@@ -3474,8 +3382,8 @@ a.cta-btn {
 
 .coverEbook a.cta-btn {
   position: absolute;
-  padding: 0 5px;
-  right: 0;
+  padding: 0px 5px;
+  right: 0px;
   bottom: 3px;
   border-radius: 3px;
 }
@@ -3515,7 +3423,7 @@ a.cta-btn {
   cursor: pointer;
   text-decoration: none;
   text-align: center;
-  padding: 5px 0;
+  padding: 5px 0px;
   font-size: 0.8em;
 }
 
@@ -3527,7 +3435,7 @@ a.cta-btn {
 }
 
 .searchResultItemCTA-lending .borrow_unavailable button {
-  padding: 0;
+  padding: 0px;
 }
 
 .borrow_available {
@@ -3649,7 +3557,7 @@ ul#siteSearch > li {
 
 div#searchFacets {
   width: 220px;
-  padding: 0 15px;
+  padding: 0px 15px;
 }
 
 div.facet {
@@ -3774,14 +3682,14 @@ div.list .owner {
 
 h1.work-title {
   font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-  margin: 0;
+  margin: 0px;
   color: @dark-grey;
   font-size: 1.3em;
 }
 
 h2.work-subtitle {
   font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-  margin: 5px 0 5px 0;
+  margin: 5px 0px 5px 0px;
   color: @grey;
   font-size: 1.1em;
   font-weight: normal;
@@ -3789,7 +3697,7 @@ h2.work-subtitle {
 }
 
 h2.edition-title {
-  margin: 7px 0 0 0;
+  margin: 7px 0px 0px 0px;
   color: @grey;
   font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
   font-weight: normal;
@@ -3800,14 +3708,14 @@ h2.edition-title {
   font-size: .9em;
   font-weight: normal;
   color: @dark-grey;
-  margin: 0;
+  margin: 0px;
   margin-bottom: 10px;
 }
 
 #contentBody ul.readers-stats {
   color: @grey;
   font-size: .7em;
-  margin: 10px 0;
+  margin: 10px 0px;
 }
 
 ul.readers-stats li {
@@ -3817,7 +3725,7 @@ ul.readers-stats li {
 
 ul.readers-stats li:not(:last-child):after {
   content:'·';
-  margin: 0 5px;
+  margin: 0px 5px;
 }
 
 #contentBody ul.readers-stats li.reading-log-stat {
@@ -4216,7 +4124,7 @@ td.toc-pagenum {
 
 img.cover {
   border-radius: 5px;
-  box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
+  box-shadow: 1px 1px 2px 0px @book-cover-shadow-color;
 }
 
 #cover {
@@ -4314,7 +4222,7 @@ select#select-id {
 }
 
 div.Tools .btn-notice p {
-  padding-left: 0 !important;
+  padding-left: 0px !important;
 }
 
 .borrow-btn:link,
@@ -4728,10 +4636,6 @@ div#historyExplore a#historyFwd {
   width: 130px;
 }
 
-.carousel-section .SRPCover img {
-  box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
-}
-
 #contentLists.results .SRPCoverBlank {
   position: relative;
   width: 115px;
@@ -4778,7 +4682,7 @@ ul#siteSearch > li span.bookcover img {
 
 li span.bookcover {
   width: 80px;
-  margin: 10px 10px 0 5px;
+  margin: 10px 10px 0px 5px;
   text-align: right;
   overflow: hidden;
 }
@@ -4928,8 +4832,8 @@ span.actions span.daisy:hover {
   margin: 0 auto;
   padding: 0;
   position: absolute;
-  right: 0;
-  left: 0;
+  right: 0px;
+  left: 0px;
 }
 
 .jcarousel-skin-OL span.actions a span.checked-out {
@@ -4937,8 +4841,8 @@ span.actions span.daisy:hover {
   margin: 0 auto;
   padding: 0;
   position: absolute;
-  right: 0;
-  left: 0;
+  right: 0px;
+  left: 0px;
 }
 
 ul#siteSearch span.resultTitle {
@@ -6737,8 +6641,8 @@ ul.listLists span {
 }
 
 ul.listLists {
-  margin: 0;
-  padding: 0;
+  margin: 0px;
+  padding: 0px;
 }
 
 ul.listLists li {
@@ -6752,7 +6656,7 @@ ul.listLists li {
 ul.listLists li .image {
   width: 42px;
   min-height: 35px;
-  padding: 0 10px;
+  padding: 0px 10px;
 }
 
 ul.listLists li .image img {
@@ -6761,7 +6665,7 @@ ul.listLists li .image img {
 
 ul.listLists li .data {
   width: 208px;
-  padding: 3px 0;
+  padding: 3px 0px;
 }
 
 ul.listLists li .label {
@@ -6773,7 +6677,7 @@ ul.listLists li .meta,
 ul.listLists li .owner {
   font-size: .6875em;
   line-height: 1.125em;
-  margin: 5px 0;
+  margin: 5px 0px;
 }
 
 div#listsWork ul.listLists li {
@@ -6919,8 +6823,8 @@ div#listsWork div.dropper div.dropdown {
 
 div.dropper div.dropdown div.reading-lists p.reading-list-title {
   background: @white;
-  padding: 5px 0 0 10px;
-  margin: 0;
+  padding: 5px 0px 0px 10px;
+  margin: 0px;
   font-size: .8em;
 }
 
@@ -6969,7 +6873,7 @@ div#subjectLists ul.listLists li .data {
 
 div#subjectLists div.dropit h3 {
   font-weight: normal;
-  margin: 0;
+  margin: 0px;
   padding: 5px;
 }
 
@@ -7370,7 +7274,7 @@ span.actions a span.checked-out {
   font-weight: 500;
   text-decoration: none;
   background: @grey-464646;
-  margin: 0 5px;
+  margin: 0px 5px;
 }
 
 .page-banner .button {
@@ -7452,13 +7356,13 @@ span.actions a span.checked-out {
   background-color: inherit;
   border: none;
   border-radius: 3px;
-  border-bottom-right-radius: 0;
-  border-top-right-radius: 0;
+  border-bottom-right-radius: 0px;
+  border-top-right-radius: 0px;
   cursor: pointer;
   font-size: .75em;
   width: 100%;
-  padding: 7px 0;
-  margin: 0;
+  padding: 7px 0px;
+  margin: 0px;
 }
 
 .log-work button[type=submit].activated {
@@ -7520,9 +7424,9 @@ span.actions a span.checked-out {
 div.tools-override {
   width: 180px;
   min-height: 45px;
-  padding-left: 0;
-  margin: 0 auto;
-  padding: 0;
+  padding-left: 0px;
+  margin: 0px auto;
+  padding: 0px;
 }
 
 div.tools-override .Tools .btn-notice {
@@ -7532,14 +7436,14 @@ div.tools-override .Tools .btn-notice {
 }
 
 .user-book-options div.tools-override div.dropit {
-  margin: 0;
+  margin: 0px;
   position: relative;
   width: auto;
 }
 
 /* Author sidebar */
 .Tools #widget-add.old-style-lists div.dropper {
-  margin: 0;
+  margin: 0px;
   position: absolute;
   top: 35px;
   left: 10px;
@@ -7548,11 +7452,11 @@ div.tools-override .Tools .btn-notice {
 }
 
 .Tools #widget-add.old-style-lists div.edition-page-lists-dropdown {
-  margin: 0;
-  left: 0;
+  margin: 0px;
+  left: 0px;
   width: 157px;
-  top: 0;
-  padding: 0 10px;
+  top: 0px;
+  padding: 0px 10px;
 }
 
 .Tools #widget-add.old-style-lists .dropclick {
@@ -7574,8 +7478,8 @@ div.tools-override .Tools .btn-notice {
 }
 
 #widget-add.old-style-lists div.dropper {
-  margin: 0;
-  top: 0;
+  margin: 0px;
+  top: 0px;
   position: absolute;
 }
 
@@ -7591,12 +7495,12 @@ div.tools-override div.dropper {
 }
 
 .tools-override #widget-lists {
-  margin: 0;
+  margin: 0px;
   clear: both;
 }
 
 .tools-override #widget-lists li {
-  padding-left: 0;
+  padding-left: 0px;
 }
 
 .editionCover .illustration {
@@ -7666,8 +7570,8 @@ Tools .check-availability a {
 }
 
 div.Tools .cta-section {
-  padding: 5px 5px 0 5px;
-  margin: 0;
+  padding: 5px 5px 0px 5px;
+  margin: 0px;
 }
 
 div.Tools .cta-section ul li {
@@ -7675,7 +7579,7 @@ div.Tools .cta-section ul li {
 }
 
 div.Tools div.panel .cta-section p {
-  margin: 0;
+  margin: 0px;
 }
 
 .cta-section-title {
@@ -7719,7 +7623,7 @@ p.print-disabled-download {
   text-align: center;
   background: inherit;
   border: none;
-  padding: 0;
+  padding: 0px;
   color: @link-blue;
   border-bottom: 1px solid @link-blue;
   margin-bottom: 15px;
@@ -7838,7 +7742,7 @@ ul#myreads-paginator li.selected:hover {
 .mybooks-menu ul.loans-lists,
 .mybooks-menu ul.user-lists {
   padding: 10px;
-  padding-left: 0;
+  padding-left: 0px;
   border-bottom: 1px solid @lightest-grey;
 }
 
@@ -7864,26 +7768,11 @@ ul#myreads-paginator li.selected:hover {
 
 .mybooks-menu ul li.subsection {
   font-weight: bold;
-  padding: 5px 0;
+  padding: 5px 0px;
 }
 
 .user-lists a {
   text-decoration: underline;
-}
-
-.mybooks-list h2 {
-  padding: 5px 0;
-  margin: 0;
-  line-height: 1.5em;
-  margin-bottom: 5px;
-}
-
-.mybooks-list h2.subtitle {
-  font-weight: normal;
-}
-
-.mybooks-list .loadmore {
-  text-align: center;
 }
 
 .mybooks-list-options {
@@ -7891,12 +7780,12 @@ ul#myreads-paginator li.selected:hover {
 }
 
 .mybooks-list-options p {
-  margin: 0;
+  margin: 0px;
 }
 
 .mybooks-list-options h3 {
-  padding: 5px 0;
-  margin: 0;
+  padding: 5px 0px;
+  margin: 0px;
   line-height: 1.5em;
   margin-bottom: 5px;
 }
@@ -7927,7 +7816,7 @@ ul#myreads-paginator li.selected:hover {
   border: 2px solid @green-four;
   border-right: 1px solid @green-two;
   height: 2.5em;
-  padding: 0 10px;
+  padding: 0px 10px;
 }
 
 .reading-log-lite span.activated-check {
@@ -7971,7 +7860,7 @@ a.btn {
 #ratingsForm .stars {
   background: url(/static/images/stars.png) repeat-x 0 0;
   width: 150px;
-  margin: 0 auto;
+  margin: 0px auto;
   margin-bottom: 7px;
   cursor: pointer;
 }
@@ -8012,7 +7901,7 @@ form .stars input[type="submit"].star-0.star-selected ~ span {
   background: none;
   display: block;
   margin: 0 auto;
-  border: 0;
+  border: 0px;
   cursor: pointer;
 }
 
@@ -8070,7 +7959,7 @@ form .stars span {
 }
 
 .searchInsideForm input[type=text] {
-  margin: 0;
+  margin: 0px;
   padding: 5px;
   width: 100%;
   max-width: 500px;
@@ -8106,7 +7995,7 @@ form .stars span {
   }
 
   .iaBarLogo {
-    margin-left: 0;
+    margin-left: 0px;
   }
 
   .desktop-only {
