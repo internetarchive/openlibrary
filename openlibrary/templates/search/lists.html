@@ -1,10 +1,36 @@
-$def with (results)
+$def with (q, results)
 
 $var title: Search results for Lists
 
+<div id="contentHead">
+  <h1>$_("Lists")</h1>
+</div>
 
-<h1>Lists</h1>
-<ul>
-  $for l in results:
-    $l
-</ul>
+<div id="contentBody">
+
+  <form class="siteSearch searchInsideForm" action="/search/lists">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+  </form>
+
+  <div class="resultsContainer">
+    $if results:
+      <div id="searchResults">
+        <ul>
+          $for l in results:
+            <li class="searchResultItem" style="list-style-type: none">
+              $ desc = l.get('description', {}).get('value')
+              $ created = l.get('created', {}).get('value')
+              $ creator = l['key'].split('/')[2]
+              <div><a href="$l['key']">$l['name']</a></div>
+              $if desc:
+                <div>$desc</div>
+              <div>by: <a href="/people/$creator">$creator</a></div>
+              <div>created: $created</div>
+            </li>
+        </ul>
+      </div>
+    $elif q:
+      <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
+  </div>
+</div>
