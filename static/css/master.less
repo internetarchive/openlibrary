@@ -3242,7 +3242,12 @@ div.list {
 
 .section.book-overview {
   border-bottom: 1px solid @lightest-grey;
-  padding-bottom: 25px;
+  padding-bottom: 10px;
+
+  .section {
+    margin-top: 10px;
+    margin-bottom: 10px;
+  }
 }
 
 h1.work-title {
@@ -3365,9 +3370,9 @@ div.workPadding {
 }
 
 div.workHelp {
-  padding: 20px;
-  font-size: 14px;
-  margin-bottom: 15px;
+  padding-top: 10px;
+  font-size: .8em;
+  margin-bottom: 20px;
 }
 
 div.work {
@@ -3855,6 +3860,13 @@ ul.booklinks {
       float: right;
       padding: 0 10px 10px 15px;
     }
+  }
+}
+
+#external-links {
+  margin-left: 40px;
+  ul li {
+    list-style-type: none;
   }
 }
 
@@ -5863,11 +5875,24 @@ ul#listResults {
   list-style-type: none;
   margin: 0;
   padding: 0;
+  padding-top: 20px;
   border-top: 1px dotted @lightest-grey;
   li {
     .display-flex();
     width: 100%;
     list-style-type: none;
+    padding: 10px;
+
+    .imageLg a img {
+      height: 110px;
+      background: @lightest-grey;
+      max-width: 75px;
+    }
+
+    p {
+      line-height: 2em;
+      font-size: .8em;
+    }
   }
 }
 
@@ -6240,6 +6265,10 @@ ul.wide {
   li span.resultTitle {
     width: 813px;
     max-width: 813px;
+
+    .subjects {
+      font-size: .8em;
+    }
   }
 }
 

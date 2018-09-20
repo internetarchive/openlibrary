@@ -1,4 +1,4 @@
-$def with (q, results)
+$def with (q, lists)
 
 $var title: Search results for Lists
 
@@ -13,24 +13,12 @@ $var title: Search results for Lists
     <input type="submit" class="generic-button" value="$_('Search')">
   </form>
 
-  <div class="resultsContainer">
-    $if results:
-      <div id="searchResults">
-        <ul>
-          $for l in results:
-            <li class="searchResultItem" style="list-style-type: none">
-              $ desc = l.get('description', {}).get('value')
-              $ created = l.get('created', {}).get('value')
-              $ creator = l['key'].split('/')[2]
-              <div><a href="$l['key']">$l['name']</a></div>
-              $if desc:
-                <div>$desc</div>
-              <div>by: <a href="/people/$creator">$creator</a></div>
-              <div>created: $created</div>
-            </li>
-        </ul>
-      </div>
-    $elif q:
-      <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
-  </div>
+  $if lists:
+    <ul id="listResults" class="wide">
+      $for list in lists:
+        <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
+    </ul>
+  $elif q:
+    <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
+
 </div>

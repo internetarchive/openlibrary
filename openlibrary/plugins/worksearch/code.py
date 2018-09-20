@@ -638,7 +638,7 @@ class list_search(delegate.page):
             "limit": int(i.limit), "offset": int(i.offset)
         })
         lists = web.ctx.site.get_many(keys)
-        return render_template('search/lists.tmpl', q=i.q, results=[l.dict() for l in lists])
+        return render_template('search/lists.tmpl', q=i.q, lists=lists)
 
 class subject_search(delegate.page):
     path = '/search/subjects'
