@@ -21,7 +21,6 @@
 @import (less) "components/dropper.less";
 @import (less) "components/borrowBookForm.less";
 
-// stylelint-disable no-duplicate-selectors
 .clear {
   clear: both;
 }
@@ -798,11 +797,6 @@ p {
   margin-bottom: 20px;
 }
 
-body#admin div#content,
-body#edit div#content {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-}
-
 input[type=text],
 select,
 textarea {
@@ -1120,27 +1114,6 @@ div#legal {
   text-align: left;
 }
 
-/* PALETTE */
-body#user {
-  background-color: @beige;
-  div#background {
-    width: 100%;
-    background-color: @beige;
-  }
-}
-
-body#admin {
-  background-color: desaturate(@admin-table-border, 100);
-  div#background {
-    width: 100%;
-    background-color: desaturate(@beige, 100);
-    padding-bottom: 15px;
-  }
-  div#bottom {
-    background-color: transparent;
-  }
-}
-
 /* WIDGETS */
 .word-corner-badge {
   position: absolute;
@@ -1228,20 +1201,6 @@ div#noLogin {
       right: 20px;
       width: 16px;
       height: 16px;
-    }
-  }
-}
-
-/* ALERT MESSAGE */
-body#user {
-  div.message {
-    float: left;
-    clear: both;
-    width: 100%;
-    margin-bottom: 15px;
-    background: @light-yellow;
-    p {
-      font-family: "Lucida Grande","Arial",sans-serif;
     }
   }
 }
@@ -1492,12 +1451,6 @@ div.siteSearch {
   width: 300px;
 }
 
-body#user div.siteSearch {
-  -webkit-box-ordinal-group: 4;
-  -ms-flex-order: 3;
-  order: 3;
-}
-
 div#headerSearch {
   width: 316px;
   padding: 9px;
@@ -1539,15 +1492,6 @@ div.siteSearch {
 div.siteSearch.darker {
   -webkit-box-shadow: 1px 1px 10px @dark-grey;
   box-shadow: 1px 1px 10px @dark-grey;
-}
-
-body#user div.siteSearch.darker {
-  background-color: @grey-f3f3f3;
-  padding-right: 22px;
-}
-
-body#admin div.siteSearch.darker {
-  background-color: @light-mid-grey;
 }
 
 div.searchFilter {
@@ -1785,73 +1729,6 @@ fieldset.home {
   cursor: move;
 }
 
-/* EDITING */
-body#edit div#header,
-body#edit footer,
-body#edit div#bottom,
-body#edit .siteSearch {
-  display: none;
-}
-
-body#edit,
-body#edit div#content {
-  background-color: @beige;
-}
-
-body#edit {
-  .formElement {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    color: @darker-grey;
-  }
-  .label {
-    padding: 10px 0 5px;
-    label {
-      font-size: 1.0em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-      font-weight: 700;
-    }
-    span {
-      font-size: 0.75em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-    }
-  }
-  textarea {
-    width: 906px;
-    height: 500px;
-    font-family: "Lucida Console", "Courier New", monospace;
-    font-size: 0.875em;
-    padding: 5px;
-  }
-  .formElement input[type=text],
-  .formElement select {
-    font-size: 1em;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-    color: @dark-grey;
-    padding: 5px;
-  }
-  table.code {
-    border: 1px solid @grey-e7e7e7;
-    width: 100%;
-    margin-right: 10px;
-    margin-bottom: 40px;
-    td {
-      background-color: @white;
-      vertical-align: top;
-      font-family: "Lucida Console", "Courier New", monospace;
-      font-size: 0.875em;
-      padding: 5px;
-    }
-  }
-  div#databar {
-    padding: 10px;
-    margin: 20px 20px 0;
-    background-color: @light-yellow;
-    a {
-      font-size: 0.75em;
-    }
-  }
-}
-
 div.cclicense {
   font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
   font-size: 0.75em;
@@ -1872,44 +1749,6 @@ div.adminDelete {
   text-align: center;
   font-size: 12px;
   color: @grey;
-}
-
-body#edit {
-  #editHead {
-    background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
-    padding: 25px 0 45px 140px;
-    white-space: nowrap;
-    clear: left;
-    h2 {
-      margin: 0 0 5px 0;
-      a {
-        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-        color: @red;
-        font-size: 14px;
-        font-weight: normal;
-        text-decoration: underline;
-      }
-    }
-    p {
-      color: @brown;
-      font-size: 14px;
-      margin: 0;
-    }
-  }
-  .formElement.title {
-    width: 618px;
-    float: left;
-  }
-
-  .formElement.title input {
-    width: 580px;
-  }
-
-  .formElement.pagetype,
-  .formElement.pagetype select {
-    width: 300px;
-    float: left;
-  }
 }
 
 a.cancel {
@@ -1991,15 +1830,6 @@ div#editTools {
   max-width: 280px;
 }
 
-body#edit div#editTools {
-  padding: 20px;
-  max-width: 300px;
-}
-
-body#user div#editHistory {
-  display: none;
-}
-
 div#editButton button,
 div#editHistory button,
 div.revert.notice button {
@@ -2034,24 +1864,6 @@ div#revertNotice {
   background-color: @dark-green;
 }
 
-body#edit div#revertNotice,
-body#form div#revertNotice {
-  display: none;
-}
-
-body#edit div#revertLink {
-  position: absolute;
-  top: 60px;
-  right: 20px;
-  font-size: 0.75em;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
-}
-
-body#user div#revertLink,
-body#form div#revertLink {
-  display: none;
-}
-
 /* MESSAGING */
 div.alert,
 div.verify {
@@ -2080,10 +1892,6 @@ div#headerNav {
   height: 150px;
 }
 
-body#user div#headerNav {
-  background-color: @beige;
-}
-
 div#headerNav {
   ul.links {
     position: absolute;
@@ -2106,14 +1914,6 @@ div#headerNav {
   li.second {
     margin-right: 99px !important;
   }
-}
-
-body#user div#headerNav ul.links li {
-  border-top: 1px solid @beige-two;
-}
-
-body#admin div#headerNav ul.links li {
-  border-top: 1px solid @light-mid-grey;
 }
 
 div#headerNav ul.links li a,
@@ -2141,10 +1941,6 @@ div#headerLogo {
   width: 220px;
   height: 140px;
   margin-top: 10px;
-}
-
-body#user div#headerLogo {
-  background-color: @beige;
 }
 
 div#headerLogo {
@@ -2178,10 +1974,6 @@ div#headerPlace {
   float: left;
   width: 370px;
   height: 150px;
-}
-
-body#user div#headerPlace {
-  background-color: @beige;
 }
 
 div#headerTools {
@@ -4688,40 +4480,10 @@ div.coverFloat {
   }
 }
 
-body#form {
-  text-align: left;
-  background-color: @white;
-  width: 600px;
-  min-height: 440px;
-  overflow: hidden;
-  #placement,
-  #position,
-  #content {
-    width: 600px;
-    min-height: 440px;
-  }
-  footer,
-  #bottom {
-    display: none;
-  }
-}
 
 form.floatform {
   font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-}
 
-body#form {
-  .formButtons {
-    position: absolute;
-    width: 600px;
-    height: 50px;
-    bottom: 0;
-    left: 0;
-    text-align: center;
-  }
-}
-
-form.floatform {
   .label {
     width: 560px;
     padding-top: 20px;
@@ -4764,95 +4526,6 @@ a.floaterClose {
   color: @red;
   font-size: 1.0em;
   padding-left: 20px;
-}
-
-body#form {
-  div.centerIt {
-    margin: 0 80px;
-    text-align: left;
-  }
-  .column {
-    width: 560px;
-    min-height: 90px;
-    float: left;
-    margin: 10px;
-    background-image: url(/images/back_sortable.png);
-    background-repeat: no-repeat;
-  }
-  .trashPosition {
-    position: relative;
-    float: left;
-    width: 580px;
-    height: 90px;
-  }
-  .trashCan {
-    position: absolute;
-    top: 20px;
-    right: 32px;
-    width: 32px;
-    height: 42px;
-    background-image: url(/images/back_sort-trash.png);
-    background-repeat: no-repeat;
-    background-position: 0 0;
-  }
-  .trashPosition {
-    &:hover .trashCan {
-      background-position: -32px 0;
-    }
-  }
-  .trash {
-    width: 560px;
-    height: 90px;
-    overflow: hidden;
-    background-color: @light-yellow;
-    float: left;
-    margin: 0 10px;
-    border-radius: 8px;
-    border: 1px solid @dark-yellow;
-  }
-  .portlet {
-    margin: 7px 13px 13px 7px;
-    float: left;
-    width: 70px;
-    height: 70px;
-    overflow: hidden;
-    border: 1px solid @lighter-grey;
-    border-radius: 6px;
-    cursor: move;
-    td {
-      width: 70px;
-      height: 70px;
-      text-align: center;
-      vertical-align: middle;
-      cursor: move;
-    }
-    img {
-      cursor: move;
-    }
-  }
-  .portlet-content {
-    padding: 0.4em;
-  }
-  .imagePost {
-    float: left;
-    width: 300px;
-    text-align: center;
-  }
-  .imageSaved {
-    float: left;
-    width: 300px;
-    font-size: 0.75em;
-    color: @grey;
-  }
-  .saved {
-    background: url(/images/icons/icon_saved.png) no-repeat;
-    font-size: 1.5em;
-    font-weight: 700;
-    color: @black;
-    padding: 6px 0 0 40px;
-    min-height: 30px;
-    margin: 25px 0 15px;
-  }
 }
 
 .ui-sortable {
@@ -5109,11 +4782,6 @@ a.coverLook {
 
 *:first-child + html .ui-tabs-nav { /* @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
   display: inline-block;
-}
-
-/* ADMIN */
-body#admin div#contentHead {
-  padding-bottom: 30px;
 }
 
 table.records {
@@ -5634,137 +5302,7 @@ div.mergeThis {
   }
 }
 
-/* PLAIN PAGE STYLES */
-body#plain {
-  div#header,
-  footer,
-  div#bottom,
-  .siteSearch {
-    display: none;
-  }
-  #contentBody,
-  #contentHead {
-    width: 690px;
-    padding: 0 134px;
-    margin: 0;
-  }
-  div.contentOnethird {
-    width: 210px;
-  }
-  div.contentSpacer {
-    width: 30px;
-    height: 15px;
-  }
-  div.nav {
-    margin: 50px 0 50px;
-    font-size: 14px;
-  }
-  div.message {
-    padding: 25px 25px 25px 55px;
-    margin-bottom: 50px;
-    background: @light-yellow url(/images/icons/icon_lock-msg.png) no-repeat 15px 50%;
-    h2 {
-      font-weight: normal;
-      font-size: 18px;
-      color: @black;
-      margin: 0;
-      padding: 0;
-    }
-    p {
-      font-size: 0.75em;
-      padding: 0;
-      margin: 0;
-    }
-  }
-  ul.link {
-    margin-bottom: 50px;
-    li {
-      font-size: 1.125em;
-    }
-  }
-  #faq {
-    h4 {
-      font-size: 0.75em;
-      color: @black;
-      text-transform: uppercase;
-      margin-bottom: 0;
-    }
-    p {
-      font-size: 0.75em;
-      color: @dark-grey;
-    }
-  }
-  p.help {
-    font-size: 14px;
-  }
-}
-
 /* BORROWING */
-body#plain {
-  div.alert {
-    background: @light-yellow url(/images/icons/icon_alert-gold.png) no-repeat 15px 50% !important;
-    margin-bottom: 10px;
-    margin-top: 20px;
-  }
-  div.stop {
-    background: @light-yellow url(/images/icons/icon_stop.png) no-repeat 15px 50% !important;
-    margin-bottom: 45px;
-    margin-top: 20px;
-  }
-  div.info {
-    background: @light-yellow url(/images/icons/icon_info.png) no-repeat 17px 50% !important;
-    margin-bottom: 45px;
-    margin-top: 20px;
-  }
-  h1 {
-    font-size: 1.5em;
-    margin: 0 0 15px 0;
-  }
-  div.navBorrow {
-    margin: 50px 0 10px;
-    font-size: 0.75em;
-  }
-  .panel {
-    background-color: @white;
-    border: 1px solid @beige-two;
-    padding: 30px 20px;
-    margin-bottom: 20px;
-  }
-  .formElement {
-    float: none;
-  }
-  .panel h3 {
-    font-size: 1.875em;
-  }
-  #borrowThis {
-    margin-bottom: 20px;
-  }
-  .borrow {
-    span.book {
-      font-size: 1em;
-      font-weight: 700;
-    }
-    span.author {
-      font-size: 0.875em;
-      color: @dark-grey;
-    }
-    span.publisher,
-    span.contributor {
-      color: @dark-grey;
-      font-size: 0.875em;
-    }
-    div.date {
-      font-size: 0.75em;
-      color: @grey;
-    }
-    span.expires {
-      font-size: 1em;
-    }
-    table {
-      border-bottom: none;
-    }
-  }
-}
 
 a.borrowResults {
   &:link {
@@ -6114,16 +5652,6 @@ div#listsWork {
   }
 }
 
-body#plain {
-  div#listsWork {
-    p {
-      font-size: 0.75em;
-      padding-left: 0;
-      margin-bottom: 5px !important;
-    }
-  }
-}
-
 div#listsWork {
   p#listsLess {
     padding-left: 0;
@@ -6285,26 +5813,6 @@ ul.clean {
 ul#listResults {
   li span.resultTitle p {
     margin: 0;
-  }
-}
-
-body#user {
-  #description {
-    padding-left: 130px;
-    padding-right: 60px;
-    background: url(/images/icons/icon_fav-big.png) 35px 35px no-repeat;
-
-    h2 {
-      font-size: 1.5em;
-      font-family: "Georgia", "Times New Roman", serif;
-      font-weight: normal;
-      color: @dark-grey;
-      margin: 0 0 10px 0;
-    }
-    p {
-      font-size: .875em;
-      margin: 0 0 30px 0;
-    }
   }
 }
 

@@ -1,0 +1,39 @@
+/**
+ * Stylesheet entry point for pages with body#admin
+ * See
+ * - openlibrary/templates/admin/people/view.html
+ * - openlibrary/templates/admin/ip/index.html
+ * - openlibrary/templates/admin/index.html
+ * Pages:
+ * - /admin
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+
+body#admin {
+  background-color: desaturate(@admin-table-border, 100);
+  div#background {
+    width: 100%;
+    background-color: desaturate(@beige, 100);
+    padding-bottom: 15px;
+  }
+  div#content {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  }
+  div#bottom {
+    background-color: transparent;
+  }
+  div.siteSearch.darker {
+    background-color: @light-mid-grey;
+  }
+  div#headerNav ul.links li {
+    border-top: 1px solid @light-mid-grey;
+  }
+  div#contentHead {
+    padding-bottom: 30px;
+  }
+}
+
+// Import all common components
+@import (less) "all.less";
