@@ -1,0 +1,75 @@
+/**
+ * ShareLinks
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#sharelinks
+ * Provided by macro openlibrary/macros/SocialShare.html and
+ * openlibrary/macros/databarWork.html
+ * Used in templates:
+ * - openlibrary/templates/type/work/view.html
+ * - openlibrary/templates/type/edition-history/view.html
+ * - openlibrary/templates/type/edition/view.html
+ */
+
+.shareLinks {
+  li:hover {
+    cursor: pointer;
+  }
+  .share-source {
+    font-size: .8em;
+    text-align: center;
+    color: @grey;
+  }
+}
+
+// I believe the #content is redundant.
+// Review and merge with above if correct.
+#content {
+  .shareLinks {
+    margin-top: 10px;
+    a {
+      line-height: 24px;
+      img {
+        height: 30px;
+      }
+    }
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+    li {
+      list-style-type: none;
+      display: inline;
+      line-height: 24px;
+    }
+  }
+
+  // I believe this rule is overly specific
+  div.Tools {
+    // .shareLinks-list will always be inside a .shareLinks element
+    .shareLinks .shareLinks-list {
+      .display-flex();
+
+      li {
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        margin-top: 5px;
+        flex: 1;
+        cursor: pointer;
+
+        a {
+          display: block;
+          text-align: center;
+          cursor: pointer;
+
+          img {
+            display: block;
+            margin: 0 auto;
+            cursor: pointer;
+          }
+        }
+      }
+    }
+  }
+}
