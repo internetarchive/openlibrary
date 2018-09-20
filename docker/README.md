@@ -33,7 +33,7 @@ docker-compose stop
 docker-compose rm -v
 ```
 
-Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a test databse and any other tools that are helpful for local development. Currently (Sep 2018) these docker images are only intented for development environments.
+Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a pre-populated development database and any other tools that are helpful for local development. Currently (Sep 2018) these docker images are only intented for development environments.
 
 This exposes the following ports:
 
@@ -50,6 +50,14 @@ If you are using Docker Toolbox on Windows, use the Docker Machine IP instead of
 
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
+## Code Updates
+
+While running the `oldev` container, gunicorn is configured to auto-reload modified files. To see the effects of your changes in the running container, the following apply:
+
+* Editing python files or web templates => simply save the file, gunicorn will auto-reload it.
+* Working on frontend css or js => you must run `docker-compose exec web make css js`. This will re-generate the assets in the persistent `ol-build` volume mount, so the latest changes will be available between stopping / starting and removing `web` containers. Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
+* Adding or changing core dependencies => you will most likely need to rebuild both `olbase` and `oldev` images. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;)
+
 ## Useful Runtime Commands
 
 See the docs for more: https://docs.docker.com/compose/reference/overview
@@ -61,10 +69,17 @@ docker-compose logs -f --tail=10 web # Show last 10 lines and follow
 
 # Analyze a container
 docker-compose exec web bash # Launch terminal in `web` service
+
+# Run tests while container is running
+docker-compose exec web make test
+```
+
+## Other Commands
+```bash
+# Run tests in a temporary container
+docker-compose run --rm web make test
 ```
 
 ## TODO
 * Fix symlinks that are causing a problem in Windows, see issue https://github.com/internetarchive/openlibrary/issues/1051 
 
-## Run tests in a temporary container
-`docker-compose run --rm web make test`
