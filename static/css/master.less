@@ -19,6 +19,7 @@
 @import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
 @import (less) "components/dropper.less";
+@import (less) "components/borrowBookForm.less";
 
 .clear {
   clear: both;
@@ -5937,99 +5938,6 @@ a.borrowResults:active {
 div.preSubmit,
 div.postSubmit {
   text-align: center;
-}
-
-form#borrowbook {
-  margin: 40px auto 0;
-  text-align: left;
-}
-
-form#borrowbook fieldset {
-  display: block;
-  float: left;
-  border-top: 1px dotted @black;
-  padding: 20px 0;
-}
-
-form#borrowbook fieldset.download {
-  width: 455px;
-}
-
-form#borrowbook fieldset.online {
-  width: 220px;
-  margin-right: 15px;
-}
-
-form#borrowbook fieldset div {
-  float: left;
-  width: 100%;
-  text-align: center;
-}
-
-form#borrowbook fieldset table {
-  margin: 0 auto;
-}
-
-form#borrowbook fieldset table td {
-  text-align: center;
-  font-size: .8125em;
-}
-
-form#borrowbook fieldset.online table td {
-  color: @brown;
-}
-
-form#borrowbook fieldset table td.icon {
-  padding-right: 10px;
-}
-
-form#borrowbook legend {
-  padding: 0 10px;
-  font-size: .6875em;
-  text-transform: uppercase;
-  font-weight: 700;
-  text-align: center;
-  background-color: @beige;
-}
-
-form#borrowbook label {
-  display: block;
-  float: left;
-  width: 170px;
-  height: 50px;
-  padding: 20px 0 0 50px;
-  margin-bottom: 25px;
-  background-color: @cream;
-  font-size: .6875em;
-  color: @grey;
-  cursor: pointer;
-  background-position: 20px 20px;
-  background-repeat: no-repeat;
-  background-image: url(/images/icons/icon_download-borrow.png);
-}
-
-form#borrowbook fieldset.online label {
-  background-color: @off-white;
-  background-image: url(/images/icons/icon_read-borrow.png);
-}
-
-form#borrowbook label strong {
-  display: block;
-  font-size: 1.25em;
-  color: @darker-brand-blue;
-  text-decoration: underline;
-}
-
-form#borrowbook input {
-  display: none;
-}
-
-form#borrowbook label:hover {
-  background-color: @off-white;
-}
-
-form#borrowbook label:hover strong {
-  color: @olive;
 }
 
 div.inLibrary {
