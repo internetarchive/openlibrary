@@ -23,6 +23,10 @@
       "maxSize": "26.1KB"
     },
     {
+      "path": "static/build/page-home.css",
+      "maxSize": "4.2KB"
+    },
+    {
       "path": "static/build/page-plain.css",
       "maxSize": "26.2KB"
     },
