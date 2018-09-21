@@ -21,7 +21,7 @@ $if scribd or isbn or asin:
                     <span name="price">$(amazon_metadata['price'])</span>
           </td>
         </tr>
-      $if isbn:
+      $if isbn and not is_bot():
             <tr>
               $ better_world_books = "http://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx" % (affiliate_id('betterworldbooks'), isbn)
               <td><a href="$better_world_books" title="Look for this edition for sale at Better World Books" target="_blank">Better World Books</a></td>
