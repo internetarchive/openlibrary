@@ -239,11 +239,33 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     $if page.languages:
                     <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
               </h4>
-            </div>
 
-        $if page.description:
-            <h3 class="collapse">$_("About the Book")</h3>
-            $:format(page.description)
+          $if work:
+            $def render_subjects(label, subjects, prefix=""):
+                $if subjects:
+                    <div class="section">
+                        <h6 class="collapse black uppercase">$label</h6>
+                        <div class="sansserif">
+                        $for subject in subjects:
+                            <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
+                        </div>
+                    </div>
+            $:render_subjects("Subjects", work.get_subjects())
+            $:render_subjects("People", work.subject_people, prefix="person:")
+            $:render_subjects("Places", work.subject_places, prefix="place:")
+            $:render_subjects("Times", work.subject_times, prefix="time:")
+
+        </div>
+        <h3 class="collapse">$_("About the Book")</h3>
+          $if page.description:
+            $:sanitize(format(page.description))
+          $elif work and work.description:
+            $:sanitize(format(work.description))
+          $elif not (page.description or page.excerpts or page.first_sentence):
+            <div class="workHelp brown sansserif">
+              There's no description for this book yet. Can
+              you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
+            </div>
 
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
