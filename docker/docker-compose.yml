@@ -6,8 +6,12 @@ services:
       - 8080:80
       - 7000:7000
     volumes:
+      # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for generated css and js
       - ol-build:/openlibrary/static/build
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
       - ..:/openlibrary
     networks:
       - webnet
