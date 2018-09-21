@@ -366,6 +366,7 @@ $().ready(function(){
     var searchFacets = {
         'title': 'books',
         'author': 'authors',
+        'lists': 'lists',
         'subject': 'subjects',
         'all': 'all',
         'advanced': 'advancedsearch',

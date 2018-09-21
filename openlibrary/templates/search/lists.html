@@ -1,0 +1,24 @@
+$def with (q, lists)
+
+$var title: Search results for Lists
+
+<div id="contentHead">
+  <h1>$_("Lists")</h1>
+</div>
+
+<div id="contentBody">
+
+  <form class="siteSearch searchInsideForm" action="/search/lists">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+  </form>
+
+  $if lists:
+    <ul id="listResults" class="wide">
+      $for list in lists:
+        <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
+    </ul>
+  $elif q:
+    <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
+
+</div>

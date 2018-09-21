@@ -240,7 +240,6 @@ $ )
                     $:macros.SearchResultsWork(work, user=user)
           </ul>
         </div>
-
 <!-- /results -->
 
 <!-- facets -->
@@ -285,7 +284,7 @@ $elif param and not error:
             </div>
         </div>
 <!-- /facets -->
-        </div>
+    </div>
 
     $if param and not error and len(docs):
         $:macros.Pager(page, num_found, rows)
@@ -317,4 +316,5 @@ $elif param and not error:
         }
         //-->
         </script>
+  </div>
 </div>
