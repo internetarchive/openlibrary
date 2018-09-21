@@ -1,0 +1,96 @@
+.ui-tabs {
+  &-nav,
+  &-panel {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  }
+
+  &-nav {
+    list-style: none !important;
+    margin-bottom: -3px !important;
+    margin-left: 15px !important;
+    clear: right;
+    &:after { /* clearing without presentational markup, IE gets extra treatment */
+      display: block;
+      clear: both;
+      content: " ";
+    }
+    li {
+      list-style: none !important;
+      float: left;
+      margin: 0 0 0 1px;
+      min-width: 54px; /* be nice to Opera */
+    }
+    a {
+      display: block;
+      font-weight: 600;
+      font-size: 0.6875em;
+      background: @white;
+      border-bottom: 3px solid @lightest-grey;
+      padding: 4px 8px 3px;
+      margin: 8px 3px 0;
+      text-decoration: none;
+      text-transform: uppercase;
+      white-space: nowrap; /* required in IE 6 */
+      outline: 0; /* prevent dotted border in Firefox */
+      &:link,
+      &:visited {
+        color: @link-blue;
+      }
+      &:hover {
+        color: @link-blue;
+        text-decoration: underline;
+      }
+    }
+    .ui-tabs-selected {
+      a {
+        margin: 0 3px !important;
+        padding: 3px 11px;
+        z-index: 2000;
+        &:link,
+        &:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
+          background: @lightest-grey;
+          padding: 8px 11px 3px;
+          border: 1px solid @lightest-grey;
+          border-bottom: 3px solid @lightest-grey;
+          color: @teal;
+          text-transform: capitalize !important;
+          font-size: 1.125em !important;
+          margin: 0 3px;
+          cursor: default;
+        }
+      }
+    }
+    a:hover,
+    a:focus,
+    a:active,
+    .ui-tabs-deselectable a:hover,
+    .ui-tabs-deselectable a:focus,
+    .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
+      cursor: pointer;
+    }
+  }
+  &-disabled {
+    opacity: .4;
+    filter: alpha(opacity=40);
+  }
+  &-panel {
+    border: 3px solid @lightest-grey;
+    padding: 15px 30px 20px 30px !important;
+    background: @white; /* declare background color for container to avoid distorted fonts in IE while fading */
+  }
+  &-loading {
+    em {
+      padding: 0 0 0 20px;
+      background: url(loading.gif) no-repeat 0 50%;
+    }
+  }
+}
+
+/* Additional IE specific bug fixes... */
+* html .ui-tabs-nav { /* auto clear, @ IE 6 & IE 7 Quirks Mode */
+  display: inline-block;
+}
+
+*:first-child + html .ui-tabs-nav { /* @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
+  display: inline-block;
+}

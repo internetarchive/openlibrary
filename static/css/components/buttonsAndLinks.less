@@ -1,0 +1,136 @@
+
+a {
+  &.cta-btn {
+    color: @white;
+    width: 100%;
+    border: 0;
+    border-radius: 5px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-align: center;
+    padding: 5px 20px;
+    font-size: 0.8em;
+  }
+  &.cancel {
+    color: @red;
+    padding-right: 21px;
+    background-image: url(/images/icons/icon_cancel.png);
+    background-repeat: no-repeat;
+    background-position: 100% 0;
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-size: 1em;
+  }
+  &.linkButton {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    text-decoration: none;
+    color: @grey;
+    border: 1px solid @mid-grey;
+  }
+  &.borrowResults {
+    &:link {
+      color: @black;
+      text-decoration: none;
+    }
+    &:visited {
+      color: @black;
+      text-decoration: none;
+    }
+    &:hover {
+      color: @link-blue;
+      text-decoration: underline;
+    }
+    &:active {
+      color: @link-blue;
+      text-decoration: underline;
+    }
+  }
+  &.coverLook {
+    display: block;
+  }
+  &.facetSubject {
+    &:link,
+    &:visited {
+      color: @black;
+      text-decoration: none;
+    }
+  
+    &:hover,
+    &:active {
+      color: @link-blue;
+      text-decoration: underline;
+    }
+  }
+  &.results {
+    &:link {
+      color: @black;
+      text-decoration: none;
+    }
+    &:visited {
+      color: @black;
+      text-decoration: none;
+    }
+    &:hover {
+      color: @link-blue;
+      text-decoration: underline;
+    }
+    &:active {
+      color: @link-blue;
+      text-decoration: underline;
+    }
+  }
+  &.toggle {
+    text-decoration: none;
+    color: @white!important;
+    background-color: @olive!important;
+    padding: 3px;
+    border-radius: 3px;
+    &:hover {
+      background-color: @link-blue!important;
+      color: @white!important;
+    }
+  }
+}
+
+button {
+  &.plainText {
+    border: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size: 0.75em;
+    color: @red;
+    background-color: @white;
+    cursor: pointer;
+    &:hover {
+      color: @dark-green;
+    }
+  }
+  &.plain {
+    border: none;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-size: 0.75em;
+    color: @black;
+    background-color: transparent !important;
+    cursor: pointer;
+    &:hover {
+      color: @dark-green;
+    }
+  }
+  &.addAnother {
+    width: 32px;
+    height: 32px;
+    border: none;
+    vertical-align: middle;
+    cursor: pointer;
+    background-image: url(/images/icons/icon_add.png);
+    background-position: 0 0;
+    background-color: transparent;
+    display: none;
+    &:hover {
+      background-position: -32px 0;
+    }
+  }
+}
+@import "components/buttonGhost.less";
+@import "components/buttonGeneric.less";
+@import "components/buttonBtn.less";

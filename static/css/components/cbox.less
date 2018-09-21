@@ -1,0 +1,76 @@
+/* COLORBOX POP-UP */
+#colorbox,
+#cboxOverlay,
+#cboxWrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 999999;
+}
+
+#cbox {
+  &Overlay {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    background: @brown-3a301e;
+    opacity: 0.5;
+    filter: alpha(opacity=50);
+  }
+  &MiddleLeft,
+  &BottomLeft {
+    clear: left;
+  }
+  &Title {
+    margin: 0;
+    display: none !important;
+  }
+  &LoadingOverlay,
+  &LoadingGraphic {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    width: 100%;
+  }
+  &Previous,
+  &Next,
+  &Close,
+  &Slideshow {
+    cursor: pointer;
+  }
+  &Content {
+    position: relative;
+    background: @white;
+    padding: 0;
+    border: 10px solid @brown;
+    border-radius: 12px;
+    -webkit-box-shadow: 1px 3px 10px @black;
+    box-shadow: 1px 3px 10px @black;
+  }
+  &LoadedContent {
+    background: @white;
+    margin: 0;
+    overflow: visible !important;
+    iframe {
+      display: block;
+      border: 0;
+    }
+  }
+  &LoadingOverlay {
+    background: transparent;
+  }
+  &Close {
+    display: none !important;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icon_close-pop.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -32px;
+    }
+  }
+}
