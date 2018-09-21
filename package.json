@@ -12,7 +12,7 @@
   "bundlesize": [
     {
       "path": "static/build/all.css",
-      "maxSize": "26.86KB"
+      "maxSize": "26.88KB"
     }
   ],
   "devDependencies": {

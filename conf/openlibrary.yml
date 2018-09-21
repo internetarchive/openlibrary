@@ -72,7 +72,6 @@ features:
     stats-header: enabled
     inlibrary: enabled
     support: admin
-    dev: enabled
     superfast: enabled
     publishers: enabled
     languages: enabled
