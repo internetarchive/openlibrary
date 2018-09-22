@@ -111,7 +111,7 @@ $def with (page)
         <button class="avatar" id="userToggle" aria-label="My account" style="background-image: url('https://archive.org/services/img/$(get_internet_archive_id(ctx.user.key))');"></button>
         <img class="down-arrow" aria-hidden="true" alt="$_('My Account')" role="presentation" src="/static/images/down-arrow.png"/>
       </div>
-      <div class="account-dropdown" id="main-account-dropdown">
+      <div class="account-dropdown hidden" id="main-account-dropdown">
         <ul class="dropdown-menu">
           <li><a href="$homepath()/account/loans">$_("My Loans")</a></li>
           <li><a href="$ctx.user.key/lists">$_("My Lists")</a></li>
