@@ -15,6 +15,7 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
+from openlibrary.core import router
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
@@ -110,7 +111,7 @@ class DocSaveHelper:
 
 
 class addbook(delegate.page):
-    path = "/books/add"
+    path = router.urls.books.add
 
     def GET(self):
 
@@ -598,7 +599,7 @@ class SaveBookHelper:
 
 
 class book_edit(delegate.page):
-    path = "(/books/OL\d+M)/edit"
+    path = router.urls.books.edit
 
     def GET(self, key):
         i = web.input(v=None)
@@ -668,7 +669,7 @@ class book_edit(delegate.page):
 
 
 class work_edit(delegate.page):
-    path = "(/works/OL\d+W)/edit"
+    path = router.urls.works.edit
 
     def GET(self, key):
         i = web.input(v=None, _method="GET")
@@ -715,7 +716,7 @@ class work_edit(delegate.page):
 
 
 class author_edit(delegate.page):
-    path = "(/authors/OL\d+A)/edit"
+    path = router.urls.authors.edit
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):
@@ -775,7 +776,7 @@ class edit(core.edit):
 
 
 class daisy(delegate.page):
-    path = "(/books/.*)/daisy"
+    path = router.urls.books.formats.daisy
 
     def GET(self, key):
         page = web.ctx.site.get(key)
@@ -792,7 +793,7 @@ def to_json(d):
 
 
 class languages_autocomplete(delegate.page):
-    path = "/languages/_autocomplete"
+    path = router.urls.languages.autocomplete
 
     def GET(self):
         i = web.input(q="", limit=5)
@@ -802,7 +803,7 @@ class languages_autocomplete(delegate.page):
         return to_json(languages[:i.limit])
 
 class works_autocomplete(delegate.page):
-    path = "/works/_autocomplete"
+    path = router.urls.works.autocomplete
 
     def GET(self):
         i = web.input(q="", limit=5)
@@ -837,7 +838,7 @@ class works_autocomplete(delegate.page):
         return to_json(docs)
 
 class authors_autocomplete(delegate.page):
-    path = "/authors/_autocomplete"
+    path = router.urls.authors.autocomplete
 
     def GET(self):
         i = web.input(q="", limit=5)

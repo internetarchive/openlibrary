@@ -21,6 +21,7 @@ from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import waitinglist
+from openlibrary.core import router
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
 from openlibrary.core import ab
@@ -75,7 +76,7 @@ bookreader_stream_base = 'https://' + bookreader_host + '/stream'
 # Handler for /books/{bookid}/{title}/borrow
 class checkout_with_ocaid(delegate.page):
 
-    path = "/borrow/ia/(.*)"
+    path = router.urls.borrow_ia
 
     def GET(self, ocaid):
         """Redirect shim: Translate an IA identifier into an OL identifier and
@@ -96,7 +97,7 @@ class checkout_with_ocaid(delegate.page):
 
 # Handler for /books/{bookid}/{title}/borrow
 class borrow(delegate.page):
-    path = "(/books/.*)/borrow"
+    path = router.urls.books.lending.borrow
 
     def GET(self, key):
         return self.POST(key)
@@ -250,7 +251,7 @@ class borrow(delegate.page):
 
 # Handler for /books/{bookid}/{title}/_borrow_status
 class borrow_status(delegate.page):
-    path = "(/books/.*)/_borrow_status"
+    path = router.urls.books.lending.borrow_status
 
     def GET(self, key):
         global lending_subjects
@@ -290,7 +291,7 @@ class borrow_status(delegate.page):
 
 
 class borrow_admin(delegate.page):
-    path = "(/books/.*)/borrow_admin"
+    path = router.urls.books.lending.borrow_admin
 
     def GET(self, key):
         if not is_admin():
@@ -337,44 +338,6 @@ class borrow_admin(delegate.page):
             waitinglist.update_waitinglist(edition.ocaid)
         raise web.seeother(web.ctx.path + '/borrow_admin')
 
-class borrow_admin_no_update(delegate.page):
-    path = "(/books/.*)/borrow_admin_no_update"
-
-    def GET(self, key):
-        if not is_admin():
-            return render_template('permission_denied', web.ctx.path, "Permission denied.")
-
-        edition = web.ctx.site.get(key)
-
-        if not edition:
-            raise web.notfound()
-
-        edition_loans = get_edition_loans(edition)
-
-        user_loans = []
-        user = accounts.get_current_user()
-        if user:
-            user_loans = get_loans(user)
-
-        return render_template("borrow_admin_no_update", edition, edition_loans, user_loans, web.ctx.ip)
-
-    def POST(self, key):
-        if not is_admin():
-            return render_template('permission_denied', web.ctx.path, "Permission denied.")
-
-        i = web.input(action=None, loan_key=None)
-
-        if i.action == 'delete' and i.loan_key:
-            delete_loan(i.loan_key)
-
-        raise web.seeother(web.ctx.path) # $$$ why doesn't this redirect to borrow_admin_no_update?
-
-class ia_loan_status(delegate.page):
-    path = r"/ia_loan_status/(.*)"
-
-    def GET(self, itemid):
-        d = get_borrow_status(itemid, include_resources=False, include_ia=False)
-        return delegate.RawText(simplejson.dumps(d), content_type="application/json")
 
 @public
 def get_borrow_status(itemid, include_resources=True, include_ia=True, edition=None):
@@ -452,7 +415,7 @@ class ia_auth(delegate.page):
 
 # Handler for /borrow/receive_notification - receive ACS4 status update notifications
 class borrow_receive_notification(delegate.page):
-    path = r"/borrow/receive_notification"
+    path = router.urls.lending.receive_acs_borrow_updates
 
     def GET(self):
         web.header('Content-Type', 'application/json')
@@ -481,7 +444,7 @@ class ia_borrow_notify(delegate.page):
 
         {"identifier": "foo00bar"}
     """
-    path = "/borrow/notify"
+    path = router.urls.lending.receive_acs_borrow_updates
 
     def POST(self):
         payload = web.data()

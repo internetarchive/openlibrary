@@ -1,14 +1,18 @@
 'Merge editions'
+
 import web, re
-from openlibrary.utils import uniq, dicthash
+from collections import defaultdict
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
-from collections import defaultdict
+
+from openlibrary.utils import uniq, dicthash
+from openlibrary.core import router
 
 re_nonword = re.compile(r'\W', re.U)
 
 class merge_editions(delegate.page):
-    path = '/books/merge'
+    path = router.urls.books.merge_editions
 
     def is_enabled(self):
         return "merge-editions" in web.ctx.features

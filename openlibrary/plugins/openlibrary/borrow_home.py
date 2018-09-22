@@ -9,14 +9,13 @@ from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 
-from openlibrary.core import helpers as h
-from openlibrary.core import inlibrary
+from openlibrary.core import inlibrary, router, helpers as h
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
 from libraries import LoanStats
 
 class borrow(delegate.page):
-    path = "/borrow"
+    path = router.urls.borrow
 
     def is_enabled(self):
         return "inlibrary" in web.ctx.features
@@ -29,7 +28,7 @@ class borrow(delegate.page):
         return render_template("borrow/index", subject, stats=LoanStats(), rand=rand, inlibrary=is_inlibrary)
 
 class borrow(delegate.page):
-    path = "/borrow"
+    path = router.urls.borrow
     encoding = "json"
 
     def is_enabled(self):
@@ -72,7 +71,7 @@ class borrow(delegate.page):
         return simplejson.dumps(subject)
 
 class read(delegate.page):
-    path = "/read"
+    path = router.urls.read
 
     def GET(self):
         rand = random.randint(0, 9999)
@@ -81,7 +80,7 @@ class read(delegate.page):
         return render_template("borrow/read", subject, stats=LoanStats(), rand=rand)
 
 class read(delegate.page):
-    path = "/read"
+    path = router.urls.read
     encoding = "json"
 
     @jsonapi
@@ -120,7 +119,7 @@ class read(delegate.page):
         return simplejson.dumps(subject)
 
 class borrow_about(delegate.page):
-    path = "/borrow/about"
+    path = router.urls.about.borrow
 
     def GET(self):
         return render_template("borrow/about")

@@ -23,6 +23,7 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core import router
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
@@ -168,7 +169,7 @@ def sampleload(filename="sampledump.txt.gz"):
     print web.ctx.site.save_many(queries)
 
 class addbook(delegate.page):
-    path = "/addbook"
+    path = router.urls.books.add_redir
 
     def GET(self):
         d = {'type': web.ctx.site.get('/type/edition')}
@@ -188,7 +189,7 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class widget(delegate.page):
-    path = "/(works|books)/(OL\d+[W|M])/widget"
+    path = router.urls.books.widget
 
     def GET(self, _type, olid=None):
         if olid:
@@ -203,7 +204,7 @@ class widget(delegate.page):
         raise web.seeother("/")
 
 class addauthor(delegate.page):
-    path = '/addauthor'
+    path = router.urls.authors.add
 
     def POST(self):
         i = web.input("name")
@@ -227,8 +228,13 @@ class clonebook(delegate.page):
                  d.pop(k, None)
             return render.edit(page, '/addbook', 'Clone Book')
 
+class suggest_job(delegate.page):
+    def GET(self):
+        return "hi"
+
 class search(delegate.page):
-    path = "/suggest/search"
+    # XXX What does this endpoint do?!
+    path = router.urls.apis.suggest.search
 
     def GET(self):
         i = web.input(prefix="")
@@ -250,7 +256,8 @@ class search(delegate.page):
         raise web.HTTPError('200 OK', {}, data)
 
 class blurb(delegate.page):
-    path = "/suggest/blurb/(.*)"
+    path = router.urls.apis.suggest.blurb
+
     def GET(self, path):
         i = web.input()
         callback = i.pop('callback', None)
@@ -275,7 +282,7 @@ class blurb(delegate.page):
         raise web.HTTPError('200 OK', {}, data)
 
 class thumbnail(delegate.page):
-    path = "/suggest/thumbnail"
+    path = router.urls.apis.suggest.thumbnail
 
 @public
 def get_property_type(type, name):
@@ -305,29 +312,9 @@ def get_pages(type, processor):
     for p in pages:
         processor(web.ctx.site.get(p))
 
-class flipbook(delegate.page):
-    path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
-
-    SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
-
-    def GET(self, identifier, leaf):
-        if leaf:
-            hash = '#page/n%s' % leaf
-        else:
-            hash = ""
-
-        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
-        raise web.seeother(url)
-
-class bookreader(delegate.page):
-    path = "/bookreader/(.*)"
-
-    def GET(self, id):
-        data = render.bookreader(id)
-        raise web.HTTPError("200 OK", {}, data)
-
 class robotstxt(delegate.page):
-    path = "/robots.txt"
+    path = router.urls.robots_txt
+
     def GET(self):
         web.header('Content-Type', 'text/plain')
         try:
@@ -337,7 +324,8 @@ class robotstxt(delegate.page):
             raise web.notfound()
 
 class health(delegate.page):
-    path = "/health"
+    path = router.urls.service_health
+
     def GET(self):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
@@ -350,7 +338,7 @@ class change_cover(delegate.mode):
         return render.change_cover(page)
 
 class bookpage(delegate.page):
-    path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
+    path = router.urls.books.page_lookup
 
     def GET(self, key, value, suffix):
         key = key.lower()
@@ -702,7 +690,8 @@ def get_cover_id(key):
 
 local_ip = None
 class invalidate(delegate.page):
-    path = "/system/invalidate"
+    path = router.urls.internal.invalidate_host
+
     def POST(self):
         global local_ip
         if local_ip is None:
@@ -753,23 +742,12 @@ delegate.app.internalerror = internalerror
 delegate.add_exception_hook(save_error)
 
 class memory(delegate.page):
-    path = "/debug/memory"
+    path = router.urls.internal.debug_memory
 
     def GET(self):
         import guppy
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
-
-class backdoor(delegate.page):
-    path = "/debug/backdoor"
-
-    def GET(self):
-        import backdoor
-        reload(backdoor)
-        result = backdoor.inspect()
-        if isinstance(result, basestring):
-            result = delegate.RawText(result)
-        return result
 
 def is_bot():
     """Generated on ol-www1 within /var/log/nginx with:
