@@ -25,11 +25,11 @@ css:
 	lessc -x static/css/page-home.less $(BUILD)/page-home.css
 	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
 	lessc -x static/css/page-user.less $(BUILD)/page-user.css
-	lessc -x static/css/all-js.less $(BUILD)/all-js.css
-	lessc -x static/css/book-widget.less $(BUILD)/book-widget.css
-	lessc -x static/css/books-edit.less $(BUILD)/books-edit.css
-	lessc -x static/css/design.less $(BUILD)/design.css
-	lessc -x static/css/dev.less $(BUILD)/dev.css
+	lessc -x static/css/js-all.less $(BUILD)/js-all.css
+	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css
+	lessc -x static/css/js-books-edit.less $(BUILD)/js-books-edit.css
+	lessc -x static/css/page-design.less $(BUILD)/page-design.css
+	lessc -x static/css/page-dev.less $(BUILD)/page-dev.css
 
 js:
 	mkdir -p $(BUILD)
