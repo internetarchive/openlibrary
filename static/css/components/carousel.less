@@ -3,6 +3,15 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
  */
 
+// Badly named. Should be renamed "carousel-heading" or similar.
+.home-h2 {
+  font-size: 1.2em;
+  font-weight: normal;
+  color: @link-blue;
+  margin-bottom: .5em;
+  margin-top: 1.75em;
+}
+
 .carousel-container {
   margin: 0 -20px;
   padding: 3px 15px;
@@ -85,10 +94,6 @@
     font-size: .9em;
     padding: 5px 0;
   }
-
-  .category-item {
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
-  }
 }
 
 /**
@@ -110,3 +115,5 @@
     }
   }
 }
+
+@import (less) "category-item.less";

@@ -1,0 +1,51 @@
+.page-banner {
+  color: @white;
+  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  background: @link-blue;
+  padding: 15px;
+  border-top-right-radius: 3px;
+  border-top-left-radius: 3px;
+  border-bottom: 1px solid @beige;
+
+  a {
+    color: @white;
+  }
+  &-black {
+    background-color: @dark-grey;
+    padding: 5px;
+    .cta {
+      padding: 4px 8px;
+      border-radius: 5px;
+      border: 1px solid @grey-555;
+      font-weight: 500;
+      text-decoration: none;
+      background: @grey-464646;
+      margin: 0 5px;
+    }
+  }
+  .button {
+    border-radius: 5px;
+    padding: 8px 10px;
+    cursor: pointer;
+    display: inline;
+    border: 1px solid @mid-blue;
+    color: @light-olive; // this is the only place this color is used. refactor?
+  }
+  a.button {
+    text-decoration: none;
+    background: @mid-blue;
+    color: @white;
+    &:hover {
+      background: @button-hover-blue;
+      color: @white;
+    }
+  }
+  &-body {
+    font-size: .85em;
+    padding: 10px;
+    line-height: 25px;
+    margin-bottom: 15px;
+    text-align: center;
+  }
+}
+  

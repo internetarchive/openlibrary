@@ -19,7 +19,12 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	lessc -x static/css/all.less $(BUILD)/all.css
+	lessc -x static/css/page-admin.less $(BUILD)/page-admin.css
+	lessc -x static/css/page-edit.less $(BUILD)/page-edit.css
+	lessc -x static/css/page-form.less $(BUILD)/page-form.css
+	lessc -x static/css/page-home.less $(BUILD)/page-home.css
+	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
+	lessc -x static/css/page-user.less $(BUILD)/page-user.css
 	lessc -x static/css/all-js.less $(BUILD)/all-js.css
 	lessc -x static/css/book-widget.less $(BUILD)/book-widget.css
 	lessc -x static/css/books-edit.less $(BUILD)/books-edit.css

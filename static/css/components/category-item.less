@@ -1,0 +1,53 @@
+.category {
+  &-icon {
+    margin: 0 auto;
+    width: 30px;
+  }
+}
+
+a {
+  &.category-nostyle {
+    text-decoration: none;
+  }
+}
+
+img {
+  &.category-img {
+    width: 30px;
+    margin-top: 5px;
+    // stylelint-disable declaration-block-no-duplicate-properties
+    -webkit-filter: grayscale(100%);
+    -moz-filter: grayscale(100%);
+    -ms-filter: grayscale(100%);
+    -o-filter: grayscale(100%);
+    filter: grayscale(100%);
+    filter: @grey; /* IE 6-9 */
+    // stylelint-enable declaration-block-no-duplicate-properties
+  }
+}
+
+p {
+  &.category-count {
+    text-align: center;
+    font-size: .7em;
+    line-height: 1;
+    color: @grey;
+    padding: 0;
+    margin: 0;
+    margin-top: 5px;
+    font-style: italic;
+  }
+  &.category-title {
+    font-size: 0.875em;
+    text-align: center;
+    line-height: 1;
+    margin: 0;
+    margin-top: 5px;
+  }
+}
+// FIXME: Selector should be weakened OR removed
+.carousel {
+  .category-item {
+    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  }
+}

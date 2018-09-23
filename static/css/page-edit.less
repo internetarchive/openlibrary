@@ -1,0 +1,149 @@
+/**
+ * Stylesheet entry point for pages with body#edit
+
+ * Used in templates:
+ * - openlibrary/templates/type/about/edit.html
+ * - openlibrary/templates/type/doc/edit.html
+ * - openlibrary/templates/type/i18n/edit.html
+ * - openlibrary/templates/type/macro/view.html
+ * - openlibrary/templates/type/macro/edit.html
+ * - openlibrary/templates/type/page/edit.html
+ * - openlibrary/templates/type/permission/edit.html
+ * - openlibrary/templates/type/rawtext/edit.html
+ * - openlibrary/templates/type/rawtext/view.html
+ * - openlibrary/templates/type/template/view.html
+ * - openlibrary/templates/type/template/edit.html
+ * - openlibrary/templates/type/user/edit.html
+ * - openlibrary/templates/type/usergroup/edit.html
+ * Used on pages:
+ * - /people/openlibrary9157?m=edit
+ */
+@import (less) "less/colors.less";
+@import (less) "less/breakpoints.less";
+@import (less) "less/mixins.less";
+
+body#edit,
+body#edit div#content {
+  background-color: @beige;
+}
+
+body#edit {
+  div#content {
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  }
+  div#editTools {
+    padding: 20px;
+    max-width: 300px;
+  }
+  div#revertLink {
+    position: absolute;
+    top: 60px;
+    right: 20px;
+    font-size: 0.75em;
+    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  }
+  .formElement {
+    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+    color: @darker-grey;
+  }
+  .label {
+    padding: 10px 0 5px;
+    label {
+      font-size: 1.0em;
+      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-weight: 700;
+    }
+    span {
+      font-size: 0.75em;
+      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    }
+  }
+  textarea {
+    font-family: "Lucida Console", "Courier New", monospace;
+    font-size: 0.875em;
+    padding: 5px;
+  }
+  .formElement input[type=text],
+  .formElement select {
+    font-size: 1em;
+    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    color: @dark-grey;
+    padding: 5px;
+  }
+  table.code {
+    border: 1px solid @grey-e7e7e7;
+    width: 100%;
+    margin-right: 10px;
+    margin-bottom: 40px;
+    td {
+      background-color: @white;
+      vertical-align: top;
+      font-family: "Lucida Console", "Courier New", monospace;
+      font-size: 0.875em;
+      padding: 5px;
+    }
+  }
+  div#databar {
+    padding: 10px;
+    margin: 20px 20px 0;
+    background-color: @light-yellow;
+    a {
+      font-size: 0.75em;
+    }
+  }
+  #editHead {
+    background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
+    padding: 25px 0 45px 140px;
+    white-space: nowrap;
+    clear: left;
+    h2 {
+      margin: 0 0 5px 0;
+      a {
+        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+        color: @red;
+        font-size: 14px;
+        font-weight: normal;
+        text-decoration: underline;
+      }
+    }
+    p {
+      color: @brown;
+      font-size: 14px;
+      margin: 0;
+    }
+  }
+
+  .formElement.pagetype,
+  .formElement.pagetype select {
+    width: 300px;
+  }
+  div#revertNotice,
+  div#header,
+  footer,
+  div#bottom,
+  .siteSearch {
+    display: none;
+  }
+}
+// Import all common components
+@import (less) "all.less";
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  body#edit {
+    .formElement.title {
+      width: 618px;
+      float: left;
+      input {
+        width: 580px;
+      }
+    }
+    textarea {
+      width: 906px;
+      height: 500px;
+    }
+    .formElement.pagetype,
+    .formElement.pagetype select {
+      float: left;
+    }
+  }
+}

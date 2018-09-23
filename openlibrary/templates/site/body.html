@@ -2,8 +2,10 @@ $def with (page)
 
 $ announcement = '<strong>New Feature:</strong> You can now embed Open Library books on your website! &nbsp; <a href="https://blog.openlibrary.org/2018/05/06/turn-your-website-into-a-library/" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>'
 
+$ bodyid = ctx.get('bodyid', 'user')
+
 $if 'v2' in page:
-  <body>
+  <body id="$bodyid">
     <span id="top"></span>
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
@@ -15,7 +17,6 @@ $if 'v2' in page:
     </div>
 
 $else:
-  $ bodyid = ctx.get('bodyid', 'user')
   <body id="$bodyid">
     <div id="background">
       <span id="top"></span>

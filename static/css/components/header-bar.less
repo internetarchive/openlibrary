@@ -464,6 +464,113 @@ header#header-bar {
   }
 }
 
+.menu-component {
+  position: relative;
+}
+
+
+.account-component {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  position: relative;
+  .dropdown-avatar {
+    .display-flex();
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    .avatar {
+      border: none;
+      margin-right: 5px;
+      background-size: cover;
+      width: 45px;
+      height: 45px;
+      background-color: @light-mid-grey;
+      border-radius: 3px;
+    }
+  }
+}
+
+.navigation-component {
+  text-align: center;
+  position: relative;
+  .down-arrow {
+    position: relative;
+    top: -2px;
+  }
+}
+
+.logo-component {
+  margin: 0 0 5px 0;
+  a {
+    .display-flex();
+    color: @black;
+    text-decoration: none !important;
+  }
+  .logo-org {
+    text-align: left;
+    font-weight: 300;
+    font-size: .9em;
+    color: @grey;
+    margin: 3px;
+    padding: 0;
+    line-height: 0;
+  }
+}
+
+.search-component {
+  .search-bar-advanced-btn {
+    margin: 10px;
+    border: 0 none;
+    width: 40px;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+  .search-bar {
+    max-width: none;
+    min-width: none;
+    -webkit-transition: all 0.2s;
+    -o-transition: all 0.2s;
+    transition: all 0.2s;
+    background: @grey-fafafa;
+    border-radius: .3em;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 0 0%;
+    flex: 1;
+    .display-flex();
+  }
+  .search-bar-input {
+    min-width: 50px;
+    width: 100%;
+    .display-flex();
+    input[type=text] {
+      min-width: 0;
+      margin: 3px;
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      padding: 5px 0 2px 3px;
+      font-size: 1em;
+      font-weight: 500;
+      border: 0 none;
+      outline: none;
+      background: @grey-fafafa;
+      color: @light-grey;
+      -webkit-transition: all 0.5s;
+      -o-transition: all 0.5s;
+      transition: all 0.5s;
+      display: none;
+    }
+    input[type=submit] {
+      border: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+  }
+}
+
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
   header#header-bar {
