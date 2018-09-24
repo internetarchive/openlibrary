@@ -4,7 +4,7 @@
 from infogami.plugins.api.code import add_hook
 from infogami import config
 from openlibrary.plugins.openlibrary.code import can_write
-from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
@@ -146,38 +146,31 @@ class importapi:
     """
     def POST(self):
         web.header('Content-Type', 'application/json')
-
         if not can_write():
             raise web.HTTPError('403 Forbidden')
 
         data = web.data()
-        error_code = "unknown_error"
 
         try:
             edition, format = parse_data(data)
         except DataError, e:
-            edition = None
-            error_code = str(e)
+            return self.error(str(e), 'Failed to parse Edition data')
 
-        #call Edward's code here with the edition dict
-        if edition:
-            #source_url = None
+        if not edition:
+            return self.error('unknown_error', 'Failed to parse Edition data')
 
-            ## Anand - July 2014
-            ## This is adding source_records as [null] as queue_s3_upload is disabled.
-            ## Disabling this as well to fix the issue.
+        ## Anand - July 2014
+        ## This is adding source_records as [null] as queue_s3_upload is disabled.
+        ## Disabling this as well to fix the issue.
+        #source_url = None
+        # if 'source_records' not in edition:
+        #     source_url = queue_s3_upload(data, format)
+        #     edition['source_records'] = [source_url]
 
-            # if 'source_records' not in edition:
-            #     source_url = queue_s3_upload(data, format)
-            #     edition['source_records'] = [source_url]
-
-            reply = add_book.load(edition)
-            #if source_url:
-            #    reply['source_record'] = source_url
-            return json.dumps(reply)
-        else:
-            content = json.dumps({'success':False, 'error_code': error_code, 'error':'Failed to parse Edition data'})
-            raise web.HTTPError('400 Bad Request', {}, content)
+        reply = add_book.load(edition)
+        #if source_url:
+        #    reply['source_record'] = source_url
+        return json.dumps(reply)
 
 class ia_importapi:
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
@@ -215,22 +208,24 @@ class ia_importapi:
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)
+                next_data = {'next_record_offset': next_offset, 'next_record_length': next_length}
                 rec = MarcBinary(data)
                 edition = read_edition(rec)
-            except Exception as e:
-                logger.error("failed to read info from bulk marc_record: %s", str(e))
-                return self.error('no-marc-record')
+            except MarcException as e:
+                details = "%s: %s" % (identifier, str(e))
+                logger.error("failed to read from bulk MARC record %s", details)
+                return self.error('invalid-marc-record', details, **next_data)
 
             actual_length = int(rec.leader()[:5])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
 
             #TODO: Look up URN prefixes to support more sources
-            edition['local_id'] = ['urn:trent:%s' % rec.get_fields('001')[0]]
+            prefix = 'trent'
+            edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in rec.get_fields('001')]
             result = add_book.load(edition)
 
-            # Add record_length to the response as location of next record:
-            result['next_record_offset'] = next_offset
-            result['next_record_length'] = next_length
+            # Add next_data to the response as location of next record:
+            result.update(next_data)
 
             return json.dumps(result)
 
@@ -288,8 +283,8 @@ class ia_importapi:
 
             try:
                 edition_data = read_edition(marc_record)
-            except Exception, e:
-                logger.error("failed to read info from marc_record: %s", str(e))
+            except MarcException as e:
+                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
                 return self.error("invalid-marc-record")
 
         elif require_marc:
@@ -386,13 +381,14 @@ class ia_importapi:
         }
         return json.dumps(reply)
 
-    def error(self, error_code, error="Invalid item"):
-        content = json.dumps({
-            "success": False,
-            "error_code": error_code,
-            "error": error
-        })
-        raise web.HTTPError('400 Bad Request', {}, content)
+    def error(self, error_code, error='Invalid item', **kwargs):
+        content = {
+            'success': False,
+            'error_code': error_code,
+            'error': error
+        }
+        content.update(kwargs)
+        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
 
 class ils_search:
     """Search and Import API to use in Koha.
