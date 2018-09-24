@@ -101,9 +101,9 @@ $def with (page)
   $if not ctx.user:
     <ul class="auth-component">
       <li class="hide-me">
-        <a class="generic-button generic-button-secondary white"
+        <a class="btn"
            href="/account/login">$_("Log In")</a></li>
-      <li><a class="generic-button generic-button-primary" href="/account/create">$_("Sign Up")</a></li>
+      <li><a class="btn primary" href="/account/create">$_("Sign Up")</a></li>
     </ul>
 
   $if ctx.user:
