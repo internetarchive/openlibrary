@@ -6,6 +6,7 @@
 var/
 usr/
 static/build/
+static/css/page-dev.less
 build/
 *.tgz
 *.tar.gz
@@ -32,3 +33,4 @@ htmlcov
 .DS_Store
 .cache
 node_modules/
+

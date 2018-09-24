@@ -1,3 +1,10 @@
+/**
+* This file provides a sensible and minimal
+* set of default styles for all entry points
+*
+* These styles are loaded as render blocking CSS on every page.
+*/
+
 /* RESET EVERYTHING */
 body,
 div,
@@ -43,13 +50,6 @@ a {
   &:link {
     color: @link-blue;
     text-decoration: underline;
-  }
-  &.on,
-  &:hover.on,
-  &:visited.on {
-    color: @dark-grey;
-    cursor: default;
-    text-decoration: none;
   }
   &:hover {
     color: @dark-green;

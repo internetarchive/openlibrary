@@ -1,15 +1,29 @@
 @charset "utf-8";
 
 /**
- * This is the main entry point for CSS for ALL pages.
- * Any CSS loaded here will be render blocking.
- * New components should be placed inside the components folder and imported
- * either here or one of the other entry points.
+ * This file exists for historic reasons and will be deleted
+ * at the first available opportunity.
+ * DO NOT ADD NEW CSS here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
+ *
+ * New components should be placed inside the components folder
+ * and imported directly in one of the entry points that are prefixed
+ * with `page-` or `js-`
  */
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
 
+@import (less) 'components/datatables.less';
+@import (less) 'components/diff.less';
+@import (less) 'components/wmd.less';
+@import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header-bar.less";
