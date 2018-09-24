@@ -10,9 +10,9 @@ $ book_title = item.get('title', '')
   <head>
     <meta charset="utf-8">
     <title>$book_title</title>
-    <link rel="stylesheet" type="text/css" href="$(canonical_url('/static/build/book-widget.css'))">
+    <link rel="stylesheet" type="text/css" href="$(canonical_url('/static/build/page-book-widget.css'))">
   </head>
-  <body>
+  <body id="book-widget">
     <div class="widget">
       <a href="$(canonical_url(item['key']))" target="_blank" class="noshow">
         <img class="bookcover" src="$(cover_url)" alt="$book_title"/>
