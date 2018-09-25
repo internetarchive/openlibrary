@@ -159,6 +159,7 @@ header#header-bar {
       position: relative;
       top: -1px;
       height: 30px;
+      width: auto;
       margin-right: 5px;
       padding-right: 5px;
       -ms-flex-item-align: center;
@@ -194,12 +195,6 @@ header#header-bar {
           color: @dark-grey;
           text-decoration: none;
         }
-      }
-
-      .browse-menu-options,
-      .my-books-menu-options,
-      .more-menu-options {
-        display: none;
       }
 
       .dropdown-menu {
@@ -495,6 +490,16 @@ header#header-bar {
   }
 }
 
+.navigation-component li,
+.account-component {
+  .navigation-dropdown-component {
+    display: none;
+  }
+  &:hover .navigation-dropdown-component {
+    display: block;
+  }
+}
+
 .logo-component {
   margin: 0 0 5px 0;
   a {
@@ -514,6 +519,9 @@ header#header-bar {
 }
 
 .search-component {
+  .search-facet {
+    min-width: 25px;
+  }
   .search-bar-advanced-btn {
     margin: 10px;
     border: 0 none;

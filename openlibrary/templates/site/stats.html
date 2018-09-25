@@ -16,7 +16,7 @@ $for s in ctx.get("stats", []):
         $s.data
 </pre>
 <script type="text/javascript">
-    \$(document).ready(function() {
+    window.q.push(function() {
         \$(document).keypress(function(e) {
             // Toggle debug stats on Ctrl+Alt+.
             if (e.altKey && e.ctrlKey && e.which == 46) {

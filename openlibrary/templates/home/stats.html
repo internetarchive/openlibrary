@@ -45,7 +45,7 @@ $if stats:
 
     <script type="text/javascript">
 
-    \$(function () {
+    window.q.push(function () {
          plot_data("#visitors", $:json_encode(stats["visitors"].get_counts(28, True)), "#e44028", "unique visitors on");
          plot_data("#members", $:json_encode(stats["members"].get_counts(28, True)), "#748d36", "new members on");
          plot_data("#edits", $:json_encode(stats["human_edits"].get_counts(28, True)), "#00636a","catalog edits on");
