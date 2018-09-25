@@ -359,7 +359,7 @@ $().ready(function(){
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
-    var searchModeDefault = 'ebooks';
+    var searchModeDefault = 'everything';
 
     // Maps search facet label with value
     var defaultFacet = "all";
