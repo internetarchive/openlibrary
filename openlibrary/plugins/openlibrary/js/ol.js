@@ -359,7 +359,7 @@ $().ready(function(){
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
-    var searchModeDefault = 'everything';
+    var searchModeDefault = '';
 
     // Maps search facet label with value
     var defaultFacet = "all";
@@ -383,6 +383,7 @@ $().ready(function(){
         if (limit) {
             url += '&limit=' + limit;
         }
+        url = Browser.removeURLParameter('mode');
         return url + '&mode=' + localStorage.getItem('mode');
     }
 
@@ -445,7 +446,8 @@ $().ready(function(){
         url = Browser.removeURLParameter(url, 'm');
         url = Browser.removeURLParameter(url, 'has_fulltext');
         url = Browser.removeURLParameter(url, 'subject_facet');
-
+        url = Browswer.removeURLParameter(url, 'mode')
+/*
         if (localStorage.getItem('mode') !== 'everything') {
             $(form).append('<input type="hidden" name="m" value="edit"/>');
             url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'm=edit';
@@ -454,6 +456,14 @@ $().ready(function(){
         } if (localStorage.getItem('mode') === 'printdisabled') {
             $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
             url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
+        }*/
+        if (localStorage.getItem('mode') === '') {
+          $(form).append('<input type="hidden" name="mode" value=""/>');
+          url = Browser.
+          //url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'm=edit';
+        }
+        if (localStorage.getItem('mode') === 'ebooks') {
+          $(form).append('<input type="hidden" name="mode" value="ebooks"/>');
         }
         $(form).attr('action', url);
     }
@@ -597,6 +607,7 @@ $().ready(function(){
 
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
+        $('search-mode').checked('');
         setSearchMode($(this).val());
         if ($('.olform').length) {
             $('.olform').submit();
@@ -606,11 +617,12 @@ $().ready(function(){
     });
 
     $('.olform').submit(function() {
-        if (localStorage.getItem('mode') !== 'everything') {
-            $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
-        } if (localStorage.getItem('mode') === 'printdisabled') {
-            $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-        }
+        if (localStorage.getItem('mode') === '') {
+            $('.olform').append('<input type="hidden" name="mode" value=""/>');
+        };
+        if (localStorage.getItem('mode') === 'ebooks') {
+            $('.olform').append('<input type="hidden" name="mode" value="ebooks"/>');
+        };
 
     });
 
