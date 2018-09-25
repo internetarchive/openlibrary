@@ -12,27 +12,27 @@
   "bundlesize": [
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "25.9KB"
+      "maxSize": "25.4KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "26.1KB"
+      "maxSize": "25.6KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "26.1KB"
+      "maxSize": "25.6KB"
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.2KB"
+      "maxSize": "4.1KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "26.2KB"
+      "maxSize": "25.7KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "26.1KB"
+      "maxSize": "25.5KB"
     }
   ],
   "devDependencies": {
