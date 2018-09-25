@@ -369,15 +369,6 @@ em {
         color: @light-grey;
       }
     }
-    &.listLarge li {
-      line-height: 24px !important;
-    }
-    &.tweet_list {
-      margin-left: 0 !important;
-      li {
-        list-style: none !important;
-      }
-    }
     &.contributors {
       margin-top: 10px;
       margin-left: 0;
@@ -397,14 +388,6 @@ em {
   ul,
   ol {
     margin-bottom: 20px;
-    &.unlist {
-      margin-left: 0;
-      list-style-type: none !important;
-
-      li {
-        list-style-type: none !important;
-      }
-    }
   }
   li,
   blockquote {
@@ -899,18 +882,6 @@ div#content {
   }
 }
 
-div#bottom {
-  width: 100%;
-  clear: both;
-}
-
-div#legal {
-  max-width: 905px;
-  margin: 0 auto;
-  padding: 0 10px;
-  text-align: left;
-}
-
 /* WIDGETS */
 .word-corner-badge {
   position: absolute;
@@ -1170,11 +1141,6 @@ div.formDivider {
 form {
   &.pagesearchbox {
     margin-top: 15px;
-  }
-  &.addbook2 {
-    .label label {
-      font-weight: normal !important;
-    }
   }
   &#notifications {
     input[type=radio] {
@@ -1603,36 +1569,6 @@ div.adminDelete {
   text-align: center;
   font-size: 12px;
   color: @grey;
-}
-
-div#abuse {
-  a {
-    display: block;
-    width: 70px;
-    overflow: visible;
-    text-align: center;
-    font-size: 0.625em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-    color: @brown;
-    text-decoration: none;
-    white-space: nowrap;
-    font-weight: 600;
-    span {
-      display: block;
-      margin: 5px 0 5px 30px;
-      width: 32px;
-      height: 32px;
-      background-repeat: no-repeat;
-      background-image: url(/images/icons/icons_sprite.png);
-      background-position: -576px 0;
-    }
-    &:hover {
-      color: @black;
-      span {
-        background-position: -608px 0;
-      }
-    }
-  }
 }
 
 div#editionBorrow,
@@ -3421,6 +3357,7 @@ div.coverFloat {
   }
 }
 
+// Probably not used. Please review.
 .ui-sortable {
   min-height: 90px;
   max-height: 270px;
@@ -3540,14 +3477,6 @@ div#prolific {
   }
 }
 
-div#topEdits {
-  a {
-    display: block;
-    float: left;
-    margin: 10px 10px 0 0;
-  }
-}
-
 div#uniqueIps {
   float: left;
   width: 918px;
@@ -3581,14 +3510,8 @@ div.measurements {
 }
 
 div#admin {
-  &Flickr {
-    width: 582px;
-  }
-  &Twitter,
-  &Twitter div.tweet_cell {
-    width: 300px;
-  }
   &Twitter {
+    width: 300px;
     float: left;
     font-size: 0.75em;
     div.tweet_avatar {
@@ -3601,27 +3524,6 @@ div#admin {
 }
 
 #flickr {
-  &_badge {
-    &_source_txt {
-      padding: 0;
-      font: 0.6875em Arial, Helvetica, Sans serif;
-      color: @grey;
-    }
-    &_icon {
-      display: block !important;
-      margin: 0 !important;
-      border: 1px solid @black !important;
-    }
-  }
-  &_icon_td {
-    padding: 0 5px 0 0 !important;
-  }
-  &_www {
-    display: block;
-    padding: 0 10px 0 10px !important;
-    font: 0.6875em Arial, Helvetica, Sans serif !important;
-    color: @flickr-brand-blue !important;
-  }
   &_badge_uber_wrapper {
     a {
       &:hover,
@@ -3641,61 +3543,6 @@ div#admin {
       display: block;
       margin: 0 auto 10px;
     }
-  }
-  &_badge_source {
-    padding: 0 !important;
-    font: 0.6875em Arial, Helvetica, Sans serif !important;
-    color: @grey !important;
-  }
-}
-
-.flickr_badge_image {
-  text-align: center !important;
-  img {
-    border: 1px solid @black !important;
-  }
-}
-/* TWITTER FEED */
-
-div.tweet {
-  &_cell {
-    float: left;
-    padding-bottom: 20px;
-  }
-  &_avatar,
-  &_copy {
-    float: left;
-  }
-  &_date {
-    a {
-      color: @grey;
-      text-decoration: none;
-    }
-  }
-}
-
-.twtr-hd {
-  display: none;
-}
-
-div.grippie {
-  background: @lightest-grey url(/images/grippie.png) no-repeat scroll center 2px;
-  border-color: @lighter-grey;
-  border-style: solid;
-  border-width: 0 1px 1px;
-  cursor: s-resize;
-  height: 9px;
-  overflow: hidden;
-}
-/* FAQ STYLES */
-.Wrap {
-  width: 500px;
-  h2 {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    font-size: 0.6875em;
-    text-transform: uppercase;
-    color: @brown;
-    font-weight: bold;
   }
 }
 
@@ -3840,24 +3687,13 @@ div.postSubmit {
   text-align: center;
 }
 
-div.inLibrary {
-  background: @dark-green url(/images/icons/icon_thumbsup-white.png) 8px 50% no-repeat;
-  padding: 8px 8px 8px 40px;
-  font-size: .75em;
-  color: @white;
-}
-
+// Probably not used. Please review.
 p#borrowList {
   position: absolute;
   top: 0;
   left: 100%;
   width: 300px;
   font-size: .75em;
-}
-
-p#postBorrowList {
-  font-size: .75em;
-  padding-left: 55px;
 }
 
 .indent {
