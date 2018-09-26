@@ -10,15 +10,17 @@ $if test or (books and len(books) >= min_books):
           $for book in (books or []):
             $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
             $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
-            <div class="book">
+            <div class="book carousel__item">
               <div class="book-cover">
                 <a href="$(book.get('key') or book.url)">
-                  <img class="bookcover" title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
+                  <img class="bookcover"
+                    width="130" height="200"
+                    title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
                 </a>
               </div>
               $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
               $ cta = 'Read' if book.get('read_url') else 'Borrow'
-              <div class="book-cta"><a href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
+              <div class="book-cta"><a class="btn primary" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
             </div>
         </div>
         <script type="text/javascript">

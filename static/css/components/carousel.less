@@ -15,11 +15,6 @@
 .carousel-container {
   margin: 0 -20px;
   padding: 3px 15px;
-
-  .slick-slider {
-    overflow: visible;
-    margin-bottom: 0;
-  }
 }
   
 .carousel {
@@ -27,42 +22,25 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &__item {
+    float: left;
+    height: 100%;
+    margin: 0 10px;
+    min-height: 1px;
+  }
+
   > div {
     min-width: 130px;
-    margin: 0 10px;
   }
 
-  .slick-prev,
-  .slick-next {
-    width: auto;
-    height: auto;
-
-    &:before,
-    &:before {
-      color: @primary-blue;
-      font-size: 35px;
-    }
-  }
-
-  .slick-prev:before {
-    margin-left: 15px;
-  }
-
-  .slick-next {
-    margin-right: 11px;
+  // JavaScript only, but needed to avoid reflows
+  button {
+    position: absolute;
   }
 
   .book {
     &:last-child {
       margin-right: 0;
-    }
-
-    img.bookcover {
-      margin: 0 auto;
-      width: 130px;
-      height: 200px;
-      box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
-      border-radius: 3px;
     }
 
     .book-metadata {
@@ -81,18 +59,6 @@
         text-decoration: none;
       }
     }
-  }
-
-  .book-cta {
-    background: @primary-blue;
-    border-radius: 3px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    width: 130px;
-    margin: 0 auto;
-    margin-top: 5px;
-    text-align: center;
-    font-size: .9em;
-    padding: 5px 0;
   }
 }
 

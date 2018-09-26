@@ -3,7 +3,7 @@ $def with (page)
 <header id="header-bar">
   <div class="hamburger-component">
     <button type="button" class="hamburger-button"><img src="/static/images/menu.png" alt="additional options menu"/></button>
-    <div class="hamburger-dropdown-component">
+    <div class="hamburger-dropdown-component navigation-dropdown-component">
       <ul class="dropdown-menu hamburger-dropdown-menu">
         $if not ctx.user:
           <li><a href="/account/login">$_("Log in")</a></li>
