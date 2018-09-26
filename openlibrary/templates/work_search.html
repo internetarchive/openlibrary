@@ -128,12 +128,12 @@ $ )
       <input type="text" name="q" id="q" value="$q_param" size="100" style="width:505px;"/>
       <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
       <span class="mode-options">
-        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-        <label for="mode-search-everything">Everything</label>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
-        <label for="mode-search-ebooks">Ebooks</label>
-        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-        <label for="mode-search-printdisabled">Print Disabled</label>
+        <input type="checkbox" name="mode" value="everything" id="mode-search-everything" class="search-mode" hidden>
+        <label for="mode-search-everything" hidden>Everything</label>
+        <input type="checkbox" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode">
+        <label for="mode-search-ebooks">Only Ebooks</label>
+        <input type="checkbox" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode" hidden>
+        <label for="mode-search-printdisabled" hidden>Print Disabled</label>
       </span>
         $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
