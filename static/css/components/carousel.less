@@ -33,9 +33,12 @@
     min-width: 130px;
   }
 
-  // JavaScript only, but needed to avoid reflows
+  // JavaScript only block,but needed to avoid reflows
+  // Without, on slower connections, there will be a flash when buttons
+  // are added.
   button {
     position: absolute;
+    color: transparent;
   }
 
   .book {
