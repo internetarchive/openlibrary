@@ -13,7 +13,9 @@ $if test or (books and len(books) >= min_books):
             <div class="book carousel__item">
               <div class="book-cover">
                 <a href="$(book.get('key') or book.url)">
-                  <img class="bookcover" title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
+                  <img class="bookcover"
+                    width="130" height="200"
+                    title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
                 </a>
               </div>
               $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid

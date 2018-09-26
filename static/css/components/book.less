@@ -1,6 +1,5 @@
 // https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#book
 
-@book-cover-height: 200px;
 .book {
   .book-cta {
     margin: 5px auto 0;
@@ -12,7 +11,7 @@
     }
   }
   .book-cover {
-    height: @book-cover-height;
+    img,
     a {
       display: block;
     }
@@ -20,8 +19,6 @@
 
   img.bookcover {
     margin: 0 auto;
-    width: 130px;
-    height: @book-cover-height;
     box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
     border-radius: 3px;
   }
