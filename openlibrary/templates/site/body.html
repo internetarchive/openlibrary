@@ -6,6 +6,10 @@ $ bodyid = ctx.get('bodyid', 'user')
 
 $if 'v2' in page:
   <body id="$bodyid">
+    <script>
+        // Provide a signal that JS will load
+        document.body.className += ' client-js';
+    </script>
     <span id="top"></span>
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
@@ -18,6 +22,10 @@ $if 'v2' in page:
 
 $else:
   <body id="$bodyid">
+    <script>
+        // Provide a signal that JS will load
+        document.body.className += ' client-js';
+    </script>
     <div id="background">
       <span id="top"></span>
 
