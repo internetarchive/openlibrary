@@ -18,7 +18,7 @@ $if test or (books and len(books) >= min_books):
               </div>
               $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
               $ cta = 'Read' if book.get('read_url') else 'Borrow'
-              <div class="book-cta"><a href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
+              <div class="book-cta"><a class="btn primary" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
             </div>
         </div>
         <script type="text/javascript">
