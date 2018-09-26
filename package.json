@@ -4,12 +4,20 @@
   "repository": "github:internetarchive:openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
-    "build-all-css": "make css",
-    "check-css-size": "npm run build-all-css && bundlesize",
+    "build-assets": "make js && make css",
+    "check-bundles": "npm run build-assets && bundlesize",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "test": "npm run check-css-size && stylelint  --syntax less static/css/"
+    "test": "npm run check-bundles && stylelint  --syntax less static/css/"
   },
   "bundlesize": [
+    {
+      "path": "static/build/vendor.js",
+      "maxSize": "81.5KB"
+    },
+    {
+      "path": "static/build/all.js",
+      "maxSize": "32.3KB"
+    },
     {
       "path": "static/build/page-admin.css",
       "maxSize": "25.4KB"
