@@ -150,11 +150,6 @@ header#header-bar {
     -ms-flex-order: 1;
     order: 1;
 
-    a {
-      display: inline-block;
-      text-align: center;
-    }
-
     .logo-icon {
       position: relative;
       top: -1px;
@@ -502,8 +497,11 @@ header#header-bar {
 
 .logo-component {
   margin: 0 0 5px 0;
+  img,
   a {
-    .display-flex();
+    display: block;
+  }
+  a {
     color: @black;
     text-decoration: none !important;
   }
