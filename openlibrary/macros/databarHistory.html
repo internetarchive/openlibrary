@@ -8,7 +8,7 @@ $else:
 <div id="editTools" class="edit">
     $if not page.is_fake_record():
         <div id="editButton">
-            <button class="linkButton" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
+            <button class="btn primary" name="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</button>
         </div>
     <div id="editInfo">
         $ author = get_recent_author(page)
