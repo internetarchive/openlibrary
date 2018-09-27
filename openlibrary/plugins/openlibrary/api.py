@@ -12,11 +12,11 @@ from infogami.utils.view import render_template
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.core import ia, db, models, lending, cache, helpers as h
+from openlibrary.core import router, ia, db, models, lending, cache, helpers as h
 
 
 class book_availability(delegate.page):
-    path = "/availability/v2"
+    path = router.urls.apis.availability_v2
 
     def GET(self):
         i = web.input(type='', ids='')
@@ -46,7 +46,7 @@ class book_availability(delegate.page):
         )
 
 class ratings(delegate.page):
-    path = "/works/OL(\d+)W/ratings"
+    path = router.urls.works.ratings
     encoding = "json"
 
     def POST(self, work_id):
@@ -91,7 +91,7 @@ class ratings(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 class work_bookshelves(delegate.page):
-    path = "/works/OL(\d+)W/bookshelves"
+    path = router.urls.works.bookshelves
     encoding = "json"
 
     def POST(self, work_id):
@@ -132,7 +132,7 @@ class work_bookshelves(delegate.page):
 
 
 class work_editions(delegate.page):
-    path = "(/works/OL\d+W)/editions"
+    path = router.urls.works.editions
     encoding = "json"
 
     def GET(self, key):
@@ -173,7 +173,7 @@ class work_editions(delegate.page):
         }
 
 class author_works(delegate.page):
-    path = "(/authors/OL\d+A)/works"
+    path = router.urls.authors.works
     encoding = "json"
 
     def GET(self, key):

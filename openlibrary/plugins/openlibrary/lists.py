@@ -7,14 +7,14 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase import client, common
 
-from openlibrary.core import formats, cache
+from openlibrary.core import formats, cache, router
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.worksearch import subjects
 
 
 class lists_home(delegate.page):
-    path = "/lists"
+    path = router.urls.lists.home
 
     def GET(self):
         return render_template("lists/home")
@@ -22,7 +22,7 @@ class lists_home(delegate.page):
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
     """
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = router.urls.lists.by
 
     def is_enabled(self):
         return "lists" in web.ctx.features
@@ -49,7 +49,7 @@ class lists(delegate.page):
         return render_template("lists/lists.html", doc, lists)
 
 class lists_delete(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/delete"
+    path = router.urls.lists.delete
     encoding = "json"
 
     def POST(self, key):
@@ -72,7 +72,7 @@ class lists_delete(delegate.page):
         return delegate.RawText('{"status": "ok"}')
 
 class lists_json(delegate.page):
-    path = "(/(?:people|books|works|authors|subjects)/[^/]+)/lists"
+    path = router.urls.lists.by
     encoding = "json"
     content_type = "application/json"
 
@@ -200,7 +200,7 @@ class lists_yaml(lists_json):
     content_type = "text/yaml"
 
 class list_view_json(delegate.page):
-    path = "(/people/[^/]+/lists/OL\d+L)"
+    path = router.urls.lists.user_list.home
     encoding = "json"
     content_type = "application/json"
 
@@ -245,7 +245,7 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 class list_seeds(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/seeds"
+    path = router.urls.lists.user_list.seeds
     encoding = "json"
 
     content_type = "application/json"
@@ -319,7 +319,7 @@ class list_seed_yaml(list_seeds):
 class list_editions(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
     """
-    path = "(/people/\w+/lists/OL\d+L)/editions"
+    path = router.urls.lists.user_list.editions
 
     def is_enabled(self):
         return "lists" in web.ctx.features
@@ -342,7 +342,7 @@ class list_editions(delegate.page):
         return render_template("type/list/editions.html", lst, editions)
 
 class list_editions_json(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/editions"
+    path = router.urls.lists.user_list.editions
     encoding = "json"
 
     content_type = "application/json"
@@ -395,7 +395,7 @@ def make_collection(size, entries, limit, offset):
     return d
 
 class list_subjects_json(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/subjects"
+    path = router.urls.lists.user_list.subjects
     encoding = "json"
     content_type = "application/json"
 
@@ -439,7 +439,7 @@ class list_editions_yaml(list_subjects_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 class lists_embed(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/embed"
+    path = router.urls.lists.user_list.embed
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
@@ -448,7 +448,7 @@ class lists_embed(delegate.page):
         return render_template("type/list/embed", doc)
 
 class export(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/export"
+    path = router.urls.lists.user_list.export
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
@@ -488,7 +488,7 @@ class export(delegate.page):
         return doc
 
 class feeds(delegate.page):
-    path = "(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
+    path = router.urls.lists.user_list.atom_feed
 
     def GET(self, key, name, fmt):
         lst = web.ctx.site.get(key)

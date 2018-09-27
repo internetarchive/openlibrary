@@ -11,7 +11,7 @@ from infogami.infobase.client import storify
 from infogami import config
 
 from openlibrary import accounts
-from openlibrary.core import admin, cache, ia, inlibrary, lending, \
+from openlibrary.core import router, admin, cache, ia, inlibrary, lending, \
     helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import borrow
@@ -30,7 +30,7 @@ CAROUSELS_PRESETS = {
 }
 
 class home(delegate.page):
-    path = "/"
+    path = router.urls.home_page
 
     def is_enabled(self):
         return "lending_v2" in web.ctx.features
@@ -50,7 +50,7 @@ class home(delegate.page):
         return page
 
 class random_book(delegate.page):
-    path = "/random"
+    path = router.urls.random_page
 
     def GET(self):
         olid = lending.get_random_available_ia_edition()

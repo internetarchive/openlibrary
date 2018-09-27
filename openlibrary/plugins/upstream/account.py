@@ -19,7 +19,7 @@ import infogami.core.code as core
 
 from openlibrary import accounts
 from openlibrary.i18n import gettext as _
-from openlibrary.core import helpers as h, lending
+from openlibrary.core import helpers as h, lending, router
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
@@ -59,7 +59,7 @@ LOGIN_ERRORS = {
     }
 
 class availability(delegate.page):
-    path = "/internal/fake/availability"
+    path = router.urls.internal.spoofed.availability
 
     def POST(self):
         """Internal private API required for testing on vagrant/localhost
@@ -68,7 +68,7 @@ class availability(delegate.page):
                                 content_type="application/json")
 
 class loans(delegate.page):
-    path = "/internal/fake/loans"
+    path = router.urls.internal.spoofed.loans
 
     def POST(self):
         """Internal private API required for testing on vagrant/localhost
@@ -77,7 +77,7 @@ class loans(delegate.page):
                                 content_type="application/json")
 
 class xauth(delegate.page):
-    path = "/internal/fake/xauth"
+    path = router.urls.internal.spoofed.xauth
 
     def POST(self):
         """Internal private API required for testing login on vagrant/localhost
@@ -105,7 +105,7 @@ class xauth(delegate.page):
                                 content_type="application/json")
 
 class internal_audit(delegate.page):
-    path = "/internal/account/audit"
+    path = router.urls.internal.account_audit
 
     def GET(self):
         """Internal API endpoint used for authorized test cases and
@@ -135,7 +135,7 @@ class internal_audit(delegate.page):
 
 class account_migration(delegate.page):
 
-    path = "/internal/account/migration"
+    path = router.urls.internal.account_migration
 
     def GET(self):
         i = web.input(username='', email='', key='')
@@ -199,7 +199,7 @@ class account_create(delegate.page):
 
     Account remains in the pending state until the email is activated.
     """
-    path = "/account/create"
+    path = router.urls.accounts.create
 
     def GET(self):
         f = self.get_form()
@@ -259,7 +259,7 @@ del delegate.pages['/account/register']
 class account_login_json(delegate.page):
 
     encoding = "json"
-    path = "/account/login"
+    path = router.urls.accounts.login
 
     def POST(self):
         """Overrides `account_login` and infogami.login to prevent users from
@@ -298,7 +298,7 @@ class account_login(delegate.page):
     * account_bad_password: Error message is displayed with a link to reset password.
     * account_not_verified: Error page is dispalyed with button to "resend verification email".
     """
-    path = "/account/login"
+    path = router.urls.accounts.login
 
     def render_error(self, error_key, i):
         f = forms.Login()
@@ -351,7 +351,7 @@ class account_login(delegate.page):
 class account_verify(delegate.page):
     """Verify user account.
     """
-    path = "/account/verify/([0-9a-f]*)"
+    path = router.urls.accounts.verify
 
     def GET(self, code):
         docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
@@ -383,22 +383,10 @@ class account_verify(delegate.page):
             message = _("We've sent the verification email to %(email)s. You'll need to read that and click on the verification link to verify your email.", email=account.email)
             return render.message(title, message)
 
-class account_verify_old(account_verify):
-    """Old account verification code.
-
-    This takes username, email and code as url parameters. The new one takes just the code as part of the url.
-    """
-    path = "/account/verify"
-    def GET(self):
-        # It is too long since we switched to the new account verification links.
-        # All old links must be expired by now.
-        # Show failed message without thinking.
-        return render['account/verify/failed']()
 
 class account_email(delegate.page):
-    """Change email.
-    """
-    path = "/account/email"
+    """Update email address"""
+    path = router.urls.accounts.update_email
 
     def get_email(self):
         user = accounts.get_current_user()
@@ -424,7 +412,7 @@ class account_email(delegate.page):
             return render.message(title, message)
 
 class account_email_verify(delegate.page):
-    path = "/account/email/verify/([0-9a-f]*)"
+    path = router.urls.accounts.verify_email
 
     def GET(self, code):
         link = accounts.get_link(code)
@@ -452,17 +440,9 @@ class account_email_verify(delegate.page):
         message = _("Your email address couldn't be verified. The verification link seems invalid.")
         return render.message(title, message)
 
-class account_email_verify_old(account_email_verify):
-    path = "/account/email/verify"
-
-    def GET(self):
-        # It is too long since we switched to the new email verification links.
-        # All old links must be expired by now.
-        # Show failed message without thinking.
-        return self.bad_link()
 
 class account_password(delegate.page):
-    path = "/account/password"
+    path = router.urls.accounts.update_password
 
     @require_login
     def GET(self):
@@ -493,7 +473,7 @@ class account_password(delegate.page):
         return account and account.verify_password(password)
 
 class account_ia_email_forgot(delegate.page):
-    path = "/account/email/forgot-ia"
+    path = router.urls.accounts.forgot_email_ia
 
     def GET(self):
         return render_template('account/email/forgot-ia')
@@ -520,7 +500,7 @@ class account_ia_email_forgot(delegate.page):
         return render_template('account/email/forgot-ia', err=err)
 
 class account_ol_email_forgot(delegate.page):
-    path = "/account/email/forgot"
+    path = router.urls.accounts.forgot_email_ol
 
     def GET(self):
         return render_template('account/email/forgot')
@@ -546,7 +526,7 @@ class account_ol_email_forgot(delegate.page):
 
 
 class account_password_forgot(delegate.page):
-    path = "/account/password/forgot"
+    path = router.urls.accounts.forgot_password
 
     def GET(self):
         f = forms.ForgotPassword()
@@ -570,8 +550,7 @@ class account_password_forgot(delegate.page):
         return render['account/password/sent'](i.email)
 
 class account_password_reset(delegate.page):
-
-    path = "/account/password/reset/([0-9a-f]*)"
+    path = router.urls.accounts.reset_password
 
     def GET(self, code):
         docs = web.ctx.site.store.values(type="account-link", name="code", value=code)
@@ -600,7 +579,7 @@ class account_password_reset(delegate.page):
 
 class account_audit(delegate.page):
 
-    path = "/account/audit"
+    path = router.urls.accounts.audit
 
     def POST(self):
         """When the user attempts a login, an audit is performed to determine
@@ -621,7 +600,7 @@ class account_audit(delegate.page):
                                 content_type="application/json")
 
 class account_privacy(delegate.page):
-    path = "/account/privacy"
+    path = router.urls.accounts.manage.privacy
 
     @require_login
     def GET(self):
@@ -636,7 +615,7 @@ class account_privacy(delegate.page):
         web.seeother("/account")
 
 class account_notifications(delegate.page):
-    path = "/account/notifications"
+    path = router.urls.accounts.manage.notifications
 
     @require_login
     def GET(self):
@@ -652,7 +631,7 @@ class account_notifications(delegate.page):
         web.seeother("/account")
 
 class account_lists(delegate.page):
-    path = "/account/lists"
+    path = router.urls.accounts.manage.lists
 
     @require_login
     def GET(self):
@@ -736,14 +715,14 @@ class ReadingLog(object):
             #works = web.ctx.site.get_many([ ... ])
             raise
 
-class public_my_books(delegate.page):
-    path = "/people/([^/]+)/books"
+class public_reading_log(delegate.page):
+    path = router.urls.accounts.public.reading_log
 
     def GET(self, username):
         raise web.seeother('/people/%s/books/want-to-read' % username)
 
-class public_my_books(delegate.page):
-    path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
+class public_reading_log(delegate.page):
+    path = router.urls.accounts.public.reading_log
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""        
@@ -759,14 +738,14 @@ class public_my_books(delegate.page):
         raise web.seeother(user.key)
 
 class account_my_books(delegate.page):
-    path = "/account/books"
+    path = router.urls.accounts.manage.reading_log_redir
 
     @require_login
     def GET(self):
         raise web.seeother('/account/books/want-to-read')
 
 class account_my_books(delegate.page):
-    path = "/account/books/([a-zA-Z_-]+)"
+    path = router.urls.accounts.manage.reading_log
 
     @require_login
     def GET(self, key='loans'):
@@ -779,7 +758,7 @@ class account_my_books(delegate.page):
             lists=readlog.lists, user=user, public=is_public)
 
 class account_loans(delegate.page):
-    path = "/account/loans"
+    path = router.urls.accounts.loans
 
     @require_login
     def GET(self):
@@ -787,12 +766,6 @@ class account_loans(delegate.page):
         user.update_loan_status()
         loans = borrow.get_loans(user)
         return render['account/borrow'](user, loans)
-
-class account_others(delegate.page):
-    path = "(/account/.*)"
-
-    def GET(self, path):
-        return render.notfound(path, create=False)
 
 
 def send_email_change_email(username, email):

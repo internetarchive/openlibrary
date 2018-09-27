@@ -12,7 +12,7 @@ import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template, add_flash_message, public
-from openlibrary.core import inlibrary, statsdb, geo_ip
+from openlibrary.core import router, inlibrary, statsdb, geo_ip
 from openlibrary import accounts
 from openlibrary.core.iprange import find_bad_ip_ranges
 
@@ -27,7 +27,7 @@ class libraries(delegate.page):
         return itertools.groupby(branches, lambda b: b.name and b.name[0])
 
 class libraries_notes(delegate.page):
-    path = "(/libraries/[^/]+)/notes"
+    path = router.urls.libraries.notes
 
     def POST(self, key):
         doc = web.ctx.site.get(key)
@@ -148,7 +148,7 @@ def get_libraries_by_country():
     return d
 
 class libraries_dashboard(delegate.page):
-    path = "/libraries/dashboard"
+    path = router.urls.libraries.dashboard
 
     def GET(self):
         keys = web.ctx.site.things(query={"type": "/type/library", "limit": 10000})
@@ -179,7 +179,7 @@ class libraries_dashboard(delegate.page):
         return web.ctx.site.new(key, doc)
 
 class pending_libraries(delegate.page):
-    path = "/(libraries/pending-\d+)"
+    path = router.urls.libraries.pending_libraries
 
     def GET(self, key):
         doc = web.ctx.site.store.get(key)
@@ -235,7 +235,8 @@ class pending_libraries(delegate.page):
         raise web.seeother(page.key)
 
 class libraries_register(delegate.page):
-    path = "/libraries/register"
+    path = router.urls.libraries.register
+
     def GET(self):
         return render_template("libraries/add")
 
@@ -305,7 +306,7 @@ class libraries_register(delegate.page):
 
 
 class locations(delegate.page):
-    path = "/libraries/locations.txt"
+    path = router.urls.libraries.locations
 
     def GET(self):
         libraries = inlibrary.get_libraries()
@@ -313,13 +314,13 @@ class locations(delegate.page):
         return delegate.RawText(render_template("libraries/locations", libraries))
 
 class stats(delegate.page):
-    path = "/libraries/stats"
+    path = router.urls.libraries.stats
 
     def GET(self):
         raise web.seeother("/stats/lending")
 
 class stats_per_library(delegate.page):
-    path = "/libraries/stats/(.*).csv"
+    path = router.urls.libraries.stats_per_library
 
     def GET(self, libname):
         key = "/libraries/" + libname
