@@ -55,7 +55,8 @@ $if len(loans) >= 5:
 \$().ready(function(){
     \$(".local-date-time").each(function() {
         var expiry_utc = \$(this).attr("data-expiry-utc");
-        \$(this).html(moment(expiry_utc).format('LLL'));
+        var options = {hour: '2-digit', minute:'2-digit', month:'2-digit', day:'2-digit', year:'numeric'};
+        \$(this).html((new Date(expiry_utc)).toLocaleString([], options));
     });
 });
 //-->
