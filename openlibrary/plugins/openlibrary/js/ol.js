@@ -455,6 +455,10 @@ $().ready(function(){
             $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
             url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
         }
+        // check if user is on profile edit page
+        if (window.location.toString().indexOf("/people/") != -1) {
+            url = removeURLParameter(url, 'has_fulltext');
+        }
         $(form).attr('action', url);
     }
 
