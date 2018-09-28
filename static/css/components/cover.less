@@ -1,0 +1,86 @@
+/**
+ * Cover
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#cover
+ */
+.cover {
+  &Ebook {
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    cursor: pointer;
+    z-index: 1000;
+    img {
+      opacity: .85;
+      filter: alpha(opacity=85);
+    }
+    a.cta-btn {
+      position: absolute;
+      right: 0;
+      bottom: 3px;
+      border-radius: 3px;
+    }
+  }
+  &Magic {
+    position: relative;
+    float: left;
+    height: 235px;
+    margin: 0 15px 20px 0;
+  
+    .SRPCover {
+      float: left;
+      height: 230px;
+      vertical-align: middle;
+      img {
+        height: 195px;
+        width: 130px;
+        border-radius: 3px;
+      }
+    }
+    .SRPCoverBlank {
+      position: relative;
+      width: 115px;
+      height: 230px;
+      padding: 10px;
+      text-align: center;
+      float: left;
+      background: @lighter-grey;
+      cursor: pointer;
+      display: none;
+      .innerBorder {
+        float: left;
+        width: 113px;
+        height: 178px;
+        border: 1px solid @white;
+      }
+    }
+  }
+}
+.cover
+.SRPCover {
+  float: left;
+  height: 185px;
+  vertical-align: middle;
+  img {
+    height: 195px;
+    width: 130px;
+  }
+}
+
+.SRPCoverBlank {
+  position: relative;
+  width: 115px;
+  height: 165px;
+  padding: 10px;
+  text-align: center;
+  float: left;
+  background: @lighter-grey;
+  cursor: pointer;
+  display: none;
+  .innerBorder {
+    float: left;
+    width: 113px;
+    height: 163px;
+    border: 1px solid @white;
+  }
+}

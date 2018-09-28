@@ -1843,49 +1843,7 @@ div.editThis {
 
 @import (less) "components/olBlog.less";
 
-.contentLists.results {
-  .coverMagic {
-    position: relative;
-    height: 225px;
-    margin: 0;
-    float: left;
-    .coverEbook {
-      position: absolute;
-      bottom: -3px;
-      left: 0;
-      right: 0;
-      cursor: pointer;
-      z-index: 1000;
-    }
-  }
-  .SRPCover {
-    float: left;
-    height: 230px;
-    vertical-align: middle;
-    img {
-      height: 195px;
-      width: 130px;
-      border-radius: 3px;
-    }
-  }
-  .SRPCoverBlank {
-    position: relative;
-    width: 115px;
-    height: 230px;
-    padding: 10px;
-    text-align: center;
-    float: left;
-    background: @lighter-grey;
-    cursor: pointer;
-    display: none;
-    .innerBorder {
-      float: left;
-      width: 113px;
-      height: 178px;
-      border: 1px solid @white;
-    }
-  }
-}
+@import (less) "components/cover.less";
 
 /* HOME PAGE CAROUSEL SKIN */
 @import (less) "components/home.less";
@@ -2034,20 +1992,6 @@ div#searchResults {
   flex: 1;
 }
 
-.coverEbook {
-  img {
-    opacity: .85;
-    filter: alpha(opacity=85);
-  }
-  a.cta-btn {
-    position: absolute;
-    padding: 0 5px;
-    right: 0;
-    bottom: 3px;
-    border-radius: 3px;
-  }
-}
-
 .searchResultItemCTA-lending {
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
@@ -2091,18 +2035,6 @@ div#searchResults {
     button {
       padding: 0;
     }
-  }
-}
-
-.borrow_ {
-  &available {
-    background-color: @primary-blue;
-  }
-  &unavailable {
-    background-color: @orange;
-  }
-  &missing {
-    background-color: @mid-grey;
   }
 }
 
@@ -2886,48 +2818,7 @@ div#history {
   }
 }
 
-.coverMagic {
-  .coverEbook {
-    cursor: pointer;
-    z-index: 1000;
-  }
-}
-
 #contentLists {
-  &.results {
-    .coverMagic {
-      position: relative;
-      height: 235px;
-      margin: 0 15px 20px 0;
-      float: left;
-    }
-    .SRPCover {
-      float: left;
-      height: 185px;
-      vertical-align: middle;
-      img {
-        height: 195px;
-        width: 130px;
-      }
-    }
-    .SRPCoverBlank {
-      position: relative;
-      width: 115px;
-      height: 165px;
-      padding: 10px;
-      text-align: center;
-      float: left;
-      background: @lighter-grey;
-      cursor: pointer;
-      display: none;
-      .innerBorder {
-        float: left;
-        width: 113px;
-        height: 163px;
-        border: 1px solid @white;
-      }
-    }
-  }
   &.editions {
     .coverMagic {
       float: left;
