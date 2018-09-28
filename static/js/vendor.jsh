@@ -18,6 +18,9 @@ then
     xcat $VENDORJS/jquery/jquery-1.11.0.min.js
     xcat $VENDORJS/jquery-migrate/jquery-migrate-1.2.1.min.js
     xcat $VENDORJS/slick/slick-1.6.0.min.js
+    # For dialog boxes (e.g. add to list)
+    xcat $VENDORJS/jquery-ui/jquery-ui-1.12.1.min.js
+    xcat $VENDORJS/colorbox/1.5.14.js
 else
     #v1 javascript
     xcat $VENDORJS/jquery/jquery-1.3.2.min.js
