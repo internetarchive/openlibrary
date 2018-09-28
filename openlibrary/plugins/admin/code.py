@@ -81,7 +81,7 @@ class admin(delegate.page):
 
 class admin_index:
     def GET(self):
-        return render_template("admin/index",get_counts())
+        return web.seeother('/stats')
 
 class gitpull:
     def GET(self):
