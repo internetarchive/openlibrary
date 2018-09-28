@@ -3547,42 +3547,7 @@ div#admin {
 }
 
 /* CHARTING */
-.chart {
-  float: left;
-  position: relative;
-  width: 898px;
-  height: 140px;
-  padding: 0 0 20px 20px;
-  margin-top: 0;
-  font-size: 0.6875em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  background-color: transparent;
-  background-image: url(/images/ajax-loader-bar.gif);
-  background-repeat: no-repeat;
-  background-position: 340px 60px;
-  &Yaxis {
-    position: absolute;
-    text-align: center;
-    vertical-align: middle;
-    -webkit-transform: rotate(-90deg);
-    -moz-transform: rotate(-90deg);
-    -o-transform: rotate(-90deg);
-    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
-    font-size: 10px;
-    color: @olive;
-    text-transform: uppercase;
-  }
-  &Xaxis {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    text-align: center;
-    font-size: 10px;
-    color: @olive;
-    text-transform: uppercase;
-  }
-}
+@import (less) "components/chart.less";
 
 /* MERGING */
 div.merge {
