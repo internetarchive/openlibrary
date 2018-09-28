@@ -58,12 +58,12 @@ $:render_template("lib/covers", page)
 <div id="contentMeta" style="padding-top:0;">
 
   <div class="head">
-    <h2 style="margin-bottom:0px!important;">
+    <h2 class="inline">
       $_("Publishing History")
+    </h2>
       <span class="shift">$:_('This is a chart to show the publishing history of editions of works about this subject. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
       <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
       <span class="count chartUnzoom">&nbsp;$_("This graph charts editions published on this subject. Click to view a single year, or drag across a range.")</span>
-    </h2>
   </div>
 
 <script type="text/javascript">
