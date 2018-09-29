@@ -18,6 +18,7 @@ import infogami
 if not hasattr(infogami.config, 'features'):
     infogami.config.features = []
 
+from infogami.utils.app import metapage
 from infogami.utils import delegate
 from infogami.utils.view import render, render_template, public, safeint, add_flash_message
 from infogami.infobase import client
@@ -166,6 +167,22 @@ def sampleload(filename="sampledump.txt.gz"):
 
     queries = [simplejson.loads(line) for  line in f]
     print web.ctx.site.save_many(queries)
+
+
+class routes(delegate.page):
+    path = "/developers/routes"
+
+    def GET(self):
+        class ModulesToStr(simplejson.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, metapage):
+                    return obj.__module__ + "." + obj.__name__
+                return super(ModulesToStr, self).default(obj)
+
+        from openlibrary import code
+        return '<pre>%s</pre>' % simplejson.dumps(
+            code.delegate.pages, sort_keys=True, cls=ModulesToStr,
+            indent=4, separators=(',', ': '))
 
 class addbook(delegate.page):
     path = "/addbook"
