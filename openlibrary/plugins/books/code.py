@@ -1,19 +1,17 @@
 """Open Library Books API
 """
 
-from infogami.plugins.api.code import add_hook
 import dynlinks
 import readlinks
-
-import web
-from infogami.infobase import _json as simplejson
-
-from infogami.utils import delegate
-from infogami.plugins.api.code import jsonapi
 
 import urlparse
 import re
 import urllib2
+import web
+
+from infogami.infobase import _json as simplejson
+from infogami.utils import delegate
+from infogami.plugins.api.code import jsonapi
 
 class books_json(delegate.page):
     path = "/api/books"
