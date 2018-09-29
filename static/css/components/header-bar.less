@@ -357,10 +357,10 @@ header#header-bar {
 
     .search-facet-selector {
       display: none;
-      width: 100%;
-      height: 100%;
       z-index: 2;
       margin-top: 3px;
+      padding: 13px 10px 0;
+      font-size: 14px;
     }
 
     .search-facet {
@@ -375,19 +375,15 @@ header#header-bar {
       border-right: 1px solid @lighter-grey;
       font-weight: 500;
       color: @grey;
-      font-size: .8em;
-      padding-top: 13px;
-      padding-left: 10px;
-      padding-right: 10px;
 
       select {
-        position: absolute;
-        top: 0;
-        left: 0;
-        height: 100%;
-        width: 100%;
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        color: inherit;
         z-index: 1;
-        opacity: 0;
+        background: none;
+        border: none;
         cursor: pointer;
         -moz-appearance: none;
         appearance: none;
@@ -396,10 +392,14 @@ header#header-bar {
     }
 
     .search-facet-value {
+      display: block;
+      min-width: 20px;
+
+      padding-right: 10px;
       &::after {
-        position: relative;
-        left: 5px;
-        top: 10px;
+        position: absolute;
+        top: 50%;
+        right: 4px;
         content: '';
         width: 0;
         height: 0;
@@ -517,9 +517,6 @@ header#header-bar {
 }
 
 .search-component {
-  .search-facet {
-    min-width: 25px;
-  }
   .search-bar-advanced-btn {
     margin: 10px;
     border: 0 none;
@@ -624,6 +621,19 @@ header#header-bar {
 
     .search-component {
       margin-right: 0;
+    }
+  }
+}
+
+// If JS is enabled, we are going to inject a new
+// element but use the option control to toggle it.
+// to prepare for this change and ensure the search-facet
+// is the right size hide the select element
+.client-js {
+  .search-facet {
+    select {
+      opacity: 0;
+      position: absolute;
     }
   }
 }
