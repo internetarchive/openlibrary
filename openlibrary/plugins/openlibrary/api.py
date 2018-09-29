@@ -9,11 +9,11 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from infogami.plugins.api.code import jsonapi
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, cache, helpers as h
-
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -212,3 +212,16 @@ class author_works(delegate.page):
             "size": size,
             "entries": works
         }
+
+class price_api(delegate.page):
+    path = '/prices/(.*)'
+
+    @jsonapi
+    def GET(self, isbn):
+        from openlibrary.plugins.upstream.code import \
+            get_amazon_metadata, get_betterworldbooks_metadata
+        prices = {
+            'amazon': get_amazon_metadata(isbn) or {},
+            'betterworldbooks': get_betterworldbooks_metadata(isbn) or {}
+        }
+        return simplejson.dumps(prices)

@@ -18,7 +18,7 @@ from infogami.utils.context import context
 
 from utils import render_template
 
-from openlibrary.core import cache
+from openlibrary.core import cache, helpers as h
 from openlibrary.core.lending import amazon_api
 from openlibrary import accounts
 from openlibrary.utils import dateutil
@@ -108,7 +108,7 @@ def _get_amazon_metadata(isbn):
     except Exception as e:
         return None
 
-    price, qlt = (None, None)
+    price_fmt, price, qlt = (None, None, None)
     used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
     new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
 
@@ -119,13 +119,17 @@ def _get_amazon_metadata(isbn):
     elif used or new:
         price, qlt = (used, 'used') if used else (new, 'new')
 
-    price_fmt = None
-    if price and qlt:
+    if price:
         price = '{:00,.2f}'.format(int(price)/100.)
-        price_fmt = "$%s (%s)" % (price, qlt)
+        if qlt:
+            price_fmt = "$%s (%s)" % (price, qlt)
 
     return {
-        'price': price_fmt
+        'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
+            isbn, h.affiliate_id('amazon')),
+        'price_fmt': price_fmt,
+        'price': price,
+        'qlt': qlt,
     }
 
 
@@ -173,7 +177,7 @@ def _get_betterworldbooks_metadata(isbn):
         used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
 
-        price, qlt = None, None
+        price_fmt, price, qlt = None, None, None
 
         if used_qty and used_qty[0] and used_qty[0] != '0':
             price = used_price[0] if used_price else ''
@@ -185,10 +189,17 @@ def _get_betterworldbooks_metadata(isbn):
                 price = _price
                 qlt = 'new'
 
+        if price and qlt:
+            price_fmt = "$%s (%s)" % (price, qlt)
+
         return {
-            'url': product_url[0] if product_url else None,
+            'url': (
+                'http://www.anrdoezrs.net/links/'
+                '%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx' % (
+                    isbn, h.affiliate_id('betterworldbooks'))),
             'price': price,
-            'qlt': qlt
+            'qlt': qlt,
+            'price_fmt': price_fmt
         }
         return result
     except urllib2.HTTPError as e:
