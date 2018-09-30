@@ -3,14 +3,18 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
  */
 
+// Badly named. Should be renamed "carousel-heading" or similar.
+.home-h2 {
+  font-size: 1.2em;
+  font-weight: normal;
+  color: @link-blue;
+  margin-bottom: .5em;
+  margin-top: 1.75em;
+}
+
 .carousel-container {
   margin: 0 -20px;
   padding: 3px 15px;
-
-  .slick-slider {
-    overflow: visible;
-    margin-bottom: 0;
-  }
 }
   
 .carousel {
@@ -18,42 +22,29 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  &__item {
+    float: left;
+    height: 100%;
+    margin: 0 10px;
+    min-height: 1px;
+  }
+
   > div {
     min-width: 130px;
-    margin: 0 10px;
   }
 
-  .slick-prev,
-  .slick-next {
-    width: auto;
-    height: auto;
-
-    &:before,
-    &:before {
-      color: @primary-blue;
-      font-size: 35px;
-    }
-  }
-
-  .slick-prev:before {
-    margin-left: 15px;
-  }
-
-  .slick-next {
-    margin-right: 11px;
+  // JavaScript only block,but needed to avoid reflows
+  // Without, on slower connections, there will be a flash when buttons
+  // are added.
+  button {
+    border: 0;
+    position: absolute;
+    color: transparent;
   }
 
   .book {
     &:last-child {
       margin-right: 0;
-    }
-
-    img.bookcover {
-      margin: 0 auto;
-      width: 130px;
-      height: 200px;
-      box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
-      border-radius: 3px;
     }
 
     .book-metadata {
@@ -72,22 +63,6 @@
         text-decoration: none;
       }
     }
-  }
-
-  .book-cta {
-    background: @primary-blue;
-    border-radius: 3px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    width: 130px;
-    margin: 0 auto;
-    margin-top: 5px;
-    text-align: center;
-    font-size: .9em;
-    padding: 5px 0;
-  }
-
-  .category-item {
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
   }
 }
 
@@ -110,3 +85,5 @@
     }
   }
 }
+
+@import (less) "category-item.less";
