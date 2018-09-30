@@ -7,6 +7,7 @@
 		"block-no-empty": true,
 		"indentation": 2,
 		"function-url-quotes": "never",
-		"length-zero-no-unit": true
+		"length-zero-no-unit": true,
+		"max-empty-lines": 1
 	}
 }
