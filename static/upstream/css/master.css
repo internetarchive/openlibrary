@@ -468,8 +468,6 @@ body#edit .label span {
     font-size: 0.75em;
     font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
 }
-body#edit .input {
-}
 body#edit textarea {
     width: 906px;
     height: 500px;
@@ -1753,12 +1751,11 @@ body#form .portlet-content {
 #cboxPrevious, #cboxNext, #cboxClose, #cboxSlideshow{cursor:pointer;}
 #cboxClose{display:none!important;}
 
-#colorBox{}
-    #cboxContent{background:#fff;padding:0;border:10px solid #615132;-webkit-border-radius:12px;-moz-border-radius:12px;border-radius:12px;-moz-box-shadow: 1px 3px 10px #000;-webkit-box-shadow: 1px 3px 10px #000;box-shadow: 1px 3px 10px #000;}
-        #cboxLoadedContent{background:#fff;margin:0;}
-        #cboxLoadingOverlay{background:transparent;}
-        #cboxClose{position:absolute;top:20px;right:20px;display:block;width:32px;height:32px;background-image:url(/images/icons/icon_close-pop.png);background-position:0 0;background-repeat:no-repeat;}
-        #cboxClose:hover{background-position:0 -32px;}
+#cboxContent{background:#fff;padding:0;border:10px solid #615132;-webkit-border-radius:12px;-moz-border-radius:12px;border-radius:12px;-moz-box-shadow: 1px 3px 10px #000;-webkit-box-shadow: 1px 3px 10px #000;box-shadow: 1px 3px 10px #000;}
+#cboxLoadedContent{background:#fff;margin:0;}
+#cboxLoadingOverlay{background:transparent;}
+#cboxClose{position:absolute;top:20px;right:20px;display:block;width:32px;height:32px;background-image:url(/images/icons/icon_close-pop.png);background-position:0 0;background-repeat:no-repeat;}
+#cboxClose:hover{background-position:0 -32px;}
 
 
 div.floaterAlert {
