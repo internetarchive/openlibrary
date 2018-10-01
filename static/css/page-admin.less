@@ -10,6 +10,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
 
 body#admin {
   background-color: desaturate(@admin-table-border, 100);
@@ -22,7 +23,7 @@ body#admin {
   /* stylelint-enable selector-max-specificity */
   /* stylelint-disable selector-max-specificity */
   div#content {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
   }
   /* stylelint-enable selector-max-specificity */
   /* stylelint-disable selector-max-specificity */

@@ -1,3 +1,4 @@
+@import (less) "less/font-families.less";
 
 a {
   &.cta-btn {
@@ -8,7 +9,7 @@ a {
     box-sizing: border-box;
     cursor: pointer;
     text-decoration: none;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     text-align: center;
     padding: 5px 20px;
     font-size: .8em;
@@ -19,11 +20,11 @@ a {
     background-image: url(/images/icons/icon_cancel.png);
     background-repeat: no-repeat;
     background-position: 100% 0;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-4;
     font-size: 1em;
   }
   &.linkButton {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     text-decoration: none;
     color: @grey;
     border: 1px solid @mid-grey;
@@ -95,7 +96,7 @@ a {
 button {
   &.plainText {
     border: none;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .75em;
     color: @red;
     background-color: @white;
@@ -106,7 +107,7 @@ button {
   }
   &.plain {
     border: none;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .75em;
     color: @black;
     background-color: transparent !important;
