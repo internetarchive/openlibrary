@@ -10,6 +10,7 @@
 		"length-zero-no-unit": true,
 		"max-empty-lines": 1,
 		"no-eol-whitespace": true,
-		"number-leading-zero": "never"
+		"number-leading-zero": "never",
+		"no-missing-end-of-source-newline": true
 	}
 }
