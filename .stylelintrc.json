@@ -11,6 +11,7 @@
 		"max-empty-lines": 1,
 		"no-eol-whitespace": true,
 		"number-leading-zero": "never",
-		"no-missing-end-of-source-newline": true
+		"no-missing-end-of-source-newline": true,
+		"max-line-length": 100
 	}
 }

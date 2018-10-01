@@ -1802,7 +1802,9 @@ div.content {
     }
     &.gradient {
       background: @light-grey;
-      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#fff4f4f4", endColorstr="#ffffffff");
+      filter: progid:DXImageTransform.Microsoft.gradient(
+        startColorstr="#fff4f4f4",
+        endColorstr="#ffffffff");
       // stylelint-disable declaration-block-no-duplicate-properties
       background: -webkit-gradient(linear, left top, left bottom, from(@grey-f4f4f4), to(@white));
       background: -moz-linear-gradient(top, @grey-f4f4f4, @white);
@@ -3278,7 +3280,8 @@ div.tabsPop {
     border: none;
     border-top: 3px solid @lightest-grey;
     padding: 15px 30px !important;
-    background: @white; /* declare background color for container to avoid distorted fonts in IE while fading */
+    background: @white;
+    /* declare background color for container to avoid distorted fonts in IE while fading */
   }
 }
 
@@ -4531,7 +4534,9 @@ ul#myreads-paginator {
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen { /* Use class for showing/hiding tab content, so that visibility can be better controlled in different media types... */
+@media projection, screen {
+/* Use class for showing/hiding tab content,
+so that visibility can be better controlled in different media types... */
   .ui-tabs-hide {
     display: none;
   }
