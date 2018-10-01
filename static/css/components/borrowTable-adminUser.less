@@ -3,6 +3,8 @@
  * the id `admin` or `user` is present on the body element.
  * They should be reviewed and cleaned up as necessary.
  */
+@import (less) "less/font-families.less";
+
 body#admin,
 body#user {
   /* stylelint-disable selector-max-specificity */
@@ -10,12 +12,12 @@ body#user {
     margin: 30px 0 25px;
     table {
       width: 100%;
-      font-family: "Lucida Grande","Arial",sans-serif;
+      font-family: @lucida_sans_serif-7;
       th {
         border-bottom: 1px solid @beige-three;
         vertical-align: bottom;
         padding-bottom: 10px;
-        font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+        font-family: @lucida_sans_serif-1;
         color: @brown;
         font-weight: 600;
         font-size: .6875em;

@@ -1,3 +1,5 @@
+@import (less) "less/font-families.less";
+
 .wmd-panel {
   width: auto;
 }
@@ -39,7 +41,7 @@ form#addAuthor.olform .wmd-button-bar {
 .wmd-preview {
   background-color: @white;
   border: 1px solid @lighter-grey;
-  font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-family: @georgia_serif-1;
   display: none;
   margin-bottom: 10px;
 }
@@ -216,7 +218,7 @@ form#addAuthor.olform .wmd-preview {
 
 .wmd-prompt-dialog > div {
   font-size: 14px;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+  font-family: @lucida_sans_serif-2;
   color: @darker-grey;
   padding: 20px !important;
 }
@@ -234,7 +236,7 @@ form#addAuthor.olform .wmd-preview {
   background-color: @brown;
   padding: 0 10px 10px;
   color: @white;
-  font-family: "News Gothic MT","Arial Rounded MT",Geneva,Helvetica,sans-serif;
+  font-family: @news_gothic_sans_serif;
   font-size: 1.75em;
   width: 380px;
 }
@@ -251,7 +253,7 @@ form#addAuthor.olform .wmd-preview {
   clear: both;
   width: 350px;
   font-size: 1.125em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif;
   padding: 3px;
 }
 
