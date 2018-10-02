@@ -12,6 +12,7 @@
 		"no-eol-whitespace": true,
 		"number-leading-zero": "never",
 		"no-missing-end-of-source-newline": true,
-		"max-line-length": 100
+		"max-line-length": 100,
+		"shorthand-property-no-redundant-values":true
 	}
 }
