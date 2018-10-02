@@ -71,5 +71,7 @@ The .po files needs to be compiled to .mo files to be able to use them by gettex
     
 ## Glossary:
 .po - portable object
+
 .pot - portable object template
+
 .mo - machine object
