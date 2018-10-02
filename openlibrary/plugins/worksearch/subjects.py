@@ -10,7 +10,7 @@ import urllib
 import datetime
 
 from infogami import config
-from infogami.plugins.api.code import jsonapi
+from infogami.plugins.api.code import jsonapi, history
 from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
 
@@ -162,6 +162,16 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
+class subject_history(delegate.page):
+    path = '/subjects/history'
+    encoding = 'json'
+    
+    @jsonapi
+    def GET(self,key):
+        i = web.input()
+        if i.get("limit")>100:
+            return "I'm sorry Dave, I'm afraid I can't do that."
+        return history().get()
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
