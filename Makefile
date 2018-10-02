@@ -34,6 +34,7 @@ css:
 js:
 	mkdir -p $(BUILD)
 	bash static/js/vendor.jsh > $(BUILD)/vendor.js
+	bash static/js/vendor.jsh 2 > $(BUILD)/vendor-v2.js
 	bash static/js/all.jsh > $(BUILD)/all.js
 
 i18n:
