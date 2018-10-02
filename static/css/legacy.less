@@ -991,7 +991,11 @@ div#errorMerge {
 }
 
 div#read-options {
-  margin: auto; // read-options panel should be aligned with outer elements
+  /* Set to auto so that block-level elements will not stretch out to the edges of their
+     container. Problems may appear when the browser width is narrower, in which cases a
+     responsive design should take place.
+  */
+  margin: auto;
 }
 
 /* FORMS */
