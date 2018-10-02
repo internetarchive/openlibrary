@@ -3,18 +3,22 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#chart
 */
 .chart {
-  float: left;
   position: relative;
-  width: 898px;
-  height: 140px;
-  padding: 0 0 20px 20px;
-  margin-top: 0;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px;
+  margin: 0 20px;
   font-size: .6875em;
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   background-color: transparent;
   background-image: url(/images/ajax-loader-bar.gif);
   background-repeat: no-repeat;
   background-position: 340px 60px;
+
+  .thisChart {
+    height:140px;
+  }
+
   &Yaxis {
     position: absolute;
     text-align: center;

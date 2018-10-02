@@ -843,6 +843,21 @@ input {
 
 /* LAYOUT */
 @import "v2.less";
+// Legacy V2 CSS
+// This block can hopefully be removed or cleaned up and moved to v2.less
+// when div#contentMeta selectors have been removed from this file or
+// this selector has moved to a page specific entry point.
+#test-body-mobile {
+  // stylelint-disable selector-max-specificity
+  div.contentWide,
+  div#contentMeta {
+    width: 100%;
+    float: none;
+    // These elements are likely to have padding.
+    box-sizing: border-box;
+  }
+  // stylelint-enable selector-max-specificity
+}
 
 div#placement {
   width: 960px;
@@ -4569,6 +4584,7 @@ ul#myreads-paginator {
   }
 
   @import (less) "components/desktop/iaBar.less";
+  @import (less) "components/chart--desktop.less";
   @import (less) "components/desktop/editions.less";
   @import (less) "components/desktop/form.olform.less";
   @import (less) "components/desktop/header-bar.less";
