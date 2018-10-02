@@ -41,6 +41,7 @@ You can edit the `message.po` file using your favourite editor, or a .po specifi
 
 ## Introduction
 To add i18n support to Open Library, templates and macros are modified to use gettext function calls. For brevity, the gettext function is abbreviated as :
+
     <a href="..">$_("More search options")</a>
     
 The messages in the the templates and macros are extracted and .pot file is created:
