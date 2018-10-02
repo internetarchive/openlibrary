@@ -49,7 +49,9 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 
 <script type="text/javascript">
 <!--
-var page = new Subject($:json_encode(page));
+window.q.push( function () {
+    window.page = new Subject($:json_encode(page));
+} );
 //-->
 </script>
 
@@ -110,7 +112,7 @@ function set_hash(data) {
     document.location.hash = hash;
 }
 
-\$().ready(function() {
+window.q.push(function() {
     var _hash = parse_hash();
 
     if (_hash.ebooks === 'true') {
@@ -554,9 +556,12 @@ $ publishers_feature_enabled = "publishers" in ctx.features
 
 <script type="text/javascript">
 <!--
+window.q.push( function () {
+    var page = window.page;
     $ page_key = page.key[page.key.rindex('/')+1:]
     var page_key = "$page_key";
     var publishers_feature_enabled = $:json_encode(publishers_feature_enabled);
+} );
 //-->
 </script>
 $jsdef renderPublishers(publishers):
