@@ -991,9 +991,12 @@ div#errorMerge {
 }
 
 div#read-options {
-  /* Set to auto so that block-level elements will not stretch out to the edges of their
+  /* Set to auto so that block-level elements will not stretch out of the edges of their
      container. Problems may appear when the browser width is narrower, in which cases a
      responsive design should take place.
+     The whole purpose of this change is to take precedence over div.tools-override .Tools
+     .btn-notice where margin-left is specified. 
+     More info on: https://github.com/internetarchive/openlibrary/issues/1220
   */
   margin: auto;
 }
