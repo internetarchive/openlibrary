@@ -108,8 +108,8 @@ def parse_data(data):
             itemid = None
 
             #Marc Binary
-            if len(data) != int(data[:5]):
-                return json.dumps({'success':False, 'error':'Bad MARC length'})
+            if len(data) < 5 or len(data) != int(data[:5]):
+                raise DataError("no-marc-record")
 
             rec = MarcBinary(data)
 
@@ -144,6 +144,16 @@ def queue_s3_upload(data, format):
 class importapi:
     """/api/import endpoint for general data formats.
     """
+
+    def error(self, error_code, error='Invalid item', **kwargs):
+        content = {
+            'success': False,
+            'error_code': error_code,
+            'error': error
+        }
+        content.update(kwargs)
+        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
+
     def POST(self):
         web.header('Content-Type', 'application/json')
         if not can_write():
@@ -154,7 +164,7 @@ class importapi:
         try:
             edition, format = parse_data(data)
         except DataError, e:
-            return self.error(str(e), 'Failed to parse Edition data')
+            return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
             return self.error('unknown_error', 'Failed to parse Edition data')
@@ -172,7 +182,7 @@ class importapi:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
 
-class ia_importapi:
+class ia_importapi(importapi):
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
     Request Format:
 
@@ -381,14 +391,6 @@ class ia_importapi:
         }
         return json.dumps(reply)
 
-    def error(self, error_code, error='Invalid item', **kwargs):
-        content = {
-            'success': False,
-            'error_code': error_code,
-            'error': error
-        }
-        content.update(kwargs)
-        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
 
 class ils_search:
     """Search and Import API to use in Koha.
