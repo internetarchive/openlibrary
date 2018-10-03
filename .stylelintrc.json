@@ -13,6 +13,7 @@
 		"number-leading-zero": "never",
 		"no-missing-end-of-source-newline": true,
 		"max-line-length": 100,
-		"shorthand-property-no-redundant-values":true
+		"shorthand-property-no-redundant-values":true,
+		"selector-max-specificity": "1,4,0"
 	}
 }

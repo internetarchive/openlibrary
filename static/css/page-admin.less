@@ -13,26 +13,36 @@
 
 body#admin {
   background-color: desaturate(@admin-table-border, 100);
+  /* stylelint-disable selector-max-specificity */
   div#background {
     width: 100%;
     background-color: desaturate(@beige, 100);
     padding-bottom: 15px;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#content {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#bottom {
     background-color: transparent;
   }
+  /* stylelint-enable selector-max-specificity */
   div.siteSearch.darker {
     background-color: @light-mid-grey;
   }
+  /* stylelint-disable selector-max-specificity */
   div#headerNav ul.links li {
     border-top: 1px solid @light-mid-grey;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#contentHead {
     padding-bottom: 30px;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 // Import all common components

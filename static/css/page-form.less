@@ -16,12 +16,14 @@ body#form {
   background-color: @white;
   overflow: hidden;
 
+  /* stylelint-disable selector-max-specificity */
   div#revertNotice,
   div#revertLink,
   footer,
   #bottom {
     display: none;
   }
+  /* stylelint-enable selector-max-specificity */
   .formButtons {
     position: absolute;
     height: 50px;
@@ -119,12 +121,14 @@ body#form {
   body#form {
     width: 600px;
     min-height: 440px;
+    /* stylelint-disable selector-max-specificity */
     #placement,
     #position,
     #content {
       width: 600px;
       min-height: 440px;
     }
+    /* stylelint-enable selector-max-specificity */
     .formButtons {
       width: 600px;
     }
