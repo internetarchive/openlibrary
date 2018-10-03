@@ -148,6 +148,18 @@ class importapi:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
 
+    def reject_non_book_marc(marc_record):
+        # Is the item a serial instead of a book?
+        marc_leaders = marc_record.leader()
+        if marc_leaders[7] == 's':
+            return self.error('item-is-serial')
+
+        # insider note: follows Archive.org's approach of
+        # Item::isMARCXMLforMonograph() which excludes non-books
+        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+            return self.error('item-not-book')
+
+
 class ia_importapi(importapi):
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
     Request Format:
@@ -242,15 +254,7 @@ class ia_importapi(importapi):
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if marc_record:
-            # Is the item a serial instead of a book?
-            marc_leaders = marc_record.leader()
-            if marc_leaders[7] == 's':
-                return self.error("item-is-serial")
-
-            # insider note: follows Archive.org's approach of
-            # Item::isMARCXMLforMonograph() which excludes non-books
-            if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-                return self.error("item-not-book")
+            self.reject_non_book_marc(marc_record)
 
             try:
                 edition_data = read_edition(marc_record)
