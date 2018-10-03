@@ -218,10 +218,15 @@ class price_api(delegate.page):
 
     @jsonapi
     def GET(self, isbn):
+        from openlibrary.utils.isbn import isbn_10_to_isbn_13
         from openlibrary.plugins.upstream.code import \
             get_amazon_metadata, get_betterworldbooks_metadata
         prices = {
             'amazon': get_amazon_metadata(isbn) or {},
             'betterworldbooks': get_betterworldbooks_metadata(isbn) or {}
         }
+        if len(isbn) == 10 and prices['betterworldbooks'].get('price') is None:
+            isbn_13 = isbn_10_to_isbn_13(isbn)
+            prices['betterworldbooks'] = get_betterworldbooks_metadata(isbn_13) or {}
+
         return simplejson.dumps(prices)

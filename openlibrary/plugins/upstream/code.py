@@ -196,7 +196,7 @@ def _get_betterworldbooks_metadata(isbn):
             'url': (
                 'http://www.anrdoezrs.net/links/'
                 '%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx' % (
-                    isbn, h.affiliate_id('betterworldbooks'))),
+                    h.affiliate_id('betterworldbooks'), isbn)),
             'price': price,
             'qlt': qlt,
             'price_fmt': price_fmt
