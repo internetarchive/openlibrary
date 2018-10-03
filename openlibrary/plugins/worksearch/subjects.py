@@ -166,11 +166,16 @@ class subject_history(delegate.page):
     path = '/subjects/history'
     encoding = 'json'
     
+    API_ROWS_LIMIT = 100
     @jsonapi
-    def GET(self,key):
+    def GET(self):
         i = web.input()
-        if i.get("limit")>100:
-            return "I'm sorry Dave, I'm afraid I can't do that."
+	try:
+		limit = int(i.get("limit",self.API_ROWS_LIMIT))
+	except (ValueError, TypeError):
+		return {'error':'limit must be an integer'}
+        if limit>self.API_ROWS_LIMIT:
+            return {'error':'limit must be less than or equal to {}'.format(self.API_ROWS_LIMIT)}
         return history().get()
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
