@@ -13,9 +13,7 @@ $if bodyid == 'user' or 'admin':
     $:render_template('lib/analytics', page)
 </body>
     $if 'v2' in page:
-        <script type="text/javascript" src="/static/js/jquery-1.11.0.min.js"></script>
-        <script type="text/javascript" src="/static/js/jquery-migrate-1.2.1.min.js"></script>
-        <script type="text/javascript" src="/static/js/slick-1.6.0.min.js"></script>
+        <script src="$static_url('build/vendor-v2.js')" type="text/javascript"></script>
         <!-- Must be loaded after jquery -->
         <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
         <script>
@@ -24,8 +22,6 @@ $if bodyid == 'user' or 'admin':
             archive_analytics.send_pageview({});
         });
         </script>
-
-        <script src="$static_url('build/vendor.js')" type="text/javascript"></script>
         <script src="$static_url('build/all.js')" type="text/javascript"></script>
 
         $if query_param("_firebug") == "true":
