@@ -36,7 +36,7 @@ $ username = user.key.split('/')[-1]
         <ul class="preset-lists">          
           <li class="subsection">Reading Log</li>
           <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
+          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>In Wishlist ($(reading_log['want-to-read']))</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
         </ul>
         $if lists:

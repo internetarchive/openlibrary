@@ -105,7 +105,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                 $elif users_work_read_status == 2:
                     $ message = "Currently Reading"
                 $else:
-                    $ message = "Want to Read"
+                    $ message = "Add to Wishlist"
                 $if users_work_read_status:
                   <input type="hidden" name="action" value="remove"/>
                   <input type="hidden" name="redir" value="true"/>
@@ -144,7 +144,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <input type="hidden" name="bookshelf_id" value="1"/>
                     $if edition_key:
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">Want to Read</button>
+                    <button class="nostyle-btn" type="submit">Add to Wishlist</button>
                   </form>
 
                 $if users_work_read_status != 2:
@@ -253,7 +253,7 @@ $if include_widget:
                   $if edition_key:
                     <input type="hidden" name="edition_id" value="$(edition_key)"/>
 
-                  <button class="unactivated" type="submit">Want to Read</button>
+                  <button class="unactivated" type="submit">Add to Wishlist</button>
                 </form>
                 <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
                   <div class="arrow arrow-unactivated"></div>
