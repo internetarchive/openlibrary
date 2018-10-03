@@ -400,6 +400,7 @@ em {
     width: 958px !important;
     padding: 0 !important;
     position: relative;
+    /* stylelint-disable selector-max-specificity */
     div#mapdiv {
       width: 100%;
       height: 600px;
@@ -407,6 +408,7 @@ em {
       clear: both;
       z-index: 1;
     }
+    /* stylelint-enable selector-max-specificity */
     div.olPopup {
       width: 220px !important;
     }
@@ -427,6 +429,7 @@ em {
         margin: 0;
       }
     }
+    /* stylelint-disable selector-max-specificity */
     div#mapLegendBack {
       position: absolute;
       background-color: @white;
@@ -436,6 +439,8 @@ em {
       padding: 10px;
       z-index: 1005;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     div#mapLegend {
       position: absolute;
       top: 0;
@@ -443,6 +448,8 @@ em {
       padding: 10px;
       z-index: 1006;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     div#mapLegendHead {
       h1 {
         font-size: 1.125em;
@@ -459,6 +466,8 @@ em {
         display: inline;
       }
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     div#mapLegendBody {
       span {
         font-family: "Lucida Grande","Verdana","Arial",sans-serif;
@@ -474,6 +483,7 @@ em {
         }
       }
     }
+    /* stylelint-enable selector-max-specificity */
     .olControlAttribution {
       bottom: 10px !important;
       right: 10px !important;
@@ -856,12 +866,14 @@ div#content {
     position: relative;
     left: -20px;
   }
+  /* stylelint-disable selector-max-specificity */
   div#contentLists {
     float: left;
     position: relative;
     border-top: 1px solid @lighter-grey;
     background: @white url(/images/back_results.png) repeat-x;
   }
+  /* stylelint-enable selector-max-specificity */
   &Msg {
     background-color: @light-yellow;
     padding: 15px 20px;
@@ -1241,10 +1253,12 @@ form {
       font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
       font-size: .875em;
     }
+    /* stylelint-disable selector-max-specificity */
     input#comment {
       font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
       font-size: .875em;
     }
+    /* stylelint-enable selector-max-specificity */
   }
   &#register {
     .formElement,
@@ -1820,11 +1834,13 @@ div.content {
       margin: 0;
       padding: 0;
     }
+    /* stylelint-disable selector-max-specificity */
     #listTools {
       ul {
         margin: 15px 0 0 !important;
       }
     }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 
@@ -2802,10 +2818,12 @@ div#history {
       display: block;
       float: left;
       padding-top: 20px;
+      /* stylelint-disable selector-max-specificity */
       #because {
         font-size: 12px;
         color: @black;
       }
+      /* stylelint-enable selector-max-specificity */
       .opt {
         font-size: 10px;
         color: @grey;
@@ -2818,11 +2836,13 @@ div#history {
       input[type=submit] {
         font-size: .6875em;
       }
+      /* stylelint-disable selector-max-specificity */
       a#revertSlideIn {
         font-size: .6875em;
         color: @red;
         text-decoration: none;
       }
+      /* stylelint-enable selector-max-specificity */
     }
   }
 
@@ -2832,6 +2852,7 @@ div#history {
     right: 25px;
     height: 30px;
     white-space: nowrap;
+    /* stylelint-disable selector-max-specificity */
     a#historyBack {
       display: block;
       position: absolute;
@@ -2841,6 +2862,8 @@ div#history {
       height: 60px;
       background: url(/images/historyRev.png);
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #version {
       margin-left: 15px;
       white-space: nowrap;
@@ -2848,25 +2871,37 @@ div#history {
       color: @teal;
       width: 100px;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #vtitle {
       font-size: 14px;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #number {
       font-size: 1.125em;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #details {
       padding-left: 15px;
       max-width: 530px;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #author {
       font-size: .6875em;
       color: @grey;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #comment {
       font-size: 14px;
       color: @black;
       white-space: nowrap;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     a#historyFwd {
       display: block;
       position: absolute;
@@ -2876,6 +2911,7 @@ div#history {
       height: 60px;
       background: url(/images/historyFwd.png);
     }
+    /* stylelint-enable selector-max-specificity */
     &Slide {
       position: relative;
       width: 645px;
@@ -3643,9 +3679,11 @@ div.merge {
 #mergeHead {
   background-color: @lightest-grey;
   padding: 15px;
+  /* stylelint-disable selector-max-specificity */
   #recordMaster {
     margin-bottom: 15px;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 /* BORROWING */
@@ -3963,11 +4001,13 @@ div#listsWork {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     padding-left: 42px;
     margin-bottom: 5px !important;
+    /* stylelint-disable selector-max-specificity */
     &#listsLess {
       padding-left: 0;
       margin-bottom: 0 !important;
       text-align: right;
     }
+    /* stylelint-enable selector-max-specificity */
   }
   div.icon {
     position: absolute;
@@ -4048,6 +4088,7 @@ div#subjectLists {
     display: inline;
     padding-right: 10px;
   }
+  /* stylelint-disable selector-max-specificity */
   ul#listResults {
     margin: 15px 0;
     li {
@@ -4089,6 +4130,7 @@ div#subjectLists {
       padding-bottom: 3px;
     }
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 #lists {

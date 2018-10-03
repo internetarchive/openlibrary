@@ -38,19 +38,27 @@
 
 body#user {
   background-color: @beige;
+  /* stylelint-disable selector-max-specificity */
   div#headerNav {
     background-color: @beige;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#headerNav ul.links li {
     border-top: 1px solid @beige-two;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   body#user div#headerLogo {
     background-color: @beige;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#background {
     width: 100%;
     background-color: @beige;
   }
+  /* stylelint-enable selector-max-specificity */
   div.message {
     float: left;
     clear: both;
@@ -70,13 +78,18 @@ body#user {
     background-color: @grey-f3f3f3;
     padding-right: 22px;
   }
+  /* stylelint-disable selector-max-specificity */
   div#revertLink,
   div#editHistory {
     display: none;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#headerPlace {
     background-color: @beige;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   #description {
     padding-left: 130px;
     padding-right: 60px;
@@ -93,6 +106,7 @@ body#user {
       margin: 0 0 30px;
     }
   }
+  /* stylelint-enable selector-max-specificity */
 }
 // Import all common components
 @import (less) "legacy.less";
