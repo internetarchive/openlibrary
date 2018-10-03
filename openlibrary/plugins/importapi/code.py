@@ -77,46 +77,12 @@ def parse_data(data):
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     else:
-        # Special case to load IA records, DEPRECATED: use import/ia endpoint
-        # Just passing ia:foo00bar is enough to load foo00bar from IA.
-        if data.startswith("ia:"):
-            source_records = [data]
-            itemid = data[len("ia:"):]
-
-            metadata = ia.get_metadata(itemid)
-            if not metadata:
-                raise DataError("invalid-ia-identifier")
-
-            # see ia_importapi to address `imagecount` limitations
-            status = ia.get_item_status(itemid, metadata)
-            if status != 'ok':
-                raise DataError(status)
-
-            try:
-                rec = get_marc_record_from_ia(itemid)
-
-                # skip serials
-                if rec and rec.leader()[7] == 's':
-                    raise DataError("item-is-serial")
-            except IOError:
-                raise DataError("no-marc-record")
-
-            if not rec:
-                raise DataError("no-marc-record")
-        else:
-            source_records = None
-            itemid = None
-
-            #Marc Binary
-            if len(data) < 5 or len(data) != int(data[:5]):
-                raise DataError("no-marc-record")
-
-            rec = MarcBinary(data)
+        #Marc Binary
+        if len(data) < 5 or len(data) != int(data[:5]):
+            raise DataError('no-marc-record')
+        rec = MarcBinary(data)
 
         edition = read_edition(rec)
-        if source_records:
-            edition['source_records'] = source_records
-            edition['ocaid'] = itemid
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
 
