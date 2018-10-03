@@ -129,11 +129,11 @@ class importapi:
 
         try:
             edition, format = parse_data(data)
-        except DataError, e:
+        except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse Edition data')
+            return self.error('unknown_error', 'Failed to parse import data')
 
         ## Anand - July 2014
         ## This is adding source_records as [null] as queue_s3_upload is disabled.
@@ -143,7 +143,10 @@ class importapi:
         #     source_url = queue_s3_upload(data, format)
         #     edition['source_records'] = [source_url]
 
-        reply = add_book.load(edition)
+        try:
+            reply = add_book.load(edition)
+        except add_book.RequiredField as e:
+            return self.error('missing-required-field', str(e))
         #if source_url:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
