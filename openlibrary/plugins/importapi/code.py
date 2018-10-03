@@ -239,11 +239,6 @@ class ia_importapi(importapi):
         if status != 'ok':
             return self.error(status, "Prohibited Item")
 
-        # Gio - April 2016
-        # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import", '').lower() == 'true':
-            return self.error("no-ol-import")
-
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if marc_record:
