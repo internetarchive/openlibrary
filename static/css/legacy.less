@@ -649,7 +649,7 @@ span {
     font-family: "Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;
     color: @brown;
     white-space: nowrap;
-    padding: 5px 5px 0 5px;
+    padding: 5px 5px 0;
   }
   &.caption {
     position: absolute;
@@ -826,7 +826,7 @@ input {
   &-extras {
     border: 1px solid @lighter-grey;
     background-color: @white;
-    padding: 0 10px 10px 10px;
+    padding: 0 10px 10px;
     margin-top: 10px;
   }
 }
@@ -1109,7 +1109,7 @@ div.formDivider {
 }
 
 .librarian {
-  padding: 0 10px 10px 10px;
+  padding: 0 10px 10px;
   border-left: 10px solid @olive;
   margin-bottom: 20px;
 
@@ -1675,7 +1675,7 @@ div.verify {
 }
 
 hr.forgot-padding {
-  margin: 30px 0 15px 0;
+  margin: 30px 0 15px;
 }
 
 .forgot-email {
@@ -1802,7 +1802,9 @@ div.content {
     }
     &.gradient {
       background: @light-grey;
-      filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#fff4f4f4", endColorstr="#ffffffff");
+      filter: progid:DXImageTransform.Microsoft.gradient(
+        startColorstr="#fff4f4f4",
+        endColorstr="#ffffffff");
       // stylelint-disable declaration-block-no-duplicate-properties
       background: -webkit-gradient(linear, left top, left bottom, from(@grey-f4f4f4), to(@white));
       background: -moz-linear-gradient(top, @grey-f4f4f4, @white);
@@ -1820,7 +1822,7 @@ div.content {
     }
     #listTools {
       ul {
-        margin: 15px 0 0 0 !important;
+        margin: 15px 0 0 !important;
       }
     }
   }
@@ -3206,7 +3208,7 @@ div.floater {
   text-align: left;
   &Head {
     background-color: @brown;
-    padding: 0 10px 10px 10px;
+    padding: 0 10px 10px;
     h2 {
       color: @white;
       font-size: 1.75em;
@@ -3278,7 +3280,8 @@ div.tabsPop {
     border: none;
     border-top: 3px solid @lightest-grey;
     padding: 15px 30px !important;
-    background: @white; /* declare background color for container to avoid distorted fonts in IE while fading */
+    background: @white;
+    /* declare background color for container to avoid distorted fonts in IE while fading */
   }
 }
 
@@ -3699,7 +3702,7 @@ p#borrowList {
     font-size: .75em;
     color: @grey;
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-    margin: 0 0 20px 0 !important;
+    margin: 0 0 20px !important;
   }
   li {
     list-style-type: none !important;
@@ -3950,7 +3953,7 @@ div#listsWork {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
     color: @teal;
     font-weight: 600;
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
     padding: 0;
     zoom: 1;
   }
@@ -4531,7 +4534,9 @@ ul#myreads-paginator {
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen { /* Use class for showing/hiding tab content, so that visibility can be better controlled in different media types... */
+@media projection, screen {
+  /* Use class for showing/hiding tab content,
+  so that visibility can be better controlled in different media types... */
   .ui-tabs-hide {
     display: none;
   }

@@ -75,8 +75,9 @@
   }
   &-panel {
     border: 3px solid @lightest-grey;
-    padding: 15px 30px 20px 30px !important;
-    background: @white; /* declare background color for container to avoid distorted fonts in IE while fading */
+    padding: 15px 30px 20px !important;
+    background: @white;
+    /* declare background color for container to avoid distorted fonts in IE while fading */
   }
   &-loading {
     em {
@@ -91,6 +92,8 @@
   display: inline-block;
 }
 
-*:first-child + html .ui-tabs-nav { /* @ IE 7 Standards Mode - do not group selectors, otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
+*:first-child + html .ui-tabs-nav {
+  /* @ IE 7 Standards Mode - do not group selectors,
+  otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
   display: inline-block;
 }
