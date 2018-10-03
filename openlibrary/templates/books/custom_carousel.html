@@ -8,14 +8,24 @@ $if test or (books and len(books) >= min_books):
         </div>
       <div class="carousel-container carousel-container-decorated">
         <div class="carousel carousel-$key">
+          $ cover_host = '//covers.openlibrary.org'
+          $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+
           $for index, book in enumerate(books or []):
+            $if book.get('cover_url'):
+              $ cover_url = book.get('cover_url')
+            $elif book.get('cover_id'):
+              $ cover_url = '//%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
+            $elif book.get('ia'):
+              $ cover_url = '//%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia'), fallback_cover)
+            $else:
+              $ cover_url = ''
             $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
             $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
             $if index > 5:
               $ img_attr = 'data-lazy'
             $else:
               $ img_attr = 'src'
-            $ cover_url = book.get('cover_url', '')
             <div class="book carousel__item">
               <div class="book-cover">
                 <a href="$(book.get('key') or book.url)">
@@ -25,9 +35,25 @@ $if test or (books and len(books) >= min_books):
                     $img_attr="$cover_url"/>
                 </a>
               </div>
-              $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
-              $ cta = 'Read' if book.get('read_url') else 'Borrow'
-              <div class="book-cta"><a class="btn primary" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
+              $ modifier = ''
+              $ cta = None
+              $if book.get('ocaid'):
+                $ modifier = 'borrow-link'
+                $ cta_url = '/borrow/ia/%s' % book.ocaid
+                $ cta = 'Borrow'
+              $elif book.get('ia') and book.get('public_scan'):
+                $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
+                $ cta = 'Read eBook'
+              $elif book.get('lending_edition'):
+                $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
+                $ cta = 'Borrow eBook'
+              $elif book.get('lending_edition'):
+                $ cta_url = book.get('read_url')
+                $ cta = 'Read'
+
+              $if cta is not None:
+                <div class="book-cta"><a class="btn primary $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
+                  data-key="$(book.get('key'))" data-ocaid="$(book.get('ia'))">$cta</a></div>
             </div>
         </div>
         <script type="text/javascript">
