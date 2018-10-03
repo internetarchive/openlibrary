@@ -22,19 +22,26 @@
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
 
+/* stylelint-disable selector-max-specificity */
 body#edit,
 body#edit div#content {
   background-color: @beige;
 }
+/* stylelint-enable selector-max-specificity */
 
 body#edit {
+  /* stylelint-disable selector-max-specificity */
   div#content {
     font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#editTools {
     padding: 20px;
     max-width: 300px;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   div#revertLink {
     position: absolute;
     top: 60px;
@@ -42,6 +49,7 @@ body#edit {
     font-size: .75em;
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
   }
+  /* stylelint-enable selector-max-specificity */
   .formElement {
     font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
     color: @darker-grey;
@@ -83,6 +91,7 @@ body#edit {
       padding: 5px;
     }
   }
+  /* stylelint-disable selector-max-specificity */
   div#databar {
     padding: 10px;
     margin: 20px 20px 0;
@@ -91,6 +100,8 @@ body#edit {
       font-size: .75em;
     }
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   #editHead {
     background: url(/images/logo_OL-sm.png) 20px 15px no-repeat;
     padding: 25px 0 45px 140px;
@@ -112,11 +123,13 @@ body#edit {
       margin: 0;
     }
   }
+  /* stylelint-enable selector-max-specificity */
 
   .formElement.pagetype,
   .formElement.pagetype select {
     width: 300px;
   }
+  /* stylelint-disable selector-max-specificity */
   div#revertNotice,
   div#header,
   footer,
@@ -124,6 +137,7 @@ body#edit {
   .siteSearch {
     display: none;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 // Import all common components
 @import (less) "legacy.less";

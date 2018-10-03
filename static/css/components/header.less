@@ -101,9 +101,12 @@ div#header {
 
 #header {
   &Login {
+    /* stylelint-disable selector-max-specificity */
     #headerUser {
       position: relative;
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #userToggle {
       text-decoration: none;
       display: block;
@@ -119,6 +122,8 @@ div#header {
         font-size: 8px;
       }
     }
+    /* stylelint-enable selector-max-specificity */
+    /* stylelint-disable selector-max-specificity */
     #headerUserOpen {
       position: absolute;
       top: 24px;
@@ -136,6 +141,7 @@ div#header {
         padding: 0 7px;
       }
     }
+    /* stylelint-enable selector-max-specificity */
   }
   &UserOpen {
     display: none;

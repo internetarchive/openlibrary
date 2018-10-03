@@ -12,18 +12,22 @@
 @import (less) "less/mixins.less";
 
 body#plain {
+  /* stylelint-disable selector-max-specificity */
   div#header,
   footer,
   div#bottom,
   .siteSearch {
     display: none;
   }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
   #contentBody,
   #contentHead {
     width: 690px;
     padding: 0 134px;
     margin: 0;
   }
+  /* stylelint-enable selector-max-specificity */
   div.contentOnethird {
     width: 210px;
   }
@@ -58,6 +62,7 @@ body#plain {
       font-size: 1.125em;
     }
   }
+  /* stylelint-disable selector-max-specificity */
   #faq {
     h4 {
       font-size: .75em;
@@ -70,6 +75,7 @@ body#plain {
       color: @dark-grey;
     }
   }
+  /* stylelint-enable selector-max-specificity */
   p.help {
     font-size: 14px;
   }
@@ -108,9 +114,11 @@ body#plain {
   .panel h3 {
     font-size: 1.875em;
   }
+  /* stylelint-disable selector-max-specificity */
   #borrowThis {
     margin-bottom: 20px;
   }
+  /* stylelint-enable selector-max-specificity */
   .borrow {
     span.book {
       font-size: 1em;
@@ -136,6 +144,7 @@ body#plain {
       border-bottom: none;
     }
   }
+  /* stylelint-disable selector-max-specificity */
   div#listsWork {
     p {
       font-size: .75em;
@@ -143,7 +152,9 @@ body#plain {
       margin-bottom: 5px !important;
     }
   }
+  /* stylelint-enable selector-max-specificity */
   // Specific to borrowTable component
+  /* stylelint-disable selector-max-specificity */
   #borrowTable {
     margin: 60px 0 25px;
 
@@ -180,6 +191,7 @@ body#plain {
       }
     }
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 // Import all common components
