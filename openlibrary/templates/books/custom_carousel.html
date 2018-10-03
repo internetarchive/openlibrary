@@ -1,10 +1,11 @@
 $def with(books=None, title="", url="", key="", min_books=7, test=False)
 
 $if test or (books and len(books) >= min_books):
-    <div class="carousel-section">
-      <div class="carousel-section-header">
-        <h2 class="home-h2"><a href="$url">$title</a></h2>
-      </div>
+      <div class="carousel-section">
+      $if title and url:
+        <div class="carousel-section-header">
+          <h2 class="home-h2"><a href="$url">$title</a></h2>
+        </div>
       <div class="carousel-container carousel-container-decorated">
         <div class="carousel carousel-$key">
           $for book in (books or []):
