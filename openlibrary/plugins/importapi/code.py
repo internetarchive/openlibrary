@@ -217,13 +217,7 @@ class ia_importapi(importapi):
 
             # Add next_data to the response as location of next record:
             result.update(next_data)
-
             return json.dumps(result)
-
-        # Case 0 - Is the item already loaded
-        key = self.find_edition(identifier)
-        if key:
-            return self.status_matched(key)
 
         # Case 1 - Is this a valid Archive.org item?
         try:
