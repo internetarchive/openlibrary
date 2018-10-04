@@ -37,7 +37,7 @@ The messages template file, `/openlibrary/i18n/messages.pot` should be copied as
 You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [README](https://github.com/internetarchive/openlibrary/blob/master/Readme.md) and [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide.
 
 ## Viewing and testing your changes:
-To view Open Library in a preferred language, you will need to adjust your browser language preferences. To force a page to appear in a language, you can also user the lang= parameter on the URL with a two character language code, e.g. https://openlibrary.org/?lang=fr
+To view Open Library in a preferred language, you will need to [adjust your browser language preferences]( https://www.w3.org/International/questions/qa-lang-priorities). To force a page to appear in a language, you can also user the `lang=` parameter on the URL with a two character language code, e.g. https://openlibrary.org/?lang=fr
 
 ## Introduction
 To add i18n support to Open Library, templates and macros are modified to use gettext function calls. For brevity, the gettext function is abbreviated as :
