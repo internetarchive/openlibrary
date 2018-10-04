@@ -6,10 +6,7 @@ Kindly take a look at this [Issue thread](https://github.com/internetarchive/ope
 
 Open Library i18n is handled via the [python Babel library](http://babel.pocoo.org/en/latest/), GNU `gettext`, and the message lists located https://github.com/internetarchive/openlibrary/tree/master/openlibrary/i18n
 
-More details can be found [here](https://github.com/internetarchive/openlibrary/blob/master/openlibrary/i18n/__init__.py)
-
 The messages file format used by the `gettext` toolset is described [here](http://pology.nedohodnik.net/doc/user/en_US/ch-poformat.html), and in the [gettext manual](https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html#PO-Files).
-
 
 The codebase has now deprecated code and strings located here: https://github.com/internetarchive/openlibrary/tree/master/openlibrary/plugins/openlibrary/i18n
 
@@ -38,6 +35,9 @@ The messages template file, `/openlibrary/i18n/messages.pot` should be copied as
 
 ## Step 4: Make the translations and send a PR
 You can edit the `message.po` file using your favourite editor, or a .po specific tool such as [poedit](https://poedit.net/), and send in a Pull Request. Pull Request Guidelines can be found on our [README](https://github.com/internetarchive/openlibrary/blob/master/Readme.md) and [CONTRIBUTING](https://github.com/internetarchive/openlibrary/blob/master/CONTRIBUTING.md) guide.
+
+## Viewing and testing your changes:
+To view Open Library in a preferred language, you will need to adjust your browser language preferences. To force a page to appear in a language, you can also user the lang= parameter on the URL with a two character language code, e.g. https://openlibrary.org/?lang=fr
 
 ## Introduction
 To add i18n support to Open Library, templates and macros are modified to use gettext function calls. For brevity, the gettext function is abbreviated as :
