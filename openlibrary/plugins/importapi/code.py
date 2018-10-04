@@ -27,6 +27,7 @@ from lxml import etree
 import logging
 
 IA_BASE_URL = config.get('ia_base_url')
+MARC_LENGTH_POS = 5
 logger = logging.getLogger("openlibrary.importapi")
 
 class DataError(ValueError):
@@ -78,7 +79,7 @@ def parse_data(data):
         format = 'json'
     else:
         #Marc Binary
-        if len(data) < 5 or len(data) != int(data[:5]):
+        if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
 
@@ -207,7 +208,7 @@ class ia_importapi(importapi):
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details, **next_data)
 
-            actual_length = int(rec.leader()[:5])
+            actual_length = int(rec.leader()[:MARC_LENGTH_POS])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
 
             #TODO: Look up URN prefixes to support more sources
