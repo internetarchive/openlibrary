@@ -1374,6 +1374,8 @@ def update_keys(keys, commit=True, output_file=None):
         else:
             if edition.get("works"):
                 wkeys.add(edition["works"][0]['key'])
+                # Make sure we remove any fake works created from orphaned editons
+                deletes.append(k.replace('/books/', '/works/'))
             else:
                 # index the edition as it does not belong to any work
                 wkeys.add(k)
