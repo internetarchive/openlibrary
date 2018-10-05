@@ -128,7 +128,14 @@ def build_author_reply(author_in, edits):
         })
     return (authors, author_reply)
 
-def new_work(q, rec, cover_id):
+def new_work(edition, rec, cover_id=None):
+    """
+    :param dict edition: New OL Edition
+    :param dict rec: Edition import data
+    :param (int|None) cover_id: cover id
+    :rtype: dict
+    :return: a work to save
+    """
     w = {
         'type': {'key': '/type/work'},
         'title': get_title(rec),
@@ -137,12 +144,12 @@ def new_work(q, rec, cover_id):
         if s in rec:
             w[s] = rec[s]
 
-    if 'authors' in q:
-        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in q['authors']]
+    if 'authors' in edition:
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in edition['authors']]
 
     wkey = web.ctx.site.new_key('/type/work')
-    if cover_id:
-        w['covers'] = [cover_id]
+    if edition.get('covers'):
+        w['covers'] = edition['covers']
     w['key'] = wkey
     return w
 
@@ -553,8 +560,7 @@ def load(rec):
         return load_data(rec)
 
     # We have an edition match at this point
-    need_work_save = False
-    need_edition_save = False
+    need_work_save = need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
     if e.works:
@@ -562,15 +568,8 @@ def load(rec):
         work_created = False
     else:
         # Found an edition without a work
-        work_created = True
-        need_work_save = True
-        need_edition_save = True
-        w = {
-            'type': {'key': '/type/work'},
-            'title': get_title(rec),
-            'key': web.ctx.site.new_key('/type/work'),
-        }
-        #TODO: add edition covers and author to new work
+        work_created = need_work_save = need_edition_save = True
+        w = new_work(e, rec)
         e.works = [{'key': w['key']}]
 
     # Add subjects to work, if not already present
@@ -583,16 +582,18 @@ def load(rec):
         if need_work_save and work_subjects:
             w['subjects'] = work_subjects
 
-    # Add cover to edition, and work, if needed
+    # Add cover to edition
     if 'cover' in rec and not e.covers:
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key)
         if cover_id:
             e['covers'] = [cover_id]
             need_edition_save = True
-            if not w.get('covers'):
-                w['covers'] = [cover_id]
-                need_work_save = True
+
+    # Add cover to work if needed
+    if not w.get('covers') and e.get('covers'):
+        w['covers'] = [e['covers'][0]]
+        need_work_save = True
 
     # Add ocaid to edition (str), if needed
     if 'ocaid' in rec and not e.ocaid:

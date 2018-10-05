@@ -27,6 +27,7 @@ from lxml import etree
 import logging
 
 IA_BASE_URL = config.get('ia_base_url')
+MARC_LENGTH_POS = 5
 logger = logging.getLogger("openlibrary.importapi")
 
 class DataError(ValueError):
@@ -77,46 +78,12 @@ def parse_data(data):
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
     else:
-        # Special case to load IA records, DEPRECATED: use import/ia endpoint
-        # Just passing ia:foo00bar is enough to load foo00bar from IA.
-        if data.startswith("ia:"):
-            source_records = [data]
-            itemid = data[len("ia:"):]
-
-            metadata = ia.get_metadata(itemid)
-            if not metadata:
-                raise DataError("invalid-ia-identifier")
-
-            # see ia_importapi to address `imagecount` limitations
-            status = ia.get_item_status(itemid, metadata)
-            if status != 'ok':
-                raise DataError(status)
-
-            try:
-                rec = get_marc_record_from_ia(itemid)
-
-                # skip serials
-                if rec and rec.leader()[7] == 's':
-                    raise DataError("item-is-serial")
-            except IOError:
-                raise DataError("no-marc-record")
-
-            if not rec:
-                raise DataError("no-marc-record")
-        else:
-            source_records = None
-            itemid = None
-
-            #Marc Binary
-            if len(data) < 5 or len(data) != int(data[:5]):
-                raise DataError("no-marc-record")
-
-            rec = MarcBinary(data)
+        #Marc Binary
+        if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
+            raise DataError('no-marc-record')
+        rec = MarcBinary(data)
 
         edition = read_edition(rec)
-        if source_records:
-            edition['source_records'] = source_records
-            edition['ocaid'] = itemid
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
 
@@ -163,11 +130,11 @@ class importapi:
 
         try:
             edition, format = parse_data(data)
-        except DataError, e:
+        except DataError as e:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse Edition data')
+            return self.error('unknown_error', 'Failed to parse import data')
 
         ## Anand - July 2014
         ## This is adding source_records as [null] as queue_s3_upload is disabled.
@@ -177,10 +144,25 @@ class importapi:
         #     source_url = queue_s3_upload(data, format)
         #     edition['source_records'] = [source_url]
 
-        reply = add_book.load(edition)
+        try:
+            reply = add_book.load(edition)
+        except add_book.RequiredField as e:
+            return self.error('missing-required-field', str(e))
         #if source_url:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
+
+    def reject_non_book_marc(marc_record):
+        # Is the item a serial instead of a book?
+        marc_leaders = marc_record.leader()
+        if marc_leaders[7] == 's':
+            return self.error('item-is-serial')
+
+        # insider note: follows Archive.org's approach of
+        # Item::isMARCXMLforMonograph() which excludes non-books
+        if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
+            return self.error('item-not-book')
+
 
 class ia_importapi(importapi):
     """/api/import/ia import endpoint for Archive.org items, requiring an ocaid identifier rather than direct data upload.
@@ -226,7 +208,7 @@ class ia_importapi(importapi):
                 logger.error("failed to read from bulk MARC record %s", details)
                 return self.error('invalid-marc-record', details, **next_data)
 
-            actual_length = int(rec.leader()[:5])
+            actual_length = int(rec.leader()[:MARC_LENGTH_POS])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
 
             #TODO: Look up URN prefixes to support more sources
@@ -236,13 +218,7 @@ class ia_importapi(importapi):
 
             # Add next_data to the response as location of next record:
             result.update(next_data)
-
             return json.dumps(result)
-
-        # Case 0 - Is the item already loaded
-        key = self.find_edition(identifier)
-        if key:
-            return self.status_matched(key)
 
         # Case 1 - Is this a valid Archive.org item?
         try:
@@ -273,23 +249,10 @@ class ia_importapi(importapi):
         if status != 'ok':
             return self.error(status, "Prohibited Item")
 
-        # Gio - April 2016
-        # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import", '').lower() == 'true':
-            return self.error("no-ol-import")
-
         # Case 4 - Does this item have a marc record?
         marc_record = self.get_marc_record(identifier)
         if marc_record:
-            # Is the item a serial instead of a book?
-            marc_leaders = marc_record.leader()
-            if marc_leaders[7] == 's':
-                return self.error("item-is-serial")
-
-            # insider note: follows Archive.org's approach of
-            # Item::isMARCXMLforMonograph() which excludes non-books
-            if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-                return self.error("item-not-book")
+            self.reject_non_book_marc(marc_record)
 
             try:
                 edition_data = read_edition(marc_record)
