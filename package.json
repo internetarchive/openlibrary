@@ -6,7 +6,7 @@
   "scripts": {
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
-    "lint:fix": "stylelint --syntax less --fix static/css/",
+    "lint:fix": "stylelint --syntax less --fix static/css/ ",
     "test": "npm run check-bundles && stylelint  --syntax less static/css/"
   },
   "bundlesize": [
