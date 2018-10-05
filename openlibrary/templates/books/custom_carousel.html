@@ -8,15 +8,21 @@ $if test or (books and len(books) >= min_books):
         </div>
       <div class="carousel-container carousel-container-decorated">
         <div class="carousel carousel-$key">
-          $for book in (books or []):
+          $for index, book in enumerate(books or []):
             $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
             $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
+            $if index > 5:
+              $ img_attr = 'data-lazy'
+            $else:
+              $ img_attr = 'src'
+            $ cover_url = book.get('cover_url', '')
             <div class="book carousel__item">
               <div class="book-cover">
                 <a href="$(book.get('key') or book.url)">
                   <img class="bookcover"
                     width="130" height="200"
-                    title="$book.title$(byline)" src="$book.get('cover_url', '')"/>
+                    title="$book.title$(byline)"
+                    $img_attr="$cover_url"/>
                 </a>
               </div>
               $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
