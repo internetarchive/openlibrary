@@ -14,7 +14,7 @@ $else:
 
 $if "type" in doc and doc.type.key == "/type/user":
     <style type="text/css">
-  span.list-owner { display: none; }
+        span.list-owner { display: none; }
     </style>
     $if ctx.user and ctx.user.key == doc.key:
         <script type="text/javascript">

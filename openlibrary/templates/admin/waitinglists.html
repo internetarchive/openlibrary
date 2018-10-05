@@ -86,7 +86,7 @@ $else:
         </tbody>
     </table>
     </div>
-    <div style="text-align: center; margin: 20px 0;">
+    <div style="text-align: center; margin: 20px 0px;">
         $if page > 1:
             <a href="$changequery(page=page-1)">&larr; Newer</a>
         $if page > 1 and len(loans) == 50:
@@ -97,23 +97,23 @@ $else:
 </div>
 
 <style type="text/css">
-  .SRPCover img {
-    max-height: 58px;
-  }
-  tr.has-loan {
-    background: #e2bca5;
-    border: 1px solid #d2ac95;
-  }
-  td.cover {
-    max-width: 40px;
-  }
-  td.user {
-    min-width: 150px;
-  }
-  td.expires {
-    min-width: 100px;
-  }
-  td.what {
-    min-width: 200px;
-  }
+    .SRPCover img {
+        max-height: 58px;
+    }
+    tr.has-loan {
+        background: #e2bca5;
+        border: 1px solid #d2ac95;
+    }
+    td.cover {
+        max-width: 40px;
+    }
+    td.user {
+        min-width: 150px;
+    }
+    td.expires {
+        min-width: 100px;
+    }
+    td.what {
+        min-width: 200px;
+    }
 </style>

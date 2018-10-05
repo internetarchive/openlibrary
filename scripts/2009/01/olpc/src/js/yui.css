@@ -1,19 +1,19 @@
 /*Copyright (c) 2006,Yahoo! Inc. All rights reserved. Code licensed under the BSD License: http://developer.yahoo.net/yui/license.txt */
 /*reset.css*/body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{margin:0;padding:0;}table{border-collapse:collapse;border-spacing:0;}fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}ol,ul {list-style:none;}caption,th {text-align:left;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}q:before,q:after{content:'';}abbr,acronym {border:0;}
 /*fonts.css*/body{font:13px arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;}table {font-size:inherit;font:100%;}select, input, textarea {font:99% arial,helvetica,clean,sans-serif;}pre, code {font:115% monospace;*font-size:100%;}body * {line-height:1.22em;}
-/*grids.css*/body{text-align:center;}#ft{clear:both;}#doc,#doc2,#doc3,.yui-t1,.yui-t2,.yui-t3,.yui-t4,.yui-t5,.yui-t6,.yui-t7{margin:auto;text-align:left;width:57.69em;*width:56.3em;min-width:750px;}#doc2{width:73.074em;*width:71.313em;min-width:950px;}#doc3{margin:auto 10px;width:auto;}.yui-b{position:relative;}.yui-b{_position:static;}#yui-main .yui-b{position:static;}#yui-main{width:100%;}.yui-t1 #yui-main,.yui-t2 #yui-main,.yui-t3 #yui-main{float:right;margin-left:-25em;}.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main{float:left;margin-right:-25em;}.yui-t1 .yui-b{float:left;width:12.3207em;*width:12.0106em;}.yui-t1 #yui-main .yui-b{margin-left:13.3207em;*margin-left:13.0106em;}.yui-t2 .yui-b{float:left;width:13.8456em;*width:13.512em;}.yui-t2 #yui-main .yui-b{margin-left:14.8456em;*margin-left:14.512em;}.yui-t3 .yui-b{float:left;width:23.0759em;*width:22.52em;}.yui-t3 #yui-main .yui-b{margin-left:24.0759em;*margin-left:23.52em;}.yui-t4 .yui-b{float:right;width:13.8456em;*width:13.512em;}.yui-t4 #yui-main .yui-b{margin-right:14.8456em;*margin-right:14.512em;}.yui-t5 .yui-b{float:right;width:18.4608em;*width:18.016em;}.yui-t5 #yui-main .yui-b{margin-right:19.4608em;*margin-right:19.016em;}.yui-t6 .yui-b{float:right;width:23.0759em;*width:22.52em;}.yui-t6 #yui-main .yui-b{margin-right:24.0759em;*margin-right:23.52em;}.yui-t7 #yui-main .yui-b{display:block;margin:0 0 1em;}#yui-main .yui-b{float:none;width:auto;}.yui-g .yui-u,.yui-g .yui-g,.yui-gc .yui-u,.yui-gc .yui-g .yui-u,.yui-ge .yui-u,.yui-gf .yui-u{float:right;display:inline;}.yui-g div.first,.yui-gc div.first,.yui-gc div.first div.first,.yui-gd div.first,.yui-ge div.first,.yui-gf div.first{float:left;}.yui-g .yui-u,.yui-g .yui-g{width:49.1%;}.yui-g .yui-g .yui-u,.yui-gc .yui-g .yui-u{width:48.1%;}.yui-gb .yui-u,.yui-gc .yui-u,.yui-gd .yui-u{float:left;margin-left:2%;*margin-left:1.895%;width:32%;}.yui-gb div.first,.yui-gc div.first,.yui-gd div.first{margin-left:0;}.yui-gc div.first,.yui-gd .yui-u{width:66%;}.yui-gd div.first{width:32%;}.yui-ge .yui-u{width:24%;}.yui-ge div.first,.yui-gf .yui-u{width:74.2%;}.yui-gf div.first{width:24%;}.yui-ge div.first{width:74.2%;}#bd:after,.yui-g:after,.yui-gb:after,.yui-gc:after,.yui-gd:after,.yui-ge:after,.yui-gf:after{content:".";display:block;height:0;clear:both;visibility:hidden;}#bd,.yui-g,.yui-gb,.yui-gc,.yui-gd,.yui-ge,.yui-gf{zoom:1;}
+/*grids.css*/body{text-align:center;}#ft{clear:both;}#doc,#doc2,#doc3,.yui-t1,.yui-t2,.yui-t3,.yui-t4,.yui-t5,.yui-t6,.yui-t7{margin:auto;text-align:left;width:57.69em;*width:56.3em;min-width:750px;}#doc2{width:73.074em;*width:71.313em;min-width:950px;}#doc3{margin:auto 10px;width:auto;}.yui-b{position:relative;}.yui-b{_position:static;}#yui-main .yui-b{position:static;}#yui-main{width:100%;}.yui-t1 #yui-main,.yui-t2 #yui-main,.yui-t3 #yui-main{float:right;margin-left:-25em;}.yui-t4 #yui-main,.yui-t5 #yui-main,.yui-t6 #yui-main{float:left;margin-right:-25em;}.yui-t1 .yui-b{float:left;width:12.3207em;*width:12.0106em;}.yui-t1 #yui-main .yui-b{margin-left:13.3207em;*margin-left:13.0106em;}.yui-t2 .yui-b{float:left;width:13.8456em;*width:13.512em;}.yui-t2 #yui-main .yui-b{margin-left:14.8456em;*margin-left:14.512em;}.yui-t3 .yui-b{float:left;width:23.0759em;*width:22.52em;}.yui-t3 #yui-main .yui-b{margin-left:24.0759em;*margin-left:23.52em;}.yui-t4 .yui-b{float:right;width:13.8456em;*width:13.512em;}.yui-t4 #yui-main .yui-b{margin-right:14.8456em;*margin-right:14.512em;}.yui-t5 .yui-b{float:right;width:18.4608em;*width:18.016em;}.yui-t5 #yui-main .yui-b{margin-right:19.4608em;*margin-right:19.016em;}.yui-t6 .yui-b{float:right;width:23.0759em;*width:22.52em;}.yui-t6 #yui-main .yui-b{margin-right:24.0759em;*margin-right:23.52em;}.yui-t7 #yui-main .yui-b{display:block;margin:0 0 1em 0;}#yui-main .yui-b{float:none;width:auto;}.yui-g .yui-u,.yui-g .yui-g,.yui-gc .yui-u,.yui-gc .yui-g .yui-u,.yui-ge .yui-u,.yui-gf .yui-u{float:right;display:inline;}.yui-g div.first,.yui-gc div.first,.yui-gc div.first div.first,.yui-gd div.first,.yui-ge div.first,.yui-gf div.first{float:left;}.yui-g .yui-u,.yui-g .yui-g{width:49.1%;}.yui-g .yui-g .yui-u,.yui-gc .yui-g .yui-u{width:48.1%;}.yui-gb .yui-u,.yui-gc .yui-u,.yui-gd .yui-u{float:left;margin-left:2%;*margin-left:1.895%;width:32%;}.yui-gb div.first,.yui-gc div.first,.yui-gd div.first{margin-left:0;}.yui-gc div.first,.yui-gd .yui-u{width:66%;}.yui-gd div.first{width:32%;}.yui-ge .yui-u{width:24%;}.yui-ge div.first,.yui-gf .yui-u{width:74.2%;}.yui-gf div.first{width:24%;}.yui-ge div.first{width:74.2%;}#bd:after,.yui-g:after,.yui-gb:after,.yui-gc:after,.yui-gd:after,.yui-ge:after,.yui-gf:after{content:".";display:block;height:0;clear:both;visibility:hidden;}#bd,.yui-g,.yui-gb,.yui-gc,.yui-gd,.yui-ge,.yui-gf{zoom:1;}
 
 /*begin YDN/YUI styles*/
 #bd {padding-top:1em;}
 .yui-gb:after{clear:none;}
 #doc3 {min-width:950px;}
-h1, h2, h3, h4, h5, h6, p {line-height:1.2em; color:#67747f; font-size:100%; margin:1em 0 0;}
+h1, h2, h3, h4, h5, h6, p {line-height:1.2em; color:#67747f; font-size:100%; margin:1em 0 0 0;}
 h1, h2, h3, h4, h5, h6 {font-weight:bold;}
 h1.first-content, h2.first-content, h3.first-content {margin-top:0; padding-top:0; border:none;} /*if an h is the first thing on the page or in a section, it should be flush with the top border of its content area; otherwise, its content area should be padded to create space.*/
 p {color:#000; margin-bottom:1em }
 h1 { font-size: 136%; padding:0; padding-top:18px}
 .wiki h1 { font-size: 120%; padding:0; margin-bottom:1em}
-h2 { font-size: 110%; margin-top:1.5em; margin-bottom:.2em; padding:1em 0 0; border-top:1px dashed #C3D2DC;}
+h2 { font-size: 110%; margin-top:1.5em; margin-bottom:.2em; padding:1em 0 0 0; border-top:1px dashed #C3D2DC;}
 h2.first { border-top:none; margin-top:0; margin-bottom:.2em;}
 #doc3 h2.first { float:none; /*float specified to resolve conflict on generic float declaration for .first in grids*/}
 h4 {margin-top:1em; color: #000;}
@@ -25,7 +25,7 @@ ol {list-style:decimal;}
 strong {font-weight:bold;}
 em {font-style:italic;}
 
-a, a code {color:#0000de;}
+a, a code {color:#0000de;} 
 a:visited, a:visited code {color:#639;}
 a:active, a:active code {color: #f00;}
 
@@ -34,7 +34,7 @@ h1 a:visited, h2 a:visited, h3 a:visited, h4 a:visited, h5 a:visited {color:#677
 
 #logo_pane { display: none; }
 
-#ygma { margin:.5em auto 1em; }
+#ygma { margin:.5em auto 1em auto; }
 
 #bd ol {}
 #bd ol li p { margin-left:0}
@@ -49,7 +49,7 @@ h1 a:visited, h2 a:visited, h3 a:visited, h4 a:visited, h5 a:visited {color:#677
 #bd ul {margin-top:2px; }
 #bd ul.topspace { margin-top:1em }
 /*#bd ul li { margin:0 17px 0 7px; }*/
-#bd ul li ul { margin-top:0 }
+#bd ul li ul { margin-top:0em }
 #bd ul.plain {margin-top: 0; list-style: none;}
 #bd ul.plain ul {margin-top: 0; list-style: none;}
 #bd ul.jump {list-style: none; margin-top: 1em;}
@@ -79,10 +79,10 @@ h3.methods { border-top:none; margin-top:0; margin-bottom:.2em; font-size: 100%;
 
 #ft {  margin-top:4em }
 #ft p { padding-bottom:2em; margin:0; text-align:center; font-size:80%; line-height:1.4em}
-#ft p.first { padding:1em 0 0; margin:0; }
+#ft p.first { padding:1em 0 0 0; margin:0; }
 
 #pagetitle {background: url(http://us.i1.yimg.com/us.yimg.com/i/ydn/bg_hd.gif) 0 0 repeat-x #B6CDE1; border: 1px solid #93B2CC; position:relative;}
-#pagetitle h1 {text-indent:15px; padding:4px 0 2px; background: url(http://us.i1.yimg.com/us.yimg.com/i/ydn/title_h_bg.gif) 0 0 no-repeat;  margin:0; color:#000; font-size:120%; font-weight:bold; position:relative; left:-1px; top:-1px; margin-right:-2px;}
+#pagetitle h1 {text-indent:15px; padding:4px 0 2px 0; background: url(http://us.i1.yimg.com/us.yimg.com/i/ydn/title_h_bg.gif) 0 0 no-repeat;  margin:0; color:#000; font-size:120%; font-weight:bold; position:relative; left:-1px; top:-1px; margin-right:-2px;}
 #pagetitle h1 em {color:#FF9933; font-size:60%; font-weight:bold; font-style:normal; position:relative; top:-6px}
 
 #ygunav {background:#eee; border-bottom:2px solid #ccc; padding:0 10px;font-size:78%;text-align:right;margin-bottom:6px;height:2.5em;line-height:2.5em;}
@@ -116,7 +116,7 @@ html>body #ygunav {overflow:hidden;}
 #promo.component div {width:48%; float:left;}
 #promo:after {content:'.';visibility:hidden;clear:left;height:0;display:block;}
 #promo p#api {margin-top:.2em;}
-#promo #download img {float:left; padding:0 .5em .5em 0;}
+#promo #download img {float:left; padding:0 0.5em 0.5em 0;}
 #promo #blog {clear:left;}
 
 code {font-family:"Courier New"; font-size: 100%; font-weight:bolder;}
@@ -138,8 +138,8 @@ img.example {clear:right;margin-bottom:10px;margin-left:10px;border:0;float:righ
 /*YUI theater box on main page top right corner*/
 #yui-theater {width:316px; overflow:hidden;}
 #yui-theater h3 {margin:0; padding:0; color:#67747f;  font-size:100%; font-weight:bold; font-stretch:expanded;}
-#yui-theater h2 {margin:0 0 10px; padding:0; border:none; color:#000;  font-size:122%; font-weight:bold;}
-#yui-theater p {margin:7px 0 0;}
+#yui-theater h2 {margin:0 0 10px 0; padding:0; border:none; color:#000;  font-size:122%; font-weight:bold;}
+#yui-theater p {margin:7px 0 0 0;}
 #yui-theater div {float:right; font-size:85%;}
 
 /*rss reader styles*/
@@ -158,11 +158,11 @@ img.rssbadge {display:inline;border:none !important;}
 
 /*styles for right gutter on component pages*/
 #cheatsheet h3 {margin-top:0;}
-#cheatsheet img, #componentvideo img {margin:.5em 0 .2em; border:1px solid #999;}
+#cheatsheet img, #componentvideo img {margin:.5em 0 .2em 0; border:1px solid #999;}
 #cheatsheet p {margin:0; font-size:77%;}
-#cheatsheet h4, #examples h4 {margin:.2em 0 .1em; color:#668AA8; font-size:92%;}
+#cheatsheet h4, #examples h4 {margin:0.2em 0 .1em 0; color:#668AA8; font-size:92%;}
 #examples ul, #morereading ul, #module ul {font-size:85%; list-style:circle; margin:0 0 1em 10px;}
-#examples p, #componentvideo p {font-size:85%; margin:0 0 .2em;}
+#examples p, #componentvideo p {font-size:85%; margin:0 0 .2em 0;}
 #examples li.selected {font-weight:bold;}
 
 /*styles for example pages*/
@@ -209,7 +209,7 @@ p.loggerButton {text-align:center;}
 .theater h1 {border-bottom:1px dashed #CCC; margin-bottom:1em;padding-bottom:.2em;}
 .theater img {border:1px solid #666;}
 .theater img.last {border:1px solid #666;}
-.theater p.details {font-size:77%; color:#666; margin:.2em 0 0; padding:0;}
+.theater p.details {font-size:77%; color:#666; margin:.2em 0 0 0; padding:0;}
 .theater p.description, #doc3 .theater ul li  {font-size:85%; margin:0; padding:0; color:#333;}
 
 #readmePanel .hd { font-weight:bold; font-size:129%; color:#fff; background:#89d; }
@@ -217,16 +217,16 @@ p.loggerButton {text-align:center;}
 #readmePanel .ft {text-align:right; background-color:#E7E7E7; font-size:85%;}
 /* Browser specific (not valid) styles to make preformatted text wrap */
 #readmePanel .bd pre {
-  white-space: pre-wrap;       /* css-3 */
-  white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-  white-space: -pre-wrap;      /* Opera 4-6 */
-  white-space: -o-pre-wrap;    /* Opera 7 */
-  word-wrap: break-word;       /* Internet Explorer 5.5+ */
-  font-size: 100%;
-  color:#000033;}
-
-/*ed eliot's server-side delicious badge css*/
-#delicious-badge {margin-top:.6em; font: 85% Arial, sans-serif; border: 1px solid #b1b1b1; }
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+ font-size: 100%;
+ color:#000033;}
+ 
+/*ed eliot's server-side delicious badge css*/ 
+ #delicious-badge {margin-top:.6em; font: 85% Arial, sans-serif; border: 1px solid #b1b1b1; }
 #delicious-badge .bookmark { background: url(http://images.del.icio.us/static/img/delicious.small.gif) no-repeat left center; padding-left: 15px; font-weight: bold; }
 #delicious-badge p, #delicious-badge div { padding: 7px; margin: 0; text-align: center; }
 #delicious-badge a { color: #00f; text-decoration: none; }
@@ -247,7 +247,7 @@ p.loggerButton {text-align:center;}
 /*faq page:*/
 .yui-ge .yui-g {width:98%;}
 .yui-ge .yui-g .yui-u {width:48.1%;}
-#questions {margin:1em 0 2em; padding:.5em; border:1px solid #838383; background-color:#E6E6E6;}
+#questions {margin:1em 0 2em 0; padding:0.5em; border:1px solid #838383; background-color:#E6E6E6;}
 #questions ul {margin:0; list-style:none;}
 #yui-main #questions li {padding-bottom:.2em; font-size:85%; margin:0;}
 #questions li a {display:block; padding:.6em; text-decoration:none;}
@@ -268,61 +268,61 @@ p.loggerButton {text-align:center;}
 /*customized for GnuBookCarousel*/
 
 
-.carousel-component {
-  padding:0 2px 2px;
-  margin:0;
-  width:200px; /* seems to be needed for safari */
+.carousel-component { 
+	padding:0px 2px 2px 2px;
+	margin:0px;
+	width:200px; /* seems to be needed for safari */
 }
 
-.carousel-component .carousel-list li {
-  margin:0;
-  padding:2px;
-  width:182px;
+.carousel-component .carousel-list li { 
+	margin:0px;
+	padding:2px;	
+	width:182px; 
 }
 
 /* Applies only to vertical carousels */
-.carousel-component .carousel-vertical li {
-  margin-bottom:0;
-  padding: 0;
-  font-family: Georgia, san-serif;
-  font-size: 14px;
+.carousel-component .carousel-vertical li { 
+	margin-bottom:0px;
+	padding: 0px 0px 0px 0px;
+	font-family: Georgia, san-serif;
+	font-size: 14px;
 }
 
-.carousel-component .carousel-list li a {
-  display:block;
-  border:1px solid #e2edfa;
-  outline:none;
-  color: #5d593f;
-  text-decoration: none;
+.carousel-component .carousel-list li a { 
+	display:block;
+	border:1px solid #e2edfa;
+	outline:none;
+	color: #5d593f;
+	text-decoration: none;
 }
 
-.carousel-component .carousel-list li a:hover {
-  border: 1px solid #aaaaaa;
-  background-color: #fff;
-  color: #2e2e24;
-  text-decoration: underline;
+.carousel-component .carousel-list li a:hover { 
+	border: 1px solid #aaaaaa;
+	background-color: #fff;
+	color: #2e2e24;
+	text-decoration: underline;
 }
 
-.carousel-component .carousel-list li img {
-  display:block;
-  color: #2b4c5b;
-  text-decoration: none;
-  border: 1px solid #2e2e24;
+.carousel-component .carousel-list li img { 
+	display:block; 
+	color: #2b4c5b;
+	text-decoration: none;
+	border: 1px solid #2e2e24;
+}
+									
+#up-arrow { 
+	cursor:pointer; 
+	margin-top:5px;
 }
 
-#up-arrow {
-  cursor:pointer;
-  margin-top:5px;
-}
-
-#down-arrow {
-  cursor:pointer;
-  margin-top:0;
-  margin-bottom: 5px;
+#down-arrow { 
+	cursor:pointer; 
+	margin-top:0px;
+	margin-bottom: 5px;
 }
 
 
 /*yyou need this to make an iframe work on the XO screen rotate */
 
-html, body, iframe { margin:0; padding:0; height:100%; }
-iframe { display:block; width: 100%; border:none; }
+   html, body, iframe { margin:0; padding:0; height:100%; }
+   iframe { display:block; width: 100%; border:none; }

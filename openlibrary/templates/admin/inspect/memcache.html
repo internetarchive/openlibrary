@@ -22,9 +22,9 @@ $var title: [Admin Center] Inspect Memcache
             $if not keys:
                 <em>No keys selected.</em>
             $else:
-                <div style="padding: 0 10px;">
+                <div style="padding: 0px 10px;">
                 $for key in keys:
-                    <div style="padding: 5px 0;">
+                    <div style="padding: 5px 0px;">
                         <strong>$key</strong><br/>
                         $if key in mapping:
                             <pre>$:mapping[key]</pre>
