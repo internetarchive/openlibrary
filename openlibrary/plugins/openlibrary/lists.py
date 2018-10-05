@@ -9,7 +9,7 @@ from infogami.infobase import client, common
 
 from openlibrary.core import formats, cache
 import openlibrary.core.helpers as h
-
+from openlibrary.utils import dateutil
 from openlibrary.plugins.worksearch import subjects
 
 
@@ -504,7 +504,7 @@ class feeds(delegate.page):
 def setup():
     pass
 
-def get_recently_modified_lists(limit, offset=0):
+def _get_recently_modified_lists(limit, offset=0):
     """Returns the most recently modified lists as list of dictionaries.
 
     This function is memoized for better performance.
@@ -519,7 +519,9 @@ def get_recently_modified_lists(limit, offset=0):
 
     return [lst.dict() for lst in lists]
 
-get_recently_modified_lists = cache.memcache_memoize(get_recently_modified_lists, key_prefix="get_recently_modified_lists", timeout=5*60)
+def get_cached_recently_modified_lists(limit, offset=0):
+    f = cache.memcache_memoize(_get_recently_modified_lists, key_prefix="lists.get_recently_modified_lists", timeout=0) # dateutil.HALF_HOUR_SECS)
+    return f(limit, offset=offset)
 
 def _preload_lists(lists):
     """Preloads all referenced documents for each list.
@@ -549,19 +551,15 @@ def get_randomized_list_seeds(lst_key):
     return seeds
 
 
-def seed_is_daisy_only(seed):
-    """Returns True if and only if the book is daisy only"""
-    ebook = seed.get_ebook_info()
-    return 'daisy_url' in ebook and 'borrow_url' not in ebook
+def _get_active_lists_in_random(limit=20, preload=True):
+    if 'env' not in web.ctx:
+        delegate.fakeload()
 
-
-@public
-def get_active_lists_in_random(limit=20, preload=True):
     lists = []
     offset = 0
 
     while len(lists) < limit:
-        result = get_recently_modified_lists(limit*5, offset=offset)
+        result = get_cached_recently_modified_lists(limit*5, offset=offset)
         if not result:
             break
 
@@ -575,6 +573,13 @@ def get_active_lists_in_random(limit=20, preload=True):
     if preload:
         _preload_lists(lists)
 
-    # convert rawdata into models.
-    lists = [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]
     return lists
+
+@public
+def get_active_lists_in_random(limit=20, preload=True):
+    f = cache.memcache_memoize(
+        _get_active_lists_in_random,
+        key_prefix="lists.get_active_lists_in_random", timeout=0)
+    lists = f(limit=limit, preload=preload)
+    # convert rawdata into models.
+    return [web.ctx.site.new(xlist['key'], xlist) for xlist in lists]

@@ -741,4 +741,4 @@ def audit_accounts(email, password, require_link=False,
 @public
 def get_internet_archive_id(key):
     username = key.split('/')[-1]
-    return OpenLibraryAccount.get(username=username).internetarchive_itemname
+    return OpenLibraryAccount.get(username=username).itemname

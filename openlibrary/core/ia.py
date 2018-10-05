@@ -40,7 +40,6 @@ def extract_item_metadata(item_json):
         metadata['_filenames'] = [f['name'] for f in files]
     return metadata
 
-
 def get_metadata(itemid):
     item_json = get_item_json(itemid)
     return extract_item_metadata(item_json)
@@ -209,6 +208,7 @@ class ItemEdition(dict):
         * no-imagecount
         * prefix-blacklisted
         * noindex-true
+        * no-ol-import
         """
         # Not a book, or scan not complete or no images uploaded
         if metadata.get("mediatype") != "texts":
@@ -244,6 +244,10 @@ class ItemEdition(dict):
             and "inlibrary" not in collections \
             and "lendinglibrary" not in collections:
             return "noindex-true"
+        # Gio - April 2016
+        # items with metadata no_ol_import=true will be not imported
+        if metadata.get("no_ol_import", '').lower() == 'true':
+            return "no-ol-import"
 
         return "ok"
 

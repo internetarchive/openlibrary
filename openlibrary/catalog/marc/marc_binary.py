@@ -1,12 +1,14 @@
-from openlibrary.catalog.marc.fast_parse import get_tag_lines, handle_wrapped_lines, get_all_tag_lines
 from openlibrary.catalog.marc import fast_parse
-from marc_base import MarcBase
+#TODO: Move fast_parse get_tag_lines(), handle_wrapped_lines(), get_all_tag_lines() into this class
+from marc_base import MarcBase, MarcException, BadMARC
 from unicodedata import normalize
 from pymarc import MARC8ToUnicode
 from openlibrary.catalog.marc import mnemonics
 
 marc8 = MARC8ToUnicode(quiet=True)
 
+class BadLength(MarcException):
+    pass
 
 def norm(s):
     return normalize('NFC', unicode(s))
@@ -79,7 +81,13 @@ class BinaryDataField():
 
 class MarcBinary(MarcBase):
     def __init__(self, data):
-        assert len(data) and isinstance(data, basestring)
+        try:
+            assert len(data) and isinstance(data, basestring)
+            length = int(data[:5])
+        except:
+            raise BadMARC("No MARC data found")
+        if len(data) != length:
+            raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
         self.data = data
 
     def leader(self):
@@ -87,7 +95,7 @@ class MarcBinary(MarcBase):
 
     def all_fields(self):
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
+        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_all_tag_lines(self.data)):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
@@ -100,8 +108,7 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
-        #for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
-        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
+        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_tag_lines(self.data, want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):

@@ -30,10 +30,10 @@ $def with (page)
         else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sort by editions to read");}
         else {\$(this).attr("title","Available to read");};
     });
-    \$('#editions th.borrow').mouseover(function(){
+    \$('#editions th.locate').mouseover(function(){
         if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Are you a member of your local library?");}
-        else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Bring books you can borrow to the top");}
-        else {\$(this).attr("title","Available to borrow");};
+        else if (\$(this).hasClass('sorting_desc')) {\$(this).attr("title","Sory by books likely to be at libraries near you");}
+        else {\$(this).attr("title","Locate this book");};
     });
     \$('#editions th.buy').mouseover(function(){
         if (\$(this).hasClass('sorting_asc')) {\$(this).attr("title","Books for sale to the bottom");}
@@ -86,13 +86,14 @@ $ book_keys = []
     <tr>
         <th class="title" title=""><a href="javascript:;">Edition<span></span></a></th>
         <th class="read" title=""><a href="javascript:;">Read<span></span></a></th>
-        <th class="borrow" title=""><a href="javascript:;">Borrow<span></span></a></th>
+        <th class="locate" title=""><a href="javascript:;">Locate<span></span></a></th>
         <th class="buy" title=""><a href="javascript:;">Buy<span></span></a></th>
     </tr>
     </thead>
     <tbody>
         $ edition_list_start = time()
-        $for book in page.get_sorted_editions():
+        $ editions = page.get_sorted_editions()
+        $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
             <tr>$:render_template("books/edition-sort", book)</tr>
         $ edition_list_secs = time() - edition_list_start

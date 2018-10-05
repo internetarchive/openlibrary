@@ -145,8 +145,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="workAbout">
             $if not (page.description or page.excerpts or page.first_sentence):
                 <div class="workHelp brown sansserif">
-                    $ exclaim = random.choice(["Well, gosh.", "Dang.", "Darn it.", "Oy vey.","¬°Ay, caramba!", "Uh oh.","Sheesh.", "Ack!", "D'oh.","Oh, pooh.", "What the..?", "Cor blimey.",   "Jeepers.", "Heavens to Betsy!", "Oh! The humanity!", "Alack!", "Alas...", "Zut alors!","Drat!","Fiddlesticks.", "Good grief.", "Rats.", "Yikes!", "Crikey!"])
-                    <span id="curses">$exclaim</span> There's no description for this book yet. Can you <b><a href="$page.url('/edit')#about/about">help</a></b>?
+                     There's no description for this book yet. Can
+                     you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
                 </div>
 
         <div class="workPadding">

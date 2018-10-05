@@ -38,6 +38,7 @@
 
 body#user {
   background-color: @beige;
+<<<<<<< HEAD
   div#headerNav {
     background-color: @beige;
   }
@@ -47,10 +48,32 @@ body#user {
   body#user div#headerLogo {
     background-color: @beige;
   }
+=======
+  /* stylelint-disable selector-max-specificity */
+  div#headerNav {
+    background-color: @beige;
+  }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
+  div#headerNav ul.links li {
+    border-top: 1px solid @beige-two;
+  }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
+  body#user div#headerLogo {
+    background-color: @beige;
+  }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
+>>>>>>> master
   div#background {
     width: 100%;
     background-color: @beige;
   }
+<<<<<<< HEAD
+=======
+  /* stylelint-enable selector-max-specificity */
+>>>>>>> master
   div.message {
     float: left;
     clear: both;
@@ -70,13 +93,27 @@ body#user {
     background-color: @grey-f3f3f3;
     padding-right: 22px;
   }
+<<<<<<< HEAD
+=======
+  /* stylelint-disable selector-max-specificity */
+>>>>>>> master
   div#revertLink,
   div#editHistory {
     display: none;
   }
+<<<<<<< HEAD
   div#headerPlace {
     background-color: @beige;
   }
+=======
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
+  div#headerPlace {
+    background-color: @beige;
+  }
+  /* stylelint-enable selector-max-specificity */
+  /* stylelint-disable selector-max-specificity */
+>>>>>>> master
   #description {
     padding-left: 130px;
     padding-right: 60px;
@@ -86,6 +123,7 @@ body#user {
       font-family: "Georgia", "Times New Roman", serif;
       font-weight: normal;
       color: @dark-grey;
+<<<<<<< HEAD
       margin: 0 0 10px 0;
     }
     p {
@@ -93,6 +131,16 @@ body#user {
       margin: 0 0 30px 0;
     }
   }
+=======
+      margin: 0 0 10px;
+    }
+    p {
+      font-size: .875em;
+      margin: 0 0 30px;
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
+>>>>>>> master
 }
 // Import all common components
 @import (less) "legacy.less";

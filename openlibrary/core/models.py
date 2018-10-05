@@ -580,6 +580,9 @@ class User(Thing):
     def is_admin(self):
         return '/usergroup/admin' in [g.key for g in self.usergroups]
 
+    def is_librarian(self):
+        return '/usergroup/librarians' in [g.key for g in self.usergroups]
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 

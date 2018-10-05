@@ -19,11 +19,22 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	lessc static/css/all.less $(BUILD)/all.css
+	lessc -x static/css/page-admin.less $(BUILD)/page-admin.css
+	lessc -x static/css/page-edit.less $(BUILD)/page-edit.css
+	lessc -x static/css/page-form.less $(BUILD)/page-form.css
+	lessc -x static/css/page-home.less $(BUILD)/page-home.css
+	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
+	lessc -x static/css/page-user.less $(BUILD)/page-user.css
+	lessc -x static/css/js-all.less $(BUILD)/js-all.css
+	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css
+	lessc -x static/css/js-books-edit.less $(BUILD)/js-books-edit.css
+	lessc -x static/css/page-design.less $(BUILD)/page-design.css
+	lessc -x static/css/page-dev.less $(BUILD)/page-dev.css
 
 js:
 	mkdir -p $(BUILD)
 	bash static/js/vendor.jsh > $(BUILD)/vendor.js
+	bash static/js/vendor.jsh 2 > $(BUILD)/vendor-v2.js
 	bash static/js/all.jsh > $(BUILD)/all.js
 
 i18n:
@@ -85,4 +96,5 @@ reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
 
 test:
+	npm test
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog
