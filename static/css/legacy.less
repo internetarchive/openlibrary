@@ -647,12 +647,6 @@ span {
     font-size: 13px;
     color: @dark-grey;
   }
-  &.object,
-  &.subject {
-    font-size: 12px;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    color: @dark-grey;
-  }
   &.count {
     font-size: 12px !important;
     font-weight: normal !important;
@@ -1745,6 +1739,8 @@ div#contentMeta {
   padding: 10px 20px 20px;
 }
 
+@import (less) "components/link-box.less";
+
 .content {
   &Twothird {
     float: left;
@@ -1765,12 +1761,6 @@ div#contentMeta {
   &Half {
     float: left;
     max-width: 439px;
-    min-height: 100px;
-    margin-bottom: 20px;
-  }
-  &Quarter {
-    float: left;
-    max-width: 215px;
     min-height: 100px;
     margin-bottom: 20px;
   }
@@ -3170,12 +3160,6 @@ div.narrow {
 
 .bookauthor {
   font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-}
-
-div.subjects {
-  white-space: normal;
-  word-break: normal;
-  word-wrap: break-word;
 }
 
 /* RESULTS CAROUSEL SKIN */

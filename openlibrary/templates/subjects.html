@@ -521,14 +521,12 @@ function set_hash(data) {
             <span class="title"><em>$_("None found.")</em></span>
 
     $for s, limit in subject_list:
-        <div class="contentQuarter">
+        <div class="contentQuarter link-box">
           <h6 class="black collapse uppercase">$s</h6>
           <div class="subjects" id="subjects-$s">
             $:renderSubjects(page[s][:limit])
           </div>
         </div>
-        $if s != 'times':
-            <div class="contentSpacer"></div>
 
     <div class="clearfix"></div>
 
