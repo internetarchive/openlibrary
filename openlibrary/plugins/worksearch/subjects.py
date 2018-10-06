@@ -176,7 +176,9 @@ class subject_history(delegate.page):
         except (ValueError, TypeError):
             return {'error': 'limit must be an integer'}
         if limit > self.API_ROWS_LIMIT:
-            return {'error': 'limit must be less than or equal to {}'.format(self.API_ROWS_LIMIT)}
+            return {'error':
+                    'limit must be less than or equal to {}'
+                    .format(self.API_ROWS_LIMIT)}
         return history().GET()
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
