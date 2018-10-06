@@ -1153,67 +1153,6 @@ form {
       margin: 0 10px 0 20px;
     }
   }
-  .stars {
-    input[type="submit"].star-5.star-selected ~ span {
-      width: 100%;
-    }
-    input[type="submit"].star-4.star-selected ~ span {
-      width: 80%;
-    }
-    input[type="submit"].star-3.star-selected ~ span {
-      width: 60%;
-    }
-    input[type="submit"].star-2.star-selected ~ span {
-      width: 40%;
-    }
-    input[type="submit"].star-1.star-selected ~ span {
-      width: 20%;
-    }
-    input[type="submit"].star-0.star-selected ~ span {
-      width: 0%;
-    }
-    label {
-      display: block;
-      width: 30px;
-      height: 30px;
-      margin: 0;
-      padding: 0;
-      text-indent: -999em;
-      float: left;
-      position: relative;
-      z-index: 10;
-      background: transparent;
-      cursor: pointer;
-
-      &:hover ~ span {
-        background-position: 0 -60px;
-      }
-      &.star-5:hover ~ span {
-        width: 100%;
-      }
-      &.star-4:hover ~ span {
-        width: 80%;
-      }
-      &.star-3:hover ~ span {
-        width: 60%;
-      }
-      &.star-2:hover ~ span {
-        width: 40%;
-      }
-      &.star-1:hover ~ span {
-        width: 20%;
-      }
-    }
-    span {
-      display: block;
-      width: 0;
-      position: relative;
-      top: 0;
-      left: 0;
-      height: 30px;
-      background: url(/static/images/stars.png) repeat-x 0 -60px;
-    }
-  }
   &.recordsAdd {
     margin-bottom: 30px;
     input[type=text] {
@@ -4477,23 +4416,7 @@ ul#myreads-paginator {
   }
 }
 
-#ratingsForm {
-  margin-bottom: 5px;
-
-  .stars {
-    background: url(/static/images/stars.png) repeat-x 0 0;
-    width: 150px;
-    margin: 0 auto;
-    margin-bottom: 7px;
-    cursor: pointer;
-
-    input[type="submit"] {
-      position: absolute;
-      opacity: 0;
-      filter: alpha(opacity=0);
-    }
-  }
-}
+@import (less) "components/rating-form.less";
 
 .responsive button.slick-prev,
 .slick-next {
