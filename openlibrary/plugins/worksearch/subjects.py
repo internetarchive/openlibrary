@@ -165,15 +165,16 @@ class subject_works_json(delegate.page):
 class subject_history(delegate.page):
     path = '/subjects/history'
     encoding = 'json'
-    
+
     API_ROWS_LIMIT = 100
+
     @jsonapi
     def GET(self):
         i = web.input()
-	try:
-		limit = int(i.get("limit", self.API_ROWS_LIMIT))
-	except (ValueError, TypeError):
-		return {'error': 'limit must be an integer'}
+        try:
+            limit = int(i.get("limit", self.API_ROWS_LIMIT))
+        except (ValueError, TypeError):
+            return {'error': 'limit must be an integer'}
         if limit > self.API_ROWS_LIMIT:
             return {'error': 'limit must be less than or equal to {}'.format(self.API_ROWS_LIMIT)}
         return history().GET()
