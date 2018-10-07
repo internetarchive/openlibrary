@@ -8,6 +8,10 @@ addons:
       - python-yaml
 python:
     - "2.7"
+    - "3.6"
+matrix:
+  allow_failures:
+    - python: "3.6"
 install:
   - pip install -r test_requirements.txt
   - npm install
