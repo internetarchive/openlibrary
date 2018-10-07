@@ -4,6 +4,7 @@ USAGE:
     python olload.py bsddb ol.db ol_cdump.txt
     python olload.py memcache localhost:11211 ol_cdump.txt
 """
+from __future__ import print_function
 import _init_path
 from openlibrary.data import parse_data_table
 
@@ -49,7 +50,7 @@ def parse(filename, chunk_size=10000):
     t0 = time.time()
     i = 0
     for chunk in web.group(open(filename), chunk_size):
-        print i, time.time() - t0
+        print(i, time.time() - t0)
         d = {}
         for line in chunk:
             key, type, revision, json = line.strip().split("\t")
@@ -57,7 +58,7 @@ def parse(filename, chunk_size=10000):
 
         i += len(d)
         yield d
-    print i, time.time() - t0
+    print(i, time.time() - t0)
 
 def main(dbname, param, filename):
     data = parse(filename, 10000)

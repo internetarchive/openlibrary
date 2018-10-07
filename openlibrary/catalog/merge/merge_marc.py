@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from names import match_name
 from normalize import normalize
@@ -297,11 +298,11 @@ def attempt_merge(e1, e2, threshold, debug=False):
     l1 = level1_merge(e1, e2)
     total = sum(i[2] for i in l1)
     if debug:
-        print total, l1
+        print(total, l1)
     if total >= threshold:
         return True
     l2 = level2_merge(e1, e2)
     total = sum(i[2] for i in l2)
     if debug:
-        print total, l2
+        print(total, l2)
     return total >= threshold

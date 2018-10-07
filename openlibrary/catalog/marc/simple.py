@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from fast_parse import *
 from marc_binary import MarcBinary
 from pprint import pprint
@@ -44,12 +45,12 @@ for o, a in opts:
 # simple parse of a MARC binary, just counts types of items
 
 def show_book(data):
-    print 'leader:', data[:24]
+    print('leader:', data[:24])
     for tag, line in get_all_tag_lines(data):
         if tag.startswith('00'):
-            print tag, line[:-1]
+            print(tag, line[:-1])
         else:
-            print tag, line[0:2], fmt_subfields(line)
+            print(tag, line[0:2], fmt_subfields(line))
 
 total, bad_dict, sound_rec, not_book, book = 0, 0, 0, 0, 0
 f = open(files[0])
@@ -61,17 +62,17 @@ for data, length in read_file(f):
     if show_field:
         get_first_tag(data, set([show_field]))
     if show_leader:
-        print data[:24]
+        print(data[:24])
     if show_pos:
-        print pos
+        print(pos)
     if verbose:
         show_book(data)
-        print
+        print()
     if build_rec:
         marc_rec = MarcBinary(data)
         edition_marc_bin = parse.read_edition(marc_rec)
         pprint(edition_marc_bin)
-        print
+        print()
     try:
         rec = read_edition(data)
     except SoundRecording:
@@ -83,14 +84,14 @@ for data, length in read_file(f):
     except NotBook:
         if show_non_books:
             show_book(data)
-            print
+            print()
         not_book += 1
     else:
         book += 1
 f.close()
 
-print "total records:", total
-print "sound recordings:", sound_rec
-print "records with bad dictionary:", bad_dict
-print "not books:", not_book
-print "books:", book
+print("total records:", total)
+print("sound recordings:", sound_rec)
+print("records with bad dictionary:", bad_dict)
+print("not books:", not_book)
+print("books:", book)

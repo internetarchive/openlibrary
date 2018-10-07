@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from openlibrary.catalog.marc.fast_parse import get_subfields
 from openlibrary.catalog.wikipedia.lookup import name_lookup, look_for_match, pick_from_match, more_than_one_match
 from openlibrary.catalog.utils import pick_first_date
@@ -18,19 +19,19 @@ def test_lookup():
         fields = tuple((k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd'))
         found = name_lookup(fields)
         for i in found:
-            print i
+            print(i)
         dates = pick_first_date(v for k, v in fields if k == 'd')
-        print dates
+        print(dates)
         match = look_for_match(found, dates, False)
-        print len(match)
+        print(len(match))
         for i in match:
-            print i
+            print(i)
         #pprint(match)
         if len(match) != 1:
             match = pick_from_match(match)
         if len(match) != 1:
             for i in more_than_one_match(match):
-                print i
-        print
+                print(i)
+        print()
 
 test_lookup()

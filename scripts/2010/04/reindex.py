@@ -4,6 +4,7 @@ USAGE: python reindex.py dbname work_keys.txt
 
 TODO: generalize this to work with any table.
 """
+from __future__ import print_function
 import web
 import simplejson
 import os
@@ -121,7 +122,7 @@ def pipe(*funcs):
 
 def display(data):
     for row in data:
-        print row
+        print(row)
 
 def main(dbname, keysfile):
     global db

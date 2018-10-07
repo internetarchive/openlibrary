@@ -10,6 +10,7 @@ USAGE:
 
     python link_volumes.py http://dev.openlibrary.org
 """
+from __future__ import print_function
 import _init_path
 from openlibrary.api import OpenLibrary
 
@@ -48,7 +49,7 @@ def main(server):
     for e in editions.values():
         e['volumes'] = sorted(e['volumes'], key=lambda v: v['volume_number'])
 
-    print 'linking volumes to %d editions' % len(editions)
+    print('linking volumes to %d editions' % len(editions))
     ol.save_many(editions.values(), 'link volumes')
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ USAGE:
 
     python link_scan_records.py http://dev.openlibrary.org
 """
+from __future__ import print_function
 
 import _init_path
 from openlibrary.api import OpenLibrary
@@ -34,7 +35,7 @@ def main(server):
         if not chunk:
             break
 
-        print 'linking %d editions' % len(chunk)
+        print('linking %d editions' % len(chunk))
 
         for e in chunk:
             e['scan_records'] = [{'key': '/scan_record' + e['key']}]

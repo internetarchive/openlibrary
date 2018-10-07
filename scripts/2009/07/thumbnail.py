@@ -4,6 +4,7 @@ Usage:
 
     $ python thumbnail.py f1.warc f2.warc f3.warc
 """
+from __future__ import print_function
 import sys, os
 import Image
 from cStringIO import StringIO
@@ -40,7 +41,7 @@ def make_thumbnail(record):
             image.resize(sizes[size], resample=Image.ANTIALIAS).save(thumbnail, format='jpeg')
             yield imgpath, thumbnail.getvalue()
         except Exception, e:
-            print 'ERROR:', id, str(e)
+            print('ERROR:', id, str(e))
             sys.stdout.flush()
 
 def add_image(tar, name, data, mtime=None):
@@ -52,7 +53,7 @@ def add_image(tar, name, data, mtime=None):
 
 def read(warc_files):
     for w in warc_files:
-        print time.asctime(), w
+        print(time.asctime(), w)
         sys.stdout.flush()
         reader = warc.WARCReader(open(w))
         for r in reader.read():
@@ -60,7 +61,7 @@ def read(warc_files):
 
 def process(warcfile, dir):
     outpath = dir + '/' + os.path.basename(warcfile).replace('.warc', '.tar')
-    print 'process', warcfile, dir, outpath
+    print('process', warcfile, dir, outpath)
     tar = tarfile.TarFile(outpath, 'w')
 
     def f(records):
@@ -70,7 +71,7 @@ def process(warcfile, dir):
                 for name, data in make_thumbnail(r):
                     yield name, data, timestamp
             except Exception, e:
-                print >> sys.stderr, str(e)
+                print(str(e), file=sys.stderr)
 
     for name, data, timestamp in f(read([warcfile])):
         add_image(tar, name, data, mtime=timestamp)

@@ -1,6 +1,7 @@
 """
 Script to mirror the Open Library production databse by replaying the logs.
 """
+from __future__ import print_function
 
 import infogami
 import web
@@ -25,7 +26,7 @@ def playback():
 
     while True:
         for entry in reader:
-            print reader.logfile.tell(), entry.timestamp
+            print(reader.logfile.tell(), entry.timestamp)
             playback.playback(entry)
 
         time.sleep(60)

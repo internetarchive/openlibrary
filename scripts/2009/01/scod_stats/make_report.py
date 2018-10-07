@@ -1,6 +1,7 @@
 """
 Generate scod report.
 """
+from __future__ import print_function
 import simplejson
 import os
 
@@ -29,7 +30,7 @@ def main():
     for k in sorted(data.keys()):
         d = data[k]
         reasons = [r['comment'] for r in d['notfound']]
-        print "%s\t%s\t%s\t%s\t%s" % (k, len(d['request']), len(d['complete']), len(d['notfound']), reasons)
+        print("%s\t%s\t%s\t%s\t%s" % (k, len(d['request']), len(d['complete']), len(d['notfound']), reasons))
 
 if __name__ == "__main__":
     main()

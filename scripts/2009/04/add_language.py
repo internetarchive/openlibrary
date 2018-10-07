@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.utils.query import query_iter, set_staging, withKey, get_mc
 import sys, codecs, re
 sys.path.append('/home/edward/src/olapi')
@@ -25,5 +26,5 @@ for e in query_iter(q, limit=100):
     line = get_first_tag(data, set(['041']))
     if not line:
         continue
-    print key, line[0:2], list(get_all_subfields(line))
+    print(key, line[0:2], list(get_all_subfields(line)))
 

@@ -2,6 +2,7 @@
 
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
+from __future__ import print_function
 import urllib
 import simplejson
 
@@ -27,12 +28,12 @@ def main(oclc):
     result = wget('/query.json?' + query)
 
     for d in result:
-        print "\t".join([oclc, d['key'], find_marc_url(d)])
+        print("\t".join([oclc, d['key'], find_marc_url(d)]))
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 1 or "-h" in sys.argv or "--help" in sys.argv:
-        print >> sys.stderr, __doc__
+        print(__doc__, file=sys.stderr)
     else:
         for oclc in sys.argv[1:]:
             main(oclc)

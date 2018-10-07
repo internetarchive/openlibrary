@@ -1,3 +1,4 @@
+from __future__ import print_function
 from collections import defaultdict
 import re
 import catalog.merge.normalize as merge
@@ -136,7 +137,7 @@ def find_works(books):
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
 
     for a, b, c in works:
-        print a, b, dict(c)
+        print(a, b, dict(c))
 
 find_works(milo_m_hastings)
 find_works(aaron_bancroft)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.api import OpenLibrary
 
 ol = OpenLibrary('http://openlibrary.org/')
@@ -7,7 +8,7 @@ data = eval(open('update').read())
 done = []
 
 for author in data:
-    print (author['key'], author['name'])
+    print((author['key'], author['name']))
     akey = author['key']
     a = ol.get(akey)
     if not a.get('bio') and author['bio']:
@@ -36,8 +37,8 @@ for author in data:
         q = {'type': '/type/edition', 'ocaid': edition['ia']}
         existing = list(ol.query(q))
         if existing:
-            print existing
-            print 'skip existing:', str(existing[0]), edition['ia']
+            print(existing)
+            print('skip existing:', str(existing[0]), edition['ia'])
             continue
 
         e = {
@@ -52,7 +53,7 @@ for author in data:
         if 'isbn' in edition:
             e['isbn'] = edition['isbn']
         ekey = ol.new(e, 'Add lending edition from Smashwords')
-        print ekey, e['ocaid'], e['title']
+        print(ekey, e['ocaid'], e['title'])
         done.append(e['ocaid'])
 
-print done
+print(done)

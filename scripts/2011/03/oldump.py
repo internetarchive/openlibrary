@@ -2,6 +2,7 @@
 
 This script must be run on the db node.
 """
+from __future__ import print_function
 import os, sys
 import web
 import simplejson
@@ -107,7 +108,7 @@ class RestoreEngine:
         for line in open(self.path("transactions.txt")):
             row = simplejson.loads(line)
             if self.has_transaction(row['id']):
-                print "ignoring tx", row['id']
+                print("ignoring tx", row['id'])
                 continue
             else:
                 self.restore_tx(row)

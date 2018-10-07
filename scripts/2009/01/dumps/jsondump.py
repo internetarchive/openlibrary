@@ -7,6 +7,7 @@ The script deals with 3 data formats.
 3. bookdump: dump containing only books with each property expanded. (used for solr import)
 
 """
+from __future__ import print_function
 import sys
 import simplejson
 import re
@@ -70,23 +71,23 @@ def help(cmd=None):
     """Displays this help."""
     action = cmd and get_action(cmd)
     if action:
-        print "python jsondump.py " + cmd
-        print
-        print action.__doc__
+        print("python jsondump.py " + cmd)
+        print()
+        print(action.__doc__)
     else:
-        print __doc__
-        print "List of commands:"
-        print
+        print(__doc__)
+        print("List of commands:")
+        print()
 
         for k in sorted(commands.keys()):
             doc = commands[k].__doc__ or " "
-            print "  %-10s\t%s" % (k, doc.splitlines()[0])
+            print("  %-10s\t%s" % (k, doc.splitlines()[0]))
 
 def get_action(cmd):
     if cmd in commands:
         return commands[cmd]
     else:
-        print >> sys.stderr, "No such command:", cmd
+        print("No such command:", cmd, file=sys.stderr)
         return help
 
 def listget(x, i, default=None):

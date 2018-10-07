@@ -4,6 +4,7 @@ if necessary it provides a way to update/insert the intem in the search index.
 Usage:
       /olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/ol-solr-indexer.py --config /olsystem/etc/openlibrary.yml --bookmark ol-solr-indexer.bookmark --backward --days 2
 """
+from __future__ import print_function
 
 __author__ = "Giovanni Damiola"
 __copyright__ = "Copyright 2015, Internet Archive"
@@ -56,7 +57,7 @@ def _get_bookmark(filename):
         bookmark = _validate_date(datestring)
         return bookmark
     except IOError:
-        print "\nWARNING: bookmark file {0} not found.".format(filename)
+        print("\nWARNING: bookmark file {0} not found.".format(filename))
         exit(1)
 
 def _validate_date(datestring):
@@ -74,7 +75,7 @@ def _set_bookmark(filename,timestamp):
         bb.write(timestamp)
         bb.close
     except IOError:
-        print("State file %s is not found.", filename)
+        print(("State file %s is not found.", filename))
         exit(1)
 
 def scan_days():
@@ -112,7 +113,7 @@ def _get_next_day(direction, day):
     elif direction == 'bwd':
         next_day = (datetime.strptime(day,'%Y-%m-%d %H:%M:%S') - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')
     else:
-        print "Error: direction unknown"
+        print("Error: direction unknown")
         exit(1)
     return next_day
 
@@ -269,22 +270,22 @@ def parse_options():
 
     if (options.fwd == True and options.bwd == True):
         parser.print_help()
-        print "\nERROR: You can't do a search backward and forward at the same time!\n"
+        print("\nERROR: You can't do a search backward and forward at the same time!\n")
         exit(1)
     elif (options.fwd == False and options.bwd == False and options.daemon == False):
         parser.print_help()
         exit(1)
     elif (options.bookmark_file == False and options.set_bookmark == False):
         parser.print_help()
-        print "\nERROR: you have to choose a bookmark date to start from or a bookmark_file.\n"
+        print("\nERROR: you have to choose a bookmark date to start from or a bookmark_file.\n")
         exit(1)
     elif (options.bookmark_file != False and options.set_bookmark != False):
         parser.print_help()
-        print "\nERROR: you can't set a bookmark and a bookmark_file at the same time!\n"
+        print("\nERROR: you can't set a bookmark and a bookmark_file at the same time!\n")
         exit(1)
     elif (options.set_bookmark != False):
         date_to_bookmark = _validate_date(options.set_bookmark)
-        print "Setting bookmark date: {0} in the file {1}".format(date_to_bookmark,DEFAULT_BOOKMARK_FILE)
+        print("Setting bookmark date: {0} in the file {1}".format(date_to_bookmark,DEFAULT_BOOKMARK_FILE))
         _set_bookmark(DEFAULT_BOOKMARK_FILE,date_to_bookmark)
         options.bookmark_file=DEFAULT_BOOKMARK_FILE
     return options

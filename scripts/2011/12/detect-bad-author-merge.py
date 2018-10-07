@@ -10,6 +10,7 @@ and the input query given. The difference between the revisions should be
 exactly 1 if everything is alright. It is a bad-merge if the difference is
 more than 1.
 """
+from __future__ import print_function
 import sys
 import json
 
@@ -42,7 +43,7 @@ def main():
     for row in read_author_merges():
         keys = is_bad_merge(row)
         if keys:
-            print row['timestamp'], row['data']['changeset']['id'], " ".join(keys)
+            print(row['timestamp'], row['data']['changeset']['id'], " ".join(keys))
 
 if __name__ == '__main__':
     main()

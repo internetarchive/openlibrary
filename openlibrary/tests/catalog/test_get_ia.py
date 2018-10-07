@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import pytest
 from openlibrary.catalog import get_ia
@@ -93,9 +94,9 @@ class TestGetIA():
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcBinary), \
             "%s: expected instanceof MarcBinary, got %s" % (item, type(result))
-        print "%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item,
+        print("%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item,
                                                      result.leader()[9],
-                                                     unicode.encode(result.read_fields(['245']).next()[1].get_all_subfields().next()[1], 'utf8'))
+                                                     unicode.encode(result.read_fields(['245']).next()[1].get_all_subfields().next()[1], 'utf8')))
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):

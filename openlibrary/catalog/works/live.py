@@ -2,6 +2,7 @@
 
 # find works and create pages on production
 
+from __future__ import print_function
 import re, sys, codecs, web
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
@@ -23,7 +24,7 @@ ol = OpenLibrary("http://openlibrary.org")
 ol.login('WorkBot', rc['WorkBot'])
 
 def write_log(cat, key, title):
-    print >> fh_log, (("%.2f" % time()), cat, key, title)
+    print((("%.2f" % time()), cat, key, title), file=fh_log)
     fh_log.flush()
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -48,7 +49,7 @@ def key_int(key):
     return int(web.numify(key))
 
 def update_work_edition(ekey, wkey, use):
-    print (ekey, wkey, use)
+    print((ekey, wkey, use))
     e = ol.get(ekey)
     works = []
     for w in e['works']:
@@ -61,10 +62,10 @@ def update_work_edition(ekey, wkey, use):
 
     if e['works'] == works:
         return
-    print 'before:', e['works']
-    print 'after:', works
+    print('before:', e['works'])
+    print('after:', works)
     e['works'] = works
-    print ol.save(e['key'], e, 'remove duplicate work page')
+    print(ol.save(e['key'], e, 'remove duplicate work page'))
 
 def top_rev_wt(d):
     d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
@@ -145,19 +146,19 @@ def get_work_title(e):
         try:
             data = get_data(src)
         except ValueError:
-            print 'bad record source:', src
-            print 'http://openlibrary.org' + e['key']
+            print('bad record source:', src)
+            print('http://openlibrary.org' + e['key'])
             continue
         except urllib2.HTTPError, error:
-            print 'HTTP error:', error.code, error.msg
-            print e['key']
+            print('HTTP error:', error.code, error.msg)
+            print(e['key'])
         if not data:
             continue
         try:
             line = get_first_tag(data, set(['240']))
         except BadDictionary:
-            print 'bad dictionary:', src
-            print 'http://openlibrary.org' + e['key']
+            print('bad dictionary:', src)
+            print('http://openlibrary.org' + e['key'])
             continue
         if line:
             wt = ' '.join(get_subfield_values(line, ['a'])).strip('. ')
@@ -166,8 +167,8 @@ def get_work_title(e):
         return wt
     if not e.get('work_titles', []):
         return
-    print 'work title in MARC, but not in OL'
-    print 'http://openlibrary.org' + e['key']
+    print('work title in MARC, but not in OL')
+    print('http://openlibrary.org' + e['key'])
     return e['work_titles'][0]
 
 def get_books(akey, query):
@@ -300,7 +301,7 @@ def find_works(akey, book_iter):
 
 def print_works(works):
     for w in works:
-        print len(w['editions']), w['title']
+        print(len(w['editions']), w['title'])
 
 def toc_items(toc_list):
     return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list]
@@ -319,7 +320,7 @@ def add_works(works):
     try:
         return ol.new(q, comment='create work page')
     except:
-        print q
+        print(q)
         raise
 
 def add_work(akey, w):
@@ -331,7 +332,7 @@ def add_work(akey, w):
     try:
         wkey = ol.new(q, comment='create work page')
     except:
-        print q
+        print(q)
         raise
     write_log('work', wkey, w['title'])
     assert isinstance(wkey, basestring)
@@ -344,14 +345,14 @@ def add_work(akey, w):
         yield e
 
 def save_editions(queue):
-    print 'saving'
+    print('saving')
     try:
-        print ol.save_many(queue, 'add edition to work page')
+        print(ol.save_many(queue, 'add edition to work page'))
     except:
-        print 'ol.save_many() failed, trying again in 30 seconds'
+        print('ol.save_many() failed, trying again in 30 seconds')
         sleep(30)
-        print ol.save_many(queue, 'add edition to work page')
-    print 'saved'
+        print(ol.save_many(queue, 'add edition to work page'))
+    print('saved')
 
 def merge_works(work_keys):
     use = "/works/OL%dW" % min(key_int(w) for w in work_keys)
@@ -360,13 +361,13 @@ def merge_works(work_keys):
             continue
         w_query = {'type':'/type/edition', 'works':wkey, 'limit':False}
         for e in ol.query(w_query): # returns strings?
-            print e
+            print(e)
             update_work_edition(e, wkey, use)
         w = ol.get(wkey)
         assert w['type'] == '/type/work'
         w['type'] = '/type/redirect'
         w['location'] = use
-        print ol.save(wkey, w, 'delete duplicate work page')
+        print(ol.save(wkey, w, 'delete duplicate work page'))
 
 def update_edition(ekey, wkey):
     e = ol.get(ekey)
@@ -375,10 +376,10 @@ def update_edition(ekey, wkey):
     if e.get('works', []):
         assert len(e['works']) == 1
         if e['works'][0] != wkey:
-            print 'e:', e
-            print 'wkey:', wkey
-            print 'ekey:', ekey
-            print 'e["works"]:', e['works']
+            print('e:', e)
+            print('wkey:', wkey)
+            print('ekey:', ekey)
+            print('e["works"]:', e['works'])
             #merge_works([e['works'][0], wkey])
         #assert e['works'][0] == wkey
         return None
@@ -425,7 +426,7 @@ def by_authors():
         write_log('author', akey, a.get('name', 'name missing'))
 
         works = find_works(akey, get_books(akey, books_query(akey)))
-        print(akey, repr(a['name']))
+        print((akey, repr(a['name'])))
 
         for w in works:
             w['author'] = akey
@@ -450,7 +451,7 @@ if __name__ == '__main__':
         work_queue.append(w)
         if len(work_queue) > 1000:
             for e in run_queue(work_queue):
-                print e['key'], repr(e['title'])
+                print(e['key'], repr(e['title']))
                 edition_queue.append(e)
                 if len(edition_queue) > 1000:
                     save_editions(edition_queue)
@@ -458,10 +459,10 @@ if __name__ == '__main__':
                     sleep(5)
             work_queue = []
 
-    print 'almost finished'
+    print('almost finished')
     for e in run_queue(work_queue):
         edition_queue.append(e)
     save_editions(edition_queue)
-    print 'finished'
+    print('finished')
 
     fh_log.close()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, urllib2, sys
 from catalog.read_rc import read_rc
 from catalog.get_ia import find_item
@@ -35,13 +36,13 @@ def vol_ia():
     ia_db.printing = False
     iter = ia_db.query("select identifier from metadata where scanner is not null and scanner != 'google' and noindex is null and mediatype='texts' and curatestate='approved'")
     out = open('vol_ia', 'w')
-    print 'start iter'
+    print('start iter')
     for row in iter:
         ia = row.identifier
         m = re_ia_vol.search(ia)
         if not m or m.group(1) == '00':
             continue
-        print >> out, ia
+        print(ia, file=out)
     out.close()
     sys.exit(0)
 
@@ -57,7 +58,7 @@ for line in open('vol_ia'):
     if not m or m.group(1) == '00':
         continue
     (host, path) = find_item(ia)
-    print ia
+    print(ia)
     if not host or not path:
         continue
     base = "http://" + host + path
@@ -72,5 +73,5 @@ for line in open('vol_ia'):
     except urllib2.URLError:
         continue
     #print >> out, (vol, ia, vol_line)
-    print >> out, repr((vol, ia, txt))
+    print(repr((vol, ia, txt)), file=out)
 out.close()

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Script to reload infobase log to a couchdb database.
 """
+from __future__ import print_function
 import couchdb
 import simplejson
 
@@ -23,7 +24,7 @@ class CouchDBReplayer:
         offset = self.get_offset()
         if offset:
             log.seek(offset)
-        print offset, log.tell()
+        print(offset, log.tell())
 
         for line in log:
             item = simplejson.loads(line)
@@ -51,7 +52,7 @@ class CouchDBReplayer:
             return self._replay_save(docs, changeset)
 
     def _replay_save(self, docs, changeset):
-        print "replaying", changeset['id']
+        print("replaying", changeset['id'])
         for doc in docs:
             self.prepare_doc(doc, doc['key'])
         self.prepare_doc(changeset, "@changes/" + changeset['id'])

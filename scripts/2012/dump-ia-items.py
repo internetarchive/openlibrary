@@ -7,6 +7,7 @@ USAGE:
 
     python dump-ia-items.py --host dbserver --user archive --password secret --database archive
 """
+from __future__ import print_function
 
 import web
 import optparse
@@ -39,7 +40,7 @@ def dump_metadata(db):
             # exclude dark items
             if row.curatestate == "dark":
                 continue
-            print tabjoin(row.identifier, row.boxid, row.collection)
+            print(tabjoin(row.identifier, row.boxid, row.collection))
 
 def main():
     p = make_parser()

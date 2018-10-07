@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.utils.query import query_iter, set_staging, withKey
 import sys, codecs, re
 sys.path.append('/home/edward/src/olapi')
@@ -40,8 +41,8 @@ for e in query_iter(q):
     queue.append(q)
     count += 1
     if len(queue) == 100:
-        print count, 'writing to db'
-        print ol.write(queue, "remove trailing period from subjects")
+        print(count, 'writing to db')
+        print(ol.write(queue, "remove trailing period from subjects"))
         queue = []
 
-print ol.write(queue, "remove trailing period from subjects")
+print(ol.write(queue, "remove trailing period from subjects"))

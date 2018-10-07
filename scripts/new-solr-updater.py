@@ -6,6 +6,7 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
+from __future__ import print_function
 
 import _init_path
 
@@ -239,7 +240,7 @@ def main():
         host = web.lstrips(args.ol_url, "http://").strip("/")
         update_work.set_query_host(host)
 
-    print str(args)
+    print(str(args))
     logger.info("loading config from %s", args.config)
     load_config(args.config)
 

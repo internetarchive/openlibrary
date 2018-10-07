@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.marc.parse_xml import parse, xml_rec
 from openlibrary.catalog.marc import read_xml
 from openlibrary.api import OpenLibrary, unmarshal
@@ -49,14 +50,14 @@ for line in open('/2/edward/20century/records_to_load'):
         else:
             continue
     if show_progress:
-        print '%d/%d %d %.2f%% %s' % (num, total, load_count, (float(num) * 100.0) / total, item)
+        print('%d/%d %d %.2f%% %s' % (num, total, load_count, (float(num) * 100.0) / total, item))
     if check_for_existing:
         if ol.query({'type': '/type/edition', 'ocaid': item}):
-            print item, 'already loaded'
+            print(item, 'already loaded')
             load_count += 1
             continue
         if ol.query({'type': '/type/edition', 'source_records': 'ia:' + ia}):
-            print 'already loaded'
+            print('already loaded')
             load_count += 1
             continue
     try:
@@ -64,31 +65,31 @@ for line in open('/2/edward/20century/records_to_load'):
         assert 'passportapplicat' not in item
         assert len(full_rec.keys()) != 1
     except AssertionError:
-        print item
+        print(item)
         raise
     filename = '/2/edward/20century/scans/' + item[:2] + '/' + item + '/' + item + '_marc.xml'
     rec = read_xml.read_edition(open(filename))
     if 'full_title' not in rec:
-        print "full_title missing", item
+        print("full_title missing", item)
         continue
     if 'physical_format' in rec:
         format = rec['physical_format'].lower()
         if format.startswith('[graphic') or format.startswith('[cartograph'):
-            print item, format
+            print(item, format)
     index_fields = make_index_fields(rec)
     if not index_fields:
-        print "no index_fields"
+        print("no index_fields")
         continue
     #print index_fields
 
     edition_pool = pool.build(index_fields)
     if not edition_pool or not any(v for v in edition_pool.itervalues()):
-        print >> new_book, full_rec
+        print(full_rec, file=new_book)
         continue
 
-    print item, edition_pool
+    print(item, edition_pool)
     e1 = build_marc(rec)
-    print e1
+    print(e1)
 
     match = False
     seen = set()
@@ -103,19 +104,19 @@ for line in open('/2/edward/20century/records_to_load'):
                 thing = withKey(edition_key)
                 assert thing
                 if thing['type']['key'] == '/type/redirect':
-                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if try_merge(e1, edition_key, thing):
-                print 'add source records:', edition_key, item
-                print (edition_key, item)
-                print >> add_src_rec, (edition_key, item)
+                print('add source records:', edition_key, item)
+                print((edition_key, item))
+                print((edition_key, item), file=add_src_rec)
                 #add_source_records(edition_key, ia)
                 #write_log(ia, when, "found match: " + edition_key)
                 match = True
                 break
         if not match:
-            print full_rec
-            print >> new_book, full_rec
+            print(full_rec)
+            print(full_rec, file=new_book)
             break
 
 sys.exit(0)

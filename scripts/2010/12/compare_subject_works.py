@@ -1,6 +1,7 @@
 #! /usr/bin/env
 """Script to compare subject info in solr and couchdb.
 """
+from __future__ import print_function
 import sys
 import simplejson
 import web
@@ -10,7 +11,7 @@ import time
 couchdb_url = "http://ia331510:5984/works/_design/seeds/_view/seeds"
 
 def wget(url):
-    print >> sys.stderr, time.asctime(), "wget", url
+    print(time.asctime(), "wget", url, file=sys.stderr)
     return urllib2.urlopen(url).read()
 
 def jsonget(url):
@@ -51,7 +52,7 @@ def compare_works(subject):
         works[key] = {"key": key, "subject": subject in subjects, "solr": key in solr_works, "couch": key in couch_works}
 
     for w in sorted(works.values(), key=lambda w: (w['solr'], w['couch'], w['subject'])):
-        print w["key"], w['subject'], w['solr'], w['couch']
+        print(w["key"], w['subject'], w['solr'], w['couch'])
 
 if __name__ == "__main__":
     compare_works(sys.argv[1])

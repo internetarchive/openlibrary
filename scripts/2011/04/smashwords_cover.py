@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv
 from openlibrary.catalog.title_page_img.load import add_cover_image
 
@@ -7,7 +8,7 @@ headings = None
 for row in csv.reader(open(input_file)):
     if not headings:
         headings = row
-        print row
+        print(row)
         continue
     book = dict(zip(headings, [s.decode('utf-8') for s in row]))
 
@@ -17,5 +18,5 @@ for row in csv.reader(open(input_file)):
 
     q = {'type':'/type/edition', 'ocaid': ia, 'works': None}
     existing = list(ol.query(q))
-    print (existing[0]['key'], ia)
+    print((existing[0]['key'], ia))
     add_cover_image(existing[0]['key'], ia)

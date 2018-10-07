@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+from __future__ import print_function
 
 import re
 import json
@@ -266,7 +267,7 @@ def find_match(e1, edition_pool):
                     found = False
                     break
                 if is_redirect(thing):
-                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if not found:
                 continue
@@ -452,7 +453,7 @@ def add_cover(cover_url, ekey):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
-            print 'retry, attempt', attempt
+            print('retry, attempt', attempt)
             sleep(2)
             continue
         body = res.read()
@@ -460,7 +461,7 @@ def add_cover(cover_url, ekey):
             reply = json.loads(body)
             if res.getcode() == 200 and 'id' in reply:
                 break
-        print 'retry, attempt', attempt
+        print('retry, attempt', attempt)
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
         return

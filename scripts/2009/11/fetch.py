@@ -12,6 +12,7 @@ USAGE:
     $ python fetch.py --load
 
 """
+from __future__ import print_function
 import _init_path
 import urllib
 import simplejson
@@ -66,7 +67,7 @@ def _fetch(key, visited=None, level=0, maxlevel=0, limit=5):
         return
 
     prefix = ("|  " * level) + "|--"
-    print prefix, key
+    print(prefix, key)
 
     doc = get(key)
     write(key, doc)
@@ -128,7 +129,7 @@ def load():
     from openlibrary.api import OpenLibrary
     ol = OpenLibrary("http://0.0.0.0:8080")
     ol.autologin()
-    print ol.save_many([documents[k] for k in keys], comment="documents copied from openlibrary.org")
+    print(ol.save_many([documents[k] for k in keys], comment="documents copied from openlibrary.org"))
 
 if __name__ == "__main__":
     import sys

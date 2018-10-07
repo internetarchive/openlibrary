@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, re, sys, codecs, dbhash
 from catalog.amazon.other_editions import find_others
 from catalog.infostore import get_site
@@ -31,18 +32,18 @@ def get_records_from_marc(isbn):
 #        print
     recs = [(loc, build_record(get_data(loc))) for loc in db[isbn].split(' ')]
     keys = set()
-    print
+    print()
     for loc, rec in recs:
-        print '  ', loc
+        print('  ', loc)
 #        keys.update([k for k in rec.keys() if k.find('title') != -1 or k in ('authors', 'title', 'contributions', 'work_title')])
         keys.update(rec.keys())
-    print
+    print()
     for k in keys:
-        print k
+        print(k)
         for loc, rec in recs:
-            print "  ", rec.get(k, '###')
-        print
-    print
+            print("  ", rec.get(k, '###'))
+        print()
+    print()
 
 dir = sys.argv[1]
 for filename in os.listdir(dir):
@@ -51,16 +52,16 @@ for filename in os.listdir(dir):
     l = find_others(filename, dir)
     if not l:
         continue
-    print filename
+    print(filename)
     for k in site.things({'isbn_10': filename, 'type': '/type/edition'}):
         t = site.withKey(k)
         num = len(t.isbn_10)
         if num == 1:
             num = ''
-        print '  OL:', k, t.title, num
+        print('  OL:', k, t.title, num)
         get_records_from_marc(filename)
     for asin, extra in l:
-        print asin, extra
+        print(asin, extra)
         things = site.things({'isbn_10': asin, 'type': '/type/edition'})
         if things:
             for k in things:
@@ -68,6 +69,6 @@ for filename in os.listdir(dir):
                 num = len(t.isbn_10)
                 if num == 1:
                     num = ''
-                print '  OL:', k, t.title, num
+                print('  OL:', k, t.title, num)
         get_records_from_marc(asin)
-    print "----"
+    print("----")

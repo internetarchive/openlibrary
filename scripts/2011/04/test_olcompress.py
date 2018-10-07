@@ -2,6 +2,7 @@
 
 This programs tests the effectiveness of that compression aginst regular compression.
 """
+from __future__ import print_function
 import urllib
 import zlib
 from openlibrary.utils import olcompress
@@ -25,7 +26,7 @@ def test_url(label, url):
     x0, x1, x2 = do_compress(text)
     improvement = (x1-x2)/float(x1) * 100
     cols = label, name, x0, x1, x2, improvement
-    print "\t".join(str(c) for c in cols)
+    print("\t".join(str(c) for c in cols))
     return x1, x2
 
 def test_random_pattern(label, pattern, max, count):
@@ -58,8 +59,8 @@ def main():
 
     improvement = (x1-x2)/float(x1) * 100
 
-    print
-    print "Overall improvement", improvement
+    print()
+    print("Overall improvement", improvement)
 
 
 if __name__ == "__main__":

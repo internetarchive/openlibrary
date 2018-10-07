@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, sys, codecs, re, urllib2
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
@@ -67,7 +68,7 @@ def author_from_data(loc, data):
     if 'key' in a:
         return {'key': a['key']}
     ret = ol.new(a, comment='new author')
-    print 'ret:', ret
+    print('ret:', ret)
     assert isinstance(ret, basestring)
     return {'key': ret}
 
@@ -97,7 +98,7 @@ def add_oclc(key, sr, oclc, data):
             for a in e['authors']:
                 undelete_authors(a)
 
-    print ol.save(key, e, 'add OCLC number')
+    print(ol.save(key, e, 'add OCLC number'))
     if new_toc:
         new_edition = ol.get(key)
         # [{u'type': <ref: u'/type/toc_item'>}, ...]
@@ -106,10 +107,10 @@ def add_oclc(key, sr, oclc, data):
 skipping = True
 for name, part, size in files():
     f = open(name)
-    print part
+    print(part)
     if skipping:
         if part != 'marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc':
-            print 'skipping'
+            print('skipping')
             continue
     for pos, loc, data in read_marc_file(part, f):
         if skipping:
@@ -131,12 +132,12 @@ for name, part, size in files():
         if not oclc.isdigit():
             m = re_oclc.match(oclc)
             if not m:
-                print("can't read:", repr(oclc))
+                print(("can't read:", repr(oclc)))
                 continue
             oclc = m.group(1)
         keys = get_keys(loc)
         if not keys:
             continue
-        print loc, keys, oclc
+        print(loc, keys, oclc)
         for key in keys:
             add_oclc(key, loc, oclc, data)

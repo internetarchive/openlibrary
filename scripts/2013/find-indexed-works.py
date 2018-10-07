@@ -2,6 +2,7 @@
 
 USAGE: zcat ol_dump_works_latest.txt.gz | cut -f2 | python scripts/2013/find-indexed-works.py http://solr-node:8983/solr/works
 """
+from __future__ import print_function
 
 import sys
 import urllib
@@ -12,7 +13,7 @@ import web
 solr_base_url = sys.argv[1]
 
 def jsonget(url, data=None):
-	print >> sys.stderr, time.asctime(), "jsonget", url[:120], data[:50] if data else ""
+	print(time.asctime(), "jsonget", url[:120], data[:50] if data else "", file=sys.stderr)
 	return json.load(urllib.urlopen(url, data))
 
 def is_indexed_in_solr(key):
@@ -35,7 +36,7 @@ def find_not_indexed(keys, chunk_size=1000):
 def main():
 	keys = (line.strip().split("/")[-1] for line in sys.stdin)
 	for k in find_not_indexed(keys):
-		print k
+		print(k)
 
 if __name__ == '__main__':
 	main()

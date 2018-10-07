@@ -2,6 +2,7 @@
 
 USAGE: python chanages_dump.py dbname
 """
+from __future__ import print_function
 import web
 import os
 import simplejson
@@ -42,7 +43,7 @@ def main(dbname):
         row.comment = row.comment or ""
         row.ip = row.ip or ""
         row.created = row.created.isoformat()
-        print simplejson.dumps(row) + "\t" + row.created
+        print(simplejson.dumps(row) + "\t" + row.created)
 
 if __name__ == "__main__":
     import sys

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import urllib2, urllib, sys, collections, re, os, site, datetime
 
 local_site = os.path.join(os.path.dirname(__file__), "..", "..", "..")
@@ -13,7 +14,7 @@ from openlibrary.api import OpenLibrary
 NYT_BEST_SELLERS_URL = "http://api.nytimes.com/svc/books/v2/lists"
 
 def LOG(level, msg):
-    print >> sys.stderr, "%s: %s" % (level, msg.encode('utf-8'))
+    print("%s: %s" % (level, msg.encode('utf-8')), file=sys.stderr)
 
 def _request(request, parser=json.loads):
     request = (urllib2.Request(request, None, headers={"Referrer": "http://www.openlibrary.org"})

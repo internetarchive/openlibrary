@@ -1,5 +1,6 @@
 """script to compare performance of simplejson and jsonlib.
 """
+from __future__ import print_function
 
 import sys, time, urllib2
 import simplejson
@@ -15,7 +16,7 @@ def timeit(label, seq):
     for x in seq:
         pass
     t1 = time.time()
-    print label, "%.2f sec" % (t1-t0)
+    print(label, "%.2f sec" % (t1-t0))
 
 if False and __name__ == "__main__":
     timeit("read", read())
@@ -50,13 +51,13 @@ if True and __name__ == "__main__":
         urllib2.urlopen("http://freebase.com/api/trans/notable_types_2?id=/en/bob_dylan").read(),
         urllib2.urlopen("http://freebase.com/api/trans/popular_topics_by_type_debug?id=/film/actor").read()
     ):
-        print "-" * 80
-        print "%s char blob" % len(b)
-        print "-" * 80
+        print("-" * 80)
+        print("%s char blob" % len(b))
+        print("-" * 80)
         impls = (simplejson, jsonlib, jsonlib2, yajl)
-        print "loads"
+        print("loads")
         for impl in impls:
-            print "%s: %s" % (impl.__name__.ljust(10), bench(100, impl.loads, b))
-        print "dumps"
+            print("%s: %s" % (impl.__name__.ljust(10), bench(100, impl.loads, b)))
+        print("dumps")
         for impl in impls:
-            print "%s: %s" % (impl.__name__.ljust(10), bench(100, impl.dumps, impl.loads(b)))
+            print("%s: %s" % (impl.__name__.ljust(10), bench(100, impl.dumps, impl.loads(b))))

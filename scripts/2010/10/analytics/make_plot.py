@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import datetime, csv, os, sys, collections, subprocess, tempfile
 
 from optparse import OptionParser
@@ -46,7 +47,7 @@ def main():
     plt_f = tempfile.NamedTemporaryFile(prefix="%s.plt" % os.path.splitext(os.path.basename(in_fn))[0],
                                         delete=False)
 
-    print "writing to %s, %s" % (plt_f.name, dat_f.name)
+    print("writing to %s, %s" % (plt_f.name, dat_f.name))
     output_fn = os.path.join(os.path.dirname(in_fn), "%s.png" % os.path.splitext(in_fn)[0])
     for line in (#"set terminal x11",
         'set terminal png medium size 1500,1500',
@@ -79,9 +80,9 @@ def main():
     plt_f.close()
     dat_f.close()
 
-    print "running %s" % " ".join(["gnuplot", plt_f.name])
+    print("running %s" % " ".join(["gnuplot", plt_f.name]))
     assert subprocess.call(["gnuplot", plt_f.name]) == 0
-    print "plot written to %s" % output_fn
+    print("plot written to %s" % output_fn)
 
 if __name__ == "__main__":
     main()

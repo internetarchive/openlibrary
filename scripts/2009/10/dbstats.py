@@ -1,5 +1,6 @@
 """Postgres performance stats.
 """
+from __future__ import print_function
 import time
 import web
 import sys
@@ -37,8 +38,8 @@ def g(db, n):
 def main(host, dbname, n=1000):
     db = web.database(dbn='postgres', db=dbname, user='anand', pw='', host=host)
     db.printing = False
-    print 'f', timeit(f, 10, db, 1000)
-    print 'g', timeit(g, 10, db, 1000)
+    print('f', timeit(f, 10, db, 1000))
+    print('g', timeit(g, 10, db, 1000))
 
 if __name__ == "__main__":
     if len(sys.argv) > 3:

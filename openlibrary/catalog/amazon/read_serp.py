@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml.html import fromstring
 from openlibrary.catalog.utils.arc import read_arc, read_body
 import os, re
@@ -18,7 +19,7 @@ def find_pt(doc):
         assert pt[0].tag == 'a'
         href = pt[0].attrib['href']
         m = re_book_url.match(href)
-        print m.group(1)
+        print(m.group(1))
         found.append(m.group(1))
     return found
 
@@ -49,7 +50,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         body = read_body(wire)
         m = re_title.search(body)
         if m.group(1) != prev:
-            print m.group(1)
+            print(m.group(1))
             prev = m.group(1)
         continue
         doc = fromstring(body)
@@ -67,7 +68,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
                     continue
         for e in doc.find_class('fastTrackList'):
             if e.text == 'This item is currently not available.':
-                print e.text
+                print(e.text)
 
         assert len(find_pt(doc)) == 0
         serp_found = find_srtitle(doc)
@@ -75,8 +76,8 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
             if asin in crawled:
                 continue
             if asin not in found_books:
-                print >> out, asin
+                print(asin, file=out)
         found_books.update(serp_found)
-        print len(serp_found), len(found_books), filename, url
+        print(len(serp_found), len(found_books), filename, url)
 
 #out.close()

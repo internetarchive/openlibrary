@@ -4,6 +4,7 @@ USAGE:
 
     python sitemaps.py suffix dump.txt.gz
 """
+from __future__ import print_function
 
 import web
 import os
@@ -157,7 +158,7 @@ def system(cmd):
 
 def log(*args):
     msg = " ".join(map(str, args))
-    print time.asctime(), msg
+    print(time.asctime(), msg)
 
 def main(dumpfile):
     system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Script to generate <coverid, key, isbns> mapping for each active cover.
 """
+from __future__ import print_function
 import _init_path
 from openlibrary.data.dump import read_tsv
 import web
@@ -22,10 +23,10 @@ def main(filename):
 
         try:
             if cover and cover > 0:
-                print "\t".join([str(cover), key, ",".join(isbns)])
+                print("\t".join([str(cover), key, ",".join(isbns)]))
         except:
-            print >> sys.stderr, doc
-            print >> sys.stderr, (key, cover, isbns)
+            print(doc, file=sys.stderr)
+            print((key, cover, isbns), file=sys.stderr)
             raise
 
 if __name__ == '__main__':

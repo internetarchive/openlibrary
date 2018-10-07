@@ -1,6 +1,7 @@
 #! /bin/bash
 """Script to findout the amount of memory required to cache all OL data.
 """
+from __future__ import print_function
 
 import random
 import web
@@ -35,7 +36,7 @@ def get_sizes(label, pattern, max, count):
     total_data_size = data_size*max/M
     total_size = total_doc_size + total_data_size
     sizes = [doc_size, data_size, total_doc_size, total_data_size, total_size]
-    print "\t".join(map(str, [label] + sizes))
+    print("\t".join(map(str, [label] + sizes)))
 
 def main():
     get_sizes("works", "/works/OL%dW", works, N)

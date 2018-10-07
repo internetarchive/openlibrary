@@ -7,6 +7,7 @@ process manager like unix init, for starting and managing OL services.
 This is used only for running the dev instance. In production, these services
 are typically run on multiple nodes and monitored using upstart.
 """
+from __future__ import print_function
 import os
 import shlex
 import subprocess
@@ -36,12 +37,12 @@ class Init:
                 time.sleep(0.5)
                 for s in services:
                     if s.poll() is not None:
-                        print "ERROR: %s stopped:" % s.name
-                        print "Stopping all services and exiting."
+                        print("ERROR: %s stopped:" % s.name)
+                        print("Stopping all services and exiting.")
                         self.stop()
                         return
         except KeyboardInterrupt:
-            print "Detected keyboard interrupy. Stopping all services and exiting."
+            print("Detected keyboard interrupy. Stopping all services and exiting.")
             self.stop()
 
     def stop(self):
@@ -62,14 +63,14 @@ class Service:
         """
         config = self.config
 
-        print "start:", config['command']
+        print("start:", config['command'])
 
         args = shlex.split(config['command'])
         cwd = config.get("root", os.getcwd())
 
         stdout = self._open_file(config.get('stdout'), 'a')
         stderr = self._open_file(config.get('stderr'), 'a')
-        print self.name, stdout, stderr
+        print(self.name, stdout, stderr)
 
         self.process = subprocess.Popen(args, cwd=cwd, stdout=stdout, stderr=stderr)
         return self
@@ -85,7 +86,7 @@ class Service:
     def stop(self, timeout=3):
         """Stops the service.
         """
-        print "stopping", self.name
+        print("stopping", self.name)
         if self.process and self.is_alive():
             self._terminate()
             exit_status = self.wait(timeout)
@@ -98,12 +99,12 @@ class Service:
 
     def _terminate(self):
         if self.process:
-            print self.process.pid, "terminate"
+            print(self.process.pid, "terminate")
             self.process.terminate()
 
     def _kill(self):
         if self.process:
-            print self.process.pid, "kill"
+            print(self.process.pid, "kill")
             self.process.kill()
 
     def wait(self, timeout=None):

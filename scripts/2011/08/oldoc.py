@@ -8,6 +8,7 @@ USAGE:
         $ ./scripts/openlibary conf/openlibrary.yml runscript scripts/2011/08/oldoc.py datestr
 
 """
+from __future__ import print_function
 import web
 import pydoc
 import sys
@@ -25,7 +26,7 @@ for name, f in sorted(functions.items()):
         try:
             doc = pydoc.text.document(f, name)
             # Remove special chars to print text as bold on the terminal
-            print re.sub("\x08.", "", doc)
+            print(re.sub("\x08.", "", doc))
         except Exception:
             # ignore errors
             pass

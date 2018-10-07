@@ -7,6 +7,7 @@ This scripts uses [pyaws][1] library for querying amazon.com.
 
 [1]: http://github.com/IanLewis/pyaws
 """
+from __future__ import print_function
 import simplejson
 import yaml
 import shelve
@@ -56,7 +57,7 @@ class Summary(Command):
                 title = d['ia'].get('title')
 
                 if latest_edition['PublishedYear']:
-                    print "\t".join([k, latest_edition['ASIN'], latest_edition['PublishedYear'], repr(title)])
+                    print("\t".join([k, latest_edition['ASIN'], latest_edition['PublishedYear'], repr(title)]))
 
     def find_latest_edition(self, amazon_books):
         """Finds the latest edition from the list of amazon books.
@@ -93,7 +94,7 @@ class LoadAmazon(Command):
         for i, k in enumerate(db):
             d = db[k]
             if 'amazon' not in d and 'ia' in d:
-                print >> sys.stderr, i, "querying amazon for", k
+                print(i, "querying amazon for", k, file=sys.stderr)
                 doc = d['ia']
 
                 title = doc.get('title') or ""
@@ -104,7 +105,7 @@ class LoadAmazon(Command):
                     d['amazon'] = self.query_amazon(title, author)
                     db[k] = d
                 except Exception:
-                    print >> sys.stderr, "Failed to load amazon data for", k
+                    print("Failed to load amazon data for", k, file=sys.stderr)
 
     def query_amazon(self, title, author):
         """Queries amazon.com using its API to find all the books matching
@@ -182,7 +183,7 @@ def load_ol(settings_file, shelve_file, ia_ids_file):
         d = sh.get(ia_id, {})
 
         if not d.get("ol"):
-            print "loading ol data for", ia_id, d
+            print("loading ol data for", ia_id, d)
             d['ol'] = load_ol_data(settings, ia_id)
             sh[ia_id] = d
 
@@ -193,13 +194,13 @@ def load_ia(shelve_file, ia_ids_file):
         ia_id = ia_id.strip()
         d = sh.get(ia_id, {})
         if not d.get("ia"):
-            print i, "loading ia data for", ia_id
+            print(i, "loading ia data for", ia_id)
 
             try:
                 d['ia'] = _load_ia_data(ia_id)
                 sh[ia_id] = d
             except Exception:
-                print "ERROR: failed to load ia data for", ia_id
+                print("ERROR: failed to load ia data for", ia_id)
                 import traceback
                 traceback.print_exc()
 
@@ -232,7 +233,7 @@ def _setup_amazon_keys():
     config = ConfigParser()
     files = config.read([".amazonrc", "~/.amazonrc"])
     if not files:
-        print >> sys.stderr, "ERROR: Unable to find .amazonrc with access keys."
+        print("ERROR: Unable to find .amazonrc with access keys.", file=sys.stderr)
 
     access_key = config.get("default", "access_key")
     secret = config.get("default", "secret")
@@ -247,7 +248,7 @@ def load_amazon(shelve_file):
     for i, k in enumerate(sh):
         d = sh[k]
         if 'amazon' not in d and 'ia' in d:
-            print >> sys.stderr, i, "querying amazon for", k
+            print(i, "querying amazon for", k, file=sys.stderr)
             doc = d['ia']
 
             title = doc.get('title')
@@ -291,7 +292,7 @@ def take(n, seq):
 def print_all(shelve_file):
     sh = shelve.open(shelve_file)
     for k in sh:
-        print k + "\t" + simplejson.dumps(sh[k])
+        print(k + "\t" + simplejson.dumps(sh[k]))
 
 def debug(shelve_file):
     sh = shelve.open(shelve_file)
@@ -302,11 +303,11 @@ def debug(shelve_file):
 
             for d in doc:
                 if not d['ASIN'].startswith("B"):
-                    print d
+                    print(d)
             break
 
 def help():
-    print __doc__
+    print(__doc__)
 
 def main(cmd, *args):
     if cmd == "load_ol":

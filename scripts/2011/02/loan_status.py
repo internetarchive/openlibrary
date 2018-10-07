@@ -10,6 +10,7 @@
 # Available
 # yes
 
+from __future__ import print_function
 import urllib2
 import simplejson
 
@@ -30,19 +31,19 @@ def get_loan_status(edition_key):
 def main():
     import sys
     if len(sys.argv) < 2:
-        print "Usage: loan_status.py /books/OL123M"
+        print("Usage: loan_status.py /books/OL123M")
         sys.exit(-1)
 
     status = get_loan_status(sys.argv[1])
     # print status
     if status is None:
-        print 'Error retrieving status'
+        print('Error retrieving status')
         sys.exit(1)
     elif status['loan_available'] and 'Lending library' in status['lending_subjects']:
-        print 'Available'
+        print('Available')
         sys.exit(0)
     else:
-        print 'Not available'
+        print('Not available')
         sys.exit(2)
 
 if __name__ == '__main__':

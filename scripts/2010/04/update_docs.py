@@ -13,6 +13,7 @@ The following example adds covers to edtions.
 
 WARNING: This script doesn't update the index tables.
 """
+from __future__ import print_function
 import simplejson
 import web
 import os
@@ -40,7 +41,7 @@ def update_docs(db, all_docs, chunk_size=10000, comment=""):
     now = datetime.datetime.utcnow()
 
     for chunk in web.group(all_docs, chunk_size):
-        print chunk
+        print(chunk)
         d = dict((doc['key'], doc) for doc in chunk)
         rows = get_docs(db, d.keys())
 

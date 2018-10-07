@@ -3,6 +3,7 @@
 
 USAGE: python scripts/2010/07/mark-templates.py worksearch /upstream/templates/search/*
 """
+from __future__ import print_function
 
 import _init_path
 
@@ -24,7 +25,7 @@ def main():
     for doc in all_docs:
         doc['plugin'] = plugin
 
-    print ol.save_many(all_docs, comment="Marked as part of %s plugin." % plugin)
+    print(ol.save_many(all_docs, comment="Marked as part of %s plugin." % plugin))
 
 if __name__ == "__main__":
     main()

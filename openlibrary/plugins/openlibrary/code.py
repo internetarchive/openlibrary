@@ -1,6 +1,7 @@
 """
 Open Library Plugin.
 """
+from __future__ import print_function
 import web
 import simplejson
 import os
@@ -126,7 +127,7 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            print(simplejson.dumps({'key': key, 'type': visiting[key]['type']}))
             visited.add(key)
             return
 
@@ -144,7 +145,7 @@ def sampledump():
             visit(ref)
         visited.add(key)
 
-        print simplejson.dumps(d)
+        print(simplejson.dumps(d))
 
     keys = [
         '/scan_record',
@@ -166,7 +167,7 @@ def sampleload(filename="sampledump.txt.gz"):
         f = open(filename)
 
     queries = [simplejson.loads(line) for  line in f]
-    print web.ctx.site.save_many(queries)
+    print(web.ctx.site.save_many(queries))
 
 
 class routes(delegate.page):
@@ -750,7 +751,7 @@ def save_error():
     f.write(error)
     f.close()
 
-    print >> web.debug, 'error saved to', path
+    print('error saved to', path, file=web.debug)
 
     return name
 

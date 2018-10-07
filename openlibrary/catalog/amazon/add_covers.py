@@ -1,3 +1,4 @@
+from __future__ import print_function
 from urllib2 import urlopen
 import simplejson
 
@@ -9,7 +10,7 @@ while not offset.startswith('2010-03-17:'):
     url = base + offset
     ret = simplejson.load(urlopen(url))
     offset, data = ret['offset'], ret['data']
-    print offset, len(data)
+    print(offset, len(data))
     for i in data:
         action = i.pop('action')
         key = i['data'].pop('key', None)
@@ -24,11 +25,11 @@ while not offset.startswith('2010-03-17:'):
             if e:
                 isbn = e.get('isbn_10', None)
                 if isbn:
-                    print >> out, (key, isbn)
+                    print((key, isbn), file=out)
         elif action == 'save_many':
             for e in i['data']['query']:
                 if e['type'] == '/type/edition' and e['key'].startswith('/b/'):
                     isbn = e.get('isbn_10', None)
                     if isbn:
-                        print >> out, (e['key'], isbn)
+                        print((e['key'], isbn), file=out)
 out.close()

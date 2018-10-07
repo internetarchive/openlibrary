@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from time import localtime, sleep, strftime
 from olapi import OpenLibrary
 

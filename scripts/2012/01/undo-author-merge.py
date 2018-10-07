@@ -5,6 +5,7 @@ http://openlibrary.org/recentchanges/2011/05/31/merge-authors/43575781
 Usage:
     ./scripts/openlibrary-server openlibrary.yml runscript undo-author-merge.py
 """
+from __future__ import print_function
 import web
 import json
 import urllib2
@@ -28,7 +29,7 @@ def get_doc(key, revision):
         if kv not in cache:
             cache[kv] = web.ctx.site.get(key, revision).dict()
         else:
-            print kv, "found in cache"
+            print(kv, "found in cache")
         return cache[kv]
 
 def get_work_authors(work):
@@ -58,14 +59,14 @@ def main():
             new_doc = latest_docs[key]
 
             if new_doc['type']['key'] != old_doc['type']['key']:
-                print key, "TYPE CHANGE", old_doc['type']['key'], new_doc['type']['key']
+                print(key, "TYPE CHANGE", old_doc['type']['key'], new_doc['type']['key'])
                 undo_docs[key] = old_doc
             elif new_doc['type']['key'] == '/type/work' and new_doc.get('authors') != old_doc.get('authors'):
-                print key, 'AUTHOR CHANGE', get_work_authors(old_doc), get_work_authors(new_doc)
+                print(key, 'AUTHOR CHANGE', get_work_authors(old_doc), get_work_authors(new_doc))
                 doc = dict(new_doc, authors=old_doc.get('authors') or [])
                 undo_docs[key] = doc
             elif old_doc['type']['key'] == '/type/edition' and new_doc.get('works') != old_doc.get('works'):
-                print key, 'WORK CHANGE', get_work(old_doc), get_work(new_doc)
+                print(key, 'WORK CHANGE', get_work(old_doc), get_work(new_doc))
                 doc = dict(new_doc, works=old_doc.get('works') or [])
 
                 if doc.get('works'):
@@ -75,7 +76,7 @@ def main():
                         doc['authors'] = [{'key': key} for key in get_work_authors(work)]
                         undo_docs[key] = doc
                     else:
-                        print key, "IGNORING, WORK NOTFOUND", wkey
+                        print(key, "IGNORING, WORK NOTFOUND", wkey)
 
     # process authors, works and books in order
     # XXX: Running all of them together is failing.
@@ -89,12 +90,12 @@ def main():
     data = {
         "parent_changeset": change_id
     }
-    print "saving..."
+    print("saving...")
     web.ctx.ip = '127.0.0.1'
     try:
         web.ctx.site.save_many(undo_docs.values(), action="undo", data=data, comment='Undo merge of "Miguel de Unamuno" and "Miguel de Cervantes Saavedra"')
     except ClientException, e:
-        print 'ERROR', e.json
+        print('ERROR', e.json)
 
 if __name__ == '__main__':
     try:

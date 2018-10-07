@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import _init_path
 
 from urllib import urlopen
@@ -60,7 +61,7 @@ skip_user = set(u.lower() for u in args.skip_user)
 only_user = set(u.lower() for u in args.only_user)
 
 if 'state_dir' not in config.runtime_config:
-    print 'state_dir missing from ' + config_file
+    print('state_dir missing from ' + config_file)
     sys.exit(0)
 
 state_file = config.runtime_config['state_dir'] + '/' + args.state_file
@@ -70,7 +71,7 @@ if exists(state_file):
 else:
     offset = "2010-06-01:0"
 
-print 'start:', offset
+print('start:', offset)
 authors_to_update = set()
 works_to_update = set()
 last_update = time()
@@ -82,23 +83,23 @@ def run_update():
     global authors_to_update, works_to_update
     subjects_to_update = set()
     global last_update
-    print 'running update: %s works %s authors' % (len(works_to_update), len(authors_to_update))
+    print('running update: %s works %s authors' % (len(works_to_update), len(authors_to_update)))
     if works_to_update:
         requests = []
         num = 0
         total = len(works_to_update)
         for wkey in works_to_update:
             num += 1
-            print 'update work: %s %d/%d' % (wkey, num, total)
+            print('update work: %s %d/%d' % (wkey, num, total))
             if '/' in wkey[7:]:
-                print 'bad wkey:', wkey
+                print('bad wkey:', wkey)
                 continue
             work_to_update = withKey(wkey)
             for attempt in range(5):
                 try:
                     requests += update_work(work_to_update)
                 except AuthorRedirect:
-                    print 'fixing author redirect'
+                    print('fixing author redirect')
                     w = ol.get(wkey)
                     need_update = False
                     for a in w['authors']:
@@ -113,7 +114,7 @@ def run_update():
                         ol.save(w['key'], w, 'avoid author redirect')
             if work_to_update['type']['key'] == '/type/work' and work_to_update.get('title'):
                 subjects = get_work_subjects(work_to_update)
-                print subjects
+                print(subjects)
                 for subject_type, values in subjects.iteritems():
                     subjects_to_update.update((subject_type, v) for v in values)
                 if len(requests) >= 100:
@@ -129,26 +130,26 @@ def run_update():
     if not args.no_author_updates and authors_to_update:
         requests = []
         for akey in authors_to_update:
-            print('update author:', repr(akey))
+            print(('update author:', repr(akey)))
             try:
                 request = update_author(akey)
                 if request:
                     requests += request
             except AttributeError:
-                print('akey:', repr(akey))
+                print(('akey:', repr(akey)))
                 raise
         if not args.no_commit:
             solr_update(requests + ['<commit/>'], debug=True)
     subject_add = Element("add")
-    print subjects_to_update
+    print(subjects_to_update)
     for subject_type, subject_name in subjects_to_update:
         key = subject_type + '/' + subject_name
         count = subject_count(subject_type, subject_name)
 
         if not subject_need_update(key, count):
-            print 'no updated needed:', (subject_type, subject_name, count)
+            print('no updated needed:', (subject_type, subject_name, count))
             continue
-        print 'updated needed:', (subject_type, subject_name, count)
+        print('updated needed:', (subject_type, subject_name, count))
 
         doc = Element("doc")
         add_field(doc, 'key', key)
@@ -158,20 +159,20 @@ def run_update():
         subject_add.append(doc)
 
     if len(subject_add):
-        print 'updating subjects'
+        print('updating subjects')
         add_xml = tostring(subject_add).encode('utf-8')
         solr_update([add_xml, '<commit />'], debug=True)
 
     authors_to_update = set()
     works_to_update = set()
     subjects_to_update = set()
-    print >> open(state_file, 'w'), offset
+    print(offset, file=open(state_file, 'w'))
 
 def process_save(key, query):
     if query:
         obj_type = query['type']['key'] if isinstance(query['type'], dict) else query['type']
         if obj_type == '/type/delete':
-            print key, 'deleted'
+            print(key, 'deleted')
     if key.startswith('/authors/') or key.startswith('/a/'):
         authors_to_update.add(key)
         q = {
@@ -201,28 +202,28 @@ def process_save(key, query):
         return
     if (key.startswith('/books/') or key.startswith('/b/')) and query and obj_type != '/type/delete':
         if obj_type != '/type/edition':
-            print 'bad type for ', key
+            print('bad type for ', key)
             return
         works_to_update.update(w['key'] if isinstance(w, dict) else w for w in (query.get('works') or []))
         try:
             authors_to_update.update(a['key'] if isinstance(a, dict) else a for a in (query.get('authors') or []))
         except:
-            print query
+            print(query)
             raise
 
 while True:
     url = base + offset
     if args.limit:
         url += '?limit=' + args.limit
-    print url
+    print(url)
     try:
         data = urlopen(url).read()
     except URLError as inst:
         if inst.args and inst.args[0].args == (111, 'Connection refused'):
-            print 'make sure infogami server is working, connection refused from:'
-            print url
+            print('make sure infogami server is working, connection refused from:')
+            print(url)
             sys.exit(0)
-        print 'url:', url
+        print('url:', url)
         raise
     try:
         ret = simplejson.loads(data)
@@ -232,7 +233,7 @@ while True:
 
     offset = ret['offset']
     data = ret['data']
-    print offset, len(data), '%s works %s authors' % (len(works_to_update), len(authors_to_update))
+    print(offset, len(data), '%s works %s authors' % (len(works_to_update), len(authors_to_update)))
     if len(data) == 0:
         if authors_to_update or works_to_update:
             run_update()
@@ -251,8 +252,8 @@ while True:
                 continue
         if author == 'AccountBot':
             if action not in ('save', 'save_many'):
-                print action, author, key, i.keys()
-                print i['data']
+                print(action, author, key, i.keys())
+                print(i['data'])
             assert action in ('save', 'save_many')
             continue
         if i.get('data') and i['data'].get('comment') and 'ia_box_id' in i['data']['comment']:

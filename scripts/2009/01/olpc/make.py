@@ -1,7 +1,8 @@
+from __future__ import print_function
 import os
 
 def system(cmd):
-    print cmd
+    print(cmd)
     os.system(cmd)
 
 def copy_src():
@@ -26,7 +27,7 @@ def copy_books():
 
 def make_books_js():
     books = open('books.index').read().split()
-    print 'creating dist/openlibrary/js/books.js'
+    print('creating dist/openlibrary/js/books.js')
     f = open('dist/openlibrary/js/books.js', 'w')
     f.write('var books = ')
     f.write(repr(books));
@@ -40,8 +41,8 @@ def main():
     copy_books()
     make_books_js()
     system('cd dist && zip -r openlibrary.xol openlibrary > /dev/null')
-    print
-    print "Activity file generated at: dist/openlibrary.xol"
+    print()
+    print("Activity file generated at: dist/openlibrary.xol")
 
 if __name__ == "__main__":
     main()

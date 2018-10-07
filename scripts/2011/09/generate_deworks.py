@@ -23,6 +23,7 @@ CHANGELOG:
 2011-10-04: first version
 
 """
+from __future__ import print_function
 import time
 import sys
 import gzip
@@ -183,7 +184,7 @@ class AuthorsDict:
         try:
             m = self.re_author.match(key)
         except TypeError:
-            print repr(key)
+            print(repr(key))
             raise
         if m:
             index = int(m.group(1))
@@ -270,7 +271,7 @@ def main(dumpfile, ia_dumpfile):
     task = DenormalizeWorksTask(ia_metadata)
 
     for key, json in task.process(records):
-        print key + "\t" + json
+        print(key + "\t" + json)
 
     task.close()
 
@@ -311,7 +312,7 @@ def make_ia_db(editions_dump_file):
         if "ocaid" in json:
             doc = simplejson.loads(json)
             ocaid = doc.get('ocaid')
-            print >> f, ocaid
+            print(ocaid, file=f)
             """
             if ocaid:
                 metaxml = ia.get_meta_xml(ocaid)

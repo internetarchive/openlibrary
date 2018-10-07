@@ -4,6 +4,7 @@ Quick analysis revealed that there are many work records with single dup and the
 
 This script removes those dups.
 """
+from __future__ import print_function
 import web
 import os
 import simplejson
@@ -21,17 +22,17 @@ def get_json(thing_id, revision):
 def fix_work_dup(key):
     rows = db.where("thing", key=key).list()
     if len(rows) == 1:
-        print key, "already fixed"
+        print(key, "already fixed")
         return
     elif len(rows) == 2:
         w1, w2 = rows
         if w1.latest_revision < w2.latest_revision:
             w1, w2 = w2, w1
-        print key, "fixing single dup", w1.id, w1.latest_revision, w2.id, w2.latest_revision
+        print(key, "fixing single dup", w1.id, w1.latest_revision, w2.id, w2.latest_revision)
         if w2.latest_revision == 1 and get_json(w1.id, 1) == get_json(w2.id, 1):
-            print "RENAME", w2.id, w2.key + "--dup"
+            print("RENAME", w2.id, w2.key + "--dup")
     else:
-        print key, "many dups"
+        print(key, "many dups")
 
 @web.memoize
 def get_property_id(type, name):
@@ -66,7 +67,7 @@ def find_more_info(key):
         row.created = row.created.isoformat()
         row.last_modified = row.last_modified.isoformat()
 
-    print key, simplejson.dumps(rows)
+    print(key, simplejson.dumps(rows))
 
 def main(dups_file):
     keys = [key.strip() for key in open(dups_file) if key.startswith("/works/")]
@@ -79,7 +80,7 @@ def generate_tsv(jsonfile):
         works = simplejson.loads(json)
         for w in sorted(works, key=lambda w: w['latest_revision'], reverse=True):
             cols = key, w['id'], w['latest_revision'], w['edition_count'], w['data']['title'], ",".join(a['author']['key'] for a in w['data']['authors'])
-            print "\t".join(web.safestr(c) for c in cols)
+            print("\t".join(web.safestr(c) for c in cols))
 
 if __name__ == "__main__":
     import sys

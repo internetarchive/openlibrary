@@ -5,6 +5,7 @@ small, medium and large images in them.
 This script splits them into separate tar files each containing only
 one type of images and contain exactly 10K images.
 """
+from __future__ import print_function
 import sys
 import tarfile
 import web
@@ -14,8 +15,8 @@ logfile = open('log.txt', 'a')
 
 def log(*args):
     msg = " ".join(args)
-    print msg
-    print >> logfile, msg
+    print(msg)
+    print(msg, file=logfile)
     logfile.flush()
 
 class TarManager:
@@ -64,7 +65,7 @@ class TarManager:
     def close(self):
         for name, _tarfile in self.tarfiles.values():
             if name:
-                print 'closing', name
+                print('closing', name)
                 _tarfile.close()
 
 def main(files):

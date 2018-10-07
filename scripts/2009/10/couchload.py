@@ -1,5 +1,6 @@
 """Load couchdb with OL data.
 """
+from __future__ import print_function
 
 import sys
 import time
@@ -26,13 +27,13 @@ def main(dbname, filename):
     for i, chunk in enumerate(group(open(filename), 1000)):
         if i%100 == 0:
             t1 = time.time()
-            print i, "%.3f" % (t1-t0)
+            print(i, "%.3f" % (t1-t0))
             t0 = t1
 
         json = '{"docs": [' + ",".join(chunk) +']}'
-        print db.resource.post('_bulk_docs', content=json)
+        print(db.resource.post('_bulk_docs', content=json))
 
-    print 'done'
+    print('done')
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

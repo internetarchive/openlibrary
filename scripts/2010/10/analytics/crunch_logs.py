@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import gzip, re, urlparse, collections, datetime, httplib, csv, os, sys
 import lxml.etree
 
@@ -122,7 +123,7 @@ class PageType:
             return {"unusual": 1}
         req = urlparse.urlsplit(req[1]).path
         if not req or req[0] != "/":
-            print "%s: malformed %s" % (self.name, line['req'])
+            print("%s: malformed %s" % (self.name, line['req']))
             return {"malformed": 1}
         if req.startswith(("/api/", "/query")):
             return {'api': 1}
@@ -209,7 +210,7 @@ def main():
         try:
             line = LOG_FORMAT.match(line.strip()).groupdict()
         except Exception, e:
-            print "FAIL: %s" % line
+            print("FAIL: %s" % line)
             continue
         if line['referrer'] == '-':
             line['referrer'] = None

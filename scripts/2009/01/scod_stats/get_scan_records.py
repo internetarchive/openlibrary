@@ -1,3 +1,4 @@
+from __future__ import print_function
 import simplejson
 import urllib
 import os
@@ -42,7 +43,7 @@ def versions(query):
     return simplejson.loads(result)['result']
 
 def write(path, data):
-    print 'writing', path
+    print('writing', path)
     dir = os.path.dirname(path)
     if dir and not os.path.exists(dir):
         os.makedirs(dir)

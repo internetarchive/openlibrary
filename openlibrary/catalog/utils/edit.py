@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re, web
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
@@ -15,7 +16,7 @@ def query_with_retry(ol, q):
             return ol.query(q)
         except:
             sleep(5)
-            print 'retry attempt', attempt
+            print('retry attempt', attempt)
 
 def get_with_retry(ol, k):
     for attempt in range(50):
@@ -23,7 +24,7 @@ def get_with_retry(ol, k):
             return ol.get(k)
         except:
             sleep(5)
-            print 'retry attempt', attempt
+            print('retry attempt', attempt)
 
 def amazon_source_records(asin):
     iter = db_amazon.select('amazon', where='asin = $asin', vars={'asin':asin})
@@ -68,7 +69,7 @@ def fix_authors(e, ol):
         return
     authors = [get_with_retry(ol, akey) for akey in e['authors']]
     while any(a['type'] == '/type/redirect' for a in authors):
-        print 'following redirects'
+        print('following redirects')
         authors = [get_with_retry(ol, a['location']) if a['type'] == '/type/redirect' else a for a in authors]
     e['authors'] = [{'key': a['key']} for a in authors]
     undelete_authors(authors, ol)
@@ -82,7 +83,7 @@ def fix_edition(key, e, ol):
         elif existing.startswith(amazon):
             sr = amazon_source_records(existing[len(amazon):]) or [existing]
         else:
-            print 'existing:', existing
+            print('existing:', existing)
             m = re_meta_mrc.search(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
         e['source_records'] = sr

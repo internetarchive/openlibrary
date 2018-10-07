@@ -1,3 +1,4 @@
+from __future__ import print_function
 import _init_path
 from openlibrary.utils import olmemcache
 import web
@@ -24,10 +25,10 @@ def main():
                 #m.add_multi(d)
             except:
                 m.delete_multi(d.keys())
-                print >> web.debug, 'failed to add to memcached', repr(r.key)
+                print('failed to add to memcached', repr(r.key), file=web.debug)
 
             t2 = time.time()
-            print >> web.debug, "%.3f" % (t2-t1), i, "adding memcache records"
+            print("%.3f" % (t2-t1), i, "adding memcache records", file=web.debug)
     finally:
         t.rollback()
 

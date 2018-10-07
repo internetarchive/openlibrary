@@ -13,6 +13,7 @@ It is possible to query the database to get the transaction ids and pass them to
     $ psql openlibrary -t  -c 'select id from transaction order by id desc limit 5' | xargs python reindex_transactions.py
 
 """
+from __future__ import print_function
 
 import logging
 import sys
@@ -59,7 +60,7 @@ def verify_index(tx_id):
         tx_data = simplejson.loads(tx.data)
         index2 = compute_index(tx_data)
         if index != index2:
-            print "\t".join([str(x) for x in [tx.id, tx.action, tx.created.isoformat(), index, index2]])
+            print("\t".join([str(x) for x in [tx.id, tx.action, tx.created.isoformat(), index, index2]]))
 
 def compute_index(tx_data):
     d = []

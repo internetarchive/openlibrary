@@ -1,3 +1,4 @@
+from __future__ import print_function
 import csv, httplib, sys, codecs, re
 from openlibrary.api import OpenLibrary
 from pprint import pprint, pformat
@@ -61,7 +62,7 @@ done = set(['978-1-4523-2945-1', '978-1-4523-0368-0', '978-1-4523-4686-1',
             '978-1-4523-7016-3', '978-1-4523-8655-3', '978-1-4523-8749-9',
             '978-1-4523-9632-3'])
 
-print len(done)
+print(len(done))
 
 re_pub_date = re.compile('^(20\d\d)/(\d\d)/(\d\d) \d\d:\d\d:\d\d$')
 
@@ -70,11 +71,11 @@ check_ia = False
 for row in csv.reader(open(input_file)):
     if not headings:
         headings = row
-        print row
+        print(row)
         continue
     book = dict(zip(headings, [s.decode('utf-8') for s in row]))
     if book['Distributor'] != 'Smashwords':
-        print book['Distributor']
+        print(book['Distributor'])
     assert book['Distributor'] == 'Smashwords'
     assert book['Publisher'] == ''
     assert book['SWID'].isdigit()
@@ -114,7 +115,7 @@ for row in csv.reader(open(input_file)):
     if check_ia:
         h1.request('GET', 'http://www.archive.org/download/' + ia)
         res = h1.getresponse()
-        print res.getheader('location')
+        print(res.getheader('location'))
         res.read()
 
     m = re_pub_date.match(book['Pub. Date @ Smashwords'])
@@ -132,7 +133,7 @@ for row in csv.reader(open(input_file)):
 
 #sys.exit(0)
 
-print len(authors)
+print(len(authors))
 
 authors_done = set([u'Zoe Winters', u'Derek Ciccone', u'Shayne Parkinson', u'Joanna Penn'])
 if False:
@@ -143,8 +144,8 @@ if False:
             'name': k,
             'bio': v['bio'],
         })
-        print
-        print akey, k
+        print()
+        print(akey, k)
         for e in v['editions']:
             wkey = ol.new({
                 'type': '/type/work',
@@ -153,7 +154,7 @@ if False:
                 'description': e['description'],
                 'subjects': ['Lending library'],
             })
-            print wkey, e['title']
+            print(wkey, e['title'])
             edition = {
                 'type': '/type/edition',
                 'title': e['title'],
@@ -165,7 +166,7 @@ if False:
             if 'isbn' in e:
                 edition['isbn'] = e['isbn']
             ekey = ol.new(edition)
-            print ekey, e['title']
+            print(ekey, e['title'])
         continue
 
 update = {}
@@ -178,19 +179,19 @@ for k, v in authors.items():
         assert k in authors_done
         continue
         author_done.append(k)
-        print {'name': k, 'bio': v['bio'] }
+        print({'name': k, 'bio': v['bio'] })
         for e in v['editions']:
             pprint({
                 'title': e['title'],
                 'authors': {'author': {'key': 'xxx'}},
                 'description': e['description'],
             })
-        print
+        print()
         continue
-        print('bio:', repr(v['bio']))
+        print(('bio:', repr(v['bio'])))
         print('editions')
         pprint(v['editions'])
-        print
+        print()
     if authors:
         akey = authors[0]
         #print k, map(str, authors)
@@ -205,10 +206,10 @@ for k, v in authors.items():
             q = {'type': '/type/edition', 'ocaid': e['ia']}
             existing = list(ol.query(q))
             if existing:
-                print existing
-                print 'skip existing:', str(existing[0]), e['ia']
+                print(existing)
+                print('skip existing:', str(existing[0]), e['ia'])
                 continue
-            print e
+            print(e)
             assert not any(e['title'].lower().startswith(t) for t, w in work_titles)
             if k not in update:
                 update[k] = dict((a, b) for a, b in v.items() if a != 'editions')
@@ -227,10 +228,10 @@ for k, v in authors.items():
                 update[k]['editions'].append(e)
                 q = {'type': '/type/edition', 'works': w['key'], 'ocaid': None}
                 assert all(not e['ocaid'] for e in ol.query(q))
-                print dict((a,b) for a, b in v.items() if a != 'editions')
-                print 'new:', e
-                print 'work:', w
-                print
+                print(dict((a,b) for a, b in v.items() if a != 'editions'))
+                print('new:', e)
+                print('work:', w)
+                print()
                 break
 
 h1.close()
