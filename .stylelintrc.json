@@ -2,8 +2,8 @@
 	"rules": {
 		"color-no-hex": true,
 		"color-named": "never",
-                "declaration-block-no-duplicate-properties": true,
-                "declaration-block-no-redundant-longhand-properties": true,
+    "declaration-block-no-duplicate-properties": true,
+    "declaration-block-no-redundant-longhand-properties": true,
 		"no-duplicate-selectors": true,
 		"block-no-empty": true,
 		"indentation": 2,
@@ -15,6 +15,20 @@
 		"no-missing-end-of-source-newline": true,
 		"max-line-length": 100,
 		"shorthand-property-no-redundant-values":true,
-                "selector-max-specificity": "1,4,0"
+		"selector-max-specificity": "1,4,0",
+		"unit-no-unknown": true,
+		"property-no-unknown": true,
+		"declaration-block-no-shorthand-property-overrides": true,
+		"selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["selected"]}],
+		"selector-pseudo-element-no-unknown": true,
+		"selector-type-no-unknown": true,
+		"media-feature-name-no-unknown": true,
+		"at-rule-no-unknown": true,
+		"comment-no-empty": true,
+		"no-duplicate-at-import-rules": true,
+		"no-extra-semicolons": true,
+		"no-empty-source": true,
+		"font-family-no-duplicate-names": true,
+		"font-family-no-missing-generic-family-keyword": true
 	}
 }
