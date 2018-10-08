@@ -211,9 +211,11 @@ class ia_importapi(importapi):
             actual_length = int(rec.leader()[:MARC_LENGTH_POS])
             edition['source_records'] = 'marc:%s/%s:%s:%d' % (ocaid, filename, offset, actual_length)
 
-            #TODO: Look up URN prefixes to support more sources
-            prefix = 'trent'
-            edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in rec.get_fields('001')]
+            #TODO: Look up URN prefixes to support more sources, extend openlibrary/catalog/marc/sources?
+            if ocaid == 'OpenLibraries-Trent-MARCs':
+                prefix = 'trent'
+                edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in rec.get_fields('001')]
+
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
