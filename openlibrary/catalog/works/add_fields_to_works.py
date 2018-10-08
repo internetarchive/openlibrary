@@ -26,6 +26,7 @@ def iter_works(fields):
     return query_iter(q)
 
 def dates():
+    global queue
     f = 'first_publish_date'
     for w in iter_works([f, 'title']):
         if f in w:

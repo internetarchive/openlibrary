@@ -13,6 +13,7 @@ class ConnectionMiddleware:
         self.conn.set_auth_token(token)
 
     def dispatch():
+        pass
 
     def request(self, sitename, path, method='GET', data=None):
         return self.conn.request(sitename, path, method, data)
@@ -110,6 +111,3 @@ class UpstreamMigrationMiddleware(ConnectionMiddleware):
             data = simplejson.loads(response)
             response = simplejson.dumps(self._process(data))
         return response
-
-
-
