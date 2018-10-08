@@ -576,7 +576,7 @@ $if "lists" in ctx.features:
     </style>
     <div class="spacer"></div>
     <div id="subjectLists">
-        $:render_template("lists/widget", page)
+        $:render_template("lists/widget", page, include_rating=False)
     </div>
 
 <div class="section clearfix"></div>

@@ -1,4 +1,4 @@
-$def with (page, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None)
+$def with (page, include_rating=True, include_header=True, include_widget=True, include_showcase=True, user_lists_only=False, readinglog_only=False, read_status=None, rating=None)
 
 $ edition = page if page.key.startswith("/books/") else None
 $ work = (page.works and page.works[0]) if page.key.startswith("/books/") else page if page.key.startswith("/works/") else None
@@ -237,7 +237,8 @@ $if include_header:
   </div>
 
 $if include_widget:
-  $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
+  $if include_rating:
+    $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
       $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
