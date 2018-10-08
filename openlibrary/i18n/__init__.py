@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import web
 import os
 from StringIO import StringIO
