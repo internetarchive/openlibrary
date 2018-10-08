@@ -1,4 +1,7 @@
 {
+	"plugins": [
+		"stylelint-declaration-use-variable"
+	],
 	"rules": {
 		"color-no-hex": true,
 		"color-named": "never",
@@ -14,12 +17,19 @@
 		"number-leading-zero": "never",
 		"no-missing-end-of-source-newline": true,
 		"max-line-length": 100,
-		"shorthand-property-no-redundant-values":true,
+		"shorthand-property-no-redundant-values": true,
 		"selector-max-specificity": "1,4,0",
 		"unit-no-unknown": true,
 		"property-no-unknown": true,
 		"declaration-block-no-shorthand-property-overrides": true,
-		"selector-pseudo-class-no-unknown": [true, {"ignorePseudoClasses": ["selected"]}],
+		"selector-pseudo-class-no-unknown": [
+			true,
+			{
+				"ignorePseudoClasses": [
+					"selected"
+				]
+			}
+		],
 		"selector-pseudo-element-no-unknown": true,
 		"selector-type-no-unknown": true,
 		"media-feature-name-no-unknown": true,
@@ -29,6 +39,17 @@
 		"no-extra-semicolons": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
-		"font-family-no-missing-generic-family-keyword": true
+		"font-family-no-missing-generic-family-keyword": true,
+		"sh-waqar/declaration-use-variable": [
+			[
+				"font-family",
+				{
+					"ignoreValues": [
+						"inherit",
+						"transparent"
+					]
+				}
+			]
+		]
 	}
 }
