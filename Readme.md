@@ -93,7 +93,7 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ## Architecture
 
-### The Backend
+### The Backend using HTML/CSS
 
 OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
 
