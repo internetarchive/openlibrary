@@ -6,6 +6,25 @@
  * - openlibrary/templates/lists/widget.html
  */
 
+div.dropit {
+  // heart icon
+  div.icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icons_sprite.png);
+    background-repeat: no-repeat;
+    &.list {
+      background-position: 0 0;
+    }
+    &.listed {
+      background-position: -32px 0;
+    }
+  }
+}
+
 div.dropper {
   &.on {
     div.arrow {

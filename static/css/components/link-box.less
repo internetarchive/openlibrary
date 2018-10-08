@@ -1,0 +1,37 @@
+/**
+ * Link Box
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#linkbox
+ */
+
+// contentQuarter rule can likely be removed in future when legacy.css has been removed
+.contentQuarter,
+.link-box {
+  float: left;
+  max-width: 215px;
+  min-height: 100px;
+  margin-bottom: 20px;
+}
+
+.link-box {
+  h6 {
+    color: @black;
+    margin: 0;
+    text-transform: uppercase !important;
+  }
+  > div span {
+    font-size: .75em;
+  }
+  > div {
+    padding-right: 19px;
+  }
+}
+
+// div.subjects can be removed in future when legacy.css has been removed
+div.subjects,
+.link-box {
+  > div {
+    white-space: normal;
+    word-break: normal;
+    word-wrap: break-word;
+  }
+}
