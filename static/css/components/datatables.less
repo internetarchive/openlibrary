@@ -4,6 +4,8 @@
  * - vendor/js/jquery-datatables/jquery.dataTables.min.js
  */
 
+@import (less) "less/z-index.less";
+
 .FixedHeader_Cloned th {
   background-color: @white;
 }
@@ -15,7 +17,7 @@
 .dataTables_wrapper {
   font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
   position: relative;
-  z-index: 1;
+  z-index: @z-index-level-1;
   margin: 15px 0;
   float: left;
   clear: both;

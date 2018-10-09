@@ -6,6 +6,8 @@
  *  - openlibrary/plugins/openlibrary/js/ol.js
  */
 
+@import (less) "less/z-index.less";
+
 header#header-bar {
   max-width: 960px;
   min-width: 300px;
@@ -42,7 +44,7 @@ header#header-bar {
 
     .account-dropdown {
       position: absolute;
-      z-index: 999;
+      z-index: @z-index-level-5;
       text-align: right;
       width: 125px;
       margin-top: 5px;
@@ -115,7 +117,7 @@ header#header-bar {
 
   .hamburger-dropdown-component {
     position: absolute;
-    z-index: 999;
+    z-index: @z-index-level-5;
   }
 
   .hamburger-component {
@@ -189,7 +191,7 @@ header#header-bar {
 
       .dropdown-menu {
         position: absolute;
-        z-index: 999;
+        z-index: @z-index-level-5;
         text-align: left;
         width: 100%;
         top: 6px;
@@ -292,7 +294,7 @@ header#header-bar {
       border: 1px solid @dark-beige;
       border-radius: .3em;
       background-color: @grey-fafafa;
-      z-index: 999;
+      z-index: @z-index-level-5;
       position: relative;
     }
 
@@ -308,7 +310,7 @@ header#header-bar {
 
     .search-dropdown {
       position: relative;
-      z-index: 999;
+      z-index: @z-index-level-5;
 
       .search-results {
         background: @white;
@@ -361,7 +363,7 @@ header#header-bar {
 
     .search-facet-selector {
       display: none;
-      z-index: 2;
+      z-index: @z-index-level-2;
       margin-top: 3px;
       padding: 13px 10px 0;
       font-size: 14px;
@@ -385,7 +387,7 @@ header#header-bar {
         font-family: inherit;
         font-weight: inherit;
         color: inherit;
-        z-index: 1;
+        z-index: @z-index-level-1;
         background: none;
         border: none;
         cursor: pointer;

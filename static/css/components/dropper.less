@@ -6,6 +6,8 @@
  * - openlibrary/templates/lists/widget.html
  */
 
+@import (less) "less/z-index.less";
+
 div.dropit {
   // heart icon
   div.icon {
@@ -94,7 +96,7 @@ div#subjectLists {
     top: 0;
     left: 32px;
     width: 230px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
 
     &.on {
       background-color: @lightest-grey;
@@ -150,7 +152,7 @@ div.Tools {
     top: 0;
     left: 32px;
     width: 198px;
-    z-index: 10000;
+    z-index: @z-index-level-14;
 
     &.on {
       background-color: @lightest-grey;
@@ -235,7 +237,7 @@ div#listsWork {
     top: 0;
     left: 32px;
     width: 161px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
     &.on {
       background-color: @lightest-grey;
       border: 1px solid @light-mid-grey;
@@ -339,7 +341,7 @@ div#listsWork {
 
 div.tools-override {
   div.dropper {
-    z-index: 10000;
+    z-index: @z-index-level-14;
     width: 180px;
     top: unset;
     left: -1px;

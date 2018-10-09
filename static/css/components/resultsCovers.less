@@ -5,6 +5,8 @@
  * Please do not use, until this issue is resolved.
  */
 
+@import (less) "less/z-index.less";
+
 /* RESULTS CAROUSEL SKIN */
 #resultsList,
 #resultsCovers {
@@ -112,7 +114,7 @@
 }
 
 .jcarousel-list {
-  z-index: 1;
+  z-index: @z-index-level-1;
   overflow: hidden;
   position: relative;
   top: 0;
@@ -134,12 +136,12 @@
 }
 
 .jcarousel-next {
-  z-index: 3;
+  z-index: @z-index-level-3;
   display: none;
 }
 
 .jcarousel-prev {
-  z-index: 3;
+  z-index: @z-index-level-3;
   display: none;
 }
 
@@ -209,7 +211,7 @@
 }
 
 .jcarousel-clip {
-  z-index: 2;
+  z-index: @z-index-level-2;
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -224,7 +226,7 @@
   left: 0;
   background: @white url(/images/back_results.png) repeat-x;
   height: 485px;
-  z-index: 3000;
+  z-index: @z-index-level-12;
 }
 
 #resultsList {
