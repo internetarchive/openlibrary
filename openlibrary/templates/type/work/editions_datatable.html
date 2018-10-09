@@ -5,7 +5,7 @@ $def with (page)
     $if page.first_publish_year:
         <span class="count">$_("First published in %s", page.first_publish_year)</span>
     </h2>
-    <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
+    <div class="small sansserif brown">
         <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?
     </div>
 </div>
