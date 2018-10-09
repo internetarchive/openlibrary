@@ -42,7 +42,11 @@ class ReadableUrlProcessor:
         web.ctx.readable_path = readable_path
         web.ctx.path = real_path
         web.ctx.fullpath = web.ctx.path + web.ctx.query
-        return handler()
+        out = handler()
+        V2_TYPES = ['works']
+        if any(web.ctx.path.startswith('/%s/' % _type) for _type in V2_TYPES):
+            out.v2 = True
+        return out
 
 def _get_object(site, key):
     """Returns the object with the given key.

@@ -51,7 +51,7 @@ $if isbn_10 and not asin:
         $# Added here instead of LoanStatus to avoid the js being bound to every item
         $# in a work's edition listing
         <script type="text/javascript">
-          \$(function() {
+          window.q.push(function() {
             \$('.return-book').submit(function(event) {
               if (!confirm("Really return this book?")) {
                 event.preventDefault();

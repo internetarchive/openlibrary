@@ -188,7 +188,7 @@ $ publishers = (', '.join(book.publishers))
 
         <script type="text/javascript">
         <!--
-        \$(function(){
+        window.q.push(function(){
             \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
             \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
             \$('#wikiselect').focus(function(){\$(this).select();})

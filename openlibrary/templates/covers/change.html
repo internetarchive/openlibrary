@@ -29,7 +29,7 @@ $else:
 
 <script type="text/javascript">
 <!--
-\$().ready(function(){
+window.q.push(function(){
     if(jQuery.support.opacity){
         \$("#tabsImages").tabs({fx:{opacity:'toggle'}});
     } else {
@@ -65,7 +65,7 @@ function update_image(image) {
         \$("$cover_selector").attr('src', url);
 }
 
-\$().ready(function(){
+window.q.push(function(){
     function add_iframe(selector, src) {
         \$(selector)
             .append('<iframe frameborder="0" height="530" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
