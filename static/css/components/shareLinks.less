@@ -20,56 +20,37 @@
   }
 }
 
-// I believe the #content is redundant.
-// Review and merge with above if correct.
-#content {
-  .shareLinks {
-    margin-top: 10px;
-    a {
-      line-height: 24px;
-      img {
-        height: 30px;
-      }
-    }
-    ul {
-      list-style-type: none;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-    li {
-      list-style-type: none;
-      display: inline;
-      line-height: 24px;
-    }
+.shareLinks-list {
+  margin-top: 10px;
+  .display-flex();
+
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  li {
+    list-style-type: none;
+    display: inline;
+    line-height: 24px;
+    display: inline-block;
+    margin: 5px 0 0;
+    padding: 0;
+    flex: 1;
+    cursor: pointer;
   }
 
-  // I believe this rule is overly specific
-  div.Tools {
-    // .shareLinks-list will always be inside a .shareLinks element
-    .shareLinks .shareLinks-list {
-      .display-flex();
-
-      li {
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-        margin-top: 5px;
-        flex: 1;
-        cursor: pointer;
-
-        a {
-          display: block;
-          text-align: center;
-          cursor: pointer;
-
-          img {
-            display: block;
-            margin: 0 auto;
-            cursor: pointer;
-          }
-        }
-      }
-    }
+  a {
+    display: block;
+    text-align: center;
+    cursor: pointer;
+    line-height: 24px;
+  }
+  img {
+    display: block;
+    margin: 0 auto;
+    cursor: pointer;
+    height: 30px;
   }
 }
