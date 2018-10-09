@@ -2182,14 +2182,10 @@ div.workDetails {
 
 div.edition {
   &Cover {
-    float: left;
-    width: 180px;
     min-height: 10px;
     padding-right: 1.5em;
   }
   &About {
-    float: left;
-    width: 430px;
     min-height: 10px;
     p {
       margin: 1.5em 0;
@@ -2197,8 +2193,6 @@ div.edition {
     }
   }
   &Tools {
-    float: right;
-    width: 270px;
     min-height: 10px;
   }
 }
@@ -4289,7 +4283,23 @@ ul#myreads-paginator {
   table {
     display: table;
   }
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  @import (less) "components/dropper--tablet.less";
   @import (less) "components/page-banner--tablet.less";
+  @import (less) "components/tools--tablet.less";
   @import (less) "components/tablet/iaBar.less";
   @import (less) "components/tablet/header-bar.less";
 }

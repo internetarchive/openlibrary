@@ -1,0 +1,21 @@
+/**
+ * Tools
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#Tools
+ * This component appears to predominately be about layout.
+ * The file should be refactored and its layout rules generalised.
+ */
+.Tools {
+  width: 250px;
+}
+div.tools-override {
+  width: 180px;
+  &.editionTools {
+    float: left;
+  }
+  .Tools {
+    .btn-notice {
+      width: 180px;
+      margin-left: 45px;
+    }
+  }
+}
