@@ -11,7 +11,8 @@ $if test or (books and len(books) >= min_books):
           $for index, book in enumerate(books or []):
             $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
             $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
-            $if index > 5:
+            $# fallback for users w/ js disabled
+            $if index > ctx.MAX_VISIBLE_BOOKS:
               $ img_attr = 'data-lazy'
             $else:
               $ img_attr = 'src'
