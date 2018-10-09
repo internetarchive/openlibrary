@@ -788,7 +788,7 @@ class IA_Lending_API:
 
     def _post(self, **params):
         logger.info("POST %s %s", config_ia_loan_api_url, params)
-        if config_ia_developer_lending_key:
+        if config_ia_loan_api_developer_key:
             params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
