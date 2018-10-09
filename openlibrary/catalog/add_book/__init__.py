@@ -563,7 +563,7 @@ def load(rec):
     need_work_save = need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
-    if e.works:
+    if hasattr(e, 'works'):
         w = e.works[0].dict()
         work_created = False
     else:

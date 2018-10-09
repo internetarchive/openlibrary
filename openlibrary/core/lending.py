@@ -56,6 +56,7 @@ config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
+config_ia_loan_api_developer_key = None
 config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -75,7 +76,7 @@ def setup(config):
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
-        config_ia_users_loan_history
+        config_ia_users_loan_history, config_ia_loan_api_developer_key
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -90,6 +91,7 @@ def setup(config):
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_users_loan_history = config.get('ia_users_loan_history')
+    config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
     config_amz_api = config.get('amazon_api')
@@ -207,7 +209,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     of unique available books.
     """
     url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
-                         work_id=work_id, _type=_type, sorts=sorts)    
+                         work_id=work_id, _type=_type, sorts=sorts)
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
@@ -257,7 +259,7 @@ def get_realtime_availability_of_ocaid(ocaid):
 def add_availability(editions):
     """Adds API v2 availability info to editions, e.g. for work's editions table
     """
-    
+
     ocaids = [ed.get('ocaid') or ed.ia[0] for ed in editions if (ed.get('ia') or ed.get('ocaid'))]
     availability = get_availability_of_ocaids(ocaids)
     for i, ed in enumerate(editions):
@@ -786,8 +788,11 @@ class IA_Lending_API:
 
     def _post(self, **params):
         logger.info("POST %s %s", config_ia_loan_api_url, params)
+        if config_ia_developer_lending_key:
+            params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
+
         try:
             jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
                                        timeout=config_http_request_timeout).read()

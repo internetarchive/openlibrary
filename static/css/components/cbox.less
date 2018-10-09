@@ -76,3 +76,157 @@
     }
   }
 }
+
+/* VIEW LARGER COVER POP-UP */
+div.coverFloat {
+  position: relative;
+  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  background: @white;
+  text-align: left;
+  a.floaterShut {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 16px;
+    height: 16px;
+    background-image: url(/images/icons/icon_close-pop-sm.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -16px;
+    }
+  }
+  &Head {
+    background-color: @brown;
+    height: 16px;
+    padding: 0 10px 10px 0;
+    font-size: 1em;
+    font-weight: 700;
+    color: @white;
+  }
+}
+
+a.floater {
+  &Shut {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icon_close-pop.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -32px;
+    }
+  }
+  &Close {
+    color: @red;
+    font-size: 1.0em;
+    padding-left: 20px;
+  }
+}
+
+/* ADD IMAGE/COVER POP-UP */
+div.floater {
+  position: relative;
+  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  width: 640px;
+  min-height: 670px;
+  background: @white;
+  text-align: left;
+  &Head {
+    background-color: @brown;
+    padding: 0 10px 10px;
+    h2 {
+      color: @white;
+      font-size: 1.75em;
+      margin: 0;
+      padding: 0;
+    }
+  }
+  &Body {
+    padding: 20px;
+    font-size: 14px;
+    p {
+      margin-bottom: 14px;
+    }
+  }
+}
+
+.floatform {
+  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+
+  .label {
+    width: 560px;
+    padding-top: 20px;
+    label {
+      font-size: 1.0em;
+      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-weight: 700;
+    }
+    span {
+      font-weight: normal;
+    }
+  }
+  .input {
+    width: 560px;
+    padding-top: 20px;
+  }
+  div#covers.input {
+    width: 560px;
+    max-height: 132px;
+    overflow: hidden;
+    padding-top: 20px;
+    margin-left: -80px;
+    text-align: center;
+  }
+  input[type=text],
+  input[type=file] {
+    width: 350px;
+    font-size: 1.125em;
+    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    padding: 3px;
+    margin-left: 30px;
+  }
+  button[type=submit] {
+    font-size: 1.125em;
+    width: auto !important;
+  }
+}
+/* ADD ROLES, ETC. */
+div.floaterAdd {
+  position: relative;
+  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  width: 640px;
+  background: @white;
+  text-align: left;
+  .formElement {
+    margin: 0 20px;
+  }
+  form.floatform {
+    .input {
+      width: 560px;
+      padding-top: 5px;
+    }
+    .label {
+      width: 560px;
+      padding-top: 20px;
+      label {
+        font-size: 1.0em;
+        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+        font-weight: 700;
+      }
+    }
+    input[type=text],
+    textarea {
+      width: 560px;
+      margin-left: 0;
+    }
+    textarea {
+      padding: 3px;
+    }
+  }
+}
