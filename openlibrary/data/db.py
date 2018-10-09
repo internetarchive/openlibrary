@@ -32,7 +32,8 @@ __all__ = [
     "setup_database", "setup_memcache",
     "longquery",
     "iterdocs",
-    "get_docs", "update_docs"
+    # "get_docs",  # "get_docs()" is not defined.
+    "update_docs"
 ]
 
 db_parameters = None
