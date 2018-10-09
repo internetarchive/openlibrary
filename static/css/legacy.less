@@ -42,6 +42,9 @@
 table {
   border-collapse: collapse;
   border-spacing: 0;
+  overflow: auto;
+  display: block;
+
   &#toc-table {
     width: 100%;
     font-size: .8125em;
@@ -4283,6 +4286,9 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  table {
+    display: table;
+  }
   @import (less) "components/tablet/iaBar.less";
   @import (less) "components/tablet/header-bar.less";
 }
