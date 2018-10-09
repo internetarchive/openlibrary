@@ -19,6 +19,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/z-index.less";
 
 @import (less) 'components/datatables.less';
 @import (less) 'components/diff.less';
@@ -406,7 +407,7 @@ em {
       height: 600px;
       float: left;
       clear: both;
-      z-index: 1;
+      z-index: @z-index-level-1;
     }
     /* stylelint-enable selector-max-specificity */
     div.olPopup {
@@ -437,7 +438,7 @@ em {
       top: 0;
       left: 0;
       padding: 10px;
-      z-index: 1005;
+      z-index: @z-index-level-9;
     }
     /* stylelint-enable selector-max-specificity */
     /* stylelint-disable selector-max-specificity */
@@ -446,7 +447,7 @@ em {
       top: 0;
       left: 0;
       padding: 10px;
-      z-index: 1006;
+      z-index: @z-index-level-10;
     }
     /* stylelint-enable selector-max-specificity */
     /* stylelint-disable selector-max-specificity */
@@ -588,7 +589,7 @@ q {
 }
 
 .onTop {
-  z-index: 20000 !important;
+  z-index: @z-index-level-15 !important;
 }
 
 .breadcrumbs {
@@ -887,7 +888,7 @@ div#content {
     position: absolute;
     display: none;
     top: 151px;
-    z-index: 1002;
+    z-index: @z-index-level-8;
     width: 890px;
     height: 91px;
     margin: 0 30px;
@@ -1135,7 +1136,7 @@ div.formDivider {
   &Flip {
     position: relative;
     float: right;
-    z-index: 1000;
+    z-index: @z-index-level-6;
     padding: 3px 5px;
     border-left: 10px solid @olive;
   }
@@ -1187,7 +1188,7 @@ form {
       text-indent: -999em;
       float: left;
       position: relative;
-      z-index: 10;
+      z-index: @z-index-level-4;
       background: transparent;
       cursor: pointer;
 
@@ -1486,7 +1487,7 @@ div.searchOptions {
   background-color: @black;
   opacity: .5;
   filter: alpha(opacity=50);
-  z-index: 9999 !important;
+  z-index: @z-index-level-13 !important;
 }
 
 * html {
@@ -1504,7 +1505,7 @@ div.searchOptions {
   border-radius: 12px;
   -webkit-box-shadow: 1px 3px 10px @black;
   box-shadow: 1px 3px 10px @black;
-  z-index: 10000 !important;
+  z-index: @z-index-level-14 !important;
   .ui-dialog-titlebar {
     position: relative;
     background-color: @brown;
@@ -1872,7 +1873,7 @@ div.editThis {
       left: 0;
       right: 0;
       cursor: pointer;
-      z-index: 1000;
+      z-index: @z-index-level-6;
     }
   }
   .SRPCover {
@@ -2712,7 +2713,7 @@ div#navMask {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1001;
+  z-index: @z-index-level-7;
   background-color: @beige;
   filter: alpha(opacity=70);
   display: none;
@@ -2727,7 +2728,7 @@ div#logoHistory {
   text-align: center;
   overflow: visible;
   top: 10px;
-  z-index: 1006;
+  z-index: @z-index-level-10;
 }
 
 div#history {
@@ -2751,7 +2752,7 @@ div#history {
       position: absolute;
       top: -35px;
       right: 15px;
-      z-index: 1005;
+      z-index: @z-index-level-9;
       -webkit-border-top-right-radius: 8px;
       -webkit-border-top-left-radius: 8px;
       -moz-border-radius-topright: 8px;
@@ -2926,7 +2927,7 @@ div#history {
 .coverMagic {
   .coverEbook {
     cursor: pointer;
-    z-index: 1000;
+    z-index: @z-index-level-6;
   }
 }
 
@@ -3309,7 +3310,7 @@ div.tabsPop {
     }
     .ui-tabs-selected a {
       padding: 8px 3px 11px;
-      z-index: 2;
+      z-index: @z-index-level-2;
     }
   }
   .ui-tabs-panel {
@@ -4246,7 +4247,7 @@ div#subjectLists {
   color: @dark-grey;
   &Container {
     width: 100%;
-    z-index: 99999;
+    z-index: @z-index-level-16;
     position: absolute;
     bottom: 15px;
     a {
