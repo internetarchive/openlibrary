@@ -66,17 +66,9 @@ table {
       vertical-align: top;
     }
     td.title {
-      white-space: nowrap;
       width: 120px;
     }
-    td.object {
-      white-space: nowrap;
-    }
-    td.tag {
-      white-space: nowrap;
-    }
     td.descrip {
-      white-space: nowrap;
       width: 65px;
     }
   }
@@ -2229,14 +2221,9 @@ div.work {
     font-size: 1.125em;
   }
   &Cover {
-    float: right;
-    width: 270px;
     min-height: 10px;
   }
   &About {
-    float: left;
-    clear: left;
-    width: 610px;
     padding-right: 38px;
   }
   &Padding {
@@ -4303,7 +4290,31 @@ ul#myreads-paginator {
   .desktop-only {
     display: inherit;
   }
-
+  // Whitespace nowrap is problematic in tables on mobile
+  table {
+    &.meta {
+      td.title,
+      td.object,
+      td.descrip,
+      td.tag {
+        white-space: nowrap;
+      }
+    }
+  }
+  // Books pages
+  div.work {
+    &Cover {
+      float: right;
+      width: 270px;
+      min-height: 10px;
+    }
+    &About {
+      float: left;
+      clear: left;
+      width: 610px;
+      padding-right: 38px;
+    }
+  }
   @import (less) "components/desktop/iaBar.less";
   @import (less) "components/desktop/editions.less";
   @import (less) "components/desktop/form.olform.less";
