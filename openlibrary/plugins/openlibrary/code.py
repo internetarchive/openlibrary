@@ -31,7 +31,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 
-import processors
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -61,7 +61,7 @@ models.register_types()
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-import lists
+from openlibrary.plugins.openlibrary import lists
 lists.setup()
 
 logger = logging.getLogger("openlibrary")
