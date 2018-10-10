@@ -1,6 +1,8 @@
 """
 Open Library Plugin.
 """
+from __future__ import absolute_import
+
 import web
 import simplejson
 import os
@@ -44,7 +46,7 @@ except:
 infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 # setup special connection with caching support
-import connection
+from openlibrary.plugins.openlibrary import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
