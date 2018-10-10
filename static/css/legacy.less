@@ -2175,11 +2175,6 @@ ul.readers-stats {
   }
 }
 
-div.workDetails {
-  float: left;
-  width: 915px;
-}
-
 div.edition {
   &Cover {
     min-height: 10px;
@@ -4332,6 +4327,24 @@ ul#myreads-paginator {
       width: 610px;
       padding-right: 38px;
     }
+  }
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  div.workDetails {
+    float: left;
+    width: 915px;
   }
   @import (less) "components/desktop/iaBar.less";
   @import (less) "components/desktop/editions.less";
