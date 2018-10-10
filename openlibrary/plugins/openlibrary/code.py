@@ -841,8 +841,9 @@ def setup_context_defaults():
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, \
-        events, design, status, merge_editions, authors
+    from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
+                                                 stats, support, events, design, status,
+                                                 merge_editions, authors)
 
     home.setup()
     design.setup()
@@ -856,12 +857,11 @@ def setup():
     merge_editions.setup()
     authors.setup()
 
-    import api
-    from stats import stats_hook
-    delegate.app.add_processor(web.unloadhook(stats_hook))
+    from openlibrary.plugins.openlibrary import api
+    delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get("dev_instance") is True:
-        import dev_instance
+        from openlibrary.plugins.openlibrary import dev_instance
         dev_instance.setup()
 
     setup_context_defaults()
