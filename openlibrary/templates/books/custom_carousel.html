@@ -1,5 +1,59 @@
 $def with(books=None, title="", url="", key="", min_books=7, test=False)
 
+$def render_carousel_cover(book, lazy):
+  $ url = book.get('key') or book.url
+  $ title = book.title
+  $if book.get('cover_url'):
+    $ cover_url = book.get('cover_url')
+  $elif book.get('cover_id'):
+    $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
+  $elif book.get('ia'):
+    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia'), fallback_cover)
+  $else:
+     $ cover_url = fallback_cover
+  $if book.get('authors'):
+    $ author_names = [author.name for author in book.authors]
+    $ byline = ' by ' + ', '.join(author_names)
+  $else:
+    $ byline = ''
+  $ modifier = ''
+  $ cta = None
+  $if book.get('ocaid'):
+    $ modifier = 'borrow-link'
+    $ cta_url = '/borrow/ia/%s' % book.ocaid
+    $ cta = 'Borrow'
+  $elif book.get('ia') and book.get('public_scan'):
+    $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
+    $ cta = 'Read eBook'
+  $elif book.get('lending_edition'):
+    $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
+    $ cta = 'Borrow eBook'
+  $elif book.get('lending_edition'):
+    $ cta_url = book.get('read_url')
+    $ cta = 'Read'
+  $else:
+    $ cta = 'Read'
+    $ cta_url = url
+
+  $if lazy:
+    $ img_attr = 'data-lazy'
+  $else:
+    $ img_attr = 'src'
+
+  <div class="book carousel__item">
+    <div class="book-cover">
+      <a href="$(url)">
+        <img class="bookcover"
+          width="130" height="200"
+          title="$('%s%s'%(title,byline))"
+          $img_attr="$(cover_url)"/>
+      </a>
+    </div>
+    $if cta:
+      <div class="book-cta"><a class="btn primary $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
+        data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
+  </div>
+
 $if test or (books and len(books) >= min_books):
       <div class="carousel-section">
       $if title and url:
@@ -7,29 +61,13 @@ $if test or (books and len(books) >= min_books):
           <h2 class="home-h2"><a href="$url">$title</a></h2>
         </div>
       <div class="carousel-container carousel-container-decorated">
+        $ attrs = ''
         <div class="carousel carousel-$key">
+          $ cover_host = '//covers.openlibrary.org'
+          $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+
           $for index, book in enumerate(books or []):
-            $ byline = (' by ' + ', '.join([author.name for author in book.authors])) if book.get('authors') else ''
-            $ byline_links = (' by ' + ', '.join(['<a href="%s">%s</a>' % (author.key, author.name) for author in book.authors])) if book.get('authors') else ''
-            $# fallback for users w/ js disabled
-            $if index > ctx.MAX_VISIBLE_BOOKS:
-              $ img_attr = 'data-lazy'
-            $else:
-              $ img_attr = 'src'
-            $ cover_url = book.get('cover_url', '')
-            <div class="book carousel__item">
-              <div class="book-cover">
-                <a href="$(book.get('key') or book.url)">
-                  <img class="bookcover"
-                    width="130" height="200"
-                    title="$book.title$(byline)"
-                    $img_attr="$cover_url"/>
-                </a>
-              </div>
-              $ cta_url = book.get('read_url') or '/borrow/ia/%s' % book.ocaid
-              $ cta = 'Read' if book.get('read_url') else 'Borrow'
-              <div class="book-cta"><a class="btn primary" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title">$cta</a></div>
-            </div>
+              $:render_carousel_cover(book, index > 5)
         </div>
         <script type="text/javascript">
               window.q.push(function() {

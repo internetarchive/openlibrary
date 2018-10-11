@@ -52,8 +52,10 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 var page = new Subject($:json_encode(page));
 //-->
 </script>
-
-$:render_template("lib/covers", page)
+$if 'v2' in page:
+    $:render_template("books/custom_carousel", books=page.works, key="subjects")
+$else:
+    $:render_template("lib/covers", page)
 
 <div id="contentMeta" style="padding-top:0;">
 

@@ -527,7 +527,7 @@ $if ctx.user:
 
     }
 
-    \$().ready(function(){
+    window.q.push(function(){
         setup_submit_event();
         setup_events();
         setup_dialog();

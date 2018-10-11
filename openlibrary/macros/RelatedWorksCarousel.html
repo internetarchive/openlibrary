@@ -4,6 +4,6 @@ $if work:
     $ work_subjects_authors = cached_work_authors_and_subjects(work.key)
     $ authors = ', '.join([author if isinstance(author, basestring) else author.name for author in work_subjects_authors.get('authors', [])])
     <div class="related-books">
-      $:render_template("home/custom_ia_carousel", title="You might also like", key="related-subjects-carousel", work_id=work.key, _type="subjects", limit=42, min_books=1, slick=False)
-      $:render_template("home/custom_ia_carousel", title="More by %s" % (authors or "this author"), key="related-authors-carousel", work_id=work.key, _type="authors", limit=42, min_books=1, slick=False)
+      $:render_template("home/custom_ia_carousel", title="You might also like", key="related-subjects-carousel", work_id=work.key, _type="subjects", limit=42, min_books=1, slick=True)
+      $:render_template("home/custom_ia_carousel", title="More by %s" % (authors or "this author"), key="related-authors-carousel", work_id=work.key, _type="authors", limit=42, min_books=1, slick=True)
     </div>
