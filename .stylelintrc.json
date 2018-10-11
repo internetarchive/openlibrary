@@ -1,5 +1,28 @@
 {
+	"plugins": [
+		"stylelint-declaration-use-variable"
+	],
 	"rules": {
+		"sh-waqar/declaration-use-variable": [
+			[
+				"background-color",
+				{
+					"ignoreValues": [
+						"inherit",
+						"none",
+						"transparent"
+					]
+				},
+				"z-index", {},
+				"color",
+				{
+					"ignoreValues": [
+						"inherit",
+						"transparent"
+					]
+				}
+			]
+		],
 		"color-no-hex": true,
 		"color-named": "never",
 		"declaration-block-no-duplicate-properties": true,

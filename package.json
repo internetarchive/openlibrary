@@ -50,6 +50,7 @@
   "devDependencies": {
     "bundlesize": "^0.17.0",
     "less": "^3.8.1",
-    "stylelint": "^9.5.0"
+    "stylelint": "^9.5.0",
+    "stylelint-declaration-use-variable": "^1.7.0"
   }
 }
