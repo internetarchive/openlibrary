@@ -13,9 +13,9 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 # Use python from local env if it exists or else default to python in the path.
 PYTHON=$(if $(wildcard env),env/bin/python,python)
 
-.PHONY: all clean distclean git css js i18n
+.PHONY: all clean distclean git css js i18n lint
 
-all: git css js i18n
+all: git css js i18n lint
 
 css:
 	mkdir -p $(BUILD)
@@ -94,6 +94,13 @@ destroy:
 reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
+
+lint:
+	# stop the build if there are Python syntax errors or undefined names
+	# TODO: Add --select=F821 once the other issues are fixed
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20* --select=E901,E999,F822,F823 --show-source --statistics
+	# exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20* --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
 test:
 	npm test
