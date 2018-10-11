@@ -1,4 +1,4 @@
-import web, re, httplib, sys, urllib2, threading
+import os, web, re, httplib, sys, urllib2, threading
 import simplejson as json
 from lxml import etree
 import openlibrary.catalog.importer.pool as pool
