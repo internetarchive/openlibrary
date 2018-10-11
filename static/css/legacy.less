@@ -1502,19 +1502,7 @@ div#editionBuy {
 }
 
 /* TOOLS ACCORDION */
-
-div#editTools,
-div#editButton,
-div#editHistory {
-  float: right;
-  padding: 3px 1px 0 20px;
-  width: auto;
-}
-
-div#editTools {
-  white-space: nowrap;
-  max-width: 280px;
-}
+@import (less) "components/edit-toolbar.less";
 
 div#editButton,
 div#editHistory,
@@ -1522,19 +1510,6 @@ div.revert.notice {
   button {
     font-size: 1.125em;
   }
-}
-
-div#editInfo {
-  float: right;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.linkButton {
-  border-radius: 5px;
-  background: @white;
-  padding: 10px;
-  color: @dark-grey;
 }
 
 div#revertNotice {
@@ -4296,6 +4271,7 @@ ul#myreads-paginator {
   @import (less) "components/dropper--tablet.less";
   @import (less) "components/page-banner--tablet.less";
   @import (less) "components/Tools--tablet.less";
+  @import (less) "components/edit-toolbar--tablet.less";
   @import (less) "components/tablet/iaBar.less";
   @import (less) "components/tablet/header-bar.less";
 }
