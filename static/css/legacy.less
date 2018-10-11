@@ -82,25 +82,6 @@ table {
   &.identifiers {
     width: 395px;
   }
-  &.history {
-    width: 100%;
-    margin-top: 10px;
-    border-top: 1px solid @grey-e7e7e7;
-    td {
-      font-size: .6875em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-      color: @grey;
-      border-bottom: 1px solid @grey-e7e7e7;
-    }
-    td.timestamp {
-      padding: 10px;
-      white-space: nowrap;
-    }
-    td.detail {
-      padding: 10px;
-      width: 100%;
-    }
-  }
   &.records {
     width: 100%;
     td {
@@ -2565,15 +2546,7 @@ ul {
   }
 }
 
-/* HISTORY */
-
-#pageHistory {
-  width: 100%;
-  margin-top: 30px;
-  h2 {
-    margin-bottom: 0;
-  }
-}
+@import (less) "components/page-history.less";
 
 /* HISTORY FRAMESET */
 div#navMask {
