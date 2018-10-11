@@ -1,6 +1,8 @@
 $def with(books=None, title="", url="", key="", min_books=7, test=False)
 
 $def render_carousel_cover(book, lazy):
+  $ url = book.get('key') or book.url
+  $ title = book.title
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
   $elif book.get('cover_id'):
@@ -29,12 +31,15 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('lending_edition'):
     $ cta_url = book.get('read_url')
     $ cta = 'Read'
-  $ url = book.get('key') or book.url
-  $ title = book.title
+  $else:
+    $ cta = 'Read'
+    $ cta_url = url
+
   $if lazy:
     $ img_attr = 'data-lazy'
   $else:
     $ img_attr = 'src'
+
   <div class="book carousel__item">
     <div class="book-cover">
       <a href="$(url)">
