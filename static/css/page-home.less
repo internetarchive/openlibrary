@@ -5,41 +5,17 @@
  * - openlibrary/templates/borrow.html
  * - openlibrary/templates/books/daisy.html
  */
-@import (less) "less/colors.less";
-@import (less) "less/breakpoints.less";
-@import (less) "less/mixins.less";
+@import (less) "less/index.less";
 
-// Should be moved to common.less when more pages have been ported over.
-p {
-  font-size: 14px;
-}
+// Import all base styles
+@import (less) "base/index.less";
 
-// Import all common components
-@import (less) "lib/helpers-common.less";
-@import (less) "common.less";
-@import (less) "v2.less";
+// layout rules
+@import (less) "layout/index.less";
 
-// Import components this page uses
-@import (less) "components/book.less";
-// One button should be enough, but for now we need 2.
-@import "components/buttonGhost.less";
-@import "components/buttonBtn.less";
-// End buttons
+// Components (modules) in order of appearance on page
+@import (less) "components/header.less";
 @import (less) "components/carousel.less";
-@import (less) "components/iaBar.less";
-@import (less) "components/footer.less";
-@import (less) "components/header-bar.less";
 @import (less) "components/home.less";
 @import (less) "components/olBlog.less";
-@import (less) "components/page-banner.less";
-
-@media only screen and (min-width: @width-breakpoint-tablet) {
-  @import (less) "components/tablet/iaBar.less";
-  @import (less) "components/tablet/header-bar.less";
-  @import (less) "components/page-banner--tablet.less";
-}
-
-@media all and ( min-width: @width-breakpoint-desktop ) {
-  @import (less) "components/desktop/iaBar.less";
-  @import (less) "components/desktop/header-bar.less";
-}
+@import (less) "components/footer.less";
