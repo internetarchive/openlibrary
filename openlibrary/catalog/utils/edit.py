@@ -1,4 +1,4 @@
-import re, web
+import json, re, urllib2, web
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
 from time import sleep
