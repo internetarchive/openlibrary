@@ -1,3 +1,5 @@
+from pprint import pprint
+
 type_map = {
     'description': 'text',
     'notes': 'text',
