@@ -1,0 +1,25 @@
+@import (less) "components/dropper--tablet.less";
+
+// workDetails is the parent element.
+// These elements are all children.
+div.edition {
+  &Cover {
+    float: left;
+  }
+  &About {
+    float: left;
+    width: 430px;
+  }
+  &Tools {
+    float: right;
+    width: 250px;
+  }
+}
+// clear the floating of the edition* elements.
+.workDetails {
+  &:after {
+    content: '';
+    clear: both;
+    display: block;
+  }
+}

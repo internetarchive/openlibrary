@@ -24,7 +24,10 @@
     list-style-type: none;
     line-height: 24px;
     display: inline-block;
-    margin: 5px 0 0;
+    // FIXME:
+    // Important can be removed when component/Tools has been removed
+    // The list styles clash with this component.
+    margin: 5px 0 0 !important;
     padding: 0;
     flex: 1;
     cursor: pointer;

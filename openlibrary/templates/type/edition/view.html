@@ -112,7 +112,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     $:macros.databarView(page)
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
-        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work_title, 60)</span> found in the catalog.
+        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
     </div>
@@ -232,11 +232,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             <h3 class="collapse">$_("About the Edition")</h3>
             $:sanitize(format(page.description))
         $else:
-          <div class="workHelp brown sansserif">
+          <p class="workHelp">
             There's no description for this book yet. Can
             you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
-          </div>
-
+          </p>
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
             <p>$page.first_sentence</p>
@@ -263,9 +262,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
             <div class="section">
                 <h3>$_("Edition Notes")
-                    $if page.notes:
-                        <span class="sansserif">$:format(page.notes)</span>
                 </h3>
+                $if page.notes:
+                    $:format(page.notes)
                 <dl class="meta">
                     $:display_value(_("Series"), page.series)
                     $:display_value(_("Volume"), page.volume)

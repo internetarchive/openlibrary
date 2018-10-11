@@ -1,0 +1,30 @@
+/**
+ * Read Panel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#read-panel
+ */
+.read-options,
+// .Tools .btn-notice is a legacy selector. Remove at earliest opportunity.
+.Tools .btn-notice {
+  line-height: 1.5em;
+  font-size: 1em;
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: @white;
+  border-radius: 5px;
+  border: 1px solid @lighter-grey;
+  border-bottom: 1px solid @mid-grey;
+  margin-top: 0;
+
+  strong,
+  .cta-section-title {
+    display: block;
+    font-weight: bold;
+  }
+  li {
+    margin: 5px 10px 0;
+  }
+}
+// For the button at the top
+@import (less) "components/buttonCta.less";
+// for the share links at the bottom
+@import (less) "components/shareLinks.less";

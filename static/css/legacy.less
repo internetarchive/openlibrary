@@ -1955,46 +1955,8 @@ div.list {
 }
 
 /* BOOKS */
-
-.section.book-overview {
-  border-bottom: 1px solid @lightest-grey;
-  padding-bottom: 10px;
-
-  .section {
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-}
-
-.editionAbout {
-  h2.edition-byline {
-    font-size: .9em;
-    font-weight: normal;
-    color: @dark-grey;
-    margin: 0;
-    margin-bottom: 10px;
-  }
-}
-
-@import (less) "components/readerStats.less";
+@import (less) "components/work.less";
 @import (less) "components/navEdition.less";
-
-div.edition {
-  &Cover {
-    min-height: 10px;
-    padding-right: 1.5em;
-  }
-  &About {
-    min-height: 10px;
-    p {
-      margin: 1.5em 0;
-      font-size: .9em;
-    }
-  }
-  &Tools {
-    min-height: 10px;
-  }
-}
 
 div.work {
   font-family: @lucida_sans_serif-1;
@@ -2344,7 +2306,6 @@ ul {
 }
 
 #external-links {
-  margin-left: 40px;
   ul li {
     list-style-type: none;
   }
@@ -3630,15 +3591,6 @@ div#subjectLists {
   }
 }
 
-.related-books {
-  border-top: 1px solid @lightest-grey;
-  margin-top: 15px;
-  clear: both;
-  h2 {
-    margin-top: 15px;
-  }
-}
-
 ul#myreads-paginator {
   margin-top: 10px;
 
@@ -3821,6 +3773,8 @@ ul#myreads-paginator {
   }
 }
 
+@import (less) "components/work.less";
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   div.content {
     &Left {
@@ -3843,20 +3797,7 @@ ul#myreads-paginator {
       white-space: nowrap;
     }
   }
-  div.edition {
-    &Cover {
-      float: left;
-      width: 180px;
-    }
-    &About {
-      float: left;
-      width: 430px;
-    }
-    &Tools {
-      float: right;
-      width: 270px;
-    }
-  }
+  @import (less) "components/work--tablet.less";
   @import (less) "components/dropper--tablet.less";
   @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
@@ -3901,24 +3842,6 @@ ul#myreads-paginator {
       width: 610px;
       padding-right: 38px;
     }
-  }
-  div.edition {
-    &Cover {
-      float: left;
-      width: 180px;
-    }
-    &About {
-      float: left;
-      width: 430px;
-    }
-    &Tools {
-      float: right;
-      width: 270px;
-    }
-  }
-  div.workDetails {
-    float: left;
-    width: 915px;
   }
   .content {
     &Twothird {
