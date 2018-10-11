@@ -239,7 +239,7 @@ def read_json(file):
         ret = (d['key'], d['type']['key'], json)
         if not all(isinstance(i, basestring) for i in ret):
             print 'not all strings:'
-            print josn
+            print json
         yield ret
 
 def xopen(file):
