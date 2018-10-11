@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re, web, cgitb
+import re, sys, web, cgitb
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
