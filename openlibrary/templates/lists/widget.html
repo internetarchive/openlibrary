@@ -90,10 +90,10 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
       <div class="icon list hidetool"></div>
-          $if edition and not work_key:
+          $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
             <div class="dropper on">
@@ -168,7 +168,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </form>
               </div>
 
-              $if not readinglog_only:
+              $if not readinglogonly:
                 <div class="reading-lists">
                   <p class="reading-list-title">My Reading Lists:</p>
                   <div class="my-lists">
@@ -241,7 +241,7 @@ $if include_widget:
     $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only)
     </div>
   $else:
     <div class="dropit">
@@ -386,7 +386,7 @@ $if ctx.user:
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, pageurl));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
 
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
