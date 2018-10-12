@@ -18,6 +18,7 @@
 }
 .carousel {
   .display-flex();
+  margin-bottom: 15px;
   overflow-x: scroll;
   padding: 10px 20px;
 
@@ -85,4 +86,12 @@
   }
 }
 
+// Hide horizontal scroll bar if JS is going to be loaded
+.client-js {
+  .carousel {
+    margin-bottom: 0;
+    // hide the overlay until carousel--js has loaded
+    overflow: hidden;
+  }
+}
 @import (less) "category-item.less";
