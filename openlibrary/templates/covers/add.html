@@ -10,7 +10,7 @@ $elif doc.type.key == "/type/edition":
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
 $elif doc.get_edition_covers:
-    $ intro = _("There are two ways to get a cover image on Open Library")
+    $ intro = _("There are three ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
 $else:
     $ intro = _("There are two ways to get a cover image on Open Library")
@@ -27,7 +27,10 @@ $if status:
 <script type="text/javascript">
 <!--
 window.q.push(function(){
-    parent.closeThrobber();
+    // page may not be loaded via iframe
+    if ( parent && parent.closeThrobber ) {
+        parent.closeThrobber();
+    }
     \$("#form.addcover-form").submit(function(event) {
 
        function val(selector) {
@@ -73,22 +76,33 @@ window.q.push(function(){
                         <div class="label">
                             <label>$:_("<strong>Pick one</strong> from the existing covers,")</label>
                         </div>
-                        <div id="covers">
-                            <ul id="popcovers">
-                            $for cover in doc.get_edition_covers():
-                                <li class="edition-cover" id="cover-$cover.id"><img src="$cover.url(size='M')"/></li>
-                            </ul>
+                        <div class="carousel-section">
+                            <div id="covers" class="carousel-container carousel-container-decorated">
+                                <div id="popcovers" class="carousel">
+                                $for cover in doc.get_edition_covers():
+                                    <div class="book carousel__item" data-id="$cover.id">
+                                        <div class="book-cover">
+                                            <img src="$cover.url(size='M')"
+                                                width="100" class="bookcover"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <input type="hidden" id="coverid" name="coverid" value=""/>
                         <script type="text/javascript">
-                        \$("#popcovers > li").click(function() {
-                            \$(this).toggleClass("selected").siblings().removeClass("selected");
-                            var coverid = "";
-                            if (\$(this).hasClass("selected")) {
-                                coverid = \$(this).attr("id").split("-")[1];
-                            }
-                            \$("#coverid").val(coverid);
-                        });
+                        window.q.push( function () {
+                            Carousel.add('#popcovers');
+                            // Clicking a cover should set the form value to the data-id of that cover
+                            \$("#popcovers .book").click(function() {
+                                \$(this).toggleClass("selected").siblings().removeClass("selected");
+                                var coverid = "";
+                                if (\$(this).hasClass("selected")) {
+                                    coverid = \$(this).data("id");
+                                }
+                                \$("#coverid").val(coverid);
+                            } );
+                        } );
                         </script>
                     </div>
 

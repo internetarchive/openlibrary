@@ -1,5 +1,11 @@
 var Carousel = {
     add: function(selector, a, b, c, d, e, f) {
+        a = a || 6;
+        b = b || 5;
+        c = c || 4;
+        d = d || 3;
+        e = e || 2;
+        f = f || 1;
         var responsive_settings = [
             {
                 breakpoint: 1200,
