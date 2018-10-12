@@ -10,7 +10,7 @@ $elif doc.type.key == "/type/edition":
     $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
 $elif doc.get_edition_covers:
-    $ intro = _("There are three ways to get a cover image on Open Library")
+    $ intro = _("There are two ways to get a cover image on Open Library")
     $ action = doc.url('/add-cover')
 $else:
     $ intro = _("There are two ways to get a cover image on Open Library")
@@ -26,9 +26,7 @@ $if status:
 
 <script type="text/javascript">
 <!--
-\$().ready(carousels);
-\$().ready(function(){\$('#popcovers').jcarousel();});
-\$(function() {
+window.q.push(function(){
     parent.closeThrobber();
     \$("#form.addcover-form").submit(function(event) {
 
