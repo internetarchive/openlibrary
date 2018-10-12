@@ -25,6 +25,7 @@ memcached
 libpq-dev
 libxml2-dev
 libxslt-dev
+libffi-dev
 curl
 screen
 npm
