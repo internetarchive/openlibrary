@@ -322,27 +322,6 @@ def get_pages(type, processor):
     for p in pages:
         processor(web.ctx.site.get(p))
 
-class flipbook(delegate.page):
-    path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
-
-    SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
-
-    def GET(self, identifier, leaf):
-        if leaf:
-            hash = '#page/n%s' % leaf
-        else:
-            hash = ""
-
-        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
-        raise web.seeother(url)
-
-class bookreader(delegate.page):
-    path = "/bookreader/(.*)"
-
-    def GET(self, id):
-        data = render.bookreader(id)
-        raise web.HTTPError("200 OK", {}, data)
-
 class robotstxt(delegate.page):
     path = "/robots.txt"
     def GET(self):
@@ -777,16 +756,6 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
-class backdoor(delegate.page):
-    path = "/debug/backdoor"
-
-    def GET(self):
-        import backdoor
-        reload(backdoor)
-        result = backdoor.inspect()
-        if isinstance(result, basestring):
-            result = delegate.RawText(result)
-        return result
 
 def is_bot():
     """Generated on ol-www1 within /var/log/nginx with:
