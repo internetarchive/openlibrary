@@ -16,6 +16,7 @@
   margin: 0 -20px;
   padding: 3px 15px;
 }
+
 .carousel {
   .display-flex();
   margin-bottom: 15px;
@@ -27,6 +28,15 @@
     height: 100%;
     margin: 0 10px;
     min-height: 1px;
+  }
+
+  // Modifiers
+  // A smaller carousel.
+  &--minimal {
+    img {
+      max-height: 100px;
+      width: auto;
+    }
   }
 
   > div {
