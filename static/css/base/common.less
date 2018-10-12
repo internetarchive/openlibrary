@@ -30,16 +30,19 @@ td {
 button {
   outline: none;
 }
+body,
+p,
+li {
+  color: @dark-grey;
+}
 body {
   font-size: 100%;
   line-height: normal;
-  color: @dark-grey;
   background-color: @beige;
   font-family: @lucida_sans_serif-1;
 }
 p {
   font-size: .875em;
-  color: @dark-grey;
   line-height: 1.5em;
 }
 hr {
@@ -96,6 +99,14 @@ table {
   overflow: auto;
   display: block;
   word-break: normal;
+}
+#contentBody {
+  li {
+    line-height: 1.5em;
+  }
+  ol li {
+    list-style: decimal;
+  }
 }
 @media only screen and (min-width: @width-breakpoint-tablet) {
   table {
