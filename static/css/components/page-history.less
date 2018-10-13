@@ -1,0 +1,53 @@
+/**
+ * PageHistory
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#page-history
+ */
+/* HISTORY */
+
+#pageHistory {
+  width: 100%;
+  margin-top: 30px;
+}
+.pageHistory__list {
+  font-size: .8em;
+}
+.pageHistory__tools {
+  font-size: .7em;
+  float: right;
+  padding-top: 8px;
+}
+// We assume list items in page history will only have 2 items
+// In future we can use last-child if we ever need to have more.
+.pageHistory__list li {
+  &:first-child {
+    &:after {
+      content: " · ";
+    }
+  }
+}
+table {
+  &.history {
+    width: 100%;
+    margin-top: 10px;
+    border-top: 1px solid @grey-e7e7e7;
+    tr {
+      &:last-child {
+        background: @lightest-grey;
+      }
+    }
+    td {
+      font-size: .6875em;
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      color: @grey;
+      border-bottom: 1px solid @grey-e7e7e7;
+    }
+    td.timestamp {
+      padding: 10px;
+      white-space: nowrap;
+    }
+    td.detail {
+      padding: 10px;
+      width: 100%;
+    }
+  }
+}
