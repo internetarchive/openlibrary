@@ -899,7 +899,7 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         if not user_has_current_loan:
             raise Exception('lending: no current loan for this user found but no error condition specified')
 
-    return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds) }
+    return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds), 'userid': user.itemname(), 'ocaid': item_id }
 
 
 def make_ia_token(item_id, expiry_seconds):
