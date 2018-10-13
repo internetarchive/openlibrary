@@ -9,15 +9,15 @@
    - [Installation](#installation)
    - [Code Organization](#code-organization)
    - [Architecture](#architecture)
-     - [The Frontend](#the-frontend)
+     - [The Frontend](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
      - [The Backend](#the-backend)
-     - [The Service Architecture](#the-service-architecture)
+     - [The Service Architecture](https://github.com/internetarchive/openlibrary/wiki/Production-Service-Architecture)
    - [Developer's Guide](#developers-guide)
    - [Running Tests](#running-tests)
-   - [Contributing](#contributing)
+   - [Contributing](CONTRIBUTING.md)
    - [Public APIs](https://openlibrary.org/developers/api)
    - [FAQs](https://openlibrary.org/help/faq)
-   - [License](#license)
+   - [License](LICENSE)
 
 ## Overview
 
@@ -28,6 +28,13 @@ Open Library is an effort started in 2006 to create "one web page for every book
 - [Visit the Blog](http://blog.openlibrary.org)
 
 ## Installation
+
+### Docker
+**We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
+
+Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
+
+### Vagrant (Legacy & Windows)
 
 First you need to have installed [Virtualbox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/).
 
@@ -60,6 +67,12 @@ vagrant ssh
 **Note:** <br>
 Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
 
+### Reload vagrant services:
+
+- From within vagrant restart the Open Library service via:
+``` sudo systemctl restart ol-web. ``` <br>
+- If you are not in the vagrant dev virtual machine you can simply run ``` vagrant reload ``` for the same.
+
 ### Help!
 
 If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
@@ -80,10 +93,6 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ## Architecture
 
-### The Frontend
-
-- [Overview of Frontend Technologies](https://github.com/internetarchive/openlibrary/wiki/Frontend-Guide)
-
 ### The Backend
 
 OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
@@ -93,10 +102,6 @@ OpenLibrary is developed on top of the Infogami wiki system, which is itself bui
 Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase):
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
-
-### The Service Architecture
-
-- [Overview of OpenLibrary Service Architecture](https://openlibrary.org/about/architecture)
 
 ## Running tests
 
@@ -112,11 +117,3 @@ make test
 ### Integration Tests
 
 Integration tests use the Splinter webdriver with Google Chrome. For instructions on installation requirements and running integration tests, [see Integration Tests README](tests/integration/README.md)
-
-## Contributing
-
-[Check out our contributor's guide](CONTRIBUTING.md) to learn how you can contribute!
-
-## License
-
-All source code published here is available under the terms of the GNU Affero General Public License, version 3. Please see http://gplv3.fsf.org/ for more information.

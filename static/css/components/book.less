@@ -1,0 +1,25 @@
+// https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#book
+
+.book {
+  .book-cta {
+    margin: 5px auto 0;
+    font-size: .9em;
+    padding: 5px 0;
+
+    a {
+      display: block;
+    }
+  }
+  .book-cover {
+    img,
+    a {
+      display: block;
+    }
+  }
+
+  img.bookcover {
+    margin: 0 auto;
+    box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
+    border-radius: 3px;
+  }
+}

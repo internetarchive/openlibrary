@@ -1,0 +1,55 @@
+{
+  "name": "openlibrary",
+  "version": "1.0.0",
+  "repository": "github:internetarchive:openlibrary",
+  "license": "AGPL-3.0",
+  "scripts": {
+    "build-assets": "make js && make css",
+    "check-bundles": "npm run build-assets && bundlesize",
+    "lint:fix": "stylelint --syntax less --fix static/css/",
+    "test": "npm run check-bundles && stylelint  --syntax less static/css/"
+  },
+  "bundlesize": [
+    {
+      "path": "static/build/vendor.js",
+      "maxSize": "135.57KB"
+    },
+    {
+      "path": "static/build/vendor-v2.js",
+      "maxSize": "183.8KB"
+    },
+    {
+      "path": "static/build/all.js",
+      "maxSize": "32.3KB"
+    },
+    {
+      "path": "static/build/page-admin.css",
+      "maxSize": "25.4KB"
+    },
+    {
+      "path": "static/build/page-edit.css",
+      "maxSize": "25.6KB"
+    },
+    {
+      "path": "static/build/page-form.css",
+      "maxSize": "25.6KB"
+    },
+    {
+      "path": "static/build/page-home.css",
+      "maxSize": "4.1KB"
+    },
+    {
+      "path": "static/build/page-plain.css",
+      "maxSize": "25.7KB"
+    },
+    {
+      "path": "static/build/page-user.css",
+      "maxSize": "25.5KB"
+    }
+  ],
+  "devDependencies": {
+    "bundlesize": "^0.17.0",
+    "less": "^3.8.1",
+    "stylelint": "^9.5.0"
+  }
+}

@@ -1,0 +1,118 @@
+/**
+ * EditionsTable
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#editionstable
+ */
+
+table#editions {
+  clear: both;
+  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+
+  th {
+    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: normal;
+    text-align: center;
+    background-color: @lightest-grey;
+    border-bottom: 1px solid @mid-grey;
+    border-left: 5px solid @white;
+    border-right: 5px solid @white;
+    padding: 6px 0;
+    outline: none;
+    cursor: pointer;
+  }
+
+  td.book {
+    vertical-align: top;
+  }
+
+  td.icon {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 0 10px 10px;
+    width: 143px;
+
+    ul {
+      margin-bottom: 0;
+    }
+  }
+
+  div.cover {
+    text-align: center;
+    padding: 10px 10px 10px 0;
+    width: 70px;
+    overflow: hidden;
+
+    img {
+      max-width: 70px;
+      max-height: 60px;
+    }
+  }
+
+  div.title {
+    font-size: 1.0em;
+    padding: 10px 0;
+  }
+
+  div.links {
+    font-size: 12px;
+    color: @dark-grey;
+    line-height: 1.5em;
+  }
+  .btn-notice {
+    padding: 0;
+    background-color: none !important;
+  }
+
+  .links {
+    li,
+    ul {
+      list-style-type: none;
+    }
+  }
+}
+
+.lists {
+  table#editions {
+    h3 {
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-size: .75em;
+      display: inline;
+    }
+    th {
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      background-color: transparent;
+      text-align: left;
+      font-weight: normal;
+      font-size: .6875em;
+      color: @brown;
+      padding: 0 0 10px;
+      border-left: none;
+      border-right: none;
+    }
+    td {
+      color: @dark-grey;
+      vertical-align: top;
+
+      &.what {
+        min-width: 410px;
+      }
+      &.when,
+      &.who,
+      &.que {
+        font-size: .75em;
+        padding: 10px 15px 10px 0;
+      }
+      .cover {
+        width: 40px;
+        padding-right: 10px;
+
+        img {
+          max-height: 35px;
+          max-width: 40px;
+        }
+      }
+    }
+  }
+}

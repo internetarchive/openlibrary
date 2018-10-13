@@ -630,7 +630,7 @@ class Work(models.Work):
 
             for book in books:
                 book.availability = availability.get(book.ocaid) or {"status": "error"}
-            return books
+            return books[::-1]
         else:
             return []
 

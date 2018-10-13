@@ -84,9 +84,10 @@ def test_urlsafe():
     assert h.urlsafe("a?") == "a"
 
 def test_get_coverstore_url(monkeypatch):
-    assert h.get_coverstore_url() == "https://covers.openlibrary.org"
-
     from infogami import config
+
+    monkeypatch.delattr(config, "coverstore_url", raising=False)
+    assert h.get_coverstore_url() == "https://covers.openlibrary.org"
 
     monkeypatch.setattr(config, "coverstore_url", "https://0.0.0.0:8090", raising=False)
     assert h.get_coverstore_url() == "https://0.0.0.0:8090"

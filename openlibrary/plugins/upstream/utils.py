@@ -351,12 +351,11 @@ def get_locale():
 @public
 def process_version(v):
     """Looks at the version and adds machine_comment required for showing "View MARC" link."""
-    importers = set(['/people/ImportBot', '/people/EdwardBot', '/people/LCImportBot', '/people/AnandBot'])
     comments = [
         "found a matching marc record",
         "add publisher and source",
     ]
-    if v.author and v.author.key in importers and v.key.startswith('/books/') and not v.get('machine_comment'):
+    if v.key.startswith('/books/') and not v.get('machine_comment'):
         thing = v.get('thing') or web.ctx.site.get(v.key, v.revision)
         if thing.source_records and v.revision == 1 or (v.comment and v.comment.lower() in comments):
             marc = thing.source_records[-1]

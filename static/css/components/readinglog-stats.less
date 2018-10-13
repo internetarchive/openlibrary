@@ -1,0 +1,20 @@
+/**
+ * ReadingLogStats
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readinglog-stats
+ * Defined in:
+ * - openlibrary/templates/stats/readinglog.html
+ */
+
+table.readinglog-stats {
+  width: 100%;
+  border-radius: 5px;
+  padding: 10px;
+  th {
+    font-weight: bold;
+  }
+  tr {
+    &:nth-child(even) {
+      background-color: @lightest-grey;
+    }
+  }
+}

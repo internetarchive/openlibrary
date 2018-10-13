@@ -1,0 +1,88 @@
+/**
+ * Carousel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
+ */
+
+// Badly named. Should be renamed "carousel-heading" or similar.
+.home-h2 {
+  font-size: 1.2em;
+  font-weight: normal;
+  color: @link-blue;
+  margin-bottom: .5em;
+  margin-top: 1.75em;
+}
+
+.carousel-container {
+  margin: 0 -20px;
+  padding: 3px 15px;
+}
+.carousel {
+  .display-flex();
+  overflow-x: scroll;
+  padding: 10px 20px;
+
+  &__item {
+    float: left;
+    height: 100%;
+    margin: 0 10px;
+    min-height: 1px;
+  }
+
+  > div {
+    min-width: 130px;
+  }
+
+  // JavaScript only block,but needed to avoid reflows
+  // Without, on slower connections, there will be a flash when buttons
+  // are added.
+  button {
+    border: 0;
+    position: absolute;
+    color: transparent;
+  }
+
+  .book {
+    &:last-child {
+      margin-right: 0;
+    }
+
+    .book-metadata {
+      width: 130px;
+      margin: 0 auto;
+    }
+
+    h2.book-title {
+      font-size: .8em;
+      margin: 5px 0;
+      color: @dark-grey;
+      font-weight: normal;
+
+      a {
+        color: @link-blue;
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+/**
+ * Carousel (decorated)
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#decorated-carousel
+ */
+
+.carousel-container-decorated {
+  background: @book-cover-carousel-background;
+  border-bottom: 1px solid @book-cover-carousel-border-bottom;
+  border-top: 1px solid @book-cover-carousel-border-top;
+}
+
+// TODO: Document where this is used. This is unlikely to need to be so specific.
+.carousel-section {
+  .SRPCover {
+    img {
+      box-shadow: 1px 2px 5px 0 @book-cover-shadow-color;
+    }
+  }
+}
+
+@import (less) "category-item.less";

@@ -21,6 +21,7 @@ from utils import render_template
 from openlibrary.core import cache
 from openlibrary.core.lending import amazon_api
 from openlibrary import accounts
+from openlibrary.utils import dateutil
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
 from openlibrary.plugins.openlibrary import code as ol_code
 
@@ -141,7 +142,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
     # "upstream.code._get_amazon_metadata"
     memoized_get_amazon_metadata = cache.memcache_memoize(
         _get_amazon_metadata, "upstream.code._get_amazon_metadata",
-        timeout=cache.ONE_WEEK)
+        timeout=dateutil.WEEK_SECS)
     # fetch cached value from this controller
     result = memoized_get_amazon_metadata(*args, **kwargs)
     if result is None:
@@ -199,7 +200,7 @@ def _get_betterworldbooks_metadata(isbn):
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=cache.HALF_DAY)
+    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.

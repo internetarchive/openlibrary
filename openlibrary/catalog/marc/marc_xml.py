@@ -1,5 +1,5 @@
 from lxml import etree
-from marc_base import MarcBase
+from marc_base import MarcBase, MarcException
 from unicodedata import normalize
 
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
@@ -9,16 +9,16 @@ leader_tag = '{http://www.loc.gov/MARC21/slim}leader'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 
+class BlankTag(MarcException):
+    pass
+
+class BadSubtag(MarcException):
+    pass
+
 def read_marc_file(f):
     for event, elem in etree.iterparse(f, tag=record_tag):
         yield MarcXml(elem)
         elem.clear()
-
-class BlankTag(Exception):
-    pass
-
-class BadSubtag(Exception):
-    pass
 
 def norm(s):
     return normalize('NFC', unicode(s.replace(u'\xa0', ' ')))

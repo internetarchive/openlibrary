@@ -100,8 +100,6 @@ $def render_seed_count(seed_count):
                         <span class="type place small">$seed.type</span>
                     $elif seed.type == "person":
                         <span class="type people small">$seed.type</span>
-                    $else:
-                        <span class="type small">$seed.type</span>
                     $elif seed.type == "work":
                         - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
                     $else:

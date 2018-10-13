@@ -1,0 +1,54 @@
+/**
+ * BorrowTable
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#borrowtable
+ * Used in the following templates:
+ * - openlibrary/templates/account/borrow.html
+ * - openlibrary/templates/admin/loans_table.html
+ * - openlibrary/templates/admin/people/view.html
+ * - openlibrary/templates/admin/people/view.html
+ * - openlibrary/templates/borrow_admin.html
+ */
+
+#borrowTable {
+  table {
+    td {
+      border-bottom: 1px solid @beige-three;
+      vertical-align: top;
+
+      &.actions {
+        padding: 15px 0;
+        font-size: .75em;
+        text-align: center;
+      }
+      &.cover {
+        padding: 10px 0 10px 10px;
+      }
+      &.titles {
+        padding: 15px;
+      }
+      &.expires {
+        text-align: center;
+        padding: 15px;
+        white-space: nowrap;
+      }
+      &.returns {
+        background-color: @lightest-grey;
+        font-size: .8125em;
+        color: @dark-grey;
+        text-align: center;
+        padding: 20px 15px;
+      }
+      &.user,
+      &.what,
+      &.action {
+        text-align: center;
+        font-size: .75em;
+        padding: 15px;
+      }
+    }
+    div.date {
+      font-size: .75em;
+      color: @grey;
+    }
+  }
+}

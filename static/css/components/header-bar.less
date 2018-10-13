@@ -1,0 +1,715 @@
+/**
+ * HeaderBar
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#headerbar
+ * Defined in:
+ *  - openlibrary/templates/lib/nav_head.html
+ *  - openlibrary/plugins/openlibrary/js/ol.js
+ */
+
+header#header-bar {
+  max-width: 960px;
+  min-width: 300px;
+  margin: 0 auto;
+  .display-flex();
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+  -ms-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+
+  .account-component {
+    -webkit-box-flex: 0;
+    -ms-flex: none;
+    flex: none;
+    padding-left: 5px;
+    padding-right: 5px;
+    font-size: 1em;
+    -webkit-box-ordinal-group: 4;
+    -ms-flex-order: 3;
+    order: 3;
+
+    a {
+      color: @white;
+      text-decoration: none;
+      display: block;
+    }
+
+    .down-arrow {
+      margin-top: 1px;
+    }
+
+    .account-dropdown {
+      position: absolute;
+      z-index: 999;
+      text-align: right;
+      width: 125px;
+      margin-top: 5px;
+      right: 11px;
+
+      ul a li {
+        width: 150px;
+        text-decoration: none;
+        text-align: left;
+        padding: 5px;
+      }
+    }
+  }
+
+  .auth-component {
+    display: none;
+    padding: 5px;
+    padding-right: 0;
+    -webkit-box-ordinal-group: 5;
+    -ms-flex-order: 4;
+    order: 4;
+
+    li {
+      text-align: left;
+      // stylelint-disable declaration-block-no-duplicate-properties
+      display: -webkit-inline-box;
+      display: -ms-inline-flexbox;
+      display: inline-flex;
+      // stylelint-enable declaration-block-no-duplicate-properties
+
+      a {
+        color: @dark-grey;
+      }
+    }
+
+    .hide-me {
+      display: none;
+    }
+  }
+
+  .dropdown-menu {
+    text-align: left;
+    background-color: @light-beige;
+    border: 1px solid @dark-beige;
+    border-radius: 3px;
+    cursor: pointer;
+
+    li {
+      padding: 10px;
+      border-bottom: 1px solid @beige-two;
+      padding-right: 20px;
+
+      &:last-child {
+        border: none;
+      }
+
+      &:hover {
+        background-color: @white;
+      }
+
+      a {
+        text-decoration: none;
+        color: @dark-grey;
+        font-size: .9em;
+        padding: 10px;
+        display: block;
+      }
+    }
+  }
+
+  .hamburger-dropdown-component {
+    position: absolute;
+    z-index: 999;
+  }
+
+  .hamburger-component {
+    -webkit-box-ordinal-group: 1;
+    -ms-flex-order: 0;
+    order: 0;
+    margin-right: 5px;
+
+    button {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    img {
+      width: 44px;
+      height: 44px;
+      padding: 0 3px;
+    }
+  }
+
+  .logo-component {
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    -webkit-box-ordinal-group: 2;
+    -ms-flex-order: 1;
+    order: 1;
+
+    .logo-icon {
+      position: relative;
+      top: -1px;
+      height: 30px;
+      width: auto;
+      margin-right: 5px;
+      padding-right: 5px;
+      -ms-flex-item-align: center;
+      align-self: center;
+    }
+  }
+
+  .navigation-component {
+    .display-flex();
+    -ms-flex-preferred-size: 100%;
+    flex-basis: 100%;
+    -webkit-box-ordinal-group: 6;
+    -ms-flex-order: 5;
+    order: 5;
+
+    .more-menu {
+      display: none;
+    }
+
+    li {
+      -ms-flex-preferred-size: 100%;
+      flex-basis: 100%;
+      cursor: pointer;
+      padding: 5px 0;
+      font-size: 1em;
+
+      a {
+        color: @dark-grey;
+        text-decoration: none;
+        display: block;
+
+        &:visited {
+          color: @dark-grey;
+          text-decoration: none;
+        }
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        z-index: 999;
+        text-align: left;
+        width: 100%;
+        top: 6px;
+
+        li a {
+          color: @darker-grey;
+        }
+      }
+
+      .navigation-dropdown-component {
+        position: relative;
+      }
+    }
+  }
+
+  .search-component {
+    width: 45px;
+    -webkit-box-ordinal-group: 3;
+    -ms-flex-order: 2;
+    order: 2;
+    height: 47px;
+    margin-right: 5px;
+    text-align: right;
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+
+    .search-component-expand {
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      margin-top: 8px;
+      -ms-flex-item-align: center;
+      align-self: center;
+      height: 54px;
+
+      .search-bar-component {
+        width: 100%;
+      }
+
+      .search-bar {
+        width: auto;
+
+        /* stylelint-disable selector-max-specificity */
+        .search-bar-input {
+          .display-flex();
+        }
+        /* stylelint-enable selector-max-specificity */
+      }
+
+      /* stylelint-disable selector-max-specificity */
+      .search-bar-input input[type=text] {
+        display: block;
+        width: 100%;
+      }
+      /* stylelint-enable selector-max-specificity */
+
+      .search-bar-submit {
+        margin-right: 5px;
+        cursor: pointer;
+      }
+
+      .search-facet-selector {
+        display: block;
+      }
+
+      .search-facet {
+        display: block;
+      }
+    }
+
+    .expand {
+      .search-bar-advanced-btn {
+        display: block;
+      }
+      .search-bar-input {
+        input {
+          width: 100%;
+        }
+      }
+      .search-facet {
+        display: block;
+      }
+    }
+
+    .search-bar {
+      width: 45px;
+    }
+
+    .search-bar-submit {
+      background: url(/static/images/search-lens.png) center no-repeat;
+      width: 45px;
+      height: 45px;
+      border-top-left-radius: .3em;
+      border-bottom-left-radius: .3em;
+    }
+
+    .search-bar-component {
+      display: inline-block;
+      border: 1px solid @dark-beige;
+      border-radius: .3em;
+      background-color: @grey-fafafa;
+      z-index: 999;
+      position: relative;
+    }
+
+    .search-bar-advanced-btn {
+      text-align: center;
+    }
+
+    .search-bar-input {
+      input[type=text] {
+        max-width: 100%;
+      }
+    }
+
+    .search-dropdown {
+      position: relative;
+      z-index: 999;
+
+      .search-results {
+        background: @white;
+        border-top-left-radius: .3em;
+        border-top-right-radius: .3em;
+
+        li {
+          text-align: left;
+          padding: 7px;
+          border-top: 1px solid @lighter-grey;
+          font-size: .9rem;
+          /* stylelint-disable selector-max-specificity */
+          &:hover {
+            background-color: @white;
+          }
+          /* stylelint-enable selector-max-specificity */
+
+          a {
+            .display-flex();
+            text-decoration: none;
+            color: @dark-grey;
+
+            img {
+              width: 40px;
+              min-width: 40px;
+              height: 60px;
+              min-height: 60px;
+              background-color: @lightest-grey;
+              margin-right: 10px;
+            }
+
+            /* stylelint-disable selector-max-specificity */
+            .book-desc {
+              font-weight: 300;
+              text-decoration: none;
+
+              .book-title {
+                font-weight: 500;
+              }
+
+              .book-author {
+                color: @dark-blue;
+              }
+            }
+            /* stylelint-enable selector-max-specificity */
+          }
+        }
+      }
+    }
+
+    .search-facet-selector {
+      display: none;
+      z-index: 2;
+      margin-top: 3px;
+      padding: 13px 10px 0;
+      font-size: 14px;
+    }
+
+    .search-facet {
+      display: none;
+      position: relative;
+      border-bottom-left-radius: 3px;
+      border-top-left-radius: 3px;
+      border-bottom-right-radius: 0;
+      border-top-right-radius: 0;
+      background-color: fade(@beige, 32);
+      border: none;
+      border-right: 1px solid @lighter-grey;
+      font-weight: 500;
+      color: @grey;
+
+      select {
+        font-size: inherit;
+        font-family: inherit;
+        font-weight: inherit;
+        color: inherit;
+        z-index: 1;
+        background: none;
+        border: none;
+        cursor: pointer;
+        -moz-appearance: none;
+        appearance: none;
+        -webkit-appearance: none;
+      }
+    }
+
+    .search-facet-value {
+      display: block;
+      min-width: 20px;
+
+      padding-right: 10px;
+      &::after {
+        position: absolute;
+        top: 50%;
+        right: 4px;
+        content: '';
+        width: 0;
+        height: 0;
+        border-left: 4px solid transparent;
+        border-right: 4px solid transparent;
+        border-top: 4px solid currentColor;
+      }
+    }
+  }
+
+  .search-component-expand {
+    -webkit-box-flex: 1;
+    -ms-flex: 1;
+    flex: 1;
+    margin-top: 8px;
+    -ms-flex-item-align: center;
+    align-self: center;
+    height: 54px;
+
+    .search-bar-component {
+      width: 100%;
+    }
+
+    .search-bar {
+      width: auto;
+
+      .search-bar-input {
+        .display-flex();
+      }
+    }
+
+    .search-bar-input {
+      input[type=text] {
+        display: block;
+        width: 100%;
+      }
+    }
+
+    .search-bar-submit {
+      margin-right: 5px;
+      cursor: pointer;
+    }
+
+    .search-facet-selector {
+      display: block;
+    }
+
+    .search-facet {
+      display: block;
+    }
+  }
+}
+
+.account-component {
+  -webkit-box-flex: 1;
+  -ms-flex: 1;
+  flex: 1;
+  position: relative;
+  .dropdown-avatar {
+    .display-flex();
+    -webkit-box-align: center;
+    -ms-flex-align: center;
+    align-items: center;
+    .avatar {
+      border: none;
+      margin-right: 5px;
+      background-size: cover;
+      width: 45px;
+      height: 45px;
+      background-color: @light-mid-grey;
+      border-radius: 3px;
+    }
+  }
+}
+
+.navigation-component {
+  text-align: center;
+  position: relative;
+  .down-arrow {
+    position: relative;
+    top: -2px;
+  }
+}
+
+.hamburger-component,
+.navigation-component li,
+.account-component {
+  .navigation-dropdown-component {
+    display: none;
+  }
+  &:hover .navigation-dropdown-component {
+    display: block;
+  }
+}
+
+.logo-component {
+  margin: 0 0 5px;
+  img,
+  a {
+    display: block;
+  }
+  a {
+    color: @black;
+    text-decoration: none !important;
+  }
+  .logo-org {
+    text-align: left;
+    font-weight: 300;
+    font-size: .9em;
+    color: @grey;
+    margin: 3px;
+    padding: 0;
+    line-height: 0;
+  }
+}
+
+.search-component {
+  .search-bar-advanced-btn {
+    margin: 10px;
+    border: 0 none;
+    width: 40px;
+    padding: 0;
+    cursor: pointer;
+    display: none;
+  }
+  .search-bar {
+    max-width: none;
+    min-width: none;
+    -webkit-transition: all .2s;
+    -o-transition: all .2s;
+    transition: all .2s;
+    background: @grey-fafafa;
+    border-radius: .3em;
+    -webkit-box-flex: 1;
+    -ms-flex: 1 0 0%;
+    flex: 1;
+    .display-flex();
+  }
+  .search-bar-input {
+    min-width: 50px;
+    width: 100%;
+    .display-flex();
+    input[type=text] {
+      min-width: 0;
+      margin: 3px;
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      padding: 5px 0 2px 3px;
+      font-size: 1em;
+      font-weight: 500;
+      border: 0 none;
+      outline: none;
+      background: @grey-fafafa;
+      color: @light-grey;
+      -webkit-transition: all .5s;
+      -o-transition: all .5s;
+      transition: all .5s;
+      display: none;
+    }
+    input[type=submit] {
+      border: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+  }
+}
+
+// We should review this media query to determine if it is in fact needed.
+@media only screen and (min-width: 25em) {
+  header#header-bar {
+    .logo-component {
+      .logo-icon {
+        height: 47px;
+      }
+    }
+
+    .navigation-component {
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+  }
+}
+
+@media only screen and (min-width: 30em) {
+  header#header-bar {
+    margin: 0 auto;
+
+    .account-component {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+    }
+
+    .auth-component {
+      margin-right: 5px;
+      display: block;
+    }
+
+    .logo-component {
+      -webkit-box-flex: 1;
+      -ms-flex: 1;
+      flex: 1;
+      border-right: none;
+      padding: 0 5px;
+    }
+
+    .navigation-component {
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+
+    .search-component {
+      margin-right: 0;
+    }
+  }
+}
+
+// If JS is enabled, we are going to inject a new
+// element but use the option control to toggle it.
+// to prepare for this change and ensure the search-facet
+// is the right size hide the select element
+.client-js {
+  .search-facet {
+    select {
+      opacity: 0;
+      position: absolute;
+    }
+  }
+}
+
+// We should review this media query to determine if it is in fact needed.
+@media only screen and (min-width: 35.5em) {
+  header#header-bar {
+    .account-component {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+      -webkit-box-ordinal-group: 4;
+      -ms-flex-order: 3;
+      order: 3;
+    }
+
+    .logo-component {
+      -webkit-box-flex: 0;
+      -ms-flex: none;
+      flex: none;
+    }
+
+    .navigation-component {
+      .display-flex();
+      -webkit-box-ordinal-group: 7;
+      -ms-flex-order: 6;
+      order: 6;
+
+      .dropdown-menu {
+        border-top: none;
+        border-top-right-radius: 0;
+        border-top-left-radius: 0;
+      }
+    }
+
+    .search-bar-input {
+      input {
+        width: 100%;
+      }
+    }
+
+    .search-component {
+      .search-bar {
+        width: auto;
+        max-width: 205px;
+      }
+      .search-bar-advanced-btn {
+        display: block;
+      }
+      .search-bar-component {
+        width: 207px;
+      }
+      .search-bar-input {
+        .display-flex();
+
+        input[type=text] {
+          display: block;
+        }
+      }
+      .search-bar-submit {
+        margin-right: 5px;
+      }
+      .search-facet {
+        display: block;
+      }
+      .search-facet-selector {
+        display: block;
+      }
+    }
+  }
+}

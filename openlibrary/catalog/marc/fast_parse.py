@@ -9,6 +9,9 @@ from openlibrary.catalog.utils import tidy_isbn
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
 def translate(bytes_in, leader_says_marc8=False):
+    """
+    Converts MARC8 to unicode
+    """
     marc8 = MARC8ToUnicode(quiet=True)
     try:
         if leader_says_marc8:
@@ -43,6 +46,14 @@ class InvalidMarcFile(Exception):
     pass
 
 def read_file(f):
+    """
+    Generator which seeks? for start of a MARC record and
+    returns the proper data and its length.
+
+    :param str f: Raw binary MARC data
+    :rtype: (str, int)
+    :return: Data, length
+    """
     buf = None
     while 1:
         if buf:
@@ -106,6 +117,7 @@ class BadDictionary(Exception):
     pass
 
 def read_full_title(line, accept_sound = False, is_marc8=False):
+    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
     if not accept_sound and v.lower().startswith("[sound"):
         raise SoundRecording
     if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
@@ -114,13 +126,15 @@ def read_full_title(line, accept_sound = False, is_marc8=False):
     return ' '.join([t for t in title if t])
 
 def read_short_title(line, is_marc8=False):
+    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
     title = normalize_str(read_full_title(line, is_marc8))[:25].rstrip()
     if title:
         return [title]
     else:
         return []
 
-def read_title_and_subtitle(data, is_marc8=False): # not currently used
+def read_title_and_subtitle(data, is_marc8=False):
+    # DEPRECATED, not currently used
     line = get_first_tag(data, set(['245']))
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
@@ -296,6 +310,7 @@ def add_oclc(edition):
     edition.setdefault('oclc', []).append(oclc)
 
 def index_fields(data, want, check_author=True):
+    # DEPRECATED, has a chance of triggering exception via read_short_title
     if str(data)[6:8] != 'am': # only want books
         return None
     is_marc8 = data[9] != 'a'
@@ -306,7 +321,6 @@ def index_fields(data, want, check_author=True):
         '110': 'org',
         '111': 'even',
     }
-
 
     if check_author:
         want += author.keys()
@@ -372,6 +386,17 @@ def index_fields(data, want, check_author=True):
     return edition
 
 def read_edition(data, accept_electronic=False):
+    """
+    DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
+      Will error if data contains a 245 field.
+    Converts MARC Binary into a dict representation of an edition
+    suitable for importing into Open Library.
+
+    :param str data: Raw MARC Binary
+    :param bool accept_electronic: Accept ebooks. If False, this returns None when ebooks are encountered
+    :return: Edition representation
+    :rtype: dict|None
+    """
     is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \
@@ -485,46 +510,3 @@ def split_line(s):
             if s[m+2:marks[i+1]]:
                 ret.append(('v', s[m+2:marks[i+1]]))
     return ret
-
-def test_wrapped_lines():
-    data = open('test_data/wrapped_lines').read()
-    ret = list(handle_wrapped_lines(get_tag_lines(data, ['520'])))
-    assert len(ret) == 2
-    a, b = ret
-    assert a[0] == '520' and b[0] == '520'
-    assert len(a[1]) == 2295
-    assert len(b[1]) == 248
-
-def test_translate():
-    assert translate('Vieira, Claudio Bara\xe2una,') == u'Vieira, Claudio Bara\xfana,'
-
-def test_read_oclc():
-    from pprint import pprint
-    for f in ('oregon_27194315',):
-        data = open('test_data/' + f).read()
-        i = index_fields(data, ['001', '003', '010', '020', '035', '245'])
-        assert 'oclc' in i
-        e = read_edition(data)
-        assert 'oclc' in e
-
-def test_record():
-    assert read_edition(open('test_data/lc_0444897283').read())
-
-def test_empty():
-    assert read_edition('') == {}
-
-def bad_marc_line():
-    line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
-    assert list(get_all_subfields(line)) == [(u'\xe1', u'Etude objective des ph\xe9nom\xe8nes neuro-psychiques;')]
-
-def test_index_fields():
-    data = open('test_data/ithaca_college_75002321').read()
-    lccn = index_fields(data, ['010'])['lccn'][0]
-    assert lccn == '75002321'
-
-def test_ia_charset():
-    data = open('test_data/histoirereligieu05cr_meta.mrc').read()
-    line = list(get_tag_lines(data, set(['100'])))[0][1]
-    a = list(get_all_subfields(line, ia_bad_charset=True))[0][1]
-    expect = u'Cr\xe9tineau-Joly, J.'
-    assert a == expect

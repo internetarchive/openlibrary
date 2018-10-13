@@ -625,6 +625,21 @@ def parse_search_response(json_data):
             error = error[len(solr_error):]
         return {'error': error}
 
+class list_search(delegate.page):
+    path = '/search/lists'
+
+    def GET(self):
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+
+        i = web.input(q='', offset='0', limit='10')
+        keys = web.ctx.site.things({
+            "type": "/type/list", "name~": i.q,
+            "limit": int(i.limit), "offset": int(i.offset)
+        })
+        lists = web.ctx.site.get_many(keys)
+        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+
 class subject_search(delegate.page):
     path = '/search/subjects'
     def GET(self):

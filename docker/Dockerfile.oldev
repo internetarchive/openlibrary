@@ -1,33 +1,12 @@
 FROM olbase
 
-# Using vim to change and test things, may want to remove?
-RUN apt-get install -y vim
-
-RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
-
-# enable users to bind to port 80
-RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
-
 WORKDIR /openlibrary
 
-# Set owner to be openlibrary user
-RUN chown -R openlibrary .
-
-# Setup nginx
-RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/sites-available/ \
-    && ln -s /etc/nginx/sites-available/openlibrary.conf /etc/nginx/sites-enabled/
-
-RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
-    && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
-
-# TODO: remove vagrant bootstrap.sh and conf/init services
-
-# TODO: Find safer way to update conf
-RUN sed -i 's/127.0.0.1:8080/127.0.0.1/g' conf/openlibrary.yml # Fix dev IA s3 endpoints
-RUN sed -i 's/localhost:8983/solr:8080/g' conf/openlibrary.yml # Fix Solr endpoint
-RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump # Replace user in dev db dump
+USER openlibrary
 
 # Setup db
+# Replace user in dev db dump
+RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
 USER postgres
 RUN /etc/init.d/postgresql start \
   && createuser -s openlibrary \
@@ -39,13 +18,10 @@ RUN /etc/init.d/postgresql start \
   && pg_ctlcluster 9.5 main stop
 
 USER root
-
-# run make to initialize git submodules, build css and js files
-# only root has access to .git
-RUN ln -s vendor/infogami/infogami infogami
-RUN make
+RUN pip install -r test_requirements.txt
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
 
+# runs as root in order to access su to run as openlibrary and postgres users
 CMD docker/ol-docker-start.sh
