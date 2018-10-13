@@ -203,7 +203,9 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        return render['account/create'](f)
+        page = render['account/create'](f)
+        page.v2 = True
+        return page
 
     def get_form(self):
         f = forms.Register()
@@ -225,20 +227,27 @@ class account_create(delegate.page):
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
-
+        
         f = self.get_form()
+        
         if not f.validates(i):
-            return render['account/create'](f)
+            page = render['account/create'](f)
+            page.v2 = True
+            return page
 
         if i.agreement != "yes":
             f.note = utils.get_error("account_create_tos_not_selected")
-            return render['account/create'](f)
+            page = render['account/create'](f)
+            page.v2 = True
+            return page
 
         ia_account = InternetArchiveAccount.get(email=i.email)
         # Require email to not already be used in IA or OL
         if ia_account:
             f.note = LOGIN_ERRORS['email_registered']
-            return render['account/create'](f)
+            page = render['account/create'](f)
+            page.v2 = True
+            return page
 
         try:
             # Create ia_account: require they activate via IA email
@@ -249,7 +258,9 @@ class account_create(delegate.page):
                 verified=False, retries=USERNAME_RETRIES)
         except ValueError as e:
             f.note = LOGIN_ERRORS['max_retries_exceeded']
-            return render['account/create'](f)
+            page = render['account/create'](f)
+            page.v2 = True
+            return page
 
         return render['account/verify'](username=i.username, email=i.email)
 
