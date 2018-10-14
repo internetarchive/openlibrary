@@ -1,6 +1,6 @@
 $def with(query, results, page=1)
 
-$if results.get('hits'):
+$if results and results.get('hits'):
   $ loans = ctx.user.get_loans() if ctx.user else []
   $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
   $ user = {'loans': loans, 'waitlists': waiting_loans}

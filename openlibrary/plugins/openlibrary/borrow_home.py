@@ -18,15 +18,9 @@ from libraries import LoanStats
 class borrow(delegate.page):
     path = "/borrow"
 
-    def is_enabled(self):
-        return "inlibrary" in web.ctx.features
-
     def GET(self):
-        rand = random.randint(0, 9999)
-        sort = "random_%d desc" % rand
-        is_inlibrary = inlibrary.get_library() is not None
-        subject = get_lending_library(web.ctx.site, details=True, inlibrary=is_inlibrary, limit=12, sort=sort)
-        return render_template("borrow/index", subject, stats=LoanStats(), rand=rand, inlibrary=is_inlibrary)
+        raise web.seeother('/subjects/in_library#ebooks=true')
+
 
 class borrow(delegate.page):
     path = "/borrow"
@@ -75,10 +69,7 @@ class read(delegate.page):
     path = "/read"
 
     def GET(self):
-        rand = random.randint(0, 9999)
-        sort = "random_%d desc" % rand
-        subject = get_readable_books(web.ctx.site, details=True, limit=12, sort=sort)
-        return render_template("borrow/read", subject, stats=LoanStats(), rand=rand)
+        web.seeother('/subjects/accessible_book#ebooks=true')
 
 class read(delegate.page):
     path = "/read"

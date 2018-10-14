@@ -97,7 +97,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <script type="text/javascript">
     <!--
-    \$().ready(function(){
+    window.q.push(function(){
         var back = history.length;
         \$().bind('cbox_closed', function(){
             var page = back - history.length;
@@ -229,7 +229,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         $if "lists" in ctx.features:
             $if page.edition_count > 1:
                 <script type="text/javascript">
-                \$().ready(function(){
+                window.q.push(function(){
                     \$('#widget-my-lists').children().insertBefore('#widget-my-lists').end().end().remove();
                     \$('#widget-other-lists').children().insertBefore('#widget-other-lists').end().end().remove();
                 });

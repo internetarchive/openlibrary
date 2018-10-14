@@ -43,6 +43,7 @@
 table {
   border-collapse: collapse;
   border-spacing: 0;
+
   &#toc-table {
     width: 100%;
     font-size: .8125em;
@@ -81,25 +82,6 @@ table {
   }
   &.identifiers {
     width: 395px;
-  }
-  &.history {
-    width: 100%;
-    margin-top: 10px;
-    border-top: 1px solid @grey-e7e7e7;
-    td {
-      font-size: .6875em;
-      font-family: @lucida_grande-1;
-      color: @grey;
-      border-bottom: 1px solid @grey-e7e7e7;
-    }
-    td.timestamp {
-      padding: 10px;
-      white-space: nowrap;
-    }
-    td.detail {
-      padding: 10px;
-      width: 100%;
-    }
   }
   &.records {
     width: 100%;
@@ -495,6 +477,7 @@ em {
 }
 
 #content,
+#contentBody,
 #contentMeta,
 .floaterBody {
   ol li {
@@ -1499,19 +1482,7 @@ div#editionBuy {
 }
 
 /* TOOLS ACCORDION */
-
-div#editTools,
-div#editButton,
-div#editHistory {
-  float: right;
-  padding: 3px 1px 0 20px;
-  width: auto;
-}
-
-div#editTools {
-  white-space: nowrap;
-  max-width: 280px;
-}
+@import (less) "components/edit-toolbar.less";
 
 div#editButton,
 div#editHistory,
@@ -1519,19 +1490,6 @@ div.revert.notice {
   button {
     font-size: 1.125em;
   }
-}
-
-div#editInfo {
-  float: right;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.linkButton {
-  border-radius: 5px;
-  background: @white;
-  padding: 10px;
-  color: @dark-grey;
 }
 
 div#revertNotice {
@@ -1566,7 +1524,7 @@ div.verify {
 }
 
 /* HEADER */
-@import (less) 'components/header.less';
+@import (less) 'components/header-legacy.less';
 
 .defaultstyling {
   font-family: @lucida_grande-1;
@@ -2173,21 +2131,12 @@ ul.readers-stats {
   }
 }
 
-div.workDetails {
-  float: left;
-  width: 915px;
-}
-
 div.edition {
   &Cover {
-    float: left;
-    width: 180px;
     min-height: 10px;
     padding-right: 1.5em;
   }
   &About {
-    float: left;
-    width: 430px;
     min-height: 10px;
     p {
       margin: 1.5em 0;
@@ -2195,8 +2144,6 @@ div.edition {
     }
   }
   &Tools {
-    float: right;
-    width: 270px;
     min-height: 10px;
   }
 }
@@ -2575,15 +2522,7 @@ ul {
   }
 }
 
-/* HISTORY */
-
-#pageHistory {
-  width: 100%;
-  margin-top: 30px;
-  h2 {
-    margin-bottom: 0;
-  }
-}
+@import (less) "components/page-history.less";
 
 /* HISTORY FRAMESET */
 div#navMask {
@@ -4284,6 +4223,24 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  @import (less) "components/dropper--tablet.less";
+  @import (less) "components/page-banner--tablet.less";
+  @import (less) "components/Tools--tablet.less";
+  @import (less) "components/edit-toolbar--tablet.less";
   @import (less) "components/tablet/iaBar.less";
   @import (less) "components/tablet/header-bar.less";
 }
@@ -4316,6 +4273,24 @@ ul#myreads-paginator {
       width: 610px;
       padding-right: 38px;
     }
+  }
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  div.workDetails {
+    float: left;
+    width: 915px;
   }
   @import (less) "components/desktop/iaBar.less";
   @import (less) "components/desktop/editions.less";

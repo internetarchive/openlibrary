@@ -28,7 +28,7 @@ pickleshare==0.7.4
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
 py==1.4.5
-pyOpenSSL==16.2.0
+pyOpenSSL==17.5.0
 pyasn1==0.1.9
 python-dateutil==1.5
 requests==2.12.3

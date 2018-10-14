@@ -5,14 +5,14 @@ $def with (page)
     $if page.first_publish_year:
         <span class="count">$_("First published in %s", page.first_publish_year)</span>
     </h2>
-    <div class="small sansserif brown" style="position:relative;z-index:1000;width:400px;">
+    <div class="small sansserif brown">
         <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>?
     </div>
 </div>
 
 <script type="text/javascript">
 <!--
-\$().ready(function(){
+window.q.push(function(){
     \$('#editions span.count').each(function(i){
         \$(this).text(i+1);
         var myLength = \$(this).text().length;
@@ -51,7 +51,7 @@ $def with (page)
         };
     });
 });
-\$(window).load(function(){
+window.q.push(function(){
    var rowCount = \$('#editions tbody tr').length;
     if (rowCount < 16) {
         \$('#editions').dataTable({
@@ -103,7 +103,7 @@ $ book_keys = []
 $# Added here instead of LoanStatus to avoid the js being bound to every item
 $# in a work's edition listing
 <script>
-\$(function() {
+window.q.push(function() {
     \$('.return-book').submit(function(event) {
         if (!confirm("Really return this book?")) {
             event.preventDefault();

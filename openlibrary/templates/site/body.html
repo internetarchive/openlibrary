@@ -3,7 +3,7 @@ $def with (page)
 $ announcement = '<strong>New Feature:</strong> You can now embed Open Library books on your website! &nbsp; <a href="https://blog.openlibrary.org/2018/05/06/turn-your-website-into-a-library/" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>'
 
 $ bodyid = ctx.get('bodyid', 'user')
-
+$ show_banners = bodyid != 'form'
 $if 'v2' in page:
   <body id="$bodyid">
     <script>
@@ -11,12 +11,16 @@ $if 'v2' in page:
         document.body.className += ' client-js';
     </script>
     <span id="top"></span>
-    $:render_template("site/alert")
-    $:render_template("lib/nav_head", None)
+    $# on form pages e.g. manage-covers, add-cover we do not display the header
+    $# this is consistent with version 1.
+    $if show_banners:
+      $:render_template("site/alert")
+      $:render_template("lib/nav_head", None)
     <div id="test-body-mobile">
-      <div class="page-banner page-banner-body">
-        $:announcement
-      </div>
+      $if show_banners:
+        <div class="page-banner page-banner-body">
+          $:announcement
+        </div>
       $:page
     </div>
 

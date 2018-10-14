@@ -30,18 +30,6 @@ function loadCoverCarousels(carousel, state) {
         updateBookAvailability('#coversCarousel li ');
     });
 }
-
-\$().ready(function() {
-    page.renderCovers = render_page;
-    page.displayCovers(0);
-});
-
-\$().ready(carousels);
-\$().ready(function() {
-    carouselSetup(loadCoverCarousels);
-    \$('.jcarousel-next').attr('title','View the next editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the next editions</a></h4>');
-    \$('.jcarousel-prev').attr('title','View the previous editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the previous editions</a></h4>');
-});
 //-->
 </script>
 
