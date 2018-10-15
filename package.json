@@ -40,11 +40,11 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "25.2KB"
+      "maxSize": "25.3KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "25KB"
+      "maxSize": "25.1KB"
     }
   ],
   "devDependencies": {
