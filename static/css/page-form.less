@@ -41,13 +41,6 @@ body#form {
     background-image: url(/images/back_sortable.png);
     background-repeat: no-repeat;
   }
-  .trashPosition {
-    position: relative;
-    height: 90px;
-    &:hover .trashCan {
-      background-position: -32px 0;
-    }
-  }
   .trashCan {
     position: absolute;
     top: 20px;
@@ -57,6 +50,13 @@ body#form {
     background-image: url(/images/back_sort-trash.png);
     background-repeat: no-repeat;
     background-position: 0 0;
+  }
+  .trashPosition {
+    position: relative;
+    height: 90px;
+    &:hover .trashCan {
+      background-position: -32px 0;
+    }
   }
   .trash {
     height: 90px;
