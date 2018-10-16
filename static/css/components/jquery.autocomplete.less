@@ -14,6 +14,21 @@
   opacity: .95;
   text-align: left;
 
+  li {
+    margin: 0;
+    padding: 5px;
+    cursor: default;
+    display: block;
+    font: menu, sans-serif;
+    font-size: 12px;
+    /*
+    it is very important, if line-height not set or set
+    in relative units scroll will be broken in firefox
+    */
+    line-height: 16px;
+    overflow: hidden;
+  }
+
   ul {
     width: 100%;
     list-style: none;
@@ -30,21 +45,6 @@
         background-color: @light-yellow;
       }
     }
-  }
-
-  li {
-    margin: 0;
-    padding: 5px;
-    cursor: default;
-    display: block;
-    font: menu, sans-serif;
-    font-size: 12px;
-    /*
-    it is very important, if line-height not set or set
-    in relative units scroll will be broken in firefox
-    */
-    line-height: 16px;
-    overflow: hidden;
   }
 
   .ac_language {
