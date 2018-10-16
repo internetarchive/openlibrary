@@ -227,6 +227,7 @@ class account_create(delegate.page):
     def POST(self):
         i = web.input('email', 'password', 'username', agreement="no")
         i.displayname = i.get('displayname') or i.username
+
         f = self.get_form()
         page = None
 
@@ -257,7 +258,7 @@ class account_create(delegate.page):
             f.note = LOGIN_ERRORS['max_retries_exceeded']
             page = render['account/create'](f)
             return page
-            
+
         page.v2 = True
         return render['account/verify'](username=i.username, email=i.email)
 
