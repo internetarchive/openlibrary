@@ -198,6 +198,41 @@ tr.odd {
   border-bottom: 1px solid @mid-grey;
 }
 
+/*
+ * KeyTable
+ */
+table.KeyTable td {
+  border: 3px solid transparent;
+}
+
+table.KeyTable td.focus {
+  border: 3px solid @blue-3366ff;
+}
+
+table.display tr.gradeA {
+  background-color: @baby-green;
+}
+
+table.display tr.gradeC {
+  background-color: @baby-blue;
+}
+
+table.display tr.gradeX {
+  background-color: @baby-pink;
+}
+
+table.display tr.gradeU {
+  background-color: @lighter-grey;
+}
+
+div.box {
+  height: 100px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid @dark-baby-blue;
+  background-color: @baby-blue;
+}
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  * Misc
  */
@@ -434,39 +469,4 @@ tr.even.gradeU td.sorting_3 {
 .ex_highlight #example tbody tr.odd:hover,
 #example tbody tr.odd td.highlighted {
   background-color: @lime-green;
-}
-
-/*
- * KeyTable
- */
-table.KeyTable td {
-  border: 3px solid transparent;
-}
-
-table.KeyTable td.focus {
-  border: 3px solid @blue-3366ff;
-}
-
-table.display tr.gradeA {
-  background-color: @baby-green;
-}
-
-table.display tr.gradeC {
-  background-color: @baby-blue;
-}
-
-table.display tr.gradeX {
-  background-color: @baby-pink;
-}
-
-table.display tr.gradeU {
-  background-color: @lighter-grey;
-}
-
-div.box {
-  height: 100px;
-  padding: 10px;
-  overflow: auto;
-  border: 1px solid @dark-baby-blue;
-  background-color: @baby-blue;
 }
