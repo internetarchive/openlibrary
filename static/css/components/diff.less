@@ -77,6 +77,11 @@ dd {
   margin-top: 0;
 }
 
+td.r {
+  padding-left: 12px;
+  width: 50%;
+}
+
 /* .diff table tbody.mod td.l { background: @orange-three } */
 .diff table tbody.mod td.r {
   background: @orange-three;
@@ -86,19 +91,9 @@ dd {
   background: @light-olive-2;
 }
 
-.diff table tbody.rem td.l {
-  color: @red;
-  text-decoration: line-through;
-}
-
 .diff table tbody.rem td.r {
   color: @red;
   text-decoration: line-through;
-}
-
-.diff table tbody.mod del,
-.diff table tbody.mod ins {
-  background: @magenta;
 }
 
 td.l {
@@ -106,9 +101,9 @@ td.l {
   width: 50%;
 }
 
-td.r {
-  padding-left: 12px;
-  width: 50%;
+.diff table tbody.rem td.l {
+  color: @red;
+  text-decoration: line-through;
 }
 
 ins {
@@ -119,4 +114,9 @@ ins {
 del {
   color: @red;
   text-decoration: line-through;
+}
+
+.diff table tbody.mod del,
+.diff table tbody.mod ins {
+  background: @magenta;
 }
