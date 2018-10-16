@@ -12,10 +12,8 @@ $var title: $_("Sign Up to Open Library")
 <div id="contentBody">
 
 <script type="text/javascript">
-window.q.push( function() {
-    validateForms();
-});
 window.q.push( function(){
+    validateForms();
     \$('#username').keyup(function(){
         var value = \$(this).val();
         \$('#userUrl').addClass('darkgreen').text(value).css('font-weight','700');
