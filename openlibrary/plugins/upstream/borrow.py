@@ -5,6 +5,7 @@ import datetime, time
 import hmac
 import re
 import simplejson
+import urllib
 import urllib2
 import logging
 
@@ -967,15 +968,18 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
     Generate a link to BookReaderAuth.php that starts the BookReader
     with the information to initiate reading a borrowed book
     """
-
-    olAuthUrl = "https://{0}/ia_auth/XXX".format(ol_host)
-    access_token = make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
-    user_login_token = make_ia_token(ia_userid, READER_AUTH_SECONDS)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?' % bookreader_host
-    auth_url += 'uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s&olAuthUrl=%s&ia_userid=%s&login_token=%s' % (
-        loan_key, access_token, item_id, book_path, ol_host, olAuthUrl,
-        ia_userid, user_login_token)
-    return auth_url
+    auth_link = 'https://%s/bookreader/BookReaderAuth.php?' % bookreader_host
+    params = {
+        'uuid': loan_key,
+        'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS),
+        'id': item_id,
+        'bookPath': book_path,
+        'olHost': ol_host,
+        'olAuthUrl': "https://{0}/ia_auth/XXX".format(ol_host),
+        'iaUserId': ia_userid,
+        'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS)
+    }
+    return auth_link + urllib.urlencode(params)
 
 def on_loan_update(loan):
     # update the waiting list and ebook document.
