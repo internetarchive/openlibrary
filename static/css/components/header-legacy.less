@@ -7,6 +7,37 @@ div#header {
     padding: 9px;
     outline: none;
   }
+  &Logo {
+    position: relative;
+    float: left;
+    width: 220px;
+    height: 140px;
+    margin-top: 10px;
+    h2 {
+      margin: 0;
+      padding: 0;
+    }
+    span.title {
+      position: absolute;
+      top: -1000px;
+    }
+    p.tagline {
+      position: absolute;
+      left: 0;
+      top: 118px;
+      width: 220px;
+      text-align: center;
+      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-size: .6875em;
+      color: @dark-grey;
+      margin: 0;
+      padding: 0;
+      a {
+        color: @dark-grey;
+        text-decoration: none;
+      }
+    }
+  }
   &Nav {
     position: relative;
     float: left;
@@ -51,37 +82,6 @@ div#header {
       }
     }
   }
-  &Logo {
-    position: relative;
-    float: left;
-    width: 220px;
-    height: 140px;
-    margin-top: 10px;
-    h2 {
-      margin: 0;
-      padding: 0;
-    }
-    span.title {
-      position: absolute;
-      top: -1000px;
-    }
-    p.tagline {
-      position: absolute;
-      left: 0;
-      top: 118px;
-      width: 220px;
-      text-align: center;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-      font-size: .6875em;
-      color: @dark-grey;
-      margin: 0;
-      padding: 0;
-      a {
-        color: @dark-grey;
-        text-decoration: none;
-      }
-    }
-  }
   &Place {
     float: left;
     width: 370px;
@@ -102,6 +102,9 @@ div#header {
 }
 
 #header {
+  &UserOpen {
+    display: none;
+  }
   &Login {
     /* stylelint-disable selector-max-specificity */
     #headerUser {
@@ -144,8 +147,5 @@ div#header {
       }
     }
     /* stylelint-enable selector-max-specificity */
-  }
-  &UserOpen {
-    display: none;
   }
 }
