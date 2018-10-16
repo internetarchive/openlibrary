@@ -24,11 +24,6 @@ from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
-# How long the auth token given to the BookReader should last.  After the auth token
-# expires the BookReader will not be able to access the book.  The BookReader polls
-# OL periodically to get fresh tokens.
-BOOKREADER_AUTH_SECONDS = dateutil.MINUTE_SECS * 10
-
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
 # the loan has occurred.  We allow this timeout so that we don't delete the OL loan
@@ -642,33 +637,6 @@ def get_resource_id(identifier, resource_type):
         if rtype == resource_type:
             return resource_id
 
-def make_ia_token(item_id, expiry_seconds):
-    """Make a key that allows a client to access the item on archive.org for the number of
-       seconds from now.
-    """
-    access_key = config_ia_access_secret
-    if access_key is None:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
-    timestamp = int(time.time() + expiry_seconds)
-    token_data = '%s-%d' % (item_id, timestamp)
-
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
-    return token
-
-
-def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
-    """
-    Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
-    a borrowed book
-    """
-
-    access_token = make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
-        config_bookreader_host, loan_key, access_token, item_id, book_path, ol_host
-    )
-
-    return auth_url
 
 def update_loan_status(identifier):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
