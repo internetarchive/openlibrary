@@ -1,0 +1,38 @@
+<html>
+<head>
+<title>webpage</title>
+<script>
+function password()
+{
+var password=document.myform.password.value;
+if(password==null || password=="")
+{
+alert("password cant be blank");
+return false;
+}
+else if(password.length<8)
+{
+alert("password must be atleast 8 characters long");
+return false;
+}
+else
+{
+alert("login sucessfull");
+return false;
+}
+}
+</script>
+</head>
+<form name="myform" method="post" action="register.php" onsubmit="return password()">
+email-id:<br>
+<input type="text" name="email-id"><br>
+username:<br>
+<input type="text" name="username"><br>
+password:<br>
+<input type="text" name="password"><br>
+<input type="submit" value="login"><br>
+</form>
+<body>
+</body>
+</html>
+
