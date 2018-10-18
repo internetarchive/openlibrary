@@ -27,7 +27,6 @@ css:
 	lessc -x static/css/page-user.less $(BUILD)/page-user.css
 	lessc -x static/css/js-all.less $(BUILD)/js-all.css
 	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css
-	lessc -x static/css/js-books-edit.less $(BUILD)/js-books-edit.css
 	lessc -x static/css/page-design.less $(BUILD)/page-design.css
 	lessc -x static/css/page-dev.less $(BUILD)/page-dev.css
 
