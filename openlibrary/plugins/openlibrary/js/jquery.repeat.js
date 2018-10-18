@@ -36,7 +36,7 @@
             return data;
         }
         
-        $(id + " .repeat-add").live("click", function(event) {
+        $(id + " .repeat-add").on("click", function(event) {
             event.preventDefault();
             
             var index = elems.display.children().length;
@@ -54,24 +54,17 @@
                 .clone()
                 .attr("id", newid)
                 .html(t(data))
-                .css("display", null)
+                .show()
                 .appendTo(elems.display);
                              
-            $("[input[type!=button], textarea", elems.form).filter(":not(.repeat-ignore)").val("");
+            $("input[type!=button], textarea", elems.form).filter(":not(.repeat-ignore)").val("");
             elems._this.trigger("repeat-add");
         });
         
-        $(id + " .repeat-remove").live("click", function(event) {
+        $(id + " .repeat-remove").on("click", function(event) {
             event.preventDefault();
             $(this).parents(".repeat-item:eq(0)").remove();
             elems._this.trigger("repeat-remove");
-        });
-        
-        $(id + " .repeat-moveup").live("click", function(event){
-            // TODO:
-        });
-        $(id + " .repeat-movedown").live("click", function(event){
-            // TODO:
         });
     }
 })(jQuery);
