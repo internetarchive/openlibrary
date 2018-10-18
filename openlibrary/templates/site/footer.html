@@ -35,9 +35,9 @@ $if bodyid == 'user' or 'admin':
     <!-- clear the window.q and setup the jQuery plugins -->
     <script>
     window.q.push( function () {
-    var i;
+        var i;
         for ( i = 0; i < window.q.length; i++ ) {
-            ( window.q[i] );
+            \$( window.q[i] );
         }
         window.q = [];
   } );
