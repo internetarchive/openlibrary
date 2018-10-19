@@ -71,7 +71,7 @@ try:
 except AttributeError:
     bookreader_host = 'archive.org'
 
-bookreader_stream_base = 'https://' + bookreader_host + '/stream'
+bookreader_stream_base = 'https://' + bookreader_host + '/details'
 
 ########## Page Handlers
 
