@@ -1,7 +1,7 @@
 /* Homepage about section */
 
-#home-stats-charts .statschart:hover a,
-div.chartHome a:hover {
+div.chartHome a:hover,
+#home-stats-charts .statschart:hover a {
   color: @link-blue;
   text-decoration: underline;
 }
@@ -22,6 +22,7 @@ div.chartHome a:hover {
         border-bottom: 1px solid @grey;
         cursor: pointer;
       }
+      /* stylelint-disable no-descending-specificity */
       a {
         color: @black;
         text-decoration: none;
@@ -40,6 +41,7 @@ div.chartHome a:hover {
           text-transform: uppercase;
         }
       }
+      /* stylelint-enable no-descending-specificity */
     }
   }
   &-resource {

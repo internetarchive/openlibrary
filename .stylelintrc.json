@@ -52,6 +52,7 @@
 		"no-extra-semicolons": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
-		"font-family-no-missing-generic-family-keyword": true
+		"font-family-no-missing-generic-family-keyword": true,
+		"no-descending-specificity": true
 	}
 }

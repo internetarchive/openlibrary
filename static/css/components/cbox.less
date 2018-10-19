@@ -77,6 +77,28 @@
   }
 }
 
+a.floater {
+  &Shut {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: block;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icon_close-pop.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -32px;
+    }
+  }
+  &Close {
+    color: @red;
+    font-size: 1.0em;
+    padding-left: 20px;
+  }
+}
+
 /* VIEW LARGER COVER POP-UP */
 div.coverFloat {
   position: relative;
@@ -104,28 +126,6 @@ div.coverFloat {
     font-size: 1em;
     font-weight: 700;
     color: @white;
-  }
-}
-
-a.floater {
-  &Shut {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
-    }
-  }
-  &Close {
-    color: @red;
-    font-size: 1.0em;
-    padding-left: 20px;
   }
 }
 
