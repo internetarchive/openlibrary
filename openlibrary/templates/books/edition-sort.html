@@ -5,7 +5,7 @@ $ availability = book.get('availability', {})
 $ worldcat = "https://worldcat.org/isbn/XXX"
 $ worldcatoclc = "https://worldcat.org/oclc/XXX"
 
-$ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+$ viewbook = "//%s/details/XXX?ref=ol" % bookreader_host()
 $ detailbook = "//archive.org/details/XXX"
 $ downloadbook = "//archive.org/download/XXX/XXX.pdf"
 $ pdfbw = "//archive.org/download/XXX/XXX_bw.pdf"
@@ -98,7 +98,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $if oclc_numbers or isbn:
             <ul>
               <li>
-                <a class="plain" 
+                <a class="plain"
                    href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
                    title="Look for this edition at WorldCat">Find a Physical Copy</a>
                 <br /><span class="gray smaller">via WorldCat</span>

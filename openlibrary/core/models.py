@@ -229,7 +229,7 @@ class Edition(Thing):
         Sample return values:
 
             {
-                "read_url": "http://www.archive.org/stream/foo00bar",
+                "read_url": "http://www.archive.org/details/foo00bar",
                 "daisy_url": "/books/OL1M/foo/daisy"
             }
 
@@ -257,7 +257,7 @@ class Edition(Thing):
                 d['borrowed'] = doc.get("borrowed") == "true"
                 d['daisy_only'] = False
             elif 'printdisabled' not in collections:
-                d['read_url'] = "https://archive.org/stream/%s" % self.ocaid
+                d['read_url'] = "https://archive.org/details/%s" % self.ocaid
                 d['daisy_only'] = False
         return d
 
@@ -489,7 +489,7 @@ class Work(Thing):
         Sample return values:
 
             {
-                "read_url": "http://www.archive.org/stream/foo00bar",
+                "read_url": "http://www.archive.org/details/foo00bar",
                 "daisy_url": "/books/OL1M/foo/daisy"
             }
 
@@ -502,7 +502,7 @@ class Work(Thing):
         solrdata = web.storage(self._solr_data or {})
         d = {}
         if solrdata.get('has_fulltext') and solrdata.get('public_scan_b'):
-            d['read_url'] = "https://archive.org/stream/{0}".format(solrdata.ia[0])
+            d['read_url'] = "https://archive.org/details/{0}".format(solrdata.ia[0])
             d['has_ebook'] = True
         elif solrdata.get('lending_edition_s'):
             d['borrow_url'] = "/books/{0}/x/borrow".format(solrdata.lending_edition_s)

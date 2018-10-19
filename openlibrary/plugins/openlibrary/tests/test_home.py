@@ -88,7 +88,7 @@ class TestHomeTemplates:
                 "url": "/books/OL1M",
                 "title": "The Great Book",
                 "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-                "read_url": "http://archive.org/stream/foo",
+                "read_url": "http://archive.org/details/foo",
                 "borrow_url": "/books/OL1M/foo/borrow",
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
@@ -122,7 +122,7 @@ class TestCarouselItem:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "read_url": "http://archive.org/stream/foo",
+            "read_url": "http://archive.org/details/foo",
             "borrow_url": "/books/OL1M/foo/borrow",
             "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
             "cover_url": ""
@@ -141,7 +141,7 @@ class Test_carousel:
             "url": "/books/OL1M",
             "title": "The Great Book",
             "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "read_url": "http://archive.org/stream/foo",
+            "read_url": "http://archive.org/details/foo",
             "borrow_url": "/books/OL1M/foo/borrow",
             "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
             "cover_url": ""

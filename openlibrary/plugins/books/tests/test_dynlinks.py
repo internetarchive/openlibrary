@@ -187,7 +187,7 @@ def data9(request):
                 }],
                 "ebooks": [{
                     "preview_url": "https://archive.org/details/foo12bar",
-                    "read_url": "https://archive.org/stream/foo12bar",
+                    "read_url": "https://archive.org/details/foo12bar",
                     "availability": "full",
                     "formats": {
                         "pdf": {

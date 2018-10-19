@@ -210,7 +210,7 @@ def format_work_data(work):
     if 'cover_edition_key' in work:
         d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
 
-    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
+    d['read_url'] = "//archive.org/details/" + work['ia'][0]
     return d
 
 def format_book_data(book):

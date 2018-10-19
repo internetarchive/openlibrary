@@ -108,7 +108,7 @@ $.extend(Subject.prototype, {
         var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
         var format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
         var bookread_url = work.public_scan ?
-            ('//archive.org/stream/' + work.ia + '?ref=ol') :
+            ('//archive.org/details/' + work.ia + '?ref=ol') :
             '/borrow/ia/' + work.ia;
         var html = renderTag('div', {'class': 'coverMagic'},
           renderTag('span', {

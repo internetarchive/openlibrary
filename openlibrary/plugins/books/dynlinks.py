@@ -290,7 +290,7 @@ class DataProcessor:
 
             prefix = "https://archive.org/download/%s/%s" % (itemid, itemid)
             if availability == 'full':
-                d["read_url"] = "https://archive.org/stream/%s" % (itemid)
+                d["read_url"] = "https://archive.org/details/%s" % (itemid)
                 d['formats'] = {
                     "pdf": {
                         "url": prefix + ".pdf"

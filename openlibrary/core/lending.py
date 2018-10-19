@@ -36,7 +36,7 @@ LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
 # How long bookreader loans should last
 BOOKREADER_LOAN_DAYS = 14
 
-BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
+BOOKREADER_STREAM_URL_PATTERN = "https://{0}/details/{1}"
 DEFAULT_IA_RESULTS = 42
 MAX_IA_RESULTS = 1000
 

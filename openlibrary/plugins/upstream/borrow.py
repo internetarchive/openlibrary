@@ -123,9 +123,9 @@ class borrow(delegate.page):
         response = lending.get_availability_of_ocaid(edition.ocaid)
         availability = response[edition.ocaid] if response else {}
         if availability and availability['status'] == 'open':
-            raise web.seeother('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
+            raise web.seeother('https://archive.org/details/' + edition.ocaid + '?ref=ol')
 
-        error_redirect = ('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
+        error_redirect = ('https://archive.org/details/' + edition.ocaid + '?ref=ol')
         user = accounts.get_current_user()
 
         if user:
@@ -185,7 +185,7 @@ class borrow(delegate.page):
 
                         raise web.seeother(make_bookreader_auth_link(
                             loan.get_key(), edition.ocaid,
-                            '/stream/' + edition.ocaid, ol_host,
+                            '/details/' + edition.ocaid, ol_host,
                             ia_userid=ia_itemname))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
@@ -232,7 +232,7 @@ class borrow(delegate.page):
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(make_bookreader_auth_link(
-                        loan['_key'], edition.ocaid, '/stream/' + edition.ocaid,
+                        loan['_key'], edition.ocaid, '/details/' + edition.ocaid,
                         ol_host, ia_userid=ia_itemname
                     ))
         elif action == 'join-waitinglist':

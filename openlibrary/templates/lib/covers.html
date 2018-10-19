@@ -107,7 +107,7 @@ $jsdef render_page(page):
             $ borrowable = all_borrow or contains(w.subject, 'Lending library') or (inlibrary and contains(w.subject, 'In library'))
             $if not all_borrow and w.ia and w.public_scan:
                 <div class="coverEbook">
-                  <a href="//archive.org/stream/$w.ia?ref=ol" title="$_('Read online')" class="borrow_available cta-btn">
+                  <a href="//archive.org/details/$w.ia?ref=ol" title="$_('Read online')" class="borrow_available cta-btn">
                     Read
                   </a>
                 </div>
