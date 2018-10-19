@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-import glob, os
+import glob, os, io, numpy
 from stat import *
 
 def executable(path):
