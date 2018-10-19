@@ -976,7 +976,7 @@ div#errorMerge {
 div.formElement {
   padding-bottom: 8px;
   &.bottom {
-    padding-bottom: 0px;
+    padding-bottom: 0;
   }
   label,
   select#date1,
@@ -1168,54 +1168,6 @@ form {
       font-size: .875em;
     }
     /* stylelint-enable selector-max-specificity */
-  }
-  &#register {
-    .formElement,
-    .label,
-    .input,
-    input[type=text],
-    input[type=email],
-    input[type=password] {
-      &.floatform {
-        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-        .label {
-          width: 560px;
-          padding-top: 20px;
-          label {
-            font-size: 1.0em;
-            font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-            font-weight: 700;
-          }
-          span {
-            font-weight: normal;
-          }
-        }
-        .input {
-          width: 560px;
-          padding-top: 20px;
-        }
-        div#covers.input {
-          width: 560px;
-          max-height: 132px;
-          overflow: hidden;
-          padding-top: 20px;
-          margin-left: -80px;
-          text-align: center;
-        }
-        input[type=text],
-        input[type=file] {
-          width: 350px;
-          font-size: 1.125em;
-          font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-          padding: 3px;
-          margin-left: 30px;
-        }
-        button[type=submit] {
-          font-size: 1.125em;
-          width: auto;
-        }
-      }
-    }
   }
 }
 
