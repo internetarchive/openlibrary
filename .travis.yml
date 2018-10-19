@@ -13,7 +13,7 @@ matrix:
   allow_failures:
     - python: "3.6"
 install:
-  - pip install -r test_requirements.txt
+  - pip install -r requirements_test.txt
   - npm install
 before_script: make lint
 script: make test

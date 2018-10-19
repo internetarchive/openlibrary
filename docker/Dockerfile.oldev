@@ -18,7 +18,7 @@ RUN /etc/init.d/postgresql start \
   && pg_ctlcluster 9.5 main stop
 
 USER root
-RUN pip install -r test_requirements.txt
+RUN pip install -r requirements_test.txt
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
