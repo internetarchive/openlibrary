@@ -9,6 +9,7 @@ PYBUNDLE_URL=http://www.archive.org/download/ol_vendor/openlibrary.pybundle
 OL_VENDOR=http://www.archive.org/download/ol_vendor
 SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
+GITHUB_EDITOR_WIDTH=127
 
 # Use python from local env if it exists or else default to python in the path.
 PYTHON=$(if $(wildcard env),env/bin/python,python)
@@ -97,9 +98,11 @@ reindex-solr:
 lint:
 	# stop the build if there are Python syntax errors or undefined names
 	# TODO: Add --select=F821 once the other issues are fixed
-	$(PYTHON) -m flake8 . --count --exclude=scripts/20* --select=E901,E999,F822,F823 --show-source --statistics
-	# exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-	$(PYTHON) -m flake8 . --count --exclude=scripts/20* --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor/*  --select=E901,E999,F822,F823 --show-source --statistics
+ifndef CONTINUOUS_INTEGRATION
+	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
+endif
 
 test:
 	npm test
