@@ -8,7 +8,7 @@
     "check-bundles": "npm run build-assets && bundlesize",
     "lint:fix": "stylelint --syntax less --fix static/css/",
     "test": "npm run check-bundles && stylelint  --syntax less static/css/",
-    "lint:js": "eslint openlibrary/plugins/openlibrary/js/",
+    "lint:js": "eslint openlibrary/plugins/openlibrary/js/"
   },
   "bundlesize": [
     {
