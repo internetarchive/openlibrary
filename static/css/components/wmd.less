@@ -10,17 +10,16 @@
   background-color: transparent;
 }
 
-fieldset.major .wmd-button-bar {
-  width: 854px;
-}
-
 .formElement .input .wmd-button-bar {
   width: 916px;
 }
 
+/* stylelint-disable no-descending-specificity */
+fieldset.major .wmd-button-bar,
 form.olform.books .formElement .input .wmd-button-bar {
   width: 854px;
 }
+/* stylelint-enable no-descending-specificity */
 
 form.olform.books .formElement.librarian .input .wmd-button-bar {
   width: 798px;
@@ -45,12 +44,6 @@ form#addAuthor.olform .wmd-button-bar {
   margin-bottom: 10px;
 }
 
-fieldset.major .wmd-preview {
-  width: 848px;
-  min-height: 47px;
-  padding: 3px;
-}
-
 .formElement .input .wmd-preview {
   width: 906px;
   min-height: 47px;
@@ -59,11 +52,14 @@ fieldset.major .wmd-preview {
   clear: both;
 }
 
+/* stylelint-disable no-descending-specificity */
+fieldset.major .wmd-preview,
 form.olform.books .formElement .input .wmd-preview {
   width: 848px;
   min-height: 47px;
   padding: 3px;
 }
+/* stylelint-enable no-descending-specificity */
 
 form.olform.books .formElement.librarian .input .wmd-preview {
   width: 798px;

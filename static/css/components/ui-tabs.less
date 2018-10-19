@@ -43,11 +43,6 @@
         text-decoration: underline;
       }
     }
-    a:hover,
-    a:focus,
-    a:active {
-      cursor: pointer;
-    }
     .ui-tabs-selected {
       a {
         margin: 0 3px !important;
@@ -67,11 +62,16 @@
         }
       }
     }
+    /* stylelint-disable no-descending-specificity */
+    a:hover,
+    a:focus,
+    a:active,
     .ui-tabs-deselectable a:hover,
     .ui-tabs-deselectable a:focus,
     .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
       cursor: pointer;
     }
+    /* stylelint-enable no-descending-specificity */
   }
   &-disabled {
     opacity: .4;
