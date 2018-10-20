@@ -7,7 +7,8 @@
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "test": "npm run check-bundles && stylelint  --syntax less static/css/"
+    "lint:js": "eslint openlibrary/plugins/openlibrary/js/",
+    "test": "npm run check-bundles && stylelint  --syntax less static/css/ && npm run lint:js"
   },
   "bundlesize": [
     {
@@ -49,6 +50,7 @@
   ],
   "devDependencies": {
     "bundlesize": "^0.17.0",
+    "eslint": "^5.7.0",
     "less": "^3.8.1",
     "stylelint": "^9.5.0",
     "stylelint-declaration-use-variable": "^1.7.0"
