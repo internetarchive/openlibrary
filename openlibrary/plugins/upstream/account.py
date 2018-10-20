@@ -320,7 +320,9 @@ class account_login(delegate.page):
         i = web.input(redirect=referer)
         f = forms.Login()
         f['redirect'].value = i.redirect
-        return render.login(f)
+        page = render.login(f)
+        page.v2 = True
+        return page
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
