@@ -516,6 +516,20 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     data = item.metadata
     return data
 
+def load_from_amazon_metadata(rec):
+    """This is a bootstrapping helper method which enables us to take the
+    results of plugins.upstream.code.get_amazon_metadata and create an
+    OL book catalog record
+    """
+    conforming_fields = [
+        'title', 'authors', 'publish_date', 'source_records',
+        'number_of_pages', 'publishers', 'cover', 'isbn_10',
+        'isbn_13']
+    conforming_rec = {}
+    for k in conforming_fields:
+        if k in rec:
+            conforming_rec[k] = rec[k]
+    return load(conforming_rec)
 
 def load(rec):
     """Given a record, tries to add/match that edition in the system.
@@ -538,10 +552,6 @@ def load(rec):
         # No match candidates found, add edition
         return load_data(rec)
 
-    #matches = set(item for sublist in edition_pool.values() for item in sublist)
-    #if len(matches) == 1:
-    #    return {'success': True, 'edition': {'key': list(matches)[0]}}
-
     match = early_exit(rec)
     if not match:
         match = find_exact_match(rec, edition_pool)
@@ -552,7 +562,6 @@ def load(rec):
             rec['full_title'] += ' ' + rec['subtitle']
         e1 = build_marc(rec)
         add_db_name(e1)
-
         match = find_match(e1, edition_pool)
 
     if not match:
@@ -600,8 +609,13 @@ def load(rec):
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
 
-    # add values to edition lists
-    for f in 'source_records', 'local_id', 'ia_box_id', 'ia_loaded_id':
+
+    edition_fields = ['local_id', 'ia_box_id', 'ia_loaded_id']
+    # only consider `source_records` for newly created work
+    # or if field originally missing
+    if work_created and not e.get('source_records'):
+        edition_fields.append('source_records')
+    for f in edition_fields:
         if f not in rec:
             continue
         # ensure values is a list

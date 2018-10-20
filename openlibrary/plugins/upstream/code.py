@@ -21,9 +21,9 @@ from utils import render_template
 from openlibrary.core import cache, helpers as h
 from openlibrary.core.lending import amazon_api
 from openlibrary import accounts
+from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.utils import dateutil
 from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
-from openlibrary.plugins.openlibrary import code as ol_code
 
 import utils
 import addbook
@@ -48,10 +48,14 @@ class static(delegate.page):
 
 # handlers for change photo and change cover
 
-class change_cover(delegate.page):
+class change_cover(delegate.mode):
     path = "(/books/OL\d+M)/cover"
+
     def GET(self, key):
-        return ol_code.change_cover().GET(key)
+        page = web.ctx.site.get(key)
+        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+            raise web.seeother(key)
+        return render.change_cover(page)
 
 class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
@@ -100,11 +104,14 @@ def get_amazon_metadata(isbn):
         return None
 
 def _get_amazon_metadata(isbn):
+    # XXX some esbns may be < 10!
+    isbn_10 = isbn if len(isbn) == 10 else isbn_13_to_isbn_10(isbn)
+    isbn_13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
     try:
         if not amazon_api:
             logger.info("Amazon keys likely misconfigured")
             raise Exception
-        product = amazon_api.lookup(ItemId=isbn)
+        product = amazon_api.lookup(ItemId=isbn_10)
     except Exception as e:
         return None
 
@@ -127,11 +134,20 @@ def _get_amazon_metadata(isbn):
     return {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             isbn, h.affiliate_id('amazon')),
-        'price_fmt': price_fmt,
-        'price': price,
+        'price': price_fmt,
+        'price_amt': price,
         'qlt': qlt,
+        'title': product.title,
+        'authors': [{'name': name} for name in product.authors],
+        'publish_date': product.publication_date.strftime('%b %d, %Y'),
+        'source_records': ['amazon:%s' % product.asin],
+        'number_of_pages': product.pages,
+        'languages': list(product.languages),  # needs to be normalized
+        'publishers': [product.publisher],
+        'cover': product.large_image_url,
+        'isbn_10': [isbn_10],
+        'isbn_13': [isbn_13]
     }
-
 
 def cached_get_amazon_metadata(*args, **kwargs):
     """If the cached data is `None`, likely a 503 throttling occurred on
@@ -197,9 +213,9 @@ def _get_betterworldbooks_metadata(isbn):
                 'http://www.anrdoezrs.net/links/'
                 '%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx' % (
                     h.affiliate_id('betterworldbooks'), isbn)),
-            'price': price,
-            'qlt': qlt,
-            'price_fmt': price_fmt
+            'price': price_fmt,
+            'price_amt': price_amt,
+            'qlt': qlt
         }
         return result
     except urllib2.HTTPError as e:

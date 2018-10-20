@@ -24,10 +24,12 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.catalog.add_book import load_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
+from openlibrary.plugins.upstream.code import get_amazon_metadata
 
 import processors
 
@@ -338,12 +340,6 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-class change_cover(delegate.mode):
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            raise web.seeother(key)
-        return render.change_cover(page)
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
@@ -357,6 +353,10 @@ class bookpage(delegate.page):
                 key = "isbn_13"
             else:
                 key = "isbn_10"
+
+            # redirect to archive.org item:
+
+
         elif key == "oclc":
             key = "oclc_numbers"
         elif key == "ia":
@@ -384,6 +384,9 @@ class bookpage(delegate.page):
         try:
             result = web.ctx.site.things(q)
             if result:
+                if i.redir == 'true':
+                    raise web.seeother('https://archive.org/stream/%s' % result[0].ocaid)
+
                 raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
@@ -396,11 +399,25 @@ class bookpage(delegate.page):
                     raise redirect(result[0], ext, suffix)
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
+            elif key.startswith("isbn"):
+                md = get_amazon_metadata(value)
+                if md:
+                    reply = load_from_amazon_metadata(md)
+                    if reply and reply.get('success'):
+                        raise web.seeother(reply['edition']['key'])
+
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
+            if key.startswith('isbn'):
+                md = get_amazon_metadata(value)
+                if md:
+                    reply = load_from_amazon_metadata(md)
+                    if reply and reply.get('success'):
+                        raise web.seeother(reply['edition']['key'])
+
             logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
