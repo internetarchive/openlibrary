@@ -24,7 +24,7 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
-from openlibrary.catalog.add_book import load_from_amazon_metadata
+from openlibrary.catalog.add_book import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
@@ -128,7 +128,9 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            print(simplejson.dumps({
+                'key': key, 'type': visiting[key]['type']
+            }))
             visited.add(key)
             return
 
@@ -353,10 +355,6 @@ class bookpage(delegate.page):
                 key = "isbn_13"
             else:
                 key = "isbn_10"
-
-            # redirect to archive.org item:
-
-
         elif key == "oclc":
             key = "oclc_numbers"
         elif key == "ia":
@@ -384,9 +382,6 @@ class bookpage(delegate.page):
         try:
             result = web.ctx.site.things(q)
             if result:
-                if i.redir == 'true':
-                    raise web.seeother('https://archive.org/stream/%s' % result[0].ocaid)
-
                 raise redirect(result[0], ext, suffix)
             elif key =='ocaid':
                 q = {"type": "/type/edition", 'source_records': 'ia:' + value}
@@ -400,23 +395,18 @@ class bookpage(delegate.page):
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
             elif key.startswith("isbn"):
-                md = get_amazon_metadata(value)
-                if md:
-                    reply = load_from_amazon_metadata(md)
-                    if reply and reply.get('success'):
-                        raise web.seeother(reply['edition']['key'])
-
+                ed = create_edition_from_amazon_metadata(isbn)
+                if ed:
+                    raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
             if key.startswith('isbn'):
-                md = get_amazon_metadata(value)
-                if md:
-                    reply = load_from_amazon_metadata(md)
-                    if reply and reply.get('success'):
-                        raise web.seeother(reply['edition']['key'])
+                ed = create_edition_from_amazon_metadata(isbn)
+                if ed:
+                    raise web.seeother(ed_key)
 
             logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"

@@ -516,11 +516,23 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     data = item.metadata
     return data
 
+def create_edition_from_amazon_metadata():
+    """Fetches amazon metadata by isbn from affiliates API, attempts to
+    create OL edition from metadata, and returns the resulting edition key
+    `/key/OL..M` if successful or None otherwise
+    """
+    md = get_amazon_metadata(isbn)
+    if md:
+        reply = load_from_amazon_metadata(md)
+        if reply and reply.get('success'):
+            return reply['edition']['key']
+
 def load_from_amazon_metadata(rec):
     """This is a bootstrapping helper method which enables us to take the
     results of plugins.upstream.code.get_amazon_metadata and create an
     OL book catalog record
     """
+    
     conforming_fields = [
         'title', 'authors', 'publish_date', 'source_records',
         'number_of_pages', 'publishers', 'cover', 'isbn_10',
