@@ -24,6 +24,7 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.catalog.add_book import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
@@ -126,7 +127,9 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            print(simplejson.dumps({
+                'key': key, 'type': visiting[key]['type']
+            }))
             visited.add(key)
             return
 
@@ -338,12 +341,6 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-class change_cover(delegate.mode):
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            raise web.seeother(key)
-        return render.change_cover(page)
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
@@ -396,11 +393,20 @@ class bookpage(delegate.page):
                     raise redirect(result[0], ext, suffix)
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
+            elif key.startswith("isbn"):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed:
+                    raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
+            if key.startswith('isbn'):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed_key:
+                    raise web.seeother(ed_key)
+
             logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
