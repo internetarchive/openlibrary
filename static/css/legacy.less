@@ -1,3 +1,5 @@
+/* stylelint-disable no-descending-specificity */
+
 @charset "utf-8";
 
 /**
@@ -511,10 +513,10 @@ q {
 
 /* SITE DEFAULTS */
 
-@import (less) "common.less";
+@import (less) "base/common.less";
 @import (less) "components/buttonsAndLinks.less";
-@import (less) "lib/helpers-common.less";
-@import (less) "lib/helpers-misc.less";
+@import (less) "base/helpers-common.less";
+@import (less) "base/helpers-misc.less";
 
 #tooltip {
   position: absolute;
@@ -593,7 +595,7 @@ div.superNav {
   margin-bottom: 5px;
 }
 
-@import (less) "components/headings.less";
+@import (less) "base/headings.less";
 
 span {
   &.link {
@@ -813,7 +815,7 @@ input {
 }
 
 /* LAYOUT */
-@import "v2.less";
+@import "layout/v2.less";
 
 div#placement {
   width: 960px;
@@ -3618,44 +3620,6 @@ ul#listResults {
   }
 }
 
-ul.listLists {
-  margin: 0;
-  padding: 0;
-  span {
-    display: block;
-    color: @grey;
-  }
-  li {
-    border-radius: 3px;
-    padding: 5px;
-    .display-flex();
-    background-color: @white;
-    border-bottom: 1px solid @lightest-grey;
-    .image {
-      width: 42px;
-      min-height: 35px;
-      padding: 0 10px;
-      img {
-        width: 32px;
-      }
-    }
-    .data {
-      width: 208px;
-      padding: 3px 0;
-    }
-    .label {
-      line-height: 1.125em;
-      font-size: 12px;
-    }
-    .meta,
-    .owner {
-      font-size: .6875em;
-      line-height: 1.125em;
-      margin: 5px 0;
-    }
-  }
-}
-
 div#listsWork {
   ul.listLists {
     li {
@@ -4178,14 +4142,6 @@ ul#myreads-paginator {
 .star {
   color: @steel-blue;
   font-size: 1.3em;
-  &-messaging {
-    color: @light-mid-grey;
-    background: none;
-    display: block;
-    margin: 0 auto;
-    border: 0;
-    cursor: pointer;
-  }
 }
 
 @import (less) "components/rating-form.less";

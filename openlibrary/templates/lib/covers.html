@@ -30,6 +30,22 @@ function loadCoverCarousels(carousel, state) {
         updateBookAvailability('#coversCarousel li ');
     });
 }
+
+window.q.push(function() {
+    // setup the carousel for subjects page
+    page.renderCovers = render_page;
+    if ( page.displayCovers ) {
+        page.displayCovers(0);
+    }
+    if ( carousels ) {
+        carousels();
+    }
+    if ( carouselSetup ) {
+        carouselSetup(loadCoverCarousels);
+        \$('.jcarousel-next').attr('title','View the next editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the next editions</a></h4>');
+        \$('.jcarousel-prev').attr('title','View the previous editions').append('<h4 class="shift"><a href="#" onclick="return false;">View the previous editions</a></h4>');
+    }
+});
 //-->
 </script>
 

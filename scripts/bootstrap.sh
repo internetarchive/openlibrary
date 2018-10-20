@@ -45,7 +45,7 @@ npm install -g less
 npm update -g less
 ln -nsf /usr/bin/nodejs /usr/bin/node
 
-PYTHON_PACKAGES=$OL_ROOT/test_requirements.txt
+PYTHON_PACKAGES=$OL_ROOT/requirements_test.txt
 
 pip install -r $PYTHON_PACKAGES
 

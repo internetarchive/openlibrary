@@ -70,6 +70,7 @@
 					]
 				}
 			]
-		]
+		],
+		"no-descending-specificity": true
 	}
 }
