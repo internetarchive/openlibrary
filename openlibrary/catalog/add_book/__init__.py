@@ -516,7 +516,7 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     data = item.metadata
     return data
 
-def create_edition_from_amazon_metadata():
+def create_edition_from_amazon_metadata(isbn):
     """Fetches amazon metadata by isbn from affiliates API, attempts to
     create OL edition from metadata, and returns the resulting edition key
     `/key/OL..M` if successful or None otherwise
@@ -622,11 +622,13 @@ def load(rec):
         need_edition_save = True
 
 
-    edition_fields = ['local_id', 'ia_box_id', 'ia_loaded_id']
+    edition_fields = [
+        'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
+    # XXX Todos:
     # only consider `source_records` for newly created work
-    # or if field originally missing
-    if work_created and not e.get('source_records'):
-        edition_fields.append('source_records')
+    # or if field originally missing:
+    #if work_created and not e.get('source_records'):
+    #    edition_fields.append('source_records')
     for f in edition_fields:
         if f not in rec:
             continue
