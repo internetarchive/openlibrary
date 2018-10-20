@@ -29,7 +29,6 @@ from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
-from openlibrary.plugins.upstream.code import get_amazon_metadata
 
 import processors
 
@@ -395,7 +394,7 @@ class bookpage(delegate.page):
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
             elif key.startswith("isbn"):
-                ed = create_edition_from_amazon_metadata(value)
+                ed_key = create_edition_from_amazon_metadata(value)
                 if ed:
                     raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
@@ -404,8 +403,8 @@ class bookpage(delegate.page):
             raise
         except:
             if key.startswith('isbn'):
-                ed = create_edition_from_amazon_metadata(value)
-                if ed:
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed_key:
                     raise web.seeother(ed_key)
 
             logger.error("unexpected error", exc_info=True)

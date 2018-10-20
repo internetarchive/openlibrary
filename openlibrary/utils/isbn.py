@@ -1,3 +1,4 @@
+import re
 import logging
 
 logger = logging.getLogger("openlibrary")
@@ -69,3 +70,9 @@ def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
         alt = f(isbn)
         if alt:
             return alt
+
+def normalize_isbn(isbn):
+    """removes spaces and dashes from isbn and ensures length"""
+    _isbn = isbn.replace(' ', '').replace('-', '').strip()
+    if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
+        return _isbn

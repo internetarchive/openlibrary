@@ -36,6 +36,7 @@ from infogami import config
 
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
+from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core import lending
 from openlibrary.catalog.utils import flip_name
 from openlibrary import accounts
