@@ -9,10 +9,10 @@ $if results and results.get('hits'):
   $ num_found = results['hits'].get('total', 0)
   <div id="searchResults">
     <ul id="siteSearch">
-      $for doc in hits:
-        $if doc.get('edition'):
-          $ snippet = macros.FulltextSnippet(query, doc=doc)
-          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=snippet)
+      $for doc in hits:                
+        $if doc.get('edition'):          
+          $ toc = macros.TocSnippet(query, doc=doc)
+          $:macros.SearchResultsWork(doc['edition'], availability=doc['availability'], user=user, extra=toc)
     </ul>
     $:macros.Pager(page, num_found)
-  </div>
+  </div>          

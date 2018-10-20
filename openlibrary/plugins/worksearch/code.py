@@ -464,10 +464,6 @@ class search(delegate.page):
 
         if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
-            #if ftoken_db is None:
-            #    ftoken_db = dbm.open('/olsystem/ftokens', 'r')
-            #if ftoken_db.get(token):
-            #    raise web.seeother('/subjects/' + ftoken_db[token].decode('utf-8').lower().replace(' ', '_'))
 
         if i.get('wisbn'):
             i.isbn = i.wisbn

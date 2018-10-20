@@ -1,0 +1,9 @@
+$def with (q, doc=None)
+
+$ toc = doc['_source']['toc']
+<section class="fulltext-excerpts" aria-label="search results from: $doc['edition']['title']">
+<pre>
+$for sec in toc:
+  $sec.split(':', 1)[1]
+</pre>
+</section>

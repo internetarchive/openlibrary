@@ -1,0 +1,32 @@
+$def with (q, results, search_time, page=1, results_per_page=20)
+
+$var title: Search Open Library for $q
+
+<div id="contentHead">
+    <h1>$_("Search Tables of Contents")</h1>
+</div>
+
+<div id="contentBody">
+
+  <form class="siteSearch searchInsideForm" action="/search/toc">
+    <input type="text" class="larger" name="q" value="$q"/>
+    <input type="submit" class="generic-button" value="$_('Search')">
+  </form>
+    $ num_found = 0
+    $if q:
+        $if results and 'error' not in results and results['hits']:
+            $ hits = results['hits'].get('hits', [])
+            $ num_found = results['hits'].get('total', 0)
+
+        $if 'error' in results:
+            <div class="searchResultsError">$results['error']</div>
+
+        $if not num_found:
+            <p class="sansserif red collapse">No hits for: <strong>$q</strong></span></p>
+
+        $else:
+            <p class="search-results-stats">About $commify(num_found) result$("s" if num_found != 1 else "") ($("%.2f" % search_time) seconds)</p>
+
+        $:macros.TocResults(q, results, page=page)
+</div>
+
