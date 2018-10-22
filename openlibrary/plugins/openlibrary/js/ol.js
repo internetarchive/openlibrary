@@ -82,37 +82,6 @@ $(window).scroll(function(){
 function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
 
-function aboutFeeds() {
-    jQuery.getFeed({
-        url: 'http://www.archive.org/services/collection-rss.php?mediatype=texts',
-        success: function(feed) {
-
-            jQuery('#resultScanned').append('<h4>New Scanned Books</h4>');
-            var html = '';
-            for(var i = 0; i < feed.items.length && i < 4; i++) {
-                var item = feed.items[i];
-                html += '<div class="item"><div class="cover">'+item.description+'</div><div class="title"><a href="'+item.link+'"><strong>'+item.title+'</strong></a></div><div class="updated">'+item.updated+'</div></div>';
-            }
-            jQuery('#resultScanned').append(html);
-            jQuery('#resultScanned').append('<div class="title"><a href="'+feed.link+'">See all</a></div>');
-        }
-    });
-    jQuery.getFeed({
-        url: 'http://blog.openlibrary.org/feed/',
-        success: function(feed) {
-
-            jQuery('#resultBlog').append('<h4>From The Blog</h4>');
-            var html = '';
-            for(var i = 0; i < feed.items.length && i < 2; i++) {
-                var item = feed.items[i];
-                html += '<div class="item"><div class="title"><a href="'+item.link+'">'+item.title+'</a></div><div class="byline">By '+item.author+', '+item.updated+'</div><div class="content">'+item.description+'</div></div>';
-            }
-            jQuery('#resultBlog').append(html);
-            jQuery('#resultBlog').append('<div class="content"><a href="'+feed.link+'">Visit the blog...</a></div>');
-        }
-    });
-};
-
 var create_subject_carousel;
 $().ready(function() {
   create_subject_carousel = function(subject_name, type, options) {
@@ -232,21 +201,6 @@ function closePop(){
         parent.$.fn.colorbox.close();
     });
 };
-function get_subject_covers(key, pagenumber) {
-    // will implement it later.
-    var covers = [];
-    for (var i=0; i<20; i++)
-        covers[i] = pagenumber * 20 + i;
-    return covers;
-}
-
-function get_work_covers(key, pagenumber) {
-    // will implement it later.
-    var covers = [];
-    for (var i=0; i<20; i++)
-        covers[i] = pagenumber * 20 + i;
-    return covers;
-}
 
 function Place(key) {
     this.key = key;
@@ -299,63 +253,12 @@ function deleteVerify() {
     });
 };
 */
-function passwordHide(){
-;(function($){
-    $.fn.revealPassword=function(ph,options){
-        var spinput=$(this);
-        $.fn.revealPassword.checker=function(cbid,inid){
-            $('input[id="'+cbid+'"]').click(function(){
-                if($(this).attr('checked')){
-                    $('input.'+inid).val(spinput.val()).attr('id',spinput.attr('id')).attr('name',spinput.attr('name'));
-                    $('input.'+inid).css('display','inline');
-                    spinput.css('display','none').removeAttr('id').removeAttr('name');
-                } else {
-                    spinput.val($('input.'+inid).val()).attr('id',$('input.'+inid).attr('id')).attr('name',$('input.'+inid).attr('name'));
-                    spinput.css('display','inline');
-                    $('input.'+inid).css('display','none').removeAttr('id').removeAttr('name');
-                }
-            });
-        }
-        return this.each(function(){
-            var def={classname:'class',name:'password-input',text:'Unmask password?'};
-            var spcbid='spcb';
-            var spinid=spcbid.replace('spcb','spin');
-            var spclass=spinid;
-            if(typeof ph=='object'){
-                $.extend(def,ph);
-            }
-            if(typeof options=='object'){
-                $.extend(def,options);
-            }
-            var spname=def.name;
-            if(def.classname==''){
-                theclass='';
-            } else {
-                theclass=' class="'+def.clasname+'"';
-            }
-            $(this).before('<input type="text" value="" class="'+spclass+'" style="display: none;" />');
-            var thecheckbox='<input type="checkbox" id="'+spcbid+'" name="'+spname+'" value="sp" /> <label for="'+spcbid+'">'+def.text+'</label>';
-            if(ph=='object'||typeof ph=='undefined'){
-                $(this).after(thecheckbox);
-            } else {
-                $(ph).html(thecheckbox);
-            }
-            $.fn.revealPassword.checker(spcbid,spinid);
-            return this;
-        });
-    }
-})(jQuery);
-};
 
 var searchMode;
 $().ready(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
-
-    var capitalize = function(word) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    }
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
@@ -719,14 +622,6 @@ $().ready(function(){
     }, 100, false));
 
     var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
-    var buildReadingLogCombo = function(status_id) {
-        var template = function(shelf_id, checked, remove) {
-            return '<option value="' + shelf_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: shelf_id] + '</option>';
-        }
-        return (status_id == 3)? (template(3, true) + template(1) + template(2) + template(3, false, true)) :
-            (status_id == 2)? (template(2, true) + template(1) + template(3) + template(2, false, true)) :
-            (template(1, true) + template(2) + template(3) + template(1, false, true));
-    }
 
     $('.reading-log-lite select').change(function(e) {
         var self = this;
