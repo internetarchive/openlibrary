@@ -10,6 +10,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
 
 body#plain {
   /* stylelint-disable selector-max-specificity */
@@ -165,7 +166,7 @@ body#plain {
         padding-bottom: 10px;
 
         &.expires {
-          font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+          font-family: @lucida_sans_serif-1;
           color: @brown;
           font-weight: 600;
           font-size: .6875em;
@@ -174,7 +175,7 @@ body#plain {
         }
 
         &.titles {
-          font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+          font-family: @lucida_sans_serif-1;
           color: @teal;
           font-weight: 600;
           font-size: 1.125em;

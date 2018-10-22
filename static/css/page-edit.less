@@ -21,6 +21,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
 
 /* stylelint-disable selector-max-specificity */
 body#edit,
@@ -32,7 +33,7 @@ body#edit div#content {
 body#edit {
   /* stylelint-disable selector-max-specificity */
   div#content {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
   }
   /* stylelint-enable selector-max-specificity */
   /* stylelint-disable selector-max-specificity */
@@ -47,34 +48,34 @@ body#edit {
     top: 60px;
     right: 20px;
     font-size: .75em;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+    font-family: @lucida_sans_serif-1;
   }
   /* stylelint-enable selector-max-specificity */
   .formElement {
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+    font-family: @lucida_sans_serif-2;
     color: @darker-grey;
   }
   .label {
     padding: 10px 0 5px;
     label {
       font-size: 1.0em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
     span {
       font-size: .75em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-5;
     }
   }
   textarea {
-    font-family: "Lucida Console", "Courier New", monospace;
+    font-family: @lucida_console_monospace;
     font-size: .875em;
     padding: 5px;
   }
   .formElement input[type=text],
   .formElement select {
     font-size: 1em;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-4;
     color: @dark-grey;
     padding: 5px;
   }
@@ -86,7 +87,7 @@ body#edit {
     td {
       background-color: @white;
       vertical-align: top;
-      font-family: "Lucida Console", "Courier New", monospace;
+      font-family: @lucida_console_monospace;
       font-size: .875em;
       padding: 5px;
     }
@@ -110,7 +111,7 @@ body#edit {
     h2 {
       margin: 0 0 5px;
       a {
-        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+        font-family: @lucida_sans_serif-4;
         color: @red;
         font-size: 14px;
         font-weight: normal;

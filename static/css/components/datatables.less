@@ -3,6 +3,7 @@
  * Defined in:
  * - vendor/js/jquery-datatables/jquery.dataTables.min.js
  */
+@import (less) "less/font-families.less";
 
 @import (less) "less/z-index.less";
 
@@ -15,7 +16,7 @@
  */
 
 .dataTables_wrapper {
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  font-family: @lucida_sans_serif-1;
   position: relative;
   z-index: @z-index-level-1;
   margin: 15px 0;
@@ -289,7 +290,7 @@ td.details {
 
 .paging_full_numbers span.paginate_button,
 .paging_full_numbers span.paginate_active {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   font-size: 11px;
   border: 1px solid @lighter-grey;
   padding: 7px;

@@ -4,6 +4,7 @@
 *
 * These styles are loaded as render blocking CSS on every page.
 */
+@import (less) "less/font-families.less";
 
 /* RESET EVERYTHING */
 body,
@@ -34,7 +35,7 @@ body {
   line-height: normal;
   color: @dark-grey;
   background-color: @beige;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
 }
 p {
   font-size: .875em;
@@ -75,7 +76,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   color: @grey;
   font-weight: 600;
 }

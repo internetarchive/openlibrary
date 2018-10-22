@@ -2,16 +2,17 @@
  * Open Library Form
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#olform
  */
+@import (less) "less/font-families.less";
 
 form.olform {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-4;
 
   .label {
     padding: 10px 0 2px;
 
     label {
       font-size: 1.0em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
 
@@ -25,7 +26,7 @@ form.olform {
   input[type=password],
   textarea {
     font-size: 1.0em;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     padding: 3px;
     height: 40px;
     max-width: 100%;
@@ -33,7 +34,7 @@ form.olform {
 
   select {
     font-size: 1.125em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding: 3px;
   }
 
