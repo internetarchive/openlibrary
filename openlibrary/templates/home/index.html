@@ -12,6 +12,8 @@ $var title: $_("Welcome to Open Library")
 
   $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
+  $:render_template("home/custom_ia_carousel", title="New Arrivals", key="new_arrivals", query="collection:(inlibrary)", sorts=["publicdate+desc",], limit=42, test=test)
+
   $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
 
   $:render_template("home/custom_ia_carousel", title="Kids", key="children", query="preset:children", sorts=["loans__status__last_loan_date+desc"], limit=42, test=test)
