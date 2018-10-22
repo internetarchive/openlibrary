@@ -2,11 +2,12 @@
  * Diff
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#diff
  */
+@import (less) "less/font-families.less";
 
 #legend {
   float: left;
   font-size: 11px;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-6;
   line-height: 1em;
   margin-top: 20px;
 }
@@ -53,7 +54,7 @@ dd {
 
 .diff .revisions th {
   padding: 10px;
-  font-family: "News Gothic MT", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+  font-family: @news_gothic_sans_serif-2;
   font-size: 11px;
   font-weight: 700;
   color: @black;
@@ -65,7 +66,7 @@ dd {
 
 .diff .revisions td {
   padding: 10px;
-  font-family: "Lucida Console","Courier New", monospace;
+  font-family: @lucida_console_monospace;
   background: @lightest-grey;
   vertical-align: top;
   font-size: .875em;

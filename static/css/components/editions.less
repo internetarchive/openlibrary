@@ -2,13 +2,14 @@
  * EditionsTable
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#editionstable
  */
+@import (less) "less/font-families.less";
 
 table#editions {
   clear: both;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  font-family: @lucida_sans_serif-1;
 
   th {
-    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-family: @news_gothic_sans_serif-2;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -77,12 +78,12 @@ table#editions {
 .lists {
   table#editions {
     h3 {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       font-size: .75em;
       display: inline;
     }
     th {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       background-color: transparent;
       text-align: left;
       font-weight: normal;

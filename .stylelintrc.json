@@ -5,6 +5,12 @@
 	"rules": {
 		"sh-waqar/declaration-use-variable": [
 			[
+				"font-family",
+				{
+					"ignoreValues": [
+						"inherit", "transparent"
+					]
+				},
 				"background-color",
 				{
 					"ignoreValues": [
