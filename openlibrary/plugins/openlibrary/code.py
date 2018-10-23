@@ -1,6 +1,8 @@
 """
 Open Library Plugin.
 """
+from __future__ import absolute_import
+
 import web
 import simplejson
 import os
@@ -30,7 +32,7 @@ from openlibrary.core.lending import get_work_availability, get_edition_availabi
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 
-import processors
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -45,7 +47,7 @@ except:
 infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 # setup special connection with caching support
-import connection
+from openlibrary.plugins.openlibrary import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
@@ -60,7 +62,7 @@ models.register_types()
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-import lists
+from openlibrary.plugins.openlibrary import lists
 lists.setup()
 
 logger = logging.getLogger("openlibrary")
@@ -814,8 +816,9 @@ def setup_context_defaults():
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, \
-        events, design, status, merge_editions, authors
+    from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
+                                                 stats, support, events, design, status,
+                                                 merge_editions, authors)
 
     home.setup()
     design.setup()
@@ -829,12 +832,11 @@ def setup():
     merge_editions.setup()
     authors.setup()
 
-    import api
-    from stats import stats_hook
-    delegate.app.add_processor(web.unloadhook(stats_hook))
+    from openlibrary.plugins.openlibrary import api
+    delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get("dev_instance") is True:
-        import dev_instance
+        from openlibrary.plugins.openlibrary import dev_instance
         dev_instance.setup()
 
     setup_context_defaults()
