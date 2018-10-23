@@ -827,7 +827,8 @@ class works_autocomplete(delegate.page):
         }
 
         data = solr.select(solr_q, **params)
-        docs = data['docs']
+        # exclude fake works that actually have an edition key
+        docs = [d for d in data['docs'] if d['key'][-1] == 'W']
 
         for d in docs:
             # Required by the frontend
