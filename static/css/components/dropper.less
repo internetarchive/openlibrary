@@ -1,3 +1,5 @@
+/* stylelint-disable no-descending-specificity */
+
 /**
  * Dropper
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#dropper
@@ -5,6 +7,27 @@
  * Used in templates:
  * - openlibrary/templates/lists/widget.html
  */
+
+@import (less) "less/z-index.less";
+
+div.dropit {
+  // heart icon
+  div.icon {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    background-image: url(/images/icons/icons_sprite.png);
+    background-repeat: no-repeat;
+    &.list {
+      background-position: 0 0;
+    }
+    &.listed {
+      background-position: -32px 0;
+    }
+  }
+}
 
 div.dropper {
   &.on {
@@ -75,7 +98,7 @@ div#subjectLists {
     top: 0;
     left: 32px;
     width: 230px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
 
     &.on {
       background-color: @lightest-grey;
@@ -127,11 +150,7 @@ div#subjectLists {
 
 div.Tools {
   div.dropper {
-    position: absolute;
-    top: 0;
-    left: 32px;
-    width: 198px;
-    z-index: 10000;
+    z-index: @z-index-level-14;
 
     &.on {
       background-color: @lightest-grey;
@@ -178,14 +197,6 @@ div.Tools {
 
   // Where is widget-add.old-style-lists used?
   #widget-add.old-style-lists {
-    div.dropper {
-      margin: 0;
-      position: absolute;
-      top: 35px;
-      left: 10px;
-      padding: 5px 10px;
-      width: 209px;
-    }
     .dropclick {
       text-decoration: none;
 
@@ -216,7 +227,7 @@ div#listsWork {
     top: 0;
     left: 32px;
     width: 161px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
     &.on {
       background-color: @lightest-grey;
       border: 1px solid @light-mid-grey;
@@ -320,9 +331,10 @@ div#listsWork {
 
 div.tools-override {
   div.dropper {
-    z-index: 10000;
+    z-index: @z-index-level-14;
     width: 180px;
     top: unset;
     left: -1px;
+    margin: auto;
   }
 }

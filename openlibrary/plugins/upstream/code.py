@@ -3,12 +3,8 @@
 import os.path
 import web
 import random
-import simplejson
 import md5
-import re
 import datetime
-import urllib2
-import logging
 
 from infogami import config
 from infogami.infobase import client
@@ -18,12 +14,7 @@ from infogami.utils.context import context
 
 from utils import render_template
 
-from openlibrary.core import cache
-from openlibrary.core.lending import amazon_api
 from openlibrary import accounts
-from openlibrary.utils import dateutil
-from openlibrary.plugins.openlibrary.processors import ReadableUrlProcessor
-from openlibrary.plugins.openlibrary import code as ol_code
 
 import utils
 import addbook
@@ -33,9 +24,6 @@ import borrow
 import recentchanges
 import merge_authors
 
-logger = logging.getLogger("openlibrary.plugins")
-
-BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 if not config.get('coverstore_url'):
     config.coverstore_url = "https://covers.openlibrary.org"
@@ -48,10 +36,14 @@ class static(delegate.page):
 
 # handlers for change photo and change cover
 
-class change_cover(delegate.page):
+class change_cover(delegate.mode):
     path = "(/books/OL\d+M)/cover"
+
     def GET(self, key):
-        return ol_code.change_cover().GET(key)
+        page = web.ctx.site.get(key)
+        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
+            raise web.seeother(key)
+        return render.change_cover(page)
 
 class change_photo(change_cover):
     path = "(/authors/OL\d+A)/photo"
@@ -83,124 +75,6 @@ def static_url(path):
     fullpath = os.path.abspath(os.path.join(__file__, pardir, pardir, pardir, pardir, "static", path))
     digest = md5.md5(open(fullpath).read()).hexdigest()
     return "/static/%s?v=%s" % (path, digest)
-
-
-def normalize_isbn(isbn):
-    _isbn = isbn.replace(' ', '').strip()
-    if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
-        return _isbn
-
-@public
-def get_amazon_metadata(isbn):
-    try:
-        isbn = normalize_isbn(isbn)
-        if isbn:
-            return cached_get_amazon_metadata(isbn)
-    except Exception:
-        return None
-
-def _get_amazon_metadata(isbn):
-    try:
-        if not amazon_api:
-            logger.info("Amazon keys likely misconfigured")
-            raise Exception
-        product = amazon_api.lookup(ItemId=isbn)
-    except Exception as e:
-        return None
-
-    price, qlt = (None, None)
-    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
-    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
-
-    # prioritize lower prices and newer, all things being equal
-    if used and new:
-        price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
-    # accept whichever is available
-    elif used or new:
-        price, qlt = (used, 'used') if used else (new, 'new')
-
-    price_fmt = None
-    if price and qlt:
-        price = '{:00,.2f}'.format(int(price)/100.)
-        price_fmt = "$%s (%s)" % (price, qlt)
-
-    return {
-        'price': price_fmt
-    }
-
-
-def cached_get_amazon_metadata(*args, **kwargs):
-    """If the cached data is `None`, likely a 503 throttling occurred on
-    Amazon's side. Try again to fetch the value instead of using the
-    cached value. It may 503 again, in which case the next access of
-    this page will trigger another re-cache. If the amazon API call
-    succeeds but the book has no price data, then {"price": None} will
-    be cached as to not trigger a re-cache (only the value `None`
-    will cause re-cache)
-    """
-    # fetch/compose a cache controller obj for
-    # "upstream.code._get_amazon_metadata"
-    memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata, "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS)
-    # fetch cached value from this controller
-    result = memoized_get_amazon_metadata(*args, **kwargs)
-    if result is None:
-        # recache / update this controller's cached value
-        # (corresponding to these input args)
-        result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
-    return result
-
-@public
-def get_betterworldbooks_metadata(isbn):
-    try:
-        isbn = normalize_isbn(isbn)
-        if isbn:
-            return _get_betterworldbooks_metadata(isbn)
-    except Exception:
-        return {}
-
-def _get_betterworldbooks_metadata(isbn):
-    url = BETTERWORLDBOOKS_API_URL + isbn
-    try:
-        req = urllib2.Request(url)
-        f = urllib2.urlopen(req)
-        response = f.read()
-        f.close()
-        product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
-        new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
-        new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
-        used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
-        used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
-
-        price, qlt = None, None
-
-        if used_qty and used_qty[0] and used_qty[0] != '0':
-            price = used_price[0] if used_price else ''
-            qlt = 'used'
-
-        if new_qty and new_qty[0] and new_qty[0] != '0':
-            _price = used_price[0] if used_price else None
-            if price and _price and _price < price:
-                price = _price
-                qlt = 'new'
-
-        return {
-            'url': product_url[0] if product_url else None,
-            'price': price,
-            'qlt': qlt
-        }
-        return result
-    except urllib2.HTTPError as e:
-        try:
-            response = e.read()
-        except simplejson.decoder.JSONDecodeError:
-            return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
-
-
-cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
 
 class DynamicDocument:
     """Dynamic document is created by concatinating various rawtext documents in the DB.

@@ -9,11 +9,12 @@ PYBUNDLE_URL=http://www.archive.org/download/ol_vendor/openlibrary.pybundle
 OL_VENDOR=http://www.archive.org/download/ol_vendor
 SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
+GITHUB_EDITOR_WIDTH=127
 
 # Use python from local env if it exists or else default to python in the path.
 PYTHON=$(if $(wildcard env),env/bin/python,python)
 
-.PHONY: all clean distclean git css js i18n
+.PHONY: all clean distclean git css js i18n lint
 
 all: git css js i18n
 
@@ -27,7 +28,6 @@ css:
 	lessc -x static/css/page-user.less $(BUILD)/page-user.css
 	lessc -x static/css/js-all.less $(BUILD)/js-all.css
 	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css
-	lessc -x static/css/js-books-edit.less $(BUILD)/js-books-edit.css
 	lessc -x static/css/page-design.less $(BUILD)/page-design.css
 	lessc -x static/css/page-dev.less $(BUILD)/page-dev.css
 
@@ -94,6 +94,15 @@ destroy:
 reindex-solr:
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/books/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
 	psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy
+
+lint:
+	# stop the build if there are Python syntax errors or undefined names
+	# TODO: Add --select=F821 once the other issues are fixed
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor/*  --select=E901,E999,F822,F823 --show-source --statistics
+ifndef CONTINUOUS_INTEGRATION
+	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
+	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
+endif
 
 test:
 	npm test

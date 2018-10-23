@@ -2077,7 +2077,7 @@ msgid "Revision"
 msgstr ""
 
 #: openlibrary/templates/history.html:28
-msgid "¿Qué?"
+msgid "Comment"
 msgstr ""
 
 #: openlibrary/templates/history.html:29

@@ -29,7 +29,7 @@ $if scribd or isbn or asin:
               $if prices:
                   $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
                   $if betterworldbooks_metadata and 'price' in betterworldbooks_metadata and betterworldbooks_metadata['price']:
-                      \$$betterworldbooks_metadata['price'] ($betterworldbooks_metadata['qlt'])
+                      $betterworldbooks_metadata['price']
               </td>
             </tr>
       $if scribd and not (isbn or asin):

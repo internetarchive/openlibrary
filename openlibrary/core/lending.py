@@ -24,11 +24,6 @@ from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
-# How long the auth token given to the BookReader should last.  After the auth token
-# expires the BookReader will not be able to access the book.  The BookReader polls
-# OL periodically to get fresh tokens.
-BOOKREADER_AUTH_SECONDS = dateutil.MINUTE_SECS * 10
-
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
 # the loan has occurred.  We allow this timeout so that we don't delete the OL loan
@@ -56,6 +51,7 @@ config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
+config_ia_loan_api_developer_key = None
 config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -75,7 +71,7 @@ def setup(config):
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
-        config_ia_users_loan_history
+        config_ia_users_loan_history, config_ia_loan_api_developer_key
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -90,6 +86,7 @@ def setup(config):
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_users_loan_history = config.get('ia_users_loan_history')
+    config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
     config_amz_api = config.get('amazon_api')
@@ -207,7 +204,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
     of unique available books.
     """
     url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
-                         work_id=work_id, _type=_type, sorts=sorts)    
+                         work_id=work_id, _type=_type, sorts=sorts)
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
@@ -257,7 +254,7 @@ def get_realtime_availability_of_ocaid(ocaid):
 def add_availability(editions):
     """Adds API v2 availability info to editions, e.g. for work's editions table
     """
-    
+
     ocaids = [ed.get('ocaid') or ed.ia[0] for ed in editions if (ed.get('ia') or ed.get('ocaid'))]
     availability = get_availability_of_ocaids(ocaids)
     for i, ed in enumerate(editions):
@@ -640,33 +637,6 @@ def get_resource_id(identifier, resource_type):
         if rtype == resource_type:
             return resource_id
 
-def make_ia_token(item_id, expiry_seconds):
-    """Make a key that allows a client to access the item on archive.org for the number of
-       seconds from now.
-    """
-    access_key = config_ia_access_secret
-    if access_key is None:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
-    timestamp = int(time.time() + expiry_seconds)
-    token_data = '%s-%d' % (item_id, timestamp)
-
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
-    return token
-
-
-def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
-    """
-    Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
-    a borrowed book
-    """
-
-    access_token = make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
-        config_bookreader_host, loan_key, access_token, item_id, book_path, ol_host
-    )
-
-    return auth_url
 
 def update_loan_status(identifier):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
@@ -786,8 +756,11 @@ class IA_Lending_API:
 
     def _post(self, **params):
         logger.info("POST %s %s", config_ia_loan_api_url, params)
+        if config_ia_loan_api_developer_key:
+            params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
+
         try:
             jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
                                        timeout=config_http_request_timeout).read()

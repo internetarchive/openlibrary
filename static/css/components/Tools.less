@@ -1,19 +1,19 @@
+/* stylelint-disable no-descending-specificity */
+
 /**
  * Tools
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#Tools
  * This component appears to predominately be about layout.
  * The file should be refactored and its layout rules generalised.
  */
+@import (less) "less/font-families.less";
 
 .Tools {
-  width: 250px;
-  margin: 0 0 25px 20px;
   position: relative;
 
   .btn-notice {
     line-height: 1.5em;
     font-size: 1em;
-    margin-left: 35px;
     padding: 10px;
     margin-bottom: 10px;
     background-color: @white;
@@ -129,7 +129,7 @@
 
   li {
     font-size: .6875em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding-left: 42px;
     margin-bottom: 5px;
   }
@@ -151,7 +151,7 @@
 
     td {
       font-size: .6875em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       &.price {
         padding: 3px 0 0;
         text-align: right;
@@ -166,7 +166,7 @@
     font-size: 100%;
     min-height: 32px;
     width: 250px;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;
+    font-family: @lucida_sans_serif-1!important;
     font-weight: normal;
     outline: 0;
     position: relative;
@@ -232,7 +232,7 @@
 
   h4 {
     font-size: 1em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @teal;
     font-weight: 600;
     margin: 0 0 10px;
@@ -286,7 +286,7 @@
 
   p {
     font-size: .6875em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding-left: 42px;
     margin-bottom: 5px;
   }
@@ -332,20 +332,13 @@
 }
 
 div.tools-override {
-  width: 180px;
   min-height: 45px;
-  padding-left: 0;
   margin: 0 auto;
   padding: 0;
 
-  &.editionTools {
-    float: left;
-  }
-
   .Tools {
     .btn-notice {
-      width: 180px;
-      margin-left: 45px;
+      margin: auto;
       font-size: .9em;
     }
   }

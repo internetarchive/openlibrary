@@ -1,9 +1,14 @@
+/* stylelint-disable no-descending-specificity */
+
 /**
  * ResultsCovers
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#resultcovers
  * The ResultsCovers component duplicates the Carousel component.
  * Please do not use, until this issue is resolved.
  */
+@import (less) "less/font-families.less";
+
+@import (less) "less/z-index.less";
 
 /* RESULTS CAROUSEL SKIN */
 #resultsList,
@@ -28,7 +33,7 @@
   h3 {
     position: relative;
     text-align: center;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-2;
     font-weight: normal;
     color: @grey;
   }
@@ -112,7 +117,7 @@
 }
 
 .jcarousel-list {
-  z-index: 1;
+  z-index: @z-index-level-1;
   overflow: hidden;
   position: relative;
   top: 0;
@@ -134,12 +139,12 @@
 }
 
 .jcarousel-next {
-  z-index: 3;
+  z-index: @z-index-level-3;
   display: none;
 }
 
 .jcarousel-prev {
-  z-index: 3;
+  z-index: @z-index-level-3;
   display: none;
 }
 
@@ -209,7 +214,7 @@
 }
 
 .jcarousel-clip {
-  z-index: 2;
+  z-index: @z-index-level-2;
   padding: 0;
   margin: 0;
   overflow: hidden;
@@ -224,7 +229,7 @@
   left: 0;
   background: @white url(/images/back_results.png) repeat-x;
   height: 485px;
-  z-index: 3000;
+  z-index: @z-index-level-12;
 }
 
 #resultsList {

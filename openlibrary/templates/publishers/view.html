@@ -526,7 +526,7 @@ $jsdef renderAuthors(authors):
         </span>
         <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
         <br/>
-<div id="resultsAuthors">
+<div id="resultsAuthors" class="widget-box">
     <div class="head">
         <h3>$_("Authors")</h3>
         <div class="smallest lightgreen sansserif">$_("published most by this publisher")</div>
@@ -556,22 +556,10 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>
-$# <div id="resultsPublishers">
-$#     <div class="head">
-$#         <h3>$_("Related Publishers")</h3>
-$#         <div class="smallest lightgreen sansserif">$_("that have published the same works")</div>
-$#     </div>
-$#     <div class="unordered">
-$#         $:renderPublishers(page.publishers[:20])
-$#     </div>
-$# </div>
 
 $if "lists" in ctx.features:
-    <style type="text/css">
-    #resultsAuthors,#resultsPublishers,#subjectLists {float:left;width:282px!important;}
-    </style>
     <div class="spacer"></div>
-    <div id="subjectLists">
+    <div id="subjectLists" class="widget-box">
         $:render_template("lists/widget", page)
     </div>
 

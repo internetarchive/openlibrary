@@ -43,6 +43,7 @@ def bad_data(i):
 
 def read_marc_file(part, f, pos = 0):
     buf = None
+    loc = None
     while 1:
         if buf:
             length = buf[:5]

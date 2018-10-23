@@ -44,12 +44,44 @@ Next, fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary
 git clone git@github.com:YOURACCOUNT/openlibrary.git
 ```
 
+##### For Windows Users Only
+
+1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing below command:
+
+```bash
+# Configure Git on Windows to properly handle line endings so Git will convert CRLF to LF on commit
+git config --global core.autocrlf input
+```
+
 Enter the project directory and provision + launch the dev virtual machine instance using vagrant:
 
 ```bash
 cd openlibrary
 vagrant up
 ```
+
+##### For Windows Users Only
+
+1. If dev virtual machine instance doesn't start by any chance and throws an error `No module found` then you need to check whether `symlinks` are enabled or not. The `openlibrary` makes use of symlinks, which by default git on windows checks out as plain text files. You can check that by executing below command:
+
+```bash
+git config core.symlinks
+```
+
+2. If `symlinks` are enabled then go to the next step. If `symlinks` are not enabled then enable it by executing below command:
+
+```bash
+git config core.symlinks true
+```
+
+3. Then hard reset the repo so git will create proper symlinks by executing below command:
+
+```bash
+git reset --hard HEAD
+```
+
+**Note:** <br>
+If you get permission issue while executing any above commands then kindly run the git bash shell as an Administrator.
 
 You can now view your running instance by loading `http://localhost:8080` in a web browser.
 

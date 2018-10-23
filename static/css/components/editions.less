@@ -2,13 +2,14 @@
  * EditionsTable
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#editionstable
  */
+@import (less) "less/font-families.less";
 
 table#editions {
   clear: both;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  font-family: @lucida_sans_serif-1;
 
   th {
-    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-family: @news_gothic_sans_serif-2;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -25,17 +26,6 @@ table#editions {
 
   td.book {
     vertical-align: top;
-  }
-
-  td.icon {
-    text-align: left;
-    vertical-align: top;
-    padding: 10px 0 10px 10px;
-    width: 143px;
-
-    ul {
-      margin-bottom: 0;
-    }
   }
 
   div.cover {
@@ -62,6 +52,7 @@ table#editions {
   }
   .btn-notice {
     padding: 0;
+    // stylelint-disable-next-line sh-waqar/declaration-use-variable
     background-color: none !important;
   }
 
@@ -71,17 +62,28 @@ table#editions {
       list-style-type: none;
     }
   }
+
+  td.icon {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 0 10px 10px;
+    width: 143px;
+
+    ul {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .lists {
   table#editions {
     h3 {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       font-size: .75em;
       display: inline;
     }
     th {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       background-color: transparent;
       text-align: left;
       font-weight: normal;

@@ -1,3 +1,5 @@
+/* stylelint-disable no-descending-specificity */
+
 @charset "utf-8";
 
 /**
@@ -19,6 +21,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/z-index.less";
 
 @import (less) 'components/datatables.less';
 @import (less) 'components/diff.less';
@@ -41,6 +44,7 @@
 table {
   border-collapse: collapse;
   border-spacing: 0;
+
   &#toc-table {
     width: 100%;
     font-size: .8125em;
@@ -66,17 +70,9 @@ table {
       vertical-align: top;
     }
     td.title {
-      white-space: nowrap;
       width: 120px;
     }
-    td.object {
-      white-space: nowrap;
-    }
-    td.tag {
-      white-space: nowrap;
-    }
     td.descrip {
-      white-space: nowrap;
       width: 65px;
     }
   }
@@ -87,25 +83,6 @@ table {
   }
   &.identifiers {
     width: 395px;
-  }
-  &.history {
-    width: 100%;
-    margin-top: 10px;
-    border-top: 1px solid @grey-e7e7e7;
-    td {
-      font-size: .6875em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-      color: @grey;
-      border-bottom: 1px solid @grey-e7e7e7;
-    }
-    td.timestamp {
-      padding: 10px;
-      white-space: nowrap;
-    }
-    td.detail {
-      padding: 10px;
-      width: 100%;
-    }
   }
   &.records {
     width: 100%;
@@ -121,7 +98,7 @@ table {
     .label {
       text-transform: uppercase;
       font-size: .5625em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
     }
   }
   &.measurements {
@@ -129,7 +106,7 @@ table {
     margin: 10px 0 30px;
     color: @dark-grey;
     th {
-      font-family: "Lucida Grande", Verdana, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: .6875em;
       text-align: right;
       vertical-align: bottom;
@@ -142,7 +119,7 @@ table {
       font-size: .75em;
     }
     td.type {
-      font-family: "Lucida Grande", Verdana, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: .6875em;
     }
     tr.major {
@@ -157,7 +134,7 @@ table {
 
   &.services {
     th {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: 11px;
       font-weight: bold;
       text-transform: uppercase;
@@ -174,7 +151,7 @@ table {
   }
   &#pageHistory {
     width: 100%;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-6;
     margin: 10px 0 20px;
     td.number {
       text-align: right;
@@ -198,7 +175,7 @@ table {
   }
   &.changeHistory {
     width: 848px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-6;
     margin: 0;
 
     td.time {
@@ -210,7 +187,7 @@ table {
   }
   &#adminHistory {
     border-top: 1px solid @admin-table-border;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-6;
     margin: 0 0 20px;
     th {
       background-color: @lightest-grey;
@@ -234,7 +211,7 @@ table {
     border-top: 1px solid @grey-e7e7e7;
     th {
       font-size: .75em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-6;
       color: @grey;
       border-bottom: 1px solid @grey-e7e7e7;
       padding: 5px;
@@ -243,7 +220,7 @@ table {
     }
     td {
       font-size: .75em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-6;
       color: @grey;
       border-bottom: 1px solid @grey-e7e7e7;
       padding: 5px;
@@ -372,7 +349,7 @@ em {
     &.contributors {
       margin-top: 10px;
       margin-left: 0;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-5;
       font-size: .8125em;
       color: @grey;
       li {
@@ -406,7 +383,7 @@ em {
       height: 600px;
       float: left;
       clear: both;
-      z-index: 1;
+      z-index: @z-index-level-1;
     }
     /* stylelint-enable selector-max-specificity */
     div.olPopup {
@@ -422,7 +399,7 @@ em {
         line-height: normal;
       }
       p {
-        font-family: "Lucida Grande","Verdana","Arial",sans-serif;
+        font-family: @lucida_sans_serif-1;
         font-size: .75em;
         color: @dark-grey;
         line-height: 1.125em;
@@ -437,7 +414,7 @@ em {
       top: 0;
       left: 0;
       padding: 10px;
-      z-index: 1005;
+      z-index: @z-index-level-9;
     }
     /* stylelint-enable selector-max-specificity */
     /* stylelint-disable selector-max-specificity */
@@ -446,7 +423,7 @@ em {
       top: 0;
       left: 0;
       padding: 10px;
-      z-index: 1006;
+      z-index: @z-index-level-10;
     }
     /* stylelint-enable selector-max-specificity */
     /* stylelint-disable selector-max-specificity */
@@ -459,7 +436,7 @@ em {
         display: inline;
       }
       p {
-        font-family: "Lucida Grande","Verdana","Arial",sans-serif;
+        font-family: @lucida_sans_serif-1;
         font-size: .6875em;
         line-height: 1.5em;
         color: @grey;
@@ -470,7 +447,7 @@ em {
     /* stylelint-disable selector-max-specificity */
     div#mapLegendBody {
       span {
-        font-family: "Lucida Grande","Verdana","Arial",sans-serif;
+        font-family: @lucida_sans_serif-1;
         font-size: .8125em;
         line-height: 1.5em;
         color: @grey;
@@ -487,7 +464,7 @@ em {
     .olControlAttribution {
       bottom: 10px !important;
       right: 10px !important;
-      font-family: "Lucida Grande","Verdana","Arial",sans-serif!important;
+      font-family: @lucida_sans_serif-1 !important;
       font-size: .6875em !important;
     }
   }
@@ -501,6 +478,7 @@ em {
 }
 
 #content,
+#contentBody,
 #contentMeta,
 .floaterBody {
   ol li {
@@ -517,7 +495,7 @@ em {
 
 pre,
 code {
-  font-family: "Lucida Console","Courier New",monospace;
+  font-family: @lucida_console_monospace;
   font-size: .875em;
   font-weight: normal;
   white-space: pre-wrap;
@@ -534,10 +512,10 @@ q {
 
 /* SITE DEFAULTS */
 
-@import (less) "common.less";
+@import (less) "base/common.less";
 @import (less) "components/buttonsAndLinks.less";
-@import (less) "lib/helpers-common.less";
-@import (less) "lib/helpers-misc.less";
+@import (less) "base/helpers-common.less";
+@import (less) "base/helpers-misc.less";
 
 #tooltip {
   position: absolute;
@@ -588,11 +566,11 @@ q {
 }
 
 .onTop {
-  z-index: 20000 !important;
+  z-index: @z-index-level-15 !important;
 }
 
 .breadcrumbs {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   color: @brown;
   font-size: 11px;
   padding-bottom: 10px;
@@ -604,6 +582,8 @@ q {
 
 /* TYPOGRAPHY */
 
+@import (less) "components/widget-box.less";
+
 div.unordered {
   margin-top: 10px;
   line-height: 150%;
@@ -611,26 +591,26 @@ div.unordered {
 
 div.superNav {
   font-size: .6875em;
-  font-family: "Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;
+  font-family: @lucida_sans_serif-1;
   color: @grey;
   margin-bottom: 5px;
 }
 
-@import (less) "components/headings.less";
+@import (less) "base/headings.less";
 
 span {
   &.link {
     font-size: 12px;
     color: @light-grey;
     font-weight: normal !important;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+    font-family: @lucida_sans_serif-2;
     white-space: nowrap;
   }
   &.tools {
     font-size: 12px;
     color: @dark-grey;
     font-weight: normal !important;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+    font-family: @lucida_sans_serif-2;
 
     span.label {
       background-color: @orange;
@@ -647,16 +627,10 @@ span {
     font-size: 13px;
     color: @dark-grey;
   }
-  &.object,
-  &.subject {
-    font-size: 12px;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-    color: @dark-grey;
-  }
   &.count {
     font-size: 12px !important;
     font-weight: normal !important;
-    font-family: "Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @brown;
     white-space: nowrap;
     padding: 5px 5px 0;
@@ -671,18 +645,18 @@ span {
   }
   &.booktitle {
     color: @dark-grey;
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: @georgia_serif-1;
     font-weight: bold;
   }
   &.tweet_user {
     font-weight: 700;
   }
   &.resultTitle {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @grey;
     span.resultType {
       font-size: .75em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-6;
       color: @brown;
     }
     h3.booktitle {
@@ -692,13 +666,13 @@ span {
       color: @dark-grey;
       font-size: 1.0em;
       font-weight: 700;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-6;
     }
     .bookauthor,
     .resultPublisher {
       font-size: .75em;
       color: @grey;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-6;
       font-weight: normal;
     }
     span.details {
@@ -721,7 +695,7 @@ span {
 
 .caption {
   font-size: .5625em;
-  font-family: "Lucida Grande",Verdana,Helvetica,Geneva,sans-serif;
+  font-family: @lucida_sans_serif-1;
   font-weight: normal;
   color: @grey;
   text-transform: uppercase;
@@ -756,7 +730,7 @@ p {
     padding: 0;
     margin: -10px 0 20px 0;
     color: @brown;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     font-size: 14px;
     a {
       font-style: italic;
@@ -767,7 +741,7 @@ p {
 input[type=text],
 select,
 textarea {
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+  font-family: @lucida_sans_serif-2;
   color: @darker-grey;
   font-size: .875em;
 }
@@ -842,7 +816,7 @@ input {
 }
 
 /* LAYOUT */
-@import "v2.less";
+@import "layout/v2.less";
 
 div#placement {
   width: 960px;
@@ -887,7 +861,7 @@ div#content {
     position: absolute;
     display: none;
     top: 151px;
-    z-index: 1002;
+    z-index: @z-index-level-8;
     width: 890px;
     height: 91px;
     margin: 0 30px;
@@ -907,7 +881,7 @@ div#content {
 /* ERROR MESSAGES */
 div.flash-messages {
   font-size: 1.0em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   clear: both;
   span {
     display: block;
@@ -926,16 +900,16 @@ div.flash-messages {
   .bookadded span {
     background: @light-yellow url(/images/icons/icon_check.png) no-repeat 40px 40px;
     padding: 40px 40px 40px 80px;
-    font-family: "Georgia", "Times New Roman", serif;
+    font-family: @georgia_serif-2;
     position: relative;
     span {
       display: inline;
       background: transparent url();
       padding: 0;
-      font-family: "Lucida Grande", "Trebuchet MS", sans-serif;
+      font-family: @lucida_sans_serif-2;
     }
     h3 {
-      font-family: "Georgia", "Times New Roman", serif;
+      font-family: @georgia_serif-2;
       font-size: 1.5em;
       font-weight: normal;
       margin: 0;
@@ -955,7 +929,7 @@ div.flash-messages {
       color: @dark-green;
     }
     p.list span.red {
-      font-family: "Georgia", "Times New Roman", serif;
+      font-family: @georgia_serif-2;
     }
     a.close {
       position: absolute;
@@ -970,7 +944,7 @@ div.flash-messages {
 
 div.note {
   font-size: 1.0em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   background-color: @light-yellow;
   margin: 0 auto;
   padding: 10px;
@@ -1006,7 +980,7 @@ div#errorMerge {
 div.formElement {
   padding-bottom: 8px;
   &.bottom {
-    padding-bottom: 20px;
+    padding-bottom: 0;
   }
   label,
   select#date1,
@@ -1026,7 +1000,7 @@ div.formElement {
     padding: 5px;
   }
   blockquote {
-    font-family: Georgia,"Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: @georgia_serif-1;
     font-size: .875em;
     margin: 1em 40px;
   }
@@ -1037,7 +1011,7 @@ div.TitleAuthor {
   .tip {
     font-size: 11px;
     color: @grey;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+    font-family: @lucida_sans_serif-1!important;
   }
 }
 
@@ -1054,13 +1028,13 @@ fieldset {
   }
   &.major legend {
     padding: 5px 0;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @teal;
     font-weight: 600;
     font-size: 1.375em;
   }
   &.minor legend {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @teal;
     font-weight: 600;
     font-size: 1.125em;
@@ -1135,14 +1109,14 @@ div.formDivider {
   &Flip {
     position: relative;
     float: right;
-    z-index: 1000;
+    z-index: @z-index-level-6;
     padding: 3px 5px;
     border-left: 10px solid @olive;
   }
 }
 
 #message {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-2;
   font-size: 14px;
   background-color: @light-yellow;
   padding: 15px;
@@ -1159,72 +1133,11 @@ form {
       margin: 0 10px 0 20px;
     }
   }
-  .stars {
-    input[type="submit"].star-5.star-selected ~ span {
-      width: 100%;
-    }
-    input[type="submit"].star-4.star-selected ~ span {
-      width: 80%;
-    }
-    input[type="submit"].star-3.star-selected ~ span {
-      width: 60%;
-    }
-    input[type="submit"].star-2.star-selected ~ span {
-      width: 40%;
-    }
-    input[type="submit"].star-1.star-selected ~ span {
-      width: 20%;
-    }
-    input[type="submit"].star-0.star-selected ~ span {
-      width: 0%;
-    }
-    label {
-      display: block;
-      width: 30px;
-      height: 30px;
-      margin: 0;
-      padding: 0;
-      text-indent: -999em;
-      float: left;
-      position: relative;
-      z-index: 10;
-      background: transparent;
-      cursor: pointer;
-
-      &:hover ~ span {
-        background-position: 0 -60px;
-      }
-      &.star-5:hover ~ span {
-        width: 100%;
-      }
-      &.star-4:hover ~ span {
-        width: 80%;
-      }
-      &.star-3:hover ~ span {
-        width: 60%;
-      }
-      &.star-2:hover ~ span {
-        width: 40%;
-      }
-      &.star-1:hover ~ span {
-        width: 20%;
-      }
-    }
-    span {
-      display: block;
-      width: 0;
-      position: relative;
-      top: 0;
-      left: 0;
-      height: 30px;
-      background: url(/static/images/stars.png) repeat-x 0 -60px;
-    }
-  }
   &.recordsAdd {
     margin-bottom: 30px;
     input[type=text] {
       font-size: .875em;
-      font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-family: @georgia_serif-1;
       color: @dark-grey;
       padding: 3px;
       &.wide {
@@ -1233,7 +1146,7 @@ form {
     }
     textarea {
       font-size: 1.0em;
-      font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-family: @georgia_serif-1;
       margin: 10px 0 20px;
       color: @dark-grey;
       width: 500px;
@@ -1250,65 +1163,15 @@ form {
     }
     textarea {
       width: 623px !important;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: .875em;
     }
     /* stylelint-disable selector-max-specificity */
     input#comment {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: .875em;
     }
     /* stylelint-enable selector-max-specificity */
-  }
-  &#register {
-    .formElement,
-    .label,
-    .input,
-    input[type=text],
-    input[type=email],
-    input[type=password] {
-      float: left;
-    }
-  }
-  &.floatform {
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
-
-    .label {
-      width: 560px;
-      padding-top: 20px;
-      label {
-        font-size: 1.0em;
-        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-        font-weight: 700;
-      }
-      span {
-        font-weight: normal;
-      }
-    }
-    .input {
-      width: 560px;
-      padding-top: 20px;
-    }
-    div#covers.input {
-      width: 560px;
-      max-height: 132px;
-      overflow: hidden;
-      padding-top: 20px;
-      margin-left: -80px;
-      text-align: center;
-    }
-    input[type=text],
-    input[type=file] {
-      width: 350px;
-      font-size: 1.125em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-      padding: 3px;
-      margin-left: 30px;
-    }
-    button[type=submit] {
-      font-size: 1.125em;
-      width: auto !important;
-    }
   }
 }
 
@@ -1320,7 +1183,7 @@ div#usernameLoading,
 div#usernameResult {
   float: left;
   font-size: 1.0em !important;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   padding-top: 5px;
 }
 
@@ -1386,7 +1249,7 @@ div.searchFilter {
 
 .searchCheckboxes {
   ul li label {
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     font-size: 1.1em;
   }
   > ul {
@@ -1448,13 +1311,13 @@ div.searchOptions {
 
 .siteSearch {
   .formElement {
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     font-size: 1.1em;
   }
 }
 
 .searchPlus {
-  font-family: "Lucida Grande", Verdana, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   font-size: .75em;
   color: @dark-grey;
   padding: 15px 0;
@@ -1486,7 +1349,7 @@ div.searchOptions {
   background-color: @black;
   opacity: .5;
   filter: alpha(opacity=50);
-  z-index: 9999 !important;
+  z-index: @z-index-level-13 !important;
 }
 
 * html {
@@ -1504,7 +1367,7 @@ div.searchOptions {
   border-radius: 12px;
   -webkit-box-shadow: 1px 3px 10px @black;
   box-shadow: 1px 3px 10px @black;
-  z-index: 10000 !important;
+  z-index: @z-index-level-14 !important;
   .ui-dialog-titlebar {
     position: relative;
     background-color: @brown;
@@ -1564,7 +1427,7 @@ div.searchOptions {
 }
 
 div.cclicense {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-2;
   font-size: .75em;
   min-height: 20px;
   padding: 3px 0 0 30px;
@@ -1612,19 +1475,7 @@ div#editionBuy {
 }
 
 /* TOOLS ACCORDION */
-
-div#editTools,
-div#editButton,
-div#editHistory {
-  float: right;
-  padding: 3px 1px 0 20px;
-  width: auto;
-}
-
-div#editTools {
-  white-space: nowrap;
-  max-width: 280px;
-}
+@import (less) "components/edit-toolbar.less";
 
 div#editButton,
 div#editHistory,
@@ -1632,19 +1483,6 @@ div.revert.notice {
   button {
     font-size: 1.125em;
   }
-}
-
-div#editInfo {
-  float: right;
-  white-space: nowrap;
-  text-align: right;
-}
-
-.linkButton {
-  border-radius: 5px;
-  background: @white;
-  padding: 10px;
-  color: @dark-grey;
 }
 
 div#revertNotice {
@@ -1658,7 +1496,7 @@ div#revertNotice {
 /* MESSAGING */
 div.alert,
 div.verify {
-  font: 1.25em "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font: 1.25em @lucida_sans_serif-1;
   span {
     margin: 0 auto;
     min-height: 25px;
@@ -1679,10 +1517,10 @@ div.verify {
 }
 
 /* HEADER */
-@import (less) 'components/header.less';
+@import (less) 'components/header-legacy.less';
 
 .defaultstyling {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   .padtop {
     margin-top: 10px;
   }
@@ -1700,7 +1538,7 @@ hr.forgot-padding {
       margin-bottom: 10px;
     }
     label {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       color: @dark-grey;
       font-weight: 600;
     }
@@ -1745,6 +1583,8 @@ div#contentMeta {
   padding: 10px 20px 20px;
 }
 
+@import (less) "components/link-box.less";
+
 .content {
   &Twothird {
     float: left;
@@ -1765,12 +1605,6 @@ div#contentMeta {
   &Half {
     float: left;
     max-width: 439px;
-    min-height: 100px;
-    margin-bottom: 20px;
-  }
-  &Quarter {
-    float: left;
-    max-width: 215px;
     min-height: 100px;
     margin-bottom: 20px;
   }
@@ -1844,12 +1678,6 @@ div.content {
   }
 }
 
-div#resultsAuthors,
-div#resultsPublishers {
-  width: 438px;
-  float: left;
-}
-
 div.editThis {
   margin-left: 20px;
 }
@@ -1872,7 +1700,7 @@ div.editThis {
       left: 0;
       right: 0;
       cursor: pointer;
-      z-index: 1000;
+      z-index: @z-index-level-6;
     }
   }
   .SRPCover {
@@ -2017,7 +1845,7 @@ div#searchResults {
 .mode-options,
 .facet-options {
   font-size: .7em;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-6;
   input {
     margin-left: 15px;
     margin-right: 4px;
@@ -2081,7 +1909,7 @@ div#searchResults {
   -ms-flex-pack: stretch;
   align-items: stretch;
   justify-content: center;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   input[type=submit]#return_ebook,
   input[type=submit]#unwaitlist_ebook,
   {
@@ -2132,7 +1960,7 @@ div#searchResults {
 }
 
 .waitlist-msg {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   font-size: .7em;
   margin-bottom: -1.5em;
   color: @grey;
@@ -2195,14 +2023,14 @@ div#searchFacets {
 div.facet {
   margin-bottom: 20px;
   &Entry {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     margin-bottom: 5px;
     a {
       text-decoration: none !important;
     }
   }
   &MoreLess {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     margin-bottom: 5px;
     a {
       text-decoration: none !important;
@@ -2234,23 +2062,23 @@ div.list {
     width: 155px;
   }
   h5 {
-    font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    font-family: @georgia_serif-1;
     font-weight: normal;
     color: @dark-grey;
     margin-bottom: 5px;
     span {
-      font-family: "Lucida Grande", Arial, Geneva, Helvetica, sans-serif;
+      font-family: @lucida_sans_serif-2;
       font-size: 80%;
     }
   }
   .tags {
-    font-family: "Lucida Grande", Arial, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-2;
     font-size: .6875em;
     color: @grey;
     margin-bottom: 5px;
   }
   .owner {
-    font-family: "Lucida Grande", Arial, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-2;
     font-size: .6875em;
     color: @grey;
     text-align: right;
@@ -2290,21 +2118,12 @@ ul.readers-stats {
   }
 }
 
-div.workDetails {
-  float: left;
-  width: 915px;
-}
-
 div.edition {
   &Cover {
-    float: left;
-    width: 180px;
     min-height: 10px;
     padding-right: 1.5em;
   }
   &About {
-    float: left;
-    width: 430px;
     min-height: 10px;
     p {
       margin: 1.5em 0;
@@ -2312,8 +2131,6 @@ div.edition {
     }
   }
   &Tools {
-    float: right;
-    width: 270px;
     min-height: 10px;
   }
 }
@@ -2324,10 +2141,10 @@ div.navEdition {
   color: @grey-555;
 }
 div.work {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   span.work,
   span.author {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @brown;
     font-size: 1.125em;
   }
@@ -2335,19 +2152,14 @@ div.work {
     font-weight: 700;
   }
   span.editions {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @brown;
     font-size: 1.125em;
   }
   &Cover {
-    float: right;
-    width: 270px;
     min-height: 10px;
   }
   &About {
-    float: left;
-    clear: left;
-    width: 610px;
     padding-right: 38px;
   }
   &Padding {
@@ -2442,7 +2254,7 @@ div.books {
 div.pingList {
   background: url(/images/icons/icon_radar.gif) no-repeat;
   p {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     margin: 0 0 10px 40px;
   }
   ul {
@@ -2454,16 +2266,16 @@ ul.urlList {
   li {
     margin-bottom: 10px;
     span.url {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
     }
     span.quote {
-      font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      font-family: @georgia_serif-1;
       font-size: .75em;
       color: @grey;
     }
   }
   span.date {
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     font-size: .6875em;
     color: @grey;
   }
@@ -2609,7 +2421,7 @@ div.excerpt {
   }
   .attribution {
     padding-left: 15px;
-    font-family: "Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .6875em;
   }
 }
@@ -2697,22 +2509,14 @@ ul {
   }
 }
 
-/* HISTORY */
-
-#pageHistory {
-  width: 100%;
-  margin-top: 30px;
-  h2 {
-    margin-bottom: 0;
-  }
-}
+@import (less) "components/page-history.less";
 
 /* HISTORY FRAMESET */
 div#navMask {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 1001;
+  z-index: @z-index-level-7;
   background-color: @beige;
   filter: alpha(opacity=70);
   display: none;
@@ -2727,7 +2531,7 @@ div#logoHistory {
   text-align: center;
   overflow: visible;
   top: 10px;
-  z-index: 1006;
+  z-index: @z-index-level-10;
 }
 
 div#history {
@@ -2751,7 +2555,7 @@ div#history {
       position: absolute;
       top: -35px;
       right: 15px;
-      z-index: 1005;
+      z-index: @z-index-level-9;
       -webkit-border-top-right-radius: 8px;
       -webkit-border-top-left-radius: 8px;
       -moz-border-radius-topright: 8px;
@@ -2759,7 +2563,7 @@ div#history {
       border-top-right-radius: 8px;
       border-top-left-radius: 8px;
       color: @white;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: .6875em;
       font-weight: 700;
       padding: 10px 37px 10px 10px;
@@ -2775,7 +2579,7 @@ div#history {
     width: 195px;
     height: 85px;
     text-align: center;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     .revertTitle {
       font-size: 18px;
       padding-top: 25px;
@@ -2802,7 +2606,7 @@ div#history {
       background-position: 25px 25px;
       background-repeat: no-repeat;
       text-decoration: none;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       span {
         display: block;
         &.revertTitle {
@@ -2926,7 +2730,7 @@ div#history {
 .coverMagic {
   .coverEbook {
     cursor: pointer;
-    z-index: 1000;
+    z-index: @z-index-level-6;
   }
 }
 
@@ -3035,7 +2839,7 @@ span.actions {
     display: block;
     float: left;
     min-width: 35px;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-6;
     font-size: 10px;
     margin-left: 10px;
     font-weight: 700;
@@ -3135,14 +2939,14 @@ ul#siteSearch {
   span.resultTitle {
     display: block;
     margin: 0 !important;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @grey;
   }
   span.resultTitle .bookauthor,
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-6;
   }
   span.resultPublisher {
     display: block;
@@ -3169,13 +2973,7 @@ div.narrow {
 }
 
 .bookauthor {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, sans-serif;
-}
-
-div.subjects {
-  white-space: normal;
-  word-break: normal;
-  word-wrap: break-word;
+  font-family: @lucida_sans_serif-6;
 }
 
 /* RESULTS CAROUSEL SKIN */
@@ -3220,7 +3018,7 @@ div#editionsCovers {
   max-width: 125px;
   padding: 0 5px;
   margin: 0 auto;
-  font-family: "Lucida Grande", Verdana, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-1;
   text-align: center;
 }
 
@@ -3232,33 +3030,6 @@ div#editionsCovers {
 .Year {
   font-size: .6875em;
   color: @brown;
-}
-
-/* ADD IMAGE/COVER POP-UP */
-div.floater {
-  position: relative;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  width: 640px;
-  min-height: 670px;
-  background: @white;
-  text-align: left;
-  &Head {
-    background-color: @brown;
-    padding: 0 10px 10px;
-    h2 {
-      color: @white;
-      font-size: 1.75em;
-      margin: 0;
-      padding: 0;
-    }
-  }
-  &Body {
-    padding: 20px;
-    font-size: 14px;
-    p {
-      margin-bottom: 14px;
-    }
-  }
 }
 
 div#throbber {
@@ -3276,28 +3047,6 @@ div#throbber {
   }
 }
 
-a.floater {
-  &Shut {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
-    }
-  }
-  &Close {
-    color: @red;
-    font-size: 1.0em;
-    padding-left: 20px;
-  }
-}
-
 div.tabsPop {
   margin-top: 31px;
 }
@@ -3309,7 +3058,7 @@ div.tabsPop {
     }
     .ui-tabs-selected a {
       padding: 8px 3px 11px;
-      z-index: 2;
+      z-index: @z-index-level-2;
     }
   }
   .ui-tabs-panel {
@@ -3334,7 +3083,7 @@ div.pop {
   }
   &Notify {
     font-size: .6875em;
-    font-family: "Lucida Grande", Verdana, Helvetica, sans-serif;
+    font-family: @lucida_sans_serif-1;
     margin: 10px 20px;
   }
 }
@@ -3343,43 +3092,13 @@ div.addfield {
   margin: 10px 20px;
 }
 
-/* VIEW LARGER COVER POP-UP */
-div.coverFloat {
-  position: relative;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  background: @white;
-  text-align: left;
-  a.floaterShut {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 16px;
-    height: 16px;
-    background-image: url(/images/icons/icon_close-pop-sm.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -16px;
-    }
-  }
-  &Head {
-    background-color: @brown;
-    height: 16px;
-    padding: 0 10px 10px 0;
-    font-size: 1em;
-    font-weight: 700;
-    color: @white;
-  }
-}
-
 #wikicode {
   textarea {
     width: 400px;
     height: 200px;
     padding: 10px;
     margin: 10px;
-    font-family: "Lucida Grande","Arial",sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .75em;
     overflow: auto;
     outline: none;
@@ -3390,7 +3109,7 @@ div.coverFloat {
   p {
     margin: 10px 10px 0;
     padding: 0;
-    font-family: "Lucida Grande","Arial",sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .75em;
   }
 }
@@ -3410,43 +3129,6 @@ div.coverFloat {
     }
   }
 }
-
-/* ADD ROLES, ETC. */
-div.floaterAdd {
-  position: relative;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
-  width: 640px;
-  background: @white;
-  text-align: left;
-  .formElement {
-    margin: 0 20px;
-  }
-  form.floatform {
-    .input {
-      width: 560px;
-      padding-top: 5px;
-    }
-    .label {
-      width: 560px;
-      padding-top: 20px;
-      label {
-        font-size: 1.0em;
-        font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
-        font-weight: 700;
-      }
-    }
-    input[type=text],
-    textarea {
-      width: 560px;
-      margin-left: 0;
-    }
-    textarea {
-      padding: 3px;
-    }
-  }
-}
-
-@import (less) "components/cbox.less";
 
 /* TABS */
 
@@ -3477,32 +3159,32 @@ div.sparkDisplay {
 
 td.nagios {
   &-PENDING {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-grey;
   }
   &-OK {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-green;
   }
   &-RECOVERY {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-green;
   }
   &-UNKNOWN {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-orange;
   }
   &-WARNING {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-yellow;
   }
   &-CRITICAL {
-    font-family: arial,serif;
+    font-family: @arial_sans_serif;
     font-size: 8pt;
     background-color: @nagios-red;
   }
@@ -3510,7 +3192,7 @@ td.nagios {
 
 div#prolific {
   span {
-    font-family: "Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;
+    font-family: @lucida_sans_serif-1;
     font-size: .6875em;
   }
 }
@@ -3589,7 +3271,7 @@ div#admin {
 
 /* MERGING */
 div.merge {
-  font-family: "Lucida Grande", Arial, Helvetica, sans-serif;
+  font-family: @lucida_sans_serif-2;
   width: 100%;
   float: left;
   margin-bottom: 15px;
@@ -3739,7 +3421,7 @@ p#borrowList {
   ul {
     font-size: .75em;
     color: @grey;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     margin: 0 0 20px !important;
   }
   li {
@@ -3797,7 +3479,7 @@ ul#listResults {
       }
     }
     span {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
     }
     span.image {
       display: block;
@@ -3820,14 +3502,14 @@ ul#listResults {
     h3 {
       display: inline;
       font-size: 1em;
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-weight: bold;
     }
     span.detail {
       display: block;
       color: @dark-grey;
       font-size: .8125em;
-      font-family: "Georgia","Times New Roman",serif;
+      font-family:  @georgia_serif-2;
       line-height: 1.5em;
     }
 
@@ -3923,44 +3605,6 @@ ul#listResults {
   }
 }
 
-ul.listLists {
-  margin: 0;
-  padding: 0;
-  span {
-    display: block;
-    color: @grey;
-  }
-  li {
-    border-radius: 3px;
-    padding: 5px;
-    .display-flex();
-    background-color: @white;
-    border-bottom: 1px solid @lightest-grey;
-    .image {
-      width: 42px;
-      min-height: 35px;
-      padding: 0 10px;
-      img {
-        width: 32px;
-      }
-    }
-    .data {
-      width: 208px;
-      padding: 3px 0;
-    }
-    .label {
-      line-height: 1.125em;
-      font-size: 12px;
-    }
-    .meta,
-    .owner {
-      font-size: .6875em;
-      line-height: 1.125em;
-      margin: 5px 0;
-    }
-  }
-}
-
 div#listsWork {
   ul.listLists {
     li {
@@ -3977,7 +3621,7 @@ div#listsWork {
     font-size: 100%;
     min-height: 32px;
     width: 250px;
-    font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif!important;
+    font-family:@lucida_sans_serif-1!important;
     font-weight: normal;
     outline: 0;
     position: relative;
@@ -3988,7 +3632,7 @@ div#listsWork {
 
   h4 {
     font-size: 1em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     color: @teal;
     font-weight: 600;
     margin: 0 0 10px;
@@ -3998,7 +3642,7 @@ div#listsWork {
 
   p {
     font-size: .6875em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding-left: 42px;
     margin-bottom: 5px !important;
     /* stylelint-disable selector-max-specificity */
@@ -4040,7 +3684,7 @@ div#subjectLists {
       display: block;
       float: left;
       width: 282px;
-      font-family: "Lucida Grande", Verdana, Arial, sans-serif;
+      font-family: @lucida_sans_serif-1;
       padding-bottom: 10px;
       padding-top: 0;
       .display-flex();
@@ -4062,24 +3706,9 @@ div#subjectLists {
   }
   p {
     font-size: .6875em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding-left: 42px;
     margin-bottom: 5px !important;
-  }
-  div.icon {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icons_sprite.png);
-    background-repeat: no-repeat;
-    &.list {
-      background-position: 0 0;
-    }
-    &.listed {
-      background-position: -32px 0;
-    }
   }
 }
 
@@ -4117,7 +3746,7 @@ div#subjectLists {
       width: 236px;
     }
     h3 {
-      font-family: "Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;
+      font-family: @lucida_sans_serif-1;
       font-size: 1em;
       font-weight: normal;
       margin-bottom: 0;
@@ -4152,7 +3781,7 @@ div#subjectLists {
     .data {
       width: 245px;
       float: left;
-      font-family: "Lucida Grande", Verdana, Helvetica, Geneva, sans-serif;
+      font-family: @lucida_sans_serif-1;
     }
     .name {
       font-size: .6875em;
@@ -4209,7 +3838,7 @@ div#subjectLists {
     padding-bottom: 5px;
     vertical-align: top;
     margin-top: 20px;
-    font-family: "Lucida Grande","Verdana","Arial",sans-serif;
+    font-family: @lucida_sans_serif-1;
   }
   .label {
     font-weight: bold;
@@ -4246,7 +3875,7 @@ div#subjectLists {
   color: @dark-grey;
   &Container {
     width: 100%;
-    z-index: 99999;
+    z-index: @z-index-level-16;
     position: absolute;
     bottom: 15px;
     a {
@@ -4498,33 +4127,9 @@ ul#myreads-paginator {
 .star {
   color: @steel-blue;
   font-size: 1.3em;
-  &-messaging {
-    color: @light-mid-grey;
-    background: none;
-    display: block;
-    margin: 0 auto;
-    border: 0;
-    cursor: pointer;
-  }
 }
 
-#ratingsForm {
-  margin-bottom: 5px;
-
-  .stars {
-    background: url(/static/images/stars.png) repeat-x 0 0;
-    width: 150px;
-    margin: 0 auto;
-    margin-bottom: 7px;
-    cursor: pointer;
-
-    input[type="submit"] {
-      position: absolute;
-      opacity: 0;
-      filter: alpha(opacity=0);
-    }
-  }
-}
+@import (less) "components/rating-form.less";
 
 .responsive button.slick-prev,
 .slick-next {
@@ -4559,6 +4164,24 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  @import (less) "components/dropper--tablet.less";
+  @import (less) "components/page-banner--tablet.less";
+  @import (less) "components/Tools--tablet.less";
+  @import (less) "components/edit-toolbar--tablet.less";
   @import (less) "components/tablet/iaBar.less";
   @import (less) "components/tablet/header-bar.less";
 }
@@ -4567,7 +4190,49 @@ ul#myreads-paginator {
   .desktop-only {
     display: inherit;
   }
-
+  // Whitespace nowrap is problematic in tables on mobile
+  table {
+    &.meta {
+      td.title,
+      td.object,
+      td.descrip,
+      td.tag {
+        white-space: nowrap;
+      }
+    }
+  }
+  // Books pages
+  div.work {
+    &Cover {
+      float: right;
+      width: 270px;
+      min-height: 10px;
+    }
+    &About {
+      float: left;
+      clear: left;
+      width: 610px;
+      padding-right: 38px;
+    }
+  }
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+    }
+    &About {
+      float: left;
+      width: 430px;
+    }
+    &Tools {
+      float: right;
+      width: 270px;
+    }
+  }
+  div.workDetails {
+    float: left;
+    width: 915px;
+  }
   @import (less) "components/desktop/iaBar.less";
   @import (less) "components/desktop/editions.less";
   @import (less) "components/desktop/form.olform.less";

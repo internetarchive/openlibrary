@@ -24,9 +24,9 @@ def get(sock, host, url):
         if chunk_size == 0:
             break
         print(len(fp.read(chunk_size)))
-        print(repr(fp.read(2))
+        print(repr(fp.read(2)))
     line = fp.readline()
-    print((line))
+    print(line)
     fp.close()
 
 host = 'openlibrary.org'

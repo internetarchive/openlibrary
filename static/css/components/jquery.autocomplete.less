@@ -1,7 +1,9 @@
+@import (less) "less/z-index.less";
+
 .ac_results {
   padding: 0;
   overflow: hidden;
-  z-index: 99999;
+  z-index: @z-index-level-16;
   position: absolute;
   display: none;
   top: -5px;
@@ -12,15 +14,29 @@
   opacity: .95;
   text-align: left;
 
+  li {
+    margin: 0;
+    padding: 5px;
+    cursor: default;
+    display: block;
+    font: menu, sans-serif;
+    font-size: 12px;
+    /*
+    it is very important, if line-height not set or set
+    in relative units scroll will be broken in firefox
+    */
+    line-height: 16px;
+    overflow: hidden;
+  }
+
   ul {
     width: 100%;
-    list-style-position: outside;
     list-style: none;
     padding: 0;
     margin: 0;
 
     li {
-      font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
+      font-family: @lucida_sans_serif-2;
       cursor: pointer;
       color: @light-grey;
       line-height: normal;
@@ -29,21 +45,6 @@
         background-color: @light-yellow;
       }
     }
-  }
-
-  li {
-    margin: 0;
-    padding: 5px;
-    cursor: default;
-    display: block;
-    font: menu;
-    font-size: 12px;
-    /*
-    it is very important, if line-height not set or set
-    in relative units scroll will be broken in firefox
-    */
-    line-height: 16px;
-    overflow: hidden;
   }
 
   .ac_language {
@@ -69,7 +70,7 @@
     }
 
     .olid {
-      font-family: monospace;
+      font-family: @monospace;
     }
 
     .name {
@@ -96,7 +97,7 @@
     }
 
     .olid {
-      font-family: monospace;
+      font-family: @monospace;
     }
 
     .name {
