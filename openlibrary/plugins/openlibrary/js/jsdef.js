@@ -15,6 +15,9 @@
  *      > range(0, 10, 2)
  *      0,2,4,6,8
  */
+
+/* eslint-disable no-unused-vars */
+//used in templates/lib/pagination.html
 function range(begin, end, step) {
     step = step || 1;
     if (end == undefined) {
@@ -28,6 +31,7 @@ function range(begin, end, step) {
     }
     return r;
 }
+/* eslint-enable no-unused-vars */
 
 /**
  * Adds Python's str.join method to Javascript Strings.
@@ -42,10 +46,16 @@ String.prototype.join = function(items) {
 /**
  * Python's len function.
  */
+
+/* eslint-disable no-unused-vars */
+// used in templates/admin/loans.html
 function len(array) {
     return array.length;
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in templates/type/permission/edit.html
 function enumerate(a) {
     var b = new Array(a.length);
     for (var i in a) {
@@ -53,6 +63,7 @@ function enumerate(a) {
     }
     return b;
 }
+/* eslint-ensable no-unused-vars */
 
 function ForLoop(parent, seq) {
     this.parent = parent;
@@ -79,6 +90,8 @@ ForLoop.prototype.next = function() {
     this.revindex = this.length - i + 1;
 }
 
+/* eslint-disable no-unused-vars */
+// used in plugins/upstream/jsdef.py
 function foreach(seq, parent_loop, callback) {
     var loop = new ForLoop(parent_loop, seq);
     
@@ -99,7 +112,10 @@ function foreach(seq, parent_loop, callback) {
         callback.apply(this, args);
     }
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in templates/lists/widget.html
 function websafe(value) {
     // Safari 6 is failing with weird javascript error in this function.
     // Added try-catch to avoid it.
@@ -115,7 +131,10 @@ function websafe(value) {
         return "";
     }
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in websafe function
 function htmlquote(text) {
     text = text.replace("&", "&amp;"); // Must be done first!
     text = text.replace("<", "&lt;");
@@ -124,3 +143,4 @@ function htmlquote(text) {
     text = text.replace('"', "&quot;");
     return text;
 }
+/* eslint-enable no-unused-vars */

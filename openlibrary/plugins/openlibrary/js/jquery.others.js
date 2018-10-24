@@ -49,6 +49,9 @@ jQuery.fn.toggleText = function(a, b) {
                 jQuery(this).text(jQuery(this).text() == a ? b : a);
         });
 };
+/* eslint-disable no-unused-vars */
+//used in templates/work_search.html
 function bookCovers(){
 $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
 };
+/* eslint-enable no-unused-vars */

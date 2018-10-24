@@ -1,4 +1,6 @@
+/* eslint-disable no-unused-vars */
 var startTime = new Date(); // This is used by ol.analytics.js
+/* eslint-enable no-unused-vars */
 
 var Browser = {
     getUrlParameter: function(key) {
@@ -58,12 +60,16 @@ var Browser = {
     }
 }
 
+/* eslint-disable no-unused-vars */
+// used in templates/account/notifications.html
 function twitterOn() {
     if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
     $("input[type=radio]").click(function(){
         if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
     });
 };
+/* eslint-enable no-unused-vars */
+
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
@@ -79,10 +85,18 @@ $(window).scroll(function(){
   if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();};
 })
 
+/* eslint-disable no-unused-vars */
+// used in macros/Dashboard.html
 function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
+/* eslint-enable no-unused-vars */
+
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
 
+/* eslint-disable no-unused-vars */
+// used below
 var create_subject_carousel;
+/* eslint-enable no-unused-vars */
+
 $().ready(function() {
   create_subject_carousel = function(subject_name, type, options) {
     var ITEMS_PER_PAGE = 6;
@@ -146,6 +160,8 @@ $().ready(function() {
 });
 
 // BUILD CAROUSEL
+/* eslint-disable no-unused-vars */
+// used in templates/lib/covers.html
 function carouselSetup(loadCovers, loadLists) {
   $('#coversCarousel').jcarousel({
     visible: 1,
@@ -188,19 +204,29 @@ function carouselSetup(loadCovers, loadLists) {
     $('#editionsCovers').customFadeIn();
   });
 };
+/* eslint-enable no-unused-vars */
+
 // BOOK COVERS
+/* eslint-disable no-unused-vars */
+// used in templates/work_search.html
 function bookCovers(){
     $("img.cover").error(function(){
         $t(his).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 };
+/* eslint-enable no-unused-vars */
+
 // CLOSE POP-UP FROM IFRAME
+/* eslint-disable no-unused-vars */
+// used in templates/covers/saved.html
 function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
     });
 };
+/* eslint-enable no-unused-vars */
+
 
 function Place(key) {
     this.key = key;
@@ -215,7 +241,6 @@ function Place(key) {
  */
 Place.prototype.getCovers = function(pagenum, callback) {
     var offset = pagenum * 12;
-    var limit = 12;
 
     if (offset > this.bookCount)
         return [];
@@ -254,7 +279,6 @@ function deleteVerify() {
 };
 */
 
-var searchMode;
 $().ready(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
@@ -276,7 +300,7 @@ $().ready(function(){
         'text': 'inside'
     };
 
-    var composeSearchUrl = function(q, json, limit, options) {
+    var composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
@@ -489,6 +513,8 @@ $().ready(function(){
         }
     }
 
+    /* eslint-disable no-unused-vars */
+    // e is a event object
     $('form.search-bar-input').submit(function(e) {
         q = $('header#header-bar .search-component .search-bar-input input').val();
         var facet_value = searchFacets[localStorage.getItem("facet")];
@@ -497,6 +523,8 @@ $().ready(function(){
         }
         setMode('.search-bar-input');
     });
+    /* eslint-enable no-unused-vars */
+
 
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
@@ -522,9 +550,12 @@ $().ready(function(){
         $(this).css('cursor', 'wait');
     });
 
+    /* eslint-disable no-unused-vars */
+    // e is a event object
     $('header#header-bar .search-component .search-results li a').live('click', debounce(function(event) {
         $(document.body).css({'cursor' : 'wait'});
     }, 300, false));
+    /* eslint-enable no-unused-vars */
 
     $('header#header-bar .search-component .search-bar-input input').keyup(debounce(function(e) {
         // ignore directional keys and enter for callback
@@ -604,6 +635,8 @@ $().ready(function(){
         $('header#header-bar .dropdown-avatar').removeClass('hover');
     };
 
+    /* eslint-disable no-unused-vars */
+    // offUser is used in the function itself
     $('header#header-bar .dropdown-avatar').click(debounce(function() {
         var dropdown = $('#main-account-dropdown');
         if (dropdown.is(':visible') === true) {
@@ -620,13 +653,13 @@ $().ready(function(){
 
         }
     }, 100, false));
+    /* eslint-enable no-unused-vars */
 
-    var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
-
+    /* eslint-disable no-unused-vars */
+    // success function receives data on successful request
     $('.reading-log-lite select').change(function(e) {
         var self = this;
         var form = $(self).closest("form");
-        var option = $(self).val();
         var remove = $(self).children("option").filter(':selected').text().toLowerCase() === "remove";
         var url = $(form).attr('action');
         $.ajax({
@@ -646,5 +679,7 @@ $().ready(function(){
         });
         e.preventDefault();
     });
+    /* eslint-enable no-unused-vars */
+
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}

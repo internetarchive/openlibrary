@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+// third party library
 // Add your third-party javascripts here
 
 /**
@@ -1074,3 +1076,4 @@ _skipToNextNode();lastNodeType=0;}else{_skipToNextNode();lastNodeType=currentEl.
 return cols;};jQuery.fn.columnize=function(settings){settings=jQuery.extend({column:"column",continued:"continued",columns:2,balance:true,height:false,minHeight:false,cache:true,dontsplit:""},settings);this.each(function(){var jthis=jQuery(this);var id=this.id;if(!id){id="jcols_"+uniqueId;this.id=id;uniqueId++;}
 if(!cloneEls[this.id]||!settings.cache){cloneEls[this.id]=jthis.clone(true);}
 var cols=_layoutElement(this,settings,settings.balance);if(!cols){jthis.append(cloneEls[this.id].children().clone(true));}});return this;}})();
+/* eslint-enable no-unused-vars */

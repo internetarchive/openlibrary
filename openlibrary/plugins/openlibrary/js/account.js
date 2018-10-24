@@ -29,7 +29,8 @@
   }
   //finishAjax
   */
-
+/* eslint-disable no-unused-vars */
+// used in templates/account/email.html
 function validateEmail() {
     $("form.email").validate({
         invalidHandler: function(form, validator) {
@@ -60,7 +61,10 @@ function validateEmail() {
         }
     });
 };
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in templates/account/password.html
 function validatePassword() {
     $("form.password").validate({
         invalidHandler: function(form, validator) {
@@ -95,3 +99,4 @@ function validatePassword() {
         }
     });
 };
+/* eslint-enable no-unused-vars */
