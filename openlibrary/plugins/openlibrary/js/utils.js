@@ -1,4 +1,4 @@
-;(function($) {
+(function($) {
 
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {
@@ -58,7 +58,7 @@ $.log = function() {
 // closes active popup
 function closePopup() {
     parent.jQuery.fn.colorbox.close();
-};
+}
 
 function truncate(text, limit) {
    if (text.length > limit)
