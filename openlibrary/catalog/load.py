@@ -52,9 +52,6 @@ def build_query(loc, rec):
         else:
             book[k] = v
 
-    if 'title' not in book:
-        pprint(rec)
-        pprint(book)
     assert 'title' in book
     if 'publish_country' in book:
         assert book['publish_country'] not in ('   ', '|||')
