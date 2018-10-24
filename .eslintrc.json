@@ -4,6 +4,7 @@
   "globals": {
   },
   "rules": {
-    "no-extra-semi": "warn"
+    "no-extra-semi": "warn",
+    "eol-last": ["error", "always"]
   }
 }
