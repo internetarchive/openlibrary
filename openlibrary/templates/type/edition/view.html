@@ -243,12 +243,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
           $if work:
             $def render_subjects(label, subjects, prefix=""):
                 $if subjects:
-                    <div class="section">
-                        <h6 class="collapse black uppercase">$label</h6>
-                        <div class="sansserif">
+                    <div class="section link-box">
+                        <h6>$label</h6>
+                        <div><span>
                         $for subject in subjects:
                             <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
-                        </div>
+                        </span></div>
                     </div>
             $:render_subjects("Subjects", work.get_subjects())
             $:render_subjects("People", work.subject_people, prefix="person:")

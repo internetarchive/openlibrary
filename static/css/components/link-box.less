@@ -4,25 +4,25 @@
  */
 
 // contentQuarter rule can likely be removed in future when legacy.css has been removed
-.contentQuarter,
-.link-box {
+.contentQuarter {
   float: left;
   max-width: 215px;
   min-height: 100px;
   margin-bottom: 20px;
+  > div {
+    padding-right: 19px;
+  }
 }
 
 .link-box {
   h6 {
     color: @black;
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
     text-transform: uppercase !important;
   }
   > div span {
     font-size: .75em;
-  }
-  > div {
-    padding-right: 19px;
   }
 }
 
