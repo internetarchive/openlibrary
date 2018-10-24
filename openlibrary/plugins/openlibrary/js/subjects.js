@@ -12,7 +12,7 @@
 //          });
 //
 
-;(function() {
+(function() {
 
 function Subject(data, options) {
     options = options || {};

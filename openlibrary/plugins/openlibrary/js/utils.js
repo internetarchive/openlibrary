@@ -1,4 +1,4 @@
-;(function($) {
+(function($) {
 
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {
@@ -60,7 +60,7 @@ $.log = function() {
 // used in templates/covers/saved.html
 function closePopup() {
     parent.jQuery.fn.colorbox.close();
-};
+}
 /* eslint-enable no-unused-vars */
 
 /* eslint-disable no-unused-vars */

@@ -53,5 +53,5 @@ jQuery.fn.toggleText = function(a, b) {
 //used in templates/work_search.html
 function bookCovers(){
 $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
-};
+}
 /* eslint-enable no-unused-vars */

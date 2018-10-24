@@ -63,11 +63,11 @@ var Browser = {
 /* eslint-disable no-unused-vars */
 // used in templates/account/notifications.html
 function twitterOn() {
-    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     $("input[type=radio]").click(function(){
-        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     });
-};
+}
 /* eslint-enable no-unused-vars */
 
 function isScrolledIntoView(elem) {
@@ -82,15 +82,15 @@ function isScrolledIntoView(elem) {
 }
 $(window).scroll(function(){
   var scroller = $("#formScroll");
-  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();};
+  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
 })
 
 /* eslint-disable no-unused-vars */
 // used in macros/Dashboard.html
-function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
+function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
 /* eslint-enable no-unused-vars */
 
-function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
+function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
 /* eslint-disable no-unused-vars */
 // used below
@@ -203,7 +203,7 @@ function carouselSetup(loadCovers, loadLists) {
     $('#editionsList').hide();
     $('#editionsCovers').customFadeIn();
   });
-};
+}
 /* eslint-enable no-unused-vars */
 
 // BOOK COVERS
@@ -214,7 +214,7 @@ function bookCovers(){
         $t(his).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
-};
+}
 /* eslint-enable no-unused-vars */
 
 // CLOSE POP-UP FROM IFRAME
@@ -224,7 +224,7 @@ function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
     });
-};
+}
 /* eslint-enable no-unused-vars */
 
 
@@ -426,7 +426,7 @@ $().ready(function(){
                 if (!execAsap)
                     func.apply(obj, args);
                 timeout = null;
-            };
+            }
 
             if (timeout) {
                 clearTimeout(timeout);
@@ -633,7 +633,7 @@ $().ready(function(){
     function hideUser(){
         $('#main-account-dropdown').slideUp(25);
         $('header#header-bar .dropdown-avatar').removeClass('hover');
-    };
+    }
 
     /* eslint-disable no-unused-vars */
     // offUser is used in the function itself
@@ -648,7 +648,7 @@ $().ready(function(){
             $(document).mouseup(function(offUser){
                 if($(offUser.target).parent("a").length==0){
                     hideUser()
-                };
+                }
             });
 
         }

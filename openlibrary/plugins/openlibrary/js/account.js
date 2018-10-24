@@ -60,7 +60,7 @@ function validateEmail() {
             email: "Are you sure that's an email address?"
         }
     });
-};
+}
 /* eslint-enable no-unused-vars */
 
 /* eslint-disable no-unused-vars */
@@ -98,5 +98,5 @@ function validatePassword() {
             required: ""
         }
     });
-};
+}
 /* eslint-enable no-unused-vars */
