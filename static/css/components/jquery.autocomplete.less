@@ -14,24 +14,6 @@
   opacity: .95;
   text-align: left;
 
-  ul {
-    width: 100%;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-      cursor: pointer;
-      color: @light-grey;
-      line-height: normal;
-
-      &.ac_over {
-        background-color: @light-yellow;
-      }
-    }
-  }
-
   li {
     margin: 0;
     padding: 5px;
@@ -45,6 +27,24 @@
     */
     line-height: 16px;
     overflow: hidden;
+  }
+
+  ul {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-family: @lucida_sans_serif-2;
+      cursor: pointer;
+      color: @light-grey;
+      line-height: normal;
+
+      &.ac_over {
+        background-color: @light-yellow;
+      }
+    }
   }
 
   .ac_language {
@@ -70,7 +70,7 @@
     }
 
     .olid {
-      font-family: monospace;
+      font-family: @monospace;
     }
 
     .name {
@@ -97,7 +97,7 @@
     }
 
     .olid {
-      font-family: monospace;
+      font-family: @monospace;
     }
 
     .name {

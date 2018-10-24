@@ -16,7 +16,7 @@
 /**
 * hoverIntent r5 // 2007.03.27 // jQuery 1.1.2+
 * <http://cherne.net/brian/resources/jquery.hoverIntent.html>
-* 
+*
 * @param  f  onMouseOver function || An object with configuration options
 * @param  g  onMouseOut function  || Nothing (use configuration options object)
 * @author    Brian Cherne <brian@cherne.net>
@@ -28,14 +28,14 @@
  * Version:     1.6.2
  * Author:      Allan Jardine (www.sprymedia.co.uk)
  * Info:        www.datatables.net
- * 
+ *
  * Copyright 2008-2010 Allan Jardine, all rights reserved.
  *
  * This source file is free software, under either the GPL v2 license or a
  * BSD style license, as supplied with this software.
- * 
- * This source file is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
  */
 (function($){$.fn.dataTableSettings=[];var _aoSettings=$.fn.dataTableSettings;$.fn.dataTableExt={};
@@ -877,7 +877,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Update the 'premanent botton's classes */
 			anButtons = an[i].getElementsByTagName('span');
 			anStatic = [
-				anButtons[0], anButtons[1], 
+				anButtons[0], anButtons[1],
 				anButtons[anButtons.length-2], anButtons[anButtons.length-1]
 			];
 			$(anStatic).removeClass( oClasses.sPageButton+" "+oClasses.sPageButtonActive+" "+oClasses.sPageButtonStaticDisabled );
@@ -947,7 +947,7 @@ jQuery.fn.removeHighlight = function() {
 //jTruncate
 (function($){$.fn.jTruncate=function(h){var i={length:300,minTrail:20,moreText:"more",lessText:"less",ellipsisText:"...",moreAni:"",lessAni:""};var h=$.extend(i,h);return this.each(function(){obj=$(this);var a=obj.html();if(a.length>h.length+h.minTrail){var b=a.indexOf(' ',h.length);if(b!=-1){var b=a.indexOf(' ',h.length);var c=a.substring(0,b);var d=a.substring(b,a.length-1);obj.html(c+'<span class="truncate_ellipsis">'+h.ellipsisText+'</span>'+'<span class="truncate_more">'+d+'</span>');obj.find('.truncate_more').css("display","none");obj.append('<div class="clearboth">'+'<a href="#" class="truncate_more_link">'+h.moreText+'</a>'+'</div>');var e=$('.truncate_more_link',obj);var f=$('.truncate_more',obj);var g=$('.truncate_ellipsis',obj);e.click(function(){if(e.text()==h.moreText){f.show(h.moreAni);e.text(h.lessText);g.css("display","none")}else{f.hide(h.lessAni);e.text(h.moreText);g.css("display","inline")}return false})}}})}})(jQuery);
 
-//admin.js 
+//admin.js
 function plot_tooltip_graph(node, data, tooltip_message) {
     for (var i = 0; i < data.length; ++i)
 	data[i][0] += 60 * 60 * 1000;

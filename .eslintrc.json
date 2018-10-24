@@ -1,0 +1,10 @@
+{
+  "root": true,
+  "env": {},
+  "globals": {
+  },
+  "rules": {
+    "no-extra-semi": "warn",
+    "eol-last": ["error", "always"]
+  }
+}

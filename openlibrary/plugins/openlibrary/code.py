@@ -1,6 +1,8 @@
 """
 Open Library Plugin.
 """
+from __future__ import absolute_import
+
 import web
 import simplejson
 import os
@@ -24,12 +26,13 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.catalog.add_book import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 
-import processors
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -44,7 +47,7 @@ except:
 infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 # setup special connection with caching support
-import connection
+from openlibrary.plugins.openlibrary import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
@@ -59,7 +62,7 @@ models.register_types()
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-import lists
+from openlibrary.plugins.openlibrary import lists
 lists.setup()
 
 logger = logging.getLogger("openlibrary")
@@ -126,7 +129,9 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            print(simplejson.dumps({
+                'key': key, 'type': visiting[key]['type']
+            }))
             visited.add(key)
             return
 
@@ -322,27 +327,6 @@ def get_pages(type, processor):
     for p in pages:
         processor(web.ctx.site.get(p))
 
-class flipbook(delegate.page):
-    path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
-
-    SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
-
-    def GET(self, identifier, leaf):
-        if leaf:
-            hash = '#page/n%s' % leaf
-        else:
-            hash = ""
-
-        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
-        raise web.seeother(url)
-
-class bookreader(delegate.page):
-    path = "/bookreader/(.*)"
-
-    def GET(self, id):
-        data = render.bookreader(id)
-        raise web.HTTPError("200 OK", {}, data)
-
 class robotstxt(delegate.page):
     path = "/robots.txt"
     def GET(self):
@@ -359,12 +343,6 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-class change_cover(delegate.mode):
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            raise web.seeother(key)
-        return render.change_cover(page)
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
@@ -417,11 +395,20 @@ class bookpage(delegate.page):
                     raise redirect(result[0], ext, suffix)
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
+            elif key.startswith("isbn"):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed:
+                    raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
+            if key.startswith('isbn'):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed_key:
+                    raise web.seeother(ed_key)
+
             logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
@@ -777,16 +764,6 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
-class backdoor(delegate.page):
-    path = "/debug/backdoor"
-
-    def GET(self):
-        import backdoor
-        reload(backdoor)
-        result = backdoor.inspect()
-        if isinstance(result, basestring):
-            result = delegate.RawText(result)
-        return result
 
 def is_bot():
     """Generated on ol-www1 within /var/log/nginx with:
@@ -839,8 +816,9 @@ def setup_context_defaults():
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, \
-        events, design, status, merge_editions, authors
+    from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
+                                                 stats, support, events, design, status,
+                                                 merge_editions, authors)
 
     home.setup()
     design.setup()
@@ -854,12 +832,11 @@ def setup():
     merge_editions.setup()
     authors.setup()
 
-    import api
-    from stats import stats_hook
-    delegate.app.add_processor(web.unloadhook(stats_hook))
+    from openlibrary.plugins.openlibrary import api
+    delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get("dev_instance") is True:
-        import dev_instance
+        from openlibrary.plugins.openlibrary import dev_instance
         dev_instance.setup()
 
     setup_context_defaults()

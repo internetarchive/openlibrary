@@ -7,17 +7,16 @@ $putctx("robots", "noindex,nofollow")
 
 <script type="text/javascript">
 <!--
-loadStyle("$static_url('build/js-books-edit.css')");
-\$().ready(Tabs);
-\$().ready(function(){
+window.q.push( function () {
+    Tabs();
     if(jQuery.support.opacity){
         \$("#tabsAddbook").tabs({fx:{opacity:'toggle'}});
     } else {
         \$("#tabsAddbook").tabs();
     };
-});
-\$().ready(boxPop);
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
+    boxPop();
+    \$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});
+} );
 
 function limitChars(textid, limit, infodiv) {
     var text = \$('#'+textid).val();
@@ -31,9 +30,8 @@ function limitChars(textid, limit, infodiv) {
         return true;
     }
 };
-\$().ready(function(){\$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});});
-
-\$().ready(function() {
+window.q.push( function(){
+    \$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});
     var hash = document.location.hash || "#edition";
     var tab = hash.split("/")[0]
     var link = "#" + "link_" + tab.substr(1);
@@ -53,7 +51,7 @@ function limitChars(textid, limit, infodiv) {
         }
         \$(window).scrollTop(\$("#contentHead").offset().top);
     }, 1000);
-});
+} );
 //-->
 </script>
 
@@ -90,62 +88,6 @@ function limitChars(textid, limit, infodiv) {
     $:note
 </div>
 
-<script type="text/javascript">
-\$(function() {
-    \$("#authors").setup_multi_input_autocomplete(
-        "input.author-autocomplete",
-        render_author,
-        {
-            endpoint: "/authors/_autocomplete",
-            // Don't render "Create new author" if searching by key
-            addnew: function(query) { return !/^OL\d+A/i.test(query); },
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_author_autocomplete_item
-        });
-});
-</script>
-
-$jsdef render_author_autocomplete_item(item):
-    $if item.key == "__new__":
-        <div class="ac_author ac_addnew" title="Add a new author">
-            <span class="action">$_('Create a new record for') </span>
-            <span class="name">$item.name</span>
-        </div>
-    $else:
-        <div class="ac_author" title="Select this author">
-            <span class="name">
-                $item.name
-                $if item.birth_date or item.death_date:
-                    (${item.birth_date or ' '}&ndash;${item.death_date or ' '})
-            </span>
-            <span class="olid">$item.key.split('/')[2]</span>
-            &bull;
-            $if item.work_count == 0:
-                <span class="work">No books associated with $item.name</span>
-            $elif item.work_count == 1:
-                <span class="books">1 book</span>
-                <span class="work">titled <i>$item.works[0]</i></span>
-            $else:
-                <span class="books">$item.work_count books</span>
-                <span class="work">including <i>$item.works[0]</i></span>
-
-            $if item.subjects:
-                <span class="subject">Subjects: ${', '.join(item.subjects)}</span>
-        </div>
-
-$jsdef render_author(i, author):
-    <div class="input">
-        <input name="authors--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
-        <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
-        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
-        <a href="javascript:;" class="add hidden">$_("Add another author?")</a>
-    </div>
-
 <div id="contentBody">
     <form method="post" id="addWork" class="olform books validate" name="edit" action="">
 
@@ -162,13 +104,7 @@ $jsdef render_author(i, author):
                 <span class="tip">You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).</span>
             </div>
             $ authors = work.authors and [a.author for a in work.authors]
-            <div id="authors">
-                $if authors:
-                    $for i, author in enumerate(authors):
-                        $:render_author(i, author)
-                $else:
-                    $:render_author(0, storage(name="", key=""))
-            </div>
+            $:render_template("books/author-autocomplete", authors)
         </div>
     </div>
 

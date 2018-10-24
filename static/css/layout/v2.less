@@ -1,0 +1,16 @@
+// This CSS will load $if 'v2' in page
+#test-body-mobile {
+  box-sizing: border-box;
+  max-width: 960px;
+  width: 100%;
+  margin: 0 auto;
+  background-color: @white;
+  border-radius: 5px;
+  border: 1px solid @dark-beige;
+}
+// For pages without a header we don't want a margin.
+// This might be better placed in the header component in future
+// but is kept here for backwards compatibility with v1 pages
+header + #test-body-mobile {
+  margin-top: 20px;
+}

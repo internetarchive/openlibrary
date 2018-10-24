@@ -37,7 +37,7 @@ loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
 memcache_servers:
-    - localhost:11211
+    - memcached:11211
 
 plugin_modules:
     - openlibrary

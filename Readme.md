@@ -32,6 +32,8 @@ Open Library is an effort started in 2006 to create "one web page for every book
 ### Docker
 **We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
 
+[![Open Library Docker Tutorial](https://user-images.githubusercontent.com/978325/47388313-ada5e800-d6c6-11e8-9501-fc04e3152f20.png)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+
 Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
 
 ### Vagrant (Legacy & Windows)
@@ -44,12 +46,44 @@ Next, fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary
 git clone git@github.com:YOURACCOUNT/openlibrary.git
 ```
 
+##### For Windows Users Only
+
+1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing below command:
+
+```bash
+# Configure Git on Windows to properly handle line endings so Git will convert CRLF to LF on commit
+git config --global core.autocrlf input
+```
+
 Enter the project directory and provision + launch the dev virtual machine instance using vagrant:
 
 ```bash
 cd openlibrary
 vagrant up
 ```
+
+##### For Windows Users Only
+
+1. If dev virtual machine instance doesn't start by any chance and throws an error `No module found` then you need to check whether `symlinks` are enabled or not. The `openlibrary` makes use of symlinks, which by default git on windows checks out as plain text files. You can check that by executing below command:
+
+```bash
+git config core.symlinks
+```
+
+2. If `symlinks` are enabled then go to the next step. If `symlinks` are not enabled then enable it by executing below command:
+
+```bash
+git config core.symlinks true
+```
+
+3. Then hard reset the repo so git will create proper symlinks by executing below command:
+
+```bash
+git reset --hard HEAD
+```
+
+**Note:** <br>
+If you get permission issue while executing any above commands then kindly run the git bash shell as an Administrator.
 
 You can now view your running instance by loading `http://localhost:8080` in a web browser.
 
