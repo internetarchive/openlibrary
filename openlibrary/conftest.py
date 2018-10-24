@@ -20,9 +20,9 @@ def no_requests(monkeypatch):
     monkeypatch.delattr("requests.sessions.Session.request")
 
 @pytest.fixture
-def wildcard():
-    return Wildcard()
+def wildcard(): #DEFINE WILDCARD
 
+    return Wildcard()
 @pytest.fixture
 def render_template(request):
     """Utility to test templates.
