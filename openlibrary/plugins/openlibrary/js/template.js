@@ -1,4 +1,4 @@
-// Simple Javascript Templating 
+// Simple Javascript Templating
 //
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
 function Template(tmpl_text) {
@@ -12,7 +12,7 @@ function Template(tmpl_text) {
         js.push("_p.push(htmlquote(" + text + "));");
     }
     function addText(text) {
-        js.push("_p.push(__s[" + s.length + "]);"); 
+        js.push("_p.push(__s[" + s.length + "]);");
         s.push(text);
     }
 

@@ -59,7 +59,7 @@
                 .html(t(data))
                 .show()
                 .appendTo(elems.display);
-                             
+                
             $("input[type!=button], textarea", elems.form).filter(":not(.repeat-ignore)").val("");
             elems._this.trigger("repeat-add");
         }
