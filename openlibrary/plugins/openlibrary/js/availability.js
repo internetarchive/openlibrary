@@ -90,11 +90,13 @@ $(function(){
         });
 
         getAvailabilityV2('identifier', ocaids, function(response) {
+            var book_key = null;
+            var book_ocaids = null;
             for (var book_ocaid in response) {
                 if (response[book_ocaid].status === "borrow_available") {
                     // check all the books on this page
-                    for (var book_key in books) {
-                        var book_ocaids = books[book_key];
+                    for (book_key in books) {
+                        book_ocaids = books[book_key];
                         // check if available book_ocaid is in
                         // this book_key's book_ocaids
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
@@ -114,8 +116,8 @@ $(function(){
                         }
                     }
                 } else if (response[book_ocaid].status === "borrow_unavailable"){
-                    for (var book_key in books) {
-                        var book_ocaids = books[book_key];
+                    for (book_key in books) {
+                        book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('title', 'Join waitlist');
@@ -127,8 +129,8 @@ $(function(){
                         }
                     }
                 } else {
-                    for (var book_key in books) {
-                        var book_ocaids = books[book_key];
+                    for (book_key in books) {
+                        book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
 
                             $(selector + "[data-key=" + book_key  + "]")
