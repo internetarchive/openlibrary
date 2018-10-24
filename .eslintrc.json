@@ -1,9 +1,13 @@
 {
   "root": true,
-  "env": {},
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
   "globals": {
   },
   "rules": {
+    "no-undef": "warn",
     "no-extra-semi": "warn",
     "eol-last": ["error", "always"]
   }

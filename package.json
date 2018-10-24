@@ -8,7 +8,7 @@
     "check-bundles": "npm run build-assets && bundlesize",
     "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "lint:js": "eslint openlibrary/plugins/openlibrary/js/",
+    "lint:js": "eslint --config .eslintrc.json openlibrary/plugins/openlibrary/js/",
     "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js"
   },
   "bundlesize": [
