@@ -6,6 +6,6 @@
   "rules": {
     "no-extra-semi": "warn",
     "eol-last": ["error", "always"],
-    "no-mixed-spaces-and-tab": "error"
+    "no-mixed-spaces-and-tabs": "error"
   }
 }
