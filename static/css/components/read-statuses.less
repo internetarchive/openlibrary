@@ -1,0 +1,28 @@
+/**
+ * ReadStatuses
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readstatuses
+ */
+.read-statuses {
+  border-bottom: 1px solid @lightest-grey;
+  button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: @dark-grey;
+    font-weight: bold;
+    width: 100%;
+    text-align: left;
+    font-size: .8em;
+    padding: 10px;
+    border-bottom: 1px solid @lightest-grey;
+    &:hover {
+      color: @black;
+      background-color: @white;
+    }
+  }
+  form:last-child {
+    button.nostyle-btn {
+      border: none;
+    }
+  }
+}
