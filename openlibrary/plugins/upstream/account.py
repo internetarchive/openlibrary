@@ -230,8 +230,6 @@ class account_create(delegate.page):
 
         f = self.get_form()
 
-        page = None
-
         if f.validates(i):
             if i.agreement == "yes":
                 ia_account = InternetArchiveAccount.get(email=i.email)
@@ -247,21 +245,18 @@ class account_create(delegate.page):
                             screenname=i.username, email=i.email, password=i.password,
                             verified=False, retries=USERNAME_RETRIES)
                         page = render['account/verify'](username=i.username, email=i.email)
+                        page.v2 = True
+                        return page
                     except ValueError as e:
                         f.note = LOGIN_ERRORS['max_retries_exceeded']
-                        page = render['account/create'](f)
                 else:
                     # Account with this email already exists
                     f.note = LOGIN_ERRORS['email_registered']
-                    page = render['account/create'](f)
             else:
                 # User did not click terms of service
                 f.note = utils.get_error("account_create_tos_not_selected")
-                page = render['account/create'](f)
-        else:
-            # Failed to validate user's input
-            page = render['account/create'](f)
 
+        page = render['account/create'](f)
         page.v2 = True
         return page
 
