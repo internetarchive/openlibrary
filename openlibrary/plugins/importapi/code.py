@@ -152,7 +152,7 @@ class importapi:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
 
-    def reject_non_book_marc(marc_record):
+    def reject_non_book_marc(self, marc_record):
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
