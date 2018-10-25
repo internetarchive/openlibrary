@@ -107,3 +107,4 @@ endif
 test:
 	npm test
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog
+possible.
