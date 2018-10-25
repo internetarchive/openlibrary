@@ -123,7 +123,7 @@ $().ready(function() {
     options.readable = true;
     options.sort = options.sort || "";
     if (options.published_id) {
-        url += '&published_in=' + options.published_in;
+        apiurl += '&published_in=' + options.published_in;
     }
     $.ajax({
         dataType: "json",
@@ -137,6 +137,8 @@ $().ready(function() {
         success: function(data) {
             // TODO: Filter `data` by available
             var primed = false;
+            // Subject is defined in openlibrary\plugins\openlibrary\js\subjects.js
+            // eslint-disable-next-line no-undef
             var subject = new Subject(data, options);
             function fetchPageOfBooks(carousel) {
                 primed = true;
@@ -161,6 +163,8 @@ $().ready(function() {
                     $.each(works, function(widx, work) {
                         carousel.add(index + widx, subject.renderWork(work));
                     });
+                    // updateBookAvailability is defined in openlibrary\plugins\openlibrary\js\availability.js
+                    // eslint-disable-next-line no-undef
                     updateBookAvailability("#carousel-" + subject_name + " li ");
                 });
             }
@@ -222,7 +226,7 @@ function carouselSetup(loadCovers, loadLists) {
 // BOOK COVERS
 function bookCovers(){
     $("img.cover").error(function(){
-        $t(his).closest(".SRPCover").hide();
+        $(this).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 }
@@ -329,7 +333,7 @@ function passwordHide(){
             }
             var spname=def.name;
             if(def.classname==''){
-                theclass='';
+                var theclass='';
             } else {
                 theclass=' class="'+def.clasname+'"';
             }
@@ -424,7 +428,7 @@ $().ready(function(){
 
         localStorage.setItem("facet", facet_key);
         $('header#header-bar .search-facet-selector select').val(facet_key)
-        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $('header#header-bar .search-component .search-bar-input input').val();
@@ -489,6 +493,8 @@ $().ready(function(){
         $('.search-bar-input [type=text]').val(q);
     }
 
+    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
+    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {
