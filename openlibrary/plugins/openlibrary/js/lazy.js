@@ -734,7 +734,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
@@ -854,7 +854,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
