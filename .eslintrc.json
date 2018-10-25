@@ -5,6 +5,7 @@
   },
   "rules": {
     "no-extra-semi": "warn",
-    "eol-last": ["error", "always"]
+    "eol-last": ["error", "always"],
+    "no-mixed-spaces-and-tabs": "error"
   }
 }
