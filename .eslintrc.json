@@ -7,5 +7,6 @@
     "no-extra-semi": "warn",
     "eol-last": ["error", "always"],
     "no-useless-escape": "error"
+    "no-mixed-spaces-and-tabs": "error"
   }
 }

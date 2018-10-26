@@ -10,6 +10,13 @@ ul.listLists {
     color: @grey;
   }
   li {
+    // See #1388
+    // This needs to be !important for pages that are not v2
+    // that make use of this component. The legacy CSS has some
+    // overly specific CSS rules for list styles which will be simplified
+    // as part of the new page-book.css entry point.
+    // !important can be removed when that activity has happened.
+    list-style: none !important;
     border-radius: 3px;
     padding: 5px;
     .display-flex();
