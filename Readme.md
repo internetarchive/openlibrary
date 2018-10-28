@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/internetarchive/openlibrary.svg?branch=master)](https://travis-ci.org/internetarchive/openlibrary) [![Join the chat at https://gitter.im/theopenlibrary/Lobby](https://badges.gitter.im/theopenlibrary/Lobby.svg)](https://gitter.im/theopenlibrary/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-[Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book ever published.
+[Open Library](https://openlibrary.org) is an open, editable library catalog, building towards a web page for every book published here.
 
 ## Table of Contents
    - [Overview](#overview)
@@ -48,7 +48,7 @@ git clone git@github.com:YOURACCOUNT/openlibrary.git
 
 ##### For Windows Users Only
 
-1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing below command:
+1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing the below command:
 
 ```bash
 # Configure Git on Windows to properly handle line endings so Git will convert CRLF to LF on commit
