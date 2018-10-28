@@ -29,7 +29,7 @@
 @import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
-@import (less) "components/header-bar.less";
+@import (less) "components/header.less";
 @import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
 @import (less) "components/resultsCovers.less";
@@ -788,8 +788,6 @@ input {
     border-bottom: none;
   }
 }
-
-@import (less) "components/iaBar.less";
 
 .advanced-search {
   float: right;
@@ -3847,7 +3845,7 @@ div#subjectLists {
   }
 }
 
-@import (less) 'components/page-banner.less';
+@import (less) "components/header.less";
 
 .box-shadow-menu {
   position: relative;
@@ -4153,11 +4151,8 @@ ul#myreads-paginator {
     }
   }
   @import (less) "components/dropper--tablet.less";
-  @import (less) "components/page-banner--tablet.less";
   @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
-  @import (less) "components/tablet/iaBar.less";
-  @import (less) "components/tablet/header-bar.less";
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
@@ -4207,11 +4202,6 @@ ul#myreads-paginator {
     float: left;
     width: 915px;
   }
-  @import (less) "components/desktop/iaBar.less";
-  @import (less) "components/desktop/editions.less";
-  @import (less) "components/desktop/form.olform.less";
-  @import (less) "components/desktop/header-bar.less";
-  @import (less) "components/desktop/resultsCovers.less";
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
