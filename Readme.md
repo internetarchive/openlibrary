@@ -146,7 +146,7 @@ Inside vagrant, go to the application base directory:
 ```
 cd /openlibrary
 make test
-```
+
 
 ### Integration Tests
 
