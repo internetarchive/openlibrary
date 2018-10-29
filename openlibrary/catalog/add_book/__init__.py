@@ -540,7 +540,8 @@ def load_from_amazon_metadata(rec):
         'isbn_13']
     conforming_rec = {}
     for k in conforming_fields:
-        if k in rec:
+        # if valid key and value not None
+        if rec.get(k) is not None:
             conforming_rec[k] = rec[k]
     return load(conforming_rec)
 

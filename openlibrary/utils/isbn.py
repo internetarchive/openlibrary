@@ -1,4 +1,6 @@
 import re
+import isbnlib
+from isbnlib import canonical
 import logging
 
 logger = logging.getLogger("openlibrary")
@@ -39,7 +41,7 @@ def check_digit_13(isbn):
         return str(r)
 
 def isbn_13_to_isbn_10(isbn_13):
-    isbn_13 = isbn_13.replace('-', '')
+    isbn_13 = canonical(isbn_13)
     try:
         if len(isbn_13) != 13 or not isbn_13.isdigit()\
         or not isbn_13.startswith('978')\
@@ -51,7 +53,7 @@ def isbn_13_to_isbn_10(isbn_13):
     return isbn_13[3:-1] + check_digit_10(isbn_13[3:-1])
 
 def isbn_10_to_isbn_13(isbn_10):
-    isbn_10 = isbn_10.replace('-', '')
+    isbn_10 = canonical(isbn_10)
     if len(isbn_10) == 13:
         return isbn_10
     try:
@@ -65,14 +67,14 @@ def isbn_10_to_isbn_13(isbn_10):
     return isbn_13 + check_digit_13(isbn_13)
 
 def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
-    isbn = isbn.replace('-', '')
     for f in isbn_13_to_isbn_10, isbn_10_to_isbn_13:
-        alt = f(isbn)
+        alt = f(canonical(isbn))
         if alt:
             return alt
 
 def normalize_isbn(isbn):
-    """removes spaces and dashes from isbn and ensures length"""
-    _isbn = isbn.replace(' ', '').replace('-', '').strip()
-    if len(re.findall('[0-9X]+', isbn)) and len(isbn) in [10, 13]:
-        return _isbn
+    """removes spaces and dashes from isbn and ensures length
+
+    XXX deprecated, just use isbnlib.canonical
+    """
+    return canonical(isbn)
