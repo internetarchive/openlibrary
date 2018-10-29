@@ -1,3 +1,4 @@
+from __future__ import print_function
 import socket
 
 #url = "http://www.amazon.com/dp/1847195881"
@@ -10,17 +11,17 @@ def get(sock, host, url):
     fp = sock.makefile('rb', 0)
 
     line = fp.readline()
-    print('status:', repr(line))
+    print(('status:', repr(line)))
 
     state = 'header'
     for line in fp:
         if line == '\r\n':
             break
-        print('header', repr(line))
+        print(('header', repr(line)))
 
     while True:
         chunk_size = int(fp.readline(),16)
-        print chunk_size
+        print(chunk_size)
         if chunk_size == 0:
             break
         print(len(fp.read(chunk_size)))

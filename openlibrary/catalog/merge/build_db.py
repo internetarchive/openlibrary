@@ -1,6 +1,7 @@
 #!/usr/bin/python2.5
 # converts from text files containing MARC tags to text versions of merge pools
 
+from __future__ import print_function
 import re, anydbm
 from time import time
 from collections import defaultdict
@@ -115,7 +116,7 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
     lccn_map = defaultdict(list)
     title_map = defaultdict(list)
     oclc_map = defaultdict(list)
-    print archive_id
+    print(archive_id)
     for line in open(archive_id):
         rec = eval(line)
         add_record(rec)
@@ -126,14 +127,14 @@ for archive_id, name, total in sorted(archive, key=lambda x: x[2]):
             t1_overall = time() - t0_overall
             remaining = total - i
             remaining2 = grand_total - overall
-            print "%8d %6.2f%% %5.3f rec/sec %.3f minutes left" % (i, (float(i) * 100) / total, i/t1, float((t1/i) * remaining) / 60),
-            print "overall: %6.2f%% %.3f minutes left" % ((float(overall) * 100) / grand_total, float((t1_overall/overall) * remaining2) / 60)
+            print("%8d %6.2f%% %5.3f rec/sec %.3f minutes left" % (i, (float(i) * 100) / total, i/t1, float((t1/i) * remaining) / 60), end=' ')
+            print("overall: %6.2f%% %.3f minutes left" % ((float(overall) * 100) / grand_total, float((t1_overall/overall) * remaining2) / 60))
 
-    print archive_id
+    print(archive_id)
     write_map(archive_id, 'isbn', isbn_map)
     write_map(archive_id, 'lccn', lccn_map)
     write_map(archive_id, 'title', title_map)
     write_map(archive_id, 'oclc', oclc_map)
 
 f_loc.close()
-print 'end'
+print('end')

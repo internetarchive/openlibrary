@@ -1,4 +1,5 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from openlibrary.catalog.marc.fast_parse import *
 from openlibrary.catalog.get_ia import get_from_archive
 import sys, codecs, re
@@ -14,12 +15,12 @@ def fmt_subfields(line):
     return ''.join(' ' + bold('$' + m.group(1)) + ' ' + translate(m.group(2)) for m in re_subtag.finditer(line[2:-1]))
 
 def show_book(data):
-    print 'leader:', data[:24]
+    print('leader:', data[:24])
     for tag, line in get_all_tag_lines(data):
         if tag.startswith('00'):
-            print tag, line[:-1]
+            print(tag, line[:-1])
         else:
-            print tag, line[0:2], fmt_subfields(line)
+            print(tag, line[0:2], fmt_subfields(line))
 
 if __name__ == '__main__':
     source = sys.argv[1]

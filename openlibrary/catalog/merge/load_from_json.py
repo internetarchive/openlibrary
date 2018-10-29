@@ -1,3 +1,4 @@
+from __future__ import print_function
 # build a merge database from JSON dump
 
 import simplejson, re
@@ -18,7 +19,7 @@ def add_to_index(fh, value, key):
         value = str(value)
     except UnicodeEncodeError:
         return
-    print >> fh, "\t".join([key, esc(value)])
+    print("\t".join([key, esc(value)]), file=fh)
 
 def short_title(s):
     return normalize(s)[:25]
@@ -84,10 +85,10 @@ for line in open(filename):
         rec_per_sec_total = rec_no / t1
         remaining = total - rec_no
         sec = remaining / rec_per_sec_total
-        print "%d current: %.3f overall: %.3f" % \
-            (rec_no, rec_per_sec, rec_per_sec_total),
+        print("%d current: %.3f overall: %.3f" % \
+            (rec_no, rec_per_sec, rec_per_sec_total), end=' ')
         mins = sec / 60
-        print "%.3f minutes left" % mins
+        print("%.3f minutes left" % mins)
 
     # split line
     key, type, json_data = line.split('\t')
@@ -97,12 +98,12 @@ for line in open(filename):
         rec = simplejson.loads(json_data)
         load_record(rec, files)
     except:
-        print 'record number:', rec_no
-        print line
+        print('record number:', rec_no)
+        print(line)
         raise
 
-print rec_no
-print "closing files"
+print(rec_no)
+print("closing files")
 for v in files.values():
     v.close()
-print "finished"
+print("finished")

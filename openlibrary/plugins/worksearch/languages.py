@@ -1,5 +1,6 @@
 """Language pages
 """
+from __future__ import print_function
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
@@ -68,7 +69,7 @@ class index(delegate.page):
         result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]
-        print >> web.debug, languages[:10]
+        print(languages[:10], file=web.debug)
         return render_template("languages/index", languages)
 
     def is_enabled(self):

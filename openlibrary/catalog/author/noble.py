@@ -1,4 +1,5 @@
 # coding=utf-8
+from __future__ import print_function
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from time import time
@@ -39,7 +40,7 @@ def process_record(pos, loc, data):
         if line:
             fields = list(get_all_subfields(line))
             if any(k == 'c' for k, v in fields):
-                print (loc, fields)
+                print((loc, fields))
 
 def files(ia):
     endings = ['.mrc', '.marc', '.out', '.dat', '.records.utf8']

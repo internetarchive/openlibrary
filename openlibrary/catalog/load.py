@@ -1,3 +1,4 @@
+from __future__ import print_function
 type_map = {
     'description': 'text',
     'notes': 'text',
@@ -24,7 +25,7 @@ def add_keys(web, edition):
 
 def build_query(loc, rec):
     if 'title' not in rec:
-        print 'missing title:', loc
+        print('missing title:', loc)
         return
     if 'edition_name' in rec:
         assert rec['edition_name']
@@ -37,7 +38,7 @@ def build_query(loc, rec):
 
     east = east_in_by_statement(rec)
     if east:
-        print rec
+        print(rec)
 
     for k, v in rec.iteritems():
         if k == 'authors':
@@ -62,7 +63,7 @@ def build_query(loc, rec):
         if lang_key in ('/l/   ', '/l/|||'):
             del book['languages']
         elif not site.things({'key': lang_key, 'type': '/type/language'}):
-            print lang_key, "not found for", loc
+            print(lang_key, "not found for", loc)
             del book['languages']
     return book
 

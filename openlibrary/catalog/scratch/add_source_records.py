@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, re, sys, codecs
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
@@ -20,10 +21,10 @@ for f in os.listdir(test_dir):
     key = f.replace('_', '/')
     if not re_edition.match(key):
         continue
-    print key
+    print(key)
     continue
     mc = get_mc(key)
-    print key, mc
+    print(key, mc)
     if not mc:
         continue
     e = ol.get(key)
@@ -35,6 +36,6 @@ for f in os.listdir(test_dir):
         m = re_meta_mrc.match(mc)
         sr = 'marc:' + mc if not m else 'ia:' + m.group(1)
     e['source_records'] = [sr]
-    print >> out, (key, sr)
-    print ol.save(key, e, 'add source record')
+    print((key, sr), file=out)
+    print(ol.save(key, e, 'add source record'))
 #out.close()

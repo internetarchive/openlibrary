@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from normalize import normalize
 
@@ -64,11 +65,11 @@ def amazon_title(amazon_first_parts, marc_first_parts):
         return False
     if compare_parts(marc_first_parts, amazon_first_parts[1:]):
         if verbose:
-            print "match with Amazon title"
+            print("match with Amazon title")
         return True
     if match_seq(marc_first_parts, amazon_first_parts[1:]):
         if verbose:
-            print "partial match, with Amazon title"
+            print("partial match, with Amazon title")
         return True
     return False
 
@@ -78,24 +79,24 @@ def marc_title(amazon_first_parts, marc_first_parts):
         return False
     if compare_parts(marc_first_parts[:-1], amazon_first_parts):
         if verbose:
-            print "match with MARC end title"
+            print("match with MARC end title")
         return True
     if normalize(amazon_first_parts[0]) in titles:
         if compare_parts(marc_first_parts[:-1], amazon_first_parts[1:]):
             if verbose:
-                print "match, both with titles"
+                print("match, both with titles")
             return True
         if match_seq(marc_first_parts[:-1], amazon_first_parts[1:]):
             if verbose:
-                print "partial match, both with titles"
+                print("partial match, both with titles")
             return True
     if match_seq(marc_first_parts[:-1], amazon_first_parts):
         if verbose:
-            print "partial match with MARC end title"
+            print("partial match with MARC end title")
         return True
     if match_seq(marc_first_parts, amazon_first_parts):
         if verbose:
-            print "partial match with MARC end title"
+            print("partial match with MARC end title")
     return False
 
 # use for person, org and event because the LC data says "Berkovitch, Israel." is an org
@@ -222,11 +223,11 @@ def match_name(amazon, marc, last_name_only_ok=True):
     # catches events and organizations
     if amazon_normalized == marc_normalized:
         if verbose:
-            print 'normalized names match'
+            print('normalized names match')
         return True
     if amazon_normalized_no_space == marc_normalized.replace(' ', ''):
         if verbose:
-            print 'normalized, spaces removed, names match'
+            print('normalized, spaces removed, names match')
         return True
     # split MARC name
     m = re_marc_name.match(marc)
@@ -237,25 +238,25 @@ def match_name(amazon, marc, last_name_only_ok=True):
     if amazon_normalized == normalize(surname) \
             or amazon_normalized_no_space == normalize(surname_no_space):
         if verbose:
-            print 'Amazon only has a last name, it matches MARC'
+            print('Amazon only has a last name, it matches MARC')
         return last_name_only_ok
     if amazon_normalized == normalize(m.group(2) + ' ' + surname):
         if verbose:
-            print 'match'
+            print('match')
         return True
     if amazon_normalized_no_space == normalize(m.group(2) + surname).replace(' ', ''):
         if verbose:
-            print 'match when spaces removed'
+            print('match when spaces removed')
         return True
     if not match_surname(surname, amazon):
         if verbose:
-            print 'Last name mismatch'
+            print('Last name mismatch')
         return False
     marc_first_parts = split_parts(m.group(2))
     amazon_first_parts = split_parts(amazon[0:-(len(m.group(1))+1)])
     if compare_parts(marc_first_parts, amazon_first_parts):
         if verbose:
-            print "match"
+            print("match")
         return True
     if marc_title(amazon_first_parts, marc_first_parts):
         return True
@@ -263,10 +264,10 @@ def match_name(amazon, marc, last_name_only_ok=True):
         return True
     if match_seq(amazon_first_parts, marc_first_parts):
         if verbose:
-            print "partial match"
+            print("partial match")
         return True
     if verbose:
-        print "no match"
+        print("no match")
     return False
 
 def match_not_just_surname(amazon, marc):

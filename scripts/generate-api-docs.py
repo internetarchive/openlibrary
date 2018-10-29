@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import os
 import re
@@ -41,7 +42,7 @@ def write(path, text):
     if not os.path.exists(dirname):
         os.makedirs(dirname)
 
-    print "writing", path
+    print("writing", path)
     f = open(path, "w")
     f.write(text)
     f.close()
@@ -63,7 +64,7 @@ def find_python_sources(dir):
 
     for dirpath, dirnames, filenames in os.walk(dir):
         if re_ignore.match(dirpath):
-            print "ignoring", dirpath
+            print("ignoring", dirpath)
             continue
 
         for f in filenames:

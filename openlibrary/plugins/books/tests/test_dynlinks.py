@@ -6,6 +6,7 @@ data0: This contains OL0A, OL0M and OL0W with each having just name/title.
 data1: This contains OL1A, OL1M, OL1W with each having name/tile and interconnections.
 data9: This contans OL9A, OL9M and OL9W with interconnections and almost all fields.
 """
+from __future__ import print_function
 from .. import dynlinks
 
 import pytest
@@ -414,5 +415,5 @@ class TestDataProcessor:
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9
-        print p.process_doc(data9['/books/OL9M'])
+        print(p.process_doc(data9['/books/OL9M']))
         assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']

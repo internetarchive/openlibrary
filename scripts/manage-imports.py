@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import web
 import json
@@ -37,7 +38,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
 
 def do_import(item, servername=None, require_marc=True):
     response = ol_import_request(item, servername=servername, require_marc=require_marc)
-    print >> sys.stderr, "Response:", response
+    print("Response:", response, file=sys.stderr)
     if response and response.startswith("{"):
         d = json.loads(response)
         if d.get("success") and 'edition' in d:
@@ -116,7 +117,7 @@ def import_batch(args, **kwargs):
     batch_name = args[0]
     batch = Batch.find(batch_name)
     if not batch:
-        print >> sys.stderr, "Unknown batch", batch
+        print("Unknown batch", batch, file=sys.stderr)
         sys.exit(1)
 
     for item in batch.get_items():

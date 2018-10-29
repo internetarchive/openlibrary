@@ -1,5 +1,6 @@
 """Open Library Import API
 """
+from __future__ import print_function
 
 from infogami.plugins.api.code import add_hook
 from infogami import config
@@ -71,7 +72,7 @@ def parse_data(data):
             edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
             format = 'marcxml'
         else:
-            print 'unrecognized XML format'
+            print('unrecognized XML format')
             return None, None
     elif data.startswith('{') and data.endswith('}'):
         obj = json.loads(data)

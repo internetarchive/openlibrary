@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import argparse
 import datetime
 import itertools
@@ -104,7 +105,7 @@ def poll_for_changes(start_time_file, max_chunk_size, delay):
         if to_be_emitted:
             logging.debug("Emitting %d works", len(to_be_emitted))
             for i in to_be_emitted:
-                print i
+                print(i)
 
         logging.debug("Sleeping for %d seconds", delay)
         time.sleep(delay)
@@ -133,7 +134,7 @@ def main():
         poll_for_changes(args.start_file, args.max_chunk_size, args.delay)
     else:
         for i in get_modified_works(frm, to):
-            print i
+            print(i)
 
 
 

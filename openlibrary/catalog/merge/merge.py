@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from names import match_name
 from normalize import normalize
@@ -17,7 +18,7 @@ def amazon_year(date):
         assert m
         year = m.group(1)
     except:
-        print date
+        print(date)
         raise
     return year
 
