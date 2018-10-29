@@ -15,10 +15,10 @@ from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, cache, helpers as h
-from openlibrary.catalog.add_book import load_from_amazon_metadata
-
+from openlibrary.catalog.add_book import load
 from openlibrary.core.vendors import (
-    get_amazon_metadata, get_betterworldbooks_metadata)
+    get_amazon_metadata, clean_amazon_metadata_for_load,
+    get_betterworldbooks_metadata)
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -82,7 +82,7 @@ class ratings(delegate.page):
                     raise ValueError
             except ValueError:
                 return response('invalid rating', status="error")
-                
+
             models.Ratings.add(
                 username=username, work_id=work_id,
                 rating=rating, edition_id=edition_id)
@@ -244,7 +244,8 @@ class price_api(delegate.page):
 
         # if no OL edition for isbn, attempt to create
         if (not book) and metadata.get('amazon'):
-            book = load_from_amazon_metadata(metadata.get('amazon'))
+            book = load(clean_amazon_metadata_for_load(
+                metadata.get('amazon')))
 
         # include ol edition metadata in response, if available
         if book:
