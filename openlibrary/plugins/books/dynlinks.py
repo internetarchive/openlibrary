@@ -401,7 +401,7 @@ def format_result(result, options):
         >>> format_result({'x': 1}, {})
         'var _OLBookInfo = {"x": 1};'
         >>> format_result({'x': 1}, {'callback': 'f'})
-        'f({"x": 1});'
+        '{"x": 1}'
     """
     format = options.get('format', '').lower()
     if format == 'json':
@@ -410,7 +410,8 @@ def format_result(result, options):
         json = simplejson.dumps(result)
         callback = options.get("callback")
         if callback:
-            return "%s(%s);" % (callback, json)
+            # the API handles returning the data as a callback
+            return "%s" % json
         else:
             return "var _OLBookInfo = %s;" % json
 

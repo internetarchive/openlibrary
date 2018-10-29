@@ -340,7 +340,7 @@ def test_dynlinks(monkeypatch):
     assert simplejson.loads(match.group(1)) == expected_result
 
     js = dynlinks.dynlinks(["isbn:1234567890"], {"callback": "func"})
-    match = re.match('^func\(({.*})\);$', js)
+    match = re.match('^({.*})$', js)
     assert match is not None
     assert simplejson.loads(match.group(1)) == expected_result
 
@@ -414,5 +414,4 @@ class TestDataProcessor:
         p = dynlinks.DataProcessor()
         p.authors = data9
         p.works = data9
-        print p.process_doc(data9['/books/OL9M'])
         assert p.process_doc(data9['/books/OL9M']) == data9['result']['data']
