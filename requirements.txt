@@ -1,5 +1,6 @@
 -r requirements_common.txt
 
+isbnlib==3.9.3
 Fabric==1.10.1
 Jinja2==2.6
 PIL==1.1.7
@@ -31,7 +32,7 @@ py==1.4.5
 pyOpenSSL==17.5.0
 pyasn1==0.1.9
 python-dateutil==1.5
-requests==2.12.3
+requests==2.20.0
 schema==0.5.0
 simplegeneric==0.8.1
 traitlets==4.3.1
