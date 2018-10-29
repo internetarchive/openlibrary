@@ -540,7 +540,7 @@ def load_from_amazon_metadata(rec):
         'isbn_13']
     conforming_rec = {}
     for k in conforming_fields:
-        if k in rec:
+        if k in rec and rec[k]:
             conforming_rec[k] = rec[k]
     return load(conforming_rec)
 

@@ -20,13 +20,12 @@ def get_amazon_metadata(isbn):
         return None
 
 def _get_amazon_metadata(isbn):
-    # XXX some esbns may be < 10!
-    isbn_10 = isbn if len(isbn) == 10 else isbn_13_to_isbn_10(isbn)
-    isbn_13 = isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)
+    isbn = normalize_isbn(isbn)
     try:
         if not lending.amazon_api:
             raise Exception
-        product = lending.amazon_api.lookup(ItemId=isbn_10)
+        product = lending.amazon_api.lookup(
+            ItemId=isbn, IdType="ISBN", SearchIndex="Books")
     except Exception as e:
         return None
 
@@ -60,14 +59,14 @@ def _get_amazon_metadata(isbn):
         'languages': list(product.languages),  # needs to be normalized
         'publishers': [product.publisher],
         'cover': product.large_image_url,
-        'isbn_10': [isbn_10],
-        'isbn_13': [isbn_13]
+        'isbn_10': [isbn if len(isbn) == 10 else isbn_13_to_isbn_10(isbn)],
+        'isbn_13': [isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn)]
     }
 
 @public
 def get_betterworldbooks_metadata(isbn):
+    isbn = normalize_isbn(isbn)
     try:
-        isbn = normalize_isbn(isbn)
         if isbn:
             return _get_betterworldbooks_metadata(isbn)
     except Exception:
