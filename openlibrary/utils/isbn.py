@@ -67,6 +67,7 @@ def isbn_10_to_isbn_13(isbn_10):
     return isbn_13 + check_digit_13(isbn_13)
 
 def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
+    isbn = normalize_isbn(isbn)
     for f in isbn_13_to_isbn_10, isbn_10_to_isbn_13:
         alt = f(canonical(isbn))
         if alt:
