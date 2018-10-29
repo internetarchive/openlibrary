@@ -11,13 +11,13 @@ def get(sock, host, url):
     fp = sock.makefile('rb', 0)
 
     line = fp.readline()
-    print(('status:', repr(line)))
+    print('status:', repr(line))
 
     state = 'header'
     for line in fp:
         if line == '\r\n':
             break
-        print(('header', repr(line)))
+        print('header', repr(line))
 
     while True:
         chunk_size = int(fp.readline(),16)
