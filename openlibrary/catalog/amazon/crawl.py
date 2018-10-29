@@ -82,7 +82,7 @@ class Scraper:
 
         line = fp.readline()
         if not line.startswith('HTTP/1.1 200'):
-            print(('status:', repr(line)))
+            print('status:', repr(line))
         recv_buf += line
 
         body = ''
