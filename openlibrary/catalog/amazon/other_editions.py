@@ -1,5 +1,5 @@
 import re, os.path, urllib2
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869

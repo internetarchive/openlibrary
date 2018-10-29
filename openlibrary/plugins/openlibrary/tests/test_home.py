@@ -7,7 +7,7 @@ from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home

@@ -15,7 +15,7 @@ except ImportError:
     genshi = None
 
 try:
-    from BeautifulSoup import BeautifulSoup
+    from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
 

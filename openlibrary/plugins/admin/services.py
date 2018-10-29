@@ -8,12 +8,12 @@ import re
 import urllib
 from collections import defaultdict
 
-import BeautifulSoup
+from bs4 import BeautifulSoup
 
 class Nagios(object):
     def __init__(self, url):
         try:
-            self.data = BeautifulSoup.BeautifulSoup(urllib.urlopen(url).read())
+            self.data = BeautifulSoup(urllib.urlopen(url).read())
         except Exception, m:
             print(m)
             self.data = None

@@ -1,8 +1,8 @@
 Babel==2.5.3
-BeautifulSoup==3.2.0
+beautifulsoup4==4.6.3
 DBUtils==1.1
 argparse==1.2.1
-flake8==3.5.0
+flake8==3.6.0
 Genshi==0.6
 gunicorn==19.9.0
 iptools==0.4.0
