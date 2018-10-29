@@ -345,7 +345,7 @@ def test_real_example(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'modified'
 
-def test_missing_ocaid(mock_site, add_languages):
+def test_missing_ocaid(mock_site, add_languages, ia_writeback):
     ia = 'descendantsofhug00cham'
     src = ia + '_meta.mrc'
     marc = MarcBinary(open_test_data(src).read())
