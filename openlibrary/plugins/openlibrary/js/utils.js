@@ -1,4 +1,4 @@
-(function($) {
+;(function($) {
 
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {

@@ -1,6 +1,6 @@
 // jquery plugins to provide author and language autocompletes.
 
-(function($) {
+;(function($) {
     /**
      * Some extra options for when creating an autocomplete input field
      * @typedef {Object} OpenLibraryAutocompleteOptions

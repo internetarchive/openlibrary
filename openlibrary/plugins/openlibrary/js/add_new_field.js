@@ -14,7 +14,7 @@
  *     - On cancel/close:
  *         - value of the select is set to "" to select "select xxx"
  */
-(function($){
+;(function($){
     $.fn.add_new_field = function(_options) {
         $(this).each(function() {
             var options = _options || {href: "#" + this.id + "-popup"};
