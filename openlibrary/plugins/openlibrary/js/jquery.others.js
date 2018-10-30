@@ -38,17 +38,20 @@
                                 });
         };
 })(jQuery);
+
 // ADD FADE TOGGLE
 // COURTESY: Karl Swedberg http://www.learningjquery.com/2006/09/slicker-show-and-hide
 jQuery.fn.fadeToggle = function(speed, easing, callback) {
     return this.animate({opacity: 'toggle'}, speed, easing, callback);
 };
+
 // ADD TEXT TOGGLE
 jQuery.fn.toggleText = function(a, b) {
         return this.each(function() {
                 jQuery(this).text(jQuery(this).text() == a ? b : a);
         });
 };
+
 function bookCovers(){
 $.fn.fixBroken=function(){return this.each(function(){$(this).error(function(){$(this).parent().parent().hide();$(this).parent().parent().next(".SRPCoverBlank").show();});});};
-};
+}

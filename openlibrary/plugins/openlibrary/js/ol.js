@@ -59,11 +59,12 @@ var Browser = {
 }
 
 function twitterOn() {
-    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     $("input[type=radio]").click(function(){
-        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     });
-};
+}
+
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
@@ -74,13 +75,14 @@ function isScrolledIntoView(elem) {
     }
     return false;
 }
+
 $(window).scroll(function(){
   var scroller = $("#formScroll");
-  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();};
+  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
 })
 
-function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
-function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
+function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
+function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
 function aboutFeeds() {
     jQuery.getFeed({
@@ -111,7 +113,7 @@ function aboutFeeds() {
             jQuery('#resultBlog').append('<div class="content"><a href="'+feed.link+'">Visit the blog...</a></div>');
         }
     });
-};
+}
 
 var create_subject_carousel;
 $().ready(function() {
@@ -218,20 +220,23 @@ function carouselSetup(loadCovers, loadLists) {
     $('#editionsList').hide();
     $('#editionsCovers').customFadeIn();
   });
-};
+}
+
 // BOOK COVERS
 function bookCovers(){
     $("img.cover").error(function(){
         $t(his).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
-};
+}
+
 // CLOSE POP-UP FROM IFRAME
 function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
     });
-};
+}
+
 function get_subject_covers(key, pagenumber) {
     // will implement it later.
     var covers = [];
@@ -300,7 +305,7 @@ function deleteVerify() {
 };
 */
 function passwordHide(){
-;(function($){
+(function($){
     $.fn.revealPassword=function(ph,options){
         var spinput=$(this);
         $.fn.revealPassword.checker=function(cbid,inid){
@@ -345,7 +350,7 @@ function passwordHide(){
         });
     }
 })(jQuery);
-};
+}
 
 var searchMode;
 $().ready(function(){
@@ -499,7 +504,7 @@ $().ready(function(){
                 if (!execAsap)
                     func.apply(obj, args);
                 timeout = null;
-            };
+            }
 
             if (timeout) {
                 clearTimeout(timeout);
@@ -699,7 +704,7 @@ $().ready(function(){
     function hideUser(){
         $('#main-account-dropdown').slideUp(25);
         $('header#header-bar .dropdown-avatar').removeClass('hover');
-    };
+    }
 
     $('header#header-bar .dropdown-avatar').click(debounce(function() {
         var dropdown = $('#main-account-dropdown');
@@ -712,7 +717,7 @@ $().ready(function(){
             $(document).mouseup(function(offUser){
                 if($(offUser.target).parent("a").length==0){
                     hideUser()
-                };
+                }
             });
 
         }

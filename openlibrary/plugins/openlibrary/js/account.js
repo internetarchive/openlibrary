@@ -48,7 +48,7 @@ function setup_account_create() {
     $('#usernameLoading').hide();
     $('#emailLoading').hide();
 
-};
+}
 
 /*
   function finishAjaxUsername(id, response) {
@@ -118,7 +118,7 @@ function validateEmail() {
             email: "Are you sure that's an email address?"
         }
     });
-};
+}
 
 function validateDelete() {
     $("form.delete").validate({
@@ -147,7 +147,7 @@ function validateDelete() {
             required: ""
         }
     });
-};
+}
 
 function validateLogin() {
     $(".login").validate({
@@ -186,7 +186,8 @@ function validateLogin() {
             required: ""
         }
     });
-};
+}
+
 function validatePassword() {
     $("form.password").validate({
         invalidHandler: function(form, validator) {
@@ -220,7 +221,7 @@ function validatePassword() {
             required: ""
         }
     });
-};
+}
 
 function validateReminder() {
     $("form.reminder").validate({
@@ -251,4 +252,4 @@ function validateReminder() {
             email: "Are you sure that's an email address?"
         }
     });
-};
+}
