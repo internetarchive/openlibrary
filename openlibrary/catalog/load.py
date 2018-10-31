@@ -1,4 +1,5 @@
 from __future__ import print_function
+
 type_map = {
     'description': 'text',
     'notes': 'text',
