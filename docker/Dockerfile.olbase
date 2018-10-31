@@ -14,10 +14,10 @@ RUN apt-get -qq update && apt-get install -y \
     postgresql \
     build-essential \
     git-core \
-    memcached \
     libpq-dev \
     libxml2-dev \
     libxslt-dev \
+    libffi-dev \
     curl \
     screen \
     npm \

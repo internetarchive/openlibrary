@@ -22,7 +22,8 @@
             mustMatch: true,
             formatMatch: function(item) { return item.name; },
             parse: function(text) {
-                var rows = JSON.parse(text);
+                // in v2, text IS the JSON
+                var rows = typeof text === 'string' ? JSON.parse(text) : text;
                 var parsed = [];
                 for (var i=0; i < rows.length; i++) {
                     var row = rows[i];

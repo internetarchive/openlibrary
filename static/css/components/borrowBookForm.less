@@ -13,11 +13,49 @@
 form#borrowbook {
   margin: 40px auto 0;
   text-align: left;
+  label {
+    display: block;
+    float: left;
+    width: 170px;
+    height: 50px;
+    padding: 20px 0 0 50px;
+    margin-bottom: 25px;
+    background-color: @cream;
+    font-size: .6875em;
+    color: @grey;
+    cursor: pointer;
+    background-position: 20px 20px;
+    background-repeat: no-repeat;
+    background-image: url(/images/icons/icon_download-borrow.png);
+
+    strong {
+      display: block;
+      font-size: 1.25em;
+      color: @darker-brand-blue;
+      text-decoration: underline;
+    }
+    &:hover {
+      background-color: @off-white;
+      strong {
+        color: @olive;
+      }
+    }
+  }
   fieldset {
     display: block;
     float: left;
     border-top: 1px dotted @black;
     padding: 20px 0;
+    table {
+      margin: 0 auto;
+      td {
+        text-align: center;
+        font-size: .8125em;
+        &.icon {
+          padding-right: 10px;
+        }
+      }
+    }
     &.download {
       width: 455px;
     }
@@ -38,16 +76,6 @@ form#borrowbook {
       width: 100%;
       text-align: center;
     }
-    table {
-      margin: 0 auto;
-      td {
-        text-align: center;
-        font-size: .8125em;
-        &.icon {
-          padding-right: 10px;
-        }
-      }
-    }
   }
   legend {
     padding: 0 10px;
@@ -56,34 +84,6 @@ form#borrowbook {
     font-weight: 700;
     text-align: center;
     background-color: @beige;
-  }
-  label {
-    display: block;
-    float: left;
-    width: 170px;
-    height: 50px;
-    padding: 20px 0 0 50px;
-    margin-bottom: 25px;
-    background-color: @cream;
-    font-size: .6875em;
-    color: @grey;
-    cursor: pointer;
-    background-position: 20px 20px;
-    background-repeat: no-repeat;
-    background-image: url(/images/icons/icon_download-borrow.png);
-
-    &:hover {
-      background-color: @off-white;
-      strong {
-        color: @olive;
-      }
-    }
-    strong {
-      display: block;
-      font-size: 1.25em;
-      color: @darker-brand-blue;
-      text-decoration: underline;
-    }
   }
   input {
     display: none;

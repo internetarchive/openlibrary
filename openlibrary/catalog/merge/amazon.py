@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from names import match_name
 from normalize import normalize
@@ -17,7 +18,7 @@ def amazon_year(date):
         assert m
         year = m.group(1)
     except:
-        print date
+        print(date)
         raise
     return year
 
@@ -29,7 +30,7 @@ def build_amazon(edition, authors):
         try:
             amazon['publish_date'] = amazon_year(edition['publish_date'])
         except:
-            print edition['isbn_10'], edition['publish_date']
+            print(edition['isbn_10'], edition['publish_date'])
             raise
     if authors:
         amazon['authors'] = authors
@@ -310,13 +311,13 @@ def attempt_merge(amazon, marc, threshold, debug = False):
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
     if debug:
-        print total, l1
+        print(total, l1)
     if total >= threshold:
         return True
     l2 = level2_merge(amazon, marc)
     total = sum(i[2] for i in l2)
     if debug:
-        print total, l2
+        print(total, l2)
     return total >= threshold
 
 def test_merge():

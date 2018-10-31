@@ -1,4 +1,5 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from time import time, sleep
 import catalog.marc.fast_parse as fast_parse
 import web, sys, codecs, re
@@ -113,14 +114,14 @@ def add_source_records(key, new, thing):
     if e.get('subjects', None) and any(has_dot(s) for s in e['subjects']):
         subjects = [s[:-1] if has_dot(s) else s for s in e['subjects']]
         e['subjects'] = subjects
-    print ol.save(key, e, 'found a matching MARC record')
+    print(ol.save(key, e, 'found a matching MARC record'))
     if new_toc:
         new_edition = ol.get(key)
         # [{u'type': <ref: u'/type/toc_item'>}, ...]
         assert 'title' in new_edition['table_of_contents'][0]
 
 def load_part(archive_id, part, start_pos=0):
-    print 'load_part:', archive_id, part
+    print('load_part:', archive_id, part)
     global rec_no, t_prev, load_count
     full_part = archive_id + "/" + part
     f = open(rc['marc_path'] + "/" + full_part)
@@ -137,11 +138,11 @@ def load_part(archive_id, part, start_pos=0):
         try:
             index_fields = fast_parse.index_fields(data, want)
         except KeyError:
-            print loc
-            print fast_parse.get_tag_lines(data, ['245'])
+            print(loc)
+            print(fast_parse.get_tag_lines(data, ['245']))
             raise
         except AssertionError:
-            print loc
+            print(loc)
             raise
         if not index_fields or 'title' not in index_fields:
             continue
@@ -173,10 +174,10 @@ def load_part(archive_id, part, start_pos=0):
 start = pool.get_start(archive_id)
 go = 'part' not in start
 
-print archive_id
+print(archive_id)
 
 for part, size in files(archive_id):
-    print part, size
+    print(part, size)
     load_part(archive_id, part)
 
-print "finished"
+print("finished")

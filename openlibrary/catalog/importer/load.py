@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, os
 from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
@@ -120,8 +121,8 @@ def find_entity(author):
     try:
         return pick_from_matches(author, match)
     except ValueError:
-        print 'author:', author
-        print 'match:', match
+        print('author:', author)
+        print('match:', match)
         raise
 
 def import_author(author, eastern=False):
@@ -188,17 +189,17 @@ def build_query(loc, rec):
         pprint(rec)
         raise
     if east:
-        print rec
+        print(rec)
 
     langs = rec.get('languages', [])
-    print langs
+    print(langs)
     if any(l['key'] == '/languages/zxx' for l in langs):
-        print 'zxx found in langs'
+        print('zxx found in langs')
         rec['languages'] = [l for l in langs if l['key'] != '/languages/zxx']
-        print 'fixed:', langs
+        print('fixed:', langs)
 
     for l in rec.get('languages', []):
-        print l
+        print(l)
         if l['key'] == '/languages/ser':
             l['key'] = '/languages/srp'
         if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent', '/languages/enb'):

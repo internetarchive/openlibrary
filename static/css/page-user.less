@@ -35,6 +35,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
 
 body#user {
   background-color: @beige;
@@ -66,7 +67,7 @@ body#user {
     margin-bottom: 15px;
     background: @light-yellow;
     p {
-      font-family: "Lucida Grande","Arial",sans-serif;
+      font-family: @lucida_sans_serif-7;
     }
   }
   div.siteSearch {
@@ -96,7 +97,7 @@ body#user {
     background: url(/images/icons/icon_fav-big.png) 35px 35px no-repeat;
     h2 {
       font-size: 1.5em;
-      font-family: "Georgia", "Times New Roman", serif;
+      font-family: @georgia_serif-2;
       font-weight: normal;
       color: @dark-grey;
       margin: 0 0 10px;

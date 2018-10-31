@@ -525,7 +525,7 @@ $jsdef renderAuthors(authors):
         </span>
         <span class="count">$sprintf(ungettext("%s book", "%s books", a.count), commify(a.count))</span>
         <br/>
-<div id="resultsAuthors">
+<div id="resultsAuthors" class="widget-box">
     <div class="head">
         <h3>$_("Authors")</h3>
         <div class="smallest lightgreen sansserif">$_("who have written the most books in this language")</div>
@@ -555,7 +555,7 @@ $jsdef renderPublishers(publishers):
         </span>
         <span class="count">$sprintf(ungettext("%s edition", "%s editions", p.count), commify(p.count))</span>
          <br/>
-<div id="resultsPublishers">
+<div id="resultsPublishers" class="widget-box">
     <div class="head">
         <h3>$_("Related Publishers")</h3>
         <div class="smallest lightgreen sansserif">$_("who have published the most books in this language")</div>

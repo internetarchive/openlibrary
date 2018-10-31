@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import _init_path
 
 from openlibrary import config
@@ -26,49 +27,49 @@ base = 'http://%s/openlibrary.org/log/' % config.runtime_config['infobase_server
 def run_work_finder(i):
     t0 = time()
     d = i['data']
-    print 'timestamp:', i['timestamp']
-    print 'author:', d['author']
-    print '%d records updated:' % len(d['result'])
+    print('timestamp:', i['timestamp'])
+    print('author:', d['author'])
+    print('%d records updated:' % len(d['result']))
     if 'changeset' not in d:
-        print 'no changeset in author merge'
-        print
+        print('no changeset in author merge')
+        print()
         return
     changeset = d['changeset']
 
     try:
         assert len(changeset['data']) == 2 and 'master' in changeset['data'] and 'duplicates' in changeset['data']
     except:
-        print d['changeset']
+        print(d['changeset'])
         raise
     akey = changeset['data']['master']
     dup_keys = changeset['data']['duplicates']
     #print d['changeset']
-    print 'dups:', dup_keys
+    print('dups:', dup_keys)
 
     title_redirects = find_title_redirects(akey)
     works = find_works(get_books(akey, books_query(akey)), existing=title_redirects)
-    print 'author:', akey
-    print 'works:', works
+    print('author:', akey)
+    print('works:', works)
     updated = update_works(akey, works, do_updates=True)
-    print '%d records updated' % len(updated)
+    print('%d records updated' % len(updated))
 
     t1 = time() - t0
     update_times.append(t1)
-    print 'update takes: %d seconds' % t1
-    print
+    print('update takes: %d seconds' % t1)
+    print()
 
 while True:
     url = base + offset
-    print url,
+    print(url, end=' ')
 
     try:
         data = urlopen(url).read()
     except URLError as inst:
         if inst.args and inst.args[0].args == (111, 'Connection refused'):
-            print 'make sure infogami server is working, connection refused from:'
-            print url
+            print('make sure infogami server is working, connection refused from:')
+            print(url)
             sys.exit(0)
-        print 'url:', url
+        print('url:', url)
         raise
     try:
         ret = simplejson.loads(data)
@@ -79,11 +80,11 @@ while True:
     offset = ret['offset']
     data_list = ret['data']
     if len(data_list) == 0:
-        print 'waiting'
+        print('waiting')
         sleep(10)
         continue
     else:
-        print
+        print()
     for i in data_list:
         action = i.pop('action')
         if action != 'save_many':
@@ -92,14 +93,14 @@ while True:
             continue
         if len(i['data']['result']) == 0:
             continue # no change
-        print 'run work finder'
+        print('run work finder')
         try:
             run_work_finder(i)
         except:
-            print offset
+            print(offset)
             raise
 
         if update_times:
-            print "average update time: %.1f seconds" % (float(sum(update_times)) / float(len(update_times)))
-    print >> open(state_file, 'w'), offset
+            print("average update time: %.1f seconds" % (float(sum(update_times)) / float(len(update_times))))
+    print(offset, file=open(state_file, 'w'))
 

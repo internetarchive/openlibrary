@@ -1,3 +1,4 @@
+from __future__ import print_function
 import py.test
 import os.path
 import web
@@ -133,7 +134,7 @@ class TestWebapp(WebTestCase):
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
         self.browser.open('/b/upload2', data, {'Content-Type': content_type})
 
-        print "data", self.browser.data
+        print("data", self.browser.data)
 
         id = simplejson.loads(self.browser.data)['id']
         self.verify_upload(id, filedata, {"source_url": source_url, "olid": "OL1234M"})
@@ -181,6 +182,6 @@ class TestWebapp(WebTestCase):
 
         for f in files:
             d = self.jsonget('/b/id/%d.json' % f.id)
-            print f.id, d
+            print(f.id, d)
             assert 'tar:' in d['filename']
             assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()

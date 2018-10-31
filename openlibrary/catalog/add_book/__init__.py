@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+from __future__ import print_function
 
 import re
 import json
@@ -266,7 +267,7 @@ def find_match(e1, edition_pool):
                     found = False
                     break
                 if is_redirect(thing):
-                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if not found:
                 continue
@@ -452,7 +453,7 @@ def add_cover(cover_url, ekey):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
-            print 'retry, attempt', attempt
+            print('retry, attempt', attempt)
             sleep(2)
             continue
         body = res.read()
@@ -460,7 +461,7 @@ def add_cover(cover_url, ekey):
             reply = json.loads(body)
             if res.getcode() == 200 and 'id' in reply:
                 break
-        print 'retry, attempt', attempt
+        print('retry, attempt', attempt)
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
         return
@@ -516,7 +517,6 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     data = item.metadata
     return data
 
-
 def load(rec):
     """Given a record, tries to add/match that edition in the system.
 
@@ -538,10 +538,6 @@ def load(rec):
         # No match candidates found, add edition
         return load_data(rec)
 
-    #matches = set(item for sublist in edition_pool.values() for item in sublist)
-    #if len(matches) == 1:
-    #    return {'success': True, 'edition': {'key': list(matches)[0]}}
-
     match = early_exit(rec)
     if not match:
         match = find_exact_match(rec, edition_pool)
@@ -552,7 +548,6 @@ def load(rec):
             rec['full_title'] += ' ' + rec['subtitle']
         e1 = build_marc(rec)
         add_db_name(e1)
-
         match = find_match(e1, edition_pool)
 
     if not match:
@@ -600,8 +595,15 @@ def load(rec):
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
 
-    # add values to edition lists
-    for f in 'source_records', 'local_id', 'ia_box_id', 'ia_loaded_id':
+
+    edition_fields = [
+        'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
+    # XXX Todos:
+    # only consider `source_records` for newly created work
+    # or if field originally missing:
+    #if work_created and not e.get('source_records'):
+    #    edition_fields.append('source_records')
+    for f in edition_fields:
         if f not in rec:
             continue
         # ensure values is a list
@@ -629,4 +631,6 @@ def load(rec):
         edits.append(w)
     if edits:
         web.ctx.site.save_many(edits, 'import existing book')
+    if 'ocaid' in rec:
+        update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply

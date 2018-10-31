@@ -9,11 +9,16 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from infogami.plugins.api.code import jsonapi
 from openlibrary import accounts
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, cache, helpers as h
-
+from openlibrary.catalog.add_book import load
+from openlibrary.core.vendors import (
+    get_amazon_metadata, clean_amazon_metadata_for_load,
+    get_betterworldbooks_metadata)
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -77,7 +82,7 @@ class ratings(delegate.page):
                     raise ValueError
             except ValueError:
                 return response('invalid rating', status="error")
-                
+
             models.Ratings.add(
                 username=username, work_id=work_id,
                 rating=rating, edition_id=edition_id)
@@ -212,3 +217,42 @@ class author_works(delegate.page):
             "size": size,
             "entries": works
         }
+
+class price_api(delegate.page):
+    path = r'/prices/isbn/(.*)'
+
+    @jsonapi
+    def GET(self, isbn):
+        isbn = normalize_isbn(isbn)
+        isbn_type = 'isbn_' + ('13' if len(isbn) == 13 else '10')
+        metadata = {
+            'amazon': get_amazon_metadata(isbn) or {},
+            'betterworldbooks': get_betterworldbooks_metadata(isbn) or {}
+        }
+        # if bwb fails and isbn10, try again with isbn13
+        if len(isbn) == 10 and \
+           metadata['betterworldbooks'].get('price') is None:
+            isbn_13 = isbn_10_to_isbn_13(isbn)
+            metadata['betterworldbooks'] = get_betterworldbooks_metadata(
+                isbn_13) or {}
+
+        # fetch book by isbn if it exists
+        book = web.ctx.site.things({
+            'type': '/type/edition',
+            isbn_type: isbn,
+        })
+
+        # if no OL edition for isbn, attempt to create
+        if (not book) and metadata.get('amazon'):
+            book = load(clean_amazon_metadata_for_load(
+                metadata.get('amazon')))
+
+        # include ol edition metadata in response, if available
+        if book:
+            ed = web.ctx.site.get(book[0])
+            if ed:
+                metadata['key'] = ed.key
+                if getattr(ed, 'ocaid'):
+                    metadata['ocaid'] = ed.ocaid
+
+        return simplejson.dumps(metadata)

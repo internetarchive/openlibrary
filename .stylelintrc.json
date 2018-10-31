@@ -1,5 +1,34 @@
 {
+	"plugins": [
+		"stylelint-declaration-use-variable"
+	],
 	"rules": {
+		"sh-waqar/declaration-use-variable": [
+			[
+				"font-family",
+				{
+					"ignoreValues": [
+						"inherit", "transparent"
+					]
+				},
+				"background-color",
+				{
+					"ignoreValues": [
+						"inherit",
+						"none",
+						"transparent"
+					]
+				},
+				"z-index", {},
+				"color",
+				{
+					"ignoreValues": [
+						"inherit",
+						"transparent"
+					]
+				}
+			]
+		],
 		"color-no-hex": true,
 		"color-named": "never",
 		"declaration-block-no-duplicate-properties": true,
@@ -29,6 +58,7 @@
 		"no-extra-semicolons": true,
 		"no-empty-source": true,
 		"font-family-no-duplicate-names": true,
-		"font-family-no-missing-generic-family-keyword": true
+		"font-family-no-missing-generic-family-keyword": true,
+		"no-descending-specificity": true
 	}
 }

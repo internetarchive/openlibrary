@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re
 import simplejson as json
 
@@ -11,7 +12,7 @@ num = 0
 for line in open('work_file'):
     num += 1
     if num % 10000 == 0:
-        print "%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total)
+        print("%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total))
     #src_w = json.loads(line[:-1])
     w = eval(line)
     wkey = int(re_work_key.match(w['key']).group(1))

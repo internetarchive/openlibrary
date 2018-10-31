@@ -65,7 +65,7 @@ $jsdef render_work_autocomplete_item(item):
     </div>
 
 <script type="text/javascript">
-\$(function() {
+window.q.push(function() {
     \$("#languages").setup_multi_input_autocomplete(
         "input.language-autocomplete",
         render_language_field,
@@ -675,7 +675,9 @@ $if ctx.user and ctx.user.is_admin():
 
 <script type="text/javascript">
 <!--
-    \$().ready(function() {
+    window.q.push(function() {
+        // FIXME: Error code duplicated in various templates.
+        // Should be pushed into a macro.
         function error(errordiv, input, message) {
             \$(errordiv).show().html(message);
             \$(input).focus();

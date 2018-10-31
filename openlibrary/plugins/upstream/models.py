@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import web
 import urllib2
@@ -667,7 +668,7 @@ class Subject(client.Thing):
             data = urllib2.urlopen(url).read()
             cover_ids = simplejson.loads(data)
         except IOError, e:
-            print >> web.debug, 'ERROR in getting cover_ids', str(e)
+            print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}
 
         def make_cover(edition):

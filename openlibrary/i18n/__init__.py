@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import os
 from StringIO import StringIO
@@ -18,9 +19,9 @@ def _compile_translation(po, mo):
         f = open(mo, 'wb')
         write_mo(f, catalog)
         f.close()
-        print >> web.debug, 'compiled', po
+        print('compiled', po, file=web.debug)
     except:
-        print >> web.debug, 'failed to compile', po
+        print('failed to compile', po, file=web.debug)
 
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]
@@ -33,7 +34,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         f = StringIO(code)
         f.name = fileobj.name
     except Exception, e:
-        print >> web.debug, fileobj.name + ':', str(e)
+        print(fileobj.name + ':', str(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
 
@@ -61,7 +62,7 @@ def extract_messages(dirs):
     write_po(f, catalog)
     f.close()
 
-    print 'wrote template to', path
+    print('wrote template to', path)
 
 def compile_translations():
     for locale in get_locales():
@@ -86,7 +87,7 @@ def update_translations():
             f = open(po_path, 'w')
             write_po(f, catalog)
             f.close()
-            print 'updated', po_path
+            print('updated', po_path)
 
     compile_translations()
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import simplejson as json
 import web, re
 
@@ -14,7 +15,7 @@ num = 0
 for line in open('author_file'):
     num += 1
     if num % 10000 == 0:
-        print "%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total)
+        print("%d %d %.2f%%" % (num, total, (float(num) * 100.0) / total))
     src_a = json.loads(line[:-1])
     m = re_author_key.match(src_a['key'])
     akey_num = int(m.group(1))
@@ -25,7 +26,7 @@ for line in open('author_file'):
             continue
         db_a[f] = src_a[f]
         if len(db_a[f]) > sizes[f]-1:
-            print f, len(db_a[f]), db_a[f]
+            print(f, len(db_a[f]), db_a[f])
 
     if 'alternate_names' in src_a:
         assert all('\t' not in n for n in src_a['alternate_names'])

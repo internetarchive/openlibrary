@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import simplejson
 import urllib
@@ -85,7 +86,7 @@ class upload:
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
 
         def error((code, msg)):
-            print >> web.debug, "ERROR: upload failed, ", i.olid, code, repr(msg)
+            print("ERROR: upload failed, ", i.olid, code, repr(msg), file=web.debug)
             _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
@@ -161,7 +162,7 @@ def get_memcache():
 def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
-    print >> web.debug, time.asctime(), "_locate_item", item
+    print(time.asctime(), "_locate_item", item, file=web.debug)
     text = urllib.urlopen("https://archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
@@ -174,7 +175,7 @@ def locate_item(item):
         x = mc.get(item)
         if not x:
             x = _locate_item(item)
-            print >> web.debug, time.asctime(), "mc.set", item, x
+            print(time.asctime(), "mc.set", item, x, file=web.debug)
             mc.set(item, x, time=600) # cache it for 10 minutes
         return x
 

@@ -4,6 +4,7 @@
 *
 * These styles are loaded as render blocking CSS on every page.
 */
+@import (less) "less/font-families.less";
 
 /* RESET EVERYTHING */
 body,
@@ -34,10 +35,10 @@ body {
   line-height: normal;
   color: @dark-grey;
   background-color: @beige;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
 }
 p {
-  font-size: 1.0em;
+  font-size: .875em;
   color: @dark-grey;
   line-height: 1.5em;
 }
@@ -75,11 +76,20 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   color: @grey;
   font-weight: 600;
 }
 div.head {
   margin-bottom: 10px;
   margin-top: 20px;
+}
+table {
+  overflow: auto;
+  display: block;
+}
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  table {
+    display: table;
+  }
 }

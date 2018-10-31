@@ -1,5 +1,5 @@
 ;(function($) {
-    
+
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {
     return this.each(function() {
@@ -70,7 +70,7 @@ function truncate(text, limit) {
 function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
-    } 
+    }
     else {
         return false_value;
     }

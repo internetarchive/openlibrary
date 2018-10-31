@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, codecs, sys
 from time import time
 from catalog.marc.fast_parse import get_subfields, get_all_subfields, get_subfield_values
@@ -168,7 +169,7 @@ def date_match(dates, cats):
             try:
                 (a, b) = cent_range(marc)
             except:
-                print marc
+                print(marc)
                 raise
             for c in cats:
                 for f in (' births', ' deaths'):
@@ -353,10 +354,10 @@ def look_for_match(found, dates, verbose):
         #seen.add(name)
         if not any(any(cat.endswith(i) for i in date_cats) for cat in cats):
             if False and not found_name_match:
-                print 'name match, but no date cats'
-                print name, cats, match_name
-                print dates
-                print
+                print('name match, but no date cats')
+                print(name, cats, match_name)
+                print(dates)
+                print()
             continue
         exact_dm = exact_date_match(dates, cats)
         dm = exact_dm or date_match(dates, cats)
@@ -376,53 +377,53 @@ def look_for_match(found, dates, verbose):
                 match[name] = {'cats': cats, 'exact_dates': exact_dm, 'match_name': [match_name]}
         if not verbose:
             continue
-        print (name, match_name)
-        print "cats =", cats
-        print ('match' if dm else 'no match')
+        print((name, match_name))
+        print("cats =", cats)
+        print(('match' if dm else 'no match'))
         for field in ['birth', 'death']:
-            print field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)],
-        print
+            print(field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)], end=' ')
+        print()
     if verbose:
-        print '---'
+        print('---')
     return match
 
 def test_lookup():
     line = '00\x1faEgeria,\x1fd4th/5th cent.\x1e' # count=3
     wiki = 'Egeria (pilgrim)'
-    print fmt_line(get_subfields(line, 'abcd'))
+    print(fmt_line(get_subfields(line, 'abcd')))
     fields = tuple((k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd'))
-    print fields
+    print(fields)
     found = name_lookup(fields)
-    print found
+    print(found)
     dates = pick_first_date(v for k, v in fields if k == 'd')
     assert dates.items()[0] != ('date', '')
-    print dates
-    print
-    print look_for_match(found, dates, True)
+    print(dates)
+    print()
+    print(look_for_match(found, dates, True))
 
 #test_lookup()
 
 def test_lookup2():
     line = '00\x1faRichard,\x1fcof St. Victor,\x1fdd. 1173.\x1e'
-    print fmt_line(get_subfields(line, 'abcd'))
+    print(fmt_line(get_subfields(line, 'abcd')))
     fields = tuple((k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd'))
-    print fields
+    print(fields)
     found = name_lookup(fields)
     dates = pick_first_date(v for k, v in fields if k == 'd')
     assert dates.items()[0] != ('date', '')
-    print dates
-    print
+    print(dates)
+    print()
     match = look_for_match(found, dates, False)
     pprint(match)
-    print
+    print()
     match = pick_from_match(match)
     pprint(match)
 
 def test_lookup3():
     line = '00\x1faJohn,\x1fcof Paris,\x1fd1240?-1306.\x1e'
-    print fmt_line(get_subfields(line, 'abcd'))
+    print(fmt_line(get_subfields(line, 'abcd')))
     fields = tuple((k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd'))
-    print fields
+    print(fields)
     found = name_lookup(fields)
 #    print [i for i in found if 'Paris' in i[0]]
 #    found = [(u'John of Paris', [u'Christian philosophers', u'Dominicans', u'Roman Catholic theologians', u'13th-century Latin writers', u'1255 births', u'1306 deaths'], u'john of paris', None)]
@@ -437,7 +438,7 @@ def test_lookup4():
     dates = pick_first_date(v for k, v in fields if k == 'd')
     match = look_for_match(found, dates, False)
     for k, v in match.iteritems():
-        print k, v
+        print(k, v)
     match = pick_from_match(match)
     pprint(match)
 
@@ -465,8 +466,8 @@ def db_marc_lookup():
             time_left = (total - count) / rec_per_sec
             #print fmt_line(get_subfields(line, 'abcd'))
 #            print list(get_subfields(line, 'abcd'))
-            print line
-            print count, count_with_date, match_count, "%.2f%% %.2f mins left" % (float(match_count * 100.0) / float(count_with_date), time_left / 60)
+            print(line)
+            print(count, count_with_date, match_count, "%.2f%% %.2f mins left" % (float(match_count * 100.0) / float(count_with_date), time_left / 60))
         fields = tuple((k, v.strip(' /,;:')) for k, v in line)
         if prev_fields == fields:
             continue
@@ -476,41 +477,41 @@ def db_marc_lookup():
             continue
         count_with_date += 1
         if verbose:
-            print line
-            print dates
+            print(line)
+            print(dates)
         is_noble_or_clergy = any(k =='c' and re_noble_or_clergy.search(v) for k, v in fields)
         found = name_lookup(fields)
         if not found:
             continue
             if is_noble_or_clergy:
-                print 'noble or clergy not found:', line
-                print
+                print('noble or clergy not found:', line)
+                print()
             continue
         match = look_for_match(found, dates, verbose)
 
         if not match:
             continue
             if is_noble_or_clergy:
-                print 'noble or clergy not found:'
-                print fmt_line(line)
-                print found
-                print
+                print('noble or clergy not found:')
+                print(fmt_line(line))
+                print(found)
+                print()
             continue
         match_count+=1
 #        articles.add(match.keys()[0])
         if len(match) != 1:
             match = pick_from_match(match)
         if len(match) != 1:
-            print >> bad, "\n" + fmt_line(line)
+            print("\n" + fmt_line(line), file=bad)
             for i in more_than_one_match(match):
-                print >> bad, i
+                print(i, file=bad)
         else:
             #print (list(get_subfields(line, 'abcd')), match.keys()[0])
             cats = match.values()[0]['cats']
             exact = match.values()[0]['exact_dates']
             dc = [i for i in cats if any(i.endswith(j) for j in date_cats)]
-            print >> fh, (match.keys()[0], fields, author_count, dc, exact, 'Living people' in cats)
-    print match_count
+            print((match.keys()[0], fields, author_count, dc, exact, 'Living people' in cats), file=fh)
+    print(match_count)
     fh.close()
 
 if __name__ == '__main__':

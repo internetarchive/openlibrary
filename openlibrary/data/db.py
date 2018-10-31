@@ -19,6 +19,7 @@ How to use:
 
 Each doc is a storage object with "id", "key", "revision" and "data".
 """
+from __future__ import print_function
 
 from openlibrary.utils import olmemcache
 import simplejson
@@ -185,7 +186,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
         debug("MC SET")
 
 def debug(*a):
-    print >> sys.stderr, time.asctime(), a
+    print(time.asctime(), a, file=sys.stderr)
 
 @web.memoize
 def get_thing_id(key):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.get_ia import read_marc_file
 from time import time
 from catalog.marc.fast_parse import index_fields, get_tag_lines
@@ -29,7 +30,7 @@ def add_to_index(fh, value, key):
         value = str(value)
     except UnicodeEncodeError:
         return
-    print >> fh, "\t".join([key, esc(value)])
+    print("\t".join([key, esc(value)]), file=fh)
 
 def process_record(pos, loc, data, file_id):
     global rec_id
@@ -45,7 +46,7 @@ def process_record(pos, loc, data, file_id):
     try:
         rec = index_fields(data, want, check_author = False)
     except:
-        print loc
+        print(loc)
         raise
     if not rec:
         return
@@ -58,12 +59,12 @@ def process_record(pos, loc, data, file_id):
         rec['lccn'] = [i for i in rec['lccn'] if len(i) <= 16]
     for k, v in rec.iteritems():
         if 'isbn' != k and any(len(i) > field_size[k] for i in v):
-            print loc
-            print rec
+            print(loc)
+            print(rec)
             assert False
     rec_id += 1
     (f, p, l) = loc[5:].split(':')
-    print >> db_rec, '\t'.join([str(rec_id), str(file_id), p, l])
+    print('\t'.join([str(rec_id), str(file_id), p, l]), file=db_rec)
 
     for k, v in rec.iteritems():
         if not v:
@@ -75,13 +76,13 @@ def progress_update(rec_no, t):
     remaining = total - rec_no
     rec_per_sec = chunk / t
     mins = (float((t/chunk) * remaining) / 60)
-    print "%d %.3f rec/sec" % (rec_no, rec_per_sec),
+    print("%d %.3f rec/sec" % (rec_no, rec_per_sec), end=' ')
     if mins > 1440:
-        print "%.3f days left" % (mins / 1440)
+        print("%.3f days left" % (mins / 1440))
     elif mins > 60:
-        print "%.3f hours left" % (mins / 60)
+        print("%.3f hours left" % (mins / 60))
     else:
-        print "%.3f minutes left" % mins
+        print("%.3f minutes left" % mins)
 
 t_prev = time()
 rec_no = 0
@@ -91,13 +92,13 @@ total = 32856039
 
 for name, part, size in all_files():
     f = open(name)
-    print part
+    print(part)
     file_id += 1
-    print file_id, part, size
-    print >> db_file, '\t'.join([str(file_id), part])
+    print(file_id, part, size)
+    print('\t'.join([str(file_id), part]), file=db_file)
     filename = rc['marc_path'] + '/' + part
     if not os.path.exists(filename):
-        print filename, 'missing'
+        print(filename, 'missing')
     #    continue
     assert os.path.exists(filename)
     f = open(filename)
@@ -112,7 +113,7 @@ for name, part, size in all_files():
 db_file.close()
 db_rec.close()
 
-print "closing files"
+print("closing files")
 for v in out.values():
     v.close()
-print "finished"
+print("finished")

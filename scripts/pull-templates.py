@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
+from __future__ import print_function
 import _init_path
 
 import os
@@ -21,7 +22,7 @@ def parse_options(args=None):
     return options, args
 
 def write(path, text):
-    print "saving", path
+    print("saving", path)
 
     dir = os.path.dirname(path)
     if not os.path.exists(dir):
@@ -34,7 +35,7 @@ def write(path, text):
     f.close()
 
 def delete(path):
-    print "deleting", path
+    print("deleting", path)
     if os.path.exists(path):
         os.remove(path)
 

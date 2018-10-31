@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml.html import parse, tostring
 import re, os, sys, web
 from warnings import warn
@@ -122,20 +123,20 @@ def get_title_and_authors(doc, title_from_html):
         book['authors'] = read_authors(by_span)
     title_text = title_id.text_content()
     if not title_text.startswith(full_title):
-        print('alt:', repr(prodImage.attrib['alt']))
-        print('title mistmach:', repr(full_title), '!=', repr(title_text))
+        print(('alt:', repr(prodImage.attrib['alt'])))
+        print(('title mistmach:', repr(full_title), '!=', repr(title_text)))
         title_text = title_from_html.decode('latin-1')
-        print('title_text:', repr(title_text))
-        print('full_title:', repr(full_title))
+        print(('title_text:', repr(title_text)))
+        print(('full_title:', repr(full_title)))
     if not title_text.startswith(full_title):
-        print('alt:', repr(prodImage.attrib['alt']))
-        print('title mistmach:', repr(full_title), '!=', repr(title_text))
+        print(('alt:', repr(prodImage.attrib['alt'])))
+        print(('title mistmach:', repr(full_title), '!=', repr(title_text)))
         raise BrokenTitle
     if full_title != title_text:
         btAsinTitle = title_text[len(full_title):]
         m = re_title.match(btAsinTitle)
         if not m:
-            print('title:', repr(btAsinTitle))
+            print(('title:', repr(btAsinTitle)))
         (flag, binding) = m.groups()
         if binding is not None:
             book['binding'] = binding
@@ -268,7 +269,7 @@ def find_product_details_ul(doc):
     try:
         assert a.tag == 'a' and a.attrib['name'] == 'productDetails'
     except:
-        print tostring(a)
+        print(tostring(a))
         raise
     hr = a.getnext()
     assert hr.tag == 'hr' and hr.attrib['class'] == 'bucketDivider'
@@ -440,9 +441,9 @@ def read_citing(doc):
     assert name in ('citing', 'cited')
     found[name] = b.text
     if len(content) > 7:
-        print len(content)
+        print(len(content))
         for num, i in enumerate(content):
-            print num, i.tag, i.attrib
+            print(num, i.tag, i.attrib)
         a = content[8]
         assert a.tag == 'a'
         b = content[9]
@@ -593,12 +594,12 @@ def edition_to_ol(edition):
     if 'publisher' in edition:
         ol['publishers'] = [edition['publisher']]
     else:
-        print 'publisher missing'
+        print('publisher missing')
 
     for k, v in ol.iteritems():
         if isinstance(v, basestring) and v[-1] == '(':
             pprint(edition)
-            print('ends with "(":', repr(k, v))
+            print(('ends with "(":', repr(k, v)))
             sys.exit(0)
 
     return ol

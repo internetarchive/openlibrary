@@ -6,8 +6,10 @@
   "scripts": {
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
+    "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "test": "npm run check-bundles && stylelint  --syntax less static/css/"
+    "lint:js": "eslint openlibrary/plugins/openlibrary/js/",
+    "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js"
   },
   "bundlesize": [
     {
@@ -20,19 +22,19 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "32.3KB"
+      "maxSize": "32.5KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "24.8KB"
+      "maxSize": "24.9KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "25KB"
+      "maxSize": "25.1KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "25.0KB"
+      "maxSize": "25.1KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -40,16 +42,19 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "25.1KB"
+      "maxSize": "25.3KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "24.9KB"
+      "maxSize": "25.1KB"
     }
   ],
   "devDependencies": {
     "bundlesize": "^0.17.0",
+    "eslint": "^5.7.0",
     "less": "^3.8.1",
-    "stylelint": "^9.5.0"
+    "stylelint": "^9.5.0",
+    "stylelint-declaration-use-variable": "^1.7.0",
+    "svgo": "^1.1.1"
   }
 }

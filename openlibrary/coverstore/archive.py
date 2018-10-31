@@ -1,5 +1,6 @@
 """Utility to move files from local disk to tar files and update the paths in the db.
 """
+from __future__ import print_function
 import sys
 import tarfile
 import web
@@ -13,7 +14,7 @@ from openlibrary.coverstore.coverlib import find_image_path
 
 def log(*args):
     msg = " ".join(args)
-    print msg
+    print(msg)
     #print >> logfile, msg
     #logfile.flush()
 
@@ -90,7 +91,7 @@ def archive():
         for cover in covers:
             id = "%010d" % cover.id
 
-            print 'archiving', cover
+            print('archiving', cover)
 
             files = {
                 'filename': web.storage(name=id + '.jpg', filename=cover.filename),
@@ -103,7 +104,7 @@ def archive():
                 d.path = d.filename and os.path.join(config.data_root, "localdisk", d.filename)
 
             if any(d.path is None or not os.path.exists(d.path) for d in files.values()):
-                print >> web.debug, "Missing image file for %010d" % cover.id
+                print("Missing image file for %010d" % cover.id, file=web.debug)
                 continue
 
             if isinstance(cover.created, basestring):
@@ -125,7 +126,7 @@ def archive():
             )
 
             for d in files.values():
-                print 'removing', d.path
+                print('removing', d.path)
                 os.remove(d.path)
     finally:
         #logfile.close()
