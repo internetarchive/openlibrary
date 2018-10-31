@@ -1,4 +1,5 @@
 # coding=utf8
+from __future__ import print_function
 import bz2, codecs, sys, re
 import simplejson as json
 from catalog.marc.fast_parse import get_subfields, get_all_subfields, get_subfield_values
@@ -27,7 +28,7 @@ def list_names():
         title = cur['title']
         if re_skip.match(title):
             continue
-        print title
+        print(title)
 
 def redirects():
     titles = set([line[:-1] for line in codecs.open('people_names', 'r', 'utf8')])
@@ -36,7 +37,7 @@ def redirects():
         (f, t) = json.loads(line.decode('utf8'))
         t = t.replace('_', ' ')
         if t in titles:
-            print (f, t)
+            print((f, t))
 
 def redirect_dict():
     redirects = {}
@@ -44,7 +45,7 @@ def redirect_dict():
         (f, t) = eval(line)
         t = t.replace('_', ' ')
         redirects.setdefault(t, []).append(f)
-    print redirects
+    print(redirects)
 
 def add_redirects():
     redirects = eval(open('redirect_dict').read())
@@ -55,7 +56,7 @@ def add_redirects():
             continue
         if title in redirects:
             cur['redirects'] = redirects[title]
-        print cur
+        print(cur)
 
 #add_redirects()
 #redirect_dict()
@@ -124,7 +125,7 @@ def parse_template(s, expected_name):
         #assert re_persondata.match(infobox_template)
         #assert re_infobox_template.match(infobox_template)
     except AssertionError:
-        print template_name
+        print(template_name)
         raise
 
     fields = {}
@@ -162,8 +163,8 @@ def read_person_data():
         pd = cur['persondata']
         k = set(parse_template(pd, 'persondata').keys())
         if k > expect:
-            print title
-            print k
+            print(title)
+            print(k)
 
 def iter_people():
     return (eval(line) for line in open('people'))
@@ -181,7 +182,7 @@ def date_cats():
             cats[m.group(2)].setdefault(m.group(1), set()).add(title)
 #        print 'birth:', [(i[0], len(i[1])) for i in sorted(cats['birth'].items(), reverse = True, key = lambda i: len(i[1]))[:5]]
 #        print 'death:', [(i[0], len(i[1])) for i in sorted(cats['death'].items(), reverse = True, key = lambda i: len(i[1]))[:5]]
-    print cats
+    print(cats)
 
 #read_person_data()
 #date_cats()
@@ -204,7 +205,7 @@ def read_marc():
             continue
         line = strip_brackets(line)
         #print expr_in_utf8(get_all_subfields(line))
-        print fmt_line(get_subfields(line, 'abcd'))
+        print(fmt_line(get_subfields(line, 'abcd')))
 
 #read_marc()
 
@@ -249,9 +250,9 @@ def read_people():
         cur_max = max(len(i) for i in titles)
         if cur_max > maximum:
             maximum = cur_max
-            print maximum
-            print cur['title']
-            print titles
+            print(maximum)
+            print(cur['title'])
+            print(titles)
 #        for t in set(titles):
 #            title_lookup[t].append(cur)
 
@@ -300,7 +301,7 @@ def load_lifetime():
                 cats.append(new_cat)
                 update_cats = True
         if update_cats:
-            print person['title']
+            print(person['title'])
 #            print 'update people set cats=%s where id=%s' % (repr(cats), id)
             c.execute('update people set cats=%s where id=%s', (repr(cats), id))
         if defaultsort:
@@ -324,8 +325,8 @@ def add_default_sort():
             ds = '{{DEFAULTSORT:Gooding, Omar}}'
         m = re_defaultsort.match(ds)
         if not m:
-            print "http://en.wikipedia.org/wiki/" + title.replace(' ', '_')
-            print ds
+            print("http://en.wikipedia.org/wiki/" + title.replace(' ', '_'))
+            print(ds)
         if m.group(1):
             add_to_names(c, id, m.group(1))
 
@@ -359,7 +360,7 @@ def strip_commas_from_names():
     for id, name in c.fetchall():
         new = re_comma.sub(' ', name)
         if new == ' ' or new == name:
-            print (id, name, new)
+            print((id, name, new))
         assert new != ' ' and new != name
         c.execute("update ignore names set name=%s where person_id=%s and name=%s", (new, id, name))
 
@@ -569,9 +570,9 @@ def pick_from_match(match):
 
 def more_than_one_match(match):
     for name, (cats, match_name) in match.items():
-        print name, cats, match_name
-        print "http://en.wikipedia.org/wiki/" + name.replace(' ', '_')
-    print
+        print(name, cats, match_name)
+        print("http://en.wikipedia.org/wiki/" + name.replace(' ', '_'))
+    print()
 
 #$aSmith, William,$d1769-1839
 #William Smith (geologist) [u'English geologists', u'Canal engineers', u'People from Oxfordshire', u'Somerset coalfield', u'1769 births', u'1839 deaths', u'People from Scarborough, North Yorkshire', u'Wollaston Medal winners'] william smith
@@ -601,8 +602,8 @@ def db_marc_lookup():
             t1 = time() - t0
             rec_per_sec = count / t1
             time_left = (total - count) / rec_per_sec
-            print fmt_line(get_subfields(line, 'abcd'))
-            print count, count_with_date, match_count, "%.2f%% %.2f mins left" % (float(match_count * 100.0) / float(count_with_date), time_left / 60)
+            print(fmt_line(get_subfields(line, 'abcd')))
+            print(count, count_with_date, match_count, "%.2f%% %.2f mins left" % (float(match_count * 100.0) / float(count_with_date), time_left / 60))
         fields = tuple((k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd'))
         if prev_fields == fields:
             continue
@@ -612,17 +613,17 @@ def db_marc_lookup():
             continue
         count_with_date += 1
         if verbose:
-            print fmt_line(get_subfields(line, 'abcd'))
-            print dates
+            print(fmt_line(get_subfields(line, 'abcd')))
+            print(dates)
         is_noble_or_clergy = any(re_noble_or_clergy.search(v) \
             for v in get_subfield_values(line, 'c'))
         found = name_lookup(c, fields)
         if not found:
             continue
             if is_noble_or_clergy:
-                print 'noble or clergy not found:'
-                print fmt_line(get_subfields(line, 'abcd'))
-                print
+                print('noble or clergy not found:')
+                print(fmt_line(get_subfields(line, 'abcd')))
+                print()
             continue
         match = {}
         seen = set()
@@ -638,38 +639,38 @@ def db_marc_lookup():
                 match[name] = (cats, match_name)
             if not verbose:
                 continue
-            print (name, match_name)
-            print "cats =", cats
-            print ('match' if dm else 'no match')
+            print((name, match_name))
+            print("cats =", cats)
+            print(('match' if dm else 'no match'))
             for field in ['birth', 'death']:
-                print field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)],
-            print
+                print(field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)], end=' ')
+            print()
         if verbose:
-            print '---'
+            print('---')
 
         if not match:
             continue
             if is_noble_or_clergy:
-                print 'noble or clergy not found:'
-                print fmt_line(get_subfields(line, 'abcd'))
-                print found
-                print
+                print('noble or clergy not found:')
+                print(fmt_line(get_subfields(line, 'abcd')))
+                print(found)
+                print()
             continue
         match_count+=1
 #        articles.add(match.keys()[0])
         if len(match) != 1:
             match = pick_from_match(match)
         if len(match) != 1:
-            print count, match_count
-            print fmt_line(get_subfields(line, 'abcd'))
+            print(count, match_count)
+            print(fmt_line(get_subfields(line, 'abcd')))
             more_than_one_match(match)
         else:
             #print (list(get_subfields(line, 'abcd')), match.keys()[0])
-            print >> fh, (match.keys()[0], fields)
+            print((match.keys()[0], fields), file=fh)
         continue
 #        print len(articles), match[0][0], fmt_line(get_subfields(line, 'abcd'))
         assert len(match) == 1
-    print match_count
+    print(match_count)
     fh.close()
 
 #add_names_from_infobox()

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import simplejson
 import web
 import sys
@@ -424,7 +425,7 @@ def dynlinks(bib_keys, options):
         result = query_docs(bib_keys)
         result = process_result(result, options.get('jscmd'))
     except:
-        print >> sys.stderr, "Error in processing Books API"
+        print("Error in processing Books API", file=sys.stderr)
         register_exception()
 
         result = {}

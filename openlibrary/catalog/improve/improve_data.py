@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.infostore import get_site
 import sys, codecs
 
@@ -12,9 +13,9 @@ def get_books_by_author(key):
     return site.things({'authors': key, 'type': '/type/edition'})
 
 for author_key in get_authors_by_name(sys.argv[1]):
-    print author_keys
+    print(author_keys)
     book_keys = get_books_by_author(author_key)
     for key in book_keys:
         t = site.get(key)
-        print key, t.title
-        print '  ', t.isbn_10
+        print(key, t.title)
+        print('  ', t.isbn_10)

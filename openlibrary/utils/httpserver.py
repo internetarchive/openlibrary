@@ -15,6 +15,7 @@
     ...
     IOError: [Errno socket error] (61, 'Connection refused')
 """
+from __future__ import print_function
 from web.wsgiserver import CherryPyWSGIServer
 import urllib
 import threading
@@ -34,7 +35,7 @@ class HTTPServer:
         try:
             self.server.start()
         except Exception, e:
-            print 'ERROR: failed to start server', str(e)
+            print('ERROR: failed to start server', str(e))
 
     def stop(self):
         self.server.stop()

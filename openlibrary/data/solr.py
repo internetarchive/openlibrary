@@ -1,5 +1,6 @@
 """Library to process edition, work and author records and emit (key, property, value) triples that can be combined later for solr indexing.
 """
+from __future__ import print_function
 import os, sys
 import re
 import web
@@ -73,7 +74,7 @@ def process_work(doc, author_db, redirect_db):
             yield doc['key'], 'author', author_db[olid]
             yield akey, 'work', doc['key']
         except KeyError:
-            print >> sys.stderr, "notfound", akey
+            print("notfound", akey, file=sys.stderr)
     for name, key in get_subjects(doc):
         yield key, "name", name
         yield key, "work", doc['key']
@@ -312,7 +313,7 @@ def process_solr_work_record(key, d):
 def process_triples(path):
     """Takes a file with triples, sort it using first column and groups it by first column.
     """
-    print "processing triples from", path
+    print("processing triples from", path)
     cmd = ["sort", path]
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
     for key, chunk in itertools.groupby(read_tsv(p.stdout), lambda t: t[0]):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 import simplejson as json
 from time import time
@@ -53,33 +54,33 @@ for data in read_input():
     rec_no += 1
     if rec_no % 100000 == 0:
         t1 = time() - t0
-        print "%s %.2f minutes" % (web.commify(rec_no), (float(t1) / 60.0))
+        print("%s %.2f minutes" % (web.commify(rec_no), (float(t1) / 60.0)))
     try:
         d = json.loads(data)
     except:
-        print data
+        print(data)
         raise
     t = d['type']['key']
     k = d['key']
     if t == '/type/edition':
         m = re_edition_key.match(k)
         if not m:
-            print 'bad edition key:', k
-            print data
+            print('bad edition key:', k)
+            print(data)
             continue
-        print >> out_edition, data
+        print(data, file=out_edition)
         for w in d.get('works', []):
             m2 = re_work_key.match(w['key'])
             if not m2:
                 continue
             wkey_num = m2.group(1)
-            print >> out_edition_work, wkey_num + '\t' + data
+            print(wkey_num + '\t' + data, file=out_edition_work)
         continue
     if t == '/type/work':
         m = re_work_key.match(k)
         if not m:
-            print 'bad work key:', k
-            print data
+            print('bad work key:', k)
+            print(data)
             continue
         wkey_num = m.group(1)
         w = {
@@ -95,26 +96,26 @@ for data in read_input():
         if f in d:
             w[f] = d[f]['key']
 #        works.append(w)
-        print >> out_work, w
+        print(w, file=out_work)
         continue
     if t == '/type/author':
         m = re_author_key.match(k)
         if not m:
-            print 'bad author key:', k
-            print data
+            print('bad author key:', k)
+            print(data)
             continue
         for f in misc_fields:
             if f in d:
                 del d[f]
-        print >> out_author, json.dumps(d)
+        print(json.dumps(d), file=out_author)
         #authors[k] = d
         continue
 out_edition.close()
 out_edition_work.close()
 out_author.close()
 
-print 'end'
-print 'total records:', rec_no
+print('end')
+print('total records:', rec_no)
 
 sys.exit(0)
 
@@ -123,6 +124,6 @@ for w in works:
     m = re_work_key.match(w['key'])
     wkey_num = m.group(1)
     w['authors'] = [authors[akey] for akey in w['authors'] if (akey in authors)]
-    print >> out_work, wkey_num, w
+    print(wkey_num, w, file=out_work)
 out_work.close()
 

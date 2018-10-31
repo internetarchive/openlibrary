@@ -1,3 +1,4 @@
+from __future__ import print_function
 from infogami import config
 from infogami.utils.view import render_template
 import web
@@ -17,7 +18,7 @@ def _sendmail(to, msg, cc=None, frm=None):
             '\n' +
             web.safestr(msg))
 
-        print >> web.debug, "sending email", message
+        print("sending email", message, file=web.debug)
     else:
         web.sendmail(frm, to, subject=msg.subject.strip(), message=web.safestr(msg), cc=cc)
 

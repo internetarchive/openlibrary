@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import print_function
 from subprocess import Popen, PIPE
 from openlibrary.utils.ia import find_item, FindItemError
 from openlibrary.api import OpenLibrary
@@ -34,11 +35,11 @@ def login(h1):
     body = json.dumps({'username': 'ImportBot', 'password': rc['ImportBot']})
     headers = {'Content-Type': 'application/json'}
     h1.request('POST', base_url + '/account/login', body, headers)
-    print base_url + '/account/login'
+    print(base_url + '/account/login')
     res = h1.getresponse()
 
-    print res.read()
-    print 'status:', res.status
+    print(res.read())
+    print('status:', res.status)
     assert res.status == 200
     cookies = res.getheader('set-cookie').split(',')
     cookie =  ';'.join([c.split(';')[0] for c in cookies])
@@ -62,7 +63,7 @@ class BadLang (Exception):
 
 import_api_url = base_url + '/api/import'
 def post_to_import_api(ia, marc_data, contenttype, subjects = [], boxid = None, scanned=True):
-    print "POST to /api/import:", (ia, len(marc_data))
+    print("POST to /api/import:", (ia, len(marc_data)))
 
     cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
 
@@ -83,7 +84,7 @@ def post_to_import_api(ia, marc_data, contenttype, subjects = [], boxid = None, 
     if boxid:
         headers['x-archive-meta-ia-box-id'] = boxid
 
-    print import_api_url
+    print(import_api_url)
     h1 = httplib.HTTPConnection('openlibrary.org')
     #h1.set_debuglevel(1)
     h1.request('POST', import_api_url, marc_data, headers)
@@ -98,11 +99,11 @@ def post_to_import_api(ia, marc_data, contenttype, subjects = [], boxid = None, 
         try:
             reply = json.loads(body)
         except ValueError:
-            print('not JSON:', repr(body))
+            print(('not JSON:', repr(body)))
             raise BadImport
     assert res.status == 200
-    print >> logfile, reply
-    print reply
+    print(reply, file=logfile)
+    print(reply)
     if not reply['success'] and reply['error'].startswith('invalid language code:'):
         raise BadLang
     assert reply['success']
@@ -134,27 +135,27 @@ def check_marc_data(marc_data):
 
 def load_book(ia, collections, boxid, scanned=True):
     if ia.startswith('annualreportspri'):
-        print 'skipping:', ia
+        print('skipping:', ia)
         return
     if 'shenzhentest' in collections:
         return
 
     if any('census' in c for c in collections):
-        print 'skipping census'
+        print('skipping census')
         return
 
     if re_census.match(ia) or ia.startswith('populationschedu') or ia.startswith('michigancensus') or 'census00reel' in ia or ia.startswith('populationsc1880'):
-        print 'ia:', ia
-        print 'collections:', list(collections)
-        print 'census not marked correctly'
+        print('ia:', ia)
+        print('collections:', list(collections))
+        print('census not marked correctly')
         return
     try:
         host, path = find_item(ia)
     except socket.timeout:
-        print 'socket timeout:', ia
+        print('socket timeout:', ia)
         return
     except FindItemError:
-        print 'find item error:', ia
+        print('find item error:', ia)
     bad_binary = None
     try:
         formats = marc_formats(ia, host, path)
@@ -191,10 +192,10 @@ def load_book(ia, collections, boxid, scanned=True):
     try:
         post_to_import_api(ia, marc_data, contenttype, subjects, boxid, scanned=scanned)
     except BadImport:
-        print >> bad, ia
+        print(ia, file=bad)
         bad.flush()
     except BadLang:
-        print >> bad_lang, ia
+        print(ia, file=bad_lang)
         bad_lang.flush()
 
 if __name__ == '__main__':
@@ -202,7 +203,7 @@ if __name__ == '__main__':
     skip = None
     while True:
         loaded_start = open('loaded_start').readline()[:-1]
-        print loaded_start
+        print(loaded_start)
 
         conn = MySQLdb.connect(host=ia_db_host, user=ia_db_user, \
                 passwd=ia_db_pass, db='archive')
@@ -218,9 +219,9 @@ if __name__ == '__main__':
         t_start = time()
 
         for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
-            print updated, ia
+            print(updated, ia)
             if contributor == 'Allen County Public Library Genealogy Center':
-                print 'skipping Allen County Public Library Genealogy Center'
+                print('skipping Allen County Public Library Genealogy Center')
                 continue
             collections = set()
             if collection:
@@ -233,11 +234,11 @@ if __name__ == '__main__':
             if ol.query(q):
                 continue
             load_book(ia, collections, boxid, scanned=False)
-            print >> open('loaded_start', 'w'), updated
+            print(updated, file=open('loaded_start', 'w'))
         cur.close()
 
         scanned_start = open('scanned_start').readline()[:-1]
-        print scanned_start
+        print(scanned_start)
         cur = conn.cursor()
         cur.execute("select " + sql_fields + \
             " from metadata" + \
@@ -250,7 +251,7 @@ if __name__ == '__main__':
         t_start = time()
 
         for ia, contributor, updated, noindex, collection, ia_format, boxid in cur.fetchall():
-            print updated, ia
+            print(updated, ia)
             if skip:
                 if ia == skip:
                     skip = None
@@ -278,16 +279,16 @@ if __name__ == '__main__':
                 if not ignore_noindex & collections:
                     continue
             if 'inlibrary' not in collections and contributor == 'Allen County Public Library Genealogy Center':
-                print 'skipping Allen County Public Library Genealogy Center'
+                print('skipping Allen County Public Library Genealogy Center')
                 continue
 
             load_book(ia, collections, boxid, scanned=True)
-            print >> open('scanned_start', 'w'), updated
+            print(updated, file=open('scanned_start', 'w'))
 
         cur.close()
         secs = time() - t_start
         mins = secs / 60
-        print "finished %d took mins" % mins
+        print("finished %d took mins" % mins)
         if mins < 30:
-            print 'waiting'
+            print('waiting')
             sleep(60 * 30 - secs)

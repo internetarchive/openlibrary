@@ -1,4 +1,5 @@
 #!/usr/local/bin/python2.5
+from __future__ import print_function
 import sys, urllib, re, codecs
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary
@@ -46,16 +47,16 @@ def dates():
             continue
         first = min(years.keys())
         assert first != 0
-        print(w['key'], repr(w['title']), first)
+        print((w['key'], repr(w['title']), first))
         q = {
             'key': w['key'],
             f: { 'connect': 'update', 'value': str(first)}
         }
         queue.append(q)
         if len(queue) == 200:
-            print ol.write(queue, comment='add first publish date')
+            print(ol.write(queue, comment='add first publish date'))
             queue = []
-    print ol.write(queue, comment='add first publish date')
+    print(ol.write(queue, comment='add first publish date'))
 
 def lang():
     f = 'original_languages'
@@ -80,16 +81,16 @@ def lang():
         first = lang[0]
         if any(l != first for l in lang):
             continue
-        print(w['key'], repr(w['title']), first, len(lang))
+        print((w['key'], repr(w['title']), first, len(lang)))
         q = {
             'key': w['key'],
             f: { 'connect': 'update_list', 'value': [first]}
         }
         queue.append(q)
         if len(queue) == 200:
-            print ol.write(queue, comment='add original language')
+            print(ol.write(queue, comment='add original language'))
             queue = []
-    print ol.write(queue, comment='add original language')
+    print(ol.write(queue, comment='add original language'))
 
 def toc_items(toc_list):
     return [{'title': item, 'type': '/type/toc_item'} for item in toc_list]
@@ -135,9 +136,9 @@ def add_fields():
                         if not e.get(f, None):
                             continue
                         toc = e[f]
-                        print e['key'], toc
-                        print e
-                        print
+                        print(e['key'], toc)
+                        print(e)
+                        print()
                         if isinstance(toc[0], basestring):
                             found_list.append(toc_items(toc))
                         else:
@@ -157,8 +158,8 @@ def add_fields():
         if not found:
             continue
 
-        print len(queue) + 1, w['key'], len(editions), w['title']
-        print found
+        print(len(queue) + 1, w['key'], len(editions), w['title'])
+        print(found)
 
         q = { 'key': w['key'], }
         for f in fields:
@@ -172,8 +173,8 @@ def add_fields():
                 q[f] = { 'connect': 'update_list', 'value': found[f]}
         queue.append(q)
         if len(queue) == 200:
-            print ol.write(queue, comment=comment)
+            print(ol.write(queue, comment=comment))
             queue = []
-    print ol.write(queue, comment=comment)
+    print(ol.write(queue, comment=comment))
 
 add_fields()

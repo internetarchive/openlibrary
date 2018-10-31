@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_subject import read_subjects, tidy_subject, four_types
@@ -144,4 +145,4 @@ for a in subjects:
         for d, e in c.items():
             all_subjects[b][d] += e
 
-print four_types(dict((k, dict(v)) for k, v in all_subjects.items()))
+print(four_types(dict((k, dict(v)) for k, v in all_subjects.items())))

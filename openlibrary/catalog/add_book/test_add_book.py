@@ -1,3 +1,4 @@
+from __future__ import print_function
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool, add_db_name
 from .. import add_book

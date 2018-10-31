@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 from cStringIO import StringIO
 from xml.parsers.expat import error as xml_error
@@ -98,7 +99,7 @@ def test_input (input):
 		# if limit and n == limit: break
 		if r is None: continue
 		o = parse_item (r)
-		print o
+		print(o)
 		n += 1
 		if n % 100 == 0:
 			warn ("...... read %d records" % n)

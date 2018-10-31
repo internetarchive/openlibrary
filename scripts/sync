@@ -31,6 +31,7 @@ USAGE:
         username=anand
         password=anand123
 """
+from __future__ import print_function
 
 import _init_path
 
@@ -130,14 +131,14 @@ class LocalSource:
 
             if text is None:
                 if os.path.exists(path) and os.path.isfile(path):
-                    print 'deleting', path
+                    print('deleting', path)
                     os.remove(path)
             else:
                 dir = os.path.dirname(path)
                 if not os.path.exists(dir):
                     os.makedirs(dir)
 
-                print 'writing', path
+                print('writing', path)
                 f = open(path, 'w')
                 f.write(text)
                 f.close()
@@ -241,7 +242,7 @@ class RemoteSource:
         query = [process(name, d) for name, d in data]
         
         ol = self.get_ol()
-        print ol.save_many(query)
+        print(ol.save_many(query))
         
 class Server:
     def __init__(self, server, upstream=False):
@@ -312,7 +313,7 @@ def parse_args(args):
     
 def main(args):
     if '-h' in args or '--help' in args:
-        print __doc__
+        print(__doc__)
     else:
         cmd, options, paths = parse_args(args)
         if cmd == "test":

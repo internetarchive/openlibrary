@@ -1,3 +1,4 @@
+from __future__ import print_function
 # wrapper code for easier handling of ONIX files:
 #
 # OnixHandler -- a sax ContentHandler that produces a stream of ONIX "product" data in xmltramp objects
@@ -181,9 +182,9 @@ def produce_items (input, produce):
 	parser.parse (source)
 
 def process_item (i):
-	print OnixProduct (i)
+	print(OnixProduct (i))
 
 if __name__ == "__main__":
 	from sys import stdin
-	print "Reading ONIX data from standard input ..."
+	print("Reading ONIX data from standard input ...")
 	produce_items (stdin, process_item)

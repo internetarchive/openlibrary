@@ -11,6 +11,7 @@ This script can also be used to copy books and authors from OL to dev instance.
     ./scripts/copydocs.py /authors/OL113592A
     ./scripts/copydocs.py /works/OL1098727W
 """
+from __future__ import print_function
 
 import _init_path
 import sys
@@ -84,12 +85,12 @@ class Disk:
                 text = text['value']
 
             try:
-                print "writing", path
+                print("writing", path)
                 f = open(path, "w")
                 f.write(text)
                 f.close()
             except IOError:
-                print "failed", path
+                print("failed", path)
 
         for doc in marshal(docs):
             path = os.path.join(self.root, doc['key'][1:])
@@ -152,7 +153,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
         keys = [k for k in keys if k not in cache]
         if keys:
-            print "fetching", keys
+            print("fetching", keys)
             docs2 = get_many(keys)
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
@@ -165,14 +166,14 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
         refs = get_references(docs)
         refs = [r for r in list(set(refs)) if not r.startswith("/type/") and not r.startswith("/languages/")]
         if refs:
-            print "found references", refs
+            print("found references", refs)
             copy(src, dest, refs, comment, recursive=True, saved=saved, cache=cache)
 
     docs = [doc for doc in docs if doc['key'] not in saved]
 
     keys = [doc['key'] for doc in docs]
-    print "saving", keys
-    print dest.save_many(docs, comment=comment)
+    print("saving", keys)
+    print(dest.save_many(docs, comment=comment))
     saved.update(keys)
 
 def copy_list(src, dest, list_key, comment):
@@ -184,11 +185,11 @@ def copy_list(src, dest, list_key, comment):
         return simplejson.loads(text)
 
     def get(key):
-        print "get", key
+        print("get", key)
         return marshal(src.get(list_key))
 
     def query(**q):
-        print "query", q
+        print("query", q)
         return [x['key'] for x in marshal(src.query(q))]
 
     def get_list_seeds(list_key):

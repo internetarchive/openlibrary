@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml import etree
 import xml.parsers.expat
 from parse import read_edition
@@ -90,7 +91,7 @@ def parse(f):
     rec = xml_rec(f)
     edition = {}
     if rec.has_blank_tag:
-        print 'has blank tag'
+        print('has blank tag')
     if rec.has_blank_tag or not read_edition(rec, edition):
         return {}
     return edition

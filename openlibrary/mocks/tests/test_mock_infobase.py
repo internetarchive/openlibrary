@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 from openlibrary.mocks.mock_infobase import MockSite
 
@@ -59,7 +60,7 @@ class TestMockSite:
         mock_site.save(doc, timestamp=timestamp)
 
         for i in mock_site.index:
-            print dict(i)
+            print(dict(i))
 
         assert mock_site.things({"type": "/type/edition"}) == ["/books/OL1M"]
         assert mock_site.things({"type": "/type/work"}) == []

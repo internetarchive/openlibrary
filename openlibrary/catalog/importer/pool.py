@@ -1,3 +1,4 @@
+from __future__ import print_function
 from urllib2 import urlopen, Request
 import simplejson as json
 import web
@@ -32,9 +33,9 @@ def update(key, q):
     for field, value in add_to_indexes(q):
         vars = {'key': key, 'value': value }
         if (field, value) in seen:
-            print (key, field, value)
-            print seen
-            print q
+            print((key, field, value))
+            print(seen)
+            print(q)
         if (field, value) in seen:
             continue
         seen.add((field, value))

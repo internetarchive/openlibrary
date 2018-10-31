@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re, urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
@@ -20,7 +21,7 @@ def get_marc_source(w):
         else:
             m = re_edition_key.match(e['key'])
             if not m:
-                print e['key']
+                print(e['key'])
             mc = get_mc('/b/' + m.group(1))
             if mc and not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                 found.add(mc)
@@ -33,19 +34,19 @@ def get_marc_subjects(w):
         try:
             data = get_data(src)
         except ValueError:
-            print 'bad record source:', src
-            print 'http://openlibrary.org' + w['key']
+            print('bad record source:', src)
+            print('http://openlibrary.org' + w['key'])
             continue
         except urllib2.HTTPError, error:
-            print 'HTTP error:', error.code, error.msg
-            print 'http://openlibrary.org' + w['key']
+            print('HTTP error:', error.code, error.msg)
+            print('http://openlibrary.org' + w['key'])
         if not data:
             continue
         try:
             lines = list(get_tag_lines(data, subject_fields))
         except BadDictionary:
-            print 'bad dictionary:', src
-            print 'http://openlibrary.org' + w['key']
+            print('bad dictionary:', src)
+            print('http://openlibrary.org' + w['key'])
             continue
         if lines:
             yield lines
@@ -71,7 +72,7 @@ re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 def tidy_subject(s):
     s = s.strip()
     if len(s) < 2:
-        print('short subject:', repr(s))
+        print(('short subject:', repr(s)))
     else:
         s = s[0].upper() + s[1:]
     m = re_etc.search(s)
@@ -186,7 +187,7 @@ def find_subjects(marc_subjects):
                     if v:
                         place[flip_place(v).strip()] += 1
             else:
-                print 'other', tag, list(get_all_subfields(line))
+                print('other', tag, list(get_all_subfields(line)))
 
             cur = [v for k, v in get_all_subfields(line) if k=='a' or v.strip('. ').lower() == 'fiction']
 

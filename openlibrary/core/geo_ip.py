@@ -1,3 +1,4 @@
+from __future__ import print_function
 from infogami import config
 import GeoIP
 import web
@@ -8,7 +9,7 @@ def get_db():
         geoip_db = config.get("geoip_database", '/usr/local/maxmind-geoip/GeoLiteCity.dat')
         return GeoIP.open(geoip_db, GeoIP.GEOIP_MEMORY_CACHE)
     except GeoIP.error:
-        print "loading GeoIP file failed"
+        print("loading GeoIP file failed")
 
 def get_region(ip):
     gi = get_db()
@@ -20,7 +21,7 @@ def get_region(ip):
         record = gi.record_by_addr(ip)
         region = record['region']
     except TypeError:
-        print 'geoip lookup failed for ' + ip
+        print('geoip lookup failed for ' + ip)
 
     return region
 
@@ -32,4 +33,4 @@ def get_country(ip):
     try:
         return gi.record_by_addr(ip)['country_code']
     except TypeError:
-        print 'geoip lookup failed for ' + ip
+        print('geoip lookup failed for ' + ip)

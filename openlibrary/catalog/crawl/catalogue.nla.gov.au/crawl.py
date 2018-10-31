@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from urllib2 import urlopen
 from os.path import exists
@@ -79,7 +80,7 @@ while 1:
     filename = 'marc/%d' % i
     if exists(filename):
         continue
-    print i,
+    print(i, end=' ')
     url = 'http://catalogue.nla.gov.au/Record/%d/Details' % i
     web_input = None
     for attempt in range(5):
@@ -95,10 +96,10 @@ while 1:
     try:
         marc = extract_marc(web_input)
     except:
-        print url
+        print(url)
         raise
-    print len(marc)
+    print(len(marc))
     for line in marc:
-        print >> out, line
+        print(line, file=out)
     out.close()
     #sleep(0.5)

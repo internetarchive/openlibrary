@@ -1,5 +1,6 @@
 """Controller for /libraries.
 """
+from __future__ import print_function
 import time
 import logging
 import datetime
@@ -295,11 +296,11 @@ class libraries_register(delegate.page):
         body = web.safestr(msg).strip()
 
         if config.get('dummy_sendmail'):
-            print >> web.debug, 'To:', to
-            print >> web.debug, 'From:', config.from_address
-            print >> web.debug, 'Subject:', subject
-            print >> web.debug
-            print >> web.debug, body
+            print('To:', to, file=web.debug)
+            print('From:', config.from_address, file=web.debug)
+            print('Subject:', subject, file=web.debug)
+            print(file=web.debug)
+            print(body, file=web.debug)
         else:
             web.sendmail(config.from_address, to, subject=subject, message=body, cc=cc)
 

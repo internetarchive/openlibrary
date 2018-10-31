@@ -1,3 +1,4 @@
+from __future__ import print_function
 import MySQLdb, datetime, re, sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
@@ -24,7 +25,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
 #        continue
     num += 1
     if num % 100 == 0:
-        print '%d/%d %.2f%%' % (num, total, ((float(num) * 100) / total)), ia
+        print('%d/%d %.2f%%' % (num, total, ((float(num) * 100) / total)), ia)
     if skip:
         if skip == ia:
             skip = None
@@ -33,7 +34,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
     min_ekey = ekeys[0]
 
     if len(ekeys) > 3:
-        print ia, ekeys
+        print(ia, ekeys)
     editions = [ol.get(ekey) for ekey in ekeys]
     all_keys = set()
     for e in editions:
@@ -159,7 +160,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
             for e in editions:
                 if e.get('ocaid'):
                     if e['ocaid'].endswith('goog'):
-                        print e['key'], e['ocaid'], ia
+                        print(e['key'], e['ocaid'], ia)
                     merged['ocaid'] = e['ocaid']
                     break
             assert merged['ocaid']
@@ -177,12 +178,12 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
         for k, v in merged.items():
             if v is None:
                 if k == 'series':
-                    print ia, [e[k] for e in editions if e.get(k)]
+                    print(ia, [e[k] for e in editions if e.get(k)])
                 unmerge_field_counts[k] += 1
     #print 'unmerged count', unmerged, ia, ekeys
     cur.execute('update merge set unmerge_count=%s where ia=%s', [unmerged, ia])
 
-print dict(unmerge_field_counts)
-print unmerge_field_counts.items()
+print(dict(unmerge_field_counts))
+print(unmerge_field_counts.items())
 for k,v in sorted(unmerge_field_counts.items(), key=lambda i:i[1]):
-    print '%30s: %d' % (k, v)
+    print('%30s: %d' % (k, v))

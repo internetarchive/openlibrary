@@ -1,4 +1,5 @@
 from __future__ import with_statement
+from __future__ import print_function
 import web
 import stopword
 import pdb
@@ -117,7 +118,7 @@ class fullsearch(delegate.page):
                                     collapse_groups(solr_pagetext.pagetext_search
                                                     (ocaid, q))))
                 except IndexError, e:
-                    print >> web.debug, ('fullsearch index error', e, e.args)
+                    print(('fullsearch index error', e, e.args), file=web.debug)
                     pass
             timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
         except IOError, e:
@@ -276,7 +277,7 @@ class search(delegate.page):
                 # temporarily disable computing works, per
                 # launchpad bug # 325843
                 results, works_groups = collect_works(results)
-                print >> web.debug, ('works', results, works_groups)
+                print(('works', results, works_groups), file=web.debug)
 
             timings.update("done finding works, (%d,%d) results"%
                            (len(results), len(works_groups)))
@@ -381,7 +382,7 @@ def exact_facet_count(query, selected_facets, facet_name, facet_value):
                                facet_name, facet_value)
     t1 = time.time()-t0
     qfn = (query, facet_name, facet_value)
-    print >> web.debug, ('*** efc', qfn, r, t1)
+    print(('*** efc', qfn, r, t1), file=web.debug)
     return r
 
 def get_books(keys):

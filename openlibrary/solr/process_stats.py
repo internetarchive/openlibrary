@@ -12,6 +12,7 @@ How to run:
     ./scripts/openlibrary-server openlibrary.yml runmain openlibrary.solr.process_stats --load
 
 """
+from __future__ import print_function
 import sys
 import web
 import simplejson
@@ -278,7 +279,7 @@ def main(*args):
         for e in docs:
             try:
                 result = process(e['doc'])
-                print simplejson.dumps(result)
+                print(simplejson.dumps(result))
             except Exception:
                 logger.error("Failed to process %s", e['doc']['_id'], exc_info=True)
 

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.read_rc import read_rc
 import httplib, web, time, sys, os
 
@@ -67,10 +68,10 @@ done = [
 ]
 
 def put_file(con, ia, filename, headers):
-    print 'uploading %s' % filename
+    print('uploading %s' % filename)
     headers['authorization'] = "LOW " + accesskey + ':' + secret
     url = 'http://s3.us.archive.org/' + ia + '/' + filename
-    print url
+    print(url)
     data = open(arc_dir + '/' + filename).read()
     for attempt in range(5):
         con.request('PUT', url, data, headers)
@@ -78,13 +79,13 @@ def put_file(con, ia, filename, headers):
         body = res.read()
         if '<Error>' not in body:
             return
-        print 'error'
-        print body
+        print('error')
+        print(body)
         if no_bucket_error not in body and internal_error not in body:
             sys.exit(0)
-        print 'retry'
+        print('retry')
         time.sleep(5)
-    print 'too many failed attempts'
+    print('too many failed attempts')
 
 ia = 'amazon_book_crawl'
 for filename in os.listdir(arc_dir):
@@ -92,7 +93,7 @@ for filename in os.listdir(arc_dir):
         continue
     if not filename.endswith('.arc'):
         continue
-    print filename
+    print(filename)
     con = httplib.HTTPConnection('s3.us.archive.org')
     con.connect()
     put_file(con, ia, filename, {})
