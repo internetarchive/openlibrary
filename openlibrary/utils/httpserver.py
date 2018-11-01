@@ -34,7 +34,7 @@ class HTTPServer:
     def _start(self):
         try:
             self.server.start()
-        except Exception, e:
+        except Exception as e:
             print('ERROR: failed to start server', str(e))
 
     def stop(self):

@@ -42,7 +42,7 @@ def setup_logging():
         logconfig = infogami.config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
-    except Exception, e:
+    except Exception as e:
         print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 

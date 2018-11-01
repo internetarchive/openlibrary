@@ -92,7 +92,7 @@ def compare_date(e1, e2):
             return ('publish_date', '+/-2 years', -25)
         else:
             return ('publish_date', 'mismatch', -250)
-    except ValueError, TypeError:
+    except ValueError as TypeError:
         return ('publish_date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):

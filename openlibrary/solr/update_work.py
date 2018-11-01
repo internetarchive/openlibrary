@@ -1282,7 +1282,7 @@ def get_document(key):
             logger.info("urlopen %s", url)
             contents = urlopen(url).read()
             return json.loads(contents)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             contents = e.read()
             # genuine 404, not a server error
             if e.getcode() == 404 and '"error": "notfound"' in contents:
@@ -1562,7 +1562,7 @@ class MonkeyPatch:
     def get_document(self, key):
         try:
             return self.withKey(key)
-        except ClientException, e:
+        except ClientException as e:
             if e.status.startswith('404'):
                 logger.warn("%s is not found, considering it as deleted.", key)
                 return {"key": key, "type": {"key": "/type/delete"}}

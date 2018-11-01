@@ -33,7 +33,7 @@ def extract_templetor(fileobj, keywords, comment_tags, options):
         code = web.template.Template.generate_code(fileobj.read().replace('\$', ''), fileobj.name)
         f = StringIO(code)
         f.name = fileobj.name
-    except Exception, e:
+    except Exception as e:
         print(fileobj.name + ':', str(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)

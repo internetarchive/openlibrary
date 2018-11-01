@@ -64,7 +64,7 @@ class add_cover(delegate.page):
         try:
             response = urllib2.urlopen(upload_url, urllib.urlencode(params))
             out = response.read()
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             out = e.read()
 
         return web.storage(simplejson.loads(out))

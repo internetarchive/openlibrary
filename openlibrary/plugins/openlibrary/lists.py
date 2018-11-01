@@ -63,7 +63,7 @@ class lists_delete(delegate.page):
         }
         try:
             result = web.ctx.site.save(doc, action="lists", comment="Deleted list.")
-        except client.ClientException, e:
+        except client.ClientException as e:
             web.ctx.status = e.status
             web.header("Content-Type", "application/json")
             return delegate.RawText(e.json)
@@ -160,7 +160,7 @@ class lists_json(delegate.page):
                     "seeds": seeds
                 }
             )
-        except client.ClientException, e:
+        except client.ClientException as e:
             headers = {"Content-Type": self.get_content_type()}
             data = {
                 "message": e.message

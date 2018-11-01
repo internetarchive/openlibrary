@@ -188,7 +188,7 @@ def try_merge(e1, edition_key, thing):
         except NoMARCXML:
             print('no MARCXML')
             pass
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             print(error.code)
             assert error.code in (404, 403)
         if not rec2:

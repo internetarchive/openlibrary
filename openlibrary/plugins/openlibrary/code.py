@@ -491,7 +491,7 @@ class _yaml(delegate.mode):
         data = dict(key=key, revision=v)
         try:
             d = api.request('/get', data=data)
-        except client.ClientException, e:
+        except client.ClientException as e:
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
@@ -523,7 +523,7 @@ class _yaml_edit(_yaml):
 
         try:
             d = self.get_data(key)
-        except web.HTTPError, e:
+        except web.HTTPError as e:
             if web.ctx.status.lower() == "404 not found":
                 d = {"key": key}
             else:
@@ -542,7 +542,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (client.ClientException, ValidationException), e:
+            except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
             raise web.seeother(key + '.yml')
@@ -628,7 +628,7 @@ class new:
             h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
-        except Exception, e:
+        except Exception as e:
             raise BadRequest(str(e))
 
         self.verify_types(query)
@@ -638,7 +638,7 @@ class new:
             if not isinstance(query, list):
                 query = [query]
             web.ctx.site.save_many(query, comment=comment, action=action)
-        except client.ClientException, e:
+        except client.ClientException as e:
             raise BadRequest(str(e))
 
         #graphite/statsd tracking of bot edits

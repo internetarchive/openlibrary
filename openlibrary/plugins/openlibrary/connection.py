@@ -181,7 +181,7 @@ class IAMiddleware(ConnectionMiddleware):
         try:
             jsontext = self.store_get(sitename, store_key)
             self.store_delete(sitename, store_key, {"_rev": None})
-        except client.ClientException, e:
+        except client.ClientException as e:
             # nothing to do if that doesn't exist
             pass
 
@@ -192,7 +192,7 @@ class IAMiddleware(ConnectionMiddleware):
         try:
             jsontext = self.store_get(sitename, store_key)
             return simplejson.loads(jsontext)
-        except client.ClientException, e:
+        except client.ClientException as e:
             logger.error("error", exc_info=True)
             if e.status.startswith("404"):
                 doc = {
@@ -441,7 +441,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         try:
             d = ConnectionMiddleware.get(self, "openlibrary.org", {"key": key})
             return True
-        except client.ClientException, e:
+        except client.ClientException as e:
             return False
 
     def _process(self, data):

@@ -401,7 +401,7 @@ class ils_search:
     def POST(self):
         try:
             rawdata = json.loads(web.data())
-        except ValueError,e:
+        except ValueError as e:
             raise self.error("Unparseable JSON input \n %s"%web.data())
 
         # step 1: prepare the data
