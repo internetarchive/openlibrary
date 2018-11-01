@@ -1,7 +1,7 @@
 from __future__ import print_function
 import web, re, os
 from db_read import withKey
-from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
+from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
 from pprint import pprint
 from openlibrary.catalog.read_rc import read_rc
@@ -47,7 +47,6 @@ def find_author(name, send_mail=True):
                     result += a['key'] + 'has bad type' + a + '\n'
             body += result
             addr = 'edward@archive.org'
-            #error_mail(addr, [addr], subject, body)
             db_error.insert('errors', query=name, result=result, t=web.SQLLiteral("now()"))
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
