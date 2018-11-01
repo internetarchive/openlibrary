@@ -48,6 +48,10 @@ WORKDIR /openlibrary
 
 RUN pip install -r requirements_common.txt
 
+RUN mkdir /node_modules
+RUN mv node_modules node_modules.bak
+RUN ln -s /node_modules
+
 USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
