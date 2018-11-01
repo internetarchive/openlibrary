@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 class Nagios(object):
     def __init__(self, url):
         try:
-            self.data = BeautifulSoup(urllib.urlopen(url).read())
+            self.data = BeautifulSoup(urllib.urlopen(url).read(), "lxml")
         except Exception, m:
             print(m)
             self.data = None
@@ -62,4 +62,3 @@ def load_all(config, nagios_url):
             for service in services:
                 d[node].append(Service(node = node, name = service, nagios = nagios))
     return d
-

@@ -28,7 +28,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/about"))
         assert "About the Project" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 0
 
@@ -42,7 +42,7 @@ class TestHomeTemplates:
         assert "Blog-post-0" in html
         assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 1
 
@@ -112,7 +112,7 @@ class TestCarouselItem:
         return unicode(render_template("books/carousel_item", web.storage(book)))
 
     def link_count(self, html):
-        links = BeautifulSoup(html).findAll("a") or []
+        links = BeautifulSoup(html, "lxml").findAll("a") or []
         return len(links)
 
     def test_without_cover_url(self, render_template):
@@ -151,7 +151,7 @@ class Test_carousel:
 
         assert book['title'] in html
 
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, "lxml")
         assert len(soup.findAll("li")) == 1
         assert len(soup.findAll("a")) == 2
 

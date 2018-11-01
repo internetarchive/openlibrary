@@ -24,7 +24,7 @@ def read_bucket_table(f):
     return html
 
 def parse_html(html):
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "lxml")
     for tr in soup('tr')[2:]:
         td = tr('td')
         assert len(td) == 3
