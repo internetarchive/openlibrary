@@ -12,13 +12,14 @@ Vagrant.configure("2") do |config|
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
     apt-get install -y g++
-    curl -sL https://deb.nodesource.com/setup_0.8 | sh
+    curl -sL https://deb.nodesource.com/setup_8.x | bash -
     apt-get install -y nodejs
     su vagrant
     mkdir /home/vagrant/node_modules
     cd /openlibrary
+    mv node_modules node_modules.bak # This can be deleted if not needed
     ln -s /home/vagrant/node_modules/ node_modules
-    npm install detect-libc prebuilt-install node-gyp
+    npm install detect-libc prebuild-install node-gyp
     npm install
   SHELL
   config.vm.provision :shell, :path => "scripts/ol-start.sh", :run => :always
