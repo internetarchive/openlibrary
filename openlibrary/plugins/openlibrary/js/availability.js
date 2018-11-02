@@ -23,16 +23,16 @@ $(function(){
 
     // pages still relying on legacy client-side availability checking
     var whitelist = {
-        '^\/account\/books\/[^/]+': { // readinglog
+        '^/account/books/[^/]+': { // readinglog
             filter: false
         },
-        '^\/authors\/[^/]+': { // authors
+        '^/authors/[^/]+': { // authors
             filter: true
         },
-        '^\/people\/[^/]+': { // lists
+        '^/people/[^/]+': { // lists
             filter: false,
         },
-        '^\/stats/[^/]+': {
+        '^/stats/[^/]+': {
             filter: false
         }
     }
