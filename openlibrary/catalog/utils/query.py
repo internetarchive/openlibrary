@@ -1,3 +1,4 @@
+from __future__ import print_function
 import urllib, urllib2
 import web
 import simplejson as json
@@ -46,7 +47,7 @@ def query_url():
     return base_url() + "/query.json?query="
 
 def get_all_ia():
-    print 'c'
+    print('c')
     q = {'source_records~': 'ia:*', 'type': '/type/edition'}
     limit = 10
     q['limit'] = limit
@@ -70,7 +71,7 @@ def query(q):
             while ret.startswith('canceling statement due to statement timeout'):
                 ret = urlread(url)
             if not ret:
-                print 'ret == None'
+                print('ret == None')
         except IOError:
             pass
         if ret:
@@ -78,13 +79,13 @@ def query(q):
                 data = json.loads(ret)
                 if isinstance(data, dict):
                     if 'error' in data:
-                        print 'error:'
-                        print ret
+                        print('error:')
+                        print(ret)
                     assert 'error' not in data
                 return data
             except:
-                print ret
-                print url
+                print(ret)
+                print(url)
         sleep(20)
 
 def query_iter(q, limit=500, offset=0):
@@ -131,8 +132,8 @@ def withKey(key):
             return jsonload(url)
         except:
             pass
-        print 'retry:', i
-        print url
+        print('retry:', i)
+        print(url)
 
 def get_marc_src(e):
     mc = get_mc(e['key'])
@@ -151,8 +152,8 @@ def get_mc(key): # get machine comment
     if len(comments) == 0:
         return None
     if len(set(comments)) != 1:
-        print key
-        print comments
+        print(key)
+        print(comments)
     assert len(set(comments)) == 1
     if comments[0] == 'initial import':
         return None

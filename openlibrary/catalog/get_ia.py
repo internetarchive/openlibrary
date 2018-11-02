@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc import parse
@@ -62,7 +63,7 @@ def get_marc_record_from_ia(identifier):
             root = etree.fromstring(data)
             return MarcXml(root)
         except Exception as e:
-            print "Unable to read MarcXML: %s" % e
+            print("Unable to read MarcXML: %s" % e)
             traceback.print_exc()
 
     # If that fails, try marc.bin
@@ -91,7 +92,7 @@ def files(identifier):
     try:
         tree = etree.parse(urlopen_keep_trying(url))
     except:
-        print "error reading", url
+        print("error reading", url)
         raise
     assert tree
     for i in tree.getroot():
@@ -209,7 +210,7 @@ def marc_formats(identifier, host=None, path=None):
     try:
         root = etree.fromstring(data)
     except:
-        print('bad:', repr(data))
+        print(('bad:', repr(data)))
         return has
     for e in root:
         name = e.attrib['name']
@@ -224,7 +225,7 @@ def get_from_local(locator):
     try:
         file, offset, length = locator.split(':')
     except:
-        print('locator:', repr(locator))
+        print(('locator:', repr(locator)))
         raise
     f = open(rc['marc_path'] + '/' + file)
     f.seek(int(offset))

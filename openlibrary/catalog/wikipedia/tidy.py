@@ -1,3 +1,4 @@
+from __future__ import print_function
 import bz2, codecs, sys, re
 import simplejson as json
 from catalog.marc.fast_parse import get_subfields, get_all_subfields, get_subfield_values
@@ -29,7 +30,7 @@ def names():
         title = cur['title']
         if re_skip.match(title):
             continue
-        print title
+        print(title)
 
 def redirects():
     titles = set([line[:-1] for line in codecs.open('people_names', 'r', 'utf8')])
@@ -38,7 +39,7 @@ def redirects():
         (f, t) = json.loads(line.decode('utf8'))
         t = t.replace('_', ' ')
         if t in titles:
-            print (f, t)
+            print((f, t))
 
 def redirect_dict():
     redirects = {}
@@ -46,7 +47,7 @@ def redirect_dict():
         (f, t) = eval(line)
         t = t.replace('_', ' ')
         redirects.setdefault(t, []).append(f)
-    print redirects
+    print(redirects)
 
 def add_redirects():
     redirects = eval(open('redirect_dict').read())
@@ -57,7 +58,7 @@ def add_redirects():
             continue
         if title in redirects:
             cur['redirects'] = redirects[title]
-        print cur
+        print(cur)
 
 #add_redirects()
 #redirect_dict()
@@ -123,7 +124,7 @@ def parse_template(s):
         assert re_persondata.match(infobox_template)
         #assert re_infobox_template.match(infobox_template)
     except AssertionError:
-        print infobox_template
+        print(infobox_template)
         raise
 
     fields = {}
@@ -161,8 +162,8 @@ def read_person_data():
         pd = cur['persondata']
         k = set(parse_template(pd).keys())
         if k > expect:
-            print title
-            print k
+            print(title)
+            print(k)
 
 def iter_people():
     return (eval(line) for line in open('people'))
@@ -180,7 +181,7 @@ def date_cats():
             cats[m.group(2)].setdefault(m.group(1), set()).add(title)
 #        print 'birth:', [(i[0], len(i[1])) for i in sorted(cats['birth'].items(), reverse = True, key = lambda i: len(i[1]))[:5]]
 #        print 'death:', [(i[0], len(i[1])) for i in sorted(cats['death'].items(), reverse = True, key = lambda i: len(i[1]))[:5]]
-    print cats
+    print(cats)
 
 #read_person_data()
 #date_cats()
@@ -203,7 +204,7 @@ def read_marc():
             continue
         line = strip_brackets(line)
         #print expr_in_utf8(get_all_subfields(line))
-        print fmt_line(get_subfields(line, 'abcd'))
+        print(fmt_line(get_subfields(line, 'abcd')))
 
 #read_marc()
 
@@ -248,9 +249,9 @@ def read_people():
         cur_max = max(len(i) for i in titles)
         if cur_max > maximum:
             maximum = cur_max
-            print maximum
-            print cur['title']
-            print titles
+            print(maximum)
+            print(cur['title'])
+            print(titles)
 #        for t in set(titles):
 #            title_lookup[t].append(cur)
 
@@ -478,7 +479,7 @@ def db_marc_lookup():
             t1 = time() - t0
             rec_per_sec = count / t1
             time_left = (total - count) / rec_per_sec
-            print count, match_count, "%.2f%% %.2f mins left" % ((match_count * 100) / count, time_left / 60)
+            print(count, match_count, "%.2f%% %.2f mins left" % ((match_count * 100) / count, time_left / 60))
         line = eval(line)
         line = strip_brackets(line)
         fields = [(k, v.strip(' /,;:')) for k, v in get_subfields(line, 'abcd')]
@@ -503,12 +504,12 @@ def db_marc_lookup():
             if dm:
                 match[name] = (cats, match_name)
             continue
-            print (name, match_name)
-            print "cats =", cats
-            print ('match' if dm else 'no match')
+            print((name, match_name))
+            print("cats =", cats)
+            print(('match' if dm else 'no match'))
             for field in ['birth', 'death']:
-                print field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)],
-            print
+                print(field + 's:', [i[:-(len(field)+2)] for i in cats if i.endswith(' %ss' % field)], end=' ')
+            print()
 #        print '---'
 
         if not match:
@@ -516,16 +517,16 @@ def db_marc_lookup():
         match_count+=1
 #        articles.add(match.keys()[0])
         if len(match) != 1:
-            print count, match_count
-            print fmt_line(get_subfields(line, 'abcd'))
+            print(count, match_count)
+            print(fmt_line(get_subfields(line, 'abcd')))
             for name, (cats, match_name) in match.items():
-                print name, cats, match_name
-                print "http://en.wikipedia.org/wiki/" + name.replace(' ', '_')
-            print
+                print(name, cats, match_name)
+                print("http://en.wikipedia.org/wiki/" + name.replace(' ', '_'))
+            print()
         continue
 #        print len(articles), match[0][0], fmt_line(get_subfields(line, 'abcd'))
         assert len(match) == 1
-    print match_count
+    print(match_count)
 
 #test_year_approx_match()
 #db_marc_lookup()

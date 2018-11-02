@@ -1,5 +1,6 @@
 """Hooks for collecting performance stats.
 """
+from __future__ import print_function
 import logging
 import traceback
 
@@ -62,7 +63,7 @@ def stats_hook():
             web.header("X-OL-Stats", format_stats(stats_summary))
     except Exception, e:
         # don't let errors in stats collection break the app.
-        print >> web.debug, str(e)
+        print(str(e), file=web.debug)
 
     openlibrary.core.stats.increment('ol.pageviews')
 

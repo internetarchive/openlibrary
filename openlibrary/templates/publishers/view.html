@@ -560,7 +560,7 @@ $jsdef renderPublishers(publishers):
 $if "lists" in ctx.features:
     <div class="spacer"></div>
     <div id="subjectLists" class="widget-box">
-        $:render_template("lists/widget", page)
+        $:render_template("lists/widget", page, include_rating=False)
     </div>
 
 <div class="section clearfix"></div>

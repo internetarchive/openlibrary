@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 from catalog.marc.parse import parser
 from catalog.merge.names import flip_marc_name
 from time import time
@@ -174,13 +175,13 @@ def bulk_load(books):
     thing.close()
     version.close()
     datum.close()
-    print "loading batch of editions into database"
+    print("loading batch of editions into database")
     sql_do("copy thing from '/var/tmp/thing'")
     sql_do("copy version from '/var/tmp/version'")
     sql_do("copy datum from '/var/tmp/datum'")
     conn.commit()
 
-    print "batch of editions loaded"
+    print("batch of editions loaded")
 
 edition_num = 0
 for file_locator in files:
@@ -196,4 +197,4 @@ for file_locator in files:
 bad_data_file.close()
 progress.close()
 t1 = time() - t0
-print "total run time: %.1f" % (t1/3600)
+print("total run time: %.1f" % (t1/3600))

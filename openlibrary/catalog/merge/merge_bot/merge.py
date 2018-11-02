@@ -1,5 +1,6 @@
 #!/usr/bin/python2.5
 
+from __future__ import print_function
 import catalog.merge.merge_marc as marc
 import catalog.merge.amazon as amazon
 from catalog.utils.query import get_mc, withKey
@@ -26,26 +27,26 @@ def get_record(key, mc):
     try:
         rec = fast_parse.read_edition(data)
     except (fast_parse.SoundRecording, IndexError, AssertionError):
-        print mc
-        print key
+        print(mc)
+        print(key)
         return False
     try:
         return marc.build_marc(rec)
     except TypeError:
-        print rec
+        print(rec)
         raise
 
 def attempt_merge(a, m, threshold, debug = False):
     l1 = amazon.level1_merge(a, m)
     total = sum(i[2] for i in l1)
     if debug:
-        print total, l1
+        print(total, l1)
     if total >= threshold:
         return True
     l2 = amazon.level2_merge(a, m)
     total = sum(i[2] for i in l2)
     if debug:
-        print total, l2
+        print(total, l2)
     return total >= threshold
 
 sample_amazon = {'publishers': ['New Riders Press'], 'isbn': ['0321525655'], 'number_of_pages': 240, 'short_title': 'presentation zen simple i', 'normalized_title': 'presentation zen simple ideas on presentation design and delivery voices that matter', 'full_title': 'Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'titles': ['Presentation Zen Simple Ideas on Presentation Design and Delivery (Voices That Matter)', 'presentation zen simple ideas on presentation design and delivery voices that matter', 'Presentation Zen Simple Ideas on Presentation Design and Delivery', 'presentation zen simple ideas on presentation design and delivery'], 'publish_date': '2007', 'authors': ['Garr Reynolds']}
@@ -78,4 +79,4 @@ if __name__ == '__main__':
     key2 = '/b/OL20749803M'
     rec_amazon, rec_marc = amazon_and_marc(key1, key2)
     threshold = 875
-    print attempt_merge(rec_amazon, rec_marc, threshold, debug=True)
+    print(attempt_merge(rec_amazon, rec_marc, threshold, debug=True))

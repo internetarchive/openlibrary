@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml.html import parse, tostring, fromstring
 import re, sys, os, socket
 from urllib import unquote
@@ -141,7 +142,7 @@ def read_books(params, root):
         if all(a is not None for a in book_links):
             break
         sleep(2)
-        print 'retry:', params
+        print('retry:', params)
         root = get_url(params)
     if re_child_book_param.search(params) and all(re_personalized.search(span.text) for span in root.find_class('srTitle')):
         raise PersonalizedBooks
@@ -187,16 +188,16 @@ def read_page(params):
     root = get_url(params)
     total = get_total(root)
     if total == 0:
-        print 'no results found'
+        print('no results found')
         return total, set(), []
     grand_total = total
     pages = (total / page_size) + 1
-    print 'total:', total, 'pages:', pages
+    print('total:', total, 'pages:', pages)
 
     cats = get_cats(root)
-    print 'cats 1'
+    print('cats 1')
     for a, b, c in cats:
-        print "%8d %-30s %8d" % (a, b, c)
+        print("%8d %-30s %8d" % (a, b, c))
     #return grand_total, [], cats
 
     books = set()
@@ -205,15 +206,15 @@ def read_page(params):
     for page in range(2, min((pages, 100))+1):
         params_with_page = params + "&page=%d" % page
         books.update(read_books(params_with_page, get_url(params_with_page)))
-        print page, len(books)
+        print(page, len(books))
 
-    print len(books)
+    print(len(books))
 
     cats = get_cats(root)
-    print 'cats 2'
+    print('cats 2')
     for a, b, c in cats:
-        print "%8d %30s %8d" % (a, b, c)
-    print 'cat total:', sum(i[2] for i in cats)
+        print("%8d %30s %8d" % (a, b, c))
+    print('cat total:', sum(i[2] for i in cats))
     if total > max_results:
         for n, title, count in cats:
             print(repr(n, title, count))
@@ -221,21 +222,21 @@ def read_page(params):
             root = get_url(params_with_cat)
             cat_total = get_total(root)
             pages = (cat_total / page_size) + 1
-            print 'cat_total:', total, 'pages:', total / page_size
+            print('cat_total:', total, 'pages:', total / page_size)
             if cat_total > max_results:
-                print 'cat_total (%d) > max results (%d)' % (total, max_results)
+                print('cat_total (%d) > max results (%d)' % (total, max_results))
     #        assert cat_total <= max_results
             try:
                 books.update(read_books(params_with_cat, root))
             except PersonalizedBooks:
-                print 'WARNING: Personalized Books'
+                print('WARNING: Personalized Books')
                 continue
             for page in range(2, min((pages, 100)) + 1):
                 params_with_page = params_with_cat + "&page=%d" % page
                 try:
                     books.update(read_books(params_with_page, get_url(params_with_page)))
                 except PersonalizedBooks:
-                    print 'WARNING: Personalized Books'
+                    print('WARNING: Personalized Books')
                     break
                 print(repr(n, title, page, cat_total / page_size, len(books), "%.1f%%" % percent(len(books), grand_total)))
 
@@ -257,12 +258,12 @@ def write_books(books):
                 print(repr(page[-60:]))
                 error_count += 1
                 if error_count == 50:
-                    print 'too many bad endings'
-                    print 'http://amazon.com/dp/' + asin
+                    print('too many bad endings')
+                    print('http://amazon.com/dp/' + asin)
                     sys.exit(0)
             except:
                 pass
-            print 'retry'
+            print('retry')
             sleep(5)
 
 if __name__ == '__main__':
@@ -272,14 +273,14 @@ if __name__ == '__main__':
     cur = date(2009, 11, 11) # start date
     #cur = date(2009, 12, 25)
     while True:
-        print cur
+        print(cur)
         total, books, cats = read_page(rh + cur.strftime("%Y%m%d"))
         open(out_dir + '/total.' + str(cur), 'w').write(str(total) + "\n")
 
         out = open(out_dir + "/cats." + str(cur), 'w')
         for i in cats:
-            print >> out, i
+            print(i, file=out)
         out.close()
-        print len(books)
+        print(len(books))
         write_books(books)
         cur += one_day

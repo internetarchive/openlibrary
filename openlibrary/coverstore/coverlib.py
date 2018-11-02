@@ -1,4 +1,5 @@
 """Cover management."""
+from __future__ import print_function
 
 try:
     from PIL import Image
@@ -73,7 +74,7 @@ def write_image(data, prefix):
             resize_image(img, size).save(path, quality=90)
         return img
     except IOError, e:
-        print 'ERROR:', str(e)
+        print('ERROR:', str(e))
 
         # cleanup
         rm_f(prefix + '.jpg')

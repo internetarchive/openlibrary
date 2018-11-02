@@ -1,3 +1,4 @@
+from __future__ import print_function
 from urllib2 import urlopen
 from lxml.html import parse
 from openlibrary.catalog.read_rc import read_rc
@@ -13,31 +14,31 @@ accesskey = rc['s3_accesskey']
 secret = rc['s3_secret']
 
 def put_file(con, ia, filename):
-    print 'uploading %s' % filename
+    print('uploading %s' % filename)
     headers = {
         'authorization': "LOW " + accesskey + ':' + secret,
         'x-archive-queue-derive': 0,
     }
     url = 'http://s3.us.archive.org/' + ia + '/' + filename
-    print url
+    print(url)
     data = open(d + '/' + filename).read()
     for attempt in range(5):
         con.request('PUT', url, data, headers)
         try:
             res = con.getresponse()
         except httplib.BadStatusLine as bad:
-            print 'bad status line:', bad.line
+            print('bad status line:', bad.line)
             raise
         body = res.read()
         if '<Error>' not in body:
             return
-        print 'error'
-        print body
+        print('error')
+        print(body)
         if no_bucket_error not in body and internal_error not in body:
             sys.exit(0)
-        print 'retry'
+        print('retry')
         time.sleep(5)
-    print 'too many failed attempts'
+    print('too many failed attempts')
 
 subprocess.call(["/usr/bin/perl", "get.pl"])
 
