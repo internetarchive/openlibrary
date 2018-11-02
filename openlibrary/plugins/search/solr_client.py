@@ -11,6 +11,8 @@ import simplejson
 from facet_hash import facet_token
 import pdb
 
+from six import reraise
+
 php_location = "/petabox/setup.inc"
 
 # server_addr = ('pharosdb.us.archive.org', 8983)
@@ -58,7 +60,7 @@ class PetaboxQueryProcessor:
                      (php_location, qhex))
         aq = f.read()
         if aq and aq[0] == '\n':
-            raise SolrError, ('invalid response from basic query conversion', aq, php_location)
+            raise SolrError('invalid response from basic query conversion', aq, php_location)
 
         self.cache[query] = aq
         return aq
@@ -103,7 +105,7 @@ class Solr_result(object):
             et.parse(StringIO(w))
         except SyntaxError as e:
             ptb = traceback.extract_stack()
-            raise SolrError, (e, result_xml, traceback.format_list(ptb))
+            raise SolrError(e, result_xml, traceback.format_list(ptb))
         range_info = et.find('info').find('range_info')
 
         def gn(tagname):
@@ -131,7 +133,7 @@ class SR2(Solr_result):
             self.raw_results = r['docs']
         except Exception as e:
             ptb = traceback.extract_stack()
-            raise SolrError, (e, result_json, traceback.format_list(ptb))
+            raise SolrError(e, result_json, traceback.format_list(ptb))
 
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
@@ -184,7 +186,7 @@ class Solr_client(object):
         # need to add an LRU cache for performance.  @@
 
         if not re.match('^[a-z]+$', token):
-            raise SolrError, 'invalid facet token'
+            raise SolrError('invalid facet token')
         m = simplejson.loads(self.raw_search('facet_tokens:%s'% token,
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
@@ -222,7 +224,7 @@ class Solr_client(object):
             py = ru.read()
             ru.close()
         except IOError:
-            raise SolrError, "Search temporarily unavailable, please try later"
+            raise SolrError("Search temporarily unavailable, please try later")
         return SR2(py)
 
     advanced_search = search
@@ -238,7 +240,7 @@ class Solr_client(object):
         try:
             e.parse(StringIO(result_list))
         except SyntaxError as e:
-            raise SolrError, e
+            raise SolrError(e)
 
         total_nbr_text = e.find('info/range_info/total_nbr').text
         # total_nbr_text = e.find('result').get('numFound')  # for raw xml
@@ -290,7 +292,7 @@ class Solr_client(object):
         try:
             XML.parse(StringIO(page_hits))
         except SyntaxError as e:
-            raise SolrError, e
+            raise SolrError(e)
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
 
@@ -335,7 +337,7 @@ class Solr_client(object):
             h1 = simplejson.loads(result_set)
         except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
-            raise SolrError, (e, result_set)
+            reraise(SolrError, e, result_set)
 
         docs = h1['response']['docs']
         r = facet_counts(docs, facet_list)
