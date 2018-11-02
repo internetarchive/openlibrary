@@ -476,7 +476,7 @@ class borrow_receive_notification(delegate.page):
             notify_obj = acs4.el_to_o(notify_xml)
 
             output = simplejson.dumps({'success':True})
-        except Exception, e:
+        except Exception as e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 

@@ -38,7 +38,7 @@ def evaluate_and_store_stat(name, stat, summary):
                 pass
             else:
                 l.warning("No storage item specified for stat %s", name)
-    except Exception, k:
+    except Exception as k:
         l.warning("Error while storing stats (%s). Complete traceback follows"%k)
         l.warning(traceback.format_exc())
 
@@ -61,7 +61,7 @@ def stats_hook():
     try:
         if "stats-header" in web.ctx.features:
             web.header("X-OL-Stats", format_stats(stats_summary))
-    except Exception, e:
+    except Exception as e:
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)
 

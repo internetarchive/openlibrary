@@ -667,7 +667,7 @@ class Subject(client.Thing):
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
             data = urllib2.urlopen(url).read()
             cover_ids = simplejson.loads(data)
-        except IOError, e:
+        except IOError as e:
             print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}
 

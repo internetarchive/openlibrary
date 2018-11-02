@@ -101,7 +101,7 @@ class Solr_result(object):
             w = result_xml.encode('utf-8')
             def tx(a): return (type(a), len(a))
             et.parse(StringIO(w))
-        except SyntaxError, e:
+        except SyntaxError as e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_xml, traceback.format_list(ptb))
         range_info = et.find('info').find('range_info')
@@ -129,7 +129,7 @@ class SR2(Solr_result):
             self.contained_in_this_set = len(r['docs'])
             self.result_list = list(d['identifier'] for d in r['docs'])
             self.raw_results = r['docs']
-        except Exception, e:
+        except Exception as e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_json, traceback.format_list(ptb))
 
@@ -237,7 +237,7 @@ class Solr_client(object):
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
-        except SyntaxError, e:
+        except SyntaxError as e:
             raise SolrError, e
 
         total_nbr_text = e.find('info/range_info/total_nbr').text
@@ -289,7 +289,7 @@ class Solr_client(object):
         XML = ElementTree()
         try:
             XML.parse(StringIO(page_hits))
-        except SyntaxError, e:
+        except SyntaxError as e:
             raise SolrError, e
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
@@ -333,7 +333,7 @@ class Solr_client(object):
         try:
             # print >> web.debug, '*** parsing result_set=', result_set
             h1 = simplejson.loads(result_set)
-        except SyntaxError, e:   # we got a solr stack dump
+        except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
             raise SolrError, (e, result_set)
 

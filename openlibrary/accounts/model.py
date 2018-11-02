@@ -194,7 +194,7 @@ class Account(web.storage):
             return "account_blocked"
         try:
             web.ctx.site.login(self.username, password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             return code
         else:
@@ -465,7 +465,7 @@ class OpenLibraryAccount(Account):
             return "account_blocked"
         try:
             web.ctx.site.login(ol_account.username, password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             return code
         else:

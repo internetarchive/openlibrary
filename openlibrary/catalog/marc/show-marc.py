@@ -36,7 +36,7 @@ class show_marc:
         rec = None
         try:
             rec = MARC21Record(result)
-        except (ValueError,MARC21Exn), e:
+        except (ValueError,MARC21Exn) as e:
             print('Invalid MARC data %s<p/>'% str(e))
 
         if rec:

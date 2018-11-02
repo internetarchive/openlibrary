@@ -117,11 +117,11 @@ class fullsearch(delegate.page):
                         out.append((oln_thing, ocaid,
                                     collapse_groups(solr_pagetext.pagetext_search
                                                     (ocaid, q))))
-                except IndexError, e:
+                except IndexError as e:
                     print(('fullsearch index error', e, e.args), file=web.debug)
                     pass
             timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
-        except IOError, e:
+        except IOError as e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
@@ -287,7 +287,7 @@ class search(delegate.page):
             #                    (len(results),results),
             #                    (len(works_groups),works_groups))
 
-        except (solr_client.SolrError, Exception), e:
+        except (solr_client.SolrError, Exception) as e:
             import traceback
             errortext = 'Sorry, there was an error in your search.'
             if i.get('safe')=='false':

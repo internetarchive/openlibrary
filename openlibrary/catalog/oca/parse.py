@@ -13,7 +13,7 @@ def input_items (input):
 		try:
 			et = ElementTree.parse (buf)
 			elt = et.getroot ()
-		except xml_error, e:
+		except xml_error as e:
 			elt = None
 			warn ("ignoring XML error: %s" % e)
 		buf.close ()
