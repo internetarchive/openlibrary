@@ -35,7 +35,7 @@ def withKey(key):
 
 def find_new_work_key():
     global work_num
-    while 1:
+    while True:
         key = "/w/OL%dW" % work_num
         ret = withKey(key)
         if ret.startswith("Not Found:"):

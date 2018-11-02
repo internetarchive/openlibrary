@@ -64,7 +64,7 @@ if solr_fulltext_address:
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
-    assert type(ocat)==list, (ocaid,ocat)
+    assert isinstance(ocat, list), (ocaid,ocat)
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
@@ -195,9 +195,9 @@ class search(delegate.page):
                  ):
             v = clean_punctuation(i.get(formfield))
             if v:
-                if type(searchfield) == str:
+                if isinstance(searchfield, str):
                     q0.append('%s:(%s)'% (searchfield, v))
-                elif type(searchfield) == list:
+                elif isinstance(searchfield, list):
                     q0.append('(%s)'% \
                               ' OR '.join(('%s:(%s)'%(s,v))
                                           for s in searchfield))
@@ -332,7 +332,7 @@ def munch_qresults_stored(qresults):
         # print >> web.debug, ('mk_author db retrieval', dba)
         return d
     def mk_book(d):
-        assert type(d)==dict
+        assert isinstance(d, dict)
         d['key'] = d['identifier']
         for x in ['title_prefix', 'ocaid','publish_date',
                   'publishers', 'physical_format']:
@@ -447,8 +447,8 @@ class search_api:
     def GET(self):
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
-                if type(callback) != str or \
-                       not re.match('[a-z][a-z0-9\.]*$', callback, re.I):
+                if (not isinstance(callback, str) or
+                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 
@@ -480,7 +480,7 @@ class search_api:
 
         dval = dict()
 
-        if type(query) == list:
+        if isinstance(query, list):
             qval = list(self._lookup(i, q, offset, rows) for q in query)
             dval["result_list"] = qval
         else:

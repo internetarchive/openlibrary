@@ -211,7 +211,7 @@ class Solr_client(object):
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
         # return list of document id's
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s&wt=json&fl=*'% \
@@ -345,7 +345,7 @@ class Solr_client(object):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml or json result that comes from solr
         # need to refactor this class to combine some of these methods @@
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, **params))
@@ -363,7 +363,7 @@ class Solr_client(object):
         # search query into an advanced (i.e. expanded) query.  "Basic" searches
         # can actually use complicated syntax that the PHP script transforms
         # by adding search weights, range expansions, and so forth.
-        assert type(query)==str         # not sure what to do with unicode @@
+        assert isinstance(query, str)         # not sure what to do with unicode @@
 
         bquery = self.basic_query(query)
         # print >> web.debug, '* basic search: query=(%r)'% bquery

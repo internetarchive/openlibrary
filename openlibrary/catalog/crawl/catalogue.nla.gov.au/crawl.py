@@ -75,7 +75,7 @@ def extract_marc(f):
     return lines
 
 i = 1
-while 1:
+while True:
     i+=1
     filename = 'marc/%d' % i
     if exists(filename):
