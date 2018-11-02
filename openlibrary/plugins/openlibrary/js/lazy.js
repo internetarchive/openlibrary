@@ -1,6 +1,9 @@
-/* eslint-disable no-unused-vars */
-// third party library
-// Add your third-party javascripts here
+/* eslint-disable */
+// third party library (legacy)
+// This file exists for historic reasons. It should be ported to the vendor bundle in
+// static/js/vendor.jsh @ the earliest opportunity.
+// Do not add any thing to this file, only remove things.
+// We are no longer "lazy" in open library :)
 
 /**
  * jQuery.ScrollTo - Easy element scrolling using jQuery.
