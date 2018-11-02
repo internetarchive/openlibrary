@@ -14,7 +14,7 @@
 
 ;(function() {
 
-function Subject(data, options, callback) {
+function Subject(data, options) {
     options = options || {};
     var defaults = {
         pagesize: 12
@@ -98,7 +98,6 @@ $.extend(Subject.prototype, {
     },
 
     renderWork: function(work) {
-        var ia = work.lending_identifier;
         var authors = [];
         for (var author in work.authors)
             authors.push(work.authors[author].name);
@@ -145,8 +144,6 @@ $.extend(Subject.prototype, {
             callback(this._pages[pagenum]);
         }
         else {
-            var page = this;
-
             var params = {
                 "limit": limit,
                 "offset": offset,

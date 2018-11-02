@@ -14,8 +14,10 @@
   bit of a hack). Instead of the List API, users lending data will be
   stored as metadata within their Archive.org user account.
 */
-
+/* eslint-disable no-unused-vars */
+// used in openlibrary/plugins/openlibrary/js/ol.js
 var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
+/* eslint-enable no-unused-vars */
 
 $(function(){
 
@@ -145,7 +147,7 @@ $(function(){
                         }
                     }
                 }
-            };
+            }
         });
     };
 
@@ -248,12 +250,13 @@ $(function(){
                 });
             });
         })
-
+        /* eslint-disable no-unused-vars */
+        // event object is passed to this function
         $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
             // consider submitting form async and refreshing search results page
             $(this).submit()
         })
-
+        /* eslint-enable no-unused-vars */
         updateBookAvailability();
     }
 });
