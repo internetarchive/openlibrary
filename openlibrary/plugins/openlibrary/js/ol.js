@@ -1,19 +1,6 @@
 var startTime = new Date(); // This is used by ol.analytics.js
 
 var Browser = {
-    getUrlParameter: function(key) {
-        var query = window.location.search.substring(1);
-        var params = query.split("&");
-        if (key) {
-            for (var i=0;i<params.length;i++) {
-                var item = params[i].split("=");
-                var val = item[1];
-                if(item[0] == key){return(decodeURIComponent(val));}
-            }
-            return(undefined);
-        }
-        return(items);
-    },
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
         var result = {};
@@ -151,6 +138,11 @@ $().ready(function() {
 
                 if (window.set_hash) {
                     var _p = (index == 1) ? null : index;
+                    // set_hash is defined in:
+                    //    openlibrary\openlibrary\templates\languages\view.html
+                    //    openlibrary\openlibrary\templates\lib\covers.html
+                    //    openlibrary\openlibrary\templates\subjects.html
+                    // eslint-disable-next-line no-undef
                     set_hash({"page": _p});
                 }
 
