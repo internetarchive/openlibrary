@@ -5,6 +5,12 @@
 .inline {
   display: inline;
 }
+.hidden--nojs {
+  display: none;
+  .client-js & {
+    display: block;
+  }
+}
 .clearfix {
   width: 100%;
   clear: both;

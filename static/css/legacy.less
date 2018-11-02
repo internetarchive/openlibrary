@@ -3863,36 +3863,8 @@ div#subjectLists {
   }
 }
 
-.manageCovers {
-  max-width: 140px;
-  margin: 0 auto;
-  padding: 8px;
-  border-radius: 3px;
-  border: 3px solid @dark-grey;
-  background-color: @white;
-  color: @dark-grey;
-  &Container {
-    width: 100%;
-    z-index: @z-index-level-16;
-    position: absolute;
-    bottom: 15px;
-    a {
-      display: block;
-      text-decoration: none;
-      opacity: 0;
-      &:hover,
-      &:focus {
-        text-decoration: underline;
-      }
-    }
-  }
-  a {
-    color: @dark-grey;
-  }
-}
-
-.illustration:hover .manageCoversContainer a,
-.manageCoversContainer a:focus {
+// use manage-covers instead
+.illustration:hover .manageCoversContainer a {
   opacity: .9;
 }
 
