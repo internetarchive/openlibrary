@@ -37,7 +37,7 @@ def get_marc_subjects(w):
             print('bad record source:', src)
             print('http://openlibrary.org' + w['key'])
             continue
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print('http://openlibrary.org' + w['key'])
         if not data:

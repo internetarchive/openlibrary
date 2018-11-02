@@ -346,7 +346,7 @@ class account_login(delegate.page):
     def POST_resend_verification_email(self, i):
         try:
             ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)

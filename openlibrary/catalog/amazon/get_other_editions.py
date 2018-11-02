@@ -22,7 +22,7 @@ for i, row in enumerate(isbn_iter):
     url = 'http://www.amazon.com/dp/other-editions/' + isbn
     try:
         page = urllib2.urlopen(url).read()
-    except urllib2.HTTPError, error:
+    except urllib2.HTTPError as error:
         if error.code != 404:
             raise
         page = ''

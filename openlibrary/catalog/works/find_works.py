@@ -131,7 +131,7 @@ def get_work_title(e, mc):
             print('bad record source:', src)
             print('http://openlibrary.org' + e['key'])
             continue
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print(e['key'])
         if not data:

@@ -67,7 +67,7 @@ def urlread_keep_trying(url):
     for i in range(3):
         try:
             return urllib2.urlopen(url).read()
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code in (403, 404):
                 #print "404 for '%s'" % url
                 raise
@@ -112,7 +112,7 @@ def read_text_from_node(host):
         url = 'http://%s/%s' % (host, path)
         try:
             dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code == 403:
                 print('403 on directory listing for:', ia)
                 dir_html = None
@@ -130,7 +130,7 @@ def read_text_from_node(host):
         url = 'http://%s/~edward/abbyy_to_text.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
         try:
             reply = urlread_keep_trying(url)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 403:
                 raise
             url = 'http://%s/~edward/abbyy_to_text_p.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
@@ -264,7 +264,7 @@ def run_find_item():
         if body:
             try:
                 meta_xml = urlread_keep_trying('http://%s%s/%s_meta.xml' % (host, path, ia))
-            except urllib2.HTTPError, error:
+            except urllib2.HTTPError as error:
                 if error.code != 403:
                     raise
                 print('403 on meta XML for:', ia)

@@ -47,7 +47,7 @@ def get_with_retry(key):
     for i in range(3):
         try:
             return ol.get(key)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 500:
                 raise
         print('retry save')
@@ -58,7 +58,7 @@ def save_with_retry(key, data, comment):
     for i in range(3):
         try:
             return ol.save(key, data, comment)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 500:
                 raise
         print('retry save')

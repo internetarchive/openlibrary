@@ -74,7 +74,7 @@ def setup_logging():
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
         logger.info("logging initialized")
         logger.debug("debug")
-    except Exception, e:
+    except Exception as e:
         print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 
@@ -95,7 +95,7 @@ class _inspect:
         try:
             import _inspect
             return _inspect.inspect()
-        except Exception, e:
+        except Exception as e:
             return traceback.format_exc()
 
 def get_db():

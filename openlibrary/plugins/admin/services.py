@@ -14,7 +14,7 @@ class Nagios(object):
     def __init__(self, url):
         try:
             self.data = BeautifulSoup(urllib.urlopen(url).read(), "lxml")
-        except Exception, m:
+        except Exception as m:
             print(m)
             self.data = None
 

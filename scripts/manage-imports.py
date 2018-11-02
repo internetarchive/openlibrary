@@ -32,7 +32,7 @@ def ol_import_request(item, retries=5, servername=None, require_marc=True):
         try:
             ol = get_ol(servername=servername)
             return ol.import_ocaid(item.ia_id, require_marc=require_marc)
-        except (IOError, OLError), e:
+        except (IOError, OLError) as e:
             logger.warn("Failed to contact OL server. error=%s", e)
 
 

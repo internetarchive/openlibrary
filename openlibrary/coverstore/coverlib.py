@@ -73,7 +73,7 @@ def write_image(data, prefix):
             path = "%s-%s.jpg" % (path_prefix, name)
             resize_image(img, size).save(path, quality=90)
         return img
-    except IOError, e:
+    except IOError as e:
         print('ERROR:', str(e))
 
         # cleanup

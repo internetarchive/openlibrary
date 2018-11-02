@@ -87,7 +87,7 @@ def _old_get_meta_xml(itemid):
     try:
         defaults = {"collection": [], "external-identifier": []}
         return web.storage(xml2dict(metaxml, **defaults))
-    except Exception, e:
+    except Exception as e:
         logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
         return web.storage()
 

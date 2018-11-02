@@ -175,7 +175,7 @@ def check_updates(rows,timestamp):
                     else:
                         write_stout('?')
                         logger.warning('You are tring to process other item than /type/works %s',k)
-                except Exception,e:
+                except Exception as e:
                     write_stout('E')
                     logger.error('Cannot read %s : %s',str(k),e)
     write_stout('\n')

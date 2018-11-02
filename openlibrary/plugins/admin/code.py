@@ -538,7 +538,7 @@ class service_status(object):
             f = open("%s/olsystem.yml"%config.admin.olsystem_root)
             nodes = services.load_all(yaml.load(f), config.admin.nagios_url)
             f.close()
-        except IOError, i:
+        except IOError as i:
             f = None
             nodes = []
         return render_template("admin/services", nodes)

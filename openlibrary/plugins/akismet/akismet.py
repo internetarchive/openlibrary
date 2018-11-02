@@ -98,7 +98,7 @@ class Akismet(object):
             req = urllib2.Request(url, data, headers)
             h = urllib2.urlopen(req)
             resp = h.read()
-        except (urllib2.HTTPError, urllib2.URLError, IOError), e:
+        except (urllib2.HTTPError, urllib2.URLError, IOError) as e:
             raise AkismetError(str(e))
         return resp
 

@@ -23,7 +23,7 @@ def urlopen_keep_trying(url):
         try:
             f = urllib2.urlopen(url)
             return f
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code in (403, 404, 416):
                 raise
         except urllib2.URLError:
