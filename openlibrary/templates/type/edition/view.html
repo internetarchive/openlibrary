@@ -140,14 +140,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work_title, 60)</span> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
-        <br />
-        <div class="shift">
-            $if page.ocaid:
-                An ebook is available for this edition.
-                <a href="#read">Go to the read section to download</a>.
-            $else:
-                No ebook is available for this edition.
-        </div>
     </div>
     </td>
     </tr></tbody></table>
