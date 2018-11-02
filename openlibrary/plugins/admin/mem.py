@@ -35,7 +35,7 @@ class Object:
 
         for o in gc.get_referrers(self.obj):
             name = None
-            if type(o) == type({}):
+            if isinstance(o, dict):
                 name = web.dictfind(o, self.obj)
                 for r in gc.get_referrers(o):
                     if getattr(r, "__dict__", None) is o:
@@ -122,4 +122,3 @@ class _memory_id:
         if not obj:
             raise web.notfound()
         return render_template("admin/memory/object", obj)
-

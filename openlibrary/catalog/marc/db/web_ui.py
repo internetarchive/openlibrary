@@ -14,7 +14,7 @@ isbn_count = 9093242
 
 def random_isbn():
     f = open(isbn_file)
-    while 1:
+    while True:
         f.seek(random.randrange(isbn_count) * 11)
         isbn = f.read(10)
         break

@@ -56,7 +56,7 @@ def read_file(f):
     :return: Data, length
     """
     buf = None
-    while 1:
+    while True:
         if buf:
             length = buf[:5]
             try:
@@ -489,7 +489,7 @@ def split_line(s):
     # TODO: document this function
     pos = -1
     marks = []
-    while 1:
+    while True:
         pos = s.find('\x1f', pos + 1)
         if pos == -1:
             break

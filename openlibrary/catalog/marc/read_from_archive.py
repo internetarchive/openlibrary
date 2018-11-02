@@ -9,7 +9,7 @@ from time import sleep
 archive_url = "http://archive.org/download/"
 
 def urlopen_keep_trying(url):
-    while 1:
+    while True:
         print(url)
         try:
             return urllib2.urlopen(url)
@@ -44,7 +44,7 @@ def bad_data(i):
 def read_marc_file(part, f, pos = 0):
     buf = None
     loc = None
-    while 1:
+    while True:
         if buf:
             length = buf[:5]
             int_length = int(length)
