@@ -1,6 +1,6 @@
 Babel==2.5.3
 beautifulsoup4==4.6.3
-DBUtils==1.1
+DBUtils==1.3
 argparse==1.2.1
 flake8==3.6.0
 Genshi==0.6

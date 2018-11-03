@@ -2115,6 +2115,7 @@ ul.readers-stats {
     }
   }
 }
+@import (less) "components/navEdition.less";
 
 div.edition {
   &Cover {
@@ -2133,11 +2134,6 @@ div.edition {
   }
 }
 
-div.navEdition {
-  font-size: .9em;
-  margin-top: 5px;
-  color: @grey-555;
-}
 div.work {
   font-family: @lucida_sans_serif-1;
   span.work,
@@ -2365,6 +2361,8 @@ select {
   }
 }
 
+// for backwards compatibility
+// please use btn--large instead
 .borrow-btn,
 .read-btn,
 .wait-btn,
@@ -3603,6 +3601,7 @@ ul#listResults {
   }
 }
 
+@import (less) 'components/listLists.less';
 div#listsWork {
   ul.listLists {
     li {
@@ -3863,36 +3862,8 @@ div#subjectLists {
   }
 }
 
-.manageCovers {
-  max-width: 140px;
-  margin: 0 auto;
-  padding: 8px;
-  border-radius: 3px;
-  border: 3px solid @dark-grey;
-  background-color: @white;
-  color: @dark-grey;
-  &Container {
-    width: 100%;
-    z-index: @z-index-level-16;
-    position: absolute;
-    bottom: 15px;
-    a {
-      display: block;
-      text-decoration: none;
-      opacity: 0;
-      &:hover,
-      &:focus {
-        text-decoration: underline;
-      }
-    }
-  }
-  a {
-    color: @dark-grey;
-  }
-}
-
-.illustration:hover .manageCoversContainer a,
-.manageCoversContainer a:focus {
+// use manage-covers instead
+.illustration:hover .manageCoversContainer a {
   opacity: .9;
 }
 

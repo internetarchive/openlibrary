@@ -18,10 +18,10 @@ facet_token_length = 12
 # turn v into a str object, by encoding from unicode or numeric
 # if necessary.
 def coerce_str(v):
-    if type(v) == unicode:
+    if isinstance(v, unicode):
         v=v.encode('utf-8')
     v = str(v)    # in case v is a numeric type
-    assert type(v) == str,(type(v),v)
+    assert isinstance(v, str),(type(v),v)
     return v
 
 # str, str -> str

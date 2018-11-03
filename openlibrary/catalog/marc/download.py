@@ -116,7 +116,7 @@ class get:
         url = "http://archive.org/download/bpl_marc/" + file
         ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
         f = urllib2.urlopen(ureq)
-        while 1:
+        while True:
             buf = f.read(1024)
             if not buf:
                 break
