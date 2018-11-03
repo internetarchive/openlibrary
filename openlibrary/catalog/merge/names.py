@@ -8,7 +8,7 @@ re_amazon_space_name = re.compile('^(.+?[^ ]) +([A-Z][a-z]?)$')
 
 verbose = False
 
-titles = frozenset([normalize(x) for x in 'Mrs', 'Sir', 'pseud', 'Lady', 'Baron', 'lawyer', 'Lord', 'actress', 'Dame', 'Mr', 'Viscount', 'professeur', 'Graf', 'Dr', 'Countess', 'Ministerialrat', 'Oberamtsrat', 'Rechtsanwalt'])
+titles = frozenset([normalize(x) for x in ('Mrs', 'Sir', 'pseud', 'Lady', 'Baron', 'lawyer', 'Lord', 'actress', 'Dame', 'Mr', 'Viscount', 'professeur', 'Graf', 'Dr', 'Countess', 'Ministerialrat', 'Oberamtsrat', 'Rechtsanwalt')])
 
 # marquis de
 
