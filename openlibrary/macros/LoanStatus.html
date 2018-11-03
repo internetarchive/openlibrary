@@ -76,7 +76,7 @@ $elif (availability_status == 'borrow_unavailable'):
 
 $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="read-btn btn--large btn primary">Read eBook</a>
+    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="btn--large btn primary">Read eBook</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <p class="smaller">No ebook available.</p>
