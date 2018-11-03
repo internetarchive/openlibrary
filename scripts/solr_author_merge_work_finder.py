@@ -7,6 +7,7 @@ from openlibrary import config
 import argparse, simplejson, re
 import sys
 from urllib import urlopen
+from urllib2 import URLError
 from time import time, sleep
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 
