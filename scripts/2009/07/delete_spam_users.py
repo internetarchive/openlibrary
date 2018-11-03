@@ -4,6 +4,7 @@ Earlier to block all the spam users, user's key has been prefixed with SPAM. Tha
 This script removes all the SPAM/* users to restore log-replay.
 """
 
+import os
 import sys
 
 def main(database):

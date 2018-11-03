@@ -37,7 +37,7 @@ def put_file(con, ia, filename):
         if no_bucket_error not in body and internal_error not in body:
             sys.exit(0)
         print('retry')
-        time.sleep(5)
+        sleep(5)
     print('too many failed attempts')
 
 subprocess.call(["/usr/bin/perl", "get.pl"])
