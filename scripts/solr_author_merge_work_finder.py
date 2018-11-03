@@ -5,6 +5,7 @@ import _init_path
 
 from openlibrary import config
 import argparse, simplejson, re
+import sys
 from urllib import urlopen
 from time import time, sleep
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
@@ -103,4 +104,3 @@ while True:
         if update_times:
             print("average update time: %.1f seconds" % (float(sum(update_times)) / float(len(update_times))))
     print(offset, file=open(state_file, 'w'))
-
