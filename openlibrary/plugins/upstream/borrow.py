@@ -554,7 +554,7 @@ def get_bookreader_host():
 def get_all_store_values(**query):
     """Get all values by paging through all results. Note: adds store_key with the row id."""
     query = copy.deepcopy(query)
-    if not query.has_key('limit'):
+    if 'limit' not in query:
         query['limit'] = 500
     query['offset'] = 0
     values = []
