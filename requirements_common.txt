@@ -6,7 +6,7 @@ flake8==3.5.0
 Genshi==0.6
 gunicorn==19.9.0
 iptools==0.4.0
-internetarchive==1.7.6
+internetarchive==1.8.1
 lxml==2.3.2
 pyflakes==2.0.0
 pymarc==2.8.4
