@@ -30,9 +30,9 @@ def evaluate_and_store_stat(name, stat, summary):
         return
     try:
         if f(**stat):
-            if stat.has_key("time"):
+            if "time" in stat:
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
-            elif stat.has_key("count"):
+            elif "count" in stat:
                 #print "Storing count for key %s"%stat.count
                 # XXX-Anand: where is the code to update counts?
                 pass

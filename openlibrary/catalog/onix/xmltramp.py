@@ -5,7 +5,6 @@ __author__ = "Aaron Swartz"
 __credits__ = "Many thanks to pjz, bitsko, and DanC."
 __copyright__ = "(C) 2003-2006 Aaron Swartz. GNU GPL 2."
 
-if not hasattr(__builtins__, 'True'): True, False = 1, 0
 def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
 def islst(f): return isinstance(f, type(())) or isinstance(f, type([]))
 
@@ -228,7 +227,7 @@ class Seeder(EntityResolver, DTDHandler, ContentHandler, ErrorHandler):
         ContentHandler.__init__(self)
 
     def startPrefixMapping(self, prefix, uri):
-        if not self.prefixes.has_key(prefix): self.prefixes[prefix] = []
+        if prefix not in self.prefixes: self.prefixes[prefix] = []
         self.prefixes[prefix].append(uri)
     def endPrefixMapping(self, prefix):
         self.prefixes[prefix].pop()
