@@ -632,7 +632,6 @@ span {
     font-weight: normal !important;
     font-family: @lucida_sans_serif-1;
     color: @brown;
-    white-space: nowrap;
     padding: 5px 5px 0;
   }
   &.caption {
@@ -4106,6 +4105,11 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  span {
+    &.count {
+      white-space: nowrap;
+    }
+  }
   div.edition {
     &Cover {
       float: left;
