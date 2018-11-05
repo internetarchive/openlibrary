@@ -4,12 +4,15 @@
 */
 @import (less) "less/font-families.less";
 
+@chart-height: 140px;
+@chart-width: 898px;
+@chart-bottom-padding: 20px;
+
 .chart {
-  float: left;
   position: relative;
-  width: 898px;
-  height: 140px;
-  padding: 0 0 20px 20px;
+  height: @chart-height + @chart-bottom-padding;
+  width: 100%;
+  padding: 0 8px @chart-bottom-padding 20px;
   margin-top: 0;
   font-size: .6875em;
   font-family: @lucida_sans_serif-1;
@@ -17,6 +20,8 @@
   background-image: url(/images/ajax-loader-bar.gif);
   background-repeat: no-repeat;
   background-position: 340px 60px;
+  box-sizing: border-box;
+
   &Yaxis {
     position: absolute;
     text-align: center;
@@ -38,5 +43,25 @@
     font-size: 10px;
     color: @olive;
     text-transform: uppercase;
+  }
+  &Zoom {
+    white-space: nowrap;
+  }
+  .thisChart {
+    height: @chart-height;
+    width: 100%;
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .chart {
+    float: left;
+    width: @chart-width;
+    &Yaxis {
+      width: @chart-height;
+    }
+    .thisChart {
+      width: @chart-width;
+    }
   }
 }
