@@ -4,6 +4,9 @@ from infogami import tdb
 
 import db, reviewsources, utils
 
+from six.moves import input
+
+
 def list_latest_reviews():
     for review in tdb.Things(type=db.get_type('type/bookreview'), limit=40):
         print('[%s] %s (%s)' % (review.author, review.book, review.source))
@@ -36,14 +39,14 @@ def simple_shell():
             self.rs = reviewsources.data.get('dev')
 
         def safety_lock(self, query):
-            confirm = raw_input('\n%s [n] ' % query)
+            confirm = input('\n%s [n] ' % query)
             if ('y' in confirm) or ('Y' in confirm):
                 return
             else:
                 raise quit()
 
         def input_edition_name(self, default=''):
-            name = raw_input('\nbook edition? [%s] ' % default) or default
+            name = input('\nbook edition? [%s] ' % default) or default
             self.edition = db.get_thing(name, db.get_type('type/edition'))
             if not self.edition:
                 print('\nbook edition not found.')
@@ -53,7 +56,7 @@ def simple_shell():
         def input_user_name(self, default=''):
             if not self.edition:
                 raise quit()
-            name = raw_input('\nreview author? [%s] ' % default) or default
+            name = input('\nreview author? [%s] ' % default) or default
             self.user = db.get_thing(utils.lpad(name, 'user/'),
                                      db.get_type('type/user'))
             if not self.user:
@@ -85,4 +88,3 @@ def simple_shell():
 
     except quit:
         print('exiting.')
-
