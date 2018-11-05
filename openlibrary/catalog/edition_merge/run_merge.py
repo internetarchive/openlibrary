@@ -1,3 +1,4 @@
+from __future__ import print_function
 import MySQLdb, datetime, re, sys
 from openlibrary.api import OpenLibrary, Reference
 from collections import defaultdict
@@ -16,7 +17,7 @@ cur.execute('select ia, editions, done from merge where done is null and unmerge
 for ia, ekeys, done in cur.fetchall():
     updates = []
     ekeys = ['/books/OL%dM' % x for x in sorted(int(re_edition_key.match(ekey).group(1)) for ekey in ekeys.split(' '))]
-    print (ia, ekeys)
+    print((ia, ekeys))
     min_ekey = ekeys[0]
     editions = [ol.get(ekey) for ekey in ekeys]
     master = editions[0]
@@ -141,7 +142,7 @@ for ia, ekeys, done in cur.fetchall():
             for e in editions:
                 if e.get('ocaid'):
                     if e['ocaid'].endswith('goog'):
-                        print e['key'], e['ocaid'], ia
+                        print(e['key'], e['ocaid'], ia)
                     master['ocaid'] = e['ocaid']
                     break
             assert master['ocaid']
@@ -153,8 +154,8 @@ for ia, ekeys, done in cur.fetchall():
                 master[k] = max((e.get('authors', []) for e in editions), key=len)
                 continue
 
-        print 'unmerged field:', k
-        print [e.get(k) for e in editions]
+        print('unmerged field:', k)
+        print([e.get(k) for e in editions])
         no_merge = True
     if no_merge:
         continue
@@ -168,11 +169,11 @@ for ia, ekeys, done in cur.fetchall():
             'key': e['key'],
         }
         updates.append(redirect)
-    print len(updates), min_ekey
+    print(len(updates), min_ekey)
     try:
-        print ol.save_many(updates, 'merge lending editions')
+        print(ol.save_many(updates, 'merge lending editions'))
     except:
         for i in updates:
-            print i
+            print(i)
         raise
     cur2.execute('update merge set done=now() where ia=%s', [ia])

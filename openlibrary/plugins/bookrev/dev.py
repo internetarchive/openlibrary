@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, infogami
 from infogami import tdb
 
@@ -5,7 +6,7 @@ import db, reviewsources, utils
 
 def list_latest_reviews():
     for review in tdb.Things(type=db.get_type('type/bookreview'), limit=40):
-        print '[%s] %s (%s)' % (review.author, review.book, review.source)
+        print('[%s] %s (%s)' % (review.author, review.book, review.source))
 
 def simple_shell():
     """A simple shell for creating book reviews. For dev use only."""
@@ -45,9 +46,9 @@ def simple_shell():
             name = raw_input('\nbook edition? [%s] ' % default) or default
             self.edition = db.get_thing(name, db.get_type('type/edition'))
             if not self.edition:
-                print '\nbook edition not found.'
+                print('\nbook edition not found.')
             else:
-                print '\nbook edition %s found.' % self.edition
+                print('\nbook edition %s found.' % self.edition)
 
         def input_user_name(self, default=''):
             if not self.edition:
@@ -56,19 +57,19 @@ def simple_shell():
             self.user = db.get_thing(utils.lpad(name, 'user/'),
                                      db.get_type('type/user'))
             if not self.user:
-                print '\nreview author not found.'
+                print('\nreview author not found.')
                 self.safety_lock('create a dummy user \'%s\'?' % name)
                 self.user = create_dummy_user(name, password='test')
-                print '\nok.'
+                print('\nok.')
             else:
-                print '\nuser %s found.' % self.user
+                print('\nuser %s found.' % self.user)
 
         def input_text(self):
             if not self.edition or not self.user:
                 raise quit()
-            print '\ntype in the review. (exit by typing two continuous line breaks.)\n'
+            print('\ntype in the review. (exit by typing two continuous line breaks.)\n')
             self.text = utils.read_text()
-            print '\nthanks.'
+            print('\nthanks.')
 
     try:
 
@@ -80,8 +81,8 @@ def simple_shell():
         _.input_text()
 
         review = db.insert_book_review(_.edition, _.user, _.rs, _.text)
-        print '\ncreated review %s.' % review
+        print('\ncreated review %s.' % review)
 
     except quit:
-        print 'exiting.'
+        print('exiting.')
 

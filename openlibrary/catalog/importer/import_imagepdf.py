@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web,  sys
 from catalog.utils.query import query, withKey
 from catalog.read_rc import read_rc
@@ -16,10 +17,10 @@ iter = db.query("select identifier from metadata where noindex is null and media
 
 for i in iter:
     ia = i.identifier
-    print ia
+    print(ia)
     if query({'type': '/type/edition', 'ocaid': ia}):
-        print 'already loaded'
+        print('already loaded')
         continue
     if query({'type': '/type/edition', 'source_records': 'ia:' + ia}):
-        print 'already loaded'
+        print('already loaded')
         continue

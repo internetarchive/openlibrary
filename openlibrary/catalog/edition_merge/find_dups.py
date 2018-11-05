@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 from openlibrary.api import OpenLibrary
 from subprocess import Popen, PIPE
 import MySQLdb
@@ -35,5 +36,5 @@ for num, (ia, updated, collection) in enumerate(cur.fetchall()):
     q = {'type': '/type/edition', 'source_records': 'ia:' + ia}
     editions.update(str(i) for i in ol.query(q))
     if len(editions) > 1:
-        print (ia, list(editions))
+        print((ia, list(editions)))
         local_cur.execute('replace into merge (ia, editions) values (%s, %s)', [ia, ' '.join(editions)])

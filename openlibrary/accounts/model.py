@@ -1,6 +1,7 @@
 """
 
 """
+from __future__ import print_function
 import time
 import datetime
 import hmac
@@ -39,7 +40,7 @@ def sendmail(to, msg, cc=None):
             '\n' +
             web.safestr(msg))
 
-        print >> web.debug, "sending email", message
+        print("sending email", message, file=web.debug)
     else:
         web.sendmail(config.from_address, to, subject=msg.subject.strip(),
                      message=web.safestr(msg), cc=cc)
@@ -193,7 +194,7 @@ class Account(web.storage):
             return "account_blocked"
         try:
             web.ctx.site.login(self.username, password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             return code
         else:
@@ -464,7 +465,7 @@ class OpenLibraryAccount(Account):
             return "account_blocked"
         try:
             web.ctx.site.login(ol_account.username, password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             return code
         else:

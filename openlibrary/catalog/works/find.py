@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, sys
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site
@@ -19,9 +20,9 @@ def ol_link(key):
 
 def search(title, author):
     q = { 'type': '/type/author', 'name': author }
-    print q
+    print(q)
     authors = site.things(q)
-    print authors
+    print(authors)
     seen = set()
     pool = set()
 #    for a in authors:
@@ -31,12 +32,12 @@ def search(title, author):
     found_isbn = {}
     author_keys = ','.join("'%s'" % a for a in authors)
 
-    print author_keys
+    print(author_keys)
     iter = web.query("select id, key from thing where thing.id in (select thing_id from edition_ref, thing where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))")
     key_to_id = {}
     id_to_key = {}
     for row in iter:
-        print row
+        print(row)
         key_to_id[row.key] = row.id
         id_to_key[row.id] = row.key
 
@@ -45,13 +46,13 @@ def search(title, author):
     id_to_title = {}
     title_to_key = {}
     for row in iter:
-        print row
+        print(row)
         t = row.title.lower().strip('.')
         id_to_title[row.thing_id] = row.title
         title_to_key.setdefault(t, []).append(id_to_key[row.thing_id])
 
     if title.lower() not in title_to_key:
-        print 'title not found'
+        print('title not found')
         return
 
     pool = set(title_to_key[title.lower()])
@@ -59,7 +60,7 @@ def search(title, author):
     editions = []
     while pool:
         key = pool.pop()
-        print key
+        print(key)
         seen.add(key)
         e = site.withKey(key)
         translation_of = None
@@ -94,24 +95,24 @@ def search(title, author):
                 pool.update(k for k in title_to_key.get(t.lower(), []) if k not in seen)
                 found_titles.setdefault(t, []).append(key)
 
-    print '<table>'
+    print('<table>')
     for e in sorted(editions, key=lambda e: e['publish_date'] and e['publish_date'][-4:]):
-        print '<tr>'
-        print '<td>', ol_link(e['key'])
-        print '<td>', e['publish_date'], '</td><td>', e['publishers'], '</td>'
-        print '<td>', e['isbn'], '</td>'
-        print '</tr>'
-    print '</table>'
+        print('<tr>')
+        print('<td>', ol_link(e['key']))
+        print('<td>', e['publish_date'], '</td><td>', e['publishers'], '</td>')
+        print('<td>', e['isbn'], '</td>')
+        print('</tr>')
+    print('</table>')
 
     if found_titles:
-        print '<h2>Other titles</h2>'
-        print '<ul>'
+        print('<h2>Other titles</h2>')
+        print('<ul>')
         for k, v in found_titles.iteritems():
             if k == title:
                 continue
-            print '<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k),
-            print 'from', ', '.join(ol_link(i) for i in v)
-        print '</ul>'
+            print('<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k), end=' ')
+            print('from', ', '.join(ol_link(i) for i in v))
+        print('</ul>')
 
     extra_isbn = {}
     for k, v in found_isbn.iteritems():
@@ -122,12 +123,12 @@ def search(title, author):
                 extra_isbn.setdefault(isbn, []).extend(v)
 
     if extra_isbn:
-        print '<h2>Other ISBN</h2>'
-        print '<ul>'
+        print('<h2>Other ISBN</h2>')
+        print('<ul>')
         for k in sorted(extra_isbn):
-            print '<li>', isbn_link(k),
-            print 'from', ', '.join(ol_link(i) for i in extra_isbn[k])
-        print '</ul>'
+            print('<li>', isbn_link(k), end=' ')
+            print('from', ', '.join(ol_link(i) for i in extra_isbn[k]))
+        print('</ul>')
 
 title = 'Journey to the centre of the earth'
 author = 'Jules Verne'

@@ -1,6 +1,9 @@
 // Simple Javascript Templating
 //
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
+
+/* eslint-disable no-unused-vars */
+// used in plugins/openlibrary/js/jquery.repeat.js
 function Template(tmpl_text) {
     var s = [];
     var js = ["var _p=[];", "with(env) {"];
@@ -40,7 +43,10 @@ function Template(tmpl_text) {
     g.toCode = function() { return f.toString(); };
     return g;
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in addExpr function
 function htmlquote(text) {
     text = String(text);
     text = text.replace(/&/g, "&amp;"); // Must be done first!
@@ -50,3 +56,4 @@ function htmlquote(text) {
     text = text.replace(/"/g, "&quot;");
     return text;
 }
+/* eslint-enable no-unused-vars */

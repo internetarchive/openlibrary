@@ -2,21 +2,22 @@
 """Utility script to extract all translatable messages from templates and 
 macros and write to openlibrary/i18n/messages.pot file.
 """
+from __future__ import print_function
 import _init_path
 
 import sys
 from openlibrary import i18n
 
 def help():
-    print "utility to manage i18n messages"
-    print 
-    print "USAGE: %s [extract|compile|update]" % sys.argv[0]
-    print 
-    print "Available Commands:"
-    print "  compile - compile the message files (.po) to .mo"
-    print "  extract - extract i18n messages from templates and macros"
-    print "  update  - update the existing translations by adding newly added string to it."
-    print "  help    - display this help message"
+    print("utility to manage i18n messages")
+    print() 
+    print("USAGE: %s [extract|compile|update]" % sys.argv[0])
+    print() 
+    print("Available Commands:")
+    print("  compile - compile the message files (.po) to .mo")
+    print("  extract - extract i18n messages from templates and macros")
+    print("  update  - update the existing translations by adding newly added string to it.")
+    print("  help    - display this help message")
     
 def main(cmd):
     if cmd == 'extract':
@@ -59,7 +60,7 @@ def main(cmd):
     elif cmd == 'help':
         help()
     else:
-        print >> sys.stderr, "unknown command: %s" % repr(cmd)
+        print("unknown command: %s" % repr(cmd), file=sys.stderr)
         sys.exit(2)
 
 if __name__ == "__main__":

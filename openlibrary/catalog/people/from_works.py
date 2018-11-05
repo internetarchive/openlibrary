@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.utils.query import query_iter, set_staging, get_mc
 from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfields
@@ -30,7 +31,7 @@ def work_and_marc():
         if marc:
             yield w, marc
         else:
-            print 'no marc:', w
+            print('no marc:', w)
 
 
 def read_works():
@@ -51,15 +52,15 @@ def read_works():
             continue
         work['lines'] = lines
         i += 1
-        print i, work['key'], work['title']
+        print(i, work['key'], work['title'])
 
         try:
             people, marc_alt = read_people(j[1] for j in lines)
         except AssertionError:
-            print work['lines']
+            print(work['lines'])
             continue
         except KeyError:
-            print work['lines']
+            print(work['lines'])
             continue
 
         marc_alt_reverse = defaultdict(set)
@@ -69,8 +70,8 @@ def read_works():
         w = ol.get(work['key'])
         w['subject_people'] = []
         for p, num in people.iteritems():
-            print '  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p))
-            print '     ', p
+            print('  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p)))
+            print('     ', p)
             if p in page_marc:
                 w['subject_people'].append({'key': '/subjects/people/' + page_marc[p]})
                 continue
@@ -80,7 +81,7 @@ def read_works():
             w['subject_people'].append({'key': full_key})
 
             if key in pages:
-                print key
+                print(key)
                 pages[key]['marc'].append(p)
                 continue
 
@@ -92,10 +93,10 @@ def read_works():
             del obj_for_db['marc']
             obj_for_db['key'] = full_key
             obj_for_db['type'] = '/type/person'
-            print ol.save(full_key.encode('utf-8'), obj_for_db, 'create a new person page')
+            print(ol.save(full_key.encode('utf-8'), obj_for_db, 'create a new person page'))
 
-        print w
-        print ol.save(w['key'], w, 'add links to people that this work is about')
+        print(w)
+        print(ol.save(w['key'], w, 'add links to people that this work is about'))
 
 def from_sample():
     i = 0
@@ -109,7 +110,7 @@ def from_sample():
         try:
             people, marc_alt = read_people(j[1] for j in w['lines'])
         except AssertionError:
-            print [j[1] for j in w['lines']]
+            print([j[1] for j in w['lines']])
             raise
         marc_alt_reverse = defaultdict(set)
         for k, v in marc_alt.items():
@@ -134,7 +135,7 @@ def from_sample():
 #                pprint(obj)
 #                continue
                 if obj['name'][1].isdigit():
-                    print [j[1] for j in w['lines']]
+                    print([j[1] for j in w['lines']])
                     pprint(obj)
 #                assert not obj['name'][1].isdigit()
 

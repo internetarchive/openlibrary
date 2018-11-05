@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, sys, codecs
 from catalog.marc.fast_parse import *
 from catalog.utils import pick_first_date
@@ -85,7 +86,7 @@ def parse_person(line):
 
     if 'q' in contents:
         if len(contents['q']) != 1:
-            print marc_orig
+            print(marc_orig)
         assert len(contents['q']) == 1
         q = strip_q(contents['q'][0])
         if 'given_names' in authors:
@@ -109,7 +110,7 @@ def test_strip_q():
     for i in ['(%s),', '(%s)', '(%s,']:
         k = i % ('foo')
         j = strip_q(k)
-        print k, j
+        print(k, j)
         assert j == 'foo'
 
     name = 'John X.'
@@ -117,7 +118,7 @@ def test_strip_q():
 
 def print_author(a):
     for k in ('name', 'sort', 'numeration', 'title', 'given_names', 'family_name', 'birth_date', 'death_date'):
-        print "%12s: %s" % (k, author.get(k, ''))
+        print("%12s: %s" % (k, author.get(k, '')))
 
 
 def person_as_tuple(p):
@@ -137,35 +138,35 @@ sorted_interest = sorted(interested)
 
 def edition_list(l):
     for e in l:
-        print e['loc']
+        print(e['loc'])
         for k in sorted((k for k in e.keys() if k.isdigit()), key=int):
             if k == '245':
                 t = ' '.join(v.strip(' /,;:') for k, v in e[k][0] if k == 'a')
                 title = remove_trailing_dot(t)
                 full = full_title(e[k][0])
-                print '     title:', title
+                print('     title:', title)
                 if title != full:
-                    print 'full title:', full
-            print '    ', k, e[k]
-        print '---'
+                    print('full title:', full)
+            print('    ', k, e[k])
+        print('---')
 
 def print_interest():
     for k in sorted_interest:
         if k not in family_names:
             continue
-        print k
+        print(k)
         for a in sorted(family_names[k].keys()):
             if family_names[k][a] > 5:
-                print "  %3d %s" % (family_names[k][a], a)
+                print("  %3d %s" % (family_names[k][a], a))
                 if a in by_author:
-                    print "  by: "
+                    print("  by: ")
                     for i in sorted(by_author[a].keys()):
-                        print ' WORK: %s (%d)' % (i, len(by_author[a][i]))
+                        print(' WORK: %s (%d)' % (i, len(by_author[a][i])))
                         edition_list(by_author[a][i])
 #                if a in by_contrib:
 #                    print "  contrib: "
 #                    edition_list(by_contrib[a])
-    print
+    print()
 
 def work_title(edition):
     if '240' in edition:
@@ -188,7 +189,7 @@ for line in sys.stdin:
             try:
                 marc, person = parse_person(l)
             except:
-                print loc
+                print(loc)
                 raise
             if not person:
                 continue
@@ -212,7 +213,7 @@ for line in sys.stdin:
 
     if new_interest:
         edition['loc'] = loc
-        print (loc, data)
+        print((loc, data))
         continue
         title = work_title(edition)
 #        rec = parser.read_edition(loc, data)
@@ -222,6 +223,6 @@ for line in sys.stdin:
 #        for p in edition.get('contribs', []):
 #            by_contrib.setdefault(person_as_tuple(p), []).append(edition)
 for k, v in by_author.items():
-    print (k, v)
+    print((k, v))
 #print_interest()
 

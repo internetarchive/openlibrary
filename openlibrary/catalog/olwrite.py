@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 from infogami.infobase import client
 import simplejson
@@ -41,8 +42,8 @@ def add_to_database(infogami, q, loc):
     try:
         assert len(keys) == 1 or keys[0] == q['key']
     except AssertionError:
-        print q
-        print ret
-        print keys
+        print(q)
+        print(ret)
+        print(keys)
         raise
     return q['key']

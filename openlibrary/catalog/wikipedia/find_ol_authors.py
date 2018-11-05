@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.utils import pick_first_date
 import web, re, sys, codecs
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -17,8 +18,8 @@ def flip_name(name):
 for wikipedia, marc in (eval(i) for i in open("matches4")):
     dates = pick_first_date(v for k, v in marc if k == 'd')
     name = ' '.join(v for k, v in marc if k in 'abc')
-    print name
+    print(name)
     if ', ' in name:
-        print flip_name(name)
-    print dates
+        print(flip_name(name))
+    print(dates)
 

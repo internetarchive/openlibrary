@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.catalog.marc.cmdline import fmt_subfields
 from openlibrary.catalog.marc.fast_parse import get_subfields, get_all_subfields
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, match_with_bad_chars, pick_first_date
@@ -187,7 +188,7 @@ def authority_lookup(to_check, found, marc_alt):
             for d, p in match_dates.items():
                 if i['heading'].endswith(d):
                     if authority_match: # more than one match
-                        print 'dups:', match_dates.items()
+                        print('dups:', match_dates.items())
                         authority_match = None
                         break
                     authority_match = p
@@ -443,7 +444,7 @@ def read_people(people):
     try:
         missing_subtag(found, marc_alt)
     except AssertionError:
-        print people
+        print(people)
         raise
 
     found_name = defaultdict(int)
@@ -478,7 +479,7 @@ def read_people(people):
 
             name_and_birth = build_name_and_birth(found)
     except AssertionError:
-        print people
+        print(people)
         raise
 
     assert found
@@ -506,7 +507,7 @@ def read_people(people):
                 return dict(found), marc_alt
             by_name = build_by_name(found) # rebuild
     except AssertionError:
-        print people
+        print(people)
         raise
 
     for p, num in found.items():
@@ -514,8 +515,8 @@ def read_people(people):
             continue
         if len(by_name[p]) != 1:
             for i in by_name[p]:
-                print i
-            print people
+                print(i)
+            print(people)
         assert len(by_name[p]) == 1
         new_name = list(by_name[p])[0]
         found[new_name] += found.pop(p)
@@ -546,16 +547,16 @@ def read_file(filename):
         if len(w['lines']) == 1:
             continue
         lines = [i[1] for i in w['lines']]
-        print w['key'], w['title']
-        print lines
+        print(w['key'], w['title'])
+        print(lines)
         people, marc_alt = read_people(lines)
 #        for p, num in people.iteritems():
 #            if any(k=='d' for k, v in people):
 #                continue
         for p, num in people.iteritems():
-            print '  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p))
-            print '     ', p
-        print
+            print('  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p)))
+            print('     ', p)
+        print()
 #read_file()
 
 def test_accents():
@@ -744,7 +745,7 @@ def test_non_ascii():
         ['00\x1faAs\xcc\x81oka,\x1fcKing of Magadha,\x1fdfl. 259 B.C.\x1e', '30\x1faMaurya family.\x1e']
     ]
     a, b = read_people(lines)
-    print a
+    print(a)
 
 def test_q_should_be_c():
     lines = [
@@ -763,7 +764,7 @@ def test_date_in_a():
         ['10\x1faMachiavelli, Niccol\xe1o,\x1fd1469-1527\x1fxFiction.\x1e', '10\x1faBorgia, Cesare,\x1fd1476?-1507\x1fxFiction.\x1e']
     ]
     a, b = read_people(lines)
-    print a
+    print(a)
     assert a == {(('a', u'Borgia, Cesare'), ('d', u'1476?-1507')): 7, (('a', u'Machiavelli, Niccol\xf2'), ('d', u'1469-1527')): 7}
 
 def test_king_asoka():
@@ -779,7 +780,7 @@ def test_king_asoka():
         ['00\x1faAs\xcc\x81oka,\x1fcKing of Magadha,\x1fdfl. 259 B.C.\x1e', '30\x1faMaurya family.\x1e']
     ]
     a, b = read_people(lines)
-    print a
+    print(a)
     # (('a', u'Asoka'), ('c', u'King of Magadha'), ('d', u'fl. 259 B.C..')): 1
     assert a == {
         (('a', u'A\u015boka'), ('c', u'King of Magadha'), ('d', u'fl. 259 B.C.')): 7,

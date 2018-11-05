@@ -476,7 +476,7 @@ class borrow_receive_notification(delegate.page):
             notify_obj = acs4.el_to_o(notify_xml)
 
             output = simplejson.dumps({'success':True})
-        except Exception, e:
+        except Exception as e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 
@@ -554,7 +554,7 @@ def get_bookreader_host():
 def get_all_store_values(**query):
     """Get all values by paging through all results. Note: adds store_key with the row id."""
     query = copy.deepcopy(query)
-    if not query.has_key('limit'):
+    if 'limit' not in query:
         query['limit'] = 500
     query['offset'] = 0
     values = []

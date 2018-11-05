@@ -1,4 +1,5 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 import random
 import web
 from web_marc_db import search_query, show_locs
@@ -13,7 +14,7 @@ isbn_count = 9093242
 
 def random_isbn():
     f = open(isbn_file)
-    while 1:
+    while True:
         f.seek(random.randrange(isbn_count) * 11)
         isbn = f.read(10)
         break
@@ -25,7 +26,7 @@ def random_isbn():
 
 def search(field, value):
     locs = search_query(field, value)
-    print locs
+    print(locs)
     if locs:
         return show_locs(locs, value if field == 'isbn' else None)
     else:

@@ -16,6 +16,8 @@
     
 
     // validate publish-date to make sure the date is not in future
+    /* eslint-disable no-unused-vars */
+    // used in templates/books/add.html
     jQuery.validator.addMethod("publish-date", function(value, element) {
             // if it doesn't have even three digits then it can't be a future date
             var tokens = /(\d{3,})/.exec(value);
@@ -25,6 +27,7 @@
         },
         "Are you sure that's the published date?"
     );
+    /* eslint-enable no-unused-vars */
 
     $.validator.messages.required = "";
     // _ is defined in openlibrary\plugins\openlibrary\js\i18n.js

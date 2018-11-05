@@ -48,7 +48,7 @@ git clone git@github.com:YOURACCOUNT/openlibrary.git
 
 ##### For Windows Users Only
 
-1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing below command:
+1. Before proceeding further, kindly make sure to set the line endings to type `input` by executing the below command:
 
 ```bash
 # Configure Git on Windows to properly handle line endings so Git will convert CRLF to LF on commit

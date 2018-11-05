@@ -1,4 +1,5 @@
 from __future__ import with_statement
+from __future__ import print_function
 import web
 import stopword
 import pdb
@@ -63,7 +64,7 @@ if solr_fulltext_address:
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
-    assert type(ocat)==list, (ocaid,ocat)
+    assert isinstance(ocat, list), (ocaid,ocat)
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
@@ -116,11 +117,11 @@ class fullsearch(delegate.page):
                         out.append((oln_thing, ocaid,
                                     collapse_groups(solr_pagetext.pagetext_search
                                                     (ocaid, q))))
-                except IndexError, e:
-                    print >> web.debug, ('fullsearch index error', e, e.args)
+                except IndexError as e:
+                    print(('fullsearch index error', e, e.args), file=web.debug)
                     pass
             timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
-        except IOError, e:
+        except IOError as e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
@@ -194,9 +195,9 @@ class search(delegate.page):
                  ):
             v = clean_punctuation(i.get(formfield))
             if v:
-                if type(searchfield) == str:
+                if isinstance(searchfield, str):
                     q0.append('%s:(%s)'% (searchfield, v))
-                elif type(searchfield) == list:
+                elif isinstance(searchfield, list):
                     q0.append('(%s)'% \
                               ' OR '.join(('%s:(%s)'%(s,v))
                                           for s in searchfield))
@@ -276,7 +277,7 @@ class search(delegate.page):
                 # temporarily disable computing works, per
                 # launchpad bug # 325843
                 results, works_groups = collect_works(results)
-                print >> web.debug, ('works', results, works_groups)
+                print(('works', results, works_groups), file=web.debug)
 
             timings.update("done finding works, (%d,%d) results"%
                            (len(results), len(works_groups)))
@@ -286,7 +287,7 @@ class search(delegate.page):
             #                    (len(results),results),
             #                    (len(works_groups),works_groups))
 
-        except (solr_client.SolrError, Exception), e:
+        except (solr_client.SolrError, Exception) as e:
             import traceback
             errortext = 'Sorry, there was an error in your search.'
             if i.get('safe')=='false':
@@ -331,7 +332,7 @@ def munch_qresults_stored(qresults):
         # print >> web.debug, ('mk_author db retrieval', dba)
         return d
     def mk_book(d):
-        assert type(d)==dict
+        assert isinstance(d, dict)
         d['key'] = d['identifier']
         for x in ['title_prefix', 'ocaid','publish_date',
                   'publishers', 'physical_format']:
@@ -381,7 +382,7 @@ def exact_facet_count(query, selected_facets, facet_name, facet_value):
                                facet_name, facet_value)
     t1 = time.time()-t0
     qfn = (query, facet_name, facet_value)
-    print >> web.debug, ('*** efc', qfn, r, t1)
+    print(('*** efc', qfn, r, t1), file=web.debug)
     return r
 
 def get_books(keys):
@@ -446,8 +447,8 @@ class search_api:
     def GET(self):
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
-                if type(callback) != str or \
-                       not re.match('[a-z][a-z0-9\.]*$', callback, re.I):
+                if (not isinstance(callback, str) or
+                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 
@@ -479,7 +480,7 @@ class search_api:
 
         dval = dict()
 
-        if type(query) == list:
+        if isinstance(query, list):
             qval = list(self._lookup(i, q, offset, rows) for q in query)
             dval["result_list"] = qval
         else:

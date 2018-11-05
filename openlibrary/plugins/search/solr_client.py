@@ -101,7 +101,7 @@ class Solr_result(object):
             w = result_xml.encode('utf-8')
             def tx(a): return (type(a), len(a))
             et.parse(StringIO(w))
-        except SyntaxError, e:
+        except SyntaxError as e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_xml, traceback.format_list(ptb))
         range_info = et.find('info').find('range_info')
@@ -129,7 +129,7 @@ class SR2(Solr_result):
             self.contained_in_this_set = len(r['docs'])
             self.result_list = list(d['identifier'] for d in r['docs'])
             self.raw_results = r['docs']
-        except Exception, e:
+        except Exception as e:
             ptb = traceback.extract_stack()
             raise SolrError, (e, result_json, traceback.format_list(ptb))
 
@@ -211,7 +211,7 @@ class Solr_client(object):
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
         # return list of document id's
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s&wt=json&fl=*'% \
@@ -237,7 +237,7 @@ class Solr_client(object):
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
-        except SyntaxError, e:
+        except SyntaxError as e:
             raise SolrError, e
 
         total_nbr_text = e.find('info/range_info/total_nbr').text
@@ -289,7 +289,7 @@ class Solr_client(object):
         XML = ElementTree()
         try:
             XML.parse(StringIO(page_hits))
-        except SyntaxError, e:
+        except SyntaxError as e:
             raise SolrError, e
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
@@ -333,7 +333,7 @@ class Solr_client(object):
         try:
             # print >> web.debug, '*** parsing result_set=', result_set
             h1 = simplejson.loads(result_set)
-        except SyntaxError, e:   # we got a solr stack dump
+        except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
             raise SolrError, (e, result_set)
 
@@ -345,7 +345,7 @@ class Solr_client(object):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml or json result that comes from solr
         # need to refactor this class to combine some of these methods @@
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, **params))
@@ -363,7 +363,7 @@ class Solr_client(object):
         # search query into an advanced (i.e. expanded) query.  "Basic" searches
         # can actually use complicated syntax that the PHP script transforms
         # by adding search weights, range expansions, and so forth.
-        assert type(query)==str         # not sure what to do with unicode @@
+        assert isinstance(query, str)         # not sure what to do with unicode @@
 
         bquery = self.basic_query(query)
         # print >> web.debug, '* basic search: query=(%r)'% bquery

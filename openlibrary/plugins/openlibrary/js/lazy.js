@@ -1,4 +1,9 @@
-// Add your third-party javascripts here
+/* eslint-disable */
+// third party library (legacy)
+// This file exists for historic reasons. It should be ported to the vendor bundle in
+// static/js/vendor.jsh @ the earliest opportunity.
+// Do not add any thing to this file, only remove things.
+// We are no longer "lazy" in open library :)
 
 /**
  * jQuery.ScrollTo - Easy element scrolling using jQuery.
@@ -532,8 +537,8 @@ i++){oSettings.aoPreSearchCols[i]={sSearch:oData.aaSearchCols[i][0],bEscapeRegex
 }}if(typeof oData.abVisCols!="undefined"){oInit.saved_aoColumns=[];for(i=0;i<oData.abVisCols.length;
 i++){oInit.saved_aoColumns[i]={};oInit.saved_aoColumns[i].bVisible=oData.abVisCols[i]
 }}}}function _fnCreateCookie(sName,sValue,iSecs){var date=new Date();date.setTime(date.getTime()+(iSecs*1000));
-sName+="_"+window.location.pathname.replace(/[\/:]/g,"").toLowerCase();document.cookie=sName+"="+encodeURIComponent(sValue)+"; expires="+date.toGMTString()+"; path=/"
-}function _fnReadCookie(sName){var sNameEQ=sName+"_"+window.location.pathname.replace(/[\/:]/g,"").toLowerCase()+"=";
+sName+="_"+window.location.pathname.replace(/[/:]/g,"").toLowerCase();document.cookie=sName+"="+encodeURIComponent(sValue)+"; expires="+date.toGMTString()+"; path=/"
+}function _fnReadCookie(sName){var sNameEQ=sName+"_"+window.location.pathname.replace(/[/:]/g,"").toLowerCase()+"=";
 var sCookieContents=document.cookie.split(";");for(var i=0;i<sCookieContents.length;
 i++){var c=sCookieContents[i];while(c.charAt(0)==" "){c=c.substring(1,c.length)}if(c.indexOf(sNameEQ)===0){return decodeURIComponent(c.substring(sNameEQ.length,c.length))
 }}return null}function _fnGetUniqueThs(nThead){var nTrs=nThead.getElementsByTagName("tr");
@@ -732,7 +737,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
@@ -852,7 +857,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
@@ -1077,3 +1082,4 @@ _skipToNextNode();lastNodeType=0;}else{_skipToNextNode();lastNodeType=currentEl.
 return cols;}jQuery.fn.columnize=function(settings){settings=jQuery.extend({column:"column",continued:"continued",columns:2,balance:true,height:false,minHeight:false,cache:true,dontsplit:""},settings);this.each(function(){var jthis=jQuery(this);var id=this.id;if(!id){id="jcols_"+uniqueId;this.id=id;uniqueId++;}
 if(!cloneEls[this.id]||!settings.cache){cloneEls[this.id]=jthis.clone(true);}
 var cols=_layoutElement(this,settings,settings.balance);if(!cols){jthis.append(cloneEls[this.id].children().clone(true));}});return this;}})();
+/* eslint-enable no-unused-vars */

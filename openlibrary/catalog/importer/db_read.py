@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import simplejson as json
 from urllib import urlopen, urlencode
@@ -20,10 +21,10 @@ def read_from_url(url):
             data = urlopen(url).read()
             if data:
                 break
-            print 'data == None'
+            print('data == None')
         except IOError:
-            print 'IOError'
-            print url
+            print('IOError')
+            print(url)
         sleep(10)
     if not data:
         return None
@@ -31,7 +32,7 @@ def read_from_url(url):
     if ret['status'] == 'fail' and ret['message'].startswith('Not Found: '):
         return None
     if ret['status'] != 'ok':
-        print ret
+        print(ret)
     assert ret['status'] == 'ok'
     return ret['result']
 

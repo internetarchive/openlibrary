@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
 from ftplib import FTP
@@ -18,30 +19,30 @@ base_url = 'http://openlibrary.org'
 import_api_url = base_url + '/api/import'
 
 def put_file(con, ia, filename, data):
-    print 'uploading %s' % filename
+    print('uploading %s' % filename)
     headers = {
         'authorization': "LOW " + c['s3_key'] + ':' + c['s3_secret'],
 #        'x-archive-queue-derive': 0,
     }
     url = 'http://s3.us.archive.org/' + ia + '/' + filename
-    print url
+    print(url)
     for attempt in range(5):
         con.request('PUT', url, data, headers)
         try:
             res = con.getresponse()
         except httplib.BadStatusLine as bad:
-            print 'bad status line:', bad.line
+            print('bad status line:', bad.line)
             raise
         body = res.read()
         if '<Error>' not in body:
             return
-        print 'error'
-        print body
+        print('error')
+        print(body)
         if no_bucket_error not in body and internal_error not in body:
             sys.exit(0)
-        print 'retry'
+        print('retry')
         sleep(5)
-    print 'too many failed attempts'
+    print('too many failed attempts')
 
 
 url = 'http://archive.org/download/marc_loc_updates/marc_loc_updates_files.xml'
@@ -55,7 +56,7 @@ for attempt in range(attempts):
     except:
         if attempt == attempts-1:
             raise
-        print 'error on attempt %d, retrying in %s seconds' % (attempt, wait)
+        print('error on attempt %d, retrying in %s seconds' % (attempt, wait))
         sleep(wait)
 
 existing = set(f.attrib['name'] for f in root)
@@ -82,7 +83,7 @@ ftp.cwd('/emds/books/all')
 ftp.retrlines('NLST', print_line)
 
 if to_upload:
-    print welcome
+    print(welcome)
 else:
     ftp.close()
     sys.exit(0)
@@ -101,11 +102,11 @@ def login(h1, password):
     body = json.dumps({'username': 'LCImportBot', 'password': password})
     headers = {'Content-Type': 'application/json'}
     h1.request('POST', base_url + '/account/login', body, headers)
-    print base_url + '/account/login'
+    print(base_url + '/account/login')
     res = h1.getresponse()
 
-    print res.read()
-    print 'status:', res.status
+    print(res.read())
+    print('status:', res.status)
     assert res.status == 200
     cookies = res.getheader('set-cookie').split(',')
     cookie =  ';'.join([c.split(';')[0] for c in cookies])
@@ -122,9 +123,9 @@ h1.close()
 item_id = 'marc_loc_updates'
 for f in to_upload:
     data = ''
-    print 'downloading', f
+    print('downloading', f)
     ftp.retrbinary('RETR ' + f, read_block)
-    print 'done'
+    print('done')
     con = httplib.HTTPConnection('s3.us.archive.org')
     con.connect()
     put_file(con, item_id, f, data)
@@ -150,14 +151,14 @@ for f in to_upload:
                 try:
                     reply = json.loads(body)
                 except ValueError:
-                    print('not JSON:', repr(body))
+                    print(('not JSON:', repr(body)))
                     raise BadImport
             assert res.status == 200
             print(reply)
             assert reply['success']
             h1.close()
         except BadImport:
-            print >> bad, loc
+            print(loc, file=bad)
             bad.flush()
 
 ftp.close()

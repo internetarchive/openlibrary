@@ -1,3 +1,4 @@
+from __future__ import print_function
 import urllib2
 import xml.etree.ElementTree as et
 from MARC21 import MARC21Record
@@ -8,8 +9,8 @@ from time import sleep
 archive_url = "http://archive.org/download/"
 
 def urlopen_keep_trying(url):
-    while 1:
-        print url
+    while True:
+        print(url)
         try:
             return urllib2.urlopen(url)
         except urllib2.URLError:
@@ -43,7 +44,7 @@ def bad_data(i):
 def read_marc_file(part, f, pos = 0):
     buf = None
     loc = None
-    while 1:
+    while True:
         if buf:
             length = buf[:5]
             int_length = int(length)
@@ -135,7 +136,7 @@ def check():
             not_interesting += 1
             continue
         if rec == 'bad':
-            print 'bad:', loc
+            print('bad:', loc)
             bad_record.append(loc)
             continue
     #    if str(rec.leader)[6:8] != 'am':
@@ -143,7 +144,7 @@ def check():
     #        continue
         i+=1
         if i % 1000 == 0:
-            print i, loc
+            print(i, loc)
 
 #check()
 
@@ -152,9 +153,9 @@ for archive_id in archive:
     total = 0
     bad_record = []
     not_interesting = 0
-    print archive_id
+    print(archive_id)
     for part in files(archive_id):
-        print part
+        print(part)
         f = urlopen_keep_trying(archive_url + part)
         for loc, rec in read_marc_file(part, f):
             total+=1
@@ -162,12 +163,12 @@ for archive_id in archive:
                 not_interesting += 1
                 continue
             if rec == 'bad':
-                print 'bad:', loc
+                print('bad:', loc)
                 bad_record.append(loc)
                 continue
             i+=1
             if i % 1000 == 0:
-                print i, loc
+                print(i, loc)
     for loc in bad_record:
-        print loc
-    print archive_id, total, i, not_interesting, len(bad_record)
+        print(loc)
+    print(archive_id, total, i, not_interesting, len(bad_record))

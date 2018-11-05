@@ -97,8 +97,9 @@ reindex-solr:
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
-	# TODO: Add --select=F821 once the other issues are fixed
 	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor/*  --select=E901,E999,F822,F823 --show-source --statistics
+	# TODO: Add --select=F821 below into the line above as soon as the Undefined Name issues have been fixed
+	$(PYTHON) -m flake8 . --exit-zero --count --exclude=scripts/20*,vendor/*  --select=F821 --show-source --statistics
 ifndef CONTINUOUS_INTEGRATION
 	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
 	$(PYTHON) -m flake8 . --count --exclude=scripts/20*,vendor* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
