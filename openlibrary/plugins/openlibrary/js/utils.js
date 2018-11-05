@@ -64,7 +64,6 @@ $.log = function() {
 function closePopup() {
     parent.jQuery.fn.colorbox.close();
 }
-=======
 /* eslint-enable no-unused-vars */
 
 /* eslint-disable no-unused-vars */
