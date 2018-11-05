@@ -31,6 +31,9 @@ import utils
 import borrow
 
 
+from six.moves import range
+
+
 logger = logging.getLogger("openlibrary.account")
 
 USERNAME_RETRIES = 3
@@ -715,7 +718,7 @@ class ReadingLog(object):
         ocaids = [i['identifier'] for i in waitlists]
         edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
         editions = web.ctx.site.get_many(edition_keys)
-        for i in xrange(len(editions)):
+        for i in range(len(editions)):
             # insert the waitlist_entry corresponding to this edition
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
