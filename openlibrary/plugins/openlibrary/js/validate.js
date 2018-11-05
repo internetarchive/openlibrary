@@ -1,5 +1,5 @@
 /**
- * jQuery plugin to add form validations. 
+ * jQuery plugin to add form validations.
  *
  * To enable, add class="validate" to the form and add required validations in class to the input elements.
  * Available validations are: required, email, and publish-date.
@@ -16,15 +16,18 @@
     
 
     // validate publish-date to make sure the date is not in future
-    jQuery.validator.addMethod("publish-date", function(value, element) { 
-            // if it doesn't have even three digits then it can't be a future date      
+    /* eslint-disable no-unused-vars */
+    // used in templates/books/add.html
+    jQuery.validator.addMethod("publish-date", function(value, element) {
+            // if it doesn't have even three digits then it can't be a future date
             var tokens = /(\d{3,})/.exec(value);
 
             var year = new Date().getFullYear();
             return tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
-        }, 
+        },
         "Are you sure that's the published date?"
     );
+    /* eslint-enable no-unused-vars */
 
     $.validator.messages.required = "";
     $.validator.messages.email = _("Are you sure that's an email address?");

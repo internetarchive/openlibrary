@@ -4,6 +4,10 @@
   "globals": {
   },
   "rules": {
-    "no-extra-semi": "warn"
+    "no-extra-semi": "error",
+    "eol-last": ["error", "always"],
+    "no-mixed-spaces-and-tabs": "error",
+    "no-useless-escape": "error",
+    "no-unused-vars": "error"
   }
 }

@@ -18,6 +18,7 @@ solr document:
 	A dictionary with elements from Solr schema of Open Library. These
 	documents can be imported to solr after converting to xml.
 """
+from __future__ import print_function
 import sys
 import json
 import gzip
@@ -53,7 +54,7 @@ def read_xworks_dump(filename):
 
 def write_solr_dump(docs):
 	for doc in docs:
-		print json.dumps(doc)
+		print(json.dumps(doc))
 
 def main(xworks_filename):
 	solr_docs = (doc for xwork in read_xworks_dump(xworks_filename)

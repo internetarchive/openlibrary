@@ -51,7 +51,7 @@ class OpenLibrary:
             req = urllib2.Request(url, data, headers)
             req.get_method = lambda: method
             return urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -95,7 +95,7 @@ class OpenLibrary:
         try:
             data = simplejson.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:

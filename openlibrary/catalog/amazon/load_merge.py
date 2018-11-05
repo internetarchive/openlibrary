@@ -1,3 +1,4 @@
+from __future__ import print_function
 from time import time
 from pprint import pprint
 from catalog.marc.MARC21 import MARC21Record
@@ -8,13 +9,13 @@ entity_fields = ('name', 'birth_date', 'death_date', 'date')
 
 def find_entity(site, entity):
     entity = dict((k, entity[k]) for k in entity_fields if k in entity)
-    print entity
+    print(entity)
     things = site.things(entity)
     if not things:
-        print "person not found"
+        print("person not found")
         return
 
-    print "found", len(things), "match"
+    print("found", len(things), "match")
     for key in things:
         db_entity = site.withKey(key, lazy=False)._get_data()
         pprint(db_entity)
@@ -42,7 +43,7 @@ def get_from_archive(locator):
 def contrib(r):
     contribs = []
     for f in r.get_fields('700'):
-        print f.subfield_sequence
+        print(f.subfield_sequence)
         contrib = {}
         if 'a' not in f.contents and 'c' not in f.contents:
             continue # should at least be a name or title
@@ -67,7 +68,7 @@ def contrib(r):
         contribs.append(contrib)
 
     for f in r.get_fields('710'):
-        print f.subfield_sequence
+        print(f.subfield_sequence)
         contrib = {
             'entity_type': 'org',
             'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'ab'])
@@ -76,7 +77,7 @@ def contrib(r):
         contribs.append(contrib)
 
     for f in r.get_fields('711'):
-        print f.subfield_sequence
+        print(f.subfield_sequence)
         contrib = {
             'entity_type': 'event',
             'name': " ".join([j.strip(' /,;:') for i, j in f.subfield_sequence if i in 'acdn'])
@@ -104,34 +105,34 @@ def load(site, filename):
         if author_count < 2:
             continue
 
-        print lc_src
-        print 'amazon:', amazon['authors']
+        print(lc_src)
+        print('amazon:', amazon['authors'])
 
 
         try:
-            print 'LC authors:', [x.name for x in thing.authors]
+            print('LC authors:', [x.name for x in thing.authors])
         except AttributeError:
-            print 'no authors in LC'
+            print('no authors in LC')
         lc_contrib = []
         try:
             lc_contrib = thing.contributions
-            print 'LC contributions:', lc_contrib
+            print('LC contributions:', lc_contrib)
         except AttributeError:
-            print 'no contributions in LC'
+            print('no contributions in LC')
         if lc_contrib:
             r = get_from_archive(lc_src)
             contrib_detail = contrib(r)
             assert len(lc_contrib) == len(contrib_detail)
             for c, detail in zip(lc_contrib, contrib_detail):
-                print c,
+                print(c, end=' ')
                 find_entity(site, detail)
-        print
+        print()
         continue
-        print "LC"
+        print("LC")
         pprint (thing._get_data())
-        print "Amazon"
+        print("Amazon")
         pprint (amazon)
-        print
+        print()
     #    for x in web.query("select thing_id from version where machine_comment=" + web.sqlquote(lc)):
     #        t = site.withID(x.thing_id)
     #        print t.title

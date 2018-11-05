@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from names import match_name
 from normalize import normalize
@@ -17,7 +18,7 @@ def amazon_year(date):
         assert m
         year = m.group(1)
     except:
-        print date
+        print(date)
         raise
     return year
 
@@ -29,7 +30,7 @@ def build_amazon(edition, authors):
         try:
             amazon['publish_date'] = amazon_year(edition['publish_date'])
         except:
-            print edition['isbn_10'], edition['publish_date']
+            print(edition['isbn_10'], edition['publish_date'])
             raise
     if authors:
         amazon['authors'] = authors
@@ -91,7 +92,7 @@ def compare_date(e1, e2):
             return ('publish_date', '+/-2 years', -25)
         else:
             return ('publish_date', 'mismatch', -250)
-    except ValueError, TypeError:
+    except ValueError as TypeError:
         return ('publish_date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
@@ -150,7 +151,7 @@ def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in in1, in2]
+    s1, s2 = [i.split() for i in (in1, in2)]
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
@@ -310,13 +311,13 @@ def attempt_merge(amazon, marc, threshold, debug = False):
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
     if debug:
-        print total, l1
+        print(total, l1)
     if total >= threshold:
         return True
     l2 = level2_merge(amazon, marc)
     total = sum(i[2] for i in l2)
     if debug:
-        print total, l2
+        print(total, l2)
     return total >= threshold
 
 def test_merge():

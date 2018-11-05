@@ -1,3 +1,4 @@
+from __future__ import print_function
 import MySQLdb
 from catalog.read_rc import read_rc
 import catalog.marc.fast_parse as fast_parse
@@ -52,7 +53,7 @@ def write_edition(loc, edition):
     q['key'] = key
     ret = infogami.write(q, comment='initial import', machine_comment=loc)
     assert ret['status'] == 'ok'
-    print ret
+    print(ret)
     pool.update(key, q)
 
 def load():
@@ -71,13 +72,13 @@ def load():
             rec_per_sec_total = rec_no / t1
             remaining = total - rec_no
             sec = remaining / rec_per_sec_total
-            print "%8d current: %9.3f overall: %9.3f" % (rec_no, rec_per_sec, rec_per_sec_total),
+            print("%8d current: %9.3f overall: %9.3f" % (rec_no, rec_per_sec, rec_per_sec_total), end=' ')
             hours = sec / 3600
-            print "%6.3f hours" % hours
+            print("%6.3f hours" % hours)
 
-        print ia
+        print(ia)
         if get_things({'type': '/type/edition', 'ocaid': ia}):
-            print 'already loaded'
+            print('already loaded')
             continue
         try:
             loc, rec = get_ia(ia)
@@ -87,21 +88,21 @@ def load():
             continue
         if loc is None:
             continue
-        print loc, rec
+        print(loc, rec)
 
         if not loc.endswith('.xml'):
-            print "not XML"
+            print("not XML")
             continue
         if 'full_title' not in rec:
-            print "full_title missing"
+            print("full_title missing")
             continue
         index_fields = make_index_fields(rec)
         if not index_fields:
-            print "no index_fields"
+            print("no index_fields")
             continue
 
         edition_pool = pool.build(index_fields)
-        print edition_pool
+        print(edition_pool)
 
         if not edition_pool:
             yield loc, ia
@@ -131,7 +132,7 @@ rec_no = 0
 total = 100000
 
 for loc, ia in load():
-    print "load", loc, ia
+    print("load", loc, ia)
     url = archive_url + loc
     f = urlopen_keep_trying(url)
     try:
@@ -148,4 +149,4 @@ for loc, ia in load():
     write_edition("ia:" + ia, edition)
 
 
-print "finished"
+print("finished")

@@ -2,6 +2,7 @@
 Open Library Plugin.
 """
 from __future__ import absolute_import
+from __future__ import print_function
 
 import web
 import simplejson
@@ -26,7 +27,7 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
-from openlibrary.catalog.add_book import create_edition_from_amazon_metadata
+from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
@@ -149,7 +150,7 @@ def sampledump():
             visit(ref)
         visited.add(key)
 
-        print simplejson.dumps(d)
+        print(simplejson.dumps(d))
 
     keys = [
         '/scan_record',
@@ -171,7 +172,7 @@ def sampleload(filename="sampledump.txt.gz"):
         f = open(filename)
 
     queries = [simplejson.loads(line) for  line in f]
-    print web.ctx.site.save_many(queries)
+    print(web.ctx.site.save_many(queries))
 
 
 class routes(delegate.page):
@@ -490,7 +491,7 @@ class _yaml(delegate.mode):
         data = dict(key=key, revision=v)
         try:
             d = api.request('/get', data=data)
-        except client.ClientException, e:
+        except client.ClientException as e:
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
@@ -522,7 +523,7 @@ class _yaml_edit(_yaml):
 
         try:
             d = self.get_data(key)
-        except web.HTTPError, e:
+        except web.HTTPError as e:
             if web.ctx.status.lower() == "404 not found":
                 d = {"key": key}
             else:
@@ -541,7 +542,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (client.ClientException, ValidationException), e:
+            except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
             raise web.seeother(key + '.yml')
@@ -627,7 +628,7 @@ class new:
             h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
-        except Exception, e:
+        except Exception as e:
             raise BadRequest(str(e))
 
         self.verify_types(query)
@@ -637,7 +638,7 @@ class new:
             if not isinstance(query, list):
                 query = [query]
             web.ctx.site.save_many(query, comment=comment, action=action)
-        except client.ClientException, e:
+        except client.ClientException as e:
             raise BadRequest(str(e))
 
         #graphite/statsd tracking of bot edits
@@ -737,7 +738,7 @@ def save_error():
     f.write(error)
     f.close()
 
-    print >> web.debug, 'error saved to', path
+    print('error saved to', path, file=web.debug)
 
     return name
 

@@ -1,4 +1,9 @@
-// Add your third-party javascripts here
+/* eslint-disable */
+// third party library (legacy)
+// This file exists for historic reasons. It should be ported to the vendor bundle in
+// static/js/vendor.jsh @ the earliest opportunity.
+// Do not add any thing to this file, only remove things.
+// We are no longer "lazy" in open library :)
 
 /**
  * jQuery.ScrollTo - Easy element scrolling using jQuery.
@@ -16,7 +21,7 @@
 /**
 * hoverIntent r5 // 2007.03.27 // jQuery 1.1.2+
 * <http://cherne.net/brian/resources/jquery.hoverIntent.html>
-* 
+*
 * @param  f  onMouseOver function || An object with configuration options
 * @param  g  onMouseOut function  || Nothing (use configuration options object)
 * @author    Brian Cherne <brian@cherne.net>
@@ -28,14 +33,14 @@
  * Version:     1.6.2
  * Author:      Allan Jardine (www.sprymedia.co.uk)
  * Info:        www.datatables.net
- * 
+ *
  * Copyright 2008-2010 Allan Jardine, all rights reserved.
  *
  * This source file is free software, under either the GPL v2 license or a
  * BSD style license, as supplied with this software.
- * 
- * This source file is distributed in the hope that it will be useful, but 
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY 
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
  * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
  */
 (function($){$.fn.dataTableSettings=[];var _aoSettings=$.fn.dataTableSettings;$.fn.dataTableExt={};
@@ -532,8 +537,8 @@ i++){oSettings.aoPreSearchCols[i]={sSearch:oData.aaSearchCols[i][0],bEscapeRegex
 }}if(typeof oData.abVisCols!="undefined"){oInit.saved_aoColumns=[];for(i=0;i<oData.abVisCols.length;
 i++){oInit.saved_aoColumns[i]={};oInit.saved_aoColumns[i].bVisible=oData.abVisCols[i]
 }}}}function _fnCreateCookie(sName,sValue,iSecs){var date=new Date();date.setTime(date.getTime()+(iSecs*1000));
-sName+="_"+window.location.pathname.replace(/[\/:]/g,"").toLowerCase();document.cookie=sName+"="+encodeURIComponent(sValue)+"; expires="+date.toGMTString()+"; path=/"
-}function _fnReadCookie(sName){var sNameEQ=sName+"_"+window.location.pathname.replace(/[\/:]/g,"").toLowerCase()+"=";
+sName+="_"+window.location.pathname.replace(/[/:]/g,"").toLowerCase();document.cookie=sName+"="+encodeURIComponent(sValue)+"; expires="+date.toGMTString()+"; path=/"
+}function _fnReadCookie(sName){var sNameEQ=sName+"_"+window.location.pathname.replace(/[/:]/g,"").toLowerCase()+"=";
 var sCookieContents=document.cookie.split(";");for(var i=0;i<sCookieContents.length;
 i++){var c=sCookieContents[i];while(c.charAt(0)==" "){c=c.substring(1,c.length)}if(c.indexOf(sNameEQ)===0){return decodeURIComponent(c.substring(sNameEQ.length,c.length))
 }}return null}function _fnGetUniqueThs(nThead){var nTrs=nThead.getElementsByTagName("tr");
@@ -732,7 +737,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
@@ -852,7 +857,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Correct for underrun */
 			if ( oSettings.iPagingEnd < 0 )
 			{
-			  oSettings.iPagingEnd = 0;
+				oSettings.iPagingEnd = 0;
 			}
 			
 			$.fn.dataTableExt.oPagination.fnRunAnimation( oSettings, fnCallbackDraw );
@@ -877,7 +882,7 @@ $.fn.dataTableExt.oPagination.full_numbers = {
 			/* Update the 'premanent botton's classes */
 			anButtons = an[i].getElementsByTagName('span');
 			anStatic = [
-				anButtons[0], anButtons[1], 
+				anButtons[0], anButtons[1],
 				anButtons[anButtons.length-2], anButtons[anButtons.length-1]
 			];
 			$(anStatic).removeClass( oClasses.sPageButton+" "+oClasses.sPageButtonActive+" "+oClasses.sPageButtonStaticDisabled );
@@ -947,7 +952,7 @@ jQuery.fn.removeHighlight = function() {
 //jTruncate
 (function($){$.fn.jTruncate=function(h){var i={length:300,minTrail:20,moreText:"more",lessText:"less",ellipsisText:"...",moreAni:"",lessAni:""};var h=$.extend(i,h);return this.each(function(){obj=$(this);var a=obj.html();if(a.length>h.length+h.minTrail){var b=a.indexOf(' ',h.length);if(b!=-1){var b=a.indexOf(' ',h.length);var c=a.substring(0,b);var d=a.substring(b,a.length-1);obj.html(c+'<span class="truncate_ellipsis">'+h.ellipsisText+'</span>'+'<span class="truncate_more">'+d+'</span>');obj.find('.truncate_more').css("display","none");obj.append('<div class="clearboth">'+'<a href="#" class="truncate_more_link">'+h.moreText+'</a>'+'</div>');var e=$('.truncate_more_link',obj);var f=$('.truncate_more',obj);var g=$('.truncate_ellipsis',obj);e.click(function(){if(e.text()==h.moreText){f.show(h.moreAni);e.text(h.lessText);g.css("display","none")}else{f.hide(h.lessAni);e.text(h.moreText);g.css("display","inline")}return false})}}})}})(jQuery);
 
-//admin.js 
+//admin.js
 function plot_tooltip_graph(node, data, tooltip_message) {
     for (var i = 0; i < data.length; ++i)
 	data[i][0] += 60 * 60 * 1000;
@@ -1074,3 +1079,4 @@ _skipToNextNode();lastNodeType=0;}else{_skipToNextNode();lastNodeType=currentEl.
 return cols;};jQuery.fn.columnize=function(settings){settings=jQuery.extend({column:"column",continued:"continued",columns:2,balance:true,height:false,minHeight:false,cache:true,dontsplit:""},settings);this.each(function(){var jthis=jQuery(this);var id=this.id;if(!id){id="jcols_"+uniqueId;this.id=id;uniqueId++;}
 if(!cloneEls[this.id]||!settings.cache){cloneEls[this.id]=jthis.clone(true);}
 var cols=_layoutElement(this,settings,settings.balance);if(!cols){jthis.append(cloneEls[this.id].children().clone(true));}});return this;}})();
+/* eslint-enable no-unused-vars */

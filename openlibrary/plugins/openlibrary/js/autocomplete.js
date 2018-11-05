@@ -1,5 +1,8 @@
 // jquery plugins to provide author and language autocompletes.
 
+// We are blindly concatenating JS. The ; protects us in case the concatenation
+// goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
+// eslint-disable-next-line no-extra-semi
 ;(function($) {
     /**
      * Some extra options for when creating an autocomplete input field

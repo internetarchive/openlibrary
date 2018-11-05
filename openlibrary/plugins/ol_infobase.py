@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase.
 """
+from __future__ import print_function
 import os
 import datetime
 import urllib
@@ -73,8 +74,8 @@ def setup_logging():
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
         logger.info("logging initialized")
         logger.debug("debug")
-    except Exception, e:
-        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+    except Exception as e:
+        print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 
 class reload_config:
@@ -94,7 +95,7 @@ class _inspect:
         try:
             import _inspect
             return _inspect.inspect()
-        except Exception, e:
+        except Exception as e:
             return traceback.format_exc()
 
 def get_db():
@@ -289,9 +290,9 @@ def http_notify(site, old, new):
     for url in config.http_listeners:
         try:
             response = urllib.urlopen(url, json).read()
-            print >> web.debug, "http_notify", repr(url), repr(key), repr(response)
+            print("http_notify", repr(url), repr(key), repr(response), file=web.debug)
         except:
-            print >> web.debug, "failed to send http_notify", repr(url), repr(key)
+            print("failed to send http_notify", repr(url), repr(key), file=web.debug)
             import traceback
             traceback.print_exc()
 

@@ -3,6 +3,7 @@
 WARNING: This gets only the new books with revision=1.
 
 """
+from __future__ import print_function
 import web
 import time
 import sys
@@ -51,7 +52,7 @@ def books(fbooks, fauthors):
             t2 = time.time()
             dt = t2 - t1
             t1 = t2
-            print "%d: 10000 books read in %f time. %f things/sec" % (i, dt, 10000/dt)
+            print("%d: 10000 books read in %f time. %f things/sec" % (i, dt, 10000/dt))
 
 def main():
     web.config.db_parameters = dict(dbn='postgres', db='infobase_data4', host='pharosdb', user='anand', pw='')

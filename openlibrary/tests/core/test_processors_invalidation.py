@@ -33,7 +33,7 @@ class TestInvalidationProcessor:
             "key": "/templates/site.tmpl",
             "type": "/type/template"
         }
-        web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 01, 01))
+        web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 1, 1))
 
         hook = invalidation._InvalidationHook("/templates/site.tmpl", cookie_name="invalidation-cookie", expire_time=120)
         hook.on_new_version(web.ctx.site.get(doc['key']))

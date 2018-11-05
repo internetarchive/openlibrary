@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml.html import fromstring, tostring
 from openlibrary.catalog.utils.arc import read_arc, read_body
 import re, os, sys
@@ -15,7 +16,7 @@ bad_serp = 0
 out = open('/2/edward/amazon/crawled2', 'w')
 
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
-    print filename, total, srtitle, producttitle
+    print(filename, total, srtitle, producttitle)
     for url, wire in read_arc(arc_dir +'/' + filename):
         if url.startswith('file'):
             continue
@@ -41,7 +42,7 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
                     continue
         for e in doc.find_class('fastTrackList'):
             if e.text == 'This item is currently not available.':
-                print e.text
+                print(e.text)
 
         for pt in doc.find_class('productTitle'):
             assert pt.tag == 'div'
@@ -63,9 +64,9 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
             srtitle += 1
 
         if len(found) == 0:
-            print url
+            print(url)
             bad_serp += 1
             open('bad_serp%d.html' % bad_serp, 'w').write(body)
         for asin in found:
-            print >> out, asin
+            print(asin, file=out)
 out.close()

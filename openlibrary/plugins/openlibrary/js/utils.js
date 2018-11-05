@@ -1,5 +1,8 @@
+// We are blindly concatenating JS. The ; protects us in case the concatenation
+// goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
+// eslint-disable-next-line no-extra-semi
 ;(function($) {
-    
+
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {
     return this.each(function() {
@@ -56,25 +59,34 @@ $.log = function() {
 })(jQuery);
 
 // closes active popup
+/* eslint-disable no-unused-vars */
+// used in templates/covers/saved.html
 function closePopup() {
     parent.jQuery.fn.colorbox.close();
-};
+}
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in templates/admin/imports.html
 function truncate(text, limit) {
    if (text.length > limit)
        return text.substr(0, limit) + "...";
    else
        return text;
 }
+/* eslint-enable no-unused-vars */
 
+/* eslint-disable no-unused-vars */
+// used in templates/admin/ip/view.html
 function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
-    } 
+    }
     else {
         return false_value;
     }
 }
+/* eslint-enable no-unused-vars */
 
 // showPasswords implemented by Lance
 (function($) {

@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 """Script to migrate the OL database to latest schema.
 """
+from __future__ import print_function
 
 import itertools
 import os
@@ -23,24 +24,24 @@ class Upgrader:
     def upgrade(self, db):
         v = self.get_database_version(db)
 
-        print "current db version:", v
-        print "latest version:", LATEST_VERSION
+        print("current db version:", v)
+        print("latest version:", LATEST_VERSION)
 
         t = db.transaction()
         try:
             for i in range(v, LATEST_VERSION):
-                print "upgrading to", i+1
+                print("upgrading to", i+1)
                 f = getattr(self, "upgrade_%03d" % (i+1))
                 f(db)
         except:
-            print
-            print "**ERROR**: Failed to complete the upgrade. rolling back..."
-            print
+            print()
+            print("**ERROR**: Failed to complete the upgrade. rolling back...")
+            print()
             t.rollback()
             raise
         else:
             t.commit()
-            print "done"
+            print("done")
 
     def upgrade_011(self, db):
         """Add seq table."""
@@ -109,9 +110,9 @@ class Upgrader:
         return schema
 
 def usage():
-    print >> sys.stderr
-    print >> sys.stderr, "USAGE: %s dbname" % sys.argv[0]
-    print >> sys.stderr
+    print(file=sys.stderr)
+    print("USAGE: %s dbname" % sys.argv[0], file=sys.stderr)
+    print(file=sys.stderr)
 
 def main():
     if len(sys.argv) != 2:

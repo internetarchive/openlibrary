@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re, sys
 import xml.etree.ElementTree as et
 from pprint import pprint
@@ -42,7 +43,7 @@ def parse_file():
             continue
         if expect == 'start_catrecord':
             if line == '</CATRECORD>\r\n':
-                print "skipping duplicate CATRECORD"
+                print("skipping duplicate CATRECORD")
                 continue
             assert line == '<CATRECORD>\r\n'
             cur += line
