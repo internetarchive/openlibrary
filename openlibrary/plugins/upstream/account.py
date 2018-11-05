@@ -784,9 +784,9 @@ class account_my_books(delegate.page):
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
         works = readlog.get_works(key)
-        return render['account/books'](
-            works, key, reading_log=readlog.reading_log_counts,
-            lists=readlog.lists, user=user, public=is_public)
+        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        page.v2 = True
+        return page
 
 class account_loans(delegate.page):
     path = "/account/loans"
