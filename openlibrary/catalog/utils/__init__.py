@@ -3,6 +3,9 @@ import re, web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
+from six.moves import range
+
+
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -132,7 +135,7 @@ def combinations(items, n):
     if n==0:
         yield []
     else:
-        for i in xrange(len(items)):
+        for i in range(len(items)):
             for cc in combinations(items[i+1:], n-1):
                 yield [items[i]]+cc
 
