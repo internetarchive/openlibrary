@@ -5,7 +5,6 @@ import openlibrary.catalog.merge.normalize as merge
 
 from six.moves import range
 
-
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -122,22 +121,8 @@ def pick_first_date(dates):
 
     return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
-def test_date():
-    assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
-    assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
-    assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
-    assert pick_first_date(["4th/5th cent."]) == {'date': '4th/5th cent.'}
-
 def strip_accents(s):
     return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
-
-def combinations(items, n):
-    if n==0:
-        yield []
-    else:
-        for i in range(len(items)):
-            for cc in combinations(items[i+1:], n-1):
-                yield [items[i]]+cc
 
 re_drop = re.compile('[?,]')
 
@@ -177,43 +162,6 @@ def pick_best_author(authors):
     assert '?' not in authors[0]['name']
     return authors[0]
 
-def test_pick_best_name():
-    names = [u'Andre\u0301 Joa\u0303o Antonil', u'Andr\xe9 Jo\xe3o Antonil', 'Andre? Joa?o Antonil']
-    best = names[1]
-    assert pick_best_name(names) == best
-
-    names = [u'Antonio Carvalho da Costa', u'Anto\u0301nio Carvalho da Costa', u'Ant\xf3nio Carvalho da Costa']
-    best = names[2]
-    assert pick_best_name(names) == best
-
-def test_pick_best_author():
-    a1 = {u'name': u'Bretteville, Etienne Dubois abb\xe9 de', u'death_date': u'1688', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, Etienne Dubois', u'type': {u'key': u'/type/author'}, }
-    a2 = {u'name': u'Bretteville, \xc9tienne Dubois abb\xe9 de', u'death_date': u'1688', u'key': u'/a/OL4953701A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, \xc9tienne Dubois', u'type': {u'key': u'/type/author'}, }
-    assert pick_best_author([a1, a2])['key'] == a2['key']
-
-def test_match_with_bad_chars():
-    samples = [
-        [u'Machiavelli, Niccolo, 1469-1527', u'Machiavelli, Niccol\xf2 1469-1527'],
-        [u'Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
-        [u'A pesquisa ling\xfc\xedstica no Brasil',
-          'A pesquisa lingu?i?stica no Brasil'],
-        [u'S\xe3o Paulo', 'Sa?o Paulo'],
-        [u'Diccionario espa\xf1ol-ingl\xe9s de bienes ra\xedces',
-         u'Diccionario Espan\u0303ol-Ingle\u0301s de bienes rai\u0301lces'],
-        [u'Konfliktunterdru?ckung in O?sterreich seit 1918',
-         u'Konfliktunterdru\u0308ckung in O\u0308sterreich seit 1918',
-         u'Konfliktunterdr\xfcckung in \xd6sterreich seit 1918'],
-        [u'Soi\ufe20u\ufe21z khudozhnikov SSSR.',
-         u'Soi?u?z khudozhnikov SSSR.',
-         u'Soi\u0361uz khudozhnikov SSSR.'],
-        [u'Andrzej Weronski', u'Andrzej Wero\u0144ski', u'Andrzej Weron\u0301ski'],
-    ]
-    for l in samples:
-        for a, b in combinations(l, 2):
-#            print a, len(a)
-#            print b, len(b)
-            assert match_with_bad_chars(a, b)
-
 def tidy_isbn(input):
     output = []
     for i in input:
@@ -251,29 +199,6 @@ def strip_count(counts):
             bar.extend(j)
         ret[m] = bar
     return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
-
-def test_strip_count():
-    input = [
-        ('Side by side', [ u'a', u'b', u'c', u'd' ]),
-        ('Side by side.', [ u'e', u'f', u'g' ]),
-        ('Other.', [ u'h', u'i' ]),
-    ]
-    expect = [
-        ('Side by side', [ u'a', u'b', u'c', u'd', u'e', u'f', u'g' ]),
-        ('Other.', [ u'h', u'i' ]),
-    ]
-    assert strip_count(input) == expect
-
-def test_remove_trailing_dot():
-    data = [
-        ('Test', 'Test'),
-        ('Test.', 'Test'),
-        ('Test J.', 'Test J.'),
-        ('Test...', 'Test...')
-    ]
-    for input, expect in data:
-        output = remove_trailing_dot(input)
-        assert output == expect
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
