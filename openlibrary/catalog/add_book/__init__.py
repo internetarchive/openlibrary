@@ -586,11 +586,17 @@ def load(rec):
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
+    # Add authors to work if needed
+    if not w.get('authors'):
+        authors = [import_author(a) for a in rec.get('authors', [])]
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': a.key} for a in authors if a.get('key')]
+        if w.get('authors'):
+            need_work_save = True
+
     # Add ocaid to edition (str), if needed
     if 'ocaid' in rec and not e.ocaid:
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
-
 
     edition_fields = [
         'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
