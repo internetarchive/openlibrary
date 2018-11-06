@@ -564,7 +564,7 @@ def load(rec):
     else:
         # Found an edition without a work
         work_created = need_work_save = need_edition_save = True
-        w = new_work(e, rec)
+        w = new_work(e.dict(), rec)
         e.works = [{'key': w['key']}]
 
     # Add subjects to work, if not already present
