@@ -1,4 +1,8 @@
-from openlibrary.catalog.utils import pick_first_date, pick_best_name, pick_best_author, match_with_bad_chars, strip_count, remove_trailing_dot
+from openlibrary.catalog.utils import flip_name, pick_first_date, pick_best_name, pick_best_author, match_with_bad_chars, strip_count, remove_trailing_dot
+
+def test_flip_name():
+    assert flip_name('Smith, John.') == 'John Smith'
+    assert flip_name('Smith, J.') == 'J. Smith'
 
 def test_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
