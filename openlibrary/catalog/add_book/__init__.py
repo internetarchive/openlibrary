@@ -38,7 +38,6 @@ from infogami import config
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
-from openlibrary.catalog.utils import flip_name
 from openlibrary import accounts
 
 from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
@@ -415,9 +414,6 @@ def find_exact_match(rec, edition_pool):
                             del a['entity_type']
                         if 'db_name' in a:
                             del a['db_name']
-                        #for f in 'name', 'personal_name':
-                        #    if a.get(f):
-                        #        a[f] = flip_name(a[f])
 
                 if existing_value != v:
                     match = False
