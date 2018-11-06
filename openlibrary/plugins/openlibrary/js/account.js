@@ -1,4 +1,3 @@
-
 /*
   function finishAjaxUsername(id, response) {
     $('#usernameLoading').hide();
@@ -100,3 +99,4 @@ function validatePassword() {
     });
 }
 /* eslint-enable no-unused-vars */
+

@@ -3,19 +3,6 @@ var startTime = new Date(); // This is used by ol.analytics.js
 /* eslint-enable no-unused-vars */
 
 var Browser = {
-    getUrlParameter: function(key) {
-        var query = window.location.search.substring(1);
-        var params = query.split("&");
-        if (key) {
-            for (var i=0;i<params.length;i++) {
-                var item = params[i].split("=");
-                var val = item[1];
-                if(item[0] == key){return(decodeURIComponent(val));}
-            }
-            return(undefined);
-        }
-        return(items);
-    },
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
         var result = {};
@@ -92,6 +79,7 @@ function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
 
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
+
 /* eslint-disable no-unused-vars */
 // used below
 var create_subject_carousel;
@@ -106,7 +94,7 @@ $().ready(function() {
     options.readable = true;
     options.sort = options.sort || "";
     if (options.published_id) {
-        url += '&published_in=' + options.published_in;
+        apiurl += '&published_in=' + options.published_in;
     }
     $.ajax({
         dataType: "json",
@@ -120,6 +108,8 @@ $().ready(function() {
         success: function(data) {
             // TODO: Filter `data` by available
             var primed = false;
+            // Subject is defined in openlibrary\plugins\openlibrary\js\subjects.js
+            // eslint-disable-next-line no-undef
             var subject = new Subject(data, options);
             function fetchPageOfBooks(carousel) {
                 primed = true;
@@ -132,6 +122,11 @@ $().ready(function() {
 
                 if (window.set_hash) {
                     var _p = (index == 1) ? null : index;
+                    // set_hash is defined in:
+                    //    openlibrary\openlibrary\templates\languages\view.html
+                    //    openlibrary\openlibrary\templates\lib\covers.html
+                    //    openlibrary\openlibrary\templates\subjects.html
+                    // eslint-disable-next-line no-undef
                     set_hash({"page": _p});
                 }
 
@@ -144,6 +139,8 @@ $().ready(function() {
                     $.each(works, function(widx, work) {
                         carousel.add(index + widx, subject.renderWork(work));
                     });
+                    // updateBookAvailability is defined in openlibrary\plugins\openlibrary\js\availability.js
+                    // eslint-disable-next-line no-undef
                     updateBookAvailability("#carousel-" + subject_name + " li ");
                 });
             }
@@ -211,7 +208,7 @@ function carouselSetup(loadCovers, loadLists) {
 // used in templates/work_search.html
 function bookCovers(){
     $("img.cover").error(function(){
-        $t(his).closest(".SRPCover").hide();
+        $(this).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 }
@@ -351,7 +348,7 @@ $().ready(function(){
 
         localStorage.setItem("facet", facet_key);
         $('header#header-bar .search-facet-selector select').val(facet_key)
-        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $('header#header-bar .search-component .search-bar-input input').val();
@@ -416,6 +413,8 @@ $().ready(function(){
         $('.search-bar-input [type=text]').val(q);
     }
 
+    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
+    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {
