@@ -51,10 +51,14 @@
   ],
   "devDependencies": {
     "bundlesize": "^0.17.0",
+    "detect-libc": "^1.0.3",
     "eslint": "^5.7.0",
     "less": "^3.8.1",
+    "node-gyp": "^3.8.0",
+    "prebuild-install": "^5.2.1",
     "stylelint": "^9.5.0",
     "stylelint-declaration-use-variable": "^1.7.0",
     "svgo": "^1.1.1"
-  }
+  },
+  "dependencies": {}
 }
