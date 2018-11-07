@@ -4,10 +4,6 @@ These current Dockerfiles are designed to be an alternative to the previous Vagr
 The setup process and scripts are designed to *NOT* conflict with exisiting Vagrant provisioning, so you should be able to
 chose to develop using the exisiting Vagrant method, or try the new Docker approach if you prefer, using the same code branch.
 
-## Planning
-
-You can read more about the planning and initial stages of migration from Vagrant developer instances to Docker here: https://github.com/internetarchive/openlibrary/pull/1012
-
 ## Setup/Teardown Commands
 
 All commands are from the docker directory:
