@@ -253,28 +253,6 @@ Place.prototype.getCovers = function(pagenum, callback) {
         });
     }
 };
-/*
-function deleteVerify() {
-    $('#dialog').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            "Yes, I'm sure": function() {
-                $("#_delete").click();
-            },
-            "No, cancel": function() {
-                $(this).dialog("close");
-            }
-        }
-    });
-    $('#delete').click(function(){
-        $('#dialog').dialog('open');
-        return false;
-    });
-};
-*/
 
 $().ready(function(){
     var cover_url = function(id) {
