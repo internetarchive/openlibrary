@@ -31,7 +31,7 @@ RUN apt-get -qq update && apt-get install -y \
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
 
-RUN npm install less -g # && ln -s /usr/bin/nodejs /usr/bin/node
+RUN npm install less -g
 
 # enable users to bind to port 80
 RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
