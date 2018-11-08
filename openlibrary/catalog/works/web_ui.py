@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re
 from time import time
 from catalog.read_rc import read_rc
@@ -38,7 +39,7 @@ def get_title_to_key(author):
         + "where thing.id = thing_id and key_id=3 and thing_id in (" \
         + "select thing_id from edition_ref, thing " \
         + "where edition_ref.key_id=11 and edition_ref.value = thing.id and thing.key in (" + author_keys + "))"
-    print sql
+    print(sql)
     return {}
     title_to_key = {}
     for r in web.query(sql):
@@ -52,7 +53,7 @@ def search(title, author):
     norm_title = normalize(title).strip('.')
 
     if norm_title not in title_to_key:
-        print 'title not found'
+        print('title not found')
         return
 
     pool = set(title_to_key[norm_title])
@@ -97,24 +98,24 @@ def search(title, author):
                 pool.update(k for k in title_to_key.get(t.lower(), []) if k not in seen)
                 found_titles.setdefault(t, []).append(key)
 
-    print '<table>'
+    print('<table>')
     for e in sorted(editions, key=lambda e: e['publish_date'] and e['publish_date'][-4:]):
-        print '<tr>'
-        print '<td>', ol_link(e['key'])
-        print '<td>', e['publish_date'], '</td><td>', e['publishers'], '</td>'
-        print '<td>', e['isbn'], '</td>'
-        print '</tr>'
-    print '</table>'
+        print('<tr>')
+        print('<td>', ol_link(e['key']))
+        print('<td>', e['publish_date'], '</td><td>', e['publishers'], '</td>')
+        print('<td>', e['isbn'], '</td>')
+        print('</tr>')
+    print('</table>')
 
     if found_titles:
-        print '<h2>Other titles</h2>'
-        print '<ul>'
+        print('<h2>Other titles</h2>')
+        print('<ul>')
         for k, v in found_titles.iteritems():
             if k == title:
                 continue
-            print '<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k),
-            print 'from', ', '.join(ol_link(i) for i in v)
-        print '</ul>'
+            print('<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k), end=' ')
+            print('from', ', '.join(ol_link(i) for i in v))
+        print('</ul>')
 
     extra_isbn = {}
     for k, v in found_isbn.iteritems():
@@ -125,12 +126,12 @@ def search(title, author):
                 extra_isbn.setdefault(isbn, []).extend(v)
 
     if extra_isbn:
-        print '<h2>Other ISBN</h2>'
-        print '<ul>'
+        print('<h2>Other ISBN</h2>')
+        print('<ul>')
         for k in sorted(extra_isbn):
-            print '<li>', isbn_link(k),
-            print 'from', ', '.join(ol_link(i) for i in extra_isbn[k])
-        print '</ul>'
+            print('<li>', isbn_link(k), end=' ')
+            print('from', ', '.join(ol_link(i) for i in extra_isbn[k]))
+        print('</ul>')
 
 urls = (
     '/', 'index'
@@ -153,25 +154,25 @@ class index:
         if 'author' in input:
             author = input.author
         html_title = 'Work finder'
-        print "<html>\n<head>\n<title>%s</title>" % html_title
-        print '''
+        print("<html>\n<head>\n<title>%s</title>" % html_title)
+        print('''
 <style>
 th { text-align: left }
 td { padding: 5px; background: #eee }
-</style>'''
+</style>''')
 
-        print '</head><body><a name="top">'
+        print('</head><body><a name="top">')
 
-        print "<body><html>"
-        print '<form name="main" method="get">'
-        print '<table><tr><td align="right">Title</td>',
-        print '<td>', textbox('title', input), '</td></tr>'
-        print '<tr><td align="right">Author</td>'
-        print '<td>', textbox('author', input), '</td></tr>'
-        print '<tr><td></td><td><input type="submit" value="find"></td></tr>'
-        print '</table>'
+        print("<body><html>")
+        print('<form name="main" method="get">')
+        print('<table><tr><td align="right">Title</td>', end=' ')
+        print('<td>', textbox('title', input), '</td></tr>')
+        print('<tr><td align="right">Author</td>')
+        print('<td>', textbox('author', input), '</td></tr>')
+        print('<tr><td></td><td><input type="submit" value="find"></td></tr>')
+        print('</table>')
         if title and author:
             search(title, author)
-        print '</form>'
+        print('</form>')
 
 if __name__ == "__main__": web.run(urls, globals(), web.reloader)

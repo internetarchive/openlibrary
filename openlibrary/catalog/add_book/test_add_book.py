@@ -1,3 +1,4 @@
+from __future__ import print_function
 from load_book import build_query, InvalidLanguage
 from . import load, RequiredField, build_pool, add_db_name
 from .. import add_book
@@ -345,7 +346,7 @@ def test_real_example(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'modified'
 
-def test_missing_ocaid(mock_site, add_languages):
+def test_missing_ocaid(mock_site, add_languages, ia_writeback):
     ia = 'descendantsofhug00cham'
     src = ia + '_meta.mrc'
     marc = MarcBinary(open_test_data(src).read())

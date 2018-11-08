@@ -3,8 +3,10 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#pagebanner
  */
 @import "components/buttonBtn.less";
+@import "less/breakpoints.less";
 
 .page-banner {
+  display:none;
   color: @white;
   font-family: @lucida_sans_serif-1;
   background: @link-blue;
@@ -12,6 +14,10 @@
   border-top-right-radius: 3px;
   border-top-left-radius: 3px;
   border-bottom: 1px solid @beige;
+
+  @media screen and (min-width: @width-breakpoint-tablet) {
+    display:block;
+  }
 
   &-black {
     background-color: @dark-grey;

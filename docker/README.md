@@ -4,10 +4,6 @@ These current Dockerfiles are designed to be an alternative to the previous Vagr
 The setup process and scripts are designed to *NOT* conflict with exisiting Vagrant provisioning, so you should be able to
 chose to develop using the exisiting Vagrant method, or try the new Docker approach if you prefer, using the same code branch.
 
-## Planning
-
-You can read more about the planning and initial stages of migration from Vagrant developer instances to Docker here: https://github.com/internetarchive/openlibrary/pull/1012
-
 ## Setup/Teardown Commands
 
 All commands are from the docker directory:
@@ -46,7 +42,7 @@ Port | Service
 To access Solr admin:
 http://localhost:8983/solr/admin/
 
-If you are using Docker Toolbox on Windows, use the Docker Machine IP instead of `localhost`. For example, `192.168.99.100:8080`. To find the IP address, use the command `docker-machine ip`
+If you are using Docker for Mac or Docker for Windows (or the older Docker Toolbox), use the Docker Machine IP instead of `localhost`. For example, `http://192.168.99.100:8080`. To find the IP address, use the command `docker-machine ip`. On Mac you can use the shell command `open http://$(docker-machine ip):8080`.
 
 You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
@@ -72,6 +68,9 @@ docker-compose exec web bash # Launch terminal in `web` service
 
 # Run tests while container is running
 docker-compose exec web make test
+
+# Install Node.js modules (if you get an error running tests)
+docker-compose exec web npm install
 ```
 
 ## Other Commands

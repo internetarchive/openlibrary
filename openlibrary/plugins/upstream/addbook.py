@@ -662,7 +662,7 @@ class book_edit(delegate.page):
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
             raise web.seeother(edition.url())
-        except (ClientException, ValidationException), e:
+        except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             return self.GET(key)
 
@@ -709,7 +709,7 @@ class work_edit(delegate.page):
             helper.save(web.input())
             add_flash_message("info", utils.get_message("flash_work_updated"))
             raise web.seeother(work.url())
-        except (ClientException, ValidationException), e:
+        except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             return self.GET(key)
 
@@ -744,7 +744,7 @@ class author_edit(delegate.page):
                 author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise web.seeother(key)
-        except (ClientException, ValidationException), e:
+        except (ClientException, ValidationException) as e:
             add_flash_message('error', str(e))
             author.update(formdata)
             author['comment_'] = i._comment

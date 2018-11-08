@@ -1,3 +1,4 @@
+from __future__ import print_function
 import datetime
 import httplib
 import logging
@@ -1281,14 +1282,14 @@ def get_document(key):
             logger.info("urlopen %s", url)
             contents = urlopen(url).read()
             return json.loads(contents)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             contents = e.read()
             # genuine 404, not a server error
             if e.getcode() == 404 and '"error": "notfound"' in contents:
                 return {"key": key, "type": {"key": "/type/delete"}}
 
-        print >> sys.stderr, "Failed to get document from %s" % url
-        print >> sys.stderr, "retry", i
+        print("Failed to get document from %s" % url, file=sys.stderr)
+        print("retry", i, file=sys.stderr)
 
 re_edition_key_basename = re.compile("^[a-zA-Z0-9:.-]+$")
 
@@ -1561,7 +1562,7 @@ class MonkeyPatch:
     def get_document(self, key):
         try:
             return self.withKey(key)
-        except ClientException, e:
+        except ClientException as e:
             if e.status.startswith('404'):
                 logger.warn("%s is not found, considering it as deleted.", key)
                 return {"key": key, "type": {"key": "/type/delete"}}
@@ -1597,7 +1598,7 @@ class MonkeyPatch:
         keys = []
         for doc in self.cache.values():
             if doc and doc['type']['key'] == '/type/edition' and doc.get('works'):
-                print "success"
+                print("success")
                 keys.append(doc['works'][0]['key'])
         self.preload_keys0(keys)
 
@@ -1840,7 +1841,7 @@ def main():
     if args.profile:
         f = web.profile(update_keys)
         _, info = f(keys, not args.nocommit)
-        print info
+        print(info)
     else:
         update_keys(keys, commit=not args.nocommit, output_file=args.output_file)
 

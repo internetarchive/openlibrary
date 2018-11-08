@@ -1,3 +1,4 @@
+from __future__ import print_function
 
 import web
 import urllib2
@@ -603,7 +604,7 @@ class Work(models.Work):
             if (_subject not in blacklist and
                 (not filter_unicode or (
                     subject.replace(' ', '').isalnum() and 
-                    type(subject) is not unicode)) and
+                    not isinstance(subject, unicode))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects        
@@ -666,8 +667,8 @@ class Subject(client.Thing):
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
             data = urllib2.urlopen(url).read()
             cover_ids = simplejson.loads(data)
-        except IOError, e:
-            print >> web.debug, 'ERROR in getting cover_ids', str(e)
+        except IOError as e:
+            print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}
 
         def make_cover(edition):

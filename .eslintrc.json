@@ -1,12 +1,18 @@
 {
   "root": true,
-  "env": {},
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
   "globals": {
   },
   "rules": {
-    "no-extra-semi": "warn",
+    "no-undef": "error",
+    "no-extra-semi": "error",
     "eol-last": ["error", "always"],
     "no-redeclare": "error",
-    "no-mixed-spaces-and-tabs": "error"
+    "no-mixed-spaces-and-tabs": "error",
+    "no-useless-escape": "error",
+    "no-unused-vars": "error"
   }
 }

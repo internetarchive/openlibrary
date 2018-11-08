@@ -1,3 +1,4 @@
+from __future__ import print_function
 import re
 from names import match_name
 from normalize import normalize
@@ -85,7 +86,7 @@ def compare_date(e1, e2):
             return ('date', '+/-2 years', -25)
         else:
             return ('date', 'mismatch', -250)
-    except ValueError, TypeError:
+    except ValueError as TypeError:
         return ('date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
@@ -165,7 +166,7 @@ def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in in1, in2]
+    s1, s2 = [i.split() for i in (in1, in2)]
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
@@ -297,11 +298,11 @@ def attempt_merge(e1, e2, threshold, debug=False):
     l1 = level1_merge(e1, e2)
     total = sum(i[2] for i in l1)
     if debug:
-        print total, l1
+        print(total, l1)
     if total >= threshold:
         return True
     l2 = level2_merge(e1, e2)
     total = sum(i[2] for i in l2)
     if debug:
-        print total, l2
+        print(total, l2)
     return total >= threshold

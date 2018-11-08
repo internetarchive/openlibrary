@@ -18,6 +18,7 @@ then adding the function to this list.
 
 
 """
+from __future__ import print_function
 
 import copy
 from collections import defaultdict
@@ -47,7 +48,7 @@ def match_isbn(params):
 
 def match_identifiers(params):
     "Match by identifiers"
-    print params
+    print(params)
     counts = defaultdict(int)
     identifiers = copy.deepcopy(params.get("identifiers",{}))
     for i in ["oclc_numbers", "lccn", "ocaid"]:
@@ -59,7 +60,7 @@ def match_identifiers(params):
             for i in matches:
                 counts[i] += 1
     for k,v in identifiers.iteritems(): # Rest of the identifiers
-        print "Trying ", k , v
+        print("Trying ", k , v)
         query = {'type':'/type/edition',
                  'identifiers' : {k : v}}
         matches = web.ctx.site.things(query)

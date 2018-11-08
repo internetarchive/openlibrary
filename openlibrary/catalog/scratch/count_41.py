@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, os.path
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
@@ -46,7 +47,7 @@ i1_0 = 0
 i1_1 = 0
 for name, part, size in files():
     f = open(name)
-    print part
+    print(part)
     for pos, loc, data in read_marc_file(part, f):
         if str(data)[6:8] != 'am': # only want books
             continue
@@ -60,24 +61,24 @@ for name, part, size in files():
         if line[0] == '1':
             i1_1 += 1
         subfields = list(get_all_subfields(line))
-        print loc
+        print(loc)
         keys = get_keys(loc)
-        print keys, line[0:2], subfields
+        print(keys, line[0:2], subfields)
         continue
         if line[1] != ' ':
             i2 += 1
-            print 'i2:', line[0:2], subfields
+            print('i2:', line[0:2], subfields)
         if '\x1fa' in line:
             has_a +=1
         else:
-            print 'no a:', line[0:2], subfields
+            print('no a:', line[0:2], subfields)
         if '\x1fh' in line:
             has_h +=1
         if '\x1f2' in line:
             has_2 +=1
-            print 'has 2:', line[0:2], subfields
+            print('has 2:', line[0:2], subfields)
         if has_041 % chunk == 0:
-            print books, percent(has_041, books), percent(i1_0, has_041), \
+            print(books, percent(has_041, books), percent(i1_0, has_041), \
                 percent(i1_1, has_041), i2, percent(has_a, has_041), \
-                percent(has_h, has_041), has_2
+                percent(has_h, has_041), has_2)
 #        print total, line[0:2], list(get_all_subfields(line))

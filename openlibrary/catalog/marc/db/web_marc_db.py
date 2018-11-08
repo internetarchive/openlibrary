@@ -1,3 +1,4 @@
+from __future__ import print_function
 # lookup MARC records and show details on the web
 from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
@@ -63,13 +64,13 @@ def counts_html(v):
 
 def list_works(this_isbn):
     works = find_others(this_isbn, rc['amazon_other_editions'])
-    print '<a name="work">'
-    print '<h2>Other editions of the same work</h2>'
+    print('<a name="work">')
+    print('<h2>Other editions of the same work</h2>')
     if not works:
-        print 'no work found'
+        print('no work found')
         return
-    print '<table>'
-    print '<tr><th>ISBN</th><th>Amazon edition</th><th></th><th>MARC titles</th></tr>'
+    print('<table>')
+    print('<tr><th>ISBN</th><th>Amazon edition</th><th></th><th>MARC titles</th></tr>')
     for isbn, note in works:
         if note.lower().find('audio') != -1:
             continue
@@ -78,10 +79,10 @@ def list_works(this_isbn):
         titles = [(marc_title(marc_data(i)), i) for i in locs]
         num = len(locs)
         #print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>%s</td></tr>' % (isbn, isbn, note, len(locs), list_to_html(titles))
-        print '<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>' % (isbn, isbn, note, len(locs))
-        print counts_html(titles)
-        print '</td></tr>'
-    print '</table>'
+        print('<tr><td><a href="/?isbn=%s">%s</a></td><td>%s</td><td>%d</td><td>' % (isbn, isbn, note, len(locs)))
+        print(counts_html(titles))
+        print('</td></tr>')
+    print('</table>')
 
 def most_freq_isbn(input):
     counts = {}

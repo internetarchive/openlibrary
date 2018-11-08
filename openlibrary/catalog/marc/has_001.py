@@ -1,4 +1,5 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from catalog.marc.fast_parse import *
 from catalog.read_rc import read_rc
 from catalog.get_ia import files
@@ -24,13 +25,13 @@ for ia, name in sources(): # find which sources include '001' tag
             if list(get_tag_lines(data, ['001'])):
                 has_001 += 1
             elif show_bad_records:
-                print data[:24]
+                print(data[:24])
                 for tag, line in get_all_tag_lines(data):
                     if tag.startswith('00'):
-                        print tag, line[:-1]
+                        print(tag, line[:-1])
                     else:
-                        print tag, list(get_all_subfields(line))
+                        print(tag, list(get_all_subfields(line)))
         if rec_no == read_count:
             break
-    print "%5d %s %s" % (has_001, ia, name)
+    print("%5d %s %s" % (has_001, ia, name))
     continue

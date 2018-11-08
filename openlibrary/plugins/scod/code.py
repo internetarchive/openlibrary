@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import datetime
 
@@ -47,12 +48,12 @@ def get_book(path, check_scanned=True, check_ocaid=True):
 class scan_confirm(delegate.mode):
     def GET(self, path):
         book = get_book(path)
-        print render.scan_confirm(book)
+        print(render.scan_confirm(book))
 
 class scan_login(delegate.mode):
     def GET(self, path):
         book = get_book(path)
-        print render.scan_login(book)
+        print(render.scan_login(book))
 
 class scan_review(delegate.mode):
     @require_login

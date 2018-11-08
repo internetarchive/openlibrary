@@ -1,3 +1,4 @@
+from __future__ import print_function
 import subprocess
 import web
 
@@ -40,7 +41,7 @@ class Git:
 
         Raises CommandError on non-zero status unless check_status is set to False.
         """
-        print >> web.debug, "system", repr(cmd), input
+        print("system", repr(cmd), input, file=web.debug)
         if input:
             stdin = subprocess.PIPE
         else:

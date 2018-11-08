@@ -22,7 +22,7 @@ class show_ia(app.view):
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
             data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code == 404:
                 error_404 = True
             else:
@@ -32,7 +32,7 @@ class show_ia(app.view):
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
                 data = urllib2.urlopen(url).read()
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 return "ERROR:" + str(e)
             raise web.seeother('http://www.archive.org/details/' + ia)
 
@@ -108,7 +108,7 @@ class show_marc(app.view):
 
         try:
             result = urllib2.urlopen(ureq).read(100000)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             return "ERROR:" + str(e)
 
         len_in_rec = int(result[:5])

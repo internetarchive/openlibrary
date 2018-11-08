@@ -1,6 +1,7 @@
 """Utility to bulk import documents into Open Library database without
 going through infobase API.
 """
+from __future__ import print_function
 
 import os
 import web
@@ -388,13 +389,13 @@ def _test():
 
     n = 2
 
-    print loader.bulk_new([dict(
+    print(loader.bulk_new([dict(
                 key="/b/OL%dM" % i,
                 title="book %d" % i,
                 type={"key": "/type/edition"},
                 table_of_contents=[{"type": {"key": "/type/toc_item"}, "class": "part", "label": "test", "title": "test", "pagenum": "10"}])
             for i in range(1, n+1)],
-        comment="add books")
+        comment="add books"))
 
     loader.reindex(["/b/OL%dM" % i for i in range(1, n+1)])
 

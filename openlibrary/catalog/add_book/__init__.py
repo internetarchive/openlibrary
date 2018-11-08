@@ -22,6 +22,7 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
+from __future__ import print_function
 
 import re
 import json
@@ -36,9 +37,7 @@ from infogami import config
 
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
-from openlibrary.core.vendors import get_amazon_metadata
 from openlibrary.core import lending
-from openlibrary.catalog.utils import flip_name
 from openlibrary import accounts
 
 from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
@@ -267,7 +266,7 @@ def find_match(e1, edition_pool):
                     found = False
                     break
                 if is_redirect(thing):
-                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if not found:
                 continue
@@ -415,9 +414,6 @@ def find_exact_match(rec, edition_pool):
                             del a['entity_type']
                         if 'db_name' in a:
                             del a['db_name']
-                        #for f in 'name', 'personal_name':
-                        #    if a.get(f):
-                        #        a[f] = flip_name(a[f])
 
                 if existing_value != v:
                     match = False
@@ -453,7 +449,7 @@ def add_cover(cover_url, ekey):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
-            print 'retry, attempt', attempt
+            print('retry, attempt', attempt)
             sleep(2)
             continue
         body = res.read()
@@ -461,7 +457,7 @@ def add_cover(cover_url, ekey):
             reply = json.loads(body)
             if res.getcode() == 200 and 'id' in reply:
                 break
-        print 'retry, attempt', attempt
+        print('retry, attempt', attempt)
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
         return
@@ -517,33 +513,6 @@ def update_ia_metadata_for_ol_edition(edition_id):
                     data = item.metadata
     return data
 
-def create_edition_from_amazon_metadata(isbn):
-    """Fetches amazon metadata by isbn from affiliates API, attempts to
-    create OL edition from metadata, and returns the resulting edition key
-    `/key/OL..M` if successful or None otherwise
-    """
-    md = get_amazon_metadata(isbn)
-    if md:
-        reply = load_from_amazon_metadata(md)
-        if reply and reply.get('success'):
-            return reply['edition']['key']
-
-def load_from_amazon_metadata(rec):
-    """This is a bootstrapping helper method which enables us to take the
-    results of plugins.upstream.code.get_amazon_metadata and create an
-    OL book catalog record
-    """
-    
-    conforming_fields = [
-        'title', 'authors', 'publish_date', 'source_records',
-        'number_of_pages', 'publishers', 'cover', 'isbn_10',
-        'isbn_13']
-    conforming_rec = {}
-    for k in conforming_fields:
-        if k in rec:
-            conforming_rec[k] = rec[k]
-    return load(conforming_rec)
-
 def load(rec):
     """Given a record, tries to add/match that edition in the system.
 
@@ -585,13 +554,13 @@ def load(rec):
     need_work_save = need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
-    if hasattr(e, 'works'):
+    if e.get('works'):
         w = e.works[0].dict()
         work_created = False
     else:
         # Found an edition without a work
         work_created = need_work_save = need_edition_save = True
-        w = new_work(e, rec)
+        w = new_work(e.dict(), rec)
         e.works = [{'key': w['key']}]
 
     # Add subjects to work, if not already present
@@ -617,11 +586,17 @@ def load(rec):
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
+    # Add authors to work if needed
+    if not w.get('authors'):
+        authors = [import_author(a) for a in rec.get('authors', [])]
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': a.key} for a in authors if a.get('key')]
+        if w.get('authors'):
+            need_work_save = True
+
     # Add ocaid to edition (str), if needed
     if 'ocaid' in rec and not e.ocaid:
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
-
 
     edition_fields = [
         'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
@@ -658,4 +633,6 @@ def load(rec):
         edits.append(w)
     if edits:
         web.ctx.site.save_many(edits, 'import existing book')
+    if 'ocaid' in rec:
+        update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, sys, codecs, os.path
 from catalog.read_rc import read_rc
 import psycopg2
@@ -62,11 +63,11 @@ for line in open('dups'):
 #    print e2
     match = attempt_merge(e1, e2, threshold, debug=False)
     if match:
-        print tuple([v] + [i['key'] for i in editions])
+        print(tuple([v] + [i['key'] for i in editions]))
 
 sys.exit(0)
 cur1.execute('select value, count(*) as num from isbn group by value having count(*) > 1')
 for i in cur1.fetchall():
-    print i
+    print(i)
     cur2.execute('select key from isbn where value=%(v)s', {'v':i[0]})
-    print cur2.fetchall()
+    print(cur2.fetchall())

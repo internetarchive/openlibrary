@@ -1,19 +1,8 @@
+/* eslint-disable no-unused-vars */
 var startTime = new Date(); // This is used by ol.analytics.js
+/* eslint-enable no-unused-vars */
 
 var Browser = {
-    getUrlParameter: function(key) {
-        var query = window.location.search.substring(1);
-        var params = query.split("&");
-        if (key) {
-            for (var i=0;i<params.length;i++) {
-                var item = params[i].split("=");
-                var val = item[1];
-                if(item[0] == key){return(decodeURIComponent(val));}
-            }
-            return(undefined);
-        }
-        return(items);
-    },
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
         var result = {};
@@ -58,12 +47,16 @@ var Browser = {
     }
 }
 
+/* eslint-disable no-unused-vars */
+// used in templates/account/notifications.html
 function twitterOn() {
-    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     $("input[type=radio]").click(function(){
-        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();};
+        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
     });
-};
+}
+/* eslint-enable no-unused-vars */
+
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
@@ -76,44 +69,22 @@ function isScrolledIntoView(elem) {
 }
 $(window).scroll(function(){
   var scroller = $("#formScroll");
-  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();};
+  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
 })
 
-function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});};
-function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});};
+/* eslint-disable no-unused-vars */
+// used in macros/Dashboard.html
+function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
+/* eslint-enable no-unused-vars */
 
-function aboutFeeds() {
-    jQuery.getFeed({
-        url: 'http://www.archive.org/services/collection-rss.php?mediatype=texts',
-        success: function(feed) {
+function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
-            jQuery('#resultScanned').append('<h4>New Scanned Books</h4>');
-            var html = '';
-            for(var i = 0; i < feed.items.length && i < 4; i++) {
-                var item = feed.items[i];
-                html += '<div class="item"><div class="cover">'+item.description+'</div><div class="title"><a href="'+item.link+'"><strong>'+item.title+'</strong></a></div><div class="updated">'+item.updated+'</div></div>';
-            }
-            jQuery('#resultScanned').append(html);
-            jQuery('#resultScanned').append('<div class="title"><a href="'+feed.link+'">See all</a></div>');
-        }
-    });
-    jQuery.getFeed({
-        url: 'http://blog.openlibrary.org/feed/',
-        success: function(feed) {
 
-            jQuery('#resultBlog').append('<h4>From The Blog</h4>');
-            var html = '';
-            for(var i = 0; i < feed.items.length && i < 2; i++) {
-                var item = feed.items[i];
-                html += '<div class="item"><div class="title"><a href="'+item.link+'">'+item.title+'</a></div><div class="byline">By '+item.author+', '+item.updated+'</div><div class="content">'+item.description+'</div></div>';
-            }
-            jQuery('#resultBlog').append(html);
-            jQuery('#resultBlog').append('<div class="content"><a href="'+feed.link+'">Visit the blog...</a></div>');
-        }
-    });
-};
-
+/* eslint-disable no-unused-vars */
+// used below
 var create_subject_carousel;
+/* eslint-enable no-unused-vars */
+
 $().ready(function() {
   create_subject_carousel = function(subject_name, type, options) {
     var ITEMS_PER_PAGE = 6;
@@ -123,7 +94,7 @@ $().ready(function() {
     options.readable = true;
     options.sort = options.sort || "";
     if (options.published_id) {
-        url += '&published_in=' + options.published_in;
+        apiurl += '&published_in=' + options.published_in;
     }
     $.ajax({
         dataType: "json",
@@ -137,6 +108,8 @@ $().ready(function() {
         success: function(data) {
             // TODO: Filter `data` by available
             var primed = false;
+            // Subject is defined in openlibrary\plugins\openlibrary\js\subjects.js
+            // eslint-disable-next-line no-undef
             var subject = new Subject(data, options);
             function fetchPageOfBooks(carousel) {
                 primed = true;
@@ -149,6 +122,11 @@ $().ready(function() {
 
                 if (window.set_hash) {
                     var _p = (index == 1) ? null : index;
+                    // set_hash is defined in:
+                    //    openlibrary\openlibrary\templates\languages\view.html
+                    //    openlibrary\openlibrary\templates\lib\covers.html
+                    //    openlibrary\openlibrary\templates\subjects.html
+                    // eslint-disable-next-line no-undef
                     set_hash({"page": _p});
                 }
 
@@ -161,6 +139,8 @@ $().ready(function() {
                     $.each(works, function(widx, work) {
                         carousel.add(index + widx, subject.renderWork(work));
                     });
+                    // updateBookAvailability is defined in openlibrary\plugins\openlibrary\js\availability.js
+                    // eslint-disable-next-line no-undef
                     updateBookAvailability("#carousel-" + subject_name + " li ");
                 });
             }
@@ -177,6 +157,8 @@ $().ready(function() {
 });
 
 // BUILD CAROUSEL
+/* eslint-disable no-unused-vars */
+// used in templates/lib/covers.html
 function carouselSetup(loadCovers, loadLists) {
   $('#coversCarousel').jcarousel({
     visible: 1,
@@ -218,35 +200,30 @@ function carouselSetup(loadCovers, loadLists) {
     $('#editionsList').hide();
     $('#editionsCovers').customFadeIn();
   });
-};
+}
+/* eslint-enable no-unused-vars */
+
 // BOOK COVERS
+/* eslint-disable no-unused-vars */
+// used in templates/work_search.html
 function bookCovers(){
     $("img.cover").error(function(){
-        $t(his).closest(".SRPCover").hide();
+        $(this).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
-};
+}
+/* eslint-enable no-unused-vars */
+
 // CLOSE POP-UP FROM IFRAME
+/* eslint-disable no-unused-vars */
+// used in templates/covers/saved.html
 function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
     });
-};
-function get_subject_covers(key, pagenumber) {
-    // will implement it later.
-    var covers = [];
-    for (var i=0; i<20; i++)
-        covers[i] = pagenumber * 20 + i;
-    return covers;
 }
+/* eslint-enable no-unused-vars */
 
-function get_work_covers(key, pagenumber) {
-    // will implement it later.
-    var covers = [];
-    for (var i=0; i<20; i++)
-        covers[i] = pagenumber * 20 + i;
-    return covers;
-}
 
 function Place(key) {
     this.key = key;
@@ -261,7 +238,6 @@ function Place(key) {
  */
 Place.prototype.getCovers = function(pagenum, callback) {
     var offset = pagenum * 12;
-    var limit = 12;
 
     if (offset > this.bookCount)
         return [];
@@ -277,85 +253,11 @@ Place.prototype.getCovers = function(pagenum, callback) {
         });
     }
 };
-/*
-function deleteVerify() {
-    $('#dialog').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            "Yes, I'm sure": function() {
-                $("#_delete").click();
-            },
-            "No, cancel": function() {
-                $(this).dialog("close");
-            }
-        }
-    });
-    $('#delete').click(function(){
-        $('#dialog').dialog('open');
-        return false;
-    });
-};
-*/
-function passwordHide(){
-;(function($){
-    $.fn.revealPassword=function(ph,options){
-        var spinput=$(this);
-        $.fn.revealPassword.checker=function(cbid,inid){
-            $('input[id="'+cbid+'"]').click(function(){
-                if($(this).attr('checked')){
-                    $('input.'+inid).val(spinput.val()).attr('id',spinput.attr('id')).attr('name',spinput.attr('name'));
-                    $('input.'+inid).css('display','inline');
-                    spinput.css('display','none').removeAttr('id').removeAttr('name');
-                } else {
-                    spinput.val($('input.'+inid).val()).attr('id',$('input.'+inid).attr('id')).attr('name',$('input.'+inid).attr('name'));
-                    spinput.css('display','inline');
-                    $('input.'+inid).css('display','none').removeAttr('id').removeAttr('name');
-                }
-            });
-        }
-        return this.each(function(){
-            var def={classname:'class',name:'password-input',text:'Unmask password?'};
-            var spcbid='spcb';
-            var spinid=spcbid.replace('spcb','spin');
-            var spclass=spinid;
-            if(typeof ph=='object'){
-                $.extend(def,ph);
-            }
-            if(typeof options=='object'){
-                $.extend(def,options);
-            }
-            var spname=def.name;
-            if(def.classname==''){
-                theclass='';
-            } else {
-                theclass=' class="'+def.clasname+'"';
-            }
-            $(this).before('<input type="text" value="" class="'+spclass+'" style="display: none;" />');
-            var thecheckbox='<input type="checkbox" id="'+spcbid+'" name="'+spname+'" value="sp" /> <label for="'+spcbid+'">'+def.text+'</label>';
-            if(ph=='object'||typeof ph=='undefined'){
-                $(this).after(thecheckbox);
-            } else {
-                $(ph).html(thecheckbox);
-            }
-            $.fn.revealPassword.checker(spcbid,spinid);
-            return this;
-        });
-    }
-})(jQuery);
-};
 
-var searchMode;
 $().ready(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
-
-    var capitalize = function(word) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-    }
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
@@ -373,7 +275,7 @@ $().ready(function(){
         'text': 'inside'
     };
 
-    var composeSearchUrl = function(q, json, limit, options) {
+    var composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
@@ -424,7 +326,7 @@ $().ready(function(){
 
         localStorage.setItem("facet", facet_key);
         $('header#header-bar .search-facet-selector select').val(facet_key)
-        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $('header#header-bar .search-component .search-bar-input input').val();
@@ -489,6 +391,8 @@ $().ready(function(){
         $('.search-bar-input [type=text]').val(q);
     }
 
+    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
+    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {
@@ -499,7 +403,7 @@ $().ready(function(){
                 if (!execAsap)
                     func.apply(obj, args);
                 timeout = null;
-            };
+            }
 
             if (timeout) {
                 clearTimeout(timeout);
@@ -586,6 +490,8 @@ $().ready(function(){
         }
     }
 
+    /* eslint-disable no-unused-vars */
+    // e is a event object
     $('form.search-bar-input').submit(function(e) {
         q = $('header#header-bar .search-component .search-bar-input input').val();
         var facet_value = searchFacets[localStorage.getItem("facet")];
@@ -594,6 +500,8 @@ $().ready(function(){
         }
         setMode('.search-bar-input');
     });
+    /* eslint-enable no-unused-vars */
+
 
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
@@ -619,9 +527,12 @@ $().ready(function(){
         $(this).css('cursor', 'wait');
     });
 
+    /* eslint-disable no-unused-vars */
+    // e is a event object
     $('header#header-bar .search-component .search-results li a').live('click', debounce(function(event) {
         $(document.body).css({'cursor' : 'wait'});
     }, 300, false));
+    /* eslint-enable no-unused-vars */
 
     $('header#header-bar .search-component .search-bar-input input').keyup(debounce(function(e) {
         // ignore directional keys and enter for callback
@@ -699,8 +610,10 @@ $().ready(function(){
     function hideUser(){
         $('#main-account-dropdown').slideUp(25);
         $('header#header-bar .dropdown-avatar').removeClass('hover');
-    };
+    }
 
+    /* eslint-disable no-unused-vars */
+    // offUser is used in the function itself
     $('header#header-bar .dropdown-avatar').click(debounce(function() {
         var dropdown = $('#main-account-dropdown');
         if (dropdown.is(':visible') === true) {
@@ -712,26 +625,18 @@ $().ready(function(){
             $(document).mouseup(function(offUser){
                 if($(offUser.target).parent("a").length==0){
                     hideUser()
-                };
+                }
             });
 
         }
     }, 100, false));
+    /* eslint-enable no-unused-vars */
 
-    var readStatuses = ["Remove", 'Want to Read', 'Currently Reading', 'Already Read'];
-    var buildReadingLogCombo = function(status_id) {
-        var template = function(shelf_id, checked, remove) {
-            return '<option value="' + shelf_id + '">' + (checked? '<span class="activated-check">✓</span> ': '') + readStatuses[remove? 0: shelf_id] + '</option>';
-        }
-        return (status_id == 3)? (template(3, true) + template(1) + template(2) + template(3, false, true)) :
-            (status_id == 2)? (template(2, true) + template(1) + template(3) + template(2, false, true)) :
-            (template(1, true) + template(2) + template(3) + template(1, false, true));
-    }
-
+    /* eslint-disable no-unused-vars */
+    // success function receives data on successful request
     $('.reading-log-lite select').change(function(e) {
         var self = this;
         var form = $(self).closest("form");
-        var option = $(self).val();
         var remove = $(self).children("option").filter(':selected').text().toLowerCase() === "remove";
         var url = $(form).attr('action');
         $.ajax({
@@ -751,5 +656,7 @@ $().ready(function(){
         });
         e.preventDefault();
     });
+    /* eslint-enable no-unused-vars */
+
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}

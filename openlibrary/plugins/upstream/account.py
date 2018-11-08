@@ -31,6 +31,9 @@ import utils
 import borrow
 
 
+from six.moves import range
+
+
 logger = logging.getLogger("openlibrary.account")
 
 USERNAME_RETRIES = 3
@@ -346,7 +349,7 @@ class account_login(delegate.page):
     def POST_resend_verification_email(self, i):
         try:
             ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
@@ -715,7 +718,7 @@ class ReadingLog(object):
         ocaids = [i['identifier'] for i in waitlists]
         edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
         editions = web.ctx.site.get_many(edition_keys)
-        for i in xrange(len(editions)):
+        for i in range(len(editions)):
             # insert the waitlist_entry corresponding to this edition
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
@@ -784,9 +787,9 @@ class account_my_books(delegate.page):
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
         works = readlog.get_works(key)
-        return render['account/books'](
-            works, key, reading_log=readlog.reading_log_counts,
-            lists=readlog.lists, user=user, public=is_public)
+        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        page.v2 = True
+        return page
 
 class account_loans(delegate.page):
     path = "/account/loans"

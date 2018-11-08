@@ -1,5 +1,6 @@
 """Library for interacting wih archive.org.
 """
+from __future__ import print_function
 import os
 import urllib2
 import datetime
@@ -86,7 +87,7 @@ def _old_get_meta_xml(itemid):
     try:
         defaults = {"collection": [], "external-identifier": []}
         return web.storage(xml2dict(metaxml, **defaults))
-    except Exception, e:
+    except Exception as e:
         logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
         return web.storage()
 
@@ -126,7 +127,7 @@ def xml2dict(xml, **defaults):
 def _get_metadata(itemid):
     """Returns metadata by querying the archive.org metadata API.
     """
-    print >> web.debug, "_get_metadata", itemid
+    print("_get_metadata", itemid, file=web.debug)
     url = "http://www.archive.org/metadata/%s" % itemid
     try:
         stats.begin("archive.org", url=url)

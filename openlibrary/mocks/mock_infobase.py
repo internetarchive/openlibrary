@@ -243,13 +243,13 @@ class MockSite:
                 email=email,
                 password=password,
                 data={"displayname": displayname})
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             raise client.ClientException("bad_data", str(e))
 
     def activate_account(self, username):
         try:
             self.account_manager.activate(username=username)
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             raise client.ClientException(str(e))
 
     def update_account(self, username, **kw):

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web, re, httplib, sys, urllib2
 import simplejson as json
 import openlibrary.catalog.importer.pool as pool
@@ -52,7 +53,7 @@ def make_index_fields(rec):
 archive_url = "http://archive.org/download/"
 
 def load(loc, ia):
-    print "load", loc, ia
+    print("load", loc, ia)
     url = archive_url + loc
     f = urlopen_keep_trying(url)
     try:
@@ -79,9 +80,9 @@ def write_edition(loc, edition):
             try:
                 ret = ol.new(a, comment='new author')
             except:
-                print a
+                print(a)
                 raise
-            print 'ret:', ret
+            print('ret:', ret)
             assert isinstance(ret, basestring)
             authors.append({'key': ret})
     q['source_records'] = [loc]
@@ -90,24 +91,24 @@ def write_edition(loc, edition):
 
     for attempt in range(50):
         if attempt > 0:
-            print 'retrying'
+            print('retrying')
         try:
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
             sleep(30)
             continue
         except: # httplib.BadStatusLine
-            print q
+            print(q)
             raise
         break
-    print 'ret:', ret
+    print('ret:', ret)
     assert isinstance(ret, basestring)
     key = ret
     pool.update(key, q)
 
 def write_log(ia, when, msg):
     #print >> fh_log, (ia, when, msg)
-    print (ia, when, msg)
+    print((ia, when, msg))
     fh_log.flush()
 
 #iter = db.query("select identifier, updated from metadata where scanner is not null and noindex is null and mediatype='texts' and (curatestate='approved' or curatestate is null) and scandate is not null and updated > $start order by updated", {'start': start})
@@ -115,7 +116,7 @@ iter = db.query("select identifier, updated from metadata where contributor='Cor
 t_start = time()
 for row in iter:
     ia = row.identifier
-    print(repr(ia), row.updated)
+    print((repr(ia), row.updated))
     when = str(row.updated)
     if query({'type': '/type/edition', 'ocaid': ia}):
         print('already loaded')
@@ -138,19 +139,19 @@ for row in iter:
     if rec is None:
         write_log(ia, when, "error: no rec")
         continue
-    print loc, rec
+    print(loc, rec)
 
     if not loc.endswith('.xml'):
-        print "not XML"
+        print("not XML")
         write_log(ia, when, "error: not XML")
         continue
     if 'full_title' not in rec:
-        print "full_title missing"
+        print("full_title missing")
         write_log(ia, when, "error: full_title missing")
         continue
     index_fields = make_index_fields(rec)
     if not index_fields:
-        print "no index_fields"
+        print("no index_fields")
         write_log(ia, when, "error: no index fields")
         continue
 
@@ -175,7 +176,7 @@ for row in iter:
                 thing = withKey(edition_key)
                 assert thing
                 if thing['type']['key'] == '/type/redirect':
-                    print 'following redirect %s => %s' % (edition_key, thing['location'])
+                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if try_merge(e1, edition_key, thing):
                 add_source_records(edition_key, ia)

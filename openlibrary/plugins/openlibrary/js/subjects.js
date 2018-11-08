@@ -12,9 +12,12 @@
 //          });
 //
 
+// We are blindly concatenating JS. The ; protects us in case the concatenation
+// goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
+// eslint-disable-next-line no-extra-semi
 ;(function() {
 
-function Subject(data, options, callback) {
+function Subject(data, options) {
     options = options || {};
     var defaults = {
         pagesize: 12
@@ -98,7 +101,6 @@ $.extend(Subject.prototype, {
     },
 
     renderWork: function(work) {
-        var ia = work.lending_identifier;
         var authors = [];
         for (var author in work.authors)
             authors.push(work.authors[author].name);
@@ -145,8 +147,6 @@ $.extend(Subject.prototype, {
             callback(this._pages[pagenum]);
         }
         else {
-            var page = this;
-
             var params = {
                 "limit": limit,
                 "offset": offset,
@@ -158,7 +158,7 @@ $.extend(Subject.prototype, {
             }
             $.extend(params, this.filter);
 
-            key = this.key.replace(/\s+/g, '_');
+            var key = this.key.replace(/\s+/g, '_');
             var url = key + ".json?" + urlencode(params);
             var t = this;
 
@@ -172,7 +172,7 @@ $.extend(Subject.prototype, {
     _ajax: function(params, callback) {
         params = $.extend({"limit": this.settings.pagesize, "offset": 0},
                           this.filter, params);
-        key = this.key.replace(/\s+/g, '_');
+        var key = this.key.replace(/\s+/g, '_');
         var url = key + ".json?" + urlencode(params);
         $.getJSON(url, callback);
     },

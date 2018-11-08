@@ -1,3 +1,4 @@
+from __future__ import print_function
 from sources import sources
 from catalog.marc.fast_parse import index_fields, read_file
 from catalog.get_ia import files
@@ -15,13 +16,13 @@ def progress_update(rec_no, t):
     remaining = total - rec_no
     rec_per_sec = chunk / t
     mins = (float((t/chunk) * remaining) / 60)
-    print "%d %.3f rec/sec" % (rec_no, rec_per_sec),
+    print("%d %.3f rec/sec" % (rec_no, rec_per_sec), end=' ')
     if mins > 1440:
-        print "%.3f days left" % (mins / 1440)
+        print("%.3f days left" % (mins / 1440))
     elif mins > 60:
-        print "%.3f hours left" % (mins / 60)
+        print("%.3f hours left" % (mins / 60))
     else:
-        print "%.3f minutes left" % mins
+        print("%.3f minutes left" % mins)
 
 fields = ['isbn', 'oclc', 'lccn', 'call_number', 'title']
 
@@ -41,10 +42,10 @@ chunk = 1000
 total = 32856039
 
 for ia, name in sources():
-    print ia, name
+    print(ia, name)
     for part, size in files(ia):
         file_id = web.insert('files', ia=ia, part=part)
-        print part, size
+        print(part, size)
         full_part = ia + "/" + part
         filename = rc['marc_path'] + full_part
         if not os.path.exists(filename):
@@ -59,4 +60,4 @@ for ia, name in sources():
                 t_prev = time()
             process_record(file_id, pos, length, data)
 
-print rec_no
+print(rec_no)

@@ -1,5 +1,6 @@
 """Open Library Import API
 """
+from __future__ import print_function
 
 from infogami.plugins.api.code import add_hook
 from infogami import config
@@ -71,7 +72,7 @@ def parse_data(data):
             edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
             format = 'marcxml'
         else:
-            print 'unrecognized XML format'
+            print('unrecognized XML format')
             return None, None
     elif data.startswith('{') and data.endswith('}'):
         obj = json.loads(data)
@@ -152,7 +153,7 @@ class importapi:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
 
-    def reject_non_book_marc(marc_record):
+    def reject_non_book_marc(self, marc_record):
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
@@ -238,12 +239,10 @@ class ia_importapi(importapi):
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
         if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
-            d = {
-                "title": metadata['title'],
-                "openlibrary": "/books/" + metadata["openlibrary"]
-            }
-            d = self.populate_edition_data(d, identifier)
-            return self.load_book(d)
+            edition_data = self.get_ia_record(metadata)
+            edition_data["openlibrary"] = metadata["openlibrary"]
+            edition_data = self.populate_edition_data(edition_data, identifier)
+            return self.load_book(edition_data)
 
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata,
@@ -400,7 +399,7 @@ class ils_search:
     def POST(self):
         try:
             rawdata = json.loads(web.data())
-        except ValueError,e:
+        except ValueError as e:
             raise self.error("Unparseable JSON input \n %s"%web.data())
 
         # step 1: prepare the data

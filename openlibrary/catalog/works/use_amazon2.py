@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, re, sys, codecs, dbhash
 from catalog.amazon.other_editions import find_others
 from catalog.infostore import get_site
@@ -19,4 +20,4 @@ for filename in os.listdir(dir):
     l = find_others(filename, dir)
     if len(l) < 8:
         continue
-    print filename, len(l)
+    print(filename, len(l))

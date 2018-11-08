@@ -19,6 +19,7 @@ RUN /etc/init.d/postgresql start \
 
 USER root
 RUN pip install -r requirements_test.txt
+RUN npm install
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000

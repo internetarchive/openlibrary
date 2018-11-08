@@ -29,7 +29,7 @@
 @import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
-@import (less) "components/header-bar.less";
+@import (less) "components/header.less";
 @import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
 @import (less) "components/resultsCovers.less";
@@ -632,7 +632,6 @@ span {
     font-weight: normal !important;
     font-family: @lucida_sans_serif-1;
     color: @brown;
-    white-space: nowrap;
     padding: 5px 5px 0;
   }
   &.caption {
@@ -788,8 +787,6 @@ input {
     border-bottom: none;
   }
 }
-
-@import (less) "components/iaBar.less";
 
 .advanced-search {
   float: right;
@@ -2117,6 +2114,7 @@ ul.readers-stats {
     }
   }
 }
+@import (less) "components/navEdition.less";
 
 div.edition {
   &Cover {
@@ -2135,11 +2133,6 @@ div.edition {
   }
 }
 
-div.navEdition {
-  font-size: .9em;
-  margin-top: 5px;
-  color: @grey-555;
-}
 div.work {
   font-family: @lucida_sans_serif-1;
   span.work,
@@ -2367,8 +2360,9 @@ select {
   }
 }
 
+// for backwards compatibility
+// please use btn--large instead
 .borrow-btn,
-.read-btn,
 .wait-btn,
 .unwait-btn {
   margin: 1px auto;
@@ -3605,6 +3599,7 @@ ul#listResults {
   }
 }
 
+@import (less) 'components/listLists.less';
 div#listsWork {
   ul.listLists {
     li {
@@ -3847,7 +3842,7 @@ div#subjectLists {
   }
 }
 
-@import (less) 'components/page-banner.less';
+@import (less) "components/header.less";
 
 .box-shadow-menu {
   position: relative;
@@ -3865,36 +3860,8 @@ div#subjectLists {
   }
 }
 
-.manageCovers {
-  max-width: 140px;
-  margin: 0 auto;
-  padding: 8px;
-  border-radius: 3px;
-  border: 3px solid @dark-grey;
-  background-color: @white;
-  color: @dark-grey;
-  &Container {
-    width: 100%;
-    z-index: @z-index-level-16;
-    position: absolute;
-    bottom: 15px;
-    a {
-      display: block;
-      text-decoration: none;
-      opacity: 0;
-      &:hover,
-      &:focus {
-        text-decoration: underline;
-      }
-    }
-  }
-  a {
-    color: @dark-grey;
-  }
-}
-
-.illustration:hover .manageCoversContainer a,
-.manageCoversContainer a:focus {
+// use manage-covers instead
+.illustration:hover .manageCoversContainer a {
   opacity: .9;
 }
 
@@ -4138,6 +4105,11 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  span {
+    &.count {
+      white-space: nowrap;
+    }
+  }
   div.edition {
     &Cover {
       float: left;
@@ -4153,11 +4125,8 @@ ul#myreads-paginator {
     }
   }
   @import (less) "components/dropper--tablet.less";
-  @import (less) "components/page-banner--tablet.less";
   @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
-  @import (less) "components/tablet/iaBar.less";
-  @import (less) "components/tablet/header-bar.less";
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
@@ -4207,11 +4176,6 @@ ul#myreads-paginator {
     float: left;
     width: 915px;
   }
-  @import (less) "components/desktop/iaBar.less";
-  @import (less) "components/desktop/editions.less";
-  @import (less) "components/desktop/form.olform.less";
-  @import (less) "components/desktop/header-bar.less";
-  @import (less) "components/desktop/resultsCovers.less";
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
