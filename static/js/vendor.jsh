@@ -50,9 +50,6 @@ xcat $VENDORJS/flot/jquery.flot.pie.min.js
 
 xcat $VENDORJS/json2/json2.js | $JSMIN
 
-xcat $VENDORJS/underscore/underscore-min.js
-xcat $VENDORJS/backbone/backbone-min.js
-
 # for backward compatability
 xcat <<END
 function DragDrop() {}
