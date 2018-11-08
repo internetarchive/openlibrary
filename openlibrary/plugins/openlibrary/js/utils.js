@@ -94,7 +94,7 @@ function cond(predicate, true_value, false_value) {
         showPasswords: function(f) {
             return this.each(function() {
                 var c = function(a) {
-                    var a = $(a);
+                    a = $(a);
                     var b = $("<input type='text' />");
                     b.insertAfter(a).attr({
                         'class': a.attr('class'),
