@@ -491,9 +491,11 @@ class search(delegate.page):
             if k in i:
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
                 q_list.append(k + ':' + v)
-        return render.work_search(
+        page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search)
+        page.v2 = True
+        return page
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100):
