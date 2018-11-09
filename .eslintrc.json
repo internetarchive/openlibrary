@@ -10,6 +10,7 @@
     "no-undef": "error",
     "no-extra-semi": "error",
     "eol-last": ["error", "always"],
+    "no-redeclare": "error",
     "no-mixed-spaces-and-tabs": "error",
     "no-useless-escape": "error",
     "no-unused-vars": "error"
