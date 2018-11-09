@@ -195,7 +195,9 @@ class account(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        return render.account(user)
+        page = render.account(user)
+        page.v2 = True
+        return page
 
 class account_create(delegate.page):
     """New account creation.
