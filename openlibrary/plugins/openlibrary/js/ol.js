@@ -343,10 +343,12 @@ $().ready(function(){
         $("input[value='Protected DAISY']").remove();
         $("input[name='has_fulltext']").remove();
 
-        var url = $(form).attr('action')
-        url = Browser.removeURLParameter(url, 'm');
-        url = Browser.removeURLParameter(url, 'has_fulltext');
-        url = Browser.removeURLParameter(url, 'subject_facet');
+        var url = $(form).attr('action') || '/';
+        if ( url ) {
+            url = Browser.removeURLParameter(url, 'm');
+            url = Browser.removeURLParameter(url, 'has_fulltext');
+            url = Browser.removeURLParameter(url, 'subject_facet');
+        }
 
         if (localStorage.getItem('mode') !== 'everything') {
             $(form).append('<input type="hidden" name="m" value="edit"/>');
