@@ -1,0 +1,54 @@
+/**
+ * Wmd (Weapons of Mass destruction aka Wikitext markdown) ButtonBar
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#wmdbuttonbar
+ */
+
+@import (less) "less/font-families.less";
+
+.wmd-button-bar {
+  overflow: hidden;
+  // on mobile hide all tools beyond the first 8.
+  li:nth-child(n+8) {
+    display: none;
+  }
+  // wmd-help-button
+  li:last-child {
+    display: inline-block;
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  // ButtonBar
+  // https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#wmdbuttonbar
+  .wmd-button-bar {
+    overflow: auto;
+    width: 916px;
+    background-color: transparent;
+
+    // reveal all the extra tools
+    li:nth-child(n+8) {
+      display: inline-block;
+    }
+
+    // wmd-help-button is floated out to the right
+    li:last-child {
+      width: 20px;
+      height: 20px;
+      margin-left: 5px;
+      margin-right: 5px;
+      position: absolute;
+    }
+
+    // So many different contexts!!! why?!
+    & form.olform.books,
+    & fieldset.major {
+      width: 854px;
+    }
+    & form.olform.books .formElement.librarian .input {
+      width: 798px;
+    }
+    & form#addAuthor.olform {
+      width: 628px;
+    }
+  }
+}

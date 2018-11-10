@@ -1,3 +1,7 @@
+/**
+ * Wmd (Weapons of Mass destruction aka Wikitext markdown)
+ */
+
 @import (less) "less/font-families.less";
 
 .wmd-panel {
@@ -6,29 +10,6 @@
 
 .wmd-editor {
   background-color: @nagios-green;
-}
-
-.wmd-button-bar {
-  background-color: transparent;
-}
-
-.formElement .input .wmd-button-bar {
-  width: 916px;
-}
-
-/* stylelint-disable no-descending-specificity */
-fieldset.major .wmd-button-bar,
-form.olform.books .formElement .input .wmd-button-bar {
-  width: 854px;
-}
-/* stylelint-enable no-descending-specificity */
-
-form.olform.books .formElement.librarian .input .wmd-button-bar {
-  width: 798px;
-}
-
-form#addAuthor.olform .wmd-button-bar {
-  width: 628px;
 }
 
 .wmd-input {
@@ -107,15 +88,6 @@ form#addAuthor.olform .wmd-preview {
   background-position: 0 0;
   display: inline-block;
   list-style: none;
-}
-
-.wmd-button > a {
-  width: 20px;
-  height: 20px;
-  margin-left: 5px;
-  margin-right: 5px;
-  position: absolute;
-  display: inline-block;
 }
 
 /* sprite button slicing style information */
@@ -261,3 +233,5 @@ form#addAuthor.olform .wmd-preview {
   font-size: 1.125em;
   width: auto !important;
 }
+
+@import (less) 'wmd-button-bar.less';
