@@ -26,7 +26,6 @@ else
     xcat $VENDORJS/jquery/jquery-1.3.2.min.js
     xcat $VENDORJS/jquery-ui/jquery-ui-1.7.2.min.js
     xcat $VENDORJS/colorbox/colorbox/jquery.colorbox-min.js
-    xcat $VENDORJS/jcarousel/lib/jquery.jcarousel.js | $JSMIN
 fi
 
 xcat $VENDORJS/jquery-sparkline/jquery.sparkline.min.js
@@ -61,7 +60,6 @@ function Datepicker() {}
 function Progressbar() {}
 
 function boxPop() {}
-function carousels() {}
 function bigCharts() {}
 function smallCharts() {}
 function passwordMask() {}

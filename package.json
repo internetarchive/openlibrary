@@ -14,27 +14,27 @@
   "bundlesize": [
     {
       "path": "static/build/vendor.js",
-      "maxSize": "135.57KB"
+      "maxSize": "124KB"
     },
     {
       "path": "static/build/vendor-v2.js",
-      "maxSize": "183.8KB"
+      "maxSize": "172KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "32.5KB"
+      "maxSize": "31KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "24.9KB"
+      "maxSize": "24KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "25.1KB"
+      "maxSize": "24KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "25.1KB"
+      "maxSize": "24KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -42,11 +42,11 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "25.3KB"
+      "maxSize": "24KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "25.1KB"
+      "maxSize": "24KB"
     }
   ],
   "devDependencies": {
