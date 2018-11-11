@@ -24,8 +24,11 @@ import account
 import borrow
 import logging
 
+import six
+
+
 def follow_redirect(doc):
-    if isinstance(doc, basestring) and doc.startswith("/a/"):
+    if isinstance(doc, six.string_types) and doc.startswith("/a/"):
         #Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
         doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
@@ -377,7 +380,7 @@ class Edition(models.Edition):
 
     def get_table_of_contents(self):
         def row(r):
-            if isinstance(r, basestring):
+            if isinstance(r, six.string_types):
                 level = 0
                 label = ""
                 title = r
@@ -560,7 +563,7 @@ class Work(models.Work):
     def get_author_names(self, blacklist=None):
         author_names = []
         for author in self.get_authors():
-            author_name = (author if isinstance(author, basestring)
+            author_name = (author if isinstance(author, six.string_types)
                            else author.name)
             if not blacklist or author_name.lower() not in blacklist:
                 author_names.append(author_name)
@@ -582,7 +585,7 @@ class Work(models.Work):
                 return b.strip() + " " + a.strip()
             return name
 
-        if subjects and not isinstance(subjects[0], basestring):
+        if subjects and not isinstance(subjects[0], six.string_types):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 

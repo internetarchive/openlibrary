@@ -8,6 +8,9 @@ from infogami.utils.view import render_template, safeint
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
 
+import six
+
+
 class BasicMergeEngine:
     """Generic merge functionality useful for all types of merges.
     """
@@ -180,7 +183,7 @@ def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """
     def row(r):
-        if isinstance(r, basestring):
+        if isinstance(r, six.string_types):
             level = 0
             label = ""
             title = web.safeunicode(r)

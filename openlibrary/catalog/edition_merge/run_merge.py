@@ -3,6 +3,9 @@ import MySQLdb, datetime, re, sys
 from openlibrary.api import OpenLibrary, Reference
 from collections import defaultdict
 
+import six
+
+
 re_edition_key = re.compile('^/books/OL(\d+)M$')
 re_nonword = re.compile(r'\W', re.U)
 
@@ -159,7 +162,7 @@ for ia, ekeys, done in cur.fetchall():
         no_merge = True
     if no_merge:
         continue
-    if 'location' in master and isinstance(master['location'], basestring) and master['location'].startswith('/books/'):
+    if 'location' in master and isinstance(master['location'], six.string_types) and master['location'].startswith('/books/'):
         del master['location']
     updates.append(master)
     for e in editions[1:]:

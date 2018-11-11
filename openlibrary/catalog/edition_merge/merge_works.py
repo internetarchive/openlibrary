@@ -4,6 +4,9 @@ sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 from pprint import pprint
 
+import six
+
+
 conn = MySQLdb.connect(db='merge_editions')
 cur = conn.cursor()
 
@@ -50,7 +53,7 @@ def merge_works(works):
         for f in 'covers', 'subjects', 'subject_places', 'subject_people', 'subject_times', 'lc_classifications', 'dewey_number':
             if not w.get(f):
                 continue
-            assert not isinstance(w[f], basestring)
+            assert not isinstance(w[f], six.string_types)
             for i in w[f]:
                 if i not in master.setdefault(f, []):
                     master[f].append(i)

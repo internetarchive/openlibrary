@@ -9,6 +9,9 @@ import simplejson
 from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
 
+import six
+
+
 key_patterns = {
     'work': '/works/OL%dW',
     'edition': '/books/OL%dM',
@@ -161,7 +164,7 @@ class MockSite:
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, basestring) and i.value.startswith(web.rstrips(value, "*")),
+            "~": lambda i, value: isinstance(i.value, six.string_types) and i.value.startswith(web.rstrips(value, "*")),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
@@ -199,7 +202,7 @@ class MockSite:
 
             if k.endswith(".key"):
                 yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
-            elif isinstance(v, basestring):
+            elif isinstance(v, six.string_types):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
                 yield web.storage(key=key, datatype="int", name=k, value=v)

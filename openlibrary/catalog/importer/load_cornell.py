@@ -17,6 +17,9 @@ import openlibrary.catalog.marc.fast_parse as fast_parse
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
 
+import six
+
+
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot'])
@@ -83,7 +86,7 @@ def write_edition(loc, edition):
                 print(a)
                 raise
             print('ret:', ret)
-            assert isinstance(ret, basestring)
+            assert isinstance(ret, six.string_types)
             authors.append({'key': ret})
     q['source_records'] = [loc]
     if authors:
@@ -102,7 +105,7 @@ def write_edition(loc, edition):
             raise
         break
     print('ret:', ret)
-    assert isinstance(ret, basestring)
+    assert isinstance(ret, six.string_types)
     key = ret
     pool.update(key, q)
 

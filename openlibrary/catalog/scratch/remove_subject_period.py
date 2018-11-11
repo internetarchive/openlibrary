@@ -4,6 +4,10 @@ import sys, codecs, re
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 from catalog.read_rc import read_rc
+
+import six
+
+
 rc = read_rc()
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
@@ -30,9 +34,9 @@ for e in query_iter(q):
     }
     # need to fix table_of_contents to pass validation
     toc = e['table_of_contents']
-    if toc and (isinstance(toc[0], basestring) or toc[0]['type'] == '/type/text'):
-        if isinstance(toc[0], basestring):
-            assert all(isinstance(i, basestring) for i in toc)
+    if toc and (isinstance(toc[0], six.string_types) or toc[0]['type'] == '/type/text'):
+        if isinstance(toc[0], six.string_types):
+            assert all(isinstance(i, six.string_types) for i in toc)
             new_toc = [{'title': i, 'type': '/type/toc_item'} for i in toc]
         else:
             assert all(i['type'] == '/type/text' for i in toc)
