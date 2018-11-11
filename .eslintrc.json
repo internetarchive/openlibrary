@@ -7,6 +7,8 @@
   "globals": {
   },
   "rules": {
+    "no-trailing-spaces": "error",
+    "space-in-parens": "error",
     "no-undef": "error",
     "no-extra-semi": "error",
     "eol-last": ["error", "always"],

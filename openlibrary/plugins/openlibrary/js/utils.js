@@ -14,9 +14,9 @@ $.fn.toggleText = function(a, b) {
 $.fn.focusNextInputField = function() {
     return this.each(function() {
         var fields = $(this).parents('form:eq(0),body').find(':input:visible');
-        var index = fields.index( this );
-        if ( index > -1 && ( index + 1 ) < fields.length ) {
-            fields.eq( index + 1 ).focus();
+        var index = fields.index(this);
+        if (index > -1 && (index + 1) < fields.length) {
+            fields.eq(index + 1).focus();
         }
         return false;
     });
