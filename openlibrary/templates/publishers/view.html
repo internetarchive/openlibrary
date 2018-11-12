@@ -39,11 +39,11 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     </p>
 </div>
 
-<div class="contentBody" style="padding-top:0;">
+<div class="contentBody">
     $:render_template("books/custom_carousel", books=page.works, key="subjects")
 
 	<div class="head">
-	    <h2 style="margin-bottom:0px!important;">
+	    <h2>
 	        $_("Publishing History")
                 <span class="shift">$:_('This is a chart to show the when this publisher published books. Along the X axis is time, and on the y axis is the count of editions published. <a href="#subjectRelated">Click here to skip the chart</a>.')</span>
 	        <span class="count hidden chartZoom">&nbsp;<a href="javascript:;" class="resetSelection small">$_("Reset chart")</a> $_("or continue zooming in.")</span>
