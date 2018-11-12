@@ -5,7 +5,7 @@
  */
 (function($){
     // For v2 and v1 page support. Can be removed when no v1 support needed
-    var isOldJQuery = $( 'body' ).on === undefined;
+    var isOldJQuery = $('body').on === undefined;
     $.fn.repeat = function(options) {
         var addSelector, removeSelector;
         options = options || {};
@@ -18,7 +18,7 @@
             'display': $(id + '-display'),
             'template': $(id + '-template')
         }
-        
+
         function createTemplate(selector) {
             var code = $(selector).html()
                             .replace(/%7B%7B/gi, "<%=")
@@ -29,9 +29,9 @@
             // eslint-disable-next-line no-undef
             return Template(code);
         }
-        
+
         var t = createTemplate(id + "-template");
-        
+
         function formdata() {
             var data = {};
             $(":input", elems.form).each(function() {
@@ -43,17 +43,17 @@
         function onAdd(event) {
             console.log('add');
             event.preventDefault();
-            
+
             var index = elems.display.children().length;
             var data = formdata();
             data.index = index;
-            
+
             if (options.validate && options.validate(data) == false) {
                 return;
             }
-            
+
             $.extend(data, options.vars || {});
-            
+
             var newid = elems._this.attr("id") + "--" + index;
             elems.template
                 .clone()
@@ -61,7 +61,7 @@
                 .html(t(data))
                 .show()
                 .appendTo(elems.display);
-                
+
             $("input[type!=button], textarea", elems.form).filter(":not(.repeat-ignore)").val("");
             elems._this.trigger("repeat-add");
         }
@@ -73,7 +73,7 @@
         addSelector = id + " .repeat-add";
         removeSelector = id + " .repeat-remove";
         // Click handlers should apply to newly created add/remove selectors
-        if ( isOldJQuery ) {
+        if (isOldJQuery) {
             $(addSelector).live("click", onAdd);
             $(removeSelector).live("click", onRemove);
         } else {

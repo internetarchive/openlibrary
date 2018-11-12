@@ -26,7 +26,7 @@ var Browser = {
     removeURLParameter: function(url, parameter) {
         var urlparts = url.split('?');
         var prefix = urlparts[0];
-        if (urlparts.length >= 2 ) {
+        if (urlparts.length >= 2) {
             var query = urlparts[1];
             var paramPrefix = encodeURIComponent(parameter) + '=';
             var params= query.split(/[&;]/g);
@@ -344,7 +344,7 @@ $().ready(function(){
         $("input[name='has_fulltext']").remove();
 
         var url = $(form).attr('action') || '/';
-        if ( url ) {
+        if (url) {
             url = Browser.removeURLParameter(url, 'm');
             url = Browser.removeURLParameter(url, 'has_fulltext');
             url = Browser.removeURLParameter(url, 'subject_facet');
