@@ -70,7 +70,10 @@ docker-compose exec web bash # Launch terminal in `web` service
 docker-compose exec web make test
 
 # Install Node.js modules (if you get an error running tests)
+# Important: npm jobs need to be run inside the Docker environment.
 docker-compose exec web npm install
+# build JS/CSS assets:
+docker-compose exec web npm run build-assets
 ```
 
 ## Other Commands
