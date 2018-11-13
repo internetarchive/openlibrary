@@ -369,8 +369,10 @@ class Solr_client(object):
         # print >> web.debug, '* basic search: query=(%r)'% bquery
         return self.advanced_search(bquery, **params)
 
-# get second element of a tuple
-def snd((a,b)): return b
+def snd(a__b):
+    """Get second element of a tuple."""
+    (a, b) = a__b
+    return b
 
 def facet_counts(result_list, facet_fields):
     """Return list of facet counts for a search result set.

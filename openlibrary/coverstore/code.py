@@ -85,7 +85,8 @@ class upload:
         success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
 
-        def error((code, msg)):
+        def error(code__msg):
+            (code, msg) = code__msg
             print("ERROR: upload failed, ", i.olid, code, repr(msg), file=web.debug)
             _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
@@ -123,7 +124,8 @@ class upload2:
         web.ctx.pop("_fieldstorage", None)
         web.ctx.pop("_data", None)
 
-        def error((code, msg)):
+        def error(code__msg):
+            (code, msg) = code__msg
             _cleanup()
             e = web.badrequest()
             e.data = simplejson.dumps({"code": code, "message": msg})
