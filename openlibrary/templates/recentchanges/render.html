@@ -36,7 +36,7 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
             $elif c.ip and c.ip != '127.0.0.1':
                 $if ctx.user and ctx.user.is_admin():
                     $ ip_url = "/admin/ip/%s" % c.ip
-                    $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                    $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
                 $else:
                     $ ip_url = changequery(ip=c.ip)
                     $ klass = ""
