@@ -84,11 +84,12 @@
                     .parent().val(d.value);
 
                 // add JSON to hidden field
+                var data = null;
                 try {
-                    var data = JSON.parse($json.val());
+                    data = JSON.parse($json.val());
                 }
                 catch (err) {
-                    var data = [];
+                    data = [];
                 }
                 data.push(d);
                 $json.val(JSON.stringify(data));

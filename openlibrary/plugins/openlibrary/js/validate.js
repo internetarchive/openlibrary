@@ -13,7 +13,7 @@
  *      </form>
  */
 (function($) {
-    
+
 
     // validate publish-date to make sure the date is not in future
     /* eslint-disable no-unused-vars */
@@ -30,8 +30,10 @@
     /* eslint-enable no-unused-vars */
 
     $.validator.messages.required = "";
+    // _ is defined in openlibrary\plugins\openlibrary\js\i18n.js
+    // eslint-disable-next-line no-undef
     $.validator.messages.email = _("Are you sure that's an email address?");
-    
+
 
     $.fn.ol_validate = function(options) {
         var defaults = {
@@ -41,6 +43,8 @@
             invalidHandler: function(form, validator) {
                 var errors = validator.numberOfInvalids();
                 if (errors) {
+                    // ungettext is defined in openlibrary\plugins\openlibrary\js\i18n.js
+                    // eslint-disable-next-line no-undef
                     var message = ungettext(
                         "Hang on... you missed a bit. It's highlighted below.",
                         "Hang on...you missed some fields. They're highlighted below.",

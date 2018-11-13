@@ -443,7 +443,7 @@ class opds(delegate.mode):
             raise web.notfound("")
         else:
             from infogami.utils import template
-            import opds
+            from openlibrary.plugins.openlibrary import opds
             try:
                 result = template.typetemplate('opds')(page, opds)
             except:

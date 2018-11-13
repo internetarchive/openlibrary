@@ -20,5 +20,5 @@ $def with (comment=None)
     $if ctx.user and ctx.user.is_admin():
         <span class="adminOnly right"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="delete">$_("Delete Record")</button></span>
     $else:
-        <div class="adminDelete" style="width:500px;left:205px;"><em>Please Note:</em> Only Admins can delete things. <a href="/contact" class="blue">Let us know</a> if there's a problem.</div>
+        <div class="adminDelete"><em>Please Note:</em> Only Admins can delete things. <a href="/contact" class="blue">Let us know</a> if there's a problem.</div>
 </div>

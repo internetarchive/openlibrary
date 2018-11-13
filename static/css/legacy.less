@@ -632,7 +632,6 @@ span {
     font-weight: normal !important;
     font-family: @lucida_sans_serif-1;
     color: @brown;
-    white-space: nowrap;
     padding: 5px 5px 0;
   }
   &.caption {
@@ -1432,18 +1431,6 @@ div.cclicense {
   color: @brown;
   margin-bottom: 12px;
   background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
-}
-
-div.adminDelete {
-  position: absolute;
-  top: 8px;
-  left: 205px;
-  width: 500px;
-  white-space: nowrap;
-  overflow: visible;
-  text-align: center;
-  font-size: 12px;
-  color: @grey;
 }
 
 div#editionBorrow,
@@ -4106,6 +4093,11 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  span {
+    &.count {
+      white-space: nowrap;
+    }
+  }
   div.edition {
     &Cover {
       float: left;
