@@ -15,9 +15,3 @@
 
 > Many bugs are related to these -- please help us track it down and reproduce what you're seeing!
 
-
-****
-
-## Thank you!
-
-Your help makes internetarchive better! We *deeply* appreciate your helping refine and improve this site.
