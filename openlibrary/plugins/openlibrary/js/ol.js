@@ -343,11 +343,15 @@ $().ready(function(){
         $("input[value='Protected DAISY']").remove();
         $("input[name='has_fulltext']").remove();
 
-        var url = $(form).attr('action') || '/';
+        var url = $(form).attr('action');
         if (url) {
             url = Browser.removeURLParameter(url, 'm');
             url = Browser.removeURLParameter(url, 'has_fulltext');
             url = Browser.removeURLParameter(url, 'subject_facet');
+        } else {
+            // Don't set mode if no action.. it's too risky!
+            // see https://github.com/internetarchive/openlibrary/issues/1569
+            return;
         }
 
         if (localStorage.getItem('mode') !== 'everything') {
