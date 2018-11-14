@@ -247,15 +247,6 @@ var {
 
 li {
   span {
-    &.bookcover {
-      width: 80px;
-      margin: 10px 10px 0 5px;
-      text-align: right;
-      overflow: hidden;
-      img {
-        width: 100%;
-      }
-    }
     &.snippet {
       display: block;
       margin: 10px 0;
@@ -284,15 +275,6 @@ li {
         border: 5px solid @orange;
       }
     }
-  }
-  &.searchResultItem {
-    list-style-type: none;
-    background-color: @grey-fafafa;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 3px;
-    border-bottom: 1px solid @light-beige;
-    flex-wrap: wrap;
   }
 }
 
@@ -657,15 +639,6 @@ span {
       font-size: .75em;
       font-family: @lucida_sans_serif-6;
       color: @brown;
-    }
-    h3.booktitle {
-      display: inline;
-      margin: 0;
-      padding: 0;
-      color: @dark-grey;
-      font-size: 1.0em;
-      font-weight: 700;
-      font-family: @lucida_sans_serif-6;
     }
     .bookauthor,
     .resultPublisher {
@@ -1758,10 +1731,6 @@ div#searchResults ul {
 }
 
 div#searchResults {
-  li img {
-    height: 80px;
-    max-width: 75px;
-  }
   .SRPCover {
     margin: 0 15px 20px 0;
     vertical-align: middle;
@@ -1835,13 +1804,6 @@ div#searchResults {
     margin-left: 15px;
     margin-right: 4px;
     position: relative;
-  }
-}
-
-.searchResultItem {
-  .details {
-    width: 100%;
-    padding: 5px;
   }
 }
 
@@ -1996,9 +1958,7 @@ div#searchResults {
 
 /* SEARCH FACETS */
 
-.resultsContainer {
-  .display-flex();
-}
+@import (less) 'components/search-results-container.less';
 
 div#searchFacets {
   width: 220px;
@@ -2911,33 +2871,6 @@ span.actions {
   }
 }
 
-ul#siteSearch {
-  > li {
-    .display-flex();
-    span.bookcover img {
-      width: 100%;
-    }
-  }
-  span.resultTitle {
-    display: block;
-    margin: 0 !important;
-    font-family: @lucida_sans_serif-1;
-    color: @grey;
-  }
-  span.resultTitle .bookauthor,
-  span.resultPublisher {
-    font-size: .75em;
-    color: @grey;
-    font-family: @lucida_sans_serif-6;
-  }
-  span.resultPublisher {
-    display: block;
-  }
-  span.resultType {
-    font-size: .6875em;
-  }
-}
-
 div.wide {
   ul#siteSearch {
     span.resultTitle {
@@ -2952,10 +2885,6 @@ div.narrow {
       max-width: 500px !important;
     }
   }
-}
-
-.bookauthor {
-  font-family: @lucida_sans_serif-6;
 }
 
 /* RESULTS CAROUSEL SKIN */
@@ -4083,12 +4012,6 @@ ul#myreads-paginator {
 @media only screen and (min-width: 35.5em) {
   .searchResultItemCTA {
     flex: unset;
-  }
-
-  li {
-    &.searchResultItem {
-      flex-wrap: nowrap;
-    }
   }
 }
 
