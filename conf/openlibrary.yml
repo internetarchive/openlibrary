@@ -74,7 +74,6 @@ features:
     support: admin
     superfast: enabled
     publishers: enabled
-    languages: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
