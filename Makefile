@@ -25,6 +25,7 @@ css:
 	lessc -x static/css/page-form.less $(BUILD)/page-form.css
 	lessc -x static/css/page-home.less $(BUILD)/page-home.css
 	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
+	lessc -x static/css/page-subject.less $(BUILD)/page-subject.css
 	lessc -x static/css/page-user.less $(BUILD)/page-user.css
 	lessc -x static/css/js-all.less $(BUILD)/js-all.css
 	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css

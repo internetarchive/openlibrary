@@ -43,6 +43,7 @@ class subjects_index(delegate.page):
     path = "/subjects"
 
     def GET(self):
+        delegate.context.setdefault('bodyid', 'subject')
         page = render_template("subjects/index.html")
         page.v2 = True
         return page
@@ -57,6 +58,7 @@ class subjects(delegate.page):
 
         subj = get_subject(key, details=True)
         subj.v2 = True
+        delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
             page = render_template('subjects/notfound.tmpl', key)

@@ -38,11 +38,15 @@
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.1KB"
+      "maxSize": "4.2KB"
     },
     {
       "path": "static/build/page-plain.css",
       "maxSize": "25.3KB"
+    },
+    {
+      "path": "static/build/page-subject.css",
+      "maxSize": "5.9KB"
     },
     {
       "path": "static/build/page-user.css",
