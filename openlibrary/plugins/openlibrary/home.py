@@ -103,31 +103,6 @@ def generic_carousel(query=None, subject=None, work_id=None, _type=None,
     return storify(books)
 
 @public
-def carousel_from_list(key, randomize=False, limit=60):
-    css_id = key.split("/")[-1] + "_carousel"
-
-    data = format_list_editions(key)
-    if randomize:
-        random.shuffle(data)
-    data = data[:limit]
-    return render_template(
-        "books/carousel", storify(data), id=css_id, pixel="CarouselList")
-
-@public
-def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
-    """Generates 'Your Loans' carousel on home page"""
-    if not loans:
-        return ''
-    books = []
-    for loan in loans:
-        loan_book = web.ctx.site.get(loan['book'])
-        if loan_book:
-            books.append(format_book_data(loan_book))
-    return render_template(
-        'books/carousel', storify(books), id=cssid, pixel=pixel, loans=True
-    ) if books else ''
-
-@public
 def readonline_carousel():
     """Return template code for books pulled from search engine.
        TODO: If problems, use stock list.

@@ -32,7 +32,6 @@
 @import (less) "components/header.less";
 @import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
-@import (less) "components/resultsCovers.less";
 @import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
 @import (less) "components/dropper.less";
@@ -1697,29 +1696,6 @@ div.editThis {
   margin-left: 50px;
 }
 
-/* RESULTS CAROUSEL SKIN */
-
-ul.homeCarousel {
-  list-style-type: none;
-  overflow: hidden;
-  margin-left: 0 !important;
-  margin-bottom: 0 !important;
-  li {
-    position: relative;
-    float: left;
-    list-style: none !important;
-  }
-  .hiddenCoverMagic {
-    width: 100px;
-    height: 200px;
-  }
-}
-
-ul.homeCarousel .hiddenCoverMagic div,
-.hiddenCoverMagic a {
-  display: none;
-}
-
 /* SEARCH RESULTS */
 
 div#searchResults,
@@ -2761,14 +2737,6 @@ div#history {
   font-size: 11px;
 }
 
-div#resultsList,
-div#editionsList {
-  li img {
-    height: 60px;
-    max-width: 75px;
-  }
-}
-
 span.actions {
   display: block;
   float: left;
@@ -2846,26 +2814,30 @@ span.actions {
   }
 }
 
-.jcarousel-skin-OL {
-  span.actions {
-    a {
-      span.borrow {
-        display: block;
-        margin: 0 auto;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        left: 0;
-      }
-      span.checked-out {
-        display: block;
-        margin: 0 auto;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        left: 0;
-      }
+ul#siteSearch {
+  > li {
+    .display-flex();
+    span.bookcover img {
+      width: 100%;
     }
+  }
+  span.resultTitle {
+    display: block;
+    margin: 0 !important;
+    font-family: @lucida_sans_serif-1;
+    color: @grey;
+  }
+  span.resultTitle .bookauthor,
+  span.resultPublisher {
+    font-size: .75em;
+    color: @grey;
+    font-family: @lucida_sans_serif-6;
+  }
+  span.resultPublisher {
+    display: block;
+  }
+  span.resultType {
+    font-size: .6875em;
   }
 }
 
@@ -2882,44 +2854,6 @@ div.narrow {
     span.resultTitle {
       max-width: 500px !important;
     }
-  }
-}
-
-/* RESULTS CAROUSEL SKIN */
-#editionsCovers,
-#editionsList {
-  .jcarousel-container {
-    width: 918px;
-    padding: 20px;
-  }
-  .jcarousel-clip {
-    width: 918px;
-    height: 472px;
-  }
-}
-
-#editionsCovers {
-  .jcarousel-item-horizontal {
-    width: 918px;
-    height: 472px;
-    margin-right: 0;
-  }
-}
-
-div#editionsCovers {
-  a {
-    text-decoration: none;
-  }
-}
-
-#editionsList {
-  .jcarousel-item-vertical {
-    width: 918px;
-    height: 60px !important;
-    margin-top: 3px;
-    padding-bottom: 3px;
-    overflow: hidden;
-    border-bottom: 1px dotted @white;
   }
 }
 

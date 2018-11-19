@@ -774,14 +774,6 @@ msgstr "Ajouter ce livre maintenant"
 msgid "Add"
 msgstr "Ajouter"
 
-#: carousel_item.html:32 covers.html:104
-msgid "Read online"
-msgstr "Lire en ligne"
-
-#: carousel_item.html:38
-msgid "Borrow this book"
-msgstr "Emprunter ce livre"
-
 #: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
 msgid "Add a Book"
 msgstr "Ajouter un Livre"

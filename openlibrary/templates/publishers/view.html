@@ -129,10 +129,6 @@ window.q.push(function() {
     });
     placeholder.bind("plotclick", function (event, pos, item) {
         \$.scrollTo( \$('#scrollHere'), 800);
-        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
-        \$("#coversLoading").show();
-        \$(".jcarousel-prev").hide();
-        \$(".jcarousel-next").hide();
 
         if (item) {
             plot.unhighlight();
@@ -158,10 +154,6 @@ window.q.push(function() {
         var yearFrom = ranges.xaxis.from.toFixed(0);
         var yearTo = ranges.xaxis.to.toFixed(0);
         \$.scrollTo( \$('#scrollHere'), 800);
-        if (page.getPageCount() > 0) {\$("#coversNone").hide();};
-        \$("#coversLoading").show();
-        \$(".jcarousel-prev").hide();
-        \$(".jcarousel-next").hide();
 		page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
     });
     var plot = \$.plot(placeholder, data, options);
