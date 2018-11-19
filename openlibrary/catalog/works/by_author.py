@@ -14,6 +14,9 @@ sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 import olapi
 
+import six
+
+
 rc = read_rc()
 
 ol = OpenLibrary("http://dev.openlibrary.org")
@@ -123,7 +126,7 @@ def get_books(akey):
             book['lang'] = [l['key'][3:] for l in e['languages']]
 
         if e.get('table_of_contents', None):
-            if isinstance(e['table_of_contents'][0], basestring):
+            if isinstance(e['table_of_contents'][0], six.string_types):
                 book['table_of_contents'] = e['table_of_contents']
             else:
                 assert isinstance(e['table_of_contents'][0], dict)

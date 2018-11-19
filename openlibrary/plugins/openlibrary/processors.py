@@ -3,6 +3,7 @@
 import web
 
 from openlibrary.core.processors import ReadableUrlProcessor
+import six
 
 from openlibrary.core import helpers as h
 
@@ -19,7 +20,7 @@ class ProfileProcessor:
             if isinstance(out, web.template.TemplateResult):
                 out.__body__ = out.get('__body__', '') + '<pre class="profile">' + web.websafe(result) + '</pre>'
                 return out
-            elif isinstance(out, basestring):
+            elif isinstance(out, six.string_types):
                 return out + '<br/>' + '<pre class="profile">' + web.websafe(result) + '</pre>'
             else:
                 # don't know how to handle this.

@@ -5,6 +5,9 @@ from unicodedata import normalize
 from pymarc import MARC8ToUnicode
 from openlibrary.catalog.marc import mnemonics
 
+import six
+
+
 marc8 = MARC8ToUnicode(quiet=True)
 
 class BadLength(MarcException):
@@ -82,7 +85,7 @@ class BinaryDataField():
 class MarcBinary(MarcBase):
     def __init__(self, data):
         try:
-            assert len(data) and isinstance(data, basestring)
+            assert len(data) and isinstance(data, six.string_types)
             length = int(data[:5])
         except:
             raise BadMARC("No MARC data found")

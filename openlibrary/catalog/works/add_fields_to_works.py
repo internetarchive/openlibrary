@@ -9,6 +9,9 @@ from catalog.read_rc import read_rc
 from catalog.utils.query import query, query_iter, set_staging, base_url
 from catalog.utils import mk_norm, get_title
 
+import six
+
+
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 set_staging(True)
 
@@ -139,7 +142,7 @@ def add_fields():
                         print(e['key'], toc)
                         print(e)
                         print()
-                        if isinstance(toc[0], basestring):
+                        if isinstance(toc[0], six.string_types):
                             found_list.append(toc_items(toc))
                         else:
                             assert isinstance(toc[0], dict)

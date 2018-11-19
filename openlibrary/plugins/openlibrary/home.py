@@ -20,6 +20,9 @@ from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.openlibrary import lists
 
 
+import six
+
+
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
@@ -150,7 +153,7 @@ def format_list_editions(key):
 
     editions = {}
     for seed in seed_list.seeds:
-        if not isinstance(seed, basestring):
+        if not isinstance(seed, six.string_types):
             if seed.type.key == "/type/edition":
                 editions[seed.key] = seed
             else:

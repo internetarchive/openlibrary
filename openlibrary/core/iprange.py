@@ -3,6 +3,9 @@
 import re
 import iptools
 
+import six
+
+
 four_octet = r'(\d+\.\d+\.\d+\.\d+)'
 re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
 re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
@@ -132,7 +135,7 @@ class IPDict:
             ("1.2.3.4", "1.2.3.44")
         """
         # Convert ranges in CIDR format into (start, end) tuple
-        if isinstance(ip_range, basestring) and "/" in ip_range:
+        if isinstance(ip_range, six.string_types) and "/" in ip_range:
             # ignore bad value
             if not iptools.validate_cidr(ip_range):
                 return

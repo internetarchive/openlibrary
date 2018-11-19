@@ -18,6 +18,9 @@ import gzip
 
 import db
 
+import six
+
+
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
     """
@@ -63,7 +66,7 @@ def xopen(path, mode='r'):
 def read_tsv(file, strip=True):
     """Read a tab seperated file and return an iterator over rows."""
     log("reading", file)
-    if isinstance(file, basestring):
+    if isinstance(file, six.string_types):
         file = xopen(file)
 
     for i, line in enumerate(file):

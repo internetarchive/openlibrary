@@ -10,6 +10,9 @@ import xml.parsers.expat
 import web, sys
 from time import sleep
 
+import six
+
+
 rc = read_rc()
 
 ol = OpenLibrary("http://openlibrary.org")
@@ -34,7 +37,7 @@ def try_amazon(thing):
             if isinstance(a, dict):
                 akey = a['key']
             else:
-                assert isinstance(a, basestring)
+                assert isinstance(a, six.string_types)
                 akey = a
             author_thing = withKey(akey)
             if 'name' in author_thing:

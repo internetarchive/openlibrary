@@ -29,6 +29,9 @@ from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
 from . import spamcheck
 
+import six
+
+
 logger = logging.getLogger("openlibrary.book")
 
 SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
@@ -348,7 +351,7 @@ def trim_value(value):
         >>> trim_value({'x': [""]})
         None
     """
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
         value = value.strip()
         return value or None
     elif isinstance(value, list):
@@ -569,7 +572,7 @@ class SaveBookHelper:
         old_subjects = self.work and self.work.get("subjects") or []
 
         # If condition is added to handle the possibility of bad data
-        set_old_subjects = set(s.lower() for s in old_subjects if isinstance(s, basestring))
+        set_old_subjects = set(s.lower() for s in old_subjects if isinstance(s, six.string_types))
         set_new_subjects = set(s.lower() for s in work.subjects)
 
         for s in SYSTEM_SUBJECTS:

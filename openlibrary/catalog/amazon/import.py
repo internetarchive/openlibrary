@@ -10,6 +10,9 @@ from catalog.merge.merge_marc import build_marc
 import catalog.marc.fast_parse as fast_parse
 import urllib2
 
+import six
+
+
 re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
 
 re_normalize = re.compile('[^\w ]')
@@ -132,7 +135,7 @@ def try_merge(edition, ekey, thing):
     else:
         authors = []
     a = amazon_merge.build_amazon(edition, authors)
-    assert isinstance(asin, basestring)
+    assert isinstance(asin, six.string_types)
     assert thing_type == '/type/edition'
     #print edition['asin'], ekey
     if 'source_records' in thing:

@@ -3,6 +3,7 @@ import re, web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
+import six
 from six.moves import range
 
 re_date = map (re.compile, [
@@ -190,7 +191,7 @@ def tidy_isbn(input):
 def strip_count(counts):
     foo = {}
     for i, j in counts:
-        foo.setdefault(i.rstrip('.').lower() if isinstance(i, basestring) else i, []).append((i, j))
+        foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
     ret = {}
     for k, v in foo.iteritems():
         m = max(v, key=lambda x: len(x[1]))[0]
