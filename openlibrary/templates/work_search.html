@@ -80,7 +80,7 @@ function less(header) {
     }
     \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).slideUp()
 }
-\$().ready(function(){
+window.q.push(function(){
     \$(".header_bull").hide();
 });
 //-->
@@ -219,10 +219,10 @@ $ )
         <div class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</div>
         <script type="text/javascript">
         <!--
-            \$().ready(bookCovers);
+            //window.q.push(bookCovers);
         //-->
         </script>
-        <div class="resultsContainer">
+        <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul id="siteSearch">
             $ works = add_availability([get_doc(d) for d in docs])
@@ -297,23 +297,25 @@ $elif param and not error:
         $ ol = 'openlibrary.org'
         <script type="text/javascript">
         <!--
-        function readapi_callback(data, textStatus, jqXHR) {
-            endtime = Date.now();
-            //document.write(data.stats.summary.toSource());
-            duration = (endtime - starttime) / 1000;
-            disp = document.getElementById("adminTiming");
-            if (disp) {
-                disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
+        window.q.push( function () {
+            function readapi_callback(data, textStatus, jqXHR) {
+                endtime = Date.now();
+                //document.write(data.stats.summary.toSource());
+                duration = (endtime - starttime) / 1000;
+                disp = document.getElementById("adminTiming");
+                if (disp) {
+                    disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
+                }
             }
-        }
-        if (Math.random() * 100 < $readapi_percent) {
-            starttime = Date.now();
-            \$.ajax({
-                url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
-                dataType: 'jsonp',
-                success: readapi_callback
-            });
-        }
+            if (Math.random() * 100 < $readapi_percent) {
+                starttime = Date.now();
+                \$.ajax({
+                    url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
+                    dataType: 'jsonp',
+                    success: readapi_callback
+                });
+            }
+        });
         //-->
         </script>
   </div>

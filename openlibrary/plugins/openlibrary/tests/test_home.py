@@ -102,58 +102,6 @@ class TestHomeTemplates:
         assert "Around the Library" in html
         assert "About the Project" in html
 
-class TestCarouselItem:
-    def setup_method(self, m):
-        context.context.features = []
-
-    def render(self, book):
-        if "authors" in book:
-            book["authors"] = [web.storage(a) for a in book['authors']]
-        return unicode(render_template("books/carousel_item", web.storage(book)))
-
-    def link_count(self, html):
-        links = BeautifulSoup(html, "lxml").findAll("a") or []
-        return len(links)
-
-    def test_without_cover_url(self, render_template):
-        book = {
-            "work": None,
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        }
-        assert book['title'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['authors']
-        assert book['title'] in self.render(book)
-
-class Test_carousel:
-    def test_carousel(self, render_template):
-        book = web.storage({
-            "work": "/works/OL1W",
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        })
-
-        html = unicode(render_template("books/carousel", [book]))
-
-        assert book['title'] in html
-
-        soup = BeautifulSoup(html, "lxml")
-        assert len(soup.findAll("li")) == 1
-        assert len(soup.findAll("a")) == 2
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):

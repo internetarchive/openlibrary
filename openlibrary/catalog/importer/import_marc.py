@@ -17,6 +17,7 @@ from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from openlibrary.api import OpenLibrary, unmarshal
+import six
 
 from openlibrary.catalog.read_rc import read_rc
 
@@ -130,7 +131,7 @@ def author_from_data(loc, data):
         return {'key': a['key']}
     ret = ol.new(a, comment='new author')
     print('ret:', ret)
-    assert isinstance(ret, basestring)
+    assert isinstance(ret, six.string_types)
     return {'key': ret}
 
 def undelete_author(a):
@@ -296,7 +297,7 @@ def write_edition(loc, edition):
                 print(a)
                 raise
             print('ret:', ret)
-            assert isinstance(ret, basestring)
+            assert isinstance(ret, six.string_types)
 #            assert ret['status'] == 'ok'
 #            assert 'created' in ret and len(ret['created']) == 1
             authors.append({'key': ret})
@@ -343,7 +344,7 @@ def write_edition(loc, edition):
             raise
         break
     print('ret:', ret)
-    assert isinstance(ret, basestring)
+    assert isinstance(ret, six.string_types)
     key = '/b/' + re_edition_key.match(ret).group(1)
 #    assert ret['status'] == 'ok'
 #    assert 'created' in ret

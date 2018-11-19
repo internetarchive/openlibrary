@@ -13,6 +13,9 @@ from infogami.utils import stats
 import cache
 from openlibrary.utils.dateutil import date_n_days_ago
 
+import six
+
+
 logger = logging.getLogger("openlibrary.ia")
 
 VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
@@ -284,7 +287,7 @@ class ItemEdition(dict):
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
                 if value:
-                    if isinstance(value[0], basestring):
+                    if isinstance(value[0], six.string_types):
                         value = "\n\n".join(value)
                     else:
                         value = value[0]

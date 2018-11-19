@@ -166,7 +166,7 @@ def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in in1, in2]
+    s1, s2 = [i.split() for i in (in1, in2)]
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set

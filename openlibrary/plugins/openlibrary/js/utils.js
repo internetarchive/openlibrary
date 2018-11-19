@@ -14,9 +14,9 @@ $.fn.toggleText = function(a, b) {
 $.fn.focusNextInputField = function() {
     return this.each(function() {
         var fields = $(this).parents('form:eq(0),body').find(':input:visible');
-        var index = fields.index( this );
-        if ( index > -1 && ( index + 1 ) < fields.length ) {
-            fields.eq( index + 1 ).focus();
+        var index = fields.index(this);
+        if (index > -1 && (index + 1) < fields.length) {
+            fields.eq(index + 1).focus();
         }
         return false;
     });
@@ -94,7 +94,7 @@ function cond(predicate, true_value, false_value) {
         showPasswords: function(f) {
             return this.each(function() {
                 var c = function(a) {
-                    var a = $(a);
+                    a = $(a);
                     var b = $("<input type='text' />");
                     b.insertAfter(a).attr({
                         'class': a.attr('class'),

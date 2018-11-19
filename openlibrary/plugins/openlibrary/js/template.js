@@ -24,7 +24,7 @@ function Template(tmpl_text) {
     addText(tokens[0]);
     for (var i=1; i < tokens.length; i++) {
         var t = tokens[i].split('%>');
-        
+
         if (t[0][0] == "=") {
             addExpr(t[0].substr(1));
         }

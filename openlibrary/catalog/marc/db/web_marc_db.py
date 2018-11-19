@@ -9,6 +9,9 @@ import re, sys, os.path, web
 #from catalog.amazon.other_editions import find_others
 from catalog.utils import strip_count
 
+import six
+
+
 db = web.database(dbn='postgres', db='marc_lookup')
 db.printing = False
 
@@ -42,7 +45,7 @@ def list_to_html(l):
     return blue('[') + blue('|').join(l) + blue(']')
 
 def esc(s):
-    if not isinstance(s, basestring):
+    if not isinstance(s, six.string_types):
         return s
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
 
@@ -54,7 +57,7 @@ def marc_data(loc):
 
 def counts_html(v):
     count = {}
-    lens = [len(i) for i, loc in v if i and isinstance(i, basestring)]
+    lens = [len(i) for i, loc in v if i and isinstance(i, six.string_types)]
     sep = '<br>' if lens and max(lens) > 20 else ' '
     for i, loc in v:
         count.setdefault(i, []).append(loc)

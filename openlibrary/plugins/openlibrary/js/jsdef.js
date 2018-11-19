@@ -68,24 +68,24 @@ function enumerate(a) {
 function ForLoop(parent, seq) {
     this.parent = parent;
     this.seq = seq;
-    
+
     this.length = seq.length;
     this.index0 = -1;
 }
 
 ForLoop.prototype.next = function() {
     var i = this.index0+1;
-    
+
     this.index0 = i;
     this.index = i+1;
-    
+
     this.first = (i == 0);
     this.last = (i == this.length-1);
-    
+
     this.odd = (this.index % 2 == 1);
     this.even = (this.index % 2 == 0);
     this.parity = ['even', 'odd'][this.index % 2];
-    
+
     this.revindex0 = this.length - i;
     this.revindex = this.length - i + 1;
 }
@@ -94,12 +94,12 @@ ForLoop.prototype.next = function() {
 // used in plugins/upstream/jsdef.py
 function foreach(seq, parent_loop, callback) {
     var loop = new ForLoop(parent_loop, seq);
-    
+
     for (var i=0; i<seq.length; i++) {
         loop.next();
-        
+
         var args = [loop];
-        
+
         // case of "for a, b in ..."
         if (callback.length > 2) {
             for (var j in seq[i]) {

@@ -158,7 +158,7 @@ $.extend(Subject.prototype, {
             }
             $.extend(params, this.filter);
 
-            key = this.key.replace(/\s+/g, '_');
+            var key = this.key.replace(/\s+/g, '_');
             var url = key + ".json?" + urlencode(params);
             var t = this;
 
@@ -172,7 +172,7 @@ $.extend(Subject.prototype, {
     _ajax: function(params, callback) {
         params = $.extend({"limit": this.settings.pagesize, "offset": 0},
                           this.filter, params);
-        key = this.key.replace(/\s+/g, '_');
+        var key = this.key.replace(/\s+/g, '_');
         var url = key + ".json?" + urlencode(params);
         $.getJSON(url, callback);
     },

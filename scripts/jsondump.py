@@ -43,6 +43,9 @@ import re
 import time
 import os
 
+import six
+
+
 commands = {}
 def command(f):
     commands[f.__name__] = f
@@ -238,7 +241,7 @@ def read_json(file):
     for json in xopen(file):
         d = simplejson.loads(json)
         ret = (d['key'], d['type']['key'], json)
-        if not all(isinstance(i, basestring) for i in ret):
+        if not all(isinstance(i, six.string_types) for i in ret):
             print('not all strings:')
             print(json)
         yield ret

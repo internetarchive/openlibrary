@@ -1,5 +1,7 @@
 from __future__ import print_function
 import re, web
+import json
+import urllib2
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
 from time import sleep

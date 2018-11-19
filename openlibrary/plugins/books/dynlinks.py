@@ -7,6 +7,7 @@ import traceback
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+import six
 
 from infogami.utils.delegate import register_exception
 
@@ -210,7 +211,7 @@ class DataProcessor:
         def format_table_of_contents(toc):
             # after openlibrary.plugins.upstream.models.get_table_of_contents
             def row(r):
-                if isinstance(r, basestring):
+                if isinstance(r, six.string_types):
                     level = 0
                     label = ""
                     title = r

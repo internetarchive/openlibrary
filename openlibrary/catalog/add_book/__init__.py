@@ -38,11 +38,13 @@ from infogami import config
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
-from openlibrary.catalog.utils import flip_name
 from openlibrary import accounts
 
 from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
 from merge import try_merge
+
+
+import six
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
@@ -415,9 +417,6 @@ def find_exact_match(rec, edition_pool):
                             del a['entity_type']
                         if 'db_name' in a:
                             del a['db_name']
-                        #for f in 'name', 'personal_name':
-                        #    if a.get(f):
-                        #        a[f] = flip_name(a[f])
 
                 if existing_value != v:
                     match = False
@@ -530,7 +529,7 @@ def load(rec):
         raise RequiredField('title')
     if not rec.get('source_records'):
         raise RequiredField('source_records')
-    if isinstance(rec['source_records'], basestring):
+    if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
 
     edition_pool = build_pool(rec)
@@ -558,13 +557,13 @@ def load(rec):
     need_work_save = need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
-    if hasattr(e, 'works'):
+    if e.get('works'):
         w = e.works[0].dict()
         work_created = False
     else:
         # Found an edition without a work
         work_created = need_work_save = need_edition_save = True
-        w = new_work(e, rec)
+        w = new_work(e.dict(), rec)
         e.works = [{'key': w['key']}]
 
     # Add subjects to work, if not already present
@@ -590,11 +589,17 @@ def load(rec):
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
+    # Add authors to work if needed
+    if not w.get('authors'):
+        authors = [import_author(a) for a in rec.get('authors', [])]
+        w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': a.key} for a in authors if a.get('key')]
+        if w.get('authors'):
+            need_work_save = True
+
     # Add ocaid to edition (str), if needed
     if 'ocaid' in rec and not e.ocaid:
         e['ocaid'] = rec['ocaid']
         need_edition_save = True
-
 
     edition_fields = [
         'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']

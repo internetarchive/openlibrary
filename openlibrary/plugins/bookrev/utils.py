@@ -1,6 +1,8 @@
 import web
 from infogami.core import auth
 
+from six.moves import input
+
 def require_user(f):
     def g(*a, **kw):
         self, site, params = a[0], a[1], a[2:]
@@ -22,8 +24,8 @@ def lpad(s, lpad):
 
 def read_text():
     lines = []
-    line = raw_input()
+    line = input()
     while line:
         lines.append(line)
-        line = raw_input()
+        line = input()
     return "\n\n".join(lines)

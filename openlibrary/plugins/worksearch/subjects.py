@@ -43,7 +43,10 @@ class subjects_index(delegate.page):
     path = "/subjects"
 
     def GET(self):
-        return render_template("subjects/index.html")
+        delegate.context.setdefault('bodyid', 'subject')
+        page = render_template("subjects/index.html")
+        page.v2 = True
+        return page
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
@@ -53,13 +56,17 @@ class subjects(delegate.page):
         if nkey != key:
             raise web.redirect(nkey)
 
-        page = get_subject(key, details=True)
-
-        if not page or page.work_count == 0:
+        subj = get_subject(key, details=True)
+        subj.v2 = True
+        delegate.context.setdefault('bodyid', 'subject')
+        if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
-            return render_template('subjects/notfound.tmpl', key)
+            page = render_template('subjects/notfound.tmpl', key)
+        else:
+            page = render_template("subjects", page=subj)
 
-        return render_template("subjects", page)
+        page.v2 = True
+        return page
 
     def normalize_key(self, key):
         key = key.lower()

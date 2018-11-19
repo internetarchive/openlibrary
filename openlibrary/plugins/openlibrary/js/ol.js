@@ -3,19 +3,6 @@ var startTime = new Date(); // This is used by ol.analytics.js
 /* eslint-enable no-unused-vars */
 
 var Browser = {
-    getUrlParameter: function(key) {
-        var query = window.location.search.substring(1);
-        var params = query.split("&");
-        if (key) {
-            for (var i=0;i<params.length;i++) {
-                var item = params[i].split("=");
-                var val = item[1];
-                if(item[0] == key){return(decodeURIComponent(val));}
-            }
-            return(undefined);
-        }
-        return(items);
-    },
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
         var result = {};
@@ -39,7 +26,7 @@ var Browser = {
     removeURLParameter: function(url, parameter) {
         var urlparts = url.split('?');
         var prefix = urlparts[0];
-        if (urlparts.length >= 2 ) {
+        if (urlparts.length >= 2) {
             var query = urlparts[1];
             var paramPrefix = encodeURIComponent(parameter) + '=';
             var params= query.split(/[&;]/g);
@@ -92,126 +79,12 @@ function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
 
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
-/* eslint-disable no-unused-vars */
-// used below
-var create_subject_carousel;
-/* eslint-enable no-unused-vars */
-
-$().ready(function() {
-  create_subject_carousel = function(subject_name, type, options) {
-    var ITEMS_PER_PAGE = 6;
-    var apiurl = '/' + type + '/' + subject_name + '.json?has_fulltext=true';
-    options = options || {};
-    options.pagesize = ITEMS_PER_PAGE;
-    options.readable = true;
-    options.sort = options.sort || "";
-    if (options.published_id) {
-        url += '&published_in=' + options.published_in;
-    }
-    $.ajax({
-        dataType: "json",
-        url: apiurl,
-        type: "GET",
-        contentType: "text/html",
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.setRequestHeader("Accept", "application/json");
-        },
-        success: function(data) {
-            // TODO: Filter `data` by available
-            var primed = false;
-            var subject = new Subject(data, options);
-            function fetchPageOfBooks(carousel) {
-                primed = true;
-                if (!subject.coverCarousel) {
-                    subject.coverCarousel = carousel;
-                    subject.coverCarousel.size(subject.getPageCount());
-                }
-                var index = carousel.first;
-                subject.pos = (index - 1) * ITEMS_PER_PAGE;
-
-                if (window.set_hash) {
-                    var _p = (index == 1) ? null : index;
-                    set_hash({"page": _p});
-                }
-
-                if (carousel.has(index)) {
-                    return;
-                }
-
-                subject.loadPage(index-1, function(data) {
-                    var works = data.works;
-                    $.each(works, function(widx, work) {
-                        carousel.add(index + widx, subject.renderWork(work));
-                    });
-                    updateBookAvailability("#carousel-" + subject_name + " li ");
-                });
-            }
-            $("#carousel-" + subject_name).jcarousel({
-                scroll: ITEMS_PER_PAGE,
-                itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
-            });
-            if (!primed) {
-                $("#carousel-" + subject_name).data('jcarousel').reload();
-            }
-        }
-    });
-  };
-});
-
-// BUILD CAROUSEL
-/* eslint-disable no-unused-vars */
-// used in templates/lib/covers.html
-function carouselSetup(loadCovers, loadLists) {
-  $('#coversCarousel').jcarousel({
-    visible: 1,
-    scroll: 1,
-    itemLoadCallback: loadCovers
-  });
-// SET-UP COVERS LIST
-  $('#listCarousel').jcarousel({
-    vertical: true,
-    visible: 6,
-    scroll: 6,
-    itemLoadCallback: loadLists
-  });
-// SWITCH RESULTS VIEW
-  $("#resultsList").hide()
-  $("a#booksList").click(function(){
-    //page.listCarousel.scroll(1+page.pos);
-
-    $('span.tools a').toggleClass('on');
-    $('#resultsList').customFadeIn();
-    $('#resultsCovers').hide();
-  });
-  $("a#booksCovers").click(function(){
-    //page.coverCarousel.scroll(1+page.pos/12);
-
-    $('span.tools a').toggleClass('on');
-    $('#resultsList').hide();
-    $('#resultsCovers').customFadeIn();
-  });
-// SWITCH EDITIONS VIEW
-  $("#editionsList").hide()
-  $("a#edsList").click(function(){
-    $('span.tools a').toggleClass('on');
-    $('#editionsList').customFadeIn();
-    $('#editionsCovers').hide();
-  });
-  $("a#edsCovers").click(function(){
-    $('span.tools a').toggleClass('on');
-    $('#editionsList').hide();
-    $('#editionsCovers').customFadeIn();
-  });
-}
-/* eslint-enable no-unused-vars */
-
 // BOOK COVERS
 /* eslint-disable no-unused-vars */
 // used in templates/work_search.html
 function bookCovers(){
     $("img.cover").error(function(){
-        $t(his).closest(".SRPCover").hide();
+        $(this).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 }
@@ -226,58 +99,6 @@ function closePop(){
     });
 }
 /* eslint-enable no-unused-vars */
-
-
-function Place(key) {
-    this.key = key;
-    this.covers = {};
-    this.bookCount = 0;
-}
-
-
-/**
- * Gets the covers using AJAX call and calls the callback with covers as argument.
- * AJAX call is avoided if the cover data is already present.
- */
-Place.prototype.getCovers = function(pagenum, callback) {
-    var offset = pagenum * 12;
-
-    if (offset > this.bookCount)
-        return [];
-
-    if (this.covers[pagenum]) {
-        callback(this.covers[pagenum]);
-    }
-    else {
-        var page = this;
-        $.getJSON(this.key + "/covers.json?limit=12&offset=" + offset, function(data) {
-            page.covers[pagenum] = data;
-            callback(data);
-        });
-    }
-};
-/*
-function deleteVerify() {
-    $('#dialog').dialog({
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            "Yes, I'm sure": function() {
-                $("#_delete").click();
-            },
-            "No, cancel": function() {
-                $(this).dialog("close");
-            }
-        }
-    });
-    $('#delete').click(function(){
-        $('#dialog').dialog('open');
-        return false;
-    });
-};
-*/
 
 $().ready(function(){
     var cover_url = function(id) {
@@ -351,7 +172,7 @@ $().ready(function(){
 
         localStorage.setItem("facet", facet_key);
         $('header#header-bar .search-facet-selector select').val(facet_key)
-        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $('header#header-bar .search-component .search-bar-input input').val();
@@ -368,10 +189,16 @@ $().ready(function(){
         $("input[value='Protected DAISY']").remove();
         $("input[name='has_fulltext']").remove();
 
-        var url = $(form).attr('action')
-        url = Browser.removeURLParameter(url, 'm');
-        url = Browser.removeURLParameter(url, 'has_fulltext');
-        url = Browser.removeURLParameter(url, 'subject_facet');
+        var url = $(form).attr('action');
+        if (url) {
+            url = Browser.removeURLParameter(url, 'm');
+            url = Browser.removeURLParameter(url, 'has_fulltext');
+            url = Browser.removeURLParameter(url, 'subject_facet');
+        } else {
+            // Don't set mode if no action.. it's too risky!
+            // see https://github.com/internetarchive/openlibrary/issues/1569
+            return;
+        }
 
         if (localStorage.getItem('mode') !== 'everything') {
             $(form).append('<input type="hidden" name="m" value="edit"/>');
@@ -416,6 +243,8 @@ $().ready(function(){
         $('.search-bar-input [type=text]').val(q);
     }
 
+    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
+    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     var debounce = function (func, threshold, execAsap) {

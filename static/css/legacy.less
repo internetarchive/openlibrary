@@ -32,7 +32,6 @@
 @import (less) "components/header.less";
 @import (less) "components/mybooks-list.less";
 @import (less) "components/readinglog-stats.less";
-@import (less) "components/resultsCovers.less";
 @import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
 @import (less) "components/dropper.less";
@@ -174,7 +173,7 @@ table {
     }
   }
   &.changeHistory {
-    width: 848px;
+    width: 100%;
     font-family: @lucida_sans_serif-6;
     margin: 0;
 
@@ -247,15 +246,6 @@ var {
 
 li {
   span {
-    &.bookcover {
-      width: 80px;
-      margin: 10px 10px 0 5px;
-      text-align: right;
-      overflow: hidden;
-      img {
-        width: 100%;
-      }
-    }
     &.snippet {
       display: block;
       margin: 10px 0;
@@ -284,15 +274,6 @@ li {
         border: 5px solid @orange;
       }
     }
-  }
-  &.searchResultItem {
-    list-style-type: none;
-    background-color: @grey-fafafa;
-    border-radius: 5px;
-    padding: 10px;
-    margin-bottom: 3px;
-    border-bottom: 1px solid @light-beige;
-    flex-wrap: wrap;
   }
 }
 
@@ -632,7 +613,6 @@ span {
     font-weight: normal !important;
     font-family: @lucida_sans_serif-1;
     color: @brown;
-    white-space: nowrap;
     padding: 5px 5px 0;
   }
   &.caption {
@@ -658,15 +638,6 @@ span {
       font-size: .75em;
       font-family: @lucida_sans_serif-6;
       color: @brown;
-    }
-    h3.booktitle {
-      display: inline;
-      margin: 0;
-      padding: 0;
-      color: @dark-grey;
-      font-size: 1.0em;
-      font-weight: 700;
-      font-family: @lucida_sans_serif-6;
     }
     .bookauthor,
     .resultPublisher {
@@ -1121,11 +1092,9 @@ div.formDivider {
 }
 
 /* ACCOUNT FORMS */
+@import (less) "components/page-heading-search-box.less";
 @import (less) "components/form.olform.less";
 form {
-  &.pagesearchbox {
-    margin-top: 15px;
-  }
   &#notifications {
     input[type=radio] {
       margin: 0 10px 0 20px;
@@ -1434,18 +1403,6 @@ div.cclicense {
   background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
 }
 
-div.adminDelete {
-  position: absolute;
-  top: 8px;
-  left: 205px;
-  width: 500px;
-  white-space: nowrap;
-  overflow: visible;
-  text-align: center;
-  font-size: 12px;
-  color: @grey;
-}
-
 div#editionBorrow,
 div#editionBuy {
   position: absolute;
@@ -1739,29 +1696,6 @@ div.editThis {
   margin-left: 50px;
 }
 
-/* RESULTS CAROUSEL SKIN */
-
-ul.homeCarousel {
-  list-style-type: none;
-  overflow: hidden;
-  margin-left: 0 !important;
-  margin-bottom: 0 !important;
-  li {
-    position: relative;
-    float: left;
-    list-style: none !important;
-  }
-  .hiddenCoverMagic {
-    width: 100px;
-    height: 200px;
-  }
-}
-
-ul.homeCarousel .hiddenCoverMagic div,
-.hiddenCoverMagic a {
-  display: none;
-}
-
 /* SEARCH RESULTS */
 
 div#searchResults,
@@ -1771,10 +1705,6 @@ div#searchResults ul {
 }
 
 div#searchResults {
-  li img {
-    height: 80px;
-    max-width: 75px;
-  }
   .SRPCover {
     margin: 0 15px 20px 0;
     vertical-align: middle;
@@ -1848,13 +1778,6 @@ div#searchResults {
     margin-left: 15px;
     margin-right: 4px;
     position: relative;
-  }
-}
-
-.searchResultItem {
-  .details {
-    width: 100%;
-    padding: 5px;
   }
 }
 
@@ -2009,9 +1932,7 @@ div#searchResults {
 
 /* SEARCH FACETS */
 
-.resultsContainer {
-  .display-flex();
-}
+@import (less) 'components/search-results-container.less';
 
 div#searchFacets {
   width: 220px;
@@ -2364,7 +2285,6 @@ select {
 // for backwards compatibility
 // please use btn--large instead
 .borrow-btn,
-.read-btn,
 .wait-btn,
 .unwait-btn {
   margin: 1px auto;
@@ -2817,14 +2737,6 @@ div#history {
   font-size: 11px;
 }
 
-div#resultsList,
-div#editionsList {
-  li img {
-    height: 60px;
-    max-width: 75px;
-  }
-}
-
 span.actions {
   display: block;
   float: left;
@@ -2902,29 +2814,6 @@ span.actions {
   }
 }
 
-.jcarousel-skin-OL {
-  span.actions {
-    a {
-      span.borrow {
-        display: block;
-        margin: 0 auto;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        left: 0;
-      }
-      span.checked-out {
-        display: block;
-        margin: 0 auto;
-        padding: 0;
-        position: absolute;
-        right: 0;
-        left: 0;
-      }
-    }
-  }
-}
-
 ul#siteSearch {
   > li {
     .display-flex();
@@ -2965,48 +2854,6 @@ div.narrow {
     span.resultTitle {
       max-width: 500px !important;
     }
-  }
-}
-
-.bookauthor {
-  font-family: @lucida_sans_serif-6;
-}
-
-/* RESULTS CAROUSEL SKIN */
-#editionsCovers,
-#editionsList {
-  .jcarousel-container {
-    width: 918px;
-    padding: 20px;
-  }
-  .jcarousel-clip {
-    width: 918px;
-    height: 472px;
-  }
-}
-
-#editionsCovers {
-  .jcarousel-item-horizontal {
-    width: 918px;
-    height: 472px;
-    margin-right: 0;
-  }
-}
-
-div#editionsCovers {
-  a {
-    text-decoration: none;
-  }
-}
-
-#editionsList {
-  .jcarousel-item-vertical {
-    width: 918px;
-    height: 60px !important;
-    margin-top: 3px;
-    padding-bottom: 3px;
-    overflow: hidden;
-    border-bottom: 1px dotted @white;
   }
 }
 
@@ -4098,15 +3945,14 @@ ul#myreads-paginator {
   .searchResultItemCTA {
     flex: unset;
   }
-
-  li {
-    &.searchResultItem {
-      flex-wrap: nowrap;
-    }
-  }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  span {
+    &.count {
+      white-space: nowrap;
+    }
+  }
   div.edition {
     &Cover {
       float: left;
