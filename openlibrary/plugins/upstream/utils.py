@@ -58,7 +58,7 @@ class MultiDict(DictMixin):
         if values:
             return values[-1]
         else:
-            raise KeyError, key
+            raise KeyError(key)
 
     def __setitem__(self, key, value):
         self._items.append((key, value))
