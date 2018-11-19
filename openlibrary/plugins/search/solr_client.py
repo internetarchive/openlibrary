@@ -419,7 +419,7 @@ def facet_counts(result_list, facet_fields):
                 facets_k[x] += 1
 
     return filter(snd, ((f, sorted(facets[f].items(),
-                                   key=lambda (a,b): (-b,a)))
+                                   key=lambda a_b: (-a_b[1],a_b[0])))
                         for f in facet_fields))
 
 if __name__ == '__main__':
