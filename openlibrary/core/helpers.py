@@ -15,7 +15,7 @@ except ImportError:
     genshi = None
 
 try:
-    from BeautifulSoup import BeautifulSoup
+    from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
 
@@ -67,7 +67,7 @@ def sanitize(html):
     except (genshi.ParseError, UnicodeDecodeError, UnicodeError):
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
-            html = str(BeautifulSoup(html))
+            html = str(BeautifulSoup(html, "lxml"))
             try:
                 html = genshi.HTML(html)
             except Exception:

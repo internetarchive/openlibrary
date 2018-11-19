@@ -10,7 +10,7 @@ dependencies = """
 Babel
 PIL
 argparse
-BeautifulSoup
+beautifulsoup4
 DBUtils
 genshi
 gunicorn

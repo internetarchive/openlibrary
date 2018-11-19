@@ -3,6 +3,6 @@
 # see .travis.yml for more details.
 
 -r requirements_common.txt
-flake8==3.5.0
-pytest==3.7.2
-mockcache==1.0.1
+flake8==3.6.0
+pytest==3.9.3
+mockcache==1.0.3

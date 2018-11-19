@@ -7,7 +7,7 @@ from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
@@ -28,7 +28,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/about"))
         assert "About the Project" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 0
 
@@ -42,7 +42,7 @@ class TestHomeTemplates:
         assert "Blog-post-0" in html
         assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 1
 
@@ -101,6 +101,7 @@ class TestHomeTemplates:
 
         assert "Around the Library" in html
         assert "About the Project" in html
+
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):
