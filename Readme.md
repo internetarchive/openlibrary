@@ -66,11 +66,11 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
 
-Inside vagrant, go to the application base directory:
+Run tests while the docker container is running
 
 ```
-cd /openlibrary
-make test
+cd docker/
+docker-compose exec web make test
 ```
 
 ### Integration Tests
