@@ -21,6 +21,9 @@ from time import sleep, time, strftime
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 import simplejson as json
 
+import six
+
+
 ol = OpenLibrary("http://openlibrary.org")
 
 re_skip = re.compile(r'\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
@@ -198,7 +201,7 @@ def get_books(akey, query, do_get_mc=True):
             book['lang'] = [re_lang_key.match(l['key']).group(1) for l in lang]
 
         if e.get('table_of_contents', None):
-            if isinstance(e['table_of_contents'][0], basestring):
+            if isinstance(e['table_of_contents'][0], six.string_types):
                 book['table_of_contents'] = e['table_of_contents']
             else:
                 assert isinstance(e['table_of_contents'][0], dict)

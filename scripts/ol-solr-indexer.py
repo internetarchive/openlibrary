@@ -30,6 +30,9 @@ from openlibrary import config
 from openlibrary.core import helpers as h
 from openlibrary.solr import update_work
 
+from six.moves import range
+
+
 logger = logging.getLogger("openlibrary.search-indexer")
 logger.setLevel(logging.DEBUG)
 handler = logging.StreamHandler()
@@ -185,7 +188,7 @@ def submit_update_to_solr(target):
     '''Executes the update queries for every element in the taget list.'''
     global sub_count
     seq = int(math.ceil(len(target)/float(CHUNK_SIZE)))
-    chunks = [ target[i::seq] for i in xrange(seq) ]
+    chunks = [ target[i::seq] for i in range(seq) ]
     for chunk in chunks:
         update_work.load_configs(options.server,options.config,'default')
         logger.info("Request %s/%s to update works: %s",str(sub_count),str(CHUNKS_NUM),str(chunk))

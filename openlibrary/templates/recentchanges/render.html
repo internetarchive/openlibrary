@@ -16,11 +16,6 @@ $if "ip" in query and ctx.user and ctx.user.is_admin():
     <div class="adminOnly">
         <a href="/admin/ip/$query['ip']">Admin view</a>
     </div>
-<style type="text/css">
-a.blocked-ip {
-    color: red;
-}
-</style>
 
 <table class="changeHistory">
     <thead>
@@ -41,7 +36,7 @@ a.blocked-ip {
             $elif c.ip and c.ip != '127.0.0.1':
                 $if ctx.user and ctx.user.is_admin():
                     $ ip_url = "/admin/ip/%s" % c.ip
-                    $ klass = cond(c.ip in get_blocked_ips(), 'blocked-ip', "")
+                    $ klass = cond(c.ip in get_blocked_ips(), 'red', "")
                 $else:
                     $ ip_url = changequery(ip=c.ip)
                     $ klass = ""

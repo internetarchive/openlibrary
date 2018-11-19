@@ -7,7 +7,7 @@ from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
@@ -28,7 +28,7 @@ class TestHomeTemplates:
         html = unicode(render_template("home/about"))
         assert "About the Project" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 0
 
@@ -42,7 +42,7 @@ class TestHomeTemplates:
         assert "Blog-post-0" in html
         assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 1
 
@@ -102,58 +102,6 @@ class TestHomeTemplates:
         assert "Around the Library" in html
         assert "About the Project" in html
 
-class TestCarouselItem:
-    def setup_method(self, m):
-        context.context.features = []
-
-    def render(self, book):
-        if "authors" in book:
-            book["authors"] = [web.storage(a) for a in book['authors']]
-        return unicode(render_template("books/carousel_item", web.storage(book)))
-
-    def link_count(self, html):
-        links = BeautifulSoup(html).findAll("a") or []
-        return len(links)
-
-    def test_without_cover_url(self, render_template):
-        book = {
-            "work": None,
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        }
-        assert book['title'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['authors']
-        assert book['title'] in self.render(book)
-
-class Test_carousel:
-    def test_carousel(self, render_template):
-        book = web.storage({
-            "work": "/works/OL1W",
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        })
-
-        html = unicode(render_template("books/carousel", [book]))
-
-        assert book['title'] in html
-
-        soup = BeautifulSoup(html)
-        assert len(soup.findAll("li")) == 1
-        assert len(soup.findAll("a")) == 2
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):

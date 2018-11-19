@@ -125,7 +125,8 @@ class Form:
         # don't interfere with deepcopy
         inputs = self.__dict__.get('inputs') or []
         for x in inputs:
-            if x.name == name: return x
+            if x.name == name:
+                return x
         raise AttributeError(name)
 
     def render(self):

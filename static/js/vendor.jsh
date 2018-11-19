@@ -26,16 +26,12 @@ else
     xcat $VENDORJS/jquery/jquery-1.3.2.min.js
     xcat $VENDORJS/jquery-ui/jquery-ui-1.7.2.min.js
     xcat $VENDORJS/colorbox/colorbox/jquery.colorbox-min.js
-    xcat $VENDORJS/jcarousel/lib/jquery.jcarousel.js | $JSMIN
 fi
 
 xcat $VENDORJS/jquery-sparkline/jquery.sparkline.min.js
 xcat $VENDORJS/jquery-showpassword/jquery.showpassword.min.js
 xcat $VENDORJS/jquery-form/jquery.form.js | $JSMIN
 xcat $VENDORJS/jquery-validate/jquery.validate.min.js
-
-xcat $VENDORJS/jquery-flickr/jquery.flickr-1.0-min.js
-xcat $VENDORJS/jquery-tweet/jquery.tweet.js | $JSMIN
 
 xcat $VENDORJS/jquery-autocomplete/jquery.autocomplete-modified.js | $JSMIN
 
@@ -49,9 +45,6 @@ xcat $VENDORJS/flot/jquery.flot.stack.min.js
 xcat $VENDORJS/flot/jquery.flot.pie.min.js
 
 xcat $VENDORJS/json2/json2.js | $JSMIN
-
-xcat $VENDORJS/underscore/underscore-min.js
-xcat $VENDORJS/backbone/backbone-min.js
 
 # for backward compatability
 xcat <<END
@@ -67,7 +60,6 @@ function Datepicker() {}
 function Progressbar() {}
 
 function boxPop() {}
-function carousels() {}
 function bigCharts() {}
 function smallCharts() {}
 function passwordMask() {}

@@ -239,12 +239,10 @@ class ia_importapi(importapi):
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
         if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
-            d = {
-                "title": metadata['title'],
-                "openlibrary": "/books/" + metadata["openlibrary"]
-            }
-            d = self.populate_edition_data(d, identifier)
-            return self.load_book(d)
+            edition_data = self.get_ia_record(metadata)
+            edition_data["openlibrary"] = metadata["openlibrary"]
+            edition_data = self.populate_edition_data(edition_data, identifier)
+            return self.load_book(edition_data)
 
         # Case 3 - Can the item be loaded into Open Library?
         status = ia.get_item_status(identifier, metadata,

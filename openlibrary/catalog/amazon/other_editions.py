@@ -1,5 +1,5 @@
 import re, os.path, urllib2
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:
 # http://www.amazon.com/gp/product/0312247869
@@ -24,7 +24,7 @@ def read_bucket_table(f):
     return html
 
 def parse_html(html):
-    soup = BeautifulSoup(html)
+    soup = BeautifulSoup(html, "lxml")
     for tr in soup('tr')[2:]:
         td = tr('td')
         assert len(td) == 3

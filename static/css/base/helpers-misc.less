@@ -49,9 +49,6 @@ button {
 .relative {
   position: relative;
 }
-.invalid {
-  color: @red;
-}
 
 .desktop-only {
   display: none;
@@ -63,14 +60,7 @@ button {
   border-radius: 4px;
 }
 
-label {
-  &.invalid {
-    color: @red;
-  }
-}
-
 .valid {
-  color: @dark-green;
   padding: 5px 0 0 29px !important;
 }
 
@@ -78,16 +68,8 @@ label {
   border: none;
 }
 
-.shift {
-  position: absolute !important;
-  left: -10000px !important;
-}
-
-.attn,
-.neg {
-  color: @red!important;
-}
-
+.valid,
+.darkgreen,
 .pos {
   color: @dark-green!important;
 }
@@ -113,9 +95,6 @@ label {
 }
 
 .light {
-  &er {
-    color: @grey;
-  }
   &green {
     color: @olive!important;
   }
@@ -129,6 +108,9 @@ label {
   color: @link-blue!important;
 }
 
+.invalid,
+.attn,
+.neg,
 .red {
   color: @red!important;
 }
@@ -137,15 +119,13 @@ label {
   color: @light-yellow!important;
 }
 
+.lighter,
 .gray,
 .grey {
   color: @grey!important;
 }
 
 .dark {
-  &green {
-    color: @dark-green!important;
-  }
   &gray,
   &grey {
     color: @dark-grey!important;
@@ -193,16 +173,13 @@ label {
   font-weight: bold !important;
 }
 
+.headline,
 .sansserif {
   font-family: @lucida_sans_serif-1!important;
 }
 
 .arial {
   font-family: @arial_sans_serif!important;
-}
-
-.headline {
-  font-family: @lucida_sans_serif-1!important;
 }
 
 .nowrap {

@@ -6,11 +6,14 @@ from catalog.read_rc import read_rc
 from catalog.marc.build_record import build_record
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 
+import six
+
+
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
 
 def esc(s):
-    if not isinstance(s, basestring):
+    if not isinstance(s, six.string_types):
         return s
     return re_html_replace.sub(lambda m: "&%s;" % trans[m.group(1)], s.encode('utf8')).replace('\n', '<br>')
 

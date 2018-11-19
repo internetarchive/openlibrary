@@ -1,6 +1,9 @@
 import string
 from hashlib import sha1 as mkhash
 
+from six.moves import range
+
+
 # choose token length to make collisions unlikely (if there is a
 # rare collision once in a while, we tolerate it, it just means
 # that users may occasionally see some extra search results.
@@ -31,7 +34,7 @@ def facet_token(field, v):
     field = coerce_str(field)
 
     q = int(mkhash('FT,%s,%s'%(field,v)).hexdigest(), 16)
-    for i in xrange(facet_token_length):
+    for i in range(facet_token_length):
         q,r = divmod(q, 26)
         token.append(string.lowercase[r])
     return ''.join(token)

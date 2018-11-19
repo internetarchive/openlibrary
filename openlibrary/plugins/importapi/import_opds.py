@@ -4,6 +4,9 @@ OL Import API OPDS parser
 
 import import_edition_builder
 
+import six
+
+
 def parse_string(e, key):
     return (key, e.text)
 
@@ -50,7 +53,7 @@ def parse(root):
     edition_builder = import_edition_builder.import_edition_builder()
 
     for e in root:
-        if isinstance(e.tag, basestring):
+        if isinstance(e.tag, six.string_types):
             #print e.tag
             if e.tag in parser_map:
                 key = parser_map[e.tag][0]

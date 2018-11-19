@@ -1,34 +1,3 @@
-
-/*
-  function finishAjaxUsername(id, response) {
-    $('#usernameLoading').hide();
-    $('#'+id).html(unescape(response));
-    $('#'+id).customFadeIn();
-  }
-  //finishAjax
-
-  // CHECK EMAIL ASSOCIATION
-  function validateCheckEmail() {
-    $('#emailLoading').hide();
-    $('#email').blur(function(){
-      $('#emailLoading').show();
-      $.post("checkemail.php", {
-        email: $('#email').val()
-      }, function(response){
-        $('#emailResult').customFadeOut();
-        setTimeout("finishAjaxEmail('emailResult', '"+escape(response)+"')", 400);
-      });
-        return false;
-    });
-  });
-
-  function finishAjaxEmail(id, response) {
-    $('#emailLoading').hide();
-    $('#'+id).html(unescape(response));
-    $('#'+id).customFadeIn();
-  }
-  //finishAjax
-  */
 /* eslint-disable no-unused-vars */
 // used in templates/account/email.html
 function validateEmail() {
@@ -100,3 +69,4 @@ function validatePassword() {
     });
 }
 /* eslint-enable no-unused-vars */
+

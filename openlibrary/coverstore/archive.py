@@ -10,6 +10,9 @@ import time
 from openlibrary.coverstore import config, db
 from openlibrary.coverstore.coverlib import find_image_path
 
+import six
+
+
 #logfile = open('log.txt', 'a')
 
 def log(*args):
@@ -107,7 +110,7 @@ def archive():
                 print("Missing image file for %010d" % cover.id, file=web.debug)
                 continue
 
-            if isinstance(cover.created, basestring):
+            if isinstance(cover.created, six.string_types):
                 from infogami.infobase import utils
                 cover.created = utils.parse_datetime(cover.created)
 
