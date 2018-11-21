@@ -5,7 +5,8 @@
 /**
  * This file exists for historic reasons and will be deleted
  * at the first available opportunity.
- * DO NOT ADD NEW CSS here.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
  *
  * We are currently in the process of:
  * - moving styles from this file into the components
@@ -3972,7 +3973,18 @@ ul#myreads-paginator {
   @import (less) "components/edit-toolbar--tablet.less";
 }
 
+.canvas-graph {
+  width: 100%;
+  height: 50px;
+}
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  // Graph shown on /stats
+  .canvas-graph {
+    width: 430px;
+    height: 50px;
+  }
+
   .desktop-only {
     display: inherit;
   }
