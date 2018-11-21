@@ -70,7 +70,9 @@ class stats(app.view):
     def GET(self):
         counts = get_counts()
         counts.reading_log = cached_reading_log_summary()
-        return app.render_template("admin/index", counts)
+        template = app.render_template("admin/index", counts)
+        template.v2 = True
+        return template
 
 
 class lending_stats(app.view):

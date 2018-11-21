@@ -108,7 +108,7 @@ window.q.push(function () {
 
 
   <script type="text/javascript">
-    \$(function () {
+    window.q.push(function () {
     plot_tooltip_graph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(150, True)), " works on ");
     plot_tooltip_graph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(150, True)), " editions on ");
     plot_tooltip_graph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(150, True)), " covers on ");
