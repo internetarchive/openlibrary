@@ -1585,20 +1585,6 @@ div.spacer {
 }
 
 div.content {
-  &Left {
-    float: left;
-    clear: left;
-    width: 439px;
-    min-height: 100px;
-    padding-right: 20px;
-  }
-  &Right {
-    float: left;
-    clear: right;
-    width: 439px;
-    min-height: 100px;
-    padding-left: 20px;
-  }
   &Body {
     &.indent {
       width: 818px;
@@ -3933,6 +3919,22 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  div.content {
+    &Left {
+      float: left;
+      clear: left;
+      width: 439px;
+      min-height: 100px;
+      padding-right: 20px;
+    }
+    &Right {
+      float: left;
+      clear: right;
+      width: 439px;
+      min-height: 100px;
+      padding-left: 20px;
+    }
+  }
   span {
     &.count {
       white-space: nowrap;
