@@ -1522,6 +1522,10 @@ div#contentMeta {
 @import (less) "components/link-box.less";
 
 .content {
+  &Quarter {
+    min-height: 100px;
+    margin-bottom: 20px;
+  }
   &Twothird {
     min-height: 100px;
     margin-bottom: 20px;
@@ -4011,7 +4015,11 @@ ul#myreads-paginator {
     &Spacer {
       float: left;
     }
-  }  
+    &Quarter {
+      float: left;
+      max-width: 215px;
+    }
+  }
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
