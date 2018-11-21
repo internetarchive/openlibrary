@@ -12,31 +12,12 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
         <span class="count" id="coversCount">
             <em>Publisher</em> - <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
             $if page.ebook_count > 0:
-                / <a href="javascript:;" class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></a>
+                / <span class="ebookcount"><span id="ebooks">$sprintf(ungettext("%s ebook", "%s ebooks", page.ebook_count), commify(page.ebook_count))</span></span>
             $else:
                 / 0 ebooks
             <span class="clickdata"></span>
         </span>
-
-        <span class="count hidden smaller chartZoom"><a href="javascript:;" class="resetSelection small">$_("Clear this selection")</a></span>
     </h1>
-    <p class="collapse sansserif">
-    <span class="tools brown">
-        <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:10px;"/>
-        Sort by:
-        <span id="sortByNew" style="display:none">
-        <a href="javascript:;" class="sortEditionCount"># of Editions</a>
-        |
-        <strong class="lightgreen">Most Recent Publish Date</strong>
-        </span>
-        <span id="sortByEdition">
-        <strong class="lightgreen"># of Editions</strong>
-        |
-        <a href="javascript:;" class="sortFirstPublish">Most Recent Publish Date</a>
-        </span>
-
-    </span>
-    </p>
 </div>
 
 <div class="contentBody">
@@ -126,35 +107,6 @@ window.q.push(function() {
             \$("#chartLabel").remove();
             previousPoint = null;
         }
-    });
-    placeholder.bind("plotclick", function (event, pos, item) {
-        \$.scrollTo( \$('#scrollHere'), 800);
-
-        if (item) {
-            plot.unhighlight();
-            var x = item.datapoint[0].toFixed(0),
-                y = item.datapoint[1].toFixed(0);
-            page.addFilter({"published_in": item.datapoint[0]}, reset);
-            plot.highlight(item.series,item.datapoint);
-        }
-        else {
-            page.addFilter({"published_in": page._published_in}, reset);
-            plot.unhighlight();
-        }
-    });
-
-    placeholder.bind("plotselected", function (event, ranges) {
-        plot = \$.plot(placeholder, data,
-            \$.extend(true, {}, options, {
-                xaxis: { min: ranges.xaxis.from, max: ranges.xaxis.to },
-                yaxis: { min: ranges.yaxis.from, max: ranges.yaxis.to }
-            })
-        );
-
-        var yearFrom = ranges.xaxis.from.toFixed(0);
-        var yearTo = ranges.xaxis.to.toFixed(0);
-        \$.scrollTo( \$('#scrollHere'), 800);
-		page.addFilter({"published_in": yearFrom + "-" + yearTo}, reset);
     });
     var plot = \$.plot(placeholder, data, options);
     var dateFrom = plot.getAxes().xaxis.min.toFixed(0);
