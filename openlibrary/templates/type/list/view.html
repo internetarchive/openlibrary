@@ -46,7 +46,7 @@ $jsdef render_seed_count(seed_count):
 
 <script type="text/javascript">
 <!--
-\$().ready(function(){
+window.q.push(function(){
     \$('ul#listResults li:last').css('border-bottom','1px dotted #ebebeb');
 });
 
@@ -76,7 +76,7 @@ function get_seed_count() {
     return \$("ul#listResults").children().length;
 }
 
-\$(function(){
+window.q.push(function(){
     \$(".listDelete a").click(function() {
         var seed_id = \$(this).closest("li").attr("id");
 
