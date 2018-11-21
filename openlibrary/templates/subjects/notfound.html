@@ -3,12 +3,9 @@ $def with (key)
 
 $ name = key.split("/")[-1].replace('_', ' ')
 
-<div id="contentHead">
+<div class="page-heading-search-box">
     <span class="tools"><a href="/subjects" class="plain">$_("Subjects")</a> /</span>
     <h1>$name</h1>
-</div>
-<div id="contentBody">
-
     <p>$_("We couldn't find any books about") $name.</p>
 
     <h3 class="collapse">$_("Try something else?")</h3>
