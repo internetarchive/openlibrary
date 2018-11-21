@@ -1542,36 +1542,26 @@ div#contentMeta {
 
 .content {
   &Twothird {
-    float: left;
-    width: 610px;
     min-height: 100px;
     margin-bottom: 20px;
-    padding-right: 38px;
     p {
       margin-top: 0;
     }
   }
   &Onethird {
-    float: left;
-    width: 270px;
     min-height: 100px;
     margin-bottom: 20px;
   }
   &Half {
-    float: left;
-    max-width: 439px;
     min-height: 100px;
     margin-bottom: 20px;
   }
   &ThreeQuarter {
-    float: left;
-    max-width: 684px;
     min-height: 100px;
     margin-bottom: 20px;
   }
 
   &Spacer {
-    float: left;
     width: 19px;
     height: 2px;
   }
@@ -4019,6 +4009,28 @@ ul#myreads-paginator {
     float: left;
     width: 915px;
   }
+  .content {
+    &Twothird {
+      float: left;
+      width: 610px;
+      padding-right: 38px;
+    }
+    &Onethird {
+      float: left;
+      width: 270px;
+    }
+    &Half {
+      float: left;
+      max-width: 439px;
+    }
+    &ThreeQuarter {
+      float: left;
+      max-width: 684px;
+    }
+    &Spacer {
+      float: left;
+    }
+  }  
 }
 
 /* Caution! Ensure accessibility in print and other media types... */
