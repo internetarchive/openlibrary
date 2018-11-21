@@ -6,7 +6,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $:macros.Dashboard()
 $ stats = get_admin_stats()
 <script type="text/javascript">
-\$(function () {
+window.q.push(function () {
     var edits = $:json_encode(counts.human_edits.get_counts(80, True));
     var members = $:json_encode(counts.members.get_counts(80, True));
     plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
@@ -192,21 +192,7 @@ $ stats = get_admin_stats()
   <h2>Borrows</h2>
   <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
   <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
-  <div class="tweets" id="adminTwitter">$:macros.twitter()</div>
 
   <div class="contentSpacer"></div>
 
-  <div class="contentQuarter">
-    <!-- Start of Flickr Badge -->
-    <table id="flickr_badge_uber_wrapper">
-      <tr>
-        <td>
-          <table id="flickr_badge_wrapper">
-            <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=2&display=random&size=m&layout=v&source=user&user=41108298%40N06"></script>
-          </table>
-        </td>
-      </tr>
-    </table>
-    <!-- End of Flickr Badge -->
-  </div>
 </div>
