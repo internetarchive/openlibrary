@@ -2978,23 +2978,7 @@ div.addfield {
 
 /* Skin */
 @import (less) 'components/ui-tabs.less';
-
-div.chart {
-  &Holder {
-    position: relative;
-    width: 439px;
-    height: 61px;
-    overflow: hidden;
-    background-color: @lightest-grey;
-  }
-  &Display {
-    width: 430px;
-    height: 50px;
-    padding: 10px 3px 0;
-    border-bottom: 1px solid @black;
-    background-color: @lightest-grey;
-  }
-}
+@import (less) "components/chart-stats.less";
 
 div.sparkDisplay {
   border-bottom: 1px solid @black;
