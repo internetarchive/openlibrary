@@ -11,6 +11,7 @@ import sys
 import traceback
 import re, unicodedata
 
+import six
 import web
 from infogami.infobase import config, common, server, cache, dbstore
 
@@ -403,7 +404,7 @@ def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """
     def row(r):
-        if isinstance(r, basestring):
+        if isinstance(r, six.string_types):
             level = 0
             label = ""
             title = web.safeunicode(r)

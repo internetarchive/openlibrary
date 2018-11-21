@@ -79,130 +79,6 @@ function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
 
 function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
 
-
-/* eslint-disable no-unused-vars */
-// used below
-var create_subject_carousel;
-/* eslint-enable no-unused-vars */
-
-$().ready(function() {
-  create_subject_carousel = function(subject_name, type, options) {
-    var ITEMS_PER_PAGE = 6;
-    var apiurl = '/' + type + '/' + subject_name + '.json?has_fulltext=true';
-    options = options || {};
-    options.pagesize = ITEMS_PER_PAGE;
-    options.readable = true;
-    options.sort = options.sort || "";
-    if (options.published_id) {
-        apiurl += '&published_in=' + options.published_in;
-    }
-    $.ajax({
-        dataType: "json",
-        url: apiurl,
-        type: "GET",
-        contentType: "text/html",
-        beforeSend: function(xhr) {
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.setRequestHeader("Accept", "application/json");
-        },
-        success: function(data) {
-            // TODO: Filter `data` by available
-            var primed = false;
-            // Subject is defined in openlibrary\plugins\openlibrary\js\subjects.js
-            // eslint-disable-next-line no-undef
-            var subject = new Subject(data, options);
-            function fetchPageOfBooks(carousel) {
-                primed = true;
-                if (!subject.coverCarousel) {
-                    subject.coverCarousel = carousel;
-                    subject.coverCarousel.size(subject.getPageCount());
-                }
-                var index = carousel.first;
-                subject.pos = (index - 1) * ITEMS_PER_PAGE;
-
-                if (window.set_hash) {
-                    var _p = (index == 1) ? null : index;
-                    // set_hash is defined in:
-                    //    openlibrary\openlibrary\templates\languages\view.html
-                    //    openlibrary\openlibrary\templates\lib\covers.html
-                    //    openlibrary\openlibrary\templates\subjects.html
-                    // eslint-disable-next-line no-undef
-                    set_hash({"page": _p});
-                }
-
-                if (carousel.has(index)) {
-                    return;
-                }
-
-                subject.loadPage(index-1, function(data) {
-                    var works = data.works;
-                    $.each(works, function(widx, work) {
-                        carousel.add(index + widx, subject.renderWork(work));
-                    });
-                    // updateBookAvailability is defined in openlibrary\plugins\openlibrary\js\availability.js
-                    // eslint-disable-next-line no-undef
-                    updateBookAvailability("#carousel-" + subject_name + " li ");
-                });
-            }
-            $("#carousel-" + subject_name).jcarousel({
-                scroll: ITEMS_PER_PAGE,
-                itemLoadCallback: {onBeforeAnimation: fetchPageOfBooks}
-            });
-            if (!primed) {
-                $("#carousel-" + subject_name).data('jcarousel').reload();
-            }
-        }
-    });
-  };
-});
-
-// BUILD CAROUSEL
-/* eslint-disable no-unused-vars */
-// used in templates/lib/covers.html
-function carouselSetup(loadCovers, loadLists) {
-  $('#coversCarousel').jcarousel({
-    visible: 1,
-    scroll: 1,
-    itemLoadCallback: loadCovers
-  });
-// SET-UP COVERS LIST
-  $('#listCarousel').jcarousel({
-    vertical: true,
-    visible: 6,
-    scroll: 6,
-    itemLoadCallback: loadLists
-  });
-// SWITCH RESULTS VIEW
-  $("#resultsList").hide()
-  $("a#booksList").click(function(){
-    //page.listCarousel.scroll(1+page.pos);
-
-    $('span.tools a').toggleClass('on');
-    $('#resultsList').customFadeIn();
-    $('#resultsCovers').hide();
-  });
-  $("a#booksCovers").click(function(){
-    //page.coverCarousel.scroll(1+page.pos/12);
-
-    $('span.tools a').toggleClass('on');
-    $('#resultsList').hide();
-    $('#resultsCovers').customFadeIn();
-  });
-// SWITCH EDITIONS VIEW
-  $("#editionsList").hide()
-  $("a#edsList").click(function(){
-    $('span.tools a').toggleClass('on');
-    $('#editionsList').customFadeIn();
-    $('#editionsCovers').hide();
-  });
-  $("a#edsCovers").click(function(){
-    $('span.tools a').toggleClass('on');
-    $('#editionsList').hide();
-    $('#editionsCovers').customFadeIn();
-  });
-}
-/* eslint-enable no-unused-vars */
-
 // BOOK COVERS
 /* eslint-disable no-unused-vars */
 // used in templates/work_search.html
@@ -223,36 +99,6 @@ function closePop(){
     });
 }
 /* eslint-enable no-unused-vars */
-
-
-function Place(key) {
-    this.key = key;
-    this.covers = {};
-    this.bookCount = 0;
-}
-
-
-/**
- * Gets the covers using AJAX call and calls the callback with covers as argument.
- * AJAX call is avoided if the cover data is already present.
- */
-Place.prototype.getCovers = function(pagenum, callback) {
-    var offset = pagenum * 12;
-
-    if (offset > this.bookCount)
-        return [];
-
-    if (this.covers[pagenum]) {
-        callback(this.covers[pagenum]);
-    }
-    else {
-        var page = this;
-        $.getJSON(this.key + "/covers.json?limit=12&offset=" + offset, function(data) {
-            page.covers[pagenum] = data;
-            callback(data);
-        });
-    }
-};
 
 $().ready(function(){
     var cover_url = function(id) {
@@ -547,53 +393,9 @@ $().ready(function(){
         }
     }, 500, false));
 
-    $(document).click(debounce(function(event) {
-        if(!$(event.target).closest('header#header-bar .search-component').length) {
-            $('header#header-bar .search-component ul.search-results').empty();
-        }
-        if(!$(event.target).closest('header#header-bar .navigation-component .browse-menu').length) {
-            $('header#header-bar .navigation-component .browse-menu .browse-menu-options').hide();
-        }
-        if(!$(event.target).closest('header#header-bar .navigation-component .my-books-menu').length) {
-            $('header#header-bar .navigation-component .my-books-menu .my-books-menu-options').hide();
-        }
-        if(!$(event.target).closest('header#header-bar .navigation-component .more-menu').length) {
-            $('header#header-bar .navigation-component .more-menu .more-menu-options').hide();
-        }
-        if(!$(event.target).closest('header#header-bar .hamburger-component .hamburger-button').length) {
-            $('header#header-bar .hamburger-dropdown-component').hide();
-        }
-
-        if(!$(event.target).closest('.dropclick').length) {
-            $('.dropclick').parent().next('.dropdown').slideUp(25);
-            $('.dropclick').next('.dropdown').slideUp(25);
-            $('.dropclick').parent().find('.arrow').removeClass("up");
-        }
-    }, 100, false));
-
     $('header#header-bar .search-component .search-bar-input input').focus(debounce(function() {
         var val = $(this).val();
         renderInstantSearchResults(val);
-    }, 300, false));
-
-    /* Browse menu */
-    $('header#header-bar .navigation-component .browse-menu').click(debounce(function() {
-        $('header#header-bar .navigation-component .browse-menu-options').toggle();
-    }, 300, false));
-
-    /* My Books menu */
-    $('header#header-bar .navigation-component .my-books-menu').click(debounce(function() {
-        $('header#header-bar .navigation-component .my-books-menu-options').toggle();
-    }, 300, false));
-
-    /* More menu */
-    $('header#header-bar .navigation-component .more-menu').click(debounce(function() {
-        $('header#header-bar .navigation-component .more-menu-options').toggle();
-    }, 300, false));
-
-    /* Hamburger menu */
-    $('header#header-bar .hamburger-component .hamburger-button').live('click', debounce(function() {
-        $('header#header-bar .hamburger-dropdown-component').toggle();
     }, 300, false));
 
     $('textarea.markdown').focus(function(){
@@ -612,31 +414,6 @@ $().ready(function(){
         $(this).closest('.dropdown').slideToggle(25);
         $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
-
-    function hideUser(){
-        $('#main-account-dropdown').slideUp(25);
-        $('header#header-bar .dropdown-avatar').removeClass('hover');
-    }
-
-    /* eslint-disable no-unused-vars */
-    // offUser is used in the function itself
-    $('header#header-bar .dropdown-avatar').click(debounce(function() {
-        var dropdown = $('#main-account-dropdown');
-        if (dropdown.is(':visible') === true) {
-            hideUser();
-        } else {
-            dropdown.slideToggle(25);
-            $(this).toggleClass('hover');
-            var offUser = $(this);
-            $(document).mouseup(function(offUser){
-                if($(offUser.target).parent("a").length==0){
-                    hideUser()
-                }
-            });
-
-        }
-    }, 100, false));
-    /* eslint-enable no-unused-vars */
 
     /* eslint-disable no-unused-vars */
     // success function receives data on successful request

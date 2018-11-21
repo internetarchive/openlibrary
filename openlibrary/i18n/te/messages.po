@@ -722,15 +722,6 @@ msgstr ""
 msgid "Add"
 msgstr ""
 
-#: carousel_item.html:32 covers.html:104
-msgid "Read online"
-msgstr ""
-
-#: carousel_item.html:38
-#, fuzzy
-msgid "Borrow this book"
-msgstr "ఈ పుస్తకం గురించి"
-
 #: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
 msgid "Add a Book"
 msgstr "పుస్తకం చేర్చు"

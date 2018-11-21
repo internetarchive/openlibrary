@@ -27,6 +27,9 @@ from pprint import pprint
 from subprocess import Popen, PIPE
 import argparse
 
+import six
+
+
 parser = argparse.ArgumentParser(description='scribe loader')
 parser.add_argument('--skip_hide_books', action='store_true')
 parser.add_argument('--item_id')
@@ -149,7 +152,7 @@ def write_edition(ia, edition, rec):
                 print(a)
                 raise
             print('ret:', ret)
-            assert isinstance(ret, basestring)
+            assert isinstance(ret, six.string_types)
             authors.append({'key': ret})
     q['source_records'] = [loc]
     if authors:
@@ -204,7 +207,7 @@ def write_edition(ia, edition, rec):
             raise
         break
     print('ret:', ret)
-    assert isinstance(ret, basestring)
+    assert isinstance(ret, six.string_types)
     key = '/b/' + re_edition_key.match(ret).group(1)
     pool.update(key, q)
 

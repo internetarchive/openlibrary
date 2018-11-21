@@ -9,6 +9,9 @@ import datetime
 import simplejson
 from collections import defaultdict
 
+import six
+
+
 class DocumentLoader:
     def __init__(self, **params):
         params = params.copy()
@@ -367,7 +370,7 @@ class Reindexer:
         """
         if isinstance(value, int):
             return 'int'
-        elif isinstance(value, basestring):
+        elif isinstance(value, six.string_types):
             return 'str'
         elif isinstance(value, dict):
             if 'key' in value:

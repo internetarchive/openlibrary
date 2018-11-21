@@ -6,6 +6,9 @@ from math import floor
 from pprint import pprint
 import htmlentitydefs
 
+import six
+
+
 class BrokenTitle(Exception):
     pass
 
@@ -597,7 +600,7 @@ def edition_to_ol(edition):
         print('publisher missing')
 
     for k, v in ol.iteritems():
-        if isinstance(v, basestring) and v[-1] == '(':
+        if isinstance(v, six.string_types) and v[-1] == '(':
             pprint(edition)
             print(('ends with "(":', repr(k, v)))
             sys.exit(0)

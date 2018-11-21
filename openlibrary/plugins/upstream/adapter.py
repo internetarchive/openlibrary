@@ -12,6 +12,9 @@ import urllib, urllib2
 import simplejson
 import web
 
+import six
+
+
 urls = (
     '/([^/]*)/get', 'get',
     '/([^/]*)/get_many', 'get_many',
@@ -172,7 +175,7 @@ class things(proxy):
                     return dict((k, convert_keys(v)) for k, v in q.items())
                 elif isinstance(q, list):
                     return [convert_keys(x) for x in q]
-                elif isinstance(q, basestring):
+                elif isinstance(q, six.string_types):
                     return convert_key(q)
                 else:
                     return q

@@ -12,6 +12,7 @@ from collections import defaultdict
 from unicodedata import normalize
 
 import simplejson as json
+import six
 import web
 from lxml.etree import tostring, Element, SubElement
 
@@ -102,7 +103,7 @@ class AuthorRedirect (Exception):
     pass
 
 def strip_bad_char(s):
-    if not isinstance(s, basestring):
+    if not isinstance(s, six.string_types):
         return s
     return re_bad_char.sub('', s)
 
@@ -292,7 +293,7 @@ class SolrProcessor:
                 ia = e['ocaid']
             elif 'ia_loaded_id' in e:
                 loaded = e['ia_loaded_id']
-                ia = loaded if isinstance(loaded, basestring) else loaded[0]
+                ia = loaded if isinstance(loaded, six.string_types) else loaded[0]
 
             # If the _ia_meta field is already set in the edition, use it instead of querying archive.org.
             # This is useful to when doing complete reindexing of solr.
@@ -305,7 +306,7 @@ class SolrProcessor:
 
             if ia_meta_fields:
                 collection = ia_meta_fields['collection']
-                if 'ia_box_id' in e and isinstance(e['ia_box_id'], basestring):
+                if 'ia_box_id' in e and isinstance(e['ia_box_id'], six.string_types):
                     e['ia_box_id'] = [e['ia_box_id']]
                 if ia_meta_fields.get('boxid'):
                     box_id = list(ia_meta_fields['boxid'])[0]
@@ -615,7 +616,7 @@ class SolrProcessor:
             if 'printdisabled' in e.get('ia_collection', []):
                 printdisabled.add(re_edition_key.match(e['key']).group(1))
             all_collection.update(e.get('ia_collection', []))
-            assert isinstance(e['ocaid'], basestring)
+            assert isinstance(e['ocaid'], six.string_types)
             i = e['ocaid'].strip()
             if e.get('public_scan'):
                 public_scan = True
@@ -745,21 +746,21 @@ def build_data2(w, editions, authors, ia, duplicates):
             m = re_lang_key.match(l['key'] if isinstance(l, dict) else l)
             lang.add(m.group(1))
         if e.get('ia_loaded_id'):
-            if isinstance(e['ia_loaded_id'], basestring):
+            if isinstance(e['ia_loaded_id'], six.string_types):
                 ia_loaded_id.add(e['ia_loaded_id'])
             else:
                 try:
-                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], basestring)
+                    assert isinstance(e['ia_loaded_id'], list) and isinstance(e['ia_loaded_id'][0], six.string_types)
                 except AssertionError:
                     logger.error("AssertionError: ia=%s, ia_loaded_id=%s", e.get("ia"), e['ia_loaded_id'])
                     raise
                 ia_loaded_id.update(e['ia_loaded_id'])
         if e.get('ia_box_id'):
-            if isinstance(e['ia_box_id'], basestring):
+            if isinstance(e['ia_box_id'], six.string_types):
                 ia_box_id.add(e['ia_box_id'])
             else:
                 try:
-                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], basestring)
+                    assert isinstance(e['ia_box_id'], list) and isinstance(e['ia_box_id'][0], six.string_types)
                 except AssertionError:
                     logger.error("AssertionError: %s", e['key'])
                     raise
@@ -819,7 +820,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
 
     h1.connect()
     for r in requests:
-        if not isinstance(r, basestring):
+        if not isinstance(r, six.string_types):
             # Assuming it is either UpdateRequest or DeleteRequest
             r = r.toxml()
         if not r:
@@ -827,7 +828,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
 
         if debug:
             logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
-        assert isinstance(r, basestring)
+        assert isinstance(r, six.string_types)
         h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
         response = h1.getresponse()
         response_body = response.read()
@@ -890,7 +891,7 @@ class BaseDocBuilder:
         return [self.get_subject_key(prefix, s) for s in subject_names]
 
     def get_subject_key(self, prefix, subject):
-        if isinstance(subject, basestring):
+        if isinstance(subject, six.string_types):
             key = prefix + self.re_subject.sub("_", subject.lower()).strip("_")
             return key
 

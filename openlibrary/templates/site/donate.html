@@ -1,5 +1,6 @@
 
-$:get_donation_include()
+$if not is_bot():
+  $:get_donation_include()
 
 <script type="text/javascript">
 // The donate javascript included via archive.org uses JQuery 1.6+.

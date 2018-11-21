@@ -18,6 +18,9 @@ from openlibrary.api import OpenLibrary, Reference
 from lxml import etree
 from time import sleep, time
 
+import six
+
+
 rc = read_rc()
 
 ol = OpenLibrary("http://openlibrary.org")
@@ -209,7 +212,7 @@ def get_books(akey, query):
             book['lang'] = [l['key'][3:] for l in lang]
 
         if e.get('table_of_contents', None):
-            if isinstance(e['table_of_contents'][0], basestring):
+            if isinstance(e['table_of_contents'][0], six.string_types):
                 book['table_of_contents'] = e['table_of_contents']
             else:
                 assert isinstance(e['table_of_contents'][0], dict)
@@ -335,7 +338,7 @@ def add_work(akey, w):
         print(q)
         raise
     write_log('work', wkey, w['title'])
-    assert isinstance(wkey, basestring)
+    assert isinstance(wkey, six.string_types)
     for ekey in w['editions']:
         e = ol.get(ekey)
         fix_edition(ekey, e, ol)

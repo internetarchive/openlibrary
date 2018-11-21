@@ -44,6 +44,9 @@ from load_book import build_query, import_author, east_in_by_statement, InvalidL
 from merge import try_merge
 
 
+import six
+
+
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 
@@ -526,7 +529,7 @@ def load(rec):
         raise RequiredField('title')
     if not rec.get('source_records'):
         raise RequiredField('source_records')
-    if isinstance(rec['source_records'], basestring):
+    if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
 
     edition_pool = build_pool(rec)

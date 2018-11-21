@@ -12,6 +12,9 @@ from openlibrary.core import ia
 
 import logging
 
+import six
+
+
 logger = logging.getLogger("openlibrary")
 
 class ConnectionMiddleware:
@@ -318,7 +321,7 @@ class MemcacheMiddleware(ConnectionMiddleware):
 
         #@@ too many JSON conversions
         for k in result:
-            if isinstance(result[k], basestring):
+            if isinstance(result[k], six.string_types):
                 result[k] = simplejson.loads(result[k])
 
         return simplejson.dumps(result)

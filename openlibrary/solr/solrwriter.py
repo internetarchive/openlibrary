@@ -7,6 +7,9 @@ import re
 from lxml.etree import tostring, Element
 from unicodedata import normalize
 
+import six
+
+
 logger = logging.getLogger("openlibrary.solrwriter")
 
 class SolrWriter(object):
@@ -77,7 +80,7 @@ class SolrWriter(object):
 
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 def strip_bad_char(s):
-    if not isinstance(s, basestring):
+    if not isinstance(s, six.string_types):
         return s
     return re_bad_char.sub('', s)
 
@@ -88,7 +91,7 @@ def add_field(doc, name, value):
         return
     else:
         field = Element("field", name=name)
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
             value = str(value)
         try:
             value = strip_bad_char(value)
