@@ -18,7 +18,7 @@ $if "type" in doc and doc.type.key == "/type/user":
     </style>
     $if ctx.user and ctx.user.key == doc.key:
         <script type="text/javascript">
-            \$(function() {
+            window.q.push(function() {
                 \$("#listResults .resultTitle")
                     .prepend('' +
                         '<span class="listDelete sansserif small">' +
@@ -47,7 +47,7 @@ $if "type" in doc and doc.type.key == "/type/user":
         <div id="delete-dialog" class="hidden" title="Delete list">Are you sure you want to delete this list?</div>
 $else:
     <script type="text/javascript">
-        \$(function() {
+        window.q.push(function() {
             \$("#listResults .resultTitle.my-list")
             .prepend('' +
                 '<span class="listDelete sansserif smaller">' +
