@@ -239,7 +239,7 @@ class search(delegate.page):
 
         # we have somehow gotten some queries for facet tokens with no
         # inverse.  remove these from the list.
-        ft_pairs =  [(a, b) for a, b in ft_pairs if b]
+        ft_pairs = [(a, b) for a, b in ft_pairs if b]
 
         if not q0 and not qtokens:
             errortext = 'You need to enter some search terms.'
