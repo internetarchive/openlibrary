@@ -1,9 +1,4 @@
-<script type="text/javascript">
-    \$().ready(flickrFeed);
-    \$().ready(flickrBuild);
-</script>
-
-<script id="source" type="text/javascript">
+<script id="source" type="text/javascript">window.q.push( function () {
 \$.getJSON("/admin/ipstats", function(data) {
     var d = data.data;
 
@@ -113,4 +108,4 @@
 
     });
 
-</script>
+})</script>

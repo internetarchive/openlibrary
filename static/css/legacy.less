@@ -5,7 +5,8 @@
 /**
  * This file exists for historic reasons and will be deleted
  * at the first available opportunity.
- * DO NOT ADD NEW CSS here.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
  *
  * We are currently in the process of:
  * - moving styles from this file into the components
@@ -1584,20 +1585,6 @@ div.spacer {
 }
 
 div.content {
-  &Left {
-    float: left;
-    clear: left;
-    width: 439px;
-    min-height: 100px;
-    padding-right: 20px;
-  }
-  &Right {
-    float: left;
-    clear: right;
-    width: 439px;
-    min-height: 100px;
-    padding-left: 20px;
-  }
   &Body {
     &.indent {
       width: 818px;
@@ -2971,23 +2958,7 @@ div.addfield {
 
 /* Skin */
 @import (less) 'components/ui-tabs.less';
-
-div.chart {
-  &Holder {
-    position: relative;
-    width: 439px;
-    height: 61px;
-    overflow: hidden;
-    background-color: @lightest-grey;
-  }
-  &Display {
-    width: 430px;
-    height: 50px;
-    padding: 10px 3px 0;
-    border-bottom: 1px solid @black;
-    background-color: @lightest-grey;
-  }
-}
+@import (less) "components/chart-stats.less";
 
 div.sparkDisplay {
   border-bottom: 1px solid @black;
@@ -3942,6 +3913,22 @@ ul#myreads-paginator {
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  div.content {
+    &Left {
+      float: left;
+      clear: left;
+      width: 439px;
+      min-height: 100px;
+      padding-right: 20px;
+    }
+    &Right {
+      float: left;
+      clear: right;
+      width: 439px;
+      min-height: 100px;
+      padding-left: 20px;
+    }
+  }
   span {
     &.count {
       white-space: nowrap;
@@ -3966,7 +3953,18 @@ ul#myreads-paginator {
   @import (less) "components/edit-toolbar--tablet.less";
 }
 
+.canvas-graph {
+  width: 100%;
+  height: 50px;
+}
+
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  // Graph shown on /stats
+  .canvas-graph {
+    width: 430px;
+    height: 50px;
+  }
+
   .desktop-only {
     display: inherit;
   }

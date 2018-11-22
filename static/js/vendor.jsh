@@ -64,8 +64,6 @@ function bigCharts() {}
 function smallCharts() {}
 function passwordMask() {}
 function passwordsMask() {}
-function twitterFeed() {}
-function flickrFeed(){}
 function feedLoader() {}
 function validateForms(){}
 END
