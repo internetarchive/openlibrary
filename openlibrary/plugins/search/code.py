@@ -239,7 +239,7 @@ class search(delegate.page):
 
         # we have somehow gotten some queries for facet tokens with no
         # inverse.  remove these from the list.
-        ft_pairs = filter(lambda a_b: a_b[1], ft_pairs)
+        ft_pairs = [(a, b) for a, b in ft_pairs if b]
 
         if not q0 and not qtokens:
             errortext = 'You need to enter some search terms.'
@@ -364,8 +364,8 @@ def collect_works(result_list):
 
     # print >> web.debug, ('collect works', rs,wds)
 
-    s_works = sorted(wds.items(), key=lambda a_b1: len(a_b1[1]), reverse=True)
-    return rs, [(web.ctx.site.get(a), b) for a,b in s_works]
+    s_works = sorted(wds.items(), key=lambda a_b: len(a_b[1]), reverse=True)
+    return rs, [(web.ctx.site.get(a), b) for a, b in s_works]
 
 
 # somehow the leading / got stripped off the book identifiers during some
