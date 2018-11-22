@@ -114,7 +114,7 @@ class borrow_about(delegate.page):
     path = "/borrow/about"
 
     def GET(self):
-        return render_template("borrow/about")
+        raise web.notfound()
 
 def convert_works_to_editions(site, works):
     """Takes work docs got from solr and converts them into appropriate editions required for lending library.
