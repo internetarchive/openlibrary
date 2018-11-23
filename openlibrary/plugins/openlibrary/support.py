@@ -17,7 +17,9 @@ class contact(delegate.page):
         i = web.input(path=None)
         user = accounts.get_current_user()
         email = user and user.email
-        return render_template("support", email=email, url=i.path)
+        template = render_template("support", email=email, url=i.path)
+        template.v2 = True
+        return template
 
     def POST(self):
         form = web.input()
