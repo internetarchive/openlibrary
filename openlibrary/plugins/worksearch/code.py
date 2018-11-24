@@ -581,13 +581,17 @@ class improve_search(delegate.page):
     def GET(self):
         i = web.input(q=None)
         boost = dict((f, i[f]) for f in search_fields if f in i)
-        return render.improve_search(search_fields, boost, i.q, simple_search)
+        template = render.improve_search(search_fields, boost, i.q, simple_search)
+        template.v2 = True
+        return template
 
 class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        template = render_template("search/advancedsearch.html")
+        template.v2 = True
+        return template
 
 class merge_author_works(delegate.page):
     path = "/authors/(OL\d+A)/merge-works"

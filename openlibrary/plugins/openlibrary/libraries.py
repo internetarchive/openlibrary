@@ -18,10 +18,11 @@ from openlibrary import accounts
 from openlibrary.core.iprange import find_bad_ip_ranges
 
 logger = logging.getLogger("openlibrary.libraries")
+LIBRARY_OFFLINE = 'The libraries feature has been disabled.'
 
 class libraries(delegate.page):
     def GET(self):
-        return render_template("libraries/index", get_libraries_by_country())
+        raise web.notfound(LIBRARY_OFFLINE)
 
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
@@ -33,7 +34,7 @@ class libraries_notes(delegate.page):
     def POST(self, key):
         doc = web.ctx.site.get(key)
         if doc is None or doc.type.key != "/type/library":
-            raise web.notfound()
+            raise web.notfound(LIBRARY_OFFLINE)
         elif not web.ctx.site.can_write(key):
             raise render_template("permission_denied")
         else:
@@ -152,10 +153,7 @@ class libraries_dashboard(delegate.page):
     path = "/libraries/dashboard"
 
     def GET(self):
-        keys = web.ctx.site.things(query={"type": "/type/library", "limit": 10000})
-        libraries = web.ctx.site.get_many(keys)
-        libraries.sort(key=lambda lib: lib.name.lstrip('The '))
-        return render_template("libraries/dashboard", libraries, self.get_pending_libraries())
+        raise web.notfound(LIBRARY_OFFLINE)
 
     def get_pending_libraries(self):
         docs = web.ctx.site.store.values(type="library", name="current_status", value="pending", limit=10000)
@@ -185,12 +183,9 @@ class pending_libraries(delegate.page):
     def GET(self, key):
         doc = web.ctx.site.store.get(key)
         if not doc:
-            raise web.notfound()
-
+            raise web.notfound(LIBRARY_OFFLINE)
         doc["_key"] = self.generate_key(doc)
-
-        page = libraries_dashboard()._create_pending_library(doc)
-        return render_template("type/library/edit", page)
+        raise web.notfound(LIBRARY_OFFLINE)
 
     def generate_key(self, doc):
         key = "/libraries/" + doc['name'].lower().replace(" ", "_")
@@ -217,11 +212,9 @@ class pending_libraries(delegate.page):
         page = libraries_dashboard()._create_pending_library(i)
 
         if web.ctx.site.get(page.key):
-            add_flash_message("error", "URL %s is already used. Please choose a different one." % page.key)
-            return render_template("type/library/edit", page)
+            raise web.notfound("error", "URL %s is already used. Please choose a different one." % page.key)
         elif not i.key.startswith("/libraries/"):
-            add_flash_message("error", "The key must start with /libraries/.")
-            return render_template("type/library/edit", page)
+            raise web.notfound( "The key must start with /libraries/." )
 
         doc = web.ctx.site.store.get(key)
         if doc and "registered_on" in doc:
@@ -238,7 +231,7 @@ class pending_libraries(delegate.page):
 class libraries_register(delegate.page):
     path = "/libraries/register"
     def GET(self):
-        return render_template("libraries/add")
+        raise web.notfound(LIBRARY_OFFLINE)
 
     def POST(self):
         i = web.input()
@@ -269,7 +262,7 @@ class libraries_register(delegate.page):
             errors['ip_ranges'] = 'IP ranges is a required field'
 
         if errors:
-            return render_template("libraries/add", errors)
+            raise web.notfound(LIBRARY_OFFLINE)
 
         seq = web.ctx.site.seq.next_value("libraries")
 
@@ -288,7 +281,7 @@ class libraries_register(delegate.page):
             self.sendmail(config.libraries_admin_email,
                 render_template("libraries/email_notification", i))
 
-        return render_template("libraries/postadd")
+        raise web.notfound(LIBRARY_OFFLINE)
 
     def sendmail(self, to, msg, cc=None):
         cc = cc or []

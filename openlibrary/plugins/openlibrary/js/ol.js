@@ -72,13 +72,6 @@ $(window).scroll(function(){
   if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
 })
 
-/* eslint-disable no-unused-vars */
-// used in macros/Dashboard.html
-function flickrBuild(){$(".flickrs").flickr({callback:colorboxCallback});}
-/* eslint-enable no-unused-vars */
-
-function colorboxCallback(){$('a.flickrpic').colorbox({photo:true,preloading:true,opacity:'0.70'});}
-
 // BOOK COVERS
 /* eslint-disable no-unused-vars */
 // used in templates/work_search.html

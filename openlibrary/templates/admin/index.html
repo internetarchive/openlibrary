@@ -6,7 +6,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
 $:macros.Dashboard()
 $ stats = get_admin_stats()
 <script type="text/javascript">
-\$(function () {
+window.q.push(function () {
     var edits = $:json_encode(counts.human_edits.get_counts(80, True));
     var members = $:json_encode(counts.members.get_counts(80, True));
     plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
@@ -30,7 +30,7 @@ $ stats = get_admin_stats()
     </div>
     <div class="chartHolder">
       <div class="chartDisplay">
-	<div id="editgraph" style="width:430px;height:50px;">
+	<div id="editgraph" class="canvas-graph">
 	  <!-- Edit graphs go here -->
 	</div>
       </div>
@@ -79,7 +79,7 @@ $ stats = get_admin_stats()
     </div>
     <div class="chartHolder">
       <div class="chartDisplay">
-	<div id="membergraph" style="width:430px;height:50px;">
+	<div id="membergraph" class="canvas-graph">
 	  <!-- Member graphs go here -->
 	</div>
       </div>
@@ -108,7 +108,7 @@ $ stats = get_admin_stats()
 
 
   <script type="text/javascript">
-    \$(function () {
+    window.q.push(function () {
     plot_tooltip_graph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(150, True)), " works on ");
     plot_tooltip_graph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(150, True)), " editions on ");
     plot_tooltip_graph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(150, True)), " covers on ");
@@ -192,21 +192,7 @@ $ stats = get_admin_stats()
   <h2>Borrows</h2>
   <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
   <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
-  <div class="tweets" id="adminTwitter">$:macros.twitter()</div>
 
   <div class="contentSpacer"></div>
 
-  <div class="contentQuarter">
-    <!-- Start of Flickr Badge -->
-    <table id="flickr_badge_uber_wrapper">
-      <tr>
-        <td>
-          <table id="flickr_badge_wrapper">
-            <script type="text/javascript" src="http://www.flickr.com/badge_code_v2.gne?count=2&display=random&size=m&layout=v&source=user&user=41108298%40N06"></script>
-          </table>
-        </td>
-      </tr>
-    </table>
-    <!-- End of Flickr Badge -->
-  </div>
 </div>
