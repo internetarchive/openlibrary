@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# from __future__ import with_statement
 from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
