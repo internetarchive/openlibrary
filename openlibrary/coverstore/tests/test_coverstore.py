@@ -46,7 +46,7 @@ def test_bad_image():
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
-    import Image
+    from PIL import Image
     img = Image.new('RGB', (100, 200))
 
     img2 = coverlib.resize_image(img, (40, 40))
