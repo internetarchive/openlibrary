@@ -1,7 +1,7 @@
 -r requirements_common.txt
 
 Fabric==1.10.1
-Jinja2==2.6
+Jinja2==2.10
 PIL==1.1.7
 amqplib==1.0.2
 anyjson==0.3.1
