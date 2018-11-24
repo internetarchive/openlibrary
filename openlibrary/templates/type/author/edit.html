@@ -5,14 +5,15 @@ $var title: $page.name
 $putctx("robots", "noindex,nofollow")
 
 <script type="text/javascript">
-\$().ready(function(){
+// enable tabs for author page
+window.q.push(function(){
     if(jQuery.support.opacity){
         \$("#tabsAddauthor").tabs({fx:{opacity:'toggle'}});
     } else {
         \$("#tabsAddauthor").tabs();
     };
+    \$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});
 });
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});});
 </script>
 
 <div id="contentHead">
@@ -28,7 +29,7 @@ $putctx("robots", "noindex,nofollow")
 
 
     <div class="formElement title">
-        <div class="formElement" style="margin-bottom:12px;">
+        <div class="formElement">
             <div class="label">
                 <label for="name">$_("Name")</label>
                 <span class="tip">
@@ -37,12 +38,12 @@ $putctx("robots", "noindex,nofollow")
                 </span>
             </div>
             <div class="input">
-                <input type="text" name="author--name" id="name" style="font-size:1.875em!important;width:900px!important;" value="$page.name" class="required"/>
+                <input type="text" name="author--name" id="name" value="$page.name" class="required"/>
             </div>
         </div>
     </div>
 
-        <div style="float:left;width:698px;">
+        <div>
 
             <div id="tabsAddauthor">
 
@@ -61,30 +62,31 @@ $putctx("robots", "noindex,nofollow")
                                 <span class="tip">$_('If you "borrow" information from somewhere, please make sure to cite the source.')</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--bio" class="markdown" id="wmd-input" rows="6" cols="40" style="height:265px;width:100%;">$page.bio</textarea>
+                                <textarea name="author--bio"
+                                    class="markdown olform__input--large" id="wmd-input" rows="6">$page.bio</textarea>
                             </div>
                         </div>
 
-                        <div class="formElement contentQuarter" id="birthDate" style="width:205px;margin-bottom:0;">
+                        <div class="formElement contentQuarter" id="birthDate">
                             <div class="label birthLabelAcc">
                                 <label for="birth_date">$_("Date of birth")</label>
                             </div>
                             <div class="input birthInputAcc">
-                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date" style="width:150px!important;"/>
+                                <input type="text" name="author--birth_date" id="birth_date" value="$page.birth_date"/>
                             </div>
                         </div>
 
-                        <div class="formElement contentQuarter" id="deathDate" style="width:205px;margin-bottom:0;">
+                        <div class="formElement contentQuarter" id="deathDate">
                             <div class="label deathLabelAcc">
                                 <label for="death_date">$_("Date of death")</label>
                             </div>
                             <div class="input deathInputAcc">
-                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date" style="width:150px!important;"/>
+                                <input type="text" name="author--death_date" id="death_date" value="$page.death_date"/>
                             </div>
                         </div>
 
-                        <div class="formElement contentQuarter" style="margin-bottom:0;">
-                            <div class="label tipAcc" style="margin-top:10px;padding-top:1em;">
+                        <div class="formElement contentQuarter">
+                            <div class="label tipAcc">
                                 <span class="tip">$_('We\'re not storing structured dates (yet) so a date like "21 May 2000" is recommended.')</span>
                             </div>
                         </div>
@@ -97,7 +99,7 @@ $putctx("robots", "noindex,nofollow")
                                 <span class="tip">$_("For example:") Lev Nikolayevich Tolstoy; Yasnaya Polyana</span>
                             </div>
                             <div class="input">
-                                <textarea name="author--alternate_names" id="alternate_names" rows="6" cols="40" style="height:65px;">$"; ".join(page.alternate_names)</textarea>
+                                <textarea name="author--alternate_names" id="alternate_names" rows="6">$"; ".join(page.alternate_names)</textarea>
                             </div>
                         </div>
 
@@ -123,7 +125,7 @@ $putctx("robots", "noindex,nofollow")
 
         </div>
 
-        <div class="illustration" style="float:left;width:220px;min-height:200px;text-align:center;margin-top:1.125em;padding-top:15px;">
+        <div class="illustration">
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page)
         </div>
@@ -135,7 +137,7 @@ $putctx("robots", "noindex,nofollow")
             </div>
 
         $if ctx.user and ctx.user.is_admin():
-            <div class="adminOnly" style="position:absolute;top:50px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="deleteTop">$_("Delete Record")</button></div>
+            <div class="adminOnly"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete Record')" id="deleteTop">$_("Delete Record")</button></div>
 
 
     </form>

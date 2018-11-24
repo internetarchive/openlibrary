@@ -43,7 +43,8 @@ class ReadableUrlProcessor:
         web.ctx.path = real_path
         web.ctx.fullpath = web.ctx.path + web.ctx.query
         out = handler()
-        V2_TYPES = ['works', 'books', 'people', 'publishers', 'languages', 'account']
+        V2_TYPES = ['works', 'books', 'people',
+                    'publishers', 'languages', 'account']
         if out and any(web.ctx.path.startswith('/%s/' % _type) for _type in V2_TYPES):
             out.v2 = True
         return out
