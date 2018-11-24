@@ -5,7 +5,6 @@ Jinja2==2.10
 PIL==1.1.7
 amqplib==1.0.2
 anyjson==0.3.1
-args==0.1.0
 backports.shutil-get-terminal-size==1.0.0
 bottlenose==1.1.2
 clint==0.5.1
