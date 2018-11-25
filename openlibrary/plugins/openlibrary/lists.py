@@ -19,6 +19,7 @@ class lists_home(delegate.page):
     def GET(self):
         delegate.context.setdefault('bodyid', 'lists')
         template = render_template("lists/home")
+        template.v2 = True
         return template
 
 class lists(delegate.page):
