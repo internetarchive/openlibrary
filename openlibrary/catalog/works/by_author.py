@@ -16,6 +16,11 @@ import olapi
 
 import six
 
+try:
+    cmp             # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
 
 rc = read_rc()
 

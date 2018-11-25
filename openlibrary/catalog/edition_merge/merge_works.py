@@ -6,6 +6,11 @@ from pprint import pprint
 
 import six
 
+try:
+    cmp             # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
 
 conn = MySQLdb.connect(db='merge_editions')
 cur = conn.cursor()
@@ -144,4 +149,3 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
     assert all(author0 == w['authors'][0]['author'] for w in works)
     merge_works(works)
     print()
-

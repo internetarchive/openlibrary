@@ -11,6 +11,11 @@ from catalog.utils import strip_count
 
 import six
 
+try:
+    cmp             # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
 
 db = web.database(dbn='postgres', db='marc_lookup')
 db.printing = False
