@@ -4,7 +4,7 @@ import re, sys, codecs, web
 from openlibrary.catalog.get_ia import get_from_archive
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
-from openlibrary.catalog.utils import mk_norm
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pprint, pformat
@@ -16,11 +16,6 @@ import olapi
 
 import six
 
-try:
-    cmp             # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
 
 rc = read_rc()
 

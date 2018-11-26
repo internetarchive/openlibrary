@@ -7,7 +7,7 @@ import six
 from six.moves import range
 
 try:
-    cmp             # Python 2
+    cmp = cmp       # Python 2
 except NameError:
     def cmp(x, y):  # Python 3
         return (x > y) - (x < y)

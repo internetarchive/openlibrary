@@ -2,15 +2,11 @@ from __future__ import print_function
 import MySQLdb, datetime, re, sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
+from openlibrary.catalog.utils import cmp
 from pprint import pprint
 
 import six
 
-try:
-    cmp             # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
 
 conn = MySQLdb.connect(db='merge_editions')
 cur = conn.cursor()

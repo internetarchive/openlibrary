@@ -4,6 +4,7 @@ from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
+from openlibrary.catalog.utils import cmp
 from pprint import pprint
 import re, sys, os.path, web
 #from catalog.amazon.other_editions import find_others
@@ -11,11 +12,6 @@ from catalog.utils import strip_count
 
 import six
 
-try:
-    cmp             # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
 
 db = web.database(dbn='postgres', db='marc_lookup')
 db.printing = False
