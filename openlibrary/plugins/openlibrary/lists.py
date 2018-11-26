@@ -17,7 +17,10 @@ class lists_home(delegate.page):
     path = "/lists"
 
     def GET(self):
-        return render_template("lists/home")
+        delegate.context.setdefault('bodyid', 'lists')
+        template = render_template("lists/home")
+        template.v2 = True
+        return template
 
 class lists(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
