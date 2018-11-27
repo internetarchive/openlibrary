@@ -204,10 +204,8 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
         <!-- /SUBJECTS -->
 
         $if "lists" in ctx.features:
-            <div class="section">
-                <div class="Tools" style="margin:0 0 25px 0;float:left;">
-                    $:render_template("lists/widget", page)
-                </div>
+            <div class="section Tools">
+                $:render_template("lists/widget", page, include_rating=False)
             </div>
 
         <div class="section">
