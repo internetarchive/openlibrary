@@ -41,7 +41,6 @@
             return data;
         }
         function onAdd(event) {
-            console.log('add');
             event.preventDefault();
 
             var index = elems.display.children().length;
