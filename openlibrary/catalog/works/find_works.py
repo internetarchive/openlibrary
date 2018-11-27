@@ -7,8 +7,8 @@ import re, sys, web, urllib2
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.utils.query import query_iter, withKey
-from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pprint, pformat

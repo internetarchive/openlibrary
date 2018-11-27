@@ -2,6 +2,7 @@ from __future__ import print_function
 import MySQLdb, datetime, re, sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
+from openlibrary.catalog.utils import cmp
 from pprint import pprint
 
 import six
@@ -144,4 +145,3 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
     assert all(author0 == w['authors'][0]['author'] for w in works)
     merge_works(works)
     print()
-
