@@ -4,7 +4,6 @@ from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
 import six
-from six.moves import range
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -123,15 +122,15 @@ def pick_first_date(dates):
     return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
 def strip_accents(s):
-    return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
+    return normalize('NFKD', six.text_type(s)).encode('ASCII', 'ignore')
 
 re_drop = re.compile('[?,]')
 
 def match_with_bad_chars(a, b):
-    if unicode(a) == unicode(b):
+    if six.text_type(a) == six.text_type(b):
         return True
-    a = normalize('NFKD', unicode(a)).lower()
-    b = normalize('NFKD', unicode(b)).lower()
+    a = normalize('NFKD', six.text_type(a)).lower()
+    b = normalize('NFKD', six.text_type(b)).lower()
     if a == b:
         return True
     a = a.encode('ASCII', 'ignore')
@@ -146,7 +145,7 @@ def accent_count(s):
     return len([c for c in norm(s) if ord(c) > 127])
 
 def norm(s):
-    return normalize('NFC', s) if isinstance(s, unicode) else s
+    return normalize('NFC', s) if isinstance(s, six.text_type) else s
 
 def pick_best_name(names):
     names = [norm(n) for n in names]
@@ -254,4 +253,3 @@ bad MARC: %s
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, [msg_to], msg)
     server.quit()
-

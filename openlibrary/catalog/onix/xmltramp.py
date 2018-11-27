@@ -5,6 +5,8 @@ __author__ = "Aaron Swartz"
 __credits__ = "Many thanks to pjz, bitsko, and DanC."
 __copyright__ = "(C) 2003-2006 Aaron Swartz. GNU GPL 2."
 
+import six
+
 def isstr(f): return isinstance(f, type('')) or isinstance(f, type(u''))
 def islst(f): return isinstance(f, type(())) or isinstance(f, type([]))
 
@@ -16,6 +18,7 @@ def quote(x, elt=True):
     if not elt: x = x.replace('"', '&quot;')
     return x
 
+@six.python_2_unicode_compatible
 class Element:
     def __init__(self, name, attrs=None, children=None, prefixes=None, line=None):
         if islst(name) and name[0] == None: name = name[1]
@@ -97,14 +100,11 @@ class Element:
 
         return out
 
-    def __unicode__(self):
+    def __str__(self):
         text = ''
         for x in self._dir:
-            text += unicode(x)
+            text += six.text_type(x)
         return ' '.join(text.split())
-
-    def __str__(self):
-        return self.__unicode__().encode('utf-8')
 
     def __getattr__(self, n):
         if n[0] == '_': raise AttributeError("Use foo['"+n+"'] to access the child element.")

@@ -607,7 +607,7 @@ class Work(models.Work):
             if (_subject not in blacklist and
                 (not filter_unicode or (
                     subject.replace(' ', '').isalnum() and 
-                    not isinstance(subject, unicode))) and
+                    not isinstance(subject, six.text_type))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects        

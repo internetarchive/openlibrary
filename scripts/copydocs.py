@@ -22,6 +22,8 @@ import web
 from openlibrary.api import OpenLibrary, marshal, unmarshal
 from optparse import OptionParser
 
+import six
+
 __version__ = "0.2"
 
 def find(server, prefix):
@@ -31,7 +33,7 @@ def find(server, prefix):
     if prefix == '/type':
         q['type'] = '/type/type'
 
-    return [unicode(x) for x in server.query(q)]
+    return [six.text_type(x) for x in server.query(q)]
 
 def expand(server, keys):
     if isinstance(server, Disk):
@@ -246,4 +248,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

@@ -137,7 +137,7 @@ class MockSite:
                 d[k] = self._process(v)
             return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
-            return client.create_thing(self, unicode(value), None)
+            return client.create_thing(self, six.text_type(value), None)
         else:
             return value
 

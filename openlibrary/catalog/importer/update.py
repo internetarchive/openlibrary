@@ -9,6 +9,8 @@ from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.api import OpenLibrary, unmarshal, marshal
 from pprint import pprint
 
+import six
+
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
 ol.login('ImportBot', rc['ImportBot'])
@@ -28,7 +30,7 @@ def fix_toc(e):
     # http://openlibrary.org/books/OL789133M - /type/toc_item missing from table_of_contents
     if isinstance(toc[0], dict) and ('pagenum' in toc[0] or toc[0]['type'] == '/type/toc_item'):
         return
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 

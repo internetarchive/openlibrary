@@ -6,6 +6,8 @@ from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
 from time import sleep
 
+import six
+
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
@@ -43,7 +45,7 @@ def fix_toc(e):
         if len(toc) == 1 and 'title' not in toc[0]:
             del e['table_of_contents'] # remove empty toc
         return
-    new_toc = [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    new_toc = [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i]
     e['table_of_contents'] = new_toc
 
 def fix_subject(e):
