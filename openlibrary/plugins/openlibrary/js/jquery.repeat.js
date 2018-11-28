@@ -32,14 +32,33 @@
 
         var t = createTemplate(id + "-template");
 
+        /**
+         * Search elems.form for input fields and create an
+         * object representing.
+         * This function has side effects and will reset any
+         * input[type=text] fields it has found in the process
+         * @return {object} data mapping names to values
+         */
         function formdata() {
             var data = {};
             $(":input", elems.form).each(function() {
-                var e = $(this);
-                data[e.attr("name")] = $.trim(e.val());
+                var $e = $(this),
+                    type = $e.attr('type'),
+                    name = $e.attr("name");
+
+                data[name] = $e.val().trim();
+                // reset the values we are copying across
+                if (type === 'text') {
+                    $e.val('');
+                }
             });
             return data;
         }
+        /**
+         * triggered when "add link" button is clicked on author edit field.
+         * Creates a removable `repeat-item`.
+         * @param {jQuery.Event} event
+         */
         function onAdd(event) {
             event.preventDefault();
 
@@ -54,6 +73,7 @@
             $.extend(data, options.vars || {});
 
             var newid = elems._this.attr("id") + "--" + index;
+            // Create the HTML of a hidden input
             elems.template
                 .clone()
                 .attr("id", newid)
@@ -61,7 +81,6 @@
                 .show()
                 .appendTo(elems.display);
 
-            $("input[type!=button], textarea", elems.form).filter(":not(.repeat-ignore)").val("");
             elems._this.trigger("repeat-add");
         }
         function onRemove(event) {
