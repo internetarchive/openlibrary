@@ -6,6 +6,12 @@ import openlibrary.catalog.merge.normalize as merge
 import six
 from six.moves import range
 
+try:
+    cmp = cmp       # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
+
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -254,4 +260,3 @@ bad MARC: %s
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, [msg_to], msg)
     server.quit()
-
