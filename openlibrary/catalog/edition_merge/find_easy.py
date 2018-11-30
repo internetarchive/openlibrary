@@ -3,7 +3,6 @@ import MySQLdb, datetime, re, sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 from collections import defaultdict
-from pprint import pprint
 
 re_edition_key = re.compile('^/books/OL(\d+)M$')
 re_nonword = re.compile(r'\W', re.U)

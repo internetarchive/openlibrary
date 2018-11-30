@@ -4,7 +4,6 @@ from time import time
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site
 #from catalog.db_read import get_things, withKey
-from pprint import pprint
 from catalog.amazon.other_editions import find_others
 from catalog.merge.normalize import normalize
 
