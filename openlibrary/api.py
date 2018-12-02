@@ -25,6 +25,8 @@ import simplejson
 import web
 import logging
 
+import six
+
 logger = logging.getLogger("openlibrary.api")
 
 class OLError(Exception):
@@ -212,9 +214,9 @@ def marshal(data):
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": unicode(data)}
+        return {"type": "/type/text", "value": six.text_type(data)}
     elif isinstance(data, Reference):
-        return {"key": unicode(data)}
+        return {"key": six.text_type(data)}
     else:
         return data
 
@@ -258,11 +260,11 @@ def parse_datetime(value):
         return datetime.datetime(*map(int, tokens))
 
 
-class Text(unicode):
+class Text(six.text_type):
     def __repr__(self):
-        return "<text: %s>" % unicode.__repr__(self)
+        return u"<text: %s>" % six.text_type.__repr__(self)
 
 
-class Reference(unicode):
+class Reference(six.text_type):
     def __repr__(self):
-        return "<ref: %s>" % unicode.__repr__(self)
+        return u"<ref: %s>" % six.text_type.__repr__(self)

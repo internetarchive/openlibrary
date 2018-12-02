@@ -5,6 +5,8 @@ import re, sys, codecs
 from time import sleep
 from unicodedata import normalize
 
+import six
+
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
 re_letters = re.compile('[A-Za-z]')
@@ -155,10 +157,10 @@ def read_edition(f):
         #        return None
         #    continue
         if tag == '008':
-            publish_date = unicode(line)[7:11]
+            publish_date = six.text_type(line)[7:11]
             if publish_date.isdigit():
                 edition["publish_date"] = publish_date
-            publish_country = unicode(line)[15:18]
+            publish_country = six.text_type(line)[15:18]
             if publish_country not in ('|||', '   '):
                 edition["publish_country"] = publish_country
             continue

@@ -221,7 +221,7 @@ def print_works(works):
         print(len(w['editions']), w['title'])
 
 def toc_items(toc_list):
-    return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list]
+    return [{'title': six.text_type(item), 'type': Reference('/type/toc_item')} for item in toc_list]
 
 def add_works(akey, works):
     queue = []

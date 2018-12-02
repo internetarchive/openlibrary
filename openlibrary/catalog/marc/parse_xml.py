@@ -4,6 +4,8 @@ import xml.parsers.expat
 from parse import read_edition
 from unicodedata import normalize
 
+import six
+
 slim = '{http://www.loc.gov/MARC21/slim}'
 leader_tag = slim + 'leader'
 data_tag = slim + 'datafield'
@@ -13,7 +15,7 @@ collection_tag = slim + 'collection'
 record_tag = slim + 'record'
 
 def norm(s):
-    return normalize('NFC', unicode(s))
+    return normalize('NFC', six.text_type(s))
 
 class BadSubtag:
     pass

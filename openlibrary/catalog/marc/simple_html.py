@@ -5,6 +5,8 @@ from html import as_html
 from build_record import build_record
 import sys, re
 
+import six
+
 trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
 re_html_replace = re.compile('([&<>\n])')
 
@@ -84,7 +86,7 @@ def output_record_as_html(rec):
         elif rec[k] is None:
             v = '<em>empty</em>'
         else:
-            v = esc(unicode(rec[k]))
+            v = esc(six.text_type(rec[k]))
         rows.append('<tr><th>%s</th><td>%s</td></tr>\n' % (label, v))
 
     return '<table>' + ''.join(rows) + '</table>'

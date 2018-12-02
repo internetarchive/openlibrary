@@ -122,7 +122,7 @@ def add_field(doc, name, value):
     """
     field = Element("field", name=name)
     try:
-        field.text = normalize('NFC', unicode(strip_bad_char(value)))
+        field.text = normalize('NFC', six.text_type(strip_bad_char(value)))
     except:
         logger.error('Error in normalizing %r', value)
         raise

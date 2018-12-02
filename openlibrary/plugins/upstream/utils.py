@@ -13,6 +13,8 @@ import StringIO
 import logging
 from HTMLParser import HTMLParser
 
+import six
+
 from infogami import config
 from infogami.utils import view, delegate, stats
 from infogami.utils.view import render, get_template, public
@@ -394,7 +396,7 @@ def add_metatag(tag="meta", **attrs):
 
 @public
 def url_quote(text):
-    if isinstance(text, unicode):
+    if isinstance(text, six.text_type):
         text = text.encode('utf8')
     return urllib.quote_plus(text)
 
@@ -503,12 +505,12 @@ def get_markdown(text, safe_mode=False):
     return md
 
 
-class HTML(unicode):
+class HTML(six.text_type):
     def __init__(self, html):
-        unicode.__init__(self, web.safeunicode(html))
+        six.text_type.__init__(self, web.safeunicode(html))
 
     def __repr__(self):
-        return "<html: %s>" % unicode.__repr__(self)
+        return "<html: %s>" % six.text_type.__repr__(self)
 
 _websafe = web.websafe
 def websafe(text):
