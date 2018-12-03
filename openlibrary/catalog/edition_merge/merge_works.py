@@ -2,7 +2,6 @@ from __future__ import print_function
 import MySQLdb, datetime, re, sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
-from pprint import pprint
 
 import six
 

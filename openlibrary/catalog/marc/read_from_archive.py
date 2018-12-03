@@ -3,7 +3,6 @@ import urllib2
 import xml.etree.ElementTree as et
 from MARC21 import MARC21Record
 from MARC21Exn import MARC21Exn
-from pprint import pprint
 from time import sleep
 
 archive_url = "http://archive.org/download/"

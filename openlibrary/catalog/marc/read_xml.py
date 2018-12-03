@@ -1,6 +1,5 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
-from pprint import pprint
 import re, sys, codecs
 from time import sleep
 from unicodedata import normalize
