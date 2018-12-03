@@ -672,7 +672,14 @@ _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.g
 
 def get_donation_include(include):
     web_input = web.input()
-    url_banner_source = "https://archive.org/includes/donate.php"
+
+    # The following allows archive.org staff to test banners without
+    # needing to reload openlibrary services:
+    dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
+    if dev_host:
+        dev_host += "."   # e.g. `www-user.`
+
+    url_banner_source = "https://%sarchive.org/includes/donate.php" % dev_host
     param = '?platform=ol'
     if 'ymd' in web_input:
         param += '&ymd=' + web_input.ymd
