@@ -8,7 +8,7 @@ iptools==0.4.0
 internetarchive==1.8.1
 lxml==4.2.5
 pyflakes==2.0.0
-pymarc==3.1.10
+pymarc==3.1.11
 python-memcached==1.48
 simplejson==3.16.0
 supervisor==3.0a12
