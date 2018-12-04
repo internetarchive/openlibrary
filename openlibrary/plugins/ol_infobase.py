@@ -351,8 +351,8 @@ class MemcacheInvalidater:
         for e in editions:
             yield e['key']
 
-        # invalidate work.authors
-        authors = work.get('authors', [])
+        # invalidate old.authors
+        authors = old.get('authors', [])
         for a in authors:
             if 'author' in a and 'key' in a['author']:
                 yield a['author']['key']

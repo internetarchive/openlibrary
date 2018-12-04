@@ -127,16 +127,16 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
     m1 = re_marc_name.match(marc1)
     m2 = re_marc_name.match(marc2)
     if not m1:
-        if m2 and marc1_normalized == normalize(m2.group(1)):
+        if m2 and m1_normalized == normalize(m2.group(1)):
             return last_name_only_ok
         else:
             return False
     if not m2:
-        if marc2_normalized == normalize(m1.group(1)):
+        if m2_normalized == normalize(m1.group(1)):
             return last_name_only_ok
         else:
             return False
-    if marc1_normalized == normalize(m2.group(2) + ' ' + m2.group(1)) or marc2_normalized == normalize(m1.group(2) + ' ' + m1.group(1)):
+    if m1_normalized == normalize(m2.group(2) + ' ' + m2.group(1)) or m2_normalized == normalize(m1.group(2) + ' ' + m1.group(1)):
         return True
     if not (m1.group(1).endswith(' ' + m2.group(1)) or m1.endswith('.' + m2.group(1)) or \
             m2.group(1).endswith(' ' + m1.group(1)) or m2.endswith('.' + m1.group(1))):

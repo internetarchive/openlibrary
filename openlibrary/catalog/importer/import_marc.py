@@ -355,12 +355,13 @@ def write_edition(loc, edition):
 
     return
 
-    for a in authors:
-        akey = a['key']
-        title_redirects = find_title_redirects(akey)
-        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-        works = list(works)
-        updated = update_works(akey, works, do_updates=True)
+    #unreachable code
+    #for a in authors:
+     #   akey = a['key']
+      #  title_redirects = find_title_redirects(akey)
+       # works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
+        #works = list(works)
+        #updated = update_works(akey, works, do_updates=True)
 
 for part, size in files(archive_id):
 #for part, size in marc_loc_updates:
