@@ -22,19 +22,42 @@
       input[type=email],
       input[type=password],
       textarea {
-        width: 848px;
+        width: 100%;
       }
     }
 
     .TitleAuthor {
       // stylelint-disable-next-line max-nesting-depth
       input#work-title {
-        width: 900px !important;
+        width: 100% !important;
       }
 
       // stylelint-disable-next-line max-nesting-depth
       input#author {
         width: 550px !important;
+      }
+    }
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  form.olform {
+    &.books {
+      .major {
+        // stylelint-disable-next-line max-nesting-depth
+        input[type=text],
+        input[type=email],
+        input[type=password],
+        textarea {
+          width: 848px;
+        }
+      }
+      .TitleAuthor {
+        // stylelint-disable-next-line max-nesting-depth
+        input#work-title {
+          width: 900px !important;
+        }
+
       }
     }
   }

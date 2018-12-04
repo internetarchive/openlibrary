@@ -39,24 +39,23 @@
 }
 
 .formElement .input .wmd-preview {
-  width: 906px;
+  width: 100%;
   min-height: 47px;
   padding: 5px;
-  float: left;
   clear: both;
 }
 
 /* stylelint-disable no-descending-specificity */
 fieldset.major .wmd-preview,
 form.olform.books .formElement .input .wmd-preview {
-  width: 848px;
+  width: 100%;
   min-height: 47px;
   padding: 3px;
 }
 /* stylelint-enable no-descending-specificity */
 
 form.olform.books .formElement.librarian .input .wmd-preview {
-  width: 798px;
+  width: 100%;
   min-height: 47px;
   padding: 3px;
 }
@@ -184,6 +183,23 @@ form#addAuthor.olform .wmd-preview {
   background-color: @black;
   opacity: .9;
   filter: Alpha(Opacity=90);
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  // stylelint-disable no-descending-specificity
+  fieldset.major .wmd-preview,
+  // FIXME: Work out how this differs from selector below setting 906px
+  form.olform.books .formElement .input .wmd-preview {
+    width: 848px;
+  }
+  .formElement .input .wmd-preview {
+    width: 906px;
+    float: left;
+  }
+  form.olform.books .formElement.librarian .input .wmd-preview {
+    width: 798px;
+  }
+  // stylelint-enable no-descending-specificity
 }
 
 @import (less) "components/wmd-button-bar.less";

@@ -1,7 +1,7 @@
 @import (less) "less/z-index.less";
 
 div#header {
-  width: 960px;
+  width: 100%;
   &Search {
     width: 316px;
     padding: 9px;
@@ -147,5 +147,10 @@ div#header {
       }
     }
     /* stylelint-enable selector-max-specificity */
+  }
+}
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  div#header {
+    width: 960px;
   }
 }
