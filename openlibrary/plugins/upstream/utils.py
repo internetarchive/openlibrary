@@ -322,6 +322,11 @@ def get_history(page):
 
     return h
 
+    if 'history_v2' in web.ctx.features:
+        return get_history_v2(page)
+    else:
+        return get_history_v1(page)
+
 @public
 def get_version(key, revision):
     try:

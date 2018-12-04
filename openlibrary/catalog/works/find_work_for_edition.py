@@ -36,7 +36,7 @@ def find_matching_work(e):
 
 def test_book():
     ekey = '/books/OL24335218M'
-    wkey = find_matching_work(ekey)
+    wkey = find_matching_work(e)
     if wkey:
         print('found match:', wkey)
     else:

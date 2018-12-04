@@ -37,6 +37,7 @@ def find_srtitle(doc):
 found_books = set()
 
 prev = ''
+#out = open('/2/edward/amazon/best_sellers2', 'w')
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
     if not filename.startswith('20100412'):
         continue
@@ -74,5 +75,9 @@ for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
         for asin in serp_found:
             if asin in crawled:
                 continue
+            if asin not in found_books:
+                print(asin, file=out)
         found_books.update(serp_found)
         print(len(serp_found), len(found_books), filename, url)
+
+#out.close()

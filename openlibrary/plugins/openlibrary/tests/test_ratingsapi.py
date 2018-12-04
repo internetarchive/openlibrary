@@ -69,4 +69,4 @@ def test_rating(config, monkeypatch):
     monkeypatch.setattr(models.Ratings, "remove", {})
     monkeypatch.setattr(models.Ratings, "add", {})
     result = api.rate_book(work_key, data)
-    assert 'success' in result
+    assert 'success' in msg

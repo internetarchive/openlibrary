@@ -30,8 +30,8 @@ def build_amazon(edition, author):
     amazon['isbn'] = editon['isbn_10']
     if 'publish_date' in edition:
         amazon['publish_date'] = merge.amazon_year(edition['publish_date'])
-    if author:
-        amazon['authors'] = author
+    if authors:
+        amazon['authors'] = authors
     else:
         amazon['authors'] = []
     if 'number_of_pages' in edition:
