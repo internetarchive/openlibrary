@@ -14,7 +14,7 @@ class BadLength(MarcException):
     pass
 
 def norm(s):
-    return normalize('NFC', unicode(s))
+    return normalize('NFC', six.text_type(s))
 
 class BinaryDataField():
     def __init__(self, rec, line):

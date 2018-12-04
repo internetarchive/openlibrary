@@ -19,6 +19,8 @@ try:
 except ImportError:
     BeautifulSoup = None
 
+import six
+
 from infogami import config
 
 # handy utility to parse ISO date strings
@@ -163,7 +165,7 @@ def commify(number, lang=None):
         lang = lang or web.ctx.get("lang") or "en"
         return babel.numbers.format_number(int(number), lang)
     except:
-        return unicode(number)
+        return six.text_type(number)
 
 
 def truncate(text, limit):

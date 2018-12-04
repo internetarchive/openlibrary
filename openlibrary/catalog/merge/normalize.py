@@ -1,11 +1,13 @@
 import re, unicodedata
 
+import six
+
 #re_brace = re.compile('{[^{}]+?}')
 re_normalize = re.compile('[^[:alpha:] ]', re.I)
 re_whitespace = re.compile('[-\s,;.]+')
 
 def normalize(s):
-    if isinstance(s, unicode):
+    if isinstance(s, six.text_type):
         s = unicodedata.normalize('NFC', s.replace(u'\u0142', u'l'))
     s = s.replace(' & ', ' and ')
     # remove {mlrhring} and friends
@@ -23,4 +25,3 @@ def normalize(s):
 #    a = "Tha{mllhring}{macr}alib{macr}i, {mllhring}Abd al-Malik ibn Mu{dotb}hammad 961 or 2-1037 or 8."
 #    b = u"Tha\xb0\xe5alib\xe5i, \xb0Abd al-Malik ibn Mu\xf2hammad 961 or 2-1037 or 8."
 #    assert normalize(a) == normalize(b)
-

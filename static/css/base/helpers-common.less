@@ -4,6 +4,13 @@
 }
 .inline {
   display: inline;
+
+  // All inline elements following an inline element
+  // e.g. heading should be a little smaller
+  // See /subjects "Try a keyword"
+  + span {
+    font-size: 11px;
+  }
 }
 .hidden--nojs {
   display: none;

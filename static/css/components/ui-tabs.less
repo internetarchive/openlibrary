@@ -1,10 +1,13 @@
 @import (less) "less/z-index.less";
+/**
+ * TabPanel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#tabspanel
+ */
 
 .ui-tabs {
   &-nav,
   &-panel {
     font-family: @lucida_sans_serif-1;
-
   }
 
   &-nav {
@@ -44,6 +47,9 @@
         text-decoration: underline;
       }
     }
+    // v2 pages
+    .ui-tabs-active,
+    // v1 pages
     .ui-tabs-selected {
       a {
         margin: 0 3px !important;
@@ -80,7 +86,6 @@
   }
   &-panel {
     border: 3px solid @lightest-grey;
-    padding: 15px 30px 20px !important;
     background: @white;
     /* declare background color for container to avoid distorted fonts in IE while fading */
   }
@@ -101,4 +106,10 @@
   /* @ IE 7 Standards Mode - do not group selectors,
   otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
   display: inline-block;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .tabs-panel {
+    padding: 15px 30px 20px !important;
+  }
 }

@@ -20,6 +20,9 @@ form.olform {
       font-weight: normal;
     }
   }
+  textarea {
+    width: 100%;
+  }
 
   input[type=text] {
     margin: 0 10px 5px 0;
@@ -47,10 +50,6 @@ form.olform {
     padding: 3px;
   }
 
-  textarea {
-    font-size: .75em;
-  }
-
   &.books {
     fieldset.major input[type=text],
     fieldset.major input[type=email],
@@ -75,6 +74,10 @@ form.olform {
       }
     }
   }
+}
+
+.olform__input--large {
+  height: 265px;
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {

@@ -7,7 +7,6 @@ from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.get_ia import marc_formats, get_marc_ia_data
 from openlibrary.catalog.marc import is_display_marc
 from time import sleep, time
-from pprint import pprint
 
 import MySQLdb
 import re, urllib2, httplib, json, codecs, socket, sys

@@ -13,7 +13,9 @@ feature_flags = {}
 
 class status(delegate.page):
     def GET(self):
-        return render_template("status", status_info, feature_flags)
+        template = render_template("status", status_info, feature_flags)
+        template.v2 = True
+        return template
 
 @public
 def get_git_revision_short_hash():

@@ -2,7 +2,6 @@ from __future__ import print_function
 import web, re, sys, codecs
 from catalog.marc.fast_parse import *
 from catalog.utils import pick_first_date
-from pprint import pprint
 import catalog.marc.new_parser as parser
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)

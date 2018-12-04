@@ -23,7 +23,6 @@ from openlibrary.utils.ia import find_item
 from openlibrary import config
 from time import time, sleep
 from openlibrary.api import OpenLibrary
-from pprint import pprint
 from subprocess import Popen, PIPE
 import argparse
 
@@ -103,7 +102,6 @@ def load(ia, use_binary=False):
     if use_binary:
         rec = load_binary(ia, host, path)
         edition = read_edition(rec)
-    pprint(edition)
     assert 'title' in edition
 
     edition['ocaid'] = ia
@@ -197,7 +195,6 @@ def write_edition(ia, edition, rec):
         if attempt > 0:
             print('retrying')
         try:
-            pprint(q)
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
             sleep(30)

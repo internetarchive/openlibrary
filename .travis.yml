@@ -4,8 +4,6 @@ addons:
   apt:
     packages:
       - libgeoip-dev
-      - python-lxml
-      - python-yaml
 python:
     - "2.7"
     - "3.6"

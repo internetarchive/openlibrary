@@ -9,6 +9,8 @@ from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
 from bs4 import BeautifulSoup
 
+import six
+
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
 
@@ -25,7 +27,7 @@ class MockDoc(dict):
 
 class TestHomeTemplates:
     def test_about_template(self, render_template):
-        html = unicode(render_template("home/about"))
+        html = six.text_type(render_template("home/about"))
         assert "About the Project" in html
 
         blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
@@ -37,7 +39,7 @@ class TestHomeTemplates:
             "link": "http://blog.openlibrary.org/2011/01/01/blog-post-0",
             "pubdate": datetime.datetime(2011, 1, 1)
         })]
-        html = unicode(render_template("home/about", blog_posts=posts))
+        html = six.text_type(render_template("home/about", blog_posts=posts))
         assert "About the Project" in html
         assert "Blog-post-0" in html
         assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
@@ -48,7 +50,7 @@ class TestHomeTemplates:
 
     def test_stats_template(self, render_template):
         # Make sure that it works fine without any input (skipping section)
-        html = unicode(render_template("home/stats"))
+        html = six.text_type(render_template("home/stats"))
         assert html == ""
 
     def test_read_template(self, render_template, monkeypatch):
@@ -56,7 +58,7 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
         monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         books = home.readonline_carousel()
-        html = unicode(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
+        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
                                        key="public_domain"))
         assert html.strip() == ""
 
@@ -93,7 +95,7 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
-        html = unicode(render_template("home/index", stats=stats, test=True))
+        html = six.text_type(render_template("home/index", stats=stats, test=True))
         headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]
         for h in headers:

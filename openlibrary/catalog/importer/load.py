@@ -3,7 +3,6 @@ import web, re, os
 from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
-from pprint import pprint
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.api import OpenLibrary
 
@@ -177,11 +176,7 @@ def build_query(loc, rec):
         'type': { 'key': '/type/edition'},
     }
 
-    try:
-        east = east_in_by_statement(rec)
-    except:
-        pprint(rec)
-        raise
+    east = east_in_by_statement(rec)
     if east:
         print(rec)
 
