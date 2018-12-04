@@ -6,7 +6,7 @@ from catalog.marc.build_record import build_record
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from pprint import pprint
 import re, sys, os.path, web
-#from catalog.amazon.other_editions import find_others
+from catalog.amazon.other_editions import find_others
 from catalog.utils import strip_count
 
 import six

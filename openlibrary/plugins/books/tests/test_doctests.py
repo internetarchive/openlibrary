@@ -13,4 +13,4 @@ def test_doctest(test):
     runner = doctest.DocTestRunner(verbose=True)
     failures, tries = runner.run(test)
     if failures:
-        py.test.fail("doctest failed: " + test.name)
+        pytest.fail("doctest failed: " + test.name)

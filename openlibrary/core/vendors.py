@@ -166,7 +166,6 @@ def _get_betterworldbooks_metadata(isbn):
             'price_amt': price,
             'qlt': qlt
         }
-        return result
     except urllib2.HTTPError as e:
         try:
             response = e.read()
