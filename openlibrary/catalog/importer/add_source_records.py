@@ -15,6 +15,8 @@ from openlibrary.api import OpenLibrary
 
 from catalog.read_rc import read_rc
 
+import six
+
 rc = read_rc()
 
 marc_index = web.database(dbn='postgres', db='marc_index')
@@ -82,7 +84,7 @@ def fix_toc(e):
         return
     if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
         return
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 

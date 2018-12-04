@@ -5,6 +5,9 @@ from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
 import web, re, sys, codecs, urllib
+
+import six
+
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal, Reference
 from openlibrary.catalog.utils.edit import fix_edition
@@ -113,7 +116,7 @@ def do_normalize(author_key, best_key, authors):
                 if m:
                     need_update = True
                     v = v[:-len(m.group(1))]
-            if not isinstance(v, unicode):
+            if not isinstance(v, six.text_type):
                 continue
             norm_v = norm(v)
             if v == norm_v:
@@ -126,7 +129,7 @@ def do_normalize(author_key, best_key, authors):
         for k in author_keys:
             if k not in best:
                 v = a[k]
-                if not isinstance(v, unicode):
+                if not isinstance(v, six.text_type):
                     continue
                 norm_v = norm(v)
                 if v == norm_v:
@@ -137,7 +140,7 @@ def do_normalize(author_key, best_key, authors):
             v = best[k]
             if 'date' in k:
                 v = remove_trailing_number_dot(v)
-            if isinstance(v, unicode):
+            if isinstance(v, six.text_type):
                 v = norm(v)
             if k not in a or v != a[k]:
                 a[k] = v

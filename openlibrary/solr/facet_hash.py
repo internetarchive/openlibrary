@@ -1,6 +1,7 @@
 import string
 from hashlib import sha1 as mkhash
 
+import six
 from six.moves import range
 
 
@@ -21,10 +22,10 @@ facet_token_length = 12
 # turn v into a str object, by encoding from unicode or numeric
 # if necessary.
 def coerce_str(v):
-    if isinstance(v, unicode):
-        v=v.encode('utf-8')
+    if isinstance(v, six.text_type):
+        v = v.encode('utf-8')
     v = str(v)    # in case v is a numeric type
-    assert isinstance(v, str),(type(v),v)
+    assert isinstance(v, str), (type(v), v)
     return v
 
 # str, str -> str

@@ -10,42 +10,25 @@ $def with (work, prefix="")
         </div>
 
         <div class="formElement">
-            <table>
-                <tbody>
-                    <tr>
-                        <td valign="top">
-                            <div class="label">
-                                <label for="link-label">$_("Give your link a label")</label>
-                            </div>
-                        </td>
-                        <td valign="top" colspan="2">
-                            <div class="label">
-                                <label for="link-url">URL</label>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td valign="top">
-                            <div class="input">
-                                <input type="text" name="title" id="link-label" class="addweb" value=""/>
-                                <br/><span class="tip">$_("For example:") <em>New York Times review</em></span>
-                            </div>
-                        </td>
-                        <td valign="top">
-                            <div class="input">
-                                <input type="text" name="url" id="link-url" class="addweb" value="https://"/>
-                            </div>
-                        </td>
-                        <td valign="top">
-                            <div class="input">
-                                <input type="button" id="repeat-add" class="repeat-add" value="Add Link"/>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
+            <div class="formElement contentHalf">
+                <div class="label">
+                    <label for="link-label">$_("Give your link a label")</label><br/>
+                </div>
+                <div class="input">
+                    <input type="text" name="title" id="link-label" class="addweb" value=""/>
+                    <span class="tip">$_("For example:") <em>New York Times review</em></span>
+                </div>
+            </div>
+            <div class="formElement contentHalf">
+                <div class="label">
+                    <label for="link-url">URL</label>
+                </div>
+                <div class="input">
+                    <input type="text" name="url" id="link-url" class="addweb" value="https://"/>
+                    <input type="button" id="repeat-add" class="repeat-add" value="Add Link"/>
+                </div>
+            </div>
+            <div class="clearfix"></div>
     </div>
 
     <div class="formElement">

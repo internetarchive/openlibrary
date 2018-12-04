@@ -44,7 +44,8 @@ def add_oclc_ids(filename):
         docs = get_docs(mapping.keys())
 
         # ignore docs that already have the oclc_number that we are about to set
-        docs = [doc for doc in doc if not has_identifier(doc, "oclc_numbers", mapping[doc['key']])
+        docs = [doc for doc in docs
+                if not has_identifier(doc, "oclc_numbers", mapping[doc['key']])]
 
         for doc in docs:
             add_identifier(doc, "oclc_numbers", mapping[doc['key']])

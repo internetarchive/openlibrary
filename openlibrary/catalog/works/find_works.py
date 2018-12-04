@@ -7,8 +7,8 @@ import re, sys, web, urllib2
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.utils.query import query_iter, withKey
-from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pformat
@@ -442,7 +442,7 @@ def add_subjects_to_work(subjects, w):
         existing_subjects = set(w.get(k, []))
         w.setdefault(k, []).extend(s for s in subjects if s not in existing_subjects)
         if w.get(k):
-            w[k] = [unicode(i) for i in w[k]]
+            w[k] = [six.text_type(i) for i in w[k]]
         try:
             assert all(i != '' and not i.endswith(' ') for i in w[k])
         except AssertionError:
@@ -549,7 +549,7 @@ def fix_toc(e):
         print('toc')
         print(toc)
         print(repr(toc))
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i]
 
 def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     work_updated = []

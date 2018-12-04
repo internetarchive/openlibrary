@@ -46,7 +46,7 @@ $else:
 
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">
-        \$().ready(function(){
+        window.q.push(function(){
             \$('ul#listResults li:nth-child(3)').css('padding-right','0');
             \$('ul#listResults span.imageLg img').removeAttr('height');
         });

@@ -1,5 +1,6 @@
 $def with (record, filename, begin, length, books)
-
+$# Template entry point for MARC record's that are not amazon or IA.
+$# e.g. /show-records/marc_upei/marc-for-openlibrary-bigset.mrc:4980114:1308
 $ format = query_param('format')
 $if format == 'raw':
     $var content_type: application/marc

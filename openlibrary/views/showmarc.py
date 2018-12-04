@@ -60,13 +60,17 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showia", ia, record, books)
+        template = app.render_template("showia", ia, record, books)
+        template.v2 = True
+        return template
 
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
 
     def GET(self, asin):
-        return app.render_template("showamazon", asin)
+        template = app.render_template("showamazon", asin)
+        template.v2 = True
+        return template
 
 re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
 re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
@@ -122,4 +126,6 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showmarc", record, filename, offset, length, books)
+        template = app.render_template("showmarc", record, filename, offset, length, books)
+        template.v2 = True
+        return template
