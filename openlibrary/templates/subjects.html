@@ -45,55 +45,8 @@ window.q.push( function () {
 
 <script type="text/javascript">
 <!--
-function parse_hash() {
-    try {
-        var hash = document.location.hash || "#";
-        var tokens = hash.substr(1).split("&");
-        var d = {};
-        for (var i in tokens) {
-            if (tokens[i]) {
-                var kv = tokens[i].split("=");
-                d[kv[0]] = kv[1];
-            }
-        }
-        return d;
-    }
-    catch (error) {
-        // Work-around for IE weirdness
-        return {};
-    }
-}
-
-function set_hash(data) {
-    var d = parse_hash();
-
-    for (var k in data) {
-        if (data[k])
-            d[k] = data[k];
-        else
-            delete d[k];
-    }
-
-    var tokens = [];
-    for (var k in d) {
-        tokens[tokens.length] = k + "=" + d[k];
-    }
-
-    var hash = "#" + tokens.join("&");
-    var current_hash = document.location.hash || "#";
-
-    if (hash == current_hash)
-        return;
-    document.location.hash = hash;
-}
 
 window.q.push(function() {
-    var _hash = parse_hash();
-
-    if (_hash.ebooks === 'true') {
-        handle_ebooks(_hash)
-    }
-
     var data = [{data: page.publishing_history}];
     var options = {
        series: {

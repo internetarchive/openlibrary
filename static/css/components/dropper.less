@@ -11,6 +11,8 @@
 @import (less) "less/z-index.less";
 
 div.dropit {
+  position: relative;
+  min-height: 50px;
   // heart icon
   div.icon {
     position: absolute;
@@ -78,9 +80,6 @@ div.dropper {
 div#subjectLists {
   div.dropit {
     float: left;
-    position: relative;
-    width: 282px;
-    min-height: 50px;
     h3 {
       font-weight: normal;
       margin: 0;
@@ -187,7 +186,6 @@ div.Tools {
   }
 
   div.dropit {
-    min-height: 45px;
     p.listed {
       color: @grey;
       font-size: .8125em;
@@ -197,14 +195,16 @@ div.Tools {
   }
 
   // Where is widget-add.old-style-lists used?
+  // It's used on authors pages!
   #widget-add.old-style-lists {
     .dropclick {
       text-decoration: none;
 
       h3 {
         font-size: .75em;
-        text-align: center;
+        text-align: left;
         padding: 8px 10px;
+        min-width: 150px;
       }
     }
   }
@@ -212,10 +212,6 @@ div.Tools {
 
 div#listsWork {
   div.dropit {
-    position: relative;
-    width: 215px;
-    min-height: 45px;
-
     p.listed {
       color: @grey;
       font-size: .8125em;

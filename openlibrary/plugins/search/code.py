@@ -1,4 +1,3 @@
-from __future__ import with_statement
 from __future__ import print_function
 import web
 import stopword
@@ -19,6 +18,8 @@ from functools import partial
 from gzip import open as gzopen
 import cPickle
 from collections import defaultdict
+
+import six
 
 render = template.render
 
@@ -323,7 +324,7 @@ def munch_qresults_stored(qresults):
                 self.__dict__[a] = v
 
         authortype = Thing(web.ctx.site,u'/type/author')
-        d = Pseudo_thing(web.ctx.site, unicode(ak))
+        d = Pseudo_thing(web.ctx.site, six.text_type(ak))
         d.name = a
         d.type = authortype
         # print >> web.debug, ('mk_author made', d)

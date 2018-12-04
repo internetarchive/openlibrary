@@ -1122,25 +1122,6 @@ form {
       padding: 3px;
     }
   }
-  &#addAuthor.olform {
-    .label {
-      width: auto;
-    }
-    .input {
-      width: auto;
-    }
-    textarea {
-      width: 623px !important;
-      font-family: @lucida_sans_serif-1;
-      font-size: .875em;
-    }
-    /* stylelint-disable selector-max-specificity */
-    input#comment {
-      font-family: @lucida_sans_serif-1;
-      font-size: .875em;
-    }
-    /* stylelint-enable selector-max-specificity */
-  }
 }
 
 div.invalid,
@@ -1542,37 +1523,31 @@ div#contentMeta {
 @import (less) "components/link-box.less";
 
 .content {
-  &Twothird {
-    float: left;
-    width: 610px;
+  &Quarter {
     min-height: 100px;
     margin-bottom: 20px;
-    padding-right: 38px;
+  }
+  &Twothird {
+    min-height: 100px;
+    margin-bottom: 20px;
     p {
       margin-top: 0;
     }
   }
   &Onethird {
-    float: left;
-    width: 270px;
     min-height: 100px;
     margin-bottom: 20px;
   }
   &Half {
-    float: left;
-    max-width: 439px;
     min-height: 100px;
     margin-bottom: 20px;
   }
   &ThreeQuarter {
-    float: left;
-    max-width: 684px;
     min-height: 100px;
     margin-bottom: 20px;
   }
 
   &Spacer {
-    float: left;
     width: 19px;
     height: 2px;
   }
@@ -3571,52 +3546,6 @@ div#subjectLists {
   /* stylelint-enable selector-max-specificity */
 }
 
-#lists {
-  h2 {
-    font-size: 1.25em;
-  }
-  .listEntry {
-    width: 280px;
-    margin: 0 30px 35px 0;
-    float: left;
-    .cover {
-      width: 35px;
-      float: left;
-      img {
-        width: 25px;
-        max-width: 25px;
-      }
-    }
-    .data {
-      width: 245px;
-      float: left;
-      font-family: @lucida_sans_serif-1;
-    }
-    .name {
-      font-size: .6875em;
-      color: @grey;
-      a.title {
-        font-weight: bold;
-        font-size: 1.375em;
-      }
-    }
-    .description {
-      p,
-      li {
-        font-size: .8125em;
-        color: @dark-grey;
-        margin: 0 !important;
-      }
-    }
-    .meta {
-      font-size: .6875em;
-      color: @grey;
-      line-height: 1.5em;
-      margin: 3px 0;
-    }
-  }
-}
-
 /* SEARCH INSIDE */
 .snipHL {
   opacity: .20;
@@ -3680,6 +3609,7 @@ div#subjectLists {
 }
 
 .editionCover {
+  box-sizing: unset;
   .illustration {
     margin-bottom: 5px;
   }
@@ -4010,6 +3940,28 @@ ul#myreads-paginator {
   div.workDetails {
     float: left;
     width: 915px;
+  }
+  .content {
+    &Twothird {
+      float: left;
+      width: 610px;
+      padding-right: 38px;
+    }
+    &Onethird {
+      float: left;
+      width: 270px;
+    }
+    &Half {
+      float: left;
+      max-width: 439px;
+    }
+    &ThreeQuarter {
+      float: left;
+      max-width: 684px;
+    }
+    &Spacer {
+      float: left;
+    }
   }
 }
 

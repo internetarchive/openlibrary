@@ -4,6 +4,8 @@ import glob
 import pytest
 import web
 
+import six
+
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
@@ -61,8 +63,5 @@ def render_template(request):
     def render(name, *a, **kw):
         as_string = kw.pop("as_string", True)
         d = infobase_render_template(name, *a, **kw)
-        if as_string:
-            return unicode(d)
-        else:
-            return d
+        return six.text_type(d) if as_string else d
     return render

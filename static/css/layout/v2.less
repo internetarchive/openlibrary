@@ -14,3 +14,18 @@
 header + #test-body-mobile {
   margin-top: 20px;
 }
+// The border-box padding model is much more friendly for responsive layouts
+// so we adopt it in all v2 pages
+// https://www.paulirish.com/2012/box-sizing-border-box-ftw/
+* {
+  box-sizing: border-box;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .content {
+    &Quarter {
+      float: left;
+      width: 215px;
+    }
+  }
+}

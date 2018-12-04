@@ -1,6 +1,14 @@
-Closes #<IssueNumber>
+> **Description**: What does this PR achieve? [feature|hotfix|refactor]
 
-<Optional Picture>
+Closes #
 
-## Description:
-In this Pull Request we have made the following changes:
+> **Technical**: What should be noted about the implementation?
+
+
+
+> **Testing**: Steps for reviewer to reproduce / verify this PR fixes the problem?
+
+
+
+> **Evidence**: If this PR touches UI, please post evidence (screenshot) of it behaving correctly:
+

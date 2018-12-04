@@ -11,6 +11,8 @@ from lxml.etree import Element, tostring, parse, fromstring
 import urllib2
 from unicodedata import normalize
 
+import six
+
 scan_list = '/home/edward/scans/book_data_2011-01-07'
 input_count = 0
 current_book = None
@@ -300,7 +302,7 @@ def run_find_item():
 
 def add_field(doc, name, value):
     field = Element("field", name=name)
-    field.text = normalize('NFC', unicode(value))
+    field.text = normalize('NFC', six.text_type(value))
     doc.append(field)
 
 def build_doc(ia, body, page_count):

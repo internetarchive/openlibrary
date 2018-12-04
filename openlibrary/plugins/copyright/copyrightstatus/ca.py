@@ -1,4 +1,3 @@
-from __future__ import with_statement
 import time
 
 OLDEST_PERSON_EVER_IN_CANADA = 117
@@ -108,4 +107,3 @@ and therefore died no later than the year %d, since we have no known death date.
 if __name__ == '__main__':
   import doctest
   doctest.testmod()
-

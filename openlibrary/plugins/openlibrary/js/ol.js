@@ -47,16 +47,6 @@ var Browser = {
     }
 }
 
-/* eslint-disable no-unused-vars */
-// used in templates/account/notifications.html
-function twitterOn() {
-    if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
-    $("input[type=radio]").click(function(){
-        if ($(".twitter").is(":checked")) {$("#twitterName").show();} else {$("#twitterName").hide();}
-    });
-}
-/* eslint-enable no-unused-vars */
-
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
