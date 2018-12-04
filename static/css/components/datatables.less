@@ -107,10 +107,15 @@
  * DataTables display
  */
 table.display {
-  float: left;
   margin: 0 auto;
-  width: 918px;
+  width: 100%;
   clear: both;
+}
+@media all and ( min-width: @width-breakpoint-desktop ) {
+table.display {
+  float: left;
+  width: 918px;
+}
 }
 
 table.display thead th {

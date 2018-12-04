@@ -28,26 +28,45 @@
 }
 
 .formElement .input .wmd-preview {
-  width: 906px;
+  width: 100%;
   min-height: 47px;
   padding: 5px;
-  float: left;
   clear: both;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+.formElement .input .wmd-preview {
+  width: 906px;
+  float: left;
+}
 }
 
 /* stylelint-disable no-descending-specificity */
 fieldset.major .wmd-preview,
 form.olform.books .formElement .input .wmd-preview {
-  width: 848px;
+  width: 100%;
   min-height: 47px;
   padding: 3px;
 }
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+fieldset.major .wmd-preview,
+form.olform.books .formElement .input .wmd-preview {
+  width: 848px;
+}
+}
+
 /* stylelint-enable no-descending-specificity */
 
 form.olform.books .formElement.librarian .input .wmd-preview {
-  width: 798px;
+  width: 100%;
   min-height: 47px;
   padding: 3px;
+}
+@media all and ( min-width: @width-breakpoint-desktop ) {
+form.olform.books .formElement.librarian .input .wmd-preview {
+  width: 798px;
+}
 }
 
 form#addAuthor.olform .wmd-preview {

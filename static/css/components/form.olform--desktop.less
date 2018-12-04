@@ -19,6 +19,32 @@ form.olform {
     fieldset.major input[type=email],
     fieldset.major input[type=password],
     fieldset.major textarea {
+      width: 100%;
+    }
+
+    .TitleAuthor {
+      input#work-title {
+        width: 100% !important;
+      }
+
+      input#author {
+        width: 550px !important;
+      }
+    }
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+form.olform {
+  input[type=text],
+  input[type=email],
+  input[type=password],
+
+  &.books {
+    fieldset.major input[type=text],
+    fieldset.major input[type=email],
+    fieldset.major input[type=password],
+    fieldset.major textarea {
       width: 848px;
     }
 
@@ -27,9 +53,7 @@ form.olform {
         width: 900px !important;
       }
 
-      input#author {
-        width: 550px !important;
-      }
     }
   }
+}
 }
