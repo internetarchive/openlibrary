@@ -11,7 +11,7 @@ from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+from pprint import pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
 from urllib import urlopen
@@ -532,11 +532,7 @@ def new_work(akey, w, do_updates, fh_log):
         assert e['type'] == '/type/edition'
         update.append(e)
     if do_updates:
-        try:
-            print(ol.save_many(update, "add editions to new work"), file=fh_log)
-        except:
-            pprint(update)
-            # raise # ignore errors
+        print(ol.save_many(update, "add editions to new work"), file=fh_log)
         return [wkey]
     return []
 
@@ -598,9 +594,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
         if cur_work['title'] != w['title']:
             print(( 'update work title:', best, repr(cur_work['title']), '->', repr(w['title'])))
         existing_work = get_with_retry(best)
-        if existing_work['type'] != '/type/work':
-            pprint(existing_work)
-        assert existing_work['type'] == '/type/work'
+        assert existing_work['type'] == '/type/work', "{type} == '/type/work'".format(**existing_work)
         existing_work['title'] = w['title']
         for k, v in subjects_from_existing_works.items():
             existing_subjects = set(existing_work.get(k, []))
@@ -639,7 +633,6 @@ def update_works(akey, works, do_updates=False):
     works = list(works)
     print(akey, file=fh_log)
     print('works:', file=fh_log)
-    pprint(works, fh_log)
 
     while True: # until redirects repaired
         q = {'type':'/type/edition', 'authors': akey, 'works': None}
@@ -750,9 +743,7 @@ def update_works(akey, works, do_updates=False):
     works_updated_this_session = set()
 
     for w in works: # 4th pass
-        if 'has_conflict' in w:
-            pprint(w)
-        assert 'has_conflict' not in w
+        assert 'has_conflict' not in w, 'w: {}'.format(w)
         if len(w['existing_works']) == 1:
             existing_wkey = w['existing_works'].keys()[0]
             if not other_matches(w, existing_wkey):

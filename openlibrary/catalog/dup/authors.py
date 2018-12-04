@@ -2,7 +2,6 @@ from __future__ import print_function
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc
 import web, sys, codecs, os.path, re
-from pprint import pprint
 from catalog.olwrite import Infogami
 site = get_site()
 
@@ -88,7 +87,6 @@ for line in open('dups'):
     if not author_replace:
         continue
     print(isbn, author_replace)
-#    pprint(names)
     for key, authors in found:
         replace = [a['key'] for a in authors if a['key'] in author_replace]
         if len(replace) == 0:
@@ -111,7 +109,6 @@ for line in open('dups'):
 #    for k in author_replace.keys():
 #        print k, len(site.things({'type': '/type/edition', 'authors': k}))
 
-#    pprint(found)
 #    for name, v in names.items():
 #        print name
 #        for edition, author in v:

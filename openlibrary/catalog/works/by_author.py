@@ -7,7 +7,7 @@ from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+from pprint import pformat
 from catalog.utils.edit import fix_edition
 import urllib
 sys.path.append('/home/edward/src/olapi')
@@ -275,7 +275,6 @@ def by_authors():
         if works:
             #open('found/' + akey[3:], 'w').write(repr(works))
             print((akey, repr(a['name'])))
-            #pprint(works)
             #print_works(works)
             add_works(akey, works)
             print()
@@ -288,4 +287,3 @@ akey = '/a/OL17005A'
 akey = '/a/OL117645A'
 print(akey)
 works = list(find_works(akey))
-pprint(works)

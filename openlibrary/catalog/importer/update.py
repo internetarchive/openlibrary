@@ -7,7 +7,6 @@ from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.api import OpenLibrary, unmarshal, marshal
-from pprint import pprint
 
 import six
 
@@ -26,7 +25,6 @@ def fix_toc(e):
     if not toc:
         return
     print(e['key'])
-    pprint(toc)
     # http://openlibrary.org/books/OL789133M - /type/toc_item missing from table_of_contents
     if isinstance(toc[0], dict) and ('pagenum' in toc[0] or toc[0]['type'] == '/type/toc_item'):
         return

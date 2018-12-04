@@ -10,7 +10,7 @@ from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+from pprint import pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
 import urllib2

@@ -4,7 +4,6 @@ from __future__ import print_function
 import web
 import web.form as form
 import urllib2
-from pprint import pprint
 
 urls = (
     '/', 'index',

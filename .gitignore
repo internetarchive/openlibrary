@@ -33,4 +33,5 @@ htmlcov
 .DS_Store
 .cache
 node_modules/
+.idea/
 
