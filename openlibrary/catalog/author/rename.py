@@ -202,12 +202,9 @@ for thing_row in web.select('thing', what='id, key', where='type='+repr(author_t
         continue
 
     merge_with = get_thing(other[0])
-    try:
-        if not author_dates_match(author, merge_with):
-            print("date mismatch")
-            continue
-    except KeyError:
-        raise
+    if not author_dates_match(author, merge_with):
+        print("date mismatch")
+        continue
     by_statements = find_by_statements(author['key'])
     print(author['name'], "by:", ', '.join('"%s"' % i for i in by_statements))
     if east_in_by_statement(author['name'], name, by_statements):
