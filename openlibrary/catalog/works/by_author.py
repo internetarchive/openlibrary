@@ -10,7 +10,6 @@ from collections import defaultdict
 
 from catalog.utils.edit import fix_edition
 import urllib
-sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 import olapi
 
