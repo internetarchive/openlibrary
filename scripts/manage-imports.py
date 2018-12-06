@@ -92,7 +92,7 @@ def import_ocaids(*ocaids, **kwargs):
         if item:
             do_import(item, servername=servername, require_marc=require_marc)
         else:
-            logger.error("%s is not found in the import queue", ia_id)
+            logger.error("%s is not found in the import queue", ocaid)
 
 
 def add_new_scans(args):
