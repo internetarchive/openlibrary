@@ -136,10 +136,10 @@ def match_marc_name(marc1, marc2, last_name_only_ok):
             return last_name_only_ok
         else:
             return False
-    if (m1_normalized == normalize(m2.group(2) + ' ' + m2.group(1))) or \
-            (m2_normalized == normalize(m1.group(2) + ' ' + m1.group(1))):
+    if (m1_normalized == normalize(m2.group(2) + ' ' + m2.group(1)) or
+            m2_normalized == normalize(m1.group(2) + ' ' + m1.group(1))):
         return True
-    if not (m1.group(1).endswith(' ' + m2.group(1)) or m1.endswith('.' + m2.group(1)) or \
+    if not (m1.group(1).endswith(' ' + m2.group(1)) or m1.endswith('.' + m2.group(1)) or
             m2.group(1).endswith(' ' + m1.group(1)) or m2.endswith('.' + m1.group(1))):
         return False # Last name mismatch
     marc1_first_parts = split_parts(m1.group(2))

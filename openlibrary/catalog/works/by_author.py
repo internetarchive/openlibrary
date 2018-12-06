@@ -280,4 +280,3 @@ def by_authors():
             print()
 
 by_authors()
-sys.exit(0)
