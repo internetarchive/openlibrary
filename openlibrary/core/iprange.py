@@ -137,14 +137,14 @@ class IPDict:
         # Convert ranges in CIDR format into (start, end) tuple
         if isinstance(ip_range, six.string_types) and "/" in ip_range:
             # ignore bad value
-            if not iptools.ip4.validate_cidr(ip_range):
+            if not iptools.ipv4.validate_cidr(ip_range):
                 return
             ip_range = iptools.cidr2block(ip_range)
 
         # Find the integer representation of first 2 parts of the start and end IPs
         if isinstance(ip_range, tuple):
             # ignore bad ips
-            if not iptools.ip4.validate_ip(ip_range[0]) or not iptools.ip4.validate_ip(ip_range[1]):
+            if not iptools.validate_ip(ip_range[0]) or not iptools.validate_ip(ip_range[1]):
                 return
 
             # Take the first 2 parts of the begin and end ip as integer
