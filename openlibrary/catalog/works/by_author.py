@@ -7,10 +7,9 @@ from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pformat
+
 from catalog.utils.edit import fix_edition
 import urllib
-sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 import olapi
 
@@ -280,10 +279,3 @@ def by_authors():
             print()
 
 by_authors()
-sys.exit(0)
-akey = '/a/OL27695A'
-akey = '/a/OL2527041A'
-akey = '/a/OL17005A'
-akey = '/a/OL117645A'
-print(akey)
-works = list(find_works(akey))

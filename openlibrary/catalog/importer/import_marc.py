@@ -11,7 +11,6 @@ from openlibrary.catalog.importer.merge import try_merge
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
 from openlibrary.catalog.works.find_work_for_edition import find_matching_work
-#from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.get_ia import files, read_marc_file
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
@@ -346,21 +345,10 @@ def write_edition(loc, edition):
     print('ret:', ret)
     assert isinstance(ret, six.string_types)
     key = '/b/' + re_edition_key.match(ret).group(1)
-#    assert ret['status'] == 'ok'
-#    assert 'created' in ret
-#    editions = [i for i in ret['created'] if i.startswith('/b/OL')]
-#    assert len(editions) == 1
     # get key from return
     pool.update(key, q)
 
     return
-
-    for a in authors:
-        akey = a['key']
-        title_redirects = find_title_redirects(akey)
-        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-        works = list(works)
-        updated = update_works(akey, works, do_updates=True)
 
 for part, size in files(archive_id):
 #for part, size in marc_loc_updates:
