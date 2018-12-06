@@ -9,9 +9,9 @@ internetarchive==1.8.1
 lxml==4.2.5
 pyflakes==2.0.0
 pymarc==3.1.11
-python-memcached==1.48
+python-memcached==1.59
 simplejson==3.16.0
-supervisor==3.0a12
+supervisor==3.0a12  # Let's pretend that supervisor v4 has landed (it has NOT)
 web.py==0.33
 pystatsd==0.1.6
 PyYAML==3.10
