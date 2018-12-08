@@ -4,6 +4,7 @@
   "globals": {
   },
   "rules": {
+    "indent": ["error", 2],
     "no-extra-semi": "warn",
     "eol-last": ["error", "always"]
   }
