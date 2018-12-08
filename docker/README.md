@@ -1,8 +1,6 @@
 # Welcome to the new Docker based Open Library development environment!
 
 These current Dockerfiles are designed to be an alternative to the previous Vagrant based development environment.
-The setup process and scripts are designed to _NOT_ conflict with exisiting Vagrant provisioning, so you should be able to
-chose to develop using the exisiting Vagrant method, or try the new Docker approach if you prefer, using the same code branch.
 
 ## Planning
 
