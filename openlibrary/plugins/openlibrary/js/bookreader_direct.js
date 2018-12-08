@@ -14,7 +14,7 @@ jQuery(function() {
     $this.after($(borrowFormString));
     $this.next().submit();
     if (window.archive_analytics) {
-        window.archive_analytics.ol_send_event_ping({'category': 'BorrowLink', 'action': 'bookreader'});
+      window.archive_analytics.ol_send_event_ping({'category': 'BorrowLink', 'action': 'bookreader'});
     }
   });
 });
