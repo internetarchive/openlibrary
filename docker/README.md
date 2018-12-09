@@ -112,7 +112,3 @@ docker-compose exec web npm run build-assets
 # Run tests in a temporary container
 docker-compose run --rm web make test
 ```
-
-## TODO
-
-- Fix symlinks that are causing a problem in Windows, see issue https://github.com/internetarchive/openlibrary/issues/1051
