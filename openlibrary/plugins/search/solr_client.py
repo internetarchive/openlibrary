@@ -10,7 +10,7 @@ import simplejson
 from facet_hash import facet_token
 import pdb
 
-from six import reraise
+import six
 
 php_location = "/petabox/setup.inc"
 
@@ -194,7 +194,7 @@ class Solr_client(object):
                 kfs = k in facet_set
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())
-                for v in map(unicode, vvx):
+                for v in map(six.text_type, vvx):
                     if facet_token(k,v) == token:
                         return (k,v)
         return None
@@ -250,7 +250,7 @@ class Solr_client(object):
             for d in r.find('metadata'):
                 for x in list(d.getiterator()):
                     if x.tag == "identifier":
-                        xid = unicode(x.text).encode('utf-8')
+                        xid = six.text_type(x.text).encode('utf-8')
                         if xid.startswith('OCA/'):
                             xid = xid[4:]
                         elif xid.endswith('.txt'):
@@ -336,7 +336,7 @@ class Solr_client(object):
             h1 = simplejson.loads(result_set)
         except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
-            reraise(SolrError, e, result_set)
+            six.reraise(SolrError, e, result_set)
 
         docs = h1['response']['docs']
         r = facet_counts(docs, facet_list)

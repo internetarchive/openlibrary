@@ -398,7 +398,7 @@ class bookpage(delegate.page):
                     raise redirect("/books/ia:" + value, ext, suffix)
             elif key.startswith("isbn"):
                 ed_key = create_edition_from_amazon_metadata(value)
-                if ed:
+                if ed_key:
                     raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
@@ -787,6 +787,8 @@ def is_bot():
         'buzzbot', 'laserlikebot', 'baiduspider', 'bingbot',
         'mj12bot', 'yoozbotadsbot'
     ]
+    if not web.ctx.env.get('HTTP_USER_AGENT'):
+        return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
     return any([bot in user_agent for bot in user_agent_bots])
 

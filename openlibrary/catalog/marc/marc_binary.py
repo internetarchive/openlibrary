@@ -14,7 +14,7 @@ class BadLength(MarcException):
     pass
 
 def norm(s):
-    return normalize('NFC', unicode(s))
+    return normalize('NFC', six.text_type(s))
 
 class BinaryDataField():
     def __init__(self, rec, line):
@@ -130,7 +130,7 @@ class MarcBinary(MarcBase):
         if '\x1f' in f.line:
             return super(MarcBinary, self).read_isbn(f)
         else:
-            m = re_isbn.match(line[3:-1])
+            m = re_isbn.match(f.line[3:-1])
             if m:
                 return [m.group(1)]
         return []

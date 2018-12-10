@@ -4,13 +4,12 @@ import re, sys, codecs, web
 from openlibrary.catalog.get_ia import get_from_archive
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
-from openlibrary.catalog.utils import mk_norm
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+
 from catalog.utils.edit import fix_edition
 import urllib
-sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 import olapi
 
@@ -221,7 +220,7 @@ def print_works(works):
         print(len(w['editions']), w['title'])
 
 def toc_items(toc_list):
-    return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list]
+    return [{'title': six.text_type(item), 'type': Reference('/type/toc_item')} for item in toc_list]
 
 def add_works(akey, works):
     queue = []
@@ -275,17 +274,8 @@ def by_authors():
         if works:
             #open('found/' + akey[3:], 'w').write(repr(works))
             print((akey, repr(a['name'])))
-            #pprint(works)
             #print_works(works)
             add_works(akey, works)
             print()
 
 by_authors()
-sys.exit(0)
-akey = '/a/OL27695A'
-akey = '/a/OL2527041A'
-akey = '/a/OL17005A'
-akey = '/a/OL117645A'
-print(akey)
-works = list(find_works(akey))
-pprint(works)

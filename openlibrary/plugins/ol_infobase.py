@@ -351,8 +351,8 @@ class MemcacheInvalidater:
         for e in editions:
             yield e['key']
 
-        # invalidate work.authors
-        authors = work.get('authors', [])
+        # invalidate old.authors
+        authors = old.get('authors', [])
         for a in authors:
             if 'author' in a and 'key' in a['author']:
                 yield a['author']['key']
@@ -480,7 +480,7 @@ class OLIndexer(_Indexer):
         if isinstance(title, str):
             title = title.decode('utf-8', "ignore")
 
-        if not isinstance(title, unicode):
+        if not isinstance(title, six.text_type):
             return ""
 
         # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string

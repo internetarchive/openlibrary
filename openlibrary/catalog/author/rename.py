@@ -2,7 +2,6 @@
 
 from __future__ import print_function
 import web, re, sys, codecs
-from pprint import pprint
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -110,7 +109,6 @@ def switch_author(old, new):
             'key': key,
             'authors': { 'connect': 'update_list', 'value': authors }
         }
-#        pprint(q)
         site.write(q, comment='fix author name')
 
 def make_redirect(old, new):
@@ -122,7 +120,6 @@ def make_redirect(old, new):
     for k in old.iterkeys():
         if k != 'key':
             q[str(k)] = { 'connect': 'update', 'value': None }
-#    pprint(q)
     print(site.write(q, comment='replace with redirect'))
 
 def copy_fields(from_author, to_author, name):
@@ -140,7 +137,6 @@ def update_author(key, new):
     q = { 'key': key, }
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
-#    pprint(q)
     print(site.write(q, comment='fix author name'))
 
 def merge_authors(author, merge_with, name):
@@ -206,14 +202,9 @@ for thing_row in web.select('thing', what='id, key', where='type='+repr(author_t
         continue
 
     merge_with = get_thing(other[0])
-    try:
-        if not author_dates_match(author, merge_with):
-            print("date mismatch")
-            continue
-    except KeyError:
-        pprint(author)
-        pprint(merge_with)
-        raise
+    if not author_dates_match(author, merge_with):
+        print("date mismatch")
+        continue
     by_statements = find_by_statements(author['key'])
     print(author['name'], "by:", ', '.join('"%s"' % i for i in by_statements))
     if east_in_by_statement(author['name'], name, by_statements):

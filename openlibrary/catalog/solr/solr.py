@@ -3,7 +3,6 @@
 from __future__ import print_function
 from time import sleep, time
 import urllib, web, subprocess, sys
-from pprint import pprint
 from catalog.read_rc import read_rc
 
 rc = read_rc()

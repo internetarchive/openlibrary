@@ -24,6 +24,7 @@ css:
 	lessc -x static/css/page-edit.less $(BUILD)/page-edit.css
 	lessc -x static/css/page-form.less $(BUILD)/page-form.css
 	lessc -x static/css/page-home.less $(BUILD)/page-home.css
+	lessc -x static/css/page-lists.less $(BUILD)/page-lists.css
 	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
 	lessc -x static/css/page-subject.less $(BUILD)/page-subject.css
 	lessc -x static/css/page-user.less $(BUILD)/page-user.css

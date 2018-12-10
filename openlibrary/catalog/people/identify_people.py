@@ -5,7 +5,6 @@ from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_numbe
 import openlibrary.catalog.utils.authority as authority
 from openlibrary.catalog.merge.normalize import normalize
 from collections import defaultdict
-from pprint import pprint
 import re
 
 def strip_death(date):

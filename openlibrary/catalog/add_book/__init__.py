@@ -35,6 +35,8 @@ from copy import copy
 import web
 from infogami import config
 
+import six
+
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
@@ -55,7 +57,7 @@ def strip_accents(s):
     """
     if isinstance(s, str):
         return s
-    assert isinstance(s, unicode)
+    assert isinstance(s, six.text_type)
     return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
 def normalize(s): # strip non-alphanums and truncate at 25 chars

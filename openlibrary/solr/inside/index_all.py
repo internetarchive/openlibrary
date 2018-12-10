@@ -8,9 +8,11 @@ from time import sleep, time
 from lxml.etree import Element, tostring
 from unicodedata import normalize
 
+import six
+
 def add_field(doc, name, value):
     field = Element("field", name=name)
-    field.text = normalize('NFC', unicode(value))
+    field.text = normalize('NFC', six.text_type(value))
     doc.append(field)
 
 solr_host = 'ia331509:8984'

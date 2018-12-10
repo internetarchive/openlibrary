@@ -20,3 +20,12 @@ header + #test-body-mobile {
 * {
   box-sizing: border-box;
 }
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .content {
+    &Quarter {
+      float: left;
+      width: 215px;
+    }
+  }
+}

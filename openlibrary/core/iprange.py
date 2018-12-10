@@ -137,21 +137,21 @@ class IPDict:
         # Convert ranges in CIDR format into (start, end) tuple
         if isinstance(ip_range, six.string_types) and "/" in ip_range:
             # ignore bad value
-            if not iptools.validate_cidr(ip_range):
+            if not iptools.ipv4.validate_cidr(ip_range):
                 return
-            ip_range = iptools.cidr2block(ip_range)
+            ip_range = iptools.ipv4.cidr2block(ip_range)
 
         # Find the integer representation of first 2 parts of the start and end IPs
         if isinstance(ip_range, tuple):
             # ignore bad ips
-            if not iptools.validate_ip(ip_range[0]) or not iptools.validate_ip(ip_range[1]):
+            if not iptools.ipv4.validate_ip(ip_range[0]) or not iptools.ipv4.validate_ip(ip_range[1]):
                 return
 
             # Take the first 2 parts of the begin and end ip as integer
-            start = iptools.ip2long(ip_range[0]) >> 16
-            end = iptools.ip2long(ip_range[1]) >> 16
+            start = iptools.ipv4.ip2long(ip_range[0]) >> 16
+            end = iptools.ipv4.ip2long(ip_range[1]) >> 16
         else:
-            start = iptools.ip2long(ip_range) >> 16
+            start = iptools.ipv4.ip2long(ip_range) >> 16
             end = start
 
         # for each integer in the range add an entry.
@@ -169,7 +169,7 @@ class IPDict:
 
     def __getitem__(self, ip):
         # integer representation of first 2 parts
-        base = iptools.ip2long(ip) >> 16
+        base = iptools.ipv4.ip2long(ip) >> 16
         for ip_range, value in self.ip_ranges.get(base, {}).items():
             if ip in ip_range:
                 return value

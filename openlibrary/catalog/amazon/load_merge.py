@@ -1,6 +1,5 @@
 from __future__ import print_function
 from time import time
-from pprint import pprint
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
 import urllib2
@@ -18,7 +17,6 @@ def find_entity(site, entity):
     print("found", len(things), "match")
     for key in things:
         db_entity = site.withKey(key, lazy=False)._get_data()
-        pprint(db_entity)
         for field in entity_fields:
             if field in entity:
                 assert field in db_entity
@@ -128,11 +126,6 @@ def load(site, filename):
                 find_entity(site, detail)
         print()
         continue
-        print("LC")
-        pprint (thing._get_data())
-        print("Amazon")
-        pprint (amazon)
-        print()
     #    for x in web.query("select thing_id from version where machine_comment=" + web.sqlquote(lc)):
     #        t = site.withID(x.thing_id)
     #        print t.title

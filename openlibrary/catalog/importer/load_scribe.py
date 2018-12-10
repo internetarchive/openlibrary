@@ -14,7 +14,6 @@ from openlibrary.catalog.importer.update import add_source_records
 from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML, bad_ia_xml, marc_formats, get_marc_ia_data
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.solr.update_work import update_work, solr_update
-#from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.works.find_work_for_edition import find_matching_work
 from openlibrary.catalog.marc import fast_parse, is_display_marc
 from openlibrary.catalog.marc.parse import read_edition, NoTitle
@@ -23,7 +22,6 @@ from openlibrary.utils.ia import find_item
 from openlibrary import config
 from time import time, sleep
 from openlibrary.api import OpenLibrary
-from pprint import pprint
 from subprocess import Popen, PIPE
 import argparse
 
@@ -103,7 +101,6 @@ def load(ia, use_binary=False):
     if use_binary:
         rec = load_binary(ia, host, path)
         edition = read_edition(rec)
-    pprint(edition)
     assert 'title' in edition
 
     edition['ocaid'] = ia
@@ -197,7 +194,6 @@ def write_edition(ia, edition, rec):
         if attempt > 0:
             print('retrying')
         try:
-            pprint(q)
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
             sleep(30)
@@ -217,15 +213,6 @@ def write_edition(ia, edition, rec):
     return
 
     print('run work finder')
-
-
-    # too slow
-    for a in authors:
-        akey = a['key']
-        title_redirects = find_title_redirects(akey)
-        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-        works = list(works)
-        updated = update_works(akey, works, do_updates=True)
 
 fh_log = None
 

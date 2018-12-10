@@ -3,6 +3,8 @@ import re
 from names import match_name
 from normalize import normalize
 
+import six
+
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 re_and_of_space = re.compile(' and | of | ')
@@ -28,8 +30,8 @@ def build_amazon(edition, author):
     amazon['isbn'] = editon['isbn_10']
     if 'publish_date' in edition:
         amazon['publish_date'] = merge.amazon_year(edition['publish_date'])
-    if authors:
-        amazon['authors'] = authors
+    if author:
+        amazon['authors'] = author
     else:
         amazon['authors'] = []
     if 'number_of_pages' in edition:
@@ -285,7 +287,7 @@ def test_merge_titles():
         'title': 'Spytime',
     }
 
-    amazon = build_titles(unicode(full_title(amazon)))
+    amazon = build_titles(six.text_type(full_title(amazon)))
     marc = build_titles(marc['title_with_subtitles'])
     assert amazon['short_title'] == marc['short_title']
     assert compare_title(amazon, marc) == ('full-title', 'containted within other title', 350)
@@ -297,7 +299,7 @@ def test_merge_titles2():
         'title': u'seabirds of Britain and Ireland',
         'full_title': u'The seabirds of Britain and Ireland',
     }
-    amazon = build_titles(unicode(full_title(amazon)))
+    amazon = build_titles(six.text_type(full_title(amazon)))
     marc = build_titles(marc['title_with_subtitles'])
     assert compare_title(amazon, marc) == ('full-title', 'exact match', 600)
 
