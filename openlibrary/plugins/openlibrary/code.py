@@ -398,7 +398,7 @@ class bookpage(delegate.page):
                     raise redirect("/books/ia:" + value, ext, suffix)
             elif key.startswith("isbn"):
                 ed_key = create_edition_from_amazon_metadata(value)
-                if ed:
+                if ed_key:
                     raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)

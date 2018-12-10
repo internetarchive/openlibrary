@@ -218,7 +218,7 @@ def get_person_content(line, is_marc8=False):
         contents.setdefault(k, []).append(v)
     return contents
 
-def get_contents(line, want):
+def get_contents(line, want, is_marc8=False):
     contents = {}
     for k, v in get_subfields(line, want, is_marc8):
         contents.setdefault(k, []).append(v)

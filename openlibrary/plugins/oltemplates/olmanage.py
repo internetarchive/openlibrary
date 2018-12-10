@@ -22,7 +22,7 @@ def to_local_path(path):
     elif path.startswith('/css'):
         return path[1:]
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def to_server_path(path):
     """
@@ -38,7 +38,7 @@ def to_server_path(path):
     elif path.startswith('css/'):
         return '/' + path
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def jsonget(url):
     return simplejson.loads(urllib.urlopen(url).read())
@@ -51,7 +51,7 @@ def thing2data(d):
     if d['type']['key'] == '/type/rawtext':
         return d['body']['value']
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def update_thing(d, filename):
     data = open(filename).read()
@@ -63,7 +63,7 @@ def update_thing(d, filename):
         elif filename.startswith('css'):
             d = {'type': '/type/rawtext', 'content_type': 'text/css'}
         else:
-            error
+            raise ValueError("Unrecognised filename: {}".format(filename))
         d['key'] = to_server_path(filename)
 
     if d['type'] == '/type/template':
@@ -73,8 +73,7 @@ def update_thing(d, filename):
     elif d['type'] == '/type/rawtext':
         d['body'] = data
     else:
-        print(d)
-        error
+        raise ValueError("Unrecognised thing: {}".format(d))
     return d
 
 def olget(server, key):

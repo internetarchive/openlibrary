@@ -1,7 +1,7 @@
 from __future__ import print_function
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc import parse
+from openlibrary.catalog.marc import fast_parse, parse
 from infogami import config
 from lxml import etree
 import xml.parsers.expat
@@ -227,7 +227,7 @@ def get_from_local(locator):
     except:
         print(('locator:', repr(locator)))
         raise
-    f = open(rc['marc_path'] + '/' + file)
+    f = open(rc['marc_path'] + '/' + file)  # noqa: F821 DEPRECATED
     f.seek(int(offset))
     buf = f.read(int(length))
     f.close()
@@ -244,7 +244,7 @@ def get_data(loc):
         return None
     if not os.path.exists(marc_path + '/' + filename):
         return None
-    f = open(rc['marc_path'] + '/' + filename)
+    f = open(rc['marc_path'] + '/' + filename)  # noqa: F821 DEPRECATED
     f.seek(int(p))
     buf = f.read(int(l))
     f.close()
