@@ -1,7 +1,3 @@
-/* eslint-disable no-unused-vars */
-var startTime = new Date(); // This is used by ol.analytics.js
-/* eslint-enable no-unused-vars */
-
 var Browser = {
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
