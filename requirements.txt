@@ -1,6 +1,6 @@
 -r requirements_common.txt
 
-Fabric==1.10.1
+Fabric==1.10.1; python_version < '3.0'
 Jinja2==2.10
 Pillow==5.3.0
 backports.shutil-get-terminal-size==1.0.0
