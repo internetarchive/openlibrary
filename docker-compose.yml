@@ -14,7 +14,7 @@ services:
       - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
-      - ..:/openlibrary
+      - .:/openlibrary
     networks:
       - webnet
   solr:
