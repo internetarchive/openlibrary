@@ -1,7 +1,7 @@
 from __future__ import print_function
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc import parse
+from openlibrary.catalog.marc import fast_parse, parse
 from infogami import config
 from lxml import etree
 import xml.parsers.expat
