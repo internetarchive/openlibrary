@@ -7,6 +7,8 @@
  *     $("select#role").add_new_field({href: "#role-popup"});
  *
  */
+
+var startTime = new Date();
 if (window.archive_analytics) {
   window.archive_analytics.ol_send_event_ping = function(values) {
     var endTime = new Date();
