@@ -79,7 +79,9 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="btn--large btn primary">Read eBook</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
-    <p class="smaller">No ebook available.</p>
+    <form>
+      <input type="submit" class="unwait-btn" disabled value="No ebook available">
+    </form>
 
 
 $if editions_page and page.get('ocaid'):
