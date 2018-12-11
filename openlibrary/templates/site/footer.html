@@ -21,7 +21,6 @@ $if 'v2' not in page and (bodyid == 'user' or 'admin'):
         <script>
         //anonymized analytics
         window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
-            console.log('working!');
             archive_analytics.send_pageview({});
         });
         </script>
