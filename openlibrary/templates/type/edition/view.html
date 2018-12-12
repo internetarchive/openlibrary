@@ -1,4 +1,4 @@
-$def with (page)
+$def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
@@ -105,19 +105,7 @@ $def display_goodreads(label, ids):
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the book on Open Library.")
-$add_metatag(property="twitter:image", content=meta_cover_url)
-
-$add_metatag(property="og:title", content=title_with_site)
-$add_metatag(property="og:type", content="books.book")
-$add_metatag(property="og:image", content=meta_cover_url)
-$add_metatag(property="og:url", content=request.canonical_url)
-$add_metatag(property="og:site_name", content="Open Library")
-$add_metatag(property="og:description", content=description)
-
+$:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 <div id="contentHead">
@@ -248,16 +236,19 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_subjects("Times", work.subject_times, prefix="time:")
 
         </div>
-        <h3 class="collapse">$_("About the Book")</h3>
+
+        $if page.description or (work and work.description):
+          $if work and work.description:
+            <h3 class="collapse">$_("About the Book")</h3>
+            $:sanitize(format(work.description))        
           $if page.description:
+            <h3 class="collapse">$_("About the Edition")</h3>
             $:sanitize(format(page.description))
-          $elif work and work.description:
-            $:sanitize(format(work.description))
-          $elif not (page.description or page.excerpts or page.first_sentence):
-            <div class="workHelp brown sansserif">
-              There's no description for this book yet. Can
-              you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
-            </div>
+        $else:
+          <div class="workHelp brown sansserif">
+            There's no description for this book yet. Can
+            you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
+          </div>
 
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
@@ -352,6 +343,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     </div>
 
     $ work = page.works and page.works[0]
+
+    $if show_other_editions:
+      <div class="clearfix"></div>
+      $:render_template("type/work/editions_datatable", work)
+
     $:macros.RelatedWorksCarousel(work)
 
     $if ctx.user and ctx.user.is_admin():

@@ -1,0 +1,17 @@
+$def with(title, image, description)
+
+$add_metatag(property="twitter:card", content="summary")
+$add_metatag(property="twitter:site", content="@openlibrary")
+$add_metatag(property="twitter:title", content=title)
+$add_metatag(property="twitter:description", content="View the book on Open Library.")
+$add_metatag(property="twitter:image", content=image)
+
+$add_metatag(property="og:title", content=title)
+$add_metatag(property="og:type", content="books.book")
+$add_metatag(property="og:image", content=image)
+$add_metatag(property="og:url", content=request.canonical_url)
+$add_metatag(property="og:site_name", content="Open Library")
+$add_metatag(property="og:description", content=description)
+
+$set_share_links(url=request.canonical_url, title=title, view_context=ctx)
+
