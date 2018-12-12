@@ -4,9 +4,6 @@ $ title = page.title
 $var title: $page.title
 
 
-$if page.edition_count < 2:
-  $:render_template("type/edition/view", page.get_one_edition())
-$else:
   $ title_with_site = title + " | Open Library"
   $ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
   $ bodyid = ctx.get('bodyid', 'user')
