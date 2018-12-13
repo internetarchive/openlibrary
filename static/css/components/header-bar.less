@@ -49,7 +49,9 @@ header#header-bar {
       z-index: @z-index-level-5;
       text-align: right;
       width: 125px;
-      margin-top: 5px;
+      // Note, it must be padding so that the gap between the icon and
+      // the dropdown menu is included in the hover-trigger area (#1575)
+      padding-top: 5px;
       right: 11px;
 
       ul a li {
