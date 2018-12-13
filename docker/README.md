@@ -36,6 +36,7 @@ If you get permission issues while executing these commands please run git bash 
 
 5. Continue setup as shown below.
 
+### For All Users
 All commands are from the docker directory:
 
 ```bash
