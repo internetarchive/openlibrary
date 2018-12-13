@@ -1,7 +1,7 @@
 $def with (page)
 <div class="head">
     <h2>
-    $commify(page.edition_count) editions
+    $commify(page.edition_count) $cond(page.edition_count > 1, "editions", "edition")
     $if page.first_publish_year:
         <span class="count">$_("First published in %s", page.first_publish_year)</span>
     </h2>
