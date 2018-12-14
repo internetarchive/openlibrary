@@ -3,6 +3,9 @@
  */
 
 jQuery(function($) {
+    // Flash messages are hidden by default so that CSS is not on the critical path.
+    $(".flash-messages").show();
+
     // close-popup
     $("a.close-popup").click(function() {
         $.fn.colorbox.close();

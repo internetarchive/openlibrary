@@ -849,6 +849,9 @@ div#content {
 }
 
 /* ERROR MESSAGES */
+// On v1 pages and pages which have not yet dropped this legacy stylesheet
+// this will be loaded twice, since v2 pages loads this via JS
+
 @import (less) "components/flash-messages.less";
 
 div.note {
