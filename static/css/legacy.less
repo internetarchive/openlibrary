@@ -849,68 +849,7 @@ div#content {
 }
 
 /* ERROR MESSAGES */
-div.flash-messages {
-  font-size: 1.0em;
-  font-family: @lucida_sans_serif-1;
-  clear: both;
-  span {
-    display: block;
-    background-color: @light-yellow;
-    background-position: 10px 50%;
-    background-repeat: no-repeat;
-    padding: 15px 52px;
-    text-align: left;
-    background-image: url(/images/icons/icon_check.png);
-  }
-  div.error span {
-    background-image: url(/images/icons/icon_alert.png);
-  }
-}
-.flash-messages {
-  .bookadded span {
-    background: @light-yellow url(/images/icons/icon_check.png) no-repeat 40px 40px;
-    padding: 40px 40px 40px 80px;
-    font-family: @georgia_serif-2;
-    position: relative;
-    span {
-      display: inline;
-      background: transparent url();
-      padding: 0;
-      font-family: @lucida_sans_serif-2;
-    }
-    h3 {
-      font-family: @georgia_serif-2;
-      font-size: 1.5em;
-      font-weight: normal;
-      margin: 0;
-      color: @black;
-    }
-    p.brown {
-      font-size: 1.125em;
-      margin: 15px 0 30px;
-    }
-    p.list {
-      font-size: 1.5em;
-      margin: 0;
-    }
-    h3 em {
-      font-style: italic;
-      font-weight: 700;
-      color: @dark-green;
-    }
-    p.list span.red {
-      font-family: @georgia_serif-2;
-    }
-    a.close {
-      position: absolute;
-      display: block;
-      top: 20px;
-      right: 20px;
-      width: 16px;
-      height: 16px;
-    }
-  }
-}
+@import (less) "components/flash-messages.less";
 
 div.note {
   font-size: 1.0em;
