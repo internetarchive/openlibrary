@@ -42,7 +42,7 @@ th.status {
 $if len(loans) >= 5:
     <script type="text/javascript">
     <!--
-    \$().ready(function(){
+    window.q.push(function(){
         \$("#contentMsg").show();
         \$(".alert span").css({'font-size':'.6875em','color':'#333'})
         \$(".alert span").text("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early.");
@@ -52,7 +52,7 @@ $if len(loans) >= 5:
 
 <script type="text/javascript">
 <!--
-\$().ready(function(){
+window.q.push(function(){
     \$(".local-date-time").each(function() {
         var expiry_utc = \$(this).attr("data-expiry-utc");
         var options = {hour: '2-digit', minute:'2-digit', month:'2-digit', day:'2-digit', year:'numeric'};
@@ -156,7 +156,7 @@ $if len(waitinglist) == 0:
 $else:
     <div id="leave-waitinglist-dialog" class="hidden dialog" title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
     <script type="text/javascript">
-    \$(function() {
+    window.q.push(function() {
         \$("#leave-waitinglist-dialog").dialog({
             autoOpen: false,
             width: 450,
