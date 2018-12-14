@@ -5,10 +5,7 @@ $def with (page)
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="title" content="" />
-
-    $if 'v2' in page or "dev" in ctx.features:
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="OpenLibrary.org" />
     <meta name="creator" content="OpenLibrary.org" />
     <meta name="copyright" content="Original content copyright; 2007-2015" />
@@ -28,14 +25,10 @@ $def with (page)
     be emptied at the bottom of the page -->
     <script type="text/javascript">window.q = [];</script>
     $ styleJS = static_url('build/js-all.css');
-    $if 'v2' not in page:
-        $# Load CSS via render blocking style tag
-        <link href="$styleJS" rel="stylesheet" type="text/css"/>
-    $else:
-        $# Load CSS via JavaScript later to speed up first paint
-        <script>window.q.push(function () {
-            loadStyle("$styleJS");
-        });</script>
+    $# Load CSS via JavaScript later to speed up first paint
+    <script>window.q.push(function () {
+        loadStyle("$styleJS");
+    });</script>
     $if "dev" in ctx.features:
         <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
 
@@ -43,18 +36,6 @@ $def with (page)
     <meta name="google-site-verification" content="vtXGm8q3UgP-f6qXTvQBo85uh3nmIYIotVqqdJDpyz4" />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" /> <!-- Enable Chrome Frame for IE -->
     <meta name="alexaVerifyID" content="wJKlTRj1Z1OI4G-J0w9R-cWhJjw" /> <!-- Necessary for Alexa -->
-
-    $if 'v2' not in page:
-        <script src="$static_url('build/vendor.js')" type="text/javascript"></script>
-        <!-- Must be loaded after jquery -->
-        <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
-        <script> <!-- anonymized analytics -->
-        window.addEventListener('DOMContentLoaded', function send_analytics_pageview() {
-            archive_analytics.send_pageview({});
-        });
-        </script>
-        <script src="$static_url('build/all.js')" type="text/javascript"></script>
-
     $if query_param("_firebug") == "true":
         <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
 
