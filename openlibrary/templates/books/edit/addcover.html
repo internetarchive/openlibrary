@@ -45,10 +45,7 @@ function submit_cover(response, status) {
     }
 }
 
-\$().ready(function() {
-    //Forms();
-});
-\$(document).ready(function() {
+window.q.push(function() {
     \$("#addcover-form").ajaxForm({"success": submit_cover, "dataType": "json"});
 });
 

@@ -28,7 +28,7 @@ $def call_template(name, change):
 
 
 <script type="text/javascript">
-\$(function () {
+window.q.push(function () {
 	\$('#checkall').click(function () {
 		\$("form.olform").find(':checkbox').attr('checked', this.checked);
 	});

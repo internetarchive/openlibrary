@@ -39,8 +39,10 @@ $def with (page)
     <link href="/css/master.css?format=raw" rel="stylesheet" type="text/css" />
 
     <script type="text/javascript">
-        \$().ready(setupSearch);
-        \$().ready(linkbuttons);
+    window.q.push(function() {
+        setupSearch();
+        linkbuttons();
+    });
     </script>
 </head>
 

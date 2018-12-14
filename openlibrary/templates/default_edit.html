@@ -57,7 +57,7 @@ function swap(a, b) {
         b.value = t;
     }
 }
-\$().ready(function(){
+window.q.push(function(){
     \$("textarea").css("height","60px");
     \$("td.inputrow input[type=text]").attr("style","width:200px;");
 });
@@ -170,6 +170,7 @@ $:render_template("lib/edit_head", page)
     </form>
 </div>
 
+$# FIXME: Someone needs to work out what on earth all this JS is for and whether we can remove it.
 <script type="text/javascript">
 <!--
 

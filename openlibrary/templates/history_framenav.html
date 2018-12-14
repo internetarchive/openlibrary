@@ -38,7 +38,7 @@ $def with (page)
             $:render_template("lib/nav_head", page)
 
 <script type="text/javascript">
-\$().ready(function(){
+window.q.push(function(){
 
     $('#navMask').css('opacity','.7').customFadeIn();
     $('#contentHistory').show().animate({top:'65px'},"slow");

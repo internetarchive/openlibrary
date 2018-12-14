@@ -51,15 +51,13 @@ $var title: $_("Add a book")
 
 <script type="text/javascript">
 <!--
-\$(function() {
+window.q.push(function() {
     \$("#siteSearch a").click(function() {
         var li = \$(this).parents('li:first');
         \$("input#work").val("/works/" + li.attr("id"));
         \$("form#addbook").submit();
     });
-});
 
-\$(function() {
     \$("#bookAddCont").click(function() {
         \$("input#work").val("none-of-these");
         \$("form#addbook").submit();
