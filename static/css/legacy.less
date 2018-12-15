@@ -320,14 +320,6 @@ em {
 
 #contentBody {
   ul {
-    &.readers-stats {
-      color: @grey;
-      font-size: .7em;
-      margin: 10px 0;
-      li.reading-log-stat {
-        color: @light-grey;
-      }
-    }
     &.contributors {
       margin-top: 10px;
       margin-left: 0;
@@ -1984,16 +1976,7 @@ div.list {
   }
 }
 
-ul.readers-stats {
-  li {
-    list-style-type: none;
-    display: inline;
-    &:not(:last-child):after {
-      content:'·';
-      margin: 0 5px;
-    }
-  }
-}
+@import (less) "components/readerStats.less";
 @import (less) "components/navEdition.less";
 
 div.edition {
