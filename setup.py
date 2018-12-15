@@ -6,6 +6,23 @@ def executable(path):
     st = os.stat(path)[ST_MODE]
     return (st & S_IEXEC) and not S_ISDIR(st)
 
+classifiers = """License :: OSI Approved :: GNU Affero General Public License v3
+Natural Language :: English
+Programming Language :: Python
+Programming Language :: Python :: 2
+Programming Language :: Python :: 2.7
+Programming Language :: Python :: Implementation :: CPython
+Programming Language :: Python :: Implementation :: PyPy""".splitlines()
+
+# TODO: Add the following:
+"""
+Programming Language :: Python :: 3
+Programming Language :: Python :: 3.4
+Programming Language :: Python :: 3.5
+Programming Language :: Python :: 3.6
+Programming Language :: Python :: 3.7
+"""
+
 dependencies = """
 Babel
 PIL
