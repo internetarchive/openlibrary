@@ -44,16 +44,3 @@ function Template(tmpl_text) {
     return g;
 }
 /* eslint-enable no-unused-vars */
-
-/* eslint-disable no-unused-vars */
-// used in addExpr function
-function htmlquote(text) {
-    text = String(text);
-    text = text.replace(/&/g, "&amp;"); // Must be done first!
-    text = text.replace(/</g, "&lt;");
-    text = text.replace(/>/g, "&gt;");
-    text = text.replace(/'/g, "&#39;");
-    text = text.replace(/"/g, "&quot;");
-    return text;
-}
-/* eslint-enable no-unused-vars */
