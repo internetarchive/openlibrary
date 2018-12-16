@@ -2,9 +2,8 @@
 //
 // Inspired by http://ejohn.org/blog/javascript-micro-templating/
 
-/* eslint-disable no-unused-vars */
 // used in plugins/openlibrary/js/jquery.repeat.js
-function Template(tmpl_text) {
+export default function Template(tmpl_text) {
     var s = [];
     var js = ["var _p=[];", "with(env) {"];
 
@@ -43,4 +42,3 @@ function Template(tmpl_text) {
     g.toCode = function() { return f.toString(); };
     return g;
 }
-/* eslint-enable no-unused-vars */

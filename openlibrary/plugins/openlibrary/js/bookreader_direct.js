@@ -1,6 +1,5 @@
 // Make Borrow links act as if POSTing to Borrow page
-
-jQuery(function() {
+export default function() {
     $('.borrow-link').on('click', function(event) {
         event.preventDefault();
         var $this = $(this);
@@ -16,4 +15,4 @@ jQuery(function() {
             window.archive_analytics.ol_send_event_ping({'category': 'BorrowLink', 'action': 'bookreader'});
         }
     });
-});
+}

@@ -16,9 +16,8 @@
  *      0,2,4,6,8
  */
 
-/* eslint-disable no-unused-vars */
 //used in templates/lib/pagination.html
-function range(begin, end, step) {
+export function range(begin, end, step) {
     step = step || 1;
     if (end == undefined) {
         end = begin;
@@ -31,7 +30,6 @@ function range(begin, end, step) {
     }
     return r;
 }
-/* eslint-enable no-unused-vars */
 
 /**
  * Adds Python's str.join method to Javascript Strings.
@@ -39,7 +37,7 @@ function range(begin, end, step) {
  *      > " - ".join(["a", "b", "c"])
  *      a - b - c
  */
-String.prototype.join = function(items) {
+export function join(items) {
     return items.join(this);
 }
 
@@ -47,25 +45,21 @@ String.prototype.join = function(items) {
  * Python's len function.
  */
 
-/* eslint-disable no-unused-vars */
 // used in templates/admin/loans.html
-function len(array) {
+export function len(array) {
     return array.length;
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
 // used in templates/type/permission/edit.html
-function enumerate(a) {
+export function enumerate(a) {
     var b = new Array(a.length);
     for (var i in a) {
         b[i] = [i, a[i]];
     }
     return b;
 }
-/* eslint-ensable no-unused-vars */
 
-function ForLoop(parent, seq) {
+export function ForLoop(parent, seq) {
     this.parent = parent;
     this.seq = seq;
 
@@ -90,9 +84,8 @@ ForLoop.prototype.next = function() {
     this.revindex = this.length - i + 1;
 }
 
-/* eslint-disable no-unused-vars */
 // used in plugins/upstream/jsdef.py
-function foreach(seq, parent_loop, callback) {
+export function foreach(seq, parent_loop, callback) {
     var loop = new ForLoop(parent_loop, seq);
 
     for (var i=0; i<seq.length; i++) {
@@ -112,11 +105,9 @@ function foreach(seq, parent_loop, callback) {
         callback.apply(this, args);
     }
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
 // used in templates/lists/widget.html
-function websafe(value) {
+export function websafe(value) {
     // Safari 6 is failing with weird javascript error in this function.
     // Added try-catch to avoid it.
     try {
@@ -131,15 +122,13 @@ function websafe(value) {
         return "";
     }
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
-// used in websafe function
 /**
+ * used in websafe function
  * Quote a string
  * @param {string|number} text to quote
  */
-function htmlquote(text) {
+export function htmlquote(text) {
     // This code exists for compatibility with template.js
     text = String(text);
     text = text.replace("&", "&amp;"); // Must be done first!
@@ -149,4 +138,3 @@ function htmlquote(text) {
     text = text.replace('"', "&quot;");
     return text;
 }
-/* eslint-enable no-unused-vars */

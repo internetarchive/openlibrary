@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 // used in templates/account/email.html
-function validateEmail() {
+export function validateEmail() {
     $("form.email").validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
@@ -30,11 +29,9 @@ function validateEmail() {
         }
     });
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
 // used in templates/account/password.html
-function validatePassword() {
+export function validatePassword() {
     $("form.password").validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
@@ -68,5 +65,3 @@ function validatePassword() {
         }
     });
 }
-/* eslint-enable no-unused-vars */
-

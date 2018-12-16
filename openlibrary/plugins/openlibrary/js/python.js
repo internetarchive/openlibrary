@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 // used in templates/admin/index.html
-function commify(n) {
+export function commify(n) {
     var text = n.toString();
     var re = /(\d+)(\d{3})/;
 
@@ -10,4 +9,3 @@ function commify(n) {
 
     return text;
 }
-/* eslint-enable no-unused-vars */

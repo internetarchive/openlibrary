@@ -19,8 +19,7 @@
 var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 /* eslint-enable no-unused-vars */
 
-$(function(){
-
+function init() {
     var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
@@ -263,4 +262,7 @@ $(function(){
         /* eslint-enable no-unused-vars */
         updateBookAvailability();
     }
-});
+}
+
+init();
+export { getAvailabilityV2, updateBookAvailability, updateWorkAvailability };

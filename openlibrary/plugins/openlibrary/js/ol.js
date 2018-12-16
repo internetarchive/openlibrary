@@ -1,4 +1,4 @@
-var Browser = {
+export var Browser = {
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
         var result = {};
@@ -43,7 +43,7 @@ var Browser = {
     }
 }
 
-function isScrolledIntoView(elem) {
+export function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
     if ($(elem).offset()) {
@@ -53,33 +53,25 @@ function isScrolledIntoView(elem) {
     }
     return false;
 }
-$(window).scroll(function(){
-    var scroller = $("#formScroll");
-    if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
-})
 
 // BOOK COVERS
-/* eslint-disable no-unused-vars */
 // used in templates/work_search.html
-function bookCovers(){
+export function bookCovers(){
     $("img.cover").error(function(){
         $(this).closest(".SRPCover").hide();
         $(this).closest(".coverMagic").find(".SRPCoverBlank").show();
     });
 }
-/* eslint-enable no-unused-vars */
 
 // CLOSE POP-UP FROM IFRAME
-/* eslint-disable no-unused-vars */
 // used in templates/covers/saved.html
-function closePop(){
+export function closePop(){
     $("#popClose").click(function(){
         parent.$.fn.colorbox.close();
     });
 }
-/* eslint-enable no-unused-vars */
 
-$(function(){
+export default function init(){
     var $searchResults = $('header#header-bar .search-component ul.search-results');
     var $searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
     var cover_url = function(id) {
@@ -95,6 +87,11 @@ $(function(){
     });
     // but clicking search input should not empty search results.
     $searchInput.on('click', false);
+
+    $(window).scroll(function(){
+        var scroller = $("#formScroll");
+        if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
+    });
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
@@ -334,9 +331,8 @@ $(function(){
         }
     }
 
-    /* eslint-disable no-unused-vars */
     // e is a event object
-    $('form.search-bar-input').on('submit', function(e) {
+    $('form.search-bar-input').on('submit', function() {
         q = $searchInput.val();
         var facet_value = searchFacets[localStorage.getItem("facet")];
         if (facet_value === 'books') {
@@ -344,7 +340,6 @@ $(function(){
         }
         setMode('.search-bar-input');
     });
-    /* eslint-enable no-unused-vars */
 
 
     $('.search-mode').change(function() {
@@ -371,12 +366,10 @@ $(function(){
         $(this).css('cursor', 'wait');
     });
 
-    /* eslint-disable no-unused-vars */
     // e is a event object
-    $('header#header-bar .search-component .search-results li a').on('click', debounce(function(event) {
+    $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
         $(document.body).css({'cursor' : 'wait'});
     }, 300, false));
-    /* eslint-enable no-unused-vars */
 
     $searchInput.on('keyup', debounce(function(e) {
         instantSearchResultState = true;
@@ -452,7 +445,6 @@ $(function(){
         });
         e.preventDefault();
     });
-    /* eslint-enable no-unused-vars */
 
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
     /* eslint-disable no-unused-vars */
@@ -469,5 +461,6 @@ $(function(){
     });
 
     /* eslint-enable no-unused-vars */
-});
+}
+
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
