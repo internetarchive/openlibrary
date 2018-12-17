@@ -4,62 +4,21 @@ $ announcement = '<strong>New Feature:</strong> You can now embed Open Library b
 
 $ bodyid = ctx.get('bodyid', 'user')
 $ show_banners = bodyid != 'form'
-$if 'v2' in page:
-  <body id="$bodyid">
-    <script>
-        // Provide a signal that JS will load
-        document.body.className += ' client-js';
-    </script>
-    <span id="top"></span>
-    $# on form pages e.g. manage-covers, add-cover we do not display the header
-    $# this is consistent with version 1.
+<body id="$bodyid">
+  <script>
+      // Provide a signal that JS will load
+      document.body.className += ' client-js';
+  </script>
+  <span id="top"></span>
+  $# on form pages e.g. manage-covers, add-cover we do not display the header
+  $# this is consistent with version 1.
+  $if show_banners:
+    $:render_template("site/alert")
+    $:render_template("lib/nav_head", None)
+  <div id="test-body-mobile">
     $if show_banners:
-      $:render_template("site/alert")
-      $:render_template("lib/nav_head", None)
-    <div id="test-body-mobile">
-      $if show_banners:
-        <div class="page-banner page-banner-body">
-          $:announcement
-        </div>
-      $:page
-    </div>
-
-$else:
-  <body id="$bodyid">
-    <script>
-        // Provide a signal that JS will load
-        document.body.className += ' client-js';
-    </script>
-    <div id="background">
-      <span id="top"></span>
-
-      $if bodyid != "form":
-        <p class="shift">
-          <a href="#content" title="Click to skip!">Click here to skip to this page's main content.</a>
-        </p>
-        $:render_template("site/alert")
-
-      $if bodyid == 'user' or bodyid == 'admin':
-        $:render_template("lib/nav_head", None)
-
-      <div id="placement">
-        <div id="position">
-          <div id="content$(' noborder' if bodyid == 'form' else '')">
-            <div class="flash-messages">
-              $for flash in get_flash_messages():
-                <div class="$flash.type"><span>$flash.message</span></div>
-                <div class="clearfix"></div>
-            </div>
-            <div id="contentMsg">
-              <div class="alert attn"><span></span></div>
-            </div>
-
-            $if bodyid != "form":
-              <div class="page-banner page-banner-body">
-                $:announcement
-              </div>
-
-            $:page
-
-            <div class="clearfix"></div>
-          </div>
+      <div class="page-banner page-banner-body">
+        $:announcement
+      </div>
+    $:page
+  </div>

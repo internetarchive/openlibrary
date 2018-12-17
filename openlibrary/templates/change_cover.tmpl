@@ -178,7 +178,7 @@ function redisplay_covers(offset) {
     });
 }
 
-\$(document).ready(function(){
+window.q.push(function(){
     \$(".status_url").val(document.location.href);
     
     \$("#prev_covers").click(function(event) {

@@ -1514,9 +1514,6 @@ hr.forgot-padding {
 /* CONTENT */
 div.contentWide,
 div#contentMeta {
-  float: left;
-  clear: both;
-  width: 918px;
   padding: 10px 20px 20px;
 }
 
@@ -3890,6 +3887,18 @@ ul#myreads-paginator {
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  /**
+  * Used on following pages:
+  * - /search/subjects
+  */
+  div.contentWide,
+  div#contentMeta {
+    float: left;
+    clear: both;
+    width: 918px;
+    padding: 10px 20px 20px;
+  }
+
   // Graph shown on /stats
   .canvas-graph {
     width: 430px;

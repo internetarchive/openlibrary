@@ -1,7 +1,11 @@
 $def with (page)
 
 <script type="text/javascript">
-\$().ready(function(){if(top.location != location){top.location.href = document.location.href;};});
+window.q.push(function(){
+    if(top.location != location){
+        top.location.href = document.location.href;
+    };
+});
 </script>
 
 <div id="editHead">

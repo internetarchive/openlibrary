@@ -13,10 +13,6 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/vendor.js",
-      "maxSize": "124KB"
-    },
-    {
       "path": "static/build/vendor-v2.js",
       "maxSize": "172KB"
     },
