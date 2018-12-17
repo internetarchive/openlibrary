@@ -109,16 +109,17 @@ def run_find_item():
 def run_queues():
     live = dict((t.name, t) for t in threading.enumerate())
 
-    for host, queue in host_queues.items():
-        if host in live and live[host].is_alive():
-            continue
-        ia, filename = queue.pop()
-        t = threading.Thread(name=host, target=read_text_from_node, args=(ia, host, filename))
-        t.start()
-        print(('thread started', host, ia), file=log)
-        log.flush()
-        if not queue:
-            del host_queues[host]
+    with open('solr_inside_run_queues_log.txt', 'a') as logfile:
+        for host, queue in host_queues.items():
+            if host in live and live[host].is_alive():
+                continue
+            ia, filename = queue.pop()
+            t = threading.Thread(name=host, target=read_text_from_node, args=(ia, host, filename))
+            t.start()
+            print(('thread started', host, ia), file=logfile)
+            logfile.flush()
+            if not queue:
+                del host_queues[host]
 
 nl_page_count = 'page count: '
 def read_text_from_node(host):
