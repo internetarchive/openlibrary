@@ -17,6 +17,11 @@ $ show_banners = bodyid != 'form'
     $:render_template("lib/nav_head", None)
   <div id="test-body-mobile">
     $if show_banners:
+      $#print errors (hidden by default as styles are loaded via JS)
+      <div class="flash-messages" style="display: none;">
+      $for flash in get_flash_messages():
+        <div class="$flash.type"><span>$flash.message</span></div>
+      </div>
       <div class="page-banner page-banner-body">
         $:announcement
       </div>
