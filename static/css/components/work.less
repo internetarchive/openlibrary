@@ -53,3 +53,18 @@ div.editionTools {
   }
 }
 @import (less) "components/read-panel.less";
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (less) "components/work--tablet.less";
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+      margin-right: 1.5em;
+      margin-bottom: 0;
+    }
+  }
+}
