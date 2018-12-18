@@ -13,7 +13,9 @@ matrix:
     - language: node_js
       node_js: "10"
       install: npm install -g eslint
-      script: eslint .
+      script:
+        - npm test
+        - eslint .
   allow_failures:
     - language: node_js
     - python: "3.6"
