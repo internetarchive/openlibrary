@@ -1,6 +1,6 @@
 # Welcome to the new Docker based Open Library development environment!
 
-These current Dockerfiles are designed to be an alternative to the previous Vagrant based development environment.
+These Dockerfiles replace the previous Vagrant based development environment.
 
 ## Setup/Teardown Commands
 
@@ -37,13 +37,13 @@ If you get permission issues while executing these commands please run git bash 
 5. Continue setup as shown below.
 
 ### For All Users
-All commands are from the docker directory:
+All commands are from the project root directory:
 
 ```bash
 # build images
-docker build -t olbase:latest -f Dockerfile.olbase ..
-docker build -t oldev:latest -f Dockerfile.oldev ..
-docker build -t olsolr:latest -f Dockerfile.olsolr ..
+docker build -t olbase:latest -f docker/Dockerfile.olbase .
+docker build -t oldev:latest -f docker/Dockerfile.oldev .
+docker build -t olsolr:latest -f docker/Dockerfile.olsolr .
 
 # start the app
 docker-compose up # Ctrl-C to stop
