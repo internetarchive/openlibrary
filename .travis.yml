@@ -11,7 +11,7 @@ matrix:
   include:
     # https://docs.travis-ci.com/user/languages/javascript-with-nodejs
     - language: node_js
-      node_js: "10"
+      node_js: "11"
       install: npm install -g eslint
       script:
         - python --version
