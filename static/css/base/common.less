@@ -27,19 +27,25 @@ td {
   margin: 0;
   padding: 0;
 }
+h1 {
+  margin: 20px;
+}
 button {
   outline: none;
+}
+body,
+p,
+li {
+  color: @dark-grey;
 }
 body {
   font-size: 100%;
   line-height: normal;
-  color: @dark-grey;
   background-color: @beige;
   font-family: @lucida_sans_serif-1;
 }
 p {
   font-size: .875em;
-  color: @dark-grey;
   line-height: 1.5em;
 }
 hr {
@@ -49,6 +55,7 @@ hr {
 }
 li {
   list-style: none;
+  color: @dark-grey;
 }
 a {
   &:link {
@@ -62,15 +69,6 @@ a {
   &:visited {
     color: @dark-blue;
     text-decoration: underline;
-  }
-}
-div.contentBody,
-div#contentBody {
-  padding: 0 20px 20px;
-  word-break: break-word;
-
-  img {
-    max-width: 100%;
   }
 }
 // Note more heading styles can be found in components/headings.less
@@ -95,8 +93,17 @@ div.head {
 table {
   overflow: auto;
   display: block;
-  word-break: normal;
 }
+
+#contentBody {
+  li {
+    line-height: 1.5em;
+  }
+  ol li {
+    list-style: decimal;
+  }
+}
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   table {
     display: table;

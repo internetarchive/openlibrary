@@ -1,1 +1,23 @@
 @import (less) "v2.less";
+
+#contentHead {
+  padding: 20px;
+  // Reset h1 margin set in common.less
+  h1 {
+    margin: 0;
+  }
+}
+div#contentBody,
+div.contentBody {
+  padding: 0 20px 20px;
+}
+.section,
+section {
+  margin-bottom: 20px;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  #contentHead {
+    max-width: 918px;
+  }
+}

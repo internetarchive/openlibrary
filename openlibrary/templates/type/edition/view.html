@@ -8,7 +8,7 @@ $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_da
 $ title = book_title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
 $ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-
+$ _x = ctx.setdefault('bodyid', 'book')
 $var title: $title
 
 $code:
@@ -59,48 +59,35 @@ $code:
 
 $def display_value(label, value, itemprop=None):
     $if value:
-        <tr>
-            <td class="title"><span class="title">$label</span></td>
-            $if itemprop:
-                <td><span itemprop="$itemprop" class="object">$:thingrepr(value)</span></td>
-            $else:
-                <td><span class="object">$:thingrepr(value)</span></td>
-        </tr>
+        <dt>$label</dt>
+        $if itemprop:
+            <dd itemprop="$itemprop" class="object">$:thingrepr(value)</dd>
+        $else:
+            <dd class="object">$:thingrepr(value)</dd>
 
 $def display_identifiers(label, ids, itemprop=None):
     $if label != "Goodreads":
         $ all_ids = [-1!=id['value'].find('openlib-') for id in ids]
         $if (True in all_ids) and (1==len(all_ids)):
             $return
-        <tr>
-            <td class="title"><span class="title">$label</span></td>
-            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
-                $for id in ids:
-                    $ sep = cond(loop.last, "", ", ")
-                    $if -1 != id.value.find('openlib-'):
-                        $continue
-                    $if id.url:
-                        <a href="$id.url">$id.value</a>$sep
-                    $else:
-                        ${id.value}$sep
-            </span></td>
-        </tr>
+
+        <dt>$label</dt>
+        <dd class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
+            $for id in ids:
+                $ sep = cond(loop.last, "", ", ")
+                $if -1 != id.value.find('openlib-'):
+                    $continue
+                $if id.url:
+                    <a href="$id.url">$id.value</a>$sep
+                $else:
+                    ${id.value}$sep
+        </dd>
 
 $def display_goodreads(label, ids):
     $if label == "Goodreads":
-        <table class="meta collapse">
-            <tbody>
-            <tr>
-                <td class="title"><span class="title">$label</span></td>
-                <td class="object">
-                    <span class="object">
-                    $for id in ids:
-                        <a href="$id.url">$id.value</a>
-                    </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <dt>$label</dt>
+        $for id in ids:
+            <dd><a href="$id.url">$id.value</a></dd>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
@@ -125,7 +112,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     $:macros.databarView(page)
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
-        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work_title, 60)</span> found in the catalog.
+        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
     </div>
@@ -245,11 +232,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             <h3 class="collapse">$_("About the Edition")</h3>
             $:sanitize(format(page.description))
         $else:
-          <div class="workHelp brown sansserif">
+          <p class="workHelp">
             There's no description for this book yet. Can
             you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
-          </div>
-
+          </p>
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
             <p>$page.first_sentence</p>
@@ -275,62 +261,55 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
             <div class="section">
-                <h3 class="collapse">$_("Edition Notes")</h3>
+                <h3>$_("Edition Notes")
+                </h3>
                 $if page.notes:
-                    <span class="sansserif">$:format(page.notes)</span>
-                <table class="meta">
-                    <tbody>
-                        $:display_value(_("Series"), page.series)
-                        $:display_value(_("Volume"), page.volume)
-                        $:display_value(_("Genre"), page.genres)
-                        $:display_value(_("Other Titles"), page.other_titles)
-                        $:display_value(_("Copyright Date"), page.copyright_date)
-                        $:display_value(_("Translation Of"), page.translation_of)
-                        $:display_value(_("Translated From"), page.translated_from)
-                    </tbody>
-                </table>
+                    $:format(page.notes)
+                <dl class="meta">
+                    $:display_value(_("Series"), page.series)
+                    $:display_value(_("Volume"), page.volume)
+                    $:display_value(_("Genre"), page.genres)
+                    $:display_value(_("Other Titles"), page.other_titles)
+                    $:display_value(_("Copyright Date"), page.copyright_date)
+                    $:display_value(_("Translation Of"), page.translation_of)
+                    $:display_value(_("Translated From"), page.translated_from)
+                </dl>
             </div>
 
         $ classifications = page.get_classifications().multi_items()
         $if classifications:
             <div class="section">
-                <h3 class="collapse">$_("Classifications")</h3>
-                <table class="meta">
-                <tbody>
+                <h3 class="list-header collapse">$_("Classifications")</h3>
+                <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
-                </tbody>
-                </table>
+                </dl>
             </div>
 
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-            <h3 class="collapse">$_("The Physical Object")</h3>
-            <table class="meta">
-            <tbody>
+            <dl class="meta">
+                <h3 class="list-header collapse">$_("The Physical Object")</h3>
                 $:display_value(_("Format"), page.physical_format)
                 $:display_value(_("Pagination"), page.pagination)
                 $:display_value(_("Number of pages"), page.number_of_pages, itemprop="numberOfPages")
                 $:display_value(_("Dimensions"), page.physical_dimensions)
                 $:display_value(_("Weight"), page.weight)
-            </tbody>
-            </table>
+            </dl>
             </div>
 
         <div class="section">
-            <h3 class="collapse">$_("ID Numbers")</h3>
-            <table class="meta">
-            <tbody>
+            <dl class="meta">
+                <h3 class="list-header collapse">$_("ID Numbers")</h3>
                 $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
                 $for name, values in page.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
                     $if not (page.is_in_private_collection() and identifier_label == 'Internet Archive'):
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
-            </tbody>
-            </table>
             $:display_goodreads("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
             $for name, values in page.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
+            </dl>
         </div>
 
         </div>

@@ -35,7 +35,7 @@ $if user_loan:
     <p>
       <a href="$borrow_link" title="Borrow from $contributor"
          data-userid="$(user_loan['userid'])" id="read_ebook"
-         class="borrow-btn borrow-link">Read eBook</a>
+         class="borrow-btn borrow-link btn--large btn primary">Read eBook</a>
     </p>
     $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
     <form action="$return_url" method="post" class="waitinglist-form return-book">
@@ -45,7 +45,8 @@ $if user_loan:
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
     <p>
-      <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="borrow-btn borrow-link">
+      <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
+        class="borrow-btn borrow-link btn primary btn--large">
         Borrow eBook
       </a>
     </p>
@@ -71,7 +72,7 @@ $elif (availability_status == 'borrow_unavailable'):
         </p>
         <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
           <input type="hidden" name="action" value="join-waitinglist"/>
-          <input type="submit" class="submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
+          <input type="submit" class="borrow_unavailable primary btn btn--large submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
         </form>
 
 $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:

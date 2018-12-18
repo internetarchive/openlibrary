@@ -1,0 +1,33 @@
+/**
+ * Definition Lists
+ */
+dd,
+dt {
+  float: left;
+}
+dt,
+.list-header {
+  clear: both;
+}
+.list-header {
+  float: left;
+  margin-bottom: 10px;
+}
+dl {
+  margin: 10px 0;
+  &:after {
+    content: '';
+    display: block;
+    clear: both;
+  }
+  dt {
+    padding: 0 15px 10px 0;
+    width: 120px;
+  }
+}
+dd {
+  max-width: 270px;
+  & + dd {
+    padding-left: 8px;
+  }
+}

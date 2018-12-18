@@ -6,17 +6,19 @@
   text-align: center;
   padding: 5px 10px;
   &.primary {
+    // For input[type=submit]
+    border: none;
     background-color: @primary-blue;
     // Important is necessary to override default link color
     color: @white !important;
-    border-radius: 3px;
+    border-radius: 5px;
   }
   &--large {
     padding: 7px 20px;
-    border-radius: 5px;
     display: block;
     font-size: 14px;
     line-height: 1.5em;
+    width: 100%;
   }
 }
 a {

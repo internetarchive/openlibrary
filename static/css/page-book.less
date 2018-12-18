@@ -1,0 +1,30 @@
+/**
+ * Stylesheet entry point for pages with body#book
+ *
+ * This applies to works and books pages
+ * e.g.
+ * - /works/OL3513417W/Physics
+ * - /books/OL9737752M/The_Odyssey
+ */
+@import (less) "less/index.less";
+
+// base styles
+@import (less) "base/index.less";
+@import (less) "base/headings.less";
+
+// layout styles
+@import (less) "layout/index.less";
+
+// Components in order of appearance!
+@import (less) "components/header.less";
+@import (less) "components/navEdition.less";
+@import (less) "components/edit-toolbar.less";
+@import (less) "components/work.less";
+@import (less) "components/carousel.less";
+@import (less) "components/page-history.less";
+@import (less) "components/footer.less";
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (less) "components/edit-toolbar--tablet.less";
+  @import (less) "components/work--tablet.less";
+}

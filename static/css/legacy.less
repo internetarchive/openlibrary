@@ -320,14 +320,6 @@ em {
 
 #contentBody {
   ul {
-    &.readers-stats {
-      color: @grey;
-      font-size: .7em;
-      margin: 10px 0;
-      li.reading-log-stat {
-        color: @light-grey;
-      }
-    }
     &.contributors {
       margin-top: 10px;
       margin-left: 0;
@@ -496,6 +488,7 @@ q {
 
 @import (less) "base/common.less";
 @import (less) "components/buttonsAndLinks.less";
+@import (less) "base/dl.less";
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
 
@@ -623,11 +616,6 @@ span {
   }
   &.merge {
     padding: 2px 0;
-  }
-  &.booktitle {
-    color: @dark-grey;
-    font-family: @georgia_serif-1;
-    font-weight: bold;
   }
   &.tweet_user {
     font-weight: 700;
@@ -786,7 +774,7 @@ input {
 }
 
 /* LAYOUT */
-@import "layout/v2.less";
+@import "layout/index.less";
 
 div#placement {
   width: 960px;
@@ -826,6 +814,10 @@ div#content {
   &Head {
     max-width: 918px;
     padding: 20px;
+    // Reset h1 margin set in common.less
+    h1 {
+      margin: 0;
+    }
   }
   &History {
     position: absolute;
@@ -1900,55 +1892,8 @@ div.list {
 }
 
 /* BOOKS */
-
-.section.book-overview {
-  border-bottom: 1px solid @lightest-grey;
-  padding-bottom: 10px;
-
-  .section {
-    margin-top: 10px;
-    margin-bottom: 10px;
-  }
-}
-
-.editionAbout {
-  h2.edition-byline {
-    font-size: .9em;
-    font-weight: normal;
-    color: @dark-grey;
-    margin: 0;
-    margin-bottom: 10px;
-  }
-}
-
-ul.readers-stats {
-  li {
-    list-style-type: none;
-    display: inline;
-    &:not(:last-child):after {
-      content:'·';
-      margin: 0 5px;
-    }
-  }
-}
+@import (less) "components/work.less";
 @import (less) "components/navEdition.less";
-
-div.edition {
-  &Cover {
-    min-height: 10px;
-    padding-right: 1.5em;
-  }
-  &About {
-    min-height: 10px;
-    p {
-      margin: 1.5em 0;
-      font-size: .9em;
-    }
-  }
-  &Tools {
-    min-height: 10px;
-  }
-}
 
 div.work {
   font-family: @lucida_sans_serif-1;
@@ -2298,14 +2243,12 @@ ul {
 }
 
 #external-links {
-  margin-left: 40px;
   ul li {
     list-style-type: none;
   }
 }
 
 .section {
-  margin-bottom: 20px;
   .sansserif {
     font-size: .75em;
   }
@@ -3585,15 +3528,6 @@ div#subjectLists {
   }
 }
 
-.related-books {
-  border-top: 1px solid @lightest-grey;
-  margin-top: 15px;
-  clear: both;
-  h2 {
-    margin-top: 15px;
-  }
-}
-
 ul#myreads-paginator {
   margin-top: 10px;
 
@@ -3776,6 +3710,8 @@ ul#myreads-paginator {
   }
 }
 
+@import (less) "components/work.less";
+
 @media only screen and (min-width: @width-breakpoint-tablet) {
   div.content {
     &Left {
@@ -3798,20 +3734,7 @@ ul#myreads-paginator {
       white-space: nowrap;
     }
   }
-  div.edition {
-    &Cover {
-      float: left;
-      width: 180px;
-    }
-    &About {
-      float: left;
-      width: 430px;
-    }
-    &Tools {
-      float: right;
-      width: 270px;
-    }
-  }
+  @import (less) "components/work--tablet.less";
   @import (less) "components/dropper--tablet.less";
   @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
@@ -3868,24 +3791,6 @@ ul#myreads-paginator {
       width: 610px;
       padding-right: 38px;
     }
-  }
-  div.edition {
-    &Cover {
-      float: left;
-      width: 180px;
-    }
-    &About {
-      float: left;
-      width: 430px;
-    }
-    &Tools {
-      float: right;
-      width: 270px;
-    }
-  }
-  div.workDetails {
-    float: left;
-    width: 915px;
   }
   .content {
     &Twothird {

@@ -25,6 +25,10 @@
       "maxSize": "24KB"
     },
     {
+      "path": "static/build/page-book.css",
+      "maxSize": "7KB"
+    },
+    {
       "path": "static/build/page-edit.css",
       "maxSize": "24KB"
     },
@@ -34,7 +38,7 @@
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.2KB"
+      "maxSize": "4.3KB"
     },
     {
       "path": "static/build/page-plain.css",

@@ -1,0 +1,21 @@
+/**
+ * ReaderStats
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#readerstats
+ */
+
+.readers-stats {
+  color: @grey;
+  font-size: .7em;
+  margin: 10px 0;
+  li {
+    list-style-type: none;
+    display: inline;
+    &.reading-log-stat {
+      color: @light-grey;
+    }
+    &:not(:last-child):after {
+      content:'·';
+      margin: 0 5px;
+    }
+  }
+}
