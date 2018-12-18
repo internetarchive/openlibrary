@@ -14,6 +14,7 @@ matrix:
       node_js: "10"
       install: npm install -g eslint
       script:
+        - python --version
         - npm test
         - eslint .
   allow_failures:
