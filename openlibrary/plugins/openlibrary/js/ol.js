@@ -1,3 +1,4 @@
+console.log('Console logs are forbidden by eslint');
 var Browser = {
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
