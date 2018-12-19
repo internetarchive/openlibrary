@@ -16,7 +16,6 @@ matrix:
       script:
         - python --version
         - npm test
-        - eslint .
   allow_failures:
     - language: node_js
     - python: "3.6"
