@@ -14,7 +14,6 @@ matrix:
       node_js: "11"
       install: npm install -g eslint
       script:
-        - python --version
         - npm test
   allow_failures:
     - language: node_js
