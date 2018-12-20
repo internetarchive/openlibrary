@@ -13,7 +13,7 @@ matrix:
     - language: node_js
       node_js: "11"
       install:
-        - npm install -g bundlesize eslint less
+        - npm install -g bundlesize eslint less stylelint
         - export PATH="`pwd`/node_modules/.bin:$PATH"
         - pip install lessc
       script: npm test
