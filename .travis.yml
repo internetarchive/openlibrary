@@ -12,8 +12,10 @@ matrix:
     # https://docs.travis-ci.com/user/languages/javascript-with-nodejs
     - language: node_js
       node_js: "11"
-      before_install: pip install lessc
-      install: npm install -g eslint
+      install:
+        - npm install -g eslint less
+        - export PATH="`pwd`/node_modules/.bin:$PATH"
+        - pip install lessc
       script: npm test
   allow_failures:
     - language: node_js
