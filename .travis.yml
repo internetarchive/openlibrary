@@ -12,7 +12,7 @@ matrix:
     # https://docs.travis-ci.com/user/languages/javascript-with-nodejs
     - language: node_js
       node_js: "11"
-      install: npm install -g eslint
+      install: npm install -g eslint lessc
       script: npm test
   allow_failures:
     - language: node_js
