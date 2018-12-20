@@ -1,5 +1,4 @@
 language: python
-sudo: false
 addons:
   apt:
     packages:
@@ -8,14 +7,7 @@ python:
     - "2.7"
     - "3.6"
 matrix:
-  include:
-    # https://docs.travis-ci.com/user/languages/javascript-with-nodejs
-    - language: node_js
-      node_js: "11"
-      install: npm install -g eslint
-      script: npm test
   allow_failures:
-    - language: node_js
     - python: "3.6"
 install:
   - pip install flake8
