@@ -45,7 +45,7 @@ __all__ = [
 ]
 __docformat__ = "restructuredtext en"
 
-def sanitize(html):
+def sanitize(html, encoding = None):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     """
@@ -65,8 +65,11 @@ def sanitize(html):
                 return 'nofollow'
 
     try:
-        html = genshi.HTML(html)
-    except (genshi.ParseError, UnicodeDecodeError, UnicodeError):
+        html = genshi.HTML(html, encoding = encoding)
+
+    # except (genshi.ParseError, UnicodeDecodeError, UnicodeError) as e:
+    # don't catch Unicode errors so we can tell if we're getting bytes
+    except genshi.ParseError:
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
             html = str(BeautifulSoup(html, "lxml"))
