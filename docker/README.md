@@ -1,55 +1,41 @@
 # Welcome to the new Docker based Open Library development environment!
 
-These Dockerfiles replace the previous Vagrant based development environment.
-
 ## Setup/Teardown Commands
 
 ### For Windows Users Only
 
-**Note:**
-If you get permission issues while executing these commands please run git bash shell as an Administrator.
+**Note:** If you get permission issues while executing these commands please run git bash shell as an Administrator.
 
-1. Set the line endings to type `input` by executing the following command:
+```bash
+# Configure Git to convert CRLF to LF line endings on commit
+git config --global core.autocrlf input
 
-   ```bash
-   # Configure Git on Windows to properly handle line endings so Git will convert CRLF to LF on commit
-   git config --global core.autocrlf input
-   ```
+# Enable Symlinks
+git config core.symlinks true
 
-2. Check whether `symlinks` are enabled or not. `openlibrary` makes use of symlinks which, by default, git on Windows checks out as plain text files. You can check that by executing the following command:
-
-   ```bash
-   git config core.symlinks
-   ```
-
-3. If `symlinks` are enabled then go to the next step. If `symlinks` are not enabled then enable it by executing the following command:
-
-   ```bash
-   git config core.symlinks true
-   ```
-
-4. Then hard reset the repository so that git will create proper symlinks by executing the following command:
-
-   ```bash
-   git reset --hard HEAD
-   ```
-
-5. Continue setup as shown below.
+# Reset the repo (removes any changes you've made to files!)
+git reset --hard HEAD
+```
 
 ### For All Users
 All commands are from the project root directory:
 
 ```bash
+# Docker Toolbox Users ONLY:
+docker-machine start default # Start the docker daemon
+# You might want to stop the machine once you are done coding; it takes up
+# a lot of RAM. Run: docker-machine stop default
+
 # build images
-docker build -t olbase:latest -f docker/Dockerfile.olbase .
-docker build -t oldev:latest -f docker/Dockerfile.oldev .
-docker build -t olsolr:latest -f docker/Dockerfile.olsolr .
+docker build -t olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
+docker build -t oldev:latest -f docker/Dockerfile.oldev .   # 10+ min (Win10Home/Dec 2018)
+docker build -t olsolr:latest -f docker/Dockerfile.olsolr . # 5+ min (Win10Home/Dec 2018)
 
 # start the app
-docker-compose up # Ctrl-C to stop
-docker-compose up -d # detached (silent) mode
+docker-compose up    # Ctrl-C to stop
+docker-compose up -d # or, start in detached (silent) mode
 
-# stop the app
+# stop the app (if started in detached mode)
 docker-compose down
 
 # start specific service
@@ -70,12 +56,9 @@ This exposes the following ports:
 | 7000 | Infobase               |
 | 8983 | Solr                   |
 
-To access Solr admin:
-http://localhost:8983/solr/admin/
+For example, to access Solr admin, go to http://localhost:8983/solr/admin/
 
 If you are using Docker for Mac or Docker for Windows (or the older Docker Toolbox), use the Docker Machine IP instead of `localhost`. For example, `http://192.168.99.100:8080`. To find the IP address, use the command `docker-machine ip`. On Mac you can use the shell command `open http://$(docker-machine ip):8080`.
-
-You can customise the host ports by modifying the `-p` publish mapping in the `docker run` command to suit your development environment.
 
 ## Code Updates
 
@@ -87,7 +70,7 @@ While running the `oldev` container, gunicorn is configured to auto-reload modif
 
 ## Useful Runtime Commands
 
-See the docs for more: https://docs.docker.com/compose/reference/overview
+See Docker's docs for more: https://docs.docker.com/compose/reference/overview
 
 ```bash
 # Read a service's logs (replace `web` with service name)
@@ -110,6 +93,6 @@ docker-compose exec web npm run build-assets
 ## Other Commands
 
 ```bash
-# Run tests in a temporary container
+# Launch a temporary container and run tests
 docker-compose run --rm web make test
 ```
