@@ -82,9 +82,6 @@ table {
       white-space: pre !important;
     }
   }
-  &.identifiers {
-    width: 395px;
-  }
   &.records {
     width: 100%;
     td {
@@ -911,8 +908,6 @@ fieldset {
   margin: 0 0 10px;
   &.minor {
     display: block;
-    float: left;
-    width: 400px;
     padding: 0;
     margin: 0;
   }
@@ -940,17 +935,13 @@ fieldset {
 }
 
 .formBack {
-  float: left;
-  width: 830px;
   padding: 10px;
   background-color: @lightest-grey;
   &Left {
-    float: left;
-    width: 670px;
+    width: 100%;
   }
   &Right {
-    float: left;
-    width: 120px;
+    width: 100%;
     padding: 10px 10px 15px 30px;
     text-align: center;
     .illustration {
@@ -3170,6 +3161,29 @@ ul#myreads-paginator {
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  /** These styles are used on the page for editing a book.
+  They may be used in another places as well */
+  fieldset {
+    &.minor {
+      float: left;
+      width: 400px;
+    }
+  }
+  table.identifiers {
+    width: 395px;
+  }
+  .formBack {
+    float: left;
+    width: 830px;
+    &Left {
+      float: left;
+      width: 670px;
+    }
+    &Right {
+      float: left;
+      width: 120px;
+    }
+  }
   /**
   * Used on following pages:
   * - /search/subjects
