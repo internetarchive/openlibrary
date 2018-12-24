@@ -24,10 +24,12 @@
     width: 100%;
   }
 
+  input[type=number],
   input[type=text] {
     margin: 0 10px 5px 0;
   }
 
+  input[type=number],
   input[type=text],
   input[type=email],
   input[type=password],
@@ -38,6 +40,11 @@
     max-width: 100%;
   }
 
+  input[type=number] {
+    width: 50px;
+  }
+
+  input[type=number],
   input[type=email],
   input[type=password],
   .required {
@@ -50,6 +57,11 @@
     padding: 3px;
   }
 
+  .minor {
+    input {
+      max-width: 300px;
+    }
+  }
   &.books {
     /* stylelint-disable selector-max-specificity */
     .major {
@@ -122,7 +134,18 @@
           width: 848px;
        }
       }
-
+    }
+    .input {
+      select {
+        width: 130px;
+      }
+    }
+    table {
+      input {
+        width: 300px;
+      }
+    }
+    &.books {
       .TitleAuthor {
         // stylelint-disable-next-line max-nesting-depth
         input#work-title {
