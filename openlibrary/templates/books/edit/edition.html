@@ -194,7 +194,7 @@ window.q.push(function() {
                 <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--title" id="edition-title" value="$book.title" style="width:650px;"/>
+                <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
                 <input type="hidden" name="edition--title_prefix" value=""/>
             </div>
         </div>
@@ -204,11 +204,11 @@ window.q.push(function() {
                 <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
             </div>
             <div class="input">
-                <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
+                <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
             </div>
         </div>
 
-        <div class="formElement" style="width: 650px;">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-toc">Table of Contents</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
