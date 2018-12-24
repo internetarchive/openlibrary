@@ -45,7 +45,7 @@ __all__ = [
 ]
 __docformat__ = "restructuredtext en"
 
-def sanitize(html, encoding = None):
+def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
     """
@@ -65,7 +65,7 @@ def sanitize(html, encoding = None):
                 return 'nofollow'
 
     try:
-        html = genshi.HTML(html, encoding = encoding)
+        html = genshi.HTML(html, encoding=encoding)
 
     # except (genshi.ParseError, UnicodeDecodeError, UnicodeError) as e:
     # don't catch Unicode errors so we can tell if we're getting bytes
@@ -107,7 +107,7 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
-def datestr(then, now=None, lang=None, relative = True):
+def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
     if not relative:
         result = then.strftime("%b %d %Y")
