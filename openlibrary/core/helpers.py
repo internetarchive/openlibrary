@@ -48,6 +48,9 @@ __docformat__ = "restructuredtext en"
 def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
+    Using encoding=None if passing unicode strings e.g. for Python 3.
+    encoding="utf8" matches default format for earlier versions of Genshi
+    https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
     """
 
     # Can't sanitize unless genshi module is available
