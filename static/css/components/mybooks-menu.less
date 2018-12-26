@@ -1,0 +1,59 @@
+/**
+ * MyBooksMenu
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#mybooksmenu
+ *
+ * http://localhost:8080/account/books/want-to-read
+ */
+.mybooks-menu {
+  padding-right: 10px;
+  border-bottom: 1px solid @lightest-grey;
+
+  a {
+    text-decoration: none;
+    color: @link-blue;
+  }
+  ul.preset-lists,
+  ul.loans-lists,
+  ul.user-lists {
+    padding: 10px;
+    padding-left: 0;
+    border-bottom: 1px solid @lightest-grey;
+  }
+
+  ul.user-lists .list-overflow {
+    max-height: 150px;
+    overflow: auto;
+  }
+  ul:last-child {
+    border-bottom: none;
+  }
+  ul li a {
+    display: block;
+    padding: 5px;
+  }
+  ul.preset-lists li a:selected,
+  ul.loans-lists li a:selected {
+    background-color: @pale-blue;
+    border-radius: 3px;
+  }
+
+  ul li.subsection {
+    font-weight: bold;
+    padding: 5px 0;
+  }
+
+  ul li {
+    list-style: none;
+    a.selected {
+      background-color: @grey-blue;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .mybooks-menu {
+    max-width: 200px;
+    border-right: 1px solid @lightest-grey;
+    border-bottom: none;
+  }
+}

@@ -31,7 +31,7 @@
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
-@import (less) "components/mybooks-list.less";
+@import (less) "components/mybooks.less";
 @import (less) "components/readinglog-stats.less";
 @import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
@@ -3566,60 +3566,9 @@ ul#myreads-paginator {
 }
 
 /* My books ... */
-
+// TODO: Remove in favor of general styles
 #mybooks {
   font-size: .9em;
-  .mybooks-menu ul li {
-    list-style: none;
-    a.selected {
-      background-color: @grey-blue;
-    }
-  }
-}
-
-.mybooks {
-  border-top: 1px solid @lightest-grey;
-  .display-flex();
-  margin-top: 10px;
-  &-menu {
-    padding-right: 10px;
-    border-right: 1px solid @lightest-grey;
-    max-width: 200px;
-
-    a {
-      text-decoration: none;
-      color: @link-blue;
-    }
-    ul.preset-lists,
-    ul.loans-lists,
-    ul.user-lists {
-      padding: 10px;
-      padding-left: 0;
-      border-bottom: 1px solid @lightest-grey;
-    }
-
-    ul.user-lists .list-overflow {
-      max-height: 150px;
-      overflow: auto;
-    }
-    ul:last-child {
-      border-bottom: none;
-    }
-    ul li a {
-      display: block;
-      padding: 5px;
-    }
-    ul.preset-lists li a:selected,
-    ul.loans-lists li a:selected {
-      background-color: @pale-blue;
-      border-radius: 3px;
-    }
-
-    ul li.subsection {
-      font-weight: bold;
-      padding: 5px 0;
-    }
-  }
 }
 
 .user-lists {

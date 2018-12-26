@@ -10,8 +10,6 @@
  */
 
 .mybooks-list {
-  flex: 1;
-  padding: 10px;
 
   h2 {
     padding: 5px 0;
@@ -26,5 +24,12 @@
 
   .loadmore {
     text-align: center;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .mybooks-list {
+    flex: 1;
+    padding: 10px;
   }
 }
