@@ -21,6 +21,7 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
+    var btnClassName = 'cta-btn btn--large';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
         '^/account/books/[^/]+': { // readinglog
@@ -107,7 +108,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr("href", "/borrow/ia/" + book_ocaid);
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_available').addClass('cta-btn')
+                                .addClass('borrow_available').addClass(btnClassName)
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -124,7 +125,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('title', 'Join waitlist');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_unavailable').addClass('cta-btn');
+                                .addClass('borrow_unavailable').addClass(btnClassName);
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -142,7 +143,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .removeClass('borrow-link');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('check-book-availability').addClass('cta-btn');
+                                .addClass('check-book-availability').addClass(btnClassName);
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Check Availability');
                             delete books[book_key];
@@ -238,7 +239,7 @@ $(function(){
                                 }
                                 $(cta).append(
                                     '<' + tag + ' ' + link + ' class="' + cls +
-                                        ' cta-btn" data-ol-link-track="' +
+                                        ' ' + btnClassName + '" data-ol-link-track="' +
                                         work.status
                                         + '">' + msg + '</' + tag + '>'
                                 );
