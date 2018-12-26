@@ -1668,25 +1668,6 @@ div#searchResults {
   }
 }
 
-.searchResultItemCTA {
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  .display-flex();
-  width: 245px;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  -webkit-box-pack: strech;
-  -ms-flex-pack: stretch;
-  align-items: stretch;
-  justify-content: center;
-  padding: 0 5px 0 15px;
-  align-self: flex-start;
-  margin-top: 10px;
-  flex: 1;
-}
-
 .coverEbook {
   img {
     opacity: .85;
@@ -1698,52 +1679,6 @@ div#searchResults {
     right: 0;
     bottom: 3px;
     border-radius: 3px;
-  }
-}
-
-.searchResultItemCTA-lending {
-  -webkit-box-orient: vertical;
-  -webkit-box-direction: normal;
-  -ms-flex-direction: column;
-  flex-direction: column;
-  .display-flex();
-  width: 100%;
-  color: @white;
-  cursor: pointer;
-  text-align: center;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
-  -webkit-box-pack: strech;
-  -ms-flex-pack: stretch;
-  align-items: stretch;
-  justify-content: center;
-  font-family: @lucida_sans_serif-1;
-  input[type=submit]#return_ebook,
-  input[type=submit]#unwaitlist_ebook,
-  {
-    width: 100%;
-    font-size: .8em;
-  }
-  .borrow_unavailable {
-    border: 0;
-    border-radius: 5px;
-    box-sizing: border-box;
-    color: @white;
-    width: 100%;
-    cursor: pointer;
-    text-decoration: none;
-    text-align: center;
-    padding: 5px 0;
-    font-size: .8em;
-    .badge {
-      background-color: @orange-two;
-      padding: 4px 7px;
-      border-radius: 5px;
-      font-size: .7em;
-    }
-    button {
-      padding: 0;
-    }
   }
 }
 
@@ -3659,13 +3594,7 @@ ul#myreads-paginator {
     padding: 5px;
   }
 }
-
-@media only screen and (min-width: 35.5em) {
-  .searchResultItemCTA {
-    flex: unset;
-  }
-}
-
+@import (less) "components/searchResultItemCta.less";
 @import (less) "components/work.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
