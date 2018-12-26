@@ -109,9 +109,12 @@ def get_work_authors_and_related_subjects(work_id):
 
 @public
 def cached_work_authors_and_subjects(work_id):
-    return cache.memcache_memoize(
-        get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-        timeout=dateutil.HALF_DAY_SECS)(work_id)
+    try:
+        return cache.memcache_memoize(
+            get_work_authors_and_related_subjects, 'works_authors_and_subjects',
+            timeout=dateutil.HALF_DAY_SECS)(work_id)
+    except AttributeError:
+        return {'authors': [], 'subject': []}
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
