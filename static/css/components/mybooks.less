@@ -1,0 +1,19 @@
+/**
+ * MyBooks
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#mybooks
+ *
+ * http://localhost:8080/account/books/want-to-read
+ */
+
+// Layout
+.mybooks {
+  border-top: 1px solid @lightest-grey;
+  margin-top: 10px;
+}
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .mybooks {
+    .display-flex();
+  }
+}
+@import (less) "components/mybooks-list.less";
+@import (less) "components/mybooks-menu.less";
