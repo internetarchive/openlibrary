@@ -97,6 +97,19 @@
   }
 }
 
+// These rules apply within overlays
+// e.g. when you click "change cover" on a books page
+// Need to investigate whether these can be generalised somehow.
+.floater {
+  .ui-tabs-panel {
+    border: none;
+    border-top: 3px solid @lightest-grey;
+    padding: 15px 30px !important;
+    background: @white;
+    /* declare background color for container to avoid distorted fonts in IE while fading */
+  }
+}
+
 /* Additional IE specific bug fixes... */
 * html .ui-tabs-nav { /* auto clear, @ IE 6 & IE 7 Quirks Mode */
   display: inline-block;

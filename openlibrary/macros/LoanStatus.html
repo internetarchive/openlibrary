@@ -81,7 +81,7 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <form>
-      <input type="submit" class="unwait-btn" disabled value="No ebook available">
+      <input type="submit" class="unwait-btn btn primary borrow_missing btn--large" disabled value="No ebook available">
     </form>
 
 
