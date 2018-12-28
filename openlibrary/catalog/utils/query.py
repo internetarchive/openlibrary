@@ -1,5 +1,6 @@
 from __future__ import print_function
-import urllib, urllib2
+import urllib
+import urllib2
 import web
 import simplejson as json
 from time import sleep

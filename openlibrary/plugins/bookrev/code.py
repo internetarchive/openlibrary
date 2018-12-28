@@ -1,11 +1,16 @@
 """
 Book reviews plugin.
 """
-import web, infogami
+import web
+import infogami
 from infogami.utils import delegate
 from infogami.utils.template import render
 
-import db, dev, forms, reviewsources, utils
+import db
+import dev
+import forms
+import reviewsources
+import utils
 import schema as _
 
 @infogami.action

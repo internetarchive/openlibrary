@@ -4,7 +4,9 @@ sys.path.remove('/usr/local/lib/python2.5/site-packages/web.py-0.23-py2.5.egg')
 from staging_save import Infogami
 from catalog.read_rc import read_rc
 import catalog.importer.db_read as db_read
-import re, sys, codecs
+import re
+import sys
+import codecs
 
 db_read.set_staging(True)
 

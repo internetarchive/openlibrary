@@ -1,6 +1,7 @@
 from __future__ import print_function
 import simplejson as json
-import web, re
+import web
+import re
 
 re_author_key = re.compile('^/a/OL(\d+)A$')
 

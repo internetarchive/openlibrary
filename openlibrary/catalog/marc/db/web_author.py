@@ -1,5 +1,7 @@
 from __future__ import print_function
-import web, dbhash, re
+import web
+import dbhash
+import re
 from catalog.infostore import get_site
 from catalog.get_ia import get_data
 from catalog.read_rc import read_rc

@@ -4,7 +4,8 @@ from collections import defaultdict
 import datetime
 import re
 import time
-import urllib, urllib2
+import urllib
+import urllib2
 
 import simplejson
 import web

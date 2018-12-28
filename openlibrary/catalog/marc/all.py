@@ -1,6 +1,7 @@
 from openlibrary.catalog.get_ia import read_marc_file
 from openlibrary.catalog.read_rc import read_rc
-import web, os.path
+import web
+import os.path
 
 # iterate through every MARC record on disk
 

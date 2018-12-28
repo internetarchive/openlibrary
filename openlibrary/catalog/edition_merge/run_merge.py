@@ -1,5 +1,8 @@
 from __future__ import print_function
-import MySQLdb, datetime, re, sys
+import MySQLdb
+import datetime
+import re
+import sys
 from openlibrary.api import OpenLibrary, Reference
 from collections import defaultdict
 

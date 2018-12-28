@@ -5,7 +5,10 @@ from catalog.read_rc import read_rc
 #from sources import sources
 from time import time
 from catalog.marc.fast_parse import index_fields, get_tag_lines
-import web, os, os.path, re
+import web
+import os
+import os.path
+import re
 
 # build an index of ISBN to MARC records
 

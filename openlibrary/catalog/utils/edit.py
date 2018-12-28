@@ -1,5 +1,6 @@
 from __future__ import print_function
-import re, web
+import re
+import web
 import json
 import urllib2
 from openlibrary.catalog.importer.db_read import get_mc

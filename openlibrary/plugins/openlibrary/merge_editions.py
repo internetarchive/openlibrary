@@ -1,5 +1,6 @@
 'Merge editions'
-import web, re
+import web
+import re
 from openlibrary.utils import uniq, dicthash
 from infogami.utils import delegate
 from infogami.utils.view import render_template

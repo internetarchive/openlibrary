@@ -3,8 +3,10 @@
 Loaded from Infogami plugin mechanism.
 """
 from __future__ import print_function
-import sys, os
-import logging, logging.config
+import sys
+import os
+import logging
+import logging.config
 
 from infogami.utils import template, macro, i18n, delegate
 import infogami

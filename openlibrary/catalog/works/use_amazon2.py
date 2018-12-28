@@ -1,5 +1,9 @@
 from __future__ import print_function
-import os, re, sys, codecs, dbhash
+import os
+import re
+import sys
+import codecs
+import dbhash
 from catalog.amazon.other_editions import find_others
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc

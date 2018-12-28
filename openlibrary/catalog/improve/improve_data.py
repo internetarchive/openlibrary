@@ -1,6 +1,7 @@
 from __future__ import print_function
 from catalog.infostore import get_site
-import sys, codecs
+import sys
+import codecs
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

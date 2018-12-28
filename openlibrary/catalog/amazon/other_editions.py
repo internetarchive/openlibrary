@@ -1,4 +1,6 @@
-import re, os.path, urllib2
+import re
+import os.path
+import urllib2
 from bs4 import BeautifulSoup
 
 # http://amazon.com/other-editions/dp/0312153325 has:

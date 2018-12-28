@@ -1,8 +1,11 @@
 from __future__ import print_function
-import web, infogami
+import web
+import infogami
 from infogami import tdb
 
-import db, reviewsources, utils
+import db
+import reviewsources
+import utils
 
 from six.moves import input
 

@@ -5,7 +5,9 @@ from marc_binary import MarcBinary
 from pprint import pprint
 import parse
 #from parse import read_edition, SeeAlsoAsTitle, NoTitle
-import sys, codecs, re
+import sys
+import codecs
+import re
 from getopt import getopt
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)

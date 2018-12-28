@@ -11,7 +11,9 @@ from merge import try_merge
 from db_read import get_things
 from catalog.get_ia import get_ia, urlopen_keep_trying
 from catalog.merge.merge_marc import build_marc
-import pool, sys, urllib2
+import pool
+import sys
+import urllib2
 
 archive_url = "http://archive.org/download/"
 

@@ -4,7 +4,11 @@ from openlibrary.catalog.importer.db_read import withKey, get_things, get_mc
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
-import web, re, sys, codecs, urllib
+import web
+import re
+import sys
+import codecs
+import urllib
 
 import six
 

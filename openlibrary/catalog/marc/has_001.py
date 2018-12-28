@@ -4,7 +4,8 @@ from catalog.marc.fast_parse import *
 from catalog.read_rc import read_rc
 from catalog.get_ia import files
 from sources import sources
-import sys, os
+import sys
+import os
 
 rc = read_rc()
 read_count = 10000

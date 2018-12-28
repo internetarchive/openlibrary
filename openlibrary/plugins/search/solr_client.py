@@ -2,7 +2,8 @@
 from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
-import os, re
+import os
+import re
 from collections import defaultdict
 import cgi
 import web

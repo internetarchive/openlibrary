@@ -10,7 +10,8 @@ from infogami.utils import view, template
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 
-import re, web
+import re
+import web
 import solr_client
 import time
 import simplejson

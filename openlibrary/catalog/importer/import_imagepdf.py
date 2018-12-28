@@ -1,5 +1,6 @@
 from __future__ import print_function
-import web,  sys
+import web
+import sys
 from catalog.utils.query import query, withKey
 from catalog.read_rc import read_rc
 sys.path.append('/home/edward/src/olapi')

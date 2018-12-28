@@ -1,4 +1,6 @@
-import web, re, os
+import web
+import re
+import os
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 
 def east_in_by_statement(rec, author):

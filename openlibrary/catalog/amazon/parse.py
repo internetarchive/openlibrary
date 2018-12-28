@@ -1,6 +1,9 @@
 from __future__ import print_function
 from lxml.html import parse, tostring
-import re, os, sys, web
+import re
+import os
+import sys
+import web
 from warnings import warn
 from math import floor
 from pprint import pprint
