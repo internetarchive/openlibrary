@@ -14,7 +14,7 @@ from openlibrary import accounts
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.core import ia, db, models, lending, cache, helpers as h
+from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.catalog.add_book import load
 from openlibrary.core.vendors import (
     get_amazon_metadata, clean_amazon_metadata_for_load,
