@@ -103,7 +103,11 @@ def generic_carousel(query=None, subject=None, work_id=None, _type=None,
     books = cached_ia_carousel_books(
         query=query, subject=subject, work_id=work_id, _type=_type,
         sorts=sorts, limit=limit)
-    return storify(books)
+    if not books:
+        books = cached_ia_carousel_books.update(
+            query=query, subject=subject, work_id=work_id, _type=_type,
+            sorts=sorts, limit=limit)[0]
+    return storify(books) if books else books
 
 @public
 def readonline_carousel():
