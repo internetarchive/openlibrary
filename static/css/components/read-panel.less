@@ -15,9 +15,23 @@
   border-bottom: 1px solid @mid-grey;
   margin-top: 0;
 
+  .waitinglist-message {
+    margin: 0 0 10px;
+    font-size: 12px;
+  }
   .cta-section {
     font-size: .78em;
   }
+  .check-availability {
+    font-size: 14px;
+    border-top: 1px solid @lightest-grey;
+    p {
+      &.check-other-editions {
+        text-align: center;
+      }
+    }
+  }
+
   strong,
   .cta-section-title {
     font-size: 12.5px;
@@ -41,6 +55,12 @@
     }
   }
 }
+
+.Tools .booklinks li {
+  list-style: none;
+  font-size: 12px;
+}
+
 // For the button at the top
 @import (less) "components/buttonCta.less";
 // for the share links at the bottom
