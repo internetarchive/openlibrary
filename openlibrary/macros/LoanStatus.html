@@ -32,11 +32,10 @@ $if user:
 $ borrow_link = page.url() + '/borrow'
 
 $if user_loan:
-    <p>
-      <a href="$borrow_link" title="Borrow from $contributor"
-         data-userid="$(user_loan['userid'])" id="read_ebook"
-         class="borrow-btn borrow-link btn--large btn primary">Read eBook</a>
-    </p>
+  <a href="$borrow_link" title="Borrow from $contributor"
+     data-userid="$(user_loan['userid'])" id="read_ebook"
+     class="borrow-btn borrow-link btn--large btn primary">Read eBook</a>
+
     $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
     <form action="$return_url" method="post" class="waitinglist-form return-book">
       <input type="hidden" name="action" value="return" />
@@ -44,12 +43,10 @@ $if user_loan:
     </form>
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-    <p>
-      <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
-        class="borrow-btn borrow-link btn primary btn--large">
-        Borrow eBook
-      </a>
-    </p>
+  <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
+     class="borrow-btn borrow-link btn primary btn--large">
+    Borrow eBook
+  </a>
 
 $elif (availability_status == 'borrow_unavailable'):
     $ wlsize = availability.get('num_waitlist', 0)
@@ -67,7 +64,7 @@ $elif (availability_status == 'borrow_unavailable'):
         </form>
 
     $else:  
-        <p>
+        <p class="waitinglist-message">
           $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
         </p>
         <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
