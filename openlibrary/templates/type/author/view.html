@@ -41,7 +41,7 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
 
 $ title = page.get('name', 'name missing')
 $ title_with_site = title + " | Open Library"
-$ meta_photo_url = item_image(page.get_photo_url("M"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
+$ meta_photo_url = item_image(page.get_photo_url("L"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
 $var title: $title
 $var history: $page.history
