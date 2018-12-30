@@ -40,6 +40,8 @@
     border: 1px solid @mid-blue;
     color: @light-olive; // this is the only place this color is used. refactor?
   }
+  /* stylelint-disable selector-max-specificity */
+  /* FIXME: Is this actually used anywhere? I think this block can be removed. */
   a.button {
     text-decoration: none;
     background: @mid-blue;
@@ -49,6 +51,7 @@
       color: @white;
     }
   }
+  /* stylelint-enable selector-max-specificity */
   .btn {
     display: block;
     max-width: 200px;

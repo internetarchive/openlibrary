@@ -1,3 +1,4 @@
+// stylelint-disable selector-max-specificity
 @import (less) "less/font-families.less";
 @import (less) "less/z-index.less";
 
@@ -218,6 +219,7 @@ div.floaterAdd {
     .label {
       width: 560px;
       padding-top: 20px;
+      // stylelint-disable-next-line max-nesting-depth
       label {
         font-size: 1.0em;
         font-family: @lucida_sans_serif-5;

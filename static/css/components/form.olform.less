@@ -4,7 +4,7 @@
  */
 @import (less) "less/font-families.less";
 
-form.olform {
+.olform {
   font-family: @lucida_sans_serif-4;
 
   .label {
@@ -51,12 +51,17 @@ form.olform {
   }
 
   &.books {
-    fieldset.major input[type=text],
-    fieldset.major input[type=email],
-    fieldset.major input[type=password],
-    fieldset.major textarea {
-      font-size: .875em;
+    /* stylelint-disable selector-max-specificity */
+    .major {
+      // stylelint-disable-next-line max-nesting-depth
+      input[type=text],
+      input[type=email],
+      input[type=password],
+      textarea {
+        font-size: .875em;
+      }
     }
+    /* stylelint-enable selector-max-specificity */
 
     .input,
     .label {
@@ -64,14 +69,18 @@ form.olform {
     }
 
     .TitleAuthor {
+      /* stylelint-disable selector-max-specificity */
+      // stylelint-disable-next-line max-nesting-depth
       input#work-title {
         font-size: 1.875em !important;
         margin: 0;
       }
 
+      // stylelint-disable-next-line max-nesting-depth
       input#author {
         font-size: 1em !important;
       }
+      /* stylelint-enable selector-max-specificity */
     }
   }
 }

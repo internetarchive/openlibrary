@@ -1,4 +1,4 @@
-form.olform {
+.olform {
   input[type=text],
   input[type=email],
   input[type=password],
@@ -14,22 +14,29 @@ form.olform {
     width: 90%;
   }
 
+  /* stylelint-disable selector-max-specificity */
   &.books {
-    fieldset.major input[type=text],
-    fieldset.major input[type=email],
-    fieldset.major input[type=password],
-    fieldset.major textarea {
-      width: 848px;
+    .major {
+      // stylelint-disable-next-line max-nesting-depth
+      input[type=text],
+      input[type=email],
+      input[type=password],
+      textarea {
+        width: 848px;
+      }
     }
 
     .TitleAuthor {
+      // stylelint-disable-next-line max-nesting-depth
       input#work-title {
         width: 900px !important;
       }
 
+      // stylelint-disable-next-line max-nesting-depth
       input#author {
         width: 550px !important;
       }
     }
   }
+  /* stylelint-enable selector-max-specificity */
 }
