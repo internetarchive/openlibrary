@@ -21,10 +21,10 @@
 
         function createTemplate(selector) {
             var code = $(selector).html()
-                            .replace(/%7B%7B/gi, "<%=")
-                            .replace(/%7D%7D/gi, "%>")
-                            .replace(/{{/g, "<%=")
-                            .replace(/}}/g, "%>");
+                .replace(/%7B%7B/gi, "<%=")
+                .replace(/%7D%7D/gi, "%>")
+                .replace(/{{/g, "<%=")
+                .replace(/}}/g, "%>");
             // Template is defined in openlibrary\plugins\openlibrary\js\template.js
             // eslint-disable-next-line no-undef
             return Template(code);
