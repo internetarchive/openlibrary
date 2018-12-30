@@ -2,9 +2,21 @@
 
 /**
  * Tools
- * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#Tools
- * This component appears to predominately be about layout.
+ * These styles appears to predominately be about layout.
+ * They are used on works and authors pages.
  * The file should be refactored and its layout rules generalised.
+ * Many of these styles may be needed in existing components.
+ * It will be refactored at the earliest opportunity but for now
+ * lives inside the legacy stylesheet.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
  */
 @import (less) "less/font-families.less";
 
@@ -338,6 +350,33 @@ div.tools-override {
 
     li {
       padding-left: 0;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .Tools {
+
+    .btn-notice {
+      margin-left: 35px;
+    }
+  }
+
+  // FIXME: Workaround for users of the "works" component.
+  .workDetails .btn-notice {
+    margin-left: 0 !important;
+  }
+
+  div.tools-override {
+    width: 180px;
+    &.editionTools {
+      float: left;
+    }
+    .Tools {
+      .btn-notice {
+        width: 180px;
+        margin-left: 45px;
+      }
     }
   }
 }
