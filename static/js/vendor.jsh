@@ -20,6 +20,9 @@ xcat $VENDORJS/slick/slick-1.6.0.min.js
 xcat $VENDORJS/jquery-ui/jquery-ui-1.12.1.min.js
 xcat $VENDORJS/colorbox/1.5.14.js
 
+# for edition data table sorting on /works/OL2931460W/The_Diary_of_a_Young_Girl_(Het_achterhuis)
+# see openlibrary/templates/type/work/editions_datatable.html ($('#editions').dataTable({)
+xcat $VENDORJS/jquery-datatables/jquery.dataTables.min.js
 xcat $VENDORJS/jquery-sparkline/jquery.sparkline.min.js
 xcat $VENDORJS/jquery-showpassword/jquery.showpassword.min.js
 xcat $VENDORJS/jquery-form/jquery.form.js | $JSMIN
