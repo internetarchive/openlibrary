@@ -1,5 +1,7 @@
 from __future__ import print_function
-import web, re, sys
+import web
+import re
+import sys
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site
 #from catalog.db_read import get_things, withKey

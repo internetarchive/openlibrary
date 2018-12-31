@@ -4,7 +4,8 @@ from catalog.marc.fast_parse import index_fields, read_file
 from catalog.get_ia import files
 from catalog.read_rc import read_rc
 from time import time
-import os, web
+import os
+import web
 
 rc = read_rc()
 

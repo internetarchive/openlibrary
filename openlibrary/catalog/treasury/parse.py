@@ -1,5 +1,6 @@
 from __future__ import print_function
-import re, sys
+import re
+import sys
 import xml.etree.ElementTree as et
 from pprint import pprint
 

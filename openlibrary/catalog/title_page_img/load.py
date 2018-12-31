@@ -1,5 +1,7 @@
 from openlibrary.catalog.read_rc import read_rc
-import urllib, httplib, json
+import urllib
+import httplib
+import json
 
 rc = read_rc()
 

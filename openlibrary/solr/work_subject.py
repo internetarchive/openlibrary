@@ -1,5 +1,6 @@
 from __future__ import print_function
-import re, urllib2
+import re
+import urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
 from openlibrary.catalog.importer.db_read import get_mc

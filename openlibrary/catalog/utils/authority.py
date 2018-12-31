@@ -1,6 +1,7 @@
 from __future__ import print_function
 from mechanize import Browser
-import re, os.path
+import re
+import os.path
 from openlibrary.catalog.read_rc import read_rc
 
 rc = read_rc()

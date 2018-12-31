@@ -28,7 +28,8 @@ of assumptions made in calculating this.
 
 import os
 
-import ca, us
+import ca
+import us
 _countries = {'ca': ca, 'us': us}
 
 # Walk through country-level public domain tests

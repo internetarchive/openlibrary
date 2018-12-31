@@ -4,7 +4,9 @@ from __future__ import print_function
 import _init_path
 
 from openlibrary import config
-import argparse, simplejson, re
+import argparse
+import simplejson
+import re
 import sys
 from urllib import urlopen
 from urllib2 import URLError

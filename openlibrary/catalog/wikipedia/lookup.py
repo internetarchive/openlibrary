@@ -1,5 +1,8 @@
 from __future__ import print_function
-import web, re, codecs, sys
+import web
+import re
+import codecs
+import sys
 from time import time
 from catalog.marc.fast_parse import get_subfields, get_all_subfields, get_subfield_values
 from catalog.utils import pick_first_date

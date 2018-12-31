@@ -1,7 +1,8 @@
 """Library to process edition, work and author records and emit (key, property, value) triples that can be combined later for solr indexing.
 """
 from __future__ import print_function
-import os, sys
+import os
+import sys
 import re
 import web
 import simplejson

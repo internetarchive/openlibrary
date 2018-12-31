@@ -1,6 +1,9 @@
 from __future__ import print_function
 from catalog.read_rc import read_rc
-import httplib, web, time, sys
+import httplib
+import web
+import time
+import sys
 from datetime import date, timedelta
 
 rc = read_rc()

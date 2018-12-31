@@ -1,5 +1,11 @@
 from __future__ import print_function
-import os, web, re, httplib, sys, urllib2, threading
+import os
+import web
+import re
+import httplib
+import sys
+import urllib2
+import threading
 import simplejson as json
 from lxml import etree
 import openlibrary.catalog.importer.pool as pool

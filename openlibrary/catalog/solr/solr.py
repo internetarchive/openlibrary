@@ -2,7 +2,10 @@
 
 from __future__ import print_function
 from time import sleep, time
-import urllib, web, subprocess, sys
+import urllib
+import web
+import subprocess
+import sys
 from catalog.read_rc import read_rc
 
 rc = read_rc()

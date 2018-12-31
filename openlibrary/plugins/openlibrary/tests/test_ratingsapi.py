@@ -2,7 +2,8 @@ from py.test import config
 import web
 import simplejson
 
-import urllib, urllib2
+import urllib
+import urllib2
 import cookielib
 
 from openlibrary.plugins.openlibrary.api import ratings

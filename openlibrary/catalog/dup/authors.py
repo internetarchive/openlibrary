@@ -1,7 +1,11 @@
 from __future__ import print_function
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc
-import web, sys, codecs, os.path, re
+import web
+import sys
+import codecs
+import os.path
+import re
 from catalog.olwrite import Infogami
 site = get_site()
 

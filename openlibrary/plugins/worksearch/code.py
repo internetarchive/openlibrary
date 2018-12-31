@@ -1,4 +1,7 @@
-import web, re, urllib, urllib2
+import web
+import re
+import urllib
+import urllib2
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config

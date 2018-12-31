@@ -1,6 +1,7 @@
 """Merge authors.
 """
-import web, re
+import web
+import re
 import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint

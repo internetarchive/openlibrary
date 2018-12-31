@@ -1,7 +1,8 @@
 """Handlers for adding and editing books."""
 
 import web
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 from collections import defaultdict
 from StringIO import StringIO

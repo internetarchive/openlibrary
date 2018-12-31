@@ -2,7 +2,9 @@
 from __future__ import print_function
 from openlibrary.catalog.marc.fast_parse import *
 from openlibrary.catalog.get_ia import get_from_archive
-import sys, codecs, re
+import sys
+import codecs
+import re
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
-import glob, os
+import glob
+import os
 from stat import *
 
 def executable(path):

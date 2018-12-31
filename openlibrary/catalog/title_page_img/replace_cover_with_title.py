@@ -3,9 +3,13 @@ from openlibrary.utils.ia import find_item
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils.query import query, withKey, has_cover
 from subprocess import Popen, PIPE
-import web, re, urllib, sys
+import web
+import re
+import urllib
+import sys
 import xml.etree.ElementTree as et
-import xml.parsers.expat, socket # for exceptions
+import xml.parsers.expat
+import socket  # for exceptions
 import httplib
 from time import sleep
 

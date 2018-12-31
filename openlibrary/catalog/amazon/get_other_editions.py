@@ -1,6 +1,9 @@
 from __future__ import print_function
 from catalog.read_rc import read_rc
-import web, urllib2, sys, os.path
+import web
+import urllib2
+import sys
+import os.path
 from time import time
 
 rc = read_rc()

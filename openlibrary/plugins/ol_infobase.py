@@ -6,10 +6,12 @@ import os
 import datetime
 import urllib
 import simplejson
-import logging, logging.config
+import logging
+import logging.config
 import sys
 import traceback
-import re, unicodedata
+import re
+import unicodedata
 
 import six
 import web

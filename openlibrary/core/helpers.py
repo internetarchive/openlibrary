@@ -6,7 +6,10 @@ import urlparse
 import string
 import re
 
-import babel, babel.core, babel.dates, babel.numbers
+import babel
+import babel.core
+import babel.dates
+import babel.numbers
 
 try:
     import genshi

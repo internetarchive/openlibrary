@@ -1,4 +1,5 @@
-import web, urllib2
+import web
+import urllib2
 import simplejson as json
 from pprint import pformat
 from time import time

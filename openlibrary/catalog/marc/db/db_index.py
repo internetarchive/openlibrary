@@ -2,7 +2,9 @@ from __future__ import print_function
 from catalog.get_ia import read_marc_file
 from time import time
 from catalog.marc.fast_parse import index_fields, get_tag_lines
-import os, os.path, re
+import os
+import os.path
+import re
 from catalog.marc.all import all_files
 from catalog.read_rc import read_rc
 

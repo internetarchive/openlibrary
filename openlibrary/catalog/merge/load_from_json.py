@@ -1,7 +1,8 @@
 from __future__ import print_function
 # build a merge database from JSON dump
 
-import simplejson, re
+import simplejson
+import re
 from normalize import normalize
 from time import time
 

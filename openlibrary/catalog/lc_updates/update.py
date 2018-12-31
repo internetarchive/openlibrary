@@ -2,7 +2,10 @@ from __future__ import print_function
 from urllib2 import urlopen
 from lxml.html import parse
 from openlibrary.catalog.read_rc import read_rc
-import os, sys, httplib, subprocess
+import os
+import sys
+import httplib
+import subprocess
 from time import sleep
 
 # httplib.HTTPConnection.debuglevel = 1

@@ -1,6 +1,9 @@
 # coding=utf8
 from __future__ import print_function
-import bz2, codecs, sys, re
+import bz2
+import codecs
+import sys
+import re
 import simplejson as json
 from catalog.marc.fast_parse import get_subfields, get_all_subfields, get_subfield_values
 from unicodedata import normalize

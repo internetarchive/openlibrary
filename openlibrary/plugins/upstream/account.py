@@ -4,7 +4,8 @@ import logging
 import random
 import urllib
 import uuid
-import datetime, time
+import datetime
+import time
 import simplejson
 
 from infogami.utils import delegate

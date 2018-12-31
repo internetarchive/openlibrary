@@ -14,7 +14,8 @@ Each waiting instance is represented as a document in the store as follows:
 """
 import datetime
 import logging
-import urllib, urllib2
+import urllib
+import urllib2
 import json
 import web
 from infogami import config
