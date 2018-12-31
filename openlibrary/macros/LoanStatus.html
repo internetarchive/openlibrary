@@ -54,7 +54,7 @@ $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
 $elif (availability_status == 'borrow_unavailable'):
     $ wlsize = availability.get('num_waitlist', 0)
     $if waiting_loan:
-        <p>
+        <p class="waitinglist-message">
           $ spot = ctx.user.get_waiting_loan_for(page)['position']
           $if spot == 1:
               You are <strong>next</strong> on the waiting list
@@ -63,7 +63,7 @@ $elif (availability_status == 'borrow_unavailable'):
         </p>
         <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
           <input type="hidden" name="action" value="leave-waitinglist"/>
-          <input type="submit" class="submit unwait-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+          <input type="submit" class="unwait-btn btn primary borrow_missing btn--large" id="unwaitlist_ebook" value="Leave waiting list"/>
         </form>
 
     $else:  
