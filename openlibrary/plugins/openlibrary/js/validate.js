@@ -19,13 +19,13 @@
     /* eslint-disable no-unused-vars */
     // used in templates/books/add.html
     jQuery.validator.addMethod("publish-date", function(value, element) {
-            // if it doesn't have even three digits then it can't be a future date
-            var tokens = /(\d{3,})/.exec(value);
+        // if it doesn't have even three digits then it can't be a future date
+        var tokens = /(\d{3,})/.exec(value);
 
-            var year = new Date().getFullYear();
-            return tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
-        },
-        "Are you sure that's the published date?"
+        var year = new Date().getFullYear();
+        return tokens && tokens[1] && parseInt(tokens[1]) <= year + 1; // allow one year in future.
+    },
+    "Are you sure that's the published date?"
     );
     /* eslint-enable no-unused-vars */
 

@@ -18,7 +18,7 @@ function validateEmail() {
         highlight: function(element, errorClass) {
             $(element).addClass(errorClass);
             $(element.form).find("label[for=" + element.id + "]")
-            .addClass(errorClass);
+                .addClass(errorClass);
         }
     });
     $("#email").rules("add", {
@@ -52,7 +52,7 @@ function validatePassword() {
         highlight: function(element, errorClass) {
             $(element).addClass(errorClass);
             $(element.form).find("label[for=" + element.id + "]")
-            .addClass(errorClass);
+                .addClass(errorClass);
         }
     });
     $("#password").rules("add", {

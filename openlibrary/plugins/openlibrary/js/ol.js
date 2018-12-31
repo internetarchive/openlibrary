@@ -54,8 +54,8 @@ function isScrolledIntoView(elem) {
     return false;
 }
 $(window).scroll(function(){
-  var scroller = $("#formScroll");
-  if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
+    var scroller = $("#formScroll");
+    if(isScrolledIntoView(scroller)){$("#scrollBtm").show();}else{$("#scrollBtm").hide();}
 })
 
 // BOOK COVERS
@@ -115,7 +115,7 @@ $().ready(function(){
 
     var marshalBookSearchQuery = function(q) {
         if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
-           q = 'title: "' + q + '"';
+            q = 'title: "' + q + '"';
         }
         return q;
     }
@@ -195,7 +195,7 @@ $().ready(function(){
         var searchMode = mode || localStorage.getItem("mode");
         var isValidMode = searchModes.indexOf(searchMode) != -1;
         localStorage.setItem('mode', isValidMode?
-                             searchMode : searchModeDefault);
+            searchMode : searchModeDefault);
         $('.instantsearch-mode').val(localStorage.getItem("mode"));
         $('input[name=mode][value=' + localStorage.getItem("mode") + ']')
             .attr('checked', 'true');
