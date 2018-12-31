@@ -1,5 +1,5 @@
 /**
- * Read Panel
+ * Read Options Panel
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#read-panel
  */
 .read-options,
@@ -22,14 +22,19 @@
   .cta-section {
     font-size: .78em;
   }
+
   .check-availability {
     font-size: 14px;
     border-top: 1px solid @lightest-grey;
-    p {
-      &.check-other-editions {
-        text-align: center;
-      }
-    }
+  }
+
+  .check-other-editions {
+    text-align: center;
+  }
+
+  &-panel__print-disabled-download {
+    font-size: 11px;
+    text-align: center;
   }
 
   strong,
@@ -45,15 +50,17 @@
     list-style: disc;
     margin: 5px 10px 0;
   }
+  // stylelint-disable selector-max-specificity
   table {
     width: 100%;
-    td {
-      text-align: left;
-      &.price {
-        text-align: right;
-      }
+  }
+  td {
+    text-align: left;
+    &.price {
+      text-align: right;
     }
   }
+  // stylelint-enable selector-max-specificity
 }
 
 .Tools .booklinks li {

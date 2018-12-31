@@ -46,7 +46,7 @@ $if isbn_10 and not asin:
 
     <div class="panel">
       <div class="btn-notice read-options" id="read-options">
-        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page)
+        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page, block_name="read-options-panel")
 
         $# Added here instead of LoanStatus to avoid the js being bound to every item
         $# in a work's edition listing

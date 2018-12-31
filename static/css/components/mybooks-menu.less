@@ -12,15 +12,16 @@
     text-decoration: none;
     color: @link-blue;
   }
-  ul.preset-lists,
-  ul.loans-lists,
-  ul.user-lists {
+  /*all uls */
+  .preset-lists,
+  .loans-lists,
+  .user-lists {
     padding: 10px;
     padding-left: 0;
     border-bottom: 1px solid @lightest-grey;
   }
 
-  ul.user-lists .list-overflow {
+  .user-lists .list-overflow {
     max-height: 150px;
     overflow: auto;
   }
@@ -31,11 +32,13 @@
     display: block;
     padding: 5px;
   }
-  ul.preset-lists li a:selected,
-  ul.loans-lists li a:selected {
+  /* stylelint-disable selector-max-specificity */
+  .preset-lists li a:selected,
+  .loans-lists li a:selected {
     background-color: @pale-blue;
     border-radius: 3px;
   }
+  /* stylelint-enable selector-max-specificity */
 
   ul li.subsection {
     font-weight: bold;

@@ -26,24 +26,26 @@
     filter: alpha(opacity=0);
   }
 
-  input[type="submit"].star-5.star-selected ~ span {
+  // stylelint-disable selector-max-specificity
+  .star-5.star-selected ~ span {
     width: 100%;
   }
-  input[type="submit"].star-4.star-selected ~ span {
+  .star-4.star-selected ~ span {
     width: 80%;
   }
-  input[type="submit"].star-3.star-selected ~ span {
+  .star-3.star-selected ~ span {
     width: 60%;
   }
-  input[type="submit"].star-2.star-selected ~ span {
+  .star-2.star-selected ~ span {
     width: 40%;
   }
-  input[type="submit"].star-1.star-selected ~ span {
+  .star-1.star-selected ~ span {
     width: 20%;
   }
-  input[type="submit"].star-0.star-selected ~ span {
+  .star-0.star-selected ~ span {
     width: 0%;
   }
+  // stylelint-enable selector-max-specificity
   label {
     display: block;
     width: 30px;
@@ -60,6 +62,8 @@
     &:hover ~ span {
       background-position: 0 -60px;
     }
+
+    // stylelint-disable selector-max-specificity
     &.star-5:hover ~ span {
       width: 100%;
     }
@@ -75,6 +79,7 @@
     &.star-1:hover ~ span {
       width: 20%;
     }
+    // stylelint-enable selector-max-specificity
   }
   span {
     display: block;

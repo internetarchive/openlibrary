@@ -24,19 +24,20 @@
 @import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
-@import (less) 'components/datatables.less';
+@import (less) "legacy-borrowBookForm.less";
+@import (less) "legacy-header.less";
+@import (less) "legacy-tools.less";
+@import (less) "legacy-wmd.less";
+
 @import (less) 'components/diff.less';
-@import (less) 'components/wmd.less';
 @import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
 @import (less) "components/mybooks.less";
 @import (less) "components/readinglog-stats.less";
-@import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
 @import (less) "components/dropper.less";
-@import (less) "components/borrowBookForm.less";
 
 @import (less) "components/subNav.less";
 @import (less) "components/book.less";
@@ -1381,9 +1382,6 @@ div.verify {
   }
 }
 
-/* HEADER */
-@import (less) 'components/header-legacy.less';
-
 .defaultstyling {
   font-family: @lucida_sans_serif-1;
   .padtop {
@@ -1527,8 +1525,6 @@ div.editThis {
 /* HOME PAGE */
 
 /* NEW HOME PAGE */
-
-@import (less) "components/olBlog.less";
 
 .contentLists.results {
   .coverMagic {
@@ -3601,7 +3597,6 @@ ul#myreads-paginator {
   }
   @import (less) "components/work--tablet.less";
   @import (less) "components/dropper--tablet.less";
-  @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
 }
 

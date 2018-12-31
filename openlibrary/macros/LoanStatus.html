@@ -1,6 +1,9 @@
-$def with (page, user, editions_page=False)
-
-$# editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
+$def with (page, user, editions_page=False, block_name='')
+$# Takes following parameters:
+$# * page
+$# * user
+$# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
+$# * block_name is a BEM block name
 
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
@@ -83,7 +86,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
 
 
 $if editions_page and page.get('ocaid'):
-  $:macros.daisy(page)
+  $:macros.daisy(page, block_name)
 
   $# If waitlisted, show other possible editions after daisy download link
   $if (availability_status == 'borrow_unavailable'):

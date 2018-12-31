@@ -1,6 +1,14 @@
-$def with(page)
+$def with(page, block_name=None)
+$# Takes following parameters:
+$# * page
+$# * block_name is a BEM block name
 
-<p class="print-disabled-download">
+$if block_name:
+  $ prefix = block_name + '__' 
+$else:
+  $ prefix = ''
+
+<p class="$(prefix)print-disabled-download">
   <a href="$page.url('/daisy')" title="Download Protected DAISY">
     <meta itemprop="bookFormat" content="EBook/DAISY3"/>
     Download ebook for print-disabled

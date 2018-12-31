@@ -2,7 +2,7 @@
  * FlashMessage
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#flashmessage
  */
-div.flash-messages {
+.flash-messages {
   font-size: 1.0em;
   font-family: @lucida_sans_serif-1;
   clear: both;
@@ -18,16 +18,19 @@ div.flash-messages {
   .error span {
     background-image: url(/images/icons/icon_alert.png);
   }
-  .bookadded span {
-    background: @light-yellow url(/images/icons/icon_check.png) no-repeat 40px 40px;
-    padding: 40px 40px 40px 80px;
-    font-family: @georgia_serif-2;
-    position: relative;
+  .bookadded {
     span {
-      display: inline;
-      background: transparent url();
-      padding: 0;
-      font-family: @lucida_sans_serif-2;
+      background: @light-yellow url(/images/icons/icon_check.png) no-repeat 40px 40px;
+      padding: 40px 40px 40px 80px;
+      font-family: @georgia_serif-2;
+      position: relative;
+      // stylelint-disable-next-line max-nesting-depth
+      span {
+        display: inline;
+        background: transparent url();
+        padding: 0;
+        font-family: @lucida_sans_serif-2;
+      }
     }
     h3 {
       font-family: @georgia_serif-2;
@@ -36,11 +39,11 @@ div.flash-messages {
       margin: 0;
       color: @black;
     }
-    p.brown {
+    .brown {
       font-size: 1.125em;
       margin: 15px 0 30px;
     }
-    p.list {
+    .list {
       font-size: 1.5em;
       margin: 0;
     }
@@ -49,10 +52,10 @@ div.flash-messages {
       font-weight: 700;
       color: @dark-green;
     }
-    p.list span.red {
+    .red {
       font-family: @georgia_serif-2;
     }
-    a.close {
+    .close {
       position: absolute;
       display: block;
       top: 20px;

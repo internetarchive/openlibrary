@@ -1,7 +1,18 @@
 /**
  * Wmd (Weapons of Mass destruction aka Wikitext markdown)
+ * This file relates to Wikitext markdown styling.
+ * It will be refactored at the earliest opportunity but for now
+ * lives inside the legacy stylesheet.
+ * DO NOT ADD NEW CSS here
+ * Unless... you are removing an inline style and moving it into here.
+ *
+ * We are currently in the process of:
+ * - moving styles from this file into the components
+ * - removing dead code
+ * - removing redundant CSS in favor of common reusable styles
+ *
+ * DO NOT ADD NEW CSS HERE
  */
-
 @import (less) "less/font-families.less";
 
 .wmd-panel {
@@ -175,4 +186,4 @@ form#addAuthor.olform .wmd-preview {
   filter: Alpha(Opacity=90);
 }
 
-@import (less) 'wmd-button-bar.less';
+@import (less) "components/wmd-button-bar.less";

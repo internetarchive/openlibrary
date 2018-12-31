@@ -4,6 +4,7 @@
  */
 @import (less) "less/font-families.less";
 
+/* stylelint-disable selector-max-specificity */
 table#editions {
   clear: both;
   font-family: @lucida_sans_serif-1;
@@ -97,6 +98,7 @@ table#editions {
       color: @dark-grey;
       vertical-align: top;
 
+      // stylelint-disable max-nesting-depth
       &.what {
         min-width: 410px;
       }
@@ -115,9 +117,22 @@ table#editions {
           max-width: 40px;
         }
       }
+      // stylelintenable max-nesting-depth
     }
   }
 }
 @media all and ( min-width: @width-breakpoint-desktop ) {
-  @import (less) "components/editions--desktop.less";
+  table#editions {
+    float: left;
+    width: 918px;
+  
+    div.title {
+      float: left;
+      width: 350px;
+    }
+  
+    div.cover {
+      float: left;
+    }
+  }
 }

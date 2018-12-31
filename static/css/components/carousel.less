@@ -64,12 +64,13 @@
       margin: 0 auto;
     }
 
-    h2.book-title {
+    /*h2*/.book-title {
       font-size: .8em;
       margin: 5px 0;
       color: @dark-grey;
       font-weight: normal;
 
+      // stylelint-disable-next-line selector-max-specificity, max-nesting-depth
       a {
         color: @link-blue;
         text-decoration: none;

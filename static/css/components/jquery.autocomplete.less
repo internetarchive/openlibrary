@@ -41,6 +41,7 @@
       color: @light-grey;
       line-height: normal;
 
+      // stylelint-disable-next-line max-nesting-depth
       &.ac_over {
         background-color: @light-yellow;
       }
@@ -82,9 +83,12 @@
     .work {
       font-size: 11px;
 
+      /* stylelint-disable selector-max-specificity */
+      // stylelint-disable-next-line max-nesting-depth
       i {
         color: @brown;
       }
+      /* stylelint-enable selector-max-specificity */
     }
   }
 

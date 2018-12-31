@@ -1,6 +1,7 @@
 /* Homepage about section */
 @import (less) "less/font-families.less";
 
+/* stylelint-disable selector-max-specificity */
 div.chartHome a:hover,
 #home-stats-charts .statschart:hover a {
   color: @link-blue;
@@ -16,6 +17,7 @@ div.chartHome a:hover,
       height: 110px;
       text-align: center;
       padding: 1px;
+      // stylelint-disable-next-line max-nesting-depth
       .chartShow {
         width: 145px;
         height: 60px;
@@ -24,6 +26,7 @@ div.chartHome a:hover,
         cursor: pointer;
       }
       /* stylelint-disable no-descending-specificity */
+      /* stylelint-disable max-nesting-depth */
       a {
         color: @black;
         text-decoration: none;
@@ -43,6 +46,7 @@ div.chartHome a:hover,
         }
       }
       /* stylelint-enable no-descending-specificity */
+      /* stylelint-enable max-nesting-depth */
     }
   }
   &-resource {
@@ -72,6 +76,7 @@ div.chartHome a:hover,
     font-weight: normal;
   }
 }
+/* stylelint-enable selector-max-specificity */
 
 .home-resource-section {
   flex: 1;
@@ -80,4 +85,7 @@ div.chartHome a:hover,
   min-height: 100px;
   margin-bottom: 20px;
   padding: 0 10px;
+  li {
+    margin: 1em 0;
+  }
 }

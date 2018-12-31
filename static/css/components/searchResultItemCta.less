@@ -15,6 +15,7 @@
     text-align: center;
     font-family: @lucida_sans_serif-1;
 
+    /* stylelint-disable selector-max-specificity */
     #waitlist_ebook {
       padding: 7px 0;
     }
@@ -24,6 +25,7 @@
       width: 100%;
       font-size: .8em;
     }
+    /* stylelint-enable selector-max-specificity */
 
     .cta-btn {
       font-size: 14px;
@@ -44,6 +46,7 @@
       text-align: center;
       padding: 5px 0;
       font-size: .8em;
+      /* stylelint-disable max-nesting-depth */
       .badge {
         background-color: @orange-two;
         padding: 4px 7px;
@@ -53,6 +56,7 @@
       button {
         padding: 0;
       }
+      /* stylelint-enable max-nesting-depth */
     }
   }
 }

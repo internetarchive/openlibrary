@@ -4,6 +4,7 @@
  */
 /* HISTORY */
 
+// stylelint-disable-next-line selector-max-specificity
 #pageHistory {
   width: 100%;
   margin-top: 30px;
@@ -31,9 +32,11 @@ table {
     margin-top: 10px;
     border-top: 1px solid @grey-e7e7e7;
     tr {
+      /* stylelint-disable max-nesting-depth */
       &:last-child {
         background: @lightest-grey;
       }
+      /* stylelint-enable max-nesting-depth */
     }
     td {
       font-size: .6875em;
