@@ -11,6 +11,7 @@ $ offset = (page - 1) * results_per_page
 
 $var title: Search Open Library for "$q"
 
+<div id="contentBody">
 <div id="contentHead">
     $if q:
         $ results = get_results(q, offset=offset, limit=results_per_page)
@@ -74,4 +75,6 @@ $var title: Search Open Library for "$q"
         </ul>
 
         $:macros.Pager(page, num_found, results_per_page)
+</div>
+<div class="clearfix"></div>
 </div>
