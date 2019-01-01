@@ -135,7 +135,13 @@ function websafe(value) {
 
 /* eslint-disable no-unused-vars */
 // used in websafe function
+/**
+ * Quote a string
+ * @param {string|number} text to quote
+ */
 function htmlquote(text) {
+    // This code exists for compatibility with template.js
+    text = String(text);
     text = text.replace("&", "&amp;"); // Must be done first!
     text = text.replace("<", "&lt;");
     text = text.replace(">", "&gt;");
