@@ -26,7 +26,7 @@ COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
 SET search_path = public, pg_catalog;
 
 --
--- Name: get_olid(text); Type: FUNCTION; Schema: public; Owner: vagrant
+-- Name: get_olid(text); Type: FUNCTION; Schema: public; Owner: openlibrary
 --
 
 CREATE FUNCTION get_olid(text) RETURNS text
@@ -36,10 +36,10 @@ CREATE FUNCTION get_olid(text) RETURNS text
     $_$;
 
 
-ALTER FUNCTION public.get_olid(text) OWNER TO vagrant;
+ALTER FUNCTION public.get_olid(text) OWNER TO openlibrary;
 
 --
--- Name: get_property_name(integer, integer); Type: FUNCTION; Schema: public; Owner: vagrant
+-- Name: get_property_name(integer, integer); Type: FUNCTION; Schema: public; Owner: openlibrary
 --
 
 CREATE FUNCTION get_property_name(integer, integer) RETURNS text
@@ -47,14 +47,14 @@ CREATE FUNCTION get_property_name(integer, integer) RETURNS text
     AS $_$select property.name FROM property, thing WHERE thing.type = property.type AND thing.id=$1 AND property.id=$2;$_$;
 
 
-ALTER FUNCTION public.get_property_name(integer, integer) OWNER TO vagrant;
+ALTER FUNCTION public.get_property_name(integer, integer) OWNER TO openlibrary;
 
 SET default_tablespace = '';
 
 SET default_with_oids = false;
 
 --
--- Name: account; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE account (
@@ -67,10 +67,10 @@ CREATE TABLE account (
 );
 
 
-ALTER TABLE public.account OWNER TO vagrant;
+ALTER TABLE public.account OWNER TO openlibrary;
 
 --
--- Name: author_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE author_boolean (
@@ -81,10 +81,10 @@ CREATE TABLE author_boolean (
 );
 
 
-ALTER TABLE public.author_boolean OWNER TO vagrant;
+ALTER TABLE public.author_boolean OWNER TO openlibrary;
 
 --
--- Name: author_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE author_int (
@@ -95,10 +95,10 @@ CREATE TABLE author_int (
 );
 
 
-ALTER TABLE public.author_int OWNER TO vagrant;
+ALTER TABLE public.author_int OWNER TO openlibrary;
 
 --
--- Name: author_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE author_ref (
@@ -109,10 +109,10 @@ CREATE TABLE author_ref (
 );
 
 
-ALTER TABLE public.author_ref OWNER TO vagrant;
+ALTER TABLE public.author_ref OWNER TO openlibrary;
 
 --
--- Name: author_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE author_str (
@@ -123,10 +123,10 @@ CREATE TABLE author_str (
 );
 
 
-ALTER TABLE public.author_str OWNER TO vagrant;
+ALTER TABLE public.author_str OWNER TO openlibrary;
 
 --
--- Name: data; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: data; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE data (
@@ -136,10 +136,10 @@ CREATE TABLE data (
 );
 
 
-ALTER TABLE public.data OWNER TO vagrant;
+ALTER TABLE public.data OWNER TO openlibrary;
 
 --
--- Name: datum_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE datum_int (
@@ -150,10 +150,10 @@ CREATE TABLE datum_int (
 );
 
 
-ALTER TABLE public.datum_int OWNER TO vagrant;
+ALTER TABLE public.datum_int OWNER TO openlibrary;
 
 --
--- Name: datum_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE datum_ref (
@@ -164,10 +164,10 @@ CREATE TABLE datum_ref (
 );
 
 
-ALTER TABLE public.datum_ref OWNER TO vagrant;
+ALTER TABLE public.datum_ref OWNER TO openlibrary;
 
 --
--- Name: datum_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE datum_str (
@@ -178,10 +178,10 @@ CREATE TABLE datum_str (
 );
 
 
-ALTER TABLE public.datum_str OWNER TO vagrant;
+ALTER TABLE public.datum_str OWNER TO openlibrary;
 
 --
--- Name: edition_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE edition_boolean (
@@ -192,10 +192,10 @@ CREATE TABLE edition_boolean (
 );
 
 
-ALTER TABLE public.edition_boolean OWNER TO vagrant;
+ALTER TABLE public.edition_boolean OWNER TO openlibrary;
 
 --
--- Name: edition_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE edition_int (
@@ -206,10 +206,10 @@ CREATE TABLE edition_int (
 );
 
 
-ALTER TABLE public.edition_int OWNER TO vagrant;
+ALTER TABLE public.edition_int OWNER TO openlibrary;
 
 --
--- Name: edition_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE edition_ref (
@@ -220,10 +220,10 @@ CREATE TABLE edition_ref (
 );
 
 
-ALTER TABLE public.edition_ref OWNER TO vagrant;
+ALTER TABLE public.edition_ref OWNER TO openlibrary;
 
 --
--- Name: edition_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE edition_str (
@@ -234,10 +234,10 @@ CREATE TABLE edition_str (
 );
 
 
-ALTER TABLE public.edition_str OWNER TO vagrant;
+ALTER TABLE public.edition_str OWNER TO openlibrary;
 
 --
--- Name: meta; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: meta; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE meta (
@@ -245,10 +245,10 @@ CREATE TABLE meta (
 );
 
 
-ALTER TABLE public.meta OWNER TO vagrant;
+ALTER TABLE public.meta OWNER TO openlibrary;
 
 --
--- Name: property; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: property; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE property (
@@ -258,10 +258,10 @@ CREATE TABLE property (
 );
 
 
-ALTER TABLE public.property OWNER TO vagrant;
+ALTER TABLE public.property OWNER TO openlibrary;
 
 --
--- Name: property_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: property_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE property_id_seq
@@ -272,17 +272,17 @@ CREATE SEQUENCE property_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.property_id_seq OWNER TO vagrant;
+ALTER TABLE public.property_id_seq OWNER TO openlibrary;
 
 --
--- Name: property_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: property_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE property_id_seq OWNED BY property.id;
 
 
 --
--- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE publisher_boolean (
@@ -293,10 +293,10 @@ CREATE TABLE publisher_boolean (
 );
 
 
-ALTER TABLE public.publisher_boolean OWNER TO vagrant;
+ALTER TABLE public.publisher_boolean OWNER TO openlibrary;
 
 --
--- Name: publisher_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE publisher_int (
@@ -307,10 +307,10 @@ CREATE TABLE publisher_int (
 );
 
 
-ALTER TABLE public.publisher_int OWNER TO vagrant;
+ALTER TABLE public.publisher_int OWNER TO openlibrary;
 
 --
--- Name: publisher_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE publisher_ref (
@@ -321,10 +321,10 @@ CREATE TABLE publisher_ref (
 );
 
 
-ALTER TABLE public.publisher_ref OWNER TO vagrant;
+ALTER TABLE public.publisher_ref OWNER TO openlibrary;
 
 --
--- Name: publisher_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE publisher_str (
@@ -335,10 +335,10 @@ CREATE TABLE publisher_str (
 );
 
 
-ALTER TABLE public.publisher_str OWNER TO vagrant;
+ALTER TABLE public.publisher_str OWNER TO openlibrary;
 
 --
--- Name: scan_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE scan_boolean (
@@ -349,10 +349,10 @@ CREATE TABLE scan_boolean (
 );
 
 
-ALTER TABLE public.scan_boolean OWNER TO vagrant;
+ALTER TABLE public.scan_boolean OWNER TO openlibrary;
 
 --
--- Name: scan_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE scan_int (
@@ -363,10 +363,10 @@ CREATE TABLE scan_int (
 );
 
 
-ALTER TABLE public.scan_int OWNER TO vagrant;
+ALTER TABLE public.scan_int OWNER TO openlibrary;
 
 --
--- Name: scan_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE scan_ref (
@@ -377,10 +377,10 @@ CREATE TABLE scan_ref (
 );
 
 
-ALTER TABLE public.scan_ref OWNER TO vagrant;
+ALTER TABLE public.scan_ref OWNER TO openlibrary;
 
 --
--- Name: scan_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE scan_str (
@@ -391,10 +391,10 @@ CREATE TABLE scan_str (
 );
 
 
-ALTER TABLE public.scan_str OWNER TO vagrant;
+ALTER TABLE public.scan_str OWNER TO openlibrary;
 
 --
--- Name: seq; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: seq; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE seq (
@@ -404,10 +404,10 @@ CREATE TABLE seq (
 );
 
 
-ALTER TABLE public.seq OWNER TO vagrant;
+ALTER TABLE public.seq OWNER TO openlibrary;
 
 --
--- Name: seq_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: seq_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE seq_id_seq
@@ -418,17 +418,17 @@ CREATE SEQUENCE seq_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.seq_id_seq OWNER TO vagrant;
+ALTER TABLE public.seq_id_seq OWNER TO openlibrary;
 
 --
--- Name: seq_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: seq_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE seq_id_seq OWNED BY seq.id;
 
 
 --
--- Name: store; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE store (
@@ -438,10 +438,10 @@ CREATE TABLE store (
 );
 
 
-ALTER TABLE public.store OWNER TO vagrant;
+ALTER TABLE public.store OWNER TO openlibrary;
 
 --
--- Name: store_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: store_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE store_id_seq
@@ -452,17 +452,17 @@ CREATE SEQUENCE store_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.store_id_seq OWNER TO vagrant;
+ALTER TABLE public.store_id_seq OWNER TO openlibrary;
 
 --
--- Name: store_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: store_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE store_id_seq OWNED BY store.id;
 
 
 --
--- Name: store_index; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE store_index (
@@ -474,10 +474,10 @@ CREATE TABLE store_index (
 );
 
 
-ALTER TABLE public.store_index OWNER TO vagrant;
+ALTER TABLE public.store_index OWNER TO openlibrary;
 
 --
--- Name: store_index_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: store_index_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE store_index_id_seq
@@ -488,17 +488,17 @@ CREATE SEQUENCE store_index_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.store_index_id_seq OWNER TO vagrant;
+ALTER TABLE public.store_index_id_seq OWNER TO openlibrary;
 
 --
--- Name: store_index_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: store_index_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE store_index_id_seq OWNED BY store_index.id;
 
 
 --
--- Name: subject_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE subject_boolean (
@@ -509,10 +509,10 @@ CREATE TABLE subject_boolean (
 );
 
 
-ALTER TABLE public.subject_boolean OWNER TO vagrant;
+ALTER TABLE public.subject_boolean OWNER TO openlibrary;
 
 --
--- Name: subject_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE subject_int (
@@ -523,10 +523,10 @@ CREATE TABLE subject_int (
 );
 
 
-ALTER TABLE public.subject_int OWNER TO vagrant;
+ALTER TABLE public.subject_int OWNER TO openlibrary;
 
 --
--- Name: subject_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE subject_ref (
@@ -537,10 +537,10 @@ CREATE TABLE subject_ref (
 );
 
 
-ALTER TABLE public.subject_ref OWNER TO vagrant;
+ALTER TABLE public.subject_ref OWNER TO openlibrary;
 
 --
--- Name: subject_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE subject_str (
@@ -551,10 +551,10 @@ CREATE TABLE subject_str (
 );
 
 
-ALTER TABLE public.subject_str OWNER TO vagrant;
+ALTER TABLE public.subject_str OWNER TO openlibrary;
 
 --
--- Name: thing; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE thing (
@@ -567,10 +567,10 @@ CREATE TABLE thing (
 );
 
 
-ALTER TABLE public.thing OWNER TO vagrant;
+ALTER TABLE public.thing OWNER TO openlibrary;
 
 --
--- Name: thing_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: thing_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE thing_id_seq
@@ -581,17 +581,17 @@ CREATE SEQUENCE thing_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.thing_id_seq OWNER TO vagrant;
+ALTER TABLE public.thing_id_seq OWNER TO openlibrary;
 
 --
--- Name: thing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: thing_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE thing_id_seq OWNED BY thing.id;
 
 
 --
--- Name: transaction; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE transaction (
@@ -607,10 +607,10 @@ CREATE TABLE transaction (
 );
 
 
-ALTER TABLE public.transaction OWNER TO vagrant;
+ALTER TABLE public.transaction OWNER TO openlibrary;
 
 --
--- Name: transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: transaction_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE transaction_id_seq
@@ -621,17 +621,17 @@ CREATE SEQUENCE transaction_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.transaction_id_seq OWNER TO vagrant;
+ALTER TABLE public.transaction_id_seq OWNER TO openlibrary;
 
 --
--- Name: transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: transaction_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE transaction_id_seq OWNED BY transaction.id;
 
 
 --
--- Name: transaction_index; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_index; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE transaction_index (
@@ -641,10 +641,10 @@ CREATE TABLE transaction_index (
 );
 
 
-ALTER TABLE public.transaction_index OWNER TO vagrant;
+ALTER TABLE public.transaction_index OWNER TO openlibrary;
 
 --
--- Name: type_author_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: type_author_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE type_author_seq
@@ -655,10 +655,10 @@ CREATE SEQUENCE type_author_seq
     CACHE 1;
 
 
-ALTER TABLE public.type_author_seq OWNER TO vagrant;
+ALTER TABLE public.type_author_seq OWNER TO openlibrary;
 
 --
--- Name: type_edition_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: type_edition_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE type_edition_seq
@@ -669,10 +669,10 @@ CREATE SEQUENCE type_edition_seq
     CACHE 1;
 
 
-ALTER TABLE public.type_edition_seq OWNER TO vagrant;
+ALTER TABLE public.type_edition_seq OWNER TO openlibrary;
 
 --
--- Name: type_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE type_int (
@@ -683,10 +683,10 @@ CREATE TABLE type_int (
 );
 
 
-ALTER TABLE public.type_int OWNER TO vagrant;
+ALTER TABLE public.type_int OWNER TO openlibrary;
 
 --
--- Name: type_publisher_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: type_publisher_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE type_publisher_seq
@@ -697,10 +697,10 @@ CREATE SEQUENCE type_publisher_seq
     CACHE 1;
 
 
-ALTER TABLE public.type_publisher_seq OWNER TO vagrant;
+ALTER TABLE public.type_publisher_seq OWNER TO openlibrary;
 
 --
--- Name: type_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE type_ref (
@@ -711,10 +711,10 @@ CREATE TABLE type_ref (
 );
 
 
-ALTER TABLE public.type_ref OWNER TO vagrant;
+ALTER TABLE public.type_ref OWNER TO openlibrary;
 
 --
--- Name: type_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE type_str (
@@ -725,10 +725,10 @@ CREATE TABLE type_str (
 );
 
 
-ALTER TABLE public.type_str OWNER TO vagrant;
+ALTER TABLE public.type_str OWNER TO openlibrary;
 
 --
--- Name: type_work_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: type_work_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE type_work_seq
@@ -739,10 +739,10 @@ CREATE SEQUENCE type_work_seq
     CACHE 1;
 
 
-ALTER TABLE public.type_work_seq OWNER TO vagrant;
+ALTER TABLE public.type_work_seq OWNER TO openlibrary;
 
 --
--- Name: user_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE user_int (
@@ -753,10 +753,10 @@ CREATE TABLE user_int (
 );
 
 
-ALTER TABLE public.user_int OWNER TO vagrant;
+ALTER TABLE public.user_int OWNER TO openlibrary;
 
 --
--- Name: user_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE user_ref (
@@ -767,10 +767,10 @@ CREATE TABLE user_ref (
 );
 
 
-ALTER TABLE public.user_ref OWNER TO vagrant;
+ALTER TABLE public.user_ref OWNER TO openlibrary;
 
 --
--- Name: user_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE user_str (
@@ -781,10 +781,10 @@ CREATE TABLE user_str (
 );
 
 
-ALTER TABLE public.user_str OWNER TO vagrant;
+ALTER TABLE public.user_str OWNER TO openlibrary;
 
 --
--- Name: version; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: version; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE version (
@@ -795,10 +795,10 @@ CREATE TABLE version (
 );
 
 
-ALTER TABLE public.version OWNER TO vagrant;
+ALTER TABLE public.version OWNER TO openlibrary;
 
 --
--- Name: version_id_seq; Type: SEQUENCE; Schema: public; Owner: vagrant
+-- Name: version_id_seq; Type: SEQUENCE; Schema: public; Owner: openlibrary
 --
 
 CREATE SEQUENCE version_id_seq
@@ -809,17 +809,17 @@ CREATE SEQUENCE version_id_seq
     CACHE 1;
 
 
-ALTER TABLE public.version_id_seq OWNER TO vagrant;
+ALTER TABLE public.version_id_seq OWNER TO openlibrary;
 
 --
--- Name: version_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: vagrant
+-- Name: version_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: openlibrary
 --
 
 ALTER SEQUENCE version_id_seq OWNED BY version.id;
 
 
 --
--- Name: work_boolean; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_boolean; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE work_boolean (
@@ -830,10 +830,10 @@ CREATE TABLE work_boolean (
 );
 
 
-ALTER TABLE public.work_boolean OWNER TO vagrant;
+ALTER TABLE public.work_boolean OWNER TO openlibrary;
 
 --
--- Name: work_int; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_int; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE work_int (
@@ -844,10 +844,10 @@ CREATE TABLE work_int (
 );
 
 
-ALTER TABLE public.work_int OWNER TO vagrant;
+ALTER TABLE public.work_int OWNER TO openlibrary;
 
 --
--- Name: work_ref; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_ref; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE work_ref (
@@ -858,10 +858,10 @@ CREATE TABLE work_ref (
 );
 
 
-ALTER TABLE public.work_ref OWNER TO vagrant;
+ALTER TABLE public.work_ref OWNER TO openlibrary;
 
 --
--- Name: work_str; Type: TABLE; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_str; Type: TABLE; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE TABLE work_str (
@@ -872,59 +872,59 @@ CREATE TABLE work_str (
 );
 
 
-ALTER TABLE public.work_str OWNER TO vagrant;
+ALTER TABLE public.work_str OWNER TO openlibrary;
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY property ALTER COLUMN id SET DEFAULT nextval('property_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY seq ALTER COLUMN id SET DEFAULT nextval('seq_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY store ALTER COLUMN id SET DEFAULT nextval('store_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY store_index ALTER COLUMN id SET DEFAULT nextval('store_index_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY thing ALTER COLUMN id SET DEFAULT nextval('thing_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY transaction ALTER COLUMN id SET DEFAULT nextval('transaction_id_seq'::regclass);
 
 
 --
--- Name: id; Type: DEFAULT; Schema: public; Owner: vagrant
+-- Name: id; Type: DEFAULT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY version ALTER COLUMN id SET DEFAULT nextval('version_id_seq'::regclass);
 
 
 --
--- Data for Name: account; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: account; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY account (thing_id, email, password, active, bot, verified) FROM stdin;
@@ -932,7 +932,7 @@ COPY account (thing_id, email, password, active, bot, verified) FROM stdin;
 
 
 --
--- Data for Name: author_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: author_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY author_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -940,7 +940,7 @@ COPY author_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: author_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: author_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY author_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -948,7 +948,7 @@ COPY author_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: author_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: author_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY author_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -965,7 +965,7 @@ COPY author_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: author_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: author_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY author_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -1201,7 +1201,7 @@ COPY author_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: data; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: data; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY data (thing_id, revision, data) FROM stdin;
@@ -1887,7 +1887,7 @@ COPY data (thing_id, revision, data) FROM stdin;
 
 
 --
--- Data for Name: datum_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: datum_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY datum_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -1895,7 +1895,7 @@ COPY datum_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: datum_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: datum_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY datum_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -1903,7 +1903,7 @@ COPY datum_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: datum_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: datum_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY datum_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -3037,7 +3037,7 @@ COPY datum_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: edition_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: edition_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY edition_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -3045,7 +3045,7 @@ COPY edition_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: edition_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: edition_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY edition_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -3112,7 +3112,7 @@ COPY edition_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: edition_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: edition_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY edition_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -3256,7 +3256,7 @@ COPY edition_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: edition_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: edition_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY edition_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -4602,7 +4602,7 @@ COPY edition_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: meta; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: meta; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY meta (version) FROM stdin;
@@ -4611,7 +4611,7 @@ COPY meta (version) FROM stdin;
 
 
 --
--- Data for Name: property; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: property; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY property (id, type, name) FROM stdin;
@@ -4751,14 +4751,14 @@ COPY property (id, type, name) FROM stdin;
 
 
 --
--- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: property_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('property_id_seq', 132, true);
 
 
 --
--- Data for Name: publisher_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: publisher_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY publisher_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -4766,7 +4766,7 @@ COPY publisher_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: publisher_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: publisher_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY publisher_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -4774,7 +4774,7 @@ COPY publisher_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: publisher_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: publisher_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -4782,7 +4782,7 @@ COPY publisher_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: publisher_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: publisher_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY publisher_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -4790,7 +4790,7 @@ COPY publisher_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: scan_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: scan_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY scan_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -4798,7 +4798,7 @@ COPY scan_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: scan_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: scan_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY scan_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -4806,7 +4806,7 @@ COPY scan_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: scan_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: scan_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY scan_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -4814,7 +4814,7 @@ COPY scan_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: scan_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: scan_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY scan_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -4822,7 +4822,7 @@ COPY scan_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: seq; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: seq; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY seq (id, name, value) FROM stdin;
@@ -4830,14 +4830,14 @@ COPY seq (id, name, value) FROM stdin;
 
 
 --
--- Name: seq_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: seq_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('seq_id_seq', 1, false);
 
 
 --
--- Data for Name: store; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: store; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY store (id, key, json) FROM stdin;
@@ -4857,14 +4857,14 @@ COPY store (id, key, json) FROM stdin;
 
 
 --
--- Name: store_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: store_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('store_id_seq', 31, true);
 
 
 --
--- Data for Name: store_index; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: store_index; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY store_index (id, store_id, type, name, value) FROM stdin;
@@ -4921,14 +4921,14 @@ COPY store_index (id, store_id, type, name, value) FROM stdin;
 
 
 --
--- Name: store_index_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: store_index_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('store_index_id_seq', 175, true);
 
 
 --
--- Data for Name: subject_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: subject_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY subject_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -4936,7 +4936,7 @@ COPY subject_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: subject_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: subject_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY subject_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -4944,7 +4944,7 @@ COPY subject_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: subject_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: subject_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY subject_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -4952,7 +4952,7 @@ COPY subject_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: subject_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: subject_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY subject_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -4960,7 +4960,7 @@ COPY subject_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: thing; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: thing; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
@@ -5633,14 +5633,14 @@ COPY thing (id, key, type, latest_revision, created, last_modified) FROM stdin;
 
 
 --
--- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: thing_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('thing_id_seq', 665, true);
 
 
 --
--- Data for Name: transaction; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: transaction; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY transaction (id, action, author_id, ip, comment, bot, created, changes, data) FROM stdin;
@@ -5692,14 +5692,14 @@ COPY transaction (id, action, author_id, ip, comment, bot, created, changes, dat
 
 
 --
--- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: transaction_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('transaction_id_seq', 44, true);
 
 
 --
--- Data for Name: transaction_index; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: transaction_index; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY transaction_index (tx_id, key, value) FROM stdin;
@@ -5707,21 +5707,21 @@ COPY transaction_index (tx_id, key, value) FROM stdin;
 
 
 --
--- Name: type_author_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: type_author_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('type_author_seq', 1, false);
 
 
 --
--- Name: type_edition_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: type_edition_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('type_edition_seq', 1, false);
 
 
 --
--- Data for Name: type_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: type_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY type_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -5729,14 +5729,14 @@ COPY type_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Name: type_publisher_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: type_publisher_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('type_publisher_seq', 1, false);
 
 
 --
--- Data for Name: type_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: type_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY type_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -5878,7 +5878,7 @@ COPY type_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: type_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: type_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY type_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -6165,14 +6165,14 @@ COPY type_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Name: type_work_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: type_work_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('type_work_seq', 1, false);
 
 
 --
--- Data for Name: user_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: user_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY user_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -6180,7 +6180,7 @@ COPY user_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: user_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: user_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY user_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -6215,7 +6215,7 @@ COPY user_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: user_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: user_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY user_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -6229,7 +6229,7 @@ COPY user_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: version; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: version; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY version (id, thing_id, revision, transaction_id) FROM stdin;
@@ -6915,14 +6915,14 @@ COPY version (id, thing_id, revision, transaction_id) FROM stdin;
 
 
 --
--- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: vagrant
+-- Name: version_id_seq; Type: SEQUENCE SET; Schema: public; Owner: openlibrary
 --
 
 SELECT pg_catalog.setval('version_id_seq', 678, true);
 
 
 --
--- Data for Name: work_boolean; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: work_boolean; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY work_boolean (thing_id, key_id, value, ordering) FROM stdin;
@@ -6930,7 +6930,7 @@ COPY work_boolean (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: work_int; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: work_int; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY work_int (thing_id, key_id, value, ordering) FROM stdin;
@@ -6939,7 +6939,7 @@ COPY work_int (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: work_ref; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: work_ref; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY work_ref (thing_id, key_id, value, ordering) FROM stdin;
@@ -7027,7 +7027,7 @@ COPY work_ref (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Data for Name: work_str; Type: TABLE DATA; Schema: public; Owner: vagrant
+-- Data for Name: work_str; Type: TABLE DATA; Schema: public; Owner: openlibrary
 --
 
 COPY work_str (thing_id, key_id, value, ordering) FROM stdin;
@@ -7561,7 +7561,7 @@ COPY work_str (thing_id, key_id, value, ordering) FROM stdin;
 
 
 --
--- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account_email_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY account
@@ -7569,7 +7569,7 @@ ALTER TABLE ONLY account
 
 
 --
--- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: property_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY property
@@ -7577,7 +7577,7 @@ ALTER TABLE ONLY property
 
 
 --
--- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: property_type_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY property
@@ -7585,7 +7585,7 @@ ALTER TABLE ONLY property
 
 
 --
--- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: seq_name_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY seq
@@ -7593,7 +7593,7 @@ ALTER TABLE ONLY seq
 
 
 --
--- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: seq_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY seq
@@ -7601,7 +7601,7 @@ ALTER TABLE ONLY seq
 
 
 --
--- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_index_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY store_index
@@ -7609,7 +7609,7 @@ ALTER TABLE ONLY store_index
 
 
 --
--- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_key_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY store
@@ -7617,7 +7617,7 @@ ALTER TABLE ONLY store
 
 
 --
--- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY store
@@ -7625,7 +7625,7 @@ ALTER TABLE ONLY store
 
 
 --
--- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY thing
@@ -7633,7 +7633,7 @@ ALTER TABLE ONLY thing
 
 
 --
--- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY transaction
@@ -7641,7 +7641,7 @@ ALTER TABLE ONLY transaction
 
 
 --
--- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: version_pkey; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY version
@@ -7649,7 +7649,7 @@ ALTER TABLE ONLY version
 
 
 --
--- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: version_thing_id_revision_key; Type: CONSTRAINT; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 ALTER TABLE ONLY version
@@ -7657,595 +7657,595 @@ ALTER TABLE ONLY version
 
 
 --
--- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account_thing_active_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_active_idx ON account USING btree (active);
 
 
 --
--- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account_thing_bot_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_bot_idx ON account USING btree (bot);
 
 
 --
--- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account_thing_email_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_email_idx ON account USING btree (active);
 
 
 --
--- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: account_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX account_thing_id_idx ON account USING btree (thing_id);
 
 
 --
--- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_boolean_idx ON author_boolean USING btree (key_id, value);
 
 
 --
--- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_boolean_thing_id_idx ON author_boolean USING btree (thing_id);
 
 
 --
--- Name: author_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_int_idx ON author_int USING btree (key_id, value);
 
 
 --
--- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_int_thing_id_idx ON author_int USING btree (thing_id);
 
 
 --
--- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_ref_idx ON author_ref USING btree (key_id, value);
 
 
 --
--- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_ref_thing_id_idx ON author_ref USING btree (thing_id);
 
 
 --
--- Name: author_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_str_idx ON author_str USING btree (key_id, value);
 
 
 --
--- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: author_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX author_str_thing_id_idx ON author_str USING btree (thing_id);
 
 
 --
--- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: data_thing_id_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE UNIQUE INDEX data_thing_id_revision_idx ON data USING btree (thing_id, revision);
 
 
 --
--- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_int_idx ON datum_int USING btree (key_id, value);
 
 
 --
--- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_int_thing_id_idx ON datum_int USING btree (thing_id);
 
 
 --
--- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_ref_idx ON datum_ref USING btree (key_id, value);
 
 
 --
--- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_ref_thing_id_idx ON datum_ref USING btree (thing_id);
 
 
 --
--- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_str_idx ON datum_str USING btree (key_id, value);
 
 
 --
--- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: datum_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX datum_str_thing_id_idx ON datum_str USING btree (thing_id);
 
 
 --
--- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_boolean_idx ON edition_boolean USING btree (key_id, value);
 
 
 --
--- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_boolean_thing_id_idx ON edition_boolean USING btree (thing_id);
 
 
 --
--- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_int_idx ON edition_int USING btree (key_id, value);
 
 
 --
--- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_int_thing_id_idx ON edition_int USING btree (thing_id);
 
 
 --
--- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_ref_idx ON edition_ref USING btree (key_id, value);
 
 
 --
--- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_ref_thing_id_idx ON edition_ref USING btree (thing_id);
 
 
 --
--- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_str_idx ON edition_str USING btree (key_id, value);
 
 
 --
--- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: edition_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX edition_str_thing_id_idx ON edition_str USING btree (thing_id);
 
 
 --
--- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_boolean_idx ON publisher_boolean USING btree (key_id, value);
 
 
 --
--- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_boolean_thing_id_idx ON publisher_boolean USING btree (thing_id);
 
 
 --
--- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_int_idx ON publisher_int USING btree (key_id, value);
 
 
 --
--- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_int_thing_id_idx ON publisher_int USING btree (thing_id);
 
 
 --
--- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_ref_idx ON publisher_ref USING btree (key_id, value);
 
 
 --
--- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_ref_thing_id_idx ON publisher_ref USING btree (thing_id);
 
 
 --
--- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_str_idx ON publisher_str USING btree (key_id, value);
 
 
 --
--- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: publisher_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX publisher_str_thing_id_idx ON publisher_str USING btree (thing_id);
 
 
 --
--- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_boolean_idx ON scan_boolean USING btree (key_id, value);
 
 
 --
--- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_boolean_thing_id_idx ON scan_boolean USING btree (thing_id);
 
 
 --
--- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_int_idx ON scan_int USING btree (key_id, value);
 
 
 --
--- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_int_thing_id_idx ON scan_int USING btree (thing_id);
 
 
 --
--- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_ref_idx ON scan_ref USING btree (key_id, value);
 
 
 --
--- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_ref_thing_id_idx ON scan_ref USING btree (thing_id);
 
 
 --
--- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_str_idx ON scan_str USING btree (key_id, value);
 
 
 --
--- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: scan_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX scan_str_thing_id_idx ON scan_str USING btree (thing_id);
 
 
 --
--- Name: store_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX store_idx ON store_index USING btree (type, name, value);
 
 
 --
--- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: store_index_store_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX store_index_store_id_idx ON store_index USING btree (store_id);
 
 
 --
--- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_boolean_idx ON subject_boolean USING btree (key_id, value);
 
 
 --
--- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_boolean_thing_id_idx ON subject_boolean USING btree (thing_id);
 
 
 --
--- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_int_idx ON subject_int USING btree (key_id, value);
 
 
 --
--- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_int_thing_id_idx ON subject_int USING btree (thing_id);
 
 
 --
--- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_ref_idx ON subject_ref USING btree (key_id, value);
 
 
 --
--- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_ref_thing_id_idx ON subject_ref USING btree (thing_id);
 
 
 --
--- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_str_idx ON subject_str USING btree (key_id, value);
 
 
 --
--- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: subject_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX subject_str_thing_id_idx ON subject_str USING btree (thing_id);
 
 
 --
--- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_created_idx ON thing USING btree (created);
 
 
 --
--- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_key_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE UNIQUE INDEX thing_key_idx ON thing USING btree (key);
 
 
 --
--- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_last_modified_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_last_modified_idx ON thing USING btree (last_modified);
 
 
 --
--- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_latest_revision_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_latest_revision_idx ON thing USING btree (latest_revision);
 
 
 --
--- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_olid_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_olid_idx ON thing USING btree (get_olid(key));
 
 
 --
--- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: thing_type_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX thing_type_idx ON thing USING btree (type);
 
 
 --
--- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_author_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_author_id_idx ON transaction USING btree (author_id);
 
 
 --
--- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_created_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_created_idx ON transaction USING btree (created);
 
 
 --
--- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_index_key_value_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_index_key_value_idx ON transaction_index USING btree (key, value);
 
 
 --
--- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_index_tx_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_index_tx_id_idx ON transaction_index USING btree (tx_id);
 
 
 --
--- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: transaction_ip_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX transaction_ip_idx ON transaction USING btree (ip);
 
 
 --
--- Name: type_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_int_idx ON type_int USING btree (key_id, value);
 
 
 --
--- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_int_thing_id_idx ON type_int USING btree (thing_id);
 
 
 --
--- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_ref_idx ON type_ref USING btree (key_id, value);
 
 
 --
--- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_ref_thing_id_idx ON type_ref USING btree (thing_id);
 
 
 --
--- Name: type_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_str_idx ON type_str USING btree (key_id, value);
 
 
 --
--- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: type_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX type_str_thing_id_idx ON type_str USING btree (thing_id);
 
 
 --
--- Name: user_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_int_idx ON user_int USING btree (key_id, value);
 
 
 --
--- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_int_thing_id_idx ON user_int USING btree (thing_id);
 
 
 --
--- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_ref_idx ON user_ref USING btree (key_id, value);
 
 
 --
--- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_ref_thing_id_idx ON user_ref USING btree (thing_id);
 
 
 --
--- Name: user_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_str_idx ON user_str USING btree (key_id, value);
 
 
 --
--- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: user_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX user_str_thing_id_idx ON user_str USING btree (thing_id);
 
 
 --
--- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_boolean_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_boolean_idx ON work_boolean USING btree (key_id, value);
 
 
 --
--- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_boolean_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_boolean_thing_id_idx ON work_boolean USING btree (thing_id);
 
 
 --
--- Name: work_int_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_int_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_int_idx ON work_int USING btree (key_id, value);
 
 
 --
--- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_int_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_int_thing_id_idx ON work_int USING btree (thing_id);
 
 
 --
--- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_ref_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_ref_idx ON work_ref USING btree (key_id, value);
 
 
 --
--- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_ref_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_ref_thing_id_idx ON work_ref USING btree (thing_id);
 
 
 --
--- Name: work_str_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_str_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_str_idx ON work_str USING btree (key_id, value);
 
 
 --
--- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: vagrant; Tablespace: 
+-- Name: work_str_thing_id_idx; Type: INDEX; Schema: public; Owner: openlibrary; Tablespace:
 --
 
 CREATE INDEX work_str_thing_id_idx ON work_str USING btree (thing_id);
 
 
 --
--- Name: account_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: account_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY account
@@ -8253,7 +8253,7 @@ ALTER TABLE ONLY account
 
 
 --
--- Name: author_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_boolean
@@ -8261,7 +8261,7 @@ ALTER TABLE ONLY author_boolean
 
 
 --
--- Name: author_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_boolean
@@ -8269,7 +8269,7 @@ ALTER TABLE ONLY author_boolean
 
 
 --
--- Name: author_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_int
@@ -8277,7 +8277,7 @@ ALTER TABLE ONLY author_int
 
 
 --
--- Name: author_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_int
@@ -8285,7 +8285,7 @@ ALTER TABLE ONLY author_int
 
 
 --
--- Name: author_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_ref
@@ -8293,7 +8293,7 @@ ALTER TABLE ONLY author_ref
 
 
 --
--- Name: author_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_ref
@@ -8301,7 +8301,7 @@ ALTER TABLE ONLY author_ref
 
 
 --
--- Name: author_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_ref
@@ -8309,7 +8309,7 @@ ALTER TABLE ONLY author_ref
 
 
 --
--- Name: author_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_str
@@ -8317,7 +8317,7 @@ ALTER TABLE ONLY author_str
 
 
 --
--- Name: author_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: author_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY author_str
@@ -8325,7 +8325,7 @@ ALTER TABLE ONLY author_str
 
 
 --
--- Name: data_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: data_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY data
@@ -8333,7 +8333,7 @@ ALTER TABLE ONLY data
 
 
 --
--- Name: datum_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_int
@@ -8341,7 +8341,7 @@ ALTER TABLE ONLY datum_int
 
 
 --
--- Name: datum_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_int
@@ -8349,7 +8349,7 @@ ALTER TABLE ONLY datum_int
 
 
 --
--- Name: datum_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_ref
@@ -8357,7 +8357,7 @@ ALTER TABLE ONLY datum_ref
 
 
 --
--- Name: datum_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_ref
@@ -8365,7 +8365,7 @@ ALTER TABLE ONLY datum_ref
 
 
 --
--- Name: datum_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_ref
@@ -8373,7 +8373,7 @@ ALTER TABLE ONLY datum_ref
 
 
 --
--- Name: datum_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_str
@@ -8381,7 +8381,7 @@ ALTER TABLE ONLY datum_str
 
 
 --
--- Name: datum_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: datum_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY datum_str
@@ -8389,7 +8389,7 @@ ALTER TABLE ONLY datum_str
 
 
 --
--- Name: edition_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_boolean
@@ -8397,7 +8397,7 @@ ALTER TABLE ONLY edition_boolean
 
 
 --
--- Name: edition_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_boolean
@@ -8405,7 +8405,7 @@ ALTER TABLE ONLY edition_boolean
 
 
 --
--- Name: edition_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_int
@@ -8413,7 +8413,7 @@ ALTER TABLE ONLY edition_int
 
 
 --
--- Name: edition_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_int
@@ -8421,7 +8421,7 @@ ALTER TABLE ONLY edition_int
 
 
 --
--- Name: edition_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_ref
@@ -8429,7 +8429,7 @@ ALTER TABLE ONLY edition_ref
 
 
 --
--- Name: edition_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_ref
@@ -8437,7 +8437,7 @@ ALTER TABLE ONLY edition_ref
 
 
 --
--- Name: edition_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_ref
@@ -8445,7 +8445,7 @@ ALTER TABLE ONLY edition_ref
 
 
 --
--- Name: edition_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_str
@@ -8453,7 +8453,7 @@ ALTER TABLE ONLY edition_str
 
 
 --
--- Name: edition_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: edition_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY edition_str
@@ -8461,7 +8461,7 @@ ALTER TABLE ONLY edition_str
 
 
 --
--- Name: property_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: property_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY property
@@ -8469,7 +8469,7 @@ ALTER TABLE ONLY property
 
 
 --
--- Name: publisher_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_boolean
@@ -8477,7 +8477,7 @@ ALTER TABLE ONLY publisher_boolean
 
 
 --
--- Name: publisher_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_boolean
@@ -8485,7 +8485,7 @@ ALTER TABLE ONLY publisher_boolean
 
 
 --
--- Name: publisher_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_int
@@ -8493,7 +8493,7 @@ ALTER TABLE ONLY publisher_int
 
 
 --
--- Name: publisher_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_int
@@ -8501,7 +8501,7 @@ ALTER TABLE ONLY publisher_int
 
 
 --
--- Name: publisher_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_ref
@@ -8509,7 +8509,7 @@ ALTER TABLE ONLY publisher_ref
 
 
 --
--- Name: publisher_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_ref
@@ -8517,7 +8517,7 @@ ALTER TABLE ONLY publisher_ref
 
 
 --
--- Name: publisher_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_ref
@@ -8525,7 +8525,7 @@ ALTER TABLE ONLY publisher_ref
 
 
 --
--- Name: publisher_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_str
@@ -8533,7 +8533,7 @@ ALTER TABLE ONLY publisher_str
 
 
 --
--- Name: publisher_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: publisher_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY publisher_str
@@ -8541,7 +8541,7 @@ ALTER TABLE ONLY publisher_str
 
 
 --
--- Name: scan_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_boolean
@@ -8549,7 +8549,7 @@ ALTER TABLE ONLY scan_boolean
 
 
 --
--- Name: scan_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_boolean
@@ -8557,7 +8557,7 @@ ALTER TABLE ONLY scan_boolean
 
 
 --
--- Name: scan_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_int
@@ -8565,7 +8565,7 @@ ALTER TABLE ONLY scan_int
 
 
 --
--- Name: scan_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_int
@@ -8573,7 +8573,7 @@ ALTER TABLE ONLY scan_int
 
 
 --
--- Name: scan_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_ref
@@ -8581,7 +8581,7 @@ ALTER TABLE ONLY scan_ref
 
 
 --
--- Name: scan_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_ref
@@ -8589,7 +8589,7 @@ ALTER TABLE ONLY scan_ref
 
 
 --
--- Name: scan_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_ref
@@ -8597,7 +8597,7 @@ ALTER TABLE ONLY scan_ref
 
 
 --
--- Name: scan_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_str
@@ -8605,7 +8605,7 @@ ALTER TABLE ONLY scan_str
 
 
 --
--- Name: scan_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: scan_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY scan_str
@@ -8613,7 +8613,7 @@ ALTER TABLE ONLY scan_str
 
 
 --
--- Name: store_index_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: store_index_store_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY store_index
@@ -8621,7 +8621,7 @@ ALTER TABLE ONLY store_index
 
 
 --
--- Name: subject_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_boolean
@@ -8629,7 +8629,7 @@ ALTER TABLE ONLY subject_boolean
 
 
 --
--- Name: subject_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_boolean
@@ -8637,7 +8637,7 @@ ALTER TABLE ONLY subject_boolean
 
 
 --
--- Name: subject_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_int
@@ -8645,7 +8645,7 @@ ALTER TABLE ONLY subject_int
 
 
 --
--- Name: subject_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_int
@@ -8653,7 +8653,7 @@ ALTER TABLE ONLY subject_int
 
 
 --
--- Name: subject_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_ref
@@ -8661,7 +8661,7 @@ ALTER TABLE ONLY subject_ref
 
 
 --
--- Name: subject_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_ref
@@ -8669,7 +8669,7 @@ ALTER TABLE ONLY subject_ref
 
 
 --
--- Name: subject_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_ref
@@ -8677,7 +8677,7 @@ ALTER TABLE ONLY subject_ref
 
 
 --
--- Name: subject_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_str
@@ -8685,7 +8685,7 @@ ALTER TABLE ONLY subject_str
 
 
 --
--- Name: subject_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: subject_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY subject_str
@@ -8693,7 +8693,7 @@ ALTER TABLE ONLY subject_str
 
 
 --
--- Name: thing_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: thing_type_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY thing
@@ -8701,7 +8701,7 @@ ALTER TABLE ONLY thing
 
 
 --
--- Name: transaction_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: transaction_author_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY transaction
@@ -8709,7 +8709,7 @@ ALTER TABLE ONLY transaction
 
 
 --
--- Name: transaction_index_tx_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: transaction_index_tx_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY transaction_index
@@ -8717,7 +8717,7 @@ ALTER TABLE ONLY transaction_index
 
 
 --
--- Name: type_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_int
@@ -8725,7 +8725,7 @@ ALTER TABLE ONLY type_int
 
 
 --
--- Name: type_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_int
@@ -8733,7 +8733,7 @@ ALTER TABLE ONLY type_int
 
 
 --
--- Name: type_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_ref
@@ -8741,7 +8741,7 @@ ALTER TABLE ONLY type_ref
 
 
 --
--- Name: type_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_ref
@@ -8749,7 +8749,7 @@ ALTER TABLE ONLY type_ref
 
 
 --
--- Name: type_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_ref
@@ -8757,7 +8757,7 @@ ALTER TABLE ONLY type_ref
 
 
 --
--- Name: type_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_str
@@ -8765,7 +8765,7 @@ ALTER TABLE ONLY type_str
 
 
 --
--- Name: type_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: type_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY type_str
@@ -8773,7 +8773,7 @@ ALTER TABLE ONLY type_str
 
 
 --
--- Name: user_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_int
@@ -8781,7 +8781,7 @@ ALTER TABLE ONLY user_int
 
 
 --
--- Name: user_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_int
@@ -8789,7 +8789,7 @@ ALTER TABLE ONLY user_int
 
 
 --
--- Name: user_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_ref
@@ -8797,7 +8797,7 @@ ALTER TABLE ONLY user_ref
 
 
 --
--- Name: user_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_ref
@@ -8805,7 +8805,7 @@ ALTER TABLE ONLY user_ref
 
 
 --
--- Name: user_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_ref
@@ -8813,7 +8813,7 @@ ALTER TABLE ONLY user_ref
 
 
 --
--- Name: user_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_str
@@ -8821,7 +8821,7 @@ ALTER TABLE ONLY user_str
 
 
 --
--- Name: user_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: user_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY user_str
@@ -8829,7 +8829,7 @@ ALTER TABLE ONLY user_str
 
 
 --
--- Name: version_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: version_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY version
@@ -8837,7 +8837,7 @@ ALTER TABLE ONLY version
 
 
 --
--- Name: version_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: version_transaction_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY version
@@ -8845,7 +8845,7 @@ ALTER TABLE ONLY version
 
 
 --
--- Name: work_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_boolean_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_boolean
@@ -8853,7 +8853,7 @@ ALTER TABLE ONLY work_boolean
 
 
 --
--- Name: work_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_boolean_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_boolean
@@ -8861,7 +8861,7 @@ ALTER TABLE ONLY work_boolean
 
 
 --
--- Name: work_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_int_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_int
@@ -8869,7 +8869,7 @@ ALTER TABLE ONLY work_int
 
 
 --
--- Name: work_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_int_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_int
@@ -8877,7 +8877,7 @@ ALTER TABLE ONLY work_int
 
 
 --
--- Name: work_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_ref_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_ref
@@ -8885,7 +8885,7 @@ ALTER TABLE ONLY work_ref
 
 
 --
--- Name: work_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_ref_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_ref
@@ -8893,7 +8893,7 @@ ALTER TABLE ONLY work_ref
 
 
 --
--- Name: work_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_ref_value_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_ref
@@ -8901,7 +8901,7 @@ ALTER TABLE ONLY work_ref
 
 
 --
--- Name: work_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_str_key_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_str
@@ -8909,7 +8909,7 @@ ALTER TABLE ONLY work_str
 
 
 --
--- Name: work_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: vagrant
+-- Name: work_str_thing_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: openlibrary
 --
 
 ALTER TABLE ONLY work_str
