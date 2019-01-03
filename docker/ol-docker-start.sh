@@ -3,7 +3,7 @@
 # quick method to start all ol services from one script
 # inside an container, bypass all upstart/services
 
-CONFIG=conf/openlibrary-docker.yml
+CONFIG=conf/openlibrary.yml
 
 reindex-solr() {
   server=$1

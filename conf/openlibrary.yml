@@ -15,7 +15,7 @@ smtp_server: localhost
 dummy_sendmail: True
 debug: True
 
-coverstore_url: http://0.0.0.0:8080/covers/
+coverstore_url: http://0.0.0.0/covers/
 
 state_dir: var/run
 
@@ -37,7 +37,7 @@ loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
 memcache_servers:
-    - localhost:11211
+    - memcached:11211
 
 plugin_modules:
     - openlibrary
@@ -45,7 +45,7 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr: localhost:8983
+    solr: solr:8080
     spellcheck_count: 3
     ebook_count_db_parameters:
         db: openlibrary_ebook_count
@@ -53,7 +53,7 @@ plugin_worksearch:
 
 http_request_timeout: 10
 
-stats_solr: localhost:8983
+stats_solr: solr:8080
 
 features:
     upstream: enabled
@@ -72,6 +72,7 @@ features:
     stats-header: enabled
     inlibrary: enabled
     support: admin
+    dev: enabled
     superfast: enabled
     publishers: enabled
 
@@ -162,8 +163,8 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_loan_api_url: http://127.0.0.1:8080/internal/fake/loans
-ia_xauth_api_url: http://127.0.0.1:8080/internal/fake/xauth
+ia_loan_api_url: http://127.0.0.1/internal/fake/loans
+ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v1_url: https://archive.org/services/loans/beta/loan/index.php
