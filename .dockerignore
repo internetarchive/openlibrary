@@ -1,4 +1,3 @@
-.vagrant
 .git/objects/*
 solr-update*
 errors
