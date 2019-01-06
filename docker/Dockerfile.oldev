@@ -5,8 +5,6 @@ WORKDIR /openlibrary
 USER openlibrary
 
 # Setup db
-# Replace user in dev db dump
-RUN sed -i 's/vagrant/openlibrary/g' scripts/dev-instance/dev_db.pg_dump
 USER postgres
 RUN /etc/init.d/postgresql start \
   && createuser -s openlibrary \
