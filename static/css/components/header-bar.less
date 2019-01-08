@@ -10,7 +10,7 @@
 
 @import (less) "less/z-index.less";
 
-header {
+.header-bar {
   max-width: 960px;
   min-width: 300px;
   margin: 0 auto;
@@ -54,7 +54,7 @@ header {
       padding-top: 5px;
       right: 11px;
 
-      // stylelint-disable-next-line max-nesting-depth
+      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
       ul a li {
         width: 150px;
         text-decoration: none;
@@ -103,7 +103,7 @@ header {
       border-bottom: 1px solid @beige-two;
       padding-right: 20px;
 
-      // stylelint-disable max-nesting-depth
+      // stylelint-disable max-nesting-depth, selector-max-specificity
       &:last-child {
         border: none;
       }
@@ -119,7 +119,7 @@ header {
         padding: 10px;
         display: block;
       }
-      // stylelint-enable max-nesting-depth
+      // stylelint-enable max-nesting-depth, selector-max-specificity
     }
   }
 
@@ -186,7 +186,7 @@ header {
       padding: 5px 0;
       font-size: 1em;
 
-      // stylelint-disable max-nesting-depth
+      // stylelint-disable max-nesting-depth, selector-max-specificity
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -214,7 +214,7 @@ header {
         position: relative;
       }
     }
-    // stylelint-enable max-nesting-depth
+    // stylelint-enable max-nesting-depth, selector-max-specificity
   }
 
   .search-component {
@@ -386,6 +386,7 @@ header {
       font-weight: 500;
       color: @grey;
 
+      // stylelint-disable-next-line selector-max-specificity
       select {
         font-size: inherit;
         font-family: inherit;
@@ -407,6 +408,7 @@ header {
       min-width: 20px;
 
       padding-right: 10px;
+      // stylelint-disable-next-line selector-max-specificity
       &::after {
         position: absolute;
         top: 50%;
@@ -589,7 +591,7 @@ header {
 
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
-  header {
+  .header-bar {
     .logo-component {
       .logo-icon {
         height: 47px;
@@ -607,7 +609,7 @@ header {
 }
 
 @media only screen and (min-width: 30em) {
-  header {
+  .header-bar {
     margin: 0 auto;
 
     .account-component {
@@ -658,7 +660,7 @@ header {
 
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 35.5em) {
-  header{
+  .header-bar {
     .account-component {
       -webkit-box-flex: 0;
       -ms-flex: none;
