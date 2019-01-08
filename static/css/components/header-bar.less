@@ -10,7 +10,7 @@
 
 @import (less) "less/z-index.less";
 
-.header-bar {
+header {
   max-width: 960px;
   min-width: 300px;
   margin: 0 auto;
@@ -54,7 +54,7 @@
       padding-top: 5px;
       right: 11px;
 
-      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
+      // stylelint-disable-next-line max-nesting-depth
       ul a li {
         width: 150px;
         text-decoration: none;
@@ -103,7 +103,7 @@
       border-bottom: 1px solid @beige-two;
       padding-right: 20px;
 
-      // stylelint-disable max-nesting-depth, selector-max-specificity
+      // stylelint-disable max-nesting-depth
       &:last-child {
         border: none;
       }
@@ -119,7 +119,7 @@
         padding: 10px;
         display: block;
       }
-      // stylelint-enable max-nesting-depth, selector-max-specificity
+      // stylelint-enable max-nesting-depth
     }
   }
 
@@ -186,7 +186,7 @@
       padding: 5px 0;
       font-size: 1em;
 
-      // stylelint-disable max-nesting-depth, selector-max-specificity
+      // stylelint-disable max-nesting-depth
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -214,7 +214,7 @@
         position: relative;
       }
     }
-    // stylelint-enable max-nesting-depth, selector-max-specificity
+    // stylelint-enable max-nesting-depth
   }
 
   .search-component {
@@ -386,7 +386,6 @@
       font-weight: 500;
       color: @grey;
 
-      // stylelint-disable-next-line selector-max-specificity
       select {
         font-size: inherit;
         font-family: inherit;
@@ -408,7 +407,6 @@
       min-width: 20px;
 
       padding-right: 10px;
-      // stylelint-disable-next-line selector-max-specificity
       &::after {
         position: absolute;
         top: 50%;
