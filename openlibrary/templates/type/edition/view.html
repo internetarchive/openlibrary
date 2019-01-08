@@ -1,6 +1,7 @@
 $def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
+$ ocaid = page.get('ocaid')
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
 $ book_subtitle = page.subtitle if page.get('subtitle') else (work.subtitle if work and work.get('subtitle') else '')
@@ -95,7 +96,30 @@ $def display_contributor(c):
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$if ctx.user and ctx.user.is_admin():
+  <div class="admin-bar">
+    $ work = page.works and page.works[0]
+    $if work:
+      <!-- Add this whole work to staff picks -->
+      <form action="/admin/staffpicks" method="POST">
+        <input type="hidden" value="add" name="action"/>
+        <input type="hidden" name="work_id" value="$(work.key.split('/')[2])"/>
+        <input type="submit" value="Add to Staff Picks"/>
+      </form>
+    $if ocaid:
+      <form method="GET" action="/admin/sync">
+        <input type="hidden" name="edition_id" value="$(page.key.split('/')[2])"/>
+        <input type="submit" value="Sync Archive.org ID"/>
+      </form>
+      <form method="GET" action="https://archive.org/details/$ocaid">
+        <input type="submit" value="View Book on Archive.org"/>
+      </form>
+    $if not work:
+      <strong>Orphaned Edition!</strong>
+  </div>
+
 <div id="contentHead">
+
     <table width="100%">
       <tbody>
         <tr>
@@ -110,6 +134,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <td valign="top" width="100%">
     $:macros.databarView(page)
+
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
         <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
