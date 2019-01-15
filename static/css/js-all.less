@@ -27,6 +27,23 @@
 
 @import (less) 'components/wmd-prompt-dialog--js.less';
 
+// openlibrary/plugins/openlibrary/js/subjects.js
+.coverEbook {
+  cursor: pointer;
+  z-index: @z-index-level-6;
+  img {
+    opacity: .85;
+    filter: alpha(opacity=85);
+  }
+  a.cta-btn {
+    position: absolute;
+    padding: 0 5px;
+    right: 0;
+    bottom: 3px;
+    border-radius: 3px;
+  }
+}
+
 // Not clear if these are needed. please review.
 .tools a {
   // The on class is added inside openlibrary/plugins/openlibrary/js/ol.js
