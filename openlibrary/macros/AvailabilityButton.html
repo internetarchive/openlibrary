@@ -14,6 +14,8 @@ $ availability_status = availability.get('status', 'error')
 $ wlsize = availability.get('num_waitlist', 0)
 $ current_and_available_loans = []
 
+
+
 $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $ read_link = '/borrow/ia/%s' % availability['identifier']
 
@@ -62,7 +64,12 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $elif (availability_status == 'open'):
     <a href="$read_link" data-ol-link-track="read_unrestricted" title="Use BookReader to read online"
        id="read_ebook" class="cta-btn--available cta-btn">Read</a>
+
 $else:
   <form>
     <input type="button" class="cta-btn--missing cta-btn" disabled value="No ebook available">
   </form>
+  $if page.ia:
+    $ daisy_url = "/ia/%s/daisy" % page.ia[0]
+    $:macros.daisy(page, url=daisy_url, msg="Print-disabled access available")
+

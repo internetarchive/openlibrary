@@ -93,6 +93,8 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           <form>
             <input type="submit" class="cta-btn cta-btn--missing" disabled value="No ebook available">
           </form>
+          $if book.ocaid:
+            $:macros.daisy(book)
       </div>
     </td>
 

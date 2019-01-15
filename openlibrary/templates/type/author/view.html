@@ -159,15 +159,12 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                 </span>
 
                 <span class="mode-options">
-                  <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-                  <label for="mode-search-everything">Everything</label>
-                  <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode">
-                  <label for="mode-search-ebooks">Ebooks</label>
-                  <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-                  <label for="mode-search-printdisabled">Print Disabled</label>
+                  <input type="checkbox" id="ebookmode" name="ebookmode" value="ebookmode">
+                  <label for="mode-search-ebooks">Readable titles only</label>
+                  
+                  <input type="checkbox" id="printdisabledmode" name="printdisabledmode" value="printdisabledmode">
+                  <label for="printdisabledmode">Include Print-Disabled titles</label> [<a href="/help/faq/accessing#what-is-accessible" name="What is print-disabled">?</a>]
                 </span>
-</p>
-
 
                 <div id="searchResults">
                     <ul id="siteSearch">

@@ -457,6 +457,25 @@ class search(delegate.page):
         if len(editions) == 1:
             raise web.seeother(editions[0])
 
+    def POST(self):
+        i = web.input(redir='/')
+
+        pd = i.get('printdisabled_mode')
+        rd = i.get('readable_mode')
+        cookie = web.cookies(printdisabled_mode="", readable_mode="")
+
+        if pd == 'true' and not cookie.printdisabled_mode:
+            web.setcookie('printdisabled_mode', 'true')
+        elif pd == 'false' and cookie.printdisabled_mode == 'true':
+            web.setcookie("printdisabled_mode", "", expires=-1)
+
+        if rd == 'true'  and not cookie.readable_mode:
+            web.setcookie("readable_mode", "true")
+        elif rd == 'false' and cookie.readable_mode == 'true':
+            web.setcookie("readable_mode", "", expires=-1)
+
+        raise web.seeother(i.redir)
+
     def GET(self):
         global ftoken_db
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
@@ -482,6 +501,7 @@ class search(delegate.page):
 
         q_list = []
         q = i.get('q', '').strip()
+
         if q:
             m = re_olid.match(q)
             if m:
@@ -494,6 +514,13 @@ class search(delegate.page):
             if k in i:
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
                 q_list.append(k + ':' + v)
+
+        cookie = web.cookies(printdisabled_mode="", readable_mode="")
+        i.printdisabled_mode = cookie.printdisabled_mode
+        i.readable_mode = cookie.readable_mode
+        if i.readable_mode:
+            i.has_fulltext = 'true'
+
         page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search)

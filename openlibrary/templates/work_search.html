@@ -2,7 +2,7 @@ $def with (input, q_param, do_search, get_doc, get_availability_of_ocaids, fullt
 
 $ fulltext_names = {'true': 'Ebooks', 'false': 'Exclude ebooks'}
 
-$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']
+$ facet_fields = ['has_fulltext', 'author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b']  
 
 $def add_facet_url(k, v):
     $if k != 'has_fulltext':
@@ -20,6 +20,8 @@ $ param = {}
 $for p in ['q', 'title', 'author', 'page', 'sort', 'isbn', 'oclc', 'contributor', 'publish_place', 'lccn', 'ia', 'first_sentence', 'publisher', 'author_key', 'debug', 'subject', 'place', 'person', 'time'] + facet_fields:
     $if p in input and input[p]:
         $ param[p] = input[p]
+
+
 
 $if param.keys() == ['has_fulltext']:
     $ param = {}
@@ -123,18 +125,27 @@ $ )
 <div id="contentBody">
   <div class="section">
 
+      <span class="mode-options" style="display: flex;">
+        <form method="post" action="/search">
+          <input type="hidden" name="redir" value="$ctx.path">
+          $ readable_mode = input.get('readable_mode')
+          <input type="hidden" name="readable_mode" value="$('false' if readable_mode else 'true')">
+          <input type="submit" class="search_mode" value="[$('X' if readable_mode else ' ')] Readable titles only"/>
+        </form>
+
+        <form method="post" action="/search">
+          <input type="hidden" name="redir" value="$ctx.path">
+          $ printdisabled_mode = input.get('printdisabled_mode')
+          <input type="hidden" name="printdisabled_mode" value="$('false' if printdisabled_mode else 'true')">
+          <input type="submit" class="search_mode" value="[$('X' if printdisabled_mode else ' ')] Include Print-Disabled titles"/>[<a href="/help/faq/accessing#what-is-accessible" title="What are print-disabled titles?">?</a>]
+        </form>
+      </span>
+
     <form method="get" action="/search" class="siteSearch olform">
       <label for="q" class="hidden">Keywords</label>
       <input type="text" name="q" id="q" value="$q_param" size="100"/>
       <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
-      <span class="mode-options">
-        <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-        <label for="mode-search-everything">Everything</label>
-        <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
-        <label for="mode-search-ebooks">Ebooks</label>
-        <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-        <label for="mode-search-printdisabled">Print Disabled</label>
-      </span>
+      
         $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
         $for k, values in param.items():
@@ -222,27 +233,35 @@ $ )
             //window.q.push(bookCovers);
         //-->
         </script>
+
+        $ works = add_availability([get_doc(d) for d in docs])
+
+        $ loans = ctx.user.get_loans() if ctx.user else []
+        $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
+        $ user = {'loans': loans, 'waitlists': waiting_loans}
+
         <div class="resultsContainer search-results-container">
-        <div id="searchResults">
-          <ul id="siteSearch">
-            $ works = add_availability([get_doc(d) for d in docs])
+          <div id="searchResults">
+            <ul id="siteSearch">
 
-            $ loans = ctx.user.get_loans() if ctx.user else []
-            $ waiting_loans = ctx.user.get_waitinglist() if ctx.user else []
-            $ user = {'loans': loans, 'waitlists': waiting_loans}
-
-            $for work in works:
+              $for work in works:
                 $ ocaid = work.ia[0] if work.ia else None
                 $ availability = work.get('availability', {}).get('status')
                 $# if we're explicitly showing *everything*...
-                $# or if we're showing only things with ocaids which are available...
-                $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
-                    $:macros.SearchResultsWork(work, user=user)
-          </ul>
-        </div>
-<!-- /results -->
+                $# or if we're showing only things with ocaids which are available...                
+                
+                $if printdisabled_mode and ocaid:
+                  $:macros.SearchResultsWork(work, user=user)
+                $elif readable_mode and (ocaid and availability and availability not in ['error', 'private']):
+                  $:macros.SearchResultsWork(work, user=user)
+                $elif not (printdisabled_mode or readable_mode):
+                  $:macros.SearchResultsWork(work, user=user)
+            </ul>
+          </div>
 
-<!-- facets -->
+ <!-- /results -->
+ 
+ <!-- facets -->
 
 $if error:
     <h3>BARF! Search engine ERROR!</h3>

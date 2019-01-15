@@ -24,10 +24,10 @@ $def render_carousel_cover(book, lazy):
     $ cta = 'Borrow'
   $elif book.get('ia') and book.get('public_scan'):
     $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
-    $ cta = 'Read eBook'
+    $ cta = 'Read'
   $elif book.get('lending_edition'):
     $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
-    $ cta = 'Borrow eBook'
+    $ cta = 'Borrow'
   $elif book.get('lending_edition'):
     $ cta_url = book.get('read_url')
     $ cta = 'Read'

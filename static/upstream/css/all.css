@@ -3493,6 +3493,8 @@ h3.Question {font-family: Georgia, "Palatino Linotype", "Book Antiqua", Palatino
 }
 .chartYaxis {
     position: absolute;
+    left: -65px;
+    top: 60px;
     text-align: center;
     vertical-align: middle;
     -webkit-transform: rotate(-90deg);

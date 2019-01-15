@@ -240,10 +240,15 @@ def get_availability_of_editions(ol_edition_ids):
 @public
 def get_realtime_availability_of_ocaid(ocaid):
     url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
+    statuses = {
+        'available': 'borrow_available',
+        'unavailable': 'borrow_unavailable',
+        'private': 'private',
+        'error': 'error'
+    }
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
         status = metadata.get('loans__status__status', 'error').lower()
         return {
             'status': statuses[status],
@@ -257,15 +262,16 @@ def get_realtime_availability_of_ocaid(ocaid):
 def add_availability(editions):
     """Adds API v2 availability info to editions, e.g. for work's editions table
     """
-    ocaids = [
-        (ed.get('ocaid') or ed.ia[0]) for ed in editions if
-        (ed.get('ia') or ed.get('ocaid'))
-    ]
+    def get_ocaid(ed):
+        if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
+            return ed.get('ocaid') or ed.get('identifier') or (
+                ed.ia[0] if isinstance(ed.ia, list) else ed.ia)
+
+    ocaids = [ocaid for ocaid in [get_ocaid(ed) for ed in editions] if ocaid]
     availability = get_availability_of_ocaids(ocaids)
+
     for i, ed in enumerate(editions):
-        ocaid = None
-        if ed.get('ocaid') or ed.get('ia'):
-            ocaid = ed.get('ocaid') or ed.get('ia')[0]
+        ocaid = get_ocaid(ed)
         editions[i]['availability'] = availability.get(ocaid) if ocaid else {
             'status': 'error'
         }

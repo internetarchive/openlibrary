@@ -9,37 +9,43 @@ var Browser = {
         return result;
     },
 
-    change_url: function(query) {
-        var getUrl = window.location;
-        var baseUrl = getUrl.protocol + "//" + getUrl.host +
-            "/" + getUrl.pathname.split('/')[1];
-        window.history.pushState({
-            "html": document.html,
-            "pageTitle": document.title + " " + query,
-        }, "", baseUrl + "?id=" + query);
+    addQueryParam: function(key, value) {
+        key = encodeURI(key); value = encodeURI(value);
+        var kvp = document.location.search.substr(1).split('&');
+
+        var i=kvp.length; var x; while(i--) 
+        {
+            x = kvp[i].split('=');
+
+            if (x[0]==key)
+            {
+                x[1] = value;
+                kvp[i] = x.join('=');
+                break;
+            }
+        }
+        
+        if(i<0) {kvp[kvp.length] = [key,value].join('=');}
+        
+        // this will reload the page, it's likely better to store 
+        // this until finished
+        return kvp.join('&')
     },
 
-    removeURLParameter: function(url, parameter) {
-        var urlparts = url.split('?');
-        var prefix = urlparts[0];
-        if (urlparts.length >= 2) {
-            var query = urlparts[1];
-            var paramPrefix = encodeURIComponent(parameter) + '=';
-            var params= query.split(/[&;]/g);
-
+    removeQueryParam: function(parameter) {
+        //prefer to use l.search if you have a location/link object
+        var prefix = encodeURIComponent(parameter)+'=';
+        var pars = document.location.search.substr(1).split('&');
+        
             //reverse iteration as may be destructive
-            for (var i = params.length; i-- > 0;) {
-                //idiom for string.startsWith
-                if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
-                    params.splice(i, 1);
-                }
+        for (var i= pars.length; i-- > 0;) {    
+            //idiom for string.startsWith
+            if (pars[i].lastIndexOf(prefix, 0) !== -1) {  
+                pars.splice(i, 1);
             }
-
-            url = prefix + (params.length > 0 ? '?' + params.join('&') : "");
-            return url;
-        } else {
-            return url;
         }
+        
+        return (pars.length > 0 ? '?' + pars.join('&') : '');
     }
 }
 
@@ -84,10 +90,6 @@ $().ready(function(){
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
 
-    // Search mode
-    var searchModes = ['everything', 'ebooks', 'printdisabled'];
-    var searchModeDefault = 'ebooks';
-
     // Maps search facet label with value
     var defaultFacet = "all";
     var searchFacets = {
@@ -110,7 +112,8 @@ $().ready(function(){
         if (limit) {
             url += '&limit=' + limit;
         }
-        return url + '&mode=' + localStorage.getItem('mode');
+        
+        return url + '&readable_mode=' + localStorage.getItem('readable_mode') + '&printdisabled_mode=' + localStorage.getItem('printdisabled_mode');
     }
 
     var marshalBookSearchQuery = function(q) {
@@ -160,56 +163,12 @@ $().ready(function(){
         renderInstantSearchResults(q);
     }
 
-    var setMode = function(form) {
-        if (!$(form).length) {
-            return;
-        }
-
-        $("input[value='Protected DAISY']").remove();
-        $("input[name='has_fulltext']").remove();
-
-        var url = $(form).attr('action');
-        if (url) {
-            url = Browser.removeURLParameter(url, 'm');
-            url = Browser.removeURLParameter(url, 'has_fulltext');
-            url = Browser.removeURLParameter(url, 'subject_facet');
-        } else {
-            // Don't set mode if no action.. it's too risky!
-            // see https://github.com/internetarchive/openlibrary/issues/1569
-            return;
-        }
-
-        if (localStorage.getItem('mode') !== 'everything') {
-            $(form).append('<input type="hidden" name="m" value="edit"/>');
-            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'm=edit';
-            $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
-            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'has_fulltext=true';
-        } if (localStorage.getItem('mode') === 'printdisabled') {
-            $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-            url = url + (url.indexOf('?') > -1 ? '&' : '?')  + 'subject_facet=Protected DAISY';
-        }
-        $(form).attr('action', url);
-    }
-
-    var setSearchMode = function(mode) {
-        var searchMode = mode || localStorage.getItem("mode");
-        var isValidMode = searchModes.indexOf(searchMode) != -1;
-        localStorage.setItem('mode', isValidMode?
-            searchMode : searchModeDefault);
-        $('.instantsearch-mode').val(localStorage.getItem("mode"));
-        $('input[name=mode][value=' + localStorage.getItem("mode") + ']')
-            .attr('checked', 'true');
-        setMode('.olform');
-        setMode('.search-bar-input');
-    }
-
-    var options = Browser.getJsonFromUrl();
-
     if (!searchFacets[localStorage.getItem("facet")]) {
         localStorage.setItem("facet", defaultFacet)
     }
+
+    var options = Browser.getJsonFromUrl();
     setFacet(options.facet || localStorage.getItem("facet") || defaultFacet);
-    setSearchMode(options.mode);
 
     if (options.q) {
         var q = options.q.replace(/\+/g, " ")
@@ -250,6 +209,17 @@ $().ready(function(){
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
     });
+
+    // when printdisabled_mode or readable_mode clicked
+    // update localStorage settings
+    $('.search_mode').live('click', debounce(function() {
+        var checked = $(this).prop("checked");
+        var mode_id = $(this).attr('id');
+        localStorage.setItem(mode_id, checked.toString());
+        document.location.search = checked ? 
+            Browser.addQueryParam(mode_id, checked) :
+            Browser.removeQueryParam(mode_id);
+    }));
 
     var enteredSearchMinimized = false;
     var searchExpansionActivated = false;
@@ -321,36 +291,23 @@ $().ready(function(){
         }
     }
 
-    /* eslint-disable no-unused-vars */
-    // e is a event object
-    $('form.search-bar-input').submit(function(e) {
+    $('form.search-bar-input').submit(function() {
         q = $('header#header-bar .search-component .search-bar-input input').val();
         var facet_value = searchFacets[localStorage.getItem("facet")];
         if (facet_value === 'books') {
             $('header#header-bar .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
         }
-        setMode('.search-bar-input');
     });
-    /* eslint-enable no-unused-vars */
 
 
     $('.search-mode').change(function() {
         $('html,body').css('cursor', 'wait');
-        setSearchMode($(this).val());
+        setSearchModes($(this).val());
         if ($('.olform').length) {
             $('.olform').submit();
         } else {
             location.reload();
         }
-    });
-
-    $('.olform').submit(function() {
-        if (localStorage.getItem('mode') !== 'everything') {
-            $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
-        } if (localStorage.getItem('mode') === 'printdisabled') {
-            $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-        }
-
     });
 
     $('li.instant-result a').live('click', function() {

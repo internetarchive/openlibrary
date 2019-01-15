@@ -86,7 +86,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
 
 
 $if editions_page and page.get('ocaid'):
-  $:macros.daisy(page, block_name)
+  $:macros.daisy(page, block_name=block_name)
 
   $# If waitlisted, show other possible editions after daisy download link
   $if (availability_status == 'borrow_unavailable'):
