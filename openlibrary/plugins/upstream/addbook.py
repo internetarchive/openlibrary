@@ -406,13 +406,14 @@ class SaveBookHelper:
                 self.delete(self.work.key, comment=comment)
             return
 
-        for i, author in enumerate(work_data.get("authors") or []):
-            if author['author']['key'] == "__new__":
-                a = self.new_author(formdata['authors'][i])
-                author['author']['key'] = a.key
-                saveutil.save(a)
-
         if work_data:
+            # Create any new authors that were added
+            for i, author in enumerate(work_data.get("authors") or []):
+                if author['author']['key'] == "__new__":
+                    a = self.new_author(formdata['authors'][i])
+                    author['author']['key'] = a.key
+                    saveutil.save(a)
+
             if self.work is None:
                 self.work = self.new_work(self.edition)
                 edition_data.works = [{'key': self.work.key}]
@@ -504,7 +505,7 @@ class SaveBookHelper:
         else:
             edition = None
 
-        if 'work' in i:
+        if 'work' in i and self.do_work_keys_match(i):
             work = self.process_work(i.work)
         else:
             work = None
@@ -532,7 +533,11 @@ class SaveBookHelper:
         return edition
 
     def process_work(self, work):
-        """Process input data for work."""
+        """
+        Process input data for work.
+        :param web.storage work: form data work info
+        :return:
+        """
         def read_subject(subjects):
             if not subjects:
                 return
@@ -599,6 +604,22 @@ class SaveBookHelper:
         if self.edition and self.edition.get('ocaid') and self.edition.get('ocaid') != ocaid:
             logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
             raise ValidationException("Changing Internet Archive ID is not allowed.")
+
+    def do_work_keys_match(self, i):
+        """
+        Check if the form data's work matches the form data's edition's work.
+        :param web.storage i: form data
+        :rtype: bool
+        """
+        if not ('edition' in i) or not ('work' in i):
+            return True
+
+        work_key = i.work.key
+        edition_work_key = None
+        if 'works' in i.edition and i.edition.works:
+            edition_work_key = i.edition.works[0].key
+
+        return work_key == edition_work_key
 
 
 class book_edit(delegate.page):
