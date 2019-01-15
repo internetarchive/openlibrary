@@ -133,3 +133,12 @@
     padding: 15px 30px 20px !important;
   }
 }
+
+/* Caution! Ensure accessibility in print and other media types... */
+@media projection, screen, print {
+  /* Use class for showing/hiding tab content,
+  so that visibility can be better controlled in different media types... */
+  .ui-tabs-hide {
+    display: none;
+  }
+}

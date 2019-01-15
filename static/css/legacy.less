@@ -1202,17 +1202,6 @@ div.searchOptions {
 }
 
 /* DIALOGS */
-.ui-widget-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: @black;
-  opacity: .5;
-  filter: alpha(opacity=50);
-  z-index: @z-index-level-13 !important;
-}
 
 div.cclicense {
   font-family: @lucida_sans_serif-2;
@@ -2608,22 +2597,6 @@ div.addfield {
   }
 }
 
-// Probably not used. Please review.
-.ui-sortable {
-  min-height: 90px;
-  max-height: 270px;
-  overflow: auto;
-  &-placeholder {
-    border: 1px dotted @mid-grey;
-    visibility: visible !important;
-    height: 70px !important;
-    border-radius: 6px;
-    * {
-      visibility: hidden;
-    }
-  }
-}
-
 /* TABS */
 
 /* Skin */
@@ -3572,21 +3545,5 @@ ul#myreads-paginator {
     &Spacer {
       float: left;
     }
-  }
-}
-
-/* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen {
-  /* Use class for showing/hiding tab content,
-  so that visibility can be better controlled in different media types... */
-  .ui-tabs-hide {
-    display: none;
-  }
-}
-
-/* Hide useless elements in print layouts... */
-@media print {
-  .ui-tabs-nav {
-    display: none;
   }
 }
