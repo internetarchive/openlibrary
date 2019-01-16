@@ -1202,17 +1202,6 @@ div.searchOptions {
 }
 
 /* DIALOGS */
-.ui-widget-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: @black;
-  opacity: .5;
-  filter: alpha(opacity=50);
-  z-index: @z-index-level-13 !important;
-}
 
 div.cclicense {
   font-family: @lucida_sans_serif-2;
@@ -1574,20 +1563,7 @@ div#searchResults {
   }
 }
 
-.coverEbook {
-  img {
-    opacity: .85;
-    filter: alpha(opacity=85);
-  }
-  a.cta-btn {
-    position: absolute;
-    padding: 0 5px;
-    right: 0;
-    bottom: 3px;
-    border-radius: 3px;
-  }
-}
-
+// openlibrary/plugins/openlibrary/js/availability.js
 .borrow_ {
   &available {
     background-color: @primary-blue;
@@ -1908,11 +1884,6 @@ tr {
       padding-left: 30px !important;
     }
   }
-}
-
-img.cover {
-  border-radius: 5px;
-  box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
 }
 
 #cover {
@@ -2318,13 +2289,7 @@ div#history {
   }
 }
 
-.coverMagic {
-  .coverEbook {
-    cursor: pointer;
-    z-index: @z-index-level-6;
-  }
-}
-
+// unused?
 #contentLists {
   &.results {
     .coverMagic {
@@ -2610,22 +2575,6 @@ div.addfield {
     padding: 0;
     font-family: @lucida_sans_serif-1;
     font-size: .75em;
-  }
-}
-
-// Probably not used. Please review.
-.ui-sortable {
-  min-height: 90px;
-  max-height: 270px;
-  overflow: auto;
-  &-placeholder {
-    border: 1px dotted @mid-grey;
-    visibility: visible !important;
-    height: 70px !important;
-    border-radius: 6px;
-    * {
-      visibility: hidden;
-    }
   }
 }
 
@@ -3455,19 +3404,7 @@ ul#myreads-paginator {
   margin-bottom: 15px;
 }
 
-.star {
-  color: @steel-blue;
-  font-size: 1.3em;
-}
-
 @import (less) "components/rating-form.less";
-
-.responsive button.slick-prev,
-.slick-next {
-  &:before {
-    color: @white;
-  }
-}
 
 .searchInsideForm {
   input[type=text] {
@@ -3584,21 +3521,5 @@ ul#myreads-paginator {
     &Spacer {
       float: left;
     }
-  }
-}
-
-/* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen {
-  /* Use class for showing/hiding tab content,
-  so that visibility can be better controlled in different media types... */
-  .ui-tabs-hide {
-    display: none;
-  }
-}
-
-/* Hide useless elements in print layouts... */
-@media print {
-  .ui-tabs-nav {
-    display: none;
   }
 }

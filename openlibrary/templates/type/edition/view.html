@@ -197,7 +197,7 @@ $if ctx.user and ctx.user.is_admin():
                 <ul class="readers-stats">
                   $if rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
                     <li class="avg-ratings">
-                      $:('<span class="star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
+                      $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
                     </li>
                     <li>
                       $rating_stats['num_ratings'] Ratings

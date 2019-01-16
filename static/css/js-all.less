@@ -8,6 +8,7 @@
 @import (less) 'less/index.less';
 
 @import (less) 'legacy-datatables.less';
+@import (less) 'legacy-jquery-ui.less';
 
 @import (less) 'components/carousel--js.less';
 @import (less) 'components/header-bar--js.less';
@@ -25,6 +26,23 @@
 @import (less) 'components/ui-dialog.less';
 
 @import (less) 'components/wmd-prompt-dialog--js.less';
+
+// openlibrary/plugins/openlibrary/js/subjects.js
+.coverEbook {
+  cursor: pointer;
+  z-index: @z-index-level-6;
+  img {
+    opacity: .85;
+    filter: alpha(opacity=85);
+  }
+  a.cta-btn {
+    position: absolute;
+    padding: 0 5px;
+    right: 0;
+    bottom: 3px;
+    border-radius: 3px;
+  }
+}
 
 // Not clear if these are needed. please review.
 .tools a {
