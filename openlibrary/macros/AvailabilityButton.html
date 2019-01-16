@@ -20,10 +20,10 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $if loan:
     <a href="$read_link" title="Borrow"
        data-userid="$(loan['userid'])" id="read_ebook"
-       class="borrow_available borrow-link cta-btn">Read</a>
+       class="cta-btn--available cta-btn">Read</a>
 
   $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-    <a href="$read_link" class="borrow_available borrow-link cta-btn btn--large" title="Borrow" id="borrow_ebook">
+    <a href="$read_link" class="cta-btn--available cta-btn" title="Borrow" id="borrow_ebook">
       Borrow
     </a>
 
@@ -32,7 +32,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         <span data-ol-link-track="leave_waitlist">
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="leave-waitlist waitinglist-form">
             <input type="hidden" name="action" value="leave-waitinglist"/>
-            <input type="submit" class="unwait-btn btn--large" id="unwaitlist_ebook" value="Leave Waitlist"/>
+            <input type="submit" class="cta-btn cta-btn--missing id="unwaitlist_ebook" value="Leave Waitlist"/>
           </form>
         </span>
         <div class="waitlist-msg">
@@ -47,10 +47,10 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         <span class="borrow_unavailable" data-ol-link-track="borrow_unavailable">
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="join-waitlist waitinglist-form">
             <input type="hidden" name="action" value="join-waitinglist"/>
-            <button type="submit" class="wait-btn btn--large" id="waitlist_ebook">
+            <button type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook">
               Join Waitlist
               $if wlsize and int(wlsize):
-                <span class="badge">$wlsize</span>
+                <span class="cta-btn__badge">$wlsize</span>
             </button>
           </form>
         </span>
@@ -61,8 +61,8 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
 
   $elif (availability_status == 'open'):
     <a href="$read_link" data-ol-link-track="read_unrestricted" title="Use BookReader to read online"
-       id="read_ebook" class="borrow_available btn--large borrow-link cta-btn">Read</a>
+       id="read_ebook" class="cta-btn--available cta-btn">Read</a>
 $else:
   <form>
-    <input type="button" class="unwait-btn borrow_missing cta-btn btn--large" disabled value="No ebook available">
+    <input type="button" class="cta-btn--missing cta-btn" disabled value="No ebook available">
   </form>

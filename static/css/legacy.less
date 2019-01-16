@@ -1563,19 +1563,6 @@ div#searchResults {
   }
 }
 
-// openlibrary/plugins/openlibrary/js/availability.js
-.borrow_ {
-  &available {
-    background-color: @primary-blue;
-  }
-  &unavailable {
-    background-color: @orange;
-  }
-  &missing {
-    background-color: @mid-grey;
-  }
-}
-
 .print-disabled-only {
   background-color: @purple;
 }
@@ -1933,51 +1920,6 @@ select {
   ul li.read-option a {
     display: block;
     text-align: center;
-  }
-}
-
-// for backwards compatibility
-// please use btn--large instead
-.borrow-btn,
-.wait-btn,
-.unwait-btn {
-  margin: 1px auto;
-  color: @white;
-  background: @primary-blue;
-  border-radius: 5px;
-  padding: 7px 20px;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 1.1em;
-  line-height: 1.5em;
-  &:link,
-  &:visited {
-    color: @white;
-    text-decoration: none;
-  }
-  &:hover {
-    color: @white;
-    text-decoration: underline;
-  }
-}
-
-.wait-btn {
-  background: @mid-blue;
-  border: none;
-  background-color: @orange;
-}
-
-.unwait-btn {
-  background: @mid-grey;
-  border: none;
-}
-
-.waitinglist-form {
-  input[type=submit].wait-btn {
-    background-color: @orange;
-  }
-  input[type=submit] {
-    line-height: 1.5em;
   }
 }
 
