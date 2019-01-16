@@ -46,6 +46,7 @@ table {
   border-collapse: collapse;
   border-spacing: 0;
 
+  // openlibrary/templates/type/edition/view.html
   &#toc-table {
     width: 100%;
     font-size: .8125em;
@@ -53,6 +54,7 @@ table {
       padding: 5px 15px 5px 0;
     }
   }
+  // openlibrary/templates/type/edition/view.html
   &.navEdition {
     margin-bottom: 5px;
     td.nowrap {
@@ -85,23 +87,7 @@ table {
   &.identifiers {
     width: 395px;
   }
-  &.records {
-    width: 100%;
-    td {
-      width: 33%;
-      text-align: center;
-      vertical-align: top;
-    }
-    .amount {
-      font-size: 1.125em;
-      font-weight: 700;
-    }
-    .label {
-      text-transform: uppercase;
-      font-size: .5625em;
-      font-family: @lucida_sans_serif-1;
-    }
-  }
+  // openlibrary/templates/admin/index.html
   &.measurements {
     width: 100%;
     margin: 10px 0 30px;
@@ -133,6 +119,7 @@ table {
     }
   }
 
+  // openlibrary/templates/admin/services.html
   &.services {
     th {
       font-family: @lucida_sans_serif-1;
@@ -150,6 +137,8 @@ table {
       vertical-align: top;
     }
   }
+  // openlibrary/templates/history.html
+  // openlibrary/templates/history_frameset.html
   &#pageHistory {
     width: 100%;
     font-family: @lucida_sans_serif-6;
@@ -158,7 +147,13 @@ table {
       text-align: right;
     }
   }
+  // openlibrary/templates/lib/history.html
   &#pageHistory,
+  // openlibrary/templates/admin/imports.html
+  // openlibrary/templates/admin/imports_by_date.html
+  // openlibrary/templates/admin/ip/view.html
+  // openlibrary/templates/admin/people/edits.html
+  // openlibrary/templates/merge/editions2.html
   &.changeHistory {
     th {
       border-bottom: 1px solid @grey-e7e7e7;
@@ -186,6 +181,8 @@ table {
       width: 33%;
     }
   }
+  // openlibrary/templates/admin/ip/index.html
+  // openlibrary/templates/admin/people/view.html
   &#adminHistory {
     border-top: 1px solid @admin-table-border;
     font-family: @lucida_sans_serif-6;
@@ -207,6 +204,7 @@ table {
       }
     }
   }
+  // openlibrary/templates/lib/markdown.html
   &.help {
     margin: 20px 0;
     border-top: 1px solid @grey-e7e7e7;
@@ -320,23 +318,6 @@ em {
 }
 
 #contentBody {
-  ul {
-    &.contributors {
-      margin-top: 10px;
-      margin-left: 0;
-      font-family: @lucida_sans_serif-5;
-      font-size: .8125em;
-      color: @grey;
-      li {
-        list-style: none !important;
-        padding-bottom: 10px;
-        span {
-          font-size: 11px;
-          color: @brown;
-        }
-      }
-    }
-  }
   ul,
   ol {
     margin-bottom: 20px;
@@ -352,96 +333,6 @@ em {
     width: 958px !important;
     padding: 0 !important;
     position: relative;
-    /* stylelint-disable selector-max-specificity */
-    div#mapdiv {
-      width: 100%;
-      height: 600px;
-      float: left;
-      clear: both;
-      z-index: @z-index-level-1;
-    }
-    /* stylelint-enable selector-max-specificity */
-    div.olPopup {
-      width: 220px !important;
-    }
-    div.olPopupContent {
-      padding: 15px !important;
-      width: 190px !important;
-      h2 {
-        font-size: 1em;
-        margin: 0;
-        padding: 0;
-        line-height: normal;
-      }
-      p {
-        font-family: @lucida_sans_serif-1;
-        font-size: .75em;
-        color: @dark-grey;
-        line-height: 1.125em;
-        margin: 0;
-      }
-    }
-    /* stylelint-disable selector-max-specificity */
-    div#mapLegendBack {
-      position: absolute;
-      background-color: @white;
-      opacity: .75;
-      top: 0;
-      left: 0;
-      padding: 10px;
-      z-index: @z-index-level-9;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    div#mapLegend {
-      position: absolute;
-      top: 0;
-      left: 0;
-      padding: 10px;
-      z-index: @z-index-level-10;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    div#mapLegendHead {
-      h1 {
-        font-size: 1.125em;
-        line-height: 1.5em;
-        margin: 0;
-        padding: 0;
-        display: inline;
-      }
-      p {
-        font-family: @lucida_sans_serif-1;
-        font-size: .6875em;
-        line-height: 1.5em;
-        color: @grey;
-        display: inline;
-      }
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    div#mapLegendBody {
-      span {
-        font-family: @lucida_sans_serif-1;
-        font-size: .8125em;
-        line-height: 1.5em;
-        color: @grey;
-        list-style-type: none;
-        display: block;
-        float: left;
-        &.this {
-          font-weight: 700;
-          color: @olive;
-        }
-      }
-    }
-    /* stylelint-enable selector-max-specificity */
-    .olControlAttribution {
-      bottom: 10px !important;
-      right: 10px !important;
-      font-family: @lucida_sans_serif-1 !important;
-      font-size: .6875em !important;
-    }
   }
 }
 
@@ -493,6 +384,7 @@ q {
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
 
+// openlibrary/macros/Dashboard.html
 #tooltip {
   position: absolute;
   display: none;
@@ -503,6 +395,9 @@ q {
   opacity: .80;
 }
 
+// openlibrary/plugins/search/templates/advanced_search.html
+// openlibrary/templates/lib/pagination.html
+// openlibrary/templates/type/author/view.html
 .pagination {
   font-size: .75em;
   margin: 5px 0;
@@ -541,10 +436,9 @@ q {
   }
 }
 
-.onTop {
-  z-index: @z-index-level-15 !important;
-}
-
+// openlibrary/templates/recentchanges/header.html
+// openlibrary/templates/showia.html
+// openlibrary/templates/showmarc.html
 .breadcrumbs {
   font-family: @lucida_sans_serif-1;
   color: @brown;
@@ -618,9 +512,6 @@ span {
   &.merge {
     padding: 2px 0;
   }
-  &.tweet_user {
-    font-weight: 700;
-  }
   &.resultTitle {
     font-family: @lucida_sans_serif-1;
     color: @grey;
@@ -641,11 +532,13 @@ span {
       float: left;
     }
   }
+  // openlibrary/templates/form.html
   &#showpass {
     display: block;
     margin-top: 5px;
   }
 
+  // openlibrary/templates/form.html
   &#masker {
     display: block;
     float: left;
@@ -663,6 +556,10 @@ span {
 }
 
 p {
+  // openlibrary/templates/books/add.html
+  // ....
+  // openlibrary/templates/books/check.html
+  // openlibrary/templates/message.html
   &.instruct {
     font-size: .875em;
     margin-bottom: 0;
@@ -686,16 +583,6 @@ p {
     text-align: center;
     margin-top: 5px;
     padding: 5px;
-  }
-  &.searchSuggest {
-    padding: 0;
-    margin: -10px 0 20px 0;
-    color: @brown;
-    font-family: @lucida_sans_serif-5;
-    font-size: 14px;
-    a {
-      font-style: italic;
-    }
   }
 }
 
@@ -733,6 +620,7 @@ input {
   margin-top: 5px;
 }
 
+// openlibrary/templates/search/inside.html
 .search-results-stats {
   margin: 0;
   margin-bottom: 10px;
@@ -740,6 +628,7 @@ input {
   font-size: .9em;
 }
 
+// openlibrary/macros/FulltextSnippet.html
 .fulltext-excerpt {
   padding: 10px;
   border-bottom: 1px solid @lightest-grey;
@@ -750,12 +639,14 @@ input {
   }
 }
 
+// openlibrary/templates/work_search.html
 .advanced-search {
   float: right;
 }
 
 /* Search v2 */
 .serp {
+  // openlibrary/templates/work_search.html
   &-ctx {
     line-height: 1.5em;
     margin-bottom: 5px;
@@ -766,6 +657,7 @@ input {
       font-size: .9em;
     }
   }
+  // openlibrary/macros/SearchResultsWork.html
   &-extras {
     border: 1px solid @lighter-grey;
     background-color: @white;
@@ -777,6 +669,9 @@ input {
 /* LAYOUT */
 @import "layout/index.less";
 
+// openlibrary/data/sitemap.py
+// openlibrary/templates/history_framenav.html
+// openlibrary/templates/history_framepage.html
 div#placement {
   width: 960px;
   margin: 0 auto;
@@ -807,11 +702,6 @@ div#content {
     background: @white url(/images/back_results.png) repeat-x;
   }
   /* stylelint-enable selector-max-specificity */
-  &Msg {
-    background-color: @light-yellow;
-    padding: 15px 20px;
-    display: none;
-  }
   &Head {
     max-width: 918px;
     padding: 20px;
@@ -820,6 +710,7 @@ div#content {
       margin: 0;
     }
   }
+  // openlibrary/templates/history_framenav.html
   &History {
     position: absolute;
     display: none;
@@ -832,15 +723,16 @@ div#content {
 }
 
 /* WIDGETS */
-.word-corner-badge {
-  position: absolute;
-  font-size: 9px;
-  color: @red;
-  -ms-transform: rotate(324deg) translate(-11px, -14px);
-  -webkit-transform: rotate(324deg) translate(-11px, -14px);
-  transform: rotate(324deg) translate(-10px, -16px);
-}
 
+// openlibrary/templates/account/create.html
+// openlibrary/templates/account/email/forgot-ia.html
+// openlibrary/templates/account/email/forgot.html
+// openlibrary/templates/account/email.html
+// openlibrary/templates/account/password.html
+// openlibrary/templates/form.html
+// openlibrary/templates/login.html
+// openlibrary/templates/merge/authors.html
+// openlibrary/templates/merge/editions.html
 div.note {
   font-size: 1.0em;
   font-family: @lucida_sans_serif-1;
@@ -851,24 +743,28 @@ div.note {
   border: 1px solid @dark-yellow;
 }
 
+// openlibrary/templates/lib/not_logged.html
 div#noLogin {
   margin-top: 10px;
   background: @light-yellow url(/images/icons/icon_info.png) no-repeat 10px 50%;
   padding: 10px 10px 10px 44px;
 }
 
+// openlibrary/templates/type/author/view.html
 div#preMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
   background: transparent url(/images/icons/icon_merge.png) no-repeat 10px 10px;
 }
 
+// openlibrary/templates/type/author/view.html
 div#postMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
   background: transparent url(/images/icons/icon_check.png) no-repeat 10px 10px;
 }
 
+// openlibrary/templates/type/author/view.html
 div#errorMerge {
   min-height: 32px;
   padding: 10px 10px 10px 52px;
@@ -906,6 +802,7 @@ div.formElement {
 }
 
 div.formElement,
+// openlibrary/templates/books/edit.html
 div.TitleAuthor {
   .tip {
     font-size: 11px;
@@ -948,6 +845,8 @@ fieldset {
   }
 }
 
+// openlibrary/templates/books/edit/edition.html
+// openlibrary/templates/books/edit/excerpts.html
 .formBack {
   float: left;
   width: 830px;
@@ -987,12 +886,14 @@ fieldset {
   }
 }
 
+// openlibrary/templates/books/edit/edition.html
 div.formDivider {
   float: left;
   width: 25px;
   min-height: 100px;
 }
 
+// openlibrary/templates/books/edit/edition.html
 .librarian {
   padding: 0 10px 10px;
   border-left: 10px solid @olive;
@@ -1014,6 +915,7 @@ div.formDivider {
   }
 }
 
+// openlibrary/plugins/theme/templates/theme/git.html
 #message {
   font-family: @lucida_sans_serif-2;
   font-size: 14px;
@@ -1025,55 +927,28 @@ div.formDivider {
 @import (less) "components/page-heading-search-box.less";
 @import (less) "components/form.olform.less";
 form {
+  // openlibrary/templates/account/notifications.html
   &#notifications {
     input[type=radio] {
       margin: 0 10px 0 20px;
     }
   }
-  &.recordsAdd {
-    margin-bottom: 30px;
-    input[type=text] {
-      font-size: .875em;
-      font-family: @georgia_serif-1;
-      color: @dark-grey;
-      padding: 3px;
-      &.wide {
-        width: 500px;
-      }
-    }
-    textarea {
-      font-size: 1.0em;
-      font-family: @georgia_serif-1;
-      margin: 10px 0 20px;
-      color: @dark-grey;
-      width: 500px;
-      height: 80px;
-      padding: 3px;
-    }
-  }
 }
 
+// openlibrary/templates/account/verify/failed.html
+// openlibrary/templates/form.html
 div.invalid,
-div.valid,
-div#emailLoading,
-div#emailResult,
-div#usernameLoading,
-div#usernameResult {
+// possibly unused/or used in JS?
+div.valid {
   float: left;
   font-size: 1.0em !important;
   font-family: @lucida_sans_serif-1;
   padding-top: 5px;
 }
 
-div#recaptcha_image {
-  margin-bottom: 5px;
-}
-
 /* SEARCH FORMS */
-.optionsScript {
-  display: none;
-}
 
+// openlibrary/templates/lib/search_foot.html
 div#formScroll {
   display: block;
   position: relative;
@@ -1083,11 +958,23 @@ div#formScroll {
   top: -410px;
 }
 
+// openlibrary/templates/lib/search_foot.html
 div#scrollBtm {
   width: 1px;
   height: 1px;
 }
 
+// openlibrary/templates/lib/search_foot.html
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/lists/home.html
+// openlibrary/templates/search/advancedsearch.html
+// openlibrary/templates/search/authors.html
+// openlibrary/templates/search/editions.html
+// openlibrary/templates/search/inside.html
+// openlibrary/templates/search/lists.html
+// openlibrary/templates/search/publishers.html
+// openlibrary/templates/work_search.html
+// openlibrary/templates/search/subjects.html
 div.siteSearch {
   overflow: visible;
   border-radius: 5px;
@@ -1113,6 +1000,8 @@ div.siteSearch {
   }
 }
 
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/lib/search_foot.html
 div.searchFilter {
   .searchOpener {
     right: 0;
@@ -1125,6 +1014,8 @@ div.searchFilter {
   }
 }
 
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/lib/search_foot.html
 .searchCheckboxes {
   ul li label {
     font-family: @lucida_sans_serif-5;
@@ -1143,6 +1034,8 @@ div.searchFilter {
   }
 }
 
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/search/advancedsearch.html
 #qtop {
   input {
     border-radius: 5px;
@@ -1151,10 +1044,12 @@ div.searchFilter {
   }
 }
 
+// possibly unused
 input.query {
   width: 205px;
 }
 
+// openlibrary/templates/lib/search_head.html
 div#topOptions {
   padding-top: 30px;
 }
@@ -1164,11 +1059,13 @@ div#topOptions {
   }
 }
 
+// openlibrary/templates/lib/search_foot.html
 div#bottomOptions {
   margin-top: 20px;
   padding-top: 15px;
 }
 
+// openlibrary/templates/lib/search_foot.html
 #bottomOptions {
   .searchPlus {
     padding-bottom: 8px;
@@ -1176,6 +1073,8 @@ div#bottomOptions {
   }
 }
 
+// openlibrary/templates/lib/search_foot.html
+// openlibrary/templates/lib/search_head.html
 div.searchOptions {
   display: none;
   width: 300px;
@@ -1187,6 +1086,16 @@ div.searchOptions {
   }
 }
 
+// openlibrary/templates/lib/search_foot.html
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/lists/home.html
+// openlibrary/templates/search/advancedsearch.html
+// openlibrary/templates/search/authors.html
+// openlibrary/templates/search/editions.html
+// openlibrary/templates/search/inside.html
+// openlibrary/templates/search/lists.html
+// openlibrary/templates/search/publishers.html
+// openlibrary/templates/search/subjects.html
 .siteSearch {
   .formElement {
     font-family: @lucida_sans_serif-5;
@@ -1194,6 +1103,9 @@ div.searchOptions {
   }
 }
 
+// openlibrary/templates/lib/search_foot.html
+// openlibrary/templates/lib/search_head.html
+// openlibrary/templates/search/advancedsearch.html
 .searchPlus {
   font-family: @lucida_sans_serif-1;
   font-size: .75em;
@@ -1203,6 +1115,8 @@ div.searchOptions {
 
 /* DIALOGS */
 
+// openlibrary/macros/EditButtons.html
+// openlibrary/macros/EditButtonsMacros.html
 div.cclicense {
   font-family: @lucida_sans_serif-2;
   font-size: .75em;
@@ -1213,35 +1127,12 @@ div.cclicense {
   background: url(/images/logo_CC0-20px.png) 0 0 no-repeat;
 }
 
-div#editionBorrow,
-div#editionBuy {
-  position: absolute;
-  top: 38px;
-  right: 0;
-  padding: 15px;
-  background-color: @white;
-  border: 1px solid @beige-two;
-  border-radius: 8px;
-  -webkit-box-shadow: 1px 1px 10px @dark-grey;
-  box-shadow: 1px 1px 10px @dark-grey;
-  a {
-    background-image: none !important;
-    float: none !important;
-    margin-left: 0 !important;
-    width: auto !important;
-    height: auto !important;
-    padding-top: 0;
-    text-align: left;
-    font-size: .75em;
-    font-weight: normal;
-    color: @link-blue;
-    text-decoration: underline;
-  }
-}
-
 /* TOOLS ACCORDION */
 @import (less) "components/edit-toolbar.less";
 
+// openlibrary/macros/databarDiff.html
+// openlibrary/macros/databarEdit.html
+// openlibrary/templates/recentchanges/header.html
 div#editButton,
 div#editHistory,
 div.revert.notice {
@@ -1250,6 +1141,7 @@ div.revert.notice {
   }
 }
 
+// openlibrary/templates/viewpage.html
 div#revertNotice {
   width: 958px;
   height: 45px;
@@ -1269,6 +1161,8 @@ div.verify {
   }
 }
 
+// openlibrary/templates/borrow_admin.html
+// openlibrary/templates/account/verify/failed.html
 div.alert {
   span {
     background: url(/images/icons/icon_alert.png) no-repeat;
@@ -1281,6 +1175,8 @@ div.verify {
   }
 }
 
+// openlibrary/templates/account/email/forgot-ia.html
+// openlibrary/templates/account/email/forgot.html
 .defaultstyling {
   font-family: @lucida_sans_serif-1;
   .padtop {
@@ -1288,10 +1184,13 @@ div.verify {
   }
 }
 
+// openlibrary/templates/account/email/forgot.html
 hr.forgot-padding {
   margin: 30px 0 15px;
 }
 
+// openlibrary/templates/account/email/forgot.html
+// openlibrary/templates/account/email/forgot-ia.html
 .forgot-email {
   font-size: .8em;
   &-form {
@@ -1307,34 +1206,8 @@ hr.forgot-padding {
   }
 }
 
-.formFields {
-  &Decoration {
-    &.error {
-      padding: 5px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      // stylelint-disable declaration-block-no-duplicate-properties
-      background-color: @black;
-      background-color: fade(@red-two, 52);
-      // stylelint-enable declaration-block-no-duplicate-properties
-      #bridgeUsername {
-        background-color: fade(@red-two, 17);
-      }
-    }
-  }
-  &ErrorMsg {
-    padding: 0 10px;
-    color: @white;
-    font-size: 14px;
-  }
-}
-
 /* FOOTER */
 @import (less) 'components/footer.less';
-
-#archive-details {
-  flex: .8;
-}
 
 /* CONTENT */
 div.contentWide,
@@ -1344,6 +1217,7 @@ div#contentMeta {
 
 @import (less) "components/link-box.less";
 
+// Various templates
 .content {
   &Quarter {
     min-height: 100px;
@@ -1375,39 +1249,23 @@ div#contentMeta {
   }
 }
 
+// openlibrary/templates/subjects.html
+// openlibrary/templates/publishers/view.html
 div.spacer {
   float: left;
   width: 30px;
   min-height: 10px;
 }
 
-div.content {
-  &Body {
-    &.indent {
-      width: 818px;
-      padding: 0 70px 20px;
-    }
-    &.gradient {
-      background: @light-grey;
-      filter: progid:DXImageTransform.Microsoft.gradient(
-        startColorstr="#fff4f4f4",
-        endColorstr="#ffffffff");
-      // stylelint-disable declaration-block-no-duplicate-properties
-      background: -webkit-gradient(linear, left top, left bottom, from(@grey-f4f4f4), to(@white));
-      background: -moz-linear-gradient(top, @grey-f4f4f4, @white);
-      // stylelint-enable declaration-block-no-duplicate-properties
-      padding-top: 20px;
-    }
-  }
-}
-
 #content {
+  // many pages...
   &Head {
     h1 {
       margin: 0;
       padding: 0;
     }
     /* stylelint-disable selector-max-specificity */
+    // openlibrary/templates/type/list/exports.html
     #listTools {
       ul {
         margin: 15px 0 0 !important;
@@ -1425,53 +1283,10 @@ div.editThis {
 
 /* NEW HOME PAGE */
 
-.contentLists.results {
-  .coverMagic {
-    position: relative;
-    height: 225px;
-    margin: 0;
-    float: left;
-    .coverEbook {
-      position: absolute;
-      bottom: -3px;
-      left: 0;
-      right: 0;
-      cursor: pointer;
-      z-index: @z-index-level-6;
-    }
-  }
-  .SRPCover {
-    float: left;
-    height: 230px;
-    vertical-align: middle;
-    img {
-      height: 195px;
-      width: 130px;
-      border-radius: 3px;
-    }
-  }
-  .SRPCoverBlank {
-    position: relative;
-    width: 115px;
-    height: 230px;
-    padding: 10px;
-    text-align: center;
-    float: left;
-    background: @lighter-grey;
-    cursor: pointer;
-    display: none;
-    .innerBorder {
-      float: left;
-      width: 113px;
-      height: 178px;
-      border: 1px solid @white;
-    }
-  }
-}
-
 /* HOME PAGE CAROUSEL SKIN */
 @import (less) "components/home.less";
 
+// openlibrary/templates/admin/index.html
 .stats-spacer {
   width:250px;
   height:35px;
@@ -1486,6 +1301,12 @@ div#searchResults ul {
   margin-left: 0;
 }
 
+// openlibrary/macros/FulltextResults.html
+// openlibrary/plugins/search/templates/advanced_search.html
+// openlibrary/templates/books/check.html
+// openlibrary/templates/search/editions.html
+// openlibrary/templates/type/author/view.html
+// openlibrary/templates/work_search.html
 div#searchResults {
   .SRPCover {
     margin: 0 15px 20px 0;
@@ -1552,8 +1373,9 @@ div#searchResults {
   }
 }
 
-.mode-options,
-.facet-options {
+// openlibrary/templates/work_search.html
+// openlibrary/templates/type/author/view.html
+.mode-options {
   font-size: .7em;
   font-family: @lucida_sans_serif-6;
   input {
@@ -1567,10 +1389,12 @@ div#searchResults {
   background-color: @purple;
 }
 
+// openlibrary/plugins/openlibrary/js/availability.js
 .check-book-availability {
   background-color: fade(@dark-grey-two, 80);
 }
 
+// openlibrary/macros/AvailabilityButton.html
 .waitlist-msg {
   font-family: @lucida_sans_serif-1;
   font-size: .7em;
@@ -1579,33 +1403,8 @@ div#searchResults {
   padding: .2em;
 }
 
-#pullOut {
-  float: right;
-  position: relative;
-  padding: 10px;
-  background: @light-yellow;
-  .label {
-    position: absolute;
-    width: 41px;
-    height: 22px;
-    background-image: url(/images/flag_new.png);
-    top: -10px;
-    left: -17px;
-  }
-  p {
-    font-size: .625em;
-    color: @grey;
-    margin: 0;
-    padding: 0;
-  }
-  a {
-    font-size: 1.4em;
-    font-weight: 700;
-    display: block;
-  }
-}
-
 // Results on /search/authors
+// openlibrary/templates/search/authors.html
 .authorList {
   margin-top: 30px;
   li {
@@ -1616,6 +1415,10 @@ div#searchResults {
   }
 }
 
+// openlibrary/templates/languages/index.html
+// openlibrary/templates/publishers/view.html
+// openlibrary/templates/search/publishers.html
+// openlibrary/templates/search/subjects.html
 .subjectList {
   ul {
     margin-top: 30px;
@@ -1626,11 +1429,14 @@ div#searchResults {
 
 @import (less) 'components/search-results-container.less';
 
+// openlibrary/plugins/search/templates/advanced_search.html
+// openlibrary/templates/work_search.html
 div#searchFacets {
   width: 220px;
   padding: 0 15px;
 }
 
+// openlibrary/templates/work_search.html
 div.facet {
   margin-bottom: 20px;
   &Entry {
@@ -1651,11 +1457,8 @@ div.facet {
 
 /* RESULTS */
 
-div#resultsLists {
-  float: left;
-  margin-top: 20px;
-}
-
+// openlibrary/templates/lib/message_addbook.html
+// openlibrary/templates/lists/widget.html
 div.list {
   float: left;
   width: 207px;
@@ -1700,6 +1503,9 @@ div.list {
 @import (less) "components/work.less";
 @import (less) "components/navEdition.less";
 
+// openlibrary/templates/books/author-autocomplete.html
+// openlibrary/templates/type/work/view.html
+// openlibrary/templates/type/edition-history/view.html
 div.work {
   font-family: @lucida_sans_serif-1;
   span.work,
@@ -1737,17 +1543,12 @@ div.work {
   }
 }
 
-#contentOnethird,
+// openlibrary/templates/type/work/view.html
 .workCover {
   .illustration {
     img {
       max-width: 270px !important;
     }
-  }
-}
-
-.workCover {
-  .illustration {
     .SRPCoverBlank {
       margin: 0 auto;
     }
@@ -1756,6 +1557,7 @@ div.work {
 
 @import (less) "components/illustration.less";
 
+// openlibrary/templates/books/author-autocomplete.html
 div.books {
   float: left;
   padding-top: 20px;
@@ -1811,36 +1613,7 @@ div.books {
   }
 }
 
-div.pingList {
-  background: url(/images/icons/icon_radar.gif) no-repeat;
-  p {
-    font-family: @lucida_sans_serif-1;
-    margin: 0 0 10px 40px;
-  }
-  ul {
-    margin-left: 40px;
-  }
-}
-
-ul.urlList {
-  li {
-    margin-bottom: 10px;
-    span.url {
-      font-family: @lucida_sans_serif-1;
-    }
-    span.quote {
-      font-family: @georgia_serif-1;
-      font-size: .75em;
-      color: @grey;
-    }
-  }
-  span.date {
-    font-family: @lucida_sans_serif-5;
-    font-size: .6875em;
-    color: @grey;
-  }
-}
-
+// openlibrary/templates/books/edit.html
 .TitleAuthor {
   margin-bottom: 20px;
   width: 920px;
@@ -1852,9 +1625,11 @@ ul.urlList {
 }
 
 td {
+  // openlibrary/templates/type/edition/view.html
   &.toc-label {
     white-space: pre-wrap;
   }
+  // openlibrary/templates/type/edition/view.html
   &.toc-pagenum {
     text-align: right;
   }
@@ -1873,30 +1648,15 @@ tr {
   }
 }
 
-#cover {
-  border: 2px solid @brown;
-  background-color: @white;
-  width: 120px;
-  height: 180px;
-  text-align: center;
-  img {
-    width: 120px;
-    margin: 0 auto;
-  }
-  .SRPCover {
-    img {
-      height: auto !important;
-    }
-  }
-}
-
 #tabsAdd {
+  // openlibrary/templates/books/edit.html
   &book {
     margin-bottom: 5px;
     input.addweb {
       width: 350px;
     }
   }
+  // openlibrary/templates/type/author/edit.html
   &author {
     input.addweb {
       width: 250px;
@@ -1904,12 +1664,14 @@ tr {
   }
 }
 
+// openlibrary/templates/books/edit/edition.html
 select {
   &#select-id {
     max-width: 300px;
   }
 }
 
+// openlibrary/templates/books/edition-sort.html
 .links {
   .print-disabled-download {
     white-space: nowrap;
@@ -1938,6 +1700,8 @@ div.excerpt {
   }
 }
 
+// openlibrary/templates/books/edit/edition.html
+// openlibrary/templates/admin/imports-add.html
 .identifiers {
   td {
     color: @dark-grey;
@@ -1952,6 +1716,7 @@ div.excerpt {
 }
 
 ul {
+  // openlibrary/templates/type/type/view.html
   &.booklinks {
     li {
       font-size: 12px;
@@ -1966,11 +1731,6 @@ ul {
       }
     }
   }
-  &.authorlinks {
-    li {
-      padding-top: 10px;
-    }
-  }
   &.wide {
     li span.resultTitle {
       width: 813px;
@@ -1980,6 +1740,7 @@ ul {
       }
     }
   }
+  // openlibrary/templates/type/user/view.html
   &.clean {
     border-top: none !important;
     li {
@@ -1990,19 +1751,31 @@ ul {
       }
     }
   }
-  &.serp {
-    float: left;
-    width: 660px;
-    margin-left: 0;
-  }
 }
 
+// openlibrary/macros/databarWork.html
 #external-links {
   ul li {
     list-style-type: none;
   }
 }
 
+// openlibrary/macros/WorkInfo.html
+// openlibrary/templates/account/borrow.html
+// openlibrary/templates/publishers/view.html
+// openlibrary/templates/search/authors.html
+// openlibrary/templates/search/editions.html
+// openlibrary/templates/search/publishers.html
+// openlibrary/templates/search/subjects.html
+// openlibrary/templates/showia.html
+// openlibrary/templates/showmarc.html
+// openlibrary/templates/subjects.html
+// openlibrary/templates/type/author/view.html
+// openlibrary/templates/type/edition/view.html
+// openlibrary/templates/type/edition-history/view.html
+// openlibrary/templates/type/list/view.html
+// openlibrary/templates/type/permission/view.html
+// openlibrary/templates/type/work/view.html
 .section {
   .sansserif {
     font-size: .75em;
@@ -2016,6 +1789,7 @@ ul {
 @import (less) "components/page-history.less";
 
 /* HISTORY FRAMESET */
+// openlibrary/templates/history_framenav.html
 div#navMask {
   position: absolute;
   top: 0;
@@ -2028,6 +1802,7 @@ div#navMask {
   height: 100%;
 }
 
+// openlibrary/templates/history_framenav.html
 div#logoHistory {
   position: absolute;
   width: 960px;
@@ -2038,6 +1813,7 @@ div#logoHistory {
   z-index: @z-index-level-10;
 }
 
+// openlibrary/templates/history_framenav.html
 div#history {
   &Position {
     position: relative;
@@ -2154,6 +1930,7 @@ div#history {
     }
   }
 
+  // openlibrary/templates/history_framenav.html
   &Explore {
     position: absolute;
     top: 10px;
@@ -2231,73 +2008,14 @@ div#history {
   }
 }
 
-// unused?
-#contentLists {
-  &.results {
-    .coverMagic {
-      position: relative;
-      height: 235px;
-      margin: 0 15px 20px 0;
-      float: left;
-    }
-    .SRPCover {
-      float: left;
-      height: 185px;
-      vertical-align: middle;
-      img {
-        height: 195px;
-        width: 130px;
-      }
-    }
-    .SRPCoverBlank {
-      position: relative;
-      width: 115px;
-      height: 165px;
-      padding: 10px;
-      text-align: center;
-      float: left;
-      background: @lighter-grey;
-      cursor: pointer;
-      display: none;
-      .innerBorder {
-        float: left;
-        width: 113px;
-        height: 163px;
-        border: 1px solid @white;
-      }
-    }
-  }
-  &.editions {
-    .coverMagic {
-      float: left;
-      max-width: 225px;
-      min-height: 245px;
-      text-align: center;
-    }
-    .SRPCover {
-      margin: 0 20px 5px 0;
-      vertical-align: middle;
-    }
-    .SRPCoverBlank {
-      position: relative;
-      width: 115px;
-      height: 165px;
-      padding: 10px;
-      margin: 0 20px 5px 0;
-      text-align: center;
-      background: @lighter-grey;
-      font-size: .875em;
-      cursor: pointer;
-      display: none;
-      .innerBorder {
-        width: 113px;
-        height: 163px;
-        border: 1px solid @white;
-      }
-    }
-  }
-}
-
+// openlibrary/macros/CoverImage.html
+// openlibrary/macros/CoverImageAuthor.html
+// openlibrary/macros/CoverImageWork.html
+// openlibrary/macros/EditionImageWork.html
+// openlibrary/macros/SearchResultsCovers.html
+// openlibrary/macros/SRPCoverImage.html
+// openlibrary/templates/covers/book_cover.html
+// openlibrary/templates/covers/book_cover_single_edition.html
 .BookTitle {
   position: absolute;
   top: 50%;
@@ -2312,6 +2030,10 @@ div#history {
   line-height: normal;
 }
 
+//openlibrary/macros/SearchResultsCovers.html
+// openlibrary/macros/SRPCoverImage.html
+// openlibrary/templates/covers/book_cover.html
+// openlibrary/templates/covers/book_cover_single_edition.html
 .Author {
   color: @grey;
   font-style: italic;
@@ -2319,6 +2041,12 @@ div#history {
   font-size: 11px;
 }
 
+// openlibrary/macros/SearchResults.html
+// openlibrary/macros/SearchResultsWork.html
+// openlibrary/plugins/search/templates/advanced_search.html
+// openlibrary/templates/books/show.html
+// openlibrary/templates/books/works-show.html
+// openlibrary/templates/type/list/embed.html
 span.actions {
   display: block;
   float: left;
@@ -2385,10 +2113,7 @@ span.actions {
       background-position: -408px 0 !important;
     }
   }
-}
-/* Added by Anand July 29, 2011*/
-// stylelint-disable-next-line no-duplicate-selectors
-span.actions {
+  // openlibrary/templates/type/list/embed.html
   a span.checked-out {
     display: block;
     margin: 0 auto;
@@ -2396,30 +2121,68 @@ span.actions {
   }
 }
 
+// openlibrary/templates/stats/readinglog.html
+// openlibrary/templates/type/author/view.html
+// openlibrary/templates/work_search.html
+// openlibrary/templates/books/check.html
+// openlibrary/templates/account/books.html
+// openlibrary/plugins/search/templates/advanced_search.html
+// openlibrary/macros/SearchResults.html
+// openlibrary/macros/FulltextResults.html
+// why not form#siteSearch ?
 ul#siteSearch {
   > li {
     .display-flex();
   }
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/macros/SearchResultsWork.html
+  // openlibrary/plugins/search/templates/advanced_search.html
+  // openlibrary/templates/books/check.html
+  // openlibrary/templates/books/show.html
+  // openlibrary/templates/books/works-show.html
+  // openlibrary/templates/lists/preview.html
+  // openlibrary/templates/lists/snippet.html
+  // openlibrary/templates/search/editions.html
+  // openlibrary/templates/type/list/embed.html
+  // openlibrary/templates/type/list/view.html
   span.resultTitle {
     display: block;
     margin: 0 !important;
     font-family: @lucida_sans_serif-1;
     color: @grey;
   }
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/macros/SearchResultsWork.html
   span.resultTitle .bookauthor,
+  // openlibrary/macros/SearchResultsWork.htm
+  // openlibrary/plugins/search/templates/advanced_search.html
+  // openlibrary/templates/books/check.html
+  // openlibrary/templates/books/show.html
+  // openlibrary/templates/books/works-show.html
   span.resultPublisher {
     font-size: .75em;
     color: @grey;
     font-family: @lucida_sans_serif-6;
   }
+  // openlibrary/templates/books/works-show.html
+  // openlibrary/templates/books/show.html
+  // openlibrary/templates/books/check.html
+  // openlibrary/plugins/search/templates/advanced_search.html
+  // openlibrary/macros/SearchResultsWork.html
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/templates/search/editions.html
   span.resultPublisher {
     display: block;
   }
+  // openlibrary/macros/SearchResults.html
+  // openlibrary/templates/books/show.html
   span.resultType {
     font-size: .6875em;
   }
 }
 
+// openlibrary/templates/search/lists.html
+// openlibrary/templates/lists/lists.html
 div.wide {
   ul#siteSearch {
     span.resultTitle {
@@ -2428,6 +2191,9 @@ div.wide {
   }
 }
 
+// openlibrary/templates/type/list/embed.html
+// openlibrary/templates/type/list/view.html
+// openlibrary/templates/type/work/editions.html
 div.narrow {
   ul#siteSearch {
     span.resultTitle {
@@ -2436,24 +2202,7 @@ div.narrow {
   }
 }
 
-.bookMeta {
-  max-width: 125px;
-  padding: 0 5px;
-  margin: 0 auto;
-  font-family: @lucida_sans_serif-1;
-  text-align: center;
-}
-
-.Publisher {
-  font-size: .6875em;
-  color: @black;
-}
-
-.Year {
-  font-size: .6875em;
-  color: @brown;
-}
-
+// openlibrary/templates/covers/change.html
 div#throbber {
   position: absolute;
   width: 220px;
@@ -2469,11 +2218,14 @@ div#throbber {
   }
 }
 
+// openlibrary/templates/covers/change.html
 div.tabsPop {
   margin-top: 31px;
 }
 
 div.pop {
+  // openlibrary/templates/covers/add.html
+  // openlibrary/templates/books/edit/addfield.html
   &Alert {
     display: none;
     width: 550px;
@@ -2484,6 +2236,7 @@ div.pop {
     color: @red;
     text-align: center;
   }
+  // openlibrary/templates/books/edit/addfield.html
   &Notify {
     font-size: .6875em;
     font-family: @lucida_sans_serif-1;
@@ -2491,10 +2244,12 @@ div.pop {
   }
 }
 
+// openlibrary/templates/books/edit/addfield.html
 div.addfield {
   margin: 10px 20px;
 }
 
+// openlibrary/templates/type/edition/view.html
 #wikicode {
   textarea {
     width: 400px;
@@ -2522,11 +2277,13 @@ div.addfield {
 /* Skin */
 @import (less) "components/chart-stats.less";
 
+// openlibrary/templates/admin/index.html
 div.sparkDisplay {
   border-bottom: 1px solid @black;
   margin-right: 0 !important;
 }
 
+// openlibrary/templates/admin/services.html
 td.nagios {
   &-PENDING {
     font-family: @arial_sans_serif;
@@ -2560,6 +2317,7 @@ td.nagios {
   }
 }
 
+// openlibrary/admin/templates/admin/index.html
 div#prolific {
   span {
     font-family: @lucida_sans_serif-1;
@@ -2567,18 +2325,21 @@ div#prolific {
   }
 }
 
+// openlibrary/admin/templates/admin/index.html
 div#uniqueIps {
   float: left;
   width: 918px;
   margin: 20px 0 30px;
 }
 
+// openlibrary/admin/templates/admin/index.html
 div.measurements,
 div.measurements div {
   float: left;
   width: 180px;
 }
 
+// openlibrary/admin/templates/admin/index.html
 div.measurements {
   .caption {
     padding-top: 20px;
@@ -2593,6 +2354,13 @@ div.measurements {
 
 /* PAGE HISTORY */
 @media screen and (max-width: @width-breakpoint-desktop){
+  // openlibrary/macros/RecentChanges.html
+  // openlibrary/macros/RecentChangesAdmin.html
+  // openlibrary/macros/RecentChangesUsers.html
+  // openlibrary/macros/RecentPageList.html
+  // openlibrary/templates/admin/people/edits.html
+  // openlibrary/templates/recentchanges/render.html
+  // openlibrary/templates/type/list/editions.html
   .historyPager {
     text-align: center;
     margin: 20px 0;
@@ -2600,26 +2368,21 @@ div.measurements {
   }
 }
 @media screen and (max-width: @width-breakpoint-tablet){
+  // openlibrary/macros/RecentChanges.html
+  // openlibrary/macros/RecentChangesAdmin.html
+  // openlibrary/macros/RecentChangesUsers.html
+  // openlibrary/macros/RecentPageList.html
+  // openlibrary/templates/admin/people/edits.html
+  // openlibrary/templates/recentchanges/render.html
+  // openlibrary/templates/type/list/editions.html
   .historyPager {
     text-align:center;
     margin: 20px 0;
     width: 100%;
   }
 }
-div#admin {
-  &Twitter {
-    width: 300px;
-    float: left;
-    font-size: .75em;
-    div.tweet_avatar {
-      width: 35px;
-    }
-    div.tweet_copy {
-      width: 265px;
-    }
-  }
-}
 
+// openlibrary/templates/type/about/view.html
 #flickr {
   &_badge_uber_wrapper {
     a {
@@ -2647,6 +2410,7 @@ div#admin {
 @import (less) "components/chart.less";
 
 /* MERGING */
+// openlibrary/templates/merge/editions.html
 div.merge {
   font-family: @lucida_sans_serif-2;
   width: 100%;
@@ -2735,6 +2499,11 @@ div.merge {
   }
 }
 
+// openlibrary/templates/merge/editions2.html
+// openlibrary/templates/merge/history.html
+// openlibrary/templates/recentchanges/default/view.html
+// openlibrary/templates/recentchanges/merge-authors/view.html
+// openlibrary/templates/recentchanges/undo/view.html
 #mergeHead {
   background-color: @lightest-grey;
   padding: 15px;
@@ -2746,54 +2515,15 @@ div.merge {
 }
 
 /* BORROWING */
+// openlibrary/macros/LoanFormTest.html
+// openlibrary/macros/LoanForm.html
 div.preSubmit,
 div.postSubmit {
   text-align: center;
 }
 
-// Probably not used. Please review.
-p#borrowList {
-  position: absolute;
-  top: 0;
-  left: 100%;
-  width: 300px;
-  font-size: .75em;
-}
-
-.indent {
-  table.borrow {
-    width: 100%;
-    th,
-    td {
-      text-align: center;
-      vertical-align: top;
-      font-size: .875em;
-      font-weight: 700;
-      padding-bottom: 20px;
-    }
-  }
-  .contentLeft,
-  .contentRight {
-    width: 389px;
-  }
-  .contentThreeQuarter {
-    width: 609px;
-  }
-  .contentTwoThird {
-    width: 544px;
-  }
-  .contentOneThird {
-    width: 237px;
-  }
-  .contentHalf {
-    max-width: 389px;
-  }
-  .contentQuarter {
-    max-width: 190px;
-  }
-}
-
 /* LISTS */
+// openlibrary/templates/type/list/exports.html
 #listTools {
   ul {
     font-size: .75em;
@@ -2826,77 +2556,16 @@ p#borrowList {
 }
 
 @import (less) 'components/listLists.less';
-div#listsWork {
-  ul.listLists {
-    li {
-      width: 209px;
-      padding-right: 19px;
-      padding-top: 0;
-      min-height: 35px;
-      .data {
-        width: 167px;
-      }
-    }
-  }
-  h3 {
-    font-size: 100%;
-    min-height: 32px;
-    width: 250px;
-    font-family:@lucida_sans_serif-1!important;
-    font-weight: normal;
-    outline: 0;
-    position: relative;
-    margin: 0;
-    padding: 0;
-    zoom: 1;
-  }
 
-  h4 {
-    font-size: 1em;
-    font-family: @lucida_sans_serif-1;
-    color: @teal;
-    font-weight: 600;
-    margin: 0 0 10px;
-    padding: 0;
-    zoom: 1;
-  }
-
-  p {
-    font-size: .6875em;
-    font-family: @lucida_sans_serif-1;
-    padding-left: 42px;
-    margin-bottom: 5px !important;
-    /* stylelint-disable selector-max-specificity */
-    &#listsLess {
-      padding-left: 0;
-      margin-bottom: 0 !important;
-      text-align: right;
-    }
-    /* stylelint-enable selector-max-specificity */
-  }
-  div.icon {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icons_sprite.png);
-    background-repeat: no-repeat;
-    &.list {
-      background-position: 0 0;
-    }
-    &.listed {
-      background-position: -32px 0;
-    }
-  }
-}
-
+// openlibrary/templates/lists/widget.html
 .heart-adjust {
   position: relative;
   top: -3px;
   left: 4px;
 }
 
+// openlibrary/templates/publishers/view.html
+// openlibrary/templates/subjects.html
 div#subjectLists {
   ul.listLists {
     padding: 0;
@@ -2934,6 +2603,7 @@ div#subjectLists {
 }
 
 /* SEARCH INSIDE */
+// openlibrary/templates/search/snippets.html
 .snipHL {
   opacity: .20;
   filter: alpha(opacity=20);
@@ -2942,59 +2612,12 @@ div#subjectLists {
 }
 
 /* LIBRARIES */
-.branches {
-  th {
-    border-bottom: 1px solid @lighter-grey;
-    font-size: .625em;
-    font-weight: 700;
-    padding: 4px;
-  }
-  td {
-    border-bottom: 1px solid @lighter-grey;
-    vertical-align: top;
-    font-size: .75em;
-    padding: 4px;
-  }
-}
-
-#libraryInfo {
-  td {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    vertical-align: top;
-    margin-top: 20px;
-    font-family: @lucida_sans_serif-1;
-  }
-  .label {
-    font-weight: bold;
-    width: 25%;
-    padding-right: 20px;
-  }
-}
 
 @import (less) "components/header.less";
 
-.box-shadow-menu {
-  position: relative;
-  padding-left: 1.25em;
-  &:before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: .25em;
-    width: 1em;
-    height: .15em;
-    background: @black;
-    -webkit-box-shadow: 0 .25em 0 0 @black, 0 .5em 0 0 @black;
-    box-shadow: 0 .25em 0 0 @black, 0 .5em 0 0 @black;
-  }
-}
-
 // use manage-covers instead
-.illustration:hover .manageCoversContainer a {
-  opacity: .9;
-}
-
+// openlibrary/templates/type/edition-history/view.html
+// openlibrary/templates/type/edition/view.html
 .editionCover {
   box-sizing: unset;
   .illustration {
@@ -3002,29 +2625,24 @@ div#subjectLists {
   }
 }
 
+// openlibrary/macros/databarWork.html
 #read.panel {
   margin-bottom: 10px;
 }
 
+// Remove: in static/css/components/read-panel.less
 .cta-section-title {
   font-weight: bold;
 }
 
+// openlibrary/macros/daisy.html
+// openlibrary/templates/books/edition-sort.html
 .daisy-lock {
   position: relative;
   top: 1px;
 }
 
-.lists-loader {
-  position: absolute;
-  margin-left: 70px;
-  height: 20px;
-  padding: 2px;
-  background: fade(@white, 58);
-  border-radius: 15px;
-  margin-top: 3px;
-}
-
+// openlibrary/macros/SearchResultsWork.html
 .decorations {
   button {
     cursor: pointer;
@@ -3038,68 +2656,30 @@ div#subjectLists {
   }
 }
 
-ul#myreads-paginator {
-  margin-top: 10px;
-
-  li.selected {
-    background-color: @lightest-grey;
-  }
-  li {
-    text-align: center;
-    display: inline;
-    list-style-type: none;
-    color: @black;
-    padding: 7px;
-    border: 1px solid @lighter-grey;
-    margin-right: 10px;
-    background-color: @white;
-  }
-  li:hover {
-    background-color: @link-blue;
-    color: @white;
-  }
-  li.selected:hover {
-    background-color: @lightest-grey;
-  }
-}
-
-.myreads-options {
-  margin-bottom: 5px;
-  clear: both;
-}
-
 /* My books ... */
 // TODO: Remove in favor of general styles
+// openlibrary/templates/account/books.html
 #mybooks {
   font-size: .9em;
 }
 
+// openlibrary/templates/account/books.html
 .user-lists {
   a {
     text-decoration: underline;
   }
 }
 
-.mybooks-list-options {
-  padding: 10px;
-
-  p {
-    margin: 0;
-  }
-  h3 {
-    padding: 5px 0;
-    margin: 0;
-    line-height: 1.5em;
-    margin-bottom: 5px;
-  }
-}
-
+// openlibrary/templates/stats/readinglog.html
+// openlibrary/templates/account/books.html
 .list-books {
   .book {
     .display-flex();
   }
 }
 
+// openlibrary/macros/ReadingLogButton.html
+// openlibrary/plugins/openlibrary/js/ol.js
 .reading-log-lite {
   .display-flex();
   padding-bottom: 5px;
@@ -3128,16 +2708,19 @@ ul#myreads-paginator {
   }
 }
 
-.reading-lists-title {
-  padding: 10px;
-}
-
+// openlibrary/templates/account/books.html
+// openlibrary/templates/account/notifications.html
+// openlibrary/templates/account/privacy.html
+// openlibrary/templates/account.html
 .account-settings-menu {
   margin-bottom: 15px;
 }
 
 @import (less) "components/rating-form.less";
 
+// openlibrary/templates/lists/home.html
+// openlibrary/templates/search/lists.html
+// openlibrary/templates/search/inside.html
 .searchInsideForm {
   input[type=text] {
     margin: 0;
@@ -3154,6 +2737,8 @@ ul#myreads-paginator {
 @import (less) "components/work.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  // openlibrary/templates/admin/index.html
+  // openlibrary/admin/templates/admin/index.html
   div.content {
     &Left {
       float: left;
@@ -3180,6 +2765,7 @@ ul#myreads-paginator {
   @import (less) "components/edit-toolbar--tablet.less";
 }
 
+// openlibrary/templates/admin/index.html
 .canvas-graph {
   width: 100%;
   height: 50px;
@@ -3189,6 +2775,7 @@ ul#myreads-paginator {
   /**
   * Used on following pages:
   * - /search/subjects
+  * To be deleted in https://github.com/internetarchive/openlibrary/issues/1821
   */
   div.contentWide,
   div#contentMeta {
@@ -3199,6 +2786,7 @@ ul#myreads-paginator {
   }
 
   // Graph shown on /stats
+  // openlibrary/templates/admin/index.html
   .canvas-graph {
     width: 430px;
     height: 50px;
