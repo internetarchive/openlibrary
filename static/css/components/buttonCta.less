@@ -1,28 +1,39 @@
-a {
-  &.cta-btn {
-    color: @white;
-    width: 100%;
-    border: 0;
-    border-radius: 5px;
-    box-sizing: border-box;
-    cursor: pointer;
-    text-decoration: none;
-    font-family: @lucida_sans_serif-1;
-    text-align: center;
-    padding: 5px 20px;
-  }
-}
-.primary {
+/**
+ * CtaBtn
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ctabtn
+ */
+.cta-btn,
+// override default anchor styles
+a.cta-btn {
+  font-size: 14px;
+  color: @white;
+  width: 100%;
+  display: block;
+  border: 0;
+  border-radius: 5px;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-decoration: none;
+  font-family: @lucida_sans_serif-1;
+  text-align: center;
+  padding: 7px 20px;
   white-space: nowrap;
-  &.borrow_ {
-    &available {
-      background-color: @primary-blue;
-    }
-    &unavailable {
-      background-color: @orange;
-    }
-    &missing {
-      background-color: @mid-grey;
-    }
+  background-color: @mid-grey;
+  line-height: 1.5em;
+
+  &:hover {
+    text-decoration: underline;
+  }
+  &--available {
+    background-color: @primary-blue;
+  }
+  &--unavailable {
+    background-color: @orange;
+  }
+  &__badge {
+    background-color: @orange-two;
+    padding: 4px 7px;
+    border-radius: 5px;
+    font-size: .7em;
   }
 }
