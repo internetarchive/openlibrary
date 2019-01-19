@@ -124,11 +124,11 @@
             renderTag('div', {'class': 'coverEbook'},
                 (format === 'public' ?
                     renderTag('a', {'href': bookread_url, "title": "Read online",
-                        'class': 'borrow_available cta-btn'}, 'Read') :
+                        'class': 'cta-btn--available cta-btn'}, 'Read') :
                     renderTag('a', {
                         'href': bookread_url,
                         'title': 'Read this book',
-                        'class': 'borrow-link',
+                        'class': 'cta-btn cta-btn--available',
                         'data-ocaid': work.ia,
                         'data-key': work.key
                     })))));
