@@ -21,7 +21,7 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
-    var btnClassName = 'cta-btn btn--large';
+    var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
         '^/account/books/[^/]+': { // readinglog
@@ -108,7 +108,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr("href", "/borrow/ia/" + book_ocaid);
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_available').addClass(btnClassName)
+                                .addClass('cta-btn--available').addClass(btnClassName)
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -125,7 +125,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('title', 'Join waitlist');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_unavailable').addClass(btnClassName);
+                                .addClass('cta-btn--unavailable').addClass(btnClassName);
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -230,7 +230,7 @@ $(function(){
                                     cls = work.status;
                                     msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
                                     if (work.num_waitlist !== '0') {
-                                        msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+                                        msg += 'Join Waitlist <span class="cta-btn__badge">' + work.num_waitlist + '</span></form>';
 
                                     } else {
                                         msg += 'Join Waitlist</form>';
