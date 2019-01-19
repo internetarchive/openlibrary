@@ -11,7 +11,7 @@ pyflakes==2.0.0
 pymarc==3.1.11
 python-memcached==1.59
 simplejson==3.16.0
-supervisor==3.0a12; python_version < '3.0'
+supervisor==3.3.5; python_version < '3.0'
 web.py==0.33; python_version < '3.0'
 web.py==0.40-dev1; python_version >= '3.0'
 pystatsd==0.1.6
