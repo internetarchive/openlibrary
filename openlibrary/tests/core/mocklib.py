@@ -1,6 +1,7 @@
 """Simple mock utility.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 from StringIO import StringIO
 
 class Mock:

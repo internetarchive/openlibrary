@@ -13,7 +13,8 @@ import _init_path
 import yaml
 import logging
 import json
-import urllib, urllib2
+import urllib
+import urllib2
 import argparse
 import datetime
 import time

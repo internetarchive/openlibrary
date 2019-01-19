@@ -14,7 +14,8 @@ http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
 from __future__ import print_function
 
-import sys, os
+import sys
+import os
 import web
 import datetime
 from gzip import open as gzopen

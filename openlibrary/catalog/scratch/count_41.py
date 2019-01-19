@@ -1,5 +1,6 @@
 from __future__ import print_function
-import web, os.path
+import web
+import os.path
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from catalog.marc.fast_parse import get_first_tag, get_all_subfields

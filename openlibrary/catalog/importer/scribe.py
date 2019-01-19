@@ -9,7 +9,13 @@ from openlibrary.catalog.marc import is_display_marc
 from time import sleep, time
 
 import MySQLdb
-import re, urllib2, httplib, json, codecs, socket, sys
+import re
+import urllib2
+import httplib
+import json
+import codecs
+import socket
+import sys
 
 ol = OpenLibrary('http://openlibrary.org/')
 

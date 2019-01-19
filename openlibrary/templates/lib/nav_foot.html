@@ -38,12 +38,12 @@ $def with (page)
         <h2>Help</h2>
         <ul>
           <li><a href="/help" title="$_('Help Center')">Help Center</a></li>
-          <li><a href="/contact?path=/" title="$_('Problems')">Contact and Support</a></li> 
+          <li><a href="/contact?path=$request.path" title="$_('Problems')">Report A Problem</a></li> 
           <li><a href="/help/faq/editing" title="$_('Suggest Edits')">Suggesting Edits</a></li>
         </ul>
         <aside id="footer-icons">
-          <a href="https://twitter.com/OpenLibrary"><i class="fa fa-twitter" aria-hidden="true" title="Open Library on Twitter"></i></a>
-          <a href="https://github.com/internetarchive/openlibrary"><i class="fa fa-github" aria-hidden="true" title="Open Library on GitHub"></i></a>
+          <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
+          <a class="footer-icons__github" href="https://github.com/internetarchive/openlibrary">github</a>
         </aside>
       </div>
     </div>

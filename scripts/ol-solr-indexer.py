@@ -14,7 +14,9 @@ __version__ = "0.1"
 
 import _init_path
 
-import sys, os, re
+import sys
+import os
+import re
 import logging
 import argparse
 import math

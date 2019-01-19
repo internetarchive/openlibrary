@@ -1,5 +1,6 @@
 from __future__ import print_function
-import dbhash, sys
+import dbhash
+import sys
 from catalog.read_rc import read_rc
 
 rc = read_rc()

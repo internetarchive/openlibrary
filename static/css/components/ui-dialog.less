@@ -1,0 +1,94 @@
+/**
+ * UI-Dialog
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#ui-dialog
+ */
+ .ui-dialog {
+    position: relative;
+    padding: 0;
+    width: 400px;
+    border: 10px solid @brown;
+    background-color: @white;
+    border-radius: 12px;
+    -webkit-box-shadow: 1px 3px 10px @black;
+    box-shadow: 1px 3px 10px @black;
+    z-index: @z-index-level-14 !important;
+    .ui-dialog-titlebar {
+      position: relative;
+      background-color: @brown;
+      color: @white;
+      font-size: 1.75em;
+      margin: 0;
+      padding: 8px 0;
+    }
+    .ui-dialog-titlebar-close {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      background: none;
+      border: none;
+      text-indent: -99px;
+      overflow: hidden;
+    }
+    .ui-dialog-titlebar-close span {
+      display: block;
+    }
+    .ui-dialog-titlebar-close:hover,
+    .ui-dialog-titlebar-close:focus {
+      padding: 0;
+    }
+    .ui-dialog-content {
+      padding: .5em 1em;
+      background: none;
+      overflow: auto;
+      zoom: 1;
+      p {
+        min-height: 28px;
+        padding: 6px 33px 0;
+        background: url(/images/icons/icon_alert.png) no-repeat 0 0;
+        margin: 0;
+      }
+    }
+    .ui-dialog-buttonpane {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    .ui-dialog-buttonpane button {
+      cursor: pointer;
+      width: auto;
+      overflow: visible;
+      font-size: 18px;
+      margin: 0 8px;
+    }
+  }
+
+.ui {
+  &-draggable {
+    .ui-dialog-titlebar {
+      cursor: move;
+    }
+  }
+  &-icon {
+    display: block;
+    text-indent: -99999px;
+    overflow: hidden;
+    width: 32px;
+    height: 32px;
+  }
+  &-icon-closethick {
+    background-image: url(/images/icons/icon_close-pop.png);
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    &:hover {
+      background-position: 0 -32px;
+    }
+  }
+}
+
+* html {
+  .ui-helper-clearfix {
+    height: 1%;
+  }
+}

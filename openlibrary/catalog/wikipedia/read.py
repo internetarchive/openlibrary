@@ -1,5 +1,7 @@
 from __future__ import print_function
-import sys, codecs, re
+import sys
+import codecs
+import re
 from catalog.marc.fast_parse import translate
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

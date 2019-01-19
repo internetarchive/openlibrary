@@ -20,7 +20,8 @@ import os
 import re
 import datetime
 from ConfigParser import ConfigParser
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 import web
 import logging

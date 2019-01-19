@@ -1,6 +1,8 @@
 import web
 import simplejson
-import babel, babel.core, babel.dates
+import babel
+import babel.core
+import babel.dates
 from UserDict import DictMixin
 from collections import defaultdict
 import re

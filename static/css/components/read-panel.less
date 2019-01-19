@@ -1,5 +1,5 @@
 /**
- * Read Panel
+ * Read Options Panel
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#read-panel
  */
 .read-options,
@@ -15,10 +15,33 @@
   border-bottom: 1px solid @mid-grey;
   margin-top: 0;
 
+  .waitinglist-message {
+    margin: 0 0 10px;
+    font-size: 12px;
+  }
   .cta-section {
     font-size: .78em;
   }
-  strong,
+
+  .check-availability {
+    font-size: 14px;
+    border-top: 1px solid @lightest-grey;
+  }
+
+  .check-other-editions {
+    text-align: center;
+  }
+
+  &-panel__print-disabled-download {
+    font-size: 11px;
+    text-align: center;
+  }
+
+  strong {
+    font-size: 12.5px;
+    font-weight: bold;
+  }
+
   .cta-section-title {
     font-size: 12.5px;
     display: block;
@@ -31,16 +54,29 @@
     list-style: disc;
     margin: 5px 10px 0;
   }
+  // stylelint-disable selector-max-specificity
   table {
     width: 100%;
-    td {
-      text-align: left;
-      &.price {
-        text-align: right;
-      }
+  }
+  td {
+    text-align: left;
+    width: 49%;
+    &.price {
+      text-align: right;
     }
   }
+  // stylelint-enable selector-max-specificity
 }
+
+.Tools .booklinks li {
+  list-style: none;
+  font-size: 12px;
+}
+
+.buy-options-table {
+  white-space: nowrap;
+}
+
 // For the button at the top
 @import (less) "components/buttonCta.less";
 // for the share links at the bottom

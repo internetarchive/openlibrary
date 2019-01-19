@@ -6,7 +6,8 @@ from .. import app
 import web
 import urllib2
 import os.path
-import sys, re
+import sys
+import re
 
 class old_show_marc(app.view):
     path = "/show-marc/(.*)"

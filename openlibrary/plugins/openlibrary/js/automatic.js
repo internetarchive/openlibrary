@@ -25,10 +25,10 @@ jQuery(function($) {
     }
 
     if ($(".tabs:not(.ui-tabs)").tabs) {
-      $(".tabs:not(.ui-tabs)").tabs(options)
-      $(".tabs.autohash").bind("tabsselect", function(event, ui) {
-          document.location.hash = ui.panel.id;
-      });
+        $(".tabs:not(.ui-tabs)").tabs(options)
+        $(".tabs.autohash").bind("tabsselect", function(event, ui) {
+            document.location.hash = ui.panel.id;
+        });
     }
 
     // validate forms

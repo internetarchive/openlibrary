@@ -5,7 +5,8 @@ import sys
 import web
 import subprocess
 import datetime
-import urllib, urllib2
+import urllib
+import urllib2
 import traceback
 import logging
 import simplejson

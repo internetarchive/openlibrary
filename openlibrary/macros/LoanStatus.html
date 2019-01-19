@@ -1,6 +1,9 @@
-$def with (page, user, editions_page=False)
-
-$# editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
+$def with (page, user, editions_page=False, block_name='')
+$# Takes following parameters:
+$# * page
+$# * user
+$# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
+$# * block_name is a BEM block name
 
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
@@ -32,29 +35,26 @@ $if user:
 $ borrow_link = page.url() + '/borrow'
 
 $if user_loan:
-    <p>
-      <a href="$borrow_link" title="Borrow from $contributor"
-         data-userid="$(user_loan['userid'])" id="read_ebook"
-         class="borrow-btn borrow-link btn--large btn primary">Read eBook</a>
-    </p>
+  <a href="$borrow_link" title="Borrow from $contributor"
+     data-userid="$(user_loan['userid'])" id="read_ebook"
+     class="cta-btn cta-btn--available">Read eBook</a>
+
     $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
     <form action="$return_url" method="post" class="waitinglist-form return-book">
       <input type="hidden" name="action" value="return" />
-      <input type="submit" value="Return eBook" class="submit unwait-btn" id="return_ebook"/>
+      <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
     </form>
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-    <p>
-      <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
-        class="borrow-btn borrow-link btn primary btn--large">
-        Borrow eBook
-      </a>
-    </p>
+  <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
+     class="cta-btn cta-btn--available">
+    Borrow eBook
+  </a>
 
 $elif (availability_status == 'borrow_unavailable'):
     $ wlsize = availability.get('num_waitlist', 0)
     $if waiting_loan:
-        <p>
+        <p class="waitinglist-message">
           $ spot = ctx.user.get_waiting_loan_for(page)['position']
           $if spot == 1:
               You are <strong>next</strong> on the waiting list
@@ -63,30 +63,30 @@ $elif (availability_status == 'borrow_unavailable'):
         </p>
         <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
           <input type="hidden" name="action" value="leave-waitinglist"/>
-          <input type="submit" class="submit unwait-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+          <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
         </form>
 
     $else:  
-        <p>
+        <p class="waitinglist-message">
           $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
         </p>
         <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
           <input type="hidden" name="action" value="join-waitinglist"/>
-          <input type="submit" class="borrow_unavailable primary btn btn--large submit wait-btn" id="waitlist_ebook" value="Join waiting list"/>
+          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join waiting list"/>
         </form>
 
 $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="btn--large btn primary">Read eBook</a>
+    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read eBook</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <form>
-      <input type="submit" class="unwait-btn btn primary borrow_missing btn--large" disabled value="No ebook available">
+      <input type="submit" class="cta-btn" disabled value="No ebook available">
     </form>
 
 
 $if editions_page and page.get('ocaid'):
-  $:macros.daisy(page)
+  $:macros.daisy(page, block_name)
 
   $# If waitlisted, show other possible editions after daisy download link
   $if (availability_status == 'borrow_unavailable'):

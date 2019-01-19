@@ -24,19 +24,20 @@
 @import (less) "less/mixins.less";
 @import (less) "less/z-index.less";
 
-@import (less) 'components/datatables.less';
+@import (less) "legacy-borrowBookForm.less";
+@import (less) "legacy-header.less";
+@import (less) "legacy-tools.less";
+@import (less) "legacy-wmd.less";
+
 @import (less) 'components/diff.less';
-@import (less) 'components/wmd.less';
 @import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
 @import (less) "components/editions.less";
 @import (less) "components/header.less";
 @import (less) "components/mybooks.less";
 @import (less) "components/readinglog-stats.less";
-@import (less) "components/Tools.less";
 @import (less) "components/shareLinks.less";
 @import (less) "components/dropper.less";
-@import (less) "components/borrowBookForm.less";
 
 @import (less) "components/subNav.less";
 @import (less) "components/book.less";
@@ -1201,107 +1202,6 @@ div.searchOptions {
 }
 
 /* DIALOGS */
-.ui-icon {
-  display: block;
-  text-indent: -99999px;
-  overflow: hidden;
-  width: 32px;
-  height: 32px;
-  &-closethick {
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
-    }
-  }
-}
-
-.ui-widget-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: @black;
-  opacity: .5;
-  filter: alpha(opacity=50);
-  z-index: @z-index-level-13 !important;
-}
-
-* html {
-  .ui-helper-clearfix {
-    height: 1%;
-  }
-}
-
-.ui-dialog {
-  position: relative;
-  padding: 0;
-  width: 400px;
-  border: 10px solid @brown;
-  background-color: @white;
-  border-radius: 12px;
-  -webkit-box-shadow: 1px 3px 10px @black;
-  box-shadow: 1px 3px 10px @black;
-  z-index: @z-index-level-14 !important;
-  .ui-dialog-titlebar {
-    position: relative;
-    background-color: @brown;
-    color: @white;
-    font-size: 1.75em;
-    margin: 0;
-    padding: 0;
-  }
-  .ui-dialog-title {
-    float: left;
-    margin: 0;
-    padding: 0 10px 10px;
-  }
-  .ui-dialog-titlebar-close {
-    position: absolute;
-    right: 0;
-    top: 0;
-    width: 32px;
-    height: 32px;
-  }
-  .ui-dialog-titlebar-close span {
-    display: block;
-  }
-  .ui-dialog-titlebar-close:hover,
-  .ui-dialog-titlebar-close:focus {
-    padding: 0;
-  }
-  .ui-dialog-content {
-    padding: .5em 1em;
-    background: none;
-    overflow: auto;
-    zoom: 1;
-    p {
-      min-height: 28px;
-      padding: 6px 33px 0;
-      background: url(/images/icons/icon_alert.png) no-repeat 0 0;
-      margin: 0;
-    }
-  }
-  .ui-dialog-buttonpane {
-    text-align: center;
-    margin-bottom: 10px;
-  }
-  .ui-dialog-buttonpane button {
-    cursor: pointer;
-    width: auto;
-    overflow: visible;
-    font-size: 18px;
-    margin: 0 8px;
-  }
-}
-
-.ui-draggable {
-  .ui-dialog-titlebar {
-    cursor: move;
-  }
-}
 
 div.cclicense {
   font-family: @lucida_sans_serif-2;
@@ -1380,9 +1280,6 @@ div.verify {
     background: url(/images/icons/icon_check.png) no-repeat;
   }
 }
-
-/* HEADER */
-@import (less) 'components/header-legacy.less';
 
 .defaultstyling {
   font-family: @lucida_sans_serif-1;
@@ -1528,8 +1425,6 @@ div.editThis {
 
 /* NEW HOME PAGE */
 
-@import (less) "components/olBlog.less";
-
 .contentLists.results {
   .coverMagic {
     position: relative;
@@ -1668,32 +1563,6 @@ div#searchResults {
   }
 }
 
-.coverEbook {
-  img {
-    opacity: .85;
-    filter: alpha(opacity=85);
-  }
-  a.cta-btn {
-    position: absolute;
-    padding: 0 5px;
-    right: 0;
-    bottom: 3px;
-    border-radius: 3px;
-  }
-}
-
-.borrow_ {
-  &available {
-    background-color: @primary-blue;
-  }
-  &unavailable {
-    background-color: @orange;
-  }
-  &missing {
-    background-color: @mid-grey;
-  }
-}
-
 .print-disabled-only {
   background-color: @purple;
 }
@@ -1736,11 +1605,12 @@ div#searchResults {
   }
 }
 
+// Results on /search/authors
 .authorList {
   margin-top: 30px;
   li {
     margin-bottom: 1.5em;
-    width: 800px;
+    max-width: 800px;
     font-size: 1em;
     color: @grey;
   }
@@ -2003,11 +1873,6 @@ tr {
   }
 }
 
-img.cover {
-  border-radius: 5px;
-  box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
-}
-
 #cover {
   border: 2px solid @brown;
   background-color: @white;
@@ -2055,51 +1920,6 @@ select {
   ul li.read-option a {
     display: block;
     text-align: center;
-  }
-}
-
-// for backwards compatibility
-// please use btn--large instead
-.borrow-btn,
-.wait-btn,
-.unwait-btn {
-  margin: 1px auto;
-  color: @white;
-  background: @primary-blue;
-  border-radius: 5px;
-  padding: 7px 20px;
-  cursor: pointer;
-  display: inline-block;
-  font-size: 1.1em;
-  line-height: 1.5em;
-  &:link,
-  &:visited {
-    color: @white;
-    text-decoration: none;
-  }
-  &:hover {
-    color: @white;
-    text-decoration: underline;
-  }
-}
-
-.wait-btn {
-  background: @mid-blue;
-  border: none;
-  background-color: @orange;
-}
-
-.unwait-btn {
-  background: @mid-grey;
-  border: none;
-}
-
-.waitinglist-form {
-  input[type=submit].wait-btn {
-    background-color: @orange;
-  }
-  input[type=submit] {
-    line-height: 1.5em;
   }
 }
 
@@ -2411,13 +2231,7 @@ div#history {
   }
 }
 
-.coverMagic {
-  .coverEbook {
-    cursor: pointer;
-    z-index: @z-index-level-6;
-  }
-}
-
+// unused?
 #contentLists {
   &.results {
     .coverMagic {
@@ -2703,22 +2517,6 @@ div.addfield {
     padding: 0;
     font-family: @lucida_sans_serif-1;
     font-size: .75em;
-  }
-}
-
-// Probably not used. Please review.
-.ui-sortable {
-  min-height: 90px;
-  max-height: 270px;
-  overflow: auto;
-  &-placeholder {
-    border: 1px dotted @mid-grey;
-    visibility: visible !important;
-    height: 70px !important;
-    border-radius: 6px;
-    * {
-      visibility: hidden;
-    }
   }
 }
 
@@ -3520,7 +3318,7 @@ ul#myreads-paginator {
   select {
     background-color: @white;
     color: @dark-grey;
-    border: 1px solid @light-mid-grey;
+    border: 1px solid @mid-grey;
     border-radius: 4px;
     height: 2.5em;
     width: 100%;
@@ -3548,19 +3346,7 @@ ul#myreads-paginator {
   margin-bottom: 15px;
 }
 
-.star {
-  color: @steel-blue;
-  font-size: 1.3em;
-}
-
 @import (less) "components/rating-form.less";
-
-.responsive button.slick-prev,
-.slick-next {
-  &:before {
-    color: @white;
-  }
-}
 
 .searchInsideForm {
   input[type=text] {
@@ -3601,7 +3387,6 @@ ul#myreads-paginator {
   }
   @import (less) "components/work--tablet.less";
   @import (less) "components/dropper--tablet.less";
-  @import (less) "components/Tools--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
 }
 
@@ -3678,21 +3463,5 @@ ul#myreads-paginator {
     &Spacer {
       float: left;
     }
-  }
-}
-
-/* Caution! Ensure accessibility in print and other media types... */
-@media projection, screen {
-  /* Use class for showing/hiding tab content,
-  so that visibility can be better controlled in different media types... */
-  .ui-tabs-hide {
-    display: none;
-  }
-}
-
-/* Hide useless elements in print layouts... */
-@media print {
-  .ui-tabs-nav {
-    display: none;
   }
 }

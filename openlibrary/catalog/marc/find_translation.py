@@ -1,7 +1,8 @@
 #!/usr/bin/python2.5
 from __future__ import print_function
 from catalog.marc.fast_parse import *
-import sys, codecs
+import sys
+import codecs
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

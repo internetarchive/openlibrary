@@ -24,10 +24,10 @@
             var $this = $(this);
 
             var $json = $('<input type="hidden">')
-                        .attr("name", this.id + "-json")
-                        .addClass("repeat-ignore") // tell repeat plugin to ignore this input
-                        .val("[]")
-                        .insertBefore($this);
+                .attr("name", this.id + "-json")
+                .addClass("repeat-ignore") // tell repeat plugin to ignore this input
+                .val("[]")
+                .insertBefore($this);
 
             $this.change(function(){
                 var value = $this.val();
@@ -36,10 +36,10 @@
                         options.onshow.apply($this, []);
                     }
                     $.fn.colorbox({
-                       inline: true,
-                       opacity: "0.5",
-                       href: options.href,
-                       open: true
+                        inline: true,
+                        opacity: "0.5",
+                        href: options.href,
+                        open: true
                     });
                 }
             });
@@ -47,13 +47,13 @@
             // handle cancel
             $(options.href).bind("cbox_closed", function() {
 
-               if ($this.val() == "__add__") {
-                   $this.val("");
-                   $this.focus();
-               }
-               if (options.cancel) {
-                   options.cancel();
-               }
+                if ($this.val() == "__add__") {
+                    $this.val("");
+                    $this.focus();
+                }
+                if (options.cancel) {
+                    options.cancel();
+                }
             });
 
             // handle submit

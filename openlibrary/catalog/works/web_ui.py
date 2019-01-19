@@ -1,5 +1,6 @@
 from __future__ import print_function
-import web, re
+import web
+import re
 from time import time
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site

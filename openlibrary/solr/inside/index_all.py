@@ -1,6 +1,9 @@
 from __future__ import print_function
 from Queue import Queue
-import threading, datetime, re, httplib
+import threading
+import datetime
+import re
+import httplib
 from collections import defaultdict
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
 from urllib import urlopen

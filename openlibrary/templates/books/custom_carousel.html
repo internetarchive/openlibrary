@@ -1,4 +1,4 @@
-$def with(books=None, title="", url="", key="", min_books=1, test=False)
+$def with(books=[], title="", url="", key="", min_books=1, test=False)
 
 $def render_carousel_cover(book, lazy):
   $ url = book.get('key') or book.url

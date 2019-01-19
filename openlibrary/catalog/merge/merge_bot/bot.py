@@ -3,7 +3,8 @@
 from __future__ import print_function
 import sys
 import web
-import sys, codecs
+import sys
+import codecs
 from catalog.utils.query import query_iter, set_staging, withKey
 
 from catalog.merge.merge_marc import *

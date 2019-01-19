@@ -1,5 +1,6 @@
 from __future__ import print_function
-import sys, codecs
+import sys
+import codecs
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
 from openlibrary.api import OpenLibrary, Reference
 from openlibrary.catalog.read_rc import read_rc

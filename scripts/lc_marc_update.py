@@ -7,7 +7,11 @@ from openlibrary import config
 from ftplib import FTP
 from time import sleep
 from lxml import etree
-import os, sys, httplib, json, argparse
+import os
+import sys
+import httplib
+import json
+import argparse
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')

@@ -1,6 +1,8 @@
 #!/usr/local/bin/python2.5
 from __future__ import print_function
-import web, dbhash, sys
+import web
+import dbhash
+import sys
 import simplejson as json
 from openlibrary.catalog.load import add_keys
 from copy import deepcopy

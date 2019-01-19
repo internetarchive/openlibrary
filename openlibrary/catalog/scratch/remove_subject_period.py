@@ -1,6 +1,8 @@
 from __future__ import print_function
 from catalog.utils.query import query_iter, set_staging, withKey
-import sys, codecs, re
+import sys
+import codecs
+import re
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 from catalog.read_rc import read_rc

@@ -1,4 +1,5 @@
-import re, unicodedata
+import re
+import unicodedata
 
 import six
 

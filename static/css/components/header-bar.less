@@ -10,7 +10,7 @@
 
 @import (less) "less/z-index.less";
 
-header#header-bar {
+.header-bar {
   max-width: 960px;
   min-width: 300px;
   margin: 0 auto;
@@ -54,6 +54,7 @@ header#header-bar {
       padding-top: 5px;
       right: 11px;
 
+      // stylelint-disable-next-line max-nesting-depth, selector-max-specificity
       ul a li {
         width: 150px;
         text-decoration: none;
@@ -79,6 +80,7 @@ header#header-bar {
       display: inline-flex;
       // stylelint-enable declaration-block-no-duplicate-properties
 
+      // stylelint-disable-next-line max-nesting-depth
       a {
         color: @dark-grey;
       }
@@ -101,6 +103,7 @@ header#header-bar {
       border-bottom: 1px solid @beige-two;
       padding-right: 20px;
 
+      // stylelint-disable max-nesting-depth, selector-max-specificity
       &:last-child {
         border: none;
       }
@@ -116,6 +119,7 @@ header#header-bar {
         padding: 10px;
         display: block;
       }
+      // stylelint-enable max-nesting-depth, selector-max-specificity
     }
   }
 
@@ -182,6 +186,7 @@ header#header-bar {
       padding: 5px 0;
       font-size: 1em;
 
+      // stylelint-disable max-nesting-depth, selector-max-specificity
       a {
         color: @dark-grey;
         text-decoration: none;
@@ -209,6 +214,7 @@ header#header-bar {
         position: relative;
       }
     }
+    // stylelint-enable max-nesting-depth, selector-max-specificity
   }
 
   .search-component {
@@ -223,6 +229,8 @@ header#header-bar {
     -ms-flex: 1;
     flex: 1;
 
+    // stylelint-disable selector-max-specificity
+    // stylelint-disable max-nesting-depth
     .search-component-expand {
       -webkit-box-flex: 1;
       -ms-flex: 1;
@@ -239,19 +247,15 @@ header#header-bar {
       .search-bar {
         width: auto;
 
-        /* stylelint-disable selector-max-specificity */
         .search-bar-input {
           .display-flex();
         }
-        /* stylelint-enable selector-max-specificity */
       }
 
-      /* stylelint-disable selector-max-specificity */
       .search-bar-input input[type=text] {
         display: block;
         width: 100%;
       }
-      /* stylelint-enable selector-max-specificity */
 
       .search-bar-submit {
         margin-right: 5px;
@@ -311,11 +315,13 @@ header#header-bar {
         max-width: 100%;
       }
     }
+    /* stylelint-enable selector-max-specificity */
 
     .search-dropdown {
       position: relative;
       z-index: @z-index-level-5;
 
+      /* stylelint-disable selector-max-specificity */
       .search-results {
         background: @white;
         border-top-left-radius: .3em;
@@ -326,11 +332,9 @@ header#header-bar {
           padding: 7px;
           border-top: 1px solid @lighter-grey;
           font-size: .9rem;
-          /* stylelint-disable selector-max-specificity */
           &:hover {
             background-color: @white;
           }
-          /* stylelint-enable selector-max-specificity */
 
           a {
             .display-flex();
@@ -346,7 +350,6 @@ header#header-bar {
               margin-right: 10px;
             }
 
-            /* stylelint-disable selector-max-specificity */
             .book-desc {
               font-weight: 300;
               text-decoration: none;
@@ -359,10 +362,10 @@ header#header-bar {
                 color: @dark-blue;
               }
             }
-            /* stylelint-enable selector-max-specificity */
           }
         }
       }
+      /* stylelint-enable selector-max-specificity */
     }
 
     .search-facet-selector {
@@ -383,6 +386,7 @@ header#header-bar {
       font-weight: 500;
       color: @grey;
 
+      // stylelint-disable-next-line selector-max-specificity
       select {
         font-size: inherit;
         font-family: inherit;
@@ -404,6 +408,7 @@ header#header-bar {
       min-width: 20px;
 
       padding-right: 10px;
+      // stylelint-disable-next-line selector-max-specificity
       &::after {
         position: absolute;
         top: 50%;
@@ -431,6 +436,7 @@ header#header-bar {
       width: 100%;
     }
 
+    /* stylelint-disable selector-max-specificity */
     .search-bar {
       width: auto;
 
@@ -445,6 +451,7 @@ header#header-bar {
         width: 100%;
       }
     }
+    /* stylelint-enable selector-max-specificity */
 
     .search-bar-submit {
       margin-right: 5px;
@@ -477,7 +484,7 @@ header#header-bar {
       background-size: cover;
       width: 45px;
       height: 45px;
-      background-color: @light-mid-grey;
+      background-color: @mid-grey;
       border-radius: 3px;
     }
   }
@@ -495,12 +502,14 @@ header#header-bar {
 .hamburger-component,
 .navigation-component li,
 .account-component {
+  /* stylelint-disable selector-max-specificity */
   .navigation-dropdown-component {
     display: none;
   }
   &:hover .navigation-dropdown-component {
     display: block;
   }
+  /* stylelint-enable selector-max-specificity */
 }
 
 .logo-component {
@@ -550,6 +559,8 @@ header#header-bar {
     min-width: 50px;
     width: 100%;
     .display-flex();
+
+    /* stylelint-disable selector-max-specificity */
     input[type=text] {
       min-width: 0;
       margin: 3px;
@@ -562,7 +573,7 @@ header#header-bar {
       border: 0 none;
       outline: none;
       background: @grey-fafafa;
-      color: @light-grey;
+      color: @grey;
       -webkit-transition: all .5s;
       -o-transition: all .5s;
       transition: all .5s;
@@ -574,12 +585,13 @@ header#header-bar {
       -moz-appearance: none;
       appearance: none;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 25em) {
-  header#header-bar {
+  .header-bar {
     .logo-component {
       .logo-icon {
         height: 47px;
@@ -597,7 +609,7 @@ header#header-bar {
 }
 
 @media only screen and (min-width: 30em) {
-  header#header-bar {
+  .header-bar {
     margin: 0 auto;
 
     .account-component {
@@ -648,7 +660,7 @@ header#header-bar {
 
 // We should review this media query to determine if it is in fact needed.
 @media only screen and (min-width: 35.5em) {
-  header#header-bar {
+  .header-bar {
     .account-component {
       -webkit-box-flex: 0;
       -ms-flex: none;
@@ -697,9 +709,11 @@ header#header-bar {
       .search-bar-input {
         .display-flex();
 
+        /* stylelint-disable selector-max-specificity */
         input[type=text] {
           display: block;
         }
+        /* stylelint-enable selector-max-specificity */
       }
       .search-bar-submit {
         margin-right: 5px;

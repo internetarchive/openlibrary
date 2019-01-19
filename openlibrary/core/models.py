@@ -1,6 +1,7 @@
 """Models of various OL objects.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 import web
 import re

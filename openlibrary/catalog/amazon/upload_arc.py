@@ -1,6 +1,10 @@
 from __future__ import print_function
 from openlibrary.catalog.read_rc import read_rc
-import httplib, web, time, sys, os
+import httplib
+import web
+import time
+import sys
+import os
 
 rc = read_rc()
 accesskey = rc['s3_accesskey']

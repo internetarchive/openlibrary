@@ -90,10 +90,6 @@ div.head {
     font-size: 12px;
   }
 }
-table {
-  overflow: auto;
-  display: block;
-}
 
 #contentBody {
   li {
@@ -104,8 +100,14 @@ table {
   }
 }
 
-@media only screen and (min-width: @width-breakpoint-tablet) {
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  tr,
+  tbody,
   table {
-    display: table;
+    overflow: auto;
+    display: block;
+  }
+  td {
+    display: inline-block;
   }
 }

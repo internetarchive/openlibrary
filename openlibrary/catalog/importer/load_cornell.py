@@ -1,5 +1,9 @@
 from __future__ import print_function
-import web, re, httplib, sys, urllib2
+import web
+import re
+import httplib
+import sys
+import urllib2
 import simplejson as json
 import openlibrary.catalog.importer.pool as pool
 from openlibrary.catalog.merge.merge_marc import build_marc

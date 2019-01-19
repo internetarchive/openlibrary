@@ -37,7 +37,8 @@ Whatever you pass in, will replace the *Python Interface by Fuzzyman* part.
 
 """
 from __future__ import print_function
-import os, sys
+import os
+import sys
 import urllib2
 from urllib import urlencode
 

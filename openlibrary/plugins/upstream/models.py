@@ -620,12 +620,12 @@ class Work(models.Work):
         w = self._solr_data
         editions = w.get('edition_key') if w else []
 
-        # solr is stale
-        if len(editions) != self.edition_count:
-            q = {"type": "/type/edition", "works": self.key, "limit": 10000}
-            editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
-
         if editions:
+            # solr is stale
+            if len(editions) != self.edition_count:
+                q = {"type": "/type/edition", "works": self.key, "limit": 10000}
+                editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
+
             books = web.ctx.site.get_many(["/books/" + olid for olid in editions])
 
             availability = lending.get_availability_of_ocaids([

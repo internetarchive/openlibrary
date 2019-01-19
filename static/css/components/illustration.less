@@ -10,16 +10,21 @@
   position: relative;
   img {
     width: 180px;
+    border-radius: 5px;
+    box-shadow: 1px 1px 2px 0 @book-cover-shadow-color;
   }
   .SRPCoverBlank {
     position: relative;
     width: 148px;
     height: 225px;
+    min-width: 175px;
+    min-height: 250px;
     padding: 15px;
     text-align: center;
     background: @lighter-grey;
     font-size: 1em;
     display: none;
+
     .innerBorder {
       border: 2px solid @white;
       width: 144px;

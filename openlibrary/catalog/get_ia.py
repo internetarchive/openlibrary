@@ -5,7 +5,9 @@ from openlibrary.catalog.marc import fast_parse, parse
 from infogami import config
 from lxml import etree
 import xml.parsers.expat
-import urllib2, os.path, socket
+import urllib2
+import os.path
+import socket
 from time import sleep
 import traceback
 from openlibrary.core import ia

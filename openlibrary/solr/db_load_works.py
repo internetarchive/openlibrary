@@ -1,5 +1,6 @@
 from __future__ import print_function
-import web, re
+import web
+import re
 import simplejson as json
 
 db = web.database(dbn='mysql', user='root', passwd='', db='openlibrary')

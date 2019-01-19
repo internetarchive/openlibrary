@@ -1,6 +1,7 @@
 """Handle book cover/author photo upload.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 import web
 import simplejson
 

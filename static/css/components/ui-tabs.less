@@ -38,6 +38,7 @@
       text-transform: uppercase;
       white-space: nowrap; /* required in IE 6 */
       outline: 0; /* prevent dotted border in Firefox */
+      /* stylelint-disable max-nesting-depth */
       &:link,
       &:visited {
         color: @link-blue;
@@ -46,11 +47,15 @@
         color: @link-blue;
         text-decoration: underline;
       }
+      /* stylelint-enable max-nesting-depth */
     }
+    /* stylelint-disable selector-max-specificity */
     // v2 pages
     .ui-tabs-active,
     // v1 pages
     .ui-tabs-selected {
+
+      /* stylelint-disable max-nesting-depth */
       a {
         margin: 0 3px !important;
         padding: 3px 11px;
@@ -68,6 +73,7 @@
           cursor: default;
         }
       }
+      /* stylelint-enable max-nesting-depth */
     }
     /* stylelint-disable no-descending-specificity */
     a:hover,
@@ -79,6 +85,7 @@
       cursor: pointer;
     }
     /* stylelint-enable no-descending-specificity */
+    /* stylelint-enable selector-max-specificity */
   }
   &-disabled {
     opacity: .4;
@@ -124,5 +131,14 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .tabs-panel {
     padding: 15px 30px 20px !important;
+  }
+}
+
+/* Caution! Ensure accessibility in print and other media types... */
+@media projection, screen, print {
+  /* Use class for showing/hiding tab content,
+  so that visibility can be better controlled in different media types... */
+  .ui-tabs-hide {
+    display: none;
   }
 }

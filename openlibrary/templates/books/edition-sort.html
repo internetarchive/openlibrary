@@ -64,32 +64,36 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="icon read $('inact' if not active else '')">
       <div class="$(availability_class)"></div>
-        <div class="links">
-          $if active:
-            <ul>
-              $if availability.get('status') == 'open':
-                <li class="read-option"><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="btn primary">Read eBook</a></strong></li>
+      <div class="links">
+        $if active:
+          <ul>
+            $if availability.get('status') == 'open':
+              <li class="read-option"><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="btn primary">Read eBook</a></strong></li>
 
-              $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
-                <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
+            $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
+              <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
 
-              <li class="read-option">
-                <a href="$book.url('/daisy')" class="plain print-disabled-download">
-                  <span class="underline">DAISY for print-disabled</span>
-                  <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
-                </a>
-              </li>
+            <li class="read-option">
+              <a href="$book.url('/daisy')" class="plain print-disabled-download">
+                <span class="underline">DAISY for print-disabled</span>
+                <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
+              </a>
+            </li>
 
-              $if availability.get('status') == 'open':
-                <hr>
-                <ul>
-                  <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
-                  <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-                  <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
-                  <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
-                </ul>
-            </ul>
-        </div>
+            $if availability.get('status') == 'open':
+              <hr>
+              <ul>
+                <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
+                <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
+                <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
+                <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
+              </ul>
+          </ul>
+        $else:
+          <form>
+            <input type="submit" class="cta-btn cta-btn--missing" disabled value="No ebook available">
+          </form>
+      </div>
     </td>
 
     <td class="icon locate inact">
