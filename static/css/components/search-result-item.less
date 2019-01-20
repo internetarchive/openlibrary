@@ -22,11 +22,15 @@
   border-bottom: 1px solid @light-beige;
   flex-wrap: wrap;
 
+  a {
+    color: @black;
+    text-decoration: none;
+  }
   > div {
     margin-top: 10px;
     padding: 0 5px 0 15px;
   }
-  h3.booktitle {
+  h3 {
     display: inline;
     margin: 0;
     padding: 0;
@@ -64,6 +68,31 @@
     height: 80px;
     max-width: 75px;
     width: 100%;
+  }
+}
+
+// Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists
+.listDelete {
+  white-space: nowrap;
+  max-width: 150px;
+  line-height: 28px;
+  .display-flex();
+  margin-bottom: 5px;
+  a {
+    span {
+      margin-right: 5px;
+      background-image: url(/images/back_list-trash.png);
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      height: 28px;
+      width: 21px;
+      display: inline-block;
+      position: relative;
+      top: 5px;
+    }
+  }
+  a:hover span {
+    background-position: 21px 0;
   }
 }
 

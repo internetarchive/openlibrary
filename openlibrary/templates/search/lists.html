@@ -14,10 +14,12 @@ $var title: Search results for Lists
   </form>
 
   $if lists:
-    <ul id="listResults" class="wide">
+    <div class="mybooks-list">
+      <ul id="listResults">
       $for list in lists:
-        <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
-    </ul>
+        <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
+      </ul>
+    </div>
   $elif q:
     <div>No results, <a href="/search/inside?q=$q">try a full-text search?</a></div>
 

@@ -97,10 +97,13 @@ $else:
 
 <div id="contentBody">
     $if lists:
-        <ul id="listResults" class="wide">
+        <div class="mybooks-list">
+            <ul id="listResults">
             $for list in lists:
-                <li id="list-$loop.index">$:render_template("lists/preview", list)</li>
-        </ul>
+                <li class="searchResultItem"
+                    id="list-$loop.index">$:render_template("lists/preview", list)</li>
+            </ul>
+        </div>
     $else:
         <p>No lists yet!</p>
     <div class="clearfix"></div>
