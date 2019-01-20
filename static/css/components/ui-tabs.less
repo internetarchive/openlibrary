@@ -12,8 +12,7 @@
 
   &-nav {
     list-style: none !important;
-    margin-bottom: -3px !important;
-    margin-left: 15px !important;
+    margin: 0 0 18px !important;
     clear: right;
     &:after { /* clearing without presentational markup, IE gets extra treatment */
       display: block;
@@ -22,7 +21,6 @@
     }
     li {
       list-style: none !important;
-      float: left;
       margin: 0 0 0 1px;
       min-width: 54px; /* be nice to Opera */
     }
@@ -33,7 +31,6 @@
       background: @white;
       border-bottom: 3px solid @lightest-grey;
       padding: 4px 8px 3px;
-      margin: 8px 3px 0;
       text-decoration: none;
       text-transform: uppercase;
       white-space: nowrap; /* required in IE 6 */
@@ -50,26 +47,17 @@
       /* stylelint-enable max-nesting-depth */
     }
     /* stylelint-disable selector-max-specificity */
-    // v2 pages
-    .ui-tabs-active,
-    // v1 pages
-    .ui-tabs-selected {
+    .ui-tabs-active {
 
       /* stylelint-disable max-nesting-depth */
       a {
-        margin: 0 3px !important;
-        padding: 3px 11px;
-        z-index: @z-index-level-11;
         &:link,
         &:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
           background: @lightest-grey;
-          padding: 8px 11px 3px;
           border: 1px solid @lightest-grey;
           border-bottom: 3px solid @lightest-grey;
           color: @teal;
           text-transform: capitalize !important;
-          font-size: 1.125em !important;
-          margin: 0 3px;
           cursor: default;
         }
       }
@@ -131,6 +119,23 @@
 @media only screen and (min-width: @width-breakpoint-tablet) {
   .tabs-panel {
     padding: 15px 30px 20px !important;
+  }
+  .ui-tabs-nav {
+    margin-bottom: -3px !important;
+    li {
+      float: left;
+    }
+    a {
+      margin: 8px 3px 0;
+    }
+    .ui-tabs-active {
+      a {
+        margin: 0 3px !important;
+        padding: 4px 8px 3px;
+        margin: 8px 3px 0;
+        font-size: 1.125em !important;
+      }
+    }
   }
 }
 
