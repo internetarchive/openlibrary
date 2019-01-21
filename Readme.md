@@ -29,6 +29,10 @@ Open Library is an effort started in 2006 to create "one web page for every book
 
 ## Installation
 
+Thanks for your interest in improving the openlibrary ! .
+Very first step is to [fork and clone](https://help.github.com/articles/fork-a-repo/).
+We recommend you to clone the OL github repository using [Git SSH](https://help.github.com/articles/connecting-to-github-with-ssh/) for proper functioning of our git submodules .
+
 ### Docker
 **We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
 
@@ -54,7 +58,7 @@ You can also find more information regarding Developer Documentation for Open Li
 
 ### The Backend
 
-OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework. 
+OpenLibrary is developed on top of the Infogami wiki system, which is itself built on top of the web.py Python web framework and the Infobase database framework.
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
