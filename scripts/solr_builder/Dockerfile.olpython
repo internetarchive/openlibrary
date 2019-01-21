@@ -1,0 +1,11 @@
+FROM olbase
+
+ENV PYTHONPATH=/openlibrary
+
+USER root
+WORKDIR /openlibrary
+RUN pip install -r requirements_test.txt
+
+# For real-time profiling
+RUN pip install cprofilev
+EXPOSE 4000

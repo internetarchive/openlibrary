@@ -1,0 +1,48 @@
+version: '3.1'
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: example
+    working_dir: "/solr_builder"
+    volumes:
+      - "postgres-data:/var/lib/postgresql/data"
+      - ".:/solr_builder"
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8087:8080
+
+  solr:
+    image: olsolr
+    restart: always
+    ports:
+      - 8984:8080
+    volumes:
+      - solr-data:/var/lib/solr/data
+
+  # We need ability to use openlibrary code
+  ol:
+    image: olpython
+    working_dir: "/openlibrary/scripts/solr_builder"
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for generated css and js
+      - ol-build:/openlibrary/static/build
+      # Persistent volume mount for node_modules
+      - ol-nodemodules:/openlibrary/node_modules
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - "../../:/openlibrary"
+
+volumes:
+  postgres-data:
+  solr-data:
+  ol-vendor:
+  ol-build:
+  ol-nodemodules:

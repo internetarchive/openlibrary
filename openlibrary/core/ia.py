@@ -19,6 +19,11 @@ logger = logging.getLogger('openlibrary.ia')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 def get_item_json(itemid):
+    """
+
+    :param str itemid: IA id (aka OCAID)
+    :rtype: dict
+    """
     itemid = web.safestr(itemid.strip())
     url = 'http://archive.org/metadata/%s' % itemid
     try:
@@ -43,6 +48,11 @@ def extract_item_metadata(item_json):
     return metadata
 
 def get_metadata(itemid):
+    """
+
+    :param str itemid: IA id (aka ocaid)
+    :return:
+    """
     item_json = get_item_json(itemid)
     return extract_item_metadata(item_json)
 
