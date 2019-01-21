@@ -1294,7 +1294,7 @@ def solr_select_work(edition_key):
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
 
-def update_keys(keys, commit=True, output_file=None):
+def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1303,8 +1303,16 @@ def update_keys(keys, commit=True, output_file=None):
     :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
         Each line will be JSON object.
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
+    :param bool commit_way_later: set to true if you want to add things quickly and add them much later
     """
     logger.info("BEGIN update_keys")
+    commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
+
+    def _solr_update(requests, debug=False, commitWithin=60000):
+        if commit_way_later:
+            return solr_update(requests, debug, commit_way_later_dur)
+        else:
+            return solr_update(requests, debug, commitWithin)
 
     global data_provider
     global _ia_db
@@ -1388,7 +1396,7 @@ def update_keys(keys, commit=True, output_file=None):
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            solr_update(requests, debug=True)
+            _solr_update(requests, debug=True)
 
     # update editions
     requests = []
@@ -1401,7 +1409,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit/>']
-        solr_update(requests, debug=True)
+        _solr_update(requests, debug=True)
 
     # update authors
     requests = []
@@ -1426,7 +1434,7 @@ def update_keys(keys, commit=True, output_file=None):
             #solr_update(requests, debug=True)
             if commit:
                 requests += ['<commit />']
-            solr_update(requests, debug=True, commitWithin=1000)
+            _solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))
@@ -1440,7 +1448,7 @@ def update_keys(keys, commit=True, output_file=None):
     if requests:
         if commit:
             requests += ['<commit />']
-        solr_update(requests, debug=True)
+        _solr_update(requests, debug=True)
 
     logger.info("END update_keys")
 
@@ -1475,7 +1483,10 @@ def load_configs(c_host, c_config, c_data_provider='default'):
 
     global data_provider
     if data_provider is None:
-        data_provider = get_data_provider(c_data_provider, _ia_db)
+        if isinstance(c_data_provider, DataProvider):
+            data_provider = c_data_provider
+        else:
+            data_provider = get_data_provider(c_data_provider, _ia_db)
     return data_provider
 
 def get_ia_db(settings):
@@ -1497,7 +1508,7 @@ def parse_args():
     parser.add_argument("-o", "--output-file", help="Open Library config file")
     parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
     parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
-    parser.add_argument("--data-provider", default='default', help="Name of the data provider to use")
+    parser.add_argument("--data-provider", default='default', choices=['default', 'legacy'], help="Name of the data provider to use")
 
     return parser.parse_args()
 
