@@ -13,6 +13,7 @@ from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, read_isbn, escape_bracket
 from unicodedata import normalize
 import logging
+from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 ftoken_db = None
 
@@ -456,6 +457,10 @@ class search(delegate.page):
             editions += web.ctx.site.things(q)
         if len(editions) == 1:
             raise web.seeother(editions[0])
+        elif len(editions) == 0:                 
+            ed_key = create_edition_from_amazon_metadata(isbn)
+            if ed_key:
+                raise web.seeother(ed_key)
 
     def GET(self):
         global ftoken_db
