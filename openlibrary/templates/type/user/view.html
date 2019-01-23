@@ -55,10 +55,12 @@ $else:
             <h2>Lists
             <span class="sansserif small"><a href="$page.key/lists">See all</a></span>
             </h2>
-            <ul id="listResults" class="clean">
-                $for list in lists:
-                    <li>$:render_template("lists/snippet", list)</li>
-            </ul>
+            <div class="mybooks-list--clean mybooks-list">
+                <ul id="listResults">
+                    $for list in lists:
+                        <li class="searchResultItem">$:render_template("lists/snippet", list)</li>
+                </ul>
+            </div>
         </div>
         <div class="clearfix"></div>
 

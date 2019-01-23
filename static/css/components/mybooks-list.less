@@ -10,9 +10,11 @@
  */
 
 @import (less) "components/searchResultItemCta.less";
-
+@import (less) "components/search-result-item.less";
 .mybooks-list {
-
+  ul {
+    margin: 0 !important;
+  }
   h2 {
     padding: 5px 0;
     margin: 0;
@@ -26,6 +28,53 @@
 
   .loadmore {
     text-align: center;
+  }
+}
+
+
+.mybooks-list--clean {
+  ul {
+    display: flex;
+    margin: 0;
+  }
+  h3 {
+    display: inline;
+    padding-right: 10px;
+  }
+  li {
+    width: 270px;
+    margin-right: 10px;
+  }
+  span.imageLg {
+    display: block;
+    float: left;
+    width: 34px;
+    height: auto;
+    margin-right: 0;
+    max-width: 34px;
+    text-align: left;
+    img {
+      width: 24px;
+      height: auto;
+    }
+  }
+  span.details {
+    display: block;
+    float: left;
+    width: 236px;
+  }
+  h3 {
+    font-family: @lucida_sans_serif-1;
+    font-size: 1em;
+    font-weight: normal;
+    margin-bottom: 0;
+  }
+  span.editions {
+    margin-top: 0;
+    font-size: .6875em;
+    color: @grey;
+    padding-top: 3px;
+    padding-bottom: 3px;
   }
 }
 

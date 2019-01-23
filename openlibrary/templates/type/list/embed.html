@@ -38,9 +38,9 @@ $def render_seed_count(seed_count):
     $if list.description:
         $:format(list.description)
 
-    <ul id="listResults" class="narrow">
+    <div class="mybooks-list"><ul id="listResults">
     $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
-        <li id="seed-$loop.index">
+        <li id="seed-$loop.index" class="searchResultItem">
             $ cover = seed.get_cover()
             $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
             <span class="image">
@@ -108,7 +108,7 @@ $def render_seed_count(seed_count):
                 </div>
             </div>
         </li>
-    </ul>
+    </ul></div>
 
     <div class="clearfix"></div>
     $:macros.Pager(page+1, len(list.seeds), page_size)
