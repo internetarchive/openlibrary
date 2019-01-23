@@ -225,7 +225,30 @@ button {
   }
 }
 
+.fakebtn {
+  background: none;
+  border: none;
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
 .print-disabled-download {
   font-size: 11px;
   text-align: center;
 }
+
+.statuslight:before {
+  content: ' \25CF';
+}
+
+.statuslight {
+  &-on:before {
+    color: @green;
+  }
+  &-off:before {
+    color: @mid-grey;
+  }
+}
+

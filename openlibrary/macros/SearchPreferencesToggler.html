@@ -1,0 +1,22 @@
+$def with (printdisabled_mode, readable_mode)
+
+
+      <span class="mode-options">
+        <form method="post" action="/account/search-preferences?$(ctx_query())">
+          <input type="hidden" name="redir" value="$ctx.path">
+          <input type="hidden" name="readable_mode" value="$('false' if readable_mode else 'true')">
+          <button type="submit" class="fakebtn" aria-pressed="$('false' if readable_mode else 'true')">
+            <span class="statuslight statuslight-$('on' if readable_mode else 'off')">
+              Ebooks-only mode</span>
+          </button>
+        </form>
+        /
+        <form method="post" action="/account/search-preferences?$(ctx_query())">
+          <input type="hidden" name="redir" value="$ctx.path">
+          
+          <input type="hidden" name="printdisabled_mode" value="$('false' if printdisabled_mode else 'true')">
+          <button type="submit" class="fakebtn" aria-pressed="$('false' if printdisabled_mode else 'true')">
+            <span class="statuslight statuslight-$('on' if printdisabled_mode else 'off')">
+              Print-Disabled mode</span></button><a href="/help/faq/accessing#what-is-accessible" title="What are print-disabled titles?">[?]</a>
+        </form>
+      </span>

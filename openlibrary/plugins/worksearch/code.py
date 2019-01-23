@@ -23,7 +23,7 @@ logger = logging.getLogger("openlibrary.worksearch")
 re_to_esc = re.compile(r'[\[\]:]')
 
 class edition_search(_edition_search):
-    path = "/search/edition"
+    path = '/search/edition'
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
@@ -456,25 +456,8 @@ class search(delegate.page):
             editions += web.ctx.site.things(q)
         if len(editions) == 1:
             raise web.seeother(editions[0])
-
-    def POST(self):
-        i = web.input(redir='/')
-
-        pd = i.get('printdisabled_mode')
-        rd = i.get('readable_mode')
-        cookie = web.cookies(printdisabled_mode="", readable_mode="")
-
-        if pd == 'true' and not cookie.printdisabled_mode:
-            web.setcookie('printdisabled_mode', 'true')
-        elif pd == 'false' and cookie.printdisabled_mode == 'true':
-            web.setcookie("printdisabled_mode", "", expires=-1)
-
-        if rd == 'true'  and not cookie.readable_mode:
-            web.setcookie("readable_mode", "true")
-        elif rd == 'false' and cookie.readable_mode == 'true':
-            web.setcookie("readable_mode", "", expires=-1)
-
-        raise web.seeother(i.redir)
+        print(isbn) # XXX!!!!
+        raise web.seeother('/isbn/' + isbn + '?debug=true')
 
     def GET(self):
         global ftoken_db
@@ -496,7 +479,7 @@ class search(delegate.page):
 
         self.redirect_if_needed(i)
 
-        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
+        if 'isbn' in i:
             self.isbn_redirect(i.isbn)
 
         q_list = []
@@ -516,9 +499,12 @@ class search(delegate.page):
                 q_list.append(k + ':' + v)
 
         cookie = web.cookies(printdisabled_mode="", readable_mode="")
+
+        # add persistent search modes to params sent to template
         i.printdisabled_mode = cookie.printdisabled_mode
         i.readable_mode = cookie.readable_mode
-        if i.readable_mode:
+
+        if i.printdisabled_mode or i.readable_mode:
             i.has_fulltext = 'true'
 
         page = render.work_search(
@@ -616,7 +602,7 @@ class improve_search(delegate.page):
         return template
 
 class advancedsearch(delegate.page):
-    path = "/advancedsearch"
+    path = '/advancedsearch'
 
     def GET(self):
         template = render_template("search/advancedsearch.html")
@@ -624,7 +610,7 @@ class advancedsearch(delegate.page):
         return template
 
 class merge_author_works(delegate.page):
-    path = "/authors/(OL\d+A)/merge-works"
+    path = '/authors/(OL\d+A)/merge-works'
     def GET(self, key):
         works = works_by_author(key)
 
@@ -751,8 +737,8 @@ class edition_search(delegate.page):
         return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):
-    path = "/search"
-    encoding = "json"
+    path = '/search'
+    encoding = 'json'
 
     def GET(self):
         i = web.input()
@@ -779,6 +765,11 @@ class search_json(delegate.page):
 
         query['wt'] = 'json'
 
+        cookie = web.cookies(printdisabled_mode="", readable_mode="")
+        i.printdisabled_mode = cookie.printdisabled_mode
+        i.readable_mode = cookie.readable_mode
+        if i.printdisabled_mode or i.readable_mode:   
+            query['has_fulltext'] = 'true'
         try:
             (reply, solr_select, q_list) = run_solr_query(query,
                                                 rows=limit,

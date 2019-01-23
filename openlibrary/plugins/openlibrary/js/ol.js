@@ -86,10 +86,6 @@ function closePop(){
 /* eslint-enable no-unused-vars */
 
 $().ready(function(){
-    var cover_url = function(id) {
-        return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
-    };
-
     // Maps search facet label with value
     var defaultFacet = "all";
     var searchFacets = {
@@ -113,7 +109,7 @@ $().ready(function(){
             url += '&limit=' + limit;
         }
         
-        return url + '&readable_mode=' + localStorage.getItem('readable_mode') + '&printdisabled_mode=' + localStorage.getItem('printdisabled_mode');
+        return url;
     }
 
     var marshalBookSearchQuery = function(q) {
@@ -272,13 +268,27 @@ $().ready(function(){
         setFacet(facet);
     })
 
+    var bookcover_url = function (work){
+        var img_tag = function(src) {
+          return '<img src="//covers.openlibrary.org/b/' + src + '-M.jpg"/>';
+        }
+        if (work.cover_i) {
+          return img_tag('id/' + work.cover_i);
+        } else if (work.edition_key) {
+          return img_tag('olid/' + work.edition_key[0]);
+        }
+        return '';
+    }
+
     var renderInstantSearchResult = {
         books: function(work) {
             var author_name = work.author_name ? work.author_name[0] : '';
             $('header#header-bar .search-component ul.search-results').append(
-                '<li class="instant-result"><a href="' + work.key + '"><img src="' + cover_url(work.cover_i) +
-                    '"/><span class="book-desc"><div class="book-title">' +
-                    work.title + '</div>by <span class="book-author">' +
+                '<li class="instant-result"><a href="' + work.key + '">' +
+                    bookcover_url(work) +
+                    '<span class="book-desc"><div class="book-title">' +
+                    work.title + (work.subtitle ? ': ' + work.subtitle : '') +
+                    '</div>by <span class="book-author">' +
                     author_name + '</span></span></a></li>'
             );
         },
@@ -329,10 +339,28 @@ $().ready(function(){
         }
     }, 500, false));
 
-    $('header#header-bar .search-component .search-bar-input input').focus(debounce(function() {
-        var val = $(this).val();
-        renderInstantSearchResults(val);
-    }, 300, false));
+    // When user enters instant-search box
+    $('header#header-bar .search-component .search-bar-input input').focus(
+      debounce(function() {
+        $('.search-dropdown').hide();
+        if ($('.search-dropdown').is(":visible")) {
+          var val = $(this).val();
+          renderInstantSearchResults(val);
+        }
+        $('.search-dropdown').slideDown(150);
+      }, 300, false)
+    );
+
+    // When user leaves instant-search box, either because they are
+    // clicking on search result, or because they wish to dismiss results
+    $('header#header-bar .search-component').focusout(function(event) {
+      // If we lose focus because we're clicking on one of the component's
+      // search results, don't hide the results
+      if($('ul.search-results:hover').length) {
+        return;
+      }
+      $('.search-dropdown').slideUp(150);
+    });
 
     $('textarea.markdown').focus(function(){
         $('.wmd-preview').show();

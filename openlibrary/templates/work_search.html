@@ -125,21 +125,9 @@ $ )
 <div id="contentBody">
   <div class="section">
 
-      <span class="mode-options" style="display: flex;">
-        <form method="post" action="/search">
-          <input type="hidden" name="redir" value="$ctx.path">
-          $ readable_mode = input.get('readable_mode')
-          <input type="hidden" name="readable_mode" value="$('false' if readable_mode else 'true')">
-          <input type="submit" class="search_mode" value="[$('X' if readable_mode else ' ')] Readable titles only"/>
-        </form>
-
-        <form method="post" action="/search">
-          <input type="hidden" name="redir" value="$ctx.path">
-          $ printdisabled_mode = input.get('printdisabled_mode')
-          <input type="hidden" name="printdisabled_mode" value="$('false' if printdisabled_mode else 'true')">
-          <input type="submit" class="search_mode" value="[$('X' if printdisabled_mode else ' ')] Include Print-Disabled titles"/>[<a href="/help/faq/accessing#what-is-accessible" title="What are print-disabled titles?">?</a>]
-        </form>
-      </span>
+    $ printdisabled_mode = input.get('printdisabled_mode')
+    $ readable_mode = input.get('readable_mode')
+    $:macros.SearchPreferencesToggler(printdisabled_mode, readable_mode)
 
     <form method="get" action="/search" class="siteSearch olform">
       <label for="q" class="hidden">Keywords</label>

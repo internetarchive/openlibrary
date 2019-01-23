@@ -636,6 +636,44 @@ class account_audit(delegate.page):
         return delegate.RawText(simplejson.dumps(result),
                                 content_type="application/json")
 
+class account_search_preferences(delegate.page):
+    path = "/account/search-preferences"
+
+    def POST(self):
+        try:
+            #python2
+            from urllib import urlencode
+        except ImportError:
+            #python3
+            from urllib.parse import urlencode
+
+        i = web.input(redir='/')
+        query = web.input(_method='get')
+
+        pd = i.get('printdisabled_mode')
+        rd = i.get('readable_mode')
+        cookie = web.cookies(printdisabled_mode="", readable_mode="")
+
+        if rd and cookie.printdisabled_mode:
+            web.setcookie("printdisabled_mode", "", expires=-1)
+            web.setcookie("readable_mode", "true")
+        elif pd and cookie.readable_mode:
+            web.setcookie("readable_mode", "", expires=-1)
+            web.setcookie('printdisabled_mode', 'true')
+
+        else:
+            if pd == 'true' and not cookie.printdisabled_mode:
+                web.setcookie('printdisabled_mode', 'true')
+            elif pd == 'false' and cookie.printdisabled_mode == 'true':
+                web.setcookie("printdisabled_mode", "", expires=-1)
+
+            if rd == 'true'  and not cookie.readable_mode:
+                web.setcookie("readable_mode", "true")
+            elif rd == 'false' and cookie.readable_mode == 'true':
+                web.setcookie("readable_mode", "", expires=-1)
+
+        raise web.seeother(i.redir + '?' + urlencode(query))
+
 class account_privacy(delegate.page):
     path = "/account/privacy"
 

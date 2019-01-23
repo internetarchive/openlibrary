@@ -33,7 +33,7 @@ def load_config(config_file):
     server.update_config(config.infobase)
 
 def setup_infobase_config(config_file):
-    """Reads the infoabse config file and assign it to config.infobase.
+    """Reads the infobase config file and assigns it to config.infobase.
     The config_file is used as base to resolve relative path, if specified in the config.
     """
     if config.get("infobase_config_file"):

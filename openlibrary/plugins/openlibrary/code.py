@@ -797,6 +797,7 @@ def setup_template_globals():
         "sorted": sorted,
         "zip": zip,
         "tuple": tuple,
+        "ctx_query": lambda: web.ctx.environ['QUERY_STRING'],
         "isbn_13_to_isbn_10": isbn_13_to_isbn_10,
         'isbn_10_to_isbn_13': isbn_10_to_isbn_13,
         "NEWLINE": "\n",
