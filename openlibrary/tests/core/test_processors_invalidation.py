@@ -135,7 +135,8 @@ class TestInvalidationProcessor:
 
         web.ctx.env['HTTP_COOKIE'] = "invalidation_cookie=" + datetime.datetime.utcnow().isoformat()
         # Clear parsed cookie cache to force our new value to be parsed
-        del web.ctx._parsed_cookies
+        if "_parsed_cookies" in web.ctx:
+            del web.ctx._parsed_cookies
         p(lambda: None)
 
         # cookie is set, hook call is expected
