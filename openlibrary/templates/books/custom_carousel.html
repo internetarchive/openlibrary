@@ -8,7 +8,7 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('cover_id'):
     $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
   $elif book.get('ia'):
-    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia'), fallback_cover)
+    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
   $else:
      $ cover_url = fallback_cover
   $if book.get('authors'):
