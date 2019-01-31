@@ -79,10 +79,19 @@ function closePop(){
 }
 /* eslint-enable no-unused-vars */
 
-$().ready(function(){
+$(function(){
+    var $searchResults = $('header#header-bar .search-component ul.search-results');
+    var $searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
+
+    // searches should be cancelled if you click anywhere in the page
+    $('body').on('click', function () {
+        $searchResults.empty();
+    });
+    // but clicking search input should not empty search results.
+    $searchInput.on('click', false);
 
     // Search mode
     var searchModes = ['everything', 'ebooks', 'printdisabled'];
@@ -131,9 +140,10 @@ $().ready(function(){
 
         var url = composeSearchUrl(q, true, 10);
 
-        $('header#header-bar .search-component ul.search-results').empty()
         var facet = facet_value === 'all'? 'books' : facet_value;
+        $searchResults.css('opacity', 0.5);
         $.getJSON(url, function(data) {
+            $searchResults.css('opacity', 1).empty();
             for (var d in data.docs) {
                 renderInstantSearchResult[facet](data.docs[d]);
             }
@@ -154,7 +164,7 @@ $().ready(function(){
         var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
-        q = $('header#header-bar .search-component .search-bar-input input').val();
+        q = $searchInput.val();
         var url = composeSearchUrl(q)
         $('.search-bar-input').attr("action", url);
         renderInstantSearchResults(q);
@@ -269,7 +279,7 @@ $().ready(function(){
         } else {
             if (enteredSearchMinimized) {
                 $('.search-bar-input').removeClass('trigger');
-                var search_query = $('header#header-bar .search-component .search-bar-input input').val()
+                var search_query = $searchInput.val()
                 if (search_query) {
                     renderInstantSearchResults(search_query);
                 }
@@ -323,8 +333,8 @@ $().ready(function(){
 
     /* eslint-disable no-unused-vars */
     // e is a event object
-    $('form.search-bar-input').submit(function(e) {
-        q = $('header#header-bar .search-component .search-bar-input input').val();
+    $('form.search-bar-input').on('submit', function(e) {
+        q = $searchInput.val();
         var facet_value = searchFacets[localStorage.getItem("facet")];
         if (facet_value === 'books') {
             $('header#header-bar .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
@@ -365,14 +375,15 @@ $().ready(function(){
     }, 300, false));
     /* eslint-enable no-unused-vars */
 
-    $('header#header-bar .search-component .search-bar-input input').keyup(debounce(function(e) {
+    $searchInput.on('keyup', debounce(function(e) {
         // ignore directional keys and enter for callback
         if (![13,37,38,39,40].includes(e.keyCode)){
             renderInstantSearchResults($(this).val());
         }
     }, 500, false));
 
-    $('header#header-bar .search-component .search-bar-input input').focus(debounce(function() {
+    $searchInput.on('focus',debounce(function(e) {
+        e.stopPropagation();
         var val = $(this).val();
         renderInstantSearchResults(val);
     }, 300, false));
