@@ -98,7 +98,7 @@ $else:
 <div id="contentBody">
     $if lists:
         <div class="mybooks-list">
-            <ul id="listResults">
+            <ul class="list-results" id="listResults">
             $for list in lists:
                 <li class="searchResultItem"
                     id="list-$loop.index">$:render_template("lists/preview", list)</li>
