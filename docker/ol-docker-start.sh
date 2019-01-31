@@ -4,6 +4,7 @@
 # inside an container, bypass all upstart/services
 
 CONFIG=conf/openlibrary.yml
+COVER_CONFIG=conf/coverstore.yml
 
 reindex-solr() {
   server=$1
@@ -36,7 +37,10 @@ su openlibrary -c "python scripts/new-solr-updater.py \
   --state-file solr-update.offset \
   --ol-url http://web/" &
 
+# In dev mode, run the coverstore locally (in the background)
+su openlibrary -c "scripts/coverstore-server $COVER_CONFIG \
+    --gunicorn --workers 1 --max-requests 250 --bind :8081" &
+
 # ol server, running in the foreground to avoid exiting container
 su openlibrary -c "authbind --deep scripts/openlibrary-server $CONFIG \
                      --gunicorn --reload --workers 4 --timeout 180 --bind :80"
-

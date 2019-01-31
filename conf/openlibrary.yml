@@ -15,7 +15,7 @@ smtp_server: localhost
 dummy_sendmail: True
 debug: True
 
-coverstore_url: http://0.0.0.0/covers/
+coverstore_url: http://0.0.0.0:8081/
 
 state_dir: var/run
 
