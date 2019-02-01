@@ -21,6 +21,7 @@
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
   flex-wrap: wrap;
+  align-items: center;
 
   a {
     color: @black;
@@ -59,15 +60,22 @@
     font-size: .6875em;
   }
   .bookcover {
-    width: 80px;
-    margin: 10px 10px 0 5px;
-    text-align: right;
-    overflow: hidden;
-  }
-  img {
-    height: 80px;
-    max-width: 75px;
     width: 100%;
+    margin: 10px 10px 0 5px;
+    text-align: center;
+    overflow: hidden;
+    img {
+      max-width: 100%;
+      max-height: 300px;
+    }
+  }
+  .imageLg {
+    width: 100%;
+    margin: 10px 10px 0px 5px;
+    img {
+      max-width: 100%;
+      max-height: 110px;
+    }
   }
 }
 
@@ -97,7 +105,28 @@
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  .searchResultItem {
-    flex-wrap: nowrap;
+  .list-books {
+    .searchResultItem {
+       flex-wrap: nowrap;
+      .bookcover {
+        width: 15%;
+        text-align: right;
+      }
+      .details {
+        width: 55%;
+      }
+    }
+  }
+  .list-results {
+    .searchResultItem {
+      flex-wrap: nowrap;
+      .imageLg {
+        width: 15%;
+        text-align: right;
+      }
+      .details {
+        width: 85%;
+      }
+    }
   }
 }
