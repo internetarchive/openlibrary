@@ -1,10 +1,11 @@
-version: "3"
+version: "2"
 services:
   web:
     image: oldev
     ports:
       - 8080:80
       - 7000:7000
+      - 8081:8081
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
@@ -29,6 +30,7 @@ services:
     image: memcached
     networks:
       - webnet
+  #covers:
 networks:
   webnet:
 volumes:

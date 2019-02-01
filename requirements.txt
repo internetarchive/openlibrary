@@ -2,7 +2,6 @@
 
 Fabric==1.10.1; python_version < '3.0'
 Jinja2==2.10
-Pillow==5.3.0
 backports.shutil-get-terminal-size==1.0.0
 bottlenose==1.1.2
 clint==0.5.1
@@ -33,3 +32,4 @@ simplegeneric==0.8.1
 traitlets==4.3.1
 wcwidth==0.1.7
 wsgiref==0.1.2
+supervisor==3.3.5; python_version < '3.0'

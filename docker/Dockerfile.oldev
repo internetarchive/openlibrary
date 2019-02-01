@@ -20,7 +20,7 @@ RUN pip install -r requirements_test.txt
 RUN npm install
 
 # Expose Open Library and Infobase
-EXPOSE 80 7000
+EXPOSE 80 7000 8081
 
 # runs as root in order to access su to run as openlibrary and postgres users
 CMD docker/ol-docker-start.sh
