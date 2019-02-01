@@ -116,7 +116,7 @@ class upload:
         raise web.seeother(success_url)
 
 class upload2:
-    """Temporary upload handler for handling upstream.openlibrary.org cover upload.
+    """openlibrary.org POSTs here via openlibrary/plugins/upstream/covers.py upload
     """
     def POST(self, category):
         i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)

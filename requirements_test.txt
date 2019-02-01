@@ -4,5 +4,6 @@
 
 -r requirements_common.txt
 flake8==3.6.0
+pyflakes==2.0.0
 pytest==4.0.1
 mockcache==1.0.3; python_version < '3.0'
