@@ -1,3 +1,7 @@
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
+}
+
 var Browser = {
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
@@ -112,7 +116,23 @@ $(function(){
     var composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
-        if (json) {
+
+	var searchPlaceholder = "Search";
+	console.log(facet_value);
+	switch(facet_value) {
+    	  case 'all':
+	    searchPlaceholder = "Search Title / Author / ISBN";
+	    break;
+	  case 'inside':
+	    searchPlaceholder = "Search Fulltext";
+	    break;
+  	  default:
+	    searchPlaceholder = "Search " + localStorage.getItem("facet")[0].toUpperCase() + localStorage.getItem("facet").slice(1);
+	    break;
+	}
+	$(".search-bar-input input[name='q']").attr("placeholder", searchPlaceholder);
+
+	if (json) {
             url += '.json';
         }
         url += '?q=' + q;
