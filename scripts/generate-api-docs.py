@@ -53,7 +53,6 @@ def find_python_sources(dir):
         "openlibrary/solr.*",
         "openlibrary/plugins/recaptcha.*",
         "openlibrary/plugins/akismet.*",
-        "openlibrary/plugins/bookrev.*",
         "openlibrary/plugins/copyright.*",
         "openlibrary/plugins/heartbeat.*",
         ".*tests",
