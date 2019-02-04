@@ -18,7 +18,7 @@ $jsdef render_language_autocomplete_item(item):
 $# Render the ith language input field
 $jsdef render_language_field(i, language):
     <div class="input">
-      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name" style="width:300px!important;"/>
+      <input name="languages--$i" class="language language-autocomplete" type="text" id="language-$i" value="$language.name"/>
       <input name="edition--languages--$i--key" type="hidden" id="language-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
       <br/><a href="javascript:;" class="add small">Add another language?</a>
@@ -27,7 +27,7 @@ $jsdef render_language_field(i, language):
 $# Render the ith translated_from language input field
 $jsdef render_translated_from_language_field(i, language):
     <div class="input">
-      <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name" style="width:300px!important;"/>
+      <input type="text" name="translated_from--$i" class="language language-autocomplete" id="edition-translated_from-$i" value="$language.name"/>
       <input type="hidden" name="edition--translated_from--$i--key"  id="edition-translated_from-$i-key" value="$language.key" />
       <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this language')">[x]</a>
       $# Limit to only 1
@@ -124,7 +124,7 @@ window.q.push(function() {
                 <span class="tip">$_("You should be able to find this in the first few pages of the book.")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date" style="width:50%!important;"/>
+                <input type="text" name="edition--publish_date" id="edition-publish_date" value="$book.publish_date"/>
             </div>
         </div>
 
@@ -194,7 +194,7 @@ window.q.push(function() {
                 <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--title" id="edition-title" value="$book.title" style="width:650px;"/>
+                <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
                 <input type="hidden" name="edition--title_prefix" value=""/>
             </div>
         </div>
@@ -204,11 +204,11 @@ window.q.push(function() {
                 <span class="tip">$_("Usually distinguished by different or smaller type.") $_("For example:") <i>envisioning the next 50 years</i></span>
             </div>
             <div class="input">
-                <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle" style="width:650px;"/>
+                <input type="text" name="edition--subtitle" id="edition-subtitle" value="$book.subtitle"/>
             </div>
         </div>
 
-        <div class="formElement" style="width: 650px;">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-toc">Table of Contents</label>
                 <span class="tip">$:_('Use a "*" for an indent, a "|" to add a column, and line breaks for new lines. Like this:')</span><br/><br/>
@@ -219,7 +219,7 @@ window.q.push(function() {
 <br/>
             </div>
             <div class="input">
-                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50" style="width: 100%;min-height:250px;">$book.get_toc_text()</textarea>
+                <textarea name="edition--table_of_contents" id="edition-toc" rows="5" cols="50">$book.get_toc_text()</textarea>
             </div>
         </div>
 
@@ -232,7 +232,7 @@ window.q.push(function() {
                 <span class="tip">$_("Perhaps in another language?")</span>
             </div>
             <div class="input">
-                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])" style="width:620px!important;"/>
+                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
                 <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
@@ -247,7 +247,7 @@ window.q.push(function() {
                 <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
             </div>
             <div class="input">
-                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name" style="width:620px!important;"/>
+                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
             </div>
         </div>
 
@@ -286,8 +286,8 @@ window.q.push(function() {
                     <table class="identifiers">
                     <tbody>
                         <tr id="roles-form">
-                            <td align="right" style="width:138px;">
-                                <select name="role" id="select-role" class="sansserif large" style="padding:4px;width:130px;">
+                            <td align="right">
+                                <select name="role" id="select-role" class="sansserif large">
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
@@ -296,8 +296,8 @@ window.q.push(function() {
                                     <!-- <option value="__add__">$_("Add a new role")</option> -->
                                 </select>
                             </td>
-                            <td style="width:170px;">
-                                <input type="text" id="role-name" name="name" style="width:160px!important;"/>
+                            <td>
+                                <input type="text" id="role-name" name="name"/>
                             </td>
                             <td>
                                 <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
@@ -308,8 +308,8 @@ window.q.push(function() {
                     <table class="identifiers">
                         <tbody id="roles-display">
                             <tr id="roles-template" class="repeat-item" style="display: none;">
-                                <td align="right" style="width:138px;"><strong>{{role}}</strong></td>
-                                <td style="width:170px;">{{name}}
+                                <td align="right"><strong>{{role}}</strong></td>
+                                <td>{{name}}
                                     <input type="hidden" name="{{prefix}}contributors--{{index}}--role" value="{{role}}"/>
                                     <input type="hidden" name="{{prefix}}contributors--{{index}}--name" value="{{name}}"/>
                                 </td>
@@ -318,14 +318,14 @@ window.q.push(function() {
                             $ work = book.works[0]
                             $for i, a in enumerate(work.get_authors()):
                                 <tr class="repeat-item">
-                                    <td align="right" style="width:138px;"><strong>Author</strong></td>
-                                    <td style="width:170px;">$a.name</td>
+                                    <td align="right"><strong>Author</strong></td>
+                                    <td>$a.name</td>
                                     <td></td>
                                 </tr>
                             $for i, c in enumerate(book.contributors):
                                 <tr class="repeat-item">
-                                    <td align="right" style="width:138px;"><strong>$c.role</strong></td>
-                                    <td style="width:170px;">$c.name
+                                    <td align="right"><strong>$c.role</strong></td>
+                                    <td>$c.name
                                         <input type="hidden" name="edition--contributors--${i}--role" value="$c.role"/>
                                         <input type="hidden" name="edition--contributors--${i}--name" value="$c.name"/>
                                     </td>
@@ -342,7 +342,7 @@ window.q.push(function() {
                     <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
                 </div>
                 <div class="input">
-                    <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" style="width:350px!important;"/>
+                    <input name="edition--by_statement" type="text" id="edition-by_statement" value="$book.by_statement" />
                 </div>
             </div>
 
@@ -394,7 +394,7 @@ window.q.push(function() {
                         <span class="tip">$_("What's the original book?")</span>
                     </div>
                     <div class="input">
-                        <input name="edition--translation_of" type="text" id="translation-of" style="width:300px!important;" value="$book.translation_of"/>
+                        <input name="edition--translation_of" type="text" id="translation-of" value="$book.translation_of"/>
                     </div>
                 </div>
 
@@ -441,10 +441,10 @@ window.q.push(function() {
                 <span class="tip">$_("Like, ISBN?")</span>
             </div>
             <div class="input">
-                <table class="identifiers" width="100%">
+                <table class="identifiers">
                     <tr id="identifiers-form">
                         <td align="right">
-                            <select name="name" id="select-id" style="width:300px!important;">
+                            <select name="name" id="select-id">
                             $ id_labels = dict((d.name, d.label) for d in edition_config.identifiers)
                             $ id_dict = dict((id.name, id) for id in edition_config.identifiers)
  							$ popular = ["ocaid", "isbn_10", "isbn_13", "lccn", "oclc_numbers", "goodreads", "librarything"]
@@ -462,10 +462,10 @@ window.q.push(function() {
                                 <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
-                        <td width="380">
-                            <input type="text" name="value" id="id-value" size="20" style="width:365px!important;"/>
+                        <td>
+                            <input type="text" name="value" id="id-value"/>
                         </td>
-                        <td width="100%">
+                        <td>
                             <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
                         </td>
                     </tr>
@@ -476,26 +476,26 @@ window.q.push(function() {
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}"/>
                             </td>
-                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
                         <tr>
                             <td align="right">Open Library</td>
-                            <td width="380">$book.key.split("/")[-1]</td>
-                            <td width="100%"></td>
+                            <td>$book.key.split("/")[-1]</td>
+                            <td></td>
                         </tr>
                         $for i, id in enumerate(book.get_identifiers().values()):
                         <tr id="identifiers--$i" class="repeat-item">
                             <td align="right"><strong>$id_labels.get(id.name, id.name)</strong></td>
-                            <td width="380">$id.value
+                            <td>$id.value
                                 <input type="hidden" name="edition--identifiers--${i}--name" value="$id.name"/>
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
                             $ admin_user = ctx.user and ctx.user.is_admin()
                             $if id.name == "ocaid" and not admin_user:
-                                <td width="100%"></td>
+                                <td></td>
                             $else:
-                                <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
+                                <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -519,7 +519,7 @@ window.q.push(function() {
                     <tr id="classifications-form">
                         <td align="right">
                             $ classification_labels = dict((d.name, d.label) for d in edition_config.classifications)
-                            <select name="name" id="select-classification" style="width:300px!important;">
+                            <select name="name" id="select-classification">
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
                                     <option value="$d.name">$d.label</option>
@@ -529,7 +529,7 @@ window.q.push(function() {
                             </select>
                         </td>
                         <td width="380">
-                            <input type="text" name="value" id="classification-value" size="20" style="width:365px!important;"/>
+                            <input type="text" name="value" id="classification-value" size="20"/>
                         </td>
                         <td width="100%">
                             <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
@@ -572,7 +572,7 @@ window.q.push(function() {
                     <span class="tip">$_("Paperback; Hardcover, etc.")</span>
                 </div>
                 <div class="input">
-                    <input name="edition--physical_format" type="text" id="edition--physical_format" style="width:365px;" value="$book.physical_format"/>
+                    <input name="edition--physical_format" type="text" id="edition--physical_format" value="$book.physical_format"/>
                 </div>
             </div>
             <div class="formElement">
@@ -581,7 +581,7 @@ window.q.push(function() {
                     <span class="tip"></span>
                 </div>
                 <div class="input">
-                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" style="width: 365px;" value="$book.number_of_pages"/>
+                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" value="$book.number_of_pages"/>
                 </div>
             </div>
             <div class="formElement">
@@ -590,7 +590,7 @@ window.q.push(function() {
                     <span class="tip">$_("Note the highest number in each pagination pattern.")</span>
                 </div>
                 <div class="input">
-                    <input name="edition--pagination" type="text" id="edition--pagination" style="width:365px;" value="$book.pagination"/>
+                    <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>
                     <div class="tip">$_("For example:") <em>xii, 346p.</em></div>
                 </div>
             </div>
@@ -602,7 +602,7 @@ window.q.push(function() {
                 </div>
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
-                    <input name="edition--weight--value" type="text" id="edition--weight--value" style="width:70px!important;" value="$weight.value" size="6"/>
+                    <input name="edition--weight--value" type="number" id="edition--weight--value" value="$weight.value" size="6"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -620,13 +620,13 @@ window.q.push(function() {
                         <table cellpadding="1">
                         <tbody>
                             <tr>
-                                <td rowspan="3" style="padding-right:5px;"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
+                                <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="text" id="dimensions-height" style="width:50px!important;" size="6" value="$dimensions.height"/></td>
+                                <td><input name="edition--physical_dimensions--height" type="number" id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="text" id="dimensions-width" style="width:50px!important;" size="6" value="$dimensions.width"/>
+                                <td><input name="edition--physical_dimensions--width" type="number" id="dimensions-width" size="6" value="$dimensions.width"/>
                                     <span class="tip">
                                         $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
                                     </span>
@@ -634,7 +634,7 @@ window.q.push(function() {
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="text" id="dimensions-depth" style="width:50px!important;" size="6" value="$dimensions.depth"/></td>
+                                <td><input name="edition--physical_dimensions--depth" type="number" id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>
                         </table>

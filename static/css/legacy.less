@@ -84,9 +84,6 @@ table {
       white-space: pre !important;
     }
   }
-  &.identifiers {
-    width: 395px;
-  }
   // openlibrary/templates/admin/index.html
   &.measurements {
     width: 100%;
@@ -801,24 +798,12 @@ div.formElement {
   }
 }
 
-div.formElement,
-// openlibrary/templates/books/edit.html
-div.TitleAuthor {
-  .tip {
-    font-size: 11px;
-    color: @grey;
-    font-family: @lucida_sans_serif-1!important;
-  }
-}
-
 fieldset {
   position: relative;
   padding: 0 0 20px;
   margin: 0 0 10px;
   &.minor {
     display: block;
-    float: left;
-    width: 400px;
     padding: 0;
     margin: 0;
   }
@@ -848,17 +833,13 @@ fieldset {
 // openlibrary/templates/books/edit/edition.html
 // openlibrary/templates/books/edit/excerpts.html
 .formBack {
-  float: left;
-  width: 830px;
   padding: 10px;
   background-color: @lightest-grey;
   &Left {
-    float: left;
-    width: 670px;
+    width: 100%;
   }
   &Right {
-    float: left;
-    width: 120px;
+    width: 100%;
     padding: 10px 10px 15px 30px;
     text-align: center;
     .illustration {
@@ -1613,17 +1594,6 @@ div.books {
   }
 }
 
-// openlibrary/templates/books/edit.html
-.TitleAuthor {
-  margin-bottom: 20px;
-  width: 920px;
-  float: left;
-  clear: both;
-  label {
-    font-weight: 700;
-  }
-}
-
 td {
   // openlibrary/templates/type/edition/view.html
   &.toc-label {
@@ -1652,23 +1622,14 @@ tr {
   // openlibrary/templates/books/edit.html
   &book {
     margin-bottom: 5px;
-    input.addweb {
-      width: 350px;
-    }
-  }
-  // openlibrary/templates/type/author/edit.html
-  &author {
-    input.addweb {
-      width: 250px;
-    }
   }
 }
 
+// openlibrary/templates/type/author/edit.html
+input.addweb,
 // openlibrary/templates/books/edit/edition.html
-select {
-  &#select-id {
-    max-width: 300px;
-  }
+select#select-id {
+  max-width: 300px;
 }
 
 // openlibrary/templates/books/edition-sort.html
@@ -2772,6 +2733,29 @@ div#subjectLists {
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
+  /** These styles are used on the page for editing a book.
+  They may be used in another places as well */
+  fieldset {
+    &.minor {
+      float: left;
+      width: 400px;
+    }
+  }
+  table.identifiers {
+    width: 395px;
+  }
+  .formBack {
+    float: left;
+    width: 830px;
+    &Left {
+      float: left;
+      width: 670px;
+    }
+    &Right {
+      float: left;
+      width: 120px;
+    }
+  }
   /**
   * Used on following pages:
   * - /search/subjects
