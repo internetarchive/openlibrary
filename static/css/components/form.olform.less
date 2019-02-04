@@ -59,6 +59,7 @@
       input[type=password],
       textarea {
         font-size: .875em;
+        width: 100%;
       }
     }
     /* stylelint-enable selector-max-specificity */
@@ -74,11 +75,13 @@
       input#work-title {
         font-size: 1.875em !important;
         margin: 0;
+        width: 100%;
       }
 
       // stylelint-disable-next-line max-nesting-depth
       input#author {
         font-size: 1em !important;
+        width: 100%;
       }
       /* stylelint-enable selector-max-specificity */
     }
@@ -90,5 +93,46 @@
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
-  @import (less) "form.olform--desktop.less";
+  /* stylelint-disable selector-max-specificity */
+  .olform {
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    textarea {
+      width: 475px;
+    }
+
+    .input {
+      width: 90%;
+    }
+
+    .label {
+      width: 90%;
+    }
+
+    &.books {
+      .major {
+        // stylelint-disable-next-line max-nesting-depth
+        input[type=text],
+        input[type=email],
+        input[type=password],
+        textarea {
+          width: 848px;
+       }
+      }
+
+      .TitleAuthor {
+        // stylelint-disable-next-line max-nesting-depth
+        input#work-title {
+          width: 900px !important;
+        }
+
+        // stylelint-disable-next-line max-nesting-depth
+        input#author {
+          width: 550px !important;
+        }
+      }
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
 }
