@@ -135,7 +135,6 @@ table {
     }
   }
   // openlibrary/templates/history.html
-  // openlibrary/templates/history_frameset.html
   &#pageHistory {
     width: 100%;
     font-family: @lucida_sans_serif-6;
@@ -662,8 +661,6 @@ input {
 @import "layout/index.less";
 
 // openlibrary/data/sitemap.py
-// openlibrary/templates/history_framenav.html
-// openlibrary/templates/history_framepage.html
 div#placement {
   width: 960px;
   margin: 0 auto;
@@ -701,16 +698,6 @@ div#content {
     h1 {
       margin: 0;
     }
-  }
-  // openlibrary/templates/history_framenav.html
-  &History {
-    position: absolute;
-    display: none;
-    top: 151px;
-    z-index: @z-index-level-8;
-    width: 890px;
-    height: 91px;
-    margin: 0 30px;
   }
 }
 
@@ -777,12 +764,8 @@ div.formElement {
   .input label {
     font-size: 1.0em;
   }
+  .footnote,
   p.tip {
-    border-top: 1px solid @mid-grey;
-    padding: 5px;
-  }
-  // @todo: Merge with above
-  .footnote {
     border-top: 1px solid @mid-grey;
     padding: 5px;
   }
