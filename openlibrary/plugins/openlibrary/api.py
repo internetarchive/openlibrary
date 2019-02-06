@@ -219,37 +219,54 @@ class author_works(delegate.page):
         }
 
 class price_api(delegate.page):
-    path = r'/prices/isbn/(.*)'
+    path = r'/prices'
 
     @jsonapi
-    def GET(self, isbn):
-        isbn = normalize_isbn(isbn)
-        isbn_type = 'isbn_' + ('13' if len(isbn) == 13 else '10')
+    def GET(self):
+        # @hornc, add: title='', asin='', authors=''
+        i = web.input(isbn='', asin='') 
+
+        if not (i.isbn or i.asin):
+            return simplejson.dumps({
+                'error': 'isbn or asin required'
+            })
+
+        id_ = i.asin if i.asin else normalize_isbn(i.isbn)
+        id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
+
         metadata = {
-            'amazon': get_amazon_metadata(isbn) or {},
-            'betterworldbooks': get_betterworldbooks_metadata(isbn) or {}
+            'amazon': get_amazon_metadata(id_) or {},
+            'betterworldbooks': get_betterworldbooks_metadata(id_) if id_type.startswith('isbn_') else {}
         }
+        # if isbn_13 fails for amazon, we may want to check isbn_10 also
+        # xxx
+
         # if bwb fails and isbn10, try again with isbn13
-        if len(isbn) == 10 and \
+        if id_type == 'isbn_10' and \
            metadata['betterworldbooks'].get('price') is None:
-            isbn_13 = isbn_10_to_isbn_13(isbn)
+            isbn_13 = isbn_10_to_isbn_13(id_type)
             metadata['betterworldbooks'] = get_betterworldbooks_metadata(
                 isbn_13) or {}
 
         # fetch book by isbn if it exists
-        book = web.ctx.site.things({
+        # if asin... for now, it will fail (which is fine)
+        matches = web.ctx.site.things({
             'type': '/type/edition',
-            isbn_type: isbn,
+            id_type: id_,
         })
 
+        book_key = matches[0] if matches else None
+
         # if no OL edition for isbn, attempt to create
-        if (not book) and metadata.get('amazon'):
-            book = load(clean_amazon_metadata_for_load(
+        if (not book_key) and metadata.get('amazon'):
+            resp = load(clean_amazon_metadata_for_load(
                 metadata.get('amazon')))
+            if resp and 'edition' in resp:
+                book_key = resp.get('edition').get('key')
 
         # include ol edition metadata in response, if available
-        if book:
-            ed = web.ctx.site.get(book[0])
+        if book_key:
+            ed = web.ctx.site.get(book_key)
             if ed:
                 metadata['key'] = ed.key
                 if getattr(ed, 'ocaid'):
