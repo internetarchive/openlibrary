@@ -255,10 +255,10 @@ $(function(){
         })
         /* eslint-disable no-unused-vars */
         // event object is passed to this function
-        $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
+        $(document).on('click', '.searchResultItemCTA-lending form.join-waitlist', function(e) {
             // consider submitting form async and refreshing search results page
             $(this).submit()
-        })
+        });
         /* eslint-enable no-unused-vars */
         updateBookAvailability();
     }

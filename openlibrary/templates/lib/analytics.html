@@ -22,7 +22,7 @@ if (window.archive_analytics) {
     window.archive_analytics.send_scroll_fetch_base_event();
   }
   window.q.push(function(){
-    \$('[data-ol-link-track]').live('click', function(event) {
+    \$( document ).on('click', '[data-ol-link-track]', function(event) {
       var category_action = \$(this).attr('data-ol-link-track').split('|');
       window.archive_analytics.ol_send_event_ping({'category': category_action[0], 'action': category_action[1]});
     });
