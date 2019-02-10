@@ -29,6 +29,7 @@
 @import (less) "legacy-tools.less";
 @import (less) "legacy-wmd.less";
 
+@import (less) "components/read-panel.less";
 @import (less) 'components/diff.less';
 @import (less) 'components/iconochive.less';
 @import (less) "components/carousel.less";
@@ -84,58 +85,8 @@ table {
       white-space: pre !important;
     }
   }
-  // openlibrary/templates/admin/index.html
-  &.measurements {
-    width: 100%;
-    margin: 10px 0 30px;
-    color: @dark-grey;
-    th {
-      font-family: @lucida_sans_serif-1;
-      font-size: .6875em;
-      text-align: right;
-      vertical-align: bottom;
-      padding: 0 8px;
-    }
-    td {
-      padding: 8px;
-      text-align: right;
-      vertical-align: bottom;
-      font-size: .75em;
-    }
-    td.type {
-      font-family: @lucida_sans_serif-1;
-      font-size: .6875em;
-    }
-    tr.major {
-      td.amount {
-        font-size: 1.5em;
-      }
-    }
-    .shift {
-      text-align: left !important;
-    }
-  }
 
-  // openlibrary/templates/admin/services.html
-  &.services {
-    th {
-      font-family: @lucida_sans_serif-1;
-      font-size: 11px;
-      font-weight: bold;
-      text-transform: uppercase;
-      color: @dark-grey;
-    }
-    td {
-      padding: 5px;
-      border-right: 1px solid @white;
-      border-bottom: 1px solid @white;
-    }
-    td.node {
-      vertical-align: top;
-    }
-  }
   // openlibrary/templates/history.html
-  // openlibrary/templates/history_frameset.html
   &#pageHistory {
     width: 100%;
     font-family: @lucida_sans_serif-6;
@@ -176,29 +127,6 @@ table {
     }
     td.comment {
       width: 33%;
-    }
-  }
-  // openlibrary/templates/admin/ip/index.html
-  // openlibrary/templates/admin/people/view.html
-  &#adminHistory {
-    border-top: 1px solid @admin-table-border;
-    font-family: @lucida_sans_serif-6;
-    margin: 0 0 20px;
-    th {
-      background-color: @lightest-grey;
-      border-bottom: 1px solid @admin-table-border;
-      color: @grey;
-      font-size: .8675em;
-      font-weight: 700;
-      padding: 10px;
-    }
-    td {
-      border-bottom: 1px solid @admin-table-border;
-      padding: 10px;
-      font-size: .75em;
-      &.number {
-        text-align: right;
-      }
     }
   }
   // openlibrary/templates/lib/markdown.html
@@ -501,11 +429,6 @@ span {
     color: @brown;
     padding: 5px 5px 0;
   }
-  &.caption {
-    position: absolute;
-    right: 0;
-    bottom: 2px;
-  }
   &.merge {
     padding: 2px 0;
   }
@@ -542,14 +465,6 @@ span {
     margin-top: 5px;
     clear: both;
   }
-}
-
-.caption {
-  font-size: .5625em;
-  font-family: @lucida_sans_serif-1;
-  font-weight: normal;
-  color: @grey;
-  text-transform: uppercase;
 }
 
 p {
@@ -662,8 +577,6 @@ input {
 @import "layout/index.less";
 
 // openlibrary/data/sitemap.py
-// openlibrary/templates/history_framenav.html
-// openlibrary/templates/history_framepage.html
 div#placement {
   width: 960px;
   margin: 0 auto;
@@ -701,16 +614,6 @@ div#content {
     h1 {
       margin: 0;
     }
-  }
-  // openlibrary/templates/history_framenav.html
-  &History {
-    position: absolute;
-    display: none;
-    top: 151px;
-    z-index: @z-index-level-8;
-    width: 890px;
-    height: 91px;
-    margin: 0 30px;
   }
 }
 
@@ -777,12 +680,8 @@ div.formElement {
   .input label {
     font-size: 1.0em;
   }
+  .footnote,
   p.tip {
-    border-top: 1px solid @mid-grey;
-    padding: 5px;
-  }
-  // @todo: Merge with above
-  .footnote {
     border-top: 1px solid @mid-grey;
     padding: 5px;
   }
@@ -1262,13 +1161,6 @@ div.editThis {
 /* HOME PAGE CAROUSEL SKIN */
 @import (less) "components/home.less";
 
-// openlibrary/templates/admin/index.html
-.stats-spacer {
-  width:250px;
-  height:35px;
-  margin-left: 50px;
-}
-
 /* SEARCH RESULTS */
 
 div#searchResults,
@@ -1744,226 +1636,6 @@ ul {
 
 @import (less) "components/page-history.less";
 
-/* HISTORY FRAMESET */
-// openlibrary/templates/history_framenav.html
-div#navMask {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: @z-index-level-7;
-  background-color: @beige;
-  filter: alpha(opacity=70);
-  display: none;
-  width: 100%;
-  height: 100%;
-}
-
-// openlibrary/templates/history_framenav.html
-div#logoHistory {
-  position: absolute;
-  width: 960px;
-  height: 1px;
-  text-align: center;
-  overflow: visible;
-  top: 10px;
-  z-index: @z-index-level-10;
-}
-
-// openlibrary/templates/history_framenav.html
-div#history {
-  &Position {
-    position: relative;
-    width: 880px;
-    height: 85px;
-    background-color: @light-yellow;
-    border: 5px solid @brown;
-    border-bottom: 1px solid @beige-two;
-    -webkit-border-top-right-radius: 15px;
-    -webkit-border-top-left-radius: 15px;
-    -moz-border-radius-topright: 15px;
-    -moz-border-radius-topleft: 15px;
-    border-top-right-radius: 15px;
-    border-top-left-radius: 15px;
-  }
-  &Close {
-    a {
-      display: block;
-      position: absolute;
-      top: -35px;
-      right: 15px;
-      z-index: @z-index-level-9;
-      -webkit-border-top-right-radius: 8px;
-      -webkit-border-top-left-radius: 8px;
-      -moz-border-radius-topright: 8px;
-      -moz-border-radius-topleft: 8px;
-      border-top-right-radius: 8px;
-      border-top-left-radius: 8px;
-      color: @white;
-      font-family: @lucida_sans_serif-1;
-      font-size: .6875em;
-      font-weight: 700;
-      padding: 10px 37px 10px 10px;
-      text-decoration: none;
-      text-transform: uppercase;
-      background: @brown url(/images/historyClose.png) no-repeat 67px 9px;
-    }
-  }
-  &Current {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 195px;
-    height: 85px;
-    text-align: center;
-    font-family: @lucida_sans_serif-1;
-    .revertTitle {
-      font-size: 18px;
-      padding-top: 25px;
-      color: @brown;
-    }
-    .revertThis {
-      font-size: .75em;
-      color: @grey;
-    }
-  }
-  &Revert {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 880px;
-    height: 85px;
-    a.revertSlideLink {
-      display: block;
-      float: left;
-      width: 125px;
-      height: 55px;
-      padding: 25px 20px 0 65px;
-      background-image: url(/images/historyRevert.png);
-      background-position: 25px 25px;
-      background-repeat: no-repeat;
-      text-decoration: none;
-      font-family: @lucida_sans_serif-1;
-      span {
-        display: block;
-        &.revertTitle {
-          font-size: 18px;
-        }
-        &.revertThis {
-          font-size: 12px;
-          color: @grey;
-        }
-      }
-    }
-    form {
-      display: block;
-      float: left;
-      padding-top: 20px;
-      /* stylelint-disable selector-max-specificity */
-      #because {
-        font-size: 12px;
-        color: @black;
-      }
-      /* stylelint-enable selector-max-specificity */
-      .opt {
-        font-size: 10px;
-        color: @grey;
-      }
-      input[type=text] {
-        width: 235px;
-        padding: 2px;
-        font-size: 12px;
-      }
-      input[type=submit] {
-        font-size: .6875em;
-      }
-      /* stylelint-disable selector-max-specificity */
-      a#revertSlideIn {
-        font-size: .6875em;
-        color: @red;
-        text-decoration: none;
-      }
-      /* stylelint-enable selector-max-specificity */
-    }
-  }
-
-  // openlibrary/templates/history_framenav.html
-  &Explore {
-    position: absolute;
-    top: 10px;
-    right: 25px;
-    height: 30px;
-    white-space: nowrap;
-    /* stylelint-disable selector-max-specificity */
-    a#historyBack {
-      display: block;
-      position: absolute;
-      top: -1px;
-      left: -1px;
-      width: 30px;
-      height: 60px;
-      background: url(/images/historyRev.png);
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #version {
-      margin-left: 15px;
-      white-space: nowrap;
-      text-align: center;
-      color: @teal;
-      width: 100px;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #vtitle {
-      font-size: 14px;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #number {
-      font-size: 1.125em;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #details {
-      padding-left: 15px;
-      max-width: 530px;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #author {
-      font-size: .6875em;
-      color: @grey;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    #comment {
-      font-size: 14px;
-      color: @black;
-      white-space: nowrap;
-    }
-    /* stylelint-enable selector-max-specificity */
-    /* stylelint-disable selector-max-specificity */
-    a#historyFwd {
-      display: block;
-      position: absolute;
-      top: -1px;
-      right: -15px;
-      width: 30px;
-      height: 60px;
-      background: url(/images/historyFwd.png);
-    }
-    /* stylelint-enable selector-max-specificity */
-    &Slide {
-      position: relative;
-      width: 645px;
-      height: 43px;
-      padding: 15px 0 0 15px;
-      overflow: hidden;
-      background-color: @white;
-    }
-  }
-}
-
 // openlibrary/macros/CoverImage.html
 // openlibrary/macros/CoverImageAuthor.html
 // openlibrary/macros/CoverImageWork.html
@@ -2232,81 +1904,6 @@ div.addfield {
 
 /* Skin */
 @import (less) "components/chart-stats.less";
-
-// openlibrary/templates/admin/index.html
-div.sparkDisplay {
-  border-bottom: 1px solid @black;
-  margin-right: 0 !important;
-}
-
-// openlibrary/templates/admin/services.html
-td.nagios {
-  &-PENDING {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-grey;
-  }
-  &-OK {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-green;
-  }
-  &-RECOVERY {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-green;
-  }
-  &-UNKNOWN {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-orange;
-  }
-  &-WARNING {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-yellow;
-  }
-  &-CRITICAL {
-    font-family: @arial_sans_serif;
-    font-size: 8pt;
-    background-color: @nagios-red;
-  }
-}
-
-// openlibrary/admin/templates/admin/index.html
-div#prolific {
-  span {
-    font-family: @lucida_sans_serif-1;
-    font-size: .6875em;
-  }
-}
-
-// openlibrary/admin/templates/admin/index.html
-div#uniqueIps {
-  float: left;
-  width: 918px;
-  margin: 20px 0 30px;
-}
-
-// openlibrary/admin/templates/admin/index.html
-div.measurements,
-div.measurements div {
-  float: left;
-  width: 180px;
-}
-
-// openlibrary/admin/templates/admin/index.html
-div.measurements {
-  .caption {
-    padding-top: 20px;
-  }
-  .measure {
-    font-size: .875em;
-  }
-  .large {
-    font-size: 1.125em !important;
-  }
-}
 
 /* PAGE HISTORY */
 @media screen and (max-width: @width-breakpoint-desktop){
@@ -2586,11 +2183,6 @@ div#subjectLists {
   margin-bottom: 10px;
 }
 
-// Remove: in static/css/components/read-panel.less
-.cta-section-title {
-  font-weight: bold;
-}
-
 // openlibrary/macros/daisy.html
 // openlibrary/templates/books/edition-sort.html
 .daisy-lock {
@@ -2693,24 +2285,6 @@ div#subjectLists {
 @import (less) "components/work.less";
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  // openlibrary/templates/admin/index.html
-  // openlibrary/admin/templates/admin/index.html
-  div.content {
-    &Left {
-      float: left;
-      clear: left;
-      width: 439px;
-      min-height: 100px;
-      padding-right: 20px;
-    }
-    &Right {
-      float: left;
-      clear: right;
-      width: 439px;
-      min-height: 100px;
-      padding-left: 20px;
-    }
-  }
   span {
     &.count {
       white-space: nowrap;
@@ -2719,12 +2293,6 @@ div#subjectLists {
   @import (less) "components/work--tablet.less";
   @import (less) "components/dropper--tablet.less";
   @import (less) "components/edit-toolbar--tablet.less";
-}
-
-// openlibrary/templates/admin/index.html
-.canvas-graph {
-  width: 100%;
-  height: 50px;
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
@@ -2763,14 +2331,6 @@ div#subjectLists {
     width: 918px;
     padding: 10px 20px 20px;
   }
-
-  // Graph shown on /stats
-  // openlibrary/templates/admin/index.html
-  .canvas-graph {
-    width: 430px;
-    height: 50px;
-  }
-
   .desktop-only {
     display: inherit;
   }
