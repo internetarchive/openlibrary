@@ -8,7 +8,7 @@ set -x
 
 ROOT=$(dirname $0)/../..
 SCRIPTS=$ROOT/scripts
-DUMP=$ROOT/dump
+DUMP=$ROOT/dumps
 
 echo "`date` -- dump the data table"
 psql openlibrary -c 'copy data to stdout' > $DUMP/data.txt
