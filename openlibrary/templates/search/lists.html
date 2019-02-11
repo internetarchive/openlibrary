@@ -15,7 +15,7 @@ $var title: Search results for Lists
 
   $if lists:
     <div class="mybooks-list">
-      <ul id="listResults">
+      <ul id="listResults" class="list-books">
       $for list in lists:
         <li class="searchResultItem" id="list-$loop.index">$:render_template("lists/preview", list)</li>
       </ul>

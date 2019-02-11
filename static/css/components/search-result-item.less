@@ -24,7 +24,6 @@
   align-items: center;
 
   a {
-    color: @black;
     text-decoration: none;
   }
   > div {
@@ -69,7 +68,8 @@
       max-height: 300px;
     }
   }
-  .imageLg {
+  .imageLg {
+    text-align: center;
     width: 100%;
     margin: 10px 10px 0px 5px;
     img {
@@ -109,11 +109,15 @@
     .searchResultItem {
        flex-wrap: nowrap;
       .bookcover {
-        width: 15%;
+        width: 175px;
         text-align: right;
+        img {
+          width: 175px;
+        }
       }
-      .details {
-        width: 55%;
+      .imageLg {
+        width: 175px;
+        text-align: center;
       }
     }
   }
@@ -121,11 +125,8 @@
     .searchResultItem {
       flex-wrap: nowrap;
       .imageLg {
-        width: 15%;
+        width: 175px;
         text-align: right;
-      }
-      .details {
-        width: 85%;
       }
     }
   }

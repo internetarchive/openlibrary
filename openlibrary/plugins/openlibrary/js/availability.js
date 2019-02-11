@@ -135,7 +135,6 @@ $(function(){
                     for (book_key in books) {
                         book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
-
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('href', $(selector + "[data-key=" + book_key  + "]").attr('data-key'))
                             $(selector + "[data-key=" + book_key  + "]")
@@ -221,13 +220,15 @@ $(function(){
                                 link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
 
                                 if (work.status === 'open') {
+                                    cls = 'cta-btn--available cta-btn';
                                     msg = 'Read';
                                 } else if (work.status === 'borrow_available') {
+                                    cls = 'cta-btn--available cta-btn';
                                     msg = 'Borrow';
                                 } else if (work.status === 'borrow_unavailable') {
                                     tag = 'span';
                                     link = '';
-                                    cls = work.status;
+                                    cls = 'cta-btn cta-btn--unavailable';
                                     msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
                                     if (work.num_waitlist !== '0') {
                                         msg += 'Join Waitlist <span class="cta-btn__badge">' + work.num_waitlist + '</span></form>';

@@ -38,7 +38,7 @@ $def render_seed_count(seed_count):
     $if list.description:
         $:format(list.description)
 
-    <div class="mybooks-list"><ul id="listResults">
+    <div class="mybooks-list"><ul id="listResults" class="list-books">
     $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
         <li id="seed-$loop.index" class="searchResultItem">
             $ cover = seed.get_cover()

@@ -163,13 +163,13 @@ window.q.push(function(){
         $if list.description:
             $:format(list.description)
 
-        <ul id="listResults" class="narrow">
+        <ul id="listResults" class="list-books">
           $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
                 $if cover:
-                    $ cover_url = item_image(cover.url("S"), default=default_image)
+                    $ cover_url = item_image(cover.url("M"), default=default_image)
                 $else:
                     $ cover_url = default_image
 
@@ -178,7 +178,7 @@ window.q.push(function(){
                     $ meta_cover_url = cover_url
                 <span class="bookcover">
                     <a href="$seed.url">
-                      <img src="$cover_url" height="70"/>
+                      <img src="$cover_url"/>
                     </a>
                 </span>
                 <span class="seed-key hidden">$seed.key</span>
@@ -204,18 +204,7 @@ window.q.push(function(){
                                     $ authors = seed.document.get_authors()
                             <div class="author">by $:render_authors(authors)</div>
                         <span class="meta">
-                        $if seed.type == "author":
-                            <span class="type author small">$seed.type</span>
-                        $elif seed.type == "work" or seed.type == "edition":
-                            <span class="type book small">$seed.type</span>
-                        $elif seed.type == "subject":
-                            <span class="type subject small">$seed.type</span>
-                        $elif seed.type == "place":
-                            <span class="type place small">$seed.type</span>
-                        $elif seed.type == "person":
-                            <span class="type people small">$seed.type</span>
-                        $else:
-                            <span class="type small">$seed.type</span>
+                          <span class="type small">$seed.type</span>
                         $if seed.type == "edition" and seed.document.get('works'):
                             - <a href="$seed.document.works[0].url()">$commify(work_editions_count) editions$("s" if seed.work_count != 1 else "")</a> in catalog
                         $elif seed.type == "work":
@@ -225,7 +214,7 @@ window.q.push(function(){
                         </span>
 
                         $if 'daisy_url' in ebook:
-                            <span class="type small"><a href="$ebook['daisy_url']" title="Protected DAISY">Download DAISY eBook for print disabled</a></span>
+                            <div class="type small"><a href="$ebook['daisy_url']" title="Protected DAISY">Download DAISY eBook for print disabled</a></div>
 
                         $if seed.last_update:
                             <span class="time">
