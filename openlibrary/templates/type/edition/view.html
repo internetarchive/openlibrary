@@ -79,7 +79,7 @@ $def display_identifiers(label, ids, itemprop=None):
                 $if -1 != id.value.find('openlib-'):
                     $continue
                 $if id.url:
-                    <a href="$id.url">$id.value</a>$sep
+                    <a href="$id.url$('?tag=' + affiliate_id('amazon') if 'amazon.' in id.url else '')">$id.value</a>$sep
                 $else:
                     ${id.value}$sep
         </dd>
