@@ -1,5 +1,6 @@
 .git/objects/*
 solr-update*
+dumps
 errors
 infogami
 config
