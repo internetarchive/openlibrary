@@ -8,7 +8,7 @@ $if results and results.get('hits'):
   $ hits = results['hits'].get('hits', [])
   $ num_found = results['hits'].get('total', 0)
   <div id="searchResults">
-    <ul id="siteSearch">
+    <ul id="siteSearch" class="list-books">
       $for doc in hits:                
         $if doc.get('edition'):
           $ snippet = macros.FulltextSnippet(query, doc=doc)

@@ -13,7 +13,7 @@ $var title: $_("Add a book")
 
 <div id="contentBody">
     <div id="searchResults">
-        <ul id="siteSearch">
+        <ul id="siteSearch" class="list-books">
         $for work in matches:
             <li class="workResult" id="$work.key.split('/')[-1]">
                 <span class="bookcover">
