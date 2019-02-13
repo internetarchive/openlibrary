@@ -10,7 +10,13 @@ div#editHistory {
   width: auto;
 }
 
+div#editButton {
+  float: left;
+}
+
 div#editInfo {
+  float: right;
+  overflow: hidden;
   white-space: nowrap;
   text-align: right;
   > div {
@@ -18,11 +24,15 @@ div#editInfo {
     font-weight: normal;
     color: @brown!important;
     font-family: @lucida_sans_serif-1;
+    + div {
+      padding-top: .3rem;
+    }
   }
 }
 
 div#editTools {
   white-space: nowrap;
+  overflow: hidden;
+  padding: 1rem 0;
 }
-
 @import "components/buttonLink.less";
