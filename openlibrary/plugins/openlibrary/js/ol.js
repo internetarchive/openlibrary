@@ -255,7 +255,7 @@ $(function(){
         };
     };
 
-    $(document).on('click', '.trigger', function(e) {
+    $('.trigger').live('submit', function(e) {
         e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
@@ -362,14 +362,15 @@ $(function(){
         }
 
     });
-    $(document).on('click', 'li.instant-result a', function() {
+
+    $('li.instant-result a').live('click', function() {
         $('html,body').css('cursor', 'wait');
         $(this).css('cursor', 'wait');
     });
 
     /* eslint-disable no-unused-vars */
     // e is a event object
-    $(document).on('click','header#header-bar .search-component .search-results li a',debounce(function(event) {
+    $('header#header-bar .search-component .search-results li a').live('click', debounce(function(event) {
         $(document.body).css({'cursor' : 'wait'});
     }, 300, false));
     /* eslint-enable no-unused-vars */
@@ -393,13 +394,13 @@ $(function(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-    $(document).on('click', '.dropclick', debounce(function(){
+    $('.dropclick').live('click', debounce(function(){
         $(this).next('.dropdown').slideToggle(25);
         $(this).parent().next('.dropdown').slideToggle(25);
         $(this).parent().find('.arrow').toggleClass("up");
     }, 300, false));
 
-    $(document).on('click', 'a.add-to-list', debounce(function(){
+    $('a.add-to-list').live('click', debounce(function(){
         $(this).closest('.dropdown').slideToggle(25);
         $(this).closest('.arrow').toggleClass("up");
     }, 300, false));

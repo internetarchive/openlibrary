@@ -545,7 +545,7 @@ $if ctx.user:
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
         \$('.dropdown').append(listcreate);
 
-        \$( document ).on('click', '.book-progress-btn, .nostyle-btn', function(e) {
+        \$('.book-progress-btn, .nostyle-btn').live('click', function(e) {
            \$('.book-progress-btn').text("saving...");
         });
 

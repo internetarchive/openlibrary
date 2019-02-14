@@ -256,10 +256,10 @@ $(function(){
         })
         /* eslint-disable no-unused-vars */
         // event object is passed to this function
-        $(document).on('click', '.searchResultItemCTA-lending form.join-waitlist', function(e) {
+        $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
             // consider submitting form async and refreshing search results page
             $(this).submit()
-        });
+        })
         /* eslint-enable no-unused-vars */
         updateBookAvailability();
     }
