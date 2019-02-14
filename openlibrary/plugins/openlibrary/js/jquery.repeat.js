@@ -92,8 +92,8 @@
         removeSelector = id + " .repeat-remove";
         // Click handlers should apply to newly created add/remove selectors
         if (isOldJQuery) {
-            $(document).on('click', addSelector, onAdd);
-            $(document).on('click', removeSelector, onRemove);
+            $(addSelector).live("click", onAdd);
+            $(removeSelector).live("click", onRemove);
         } else {
             $(document).on("click", addSelector, onAdd);
             $(document).on("click", removeSelector, onRemove);
