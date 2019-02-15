@@ -615,6 +615,10 @@ window.q.push(function() {
             <fieldset class="minor">
                 <legend>$_("Dimensions")</legend>
                 $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
+                  <span class="tip">
+                    $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
+                  </span>
+
                 <div class="formElement">
                     <div class="input">
                         <table cellpadding="1">
@@ -626,11 +630,7 @@ window.q.push(function() {
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" id="dimensions-width" size="6" value="$dimensions.width"/>
-                                    <span class="tip">
-                                        $:radiobuttons("edition--physical_dimensions--units", ["centimeters", "inches"], dimensions.units)
-                                    </span>
-                                </td>
+                                <td><input name="edition--physical_dimensions--width" type="number" id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
@@ -747,6 +747,7 @@ $if ctx.user and ctx.user.is_admin():
        \$("a#libraryMode").on('click', function(event) {
            event.preventDefault();
 
+          \$(".librarian").toggleClass("hidden");
           \$(".librarian").toggleClass("librarian-on");
           \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
        });
