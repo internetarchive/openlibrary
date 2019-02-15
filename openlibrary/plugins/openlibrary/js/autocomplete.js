@@ -100,14 +100,14 @@
 
         update_visible();
 
-        container.find("a.remove").live("click", function() {
+        $(document).on('click',container.find("a.remove"),function() {
             if (container.find("div.input").length > 1) {
                 $(this).closest("div.input").remove();
                 update_visible();
             }
         });
 
-        container.find("a.add").live("click", function(event) {
+        $(document).on('click',  container.find("a.add"), function(event) {
             event.preventDefault();
 
             var next_index = container.find("div.input").length;
