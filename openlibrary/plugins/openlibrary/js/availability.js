@@ -256,7 +256,7 @@ $(function(){
         })
         /* eslint-disable no-unused-vars */
         // event object is passed to this function
-        $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
+        $('.searchResultItemCTA-lending form.join-waitlist').on('click', function(e) {
             // consider submitting form async and refreshing search results page
             $(this).submit()
         })
