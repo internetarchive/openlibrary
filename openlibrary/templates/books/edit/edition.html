@@ -744,7 +744,7 @@ $if ctx.user and ctx.user.is_admin():
                 return true;
             }
         });
-       \$("a#libraryMode").click(function(event) {
+       \$("a#libraryMode").on('click', function(event) {
            event.preventDefault();
 
           \$(".librarian").toggleClass("librarian-on");
