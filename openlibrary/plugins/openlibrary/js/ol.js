@@ -405,6 +405,14 @@ $(function(){
         $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
 
+    $(document).on('click', function(e) {
+        var container = $("#widget-add");
+        if (!container.is(e.target) && container.has(e.target).length === 0) {
+            $(container).find('.dropdown').slideUp(25);
+            $(container).find('.arrow').removeClass("up");
+        }
+    });
+
     /* eslint-disable no-unused-vars */
     // success function receives data on successful request
     $('.reading-log-lite select').change(function(e) {
