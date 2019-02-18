@@ -139,11 +139,10 @@ echo $(psql -c "SELECT \"LastModified\" FROM test ORDER BY \"LastModified\" DESC
 And run the following query on prod (however that works):
 
 ```bash
-LO_DATE='2018-10-30 23:58:49.355353'  # latest from postgres
+LO_DATE='2019-01-30'  # latest from postgres (from above)
 DUMP_FILE=$(echo "dump_${LO_DATE}" | sed -e 's/[: .]/_/g').txt
-# NOT TESTED!!!! Don't even know if these are the columns used on prod!
-# Locally this took ~20s for 1 Month
-psql -c "COPY (SELECT * FROM test WHERE \"LastModified\" >= '${LO_DATE}') TO STDOUT" > $DUMP_FILE
+# NOT TESTED!!!!
+psql -v lo_date="$LO_DATE" -f sql/prod-partial-dump.sql openlibrary > test_partial_dump.txt
 gzip "${DUMP_FILE}" # ~15s locally
 ```
 
