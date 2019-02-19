@@ -31,8 +31,8 @@ $jsdef render_author(i, author):
     <div class="input">
         <input name="authors--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
         <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
-        <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this author')">[x]</a>&nbsp;
-        <a href="javascript:;" class="add hidden">$_("Add another author?")</a>
+        <a href="javascript:;" class="remove red plain" title="$_('Remove this author')">[x]</a>&nbsp;
+        <a href="javascript:;" class="add">$_("Add another author?")</a>
     </div>
 
 <div id="authors">
