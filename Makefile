@@ -104,7 +104,7 @@ lint:
 	$(PYTHON) -m flake8 . --exit-zero --count --exclude=./.*,scripts/20*,vendor/*  --select=F821 --show-source --statistics
 ifndef CONTINUOUS_INTEGRATION
 	# exit-zero treats all errors as warnings, only run this in local dev while fixing issue, not CI as it will never fail.
-	$(PYTHON) -m flake8 . --count --exclude=./.*,scripts/20*,vendor* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
+	$(PYTHON) -m flake8 . --count --exclude=./.*,scripts/20*,vendor*,node_modules/* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
 
 test:
