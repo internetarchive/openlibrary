@@ -1,6 +1,9 @@
 #!/usr/local/bin/python2.5
 from __future__ import print_function
-import sys, urllib, re, codecs
+import sys
+import urllib
+import re
+import codecs
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary
 import simplejson as json

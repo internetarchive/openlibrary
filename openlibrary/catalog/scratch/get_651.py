@@ -1,7 +1,8 @@
 from catalog.importer.db_read import get_mc, withKey
 from catalog.get_ia import get_from_local
 from catalog.marc.fast_parse import get_tag_lines, get_all_subfields
-import sys, web
+import sys
+import web
 import simplejson as json
 
 def get_src(key):

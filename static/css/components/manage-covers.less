@@ -10,6 +10,7 @@
   border: 3px solid @dark-grey;
   background-color: @white;
   color: @dark-grey;
+  font-size: 12px;
 
   a {
     color: @dark-grey;
@@ -24,11 +25,13 @@
       display: block;
       text-decoration: none;
       opacity: 0;
+      // stylelint-disable-next-line max-nesting-depth
       &:hover,
       &:focus {
         text-decoration: underline;
       }
       // Reveal the button when parent hovered over
+      // stylelint-disable-next-line max-nesting-depth
       div:hover > & {
         opacity: .9;
       }

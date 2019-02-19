@@ -1,8 +1,10 @@
 from __future__ import print_function
 import httplib
 import xml.etree.ElementTree as et
-import xml.parsers.expat, socket # for exceptions
-import urllib, re
+import xml.parsers.expat
+import socket # for exceptions
+import urllib
+import re
 from openlibrary.catalog.get_ia import urlopen_keep_trying
 from openlibrary.utils.ia import find_item
 

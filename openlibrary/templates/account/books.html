@@ -5,14 +5,37 @@ $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ owners_page = not urlbase.startswith('/people')
 $ header_title = key.title().replace('-', ' ')
 $ username = user.key.split('/')[-1]
+$ meta_photo_url = "https://archive.org/services/img/%s"%get_internet_archive_id(ctx.user.key)
+
+$if user:
+  $ displayName = user.displayname
+$else:
+  $ displayName = ctx.user.displayname
+
+$if key == 'currently-reading':
+  $ og_title = "%s's reading log"%displayName
+  $ og_description = "{username} is reading {total} books. Join {username} on OpenLibrary.org and tell the world what you're reading.".format(username=displayName, total=reading_log['currently-reading'])
+$elif key == 'want-to-read':
+  $ og_title = "List of books %s wants to read"%displayName
+  $ og_description = "{username} wants to read {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=displayName, total=reading_log['want-to-read'])
+$elif key == 'already-read':
+  $ og_title = "Books %s has read"%displayName
+  $ og_description = "{username} has read {total} books. Join {username} on OpenLibrary.org and tell the world about the books that you care about.".format(username=displayName, total=reading_log['already-read'])
+
+$if og_title:
+  $add_metatag(property="og:title", content=og_title)
+  $add_metatag(property="og:url", content=request.canonical_url)
+  $add_metatag(property="og:site_name", content="Open Library")
+  $add_metatag(property="og:description", content=og_description)
+  $add_metatag(property="og:image", content=meta_photo_url)
 
 <div id="contentHead">
   <div id="mybooks">
     <div class="small sansserif grey account-settings-menu">
       $if user:
-        <a href="$user.key">$user.displayname</a>
+        <a href="$user.key">$displayName</a>
       $else:
-        <a href="$ctx.user.key">$ctx.user.displayname</a>
+        <a href="$ctx.user.key">$displayName</a>
       &raquo;
       $_("Reading Log")
     </div>

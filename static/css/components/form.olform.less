@@ -4,7 +4,7 @@
  */
 @import (less) "less/font-families.less";
 
-form.olform {
+.olform {
   font-family: @lucida_sans_serif-4;
 
   .label {
@@ -24,10 +24,12 @@ form.olform {
     width: 100%;
   }
 
+  input[type=number],
   input[type=text] {
     margin: 0 10px 5px 0;
   }
 
+  input[type=number],
   input[type=text],
   input[type=email],
   input[type=password],
@@ -38,6 +40,11 @@ form.olform {
     max-width: 100%;
   }
 
+  input[type=number] {
+    width: 50px;
+  }
+
+  input[type=number],
   input[type=email],
   input[type=password],
   .required {
@@ -50,13 +57,24 @@ form.olform {
     padding: 3px;
   }
 
-  &.books {
-    fieldset.major input[type=text],
-    fieldset.major input[type=email],
-    fieldset.major input[type=password],
-    fieldset.major textarea {
-      font-size: .875em;
+  .minor {
+    input {
+      max-width: 300px;
     }
+  }
+  &.books {
+    /* stylelint-disable selector-max-specificity */
+    .major {
+      // stylelint-disable-next-line max-nesting-depth
+      input[type=text],
+      input[type=email],
+      input[type=password],
+      textarea {
+        font-size: .875em;
+        width: 100%;
+      }
+    }
+    /* stylelint-enable selector-max-specificity */
 
     .input,
     .label {
@@ -64,15 +82,31 @@ form.olform {
     }
 
     .TitleAuthor {
+      margin-bottom: 20px;
+
+      /* stylelint-disable selector-max-specificity */
+      // stylelint-disable-next-line max-nesting-depth
       input#work-title {
         font-size: 1.875em !important;
         margin: 0;
+        width: 100%;
       }
 
+      // stylelint-disable-next-line max-nesting-depth
       input#author {
         font-size: 1em !important;
+        width: 100%;
       }
+      /* stylelint-enable selector-max-specificity */
     }
+  }
+  // Form elements can be accompanied by tips
+  // e.g. on the book edit page. /books/OL9737752M/The_Odyssey/edit
+  // "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)."
+  .tip {
+    font-size: 11px;
+    color: @grey;
+    font-family: @lucida_sans_serif-1!important;
   }
 }
 
@@ -81,5 +115,46 @@ form.olform {
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
-  @import (less) "form.olform--desktop.less";
+  /* stylelint-disable selector-max-specificity */
+  .olform {
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    textarea {
+      width: 475px;
+    }
+
+    .input {
+      width: 90%;
+    }
+
+    .label {
+      width: 90%;
+    }
+
+    .input {
+      select {
+        width: 130px;
+      }
+    }
+    table {
+      input {
+        width: 300px;
+      }
+    }
+    &.books {
+      .TitleAuthor {
+        // stylelint-disable-next-line max-nesting-depth
+        input#work-title {
+          width: 900px !important;
+        }
+
+        // stylelint-disable-next-line max-nesting-depth
+        input#author {
+          width: 550px !important;
+        }
+      }
+    }
+  }
+  /* stylelint-enable selector-max-specificity */
 }

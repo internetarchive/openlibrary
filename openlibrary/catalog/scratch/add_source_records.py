@@ -1,5 +1,8 @@
 from __future__ import print_function
-import os, re, sys, codecs
+import os
+import re
+import sys
+import codecs
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
 

@@ -1,6 +1,7 @@
 import sys
 from StringIO import StringIO
-import time, re
+import time
+import re
 
 def cftime():
     t,m = divmod(time.time(), 1.0)

@@ -1,6 +1,9 @@
 from __future__ import print_function
 from catalog.utils import pick_first_date
-import web, re, sys, codecs
+import web
+import re
+import sys
+import codecs
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
 re_marc_name = re.compile('^(.*), (.*)$')

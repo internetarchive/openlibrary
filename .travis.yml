@@ -1,5 +1,4 @@
 language: python
-sudo: false
 addons:
   apt:
     packages:

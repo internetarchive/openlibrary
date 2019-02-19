@@ -82,7 +82,7 @@ $var title: Imports
     </table>
 </div>
 <script type="text/javascript">
-\$(function() {
+window.q.push(function() {
     \$.plot("#books-added-per-day", [{
         "data": $:json_encode(stats.get_books_imported_per_day()),
     }], {

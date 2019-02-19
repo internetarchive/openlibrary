@@ -21,12 +21,16 @@
   margin-bottom: 3px;
   border-bottom: 1px solid @light-beige;
   flex-wrap: wrap;
+  align-items: center;
 
+  a {
+    text-decoration: none;
+  }
   > div {
     margin-top: 10px;
     padding: 0 5px 0 15px;
   }
-  h3.booktitle {
+  h3 {
     display: inline;
     margin: 0;
     padding: 0;
@@ -55,20 +59,73 @@
     font-size: .6875em;
   }
   .bookcover {
-    width: 80px;
-    margin: 10px 10px 0 5px;
-    text-align: right;
-    overflow: hidden;
-  }
-  img {
-    height: 80px;
-    max-width: 75px;
     width: 100%;
+    margin: 10px 10px 0 5px;
+    text-align: center;
+    overflow: hidden;
+    img {
+      max-width: 100%;
+      max-height: 300px;
+      width: 175px;
+    }
+  }
+  .imageLg {
+    text-align: center;
+    width: 100%;
+    margin: 10px 10px 0px 5px;
+    img {
+      max-width: 100%;
+      max-height: 110px;
+    }
+  }
+}
+
+// Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists
+.listDelete {
+  white-space: nowrap;
+  max-width: 150px;
+  line-height: 28px;
+  .display-flex();
+  margin-bottom: 5px;
+  a {
+    span {
+      margin-right: 5px;
+      background-image: url(/images/back_list-trash.png);
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      height: 28px;
+      width: 21px;
+      display: inline-block;
+      position: relative;
+      top: 5px;
+    }
+  }
+  a:hover span {
+    background-position: 21px 0;
   }
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
-  .searchResultItem {
-    flex-wrap: nowrap;
+  .list-books {
+    .searchResultItem {
+       flex-wrap: nowrap;
+       .bookcover {
+        width: 175px;
+        text-align: right;
+      }
+      .imageLg {
+        width: 175px;
+        text-align: center;
+      }
+    }
+  }
+  .list-results {
+    .searchResultItem {
+      flex-wrap: nowrap;
+      .imageLg {
+        width: 175px;
+        text-align: right;
+      }
+    }
   }
 }

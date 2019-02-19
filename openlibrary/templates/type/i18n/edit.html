@@ -38,7 +38,7 @@ function add_key() {
 }
 
 
-\$().ready(function() {
+window.q.push(function() {
     \$("#newkey").bind("keypress", function(e) {
         if (e.keyCode == 13) {
             \$("#button_addkey").click();

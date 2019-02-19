@@ -1,7 +1,8 @@
 """Handlers for borrowing books"""
 
 import copy
-import datetime, time
+import datetime
+import time
 import hmac
 import re
 import simplejson

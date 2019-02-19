@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import web, re, sys, codecs
+import web
+import re
+import sys
+import codecs
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

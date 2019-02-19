@@ -8,7 +8,8 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 import web
 
@@ -249,7 +250,8 @@ class account(proxy):
             i.username = convert_key(i.username)
 
 def main():
-    import sys, os
+    import sys
+    import os
     web.config.infobase_server = sys.argv[1].rstrip('/')
     os.environ['REAL_SCRIPT_NAME'] = ''
 

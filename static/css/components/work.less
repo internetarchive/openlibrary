@@ -1,0 +1,89 @@
+@import (less) "base/dl.less";
+
+.workDetails {
+  padding-bottom: 15px;
+}
+
+// Left (editionCover)
+div.editionCover {
+  min-height: 10px;
+  padding-right: 1.5em;
+}
+@import (less) "components/cover.less";
+@import (less) "components/illustration.less";
+@import (less) "components/rating-form.less";
+@import (less) "components/dropper.less";
+@import (less) "components/listLists.less";
+
+// Center (editionAbout)
+div.editionAbout {
+  min-height: 10px;
+  h2.edition-byline {
+    font-size: .9em;
+    font-weight: normal;
+    color: @dark-grey;
+    margin: 0 0 10px;
+  }
+
+  h3 {
+    font-size: 14px;
+    margin: 0 0 1em;
+  }
+
+  p {
+    margin: 1em 0;
+    font-size: 13px;
+  }
+}
+
+.workDetails,
+.book-overview {
+  border-bottom: 1px solid @lightest-grey;
+}
+
+.book-overview {
+  padding-bottom: 10px;
+  > div {
+    margin: 10px 0;
+  }
+}
+
+.meta dt, .meta dd {
+  font-size: 12px;
+}
+
+@import (less) "components/readerStats.less";
+@import (less) "components/link-box.less";
+
+// Right  (editionTools)
+div.editionTools {
+  min-height: 10px;
+  font-size: 100%;
+  p {
+    color: @grey;
+  }
+}
+@import (less) "components/read-panel.less";
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  @import (less) "components/work--tablet.less";
+}
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  div.edition {
+    &Cover {
+      float: left;
+      width: 180px;
+      margin-right: 1.5em;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.admin-bar {
+  padding: 5px;
+  background-color: @orange;
+  form {
+    display: inline-block;
+  }
+}

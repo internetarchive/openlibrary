@@ -2,7 +2,10 @@
 from __future__ import print_function
 from time import time, sleep
 import catalog.marc.fast_parse as fast_parse
-import web, sys, codecs, re
+import web
+import sys
+import codecs
+import re
 import catalog.importer.pool as pool
 from catalog.utils.query import query_iter
 from catalog.importer.merge import try_merge

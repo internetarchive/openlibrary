@@ -1,5 +1,8 @@
 from __future__ import print_function
-import web, sys, codecs, os.path
+import web
+import sys
+import codecs
+import os.path
 from catalog.read_rc import read_rc
 import psycopg2
 from catalog.infostore import get_site

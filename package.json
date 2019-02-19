@@ -13,10 +13,6 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/vendor.js",
-      "maxSize": "124KB"
-    },
-    {
       "path": "static/build/vendor-v2.js",
       "maxSize": "172KB"
     },
@@ -26,31 +22,35 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "24KB"
+      "maxSize": "19.0KB"
+    },
+    {
+      "path": "static/build/page-book.css",
+      "maxSize": "7.1KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "24KB"
+      "maxSize": "18.8KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "24KB"
+      "maxSize": "18.7KB"
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.2KB"
+      "maxSize": "4.3KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "24KB"
+      "maxSize": "18.8KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "6.0KB"
+      "maxSize": "6.1KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "24KB"
+      "maxSize": "18.6KB"
     }
   ],
   "devDependencies": {

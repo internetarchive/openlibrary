@@ -109,9 +109,12 @@ def get_work_authors_and_related_subjects(work_id):
 
 @public
 def cached_work_authors_and_subjects(work_id):
-    return cache.memcache_memoize(
-        get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-        timeout=dateutil.HALF_DAY_SECS)(work_id)
+    try:
+        return cache.memcache_memoize(
+            get_work_authors_and_related_subjects, 'works_authors_and_subjects',
+            timeout=dateutil.HALF_DAY_SECS)(work_id)
+    except AttributeError:
+        return {'authors': [], 'subject': []}
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
@@ -254,13 +257,18 @@ def get_realtime_availability_of_ocaid(ocaid):
 def add_availability(editions):
     """Adds API v2 availability info to editions, e.g. for work's editions table
     """
-
-    ocaids = [ed.get('ocaid') or ed.ia[0] for ed in editions if (ed.get('ia') or ed.get('ocaid'))]
+    ocaids = [
+        (ed.get('ocaid') or ed.ia[0]) for ed in editions if
+        (ed.get('ia') or ed.get('ocaid'))
+    ]
     availability = get_availability_of_ocaids(ocaids)
     for i, ed in enumerate(editions):
+        ocaid = None
         if ed.get('ocaid') or ed.get('ia'):
             ocaid = ed.get('ocaid') or ed.get('ia')[0]
-            editions[i]['availability'] = availability.get(ocaid)
+        editions[i]['availability'] = availability.get(ocaid) if ocaid else {
+            'status': 'error'
+        }
     return editions
 
 @public

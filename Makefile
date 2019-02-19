@@ -21,6 +21,7 @@ all: git css js i18n
 css:
 	mkdir -p $(BUILD)
 	lessc -x static/css/page-admin.less $(BUILD)/page-admin.css
+	lessc -x static/css/page-book.less $(BUILD)/page-book.css
 	lessc -x static/css/page-edit.less $(BUILD)/page-edit.css
 	lessc -x static/css/page-form.less $(BUILD)/page-form.css
 	lessc -x static/css/page-home.less $(BUILD)/page-home.css
@@ -35,8 +36,7 @@ css:
 
 js:
 	mkdir -p $(BUILD)
-	bash static/js/vendor.jsh > $(BUILD)/vendor.js
-	bash static/js/vendor.jsh 2 > $(BUILD)/vendor-v2.js
+	bash static/js/vendor.jsh > $(BUILD)/vendor-v2.js
 	bash static/js/all.jsh > $(BUILD)/all.js
 
 i18n:

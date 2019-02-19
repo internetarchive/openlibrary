@@ -2,7 +2,7 @@ $def with (list)
             <span class="imageLg">
                 $ cover = list.get_cover() or list.get_default_cover()
                 $ cover_url = cover and cover.url("M") or "/images/icons/avatar_book-sm.png"
-                <a href="$list.key"><img src="$cover_url" height="110" alt="Cover of: $list.name" title="Cover of: $list"/></a>
+                <a href="$list.key"><img src="$cover_url" alt="Cover of: $list.name" title="Cover of: $list"/></a>
             </span>
             <span class="details">
                 $ owner = list.get_owner()

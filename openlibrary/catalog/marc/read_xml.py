@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as et
 import xml.parsers.expat
-import re, sys, codecs
+import re
+import sys
+import codecs
 from time import sleep
 from unicodedata import normalize
 

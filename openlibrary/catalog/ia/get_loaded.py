@@ -1,6 +1,7 @@
 from __future__ import print_function
 from catalog.read_rc import read_rc
-import web, sys
+import web
+import sys
 rc = read_rc()
 web.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
 web.load()

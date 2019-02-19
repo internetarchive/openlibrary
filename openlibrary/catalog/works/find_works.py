@@ -3,7 +3,10 @@
 # find works and create pages on production
 
 from __future__ import print_function
-import re, sys, web, urllib2
+import re
+import sys
+import web
+import urllib2
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary

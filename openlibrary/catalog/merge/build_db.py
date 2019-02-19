@@ -2,7 +2,8 @@
 # converts from text files containing MARC tags to text versions of merge pools
 
 from __future__ import print_function
-import re, anydbm
+import re
+import anydbm
 from time import time
 from collections import defaultdict
 

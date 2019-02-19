@@ -21,10 +21,10 @@
 
         function createTemplate(selector) {
             var code = $(selector).html()
-                            .replace(/%7B%7B/gi, "<%=")
-                            .replace(/%7D%7D/gi, "%>")
-                            .replace(/{{/g, "<%=")
-                            .replace(/}}/g, "%>");
+                .replace(/%7B%7B/gi, "<%=")
+                .replace(/%7D%7D/gi, "%>")
+                .replace(/{{/g, "<%=")
+                .replace(/}}/g, "%>");
             // Template is defined in openlibrary\plugins\openlibrary\js\template.js
             // eslint-disable-next-line no-undef
             return Template(code);
@@ -92,8 +92,8 @@
         removeSelector = id + " .repeat-remove";
         // Click handlers should apply to newly created add/remove selectors
         if (isOldJQuery) {
-            $(addSelector).live("click", onAdd);
-            $(removeSelector).live("click", onRemove);
+            $(addSelector).on("click", addSelector, onAdd);
+            $(removeSelector).on("click", removeSelector, onRemove);
         } else {
             $(document).on("click", addSelector, onAdd);
             $(document).on("click", removeSelector, onRemove);

@@ -1,5 +1,8 @@
 from __future__ import print_function
-import web, re, sys, codecs
+import web
+import re
+import sys
+import codecs
 from catalog.marc.fast_parse import *
 from catalog.utils import pick_first_date
 import catalog.marc.new_parser as parser

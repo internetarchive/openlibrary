@@ -1,5 +1,7 @@
 from __future__ import print_function
-import re, web, sys
+import re
+import web
+import sys
 import simplejson as json
 from urllib2 import urlopen, URLError
 from openlibrary.catalog.read_rc import read_rc

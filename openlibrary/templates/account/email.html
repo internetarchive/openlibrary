@@ -9,8 +9,10 @@ $def with (email, form)
 </div>
 
 <script type="text/javascript">
-\$().ready(validateForms);
-\$().ready(validateEmail);
+window.q.push(function () {
+    validateForms();
+    validateEmail();
+);
 </script>
 
 <div id="contentBody">

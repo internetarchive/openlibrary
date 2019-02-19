@@ -30,7 +30,7 @@ want = [
     '035', # oclc
     '050', # lc classification
     '082', # dewey
-    '100', '110', '111', # authors TODO
+    '100', '110', '111', # authors
     '130', '240', # work title
     '245', # title
     '250', # edition
@@ -306,8 +306,7 @@ def read_author_person(f):
     return author
 
 # 1. if authors in 100, 110, 111 use them
-# 2. if first contrib is 710 or 711 use it
-# 3. if
+# 2. if first contrib is 700, 710, or 711 use it
 
 def person_last_name(f):
     v = list(f.get_subfield_values('a'))[0]
@@ -448,6 +447,14 @@ def read_location(rec):
     return list(found)
 
 def read_contributions(rec):
+    """ Reads contributors from a MARC record
+    and use values in 7xx fields to set 'authors'
+    if the 1xx fields do not exist. Otherwise set
+    additional 'contributions'
+
+    :param (MarcBinary | MarcXml) rec:
+    :rtype: dict
+    """
     want = dict((
         ('700', 'abcdeq'),
         ('710', 'ab'),

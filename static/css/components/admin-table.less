@@ -1,0 +1,37 @@
+/**
+ * AdminTable
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#admin-table
+ * Used in the following templates:
+ * - openlibrary/templates/admin/index.html
+ */
+
+.measurements {
+  width: 100%;
+  margin: 10px 0 30px;
+  color: @dark-grey;
+  th {
+    font-family: @lucida_sans_serif-1;
+    font-size: .6875em;
+    text-align: right;
+    vertical-align: bottom;
+    padding: 0 8px;
+  }
+  td {
+    padding: 8px;
+    text-align: right;
+    vertical-align: bottom;
+    font-size: .75em;
+    &.type {
+      font-family: @lucida_sans_serif-1;
+      font-size: .6875em;
+    }
+  }
+  .major {
+    .amount {
+      font-size: 1.5em;
+    }
+  }
+  .shift {
+    text-align: left !important;
+  }
+}

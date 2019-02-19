@@ -1,6 +1,7 @@
 from __future__ import print_function
 from xml.etree.cElementTree import iterparse, tostring, Element
-import sys, re
+import sys
+import re
 
 ns = '{http://www.abbyy.com/FineReader_xml/FineReader6-schema-v1.xml}'
 page_tag = ns + 'page'

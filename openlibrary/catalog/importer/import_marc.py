@@ -3,7 +3,12 @@ from __future__ import print_function
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-import web, sys, codecs, re, urllib2, httplib
+import web
+import sys
+import codecs
+import re
+import urllib2
+import httplib
 from openlibrary.catalog.importer import pool
 import simplejson as json
 from openlibrary.catalog.utils.query import query_iter

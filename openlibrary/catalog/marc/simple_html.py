@@ -3,7 +3,8 @@ from __future__ import print_function
 from catalog.marc.fast_parse import *
 from html import as_html
 from build_record import build_record
-import sys, re
+import sys
+import re
 
 import six
 

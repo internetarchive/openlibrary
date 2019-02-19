@@ -4,7 +4,11 @@ from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from time import time
 from catalog.marc.fast_parse import index_fields, get_tag_lines, get_first_tag, get_all_subfields
-import web, os, os.path, re, sys
+import web
+import os
+import os.path
+import re
+import sys
 
 titles = [ "Accolade", "Adi", "Aetheling", "Aga Khan", "Ajaw", "Ali'i",
         "Allamah", "Altgrave", "Ammaveedu", "Anji", "Ryūkyū", "Archtreasurer",

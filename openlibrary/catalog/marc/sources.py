@@ -1,4 +1,5 @@
-import sys, os
+import sys
+import os
 
 def find_sources():
     for p in sys.path:

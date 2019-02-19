@@ -1,6 +1,7 @@
 #!/usr/local/bin/python2.5
 from __future__ import print_function
-import sys, codecs
+import sys
+import codecs
 from catalog.merge.names import match_name
 from catalog.utils import fmt_author, get_title, mk_norm
 from catalog.utils.query import query_iter, set_staging, withKey

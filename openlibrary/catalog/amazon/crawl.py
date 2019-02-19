@@ -1,6 +1,9 @@
 from __future__ import print_function
 from lxml.html import parse, tostring, fromstring
-import re, sys, os, socket
+import re
+import sys
+import os
+import socket
 from urllib import unquote
 from urllib2 import urlopen
 from time import sleep

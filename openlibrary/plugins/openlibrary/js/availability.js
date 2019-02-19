@@ -21,6 +21,7 @@ var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 
 $(function(){
 
+    var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
         '^/account/books/[^/]+': { // readinglog
@@ -107,7 +108,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr("href", "/borrow/ia/" + book_ocaid);
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_available').addClass('cta-btn')
+                                .addClass('cta-btn--available').addClass(btnClassName)
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -124,7 +125,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('title', 'Join waitlist');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('borrow_unavailable').addClass('cta-btn');
+                                .addClass('cta-btn--unavailable').addClass(btnClassName);
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -134,7 +135,6 @@ $(function(){
                     for (book_key in books) {
                         book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
-
                             $(selector + "[data-key=" + book_key  + "]")
                                 .attr('href', $(selector + "[data-key=" + book_key  + "]").attr('data-key'))
                             $(selector + "[data-key=" + book_key  + "]")
@@ -142,7 +142,7 @@ $(function(){
                             $(selector + "[data-key=" + book_key  + "]")
                                 .removeClass('borrow-link');
                             $(selector + "[data-key=" + book_key  + "]")
-                                .addClass('check-book-availability').addClass('cta-btn');
+                                .addClass('check-book-availability').addClass(btnClassName);
                             $(selector + "[data-key=" + book_key  + "]")
                                 .text('Check Availability');
                             delete books[book_key];
@@ -220,16 +220,18 @@ $(function(){
                                 link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
 
                                 if (work.status === 'open') {
+                                    cls = 'cta-btn--available';
                                     msg = 'Read';
                                 } else if (work.status === 'borrow_available') {
+                                    cls = 'cta-btn--available';
                                     msg = 'Borrow';
                                 } else if (work.status === 'borrow_unavailable') {
                                     tag = 'span';
                                     link = '';
-                                    cls = work.status;
+                                    cls = 'cta-btn--unavailable';
                                     msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
                                     if (work.num_waitlist !== '0') {
-                                        msg += 'Join Waitlist <span class="badge">' + work.num_waitlist + '</span></form>';
+                                        msg += 'Join Waitlist <span class="cta-btn__badge">' + work.num_waitlist + '</span></form>';
 
                                     } else {
                                         msg += 'Join Waitlist</form>';
@@ -238,7 +240,7 @@ $(function(){
                                 }
                                 $(cta).append(
                                     '<' + tag + ' ' + link + ' class="' + cls +
-                                        ' cta-btn" data-ol-link-track="' +
+                                        ' ' + btnClassName + '" data-ol-link-track="' +
                                         work.status
                                         + '">' + msg + '</' + tag + '>'
                                 );
@@ -254,7 +256,7 @@ $(function(){
         })
         /* eslint-disable no-unused-vars */
         // event object is passed to this function
-        $('.searchResultItemCTA-lending form.join-waitlist').live('click', function(e) {
+        $('.searchResultItemCTA-lending form.join-waitlist').on('click', function(e) {
             // consider submitting form async and refreshing search results page
             $(this).submit()
         })

@@ -12,6 +12,7 @@ build/
 *.tar.gz
 *.org
 coverage/
+dumps/
 /*.log
 openlibrary.egg-info/
 pip-log.txt
@@ -29,7 +30,6 @@ TAGS
 env/
 .coverage
 htmlcov
-.vagrant
 .DS_Store
 .cache
 node_modules/

@@ -224,7 +224,7 @@ $ )
         </script>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul id="siteSearch">
+          <ul class="list-books" id="siteSearch">
             $ works = add_availability([get_doc(d) for d in docs])
 
             $ loans = ctx.user.get_loans() if ctx.user else []

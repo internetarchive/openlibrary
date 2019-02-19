@@ -19,7 +19,9 @@ def get_amazon_metadata(isbn):
     except Exception:
         return None
 
-def _get_amazon_metadata(isbn):
+def _get_amazon_metadata(isbn=None):
+    # XXX @hornc, you should be extending this to work with
+    # isbn=, asin=, title=, authors=, etc
     isbn = normalize_isbn(isbn)
     try:
         if not lending.amazon_api:

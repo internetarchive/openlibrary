@@ -7,7 +7,8 @@ from openlibrary.catalog.importer.db_read import withKey, get_mc
 from openlibrary.api import OpenLibrary, Reference
 import openlibrary.catalog.marc.fast_parse as fast_parse
 import xml.parsers.expat
-import web, sys
+import web
+import sys
 from time import sleep
 
 import six

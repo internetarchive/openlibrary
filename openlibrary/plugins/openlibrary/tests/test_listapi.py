@@ -3,7 +3,8 @@ from py.test import config
 import web
 import simplejson
 
-import urllib, urllib2
+import urllib
+import urllib2
 import cookielib
 
 def pytest_funcarg__config(request):

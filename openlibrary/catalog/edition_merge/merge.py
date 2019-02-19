@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
-import MySQLdb, datetime, re, sys
+import MySQLdb
+import datetime
+import re
+import sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 from flask import Flask, render_template, request, flash, redirect, url_for, g
