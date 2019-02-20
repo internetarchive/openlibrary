@@ -6,6 +6,12 @@ from openlibrary.coverstore import config, coverlib, disk, schema, utils
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
+image_formats = [
+    ['a', 'images/homesplash.jpg'],
+    ['b', 'logos/logo-en.gif'],
+    ['c', 'logos/logo-en.png']
+]
+
 @pytest.fixture
 def image_dir(tmpdir):
     tmpdir.mkdir('localdisk')
@@ -17,18 +23,9 @@ def image_dir(tmpdir):
 
     config.data_root = str(tmpdir)
 
-def xtest_write_image():
-    """Test writing jpg, gif and png images"""
-    yield _test_write_image, 'a', static_dir + '/images/ajaxImage.jpg'
-    yield _test_write_image, 'b', static_dir + '/logos/logo-en.gif'
-    yield _test_write_image, 'c', static_dir + '/logos/logo-en.png'
-
-write_images = [['a', 'images/homesplash.jpg'],
-                ['b', 'logos/logo-en.gif'],
-                ['c', 'logos/logo-en.png']]
-
-@pytest.mark.parametrize('prefix, path', write_images)
+@pytest.mark.parametrize('prefix, path', image_formats)
 def test_write_image(prefix, path, image_dir):
+    """Test writing jpg, gif and png images"""
     data = open(join(static_dir, path)).read()
     assert coverlib.write_image(data, prefix) is not None
 
