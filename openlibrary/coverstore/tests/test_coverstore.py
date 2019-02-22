@@ -1,8 +1,8 @@
 import pytest
-from os.path import abspath, exists, join, dirname, pardir
 import web
+from os.path import abspath, exists, join, dirname, pardir
 
-from openlibrary.coverstore import config, coverlib, disk, schema, utils
+from openlibrary.coverstore import config, coverlib
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
