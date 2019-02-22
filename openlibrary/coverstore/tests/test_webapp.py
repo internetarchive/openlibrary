@@ -74,6 +74,7 @@ class WebTestCase:
         return join(static_dir, path)
 
 
+@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
 class TestDB:
     def test_write(self, setup_db, image_dir):
         path = static_dir + '/logos/logo-en.png'
@@ -86,6 +87,12 @@ class TestDB:
 
 
 class TestWebapp(WebTestCase):
+    def test_get(self):
+        assert code.app.request('/').status == "200 OK"
+
+
+@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
+class TestWebappWithDB(WebTestCase):
     def test_touch(self):
         pytest.skip('TODO: touch is no more used. Remove or fix this test later.')
 
@@ -107,9 +114,6 @@ class TestWebapp(WebTestCase):
         data = self.delete(id1)
 
         assert data == 'cover has been deleted successfully.'
-
-    def test_get(self):
-        assert code.app.request('/').status == "200 OK"
 
     def test_upload(self):
         b = self.browser
@@ -163,8 +167,8 @@ class TestWebapp(WebTestCase):
     def test_archive_status(self):
         id = self.upload('OL1M', 'logos/logo-en.png')
         d = self.jsonget('/b/id/%d.json' % id)
-        assert d['archived'] == False
-        assert d['deleted'] == False
+        assert d['archived'] is False
+        assert d['deleted'] is False
 
     def test_archive(self):
         b = self.browser
