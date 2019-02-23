@@ -441,3 +441,17 @@ $(function(){
 
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
+
+// LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
+function loadb() {
+    document.getElementById("borrow_ebook").className = "cta-btn cta-btn--available--load";
+    return true;
+  }
+  function loadr() {
+    document.getElementById("read_ebook").className = "cta-btn cta-btn--available--load";
+    return true;
+  }
+  function loadw() {
+    document.getElementById("waitlist_ebook").className = "cta-btn cta-btn--unavailable--load";
+    return true;
+  }

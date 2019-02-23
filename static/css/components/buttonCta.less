@@ -26,9 +26,19 @@ a.cta-btn {
   }
   &--available {
     background-color: @primary-blue;
+    &--load {
+      background-color: @primary-blue !important;
+      background: url(../../../static/images/indicator.gif) center center no-repeat;
+      opacity: 0.6;
+    }
   }
   &--unavailable {
     background-color: @orange;
+    &--load {
+      background-color: @orange !important;
+      background: url(../../../static/images/indicator.gif) center center no-repeat;
+      opacity: 0.6;
+    }
   }
   &__badge {
     background-color: @orange-two;
