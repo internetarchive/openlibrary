@@ -66,3 +66,19 @@ $else:
   <form>
     <input type="button" class="cta-btn--missing cta-btn" disabled value="No ebook available">
   </form>
+
+<!-- // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS -->
+<script>
+function loadb() { 
+    document.getElementById("borrow_ebook").className = "cta-btn cta-btn--available--load";
+    return true;
+}
+function loadr() { 
+    document.getElementById("read_ebook").className = "cta-btn cta-btn--available--load";
+    return true;
+}
+function loadw() { 
+    document.getElementById("waitlist_ebook").className = "cta-btn cta-btn--unavailable--load";
+    return true;
+}
+</script>
