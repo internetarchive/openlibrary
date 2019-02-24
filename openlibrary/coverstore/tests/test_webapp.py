@@ -1,27 +1,31 @@
-from __future__ import print_function
-import py.test
-import os.path
+import pytest
 import web
 import simplejson
-import time
 import urllib
-import unittest
 
-from openlibrary.coverstore import config, disk, schema, code, coverlib, utils, archive
-import _setup
+from os import system
+from os.path import abspath, join, dirname, pardir
+from openlibrary.coverstore import config, schema, code, coverlib, utils, archive
 
-def setup_module(mod):
-    _setup.setup_module(mod, db=True)
-    mod.app = code.app
+static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
-def teardown_module(mod):
-    _setup.teardown_module(mod)
+@pytest.fixture(scope='module')
+def setup_db():
+    """ These tests have to run as the openlibrary user."""
+    system('dropdb coverstore_test')
+    system('createdb coverstore_test')
+    config.db_parameters = dict(dbn='postgres', db='coverstore_test', user='openlibrary', pw='')
+    db_schema = schema.get_schema('postgres')
+    db = web.database(**config.db_parameters)
+    db.query(db_schema)
+    db.insert('category', name='b')
 
-def pytest_funcarg__foo(request):
-    return "foo"
+@pytest.fixture
+def image_dir(tmpdir):
+    tmpdir.mkdir('localdisk')
+    tmpdir.mkdir('items')
+    config.data_root = str(tmpdir)
 
-def test_foo(foo):
-    assert foo == "foo"
 
 class Mock:
     def __init__(self):
@@ -39,11 +43,10 @@ class Mock:
         call = a, kw, _return
         self.calls.append(call)
 
+
 class WebTestCase:
     def setup_method(self, method):
-        db.delete("log", where="1=1")
-        db.delete('cover', where='1=1')
-        self.browser = app.browser()
+        self.browser = code.app.browser()
 
     def jsonget(self, path):
         self.browser.open(path)
@@ -53,7 +56,7 @@ class WebTestCase:
         """Uploads an image in static dir"""
         b = self.browser
 
-        path = os.path.join(static_dir, path)
+        path = join(static_dir, path)
         content_type, data = utils.urlencode({'olid': olid, 'data': open(path).read()})
         b.open('/b/upload2', data, {'Content-Type': content_type})
         return simplejson.loads(b.data)['id']
@@ -68,15 +71,13 @@ class WebTestCase:
         return b.data
 
     def static_path(self, path):
-        return os.path.join(static_dir, path)
+        return join(static_dir, path)
 
 
-class DBTest:
-    def setUp(self):
-        db.delete('cover', where='1=1')
-
-    def test_write(self):
-        path = static_dir + "/logos/logo-en.png"
+@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
+class TestDB:
+    def test_write(self, setup_db, image_dir):
+        path = static_dir + '/logos/logo-en.png'
         data = open(path).read()
         d = coverlib.save_image(data, category='b', olid='OL1M')
 
@@ -84,14 +85,20 @@ class DBTest:
         path = config.data_root + '/localdisk/' + d.filename
         assert open(path).read() == data
 
+
 class TestWebapp(WebTestCase):
+    def test_get(self):
+        assert code.app.request('/').status == "200 OK"
+
+
+@pytest.mark.skip(reason="Currently needs running db and openlibrary user. TODO: Make this more flexible.")
+class TestWebappWithDB(WebTestCase):
     def test_touch(self):
-        py.test.skip("TODO: touch is no more used. Remove or fix this test later.")
+        pytest.skip('TODO: touch is no more used. Remove or fix this test later.')
 
         b = self.browser
 
         id1 = self.upload('OL1M', 'logos/logo-en.png')
-        time.sleep(1)
         id2 = self.upload('OL1M', 'logos/logo-it.png')
 
         assert id1 < id2
@@ -100,44 +107,41 @@ class TestWebapp(WebTestCase):
         b.open('/b/touch', urllib.urlencode({'id': id1}))
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-en.png').read()
 
-    def test_delete(self):
+    def test_delete(self, setup_db):
         b = self.browser
 
         id1 = self.upload('OL1M', 'logos/logo-en.png')
         data = self.delete(id1)
-        assert data == 'cover has been deleted successfully.'
 
-    def test_get(self):
-        assert app.request('/').status == "200 OK"
+        assert data == 'cover has been deleted successfully.'
 
     def test_upload(self):
         b = self.browser
 
-        path = os.path.join(static_dir, 'logos/logo-en.png')
+        path = join(static_dir, 'logos/logo-en.png')
         filedata = open(path).read()
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'data': filedata})
         b.open('/b/upload2', data, {'Content-Type': content_type})
+        assert b.status == 200
         id = simplejson.loads(b.data)['id']
 
-        assert b.status == 200
         self.verify_upload(id, filedata, {'olid': 'OL1234M'})
 
     def test_upload_with_url(self, monkeypatch):
-        filedata = open(static_dir + '/logos/logo-en.png').read()
-        source_url = "http://example.com/bookcovers/1.jpg"
+        b = self.browser
+        filedata = open(join(static_dir, 'logos/logo-en.png')).read()
+        source_url = 'http://example.com/bookcovers/1.jpg'
 
         mock = Mock()
         mock.setup_call(source_url, _return=filedata)
-        monkeypatch.setattr(code, "download", mock)
-        monkeypatch.setattr(utils, "download", mock)
+        monkeypatch.setattr(code, 'download', mock)
 
         content_type, data = utils.urlencode({'olid': 'OL1234M', 'source_url': source_url})
-        self.browser.open('/b/upload2', data, {'Content-Type': content_type})
+        b.open('/b/upload2', data, {'Content-Type': content_type})
+        assert b.status == 200
+        id = simplejson.loads(b.data)['id']
 
-        print("data", self.browser.data)
-
-        id = simplejson.loads(self.browser.data)['id']
-        self.verify_upload(id, filedata, {"source_url": source_url, "olid": "OL1234M"})
+        self.verify_upload(id, filedata, {'source_url': source_url, 'olid': 'OL1234M'})
 
     def verify_upload(self, id, data, expected_info={}):
         b = self.browser
@@ -163,8 +167,8 @@ class TestWebapp(WebTestCase):
     def test_archive_status(self):
         id = self.upload('OL1M', 'logos/logo-en.png')
         d = self.jsonget('/b/id/%d.json' % id)
-        assert d['archived'] == False
-        assert d['deleted'] == False
+        assert d['archived'] is False
+        assert d['deleted'] is False
 
     def test_archive(self):
         b = self.browser
@@ -175,13 +179,12 @@ class TestWebapp(WebTestCase):
 
         for f in files:
             f.id = self.upload(f.olid, f.filename)
-            f.path = os.path.join(static_dir, f.filename)
+            f.path = join(static_dir, f.filename)
             assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()
 
         archive.archive()
 
         for f in files:
             d = self.jsonget('/b/id/%d.json' % f.id)
-            print(f.id, d)
             assert 'tar:' in d['filename']
             assert b.open('/b/id/%d.jpg' % f.id).read() == open(f.path).read()

@@ -1,43 +1,45 @@
-import py.test
-import os.path
+import pytest
 import web
-import unittest
+from os.path import abspath, exists, join, dirname, pardir
 
-from openlibrary.coverstore import config, coverlib, disk, schema, utils
-import _setup
+from openlibrary.coverstore import config, coverlib
 
-def setup_module(mod):
-    _setup.setup_module(mod, db=False)
+static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
-    mod.root.mkdir('items', 'covers_0000')
-    mod.root.mkdir('items', 's_covers_0000')
-    mod.root.mkdir('items', 'm_covers_0000')
-    mod.root.mkdir('items', 'l_covers_0000')
+image_formats = [
+    ['a', 'images/homesplash.jpg'],
+    ['b', 'logos/logo-en.gif'],
+    ['c', 'logos/logo-en.png']
+]
 
-def teardown_module(mod):
-    _setup.teardown_module(mod)
+@pytest.fixture
+def image_dir(tmpdir):
+    tmpdir.mkdir('localdisk')
+    tmpdir.mkdir('items')
+    tmpdir.mkdir('items', 'covers_0000')
+    tmpdir.mkdir('items', 's_covers_0000')
+    tmpdir.mkdir('items', 'm_covers_0000')
+    tmpdir.mkdir('items', 'l_covers_0000')
 
-def test_write_image():
+    config.data_root = str(tmpdir)
+
+@pytest.mark.parametrize('prefix, path', image_formats)
+def test_write_image(prefix, path, image_dir):
     """Test writing jpg, gif and png images"""
-    yield _test_write_image, 'a', static_dir + '/images/ajaxImage.jpg'
-    yield _test_write_image, 'b', static_dir + '/logos/logo-en.gif'
-    yield _test_write_image, 'c', static_dir + '/logos/logo-en.png'
+    data = open(join(static_dir, path)).read()
+    assert coverlib.write_image(data, prefix) is not None
 
-def _test_write_image(prefix, path):
-    data = open(path).read()
-    assert coverlib.write_image(data, prefix) != None
+    def _exists(filename):
+        return exists(coverlib.find_image_path(filename))
 
-    def exists(filename):
-        return os.path.exists(coverlib.find_image_path(filename))
-
-    assert exists(prefix + '.jpg')
-    assert exists(prefix + '-S.jpg')
-    assert exists(prefix + '-M.jpg')
-    assert exists(prefix + '-L.jpg')
+    assert _exists(prefix + '.jpg')
+    assert _exists(prefix + '-S.jpg')
+    assert _exists(prefix + '-M.jpg')
+    assert _exists(prefix + '-L.jpg')
 
     assert open(coverlib.find_image_path(prefix + '.jpg')).read() == data
 
-def test_bad_image():
+def test_bad_image(image_dir):
     prefix = config.data_root + '/bad'
     assert coverlib.write_image('', prefix) == None
 
@@ -61,7 +63,7 @@ def test_resize_image_aspect_ratio():
     img2 = coverlib.resize_image(img, (75, 200))
     assert img2.size == (75, 150)
 
-def test_serve_file():
+def test_serve_file(image_dir):
     path = static_dir + "/logos/logo-en.png"
 
     assert coverlib.read_file('/dev/null') == ''
@@ -69,9 +71,9 @@ def test_serve_file():
 
     assert coverlib.read_file(path + ":10:20") == open(path).read()[10:10+20]
 
-def test_server_image():
+def test_server_image(image_dir):
     def write(filename, data):
-        f = open(os.path.join(config.data_root, filename), 'w')
+        f = open(join(config.data_root, filename), 'w')
         f.write(data)
         f.close()
 
@@ -113,6 +115,6 @@ def test_server_image():
         filename_l='l_covers_0000_00.tar:2:7')
     do_test(d)
 
-def test_image_path():
+def test_image_path(image_dir):
     assert coverlib.find_image_path('a.jpg') == config.data_root + '/localdisk/a.jpg'
     assert coverlib.find_image_path('covers_0000_00.tar:1234:10') == config.data_root + '/items/covers_0000/covers_0000_00.tar:1234:10'
