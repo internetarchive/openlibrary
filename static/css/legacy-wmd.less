@@ -39,32 +39,20 @@
 }
 
 .formElement .input .wmd-preview {
-  width: 906px;
   min-height: 47px;
   padding: 5px;
-  float: left;
   clear: both;
 }
 
 /* stylelint-disable no-descending-specificity */
 fieldset.major .wmd-preview,
+form#addAuthor.olform .wmd-preview,
+form.olform.books .formElement.librarian .input .wmd-preview,
 form.olform.books .formElement .input .wmd-preview {
   min-height: 47px;
   padding: 3px;
 }
 /* stylelint-enable no-descending-specificity */
-
-form.olform.books .formElement.librarian .input .wmd-preview {
-  width: 798px;
-  min-height: 47px;
-  padding: 3px;
-}
-
-form#addAuthor.olform .wmd-preview {
-  width: 623px;
-  padding: 3px;
-  min-height: 47px;
-}
 
 .wmd-output {
   background-color: @white;
@@ -186,3 +174,18 @@ form#addAuthor.olform .wmd-preview {
 }
 
 @import (less) "components/wmd-button-bar.less";
+
+@media only screen and (min-width: @width-breakpoint-desktop) {
+  // Styles are used on edit page
+  // e.g. http://localhost:8080/works/OL61982W/Odyssey/edit
+  .formElement .input .wmd-preview {
+    width: 906px;
+    float: left;
+  }
+  form.olform.books .formElement.librarian .input .wmd-preview {
+    width: 798px;
+  }
+  form#addAuthor.olform .wmd-preview {
+    width: 623px;
+  }
+}
