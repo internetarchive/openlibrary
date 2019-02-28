@@ -1712,7 +1712,13 @@
     "type": "/type/language", 
     "name": "Creek", 
     "key": "/languages/mus"
-  }, 
+  },
+  {
+    "code": "mwl",
+    "type": "/type/language",
+    "name": "Mirandese",
+    "key": "/languages/mwl"
+  },
   {
     "code": "mwr", 
     "type": "/type/language", 
