@@ -1,5 +1,5 @@
 // used in templates/covers/add.html
-var Carousel = {
+const Carousel = {
     add: function(selector, a, b, c, d, e, f) {
         a = a || 6;
         b = b || 5;

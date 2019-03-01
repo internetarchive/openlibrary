@@ -1,0 +1,18 @@
+# This is based on Wikipedia/MediaWiki's browser support matrix
+# Which is defined at https://www.mediawiki.org/wiki/Compatibility#Modern_(Grade_A)
+
+# https//en.wikipedia.org/wiki/Google_Chrome_version_history
+chrome 13
+
+ie 11
+
+# https//en.wikipedia.org/wiki/Firefox_version_history
+firefox 4.0
+
+safari 5.0
+
+opera 15
+
+ios 6.0
+
+android 4.1
