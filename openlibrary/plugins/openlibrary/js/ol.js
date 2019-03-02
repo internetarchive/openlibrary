@@ -454,12 +454,12 @@ $(function(){
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
     $(document).ready(function(){
         $('#borrow_ebook,#read_ebook').on("click", function(){
-          $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
+            $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
         });
-      });
+    });
     $(document).ready(function(){
         $('#waitlist_ebook').on("click", function(){
-          $(this).removeClass('cta-btn cta-btn--unavailable').addClass('cta-btn cta-btn--unavailable--load');
+            $(this).removeClass('cta-btn cta-btn--unavailable').addClass('cta-btn cta-btn--unavailable--load');
         });
     });
 
