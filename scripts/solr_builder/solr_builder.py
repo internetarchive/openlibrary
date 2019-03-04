@@ -254,7 +254,7 @@ def parse_args():
 
     # Config
     parser.add_argument("--postgres", default="postgres.ini", help="Database config file")
-    parser.add_argument("--ol-config", default="../../conf/openlibrary-docker.yml", help="ol server config file")
+    parser.add_argument("--ol-config", default="../../conf/openlibrary.yml", help="ol server config file")
     parser.add_argument("--ol", default="http://ol/", help="URL of the openlibrary website")
 
     # Query
@@ -325,7 +325,7 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
 
 
-def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/openlibrary-docker.yml",
+def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/openlibrary.yml",
          start_at=None, offset=0, limit=1, last_modified=None,
          progress=None, log_level=logging.WARN
          ):

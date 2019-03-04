@@ -1,4 +1,4 @@
-This goes through building a solr instance from a dump file. Assume current directory is `/scripts/solr_builder` for all commands unless otherwise stated.
+This goes through building a solr instance from a dump file. Assume current directory is `scripts/solr_builder` for all commands unless otherwise stated.
 
 ## Step 1: Create a local postgres copy of the database
 
@@ -7,34 +7,44 @@ This goes through building a solr instance from a dump file. Assume current dire
 Start up the database docker container. Note the info in `postgres.ini` for database name, user, password, etc.
 
 ```bash
-docker-compose up --no-deps -d db # launch the database container
-# You might have to wait a little for it to fully "start up"
-docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql # create the "test" table to store the dump
+# launch the database container
+docker-compose up -d --no-deps db
+
+# optional; GUI for the database at port 8087
+docker-compose up -d --no-deps adminer
+
+# create the "test" table to store the dump
+docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 ```
 
 ### 1b: Populate the postgres instance
 
-Download the data
 ```bash
-wget https://openlibrary.org/data/ol_dump_latest.txt.gz
+# Download the dump
+wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.3GB, 6.5min (Feb 2019, OJF)
 ```
 
-Compute the length of the dump, and split it into 6 approximately equal chunks. Here's the code from when I ran it. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
-
-TODO: Investigate if it's better to just ungzip this from the start.
+Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
 
 ```bash
-# imports the file in 6 parallel chunks; ~ 7m to start the parallel chunks
-./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6
+# Start 6 parallel import jobs
+time ./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6  # ~25min (Feb 2019, OJF)
 ```
 
-Unfortunately there's no indication of progress, so you'll just have to wait this one out. You can see if they're done by running:
+Unfortunately there's no indication of progress, so you'll just have to wait this one out. You can see if they're done by running: (it will display the number copied once complete.)
 
 ```bash
 for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
+# Sample Output:
+# logs/psql-chunk-0.txt: COPY 8531084
+# logs/psql-chunk-17062168.txt: COPY 8531084
+# logs/psql-chunk-25593252.txt:
+# logs/psql-chunk-34124336.txt:
+# logs/psql-chunk-42655420.txt:
+# logs/psql-chunk-8531084.txt: COPY 8531084
 ```
 
-I forgot to record how long this took exactly, but it's definitely one of those "leave over night" things.
+Takes ~2.5 hours to complete (Feb 2019, OJF).
 
 **NOTE: Now would be a good time to do another partial import, if the above took a while, or if the dump is somewhat outdated. See Step 3a.**
 
@@ -45,11 +55,10 @@ Once that's all done, we create indices in postgres:
 docker-compose exec -u postgres db psql -d postgres -f sql/create-indices.sql
 ```
 
-If you'd like to investigate your handiwork, launch adminer to view the database at port `8087`!
-
-```bash
-docker-compose up -d --no-deps adminer
-```
+#### TODO
+- Investigate if it's better to just ungzip this from the start.
+- Right now the parallel processes are all running on the same docker container. Is this a problem?
+- Does postgres even benefit from parallel importing? I see some "COPY waiting" processes, maybe there's no benefit?
 
 ## Step 2: Populate solr
 
@@ -121,6 +130,10 @@ After this is done, we have to call `commit` on solr:
 ```bash
 curl localhost:8984/solr/update?commit=true
 ```
+
+### 2d: Insert subjects
+
+???? See https://github.com/internetarchive/openlibrary/issues/1896
 
 ## Step 3: Final Sync
 
