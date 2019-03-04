@@ -136,14 +136,17 @@ Get the latest date in our postgres
 echo $(psql -c "SELECT \"LastModified\" FROM test ORDER BY \"LastModified\" DESC LIMIT 1")
 ```
 
-And run the following query on prod (however that works):
+And run the following query on prod (partially tested on `ol-db2`):
 
 ```bash
-LO_DATE='2019-01-30'  # latest from postgres (from above)
-DUMP_FILE=$(echo "dump_${LO_DATE}" | sed -e 's/[: .]/_/g').txt
-# NOT TESTED!!!!
-psql -v lo_date="$LO_DATE" -f sql/prod-partial-dump.sql openlibrary > test_partial_dump.txt
-gzip "${DUMP_FILE}" # ~15s locally
+su postgres
+cd /openlibrary/scripts/solr_builder
+LO_DATE='2000-01-30'  # latest from postgres (from above)
+alias oldump='/openlibrary/scripts/oldump.py $1'
+DUMP_FILE=$(echo "dump_${LO_DATE}" | sed -e 's/[: .]/_/g')
+time psql openlibrary -v lo_date="$LO_DATE" -f sql/prod-partial-dump.sql > "${DUMP_FILE}_unfiltered.txt"
+time oldump cdump "${DUMP_FILE}_unfiltered.txt" > "${DUMP_FILE}.txt"
+gzip "${DUMP_FILE}.txt" # ~15s locally
 ```
 
 Bring that file back to our clone, and import it:
