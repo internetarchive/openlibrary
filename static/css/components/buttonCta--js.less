@@ -6,27 +6,7 @@
  .cta-btn,
  // override default anchor styles
  a.cta-btn {
-   font-size: 14px;
-   color: @white !important;
-   width: 100%;
-   display: block;
-   border: 0;
-   border-radius: 5px;
-   box-sizing: border-box;
-   cursor: pointer;
-   text-decoration: none;
-   font-family: @lucida_sans_serif-1;
-   text-align: center;
-   padding: 7px 20px;
-   white-space: nowrap;
-   background-color: @mid-grey;
-   line-height: 1.5em;
- 
-   &:hover {
-     text-decoration: underline;
-   }
    &--available {
-     background-color: @primary-blue;
      &--load {
        background-color: @primary-blue !important;
        background: url(../../../static/images/indicator.gif) center center no-repeat;
@@ -34,18 +14,11 @@
      }
    }
    &--unavailable {
-     background-color: @orange;
      &--load {
        background-color: @orange !important;
        background: url(../../../static/images/indicator.gif) center center no-repeat;
        opacity: 0.6;
      }
-   }
-   &__badge {
-     background-color: @orange-two;
-     padding: 4px 7px;
-     border-radius: 5px;
-     font-size: .7em;
    }
  }
  
