@@ -99,6 +99,8 @@ for key in $WORKS_PARTITIONS; do
 done;
 ```
 
+Works took ~24hrs to index split over 6 cores (Oct 2018, OJF). Note only one batch took that long; all other batches took <14 hours.
+
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
 ```bash
@@ -106,6 +108,8 @@ ORPHANS_COUNT=$(psql -f sql/count-orphans.sql)
 RUN_SIG=orphans_`date +%Y-%m-%d_%H-%M-%S`
 docker_solr_builder orphans -p progress/$RUN_SIG.txt
 ```
+
+Orphans took ~19hrs over 1 core (Oct 2018, OJF), NOT in parallel with works.
 
 ### 2c: Insert authors
 
@@ -125,7 +129,7 @@ for key in $AUTHORS_PARTITIONS; do
 done;
 ```
 
-After this is done, we have to call `commit` on solr:
+Authors took ~14 hrs over 5 cores (Oct 2018, OJF). After this is done, we have to call `commit` on solr:
 
 ```bash
 curl localhost:8984/solr/update?commit=true
