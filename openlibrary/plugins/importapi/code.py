@@ -286,14 +286,19 @@ class ia_importapi(importapi):
         """
         #TODO: include identifiers: isbn, oclc, lccn
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
+        description = metadata.get('description')
+        language = metadata.get('language')
         subject = metadata.get('subject')
         d = {
-            "title": metadata.get('title', ''),
-            "authors": authors,
-            "language": metadata.get('language', ''),
+            'title': metadata.get('title', ''),
+            'authors': authors,
         }
+        if description:
+            d['description'] = {'type': '/type/text', 'value': description}
+        if language and len(language) == 3:
+            d['languages'] = ['key': '/languages/%s' % language]
         if subject:
-            d["subjects"] = isinstance(subject, list) and subject or [subject]
+            d['subjects'] = subject
         return d
 
     def load_book(self, edition_data):
