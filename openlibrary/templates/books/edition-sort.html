@@ -74,7 +74,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="$(availability_class)"></div>
       <div class="links">
         $if active:
-          <ul>
+          <ul class="read">
             $if availability.get('status') == 'open':
               <li class="read-option"><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="btn primary">Read eBook</a></strong></li>
 

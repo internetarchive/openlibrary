@@ -140,7 +140,20 @@ table#editions {
 @media only screen and (max-width: @width-breakpoint-tablet) {
   table#editions {
     thead {
+      display: none;
+    }
+    tr {
+      display: flex;
+      flex-direction: column;
+    }
+    hr {
       visibility: hidden;
+    }
+    form {
+      padding: 10px;
+    }
+    ul.links ul,li {
+      display: inline;
     }
     td.book {
       width: 100%;
@@ -149,21 +162,33 @@ table#editions {
     div.title {
       width: 100%;
     }
+    .links a {
+      font-size: 120%;
+    }
+
     td.icon {
       width: 100%;
       padding: 0px;
     }
-    hr {
-      visibility: hidden;
+
+    td.icon.read {
+      order: 3;
+        .read {
+          display: flex;
+          flex-direction: column;
+          ul {
+            order: -1;
+            padding: 10px 0px;
+          }
+      }
     }
-    ul.links ul,li {
-      display: inline;
+
+    td.icon.locate {
+      .links {
+        display: flex;
+      }
+      padding: 0px 10px;
     }
-    td.locate {
-      padding: 10px 0px 0px 10px;
-    }
-    .links a {
-      font-size: 120%;
-    }
+
   }
 }
