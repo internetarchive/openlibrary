@@ -1,0 +1,40 @@
+$def with (page)
+
+$var title: $page.name
+
+<div id="contentHead">
+    $:macros.databarView(page)
+
+    <span class="tag">
+        / <a href="/local_ids">Local IDs</a> / $page.urn_prefix
+    </span>
+
+    <h1>$page.name</h1>
+</div>
+
+<div id="contentBody">
+
+    <div>
+       <span class="title">$_("Source Item")</span>
+       <span class="tag"><a href="//archive.org/details/$page.source_ocaid">$page.source_ocaid</a></span>
+    </div>
+
+    <div>
+       <span class="title">URN $_("prefix")</span>
+       <span class="tag">$page.urn_prefix</span>
+    </div>
+    <div>
+       <span class="title">$_("Example") URN</span>
+       <span class="tag">urn:$page.urn_prefix:{local_id}</span>
+    </div>
+    <div>
+       <span class="title">$_("Search")</span>
+       <span class="tag">
+          <a href="/api/books.json?bibkeys=local_id:urn:$page.urn_prefix:{local_id}">
+	      /api/books.json?bibkeys=local_id:urn:$page.urn_prefix:{local_id}
+	  </a>
+       </span>
+    </div>
+    $:render_template("lib/history", page)
+
+</div>
