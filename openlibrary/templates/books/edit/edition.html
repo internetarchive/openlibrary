@@ -99,10 +99,6 @@ window.q.push(function() {
 </script>
 
 
-<div class="small brown librarianFlip">
-    <span id="modeToggle">Turn on</span> <a title="$_('Expose another 20 fields about the edition')" id="libraryMode" accesskey="l" href="javascript:;">$_("Librarian Mode")</a>?
-</div>
-
 <fieldset class="major">
     <legend>$_("Publishing Info")</legend>
 
@@ -139,7 +135,7 @@ window.q.push(function() {
         </div>
 
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-copyright_date">$_("Is there a copyright date?")</label>
                 <span class="tip">$_("The year following the copyright statement.")</span>
@@ -149,7 +145,7 @@ window.q.push(function() {
             </div>
         </div>
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-series">$_("Is the book part of a series?")</label>
                 <span class="tip">$_("The name of the publisher's series.") $_("For example:") <i>The Story of Civilization, Part III</i></span>
@@ -166,7 +162,7 @@ window.q.push(function() {
 
     <div class="formBack">
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
@@ -226,7 +222,7 @@ window.q.push(function() {
 
 
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-title_other">$_("Is it known by any other titles?")</label>
                 <span class="tip">$_("Perhaps in another language?")</span>
@@ -241,7 +237,7 @@ window.q.push(function() {
                         <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
         </div>
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-edition_name">$_("Does this edition have a specific name?")</label>
                 <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
@@ -261,7 +257,7 @@ window.q.push(function() {
 
     <div class="clearfix"></div>
 
-        <div class="formElement librarian hidden">
+        <div class="formElement">
             <div class="label">
                 <label for="edition-notes">$_("Any notes about this specific edition?")</label>
             <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
@@ -336,7 +332,7 @@ window.q.push(function() {
                 </div>
             </div>
 
-            <div class="formElement librarian hidden">
+            <div class="formElement">
                 <div class="label">
                     <label for="edition-by_statement">$_("Is there a By Statement?")</label>
                     <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
@@ -347,8 +343,6 @@ window.q.push(function() {
             </div>
 
         </fieldset>
-
-        <div class="formDivider"></div>
 
         <fieldset class="minor">
 
@@ -366,7 +360,7 @@ window.q.push(function() {
                     $:render_language_field(0, storage(name="", key=""))
             </div>
 
-            <div class="formElement librarian hidden" id="translated-from">
+            <div class="formElement" id="translated-from">
                 <div class="label">
                     <label for="is-translation">$_("Is it a translation of another book?")</label>
                     <span class="tip"></span>
@@ -504,7 +498,7 @@ window.q.push(function() {
     </div>
 </fieldset>
 
-<fieldset class="major librarian hidden" id="classifications">
+<fieldset class="major" id="classifications">
     <legend>$_("Classifications")</legend>
     <div class="formBack">
 
@@ -515,7 +509,7 @@ window.q.push(function() {
                 <span class="tip">$_("Like, Dewey Decimal?")</span>
             </div>
             <div class="input">
-                <table class="classifications identifiers" width="100%">
+                <table class="classifications identifiers">
                     <tr id="classifications-form">
                         <td align="right">
                             $ classification_labels = dict((d.name, d.label) for d in edition_config.classifications)
@@ -528,10 +522,10 @@ window.q.push(function() {
                                 <!-- <option value="__add__">$_("Add a new classification type")</option> -->
                             </select>
                         </td>
-                        <td width="380">
+                        <td>
                             <input type="text" name="value" id="classification-value" size="20"/>
                         </td>
-                        <td width="100%">
+                        <td >
                             <button type="button" name="add" class="repeat-add larger">$_("Add")</button>
                         </td>
                     </tr>
@@ -542,16 +536,16 @@ window.q.push(function() {
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
                             </td>
-                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
+                            <td "><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
                         </tr>
                         $for i, id in enumerate(book.get_classifications().values()):
                         <tr id="classifications--$i" class="repeat-item">
                             <td align="right"><strong>$classification_labels.get(id.name, id.name)</strong></td>
-                            <td width="380">$id.value
+                            <td ">$id.value
                                 <input type="hidden" name="edition--classifications--${i}--name" value="$id.name"/>
                                 <input type="hidden" name="edition--classifications--${i}--value" value="$id.value"/>
                             </td>
-                            <td width="100%"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
                         </tr>
                     </tbody>
                 </table>
@@ -609,8 +603,6 @@ window.q.push(function() {
                 </div>
             </div>
         </fieldset>
-
-            <div class="formDivider"></div>
 
             <fieldset class="minor">
                 <legend>$_("Dimensions")</legend>
@@ -744,13 +736,6 @@ $if ctx.user and ctx.user.is_admin():
                 return true;
             }
         });
-       \$("a#libraryMode").on('click', function(event) {
-           event.preventDefault();
-
-          \$(".librarian").toggleClass("hidden");
-          \$(".librarian").toggleClass("librarian-on");
-          \$(this).parent().find('#modeToggle').toggleText("Turn on","Exit");
-       });
     });
 //-->
 </script>
