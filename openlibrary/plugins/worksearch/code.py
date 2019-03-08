@@ -477,7 +477,7 @@ class search(delegate.page):
 
         self.redirect_if_needed(i)
 
-        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
+        if 'isbn' in i:
             self.isbn_redirect(i.isbn)
 
         q_list = []
