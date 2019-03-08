@@ -209,7 +209,15 @@ def get_available(limit=None, page=1, subject=None, query=None,
     url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
                          work_id=work_id, _type=_type, sorts=sorts)
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        request = urllib2.Request(url=url)
+
+        # Internet Archive Elastic Search (which powers some of our
+        # carousel queries) needs Open Library to forward user IPs so
+        # we can attribute requests to end-users
+        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        request.add_header('x-client-id', client_ip)
+
+        content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
         for item in items:
