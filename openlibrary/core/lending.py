@@ -209,15 +209,21 @@ def get_available(limit=None, page=1, subject=None, query=None,
     url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
                          work_id=work_id, _type=_type, sorts=sorts)
     try:
-        request = urllib2.Request(url=url)
+        if not url:
+            raise Exception("Unable to check availability of null url")
 
+        request = urllib2.Request(url=url)
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
         request.add_header('x-client-id', client_ip)
-
         content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
+
+        # check the response and exit gracefully if necessary
+        if request.getcode() == 400:
+            raise Exception("Archive.org search invalid json response")
+
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
         for item in items:
@@ -226,7 +232,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
         return books
     except Exception as e:
-        return {'error': 'request_timeout'}
+        return {'error': 'request_timeout', 'details': str(e)}
 
 def get_availability(key, ids):
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
