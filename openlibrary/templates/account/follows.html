@@ -1,0 +1,26 @@
+$def with (follows)
+
+$var title: $_("Readers I'm Following")
+
+<div id="contentHead">
+    <div class="small sansserif grey account-settings-menu">
+      <a href="$ctx.user.key">$ctx.user.displayname</a>
+      &raquo;
+      <a href="$homepath()/account">$_("Settings")</a>
+      &raquo; Readers I'm Following
+    </div>
+    <h1>$_("Readers I'm Following")</h1>
+</div>
+
+<div id="contentBody">
+  <ul>
+    $for follow in follows:
+      <li>
+        <a href="/people/$follow.followed_username">$follow.followed_username</a> since $follow.created.strftime('%b %d, %Y')
+        <!-- fix inline! -->
+        <form action="/account/follows/XXX" style="display: inline;">
+          <input type="hidden" value="$follow.followed_username"/>
+          <input type="submit" value="unfollow?"/>
+        </form>
+      </li>
+</div>

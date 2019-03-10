@@ -22,6 +22,7 @@ from openlibrary import accounts
 from openlibrary.i18n import gettext as _
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.follows import Follows
 from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
@@ -675,6 +676,7 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
+
 class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
@@ -762,7 +764,7 @@ class public_my_books(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
 
     def GET(self, username, key='loans'):
-        """check if user's reading log is public"""        
+        """check if user's reading log is public"""
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
@@ -793,6 +795,16 @@ class account_my_books(delegate.page):
         page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
         page.v2 = True
         return page
+
+class account_follows(delegate.page):
+    path = '/account/follows'
+
+    @require_login
+    def GET(self):
+        user = accounts.get_current_user()
+        username = user.key.split('/')[-1]
+        follows = Follows.get_users_followed_by(username)
+        return render['account/follows'](follows)
 
 class account_loans(delegate.page):
     path = "/account/loans"

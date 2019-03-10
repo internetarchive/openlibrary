@@ -36,6 +36,14 @@ CREATE TABLE bookshelves_votes (
     primary key (username, bookshelf_id)
 );
 
+CREATE TABLE user_follows (
+    username text NOT NULL,
+    followed_username text NOT NULL,
+    updated timestamp without time zone default (current_timestamp at time zone 'utc'),
+    created timestamp without time zone default (current_timestamp at time zone 'utc'),
+    primary key (username, followed_username)
+);
+
 INSERT INTO bookshelves (name, description) VALUES ('Want to Read', 'A list of books I want to read');
 INSERT INTO bookshelves (name, description) VALUES ('Currently Reading', 'A list of books I am currently reading');
 INSERT INTO bookshelves (name, description) VALUES ('Already Read', 'A list of books I have finished reading');

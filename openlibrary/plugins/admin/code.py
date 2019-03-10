@@ -163,9 +163,9 @@ class add_work_to_staff_picks:
             for ocaid in ocaids:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
-        
+
         return delegate.RawText(simplejson.dumps(results), content_type="application/json")
-                                
+
 
 class sync_ol_ia:
     def GET(self):
@@ -598,6 +598,15 @@ class spamwords:
             add_flash_message("info", "Updated domains successfully.")
         raise web.redirect("/admin/spamwords")
 
+class follow:
+    def GET(self):
+        from openlibrary.core.follows import Follows
+        i = web.input(username="", followed_username="")
+        if i.username and i.followed_username:
+            return delegate.RawText(Follows.add(i.username, i.followed_username))
+        elif i.username:
+            return delegate.RawText(Follows.get_users_followed_by(i.username))
+
 
 class _graphs:
     def GET(self):
@@ -702,6 +711,7 @@ def setup():
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
+    register_admin_page('/admin/follows', follow, label="Follows")
     register_admin_page('/admin/sync', sync_ol_ia, label="")
     register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
 
