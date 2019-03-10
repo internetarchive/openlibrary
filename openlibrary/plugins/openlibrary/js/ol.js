@@ -255,7 +255,7 @@ $(function(){
         };
     };
 
-    $('.trigger').on('submit', function(e) {
+    $(document).on('submit','.trigger', function(e) {
         e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
@@ -274,7 +274,7 @@ $(function(){
             if (!enteredSearchMinimized) {
                 $('.search-bar-input').addClass('trigger')
                 $('header#header-bar .search-component ul.search-results').empty()
-            }
+            }z
             enteredSearchMinimized = true;
         } else {
             if (enteredSearchMinimized) {
