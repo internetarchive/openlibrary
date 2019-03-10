@@ -30,7 +30,6 @@
   position: relative;
   z-index: @z-index-level-1;
   margin: 15px 0;
-  float: left;
   clear: both;
   zoom: 1; /* Feeling sorry for IE */
 }
@@ -53,7 +52,6 @@
 
 .dataTables_length {
   width: 40%;
-  float: left;
   font-size: 12px;
   color: @brown;
   display: none;
@@ -68,8 +66,7 @@
 }
 
 .dataTables_info {
-  width: 40%;
-  float: left;
+  width: 100%;
   font-size: 12px;
   color: @brown;
   margin-top: 20px;
@@ -80,7 +77,6 @@
   width: 44px;
   *width: 50px;
   // stylelint-enable declaration-block-no-duplicate-properties
-  float: right;
   text-align: right;
   font-size: 12px;
   color: @brown;
@@ -292,10 +288,9 @@ td.details {
 }
 
 .paging_full_numbers {
-  width: auto;
+  width: 100%;
   margin-top: 15px;
-  height: 30px;
-  line-height: 30px;
+  line-height: 20px;
 }
 
 .paging_full_numbers span.paginate_button,
@@ -480,4 +475,17 @@ tr.even.gradeU td.sorting_3 {
 .ex_highlight #example tbody tr.odd:hover,
 #example tbody tr.odd td.highlighted {
   background-color: @lime-green;
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  .dataTables_paginate.paging_full_numbers {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  span.number {
+    order: 4;
+    margin: 10px;
+  }
 }
