@@ -274,7 +274,7 @@ $(function(){
             if (!enteredSearchMinimized) {
                 $('.search-bar-input').addClass('trigger')
                 $('header#header-bar .search-component ul.search-results').empty()
-            }z
+            }
             enteredSearchMinimized = true;
         } else {
             if (enteredSearchMinimized) {
