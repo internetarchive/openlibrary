@@ -56,25 +56,24 @@ http_request_timeout: 10
 stats_solr: solr:8080
 
 features:
-    upstream: enabled
     cache_most_recent: enabled
-    recentchanges_v2: enabled
+    dev: enabled
     history_v2: admin
+    inlibrary: enabled
+    lending_v2: enabled
+    lists: enabled
     merge-authors:
         filter: usergroup
         usergroup: /usergroup/librarians
     merge-editions: admin
-    undo: enabled
-    dev: enabled
-    lists: enabled
-    lending_v2: enabled
+    publishers: enabled
+    recentchanges_v2: enabled
     stats: enabled
     stats-header: enabled
-    inlibrary: enabled
-    support: admin
-    dev: enabled
     superfast: enabled
-    publishers: enabled
+    support: admin
+    undo: enabled
+    upstream: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream

@@ -20,7 +20,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $if loan:
     <a href="$read_link" title="Borrow"
        data-userid="$(loan['userid'])" id="read_ebook"
-       class="cta-btn--available cta-btn">Read</a>
+       class="cta-btn--available cta-btn" >Read</a>
 
   $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
     <a href="$read_link" class="cta-btn--available cta-btn" title="Borrow" id="borrow_ebook">

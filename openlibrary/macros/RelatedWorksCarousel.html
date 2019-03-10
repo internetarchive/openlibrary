@@ -1,6 +1,6 @@
 $def with(work)
 
-$if work:
+$if work and not is_bot():
     $ work_subjects_authors = cached_work_authors_and_subjects(work.key)
     $ authors = ', '.join([author if isinstance(author, basestring) else author.name for author in work_subjects_authors.get('authors', [])])
     <div class="related-books">

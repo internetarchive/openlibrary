@@ -449,5 +449,20 @@ $(function(){
     });
     /* eslint-enable no-unused-vars */
 
+    // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
+    /* eslint-disable no-unused-vars */
+    // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
+    $(document).ready(function(){
+        $('#borrow_ebook,#read_ebook').on("click", function(){
+            $(this).removeClass('cta-btn cta-btn--available').addClass('cta-btn cta-btn--available--load');
+        });
+    });
+    $(document).ready(function(){
+        $('#waitlist_ebook').on("click", function(){
+            $(this).removeClass('cta-btn cta-btn--unavailable').addClass('cta-btn cta-btn--unavailable--load');
+        });
+    });
+
+    /* eslint-enable no-unused-vars */
 });
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
