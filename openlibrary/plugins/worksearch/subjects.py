@@ -15,6 +15,7 @@ from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
+from openlibrary.core.lending import add_availability
 from openlibrary.utils import str_to_key, finddict
 
 __all__ = [
@@ -56,7 +57,13 @@ class subjects(delegate.page):
         if nkey != key:
             raise web.redirect(nkey)
 
-        subj = get_subject(key, details=True)
+        # this needs to be updated to include:
+        #q=public_scan_b:true+OR+lending_edition_s:*
+        subj = get_subject(key, details=True, filters={
+            'public_scan_b': 'false',
+            'lending_edition_s': '*'
+        })
+
         subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
@@ -95,6 +102,7 @@ class subjects_json(delegate.page):
 
         i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
                       sort='editions', available='false')
+
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -169,6 +177,13 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
+def inject_availability(subject):
+    works = add_availability(subject.works)
+    for work in works:
+        ocaid = work.ia if work.ia else None
+        availability = work.get('availability', {}).get('status')
+    subject.works = works
+    return subject
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
@@ -240,7 +255,10 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     sort_order = sort_options.get(sort) or sort_options['editions']
 
     engine = create_engine()
-    return engine.get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
+    subject = engine.get_subject(
+        key, details=details, offset=offset, sort=sort_order,
+        limit=limit, **filters)
+    return inject_availability(subject)
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
@@ -256,9 +274,11 @@ class SubjectEngine:
             kw = {}
 
         from search import work_search
-        result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
+        result = work_search(
+            q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:
             return None
+
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
             w['checked_out'] = False
