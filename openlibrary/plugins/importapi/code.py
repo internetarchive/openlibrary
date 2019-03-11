@@ -294,9 +294,9 @@ class ia_importapi(importapi):
             'authors': authors,
         }
         if description:
-            d['description'] = {'type': '/type/text', 'value': description}
+            d['description'] = description
         if language and len(language) == 3:
-            d['languages'] = [{'key': '/languages/%s' % language}]
+            d['languages'] = [language]
         if subject:
             d['subjects'] = subject
         return d
