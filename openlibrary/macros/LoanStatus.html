@@ -48,7 +48,7 @@ $if user_loan:
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
      class="cta-btn cta-btn--available">
-    Borrow eBook
+    Borrow
   </a>
 
 $elif (availability_status == 'borrow_unavailable'):
@@ -72,12 +72,12 @@ $elif (availability_status == 'borrow_unavailable'):
         </p>
         <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
           <input type="hidden" name="action" value="join-waitinglist"/>
-          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join waiting list"/>
+          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
         </form>
 
 $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read eBook</a>
+    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <form>
