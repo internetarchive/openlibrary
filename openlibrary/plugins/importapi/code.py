@@ -292,6 +292,7 @@ class ia_importapi(importapi):
         d = {
             'title': metadata.get('title', ''),
             'authors': authors,
+            'publish_date': metadata.get('date'),
         }
         if description:
             d['description'] = description
