@@ -57,7 +57,7 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    mutlivalued = set(['collection', 'external-identifier', 'subject'])
+    mutlivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
     def process_item(k, v):
         if k in mutlivalued and not isinstance(v, list):
             v = [v]
