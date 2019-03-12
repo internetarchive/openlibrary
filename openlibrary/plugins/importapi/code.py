@@ -284,16 +284,31 @@ class ia_importapi(importapi):
         :rtype: dict
         :return: Edition record
         """
-        #TODO: include identifiers: isbn, oclc, lccn
         authors = [{'name': name} for name in metadata.get('creator', '').split(';')]
+        description = metadata.get('description')
+        isbn = metadata.get('isbn')
+        language = metadata.get('language')
+        lccn = metadata.get('lccn')
         subject = metadata.get('subject')
+        oclc = metadata.get('oclc-id')
         d = {
-            "title": metadata.get('title', ''),
-            "authors": authors,
-            "language": metadata.get('language', ''),
+            'title': metadata.get('title', ''),
+            'authors': authors,
+            'publish_date': metadata.get('date'),
+            'publisher': metadata.get('publisher'),
         }
+        if description:
+            d['description'] = description
+        if isbn:
+            d['isbn'] = isbn
+        if language and len(language) == 3:
+            d['languages'] = [language]
+        if lccn:
+            d['lccn'] = [lccn]
         if subject:
-            d["subjects"] = isinstance(subject, list) and subject or [subject]
+            d['subjects'] = subject
+        if oclc:
+            d['oclc'] = oclc
         return d
 
     def load_book(self, edition_data):
