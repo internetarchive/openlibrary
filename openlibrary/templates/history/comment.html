@@ -14,7 +14,8 @@ $if record_id:
         $if record.source_name == "amazon.com":
              Inital record created, from an $:link(record.source_url, "amazon.com") <a href="$record.url">record</a>.
         $else:
-            Initial record created, from $:link(record.source_url, record.source_name) <a href="$record.url">MARC record</a>.
+            $ record_type = 'item' if record.source_name == 'Internet Archive' else 'MARC'
+            Initial record created, from $:link(record.source_url, record.source_name) <a href="$record.url">$record_type record</a>.
     $else:
         Found a <a href="$record.url">matching record</a> from $:link(record.source_url, record.source_name).
 $elif "history_v2" in ctx.features:
