@@ -75,6 +75,12 @@ type_map = {
     'number_of_pages': 'int',
 }
 
+class CoverNotSaved(Exception):
+    def __init__(self, f):
+        self.f = f
+    def __str__(self):
+        return "coverstore responded with: '%s'" % self.f
+
 class RequiredField(Exception):
     def __init__(self, f):
         self.f = f
@@ -458,6 +464,8 @@ def add_cover(cover_url, ekey, account=None):
             sleep(2)
             continue
         body = res.read()
+        if res.getcode() == 500:
+            raise CoverNotSaved(body)
         if body not in ['', 'None']:
             reply = json.loads(body)
             if res.getcode() == 200 and 'id' in reply:
