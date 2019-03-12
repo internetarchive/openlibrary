@@ -122,10 +122,11 @@ class subjects_json(delegate.page):
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
+        subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
+                                      details=i.details.lower() == 'true', **filters)
         if i.has_fulltext:
-            subject['ebook_count'] = subject['work_count']
-        return json.dumps(subject)
+            subject_results['ebook_count'] = subject_results['work_count']
+        return json.dumps(subject_results)
 
     def normalize_key(self, key):
         return key.lower()
@@ -168,8 +169,8 @@ class subject_works_json(delegate.page):
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
-        return json.dumps(subject)
+        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
+        return json.dumps(results)
 
     def normalize_key(self, key):
         return key.lower()
@@ -177,13 +178,13 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
-def inject_availability(subject):
-    works = add_availability(subject.works)
+def inject_availability(subject_results):
+    works = add_availability(subject_results.works)
     for work in works:
         ocaid = work.ia if work.ia else None
         availability = work.get('availability', {}).get('status')
-    subject.works = works
-    return subject
+    subject_results.works = works
+    return subject_results
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
@@ -255,10 +256,10 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     sort_order = sort_options.get(sort) or sort_options['editions']
 
     engine = create_engine()
-    subject = engine.get_subject(
+    subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
-    return inject_availability(subject)
+    return inject_availability(subject_results)
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
