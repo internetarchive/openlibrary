@@ -66,3 +66,7 @@ $else:
   <form>
     <input type="button" class="cta-btn--missing cta-btn" disabled value="No ebook available">
   </form>
+  $if page.ia:
+    $ daisy_url = "/ia/%s/daisy" % page.ia[0]
+    $:macros.daisy(page, url=daisy_url, msg=_("Print-disabled access available"))
+
