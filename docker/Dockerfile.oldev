@@ -16,10 +16,15 @@ RUN /etc/init.d/postgresql start \
   && pg_ctlcluster 9.5 main stop
 
 USER root
+
+# oldev currently runs coverstore in the same container:
+RUN mkdir -p /var/lib/coverstore \
+    && chown openlibrary:openlibrary /var/lib/coverstore
+
 RUN pip install -r requirements_test.txt
 RUN npm install
 
-# Expose Open Library and Infobase
+# Expose Open Library, Infobase, and Coverstore
 EXPOSE 80 7000 8081
 
 # runs as root in order to access su to run as openlibrary and postgres users
