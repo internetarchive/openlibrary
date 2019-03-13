@@ -1,7 +1,9 @@
-$def with(page, block_name=None)
+$def with(page, url='', msg='', block_name=None)
 $# Takes following parameters:
 $# * page
 $# * block_name is a BEM block name
+
+$ msg = msg or _("Download ebook for print-disabled")
 
 $if block_name:
   $ prefix = block_name + '__' 
@@ -9,9 +11,9 @@ $else:
   $ prefix = ''
 
 <p class="$(prefix)print-disabled-download">
-  <a href="$page.url('/daisy')" title="Download Protected DAISY">
+  <a href="$(url or page.url('/daisy'))" title="Download Protected DAISY">
     <meta itemprop="bookFormat" content="EBook/DAISY3"/>
-    Download ebook for print-disabled
+    $msg
     <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download Protected DAISY"/>
   </a>
 </p>

@@ -1,6 +1,5 @@
 """Library for interacting wih archive.org.
 """
-from __future__ import print_function
 import os
 import urllib2
 import datetime
@@ -15,16 +14,15 @@ from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
 
+logger = logging.getLogger('openlibrary.ia')
 
-logger = logging.getLogger("openlibrary.ia")
-
-VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
+VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 def get_item_json(itemid):
     itemid = web.safestr(itemid.strip())
     url = 'http://archive.org/metadata/%s' % itemid
     try:
-        stats.begin("archive.org", url=url)
+        stats.begin('archive.org', url=url)
         metadata_json = urllib2.urlopen(url).read()
         stats.end()
         return simplejson.loads(metadata_json)
@@ -33,12 +31,12 @@ def get_item_json(itemid):
         return {}
 
 def extract_item_metadata(item_json):
-    metadata = process_metadata_dict(item_json.get("metadata", {}))
+    metadata = process_metadata_dict(item_json.get('metadata', {}))
     if metadata:
         # if any of the files is access restricted, consider it as
         # an access-restricted item.
         files = item_json.get('files', [])
-        metadata['access-restricted'] = any(f.get("private") == "true" for f in files)
+        metadata['access-restricted'] = any(f.get('private') == 'true' for f in files)
 
         # remember the filenames to construct download links
         metadata['_filenames'] = [f['name'] for f in files]
@@ -48,7 +46,7 @@ def get_metadata(itemid):
     item_json = get_item_json(itemid)
     return extract_item_metadata(item_json)
 
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix="ia.get_metadata", timeout=5*60)
+get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
 
 def process_metadata_dict(metadata):
     """Process metadata dict to make sure multi-valued fields like
@@ -59,7 +57,7 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    mutlivalued = set(["collection", "external-identifier"])
+    mutlivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
     def process_item(k, v):
         if k in mutlivalued and not isinstance(v, list):
             v = [v]
@@ -74,7 +72,7 @@ def _old_get_meta_xml(itemid):
     itemid = web.safestr(itemid.strip())
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
     try:
-        stats.begin("archive.org", url=url)
+        stats.begin('archive.org', url=url)
         metaxml = urllib2.urlopen(url).read()
         stats.end()
     except IOError:
@@ -130,7 +128,6 @@ def xml2dict(xml, **defaults):
 def _get_metadata(itemid):
     """Returns metadata by querying the archive.org metadata API.
     """
-    print("_get_metadata", itemid, file=web.debug)
     url = "http://www.archive.org/metadata/%s" % itemid
     try:
         stats.begin("archive.org", url=url)

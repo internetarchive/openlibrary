@@ -255,7 +255,7 @@ $(function(){
         };
     };
 
-    $('.trigger').on('submit', function(e) {
+    $(document).on('submit','.trigger', function(e) {
         e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
