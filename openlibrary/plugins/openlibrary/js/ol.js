@@ -85,9 +85,12 @@ $(function(){
     var cover_url = function(id) {
         return '//covers.openlibrary.org/b/id/' + id + '-S.jpg'
     };
+    // stores the state of the search result for resizing window
+    var instantSearchResultState = false;
 
     // searches should be cancelled if you click anywhere in the page
     $('body').on('click', function () {
+        instantSearchResultState = false;
         $searchResults.empty();
     });
     // but clicking search input should not empty search results.
@@ -255,7 +258,7 @@ $(function(){
         };
     };
 
-    $(document).on('submit','.trigger', function(e) {
+    $('.trigger').on('submit', function(e) {
         e.preventDefault(e);
         toggleSearchbar();
         $('.search-bar-input [type=text]').focus();
@@ -280,7 +283,7 @@ $(function(){
             if (enteredSearchMinimized) {
                 $('.search-bar-input').removeClass('trigger');
                 var search_query = $searchInput.val()
-                if (search_query) {
+                if (search_query && instantSearchResultState) {
                     renderInstantSearchResults(search_query);
                 }
             }
@@ -376,6 +379,7 @@ $(function(){
     /* eslint-enable no-unused-vars */
 
     $searchInput.on('keyup', debounce(function(e) {
+        instantSearchResultState = true;
         // ignore directional keys and enter for callback
         if (![13,37,38,39,40].includes(e.keyCode)){
             renderInstantSearchResults($(this).val());
@@ -383,6 +387,7 @@ $(function(){
     }, 500, false));
 
     $searchInput.on('focus',debounce(function(e) {
+        instantSearchResultState = true;
         e.stopPropagation();
         var val = $(this).val();
         renderInstantSearchResults(val);
