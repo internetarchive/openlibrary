@@ -125,14 +125,72 @@ table#editions {
   table#editions {
     float: left;
     width: 918px;
-  
+
     div.title {
       float: left;
       width: 350px;
     }
-  
+
     div.cover {
       float: left;
     }
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  table#editions {
+    thead {
+      display: none;
+    }
+    tr {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid @lighter-grey;
+      padding-bottom: 10px;
+    }
+    hr {
+      visibility: hidden;
+    }
+    form {
+      padding: 10px;
+    }
+    ul.links ul,li {
+      display: inline;
+    }
+    td.book {
+      width: 100%;
+      display: inline-flex;
+    }
+    div.title {
+      width: 100%;
+    }
+    .links a {
+      font-size: 120%;
+    }
+
+    td.icon {
+      width: 100%;
+      padding: 0px;
+    }
+
+    td.icon.read {
+      order: 3;
+        .read {
+          display: flex;
+          flex-direction: column;
+          ul {
+            order: -1;
+            padding: 10px 0px;
+          }
+      }
+    }
+
+    td.icon.locate {
+      .links {
+        display: flex;
+      }
+      padding: 0px 10px;
+    }
+
   }
 }
