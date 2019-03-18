@@ -1,17 +1,24 @@
-## Description
+---
+name: Bug report
+about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
+
+---
+
+**Description**
 > What problem are we solving? What does the experience look like today? What are the symptoms?
 
-## Evidence 
+**Evidence / Screenshot (if possible)**
 
-> Relevant url?
-`https://openlibrary.org/...`
+**Relevant url?**
+>`https://openlibrary.org/...`
 
-> Screenshot (if possible):
-
-## Expectation
+**Expectation**
 > What should by happening? What will it look like / how will it behave?
 
-## Details
+**Details**
 
 > Logged in (Y/N)?
 
@@ -19,11 +26,10 @@
 
 > Operating system?
 
-## Proposal & Constraints
+**Proposal & Constraints**
 
 > What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
 
-> Which suggestions or requirements should be considered for how feature needs to appear or be implemented?
 
-## Stakeholders
-> @ tag stakeholders of this bug / feature
+**Stakeholders**
+> @ tag stakeholders of this bug
