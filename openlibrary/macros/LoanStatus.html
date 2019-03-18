@@ -80,9 +80,15 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
-    <form>
-      <input type="submit" class="cta-btn" disabled value="No ebook available">
-    </form>
+    <!-- If user belongs to sponser-book group then show the sponser available button  -->
+    $if (user and user.is_sponsor()):
+      <form>
+        <input type="submit" class="cta-btn" style="background-color: black" disabled value="Sponser this ebook">
+      </form>  
+    $else:
+      <form>
+        <input type="submit" class="cta-btn" disabled value="No ebook available">
+      </form>
 
 
 $if editions_page and page.get('ocaid'):
