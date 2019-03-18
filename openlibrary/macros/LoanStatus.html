@@ -86,7 +86,6 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     $if (user and user.is_sponsor()):
       <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
     
-
     $else:
       <form>
         <input type="submit" class="cta-btn" disabled value="No ebook available">
