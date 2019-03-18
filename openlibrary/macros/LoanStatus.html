@@ -81,6 +81,8 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <!-- If user belongs to sponser-book group then show the sponser available button  -->
+    <!-- To implement: Using the policy api add more constraint that the book which is sponsorable
+    should only show this type of button  -->
     $if (user and user.is_sponsor()):
       <button id="myBtn" class="cta-btn" style="background-color: black">Sponser this ebook</button>
       <!-- The Modal -->
