@@ -60,7 +60,7 @@
     "less": "^3.8.1",
     "node-gyp": "^3.8.0",
     "prebuild-install": "^5.2.1",
-    "stylelint": "^9.5.0",
+    "stylelint": "^9.10.1",
     "stylelint-declaration-use-variable": "^1.7.0",
     "svgo": "^1.1.1"
   },
