@@ -53,16 +53,10 @@ $ book_list_excerpt = ''
 $if books and books.works:
     $ book_titles_excerpt = [work.title for work in books.works[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
-$ description = "Books by " + page.get("name", "") + ', ' + book_list_excerpt
+$ description = "Author of " + book_list_excerpt
 $putctx("description", description)
 
 $ library = (get_library() if 'inlibrary' in ctx.features else None)
-
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the author on Open Library.")
-$add_metatag(property="twitter:image", content=meta_photo_url)
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.author")
