@@ -77,6 +77,9 @@ window.q.push(function(){
     // This avoids fetching the iframes along with main page.
     \$(".coverPop").colorbox({inline: true, opacity: "0.5", href: "#addImage"})
         .bind("click", function() {
+            // clear the content of #imagesAdd and #imagesManage before adding new
+            \$("#imagesAdd").html("");
+            \$("#imagesManage").html("");
             $if doc.type.key == "/type/work":
                 \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
             setTimeout(function() {
