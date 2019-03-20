@@ -1,6 +1,5 @@
-/* eslint-disable no-unused-vars */
 // used in templates/covers/add.html
-var Carousel = {
+const Carousel = {
     add: function(selector, a, b, c, d, e, f) {
         a = a || 6;
         b = b || 5;
@@ -62,4 +61,4 @@ var Carousel = {
         });
     }
 };
-/* eslint-enable no-unused-vars */
+export default Carousel;

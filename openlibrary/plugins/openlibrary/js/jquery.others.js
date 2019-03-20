@@ -1,6 +1,6 @@
 // FIX IE FADE PROBLEMS
 // COURTESY: Ben Novakovic http://blog.bmn.name/2008/03/jquery-fadeinfadeout-ie-cleartype-glitch/
-(function($) {
+function addFadeInFunctionsTojQuery($) {
     $.fn.customFadeIn = function(speed, callback) {
         $(this).fadeIn(speed, function() {
             if(jQuery.browser.msie)
@@ -37,7 +37,8 @@
                     if (options.callback != undefined) options.callback();
                 });
     };
-})(jQuery);
+}
+
 // ADD FADE TOGGLE
 // COURTESY: Karl Swedberg http://www.learningjquery.com/2006/09/slicker-show-and-hide
 jQuery.fn.fadeToggle = function(speed, easing, callback) {
@@ -49,3 +50,5 @@ jQuery.fn.toggleText = function(a, b) {
         jQuery(this).text(jQuery(this).text() == a ? b : a);
     });
 };
+
+export { addFadeInFunctionsTojQuery };

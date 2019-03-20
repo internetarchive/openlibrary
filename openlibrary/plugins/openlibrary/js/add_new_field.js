@@ -14,10 +14,7 @@
  *     - On cancel/close:
  *         - value of the select is set to "" to select "select xxx"
  */
-// We are blindly concatenating JS. The ; protects us in case the concatenation
-// goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
-// eslint-disable-next-line no-extra-semi
-;(function($){
+export default function($){
     $.fn.add_new_field = function(_options) {
         $(this).each(function() {
             var options = _options || {href: "#" + this.id + "-popup"};
@@ -100,4 +97,4 @@
             return this;
         });
     };
-})(jQuery);
+}

@@ -1,84 +1,76 @@
 // We are blindly concatenating JS. The ; protects us in case the concatenation
 // goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
-// eslint-disable-next-line no-extra-semi
-;(function($) {
 
-    // source: http://snipplr.com/view/8916/jquery-toggletext/
-    $.fn.toggleText = function(a, b) {
-        return this.each(function() {
-            $(this).text($(this).text() == a ? b : a);
-        });
-    };
+// source: http://snipplr.com/view/8916/jquery-toggletext/
+$.fn.toggleText = function(a, b) {
+    return this.each(function() {
+        $(this).text($(this).text() == a ? b : a);
+    });
+};
 
-    // http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
-    $.fn.focusNextInputField = function() {
-        return this.each(function() {
-            var fields = $(this).parents('form:eq(0),body').find(':input:visible');
-            var index = fields.index(this);
-            if (index > -1 && (index + 1) < fields.length) {
-                fields.eq(index + 1).focus();
+// http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
+$.fn.focusNextInputField = function() {
+    return this.each(function() {
+        var fields = $(this).parents('form:eq(0),body').find(':input:visible');
+        var index = fields.index(this);
+        if (index > -1 && (index + 1) < fields.length) {
+            fields.eq(index + 1).focus();
+        }
+        return false;
+    });
+};
+
+// Confirm dialog with OL styles.
+$.fn.ol_confirm_dialog = function(callback, options) {
+    var _this = this;
+    var defaults = {
+        autoOpen: false,
+        width: 400,
+        modal: true,
+        resizable: false,
+        buttons: {
+            "Yes, I'm sure": function() {
+                callback.apply(_this);
+            },
+            "No, cancel": function() {
+                $(_this).dialog("close");
             }
-            return false;
-        });
-    };
-
-    // Confirm dialog with OL styles.
-    $.fn.ol_confirm_dialog = function(callback, options) {
-        var _this = this;
-        var defaults = {
-            autoOpen: false,
-            width: 400,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Yes, I'm sure": function() {
-                    callback.apply(_this);
-                },
-                "No, cancel": function() {
-                    $(_this).dialog("close");
-                }
-            }
-        };
-        options = $.extend(defaults, options);
-        this.dialog(options);
-    }
-
-    // Tap into jquery chain
-    $.fn.tap = function(callback) {
-        callback(this);
-        return this;
-    }
-
-    // debug log
-    $.log = function() {
-        if (window.console) {
-        //console.log.apply(console, arguments);
         }
     };
+    options = $.extend(defaults, options);
+    this.dialog(options);
+}
 
-})(jQuery);
+// Tap into jquery chain
+$.fn.tap = function(callback) {
+    callback(this);
+    return this;
+}
+
+// debug log
+$.log = function() {
+    if (window.console) {
+    //console.log.apply(console, arguments);
+    }
+};
 
 // closes active popup
-/* eslint-disable no-unused-vars */
 // used in templates/covers/saved.html
-function closePopup() {
+export function closePopup() {
     parent.jQuery.fn.colorbox.close();
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
 // used in templates/admin/imports.html
-function truncate(text, limit) {
-    if (text.length > limit)
+export function truncate(text, limit) {
+    if (text.length > limit) {
         return text.substr(0, limit) + "...";
-    else
+    } else {
         return text;
+    }
 }
-/* eslint-enable no-unused-vars */
 
-/* eslint-disable no-unused-vars */
 // used in templates/admin/ip/view.html
-function cond(predicate, true_value, false_value) {
+export function cond(predicate, true_value, false_value) {
     if (predicate) {
         return true_value;
     }
@@ -86,10 +78,9 @@ function cond(predicate, true_value, false_value) {
         return false_value;
     }
 }
-/* eslint-enable no-unused-vars */
 
 // showPasswords implemented by Lance
-(function($) {
+export function initShowPasswords($) {
     $.fn.extend({
         showPasswords: function(f) {
             return this.each(function() {
@@ -132,4 +123,4 @@ function cond(predicate, true_value, false_value) {
             })
         }
     })
-})(jQuery);
+}

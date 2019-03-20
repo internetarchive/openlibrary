@@ -37,7 +37,7 @@ css:
 js:
 	mkdir -p $(BUILD)
 	bash static/js/vendor.jsh > $(BUILD)/vendor-v2.js
-	bash static/js/all.jsh > $(BUILD)/all.js
+	npm run build-assets:webpack
 
 i18n:
 	$(PYTHON) ./scripts/i18n-messages compile

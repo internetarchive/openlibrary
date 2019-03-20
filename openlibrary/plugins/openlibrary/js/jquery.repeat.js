@@ -3,7 +3,7 @@
  *
  * Used in addbook process.
  */
-(function($){
+export default function($){
     // For v2 and v1 page support. Can be removed when no v1 support needed
     var isOldJQuery = $('body').on === undefined;
     $.fn.repeat = function(options) {
@@ -99,4 +99,4 @@
             $(document).on("click", removeSelector, onRemove);
         }
     }
-})(jQuery);
+}

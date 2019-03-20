@@ -941,19 +941,19 @@ jQuery.fn.highlight = function(pat) {
 
 jQuery.fn.removeHighlight = function() {
     return this.find("span.highlight").each(function() {
-        this.parentNode.firstChild.nodeName;
-        with (this.parentNode) {
-            replaceChild(this.firstChild, this);
-            normalize();
-        }
-     }).end();
+        var node = this,
+            parentNode = node.parentNode;
+        parentNode.replaceChild(node.firstChild, node);
+        parentNode.normalize();
+    }).end();
 };
+
 
 //jTruncate
 (function($){$.fn.jTruncate=function(h){var i={length:300,minTrail:20,moreText:"more",lessText:"less",ellipsisText:"...",moreAni:"",lessAni:""};var h=$.extend(i,h);return this.each(function(){obj=$(this);var a=obj.html();if(a.length>h.length+h.minTrail){var b=a.indexOf(' ',h.length);if(b!=-1){var b=a.indexOf(' ',h.length);var c=a.substring(0,b);var d=a.substring(b,a.length-1);obj.html(c+'<span class="truncate_ellipsis">'+h.ellipsisText+'</span>'+'<span class="truncate_more">'+d+'</span>');obj.find('.truncate_more').css("display","none");obj.append('<div class="clearboth">'+'<a href="#" class="truncate_more_link">'+h.moreText+'</a>'+'</div>');var e=$('.truncate_more_link',obj);var f=$('.truncate_more',obj);var g=$('.truncate_ellipsis',obj);e.click(function(){if(e.text()==h.moreText){f.show(h.moreAni);e.text(h.lessText);g.css("display","none")}else{f.hide(h.lessAni);e.text(h.moreText);g.css("display","inline")}return false})}}})}})(jQuery);
 
 //admin.js
-function plot_tooltip_graph(node, data, tooltip_message) {
+export function plot_tooltip_graph(node, data, tooltip_message) {
     for (var i = 0; i < data.length; ++i)
 	data[i][0] += 60 * 60 * 1000;
 
@@ -1016,7 +1016,7 @@ function plot_tooltip_graph(node, data, tooltip_message) {
     });
 }
 
-function plot_minigraph(node, data) {
+export function plot_minigraph(node, data) {
       var options = {
        series: {
             lines: {
@@ -1079,4 +1079,3 @@ _skipToNextNode();lastNodeType=0;}else{_skipToNextNode();lastNodeType=currentEl.
 return cols;};jQuery.fn.columnize=function(settings){settings=jQuery.extend({column:"column",continued:"continued",columns:2,balance:true,height:false,minHeight:false,cache:true,dontsplit:""},settings);this.each(function(){var jthis=jQuery(this);var id=this.id;if(!id){id="jcols_"+uniqueId;this.id=id;uniqueId++;}
 if(!cloneEls[this.id]||!settings.cache){cloneEls[this.id]=jthis.clone(true);}
 var cols=_layoutElement(this,settings,settings.balance);if(!cols){jthis.append(cloneEls[this.id].children().clone(true));}});return this;}})();
-/* eslint-enable no-unused-vars */

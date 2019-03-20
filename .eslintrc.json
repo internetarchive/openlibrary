@@ -4,6 +4,10 @@
     "browser": true,
     "jquery": true
   },
+  "parserOptions": {
+		"sourceType": "module",
+		"ecmaVersion": 6
+	},
   "globals": {
   },
   "rules": {
