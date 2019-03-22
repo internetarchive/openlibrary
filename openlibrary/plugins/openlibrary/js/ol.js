@@ -392,6 +392,14 @@ export default function init(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
+    /**
+     * close an open dropdown in a given container
+     * @param {jQuery.Object} $container
+     */
+    function closeDropdown($container) {
+        $container.find('.dropdown').slideUp(25);
+        $container.find('.arrow').removeClass('up');
+    }
     $('.dropclick').on('click', debounce(function(){
         $(this).next('.dropdown').slideToggle(25);
         $(this).parent().next('.dropdown').slideToggle(25);
@@ -403,12 +411,14 @@ export default function init(){
         $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
 
-    $(document).on('click', function(e) {
-        var container = $("#widget-add");
-        if (!container.is(e.target) && container.has(e.target).length === 0) {
-            $(container).find('.dropdown').slideUp(25);
-            $(container).find('.arrow').removeClass("up");
-        }
+    // Close any open dropdown list if the user clicks outside...
+    $(document).on('click', function() {
+        closeDropdown($('#widget-add'));
+    });
+
+    // ... but don't let that happen if user is clicking inside dropdown
+    $('#widget-add').on('click', function(e) {
+        e.stopPropagation();
     });
 
     /* eslint-disable no-unused-vars */
