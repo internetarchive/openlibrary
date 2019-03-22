@@ -54,8 +54,8 @@ window.validateEmail = validateEmail;
 window.validatePassword = validatePassword;
 window.websafe = websafe;
 window._ = ugettext;
-window._ungettext = ungettext;
-window._uggettext = ugettext;
+window.ungettext = ungettext;
+window.uggettext = ugettext;
 
 window.Browser = Browser;
 window.Carousel = Carousel;
