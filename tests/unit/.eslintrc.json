@@ -1,0 +1,10 @@
+{
+  "env": {
+    "es6": true,
+    "jest": true
+  },
+  "globals": {
+    "test": true,
+    "expect": true
+  }
+}
