@@ -9,7 +9,8 @@
     "check-bundles": "npm run build-assets && bundlesize",
     "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
     "lint:fix": "stylelint --syntax less --fix static/css/",
-    "lint:js": "eslint --config .eslintrc.json openlibrary/plugins/openlibrary/js/",
+    "lint:js": "eslint --config .eslintrc.json .",
+    "test:unit": "jest --testRegex tests/unit/**/*.js",
     "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js"
   },
   "bundlesize": [
@@ -62,6 +63,7 @@
     "bundlesize": "^0.17.0",
     "detect-libc": "^1.0.3",
     "eslint": "^5.7.0",
+    "jest": "^24.5.0",
     "less": "^3.8.1",
     "node-gyp": "^3.8.0",
     "prebuild-install": "^5.2.1",
@@ -70,5 +72,19 @@
     "svgo": "1.1.1",
     "webpack": "4.27.1",
     "webpack-cli": "3.1.2"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "openlibrary/plugins/openlibrary/js/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 0.6,
+        "functions": 1,
+        "lines": 1,
+        "statements": 1
+      }
+    },
+    "collectCoverage": true
   }
 }

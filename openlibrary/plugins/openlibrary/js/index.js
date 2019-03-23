@@ -10,7 +10,7 @@ import loadStyle from './loadStyle';
 import { ungettext, ugettext,  sprintf } from './i18n';
 import { addFadeInFunctionsTojQuery } from './jquery.others';
 import jQueryRepeat from './jquery.repeat';
-import { ForLoop, enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
+import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 // Note this import will also load various jQuery plugins.
 // (jQuery.ScrollTo, jquery.hoverIntent, jquery.dataTables, dataTableExt,
 // highlight, removeHighlight, jTruncate, columnize)
@@ -59,7 +59,6 @@ window.uggettext = ugettext;
 
 window.Browser = Browser;
 window.Carousel = Carousel;
-window.ForLoop = ForLoop;
 window.Subject = Subject;
 window.Template = Template;
 

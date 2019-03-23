@@ -1,0 +1,14 @@
+/.*
+conf/
+config/
+docker/
+infogami/
+node_modules/
+scripts/
+static/build/
+static/openbook/
+static/js/
+static/build/vendor.js
+provisioning/
+vendor/
+tests/screenshots/
