@@ -411,6 +411,9 @@ export default function init(){
         }
     });
 
+    // Show dropdown only when javascipt is enabled
+    $('.dropit').css('visibility', 'visible');
+
     /* eslint-disable no-unused-vars */
     // success function receives data on successful request
     $('.reading-log-lite select').change(function(e) {
