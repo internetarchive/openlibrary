@@ -44,6 +44,13 @@ module.exports = {
                     cacheDirectory: true
                 }
             }
+        }, {
+            test: /\.less$/,
+            loader: [
+                'style-loader',
+                'css-loader',
+                'less-loader' // compiles Less to CSS
+            ]
         } ]
     },
     optimization: {

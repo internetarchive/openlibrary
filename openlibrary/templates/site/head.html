@@ -24,11 +24,6 @@ $def with (page)
     <!-- Both v2 and v1 pages have a JavaScript execution queue that will
     be emptied at the bottom of the page -->
     <script type="text/javascript">window.q = [];</script>
-    $ styleJS = static_url('build/js-all.css');
-    $# Load CSS via JavaScript later to speed up first paint
-    <script>window.q.push(function () {
-        loadStyle("$styleJS");
-    });</script>
     $if "dev" in ctx.features:
         <link href="$static_url('build/page-dev.css')" rel="stylesheet" type="text/css"/>
 

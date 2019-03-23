@@ -20,7 +20,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "25.7KB"
+      "maxSize": "34.7KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -61,14 +61,17 @@
     "@babel/register": "7.0.0",
     "babel-loader": "8.0.5",
     "bundlesize": "^0.17.0",
+    "css-loader": "2.1.1",
     "detect-libc": "^1.0.3",
     "eslint": "^5.7.0",
     "jest": "^24.5.0",
     "less": "^3.8.1",
+    "less-loader": "4.1.0",
     "node-gyp": "^3.8.0",
     "prebuild-install": "^5.2.1",
     "stylelint": "^9.5.0",
     "stylelint-declaration-use-variable": "^1.7.0",
+    "style-loader": "0.23.1",
     "svgo": "1.1.1",
     "webpack": "4.27.1",
     "webpack-cli": "3.1.2"
