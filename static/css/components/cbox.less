@@ -12,6 +12,13 @@
   z-index: @z-index-level-17;
 }
 
+#colorbox {
+  box-sizing: content-box;
+  > * {
+    box-sizing: content-box;
+  }
+}
+
 #cbox {
   &Overlay {
     position: fixed;
@@ -50,7 +57,6 @@
     border-radius: 12px;
     -webkit-box-shadow: 1px 3px 10px @black;
     box-shadow: 1px 3px 10px @black;
-    box-sizing: content-box;
   }
   &LoadedContent {
     background: @white;
