@@ -36,6 +36,8 @@ css:
 
 js:
 	mkdir -p $(BUILD)
+        mkdir -p node_modules
+        npm install  # necessary for production (which cleans node_modules upon deploy)
 	bash static/js/vendor.jsh > $(BUILD)/vendor-v2.js
 	npm run build-assets:webpack
 
