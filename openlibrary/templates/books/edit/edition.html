@@ -162,7 +162,7 @@ window.q.push(function() {
 
     <div class="formBack">
 
-        <div class="formElement">
+        <div class="formElement formBackLeft">
             <div class="label">
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
@@ -269,7 +269,7 @@ window.q.push(function() {
 
         <div class="clearfix"></div>
 
-        <fieldset class="minor">
+        <fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
             <div class="formElement" id="roles">
@@ -344,7 +344,7 @@ window.q.push(function() {
 
         </fieldset>
 
-        <fieldset class="minor">
+        <fieldset class="minor formBackRight">
 
             <legend>Languages</legend>
 
@@ -559,7 +559,7 @@ window.q.push(function() {
     <legend>$_("The Physical Object")</legend>
     <div class="formBack">
 
-        <fieldset class="minor">
+        <fieldset class="minor formBackLeft">
             <div class="formElement">
                 <div class="label">
                     <label for="edition--physical_format">$_("What sort of book is it?")</label>
@@ -604,7 +604,7 @@ window.q.push(function() {
             </div>
         </fieldset>
 
-            <fieldset class="minor">
+            <fieldset class="minor formBackRight">
                 <legend>$_("Dimensions")</legend>
                 $ dimensions = book.get_physical_dimensions() or storage(height="", width="", depth="", units="inches")
                   <span class="tip">
