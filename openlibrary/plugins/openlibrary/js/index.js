@@ -6,7 +6,6 @@ import { getAvailabilityV2,
     updateBookAvailability, updateWorkAvailability } from './availability';
 import bookReaderInit from './bookreader_direct';
 import Carousel from './carousels';
-import loadStyle from './loadStyle';
 import { ungettext, ugettext,  sprintf } from './i18n';
 import { addFadeInFunctionsTojQuery } from './jquery.others';
 import jQueryRepeat from './jquery.repeat';
@@ -25,6 +24,7 @@ import Template from './template.js';
 // Add $.fn.toggleText, $.fn.focusNextInputField, $.fn.ol_confirm_dialog, $.fn.tap, $.log
 import { closePopup, initShowPasswords, truncate, cond } from './utils';
 import initValidate from './validate';
+import '../../../../static/css/js-all.less';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -39,7 +39,6 @@ window.getAvailabilityV2 = getAvailabilityV2;
 window.isScrolledIntoView = isScrolledIntoView;
 window.htmlquote = htmlquote;
 window.len = len;
-window.loadStyle = loadStyle;
 window.plot_tooltip_graph = plot_tooltip_graph;
 window.plot_minigraph = plot_minigraph;
 window.range = range;

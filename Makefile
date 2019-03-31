@@ -11,6 +11,11 @@ SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 
+define lessc
+	echo Compressing page-$(1).less; \
+	lessc -x static/css/$(1).less $(BUILD)/$(1).css
+endef
+
 # Use python from local env if it exists or else default to python in the path.
 PYTHON=$(if $(wildcard env),env/bin/python,python)
 
@@ -20,19 +25,9 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	lessc -x static/css/page-admin.less $(BUILD)/page-admin.css
-	lessc -x static/css/page-book.less $(BUILD)/page-book.css
-	lessc -x static/css/page-edit.less $(BUILD)/page-edit.css
-	lessc -x static/css/page-form.less $(BUILD)/page-form.css
-	lessc -x static/css/page-home.less $(BUILD)/page-home.css
-	lessc -x static/css/page-lists.less $(BUILD)/page-lists.css
-	lessc -x static/css/page-plain.less $(BUILD)/page-plain.css
-	lessc -x static/css/page-subject.less $(BUILD)/page-subject.css
-	lessc -x static/css/page-user.less $(BUILD)/page-user.css
-	lessc -x static/css/js-all.less $(BUILD)/js-all.css
-	lessc -x static/css/page-book-widget.less $(BUILD)/page-book-widget.css
-	lessc -x static/css/page-design.less $(BUILD)/page-design.css
-	lessc -x static/css/page-dev.less $(BUILD)/page-dev.css
+	for asset in admin book edit form home lists plain subject user book-widget design dev; do \
+		$(call lessc,page-$$asset); \
+	done
 
 js:
 	mkdir -p $(BUILD)
