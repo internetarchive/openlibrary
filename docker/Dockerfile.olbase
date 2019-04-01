@@ -31,8 +31,6 @@ RUN apt-get -qq update && apt-get install -y \
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
 RUN apt-get install -y nodejs
 
-RUN npm install less -g
-
 # enable users to bind to port 80
 RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
 
@@ -47,6 +45,7 @@ COPY --chown=openlibrary:openlibrary . /openlibrary
 WORKDIR /openlibrary
 
 RUN pip install --default-timeout=100 -r requirements_common.txt
+RUN npm install && npm install -g less
 
 USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami
