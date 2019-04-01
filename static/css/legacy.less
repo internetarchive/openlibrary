@@ -725,43 +725,6 @@ fieldset {
   }
 }
 
-// openlibrary/templates/books/edit/edition.html
-// openlibrary/templates/books/edit/excerpts.html
-.formBack {
-  padding: 10px;
-  background-color: @lightest-grey;
-  &Left {
-    width: 100%;
-  }
-  &Right {
-    width: 100%;
-    padding: 10px 10px 15px 30px;
-    text-align: center;
-    .illustration {
-      img {
-        max-height: 185px !important;
-        max-width: 120px !important;
-      }
-      .SRPCoverBlank {
-        width: 90px;
-        height: 150px;
-        font-size: .75em;
-        .innerBorder {
-          border: 1px solid @white;
-          width: 88px;
-          height: 148px;
-        }
-      }
-      .BookTitle {
-        width: 60px;
-        margin-left: -30px;
-        height: 100px;
-        margin-top: -50px;
-      }
-    }
-  }
-}
-
 // openlibrary/plugins/theme/templates/theme/git.html
 #message {
   font-family: @lucida_sans_serif-2;
@@ -2193,15 +2156,6 @@ div#subjectLists {
   }
   table.identifiers {
     width: 395px;
-  }
-  .formBack {
-    &Left {
-      float: left;
-      width: 670px;
-    }
-    &Right {
-      float: left;
-    }
   }
   /**
   * Used on following pages:

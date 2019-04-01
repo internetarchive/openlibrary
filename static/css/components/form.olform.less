@@ -7,6 +7,10 @@
 .olform {
   font-family: @lucida_sans_serif-4;
 
+  .formBack {
+    padding: 10px;
+    background-color: @lightest-grey;
+  }
   .label {
     padding: 10px 0 2px;
 
@@ -112,6 +116,25 @@
 
 .olform__input--large {
   height: 265px;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .olform {
+    // formBackLeft and formBackRight are presently only used in
+    // openlibrary/templates/books/edit/edition.html (edit form)
+    .formBackLeft {
+      float: left;
+      width: 670px;
+    }
+    .formBackRight {
+      float: left;
+      width: 220px;
+    }
+    .formBack:after {
+        content: '';
+        clear: both;
+    }
+  }
 }
 
 @media all and ( min-width: @width-breakpoint-desktop ) {
