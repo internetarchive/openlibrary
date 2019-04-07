@@ -44,7 +44,7 @@ RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
 COPY --chown=openlibrary:openlibrary . /openlibrary
 WORKDIR /openlibrary
 
-RUN pip install --default-timeout=100 -r requirements_common.txt
+RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
 RUN npm install && npm install -g less
 
 USER openlibrary
