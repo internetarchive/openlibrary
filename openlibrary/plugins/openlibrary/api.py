@@ -244,8 +244,8 @@ class price_api(delegate.page):
         # if bwb fails and isbn10, try again with isbn13
         if id_type == 'isbn_10' and \
            metadata['betterworldbooks'].get('price') is None:
-            isbn_13 = isbn_10_to_isbn_13(id_type)
-            metadata['betterworldbooks'] = get_betterworldbooks_metadata(
+            isbn_13 = isbn_10_to_isbn_13(id_)
+            metadata['betterworldbooks'] = isbn_13 and get_betterworldbooks_metadata(
                 isbn_13) or {}
 
         # fetch book by isbn if it exists
