@@ -1,6 +1,6 @@
 -r requirements_common.txt
 
-Jinja2==2.10
+Jinja2==2.10.1
 backports.shutil-get-terminal-size==1.0.0
 bottlenose==1.1.2
 clint==0.5.1
