@@ -179,14 +179,14 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                       (sorts if sorts and isinstance(sorts, list)
                        else [''])]))
     rows = limit or DEFAULT_IA_RESULTS
-    url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
+    url = "http://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
     return url
 
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url=("https://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
+        url=("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
              "+AND+loans__status__status:AVAILABLE"\
              "&fl=identifier,openlibrary_edition,loans__status__status"\
              "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
