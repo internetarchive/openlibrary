@@ -16,6 +16,7 @@ from infogami.utils import delegate
 from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
+from openlibrary.core import cache
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
@@ -68,6 +69,18 @@ def get_recaptcha():
     else:
         return None
 
+def force_invalidate_cache(docs):
+    """
+    Force invalidate documents from the cache
+    Temporary fix to https://github.com/internetarchive/openlibrary/issues/2040
+    :param list of (web.storage or dict) docs: documents to remove from the cache
+    :return: None
+    """
+    docs = [dict(doc) for doc in docs if doc]
+    keys = [doc['key'] for doc in docs if doc.has_key('key')]
+    keys += ["d" + k for k in keys]
+    logger.info("force-invalidating %s", keys)
+    cache.get_memcache().delete_multi(keys)
 
 def make_work(doc):
     w = web.storage(doc)
@@ -407,6 +420,8 @@ class SaveBookHelper:
             return
 
         if work_data:
+            force_invalidate_cache([work_data])
+
             # Create any new authors that were added
             for i, author in enumerate(work_data.get("authors") or []):
                 if author['author']['key'] == "__new__":
@@ -677,6 +692,9 @@ class book_edit(delegate.page):
 
         add = (edition.revision == 1 and work and work.revision == 1 and work.edition_count == 1)
 
+        # Invalidate the cache; temporary fix to #
+        force_invalidate_cache([edition, work])
+
         try:
             helper = SaveBookHelper(work, edition)
             helper.save(web.input())
@@ -729,6 +747,8 @@ class work_edit(delegate.page):
         if work is None:
             raise web.notfound()
 
+        force_invalidate_cache([work])
+
         try:
             helper = SaveBookHelper(work, None)
             helper.save(web.input())
@@ -762,10 +782,12 @@ class author_edit(delegate.page):
             if not formdata:
                 raise web.badrequest()
             elif "_save" in i:
+                force_invalidate_cache([author])
                 author.update(formdata)
                 author._save(comment=i._comment)
                 raise web.seeother(key)
             elif "_delete" in i:
+                force_invalidate_cache([author])
                 author = web.ctx.site.new(key, {"key": key, "type": {"key": "/type/delete"}})
                 author._save(comment=i._comment)
                 raise web.seeother(key)
