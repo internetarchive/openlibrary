@@ -78,7 +78,7 @@ def force_invalidate_cache(docs):
     """
     docs = [dict(doc) for doc in docs if doc]
     keys = [doc['key'] for doc in docs if doc.has_key('key')]
-    keys += ["d" + k for k in keys]
+    keys += ["d" + k for k in keys]  # also clear doc 'metadata'
     logger.info("force-invalidating %s", keys)
     cache.get_memcache().delete_multi(keys)
 
@@ -692,7 +692,6 @@ class book_edit(delegate.page):
 
         add = (edition.revision == 1 and work and work.revision == 1 and work.edition_count == 1)
 
-        # Invalidate the cache; temporary fix to #
         force_invalidate_cache([edition, work])
 
         try:
