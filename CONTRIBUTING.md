@@ -14,7 +14,7 @@ Look through our issues related to [`contributing`](https://github.com/interneta
 ## Common Setup Tasks
 
 ### Logging in as Admin
-Our login process on Open Library's dev instance is a bit funky. You need to correctly enter the right credetials (email: `openlibrary@example.com` pw: `admin123`) the **first** time or you will be logged in with a non-admin account (and will not be able to login as admin until you clear your cookies). More info here:
+Our login process on Open Library's dev instance is a bit funky. You need to correctly enter the right credentials (email: `openlibrary@example.com` pw: `admin123`) the **first** time or you will be logged in with a non-admin account (and will not be able to login as admin until you clear your cookies). More info here:
 - https://github.com/internetarchive/openlibrary/issues/1197#issuecomment-479752932
 
 ### Adding Data to Open Library
