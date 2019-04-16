@@ -7,18 +7,18 @@ assignees: ''
 
 ---
 
-**Description**
+## Description
 <!-- What problem are we solving? What does the experience look like today? What are the symptoms? -->
 
-**Evidence / Screenshot (if possible)**
+## Evidence / Screenshot (if possible)
 
-**Relevant url?**
+## Relevant url?
 <!-- `https://openlibrary.org/...` -->
 
-**Expectation**
+## Expectation
 <!-- What should by happening? What will it look like / how will it behave? -->
 
-**Details**
+## Details
 
 <!-- Logged in (Y/N)? -->
 
@@ -26,10 +26,10 @@ assignees: ''
 
 <!-- Operating system? -->
 
-**Proposal & Constraints**
+## Proposal & Constraints
 
 <!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
 
 
-**Stakeholders**
+## Stakeholders
 <!-- @ tag stakeholders of this bug -->
