@@ -17,7 +17,7 @@ plugins:
 cache:
     type: memcache
     servers:
-        - "127.0.0.1:11211"
+        - "memcached:11211"
 
 errorlog: /var/log/openlibrary/infobase-errors
 writelog: /var/lib/openlibrary/infobase-writelog
