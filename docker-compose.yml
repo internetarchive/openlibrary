@@ -26,10 +26,6 @@ services:
       - solr-data:/var/lib/solr/data
     networks:
       - webnet
-  memcached:
-    image: memcached
-    networks:
-      - webnet
   #covers:
 networks:
   webnet:

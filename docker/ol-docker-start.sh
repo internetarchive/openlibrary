@@ -24,6 +24,9 @@ echo "Starting ol services."
 # postgres
 su postgres -c "/etc/init.d/postgresql start"
 
+# memcached
+service memcached start
+
 # infobase
 su openlibrary -c "scripts/infobase-server conf/infobase.yml 7000" &
 
