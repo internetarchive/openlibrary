@@ -7,29 +7,29 @@ assignees: ''
 
 ---
 
-**Description**
-> What problem are we solving? What does the experience look like today? What are the symptoms?
+## Description
+<!-- What problem are we solving? What does the experience look like today? What are the symptoms? -->
 
-**Evidence / Screenshot (if possible)**
+## Evidence / Screenshot (if possible)
 
-**Relevant url?**
->`https://openlibrary.org/...`
+## Relevant url?
+<!-- `https://openlibrary.org/...` -->
 
-**Expectation**
-> What should by happening? What will it look like / how will it behave?
+## Expectation
+<!-- What should by happening? What will it look like / how will it behave? -->
 
-**Details**
+## Details
 
-> Logged in (Y/N)?
+<!-- Logged in (Y/N)? -->
 
-> Browser type/version?
+<!-- Browser type/version? -->
 
-> Operating system?
+<!-- Operating system? -->
 
-**Proposal & Constraints**
+## Proposal & Constraints
 
-> What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
+<!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
 
 
-**Stakeholders**
-> @ tag stakeholders of this bug
+## Stakeholders
+<!-- @ tag stakeholders of this bug -->

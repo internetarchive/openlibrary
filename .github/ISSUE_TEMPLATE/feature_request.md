@@ -7,16 +7,16 @@ assignees: ''
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-> A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## Is your feature request related to a problem? Please describe.
+<!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
 
-**Describe the solution you'd like**
-> A clear and concise description of what you want to happen.
+## Describe the solution you'd like
+<!-- A clear and concise description of what you want to happen. -->
 
-**Proposal & Constraints**
-> What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere?
+## Proposal & Constraints
+<!-- What is the proposed solution / implementation? Is there a precedent of this approach succeeding elsewhere? -->
 
-> Which suggestions or requirements should be considered for how feature needs to appear or be implemented?
+<!-- Which suggestions or requirements should be considered for how feature needs to appear or be implemented? -->
 
-**Additional context**
-> Add any other context or screenshots about the feature request here.
+## Additional context
+<!-- Add any other context or screenshots about the feature request here. -->
