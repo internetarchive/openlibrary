@@ -32,6 +32,26 @@ CAROUSELS_PRESETS = {
     'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
 }
 
+def get_homepage():
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    try:
+        stats = admin.get_stats()
+    except Exception:
+        logger.error("Error in getting stats", exc_info=True)
+        stats = None
+    blog_posts = get_blog_feeds()
+    page = render_template(
+        "home/index", stats=stats,
+        blog_posts=blog_posts,
+    )
+    page.v2 = True
+    return page
+
+def get_cached_homepage():
+    return cache.memcache_memoize(
+        get_homepage, "home.homepage", timeout=5*dateutil.MINUTE_SECS)()
+
 class home(delegate.page):
     path = "/"
 
@@ -39,18 +59,7 @@ class home(delegate.page):
         return "lending_v2" in web.ctx.features
 
     def GET(self):
-        try:
-            stats = admin.get_stats()
-        except Exception:
-            logger.error("Error in getting stats", exc_info=True)
-            stats = None
-        blog_posts = get_blog_feeds()
-        page = render_template(
-            "home/index", stats=stats,
-            blog_posts=blog_posts,
-        )
-        page.v2 = True
-        return page
+        return web.template.TemplateResult(get_cached_homepage())
 
 class random_book(delegate.page):
     path = "/random"
