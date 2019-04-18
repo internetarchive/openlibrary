@@ -197,7 +197,7 @@ def get_random_available_ia_edition():
         return None
 
 def get_available(limit=None, page=1, subject=None, query=None,
-                  work_id=None, _type=None, sorts=None):
+                  work_id=None, _type=None, sorts=None, url=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -206,8 +206,9 @@ def get_available(limit=None, page=1, subject=None, query=None,
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
-                         work_id=work_id, _type=_type, sorts=sorts)
+    url = url or compose_ia_url(
+        limit=limit, page=page, subject=subject, query=query,
+        work_id=work_id, _type=_type, sorts=sorts)
     try:
         request = urllib2.Request(url=url)
 
