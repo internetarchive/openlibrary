@@ -1,5 +1,5 @@
 // used in templates/covers/add.html
-var slicker;
+var slickPointer;
 var Carousel = {
     add: function(selector, a, b, c, d, e, f, key, loadMoreUrl) {
         a = a || 6;
@@ -8,6 +8,7 @@ var Carousel = {
         d = d || 3;
         e = e || 2;
         f = f || 1;
+
         var responsive_settings = [
             {
                 breakpoint: 1200,
@@ -62,7 +63,6 @@ var Carousel = {
         });
 
         var addWork = function(work) {
-            console.log(work);
             return '<div class="book carousel__item slick-slide slick-active" aria-hidden="false" tabindex="-1" role="option" aria-describedby="slick-slide00" style="width: 128px;">' +
                 '<div class="book-cover">' +
                   '<a href="' + work.key + '" tabindex="0">' +
@@ -78,22 +78,24 @@ var Carousel = {
         }
 
         $('.carousel-'+key).on('afterChange', function(e, slick, cur) {
-            var limit = slick.originalSettings.slidesToScroll;
-            var offset = slick.slickCurrentSlide() + 1;
+            var totalSlides = $('.carousel-' + key + '.slick-slider').slick("getSlick").$slides.length;
+            var numActiveSlides = $('.carousel-' + key + ' .slick-active').length;
+            var currentLastSlide = $('.carousel-' + key + '.slick-slider').slick('slickCurrentSlide') + numActiveSlides;
+            // this allows us to pre-load before hitting last page
+            var lastSlideOnSecondToLastPage = (totalSlides - numActiveSlides);
 
-            var currentSlide = $('.slick-slider').slick('slickCurrentSlide');
-            var currentSlideNumber = currentSlide + limit;
-            var totalSlides = $('.slick-slider').slick("getSlick").$slides.length;
+            if (loadMoreUrl && (currentLastSlide >= lastSlideOnSecondToLastPage)) {
+                var limit = numActiveSlides * 3;
+                var url = loadMoreUrl + '?offset=' + totalSlides + '&limit=' + limit;
+                console.log(url);
 
-            if (currentSlideNumber >= totalSlides) {
                 $.ajax({
-                    'url': loadMoreUrl + '?offset=' + offset + '&limit=' + limit,
+                    'url': url,
                     'type': 'GET',
                     success: function(subject_results) {
                         $.each(subject_results.works, function(work_idx) {
                             var work = subject_results.works[work_idx];
-                            console.log(work);
-                            var lastSlidePos = $('.slick-slider').slick("getSlick").$slides.length - 1;
+                            var lastSlidePos = $('.carousel-' + key + '.slick-slider').slick("getSlick").$slides.length - 1;
                             $('.carousel-' + key).slick('slickAdd', addWork(work), lastSlidePos);
                         });
                     }

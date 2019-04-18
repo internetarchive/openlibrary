@@ -119,6 +119,12 @@ def cached_work_authors_and_subjects(work_id):
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
+    """This needs to be exposed by a generalized API endpoint within
+    plugins/openlibrary/api/browse which lets lazy-load more items for
+    the homepage carousel and support the upcoming /browse view
+    (backed by archive.org search, so we don't have to send users to
+    archive.org to see more books)
+    """
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
     q = 'openlibrary_work:(*)'
