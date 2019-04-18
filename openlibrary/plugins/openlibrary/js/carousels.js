@@ -73,7 +73,9 @@ var Carousel = {
             var availability = work.availability.status;
             var ocaid = work.availability.identifier;
             var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ? ('/borrow/ia/' + ocaid) : work.key;
+            var url = (cls == 'cta-btn--available') ? ('/borrow/ia/' + ocaid) : 
+                (cls == 'cta-btn--unavailable') ? ('/books/' + work.availability.openlibrary_edition) :
+                work.key;
             var cta = availabilityStatuses[availability].cta;
             console.log(cta);
             var isClickable = availability == 'error' ? 'disabled' : '';
