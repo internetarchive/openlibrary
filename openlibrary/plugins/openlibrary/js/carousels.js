@@ -62,17 +62,33 @@ var Carousel = {
             responsive: responsive_settings
         });
 
+        var availabilityStatuses = {
+            'open': {cls: 'cta-btn--available', cta: 'Read'},
+            'borrow_available': {cls: 'cta-btn--available', cta: 'Borrow'},
+            'borrow_unavailable': {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
+            'error': {cls: 'cta-btn--missing', cta: 'No eBook'}
+        };
+
         var addWork = function(work) {
-            return '<div class="book carousel__item slick-slide slick-active" aria-hidden="false" tabindex="-1" role="option" aria-describedby="slick-slide00" style="width: 128px;">' +
+            var availability = work.availability.status;
+            var ocaid = work.availability.identifier;
+            var cls = availabilityStatuses[availability].cls;
+            var url = (cls == 'cta-btn--available') ? ('/borrow/ia/' + ocaid) : work.key;
+            var cta = availabilityStatuses[availability].cta;
+            console.log(cta);
+            var isClickable = availability == 'error' ? 'disabled' : '';
+
+            return '<div class="book carousel__item slick-slide slick-active" ' +
+                '"aria-hidden="false" tabindex="-1" role="option" aria-describedby="slick-slide00" style="width: 128px;">' +
                 '<div class="book-cover">' +
-                  '<a href="' + work.key + '" tabindex="0">' +
+                  '<a href="' + work.key + '" ' + isClickable + ' tabindex="0">' +
                     '<img class="bookcover" width="130" height="200" title="' + work.title + '" ' +
                          'src="//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg">' +
                   '</a>' +
                 '</div>' +
-                '<div class="book-cta">' + // needs to be computed based on availability
-                  '<a class="btn primary " href="/books/OL1024614M/x/borrow" data-ol-link-track="subjects" ' +
-                  'title="Borrow eBook Comet" data-key="subjects" data-ocaid="comet00saga_1" tabindex="0">Borrow</a>' +
+                '<div class="book-cta">' +
+                  '<a class="btn cta-btn ' + cls + '" href="' + url + '" data-ol-link-track="subjects" ' +
+                  'title="' + cta + ': ' + work.title + '" data-key="subjects" data-ocaid="' + ocaid + '">' + cta + '</a>' +
                 '</div>' +
               '</div>';
         }
