@@ -50,6 +50,28 @@ class book_availability(delegate.page):
             else []
         )
 
+class browse(delegate.page):
+    path = "/browse"
+    encoding = "json"
+
+    def GET(self):
+        i = web.input(q=None, page=1, limit=100, subject=None,
+                      work_id=None, _type=None, sorts=None)
+        url = lending.compose_ia_url(
+            query=i.q, limit=i.limit, page=i.page, subject=i.subject,
+            work_id=i.work_id, _type=i._type, sorts=i.sorts)
+        result = {
+            'query': url,
+            'works': [
+                work.dict() for work in lending.add_availability(
+                    lending.get_available(url=url)
+                )
+            ]
+        }
+        return delegate.RawText(
+            simplejson.dumps(result),
+            content_type="application/json")
+
 class ratings(delegate.page):
     path = "/works/OL(\d+)W/ratings"
     encoding = "json"
