@@ -1,6 +1,5 @@
 // used in templates/covers/add.html
-var slickPointer;
-var Carousel = {
+const Carousel = {
     add: function(selector, a, b, c, d, e, f, key, loadMoreUrl) {
         a = a || 6;
         b = b || 5;
@@ -73,17 +72,16 @@ var Carousel = {
             var availability = work.availability.status;
             var ocaid = work.availability.identifier;
             var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ? ('/borrow/ia/' + ocaid) : 
-                (cls == 'cta-btn--unavailable') ? ('/books/' + work.availability.openlibrary_edition) :
-                work.key;
+            var url = (cls == 'cta-btn--available') ?
+                ('/borrow/ia/' + ocaid) : (cls == 'cta-btn--unavailable') ?
+                    ('/books/' + work.availability.openlibrary_edition) : work.key;
             var cta = availabilityStatuses[availability].cta;
-            console.log(cta);
             var isClickable = availability == 'error' ? 'disabled' : '';
 
             return '<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false" tabindex="-1" role="option" aria-describedby="slick-slide00" style="width: 128px;">' +
+                '"aria-hidden="false" role="option">' +
                 '<div class="book-cover">' +
-                  '<a href="' + work.key + '" ' + isClickable + ' tabindex="0">' +
+                  '<a href="' + work.key + '" ' + isClickable + '>' +
                     '<img class="bookcover" width="130" height="200" title="' + work.title + '" ' +
                          'src="//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg">' +
                   '</a>' +
@@ -95,7 +93,7 @@ var Carousel = {
               '</div>';
         }
 
-        $('.carousel-'+key).on('afterChange', function(e, slick, cur) {
+        $('.carousel-'+key).on('afterChange', function() {
             var totalSlides = $('.carousel-' + key + '.slick-slider').slick("getSlick").$slides.length;
             var numActiveSlides = $('.carousel-' + key + ' .slick-active').length;
             var currentLastSlide = $('.carousel-' + key + '.slick-slider').slick('slickCurrentSlide') + numActiveSlides;
@@ -105,8 +103,6 @@ var Carousel = {
             if (loadMoreUrl && (currentLastSlide >= lastSlideOnSecondToLastPage)) {
                 var limit = numActiveSlides * 3;
                 var url = loadMoreUrl + '?offset=' + totalSlides + '&limit=' + limit;
-                console.log(url);
-
                 $.ajax({
                     'url': url,
                     'type': 'GET',
