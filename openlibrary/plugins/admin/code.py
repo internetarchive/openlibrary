@@ -642,6 +642,24 @@ class permissions:
         add_flash_message("info", "Edit policy has been updated!")
         return self.GET()
 
+class attach_debugger:
+    def GET(self):
+        return render_template("admin/attach_debugger")
+
+    def POST(self):
+        import ptvsd
+
+        i = web.input()
+        # Allow other computers to attach to ptvsd at this IP address and port.
+        logger.info("Enabling debugger attachment")
+        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        logger.info("Waiting for debugger to attach...")
+        ptvsd.wait_for_attach()
+        logger.info("Debugger attached to port 3000")
+        add_flash_message("info", "Debugger attached!")
+
+        return self.GET()
+
 class solr:
     def GET(self):
         return render_template("admin/solr")
@@ -694,6 +712,7 @@ def setup():
     register_admin_page('/admin/stats/(\d\d\d\d-\d\d-\d\d)', stats, label='Stats JSON')
     register_admin_page('/admin/ipstats', ipstats, label='IP Stats JSON')
     register_admin_page('/admin/block', block, label='')
+    register_admin_page('/admin/attach_debugger', attach_debugger, label='Attach Debugger')
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
     register_admin_page('/admin/status', service_status, label = "Open Library services")
