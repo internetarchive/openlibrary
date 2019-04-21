@@ -33,7 +33,7 @@ window.q.push( function () {
 </script>
 <div class="contentBody">
 
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more_url=page.key + ".json")
+  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
   <div class="head">
     <h2 class="inline">
