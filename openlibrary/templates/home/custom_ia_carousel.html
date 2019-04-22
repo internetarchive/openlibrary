@@ -1,5 +1,7 @@
-$def with(title, key, query=None, subject=None, work_id=None, _type=None, sorts=None, limit=None, min_books=7, test=False)
+$def with(title, key, query='', subject='', work_id='', _type='', sorts='', limit=None, min_books=7, test=False)
 
 $ url = compose_ia_url(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit, advanced=False)
 $ books = generic_carousel(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit) if not test else []
-$:render_template("books/custom_carousel", books, title=title, url=url, key=key, min_books=min_books, test=test)
+$ sorts = ','.join(sorts) if sorts else ''
+$ load_more_url = '/browse.json?q=%s&subject=%s&work_id=%s&_type=%s&sorts=%s' % (query, subject, work_id, _type, sorts)
+$:render_template("books/custom_carousel", books, title=title, url=url, key=key, min_books=min_books, load_more={"url": load_more_url, "mode": "page", "limit": limit}, test=test)

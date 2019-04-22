@@ -1,4 +1,4 @@
-$def with(books=[], title="", url="", key="", min_books=1, test=False, load_more_url='')
+$def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False)
 
 $def render_carousel_cover(book, lazy):
   $ url = book.get('key') or book.url
@@ -71,7 +71,14 @@ $if test or (books and len(books) >= min_books):
         </div>
         <script type="text/javascript">
               window.q.push(function() {
-                Carousel.add('.carousel-$key', 6, 5, 4, 3, 2, 1, '$key', '$load_more_url');
+                Carousel.add(
+                  '.carousel-$key', // dom element to bind slick
+                  6, 5, 4, 3, 2, 1, { // num books per responsive breakpoint
+                  $if load_more:
+                     url: '$:(load_more["url"].replace("&amp;", "&"))',
+                     pageMode: '$(load_more.get("mode", "offset"))',
+                     limit: $(load_more.get("limit", 18))
+                  });
               });
         </script>
       </div>
