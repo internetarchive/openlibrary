@@ -1,7 +1,8 @@
 {
   "env": {
     "es6": true,
-    "jest": true
+    "jest": true,
+    "node": true
   },
   "globals": {
     "test": true,
