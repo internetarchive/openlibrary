@@ -28,8 +28,8 @@ RUN apt-get -qq update && apt-get install -y \
     python-yaml
 
 # Install LTS version of node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash -
-RUN apt-get install -y nodejs
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get install -y nodejs
 
 # enable users to bind to port 80
 RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
@@ -41,11 +41,16 @@ RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/si
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
 
-COPY --chown=openlibrary:openlibrary . /openlibrary
+RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
 WORKDIR /openlibrary
 
+COPY requirements*.txt ./
 RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+
+COPY package*.json ./
 RUN npm install && npm install -g less
+
+COPY --chown=openlibrary:openlibrary . /openlibrary
 
 USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami

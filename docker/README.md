@@ -37,8 +37,8 @@ docker-machine start default # Start the docker daemon
 
 # build images
 docker build -t olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
-docker build -t oldev:latest -f docker/Dockerfile.oldev .   # 10+ min (Win10Home/Dec 2018)
-docker build -t olsolr:latest -f docker/Dockerfile.olsolr . # 5+ min (Win10Home/Dec 2018)
+docker-compose build web # 10+ min (Win10Home/Dec 2018)
+docker-compose build solr # 5+ min (Win10Home/Dec 2018)
 
 # start the app
 docker-compose up    # Ctrl-C to stop
@@ -73,9 +73,11 @@ If you are using Docker for Mac or Docker for Windows (or the older Docker Toolb
 
 While running the `oldev` container, gunicorn is configured to auto-reload modified files. To see the effects of your changes in the running container, the following apply:
 
-- Editing python files or web templates => simply save the file, gunicorn will auto-reload it.
-- Working on frontend css or js => you must run `docker-compose exec web make css js`. This will re-generate the assets in the persistent `ol-build` volume mount, so the latest changes will be available between stopping / starting and removing `web` containers. Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
-- Adding or changing core dependencies => you will most likely need to rebuild both `olbase` and `oldev` images. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;)
+- **Editing python files or web templates?** Simply save the file; gunicorn will auto-reload it.
+- **Editing frontend css or js?** Run `docker-compose exec web npm run-script build-assets`. This will re-generate the assets in the persistent `ol-build` volume mount (so the latest changes will be available between stopping / starting  `web` containers). Note, if you want to view the generated output you will need to attach to the container (`docker-compose exec web bash`) to examine the files in the volume, not in your local dir.
+- **Editing pip packages?** Rebuild the `web` service: `docker-compose build web`
+- **Editing npm packages?** Run `docker-compose exec web npm install` (see [#2032](https://github.com/internetarchive/openlibrary/issues/2032) for why)
+- **Editing core dependencies?** You will most likely need to do a full rebuild. This shouldn't happen too frequently. If you are making this sort of change, you will know exactly what you are doing ;)
 
 ## Useful Runtime Commands
 
