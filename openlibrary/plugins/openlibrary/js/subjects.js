@@ -38,8 +38,6 @@ export function urlencode(query) {
     }
     return parts.join('&');
 }
-
-/* Should really use createElement() */
 export function renderTag(tag, keyvals, child) {
     var html = `<${  tag  } `;
     var key, val;
@@ -71,7 +69,7 @@ export function slice(array, begin, end) {
     return a;
 }
 
-$.extend(Subject.prototype, {
+Subject.prototype = {
 
     init: function(data) {
         $.extend(this, data);
@@ -217,4 +215,4 @@ $.extend(Subject.prototype, {
         this.init(this._data);
         callback && callback();
     }
-});
+};
