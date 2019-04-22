@@ -50,7 +50,7 @@ $def render_carousel_cover(book, lazy):
       </a>
     </div>
     $if cta:
-      <div class="book-cta"><a class="btn primary $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
+      <div class="book-cta"><a class="cta-btn cta-btn--available $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
         data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
   </div>
 
