@@ -89,5 +89,8 @@
       }
     },
     "collectCoverage": true
+  },
+  "dependencies": {
+    "sinon": "^7.3.2"
   }
 }
