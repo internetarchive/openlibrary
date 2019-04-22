@@ -97,12 +97,15 @@ const Carousel = {
 
         // if a loadMore config is provided and it has a (required) url
         if (loadMore && loadMore.url) {
+            var url;
             try {
-                var url = new URL(loadMore.url);
+                // exception handling needed in case loadMore.url is relative path
+                url = new URL(loadMore.url);
             } catch (e) {
-                var url = new URL(window.location.origin + loadMore.url);
+                url = new URL(window.location.origin + loadMore.url);
             }
-            url.searchParams.set('limit', loadMore.limit || 18); // todo, define sane default
+            var default_limit = 18; // 3 pages of 6 books
+            url.searchParams.set('limit', loadMore.limit || default_limit);
             loadMore.pageMode = loadMore.pageMode === 'page' ? 'page' : 'offset'; // verify pagination mode
             loadMore.locked = false; // prevent additional calls when not in critical section
 
