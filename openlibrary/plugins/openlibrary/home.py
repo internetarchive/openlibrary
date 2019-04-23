@@ -32,6 +32,32 @@ CAROUSELS_PRESETS = {
     'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
 }
 
+
+def get_homepage():
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    try:
+        stats = admin.get_stats()
+    except Exception:
+        logger.error("Error in getting stats", exc_info=True)
+        stats = None
+    blog_posts = get_blog_feeds()
+
+    # render tempalte should be setting ctx.bodyid
+    # but because get_homepage is cached, this doesn't happen
+    # during subsequent called
+    page = render_template(
+        "home/index", stats=stats,
+        blog_posts=blog_posts
+    )
+    page.v2 = True    
+    return dict(page)
+
+def get_cached_homepage():
+    five_minutes = 5 * dateutil.MINUTE_SECS
+    return cache.memcache_memoize(
+        get_homepage, "home.homepage", timeout=five_minutes)()
+
 class home(delegate.page):
     path = "/"
 
@@ -39,18 +65,11 @@ class home(delegate.page):
         return "lending_v2" in web.ctx.features
 
     def GET(self):
-        try:
-            stats = admin.get_stats()
-        except Exception:
-            logger.error("Error in getting stats", exc_info=True)
-            stats = None
-        blog_posts = get_blog_feeds()
-        page = render_template(
-            "home/index", stats=stats,
-            blog_posts=blog_posts,
-        )
-        page.v2 = True
-        return page
+        cached_homepage = get_cached_homepage()
+        # when homepage is cached, home/index.html template
+        # doesn't run ctx.setdefault to set the bodyid so we must do so here:
+        web.template.Template.globals['ctx']['bodyid'] = 'home'
+        return web.template.TemplateResult(cached_homepage)
 
 class random_book(delegate.page):
     path = "/random"
