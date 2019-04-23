@@ -62,7 +62,7 @@ function more(header) {
         \$("#" + header + "_more").hide();
         \$("#" + header + "_bull").hide();
     }
-    \$(facetEntry +":hidden").slice(0,facet_inc).slideDown()
+    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('hidden');
 }
 
 function less(header) {
@@ -78,7 +78,7 @@ function less(header) {
         \$("#" + header + "_more").show();
         \$("#" + header + "_bull").show();
     }
-    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).slideUp()
+    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('hidden');
 }
 window.q.push(function(){
     \$(".header_bull").hide();
