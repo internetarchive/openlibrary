@@ -228,10 +228,24 @@ def get_available(limit=None, page=1, subject=None, query=None,
         content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
+        availability = {}
         for item in items:
             if item.get('openlibrary_work'):
+                availability['/books/' + item['openlibrary_edition']] = item
                 results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
+        books = web.ctx.site.get_many([
+            '/books/%s' % result for result in results.values()])
+
+        # To avoid a 2nd network call to perform `add_availability`
+        # reconstruct availability ad-hoc from archive.org response
+        for i, _ in enumerate(books):
+            _item = availability[books[i].key]
+            books[i]['availability'] = {
+                'status': 'borrow_%s' % _item['loans__status__status'].lower(),
+                'identifier': _item['identifier'],
+                'openlibrary_edition': _item['openlibrary_edition'],
+                'openlibrary_work': _item['openlibrary_work']
+            }
         return books
     except Exception as e:
         return {'error': 'request_timeout'}

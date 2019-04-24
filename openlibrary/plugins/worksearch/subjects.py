@@ -10,13 +10,16 @@ import urllib
 import datetime
 
 from infogami import config
+from infogami.utils.view import public
 from infogami.plugins.api.code import jsonapi
+from infogami.infobase.client import storify
 from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
 
+from openlibrary.core import cache
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
-from openlibrary.utils import str_to_key, finddict
+from openlibrary.utils import str_to_key, finddict, dateutil
 
 __all__ = [
     "SubjectEngine", "get_subject"
@@ -59,11 +62,7 @@ class subjects(delegate.page):
 
         # this needs to be updated to include:
         #q=public_scan_b:true+OR+lending_edition_s:*
-        subj = get_subject(key, details=True, filters={
-            'public_scan_b': 'false',
-            'lending_edition_s': '*'
-        })
-
+        subj = get_subject_works(key)
         subj.v2 = True
         delegate.context.setdefault('bodyid', 'subject')
         if not subj or subj.work_count == 0:
@@ -75,7 +74,8 @@ class subjects(delegate.page):
         page.v2 = True
         return page
 
-    def normalize_key(self, key):
+    @staticmethod
+    def normalize_key(key):
         key = key.lower()
 
         # temporary code to handle url change from /people/ to /person:
@@ -134,6 +134,10 @@ class subjects_json(delegate.page):
     def process_key(self, key):
         return key
 
+@public
+def get_cached_subject_works(key, timeout=cache.DEFAULT_CACHE_LIFETIME):
+    return [storify(book) for book in json.loads(cache.memcache_memoize(
+        get_subject_works, 'subjects.subject_works', timeout=timeout)(key))]
 
 class subject_works_json(delegate.page):
     path = '(/subjects/[^/]+)/works'
@@ -185,6 +189,12 @@ def inject_availability(subject_results):
         availability = work.get('availability', {}).get('status')
     subject_results.works = works
     return subject_results
+
+def get_subject_works(key):
+    return get_subject(key, details=True, filters={
+        'public_scan_b': 'false',
+        'lending_edition_s': '*'
+    })
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
