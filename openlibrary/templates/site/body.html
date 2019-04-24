@@ -1,7 +1,5 @@
 $def with (page)
 
-$ announcement = '<strong>New Feature:</strong> You can now embed Open Library books on your website! &nbsp; <a href="https://blog.openlibrary.org/2018/05/06/turn-your-website-into-a-library/" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>'
-
 $ bodyid = ctx.get('bodyid', 'user')
 $ show_banners = bodyid != 'form'
 <body id="$bodyid">
@@ -21,9 +19,6 @@ $ show_banners = bodyid != 'form'
       <div class="flash-messages" style="display: none;">
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
-      </div>
-      <div class="page-banner page-banner-body">
-        $:announcement
       </div>
     $:page
   </div>
