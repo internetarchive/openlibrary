@@ -21,8 +21,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 </div>
 
 <div class="contentBody">
-    $:render_template("books/custom_carousel", books=page.works, key="subjects")
-
+	$:macros.OLBookCarousel(books=page.works, key=page.key)
 	<div class="head">
 	    <h2>
 	        $_("Publishing History")

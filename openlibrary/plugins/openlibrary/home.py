@@ -219,7 +219,8 @@ def format_book_data(book):
     d.key = book.get('key')
     d.url = book.url()
     d.title = book.title or None
-    d.ocaid = book.get("ocaid")
+    d.ocaid = book.get('ocaid')
+    d.availability = book.get('availability')
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]

@@ -1,0 +1,6 @@
+$def with (key, title=None, books=None)
+
+$ unique_key = key.replace(' ', '-').replace('/', '-').replace('--', '-')
+$ books = books or get_cached_subject_works(key).works
+$if books:
+  $:macros.BookCarousel(books=books, title=title, key=unique_key, load_more={"url": key + ".json", "limit": len(books)})

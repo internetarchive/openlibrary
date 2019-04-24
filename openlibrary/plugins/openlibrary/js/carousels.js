@@ -1,4 +1,5 @@
 // used in templates/covers/add.html
+
 const Carousel = {
     add: function(selector, a, b, c, d, e, f, loadMore) {
         a = a || 6;
@@ -58,43 +59,6 @@ const Carousel = {
             responsive: responsive_settings
         });
 
-        var availabilityStatuses = {
-            'open': {cls: 'cta-btn--available', cta: 'Read'},
-            'borrow_available': {cls: 'cta-btn--available', cta: 'Borrow'},
-            'borrow_unavailable': {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            'error': {cls: 'cta-btn--missing', cta: 'No eBook'}
-        };
-
-        var addWork = function(work) {
-            var availability = work.availability.status;
-            var cover_id = work.covers? work.covers[0] : work.cover_id;
-            var ocaid = work.availability.identifier;
-            var cls = availabilityStatuses[availability].cls;
-            var url = (cls == 'cta-btn--available') ?
-                ('/borrow/ia/' + ocaid) : (cls == 'cta-btn--unavailable') ?
-                    ('/books/' + work.availability.openlibrary_edition) : work.key;
-            var cta = availabilityStatuses[availability].cta;
-            var isClickable = availability == 'error' ? 'disabled' : '';
-
-            return '<div class="book carousel__item slick-slide slick-active" ' +
-                '"aria-hidden="false" role="option">' +
-                '<div class="book-cover">' +
-                  '<a href="' + work.key + '" ' + isClickable + '>' +
-                    '<img class="bookcover" width="130" height="200" title="' +
-                      work.title + '" ' +
-                      'src="//covers.openlibrary.org/b/id/' + cover_id + '-M.jpg">' +
-                  '</a>' +
-                '</div>' +
-                '<div class="book-cta">' +
-                  '<a class="btn cta-btn ' + cls + '" href="' + url +
-                    '" data-ol-link-track="subjects" ' +
-                    'title="' + cta + ': ' + work.title +
-                    '" data-key="subjects" data-ocaid="' + ocaid + '">' + cta +
-                  '</a>' +
-                '</div>' +
-              '</div>';
-        }
-
         // if a loadMore config is provided and it has a (required) url
         if (loadMore && loadMore.url) {
             var url;
@@ -104,7 +68,7 @@ const Carousel = {
             } catch (e) {
                 url = new URL(window.location.origin + loadMore.url);
             }
-            var default_limit = 18; // 3 pages of 6 books
+            var default_limit = 18; // 3 pages of 6 items
             url.searchParams.set('limit', loadMore.limit || default_limit);
             loadMore.pageMode = loadMore.pageMode === 'page' ? 'page' : 'offset'; // verify pagination mode
             loadMore.locked = false; // prevent additional calls when not in critical section
@@ -137,12 +101,13 @@ const Carousel = {
                     $.ajax({
                         'url': url,
                         'type': 'GET',
-                        success: function(subject_results) {
-                            $.each(subject_results.works, function(work_idx) {
-                                var work = subject_results.works[work_idx];
+                        success: function(result) {
+                            var items = loadMore.getItems(result)
+                            $.each(items, function(item_index) {
+                                var item = items[item_index];
                                 var lastSlidePos = $(selector + '.slick-slider')
                                     .slick("getSlick").$slides.length - 1;
-                                $(selector).slick('slickAdd', addWork(work), lastSlidePos);
+                                $(selector).slick('slickAdd', loadMore.addItem(item), lastSlidePos);
                             });
                             document.body.style.cursor='default'; // return cursor to ready
                             loadMore.locked = false;
