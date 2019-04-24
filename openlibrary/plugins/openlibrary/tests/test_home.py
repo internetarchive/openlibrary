@@ -3,7 +3,7 @@ import pytest
 import sys
 import web
 
-from infogami.utils.view import render_template
+from infogami.utils.view import render_template, macro
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
@@ -53,15 +53,6 @@ class TestHomeTemplates:
         html = six.text_type(render_template("home/stats"))
         assert html == ""
 
-    def test_read_template(self, render_template, monkeypatch):
-        # getting read-online books fails because solr is not defined.
-        # Empty list should be returned when there is error.
-        monkeypatch.setattr(home, 'random_ebooks', lambda: None)
-        books = home.readonline_carousel()
-        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
-                                       key="public_domain"))
-        assert html.strip() == ""
-
     def test_home_template(self, render_template, mock_site):
         docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits=1, bot_edits=1, lists=1,
@@ -95,9 +86,10 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
+        monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         html = six.text_type(render_template("home/index", stats=stats, test=True))
         headers = ["Books We Love", "Recently Returned", "Kids",
-                   "Thrillers", "Romance", "Classic Books", "Textbooks"]
+                   "Thrillers", "New Arrivals", "Classic Books", "Textbooks"]
         for h in headers:
             assert h in html
 
