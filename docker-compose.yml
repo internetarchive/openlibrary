@@ -1,7 +1,10 @@
 version: "3"
 services:
   web:
-    image: oldev
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
     ports:
       - 8080:80
       - 7000:7000
@@ -19,7 +22,10 @@ services:
     networks:
       - webnet
   solr:
-    image: olsolr
+    image: olsolr:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.olsolr
     ports:
       - 8983:8080
     volumes:

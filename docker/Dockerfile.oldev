@@ -2,8 +2,6 @@ FROM olbase
 
 WORKDIR /openlibrary
 
-USER openlibrary
-
 # Setup db
 USER postgres
 RUN /etc/init.d/postgresql start \
@@ -21,7 +19,10 @@ USER root
 RUN mkdir -p /var/lib/coverstore \
     && chown openlibrary:openlibrary /var/lib/coverstore
 
+COPY requirements*.txt ./
 RUN pip install --disable-pip-version-check -r requirements_test.txt
+
+COPY package*.json ./
 RUN npm install
 
 # Expose Open Library, Infobase, and Coverstore
