@@ -406,6 +406,7 @@ class SaveBookHelper:
                 self.delete(self.work.key, comment=comment)
             return
 
+        just_editing_work = edition_data is None
         if work_data:
             # Create any new authors that were added
             for i, author in enumerate(work_data.get("authors") or []):
@@ -414,11 +415,18 @@ class SaveBookHelper:
                     author['author']['key'] = a.key
                     saveutil.save(a)
 
-            if self.work is None:
-                self.work = self.new_work(self.edition)
-                edition_data.works = [{'key': self.work.key}]
-            self.work.update(work_data)
-            saveutil.save(self.work)
+            if not just_editing_work:
+                # Handle orphaned editions
+                edition_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+                if self.work is None and edition_work_key is None:
+                    # i.e. not moving to another work, create empty work
+                    self.work = self.new_work(self.edition)
+                    edition_data.works = [{'key': self.work.key}]
+                    work_data.key = self.work.key
+
+            if self.work is not None:
+                self.work.update(work_data)
+                saveutil.save(self.work)
 
         if self.edition and edition_data:
             identifiers = edition_data.pop('identifiers', [])
@@ -440,7 +448,8 @@ class SaveBookHelper:
 
         saveutil.commit(comment=comment, action="edit-book")
 
-    def new_work(self, edition):
+    @staticmethod
+    def new_work(edition):
         work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
             'key': work_key,
@@ -450,7 +459,7 @@ class SaveBookHelper:
         return work
 
     def new_author(self, name):
-        key =  web.ctx.site.new_key("/type/author")
+        key = web.ctx.site.new_key("/type/author")
         return web.ctx.site.new(key, {
             "key": key,
             "type": {"key": "/type/author"},
