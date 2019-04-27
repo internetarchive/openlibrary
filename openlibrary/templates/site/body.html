@@ -2,7 +2,6 @@ $def with (page)
 
 $ bodyid = ctx.get('bodyid', 'user')
 $ show_banners = bodyid != 'form'
-$ show_announcement = False
 
 <body id="$bodyid">
   <script>
@@ -22,10 +21,12 @@ $ show_announcement = False
       $for flash in get_flash_messages():
         <div class="$flash.type"><span>$flash.message</span></div>
       </div>
-      $if show_announcement:
-        $ announcement = '<strong>New Feature:</strong> You can now embed Open Library books on your website! &nbsp; <a href="https://blog.openlibrary.org/2018/05/06/turn-your-website-into-a-library/" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>'
+      $# Paste next line into announcement variable to show the blue banner
+      $# <strong>Title:</strong> Description &nbsp; <a href="#" data-ol-link-track="AnnouncementsBar|BlogWidget" class="btn primary">Learn More</a>
+      $ announcement = ''
+      $if announcement:
         <div class="page-banner page-banner-body">     
-          $:announcement
+         $:announcement
         </div>
     $:page
   </div>
