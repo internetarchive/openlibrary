@@ -6,21 +6,21 @@ $var title: $_("Welcome to Open Library")
 <div id="contentBody">
   $:render_template("home/categories", test=test)
 
-  $:macros.BookCarousel(books=readonline_carousel(), title="Classic Books", url="/read", key="public_domain", test=test)
+  $:macros.BookCarousel(books=cached_random_readable_works(), title="Classic Books", url="/read", key="public_domain", test=test)
 
-  $:macros.IABookCarousel(key="staff_picks", title="Books We Love", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:macros.IABookCarousel(key="staff_picks", title="Books We Love", query='languageSorter:("English") AND openlibrary_subject:openlibrary_staff_picks', sorts=["loans__status__last_loan_date+desc"], test=test)
 
-  $:macros.IABookCarousel(key="recently_returned", title="Recently Returned", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:macros.IABookCarousel(key="recently_returned", title="Recently Returned", sorts=["loans__status__last_loan_date+desc"], test=test)
 
-  $:macros.IABookCarousel(key="new_arrivals", title="New Arrivals", query='collection:(inlibrary) AND languageSorter:("English")', sorts=["publicdate+desc"], limit=18)
+  $:macros.IABookCarousel(key="new_arrivals", title="New Arrivals", query='collection:(inlibrary) AND languageSorter:("English")', sorts=["publicdate+desc"])
 
-  $:macros.IABookCarousel(key="children", title="Kids", query="preset:children", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:macros.IABookCarousel(key="children", title="Kids", query="preset:children", sorts=["loans__status__last_loan_date+desc"], test=test)
 
-  $:macros.IABookCarousel(key="thrillers", title="Thrillers", query="preset:thrillers", sorts=["downloads+desc"], limit=18, test=test)
+  $:macros.IABookCarousel(key="thrillers", title="Thrillers", query="preset:thrillers", sorts=["downloads+desc"], test=test)
 
-  $:macros.IABookCarousel(key="textbooks", title="Textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:macros.IABookCarousel(key="textbooks", title="Textbooks", query="openlibrary_subject:textbooks", sorts=["loans__status__last_loan_date+desc"], test=test)
 
-  $:macros.IABookCarousel(key="authorsalliance_mit_press", title="Authors Alliance & MIT Press", query="preset:authorsalliance_mitpress", limit=18, test=test)
+  $:macros.IABookCarousel(key="authorsalliance_mit_press", title="Authors Alliance & MIT Press", query="preset:authorsalliance_mitpress", test=test)
 
   $:render_template("home/stats", stats)
 

@@ -7,21 +7,20 @@ import datetime
 import time
 import logging
 import uuid
-import hmac
 import urllib
 import urllib2
-from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
 from infogami.utils import delegate
+
 from openlibrary.core import cache
+from openlibrary.core.helpers import parse_datetime
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 
 from . import ia
 from . import msgbroker
-from . import helpers as h
 
 logger = logging.getLogger(__name__)
 
@@ -38,9 +37,6 @@ LOAN_FULFILLMENT_TIMEOUT_SECONDS = dateutil.MINUTE_SECS * 5
 BOOKREADER_LOAN_DAYS = 14
 
 BOOKREADER_STREAM_URL_PATTERN = "https://{0}/stream/{1}"
-DEFAULT_IA_RESULTS = 42
-MAX_IA_RESULTS = 1000
-
 
 config_ia_loan_api_url = None
 config_ia_xauth_api_url = None
@@ -57,9 +53,7 @@ config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
 config_internal_tests_api_key = None
-config_amz_api = None
 
-amazon_api = None
 
 def setup(config):
     """Initializes this module from openlibrary config.
@@ -68,7 +62,7 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api, \
+        config_http_request_timeout, \
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
@@ -90,165 +84,7 @@ def setup(config):
     config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    config_amz_api = config.get('amazon_api')
-
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
-    except AttributeError:
-        amazon_api = None
-
-def get_work_authors_and_related_subjects(work_id):
-    if 'env' not in web.ctx:
-        delegate.fakeload()
-    work = web.ctx.site.get(work_id)
-    return {
-        'authors': work.get_author_names(blacklist=['anonymous']) if work else [],
-        'subjects': work.get_related_books_subjects() if work else []
-    }
-
-@public
-def cached_work_authors_and_subjects(work_id):
-    try:
-        return cache.memcache_memoize(
-            get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-            timeout=dateutil.HALF_DAY_SECS)(work_id)
-    except AttributeError:
-        return {'authors': [], 'subject': []}
-
-@public
-def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
-                   _type=None, sorts=None, advanced=True):
-    """This needs to be exposed by a generalized API endpoint within
-    plugins/openlibrary/api/browse which lets lazy-load more items for
-    the homepage carousel and support the upcoming /browse view
-    (backed by archive.org search, so we don't have to send users to
-    archive.org to see more books)
-    """
-    from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
-    query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
-    q = 'openlibrary_work:(*)'
-
-    # If we don't provide an openlibrary_subject and no collection is
-    # specified in our query, we restrict our query to the `inlibrary`
-    # collection (i.e. those books which are borrowable)
-    if (not subject) and (not query or 'collection:' not in query):
-        q += ' AND collection:(inlibrary)'
-    # In the only case where we are not restricting our search to
-    # borrowable books (i.e. `inlibrary`), we remove all the books
-    # which are `printdisabled` *outside* of `inlibrary`.
-    if 'collection:(inlibrary)' not in q:
-        q += ' AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
-
-    # If no lending restrictions (e.g. borrow, read) are imposed in
-    # our query, we assume only borrowable books will be included in
-    # results (not unrestricted/open books).
-    if (not query) or ('loans__status__status:' not in query):
-        q += ' AND loans__status__status:AVAILABLE'
-    if query:
-        q += " AND " + query
-    if subject:
-        q += " AND openlibrary_subject:" + subject
-
-    if work_id:
-        if _type.lower() in ["authors", "subjects"]:
-            _q = None
-            works_authors_and_subjects = cached_work_authors_and_subjects(work_id)
-            if works_authors_and_subjects:
-                if _type == "authors":
-                    authors = []
-                    for author_name in works_authors_and_subjects.get('authors', []):
-                        authors.append(author_name)
-                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
-                    if authors:
-                        _q = ' OR '.join(['creator:"%s"' % author for author in authors])
-                elif _type == "subjects":
-                    subjects = works_authors_and_subjects.get('subjects', [])
-                    if subjects:
-                        _q = ' OR '.join(['subject:"%s"' % subject for subject in subjects])
-            if not _q:
-                return []
-            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
-
-    if not advanced:
-        _sort = sorts[0] if sorts else ''
-        if '+desc' in _sort:
-            _sort = '-' + _sort.split('+desc')[0]
-        elif '+asc' in _sort:
-            _sort = _sort.split('+asc')[0]
-        return ('https://archive.org/search.php?query=%s' % q) + \
-            (('&sort=%s' % _sort) if _sort else '')
-
-    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work', 'loans__status__status']
-    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
-    sort = ('&'.join(['sort[]=%s' % s for s in
-                      (sorts if sorts and isinstance(sorts, list)
-                       else [''])]))
-    rows = limit or DEFAULT_IA_RESULTS
-    url = "http://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
-        config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
-    return url
-
-def get_random_available_ia_edition():
-    """uses archive advancedsearch to raise a random book"""
-    try:
-        url=("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
-             "+AND+loans__status__status:AVAILABLE"\
-             "&fl=identifier,openlibrary_edition,loans__status__status"\
-             "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
-        return items[0]["openlibrary_edition"]
-    except Exception as e:
-        return None
-
-def get_available(limit=None, page=1, subject=None, query=None,
-                  work_id=None, _type=None, sorts=None, url=None):
-    """Experimental. Retrieves a list of available editions from
-    archive.org advancedsearch which are available, in the inlibrary
-    collection, and optionally apart of an `openlibrary_subject`.
-
-    Returns a list of editions (one available edition per work). Is
-    used in such things as 'Staff Picks' carousel to retrieve a list
-    of unique available books.
-    """
-    url = url or compose_ia_url(
-        limit=limit, page=page, subject=subject, query=query,
-        work_id=work_id, _type=_type, sorts=sorts)
-    try:
-        request = urllib2.Request(url=url)
-
-        # Internet Archive Elastic Search (which powers some of our
-        # carousel queries) needs Open Library to forward user IPs so
-        # we can attribute requests to end-users
-        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
-        request.add_header('x-client-id', client_ip)
-
-        content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
-        results = {}
-        availability = {}
-        for item in items:
-            if item.get('openlibrary_work'):
-                availability['/books/' + item['openlibrary_edition']] = item
-                results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many([
-            '/books/%s' % result for result in results.values()])
-
-        # To avoid a 2nd network call to perform `add_availability`
-        # reconstruct availability ad-hoc from archive.org response
-        for i, _ in enumerate(books):
-            _item = availability[books[i].key]
-            books[i]['availability'] = {
-                'status': 'borrow_%s' % _item['loans__status__status'].lower(),
-                'identifier': _item['identifier'],
-                'openlibrary_edition': _item['openlibrary_edition'],
-                'openlibrary_work': _item['openlibrary_work']
-            }
-        return books
-    except Exception as e:
-        return {'error': 'request_timeout'}
+    
 
 
 def get_availability(key, ids):
@@ -283,9 +119,9 @@ def get_realtime_availability_of_ocaid(ocaid):
         'error': 'error'
     }
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urllib2.urlopen(
+            url=url, timeout=config_http_request_timeout).read()
         metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
         status = metadata.get('loans__status__status', 'error').lower()
         return {
             'status': statuses[status],
@@ -581,7 +417,7 @@ class Loan(dict):
         else:
             book_key = resolve_identifier(data['identifier'])
 
-        created = h.parse_datetime(data['created'])
+        created = parse_datetime(data['created'])
 
         # For historic reasons, OL considers expiry == None as un-fulfilled
         # loan.

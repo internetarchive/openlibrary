@@ -6,16 +6,12 @@ $ cover_host = '//covers.openlibrary.org'
 $ fallback_cover = 'https://archive.org/services/img/'
 
 $def render_carousel_cover(book, lazy_cover):
-  $if book.get('availability'):
-    $ availability_status = book['availability']['status']
-    $ ocaid = book['availability'].get('identifier') or book.get('ocaid') or book.get('ia')
-  $else:
-    $ ocaid = book.get('ocaid') or book.get('ia')
-    $ availability_status = 'open' if ocaid else 'error'
-
+  $ ocaid = book.get('availability', {}).get('identifier') or book.get('ocaid') or book.get('ia')
+  $ status = book.get('availability', {}).get('status', 'error')
+  $ availability_status = status if status != 'error' else 'open' if ocaid else 'error'
   $ availability = availability_types[availability_status]
-  $ url = book.get('key') or book.url
-  $ cta_url = ('/borrow/ia/%s' % book.get('ia')) if availability == 'borrow_available' else url
+  $ book_url = book.get('key') or book.url
+  $ cta_url = ('/borrow/ia/%s' % ocaid) if availability == 'borrow_available' else book_url
   $ title = book.title
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
@@ -24,24 +20,21 @@ $def render_carousel_cover(book, lazy_cover):
   $else:
     $ cover_url = '%s/b/ia/%s-M.jpg?default=%s%s' % (cover_host, ocaid, fallback_cover, ocaid)
   $ img_attr = 'data-lazy' if lazy_cover else 'src'
-  $if book.get('authors'):
-    $ author_names = [author.name for author in book.authors]
-    $ byline = ' by ' + ', '.join(author_names)
-  $else:
-    $ byline = ''
+  $ byline = ' by ' + ', '.join([author.name for author in book.authors]) if book.get('authors') else ''
 
   <div class="book carousel__item">
     <div class="book-cover">
-      <a href="$(url)">
+      <a href="$(book_url)">
         <img class="bookcover" width="130" height="200" title="$('%s%s' % (title, byline))"
              $img_attr="$(cover_url)"/>
       </a>
     </div>
-      <div class="book-cta">
-        <a class="cta-btn cta-btn--$(availability['cls'])"
-           href="$cta_url" data-ol-link-track="$key" title="$(availability['cta']): $book.title"
-           data-key="$key" data-ocaid="$ocaid">$availability['cta']</a>
-      </div>
+    <!-- title and author info can go here, issue #2084 -->
+    <div class="book-cta">
+      <a class="cta-btn cta-btn--$(availability['cls'])"
+         href="$cta_url" data-ol-link-track="$key" title="$(availability['cta']): $book.title"
+         data-key="$key" data-ocaid="$ocaid">$availability['cta']</a>
+    </div>
   </div>
 
 $if test or (books and len(books) >= min_books):
@@ -79,7 +72,7 @@ $if test or (books and len(books) >= min_books):
                           '<img class="bookcover" width="130" height="200" title="' +
                             work.title + '" src="' + cover_url + '">' +
                         '</a>' +
-                      '</div>' +
+                      '</div>' + //title and author info can go here, issue #2084
                       '<div class="book-cta">' +
                         '<a class="btn cta-btn cta-btn--' + cls + '" href="' + url +
                           '" data-ol-link-track="$key" ' +
@@ -95,7 +88,9 @@ $if test or (books and len(books) >= min_books):
                   6, 5, 4, 3, 2, 1, { // num books per responsive breakpoint
                   $if load_more:
                      url: '$:(load_more["url"].replace("&amp;", "&"))',
-                     getItems: function(results) { return results.works },
+                     getItems: function(results) {
+                         return results.works || results.editions
+                     },
                      addItem: addWork,
                      pageMode: '$(load_more.get("mode", "offset"))',
                      limit: $(load_more.get("limit", 18))

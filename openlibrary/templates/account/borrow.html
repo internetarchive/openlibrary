@@ -1,6 +1,6 @@
 $def with (user, loans)
 
-$var title: $_("Books You've Checked Out")
+$var title: $_("My Loans and Holds")
 
 <style type="text/css">
 .date, .waitrank {
@@ -63,14 +63,15 @@ window.q.push(function(){
 </script>
 
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;""><a href="$ctx.user.key">$ctx.user.displayname</a> /</div>
-    <h1>$_("Books You've Checked Out")</h1>
-
+    <div class="small sansserif grey" style="margin-bottom:5px;">
+      <a href="$ctx.user.key">$ctx.user.displayname</a>/</div>
 </div>
 
 <div id="contentBody">
+<h2>$_("My Active Loans")</h2>
 $if len(loans) == 0:
-    <div><em>You've not checked out any books at this moment.</em></div>
+    <p><em>You have no active loans.</em> If you're looking for a book, may we suggest one of these?</p>
+    $:macros.IABookCarousel(key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18)
 $else:
     $# Have current loans
     <div id="borrowTable" class="borrow collapse">
@@ -149,10 +150,12 @@ $else:
     </ol>
     -->
 
-<h1>$_("Books You're Waiting For")</h1>
+<h2>$_("My Active Holds")</h2>
 $ waitinglist = user.get_waitinglist()
 $if len(waitinglist) == 0:
-    <div><em>You are not waiting for any books at this moment.</em></div>
+    <p><em>You have no active holds.</em> Maybe you'd like to join the waitlist for one of these books?</p>
+    $:macros.IABookCarousel(key="staff_picks_waitlist", query='languageSorter:("English") AND loans__status__status:UNAVAILABLE', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18)
+
 $else:
     <div id="leave-waitinglist-dialog" class="hidden dialog" title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
     <script type="text/javascript">
@@ -252,10 +255,13 @@ $else:
     </table>
     </div>
 
+<h2>$_("My Borrow History")</h2>
+<p>
+  View your complete <a href="https://archive.org/account/index.php?tab=loans#loans-history">borrow history</a> on Archive.org or manage your <a href="https://archive.org/account/index.php?settings=1">Borrowing History</a> setting.
+</p>
 
-$# XXX borrow history not yet recorded so we show instructions if no current loans
-<!-- if no borrow history -->
-$if len(loans) == 0 and len(waitinglist) == 0:
+<hr>
+<h2>$_("Borrowing Help")</h2>
     <div class="contentHalf">
         <p>
         $_("There are 2 different sources for borrowing books through Open Library:")</p>
@@ -297,6 +303,6 @@ $if len(loans) == 0 and len(waitinglist) == 0:
         <p class="small sansserif"><a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com</p>
     </div>
     <div class="clearfix"></div>
-    <p class="small sansserif lightgreen">$:_('If you work at a library and are interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
+    <p class="small sansserif">$:_('If you work at a library and are interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>
 
 </div>

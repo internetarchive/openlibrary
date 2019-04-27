@@ -21,7 +21,14 @@ from openlibrary.core.ratings import Ratings
 
 # relative imports
 from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+from . import db
+from . import cache
+from . import iprange
+from . import inlibrary
+from . import loanstats
+from . import waitinglist
+from . import lending
+from . import search
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -195,6 +202,17 @@ class Thing(client.Thing):
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
+
+    @staticmethod
+    def get_random_available():
+        """Uses archive.org AdvancedSearch API to find a random available
+        edition on Open Library
+        """
+        results = search.get_editions_by_ia_query(
+            limit=1, sorts=['random'])        
+        if results.get('editions'):
+            return results.get('editions')[0]
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
@@ -345,6 +363,10 @@ class Edition(Thing):
         """Returns True if the book is lendable.
         """
         return self.in_borrowable_collection()
+
+    @staticmethod
+    def random_available():
+        return search.EditionSearch.random_available()
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.
@@ -828,6 +850,7 @@ class Library(Thing):
         return stats.get_loans_per_day(resource_type=resource_type)
 
 class Subject(web.storage):
+
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
             "type": "/type/list",

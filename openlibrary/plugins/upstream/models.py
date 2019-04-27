@@ -4,6 +4,7 @@ import web
 import urllib2
 import simplejson
 import re
+import six
 from collections import defaultdict
 
 from infogami import config
@@ -14,17 +15,25 @@ from infogami.utils import stats
 from openlibrary.core import models, ia
 from openlibrary.core.models import Image
 from openlibrary.core import lending
+from openlibrary.core import search
+from openlibrary.core import cache
 
 from openlibrary.plugins.search.code import SearchProcessor
-from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.plugins.worksearch.subjects import (
+    is_relatable_subject)
+from openlibrary.plugins.worksearch.code import (
+    works_by_author, sorted_work_editions)
 from openlibrary.utils.solr import Solr
+from openlibrary.utils import dateutil
 
-from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-import account
+from utils import get_coverstore_url
+from utils import MultiDict
+from utils import parse_toc
+from utils import get_edition_config
+
+
 import borrow
 import logging
-
-import six
 
 
 def follow_redirect(doc):
@@ -589,31 +598,68 @@ class Work(models.Work):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
-    @staticmethod
-    def filter_problematic_subjects(subjects, filter_unicode=True):
-        blacklist = ['accessible_book', 'protected_daisy',
-                     'in_library', 'overdrive', 'large_type_books',
-                     'internet_archive_wishlist', 'fiction',
-                     'popular_print_disabled_books',
-                     'fiction_in_english', 'open_library_staff_picks',
-                     'inlibrary', 'printdisabled', 'browserlending',
-                     'biographies', 'open_syllabus_project', 'history',
-                     'long_now_manual_for_civilization', 'Popular works']
-        blacklist_chars = ['(', ',', '\'', ':', '&', '-', '.']
-        ok_subjects = []
-        for subject in subjects:
-            _subject = subject.lower().replace(' ', '_')
-            subject = subject.replace('_', ' ')
-            if (_subject not in blacklist and
-                (not filter_unicode or (
-                    subject.replace(' ', '').isalnum() and 
-                    not isinstance(subject, six.text_type))) and
-                all([char not in subject for char in blacklist_chars])):
-                ok_subjects.append(subject)
-        return ok_subjects        
+    def get_related_editions_by_author(self, page=1, limit=None,
+                                       timeout=cache.DEFAULT_CACHE_LIFETIME):
+        """Gets a page of editions by the same author as this work
+        and caches the result
+        """
 
-    def get_related_books_subjects(self, filter_unicode=True):
-        return self.filter_problematic_subjects(self.get_subjects())
+        def last_first(name):
+            return ','.join(author_name.split(' ', 1)[::-1])
+
+        def prepare_query(authors):
+            """For every author name, include both variations of their name
+            in the creator search. Don't include original work inresults
+            """
+            return ' OR '.join([
+                'creator:"%s"' % variation 
+                for variation in [author_name, last_first(author_name)]
+                for author_name in work_authors
+            ]) + ' AND !openlibrary_work(%s)' % self.key.split('/')[-1]
+
+        def get_related_editions(self, page=1, limit=None):
+            work_authors = self.get_author_names(blacklist=['anonymous'])
+            if work_authors:
+                return search.editions_by_ia_query(
+                    query=prepare_query(authors), page=page, limit=limit)
+            return {'error': 'no matches'}
+
+        # XXX
+        return search.editions_by_ia_query(self, page=page, limit=limit)
+        return storify(cache.memcache_memoize(
+            get_related_editions, 'work.related_author_editions',
+            timeout=dateutil.HOUR_SECS)(self, page=page, limit=limit))
+
+    def get_related_editions_by_subjects(
+            self, page=1, limit=None,
+            timeout=cache.DEFAULT_CACHE_LIFETIME):
+
+        def prepare_query(subjects):
+            # search any of these subjects, excluding searched work
+            return ' OR '.join([
+                'subject:"%s"' % subject.replace('_', ' ')
+                for subject in work_subjects
+                ]) + ' AND !openlibrary_work(%s)' % self.key.split('/')[-1]
+
+        def get_related_editions(self, page=1, limit=None):
+            if 'env' not in web.ctx:
+                delegate.fakeload()
+
+            work_subjects = [
+                subject for subject in get_subjects() if
+                is_relatable_subject(subject) and
+                subject.replace('_', '').isalnum()
+            ]
+            if work_subjects:
+                return search.editions_by_ia_query(
+                    query=prepare_query(subjects), page=page, limit=limit)
+            return {'error': 'no matches'}
+        # XXX
+        return search.editions_by_ia_query(self, page=page, limit=limit)
+        return storify(cache.memcache_memoize(
+            get_related_editions, 'work.related_subject_editions',
+            timeout=dateutil.HOUR_SECS)(self, page=page, limit=limit))
+
 
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
@@ -657,10 +703,6 @@ class Subject(client.Thing):
             q = {'subjects': name, "facets": True}
             self._solr_result = SearchProcessor().search(q)
         return self._solr_result
-
-    def get_related_subjects(self):
-        # dummy subjects
-        return [web.storage(name='France', key='/subjects/places/France'), web.storage(name='Travel', key='/subjects/Travel')]
 
     def get_covers(self, offset=0, limit=20):
         editions = self.get_editions(offset, limit)

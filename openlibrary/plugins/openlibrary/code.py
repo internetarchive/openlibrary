@@ -23,15 +23,19 @@ if not hasattr(infogami.config, 'features'):
 
 from infogami.utils.app import metapage
 from infogami.utils import delegate
-from infogami.utils.view import render, render_template, public, safeint, add_flash_message
+from infogami.utils.view import render
+from infogami.utils.view import render_template
+from infogami.utils.view import public
+from infogami.utils.view import safeint
+from infogami.utils.view import add_flash_message
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core.models import Edition
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
-from openlibrary.plugins.openlibrary.home import format_work_data
 
 from openlibrary.plugins.openlibrary import processors
 
@@ -190,6 +194,15 @@ class routes(delegate.page):
             code.delegate.pages, sort_keys=True, cls=ModulesToStr,
             indent=4, separators=(',', ': '))
 
+class random_book(delegate.page):
+    path = "/random"
+
+    def GET(self):
+        ed = Edition.get_random_available()
+        if ed:
+            raise web.seeother(ed.key)
+        raise web.seeother("/")
+
 class addbook(delegate.page):
     path = "/addbook"
 
@@ -221,7 +234,7 @@ class widget(delegate.page):
             item['availability'] = getter(olid).get(item['olid'])
             item['authors'] = [web.storage(key=a.key, name=a.name or None) for a in item.get_authors()]
             return delegate.RawText(
-                render_template("widget", item if _type == 'books' else format_work_data(item)),
+                render_template("widget", item if _type == 'books' else dict(item)),
                 content_type="text/html")
         raise web.seeother("/")
 
@@ -819,11 +832,13 @@ def setup_context_defaults():
     })
 
 def setup():
-    from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
-                                                 stats, support, events, design, status,
-                                                 merge_editions, authors)
+    from openlibrary.plugins.openlibrary import (
+        home, inlibrary, borrow_home, libraries,
+        stats, support, events, design, status,
+        merge_editions, authors, carousels)
 
     home.setup()
+    carousels.setup()
     design.setup()
     inlibrary.setup()
     borrow_home.setup()

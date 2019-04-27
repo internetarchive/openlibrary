@@ -1,11 +1,15 @@
-$def with (test=False)
+$def with (header=True, test=False)
 
-$ subjects = get_cached_featured_subjects() if not test else []
+$ subjects = get_featured_subjects() if not test else []
 $if subjects:
   <div class="carousel-section">
-    <div class="carousel-section-header">
-      <h2 class="home-h2"><a href="/subjects">Browse by Subject</a></h2>
-    </div>
+    $if header:
+      <div class="carousel-section-header">
+        <h2 class="home-h2">
+          <a href="/subjects">Browse by Subject</a>
+        </h2>
+      </div>
+
     <hr>
     <div class="carousel-container">
       <div class="carousel" id="categories_carousel">

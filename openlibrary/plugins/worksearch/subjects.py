@@ -37,11 +37,57 @@ re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
 re_year = re.compile(r'\b(\d+)$')
 
 SUBJECTS = [
-    web.storage(name="person", key="people", prefix="/subjects/person:", facet="person_facet", facet_key="person_key"),
-    web.storage(name="place", key="places", prefix="/subjects/place:", facet="place_facet", facet_key="place_key"),
-    web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
-    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
+    web.storage(name="person", key="people", prefix="/subjects/person:",
+                facet="person_facet", facet_key="person_key"),
+    web.storage(name="place", key="places", prefix="/subjects/place:",
+                facet="place_facet", facet_key="place_key"),
+    web.storage(name="time", key="times", prefix="/subjects/time:",
+                facet="time_facet", facet_key="time_key"),
+    web.storage(name="subject", key="subjects", prefix="/subjects/",
+                facet="subject_facet", facet_key="subject_key"),
 ]
+
+FEATURED_SUBJECTS = [
+    'art', 'science_fiction', 'fantasy', 'biographies', 'recipes',
+    'romance', 'textbooks', 'children', 'history', 'medicine', 'religion',
+    'mystery_and_detective_stories', 'plays', 'music', 'science'
+]
+
+# subjects not suitable (too generic or overloaded) for related matching
+NON_RELATABLE_SUBJECTS = [    
+    'accessible_book', 'protected_daisy',
+    'in_library', 'overdrive', 'large_type_books',
+    'internet_archive_wishlist', 'fiction',
+    'popular_print_disabled_books',
+    'fiction_in_english', 'open_library_staff_picks',
+    'inlibrary', 'printdisabled', 'browserlending',
+    'biographies', 'open_syllabus_project', 'history',
+    'long_now_manual_for_civilization', 'popular_works'
+]
+
+BLACKLIST_SUBJECT_CHARS = ['(', ',', '\'', ':', '&', '-', '.']
+
+def is_relatable_subject(subject):
+    _subject = subject.lower().replace(' ', '_')
+    return not _subject in NON_RELATABLE_SUBJECTS
+
+@public
+def get_featured_subjects():
+    def featured_subjects():
+        # web.ctx must be initialized, unavailable when method cached
+        if 'env' not in web.ctx:
+            delegate.fakeload()
+
+        return dict([
+            (subject_name, subjects.get_subject(
+                '/subjects/' + subject_name, sort='edition_count'))
+            for subject_name in FEATURED_SUBJECTS
+        ])
+
+    return cache.memcache_memoize(
+        featured_subjects, "home.featured_subjects",
+        timeout=dateutil.HOUR_SECS)()
+
 
 class subjects_index(delegate.page):
     path = "/subjects"
@@ -51,6 +97,7 @@ class subjects_index(delegate.page):
         page = render_template("subjects/index.html")
         page.v2 = True
         return page
+
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
@@ -134,10 +181,6 @@ class subjects_json(delegate.page):
     def process_key(self, key):
         return key
 
-@public
-def get_cached_subject_works(key, timeout=cache.DEFAULT_CACHE_LIFETIME):
-    return [storify(book) for book in json.loads(cache.memcache_memoize(
-        get_subject_works, 'subjects.subject_works', timeout=timeout)(key))]
 
 class subject_works_json(delegate.page):
     path = '(/subjects/[^/]+)/works'
@@ -195,6 +238,12 @@ def get_subject_works(key):
         'public_scan_b': 'false',
         'lending_edition_s': '*'
     })
+
+@public
+def get_cached_subject_works(key, timeout=cache.DEFAULT_CACHE_LIFETIME):
+    return get_subject_works(key) # XXX Testing!
+    return cache.memcache_memoize(get_subject_works, 'subjects.subject_works', timeout=timeout)(key)
+
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
@@ -493,6 +542,7 @@ def execute_ebook_count_query(q):
         start += rows
 
     return dict(years)
+
 
 def setup():
     """Placeholder for doing any setup required.

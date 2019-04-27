@@ -7,7 +7,7 @@ from infogami.utils.view import render_template, public
 
 logger = logging.getLogger("openlibrary.design")
 
-class home(delegate.page):
+class design_template(delegate.page):
     path = "/developers/design"
 
     def GET(self):

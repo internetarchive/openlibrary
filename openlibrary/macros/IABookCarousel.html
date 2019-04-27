@@ -1,7 +1,8 @@
-$def with(key, title='', query='', subject='', work_id='', _type='', sorts='', limit=None, min_books=7, test=False)
+$def with(key, title='', query='', sorts='', limit=18, min_books=7, test=False)
 
-$ url = compose_ia_url(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit, advanced=False)
-$ books = generic_carousel(query=query, subject=subject, work_id=work_id, _type=_type, sorts=sorts, limit=limit) if not test else []
+$ results = get_editions_by_ia_query(query=query, sorts=sorts, limit=limit) if not test else {}
+$ editions = results.get('editions', [])
+$ url = results.get('browse_url')
 $ sorts = ','.join(sorts) if sorts else ''
-$ load_more_url = '/browse.json?q=%s&subject=%s&work_id=%s&_type=%s&sorts=%s' % (query, subject, work_id, _type, sorts)
-$:macros.BookCarousel(books, title=title, url=url, key=key, min_books=min_books, load_more={"url": load_more_url, "mode": "page", "limit": limit}, test=test)
+$ load_more_url = '/browse.json?q=%s&sorts=%s' % (query, sorts)
+$:macros.BookCarousel(editions, title=title, url=url, key=key, min_books=min_books, load_more={"url": load_more_url, "mode": "page", "limit": limit}, test=test)

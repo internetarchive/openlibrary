@@ -790,7 +790,7 @@ def resource_uses_bss(resource_id):
 
 def user_can_borrow_edition(user, edition, resource_type):
     """Returns True if the book is eligible for lending and available, and
-    if the user is pemitted to borrow this edition given their current
+    if the user is permitted to borrow this edition given their current
     number of loans and their position on the waiting list (if
     applicable)
     """

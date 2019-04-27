@@ -1,6 +1,20 @@
 // used in templates/covers/add.html
 
 const Carousel = {
+
+    /**
+     * function Carousel.add instantiates a new slick carousel and optionally
+     * loadMore params for lazy-loading more pages of results on the fly
+     * @param {string} selector to bind carousel
+     * @param {string} a - f are number of items to render at different mobile breakpoints
+     * @param {{ 
+     *   url:string endpoint for fetching additional results
+     *   getItems:function which extracts item values out of the API response
+     *   addItem:function which consumes and item and returns html to add as a new slide
+     *   limit:int number of slides to add when end is hit
+     *   pageMode:string which specifies if API uses 'page' or 'offset' as its mechanism
+     * }} loadMore is a dict of options for lazy-loading and includes:
+     */
     add: function(selector, a, b, c, d, e, f, loadMore) {
         a = a || 6;
         b = b || 5;
@@ -97,10 +111,10 @@ const Carousel = {
 
                     // update the current page or offset within the URL
                     url.searchParams.set(loadMore.pageMode, loadMore.page);
-
+                    
                     $.ajax({
-                        'url': url,
-                        'type': 'GET',
+                        url: url,
+                        type: 'GET',
                         success: function(result) {
                             var items = loadMore.getItems(result)
                             $.each(items, function(item_index) {

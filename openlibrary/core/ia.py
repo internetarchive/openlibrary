@@ -1,18 +1,22 @@
 """Library for interacting wih archive.org.
 """
+
 import os
+import cache
 import urllib2
 import datetime
+import six
 from xml.dom import minidom
 import simplejson
 import web
 import logging
+
 from infogami import config
 from infogami.utils import stats
-import cache
-from openlibrary.utils.dateutil import date_n_days_ago
 
-import six
+from openlibrary.utils.dateutil import date_n_days_ago, HOUR_SECS
+
+
 
 logger = logging.getLogger('openlibrary.ia')
 
@@ -46,7 +50,7 @@ def get_metadata(itemid):
     item_json = get_item_json(itemid)
     return extract_item_metadata(item_json)
 
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*HOUR_SECS)
 
 def process_metadata_dict(metadata):
     """Process metadata dict to make sure multi-valued fields like

@@ -10,15 +10,25 @@ import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from infogami.plugins.api.code import jsonapi
+
 from openlibrary import accounts
-from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.catalog.add_book import load
+from openlibrary.core import db
+from openlibrary.core import ia
+from openlibrary.core import lending
+from openlibrary.core import models
+from openlibrary.core import cache
+from openlibrary.core.models import Work
+from openlibrary.core.helpers import safeint
+from openlibrary.core.search import editions_by_ia_query
 from openlibrary.core.vendors import (
     get_amazon_metadata, clean_amazon_metadata_for_load,
     get_betterworldbooks_metadata)
+from openlibrary.plugins.worksearch.subjects import get_subject
+
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils import dateutil
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -42,38 +52,49 @@ class book_availability(delegate.page):
 
     def get_book_availability(self, id_type, ids):
         return (
-            lending.get_availability_of_works(ids) if id_type == "openlibrary_work"
+            lending.get_availability_of_works(ids)
+            if id_type == "openlibrary_work"
             else
-            lending.get_availability_of_editions(ids) if id_type == "openlibrary_edition"
+            lending.get_availability_of_editions(ids)
+            if id_type == "openlibrary_edition"
             else
-            lending.get_availability_of_ocaids(ids) if id_type == "identifier"
+            lending.get_availability_of_ocaids(ids)
+            if id_type == "identifier"
             else []
         )
+
+class work_related_editions(delegate.page):
+    path = '(/works/OL\d+W)/related-editions'
+    encoding = "json"
+
+    def GET(self, work_key):
+        i = web.input(by='author', page=1, limit=100)
+        page = int(i.page)
+        limit = int(i.limit)
+        work = web.ctx.site.get(work_key)
+        method = (work.get_related_editions_by_authors
+                  if _type == 'author' else
+                  work.get_related_editions_by_subjects)
+        result = method(page=page, limit=limit)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
+
 
 class browse(delegate.page):
     path = "/browse"
     encoding = "json"
 
     def GET(self):
-        i = web.input(q='', page=1, limit=100, subject='',
-                      work_id='', _type='', sorts='')
-        sorts = i.sorts.split(',')
+        i = web.input(q='', sorts='', page=1, limit=100)
         page = int(i.page)
         limit = int(i.limit)
-        url = lending.compose_ia_url(
-            query=i.q, limit=limit, page=page, subject=i.subject,
-            work_id=i.work_id, _type=i._type, sorts=sorts)
-        result = {
-            'query': url,
-            'works': [
-                work.dict() for work in lending.add_availability(
-                    lending.get_available(url=url)
-                )
-            ]
-        }
-        return delegate.RawText(
-            simplejson.dumps(result),
-            content_type="application/json")
+        sorts = i.sorts.split(',')
+        result = cache.memcache_memoize(
+            editions_by_ia_query, 'editions.search_ia',
+            timeout=cache.DEFAULT_CACHE_LIFETIME)(
+                query=i.q, sorts=sorts, page=page, limit=limit)
+        return delegate.RawText(simplejson.dumps(result),
+                                content_type="application/json")
 
 class ratings(delegate.page):
     path = "/works/OL(\d+)W/ratings"
@@ -83,8 +104,10 @@ class ratings(delegate.page):
         """Registers new ratings for this work"""
         user = accounts.get_current_user()
         i = web.input(edition_id=None, rating=None, redir=False)
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
-        edition_id = int(extract_numeric_id_from_olid(i.edition_id)) if i.edition_id else None
+        key = i.edition_id if i.edition_id else (
+            '/works/OL%sW' % work_id)
+        edition_id = int(extract_numeric_id_from_olid(
+            i.edition_id)) if i.edition_id else None
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
@@ -126,8 +149,10 @@ class work_bookshelves(delegate.page):
 
     def POST(self, work_id):
         user = accounts.get_current_user()
-        i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
-        key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
+        i = web.input(edition_id=None, action="add",
+                      redir=False, bookshelf_id=None)
+        key = i.edition_id if i.edition_id else (
+            '/works/OL%sW' % work_id)
 
         if not user:
             raise web.seeother('/account/login?redirect=%s' % key)
@@ -146,7 +171,8 @@ class work_bookshelves(delegate.page):
 
         if bookshelf_id == current_status:
             work_bookshelf = models.Bookshelves.remove(
-                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
+                username=username, work_id=work_id,
+                bookshelf_id=i.bookshelf_id)
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
@@ -171,8 +197,8 @@ class work_editions(delegate.page):
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
+            limit = safeint(i.limit) or 50
+            offset = safeint(i.offset) or 0
 
             data = self.get_editions_data(doc, limit=limit, offset=offset)
             return delegate.RawText(simplejson.dumps(data), content_type="application/json")
@@ -212,8 +238,8 @@ class author_works(delegate.page):
             raise web.notfound('')
         else:
             i = web.input(limit=50, offset=0)
-            limit = h.safeint(i.limit) or 50
-            offset = h.safeint(i.offset) or 0
+            limit = safeint(i.limit) or 50
+            offset = safeint(i.offset) or 0
 
             data = self.get_works_data(doc, limit=limit, offset=offset)
             return delegate.RawText(simplejson.dumps(data), content_type="application/json")

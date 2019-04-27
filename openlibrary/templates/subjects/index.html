@@ -3,23 +3,24 @@ $def with ()
 $var title: Subjects
 
 <div class="page-heading-search-box">
-	<h1 class="inline">Subjects</h1>
-	<p>Browse the wonderful world of Subject Headings. It's a bit like a thesaurus, only better!
-	</p>
-	<form action="/search/subjects" class="olform">
-	    <h2 class="collapse inline">
-			<label for="searchSubjects">Subject Search</label>
-		</h2>
-		<span class="sansserif grey smaller">Try a keyword.</span>
-	    <p>
-	        <input type="text" name="q" id="searchSubjects" size="100" class="larger" value=""/>
-	        <input type="submit" class="large" value="Search"/>
-	    </p>
-	</form>
+  <h1 class="inline">Subjects</h1>
+  <form action="/search/subjects" class="olform">
+    <input type="text" placeholder="Search by Topic, Place, People, and more" name="q"
+           id="searchSubjects" size="100" class="larger" value=""/>
+    <input type="submit" class="large" value="Search"/>
+  </form>
 </div>
+
 <div class="contentBody">
-	<div class="contentQuarter link-box">
-		<h6>Subjects</h6>
+  $:render_template("home/categories", header=False)
+  $:macros.OLBookCarousel(key='/subjects/art', title='Art')
+  $:macros.OLBookCarousel(key='/subjects/fantasy', title='Fantasy')
+  $:macros.OLBookCarousel(key='/subjects/romance', title='Romance')
+  $:macros.IABookCarousel(key='children', title="Kids", query="preset:children", sorts=["loans__status__last_loan_date+desc"])
+
+  <h2>More Subjects</h2>
+  <div class="contentQuarter link-box">
+    <h6>Subjects</h6>
     	<ul>
     	 <li>
     	     <a href="/subjects/halley's_comet" rel="nofollow">Halley's Comet</a><br/>
@@ -106,6 +107,7 @@ $var title: Subjects
 	</div>
 	<div class="clearfix">
 	</div>
+        <hr>
 	<h3>Special Subjects</h3>
 	<p>We also use subjects on Open Library to gather together books that you can read in some form now, like:
 	</p>

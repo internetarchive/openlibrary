@@ -1,10 +1,12 @@
-"""Search utilities.
-"""
-from openlibrary.utils.solr import Solr
-from infogami import config
-from infogami.utils import stats
+"""Search utilities"""
+
 import web
 import logging
+
+from infogami import config
+from infogami.utils import stats
+
+from openlibrary.utils.solr import Solr
 
 def get_solr():
     base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
@@ -93,8 +95,27 @@ def work_wrapper(w):
     d.authors = [web.storage(key='/authors/' + k, name=n)
                  for k, n in zip(w['author_key'], w['author_name'])]
 
-    d.first_publish_year = (w['first_publish_year'][0] if 'first_publish_year' in w else None)
+    d.first_publish_year = (w['first_publish_year'][0]
+                            if 'first_publish_year' in w else None)
     d.ia = w.get('ia', [])
     d.public_scan = w.get('public_scan_b', bool(d.ia))
     d.has_fulltext = w.get('has_fulltext', "false")
     return d
+
+def random_readable_works(limit=2000, _cache=False):
+    solr = get_solr()
+    sort = "edition_count desc"
+    works = solr.select(
+        query='has_fulltext:true -public_scan_b:false',
+        rows=limit,
+        sort=sort,
+        fields=[
+            'has_fulltext',
+            'key',
+            'ia',
+            "title",
+            "cover_edition_key",
+            "author_key", "author_name"
+        ]).get('docs', [])
+    return works
+

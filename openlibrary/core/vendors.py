@@ -11,7 +11,19 @@ from openlibrary.utils.isbn import (
 from openlibrary.catalog.add_book import load
 from openlibrary import accounts
 
-BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
+BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx'
+
+amazon_api = None
+
+def setup(config):
+    global amazon_api
+    config_amazon_api = config.get('amazon_api')
+    try:
+        amazon_api = AmazonAPI(
+            config_amz_api.key, config_amz_api.secret,
+            config_amz_api.id, MaxQPS=0.9)
+    except AttributeError:
+        amazon_api = None
 
 @public
 def get_amazon_metadata(isbn):
@@ -27,9 +39,9 @@ def _get_amazon_metadata(isbn=None):
     # isbn=, asin=, title=, authors=, etc
     isbn = normalize_isbn(isbn)
     try:
-        if not lending.amazon_api:
+        if not amazon_api:
             raise Exception
-        product = lending.amazon_api.lookup(
+        product = amazon_api.lookup(
             ItemId=isbn, IdType="ISBN", SearchIndex="Books")
     except Exception as e:
         return None
@@ -151,7 +163,7 @@ def cached_get_amazon_metadata(*args, **kwargs):
 
 
 def _get_betterworldbooks_metadata(isbn):
-    url = BETTERWORLDBOOKS_API_URL + isbn
+    url = BETTERWORLDBOOKS_API_URL + '?ItemId=' + isbn
     try:
         req = urllib2.Request(url)
         f = urllib2.urlopen(req)
