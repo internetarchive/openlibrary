@@ -4,6 +4,7 @@ from . import load, RequiredField, build_pool, add_db_name
 from .. import add_book
 import os
 import pytest
+from infogami.infobase.core import Text
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
@@ -49,7 +50,7 @@ def test_build_query(add_languages):
     }
     q = build_query(rec)
     assert q['title'] == 'magic'
-    assert q['description'] == { 'type': '/type/text', 'value': 'test' }
+    assert q['description'] == {'type': '/type/text', 'value': 'test'}
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
@@ -232,7 +233,6 @@ def test_from_marc_fields(mock_site, add_languages):
     # Pagination 300
     assert edition['number_of_pages'] == 264
     assert edition['pagination'] == 'viii, 264 p.'
-
     # 8 subjects, 650
     assert len(edition['subjects']) == 8
     assert edition['subjects'] == [u'Action and adventure films',
@@ -243,13 +243,13 @@ def test_from_marc_fields(mock_site, add_languages):
                                    u'Physics in motion pictures',
                                    u'Science fiction films',
                                    u'Popular works']
-
     # Edition description from 520
     desc = 'Explains the basic laws of physics, covering such topics as mechanics, forces, and energy, while deconstructing famous scenes and stunts from motion pictures, including "Apollo 13" and "Titanic," to determine if they are possible.'
-    #assert isinstance(edition['description'], dict)
-    #assert edition['description'].get('value') == desc
+    assert isinstance(edition['description'], Text)
+    assert edition['description'] == desc
     # Work description from 520
     #work = mock_site.get(reply['work']['key'])
+    #assert work['description'] == desc
 
 def test_build_pool(mock_site):
     assert build_pool({'title': 'test'}) == {}
