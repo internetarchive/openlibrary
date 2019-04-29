@@ -2,7 +2,7 @@
   "publishers": [
     "Seeley and Co."
   ], 
-  "pagination": "viii p., 1 l.,", 
+  "pagination": "viii p., 1 l.",
   "subtitle": "a romance of many dimensions", 
   "title": "Flatland", 
   "languages": ["eng"],

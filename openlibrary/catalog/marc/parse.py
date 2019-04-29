@@ -358,7 +358,7 @@ def read_pagination(rec):
     if pagination:
         edition['pagination'] = ' '.join(pagination)
         # strip trailing characters from pagination
-        edition['pagination'] = re.sub(r' *[:;]$', '', edition['pagination'])
+        edition['pagination'] = re.sub(r' *[,:;]$', '', edition['pagination'])
         num = [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
         for x in pagination:
             num += [int(i) for i in re_int.findall(x.replace(',',''))]
