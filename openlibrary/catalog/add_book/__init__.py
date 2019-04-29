@@ -158,6 +158,9 @@ def new_work(edition, rec, cover_id=None):
     if 'authors' in edition:
         w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': akey} for akey in edition['authors']]
 
+    if 'description' in rec:
+        w['description'] = {'type': '/type/text', 'value': rec['description']}
+
     wkey = web.ctx.site.new_key('/type/work')
     if edition.get('covers'):
         w['covers'] = edition['covers']
@@ -594,12 +597,17 @@ def load(rec, account=None):
             e['covers'] = [cover_id]
             need_edition_save = True
 
-    # Add cover to work if needed
+    # Add cover to work, if needed
     if not w.get('covers') and e.get('covers'):
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
-    # Add authors to work if needed
+    # Add description to work, if needed
+    if not w.get('description') and e.get('description'):
+        w['description'] = e['description']
+        need_work_save = True
+
+    # Add authors to work, if needed
     if not w.get('authors'):
         authors = [import_author(a) for a in rec.get('authors', [])]
         w['authors'] = [{'type':{'key': '/type/author_role'}, 'author': a.key} for a in authors if a.get('key')]

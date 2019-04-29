@@ -248,8 +248,9 @@ def test_from_marc_fields(mock_site, add_languages):
     assert isinstance(edition['description'], Text)
     assert edition['description'] == desc
     # Work description from 520
-    #work = mock_site.get(reply['work']['key'])
-    #assert work['description'] == desc
+    work = mock_site.get(reply['work']['key'])
+    assert isinstance(work['description'], Text)
+    assert work['description'] == desc
 
 def test_build_pool(mock_site):
     assert build_pool({'title': 'test'}) == {}
