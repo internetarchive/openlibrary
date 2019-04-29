@@ -76,8 +76,8 @@ class TestMarcParse(unittest.TestCase):
 
     def test_read_pagination(self):
         data = [
-            ("xx, 1065 , [57] p. :", 1065),
-            ("193 p., 31 p. of plates", 193),
+            ('xx, 1065 , [57] p.', 1065),
+            ('193 p., 31 p. of plates', 193),
         ]
         for (value, expect) in data:
             rec = MockRecord('300', [('a', value)])

@@ -231,7 +231,7 @@ def test_from_marc_fields(mock_site, add_languages):
     assert edition['publish_places'][0] == 'New York'
     # Pagination 300
     assert edition['number_of_pages'] == 264
-    #assert edition['pagination'] == 'viii, 264 p.'
+    assert edition['pagination'] == 'viii, 264 p.'
 
     # 8 subjects, 650
     assert len(edition['subjects']) == 8
