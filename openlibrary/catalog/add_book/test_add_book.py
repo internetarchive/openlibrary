@@ -215,6 +215,20 @@ def test_from_marc(mock_site, add_languages):
     assert a.birth_date == '1838'
     assert a.death_date == '1926'
 
+def test_author_from_700(mock_site, add_languages):
+    ia = 'sexuallytransmit00egen'
+    data = open_test_data(ia + '_meta.mrc').read()
+    rec = read_edition(MarcBinary(data))
+    rec['source_records'] = ['ia:' + ia]
+    reply = load(rec)
+    assert reply['success'] is True
+    # author from 700
+    akey = reply['authors'][0]['key']
+    a = mock_site.get(akey)
+    assert a.type.key == '/type/author'
+    assert a.name == 'Laura K. Egendorf'
+    assert a.birth_date == '1973'
+
 def test_from_marc_fields(mock_site, add_languages):
     ia = 'isbn_9781419594069'
     data = open_test_data(ia + '_meta.mrc').read()
