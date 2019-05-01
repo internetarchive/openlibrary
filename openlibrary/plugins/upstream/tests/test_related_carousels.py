@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 from .. import models
+from openlibrary.plugins.worksearch.subjects import filter_unrelatable_subjects
+
 
 def test_related_subjects():
     subjects = set([
@@ -8,5 +10,5 @@ def test_related_subjects():
     expected_subjects = set([
         "Conduct of life", "Physicians in fiction", "England in fiction", "Supernatural", "Scottish Horror tales", "Horror fiction", "Mystery and detective stories", "Physicians", "Horror", "Classic Literature", "Multiple personality in fiction", "Conduct of life in fiction", "Supernatural in fiction", "Juvenile fiction", "History and criticism", "Horror tales", "English fiction", "Social conditions", "Horror stories", "Multiple personality"
     ])
-    actual_subjects = set(models.Work.filter_problematic_subjects(subjects))
+    actual_subjects = set(filter_unrelatable_subjects(subjects))
     assert (actual_subjects ^ expected_subjects) == set([])

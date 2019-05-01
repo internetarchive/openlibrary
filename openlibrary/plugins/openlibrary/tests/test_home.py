@@ -3,7 +3,7 @@ import pytest
 import sys
 import web
 
-from infogami.utils.view import render_template, macro
+from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
@@ -80,13 +80,15 @@ class TestHomeTemplates:
                 "key": "/books/OL1M",
                 "url": "/books/OL1M",
                 "title": "The Great Book",
-                "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
+                "authors": [web.storage({
+                    "key": "/authors/OL1A",
+                    "name": "Some Author"
+                })],
                 "read_url": "http://archive.org/stream/foo",
                 "borrow_url": "/books/OL1M/foo/borrow",
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
-        monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         html = six.text_type(render_template("home/index", stats=stats, test=True))
         headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "New Arrivals", "Classic Books", "Textbooks"]
@@ -108,11 +110,15 @@ class Test_format_book_data:
         work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo", authors=[{"author": {"key": "/authors/OL2A"}}])
 
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo")
-        assert home.format_book_data(book)['authors'] == []
+
+        import ipdb
+        ipdb.set_trace()
+
+        assert book.canonicalize['authors'] == []
 
         # when there is no work and authors, the authors field must be picked from the book
         book = mock_site.quicksave("/books/OL1M", "/type/edition", title="Foo", authors=[{"key": "/authors/OL1A"}])
-        assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL1A", "name": "A1"}]
+        assert book.canonicalize['authors'] == [{"key": "/authors/OL1A", "name": "A1"}]
 
         # when there is work, the authors field must be picked from the work
         book = mock_site.quicksave("/books/OL1M", "/type/edition",
@@ -120,4 +126,4 @@ class Test_format_book_data:
             authors=[{"key": "/authors/OL1A"}],
             works=[{"key": "/works/OL1W"}]
         )
-        assert home.format_book_data(book)['authors'] == [{"key": "/authors/OL2A", "name": "A2"}]
+        assert book.canonicalize['authors'] == [{"key": "/authors/OL2A", "name": "A2"}]

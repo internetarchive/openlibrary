@@ -6,7 +6,6 @@ import web
 import simplejson
 import six
 
-from infogami.infobase.client import storify
 from infogami.utils import delegate
 
 from openlibrary.utils import dateutil
@@ -14,7 +13,9 @@ from openlibrary.core.helpers import get_coverstore_url
 from openlibrary.core.helpers import bookreader_host
 from openlibrary.core.lending import config_http_request_timeout
 
+
 PRESET_QUERIES = {
+    'preset:modern': 'languageSorter:"English" AND (year:"2013" OR year:"2014" OR year:"2015")',
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
     'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
     'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
@@ -61,11 +62,12 @@ def editions_by_ia_query(query='', sorts=None, page=1, limit=None):
     items = _request_items(url)
     work2item = _index_item_by_distinct_work(items)
     editions = [
-        _update_edition(edition, work2item).dict()
+        _add_availability_to_edition(
+            edition.canonicalize, work2item).dict()
         for edition in web.ctx.site.get_many([
             '/books/%s' % item['openlibrary_edition']
             for item in work2item.values()
-        ]) if _work_matching_edition(edition, work2item)
+        ]) if _item_matching_edition(edition, work2item)
     ]
 
     return {
@@ -95,9 +97,9 @@ def _normalize_sorts(sorts):
         if isinstance(sorts, six.string_types):
             sorts = sorts.split(',')
         if isinstance(sorts, list):
-            # remove +asc/desc suffix
+            # compare against field with +asc/desc suffix rm'd
             # e.g: date, not date+asc or date+desc
-            return [sort.replace('+', ' ') for sort in sorts                    
+            return [sort.replace('+', ' ') for sort in sorts
                     if sort.split('+')[0] in VALID_SORTS]
     return ['']
 
@@ -122,15 +124,14 @@ def _prepare_browsable_query(query, sorts):
     advancedsearch API
     """
     _sort = sorts[0] if sorts else ''
-    if '+desc' in _sort:
-        _sort = '-' + _sort.split('+desc')[0]
-    elif '+asc' in _sort:
-        _sort = _sort.split('+asc')[0]
+    if ' desc' in _sort:
+        _sort = '-' + _sort.split(' ')[0]
+    elif ' asc' in _sort:
+        _sort = _sort.split(' ')[0]
     return '%s?query=%s&sort=%s' % (BROWSE_URL, query, _sort)
 
 def _request_items(url):
-    """Hits archive.org advancedsearch.php API and returns the matching
-    items
+    """Hits archive.org advancedsearch.php API, returns matching items
     """
     try:
         request = urllib2.Request(url)
@@ -154,35 +155,24 @@ def _index_item_by_distinct_work(items):
     return dict(('/works/%s' % item['openlibrary_work'], item)
                 for item in items)
 
-def _work_matching_edition(edition, work2item):
+def _item_matching_edition(edition, work2item):
     """An edition may belong to multiple works, especially if those works
     were  merged duplicates. This method tells us which work is listed in the
     work2item mapping.
     """
     return edition.works and next((
-        work for work in edition.works if work.key in work2item
+        work2item.get(work.key) for work in edition.works if work.key in work2item
     ), None)
 
-def _update_edition(edition, work2item):
-    work = _work_matching_edition(edition, work2item)
-    edition.ocaid = (
-        edition.get('ocaid') or
-        (edition.get('ia') and
-         edition['ia'][0] if isinstance(edition.ia, list)
-         else edition['iia']) or
-        edition.availability.get('identifier')
-    )
-    edition.authors = _get_authors(edition, work)
-    edition.cover_url = _get_cover(edition, work)
-    item = work2item.get(work.key)
-    return _add_availability_to_edition(edition, item)
-
-def _add_availability_to_edition(edition, item):
+def _add_availability_to_edition(edition, work2item):
     """
     To avoid a 2nd network call to `lending.add_availability`
     reconstruct availability ad-hoc from archive.org
     advancedsearch results
+
+    XXX needs to be more robust if not item
     """
+    item = _item_matching_edition(edition, work2item)
     availability_status = (
         'borrow_%s' % item[AVAILABILITY_STATUS].lower()
         if item.get(AVAILABILITY_STATUS) else 'open')
@@ -193,25 +183,3 @@ def _add_availability_to_edition(edition, item):
         'openlibrary_work': item['openlibrary_work']
     }
     return edition
-
-def _get_cover(edition, work, fallback='/images/icons/avatar_book.png'):
-    """Make sure every edition has a cover"""
-
-    def get_cover_by_ocaid(ocaid=None):
-        """"If ocaid, create a coverstore url based on ocaid with a
-        fallback to archive.org thumbnail API
-        """
-        return ocaid and 'https://archive.org/services/img/%s' % ocaid
-
-    # Get the cover directly from the edition or work if available
-    return (next((doc.get_cover().url('M')
-                  for doc in [edition, work]
-                  if doc and doc.get_cover()), None)
-            or edition.ocaid and get_cover_by_ocaid(edition.ocaid)
-            or fallback)
-
-def _get_authors(work, edition):
-    return next([
-        web.storage(key=a.key, name=a.name or None)
-        for a in doc.get_authors()
-    ] for doc in [work, edition])

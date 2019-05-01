@@ -9,6 +9,7 @@ from collections import defaultdict
 
 from infogami import config
 from infogami.infobase import client
+from infogami.infobase.client import storify
 from infogami.utils.view import safeint
 from infogami.utils import stats
 
@@ -19,8 +20,7 @@ from openlibrary.core import search
 from openlibrary.core import cache
 
 from openlibrary.plugins.search.code import SearchProcessor
-from openlibrary.plugins.worksearch.subjects import (
-    is_relatable_subject)
+from openlibrary.plugins.worksearch.subjects import filter_unrelatable_subjects
 from openlibrary.plugins.worksearch.code import (
     works_by_author, sorted_work_editions)
 from openlibrary.utils.solr import Solr
@@ -464,11 +464,41 @@ class Edition(models.Edition):
     def is_fake_record(self):
         """Returns True if this is a record is not a real record from database,
         but created on the fly.
-
+        
         The /books/ia:foo00bar records are not stored in the database, but
         created at runtime using the data from archive.org metadata API.
         """
         return "/ia:" in self.key
+
+    @property
+    def canonicalize(self):
+        work = self.works and self.works[0]
+
+        # Use ocaid as canonical internet archive identifier
+        self.ocaid = (
+            self.get('ocaid') or
+            (self.get('ia') and self.ia[0] if isinstance(self.ia, list) else self.ia) or
+            self.availability and self.availability.identifier
+        )
+
+        # Ensure author is set
+        self.authors = [
+            web.storage(key=a.key, name=a.name or None)
+            for a in set((
+                (a for a in doc.get_authors())
+                for doc in (work, self)
+            ))
+        ] or []
+
+        # Get bookcover from edition, or work, IA fallback, or default
+        self.cover_url = (
+            next((doc.get_cover().url('M')
+                  for doc in [self, work]
+                  if doc and doc.get_cover()), None)
+            or (self.ocaid and 'https://archive.org/services/img/%s' % self.ocaid)
+            or '/images/icons/avatar_book.png'
+        )
+        return self
 
 class Author(models.Author):
     def get_photos(self):
@@ -508,6 +538,7 @@ def get_solr():
     return Solr(base_url)
 
 class Work(models.Work):
+
     def get_olid(self):
         return self.key.split('/')[-1]
 
@@ -603,63 +634,60 @@ class Work(models.Work):
         """Gets a page of editions by the same author as this work
         and caches the result
         """
-
         def last_first(name):
-            return ','.join(author_name.split(' ', 1)[::-1])
+            return ','.join(name.rsplit(' ', 1)[::-1])
 
-        def prepare_query(authors):
+        def prepare_query(work_authors):
             """For every author name, include both variations of their name
             in the creator search. Don't include original work inresults
             """
             return ' OR '.join([
-                'creator:"%s"' % variation 
-                for variation in [author_name, last_first(author_name)]
+                'creator:"%s"' % variation
                 for author_name in work_authors
-            ]) + ' AND !openlibrary_work(%s)' % self.key.split('/')[-1]
+                for variation in [author_name, last_first(author_name)]
+            ]) + ' AND !openlibrary_work:(%s)' % self.key.split('/')[-1]
 
-        def get_related_editions(self, page=1, limit=None):
+        def related_editions(self, page=1, limit=None):
+            if 'env' not in web.ctx:
+                delegate.fakeload()
+
             work_authors = self.get_author_names(blacklist=['anonymous'])
             if work_authors:
                 return search.editions_by_ia_query(
-                    query=prepare_query(authors), page=page, limit=limit)
+                    query=prepare_query(work_authors), page=page, limit=limit)
             return {'error': 'no matches'}
 
-        # XXX
-        return search.editions_by_ia_query(self, page=page, limit=limit)
+        # XXX testing
+        return storify(related_editions(self, page=page, limit=limit))
         return storify(cache.memcache_memoize(
-            get_related_editions, 'work.related_author_editions',
+            related_editions, 'work.related_author_editions',
             timeout=dateutil.HOUR_SECS)(self, page=page, limit=limit))
 
-    def get_related_editions_by_subjects(
-            self, page=1, limit=None,
-            timeout=cache.DEFAULT_CACHE_LIFETIME):
+    def get_related_editions_by_subjects(self, page=1, limit=None,
+                                         timeout=cache.DEFAULT_CACHE_LIFETIME):
 
-        def prepare_query(subjects):
+        def prepare_query(work_subjects):
             # search any of these subjects, excluding searched work
             return ' OR '.join([
                 'subject:"%s"' % subject.replace('_', ' ')
                 for subject in work_subjects
-                ]) + ' AND !openlibrary_work(%s)' % self.key.split('/')[-1]
+                ]) + ' AND !openlibrary_work:(%s)' % self.key.split('/')[-1]
 
-        def get_related_editions(self, page=1, limit=None):
+        def related_editions(self, page=1, limit=None):
             if 'env' not in web.ctx:
                 delegate.fakeload()
 
-            work_subjects = [
-                subject for subject in get_subjects() if
-                is_relatable_subject(subject) and
-                subject.replace('_', '').isalnum()
-            ]
+            work_subjects = filter_unrelatable_subjects(self.get_subjects())
             if work_subjects:
                 return search.editions_by_ia_query(
-                    query=prepare_query(subjects), page=page, limit=limit)
+                    prepare_query(work_subjects), page=page, limit=limit)
             return {'error': 'no matches'}
-        # XXX
-        return search.editions_by_ia_query(self, page=page, limit=limit)
-        return storify(cache.memcache_memoize(
-            get_related_editions, 'work.related_subject_editions',
-            timeout=dateutil.HOUR_SECS)(self, page=page, limit=limit))
 
+        # XXX testing
+        return storify(related_editions(self, page=page, limit=limit))
+        return storify(cache.memcache_memoize(
+            related_editions, 'work.related_subject_editions',
+            timeout=dateutil.HOUR_SECS)(self, page=page, limit=limit))
 
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""

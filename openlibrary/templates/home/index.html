@@ -12,6 +12,8 @@ $var title: $_("Welcome to Open Library")
 
   $:macros.IABookCarousel(key="recently_returned", title="Recently Returned", sorts=["loans__status__last_loan_date+desc"], test=test)
 
+  $:macros.IABookCarousel(key="modern", title="Modern Picks", query='preset:modern', sorts=["loans__status__last_loan_date+desc"], test=test)
+
   $:macros.IABookCarousel(key="new_arrivals", title="New Arrivals", query='collection:(inlibrary) AND languageSorter:("English")', sorts=["publicdate+desc"])
 
   $:macros.IABookCarousel(key="children", title="Kids", query="preset:children", sorts=["loans__status__last_loan_date+desc"], test=test)

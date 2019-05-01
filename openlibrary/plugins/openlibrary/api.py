@@ -68,12 +68,13 @@ class work_related_editions(delegate.page):
     encoding = "json"
 
     def GET(self, work_key):
-        i = web.input(by='author', page=1, limit=100)
+        i = web.input(by='authors', page=1, limit=100)
         page = int(i.page)
         limit = int(i.limit)
         work = web.ctx.site.get(work_key)
+        print(work)
         method = (work.get_related_editions_by_authors
-                  if _type == 'author' else
+                  if i.by == 'authors' else
                   work.get_related_editions_by_subjects)
         result = method(page=page, limit=limit)
         return delegate.RawText(simplejson.dumps(result),

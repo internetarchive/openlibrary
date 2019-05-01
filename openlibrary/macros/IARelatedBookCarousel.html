@@ -3,15 +3,13 @@ $def with(work, limit=18)
 $if work and not is_bot():
     $ load_more_url = work.key + '/related-editions.json?by=%s'
 
-    $ related_by_author = work.related_editions_by_author()
-    $ related_by_subject = work.get_related_editions_by_subject()
-
-    $ authors = ', '.join([author for author in work.get_author_names(blacklist=['anonymous'])]) or 'this author'
-
-    <p>$related_by_author</p>
+    $ related_by_author = work.get_related_editions_by_author()
+    $ related_by_subject = work.get_related_editions_by_subjects()
 
     <div class="related-books">
-      $:macros.BookCarousel(related_by_subject.get('editions'), title="You might also like", key='related-subjects-carousel', min_books=1, load_more={"url": load_more_url % ("subjects"), "mode": "page", "limit": limit})
+      $:macros.BookCarousel(related_by_subject.get('editions'), title="You might also like", key='related-subjects-carousel', url=related_by_subject.get('browse_url'),  min_books=1, load_more={"url": load_more_url % ("subjects"), "mode": "page", "limit": limit})
 
-      $:macros.BookCarousel(related_by_author.get('editions'), title="More by %s" % (authors or "this author"), key="related-authors-carousel", min_books=1, load_more={"url": load_more_url % ("authors"), "mode": "page", "limit": limit})
+      $ authors = ', '.join([author for author in work.get_author_names(blacklist=['anonymous'])]) or 'this author'
+      $ author_url = (work.authors and work.authors[0].author.key) or related_by_subject.get('browse_url')
+      $:macros.BookCarousel(related_by_author.get('editions'), title="More by %s" % (authors or "this author"), url=author_url, key="related-authors-carousel", min_books=1, load_more={"url": load_more_url % ("authors"), "mode": "page", "limit": limit})
     </div>

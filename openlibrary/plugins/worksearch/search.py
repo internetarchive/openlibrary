@@ -7,6 +7,7 @@ from infogami import config
 from infogami.utils import stats
 
 from openlibrary.utils.solr import Solr
+from openlibrary.core.helpers import get_coverstore_url
 
 def get_solr():
     base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
@@ -117,5 +118,29 @@ def random_readable_works(limit=2000, _cache=False):
             "cover_edition_key",
             "author_key", "author_name"
         ]).get('docs', [])
-    return works
+    return [canonicalize_work(work) for work in works]
 
+def canonicalize_work(work):
+    """make a work from solr have the same fields as one from the
+    unfogami model
+
+    """
+    d = dict(work)
+
+    key = work.get('key', '')
+    # New solr stores the key as /works/OLxxxW
+    if not key.startswith("/works/"):
+        key = "/works/" + key
+
+    d['url'] = key
+    d['title'] = work.get('title', '')
+
+    if 'author_key' in work and 'author_name' in work:
+        d['authors'] = [{"key": key, "name": name} for key, name in
+                        zip(work['author_key'], work['author_name'])]
+
+    if 'cover_edition_key' in work:
+        d['cover_url'] = get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+
+    d['read_url'] = "//archive.org/stream/" + work['ia'][0]
+    return d

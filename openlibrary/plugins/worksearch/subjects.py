@@ -65,11 +65,13 @@ NON_RELATABLE_SUBJECTS = [
     'long_now_manual_for_civilization', 'popular_works'
 ]
 
-BLACKLIST_SUBJECT_CHARS = ['(', ',', '\'', ':', '&', '-', '.']
-
 def is_relatable_subject(subject):
     _subject = subject.lower().replace(' ', '_')
-    return not _subject in NON_RELATABLE_SUBJECTS
+    return (_subject not in NON_RELATABLE_SUBJECTS
+            and _subject.replace('_', '').isalnum())
+
+def filter_unrelatable_subjects(subjects):
+    return [subject for subject in subjects if is_relatable_subject(subject)]
 
 @public
 def get_featured_subjects():
@@ -225,14 +227,6 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
-def inject_availability(subject_results):
-    works = add_availability(subject_results.works)
-    for work in works:
-        ocaid = work.ia if work.ia else None
-        availability = work.get('availability', {}).get('status')
-    subject_results.works = works
-    return subject_results
-
 def get_subject_works(key):
     return get_subject(key, details=True, filters={
         'public_scan_b': 'false',
@@ -318,7 +312,8 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
-    return inject_availability(subject_results)
+    subject_results.works = add_availability(subject_results.works)
+    return subject_results
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):

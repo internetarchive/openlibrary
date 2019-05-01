@@ -12,7 +12,7 @@ $def render_carousel_cover(book, lazy_cover):
   $ availability = availability_types[availability_status]
   $ book_url = book.get('key') or book.url
   $ cta_url = ('/borrow/ia/%s' % ocaid) if availability == 'borrow_available' else book_url
-  $ title = book.title
+  $ title = book.get('title', 'Unknown Title')
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
   $elif book.get('cover_id'):
@@ -39,9 +39,14 @@ $def render_carousel_cover(book, lazy_cover):
 
 $if test or (books and len(books) >= min_books):
       <div class="carousel-section">
-      $if title and url:
+      $if title:
         <div class="carousel-section-header">
-          <h2 class="home-h2"><a href="$url">$title</a></h2>
+          <h2 class="home-h2">
+            $if url:
+              <a href="$url">$title</a>
+            $else:
+              $title
+          </h2>
         </div>
       <div class="carousel-container carousel-container-decorated">
         $ attrs = ''

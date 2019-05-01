@@ -2,17 +2,19 @@ import web
 import re
 import urllib
 import urllib2
+import logging
+import simplejson as json
 from lxml.etree import XML, XMLSyntaxError
+from unicodedata import normalize
+
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint
-import simplejson as json
-from openlibrary.core.lending import get_availability_of_ocaids
+
+from openlibrary.core.lending import add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, read_isbn, escape_bracket
-from unicodedata import normalize
-import logging
 
 ftoken_db = None
 
@@ -495,8 +497,7 @@ class search(delegate.page):
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
                 q_list.append(k + ':' + v)
         page = render.work_search(
-            i, ' '.join(q_list), do_search, get_doc,
-            get_availability_of_ocaids, fulltext_search)
+            i, ' '.join(q_list), do_search, get_doc, fulltext_search)
         page.v2 = True
         return page
 
@@ -543,7 +544,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         years = [(int(k), v) for k, v in get_facet('publish_year')],
         get_facet = get_facet,
         sort = sort,
-    )
+    ) # XXX TODO: add_availability from core.lending
 
 def sorted_work_editions(wkey, json_data=None):
     """Setting json_data to a real value simulates getting SOLR data back, i.e. for testing (but ick!)"""

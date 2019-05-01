@@ -1,8 +1,17 @@
 from __future__ import print_function
 import unittest
-from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
+from openlibrary.plugins.worksearch.code import (
+    read_facets, sorted_work_editions, parse_query_fields,
+    escape_bracket, run_solr_query, get_doc, build_q_list,
+    escape_colon, parse_search_response
+)
+from openlibrary.core import search as ia_search
 from lxml import etree
 from infogami import config
+
+def test_normalize_sorts():
+    sorts = ['loans__status__last_loan_date+desc']
+    assert(ia_search._normalize_sorts(sorts) == ['loans__status__last_loan_date desc'])
 
 def test_escape_bracket():
     assert escape_bracket('foo') == 'foo'
