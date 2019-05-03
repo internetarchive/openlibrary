@@ -4,6 +4,7 @@ from . import load, RequiredField, build_pool, add_db_name
 from .. import add_book
 import os
 import pytest
+from infogami.infobase.core import Text
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
@@ -49,7 +50,7 @@ def test_build_query(add_languages):
     }
     q = build_query(rec)
     assert q['title'] == 'magic'
-    assert q['description'] == { 'type': '/type/text', 'value': 'test' }
+    assert q['description'] == {'type': '/type/text', 'value': 'test'}
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
@@ -187,7 +188,6 @@ def test_from_marc_3(mock_site, add_languages):
 
 def test_from_marc_2(mock_site, add_languages):
     ia = 'roadstogreatness00gall'
-
     data = open_test_data(ia + '_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
@@ -202,8 +202,8 @@ def test_from_marc_2(mock_site, add_languages):
     assert reply['edition']['status'] == 'matched'
 
 def test_from_marc(mock_site, add_languages):
-
-    data = open('test_data/flatlandromanceo00abbouoft_meta.mrc').read()
+    ia = 'flatlandromanceo00abbouoft'
+    data = open_test_data(ia + '_meta.mrc').read()
     assert len(data) == int(data[:5])
     rec = read_edition(MarcBinary(data))
     reply = load(rec)
@@ -214,6 +214,57 @@ def test_from_marc(mock_site, add_languages):
     assert a.name == 'Edwin Abbott Abbott'
     assert a.birth_date == '1838'
     assert a.death_date == '1926'
+
+def test_author_from_700(mock_site, add_languages):
+    ia = 'sexuallytransmit00egen'
+    data = open_test_data(ia + '_meta.mrc').read()
+    rec = read_edition(MarcBinary(data))
+    rec['source_records'] = ['ia:' + ia]
+    reply = load(rec)
+    assert reply['success'] is True
+    # author from 700
+    akey = reply['authors'][0]['key']
+    a = mock_site.get(akey)
+    assert a.type.key == '/type/author'
+    assert a.name == 'Laura K. Egendorf'
+    assert a.birth_date == '1973'
+
+def test_from_marc_fields(mock_site, add_languages):
+    ia = 'isbn_9781419594069'
+    data = open_test_data(ia + '_meta.mrc').read()
+    rec = read_edition(MarcBinary(data))
+    rec['source_records'] = ['ia:' + ia]
+    reply = load(rec)
+    assert reply['success'] is True
+    # author from 100
+    assert reply['authors'][0]['name'] == 'Adam Weiner'
+
+    edition = mock_site.get(reply['edition']['key'])
+    # Publish place, publisher, & publish date - 260$a, $b, $c
+    assert edition['publishers'][0] == 'Kaplan Publishing'
+    assert edition['publish_date'] == '2007'
+    assert edition['publish_places'][0] == 'New York'
+    # Pagination 300
+    assert edition['number_of_pages'] == 264
+    assert edition['pagination'] == 'viii, 264 p.'
+    # 8 subjects, 650
+    assert len(edition['subjects']) == 8
+    assert edition['subjects'] == [u'Action and adventure films',
+                                   u'Miscellanea',
+                                   u'Physics',
+                                   u'Cinematography',
+                                   u'Special effects',
+                                   u'Physics in motion pictures',
+                                   u'Science fiction films',
+                                   u'Popular works']
+    # Edition description from 520
+    desc = 'Explains the basic laws of physics, covering such topics as mechanics, forces, and energy, while deconstructing famous scenes and stunts from motion pictures, including "Apollo 13" and "Titanic," to determine if they are possible.'
+    assert isinstance(edition['description'], Text)
+    assert edition['description'] == desc
+    # Work description from 520
+    work = mock_site.get(reply['work']['key'])
+    assert isinstance(work['description'], Text)
+    assert work['description'] == desc
 
 def test_build_pool(mock_site):
     assert build_pool({'title': 'test'}) == {}

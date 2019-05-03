@@ -2,7 +2,7 @@
   "publishers": [
     "American-Israeli Cooperative Enterprise"
   ], 
-  "pagination": "381p. :", 
+  "pagination": "381p.",
   "subtitle": "a guide to the Arab-Israeli conflict", 
   "links": [
     {

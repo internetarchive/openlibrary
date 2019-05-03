@@ -2,7 +2,7 @@
   "publishers": [
     "[s.n."
   ], 
-  "pagination": "v. :", 
+  "pagination": "v.",
   "links": [
     {
       "url": "http://bibpurl.oclc.org/web/240", 

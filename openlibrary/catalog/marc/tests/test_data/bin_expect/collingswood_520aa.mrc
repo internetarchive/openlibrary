@@ -2,7 +2,7 @@
   "publishers": [
     "Listening Library"
   ], 
-  "pagination": "2 sound cassettes (3 hr. 16 min.) :", 
+  "pagination": "2 sound cassettes (3 hr. 16 min.)",
   "description": "At the beginning of eighth grade, learning disabled Max and his new friend Freak, whose birth defect has affected his body but not his brilliant mind, find that when they combine forces they make a powerful team.", 
   "title": "Freak the Mighty", 
   "notes": "CS j1202", 
