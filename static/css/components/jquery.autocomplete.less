@@ -51,89 +51,88 @@
       }
     }
   }
+}
 
-  .ac_language {
+.ac_results .ac_language {
+  font-size: 16px;
+  color: @black;
+}
+
+.ac_results .ac_author {
+  .action {
+    font-size: 9px;
+    color: @olive;
+  }
+
+  .books {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .subject {
+    font-size: 11px;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    font-size: 16px;
+    display: block;
+    color: @black;
+  }
+
+  .work {
+    font-size: 11px;
+
+    // stylelint-disable-next-line selector-max-specificity
+    i {
+      color: @brown;
+    }
+  }
+}
+
+.ac_results .ac_work {
+  .cover {
+    float: left;
+    margin-right: 5px;
+    width: 5em;
+    height: 5em;
+    overflow: hidden;
+    border-radius: 2px;
+    mask-image: linear-gradient(to top, rgba(0,0,0,0), black 15%);
+
+    // stylelint-disable-next-line selector-max-specificity
+    img {
+      width: 100%;
+    }
+  }
+
+  .edition_count {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    display: block;
+  }
+
+  .title {
     font-size: 16px;
     color: @black;
   }
 
-  .ac_author {
-    .action {
-      font-size: 9px;
-      color: @olive;
-    }
-
-    .books {
-      font-size: 12px;
-      color: @dark-green;
-      font-weight: 700;
-      padding: 0;
-    }
-
-    .subject {
-      font-size: 11px;
-    }
-
-    .olid {
-      font-family: @monospace;
-    }
-
-    .name {
-      font-size: 16px;
-      display: block;
-      color: @black;
-    }
-
-    .work {
-      font-size: 11px;
-
-      /* stylelint-disable selector-max-specificity */
-      // stylelint-disable-next-line max-nesting-depth
-      i {
-        color: @brown;
-      }
-      /* stylelint-enable selector-max-specificity */
-    }
-  }
-
-  .ac_work {
-    .cover {
-      float: left;
-      margin-right: 5px;
-      width: 5em;
-      height: 5em;
-      overflow: hidden;
-      border-radius: 2px;
-      mask-image: linear-gradient(to top, rgba(0,0,0,0), black 15%);
-
-      img {
-        width: 100%;
-      }
-    }
-
-    .edition_count {
-      font-size: 12px;
-      color: @dark-green;
-      font-weight: 700;
-      padding: 0;
-    }
-
-    .olid {
-      font-family: @monospace;
-    }
-
-    .name {
-      display: block;
-    }
-
-    .title {
-      font-size: 16px;
-      color: @black;
-    }
-
-    .first_publish_year {
-      font-size: 12px;
-    }
+  .first_publish_year {
+    font-size: 12px;
   }
 }
 
