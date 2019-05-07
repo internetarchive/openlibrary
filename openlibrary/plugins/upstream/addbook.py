@@ -381,11 +381,18 @@ class SaveBookHelper:
     This does the required trimming and processing of input data before saving.
     """
     def __init__(self, work, edition):
+        """
+        :param openlibrary.plugins.upstream.models.Work or None work: None if editing an orphan edition
+        :param openlibrary.plugins.upstream.models.Edition or None edition: None if just editing work
+        """
         self.work = work
         self.edition = edition
 
     def save(self, formdata):
-        """Update work and edition documents according to the specified formdata."""
+        """
+        Update work and edition documents according to the specified formdata.
+        :param web.storage formdata:
+        """
         comment = formdata.pop('_comment', '')
 
         user = accounts.get_current_user()
@@ -450,6 +457,10 @@ class SaveBookHelper:
 
     @staticmethod
     def new_work(edition):
+        """
+        :param openlibrary.plugins.upstream.models.Edition edition:
+        :rtype: openlibrary.plugins.upstream.models.Work
+        """
         work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
             'key': work_key,
@@ -458,7 +469,12 @@ class SaveBookHelper:
         })
         return work
 
-    def new_author(self, name):
+    @staticmethod
+    def new_author(name):
+        """
+        :param str name:
+        :rtype: openlibrary.plugins.upstream.models.Author
+        """
         key = web.ctx.site.new_key("/type/author")
         return web.ctx.site.new(key, {
             "key": key,
@@ -466,7 +482,8 @@ class SaveBookHelper:
             "name": name
         })
 
-    def delete(self, key, comment=""):
+    @staticmethod
+    def delete(key, comment=""):
         doc = web.ctx.site.new(key, {
             "key": key,
             "type": {"key": "/type/delete"}
@@ -514,7 +531,7 @@ class SaveBookHelper:
         else:
             edition = None
 
-        if 'work' in i and self.do_work_keys_match(i):
+        if 'work' in i and self.is_work_data_important(i):
             work = self.process_work(i.work)
         else:
             work = None
@@ -614,21 +631,25 @@ class SaveBookHelper:
             logger.warn("Attempt to change ocaid of %s from %r to %r.", self.edition.key, self.edition.get('ocaid'), ocaid)
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
-    def do_work_keys_match(self, i):
+    @staticmethod
+    def is_work_data_important(formdata):
         """
         Check if the form data's work matches the form data's edition's work.
-        :param web.storage i: form data
+        If they're not, then we ignore the work edits.
+        :param web.storage formdata: form data (parsed into a nested dict)
         :rtype: bool
         """
-        if not ('edition' in i) or not ('work' in i):
+        if not 'edition' in formdata:
+            # No edition data -> just editing work, so work data matters
             return True
 
-        work_key = i.work.key
-        edition_work_key = None
-        if 'works' in i.edition and i.edition.works:
-            edition_work_key = i.edition.works[0].key
+        has_edition_work = 'works' in formdata.edition and formdata.edition.works
 
-        return work_key == edition_work_key
+        if has_edition_work:
+            return formdata.edition.works[0].key == formdata.work.key
+        else:
+            # i.e. editing an orphan; so we care about the work
+            return  True
 
 
 class book_edit(delegate.page):
