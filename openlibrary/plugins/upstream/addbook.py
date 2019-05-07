@@ -848,7 +848,7 @@ class works_autocomplete(delegate.page):
             'rows': i.limit,
             'fq': 'type:work',
             # limit the fields returned for better performance
-            'fl': 'key,title,subtitle,first_publish_year,author_name,edition_count'
+            'fl': 'key,title,subtitle,cover_i,first_publish_year,author_name,edition_count'
         }
 
         data = solr.select(solr_q, **params)
