@@ -48,7 +48,7 @@ $jsdef render_work_field(i, work):
 $jsdef render_work_autocomplete_item(item):
     <div class="ac_work" title="Select this work">
         <span class="name">
-            <span class="title">$item.name</span>
+            <span class="title">$item.full_title</span>
             $if item.first_publish_year:
             <span class="first_publish_year">($item.first_publish_year)</span>
         </span>

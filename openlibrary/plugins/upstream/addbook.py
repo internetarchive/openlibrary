@@ -858,8 +858,9 @@ class works_autocomplete(delegate.page):
         for d in docs:
             # Required by the frontend
             d['name'] = d['title']
+            d['full_title'] = d['title']
             if 'subtitle' in d:
-                d['name'] += ": " + d['subtitle']
+                d['full_title'] += ": " + d['subtitle']
         return to_json(docs)
 
 class authors_autocomplete(delegate.page):
