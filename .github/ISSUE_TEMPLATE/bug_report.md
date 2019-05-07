@@ -20,11 +20,9 @@ assignees: ''
 
 ## Details
 
-<!-- Logged in (Y/N)? -->
-
-<!-- Browser type/version? -->
-
-<!-- Operating system? -->
+- **Logged in (Y/N)?** 
+- **Browser type/version?** 
+- **Operating system?** 
 
 ## Proposal & Constraints
 
