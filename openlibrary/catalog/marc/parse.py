@@ -42,7 +42,8 @@ want = [
     '700', '710', '711', '720', # contributions
     '246', '730', '740', # other titles
     '852', # location
-    '856'] # URL
+    '856', # URL
+    '919', '945'] # partner local_ids
 
 def read_lccn(rec):
     fields = rec.get_fields('010')

@@ -216,7 +216,9 @@ class ia_importapi(importapi):
             if local_id:
                 local_id_type = web.ctx.site.get('/local_ids/' + local_id)
                 prefix = local_id_type.urn_prefix
-                edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in rec.get_fields('001')]
+                id_field, id_subfield = local_id_type.id_location.split('$')
+                _ids = [f if isinstance(f, str) else f.get_subfield_values(id_subfield)[0] for f in rec.get_fields(id_field)]
+                edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             result = add_book.load(edition)
 
