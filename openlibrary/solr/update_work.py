@@ -365,7 +365,11 @@ class SolrProcessor:
         :param dict w:
         :rtype: list[dict]
         """
-        authors = [self.get_author(a) for a in w.get("authors", [])]
+        authors = [
+            self.get_author(a)
+            for a in w.get("authors", [])
+            if 'author' in a  # TODO: Remove after https://github.com/internetarchive/openlibrary-client/issues/126
+        ]
 
         if any(a['type']['key'] == '/type/redirect' for a in authors):
             if self.resolve_redirects:
