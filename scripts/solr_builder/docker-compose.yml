@@ -25,6 +25,15 @@ services:
     volumes:
       - solr-data:/var/lib/solr/data
 
+  # Replica of production solr so we can get subjects
+  solr-backup:
+    image: olsolr
+    restart: always
+    ports:
+      - 8985:8080
+    volumes:
+      - /home/cdrini/solr-backup-2019-05-08:/var/lib/solr/data
+
   # We need ability to use openlibrary code
   ol:
     image: olpython
