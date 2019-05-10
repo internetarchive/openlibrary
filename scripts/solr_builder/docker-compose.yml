@@ -41,10 +41,6 @@ services:
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
-      # Persistent volume mount for generated css and js
-      - ol-build:/openlibrary/static/build
-      # Persistent volume mount for node_modules
-      - ol-nodemodules:/openlibrary/node_modules
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
@@ -53,5 +49,3 @@ volumes:
   postgres-data:
   solr-data:
   ol-vendor:
-  ol-build:
-  ol-nodemodules:
