@@ -1638,6 +1638,13 @@
                         class="com.mycompany.MyValueSourceParser" />
     -->
 
+  <!-- Allow data import from another solr -->
+  <requestHandler name="/dataimport" class="org.apache.solr.handler.dataimport.DataImportHandler">
+    <lst name="defaults">
+      <str name="config">solr-subjects-import-config.xml</str>
+    </lst>
+  </requestHandler>
+
   <!-- Legacy config for the admin interface -->
   <admin>
     <defaultQuery>*:*</defaultQuery>

@@ -5,7 +5,7 @@ RUN apt-get -qq update && \
     ln -s /var/log/tomcat7/ /usr/share/tomcat7/logs && \
     ln -s /etc/tomcat7/ /usr/share/tomcat7/conf
 
-COPY conf/solr/conf/schema.xml /etc/solr/conf/
+COPY conf/solr/conf/* /etc/solr/conf/
 
 EXPOSE 8080
 

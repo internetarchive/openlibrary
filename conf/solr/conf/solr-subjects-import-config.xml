@@ -1,0 +1,5 @@
+<dataConfig>
+  <document>
+    <entity name="sep" processor="SolrEntityProcessor" url="http://solr-backup:8985/solr/" query="type:subject"/>
+  </document>
+</dataConfig>
