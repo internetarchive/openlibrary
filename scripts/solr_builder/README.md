@@ -137,7 +137,16 @@ curl localhost:8984/solr/update?commit=true
 
 ### 2d: Insert subjects
 
-???? See https://github.com/internetarchive/openlibrary/issues/1896
+It is currently unknown how subjects make their way into Solr (See See https://github.com/internetarchive/openlibrary/issues/1896 ). As result, in the interest of progress, we are choosing to just use a solr dump.
+
+1. Create a backup of prod's solr (See https://github.com/internetarchive/openlibrary/wiki/Solr#creating-a-solr-backup )
+2. Extract the backup (NOT in the repo; anywhere else)
+3. Launch the `solr-backup` service, modifying `docker-compose.yml` with the path of the backup
+4. Copy the subjects into our main solr. 6.75 hrs (May 2019, OJF, 1514068 docs)
+```bash
+# check the status by going to localhost:8984/solr/dataimport
+curl localhost:8984/solr/dataimport?command=full-import
+```
 
 ## Step 3: Final Sync
 
