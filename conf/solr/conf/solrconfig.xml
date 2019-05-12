@@ -1642,6 +1642,7 @@
   <requestHandler name="/dataimport" class="org.apache.solr.handler.dataimport.DataImportHandler">
     <lst name="defaults">
       <str name="config">solr-subjects-import-config.xml</str>
+      <str name="clean">false</str>
     </lst>
   </requestHandler>
 
