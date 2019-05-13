@@ -36,7 +36,10 @@ services:
 
   # We need ability to use openlibrary code
   ol:
-    image: olpython
+    image: olpython:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.olpython
     working_dir: "/openlibrary/scripts/solr_builder"
     volumes:
       # Persistent volume mount for installed git submodules

@@ -13,7 +13,7 @@ import simplejson
 
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
-from openlibrary.solr.update_work import load_configs, update_keys
+from openlibrary.solr.update_work import load_configs, update_keys, using_cython
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -485,5 +485,6 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
 
 
 if __name__ == '__main__':
+    using_cython()
     args = parse_args()
     main(**args.__dict__)

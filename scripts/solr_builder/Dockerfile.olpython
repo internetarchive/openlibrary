@@ -7,5 +7,5 @@ WORKDIR /openlibrary
 RUN pip install -r requirements_test.txt
 
 # For real-time profiling
-RUN pip install cprofilev
+RUN pip install cprofilev Cython
 EXPOSE 4000
