@@ -531,7 +531,7 @@ class SaveBookHelper:
         else:
             edition = None
 
-        if 'work' in i and self.is_work_data_important(i):
+        if 'work' in i and self.use_work_edits(i):
             work = self.process_work(i.work)
         else:
             work = None
@@ -632,10 +632,10 @@ class SaveBookHelper:
             raise ValidationException("Changing Internet Archive ID is not allowed.")
 
     @staticmethod
-    def is_work_data_important(formdata):
+    def use_work_edits(formdata):
         """
-        Check if the form data's work matches the form data's edition's work.
-        If they're not, then we ignore the work edits.
+        Check if the form data's work OLID matches the form data's edition's work OLID.
+        If they don't, then we ignore the work edits.
         :param web.storage formdata: form data (parsed into a nested dict)
         :rtype: bool
         """
