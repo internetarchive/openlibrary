@@ -236,6 +236,11 @@ def get_available(limit=None, page=1, subject=None, query=None,
         return {'error': 'request_timeout'}
 
 def get_availability(key, ids):
+    """
+    :param str key:
+    :param list of str ids:
+    :rtype: dict
+    """
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
@@ -276,20 +281,23 @@ def get_realtime_availability_of_ocaid(ocaid):
 
 @public
 def add_availability(editions):
-    """Adds API v2 availability info to editions, e.g. for work's editions table
+    """
+    Adds API v2 'availability' key to editions, e.g. for work's editions table
+    :param list of dict editions:
+    :rtype: list of dict
     """
     def get_ocaid(ed):
         if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
             return ed.get('ocaid') or ed.get('identifier') or (
-                ed.ia[0] if isinstance(ed.ia, list) else ed.ia)
+                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
 
-    ocaids = [ocaid for ocaid in [get_ocaid(ed) for ed in editions] if ocaid]
-    availability = get_availability_of_ocaids(ocaids)
-    for i, ed in enumerate(editions):
+    ocaids = [get_ocaid(ed) for ed in editions]
+    ocaids = [ocaid for ocaid in ocaids if ocaid]
+    availabilities = get_availability_of_ocaids(ocaids)
+    for ed in editions:
         ocaid = get_ocaid(ed)
-        editions[i]['availability'] = availability.get(ocaid) if ocaid else {
-            'status': 'error'
-        }
+        errored = (ocaid is None) or (availabilities.get(ocaid) is None)
+        ed['availability'] = availabilities.get(ocaid) if not errored else {'status': 'error'}
     return editions
 
 @public
