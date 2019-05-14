@@ -50,6 +50,38 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/works/OL1W") is not None
         assert web.ctx.site.get("/works/OL1W").title == "Original Edition Title"
 
+    def test_never_create_an_orphan(self, monkeypatch):
+        def mock_user():
+            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many([
+            {
+                "type": {"key": "/type/work"},
+                "key": "/works/OL1W",
+                "title": "Original Work Title"
+            },
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Original Edition Title",
+                "works": [{"key": "/works/OL1W"}]
+            }])
+        edition = web.ctx.site.get("/books/OL1M")
+        work = web.ctx.site.get("/works/OL1W")
+
+        formdata = web.storage({
+            "work--key": "/works/OL1W",
+            "work--title": "Original Work Title",
+            "edition--title": "Original Edition Title",
+            "edition--works--0--key": "",
+        })
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+        print(web.ctx.site.get("/books/OL1M").title)
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+
     def test_moving_orphan(self, monkeypatch):
         def mock_user():
             return type('MockUser', (object,), {'is_admin': lambda slf: False})()

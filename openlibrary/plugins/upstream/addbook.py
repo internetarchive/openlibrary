@@ -430,6 +430,9 @@ class SaveBookHelper:
                     self.work = self.new_work(self.edition)
                     edition_data.works = [{'key': self.work.key}]
                     work_data.key = self.work.key
+                elif self.work is not None and edition_work_key is None:
+                    # we're trying to create an orphan; let's not do that
+                    edition_data.works = [{'key': self.work.key}]
 
             if self.work is not None:
                 self.work.update(work_data)
@@ -639,11 +642,13 @@ class SaveBookHelper:
         :param web.storage formdata: form data (parsed into a nested dict)
         :rtype: bool
         """
-        if not 'edition' in formdata:
+        if 'edition' not in formdata:
             # No edition data -> just editing work, so work data matters
             return True
 
-        has_edition_work = 'works' in formdata.edition and formdata.edition.works
+        has_edition_work = 'works' in formdata.edition and \
+                           formdata.edition.works and \
+                           formdata.edition.works[0].key
 
         if has_edition_work:
             return formdata.edition.works[0].key == formdata.work.key
