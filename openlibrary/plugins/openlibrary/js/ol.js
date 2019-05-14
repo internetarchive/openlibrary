@@ -454,6 +454,22 @@ export default function init(){
         e.preventDefault();
     });
 
+    // For Book Sponsorship Button
+    $(document).on('click', '.cta-btn--sponsor', function() {
+    // Add iframes lazily when the popup is loaded.
+    // This avoids fetching the iframes along with main page.
+    $(".coverPop").colorbox({inline: true, opacity: "0.5", href: "#addImage"})
+        .bind("click", function() {
+            // clear the content of #imagesAdd and #imagesManage before adding new
+            $("#imagesAdd").html("");
+            $("#imagesManage").html("");
+        })
+        .bind("cbox_cleanup", function(){
+            $("#imagesAdd").html("");
+            $("#imagesManage").html("");
+        });
+    })
+
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
