@@ -38,7 +38,7 @@ $jsdef render_translated_from_language_field(i, language):
 $# Render the ith work input field
 $jsdef render_work_field(i, work):
     <div class="input">
-        <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.title"/>
+        <input name="works--$i" class="work work-autocomplete" type="text" id="work-$i" value="$work.key.split('/')[-1]"/>
         <input name="edition--works--$i--key" type="hidden" id="work-$i-key" value="$work.key" />
         <a href="javascript:;" class="remove red plain hidden" title="$_('Remove this work')">[x]</a>
         $# Limit to only 1
