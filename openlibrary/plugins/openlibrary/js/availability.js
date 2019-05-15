@@ -202,11 +202,6 @@ function init() {
                         var work = response[_type][key];
                         var li = $(e).closest("li");
                         var cta = li.find(".searchResultItemCTA-lending");
-                        var msg = '';
-                        var link = '';
-                        var annotation = '';
-                        var tag = 'a';
-
                         var mode = filter ? localStorage.getItem('mode') : 'everything';
 
                         if (mode !== "printdisabled") {
@@ -215,37 +210,22 @@ function init() {
                                     li.remove();
                                 }
                             } else {
-                                var cls = 'borrow_available borrow-link';
-                                link = ' href="/books/' + work.openlibrary_edition + '/x/borrow" ';
-
-                                if (work.status === 'open') {
-                                    cls = 'cta-btn--available';
-                                    msg = 'Read';
-                                } else if (work.status === 'borrow_available') {
-                                    cls = 'cta-btn--available';
-                                    msg = 'Borrow';
+                                if (work.status === 'open' || work.status === 'borrow_available') {
+                                    $(cta).append('<a href="/books/' + work.openlibrary_edition + '/x/borrow" ' +
+                                                  'class="cta-btn cta-btn--available" ' +
+                                                  'data-ol-link-track="' + work.status + '">' +
+                                                  (work.status === 'open' ? 'Read' : ' Borrow') +
+                                                  '</a>');
                                 } else if (work.status === 'borrow_unavailable') {
-                                    tag = 'span';
-                                    link = '';
-                                    cls = 'cta-btn--unavailable';
-                                    msg = '<form method="POST" action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" class="join-waitlist waitinglist-form"><input type="hidden" name="action" value="join-waitinglist">';
-                                    if (work.num_waitlist !== '0') {
-                                        msg += 'Join Waitlist <span class="cta-btn__badge">' + work.num_waitlist + '</span></form>';
-
-                                    } else {
-                                        msg += 'Join Waitlist</form>';
-                                        annotation = '<div class="waitlist-msg">You will be first in line!</div>';
-                                    }
-                                }
-                                $(cta).append(
-                                    '<' + tag + ' ' + link + ' class="' + cls +
-                                        ' ' + btnClassName + '" data-ol-link-track="' +
-                                        work.status
-                                        + '">' + msg + '</' + tag + '>'
-                                );
-
-                                if (annotation) {
-                                    $(cta).append(annotation);
+                                    $(cta).append('<form method="POST" ' +
+                                                  'action="/books/' + work.openlibrary_edition + '/x/borrow?action=join-waitinglist" ' +
+                                                  'class="join-waitlist waitinglist-form">' +
+                                                  '<input type="hidden" name="action" value="join-waitinglist">' +
+                                                  '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="' + work.status + '">' +
+                                                  'Join Waitlist' +
+                                                  (work.num_waitlist !== '0' ? ' <span class="cta-btn__badge">' + work.num_waitlist + '</span>' : '') +
+                                                  '</button></form>' +
+                                                  (work.num_waitlist === '0' ? '<div class="waitlist-msg">You will be first in line!</div>' : ''));
                                 }
                             }
                         }
@@ -253,13 +233,6 @@ function init() {
                 });
             });
         })
-        /* eslint-disable no-unused-vars */
-        // event object is passed to this function
-        $('.searchResultItemCTA-lending form.join-waitlist').on('click', function(e) {
-            // consider submitting form async and refreshing search results page
-            $(this).submit()
-        })
-        /* eslint-enable no-unused-vars */
         updateBookAvailability();
     }
 }
