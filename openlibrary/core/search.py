@@ -23,8 +23,9 @@ PRESET_QUERIES = {
 }
 
 # Advanced Search internal calls use http for debugging
-SEARCH_URL = 'http://%s/advancedsearch.php' % bookreader_host()
-BROWSE_URL = 'https://%s/search.php' % bookreader_host()
+BASE_URL = bookreader_host() or 'archive.org'
+SEARCH_URL = 'http://%s/advancedsearch.php' % BASE_URL
+BROWSE_URL = 'https://%s/search.php' % BASE_URL
 
 AVAILABILITY_STATUS = 'loans__status__status'
 RETURN_FIELDS = ['identifier', AVAILABILITY_STATUS,
@@ -48,18 +49,12 @@ def editions_by_ia_query(query='', sorts=None, page=1, limit=None):
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    q = _prepare_api_query(query)
+    q = _expand_api_query(query)
     sorts = _normalize_sorts(sorts)
-    params = {
-        'q': q,
-        'sort[]': sorts,  # broken for encoding of + -> %2B
-        'fl[]': RETURN_FIELDS,
-        'rows': min(limit, MAX_IA_RESULTS) or MAX_IA_RESULTS,
-        'page': page,
-        'output': 'json'
-    }
-    url = SEARCH_URL + '?' + urllib.urlencode(params, doseq=True)
-    items = _request_items(url)
+    params = _clean_params(q=q, sorts=sorts, page=page, limit=limit)
+    url = _compose_advancedsearch_url(**params)
+    response = _request(url)
+    items = response.get('docs', [])
     work2item = _index_item_by_distinct_work(items)
     editions = [
         _add_availability_to_edition(
@@ -73,7 +68,7 @@ def editions_by_ia_query(query='', sorts=None, page=1, limit=None):
     return {
         'editions': editions,
         'advancedsearch_url': url,
-        'browse_url': _prepare_browsable_query(q, sorts),
+        'browse_url': _compose_browsable_url(q, sorts),
         'params': params
     }
 
@@ -103,7 +98,7 @@ def _normalize_sorts(sorts):
                     if sort.split('+')[0] in VALID_SORTS]
     return ['']
 
-def _prepare_api_query(query):
+def _expand_api_query(query):
     """Expands short / more easily cacheable preset queries
     and fixes query to ensure only text archive.org items
     are returned having openlibrary_work
@@ -118,7 +113,21 @@ def _prepare_api_query(query):
         q += ' AND %s:AVAILABLE' % AVAILABILITY_STATUS
     return q if not query else q + " AND " + query
 
-def _prepare_browsable_query(query, sorts):
+def _clean_params(q='', sorts='', page=1, limit=MAX_IA_RESULTS):
+    params = {
+        'q': q,
+        'page': page,
+        'limit': min(limit, MAX_IA_RESULTS),
+        'sort[]': sorts,  # broken for encoding of + -> %2B
+        'fl[]': RETURN_FIELDS,
+        'output': 'json'
+    }
+    return params
+
+def _compose_advancedsearch_url(**params):
+    return SEARCH_URL + '?' + urllib.urlencode(params, doseq=True)
+
+def _compose_browsable_url(query, sorts=None):
     """If the client wants to explore this query in the browser, it will
     have to be converted to user a human readable version of the
     advancedsearch API
@@ -130,7 +139,7 @@ def _prepare_browsable_query(query, sorts):
         _sort = _sort.split(' ')[0]
     return '%s?query=%s&sort=%s' % (BROWSE_URL, query, _sort)
 
-def _request_items(url):
+def _request(url):
     """Hits archive.org advancedsearch.php API, returns matching items
     """
     try:
@@ -143,8 +152,7 @@ def _request_items(url):
 
         response = urllib2.urlopen(
             request, timeout=config_http_request_timeout).read()
-        return simplejson.loads(
-            response).get('response', {}).get('docs', [])
+        return simplejson.loads(response).get('response', {})
     except Exception as e:
         return []
 
@@ -153,7 +161,7 @@ def _index_item_by_distinct_work(items):
     to ensure a single edition (item) per work
     """
     return dict(('/works/%s' % item['openlibrary_work'], item)
-                for item in items)
+                for item in items if item.get('openlibrary_work'))
 
 def _item_matching_edition(edition, work2item):
     """An edition may belong to multiple works, especially if those works
