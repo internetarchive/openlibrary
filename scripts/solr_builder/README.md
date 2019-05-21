@@ -21,7 +21,7 @@ docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 
 ```bash
 # Download the dump
-wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.3GB, 6.5min (Feb 2019, OJF)
+wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
 ```
 
 Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
@@ -44,15 +44,15 @@ for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
 # logs/psql-chunk-8531084.txt: COPY 8531084
 ```
 
-Takes ~2.5 hours to complete (Feb 2019, OJF).
+Took 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
 
 **NOTE: Now would be a good time to do another partial import, if the above took a while, or if the dump is somewhat outdated. See Step 3a.**
 
 Once that's all done, we create indices in postgres:
 
 ```bash
-# > 10 min; forgot to time some of the indices
-docker-compose exec -u postgres db psql -d postgres -f sql/create-indices.sql
+# 1.25 hr (10 May 2019, OJF)
+time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
 ```
 
 #### TODO
@@ -65,19 +65,21 @@ docker-compose exec -u postgres db psql -d postgres -f sql/create-indices.sql
 ### 2a: Setup
 
 ```bash
-docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../ # same as openlibrary
-docker-compose up --no-deps -d solr # Launch solr
+# Build the image (same as openlibrary)
+time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../
+# Launch solr
+docker-compose up --no-deps -d solr
 
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment
-docker build -t olpython:latest -f Dockerfile.olpython . # ~5 min (Linux/Jan 2019)
+time docker-compose build ol  # ~5 min (Linux/Jan 2019)
 
 # Setup some convenience aliases/functions
 alias psql='docker-compose exec -u postgres db psql postgres -X -t -A $1'
-alias docker_solr_builder='docker-compose run -d ol python solr_builder.py $1'
+docker_solr_builder() { docker-compose run -d ol python solr_builder.py $@; }
 # Use this to launch with live profiling at a random port; makes it SUPER easy to check progress/bottlenecks
 # alias docker_solr_builder='docker-compose run -p4000 -d ol python -m cprofilev -a 0.0.0.0 solr_builder.py $1'
-alias pymath='python3 -c "from math import *; print($1)"'
+pymath () { python3 -c "from math import *; print($1)"; }
 
 # Load a helper function into postgres
 psql -f sql/get-partition-markers.sql
@@ -86,12 +88,12 @@ psql -f sql/get-partition-markers.sql
 ### 2b: Insert works & orphaned editions
 
 ```bash
-WORKS_COUNT=`time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/work'"` # ~25s
+WORKS_COUNT=$(time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/work'") # ~10min
 WORKS_INSTANCES=5
-WORKS_CHUNK_SIZE=`pymath "ceil($WORKS_COUNT / $WORKS_INSTANCES)"`
+WORKS_CHUNK_SIZE=$(pymath "ceil($WORKS_COUNT / $WORKS_INSTANCES)")
 
 # Partitions the database (~33s)
-WORKS_PARTITIONS=$(psql -c "SELECT \"Key\" FROM test_get_partition_markers('/type/work', $WORKS_CHUNK_SIZE);")
+WORKS_PARTITIONS=$(time psql -c "SELECT \"Key\" FROM test_get_partition_markers('/type/work', $WORKS_CHUNK_SIZE);")
 for key in $WORKS_PARTITIONS; do
   RUN_SIG=works_${key//\//}_`date +%Y-%m-%d_%H-%M-%S`
   docker_solr_builder works --start-at $key --limit $WORKS_CHUNK_SIZE -p progress/$RUN_SIG.txt
@@ -99,40 +101,48 @@ for key in $WORKS_PARTITIONS; do
 done;
 ```
 
-Works took ~24hrs to index split over 6 cores (Oct 2018, OJF). Note only one batch took that long; all other batches took <14 hours.
+Works took 29 hrs (18081999 works, 13 May 2019, OJF) with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours.
 
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
 ```bash
-ORPHANS_COUNT=$(psql -f sql/count-orphans.sql)
+ORPHANS_COUNT=$(time psql -f sql/count-orphans.sql) # ~15min
 RUN_SIG=orphans_`date +%Y-%m-%d_%H-%M-%S`
 docker_solr_builder orphans -p progress/$RUN_SIG.txt
 ```
 
-Orphans took ~19hrs over 1 core (Oct 2018, OJF), NOT in parallel with works.
+Orphans took 11 hrs over 1 core (3735145 docs, 13 May 2019, OJF), in parallel with works.
+
+To check progress, run (clearing the progress folder as necessary):
+
+```bash
+for f in progress/*; do tail -n1 $f; done;
+```
+
+Note the work chunks happen to be (for some reason) pretty uneven, so start the subjects (step 2d) when one of the chunks finishes.
 
 ### 2c: Insert authors
 
 Note: This must be done AFTER works and orphans; authors query solr to determine how many works are by a given author.
 
 ```bash
-AUTHOR_COUNT=`time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/author'"` # ~25s
+AUTHOR_COUNT=$(time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/author'") # ~25s
 AUTHOR_INSTANCES=6
-AUTHORS_CHUNK_SIZE=`pymath "ceil($AUTHOR_COUNT / $AUTHOR_INSTANCES)"`
+AUTHORS_CHUNK_SIZE=$(pymath "ceil($AUTHOR_COUNT / $AUTHOR_INSTANCES)")
 
-# Partitions the database (~___s)
+# Partitions the database (~23s)
 AUTHORS_PARTITIONS=$(time psql -c "SELECT \"Key\" FROM test_get_partition_markers('/type/author', $AUTHORS_CHUNK_SIZE)")
 for key in $AUTHORS_PARTITIONS; do
   RUN_SIG=works_${key//\//}_`date +%Y-%m-%d_%H-%M-%S`
-  docker_solr_builder authors --start-at $key --limit AUTHORS_CHUNK_SIZE -p progress/$RUN_SIG.txt
+  docker_solr_builder authors --start-at $key --limit $AUTHORS_CHUNK_SIZE -p progress/$RUN_SIG.txt
   echo sleep 60 | tee /dev/tty | bash;
 done;
 ```
 
-Authors took ~14 hrs over 5 cores (Oct 2018, OJF). After this is done, we have to call `commit` on solr:
+Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF). After this is done, we have to call `commit` on solr:
 
 ```bash
-curl localhost:8984/solr/update?commit=true
+time curl localhost:8984/solr/update?commit=true # ~25s
 ```
 
 ### 2d: Insert subjects
@@ -142,11 +152,14 @@ It is currently unknown how subjects make their way into Solr (See See https://g
 1. Create a backup of prod's solr (See https://github.com/internetarchive/openlibrary/wiki/Solr#creating-a-solr-backup )
 2. Extract the backup (NOT in the repo; anywhere else)
 3. Launch the `solr-backup` service, modifying `docker-compose.yml` with the path of the backup
+    ```bash
+    docker-compose up -d --no-deps solr-backup
+    ```
 4. Copy the subjects into our main solr. 6.75 hrs (May 2019, OJF, 1514068 docs)
-```bash
-# check the status by going to localhost:8984/solr/dataimport
-curl localhost:8984/solr/dataimport?command=full-import
-```
+    ```bash
+    # check the status by going to localhost:8984/solr/dataimport
+    curl localhost:8984/solr/dataimport?command=full-import
+    ```
 
 ## Step 3: Final Sync
 
