@@ -1157,7 +1157,7 @@ def update_work(work):
                 if solr_doc.get('ia'):
                     requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
                 requests.append(UpdateRequest(solr_doc))
-    elif work['type']['key'] == '/type/delete':
+    elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
     else:
         logger.error("unrecognized type while updating work %s", wkey, exc_info=True)

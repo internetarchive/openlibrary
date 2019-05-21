@@ -415,3 +415,9 @@ class TestUpdateWork:
         assert len(requests) == 1
         assert isinstance(requests[0], update_work.DeleteRequest)
         assert requests[0].toxml() == '<delete><query>key:/works/OL23M</query></delete>'
+
+    def test_redirects(self):
+        requests = update_work.update_work({'key': '/works/OL23W', 'type': {'key': '/type/redirect'}})
+        assert len(requests) == 1
+        assert isinstance(requests[0], update_work.DeleteRequest)
+        assert requests[0].toxml() == '<delete><query>key:/works/OL23W</query></delete>'
