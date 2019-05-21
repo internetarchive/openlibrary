@@ -1110,16 +1110,15 @@ def update_subject(key):
         request_set.add(subject)
     return request_set.get_requests()
 
-def update_work(w, debug=False):
+
+def update_work(work):
     """
     Get the Solr requests necessary to insert/update this work into Solr.
 
-    :param dict w: Work to insert/update
-    :param bool debug: FIXME unused
+    :param dict work: Work to insert/update
     :rtype: list[UpdateRequest or DeleteRequest]
     """
-    wkey = w['key']
-    deletes = []
+    wkey = work['key']
     requests = []
 
     # q = {'type': '/type/redirect', 'location': wkey}
@@ -1131,49 +1130,40 @@ def update_work(w, debug=False):
 
     # Handle edition records as well
     # When an edition does not contain a works list, create a fake work and index it.
-    if w['type']['key'] == '/type/edition' and w.get('title'):
-        edition = w
-        w = {
-            # Use key as /works/OL1M.
-            # In solr we are using full path as key. So it is required to be
-            # unique across all types of documents. The website takes care of
-            # redirecting /works/OL1M to /books/OL1M.
-            'key': edition['key'].replace("/books/", "/works/"),
+    if work['type']['key'] == '/type/edition' and work.get('title'):
+        fake_work = {
+            # Solr uses type-prefixed keys. It's required to be unique across
+            # all types of documents. The website takes care of redirecting
+            # /works/OL1M to /books/OL1M.
+            'key': wkey.replace("/books/", "/works/"),
             'type': {'key': '/type/work'},
-            'title': edition['title'],
-            'editions': [edition],
-            'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in edition.get('authors', [])]
+            'title': work['title'],
+            'editions': [work],
+            'authors': [{'type': '/type/author_role', 'author': {'key': a['key']}} for a in work.get('authors', [])]
         }
         # Hack to add subjects when indexing /books/ia:xxx
-        if edition.get("subjects"):
-            w['subjects'] = edition['subjects']
-
-    if w['type']['key'] == '/type/work' and w.get('title'):
+        if work.get("subjects"):
+            fake_work['subjects'] = work['subjects']
+        return update_work(fake_work)
+    elif work['type']['key'] == '/type/work' and work.get('title'):
         try:
-            d = build_data(w)
-            dict2element(d)
+            solr_doc = build_data(work)
+            dict2element(solr_doc)
         except:
-            logger.error("failed to update work %s", w['key'], exc_info=True)
+            logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
-            if d is not None:
+            if solr_doc is not None:
                 # Delete all ia:foobar keys
-                if d.get('ia'):
-                    deletes += ["ia:" + iaid for iaid in d['ia']]
-
-                # In solr, we use full path as key, not just the last part
-                deletes = ["/works/" + k for k in deletes]
-
-                requests.append(DeleteRequest(deletes))
-                requests.append(UpdateRequest(d))
-    elif w['type']['key'] == '/type/delete':
-        # Delete the record from solr if the work has been deleted in OL.
-        deletes += [wkey[7:]] # strip /works/ from /works/OL1234W
-
-        # In solr, we use full path as key, not just the last part
-        deletes = ["/works/" + k for k in deletes]
-        requests.append(DeleteRequest(deletes))
+                if solr_doc.get('ia'):
+                    requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
+                requests.append(UpdateRequest(solr_doc))
+    elif work['type']['key'] == '/type/delete':
+        requests.append(DeleteRequest([wkey]))
+    else:
+        logger.error("unrecognized type while updating work %s", wkey, exc_info=True)
 
     return requests
+
 
 def make_delete_query(keys):
     """
@@ -1399,7 +1389,7 @@ def update_keys(keys, commit=True, output_file=None):
         logger.info("updating work %s", k)
         try:
             w = data_provider.get_document(k)
-            requests += update_work(w, debug=True)
+            requests += update_work(w)
         except:
             logger.error("Failed to update work %s", k, exc_info=True)
 
