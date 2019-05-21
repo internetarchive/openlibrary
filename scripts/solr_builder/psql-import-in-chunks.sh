@@ -5,8 +5,8 @@ DUMP="$1"
 INSTANCES=$2
 
 
-DUMP_SIZE=`time zcat ${DUMP} | wc -l`  # 6min (Feb 2019, OJF)
-echo $DUMP_SIZE  # 51186504 (Feb 2019)
+DUMP_SIZE=`time zcat ${DUMP} | wc -l`  # 6min (10 May 2019, OJF) ; 6min (Feb 2019, OJF)
+echo $DUMP_SIZE  # 52730866 (10 May 2019) ; 51186504 (Feb 2019)
 CHUNK_SIZE=`python3 -c "import math; print(math.ceil($DUMP_SIZE / $INSTANCES))"`
 OFFSETS=`python3 -c "print(' '.join(map(str, range(0, $DUMP_SIZE, $CHUNK_SIZE))))"`
 for offset in $OFFSETS; do

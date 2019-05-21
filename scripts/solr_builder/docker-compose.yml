@@ -18,7 +18,7 @@ services:
       - 8087:8080
 
   solr:
-    image: olsolr
+    image: olsolr:latest
     restart: always
     ports:
       - 8984:8080
@@ -27,7 +27,7 @@ services:
 
   # Replica of production solr so we can get subjects
   solr-backup:
-    image: olsolr
+    image: olsolr:latest
     restart: always
     ports:
       - 8985:8080
