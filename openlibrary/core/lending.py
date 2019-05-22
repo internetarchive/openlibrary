@@ -1,5 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
+
 import web
 import simplejson
 import datetime
@@ -235,9 +236,10 @@ def get_available(limit=None, page=1, subject=None, query=None,
     except Exception as e:
         return {'error': 'request_timeout'}
 
+
 def get_availability(key, ids):
     """
-    :param str key:
+    :param str key: the type of identifier
     :param list of str ids:
     :rtype: dict
     """
@@ -296,8 +298,8 @@ def add_availability(editions):
     availabilities = get_availability_of_ocaids(ocaids)
     for ed in editions:
         ocaid = get_ocaid(ed)
-        errored = (ocaid is None) or (availabilities.get(ocaid) is None)
-        ed['availability'] = availabilities.get(ocaid) if not errored else {'status': 'error'}
+        success = ocaid and availabilities.get(ocaid)
+        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
     return editions
 
 @public
@@ -306,7 +308,11 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 def get_availability_of_ocaids(ocaids):
-    """Retrieves availability based on ocaids/archive.org identifiers"""
+    """
+    Retrieves availability based on ocaids/archive.org identifiers
+    :param list[str] ocaids:
+    :rtype: dict
+    """
     return get_availability('identifier', ocaids)
 
 def get_work_availability(ol_work_id):
