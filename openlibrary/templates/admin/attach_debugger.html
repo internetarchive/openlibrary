@@ -1,0 +1,22 @@
+$def with (keys="", error="")
+
+$var title: Attach Debugger
+
+<div id="contentHead">
+    $:render_template("admin/menu")
+    <h1>Attach Debugger</h1>
+</div>
+
+<div id="contentBody">
+    <div>
+        Start a debugger on port 3000.<br/>
+    </div>
+
+    <form method="POST" class="olform">
+        <div class="formElement">
+            <div class="formElement collapse">
+                <button type="submit" class="larger" name="_start" onclick='this.disabled = true; this.textContent="$_("Waiting for debugger to attach...")"'>$_("Start")</button>
+            </div>
+        </div>
+    </form>
+</div>

@@ -26,7 +26,7 @@ COPY package*.json ./
 RUN npm install
 
 # Expose Open Library, Infobase, and Coverstore
-EXPOSE 80 7000 8081
+EXPOSE 80 7000 8081 3000
 
 # runs as root in order to access su to run as openlibrary and postgres users
 CMD docker/ol-docker-start.sh

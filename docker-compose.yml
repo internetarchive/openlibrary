@@ -9,6 +9,7 @@ services:
       - 8080:80
       - 7000:7000
       - 8081:8081
+      - 3000:3000
     volumes:
       # Persistent volume mount for installed git submodules
       - ol-vendor:/openlibrary/vendor
