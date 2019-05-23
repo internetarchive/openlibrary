@@ -20,7 +20,7 @@ $def render_carousel_cover(book, lazy_cover):
   $else:
     $ cover_url = '%s/b/ia/%s-M.jpg?default=%s%s' % (cover_host, ocaid, fallback_cover, ocaid)
   $ img_attr = 'data-lazy' if lazy_cover else 'src'
-  $ byline = ' by ' + ', '.join([author.name for author in book.authors]) if book.get('authors') else ''
+  $ byline = ' by ' + ', '.join([author.get('name', '') for author in book.authors]) if book.get('authors') else ''
 
   <div class="book carousel__item">
     <div class="book-cover">
@@ -57,6 +57,7 @@ $if test or (books and len(books) >= min_books):
         <script type="text/javascript">
               window.q.push(function() {
                 var addWork = function(work) {
+                  // XXX byline needed in title
                   var ocaid = work.availability.identifier;
                   var availabilityTypes = $:(availability_types);
                   var availability = work.availability.status;

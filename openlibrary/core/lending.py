@@ -84,7 +84,7 @@ def setup(config):
     config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    
+
 
 
 def get_availability(key, ids):

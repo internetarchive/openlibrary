@@ -7,7 +7,7 @@ const Carousel = {
      * loadMore params for lazy-loading more pages of results on the fly
      * @param {string} selector to bind carousel
      * @param {string} a - f are number of items to render at different mobile breakpoints
-     * @param {{ 
+     * @param {{
      *   url:string endpoint for fetching additional results
      *   getItems:function which extracts item values out of the API response
      *   addItem:function which consumes and item and returns html to add as a new slide
@@ -111,7 +111,7 @@ const Carousel = {
 
                     // update the current page or offset within the URL
                     url.searchParams.set(loadMore.pageMode, loadMore.page);
-                    
+
                     $.ajax({
                         url: url,
                         type: 'GET',

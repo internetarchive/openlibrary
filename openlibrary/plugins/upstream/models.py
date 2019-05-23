@@ -470,35 +470,11 @@ class Edition(models.Edition):
         """
         return "/ia:" in self.key
 
-    @property
-    def canonicalize(self):
+    def get_all_authors(self):
         work = self.works and self.works[0]
+        authors = list(set(self.get_authors() + work.get_authors()))
+        return [web.storage(key=a.key, name=a.name or None) for a in authors]
 
-        # Use ocaid as canonical internet archive identifier
-        self.ocaid = (
-            self.get('ocaid') or
-            (self.get('ia') and self.ia[0] if isinstance(self.ia, list) else self.ia) or
-            self.availability and self.availability.identifier
-        )
-
-        # Ensure author is set
-        self.authors = [
-            web.storage(key=a.key, name=a.name or None)
-            for a in set((
-                (a for a in doc.get_authors())
-                for doc in (work, self)
-            ))
-        ] or []
-
-        # Get bookcover from edition, or work, IA fallback, or default
-        self.cover_url = (
-            next((doc.get_cover().url('M')
-                  for doc in [self, work]
-                  if doc and doc.get_cover()), None)
-            or (self.ocaid and 'https://archive.org/services/img/%s' % self.ocaid)
-            or '/images/icons/avatar_book.png'
-        )
-        return self
 
 class Author(models.Author):
     def get_photos(self):

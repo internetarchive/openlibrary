@@ -23,13 +23,12 @@ def get_editions_by_ia_query(query='', sorts=None, page=1, limit=None,
 @public
 def cached_random_readable_works():
     # cache 2k classic works in memcache for 15 minutes
-    cached_works = cache.memcache_memoize(
+    works = cache.memcache_memoize(
         random_readable_works, "carousel.classics",
-        timeout=15*dateutil.MINUTE_SECS)()
-    # sample results to appear random
-    if len(cached_works) > 60:
-        works = random.sample(cached_works, 60)
-    return storify(works)
+        timeout=15*dateutil.MINUTE_SECS)() or []
+    return storify(
+        random.sample(works, 60) if len(works) > 60 else works
+    )
 
 
 def setup():

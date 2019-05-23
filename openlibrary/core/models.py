@@ -28,7 +28,7 @@ from . import inlibrary
 from . import loanstats
 from . import waitinglist
 from . import lending
-from . import search
+
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -204,12 +204,40 @@ class Edition(Thing):
     """
 
     @staticmethod
+    def canonicalize(edition):
+        work = edition.works and edition.works[0]
+
+        # Use ocaid as canonical internet archive identifier
+        edition.ocaid = (
+            edition.get('ocaid') or
+            (edition.get('ia') and edition.ia[0] if isinstance(edition.ia, list)
+             else edition.ia) or
+            edition.availability and edition.availability.identifier
+        )
+
+        # Ensure author is set
+        edition.authors = [web.storage(key=a.key, name=a.name or None) for a in
+                           (work or edition).get_authors()]
+
+        # Get bookcover from edition, or work, IA fallback, or default
+        edition.cover_url = (
+            next((doc.get_cover().url('M')
+                  for doc in [edition, work]
+                  if doc and doc.get_cover()), None)
+            or (edition.ocaid
+                and 'https://archive.org/services/img/%s' % edition.ocaid)
+            or '/images/icons/avatar_book.png'
+        )
+        return edition
+
+    @staticmethod
     def get_random_available():
         """Uses archive.org AdvancedSearch API to find a random available
         edition on Open Library
         """
-        results = search.get_editions_by_ia_query(
-            limit=1, sorts=['random'])        
+        from . import search
+        results = search.editions_by_ia_query(
+            limit=1, sorts=['random'])
         if results.get('editions'):
             return results.get('editions')[0]
 
@@ -363,10 +391,6 @@ class Edition(Thing):
         """Returns True if the book is lendable.
         """
         return self.in_borrowable_collection()
-
-    @staticmethod
-    def random_available():
-        return search.EditionSearch.random_available()
 
     def get_ia_download_link(self, suffix):
         """Returns IA download link for given suffix.

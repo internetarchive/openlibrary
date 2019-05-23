@@ -200,7 +200,7 @@ class random_book(delegate.page):
     def GET(self):
         ed = Edition.get_random_available()
         if ed:
-            raise web.seeother(ed.key)
+            raise web.seeother(ed['key'])
         raise web.seeother("/")
 
 class addbook(delegate.page):

@@ -9,13 +9,14 @@ import six
 from infogami.utils import delegate
 
 from openlibrary.utils import dateutil
+from openlibrary.core.models import Edition
 from openlibrary.core.helpers import get_coverstore_url
 from openlibrary.core.helpers import bookreader_host
 from openlibrary.core.lending import config_http_request_timeout
 
 
 PRESET_QUERIES = {
-    'preset:modern': 'languageSorter:"English" AND (year:"2013" OR year:"2014" OR year:"2015")',
+    'preset:modern': 'languageSorter:"English" AND (year:"2014" OR year:"2015")',
     'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
     'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
     'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
@@ -55,14 +56,14 @@ def editions_by_ia_query(query='', sorts=None, page=1, limit=None):
     url = _compose_advancedsearch_url(**params)
     response = _request(url)
     items = response.get('docs', [])
-    work2item = _index_item_by_distinct_work(items)
+    item_index = _index_items_by_ocaid(items)
     editions = [
-        _add_availability_to_edition(
-            edition.canonicalize, work2item).dict()
-        for edition in web.ctx.site.get_many([
+        Edition.canonicalize(_add_availability_to_edition(
+            edition, item_index)).dict() for edition
+        in web.ctx.site.get_many([
             '/books/%s' % item['openlibrary_edition']
-            for item in work2item.values()
-        ]) if _item_matching_edition(edition, work2item)
+            for item in item_index.values()
+        ])
     ]
 
     return {
@@ -117,7 +118,7 @@ def _clean_params(q='', sorts='', page=1, limit=MAX_IA_RESULTS):
     params = {
         'q': q,
         'page': page,
-        'limit': min(limit, MAX_IA_RESULTS),
+        'rows': min(limit, MAX_IA_RESULTS),
         'sort[]': sorts,  # broken for encoding of + -> %2B
         'fl[]': RETURN_FIELDS,
         'output': 'json'
@@ -156,38 +157,24 @@ def _request(url):
     except Exception as e:
         return []
 
-def _index_item_by_distinct_work(items):
-    """Filter duplicate editions (items with the same work)
-    to ensure a single edition (item) per work
-    """
-    return dict(('/works/%s' % item['openlibrary_work'], item)
-                for item in items if item.get('openlibrary_work'))
+def _index_items_by_ocaid(items):
+    return dict((item['identifier'], item) for item in items)
 
-def _item_matching_edition(edition, work2item):
-    """An edition may belong to multiple works, especially if those works
-    were  merged duplicates. This method tells us which work is listed in the
-    work2item mapping.
-    """
-    return edition.works and next((
-        work2item.get(work.key) for work in edition.works if work.key in work2item
-    ), None)
-
-def _add_availability_to_edition(edition, work2item):
+def _add_availability_to_edition(edition, item_index):
     """
     To avoid a 2nd network call to `lending.add_availability`
-    reconstruct availability ad-hoc from archive.org
+    reconstruct availability info ad-hoc from archive.org
     advancedsearch results
-
-    XXX needs to be more robust if not item
     """
-    item = _item_matching_edition(edition, work2item)
+    item = item_index[edition.ocaid]
     availability_status = (
-        'borrow_%s' % item[AVAILABILITY_STATUS].lower()
+        ('borrow_%s' % item[AVAILABILITY_STATUS].lower())
         if item.get(AVAILABILITY_STATUS) else 'open')
     edition['availability'] = {
         'status': availability_status,
-        'identifier': item['identifier'],
-        'openlibrary_edition': item['openlibrary_edition'],
-        'openlibrary_work': item['openlibrary_work']
+        'identifier': item.get('identifier', ''),
+        'openlibrary_edition': item.get('openlibrary_edition', ''),
+        'openlibrary_work': item.get('openlibrary_work', '')
     }
     return edition
+

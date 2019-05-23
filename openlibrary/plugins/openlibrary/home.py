@@ -33,14 +33,13 @@ class home(delegate.page):
                 "home/index", stats=stats,
                 blog_posts=get_blog_feeds()
             )
-            page.v2 = True    
+            page.v2 = True
             return dict(page)
 
         # when homepage is cached, home/index.html template doesn't
         # run ctx.setdefault to set the bodyid so we must do so here:
         delegate.context.setdefault('bodyid', 'home')
         return web.template.TemplateResult(
-            get_homepage() or  # XXX delete this line! Testing
             cache.memcache_memoize(
             get_homepage, "home.homepage", timeout=5 * dateutil.MINUTE_SECS)())
 

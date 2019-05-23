@@ -336,6 +336,8 @@ class ia_importapi(importapi):
         """
         edition['ocaid'] = identifier
         edition['source_records'] = "ia:" + identifier
+        # XXX Maybe this should use cover_t.jpg instead of title.jpg?
+        # https://archive.org/download/eustacediamonds00trol_1/page/cover_t.jpg
         edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
         return edition
 

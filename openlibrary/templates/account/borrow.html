@@ -68,10 +68,10 @@ window.q.push(function(){
 </div>
 
 <div id="contentBody">
-<h2>$_("My Active Loans")</h2>
+<h2>$_("My Loans")</h2>
 $if len(loans) == 0:
-    <p><em>You have no active loans.</em> If you're looking for a book, may we suggest one of these?</p>
-    $:macros.IABookCarousel(key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18)
+    <p>You have <strong>no active loans.</strong> If you're looking for a book, may we suggest one of these?</p>
+    $:macros.IABookCarousel(key="staff_picks", query='languageSorter:("English") and openlibrary_subject:"openlibrary_staff_picks"', sorts=["loans__status__last_loan_date+desc"], limit=18)
 $else:
     $# Have current loans
     <div id="borrowTable" class="borrow collapse">
@@ -150,11 +150,11 @@ $else:
     </ol>
     -->
 
-<h2>$_("My Active Holds")</h2>
+<h2>$_("My Holds")</h2>
 $ waitinglist = user.get_waitinglist()
 $if len(waitinglist) == 0:
-    <p><em>You have no active holds.</em> Maybe you'd like to join the waitlist for one of these books?</p>
-    $:macros.IABookCarousel(key="staff_picks_waitlist", query='languageSorter:("English") AND loans__status__status:UNAVAILABLE', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18)
+    <p><strong>You have no active holds.</strong> Maybe you'd like to join the waitlist for one of these books?</p>
+    $:macros.IABookCarousel(key="staff_picks_waitlist", query='languageSorter:("English") AND loans__status__status:UNAVAILABLE AND openlibrary_subject:"openlibrary_staff_picks"', sorts=["loans__status__last_loan_date+desc"], title="Worth the Wait", limit=18)
 
 $else:
     <div id="leave-waitinglist-dialog" class="hidden dialog" title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
