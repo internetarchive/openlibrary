@@ -26,7 +26,7 @@ admin_password: admin123
 errorlog: /var/log/openlibrary/ol-errors
 login_cookie_name: session
 
-infobase_server: localhost:7000
+infobase_server: web:7000
 
 # contents of this file are assigned to config["infobase"]
 # Path can be relative to this file

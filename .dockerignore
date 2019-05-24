@@ -7,3 +7,4 @@ config
 build
 **.pyc
 **__pycache__
+venv/
