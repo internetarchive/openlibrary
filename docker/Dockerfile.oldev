@@ -7,6 +7,7 @@ USER postgres
 RUN /etc/init.d/postgresql start \
   && createuser -s openlibrary \
   && createdb openlibrary \
+  && psql openlibrary < openlibrary/core/users.sql \
   && psql openlibrary < openlibrary/core/schema.sql \
   && createdb coverstore \
   && psql coverstore < openlibrary/coverstore/schema.sql \

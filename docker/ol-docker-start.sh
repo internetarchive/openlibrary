@@ -32,7 +32,7 @@ export -f reindex-solr
 su openlibrary -c "until pg_isready; do sleep 5; done && reindex-solr localhost $CONFIG" &
 
 # solr updater
-su openlibrary -c "python scripts/new-solr-updater.py \
+su solrupdater -c "python scripts/new-solr-updater.py \
   -c $CONFIG \
   --state-file solr-update.offset \
   --ol-url http://web/" &
