@@ -46,8 +46,6 @@ for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
 
 Took 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
 
-**NOTE: Now would be a good time to do another partial import, if the above took a while, or if the dump is somewhat outdated. See Step 3a.**
-
 Once that's all done, we create indices in postgres:
 
 ```bash
@@ -165,53 +163,32 @@ It is currently unknown how subjects make their way into Solr (See See https://g
 
 NONE OF THIS HAS BEEN TESTED YET!
 
-Since the previous steps took a decent amount of time, we now have to deal with any changes that occurred since.
-
-### 3a: Update postgres
-
-Get the latest date in our postgres
+We now have to deal with any changes that occurred since. The last step is to run `solr-updater` on dev linked to the production Infobase logs, and the new solr. Something like:
 
 ```bash
-echo $(psql -c "SELECT \"LastModified\" FROM test ORDER BY \"LastModified\" DESC LIMIT 1")
+DAY_BEFORE_DUMP='2019-04-30'
+cd /opt/openlibrary/openlibrary/
+cp conf/openlibrary.yml conf/solrbuilder-openlibrary.yml
+vim conf/solrbuilder-openlibrary.yml # Modify to point to new solr
+echo "${DAY_BEFORE_DUMP}:0" > solr-builder.offset
 ```
 
-And run the following query on prod (partially tested on `ol-db2`):
+Create `/etc/supervisor/conf.d/solrbuilder-solrupdater.conf` with:
+```
+[program:solrbuilder-solrupdater]
+command=/olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/new-solr-updater.py \
+  --config /opt/openlibrary/openlibrary/conf/solrbuilder-openlibrary.yml \
+  --state-file /opt/openlibrary/openlibrary/solr-builder.offset \
+  --socket-timeout 600
+user=solrupdater
+directory=/opt/openlibrary/openlibrary
+redirect_stderr=true
+stdout_logfile=/var/log/openlibrary/solrbuilder-solrupdater.log
+environment=USER=solrupdater
+```
+
+Then start it:
 
 ```bash
-su postgres
-cd /openlibrary/scripts/solr_builder
-LO_DATE='2000-01-30'  # latest from postgres (from above)
-alias oldump='/openlibrary/scripts/oldump.py $1'
-DUMP_FILE=$(echo "dump_${LO_DATE}" | sed -e 's/[: .]/_/g')
-time psql openlibrary -v lo_date="$LO_DATE" -f sql/prod-partial-dump.sql > "${DUMP_FILE}_unfiltered.txt"
-time oldump cdump "${DUMP_FILE}_unfiltered.txt" > "${DUMP_FILE}.txt"
-gzip "${DUMP_FILE}.txt" # ~15s locally
+supervisorctl start solrbuilder-solrupdater
 ```
-
-Bring that file back to our clone, and import it:
-
-```bash
-# ~2.25 hrs for 1 month difference
-psql -v source="PROGRAM 'zcat /solr_builder/partial-dump.txt.gz'" -f sql/import-partial.sql
-```
-
-### 3b: Update solr 
-And now basically repeat everything, but import only the subset of where last modified within the new range.
-
-```bash
-LO_DATE='2018-10-30 23:58:49.355353'  # latest from postgres
-LO_DATE_CLEAN=$(echo "${LO_DATE}" | sed -e 's/[: .]/_/g')
-
-# Works (~___s for 1 month)
-RUN_SIG=works_${LO_DATE_CLEAN}_`date +%Y-%m-%d_%H-%M-%S`
-docker_solr_builder works --last-modified="${LO_DATE}" -p progress/${RUN_SIG}.txt
-
-# Orphans (in parallel!) (~___s for 1 month)
-RUN_SIG=orphans_${LO_DATE_CLEAN}_`date +%Y-%m-%d_%H-%M-%S`
-docker_solr_builder orphans --last-modified="${LO_DATE}" -p progress/${RUN_SIG}.txt
-
-# And AFTER all that, authors (~___s for 1 month)
-RUN_SIG=authors_${LO_DATE_CLEAN}_`date +%Y-%m-%d_%H-%M-%S`
-docker_solr_builder authors --last-modified="${LO_DATE}" -p progress/${RUN_SIG}.txt
-```
-
