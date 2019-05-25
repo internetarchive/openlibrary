@@ -41,7 +41,6 @@ def parse_arguments():
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
-    parser.add_argument('--monkeypatch', action='store_true', default=False, help='Monkey patch solr updater to make it run faster.')
     return parser.parse_args()
 
 def read_state_file(path):
@@ -170,7 +169,6 @@ def update_keys(keys):
     update_work.load_configs(args.ol_url, args.config, 'default')
 
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])
-    update_work.clear_monkeypatch_cache(max_size=10000)
 
     count = 0
     for chunk in web.group(keys, 100):
@@ -218,9 +216,6 @@ def process_args(args):
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
     socket.setdefaulttimeout(args.socket_timeout)
-
-    if args.monkeypatch:
-        update_work.monkeypatch(args.config)
 
     global LOAD_IA_SCANS, COMMIT
     LOAD_IA_SCANS = args.load_ia_scans
