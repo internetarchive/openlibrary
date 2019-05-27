@@ -6,6 +6,11 @@ USER root
 WORKDIR /openlibrary
 RUN pip install -r requirements_test.txt
 
-# For real-time profiling
+# For real-time profiling; faster python
 RUN pip install cprofilev Cython
+
+# Build cython files
+RUN python setup.py build_ext --inplace
+RUN cd scripts/solr_builder && python setup.py build_ext --inplace
+
 EXPOSE 4000
