@@ -5,8 +5,10 @@ ENV LANG en_US.UTF-8
 # required for postgres
 ENV LC_ALL POSIX
 
-# add openlibrary user
-RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
+# add openlibrary users
+RUN groupadd --system openlibrary \
+  && useradd --no-log-init --system --gid openlibrary openlibrary \
+  && useradd --no-log-init --system --gid openlibrary solrupdater
 
 RUN apt-get -qq update && apt-get install -y \
     nginx \

@@ -34,4 +34,4 @@ htmlcov
 .cache
 node_modules/
 .idea/
-
+venv/
