@@ -217,7 +217,12 @@ class ia_importapi(importapi):
                 local_id_type = web.ctx.site.get('/local_ids/' + local_id)
                 prefix = local_id_type.urn_prefix
                 id_field, id_subfield = local_id_type.id_location.split('$')
-                _ids = [f if isinstance(f, str) else f[1].get_subfield_values(id_subfield)[0] for f in rec.read_fields([id_field]) if f]
+                def get_subfield(field, id_subfield):
+                    if isinstance(field, str):
+                        return field
+                    subfields = field[1].get_subfield_values(id_subfield)
+                    return subfields[0] if subfields else None
+                _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             result = add_book.load(edition)
