@@ -225,6 +225,8 @@ class ia_importapi(importapi):
                 _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
+            # Don't add the book if the MARC record is a non-book item
+            self.reject_non_book_marc(rec)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
