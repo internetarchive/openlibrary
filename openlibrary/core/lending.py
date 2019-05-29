@@ -1,5 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
+
 import web
 import simplejson
 import datetime
@@ -235,7 +236,13 @@ def get_available(limit=None, page=1, subject=None, query=None,
     except Exception as e:
         return {'error': 'request_timeout'}
 
+
 def get_availability(key, ids):
+    """
+    :param str key: the type of identifier
+    :param list of str ids:
+    :rtype: dict
+    """
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
@@ -276,20 +283,23 @@ def get_realtime_availability_of_ocaid(ocaid):
 
 @public
 def add_availability(editions):
-    """Adds API v2 availability info to editions, e.g. for work's editions table
+    """
+    Adds API v2 'availability' key to editions, e.g. for work's editions table
+    :param list of dict editions:
+    :rtype: list of dict
     """
     def get_ocaid(ed):
         if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
             return ed.get('ocaid') or ed.get('identifier') or (
-                ed.ia[0] if isinstance(ed.ia, list) else ed.ia)
+                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
 
-    ocaids = [ocaid for ocaid in [get_ocaid(ed) for ed in editions] if ocaid]
-    availability = get_availability_of_ocaids(ocaids)
-    for i, ed in enumerate(editions):
+    ocaids = [get_ocaid(ed) for ed in editions]
+    ocaids = [ocaid for ocaid in ocaids if ocaid]
+    availabilities = get_availability_of_ocaids(ocaids)
+    for ed in editions:
         ocaid = get_ocaid(ed)
-        editions[i]['availability'] = availability.get(ocaid) if ocaid else {
-            'status': 'error'
-        }
+        success = ocaid and availabilities.get(ocaid)
+        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
     return editions
 
 @public
@@ -298,7 +308,11 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 def get_availability_of_ocaids(ocaids):
-    """Retrieves availability based on ocaids/archive.org identifiers"""
+    """
+    Retrieves availability based on ocaids/archive.org identifiers
+    :param list[str] ocaids:
+    :rtype: dict
+    """
     return get_availability('identifier', ocaids)
 
 def get_work_availability(ol_work_id):
