@@ -89,25 +89,8 @@ def parse_data(data):
         format = 'marc'
 
     parse_meta_headers(edition_builder)
-
     return edition_builder.get_dict(), format
 
-def get_next_count():
-    store = web.ctx.site.store
-    counter = store.get('import_api_s3_counter')
-    if counter is None:
-        store['import_api_s3_counter'] = {'count':0}
-        return 0
-    else:
-        count = counter['count'] + 1
-        store['import_api_s3_counter'] = {'count':count, '_rev':counter['_rev']}
-        return count
-
-def queue_s3_upload(data, format):
-    # Anand - July 23, 2014
-    # Disabled this as we are not configured uploading MARC records.
-    # We probably don't want to do this at all.
-    return
 
 class importapi:
     """/api/import endpoint for general data formats.
@@ -137,32 +120,23 @@ class importapi:
         if not edition:
             return self.error('unknown_error', 'Failed to parse import data')
 
-        ## Anand - July 2014
-        ## This is adding source_records as [null] as queue_s3_upload is disabled.
-        ## Disabling this as well to fix the issue.
-        #source_url = None
-        # if 'source_records' not in edition:
-        #     source_url = queue_s3_upload(data, format)
-        #     edition['source_records'] = [source_url]
-
         try:
             reply = add_book.load(edition)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        #if source_url:
-        #    reply['source_record'] = source_url
         return json.dumps(reply)
 
-    def reject_non_book_marc(self, marc_record):
+    def reject_non_book_marc(self, marc_record, **kwargs):
+        details = "Item rejected"
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
-            return self.error('item-is-serial')
+            return self.error('item-is-serial', details, **kwargs)
 
         # insider note: follows Archive.org's approach of
         # Item::isMARCXMLforMonograph() which excludes non-books
         if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-            return self.error('item-not-book')
+            return self.error('item-not-book', details, **kwargs)
 
 
 class ia_importapi(importapi):
@@ -217,9 +191,16 @@ class ia_importapi(importapi):
                 local_id_type = web.ctx.site.get('/local_ids/' + local_id)
                 prefix = local_id_type.urn_prefix
                 id_field, id_subfield = local_id_type.id_location.split('$')
-                _ids = [f if isinstance(f, str) else f[1].get_subfield_values(id_subfield)[0] for f in rec.read_fields([id_field]) if f]
+                def get_subfield(field, id_subfield):
+                    if isinstance(field, str):
+                        return field
+                    subfields = field[1].get_subfield_values(id_subfield)
+                    return subfields[0] if subfields else None
+                _ids = [get_subfield(f, id_subfield) for f in rec.read_fields([id_field]) if f and get_subfield(f, id_subfield)]
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
+            # Don't add the book if the MARC record is a non-book item
+            self.reject_non_book_marc(rec, **next_data)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
@@ -257,7 +238,6 @@ class ia_importapi(importapi):
         marc_record = self.get_marc_record(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
-
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
@@ -418,7 +398,7 @@ class ils_search:
         try:
             rawdata = json.loads(web.data())
         except ValueError as e:
-            raise self.error("Unparseable JSON input \n %s"%web.data())
+            raise self.error("Unparseable JSON input \n %s" % web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
