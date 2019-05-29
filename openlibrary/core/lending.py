@@ -85,8 +85,6 @@ def setup(config):
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
 
-
-
 def get_availability(key, ids):
     """
     :param str key: the type of identifier
