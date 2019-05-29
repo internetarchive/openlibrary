@@ -9,9 +9,11 @@ USAGE:
 This script can also be used to copy books and authors from OL to dev instance.
 
     ./scripts/copydocs.py /authors/OL113592A
-    ./scripts/copydocs.py /works/OL1098727W
+    ./scripts/copydocs.py /works/OL1098727W?v=2
 """
 from __future__ import print_function
+
+from collections import namedtuple
 
 import _init_path
 import sys
@@ -35,7 +37,15 @@ def find(server, prefix):
 
     return [six.text_type(x) for x in server.query(q)]
 
+
 def expand(server, keys):
+    """
+    Expands keys like "/templates/*" to be all template keys.
+
+    :param Disk or OpenLibrary server:
+    :param typing.List[str] keys:
+    :rtype: typing.Iterator[str]
+    """
     if isinstance(server, Disk):
         for k in keys:
             yield k
@@ -61,11 +71,19 @@ def parse_args():
     parser.add_option("-l", "--list", dest="lists", action="append", default=[], help="copy docs from a list.")
     return parser.parse_args()
 
+
 class Disk:
+    """Lets us copy templates from and records to the disk as files """
+
     def __init__(self, root):
         self.root = root
 
     def get_many(self, keys):
+        """
+        Only gets templates
+        :param typing.List[str] keys:
+        :rtype: dict
+        """
         def f(k):
             return {
                 "key": k,
@@ -75,9 +93,14 @@ class Disk:
                     "value": open(self.root + k.replace(".tmpl", ".html")).read()
                 }
             }
-        return dict((k, f(k)) for k in keys)
+        return {k: f(k) for k in keys}
 
     def save_many(self, docs, comment=None):
+        """
+
+        :param typing.List[dict or web.storage] docs:
+        :param str or None comment: only here to match the signature of OpenLibrary api
+        """
         def write(path, text):
             dir = os.path.dirname(path)
             if not os.path.exists(dir):
@@ -124,7 +147,46 @@ def get_references(doc, result=None):
             get_references(v, result)
     return result
 
+
+class KeyVersionPair(namedtuple('KeyVersionPair', 'key version')):
+    """Helper class to store uri's like /works/OL1W?v=2"""
+
+    @staticmethod
+    def from_uri(uri):
+        """
+        :param str uri: either something like /works/OL1W, /books/OL1M?v=3, etc.
+        :rtype: KeyVersionPair
+        """
+
+        if '?v=' in uri:
+            key, version = uri.split('?v=')
+        else:
+            key, version = uri, None
+        return KeyVersionPair._make([key, version])
+
+    def to_uri(self):
+        """
+        :rtype: str
+        """
+        uri = self.key
+        if self.version:
+            uri += '?v=' + self.version
+        return uri
+
+    def __str__(self):
+        return self.to_uri()
+
+
 def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
+    """
+    :param Disk or OpenLibrary src: where we'll be copying form
+    :param Disk or OpenLibrary dest: where we'll be saving to
+    :param typing.List[str] keys:
+    :param str comment: commit to writing when saving the documents
+    :param bool recursive:
+    :param typing.Set[str] or None saved: keys saved so far
+    :param dict or None cache:
+    """
     if saved is None:
         saved = set()
     if cache is None:
@@ -132,13 +194,10 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
     def get_many(keys):
         docs = marshal(src.get_many(keys).values())
-        # work records may contain excepts, which reference the author of the excerpt.
+        # work records may contain excerpts, which reference the author of the excerpt.
         # Deleting them to prevent loading the users.
-        # Deleting the covers and photos also because they don't show up in the dev instance.
         for doc in docs:
             doc.pop('excerpts', None)
-            #doc.pop('covers', None)
-            #doc.pop('photos', None)
 
             # Authors are now with works. We don't need authors at editions.
             if doc['type']['key'] == '/type/edition':
@@ -146,19 +205,35 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
 
         return docs
 
-    def fetch(keys):
+    def fetch(uris):
+        """
+        :param typing.List[str] uris:
+        :rtype: typing.List[dict or web.storage]
+        """
         docs = []
 
-        for k in keys:
-            if k in cache:
-                docs.append(cache[k])
+        key_pairs = list(map(KeyVersionPair.from_uri, uris))
 
-        keys = [k for k in keys if k not in cache]
-        if keys:
-            print("fetching", keys)
-            docs2 = get_many(keys)
+        for pair in key_pairs:
+            if pair.key in cache:
+                docs.append(cache[pair.key])
+
+        key_pairs = [pair for pair in key_pairs if pair.to_uri() not in cache]
+
+        unversioned_keys = [pair.key for pair in key_pairs if pair.version is None]
+        versioned_to_get = [pair for pair in key_pairs if pair.version is not None]
+        if unversioned_keys:
+            print("fetching", unversioned_keys)
+            docs2 = get_many(unversioned_keys)
             cache.update((doc['key'], doc) for doc in docs2)
             docs.extend(docs2)
+        # Do versioned second so they can overwrite if necessary
+        if versioned_to_get:
+            print("fetching versioned", versioned_to_get)
+            docs2 = [src.get(pair.key, int(pair.version)) for pair in versioned_to_get]
+            cache.update((doc['key'], doc) for doc in docs2)
+            docs.extend(docs2)
+
         return docs
 
     keys = [k for k in keys if k not in saved]
@@ -177,6 +252,7 @@ def copy(src, dest, keys, comment, recursive=False, saved=None, cache=None):
     print("saving", keys)
     print(dest.save_many(docs, comment=comment))
     saved.update(keys)
+
 
 def copy_list(src, dest, list_key, comment):
     keys = set()
