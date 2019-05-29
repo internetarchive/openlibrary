@@ -12,3 +12,4 @@ static/build/vendor.js
 provisioning/
 vendor/
 tests/screenshots/
+venv/
