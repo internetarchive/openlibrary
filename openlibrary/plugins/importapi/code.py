@@ -153,16 +153,17 @@ class importapi:
         #    reply['source_record'] = source_url
         return json.dumps(reply)
 
-    def reject_non_book_marc(self, marc_record):
+    def reject_non_book_marc(self, marc_record, **kwargs):
+        details = "Item rejected"
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
-            return self.error('item-is-serial')
+            return self.error('item-is-serial', details, **kwargs)
 
         # insider note: follows Archive.org's approach of
         # Item::isMARCXMLforMonograph() which excludes non-books
         if not (marc_leaders[7] == 'm' and marc_leaders[6] == 'a'):
-            return self.error('item-not-book')
+            return self.error('item-not-book', details, **kwargs)
 
 
 class ia_importapi(importapi):
@@ -226,7 +227,7 @@ class ia_importapi(importapi):
                 edition['local_id'] = ['urn:%s:%s' % (prefix, _id) for _id in _ids]
 
             # Don't add the book if the MARC record is a non-book item
-            self.reject_non_book_marc(rec)
+            self.reject_non_book_marc(rec, **next_data)
             result = add_book.load(edition)
 
             # Add next_data to the response as location of next record:
@@ -264,7 +265,6 @@ class ia_importapi(importapi):
         marc_record = self.get_marc_record(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
-
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
@@ -425,7 +425,7 @@ class ils_search:
         try:
             rawdata = json.loads(web.data())
         except ValueError as e:
-            raise self.error("Unparseable JSON input \n %s"%web.data())
+            raise self.error("Unparseable JSON input \n %s" % web.data())
 
         # step 1: prepare the data
         data = self.prepare_input_data(rawdata)
