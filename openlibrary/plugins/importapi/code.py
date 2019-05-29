@@ -89,25 +89,8 @@ def parse_data(data):
         format = 'marc'
 
     parse_meta_headers(edition_builder)
-
     return edition_builder.get_dict(), format
 
-def get_next_count():
-    store = web.ctx.site.store
-    counter = store.get('import_api_s3_counter')
-    if counter is None:
-        store['import_api_s3_counter'] = {'count':0}
-        return 0
-    else:
-        count = counter['count'] + 1
-        store['import_api_s3_counter'] = {'count':count, '_rev':counter['_rev']}
-        return count
-
-def queue_s3_upload(data, format):
-    # Anand - July 23, 2014
-    # Disabled this as we are not configured uploading MARC records.
-    # We probably don't want to do this at all.
-    return
 
 class importapi:
     """/api/import endpoint for general data formats.
@@ -137,20 +120,10 @@ class importapi:
         if not edition:
             return self.error('unknown_error', 'Failed to parse import data')
 
-        ## Anand - July 2014
-        ## This is adding source_records as [null] as queue_s3_upload is disabled.
-        ## Disabling this as well to fix the issue.
-        #source_url = None
-        # if 'source_records' not in edition:
-        #     source_url = queue_s3_upload(data, format)
-        #     edition['source_records'] = [source_url]
-
         try:
             reply = add_book.load(edition)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        #if source_url:
-        #    reply['source_record'] = source_url
         return json.dumps(reply)
 
     def reject_non_book_marc(self, marc_record, **kwargs):
