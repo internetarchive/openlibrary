@@ -112,5 +112,12 @@ div.head {
   }
   td {
     display: inline-block;
+
+    // if rowspan, make it full screen on mobile with margin
+    // e.g dimension editing on book edit page
+    &[rowspan] {
+      margin: 20px 0 30px;
+      width: 100%;
+    }
   }
 }
