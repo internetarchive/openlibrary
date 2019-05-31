@@ -579,7 +579,8 @@ window.q.push(function() {
                     <span class="tip"></span>
                 </div>
                 <div class="input">
-                    <input name="edition--number_of_pages" type="text" id="edition--number_of_pages" value="$book.number_of_pages"/>
+                    <input name="edition--number_of_pages" type="number"
+                        step="1" id="edition--number_of_pages" value="$book.number_of_pages"/>
                 </div>
             </div>
             <div class="formElement">
@@ -622,15 +623,18 @@ window.q.push(function() {
                             <tr>
                                 <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" id="dimensions-height" size="6" value="$dimensions.height"/></td>
+                                <td><input name="edition--physical_dimensions--height" type="number" step="0.01"
+                                    id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" id="dimensions-width" size="6" value="$dimensions.width"/></td>
+                                <td><input name="edition--physical_dimensions--width" type="number" step="0.01"
+                                        id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number" id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
+                                <td><input name="edition--physical_dimensions--depth" type="number"
+                                    step="0.01" id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>
                         </table>
