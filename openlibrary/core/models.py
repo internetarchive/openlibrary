@@ -23,7 +23,14 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # relative imports
 from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+
+from . import db
+from . import cache
+from . import iprange
+from . import inlibrary
+from . import loanstats
+from . import waitinglist
+from . import lending
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -197,6 +204,34 @@ class Thing(client.Thing):
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
+
+    @staticmethod
+    def canonicalize(edition):
+        work = edition.works and edition.works[0]
+
+        # Use ocaid as canonical internet archive identifier
+        edition.ocaid = (
+            edition.get('ocaid') or
+            (edition.get('ia') and edition.ia[0] if isinstance(edition.ia, list)
+             else edition.ia) or
+            edition.availability and edition.availability.identifier
+        )
+
+        # Ensure author is set
+        edition.authors = [web.storage(key=a.key, name=a.name or None) for a in
+                           (work or edition).get_authors()]
+
+        # Get bookcover from edition, or work, IA fallback, or default
+        edition.cover_url = (
+            next((doc.get_cover().url('M')
+                  for doc in [edition, work]
+                  if doc and doc.get_cover()), None)
+            or (edition.ocaid
+                and 'https://archive.org/services/img/%s' % edition.ocaid)
+            or '/images/icons/avatar_book.png'
+        )
+        return edition
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 
