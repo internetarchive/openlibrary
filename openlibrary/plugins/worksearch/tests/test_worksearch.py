@@ -1,8 +1,31 @@
-from __future__ import print_function
 import unittest
-from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
+from openlibrary.plugins.worksearch.code import (
+    read_facets, sorted_work_editions, parse_query_fields,
+    escape_bracket, run_solr_query, get_doc, build_q_list,
+    escape_colon, parse_search_response
+)
+from openlibrary.core import search as ia_search
 from lxml import etree
 from infogami import config
+
+def test_normalize_sorts():
+    sorts = ['loans__status__last_loan_date+desc']
+    assert(ia_search._normalize_sorts(sorts) == ['loans__status__last_loan_date desc'])
+
+def test_ia_search_queries():
+    """Make sure IA Advanced Search and Human Browsable urls are constructed correctly"""
+    query = 'test'
+    prepared_query = 'mediatype:texts AND !noindex:* AND openlibrary_work:(*) AND loans__status__status:AVAILABLE AND test'  
+    advancedsearch_url = 'http://archive.org/advancedsearch.php?rows=100&q=mediatype%3Atexts+AND+%21noindex%3A%2A+AND+openlibrary_work%3A%28%2A%29+AND+loans__status__status%3AAVAILABLE+AND+test&output=json&fl%5B%5D=identifier&fl%5B%5D=loans__status__status&fl%5B%5D=openlibrary_edition&fl%5B%5D=openlibrary_work&page=1&sort%5B%5D='
+    browse_url = 'https://archive.org/search.php?query=mediatype:texts AND !noindex:* AND openlibrary_work:(*) AND loans__status__status:AVAILABLE AND test&sort='
+
+    _expanded_query = ia_search._expand_api_query(query)
+    _params = ia_search._clean_params(q=_expanded_query)
+    assert(_expanded_query == prepared_query)
+    assert(ia_search._clean_params(q='test', limit=200).get('rows') == ia_search.MAX_IA_RESULTS)
+    assert(ia_search._compose_advancedsearch_url(**_params) == advancedsearch_url)
+    assert(ia_search._compose_browsable_url(prepared_query) == browse_url)
+
 
 def test_escape_bracket():
     assert escape_bracket('foo') == 'foo'
@@ -50,7 +73,6 @@ def test_query_parser_fields():
 
     expect = [{'field': 'text', 'value': 'query here'}]
     q = 'query here'
-    print(q)
     assert list(func(q)) == expect
 
     expect = [
@@ -105,9 +127,6 @@ def test_query_parser_fields():
 #     def test_public_scan(lf):
 #         param = {'subject_facet': ['Lending library']}
 #         (reply, solr_select, q_list) = run_solr_query(param, rows = 10, spellcheck_count = 3)
-#         print solr_select
-#         print q_list
-#         print reply
 #         root = etree.XML(reply)
 #         docs = root.find('result')
 #         for doc in docs:
