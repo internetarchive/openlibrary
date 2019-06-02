@@ -540,12 +540,12 @@ window.q.push(function() {
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
                                 <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
                             </td>
-                            <td "><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
+                            <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
                         </tr>
                         $for i, id in enumerate(book.get_classifications().values()):
                         <tr id="classifications--$i" class="repeat-item">
                             <td align="right"><strong>$classification_labels.get(id.name, id.name)</strong></td>
-                            <td ">$id.value
+                            <td>$id.value
                                 <input type="hidden" name="edition--classifications--${i}--name" value="$id.name"/>
                                 <input type="hidden" name="edition--classifications--${i}--value" value="$id.value"/>
                             </td>
@@ -601,7 +601,8 @@ window.q.push(function() {
                 </div>
                 <div class="input">
                     $ weight = book.get_weight() or storage(value="", units="grams")
-                    <input name="edition--weight--value" type="number" id="edition--weight--value" value="$weight.value" size="6"/>
+                    <input name="edition--weight--value" type="number" step="any"
+                           id="edition--weight--value" size="6" value="$weight.value"/>
                     <span class="tip">
                         $:radiobuttons("edition--weight--units", ["grams", "kilos", "ounces", "pounds"], weight.units)
                     </span>
@@ -623,18 +624,18 @@ window.q.push(function() {
                             <tr>
                                 <td rowspan="3"><img src="/images/dimensions.png" alt="dimensions" width="107" height="69" align="left"/></td>
                                 <td><span class="tip"><label for="dimensions-height">$_("Height:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--height" type="number" step="0.01"
-                                    id="dimensions-height" size="6" value="$dimensions.height"/></td>
+                                <td><input name="edition--physical_dimensions--height" type="number" step="any"
+                                           id="dimensions-height" size="6" value="$dimensions.height"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-width">$_("Width:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--width" type="number" step="0.01"
-                                        id="dimensions-width" size="6" value="$dimensions.width"/></td>
+                                <td><input name="edition--physical_dimensions--width" type="number" step="any"
+                                           id="dimensions-width" size="6" value="$dimensions.width"/></td>
                             </tr>
                             <tr>
                                 <td><span class="tip"><label for="dimensions-depth">$_("Depth:")</label> </span></td>
-                                <td><input name="edition--physical_dimensions--depth" type="number"
-                                    step="0.01" id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
+                                <td><input name="edition--physical_dimensions--depth" type="number" step="any"
+                                           id="dimensions-depth" size="6" value="$dimensions.depth"/></td>
                             </tr>
                         </tbody>
                         </table>
