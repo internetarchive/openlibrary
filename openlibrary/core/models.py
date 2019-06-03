@@ -24,7 +24,6 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 # relative imports
 from lists.model import ListMixin, Seed
 
-from . import db
 from . import cache
 from . import iprange
 from . import inlibrary
