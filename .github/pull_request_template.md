@@ -1,13 +1,13 @@
-## Description
-<!-- What does this PR achieve? [feature|hotfix|refactor] -->
+### Description
+<!-- What does this PR achieve? [feature|hotfix|fix|refactor] -->
 
 Closes #
 
-## Technical
+### Technical
 <!-- What should be noted about the implementation? -->
 
-## Testing
-<!-- Steps for reviewer to reproduce / verify this PR fixes the problem? -->
+### Testing
+<!-- Steps for reviewer to reproduce/verify what this PR does/fixes. -->
 
-## Evidence
-<!-- If this PR touches UI, please post evidence (screenshot) of it behaving correctly: -->
+### Evidence
+<!-- If this PR touches UI, please post evidence (screenshots) of it behaving correctly. -->
