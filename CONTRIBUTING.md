@@ -64,6 +64,11 @@ npm run lint:fix
 
 ## Submitting Pull Requests
 
-* Pull Requests (PRs) should link to the issue they resolve. Please take the time to check whether someone has already raised the issue you are solving. At the very least PRs should contain enough detail in the description to explain the purpose of the PR; what feature it adds, or problem it solves. Please expect PRs without sufficient details to be rejected until an clear description of the benefit is added. Thank you for your contributions!
+Once you've finished making your changes, submit a pull request (PR) to get your code into Open Library. Please take the time to check whether someone has already raised the issue you are solving. Thank you for your contributions!
 
-* When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding Issue.
+Follow these rules when creating a PR:
+
+1. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
+2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
+3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
+4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
