@@ -10,7 +10,8 @@ import simplejson as json
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.utils import url_quote, read_isbn, escape_bracket
+from openlibrary.utils import url_quote, escape_bracket
+from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
 from unicodedata import normalize
 import logging
 
@@ -121,7 +122,7 @@ def parse_query_fields(q):
                 v = v[:-len(m.group(0))]
                 op_found = m.group(1)
         if field_name == 'isbn':
-            isbn = read_isbn(v)
+            isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
         yield {'field': field_name, 'value': v.replace(':', '\:')}
@@ -143,7 +144,7 @@ def build_q_list(param):
         elif re_fields.search(q_param):
             q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
         else:
-            isbn = read_isbn(q_param)
+            isbn = normalize_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
@@ -165,7 +166,7 @@ def build_q_list(param):
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
         if param.get('isbn'):
-            q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
+            q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
 def parse_json_from_solr_query(url):
@@ -447,14 +448,15 @@ class search(delegate.page):
             raise web.seeother(web.changequery(**params))
 
     def isbn_redirect(self, isbn_param):
-        isbn = read_isbn(isbn_param)
+        isbn = normalize_isbn(isbn_param)
         if not isbn:
             return
         editions = []
-        for f in 'isbn_10', 'isbn_13':
-            q = {'type': '/type/edition', f: isbn}
+        for isbn_len in (10, 13):
+            qisbn = isbn if len(isbn) == isbn_len else opposite_isbn(isbn)
+            q = {'type': '/type/edition', 'isbn_%d' % isbn_len: qisbn}
             editions += web.ctx.site.things(q)
-        if len(editions) == 1:
+        if len(editions):
             raise web.seeother(editions[0])
 
     def GET(self):

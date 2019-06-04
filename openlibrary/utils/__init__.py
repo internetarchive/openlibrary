@@ -11,11 +11,6 @@ def str_to_key(s):
 def url_quote(s):
     return quote_plus(s.encode('utf-8')) if s else ''
 
-re_isbn = re.compile('^([0-9]{9}[0-9Xx]|[0-9]{13})$')
-def read_isbn(s): # doesn't validate checksums
-    s = s.replace('-', '')
-    return s if re_isbn.match(s) else None
-
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.
 
