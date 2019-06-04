@@ -45,14 +45,13 @@
   }
 
   input[type=number] {
-    width: 50px;
+    width: 4em;
   }
 
-  input[type=number],
   input[type=email],
   input[type=password],
   .required {
-    height: 40px;
+    padding: 8px;
   }
 
   select {
@@ -132,8 +131,9 @@
       width: 220px;
     }
     .formBack:after {
-        content: '';
-        clear: both;
+      display: block;
+      content: '';
+      clear: both;
     }
   }
 }
