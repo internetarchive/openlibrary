@@ -54,8 +54,5 @@ def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
             return alt
 
 def normalize_isbn(isbn):
-    """removes spaces and dashes from isbn and ensures length
-
-    XXX deprecated, just use isbnlib.canonical
-    """
+    """Removes spaces and dashes from isbn and ensures length."""
     return canonical(isbn)
