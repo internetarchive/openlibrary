@@ -84,59 +84,65 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <!-- To implement: Using the policy api add more constraint that the book which is sponsorable
     should only show this type of button  -->
     $if (user and user.is_sponsor()):
-      <button class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
-
-      $:macros.SponsorshipModal(page)
-
-      <!-- The Modal -->
-      <div id="myModal" class="modal">
-        <!-- Modal content -->
-        <div class="modal-content" style="text-align:center">
-          <span class="close">&times;</span>
-          <p>
-            <h1>
-              Sponsor this Book
-            </h1>
-            Open Library has over 3M books, but we don't have everything (yet)!
-            You can unlock this book for the world by donating *50*
-            and we'll make sure you're first in line to read it when it's available.
-            Will you unlock this book?
-          </p>
-          <a href="https://ia801409.us.archive.org/20/items/book-sponsorship-dev/index.html" class="cta-btn cta-btn--sponsor">Proceed to Checkout</a>
-        </div>
-      </div>
-      <script>
-        // Get the modal
-        var modal = document.getElementById('myModal');
-
-        // Get the button that opens the modal
-        var btn = document.getElementsByClassName('cta-btn--sponsor')[0];
-
-        // Get the <span> element that closes the modal
-        var span = document.getElementsByClassName("close")[0];
-
-        // When the user clicks the button, open the modal
-        btn.onclick = function() {
-          modal.style.display = "block";
-        }
-
-        // When the user clicks on <span> (x), close the modal
-        span.onclick = function() {
-          modal.style.display = "none";
-        }
-
-        // When the user clicks anywhere outside of the modal, close it
-        window.onclick = function(event) {
-          if (event.target == modal) {
-            modal.style.display = "none";
-          }
-        }
-        </script>
+      <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+    
     $else:
       <form>
         <input type="submit" class="cta-btn" disabled value="No ebook available">
       </form>
 
+<div class="hidden">
+  <div class="floater" id="sponsorshipModal">
+      <div class="floaterHead">
+          <h2>Welcome</h2>
+          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
+      </div>
+      <section>
+        <div style="font-size: 1.3em;  display: flex;">
+          <div style="padding-right: 20px; padding-top: 15px; border-right: 1px solid #eee;">
+            <div class="book" style="background-color: #eee; padding: 15px;">
+              <img src="$(page.get_cover_url('M'))" style="margin-left: 19px;"/>
+              <div>
+                <h3>Libraries of the Future</h3>
+                <p>By J. C. R. Licklider</p>
+              </div>
+            </div>
+          </div>
+    
+          <div style="flex: 1;">
+            <!-- result of "policy" API check -->
+            <div style="padding-left: 10px">
+              <h3>Sponsorship Cost: $50.00<br><span style="color: #888; font-size: .8em;">Available: June 1st, 2019</span></h3>
+              <hr>
+              <div class="benefits" style="font-size: .8em;">
+                <p>Your tax-deductible donation includes:</p>
+                <ul>
+                  <li>Purchasing + Shipping this book to the Internet Archive</li>
+                  <li>Beautiful, Non-destructive <a href="https://archive.org/scanning">High-Fidelity Digitization</a>
+                  </li>
+                  <li>Forever-Storage on Archive.org</li>
+                  <li>First Borrow Reserved for You  <span class="optional">(optional)</span></li>
+                  <li>A Custom Sponsorship Message <span class="optional">(optional)</span></li>
+                </ul>
+              </div>
+              <hr>
+              <div class="sponsorMessage">
+                <h3><span style="color: #888; font-size: .8em;">Add a Sponsorship Message</span></h3>
+                <div>
+                  <input type="checkbox" name="anonymous">
+                  <label for="subscribeNews" style="font-weight: normal; font-size: .8em;">I'd prefer sponsoring this book anonymously</label>
+                </div>
+                <textarea id="sponsorshipMessage" maxlength="200" style="display: block; width: 100%; padding: 15px; font-size: .8em;" placeholder="Introduce yourself. Dedicate this book. Tell the world why you're sponsoring this book (in 200 characters or less)" spellcheck="false"></textarea>
+              </div>
+    
+            <button class="cta" style="display: block; margin: 20px 63px; padding: 10px 20px; font-size: 1em; background: #52b3d9; border: none; border-radius: 5px; color: #fff;">Sponsor this eBook</button>
+            </div>
+    
+          </div>
+        </div>
+      </section>
+  </div>
+</div>
 
 $if editions_page and page.get('ocaid'):
   $:macros.daisy(page, block_name=block_name)
