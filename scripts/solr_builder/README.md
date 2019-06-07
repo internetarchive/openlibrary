@@ -72,12 +72,8 @@ docker-compose up --no-deps -d solr
 # This is like a "lite" version of the OL environment
 time docker-compose build ol  # ~5 min (Linux/Jan 2019)
 
-# Setup some convenience aliases/functions
-alias psql='docker-compose exec -u postgres db psql postgres -X -t -A $1'
-docker_solr_builder() { docker-compose run -d ol python solr_builder/solr_builder.py $@; }
-# Use this to launch with live profiling at a random port; makes it SUPER easy to check progress/bottlenecks
-# alias docker_solr_builder='docker-compose run -p4000 -d ol python -m cprofilev -a 0.0.0.0 solr_builder.py $1'
-pymath () { python3 -c "from math import *; print($1)"; }
+# Some convenience aliases/functions
+source aliases.sh
 
 # Load a helper function into postgres
 psql -f sql/get-partition-markers.sql
@@ -86,17 +82,8 @@ psql -f sql/get-partition-markers.sql
 ### 2b: Insert works & orphaned editions
 
 ```bash
-WORKS_COUNT=$(time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/work'") # ~10min
-WORKS_INSTANCES=5
-WORKS_CHUNK_SIZE=$(pymath "ceil($WORKS_COUNT / $WORKS_INSTANCES)")
-
-# Partitions the database (~33s)
-WORKS_PARTITIONS=$(time psql -c "SELECT \"Key\" FROM test_get_partition_markers('/type/work', $WORKS_CHUNK_SIZE);")
-for key in $WORKS_PARTITIONS; do
-  RUN_SIG=works_${key//\//}_`date +%Y-%m-%d_%H-%M-%S`
-  docker_solr_builder works --start-at $key --limit $WORKS_CHUNK_SIZE -p progress/$RUN_SIG.txt
-  echo sleep 60 | tee /dev/tty | bash;
-done;
+# Import over 5 cores
+./index-works.sh
 ```
 
 Works took 29 hrs (18081999 works, 13 May 2019, OJF) with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours.
@@ -104,9 +91,7 @@ Works took 29 hrs (18081999 works, 13 May 2019, OJF) with 5 cores and orphans al
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
 ```bash
-ORPHANS_COUNT=$(time psql -f sql/count-orphans.sql) # ~15min
-RUN_SIG=orphans_`date +%Y-%m-%d_%H-%M-%S`
-docker_solr_builder orphans -p progress/$RUN_SIG.txt
+./index-orphans.sh
 ```
 
 Orphans took 11 hrs over 1 core (3735145 docs, 13 May 2019, OJF), in parallel with works.
@@ -124,17 +109,8 @@ Note the work chunks happen to be (for some reason) pretty uneven, so start the 
 Note: This must be done AFTER works and orphans; authors query solr to determine how many works are by a given author.
 
 ```bash
-AUTHOR_COUNT=$(time psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/author'") # ~25s
-AUTHOR_INSTANCES=6
-AUTHORS_CHUNK_SIZE=$(pymath "ceil($AUTHOR_COUNT / $AUTHOR_INSTANCES)")
-
-# Partitions the database (~23s)
-AUTHORS_PARTITIONS=$(time psql -c "SELECT \"Key\" FROM test_get_partition_markers('/type/author', $AUTHORS_CHUNK_SIZE)")
-for key in $AUTHORS_PARTITIONS; do
-  RUN_SIG=works_${key//\//}_`date +%Y-%m-%d_%H-%M-%S`
-  docker_solr_builder authors --start-at $key --limit $AUTHORS_CHUNK_SIZE -p progress/$RUN_SIG.txt
-  echo sleep 60 | tee /dev/tty | bash;
-done;
+# index authors over 6 cores
+./index-authors.sh
 ```
 
 Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF). After this is done, we have to call `commit` on solr:
