@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Convenience aliases/functions
+shopt -s expand_aliases
 source aliases.sh
 
 set -o xtrace  # Display each line before running it
