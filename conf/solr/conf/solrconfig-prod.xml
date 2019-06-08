@@ -575,6 +575,22 @@
       -->
     <listener event="newSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
+        <lst>
+          <str name="q">City</str>
+          <str name="start">0</str>
+          <str name="rows">100</str>
+          <str name="facet">true</str>
+          <str name="facet.field">has_fulltext</str> 
+          <str name="facet.field">author_facet</str> 
+          <str name="facet.field">language</str> 
+          <str name="facet.field">first_publish_year</str> 
+          <str name="facet.field">publisher_facet</str> 
+          <str name="facet.field">subject_facet</str> 
+          <str name="facet.field">person_facet</str> 
+          <str name="facet.field">place_facet</str> 
+          <str name="facet.field">time_facet</str> 
+        </lst>
+
         <!--
            <lst><str name="q">solr</str><str name="sort">price asc</str></lst>
            <lst><str name="q">rocks</str><str name="sort">weight asc</str></lst>
@@ -584,7 +600,19 @@
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
         <lst>
-          <str name="q">static firstSearcher warming in solrconfig.xml</str>
+          <str name="q">City</str>
+          <str name="start">0</str>
+          <str name="rows">100</str>
+          <str name="facet">true</str>
+          <str name="facet.field">has_fulltext</str> 
+          <str name="facet.field">author_facet</str> 
+          <str name="facet.field">language</str> 
+          <str name="facet.field">first_publish_year</str> 
+          <str name="facet.field">publisher_facet</str> 
+          <str name="facet.field">subject_facet</str> 
+          <str name="facet.field">person_facet</str> 
+          <str name="facet.field">place_facet</str> 
+          <str name="facet.field">time_facet</str> 
         </lst>
       </arr>
     </listener>
@@ -607,7 +635,7 @@
          Recommend values of 1-2 for read-only slaves, higher for
          masters w/o cache warming.
       -->
-    <maxWarmingSearchers>2</maxWarmingSearchers>
+    <maxWarmingSearchers>4</maxWarmingSearchers>
 
   </query>
 
@@ -1609,14 +1637,6 @@
      <valueSourceParser name="myfunc" 
                         class="com.mycompany.MyValueSourceParser" />
     -->
-
-  <!-- Allow data import from another solr -->
-  <requestHandler name="/dataimport" class="org.apache.solr.handler.dataimport.DataImportHandler">
-    <lst name="defaults">
-      <str name="config">solr-subjects-import-config.xml</str>
-      <str name="clean">false</str>
-    </lst>
-  </requestHandler>
 
   <!-- Legacy config for the admin interface -->
   <admin>
