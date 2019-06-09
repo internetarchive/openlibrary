@@ -32,7 +32,7 @@ services:
     ports:
       - 8985:8080
     volumes:
-      - /home/cdrini/solr-backup-2019-05-08:/var/lib/solr/data
+      - /home/cdrini/solr-backup/data:/var/lib/solr/data
 
   # We need ability to use openlibrary code
   ol:
