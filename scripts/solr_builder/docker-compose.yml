@@ -10,12 +10,16 @@ services:
     volumes:
       - "postgres-data:/var/lib/postgresql/data"
       - ".:/solr_builder"
+    networks:
+      - db-access
 
   adminer:
     image: adminer
     restart: always
     ports:
       - 8087:8080
+    networks:
+      - db-access
 
   solr:
     image: olsolr:latest
@@ -53,6 +57,7 @@ services:
       - "../../:/openlibrary"
     networks:
       - solr-access
+      - db-access
 
 volumes:
   postgres-data:
@@ -60,4 +65,5 @@ volumes:
   ol-vendor:
 
 networks:
+  db-access:
   solr-access:
