@@ -24,6 +24,8 @@ services:
       - 8984:8080
     volumes:
       - solr-data:/var/lib/solr/data
+    networks:
+      - solr-access
 
   # Replica of production solr so we can get subjects
   solr-backup:
@@ -33,6 +35,8 @@ services:
       - 8985:8080
     volumes:
       - /home/cdrini/solr-backup/data:/var/lib/solr/data
+    networks:
+      - solr-access
 
   # We need ability to use openlibrary code
   ol:
@@ -47,8 +51,13 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - "../../:/openlibrary"
+    networks:
+      - solr-access
 
 volumes:
   postgres-data:
   solr-data:
   ol-vendor:
+
+networks:
+  solr-access:
