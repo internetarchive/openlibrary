@@ -24,7 +24,6 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    background: @brown-3a301e;
     opacity: .5;
     filter: alpha(opacity=50);
   }
@@ -54,7 +53,7 @@
     position: relative;
     background: @white;
     padding: 0;
-    border: 10px solid @brown;
+    border: 10px solid @white;
     border-radius: 12px;
     -webkit-box-shadow: 1px 3px 10px @black;
     box-shadow: 1px 3px 10px @black;
@@ -137,7 +136,6 @@ div.coverFloat {
     }
   }
   &Head {
-    background-color: @brown;
     height: 16px;
     padding: 0 10px 10px 0;
     font-size: 1em;
@@ -151,15 +149,16 @@ div.floater {
   position: relative;
   font-family: @lucida_sans_serif-1;
   width: 640px;
-  min-height: 670px;
   background: @white;
   text-align: left;
   &Head {
-    background-color: @brown;
-    padding: 0 10px 10px;
+    padding: 10px 5px;
+    border-bottom: 3px solid @light-grey;
     h2 {
-      color: @white;
-      font-size: 1.75em;
+      text-align: left;
+      color: @dark-grey;
+      font-weight: normal;
+      font-size: 1.25em;
       margin: 0;
       padding: 0;
     }
