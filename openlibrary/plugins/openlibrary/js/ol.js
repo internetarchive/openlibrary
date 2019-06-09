@@ -456,9 +456,7 @@ export default function init(){
 
     // For Book Sponsorship Button
     $(document).ready(function(){
-        $(document).on('click', '.cta-btn--sponsor', function() {
-            $(".cta-btn--sponsor").colorbox({inline: true, opacity: "0.5", href: "#sponsorshipModal"})
-        });
+        $(".cta-btn--sponsor").colorbox({inline: true, opacity: "0.5", href: "#sponsorshipModal"})
     })
 
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
