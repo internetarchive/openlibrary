@@ -5,8 +5,9 @@ RUN apt-get -qq update && \
     ln -s /var/log/tomcat7/ /usr/share/tomcat7/logs && \
     ln -s /etc/tomcat7/ /usr/share/tomcat7/conf
 
+ARG CONFIG_FILE=solrconfig-dev.xml
 COPY conf/solr/conf/* /etc/solr/conf/
+RUN ln -sf /etc/solr/conf/$CONFIG_FILE /etc/solr/conf/solrconfig.xml
 
 EXPOSE 8080
-
 CMD ["/usr/share/tomcat7/bin/catalina.sh", "run"]
