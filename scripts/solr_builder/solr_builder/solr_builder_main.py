@@ -291,7 +291,7 @@ def build_job_query(job, start_at, offset, last_modified, limit):
 
 def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/openlibrary.yml",
          start_at=None, offset=0, limit=1, last_modified=None,
-         progress=None, log_level=logging.WARN
+         progress=None, log_file=None, log_level=logging.WARN
          ):
     """
     :param str job: job to complete. One of 'works', 'orphans', 'authors'
@@ -304,11 +304,13 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
     :param int limit:
     :param str or None last_modified: Limit results to those modifier >= this date
     :param str or None progress: Where/if to save progress indicator to
+    :param str or None log_file: Redirect logs to file instead of stdout
     :param int log_level:
     :return: None
     """
 
     logging.basicConfig(
+        filename=log_file,
         level=log_level,
         format="%(asctime)s [%(levelname)s] %(message)s"
     )
