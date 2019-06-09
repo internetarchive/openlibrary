@@ -71,6 +71,8 @@ docker-compose up --no-deps -d solr
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment
 time docker-compose build ol  # ~5 min (Linux/Jan 2019)
+# Build the cython files (necessary otherwsie they get overwritten)
+docker-compose run ol ./build-cython.sh
 
 # Some convenience aliases/functions
 source aliases.sh

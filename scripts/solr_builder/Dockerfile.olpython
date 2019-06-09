@@ -10,7 +10,6 @@ RUN pip install -r requirements_test.txt
 RUN pip install cprofilev Cython
 
 # Build cython files
-RUN python setup.py build_ext --inplace
-RUN cd scripts/solr_builder && python setup.py build_ext --inplace
+RUN ./scripts/solr_builder/build-cython.sh
 
 EXPOSE 4000
