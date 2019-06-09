@@ -126,8 +126,14 @@ time curl localhost:8984/solr/update?commit=true # ~25s
 It is currently unknown how subjects make their way into Solr (See See https://github.com/internetarchive/openlibrary/issues/1896 ). As result, in the interest of progress, we are choosing to just use a solr dump.
 
 1. Create a backup of prod's solr (See https://github.com/internetarchive/openlibrary/wiki/Solr#creating-a-solr-backup )
-2. Extract the backup (NOT in the repo; anywhere else)
-3. Launch the `solr-backup` service, modifying `docker-compose.yml` with the path of the backup
+2. Extract the backup (NOT in the repo; anywhere else):
+   ```bash
+   mkdir ~/solr-backup
+   time tar xzf /storage/openlibrary/solr/backup-2019-06-09.tar.gz -C ~/solr-backup # 20min
+   mv ~/solr-backup/var/lib/solr/data ~/solr-backup
+   rm -r ~/solr-backup/var
+   ```
+3. Launch the `solr-backup` service, modifying `docker-compose.yml` if the above command was run differently.
     ```bash
     docker-compose up -d --no-deps solr-backup
     ```
