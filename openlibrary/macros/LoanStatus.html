@@ -94,17 +94,20 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
 <div class="hidden">
   <div class="floater" id="sponsorshipModal">
       <div class="floaterHead">
-          <h2>Welcome</h2>
+          <h2>Sponsor This eBook</h2>
           <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
       </div>
       <section>
+        $ work = page.works and page.works[0]
+        $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        $ byline = " by " + ", ".join(a.name for a in authors)
         <div style="font-size: 1.3em;  display: flex;">
           <div style="padding-right: 20px; padding-top: 15px; border-right: 1px solid #eee;">
             <div class="book" style="background-color: #eee; padding: 15px;">
               <img src="$(page.get_cover_url('M'))" style="margin-left: 19px;"/>
               <div>
-                <h3>Libraries of the Future</h3>
-                <p>By J. C. R. Licklider</p>
+                <h3>$page.title</h3>
+                <p>$byline</p>
               </div>
             </div>
           </div>
