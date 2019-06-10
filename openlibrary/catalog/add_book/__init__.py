@@ -229,7 +229,7 @@ def load_data(rec, account=None):
             if k not in rec:
                 continue
             for s in rec[k]:
-                if s not in w.get(k, []):
+                if s.lower() not in [existing.lower() for existing in w.get(k, [])]:
                     w.setdefault(k, []).append(s)
                     need_update = True
         if cover_id:
