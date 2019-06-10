@@ -1,10 +1,30 @@
-from openlibrary.catalog.utils import flip_name, pick_first_date, pick_best_name, pick_best_author, match_with_bad_chars, strip_count, remove_trailing_dot
+from openlibrary.catalog.utils import (
+    author_dates_match, flip_name,
+    pick_first_date, pick_best_name, pick_best_author,
+    match_with_bad_chars, strip_count,
+    remove_trailing_dot)
+
+def test_author_dates_match():
+    _atype = {u'key': u'/type/author'}
+    basic = {u'name': u'John Smith', u'death_date': u'1688', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'type': _atype}
+    full_dates = {u'name': u'John Smith', u'death_date': u'23 June 1688', 'key': u'/a/OL6398452A', u'birth_date': u'01 January 1650', u'type': _atype}
+    full_different = {u'name': u'John Smith', u'death_date': u'12 June 1688', 'key': u'/a/OL6398452A', u'birth_date': u'01 December 1650', u'type': _atype}
+    no_death = {u'name': u'John Smith', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'type': _atype}
+    no_dates = {u'name': u'John Smith', 'key': u'/a/OL6398452A', u'type': _atype}
+    non_match = {u'name': u'John Smith', u'death_date': u'1999', 'key': u'/a/OL6398452A', u'birth_date': u'1950', u'type': _atype}
+    assert author_dates_match(basic, basic)
+    assert author_dates_match(basic, full_dates)
+    assert author_dates_match(basic, no_death)
+    assert author_dates_match(basic, no_dates)
+    assert author_dates_match(basic, non_match) is False
+    # FIXME: the following should properly be False:
+    assert author_dates_match(full_different, full_dates) # this shows matches are only occurring on year, full dates are ignored!
 
 def test_flip_name():
     assert flip_name('Smith, John.') == 'John Smith'
     assert flip_name('Smith, J.') == 'J. Smith'
 
-def test_date():
+def test_pick_first_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
     assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
     assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
