@@ -67,6 +67,8 @@ def normalize(s): # strip non-alphanums and truncate at 25 chars
         norm = norm[4:]
     elif norm.startswith('a '):
         norm = norm[2:]
+    # strip bracketed text
+    norm = re.sub(r' ?\(.*\)', '', norm)
     return norm.replace(' ', '')[:25]
 
 type_map = {
