@@ -158,11 +158,11 @@ def test_load_with_redirected_author(mock_site, add_languages):
         'type': {'key': '/type/redirect'},
         'name': 'John Smith',
         'key': '/authors/OL55A',
-        'location': '/authors/OL1A'}
+        'location': '/authors/OL10A'}
     final_author = {
         'type': {'key': '/type/author'},
         'name': 'John Smith',
-        'key': '/authors/OL1A'}
+        'key': '/authors/OL10A'}
     orphaned_edition = {
         'title': 'Test item HATS',
         'key': '/books/OL10M',
@@ -184,8 +184,10 @@ def test_load_with_redirected_author(mock_site, add_languages):
     assert reply['edition']['status'] == 'modified'
     assert reply['edition']['key'] == '/books/OL10M'
     assert reply['work']['status'] == 'created'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.authors[0].key == '/authors/OL10A'
     w = mock_site.get(reply['work']['key'])
-    assert w.authors[0].author.key == '/authors/OL55A'
+    assert w.authors[0].author.key == '/authors/OL10A'
 
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
