@@ -576,6 +576,14 @@ def load(rec, account=None):
     need_work_save = need_edition_save = False
     w = None
     e = web.ctx.site.get(match)
+    # check for, and resolve, author redirects
+    for a in e.authors:
+        while a and a.type.key == '/type/redirect':
+            e.authors.remove(a)
+            a = web.ctx.site.get(a.location)
+            if a and a.type.key == '/type/author':
+                e.authors.append(a)
+
     if e.get('works'):
         w = e.works[0].dict()
         work_created = False
