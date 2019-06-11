@@ -22,8 +22,6 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-from __future__ import print_function
-
 import re
 import json
 from time import sleep
@@ -131,8 +129,6 @@ def build_author_reply(author_in, edits):
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
             edits.append(a)
-        while is_redirect(a):
-            a = web.ctx.site.get(a['location'])
         authors.append({'key': a['key']})
         author_reply.append({
             'key': a['key'],
@@ -263,11 +259,22 @@ def load_data(rec, account=None):
     return reply
 
 def is_redirect(thing):
+    """
+    :param Thing thing:
+    :rtype: bool
+    """
     if not thing:
         return False
     return thing.type.key == '/type/redirect'
 
 def find_match(e1, edition_pool):
+    """
+    Find the best match for e1 in edition_pool and return its key.
+    :param dict e1: the new edition we are trying to match
+    :param list edition_pool: list of possible edition matches
+    :rtype: str|None
+    :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
+    """
     seen = set()
     for k, v in edition_pool.iteritems():
         for edition_key in v:
@@ -282,7 +289,6 @@ def find_match(e1, edition_pool):
                     found = False
                     break
                 if is_redirect(thing):
-                    print('following redirect %s => %s' % (edition_key, thing['location']))
                     edition_key = thing['location']
             if not found:
                 continue
@@ -465,7 +471,6 @@ def add_cover(cover_url, ekey, account=None):
         try:
             res = urllib.urlopen(upload_url, urllib.urlencode(params))
         except IOError:
-            print('retry, attempt', attempt)
             sleep(2)
             continue
         body = res.read()
@@ -475,7 +480,6 @@ def add_cover(cover_url, ekey, account=None):
             reply = json.loads(body)
             if res.getcode() == 200 and 'id' in reply:
                 break
-        print('retry, attempt', attempt)
         sleep(2)
     if not reply or reply.get('message') == 'Invalid URL':
         return
@@ -511,7 +515,7 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
         return ("success for %s" % item.identifier)
 
 def update_ia_metadata_for_ol_edition(edition_id):
-    """An ol_edition is of the form OL...M"""
+    """edition_id is of the form OL...M"""
 
     data = {'error': 'No qualifying edition'}
     if edition_id:
@@ -623,7 +627,7 @@ def load(rec, account=None):
 
     edition_fields = [
         'local_id', 'ia_box_id', 'ia_loaded_id', 'source_records']
-    # XXX Todos:
+    # TODO:
     # only consider `source_records` for newly created work
     # or if field originally missing:
     #if work_created and not e.get('source_records'):

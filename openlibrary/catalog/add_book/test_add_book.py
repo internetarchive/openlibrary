@@ -149,6 +149,44 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert len(w.authors) == 1
     assert len(e.authors) == 1
 
+def test_load_with_redirected_author(mock_site, add_languages):
+    """Test importing existing editions without works
+       which have author redirects. A work should be created with
+       the final author.
+    """
+    redirect_author = {
+        'type': {'key': '/type/redirect'},
+        'name': 'John Smith',
+        'key': '/authors/OL55A',
+        'location': '/authors/OL1A'}
+    final_author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL1A'}
+    orphaned_edition = {
+        'title': 'Test item HATS',
+        'key': '/books/OL10M',
+        'publishers': ['TestPub'],
+        'publish_date': '1994',
+        'authors': [{'key': '/authors/OL55A'}],
+        'type': {'key': '/type/edition'}}
+    mock_site.save(orphaned_edition)
+    mock_site.save(redirect_author)
+    mock_site.save(final_author)
+
+    rec = {
+        'title': 'Test item HATS',
+        'authors': [{'name': 'John Smith'}],
+        'publishers': ['TestPub'],
+        'publish_date': '1994',
+        'source_records': 'ia:test_redir_author'}
+    reply = load(rec)
+    assert reply['edition']['status'] == 'modified'
+    assert reply['edition']['key'] == '/books/OL10M'
+    assert reply['work']['status'] == 'created'
+    w = mock_site.get(reply['work']['key'])
+    assert w.authors[0].author.key == '/authors/OL55A'
+
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
