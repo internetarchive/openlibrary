@@ -578,10 +578,11 @@ def load(rec, account=None):
     e = web.ctx.site.get(match)
     # check for, and resolve, author redirects
     for a in e.authors:
-        while a and a.type.key == '/type/redirect':
-            e.authors.remove(a)
+        while is_redirect(a):
+            if a in e.authors:
+                e.authors.remove(a)
             a = web.ctx.site.get(a.location)
-            if a and a.type.key == '/type/author':
+            if not is_redirect(a):
                 e.authors.append(a)
 
     if e.get('works'):
