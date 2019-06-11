@@ -41,6 +41,26 @@ def do_flip(author):
     author['name'] = name
     author['personal_name'] = name
 
+def pick_from_matches(author, match):
+    """
+    Finds the best match for author from a list of OL authors records, match.
+
+    :param dict author: Author import representation
+    :param list match: List of matching OL author records
+    :rtype: dict
+    :return: A single OL author record from match
+    """
+    maybe = []
+    if 'birth_date' in author and 'death_date' in author:
+        maybe = [m for m in match if 'birth_date' in m and 'death_date' in m]
+    elif 'date' in author:
+        maybe = [m for m in match if 'date' in m]
+    if not maybe:
+        maybe = match
+    if len(maybe) == 1:
+        return maybe[0]
+    return min(maybe, key=key_int)
+
 def find_author(name):
     """
     Searches OL for an author by name.
@@ -65,29 +85,9 @@ def find_author(name):
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
 
-def pick_from_matches(author, match):
-    """
-    Finds the best match for author from a list of OL authors records, match.
-
-    :param dict author: Author import representation
-    :param list match: List of matching OL author records
-    :rtype: dict
-    :return: A single OL author record from match
-    """
-    maybe = []
-    if 'birth_date' in author and 'death_date' in author:
-        maybe = [m for m in match if 'birth_date' in m and 'death_date' in m]
-    elif 'date' in author:
-        maybe = [m for m in match if 'date' in m]
-    if not maybe:
-        maybe = match
-    if len(maybe) == 1:
-        return maybe[0]
-    return min(maybe, key=key_int)
-
 def find_entity(author):
     """
-    Looks for an existing Author record in OL
+    Looks for an existing Author record in OL by name
     and returns it if found.
 
     :param dict author: Author import dict
@@ -129,7 +129,7 @@ def find_entity(author):
 
 def import_author(author, eastern=False):
     """
-    Converts an import stlye Author dictionary into an
+    Converts an import style new-author dictionary into an
     Open Library author representation.
 
     :param dict author: Author import record
