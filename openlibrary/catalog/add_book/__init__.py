@@ -131,6 +131,8 @@ def build_author_reply(author_in, edits):
         if new_author:
             a['key'] = web.ctx.site.new_key('/type/author')
             edits.append(a)
+        while is_redirect(a):
+            a = web.ctx.site.get(a['location'])
         authors.append({'key': a['key']})
         author_reply.append({
             'key': a['key'],
