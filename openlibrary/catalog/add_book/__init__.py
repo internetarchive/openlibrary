@@ -67,6 +67,8 @@ def normalize(s): # strip non-alphanums and truncate at 25 chars
         norm = norm[4:]
     elif norm.startswith('a '):
         norm = norm[2:]
+    # strip bracketed text
+    norm = re.sub(r' ?\(.*\)', '', norm)
     return norm.replace(' ', '')[:25]
 
 type_map = {
@@ -229,7 +231,7 @@ def load_data(rec, account=None):
             if k not in rec:
                 continue
             for s in rec[k]:
-                if s not in w.get(k, []):
+                if normalize(s) not in [normalize(existing) for existing in w.get(k, [])]:
                     w.setdefault(k, []).append(s)
                     need_update = True
         if cover_id:
