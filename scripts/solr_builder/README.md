@@ -21,7 +21,7 @@ docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 
 ```bash
 # Download the dump
-wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
+time wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.5GB, 3min (7 Jun 2019, OJF); 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
 ```
 
 Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
@@ -44,12 +44,12 @@ for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
 # logs/psql-chunk-8531084.txt: COPY 8531084
 ```
 
-Took 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
+Took 2 hrs (8 Jun 2019); 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
 
 Once that's all done, we create indices in postgres:
 
 ```bash
-# 1.25 hr (10 May 2019, OJF)
+# 1 hr (8 June 2019, OJF); 1.25 hr (10 May 2019, OJF)
 time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
 ```
 
@@ -88,7 +88,7 @@ psql -f sql/get-partition-markers.sql
 ./index-works.sh
 ```
 
-Works took 29 hrs (18081999 works, 13 May 2019, OJF) with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours.
+Works took 27 hrs with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours. (27 hrs, 18188010 works, 10 June 2019; 29 hrs, 18081999 works, 13 May 2019, OJF)
 
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
@@ -96,7 +96,7 @@ And start all the orphans in sequence to each other (in parallel to the works) s
 ./index-orphans.sh
 ```
 
-Orphans took 11 hrs over 1 core (3735145 docs, 13 May 2019, OJF), in parallel with works.
+Orphans took 8 hrs over 1 core in parallel with works (8 hrs, 3711877 docs, 10 June 2019, OJF; 11 hrs, 3735145 docs, 13 May 2019, OJF).
 
 To check progress, run (clearing the progress folder as necessary):
 
@@ -145,12 +145,12 @@ It is currently unknown how subjects make their way into Solr (See See https://g
 4. Copy the subjects into our main solr. 6.75 hrs (May 2019, OJF, 1514068 docs)
     ```bash
     # check the status by going to localhost:8984/solr/dataimport
-    curl localhost:8984/solr/dataimport?command=full-import
+    curl server.openjournal.foundation:8984/solr/dataimport?command=full-import
     ```
 
 ## Step 3: Final Sync
 
-NONE OF THIS HAS BEEN TESTED YET!
+NOTE: These aren't the exact instructions; use with discretion.
 
 We now have to deal with any changes that occurred since. The last step is to run `solr-updater` on dev linked to the production Infobase logs, and the new solr. Something like:
 
@@ -181,3 +181,8 @@ Then start it:
 ```bash
 supervisorctl start solrbuilder-solrupdater
 ```
+
+### Notes
+
+- Monitor the logs for solrupdater. It will sometimes get overloading and slow down a lot; restarting it fixes the issues though.
+- 3 weeks of edits takes ~1 week to reindex.
