@@ -92,22 +92,13 @@ div.imageIntro{
 
 a.floater {
   &Shut {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
-    }
+    text-decoration: none;
+    color: @dark-grey;
+    font-size: 1.2em;
   }
   &Close {
     color: @red;
-    font-size: 1.0em;
+    font-size: 1.1em;
     padding-left: 20px;
   }
 }
@@ -149,18 +140,20 @@ div.floater {
   position: relative;
   font-family: @lucida_sans_serif-1;
   width: 640px;
+  min-height: 450px;
   background: @white;
   text-align: left;
   &Head {
+    display: flex;
     padding: 10px 5px;
-    border-bottom: 3px solid @light-grey;
     h2 {
-      text-align: left;
+      text-align: center;
       color: @dark-grey;
-      font-weight: normal;
+      font-weight: bold;
       font-size: 1.25em;
       margin: 0;
       padding: 0;
+      flex: 1;
     }
   }
   &Body {
