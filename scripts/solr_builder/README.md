@@ -106,6 +106,11 @@ for f in progress/*; do tail -n1 $f; done;
 
 Note the work chunks happen to be (for some reason) pretty uneven, so start the subjects (step 2d) when one of the chunks finishes.
 
+And commit:
+```bash
+time curl localhost:8984/solr/update?commit=true # ~35s
+```
+
 ### 2c: Insert authors
 
 Note: This must be done AFTER works and orphans; authors query solr to determine how many works are by a given author.

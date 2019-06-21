@@ -436,10 +436,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
 
-            if job == 'authors':
-                update_keys(keys, commit=False, commit_way_later=True)
-            else:
-                update_keys(keys)
+            update_keys(keys, commit=False, commit_way_later=True)
 
             seen += len(keys)
             plog.update(
