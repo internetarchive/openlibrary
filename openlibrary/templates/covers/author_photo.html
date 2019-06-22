@@ -12,8 +12,8 @@ $if author_thumbnail_url:
     <div class="hidden">
         <div class="coverFloat" id="seeImage">
             <div class="coverFloatHead">
-                $truncate(author.name or "", 60)
-                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
+                <h2>$truncate(author.name or "", 60)</h2>
+                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
             </div>
             <a href="javascript:;" onclick="\$.fn.colorbox.close();" title="Click to close"><img src="$author_photo_url" class="cover" alt="Photo of $author.name"/></a>
         </div>
