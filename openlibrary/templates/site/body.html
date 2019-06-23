@@ -14,7 +14,8 @@ $ show_banners = bodyid != 'form'
   $if show_banners:
     $:render_template("site/alert")
     $:render_template("lib/nav_head", None)
-  <div id="test-body-mobile">
+  $# don't render test-body-mobile for iframes
+  <div $:('id="test-body-mobile"' if bodyid != 'form' else '')>
     $if show_banners:
       $#print errors (hidden by default as styles are loaded via JS)
       <div class="flash-messages" style="display: none;">

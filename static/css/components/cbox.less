@@ -13,6 +13,7 @@
 }
 
 #colorbox {
+  outline: none;
   box-sizing: content-box;
   > * {
     box-sizing: content-box;
@@ -24,7 +25,6 @@
     position: fixed;
     width: 100%;
     height: 100%;
-    background: @brown-3a301e;
     opacity: .5;
     filter: alpha(opacity=50);
   }
@@ -53,11 +53,11 @@
     box-sizing: content-box;
     position: relative;
     background: @white;
-    padding: 0;
-    border: 10px solid @brown;
+    padding: 10px;
+    border: 1px solid @dark-beige;
     border-radius: 12px;
-    -webkit-box-shadow: 1px 3px 10px @black;
-    box-shadow: 1px 3px 10px @black;
+    -webkit-box-shadow: 1px 3px 5px @dark-beige;
+    box-shadow: 1px 3px 5px @dark-beige;
   }
   &LoadedContent {
     background: @white;
@@ -93,56 +93,38 @@ div.imageIntro{
 
 a.floater {
   &Shut {
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
-    }
+    text-decoration: none;
+    color: @dark-grey;
+    font-size: 1.2em;
   }
   &Close {
     color: @red;
-    font-size: 1.0em;
+    font-size: 1.1em;
     padding-left: 20px;
   }
 }
 
 /* VIEW LARGER COVER POP-UP */
 div.coverFloat {
-  position: relative;
   font-family: @lucida_sans_serif-1;
   background: @white;
   text-align: left;
   a.floaterShut {
-    // hide label
-    text-indent: 999px;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    right: 0;
-    display: block;
-    width: 16px;
-    height: 16px;
-    background-image: url(/images/icons/icon_close-pop-sm.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
     &:hover {
       background-position: 0 -16px;
     }
   }
   &Head {
-    background-color: @brown;
-    height: 16px;
-    padding: 0 10px 10px 0;
+    display: flex;
     font-size: 1em;
-    font-weight: 700;
-    color: @white;
+    h2 {
+      font-weight: normal;
+      color: @dark-grey;
+      font-size: 1em;
+      margin: .2em 0;
+      padding: 0;
+      flex: 1;
+    }
   }
 }
 
@@ -151,17 +133,20 @@ div.floater {
   position: relative;
   font-family: @lucida_sans_serif-1;
   width: 640px;
-  min-height: 670px;
+  min-height: 550px;
   background: @white;
   text-align: left;
   &Head {
-    background-color: @brown;
-    padding: 0 10px 10px;
+    display: flex;
+    padding: 10px 5px;
     h2 {
-      color: @white;
-      font-size: 1.75em;
+      font-weight: normal;
+      text-align: center;
+      color: @dark-grey;
+      font-size: 1.25em;
       margin: 0;
       padding: 0;
+      flex: 1;
     }
   }
   &Body {
