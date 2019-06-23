@@ -68,7 +68,7 @@ function update_image(image) {
 window.q.push(function(){
     function add_iframe(selector, src) {
         \$(selector)
-            .append('<iframe frameborder="0" height="530" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+            .append('<iframe frameborder="0" height="450" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
             .find('iframe')
             .attr("src", src);
     }
@@ -111,7 +111,7 @@ window.q.push(function(){
     <div class="floater" id="addImage">
         <div class="floaterHead">
             <h2>$title</h2>
-            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
+            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
         </div>
 
         <div id="tabsImages" class="tabs tabsPop">
