@@ -84,9 +84,11 @@ window.q.push(function(){
             \$("#remove-seed-dialog")
                 .data("seed-id", seed_id)
                 .dialog("open");
+            \$("#remove-seed-dialog").removeClass('hidden');
         }
         else {
-            \$("#delete-list-dialog").dialog("open");
+            \$("#delete-list-dialog").dialog("open");            
+            \$("#delete-list-dialog").removeClass('hidden');
         }
 
     });
@@ -112,10 +114,12 @@ window.q.push(function(){
                     // TODO: update edition count
 
                     \$(_this).dialog("close");
+                    \$("#remove-seed-dialog").addClass('hidden');
                 });
             },
             "No, cancel": function() {
                 \$(this).dialog("close");
+                \$("#remove-seed-dialog").addClass('hidden');
             }
         }
     });
