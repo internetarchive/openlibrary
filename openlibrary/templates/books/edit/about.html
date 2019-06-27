@@ -13,7 +13,7 @@ $def with (work)
 
     <div class="formElement">
         <div class="label">
-            <label for="about-tags">$_("Some tags perhaps?")</label>
+            <label for="about-subjects">$_("Subject keywords?")</label>
             <span class="tip"><span class="highlight">$_("Please separate with commas.")</span> $_("For example:") <i><a href="/subjects/cheese">cheese</a>, <a href="/subjects/roman_empire">Roman Empire</a>, <a href="/subjects/psychology">psychology</a></i></span>
         </div>
         <div class="input">
@@ -21,7 +21,7 @@ $def with (work)
             $for s in work.get_subjects():
                 $ s = s.replace('"', '""')
                 $subjects.append('"' + s + '"' if ',' in s else s)
-            <input type="text" name="work--subjects" id="about-tags" value="$', '.join(subjects)" tabindex="0"/>
+            <input type="text" name="work--subjects" id="about-subjects" value="$', '.join(subjects)" tabindex="0"/>
         </div>
     </div>
 

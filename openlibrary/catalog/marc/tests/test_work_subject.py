@@ -1,4 +1,3 @@
-from __future__ import print_function
 from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_subject import read_subjects, tidy_subject, four_types
@@ -120,29 +119,3 @@ class TestSubjects:
             data = data.decode('utf-8').encode('raw_unicode_escape')
         rec = MarcBinary(data)
         assert read_subjects(rec) == expected
-
-subjects = []
-for item, expect in xml_samples:
-    filename = os.path.dirname(__file__) + '/test_data/xml_input/' + item + '_marc.xml'
-    element = etree.parse(filename).getroot()
-    if element.tag != record_tag and element[0].tag == record_tag:
-        element = element[0]
-    rec = MarcXml(element)
-    subjects.append(read_subjects(rec))
-
-for item, expect in bin_samples:
-    filename = os.path.dirname(__file__) + '/test_data/bin_input/' + item
-
-    data = open(filename).read()
-    if len(data) != int(data[:5]):
-        data = data.decode('utf-8').encode('raw_unicode_escape')
-    rec = MarcBinary(data)
-    subjects.append(read_subjects(rec))
-
-all_subjects = defaultdict(lambda: defaultdict(int))
-for a in subjects:
-    for b, c in a.items():
-        for d, e in c.items():
-            all_subjects[b][d] += e
-
-print(four_types(dict((k, dict(v)) for k, v in all_subjects.items())))

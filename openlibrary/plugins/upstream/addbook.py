@@ -55,7 +55,7 @@ def get_recaptcha():
         create_dt = account.creation_time()
         now_dt = datetime.datetime.utcnow()
         delta = now_dt - create_dt
-        return delta.days > 365*2
+        return delta.days > 30
 
     def is_plugin_enabled(name):
         plugin_names = delegate.get_plugins()
