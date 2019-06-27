@@ -6,6 +6,7 @@
 export default function Template(tmpl_text) {
     var s = [];
     var js = ["var _p=[];", "with(env) {"];
+    var tokens, i, t, f, g;
 
     function addCode(text) {
         js.push(text);
@@ -18,11 +19,11 @@ export default function Template(tmpl_text) {
         s.push(text);
     }
 
-    var tokens = tmpl_text.split("<%");
+    tokens = tmpl_text.split("<%");
 
     addText(tokens[0]);
-    for (var i=1; i < tokens.length; i++) {
-        var t = tokens[i].split('%>');
+    for (i=1; i < tokens.length; i++) {
+        t = tokens[i].split('%>');
 
         if (t[0][0] == "=") {
             addExpr(t[0].substr(1));
@@ -34,8 +35,8 @@ export default function Template(tmpl_text) {
     }
     js.push("}", "return _p.join('');");
 
-    var f = new Function(["__s", "env"], js.join("\n"));
-    var g = function(env) {
+    f = new Function(["__s", "env"], js.join("\n"));
+    g = function(env) {
         return f(s, env);
     };
     g.toString = function() { return tmpl_text; };

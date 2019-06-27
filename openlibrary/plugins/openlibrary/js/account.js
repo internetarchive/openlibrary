@@ -3,8 +3,9 @@ export function validateEmail() {
     $("form.email").validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
+            var message;
             if (errors) {
-                var message = errors == 1 ? 'Hang on... You forgot to provide an updated email address.' : 'Hang on... You forgot to provide an updated email address.';
+                message = errors == 1 ? 'Hang on... You forgot to provide an updated email address.' : 'Hang on... You forgot to provide an updated email address.';
                 $("div#contentMsg span").html(message);
                 $("div#contentMsg").show().fadeTo(3000, 1).slideUp();
                 $("span.remind").css("font-weight", "700").css("text-decoration", "underline");
@@ -35,8 +36,9 @@ export function validatePassword() {
     $("form.password").validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
+            var message;
             if (errors) {
-                var message = (errors == 1? 'Hang on... you missed a field.': 'Hang on... to change your password, we need your current and your new one.');
+                message = errors == 1 ? 'Hang on... you missed a field.': 'Hang on... to change your password, we need your current and your new one.';
                 $("div#contentMsg span").html(message);
                 $("div#contentMsg").show().fadeTo(3000, 1).slideUp();
                 $("span.remind").css("font-weight", "700").css("text-decoration", "underline");

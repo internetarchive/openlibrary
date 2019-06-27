@@ -5,22 +5,22 @@
     "jquery": true
   },
   "parserOptions": {
-		"sourceType": "module",
-		"ecmaVersion": 6
-	},
-  "globals": {
+    "sourceType": "module",
+    "ecmaVersion": 6
   },
+  "globals": {},
   "rules": {
+    "eol-last": ["error", "always"],
     "indent": 2,
     "no-console": "error",
-    "no-trailing-spaces": "error",
-    "space-in-parens": "error",
-    "no-undef": "error",
     "no-extra-semi": "error",
-    "eol-last": ["error", "always"],
-    "no-redeclare": "error",
     "no-mixed-spaces-and-tabs": "error",
+    "no-redeclare": "error",
+    "no-trailing-spaces": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
     "no-useless-escape": "error",
-    "no-unused-vars": "error"
+    "space-in-parens": "error",
+    "vars-on-top": "error"
   }
 }

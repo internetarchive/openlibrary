@@ -1,6 +1,8 @@
 // used in templates/covers/add.html
 const Carousel = {
     add: function(selector, a, b, c, d, e, f, loadMore) {
+        var responsive_settings, availabilityStatuses, addWork, url, default_limit;
+
         a = a || 6;
         b = b || 5;
         c = c || 4;
@@ -8,7 +10,7 @@ const Carousel = {
         e = e || 2;
         f = f || 1;
 
-        var responsive_settings = [
+        responsive_settings = [
             {
                 breakpoint: 1200,
                 settings: {
@@ -58,14 +60,14 @@ const Carousel = {
             responsive: responsive_settings
         });
 
-        var availabilityStatuses = {
+        availabilityStatuses = {
             'open': {cls: 'cta-btn--available', cta: 'Read'},
             'borrow_available': {cls: 'cta-btn--available', cta: 'Borrow'},
             'borrow_unavailable': {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
             'error': {cls: 'cta-btn--missing', cta: 'No eBook'}
         };
 
-        var addWork = function(work) {
+        addWork = function(work) {
             var availability = work.availability.status;
             var cover_id = work.covers? work.covers[0] : work.cover_id;
             var ocaid = work.availability.identifier;
@@ -97,14 +99,14 @@ const Carousel = {
 
         // if a loadMore config is provided and it has a (required) url
         if (loadMore && loadMore.url) {
-            var url;
+            url;
             try {
                 // exception handling needed in case loadMore.url is relative path
                 url = new URL(loadMore.url);
             } catch (e) {
                 url = new URL(window.location.origin + loadMore.url);
             }
-            var default_limit = 18; // 3 pages of 6 books
+            default_limit = 18; // 3 pages of 6 books
             url.searchParams.set('limit', loadMore.limit || default_limit);
             loadMore.pageMode = loadMore.pageMode === 'page' ? 'page' : 'offset'; // verify pagination mode
             loadMore.locked = false; // prevent additional calls when not in critical section

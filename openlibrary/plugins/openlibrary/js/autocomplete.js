@@ -25,8 +25,9 @@ export default function($) {
                 // in v2, text IS the JSON
                 var rows = typeof text === 'string' ? JSON.parse(text) : text;
                 var parsed = [];
-                for (var i=0; i < rows.length; i++) {
-                    var row = rows[i];
+                var i, row, query;
+                for (i=0; i < rows.length; i++) {
+                    row = rows[i];
                     parsed.push({
                         data: row,
                         value: row.name,
@@ -35,7 +36,7 @@ export default function($) {
                 }
 
                 // XXX: this won't work when _this is multiple values (like $("input"))
-                var query = $(_this).val();
+                query = $(_this).val();
                 if (ol_ac_opts.addnew && ol_ac_opts.addnew(query)) {
                     parsed = parsed.slice(0, ac_opts.max - 1);
                     parsed.push({
@@ -51,8 +52,10 @@ export default function($) {
         $(_this)
             .autocomplete(ol_ac_opts.endpoint, $.extend(default_ac_opts, ac_opts))
             .result(function(event, item) {
+                var $this;
+
                 $("#" + this.id + "-key").val(item.key);
-                var $this = $(this);
+                $this = $(this);
 
                 //adding class directly is not working when tab is pressed. setTimeout seems to be working!
                 setTimeout(function() {
@@ -105,10 +108,11 @@ export default function($) {
         });
 
         container.on("click", "a.add", function(event) {
+            var next_index, new_input;
             event.preventDefault();
 
-            var next_index = container.find("div.input").length;
-            var new_input = $(input_renderer(next_index, {key:"", name: ""}));
+            next_index = container.find("div.input").length;
+            new_input = $(input_renderer(next_index, {key:"", name: ""}));
             container.append(new_input);
             setup_autocomplete(
                 new_input.find(autocomplete_selector)[0],

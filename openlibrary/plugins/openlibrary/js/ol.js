@@ -22,13 +22,14 @@ export var Browser = {
     removeURLParameter: function(url, parameter) {
         var urlparts = url.split('?');
         var prefix = urlparts[0];
+        var query, paramPrefix, params, i;
         if (urlparts.length >= 2) {
-            var query = urlparts[1];
-            var paramPrefix = encodeURIComponent(parameter) + '=';
-            var params= query.split(/[&;]/g);
+            query = urlparts[1];
+            paramPrefix = encodeURIComponent(parameter) + '=';
+            params = query.split(/[&;]/g);
 
             //reverse iteration as may be destructive
-            for (var i = params.length; i-- > 0;) {
+            for (i = params.length; i-- > 0;) {
                 //idiom for string.startsWith
                 if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
                     params.splice(i, 1);
@@ -46,9 +47,10 @@ export var Browser = {
 export function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
+    var elemTop, elemBottom;
     if ($(elem).offset()) {
-        var elemTop = $(elem).offset().top;
-        var elemBottom = elemTop + $(elem).height();
+        elemTop = $(elem).offset().top;
+        elemBottom = elemTop + $(elem).height();
         return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
     }
     return false;
@@ -79,6 +81,7 @@ export default function init(){
     };
     // stores the state of the search result for resizing window
     var instantSearchResultState = false;
+    var searchModes, searchModeDefault, defaultFacet, searchFacets, composeSearchUrl, marshalBookSearchQuery, renderInstantSearchResults, setFacet, setMode, setSearchMode, options, q, parts, debounce, enteredSearchMinimized, searchExpansionActivated, toggleSearchbar, renderInstantSearchResult, val, facet_value;
 
     // searches should be cancelled if you click anywhere in the page
     $('body').on('click', function () {
@@ -94,12 +97,12 @@ export default function init(){
     });
 
     // Search mode
-    var searchModes = ['everything', 'ebooks', 'printdisabled'];
-    var searchModeDefault = 'ebooks';
+    searchModes = ['everything', 'ebooks', 'printdisabled'];
+    searchModeDefault = 'ebooks';
 
     // Maps search facet label with value
-    var defaultFacet = "all";
-    var searchFacets = {
+    defaultFacet = "all";
+    searchFacets = {
         'title': 'books',
         'author': 'authors',
         'lists': 'lists',
@@ -109,7 +112,7 @@ export default function init(){
         'text': 'inside'
     };
 
-    var composeSearchUrl = function(q, json, limit) {
+    composeSearchUrl = function(q, json, limit) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
         var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : "/search/" + facet_value);
         if (json) {
@@ -122,15 +125,16 @@ export default function init(){
         return url + '&mode=' + localStorage.getItem('mode');
     }
 
-    var marshalBookSearchQuery = function(q) {
+    marshalBookSearchQuery = function(q) {
         if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
             q = 'title: "' + q + '"';
         }
         return q;
     }
 
-    var renderInstantSearchResults = function(q) {
+    renderInstantSearchResults = function(q) {
         var facet_value = searchFacets[localStorage.getItem("facet")];
+        var url, facet;
         if (q === '') {
             return;
         }
@@ -138,20 +142,22 @@ export default function init(){
             q = marshalBookSearchQuery(q);
         }
 
-        var url = composeSearchUrl(q, true, 10);
+        url = composeSearchUrl(q, true, 10);
 
-        var facet = facet_value === 'all'? 'books' : facet_value;
+        facet = facet_value === 'all'? 'books' : facet_value;
         $searchResults.css('opacity', 0.5);
         $.getJSON(url, function(data) {
+            var d;
             $searchResults.css('opacity', 1).empty();
-            for (var d in data.docs) {
+            for (d in data.docs) {
                 renderInstantSearchResult[facet](data.docs[d]);
             }
         });
     }
 
-    var setFacet = function(facet) {
+    setFacet = function(facet) {
         var facet_key = facet.toLowerCase();
+        var text, url;
 
         if (facet_key === 'advanced') {
             localStorage.setItem("facet", '');
@@ -161,16 +167,17 @@ export default function init(){
 
         localStorage.setItem("facet", facet_key);
         $('header#header-bar .search-facet-selector select').val(facet_key)
-        var text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
         q = $searchInput.val();
-        var url = composeSearchUrl(q)
+        url = composeSearchUrl(q)
         $('.search-bar-input').attr("action", url);
         renderInstantSearchResults(q);
     }
 
-    var setMode = function(form) {
+    setMode = function(form) {
+        var url;
         if (!$(form).length) {
             return;
         }
@@ -178,7 +185,7 @@ export default function init(){
         $("input[value='Protected DAISY']").remove();
         $("input[name='has_fulltext']").remove();
 
-        var url = $(form).attr('action');
+        url = $(form).attr('action');
         if (url) {
             url = Browser.removeURLParameter(url, 'm');
             url = Browser.removeURLParameter(url, 'has_fulltext');
@@ -201,7 +208,7 @@ export default function init(){
         $(form).attr('action', url);
     }
 
-    var setSearchMode = function(mode) {
+    setSearchMode = function(mode) {
         var searchMode = mode || localStorage.getItem("mode");
         var isValidMode = searchModes.indexOf(searchMode) != -1;
         localStorage.setItem('mode', isValidMode?
@@ -213,7 +220,7 @@ export default function init(){
         setMode('.search-bar-input');
     }
 
-    var options = Browser.getJsonFromUrl();
+    options = Browser.getJsonFromUrl();
 
     if (!searchFacets[localStorage.getItem("facet")]) {
         localStorage.setItem("facet", defaultFacet)
@@ -222,9 +229,9 @@ export default function init(){
     setSearchMode(options.mode);
 
     if (options.q) {
-        var q = options.q.replace(/\+/g, " ")
+        q = options.q.replace(/\+/g, " ")
         if (localStorage.getItem("facet") === 'title' && q.indexOf('title:') != -1) {
-            var parts = q.split('"');
+            parts = q.split('"');
             if (parts.length === 3) {
                 q = parts[1];
             }
@@ -236,7 +243,7 @@ export default function init(){
     // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
-    var debounce = function (func, threshold, execAsap) {
+    debounce = function (func, threshold, execAsap) {
         var timeout;
         return function debounced () {
             var obj = this, args = arguments;
@@ -261,8 +268,8 @@ export default function init(){
         $('.search-bar-input [type=text]').focus();
     });
 
-    var enteredSearchMinimized = false;
-    var searchExpansionActivated = false;
+    enteredSearchMinimized = false;
+    searchExpansionActivated = false;
     if ($(window).width() < 568) {
         if (!enteredSearchMinimized) {
             $('.search-bar-input').addClass('trigger')
@@ -270,6 +277,7 @@ export default function init(){
         enteredSearchMinimized = true;
     }
     $(window).resize(function(){
+        var search_query;
         if($(this).width() < 568){
             if (!enteredSearchMinimized) {
                 $('.search-bar-input').addClass('trigger')
@@ -279,7 +287,7 @@ export default function init(){
         } else {
             if (enteredSearchMinimized) {
                 $('.search-bar-input').removeClass('trigger');
-                var search_query = $searchInput.val()
+                search_query = $searchInput.val()
                 if (search_query && instantSearchResultState) {
                     renderInstantSearchResults(search_query);
                 }
@@ -291,7 +299,7 @@ export default function init(){
         }
     });
 
-    var toggleSearchbar = function() {
+    toggleSearchbar = function() {
         searchExpansionActivated = !searchExpansionActivated;
         if (searchExpansionActivated) {
             $('header#header-bar .logo-component').addClass('hidden');
@@ -312,7 +320,7 @@ export default function init(){
         setFacet(facet);
     })
 
-    var renderInstantSearchResult = {
+    renderInstantSearchResult = {
         books: function(work) {
             var author_name = work.author_name ? work.author_name[0] : '';
             $('header#header-bar .search-component ul.search-results').append(
@@ -334,7 +342,7 @@ export default function init(){
     // e is a event object
     $('form.search-bar-input').on('submit', function() {
         q = $searchInput.val();
-        var facet_value = searchFacets[localStorage.getItem("facet")];
+        facet_value = searchFacets[localStorage.getItem("facet")];
         if (facet_value === 'books') {
             $('header#header-bar .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
         }
@@ -382,7 +390,7 @@ export default function init(){
     $searchInput.on('focus',debounce(function(e) {
         instantSearchResultState = true;
         e.stopPropagation();
-        var val = $(this).val();
+        val = $(this).val();
         renderInstantSearchResults(val);
     }, 300, false));
 
