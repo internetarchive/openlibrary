@@ -2,6 +2,7 @@
  * Setup actions on document.ready for standard classNames.
  */
 export default function($) {
+    var options;
     // Flash messages are hidden by default so that CSS is not on the critical path.
     $(".flash-messages").show();
     // close-popup
@@ -17,7 +18,7 @@ export default function($) {
     });
 
     // tabs
-    var options = {};
+    options = {};
     if($.support.opacity){
         options.fx = {"opacity": "toggle"};
     }

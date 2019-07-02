@@ -7,11 +7,11 @@ export default function($){
     // For v2 and v1 page support. Can be removed when no v1 support needed
     var isOldJQuery = $('body').on === undefined;
     $.fn.repeat = function(options) {
-        var addSelector, removeSelector;
+        var addSelector, removeSelector, id, elems, t, code;
         options = options || {};
 
-        var id = "#" + this.attr("id");
-        var elems = {
+        id = "#" + this.attr("id");
+        elems = {
             '_this': this,
             'add': $(id + '-add'),
             'form': $(id + '-form'),
@@ -20,7 +20,7 @@ export default function($){
         }
 
         function createTemplate(selector) {
-            var code = $(selector).html()
+            code = $(selector).html()
                 .replace(/%7B%7B/gi, "<%=")
                 .replace(/%7D%7D/gi, "%>")
                 .replace(/{{/g, "<%=")
@@ -30,7 +30,7 @@ export default function($){
             return Template(code);
         }
 
-        var t = createTemplate(id + "-template");
+        t = createTemplate(id + "-template");
 
         /**
          * Search elems.form for input fields and create an
@@ -60,10 +60,11 @@ export default function($){
          * @param {jQuery.Event} event
          */
         function onAdd(event) {
+            var index, data, newid;
             event.preventDefault();
 
-            var index = elems.display.children().length;
-            var data = formdata();
+            index = elems.display.children().length;
+            data = formdata();
             data.index = index;
 
             if (options.validate && options.validate(data) == false) {
@@ -72,7 +73,7 @@ export default function($){
 
             $.extend(data, options.vars || {});
 
-            var newid = elems._this.attr("id") + "--" + index;
+            newid = elems._this.attr("id") + "--" + index;
             // Create the HTML of a hidden input
             elems.template
                 .clone()

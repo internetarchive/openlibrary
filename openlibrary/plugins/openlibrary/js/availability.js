@@ -38,10 +38,11 @@ function init() {
     }
 
     getAvailabilityV2 = function(_type, _ids, callback) {
+        var url;
         if (!_ids.length) {
             return callback({});
         }
-        var url = '/availability/v2?type=' + _type;
+        url = '/availability/v2?type=' + _type;
         $.ajax({
             url: url,
             type: "POST",
@@ -68,21 +69,23 @@ function init() {
      * copies.
      */
     updateBookAvailability = function(selector) {
+        var books, ocaids;
         selector = (selector || '') + '[data-ocaid]';
-        var books = {};  // lets us keep track of which ocaids came from
+        books = {};  // lets us keep track of which ocaids came from
         // which book (i.e. edition or work). As we learn
         // ocaids are available, we'll need a way to
         // determine which edition or work this ocaid
         // comes from.
-        var ocaids = [];  // a full set of ocaids spanning all books
+        ocaids = [];  // a full set of ocaids spanning all books
         // which can be checked in a single request
         // to the availability API.
         $(selector).each(function(index, elem) {
             var data_ocaid = $(elem).attr('data-ocaid');
+            var book_ocaids, book_key;
             if(data_ocaid) {
-                var book_ocaids = data_ocaid.split(',')
+                book_ocaids = data_ocaid.split(',')
                     .filter(function(book) { return book !== "" });
-                var book_key = $(elem).attr('data-key');
+                book_key = $(elem).attr('data-key');
 
                 if(book_ocaids.length) {
                     books[book_key] = book_ocaids;
@@ -94,7 +97,8 @@ function init() {
         getAvailabilityV2('identifier', ocaids, function(response) {
             var book_key = null;
             var book_ocaids = null;
-            for (var book_ocaid in response) {
+            var book_ocaid;
+            for (book_ocaid in response) {
                 if (response[book_ocaid].status === "borrow_available") {
                     // check all the books on this page
                     for (book_key in books) {
@@ -157,7 +161,8 @@ function init() {
         // Determine whether availability check necessary for page
         var checkAvailability = false;
         var filter = false;
-        for (var page in whitelist) {
+        var page, daisies, editions, works, results;
+        for (page in whitelist) {
             if (window.location.pathname.match(page)) {
                 checkAvailability = true;
                 filter = whitelist[page].filter;
@@ -168,16 +173,16 @@ function init() {
         }
 
         if (localStorage.getItem('mode') === "printdisabled") {
-            var daisies = $('.print-disabled-only');
+            daisies = $('.print-disabled-only');
             $.each(daisies, function() {
                 $(this).removeClass('hidden');
             });
             return;
         }
 
-        var editions = [];
-        var works = [];
-        var results = $('a.results');
+        editions = [];
+        works = [];
+        results = $('a.results');
         $.each(results, function(index, e) {
             var href = $(e).attr('href');
             var _type_key_slug = href.split('/')
@@ -198,11 +203,12 @@ function init() {
                     var _type_key_slug = href.split('/')
                     var _type = _type_key_slug[1];
                     var key = _type_key_slug[2];
+                    var work, li, cta, mode;
                     if (response[_type]) {
-                        var work = response[_type][key];
-                        var li = $(e).closest("li");
-                        var cta = li.find(".searchResultItemCTA-lending");
-                        var mode = filter ? localStorage.getItem('mode') : 'everything';
+                        work = response[_type][key];
+                        li = $(e).closest("li");
+                        cta = li.find(".searchResultItemCTA-lending");
+                        mode = filter ? localStorage.getItem('mode') : 'everything';
 
                         if (mode !== "printdisabled") {
                             if (work.status === 'error' || work.status === 'private') {

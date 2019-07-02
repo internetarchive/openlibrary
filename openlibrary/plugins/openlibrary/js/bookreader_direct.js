@@ -1,10 +1,11 @@
 // Make Borrow links act as if POSTing to Borrow page
 export default function() {
     $('.borrow-link').on('click', function(event) {
+        var $this, borrowUrl, borrowFormString;
         event.preventDefault();
-        var $this = $(this);
-        var borrowUrl = $this.attr('href').replace(/'/g, '%27');
-        var borrowFormString = "<form action='" + borrowUrl + "' method='POST'>\n" +
+        $this = $(this);
+        borrowUrl = $this.attr('href').replace(/'/g, '%27');
+        borrowFormString = "<form action='" + borrowUrl + "' method='POST'>\n" +
       "<input type='hidden' name='action' value='borrow' />\n" +
       "<input type='hidden' name='format' value='bookreader' />\n" +
       "<input type='hidden' name='ol_host' value='" + location.host + "' />\n" +

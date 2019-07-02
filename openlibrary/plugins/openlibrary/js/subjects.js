@@ -15,8 +15,9 @@
 // We are blindly concatenating JS. The ; protects us in case the concatenation
 // goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
 export function Subject(data, options) {
+    var defaults;
     options = options || {};
-    var defaults = {
+    defaults = {
         pagesize: 12
     }
     this.settings = $.extend(defaults, options);
@@ -33,7 +34,8 @@ export function Subject(data, options) {
 // Implementation of Python urllib.urlencode in Javascript.
 export function urlencode(query) {
     var parts = [];
-    for (var k in query) {
+    var k;
+    for (k in query) {
         parts.push(k + "=" + query[k]);
     }
     return parts.join("&");
@@ -42,8 +44,9 @@ export function urlencode(query) {
 /* Should really use createElement() */
 export function renderTag(tag, keyvals, child) {
     var html = '<' + tag + ' ';
-    for (var key in keyvals) {
-        var val =  keyvals[key];
+    var key, val;
+    for (key in keyvals) {
+        val =  keyvals[key];
         if (val == '') {
             html += key + ' ';
         } else {
@@ -63,7 +66,8 @@ export function renderTag(tag, keyvals, child) {
 
 export function slice(array, begin, end) {
     var a = [];
-    for (var i=begin; i < Math.min(array.length, end); i++) {
+    var i;
+    for (i=begin; i < Math.min(array.length, end); i++) {
         a.push(array[i]);
     }
     return a;
@@ -97,17 +101,19 @@ $.extend(Subject.prototype, {
 
     renderWork: function(work) {
         var authors = [];
-        for (var author in work.authors)
+        var author;
+        var ed, titlestring, bookcover_url, format, bookread_url, html
+        for (author in work.authors)
             authors.push(work.authors[author].name);
-        var ed = 'edition' + (work.edition_count > 1 ? 's' : '');
-        var titlestring = work.title + " by " + authors.join(', ') +
+        ed = 'edition' + (work.edition_count > 1 ? 's' : '');
+        titlestring = work.title + " by " + authors.join(', ') +
         ' (' + work.edition_count + ' ' + ed + ')';
-        var bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
-        var format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
-        var bookread_url = work.public_scan ?
+        bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
+        format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
+        bookread_url = work.public_scan ?
             ('//archive.org/stream/' + work.ia + '?ref=ol') :
             '/borrow/ia/' + work.ia;
-        var html = renderTag('div', {'class': 'coverMagic'},
+        html = renderTag('div', {'class': 'coverMagic'},
             renderTag('span', {
                 'itemtype': 'https://schema.org/Book',
                 'itemscope': ''},
@@ -133,6 +139,7 @@ $.extend(Subject.prototype, {
     loadPage: function(pagenum, callback) {
         var offset = pagenum * this.settings.pagesize;
         var limit = this.settings.pagesize;
+        var params, key, url, t;
 
         if (offset > this.bookCount) {
             callback && callback([]);
@@ -142,7 +149,7 @@ $.extend(Subject.prototype, {
             callback(this._pages[pagenum]);
         }
         else {
-            var params = {
+            params = {
                 "limit": limit,
                 "offset": offset,
                 "has_fulltext": this.has_fulltext,
@@ -153,9 +160,9 @@ $.extend(Subject.prototype, {
             }
             $.extend(params, this.filter);
 
-            var key = this.key.replace(/\s+/g, '_');
-            var url = key + ".json?" + urlencode(params);
-            var t = this;
+            key = this.key.replace(/\s+/g, '_');
+            url = key + ".json?" + urlencode(params);
+            t = this;
 
             $.getJSON(url, function(data) {
                 t._pages[pagenum] = data;
@@ -165,22 +172,24 @@ $.extend(Subject.prototype, {
     },
 
     _ajax: function(params, callback) {
+        var key, url;
         params = $.extend({"limit": this.settings.pagesize, "offset": 0},
             this.filter, params);
-        var key = this.key.replace(/\s+/g, '_');
-        var url = key + ".json?" + urlencode(params);
+        key = this.key.replace(/\s+/g, '_');
+        url = key + ".json?" + urlencode(params);
         $.getJSON(url, callback);
     },
 
     setFilter: function(filter, callback) {
-        for (var k in filter) {
+        var k, _this;
+        for (k in filter) {
             if (filter[k] == null) {
                 delete filter[k];
             }
         }
         this.filter = filter;
 
-        var _this = this;
+        _this = this;
         this._ajax({"details": "true"}, function(data) {
             _this.init(data);
             callback && callback();

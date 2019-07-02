@@ -55,13 +55,14 @@ export default function($){
 
             // handle submit
             $("form:first", $(options.href)).submit(function(event) {
+                var array, d, i, data;
                 event.preventDefault();
 
                 // extract data
-                var array = $(this).serializeArray();
-                var d = {};
+                array = $(this).serializeArray();
+                d = {};
 
-                for (var i in array) {
+                for (i in array) {
                     d[array[i].name] = $.trim(array[i].value);
                 }
 
@@ -81,7 +82,7 @@ export default function($){
                     .parent().val(d.value);
 
                 // add JSON to hidden field
-                var data = null;
+                data = null;
                 try {
                     data = JSON.parse($json.val());
                 }

@@ -18,14 +18,15 @@
 
 //used in templates/lib/pagination.html
 export function range(begin, end, step) {
+    var r, i;
     step = step || 1;
     if (end == undefined) {
         end = begin;
         begin = 0;
     }
 
-    var r = [];
-    for (var i=begin; i<end; i += step) {
+    r = [];
+    for (i=begin; i<end; i += step) {
         r[r.length] = i;
     }
     return r;
@@ -53,7 +54,8 @@ export function len(array) {
 // used in templates/type/permission/edit.html
 export function enumerate(a) {
     var b = new Array(a.length);
-    for (var i in a) {
+    var i;
+    for (i in a) {
         b[i] = [i, a[i]];
     }
     return b;
@@ -87,15 +89,16 @@ ForLoop.prototype.next = function() {
 // used in plugins/upstream/jsdef.py
 export function foreach(seq, parent_loop, callback) {
     var loop = new ForLoop(parent_loop, seq);
+    var i, args, j;
 
-    for (var i=0; i<seq.length; i++) {
+    for (i=0; i<seq.length; i++) {
         loop.next();
 
-        var args = [loop];
+        args = [loop];
 
         // case of "for a, b in ..."
         if (callback.length > 2) {
-            for (var j in seq[i]) {
+            for (j in seq[i]) {
                 args.push(seq[i][j]);
             }
         }
