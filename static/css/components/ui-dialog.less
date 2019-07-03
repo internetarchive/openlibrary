@@ -6,7 +6,7 @@
     position: relative;
     padding: 0;
     width: 400px;
-    border: 10px solid @brown;
+    padding: 10px;
     background-color: @white;
     border-radius: 12px;
     -webkit-box-shadow: 1px 3px 10px @black;
@@ -14,30 +14,20 @@
     z-index: @z-index-level-14 !important;
     .ui-dialog-titlebar {
       position: relative;
-      background-color: @brown;
-      color: @white;
-      font-size: 1.75em;
-      margin: 0;
+      font-weight: normal;
+      color: @dark-grey;
+      font-size: 1em;
+      margin: .2em 0;
       padding: 8px 0;
+      display: flex;
     }
     .ui-dialog-titlebar-close {
-      position: absolute;
-      right: 0;
-      top: 0;
-      width: 32px;
-      height: 32px;
-      padding: 0;
-      background: none;
-      border: none;
-      text-indent: -99px;
-      overflow: hidden;
     }
     .ui-dialog-titlebar-close span {
-      display: block;
+      display: contents;
     }
-    .ui-dialog-titlebar-close:hover,
-    .ui-dialog-titlebar-close:focus {
-      padding: 0;
+    .i-dialog-title {
+      flex: 1;
     }
     .ui-dialog-content {
       padding: .5em 1em;
@@ -67,22 +57,14 @@
 .ui {
   &-draggable {
     .ui-dialog-titlebar {
+      display: flex;
       cursor: move;
     }
-  }
-  &-icon {
-    display: block;
-    text-indent: -99999px;
-    overflow: hidden;
-    width: 32px;
-    height: 32px;
-  }
-  &-icon-closethick {
-    background-image: url(/images/icons/icon_close-pop.png);
-    background-position: 0 0;
-    background-repeat: no-repeat;
-    &:hover {
-      background-position: 0 -32px;
+    .ui-dialog-title {
+      flex: 1;
+    }
+    .ui-dialog-titlebar-close span {
+      display: contents;
     }
   }
 }
