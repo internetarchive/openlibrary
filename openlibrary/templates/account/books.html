@@ -21,7 +21,11 @@ $elif key == 'want-to-read':
 $elif key == 'already-read':
   $ og_title = "Books %s has read"%displayName
   $ og_description = "{username} has read {total} books. Join {username} on OpenLibrary.org and tell the world about the books that you care about.".format(username=displayName, total=reading_log['already-read'])
+$elif key == 'sponsorships':
+  $ og_title = "List of books %s is sponsoring"%displayName
+  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=displayName, total=reading_log['want-to-read'])
 
+  
 $if og_title:
   $add_metatag(property="og:title", content=og_title)
   $add_metatag(property="og:url", content=request.canonical_url)
@@ -70,6 +74,12 @@ $if og_title:
                 <li><a class="list-link" href="$(lst.key)">$lst['name'] ($(len(lst.seeds)))</a></li>
             </div>
           </ul>
+        <ul class="preset-lists">          
+          <li class="subsection">Books I'm Sponsoring</li>
+          <li><a href="$urlbase/sponsorships-all" $('class=selected' if key == 'currently-reading' else '')>All ($(reading_log['currently-reading']))</a></li>
+          <li><a href="$urlbase/sponsorships-waiting" $('class=selected' if key == 'currently-reading ' else '')>Waiting ($(reading_log['want-to-read']))</a></li>
+          <li><a href="$urlbase/sponsorships-done" $('class=selected' if key == 'already-read' else '')>Done ($(reading_log['already-read']))</a></li>
+        </ul>
       </div>
       <div class="mybooks-list">
         <ul class="list-books" id="siteSearch">
