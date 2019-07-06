@@ -15,3 +15,4 @@ def get_sponsored_editions(archive_username, limit=50, offset=0):
     @archive_username has sponsored
     """
     return requests.get(CIVI_SPONSOR_API).json()["works"]
+    
