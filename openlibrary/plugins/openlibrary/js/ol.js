@@ -446,6 +446,11 @@ export default function init(){
         e.preventDefault();
     });
 
+    // For Book Sponsorship Button
+    $(document).ready(function(){
+        $(".cta-btn--sponsor").colorbox({inline: true, opacity: "0.5", href: "#sponsorshipModal"})
+    })
+
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html

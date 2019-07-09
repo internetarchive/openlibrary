@@ -88,6 +88,63 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     </form>
 
 
+<div class="hidden">
+  <div class="floater" id="sponsorshipModal">
+      <div class="floaterHead">
+          <h2>Sponsor This eBook</h2>
+          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>      </div>
+      <section>
+        $ work = page.works and page.works[0]
+        $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        $ byline = " by " + ", ".join(a.name for a in authors)
+        <div style="font-size: 1.3em;  display: flex;">
+          <div style="padding-right: 20px; padding-top: 15px;">
+            <div class="book" style="background-color: #eee; padding: 15px;">
+              <img src="$(page.get_cover_url('M'))" style="margin-left: 19px;"/>
+              <div>
+                <h3>$page.title</h3>
+                <p>$byline</p>
+              </div>
+            </div>
+          </div>
+    
+          <div style="flex: 1;">
+            <!-- result of "policy" API check -->
+            <div style="padding-left: 10px">
+              <h3>Sponsorship Cost: $50.00<br><span style="color: #888; font-size: .8em;">Available: June 1st, 2019</span></h3>
+              <hr>
+              <div class="benefits" style="font-size: .8em;">
+                <p>Your tax-deductible donation includes:</p>
+                <ul>
+                  <li style = "list-style-type: disc;">Purchasing + Shipping this book to the Internet Archive</li>
+                  <li style = "list-style-type: disc;">Beautiful, Non-destructive <a href="https://archive.org/scanning">High-Fidelity Digitization</a>
+                  </li>
+                  <li style = "list-style-type: disc;">Forever-Storage on Archive.org</li>
+                  <li style = "list-style-type: disc;">First Borrow Reserved for You  </li>
+                  <li style = "list-style-type: disc;">A Custom Sponsorship Message </li>
+                </ul>
+              </div>
+              <hr>
+              <div class="sponsorMessage">
+                <textarea id="sponsorshipMessage" maxlength="200" style="display: block; width: 100%; padding: 15px; font-size: .8em;" placeholder="Add your sponsorship message(optional)" spellcheck="false"></textarea>
+                <div>
+                  <input type="checkbox" name="anonymous">
+                  <label for="subscribeNews" style="font-weight: normal; font-size: .8em;">Yes, I want to sponsor this book publicly as @mekarpeles</label>
+                </div>
+                <div>
+                  <input type="checkbox" name="anonymous">
+                  <label for="subscribeNews" style="font-weight: normal; font-size: .8em;">Yes, reserve first borrow of this book once it’s available</label>
+                </div>
+              </div>
+            </div>  
+          </div>
+        </div>
+      <button class="cta-btn" onclick="location.href='/account/books/sponsorships';" style="display: block; margin-top: 30px; padding: 10px 20px; font-size: 1em; background: #52b3d9; border: none; border-radius: 5px; color: #fff;">Yes, I want to help</button>
+      </section>
+  </div>
+</div>
+
+
 $if editions_page and page.get('ocaid'):
   $:macros.daisy(page, block_name=block_name)
 
