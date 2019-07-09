@@ -66,7 +66,7 @@ $elif (availability_status == 'borrow_unavailable'):
           <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
         </form>
 
-    $else:  
+    $else:
         <p class="waitinglist-message">
           $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
         </p>
@@ -79,7 +79,10 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
+  $if (user and user.is_sponsor()):
+    <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+  $else:
     <form>
       <input type="submit" class="cta-btn" disabled value="No ebook available">
     </form>
