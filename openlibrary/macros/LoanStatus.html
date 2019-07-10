@@ -77,15 +77,26 @@ $elif (availability_status == 'borrow_unavailable'):
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
-    </form>
 
 $elif (not ocaid or page.is_access_restricted()) and editions_page:
-  <form>
-    <input type="submit" class="cta-btn" disabled value="No ebook available">
-  </form>
+  $if (user and user.is_sponsor()):
+    <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+  $else:
+    <form>
+      <input type="submit" class="cta-btn" disabled value="No ebook available">
+    </form>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid)
+
+<div class="hidden">
+  <div class="floater" id="sponsorshipModal">
+      <div class="floaterHead">
+          <h2>Sponsor This eBook</h2>
+          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+  </div>
+</div>
 
 $if ocaid and page.is_access_restricted():
   $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)

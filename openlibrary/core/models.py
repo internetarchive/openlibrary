@@ -589,6 +589,9 @@ class User(Thing):
     def is_librarian(self):
         return self.is_usergroup_member('/usergroup/librarians')
 
+    def is_sponsor(self):
+        return '/usergroup/sponsors' in [g.key for g in self.usergroups]
+
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
 
