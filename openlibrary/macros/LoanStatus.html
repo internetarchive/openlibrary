@@ -79,7 +79,7 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
   $if (user and user.is_sponsor()):
     <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
   $else:
@@ -91,9 +91,76 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
 <div class="hidden">
   <div class="floater" id="sponsorshipModal">
       <div class="floaterHead">
-          <h2>Sponsor This eBook</h2>
-          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>      
+        <h2>We don’t have this book yet. You can change that.</h2>
+        <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
       </div>
+
+      <section style="width: 575px; margin: 0 auto;">
+        $ work = page.works and page.works[0]
+        $ authors = cond(work, work and work.get_authors(), page.get_authors())
+        $ byline = " by " + ", ".join(a.name for a in authors)
+
+        <h3>A $50 tax deductible donation can add this book to Internet Archive’s lending library forever.</h3>
+
+        <div style="display: flex;">
+          <div class="book-preview">
+            <img src="$(page.get_cover_url('M'))"/>
+            <p>$page.title</p>
+            <p>$byline</p>
+          </div>
+          <ul class="benefits">
+            <li>Includes:</li>
+            <li class="benefit">Cost of purchasing + shipping book</li>
+            <li class="benefit">Beautiful high-resolution digitization</li>
+            <li class="benefit">Notification to reserve first borrow*</li>
+            <li class="benefit">Custom sponsorship message</li>
+            <li>* Usually available within 1 month</li>
+          </ul>
+        </div>
+
+        <form class="js-paypal-one-time" action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top" data-event-form-tracking="DonatePage|PaypalOneTime" data-event-tracking-options="{ &quot;service&quot;: &quot;ao_no_sampling&quot; }">
+          <textarea id="sponsorshipMessage" maxlength="200"
+                    placeholder="Add a sponsorship message (optional)" spellcheck="false"></textarea>
+          <div>
+            <input type="checkbox" value="public">Yes, display my name publicly as @mekarpeles</input>
+          </div>
+          
+          <div>
+            <input type="checkbox" value="waitlist">Yes, I’d like to be first to borrow of this book</input>
+          </div>
+
+          <span style="display:flex">
+            <h2 style="flex: 1">Sponsorship total</h2>
+            <h2>$$50.00 USD</h2>
+          </span>
+        
+                <input type="hidden" name="cmd" value="_donations">
+                <input type="hidden" name="image_url" value="https://archive.org/download/internetarchivelogoblackonwhite/IABW.png">
+                <input type="hidden" name="business" value="EBHK3PQRGBQH6">
+                <input type="hidden" name="lc" value="US">
+                <input type="hidden" name="item_name" value="Open Library Book Sponsorship Program">
+                <input type="hidden" name="item_number" value="&quot;$(page.title)&quot; $byline">
+                <input type="hidden" name="no_note" value="1">
+                <input type="hidden" name="no_shipping" value="2">
+                <input type="hidden" name="return" value="https://archive.org/services/donate.php?service=paypal">
+                <input type="hidden" name="currency_code" value="USD">
+                <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_LG.gif:NonHostedGuest">
+                <input type="hidden" name="encrypted" value="-----BEGIN PKCS7-----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-----END PKCS7-----">
+                <input type="hidden" name="amount" value="50" id="a2">
+                <input type="hidden" name="charset" value="utf-8">
+                <div class="button-wrap">
+                  <button type="submit" name="submit" class="cta-btn cta-btn--available" alt="Donate using Paypal">
+                    Sponsor this eBook
+                  </button>
+                </div>
+              </form>
+          <div style="text-align: center">
+            <img src="https://archive.org/images/pay_with_cc_logos_bold.png"
+                 style="height: 35px" alt="Pay with Credit Card"/>
+            <img style="height: 35px" src="https://archive.org/images/paypal_bitmap.png"/>
+          </div>
+        
+      </section>
   </div>
 </div>
 
