@@ -798,12 +798,13 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
+        editions = get_sponsored_editions(user)
+        sponsorship_count = len(editions)
         if key == 'sponsorships':
-            editions = get_sponsored_editions(user)
             works = [web.ctx.site.get(k) for k in editions]
         else: 
             works = readlog.get_works(key)
-        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        page = render['account/books'](works, key, sponsorship_count=sponsorship_count, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
         page.v2 = True
         return page
 

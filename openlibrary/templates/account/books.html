@@ -1,4 +1,4 @@
-$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, user=None, public=False)
+$def with (items, key, sponsorship_count, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, user=None, public=False)
 
 $ title = "My Books"
 $ urlbase = ctx.path.rsplit('/', 1)[0]
@@ -64,7 +64,7 @@ $if og_title:
           <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
           <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
-          <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Books I'm Sponsoring ($len(items))</a></li>
+          <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Books I'm Sponsoring ($sponsorship_count)</a></li>
         </ul>
         $if lists:
           <ul class="user-lists">
