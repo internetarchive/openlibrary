@@ -21,6 +21,9 @@ $elif key == 'want-to-read':
 $elif key == 'already-read':
   $ og_title = "Books %s has read"%displayName
   $ og_description = "{username} has read {total} books. Join {username} on OpenLibrary.org and tell the world about the books that you care about.".format(username=displayName, total=reading_log['already-read'])
+$elif key == 'sponsorships':
+  $ og_title = "List of books %s is sponsoring"%displayName
+  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=displayName, total=reading_log['want-to-read'])
 
 $if og_title:
   $add_metatag(property="og:title", content=og_title)
@@ -61,6 +64,7 @@ $if og_title:
           <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
           <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
+          <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Books I'm Sponsoring ($len(items))</a></li>
         </ul>
         $if lists:
           <ul class="user-lists">
