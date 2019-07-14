@@ -80,23 +80,15 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
-  $if (user and user.is_sponsor()):
-    <button href="#sponsorshipModal" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+  $if True:
+    $ key = page.key[page.key.rfind('/')+1:]
+    $ user_id = user.key.split("/")[-1]
+    $ url = 'https://archive.org/donate?context=ol&userid='+str(user.key.split("/")[-1])+'&campaign=pilot&type=book-sponsorship&openlibrary_edition='+str(key)
+    <button onclick="location.href='$url'" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
   $else:
     <form>
       <input type="submit" class="cta-btn" disabled value="No ebook available">
     </form>
-
-
-<div class="hidden">
-  <div class="floater" id="sponsorshipModal">
-      <div class="floaterHead">
-          <h2>Sponsor This eBook</h2>
-          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>      
-      </div>
-  </div>
-</div>
-
 
 $if editions_page and page.get('ocaid'):
   $:macros.daisy(page, block_name=block_name)
