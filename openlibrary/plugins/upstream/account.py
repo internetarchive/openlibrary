@@ -26,6 +26,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+from openlibrary.core.sponsorships import get_sponsored_editions
 
 import forms
 import utils
@@ -781,6 +782,14 @@ class account_my_books(delegate.page):
     def GET(self):
         raise web.seeother('/account/books/want-to-read')
 
+# This would be by the civi backend which would require the api keys
+class fake_civi(delegate.page):
+    path = "/internal/fake/civicrm"
+
+    def GET(self):
+        works = {"works": ['/works/OL54120W','/works/OL45310W']}
+        return delegate.RawText(simplejson.dumps(works),content_type="application/json")
+
 class account_my_books(delegate.page):
     path = "/account/books/([a-zA-Z_-]+)"
 
@@ -789,8 +798,13 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
-        works = readlog.get_works(key)
-        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        editions = get_sponsored_editions(user)
+        sponsorship_count = len(editions)
+        if key == 'sponsorships':
+            works = [web.ctx.site.get(k) for k in editions]
+        else: 
+            works = readlog.get_works(key)
+        page = render['account/books'](works, key, sponsorship_count=sponsorship_count, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
         page.v2 = True
         return page
 
