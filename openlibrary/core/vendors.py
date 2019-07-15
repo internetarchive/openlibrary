@@ -93,6 +93,9 @@ def clean_amazon_metadata_for_load(metadata):
         # if valid key and value not None
         if metadata.get(k) is not None:
             conforming_metadata[k] = metadata[k]
+    if metadata.get('source_records'):
+        asin = metadata.get('source_records')[0].replace('amazon:', '')
+        conforming_metadata['identifiers'] = {'amazon': [asin]}
     return conforming_metadata
 
 def create_edition_from_amazon_metadata(isbn):
