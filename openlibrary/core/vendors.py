@@ -65,7 +65,12 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
         'number_of_pages': product.pages,
         'languages': list(product.languages),  # needs to be normalized
         'cover': product.large_image_url,
+        'product_group': product.product_group,
     }
+    if product.binding:
+        data['physical_format'] = product.binding.lower()
+    if product.edition:
+        data['edition'] = product.edition
     if product.publisher:
         data['publishers'] = [product.publisher]
     if product.isbn:
@@ -83,11 +88,12 @@ def clean_amazon_metadata_for_load(metadata):
     """This is a bootstrapping helper method which enables us to take the
     results of plugins.upstream.code.get_amazon_metadata and create an
     OL book catalog record
-    """    
+    """
+    # TODO: convert languages into /type/langauge list
     conforming_fields = [
         'title', 'authors', 'publish_date', 'source_records',
         'number_of_pages', 'publishers', 'cover', 'isbn_10',
-        'isbn_13']
+        'isbn_13', 'physical_format']
     conforming_metadata = {}
     for k in conforming_fields:
         # if valid key and value not None
@@ -104,7 +110,7 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     `/key/OL..M` if successful or None otherwise
     """
     md = get_amazon_metadata(id_, id_type=id_type)
-    if md:
+    if md and md.get('product_group') == 'Book':
         # Save token of currently logged in user (or no-user)
         account = accounts.get_current_user()
         auth_token = account.generate_login_code() if account else ''
@@ -199,7 +205,6 @@ def _get_betterworldbooks_metadata(isbn):
         except simplejson.decoder.JSONDecodeError:
             return {'error': e.read(), 'code': e.code}
         return simplejson.loads(response)
-
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
     _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
