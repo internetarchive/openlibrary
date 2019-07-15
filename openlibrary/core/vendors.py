@@ -98,12 +98,12 @@ def clean_amazon_metadata_for_load(metadata):
         conforming_metadata['identifiers'] = {'amazon': [asin]}
     return conforming_metadata
 
-def create_edition_from_amazon_metadata(isbn):
+def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     """Fetches amazon metadata by isbn from affiliates API, attempts to
     create OL edition from metadata, and returns the resulting edition key
     `/key/OL..M` if successful or None otherwise
     """
-    md = get_amazon_metadata(isbn)
+    md = get_amazon_metadata(id_, id_type=id_type)
     if md:
         # Save token of currently logged in user (or no-user)
         account = accounts.get_current_user()
@@ -123,7 +123,7 @@ def create_edition_from_amazon_metadata(isbn):
         web.ctx.conn.set_auth_token(auth_token)
 
         if reply and reply.get('success'):
-            return reply['edition']['key']
+            return reply['edition'].get('key')
 
 @public
 def get_betterworldbooks_metadata(isbn):
