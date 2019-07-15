@@ -89,7 +89,7 @@ def clean_amazon_metadata_for_load(metadata):
     results of plugins.upstream.code.get_amazon_metadata and create an
     OL book catalog record
     """
-    # TODO: convert languages into /type/langauge list
+    # TODO: convert languages into /type/language list
     conforming_fields = [
         'title', 'authors', 'publish_date', 'source_records',
         'number_of_pages', 'publishers', 'cover', 'isbn_10',
