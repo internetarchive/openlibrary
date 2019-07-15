@@ -248,19 +248,17 @@ class price_api(delegate.page):
 
     @jsonapi
     def GET(self):
-        # @hornc, add: title='', asin='', authors=''
+        # TODO: add: title='', authors='' for lookup
         i = web.input(isbn='', asin='')
-
         if not (i.isbn or i.asin):
             return simplejson.dumps({
                 'error': 'isbn or asin required'
             })
-
         id_ = i.asin if i.asin else normalize_isbn(i.isbn)
         id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
 
         metadata = {
-            'amazon': get_amazon_metadata(id_) or {},
+            'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
             'betterworldbooks': get_betterworldbooks_metadata(id_) if id_type.startswith('isbn_') else {}
         }
         # if isbn_13 fails for amazon, we may want to check isbn_10 also
@@ -274,7 +272,7 @@ class price_api(delegate.page):
                 isbn_13) or {}
 
         # fetch book by isbn if it exists
-        # if asin... for now, it will fail (which is fine)
+        # TODO: perform exisiting OL lookup by ASIN
         matches = web.ctx.site.things({
             'type': '/type/edition',
             id_type: id_,

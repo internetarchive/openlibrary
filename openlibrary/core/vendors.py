@@ -14,23 +14,25 @@ from openlibrary import accounts
 BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 @public
-def get_amazon_metadata(isbn):
+def get_amazon_metadata(id_, id_type='isbn'):
     try:
-        isbn = normalize_isbn(isbn)
-        if isbn:
-            return cached_get_amazon_metadata(isbn)
+        if id_:
+            return cached_get_amazon_metadata(id_, id_type=id_type)
     except Exception:
         return None
 
-def _get_amazon_metadata(isbn=None):
-    # XXX @hornc, you should be extending this to work with
+def _get_amazon_metadata(id_=None, id_type='isbn'):
+    # TODO: extend this to work with
     # isbn=, asin=, title=, authors=, etc
-    isbn = normalize_isbn(isbn)
+    kwargs = {}
+    if id_type == 'isbn':
+        id_ = normalize_isbn(id_)
+        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
+    kwargs['ItemId'] = id_
     try:
         if not lending.amazon_api:
             raise Exception
-        product = lending.amazon_api.lookup(
-            ItemId=isbn, IdType="ISBN", SearchIndex="Books")
+        product = lending.amazon_api.lookup(**kwargs)
     except Exception as e:
         return None
 
@@ -66,13 +68,15 @@ def _get_amazon_metadata(isbn=None):
     }
     if product.publisher:
         data['publishers'] = [product.publisher]
-    if len(isbn) == 10:
-        data['isbn_10'] = [isbn]
-        data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
-    if len(isbn) == 13:
-        data['isbn_13'] = [isbn]
-        if isbn.startswith('978'):
-            data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
+    if product.isbn:
+        isbn = product.isbn
+        if len(isbn) == 10:
+            data['isbn_10'] = [isbn]
+            data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
+        elif len(isbn) == 13:
+            data['isbn_13'] = [isbn]
+            if isbn.startswith('978'):
+                data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
     return data
 
 def clean_amazon_metadata_for_load(metadata):
@@ -148,7 +152,6 @@ def cached_get_amazon_metadata(*args, **kwargs):
         # (corresponding to these input args)
         result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
     return result
-
 
 def _get_betterworldbooks_metadata(isbn):
     url = BETTERWORLDBOOKS_API_URL + isbn
