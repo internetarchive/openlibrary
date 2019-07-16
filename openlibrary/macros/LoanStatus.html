@@ -85,6 +85,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     $ user_id = user.key.split("/")[-1]
     $ url = 'https://archive.org/donate?context=ol&userid='+str(user.key.split("/")[-1])+'&campaign=pilot&type=book-sponsorship&openlibrary_edition='+str(key)
     <button onclick="location.href='$url'" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+    <p>We don’t have this book yet. You can add it to our Lending Library with a \$50 tax deductible donation.</p>
   $else:
     <form>
       <input type="submit" class="cta-btn" disabled value="No ebook available">
