@@ -17,7 +17,7 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
-    get_betterworldbooks_metadata)
+    get_amazon_search, get_betterworldbooks_metadata)
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -242,12 +242,24 @@ class author_works(delegate.page):
             "entries": works
         }
 
+class external_search_api(delegate.page):
+    path = '/ext'
+
+    @jsonapi
+    def GET(self):
+        i = web.input(title='', author='')
+        if not (i.author or i.title):
+            return simplejson.dumps({
+                'error': 'author or title required'
+            })
+        results = get_amazon_search(title=i.title, author=i.author)
+        return simplejson.dumps(results)
+
 class price_api(delegate.page):
     path = r'/prices'
 
     @jsonapi
     def GET(self):
-        # TODO: add: title='', authors='' for lookup
         i = web.input(isbn='', asin='')
         if not (i.isbn or i.asin):
             return simplejson.dumps({

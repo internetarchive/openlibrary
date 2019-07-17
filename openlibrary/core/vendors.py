@@ -21,6 +21,15 @@ def get_amazon_metadata(id_, id_type='isbn'):
     except Exception:
         return None
 
+def get_amazon_search(title='', author=''):
+    # uncached for now, cache later
+    kwargs = {'Title': title, 'Author': author, 'SearchIndex': 'Books'}
+    results = lending.amazon_api.search(**kwargs)
+    data = []
+    for product in results:
+        data.append(product)
+    return data
+
 def _get_amazon_metadata(id_=None, id_type='isbn'):
     # TODO: extend this to work with
     # isbn=, asin=, title=, authors=, etc
