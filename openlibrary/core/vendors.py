@@ -33,6 +33,9 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
         if not lending.amazon_api:
             raise Exception
         product = lending.amazon_api.lookup(**kwargs)
+        # sometimes more than one product can be returned, choose first
+        if isinstance(product, list):
+            product = product[0]
     except Exception as e:
         return None
 
