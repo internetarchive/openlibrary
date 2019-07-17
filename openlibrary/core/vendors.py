@@ -63,13 +63,15 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
         'qlt': qlt,
         'title': product.title,
         'authors': [{'name': name} for name in product.authors],
-        'publish_date': product.publication_date.strftime('%b %d, %Y'),
         'source_records': ['amazon:%s' % product.asin],
         'number_of_pages': product.pages,
         'languages': list(product.languages),  # needs to be normalized
         'cover': product.large_image_url,
         'product_group': product.product_group,
     }
+    if product.publication_date:
+        # TODO: Don't populate false month and day for older products
+        data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
     if product.binding:
         data['physical_format'] = product.binding.lower()
     if product.edition:
