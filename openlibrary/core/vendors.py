@@ -54,7 +54,7 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
 
     data = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-            isbn, h.affiliate_id('amazon')),
+            id_, h.affiliate_id('amazon')),
         'price': price_fmt,
         'price_amt': price,
         'qlt': qlt,
