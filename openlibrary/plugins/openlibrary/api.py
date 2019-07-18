@@ -15,9 +15,8 @@ from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.catalog.add_book import load
 from openlibrary.core.vendors import (
-    get_amazon_metadata, clean_amazon_metadata_for_load,
+    get_amazon_metadata, create_edition_from_amazon_metadata,
     get_betterworldbooks_metadata)
 
 class book_availability(delegate.page):
@@ -248,23 +247,20 @@ class price_api(delegate.page):
 
     @jsonapi
     def GET(self):
-        # @hornc, add: title='', asin='', authors=''
+        # TODO: add: title='', authors='' for lookup
         i = web.input(isbn='', asin='')
-
         if not (i.isbn or i.asin):
             return simplejson.dumps({
                 'error': 'isbn or asin required'
             })
-
         id_ = i.asin if i.asin else normalize_isbn(i.isbn)
         id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
 
         metadata = {
-            'amazon': get_amazon_metadata(id_) or {},
+            'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
             'betterworldbooks': get_betterworldbooks_metadata(id_) if id_type.startswith('isbn_') else {}
         }
-        # if isbn_13 fails for amazon, we may want to check isbn_10 also
-        # xxx
+        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
 
         # if bwb fails and isbn10, try again with isbn13
         if id_type == 'isbn_10' and \
@@ -274,7 +270,7 @@ class price_api(delegate.page):
                 isbn_13) or {}
 
         # fetch book by isbn if it exists
-        # if asin... for now, it will fail (which is fine)
+        # TODO: perform exisiting OL lookup by ASIN if supplied, if possible
         matches = web.ctx.site.things({
             'type': '/type/edition',
             id_type: id_,
@@ -284,10 +280,7 @@ class price_api(delegate.page):
 
         # if no OL edition for isbn, attempt to create
         if (not book_key) and metadata.get('amazon'):
-            resp = load(clean_amazon_metadata_for_load(
-                metadata.get('amazon')))
-            if resp and 'edition' in resp:
-                book_key = resp.get('edition').get('key')
+            book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
 
         # include ol edition metadata in response, if available
         if book_key:

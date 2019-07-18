@@ -14,23 +14,28 @@ from openlibrary import accounts
 BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 
 @public
-def get_amazon_metadata(isbn):
+def get_amazon_metadata(id_, id_type='isbn'):
     try:
-        isbn = normalize_isbn(isbn)
-        if isbn:
-            return cached_get_amazon_metadata(isbn)
+        if id_:
+            return cached_get_amazon_metadata(id_, id_type=id_type)
     except Exception:
         return None
 
-def _get_amazon_metadata(isbn=None):
-    # XXX @hornc, you should be extending this to work with
+def _get_amazon_metadata(id_=None, id_type='isbn'):
+    # TODO: extend this to work with
     # isbn=, asin=, title=, authors=, etc
-    isbn = normalize_isbn(isbn)
+    kwargs = {}
+    if id_type == 'isbn':
+        id_ = normalize_isbn(id_)
+        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
+    kwargs['ItemId'] = id_
     try:
         if not lending.amazon_api:
             raise Exception
-        product = lending.amazon_api.lookup(
-            ItemId=isbn, IdType="ISBN", SearchIndex="Books")
+        product = lending.amazon_api.lookup(**kwargs)
+        # sometimes more than one product can be returned, choose first
+        if isinstance(product, list):
+            product = product[0]
     except Exception as e:
         return None
 
@@ -52,52 +57,65 @@ def _get_amazon_metadata(isbn=None):
 
     data = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-            isbn, h.affiliate_id('amazon')),
+            id_, h.affiliate_id('amazon')),
         'price': price_fmt,
         'price_amt': price,
         'qlt': qlt,
         'title': product.title,
         'authors': [{'name': name} for name in product.authors],
-        'publish_date': product.publication_date.strftime('%b %d, %Y'),
         'source_records': ['amazon:%s' % product.asin],
         'number_of_pages': product.pages,
         'languages': list(product.languages),  # needs to be normalized
         'cover': product.large_image_url,
+        'product_group': product.product_group,
     }
+    if product.publication_date:
+        # TODO: Don't populate false month and day for older products
+        data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
+    if product.binding:
+        data['physical_format'] = product.binding.lower()
+    if product.edition:
+        data['edition'] = product.edition
     if product.publisher:
         data['publishers'] = [product.publisher]
-    if len(isbn) == 10:
-        data['isbn_10'] = [isbn]
-        data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
-    if len(isbn) == 13:
-        data['isbn_13'] = [isbn]
-        if isbn.startswith('978'):
-            data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
+    if product.isbn:
+        isbn = product.isbn
+        if len(isbn) == 10:
+            data['isbn_10'] = [isbn]
+            data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
+        elif len(isbn) == 13:
+            data['isbn_13'] = [isbn]
+            if isbn.startswith('978'):
+                data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
     return data
 
 def clean_amazon_metadata_for_load(metadata):
     """This is a bootstrapping helper method which enables us to take the
     results of plugins.upstream.code.get_amazon_metadata and create an
     OL book catalog record
-    """    
+    """
+    # TODO: convert languages into /type/language list
     conforming_fields = [
         'title', 'authors', 'publish_date', 'source_records',
         'number_of_pages', 'publishers', 'cover', 'isbn_10',
-        'isbn_13']
+        'isbn_13', 'physical_format']
     conforming_metadata = {}
     for k in conforming_fields:
         # if valid key and value not None
         if metadata.get(k) is not None:
             conforming_metadata[k] = metadata[k]
+    if metadata.get('source_records'):
+        asin = metadata.get('source_records')[0].replace('amazon:', '')
+        conforming_metadata['identifiers'] = {'amazon': [asin]}
     return conforming_metadata
 
-def create_edition_from_amazon_metadata(isbn):
+def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     """Fetches amazon metadata by isbn from affiliates API, attempts to
     create OL edition from metadata, and returns the resulting edition key
     `/key/OL..M` if successful or None otherwise
     """
-    md = get_amazon_metadata(isbn)
-    if md:
+    md = get_amazon_metadata(id_, id_type=id_type)
+    if md and md.get('product_group') == 'Book':
         # Save token of currently logged in user (or no-user)
         account = accounts.get_current_user()
         auth_token = account.generate_login_code() if account else ''
@@ -116,7 +134,7 @@ def create_edition_from_amazon_metadata(isbn):
         web.ctx.conn.set_auth_token(auth_token)
 
         if reply and reply.get('success'):
-            return reply['edition']['key']
+            return reply['edition'].get('key')
 
 @public
 def get_betterworldbooks_metadata(isbn):
@@ -148,7 +166,6 @@ def cached_get_amazon_metadata(*args, **kwargs):
         # (corresponding to these input args)
         result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
     return result
-
 
 def _get_betterworldbooks_metadata(isbn):
     url = BETTERWORLDBOOKS_API_URL + isbn
@@ -193,7 +210,6 @@ def _get_betterworldbooks_metadata(isbn):
         except simplejson.decoder.JSONDecodeError:
             return {'error': e.read(), 'code': e.code}
         return simplejson.loads(response)
-
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
     _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
