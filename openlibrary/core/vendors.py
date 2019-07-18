@@ -27,27 +27,10 @@ def get_amazon_search(title='', author=''):
     results = lending.amazon_api.search(**kwargs)
     data = []
     for product in results:
-        data.append(product)
+        data.append(_serialize_amazon_product(product))
     return data
 
-def _get_amazon_metadata(id_=None, id_type='isbn'):
-    # TODO: extend this to work with
-    # isbn=, asin=, title=, authors=, etc
-    kwargs = {}
-    if id_type == 'isbn':
-        id_ = normalize_isbn(id_)
-        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
-    kwargs['ItemId'] = id_
-    try:
-        if not lending.amazon_api:
-            raise Exception
-        product = lending.amazon_api.lookup(**kwargs)
-        # sometimes more than one product can be returned, choose first
-        if isinstance(product, list):
-            product = product[0]
-    except Exception as e:
-        return None
-
+def _serialize_amazon_product(product):
     price_fmt, price, qlt = (None, None, None)
     used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
     new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
@@ -66,7 +49,7 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
 
     data = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-            id_, h.affiliate_id('amazon')),
+            product.asin, h.affiliate_id('amazon')),
         'price': price_fmt,
         'price_amt': price,
         'qlt': qlt,
@@ -97,6 +80,24 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
             if isbn.startswith('978'):
                 data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
     return data
+
+def _get_amazon_metadata(id_=None, id_type='isbn'):
+    kwargs = {}
+    if id_type == 'isbn':
+        id_ = normalize_isbn(id_)
+        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
+    kwargs['ItemId'] = id_
+    try:
+        if not lending.amazon_api:
+            raise Exception
+        product = lending.amazon_api.lookup(**kwargs)
+        # sometimes more than one product can be returned, choose first
+        if isinstance(product, list):
+            product = product[0]
+    except Exception as e:
+        return None
+
+    return _serialize_amazon_product(product)
 
 def clean_amazon_metadata_for_load(metadata):
     """This is a bootstrapping helper method which enables us to take the
