@@ -14,6 +14,7 @@ $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and
 $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
+$ isbn = page.isbn_13[0] if page.isbn_13 else page.isbn_10[0] if page.isbn_10 else ''
 
 $if page.get('ocaid'):
   $ current_and_available_loans = page.get_current_and_available_loans()
@@ -80,12 +81,12 @@ $elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
     <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
-  $if True:
-    $ key = page.key[page.key.rfind('/')+1:]
-    $ user_id = user.key.split("/")[-1]
-    $ url = 'https://archive.org/donate?context=ol&userid='+str(user.key.split("/")[-1])+'&campaign=pilot&type=book-sponsorship&openlibrary_edition='+str(key)
-    <button onclick="location.href='$url'" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
-    <p>We don’t have this book yet. You can add it to our Lending Library with a \$50 tax deductible donation.</p>
+  $if (user and user.is_sponsor()):
+    $ user_id = user.key.split("/")[-1] if user.key else ''
+    <button onclick="location.href='https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)'" class="cta-btn cta-btn--sponsor">Sponsor eBook</button>
+    <p>We don’t have this book yet. You can add it to our Lending Library with a \$50 tax deductible donation.
+      <a href="https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)">Learn More</a>
+    </p>
   $else:
     <form>
       <input type="submit" class="cta-btn" disabled value="No ebook available">
