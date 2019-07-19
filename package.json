@@ -4,6 +4,7 @@
   "repository": "github:internetarchive:openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
+    "watch": "webpack --watch --mode=development --progress",
     "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
