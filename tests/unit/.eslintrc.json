@@ -4,6 +4,7 @@
     "jest": true
   },
   "globals": {
+    "global": true,
     "test": true,
     "expect": true
   }
