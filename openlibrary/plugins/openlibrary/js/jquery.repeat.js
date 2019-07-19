@@ -1,3 +1,5 @@
+import Template from './template'
+
 /**
  * jquery repeat: jquery plugin to handle repetitive inputs in a form.
  *
@@ -7,7 +9,8 @@ export default function($){
     // For v2 and v1 page support. Can be removed when no v1 support needed
     var isOldJQuery = $('body').on === undefined;
     $.fn.repeat = function(options) {
-        var addSelector, removeSelector, id, elems, t, code;
+        var addSelector, removeSelector, id, elems, t, code,
+            nextRowId;
         options = options || {};
 
         id = "#" + this.attr("id");
@@ -26,7 +29,6 @@ export default function($){
                 .replace(/{{/g, "<%=")
                 .replace(/}}/g, "%>");
             // Template is defined in openlibrary\plugins\openlibrary\js\template.js
-            // eslint-disable-next-line no-undef
             return Template(code);
         }
 
@@ -60,12 +62,15 @@ export default function($){
          * @param {jQuery.Event} event
          */
         function onAdd(event) {
-            var index, data, newid;
+            var data, newid;
             event.preventDefault();
 
-            index = elems.display.children().length;
+            // if no index, set it to the number of children
+            if (!nextRowId) {
+                nextRowId = elems.display.children().length;
+            }
             data = formdata();
-            data.index = index;
+            data.index = nextRowId;
 
             if (options.validate && options.validate(data) == false) {
                 return;
@@ -73,7 +78,9 @@ export default function($){
 
             $.extend(data, options.vars || {});
 
-            newid = elems._this.attr("id") + "--" + index;
+            newid = `${elems._this.attr("id")}--${nextRowId}`;
+            // increment the index to avoid situations where more than one element have same
+            nextRowId++;
             // Create the HTML of a hidden input
             elems.template
                 .clone()
