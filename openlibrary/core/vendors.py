@@ -63,7 +63,8 @@ def _serialize_amazon_product(product):
     }
     if product.publication_date:
         # TODO: Don't populate false month and day for older products
-        data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
+        data['publish_date'] = (product.publication_date.strftime('%b %d, %Y') if product.publication_date.year > 1900
+                               else str(product.publication_date.year))
     if product.binding:
         data['physical_format'] = product.binding.lower()
     if product.edition:
