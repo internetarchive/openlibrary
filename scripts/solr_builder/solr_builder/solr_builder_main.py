@@ -109,7 +109,7 @@ class LocalPostgresDataProvider(DataProvider):
         :param str query:
         :param int size:
         :param str or None cursor_name: if wanting to use a specific cursor
-        :param bool cache_json: Requires the select statement to be "Key", "JSON"
+        :param bool cache_json: Requires the select statement to be keyid, content
         :return:
         """
         # Not sure if this name needs to be unique
@@ -153,37 +153,37 @@ class LocalPostgresDataProvider(DataProvider):
 
     def cache_edition_works(self, lo_key, hi_key):
         q = """
-            SELECT works."Key", works."JSON"
-            FROM "test" editions
-            INNER JOIN test works ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
-            WHERE editions."Type" = '/type/edition' AND editions."Key" BETWEEN '%s' AND '%s'
+            SELECT works.keyid, works.content
+            FROM entity editions
+            INNER JOIN entity works ON editions.content -> 'works' -> 0 ->> 'key' = works.keyid
+            WHERE editions.etype = '/type/edition' AND editions.keyid BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_editions(self, lo_key, hi_key):
         q = """
-            SELECT "Key", "JSON"
-            FROM "test"
-            WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
+            SELECT keyid, content
+            FROM entity
+            WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_edition_authors(self, lo_key, hi_key):
         q = """
-            SELECT authors."Key", authors."JSON"
-            FROM "test" editions
-            INNER JOIN test works ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
-            INNER JOIN test authors ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
-            WHERE editions."Type" = '/type/edition' AND editions."Key" BETWEEN '%s' AND '%s'
+            SELECT authors.keyid, authors.content
+            FROM entity editions
+            INNER JOIN entity works ON editions.content -> 'works' -> 0 ->> 'key' = works.keyid
+            INNER JOIN entity authors ON works.content -> 'authors' -> 0 -> 'author' ->> 'key' = authors.keyid
+            WHERE editions.etype = '/type/edition' AND editions.keyid BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_work_authors(self, lo_key, hi_key):
         q = """
-            SELECT authors."Key", authors."JSON"
-            FROM "test" works
-            INNER JOIN "test" authors ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
-            WHERE works."Type" = '/type/work' AND works."Key" BETWEEN '%s' AND '%s'
+            SELECT authors.keyid, authors.content
+            FROM entity works
+            INNER JOIN entity authors ON works.content -> 'authors' -> 0 -> 'author' ->> 'key' = authors.keyid
+            WHERE works.etype = '/type/work' AND works.keyid BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -196,21 +196,21 @@ class LocalPostgresDataProvider(DataProvider):
         """Returns keys of all things which redirect to this one."""
         logger.info("find_redirects %s", key)
         q = """
-        SELECT "Key" FROM test
-        WHERE "Type" = '/type/redirect' AND "JSON" ->> 'location' = '%s'
+        SELECT keyid FROM entity
+        WHERE etype = '/type/redirect' AND content ->> 'location' = '%s'
         """ % key
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work(self, work):
-        logger.info("find_editions_of_work %s", work['key'])
+        logger.info("get_editions_of_work %s", work['key'])
         q = """
-        SELECT "JSON" FROM test
-        WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' = '%s'
+        SELECT content FROM entity
+        WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' = '%s'
         """ % work['key']
         return [r[0] for r in self.query_iter(q)]
 
     def get_metadata(self, identifier):
-        logger.info("find_metadata %s", identifier)
+        logger.info("get_metadata %s", identifier)
 
         if identifier in self.ia_cache:
             return self.ia_cache[identifier]
@@ -224,8 +224,8 @@ class LocalPostgresDataProvider(DataProvider):
             return self.cache[key]
 
         q = """
-        SELECT "JSON" FROM test
-        WHERE "Key" = '%s'
+        SELECT content FROM entity
+        WHERE keyid = '%s'
         """ % key
         row = self.query_iter(q).next()
         if row:
@@ -261,9 +261,9 @@ def build_job_query(job, start_at, offset, last_modified, limit):
         "authors": "author"
     }[job]
 
-    q_select = """SELECT "Key", "JSON" FROM test"""
-    q_where = """WHERE "Type" = '/type/%s'""" % type
-    q_order = """ORDER BY "Key" """
+    q_select = """SELECT keyid, content FROM entity"""
+    q_where = """WHERE etype = '/type/%s'""" % type
+    q_order = """ORDER BY keyid """
     q_offset = """OFFSET %d""" % offset
     q_limit = ""
 
@@ -271,17 +271,17 @@ def build_job_query(job, start_at, offset, last_modified, limit):
         q_limit = """LIMIT %d""" % limit
 
     if last_modified:
-        q_where += """ AND "LastModified" >= '%s'""" % last_modified
+        q_where += """ AND last_modified >= '%s'""" % last_modified
         q_order = ""
         q_offset = ""
         q_limit = ""
 
     if start_at:
-        q_where += """ AND "Key" >= '%s'""" % start_at
+        q_where += """ AND keyid >= '%s'""" % start_at
         q_offset = ""
 
     if job == 'orphans':
-        q_where += """ AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL"""
+        q_where += """ AND content -> 'works' -> 0 ->> 'key' IS NULL"""
         q_order = ""
         q_offset = ""
         q_limit = ""

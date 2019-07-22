@@ -1,3 +1,3 @@
 SELECT count(*)
-FROM "test"
-WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' IS NULL
+FROM entity
+WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' IS NULL;
