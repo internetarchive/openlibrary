@@ -373,9 +373,9 @@ window.q.push(function() {
                 $ checked_yes = cond(translation, 'checked="checked"', '')
                 $ checked_no = cond(not translation, 'checked="checked"', '')
                 $if translation:
-                    $ trans_class = "transYes"
+                    $ style_hidden = ""
                 $else:
-                    $ trans_class = "hidden transYes"
+                    $ style_hidden = "display: none;"
 
                 <div class="input">
                     <br/>
@@ -387,7 +387,7 @@ window.q.push(function() {
                     <label for="is-translation2">$_("Yes, it's a translation")</label>
                 </div>
 
-                <div class="$trans_class">
+                <div class="transYes" style="$style_hidden">
                     <div class="label">
                         <span class="tip">$_("What's the original book?")</span>
                     </div>
@@ -396,7 +396,7 @@ window.q.push(function() {
                     </div>
                 </div>
 
-                <div class="$trans_class" id="translated_from_languages">
+                <div class="transYes" id="translated_from_languages" style="$style_hidden">
                     <div class="label">
                         <label for="edition-translated_from"><span class="tip">$_("What language was the original written in?")</span></label>
                     </div>
