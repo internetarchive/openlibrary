@@ -1407,8 +1407,11 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     requests = []
     for k in ekeys:
         try:
-            e = data_provider.get_document(k)
-            requests += update_edition(e)
+            # This only takes a couple of seconds for 5K editions, but is wasted effort since we don't index them
+            # FIXME: Uncomment / reenable when we start indexing editions
+            # e = data_provider.get_document(k)
+            # requests += update_edition(e)
+            pass
         except:
             logger.error("Failed to update edition %s", k, exc_info=True)
     if requests:
