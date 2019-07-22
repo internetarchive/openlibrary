@@ -247,6 +247,9 @@ class external_search_api(delegate.page):
 
     @jsonapi
     def GET(self):
+        user = accounts.get_current_user()
+        if not (user and (user.is_admin() or user.is_librarian())):
+            return web.HTTPError('403 Forbidden')
         i = web.input(title='', author='')
         if not (i.author or i.title):
             return simplejson.dumps({
