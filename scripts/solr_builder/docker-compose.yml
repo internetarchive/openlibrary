@@ -3,7 +3,7 @@ version: '3.1'
 services:
   db:
     image: postgres
-    restart: always
+    restart: on-failure
     environment:
       POSTGRES_PASSWORD: example
     working_dir: "/solr_builder"
@@ -15,7 +15,7 @@ services:
 
   adminer:
     image: adminer
-    restart: always
+    restart: on-failure
     ports:
       - 8087:8080
     networks:
@@ -23,7 +23,7 @@ services:
 
   solr:
     image: olsolr:latest
-    restart: always
+    restart: on-failure
     ports:
       - 8984:8080
     volumes:
@@ -34,10 +34,11 @@ services:
   # Replica of production solr so we can get subjects
   solr-backup:
     image: olsolr:latest
-    restart: always
+    restart: on-failure
     ports:
       - 8985:8080
     volumes:
+      #FIXME
       - /home/cdrini/solr-backup/data:/var/lib/solr/data
     networks:
       - solr-access
