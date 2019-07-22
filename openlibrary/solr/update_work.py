@@ -813,6 +813,18 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     return doc
 
+def post_solr(connection, url, body, debug):
+    connection.request('POST', url, body, { 'Content-type': 'text/xml;charset=utf-8'})
+    response = connection.getresponse()
+    response_body = response.read()
+    if response.reason != 'OK':
+        logger.error(response.reason)
+        logger.error(response_body)
+        logger.error(body)
+    if debug:
+        logger.info(response.reason)
+    return response_body
+
 def solr_update(requests, debug=False, commitWithin=60000):
     """POSTs a collection of update requests to Solr.
     TODO: Deprecate and remove string requests. Is anything else still generating them? (Yes - "<commit/>" tags)
@@ -826,25 +838,29 @@ def solr_update(requests, debug=False, commitWithin=60000):
     logger.info("POSTing update to %s", url)
     url = url + "?commitWithin=%d" % commitWithin
 
+    # TODO: Switch to use requests modoule instead of home-rolled handling
     h1.connect()
-    for r in requests:
-        if not isinstance(r, six.string_types):
-            # Assuming it is either UpdateRequest or DeleteRequest
-            r = r.toxml()
-        if not r:
-            continue
 
-        if debug:
-            logger.info('request: %r', r[:65] + '...' if len(r) > 65 else r)
-        assert isinstance(r, six.string_types)
-        h1.request('POST', url, r.encode('utf8'), { 'Content-type': 'text/xml;charset=utf-8'})
-        response = h1.getresponse()
-        response_body = response.read()
-        if response.reason != 'OK':
-            logger.error(response.reason)
-            logger.error(response_body)
-        if debug:
-            logger.info(response.reason)
+    delete_requests = []
+    update_requests = []
+    other_requests = []
+    for r in requests:
+        if isinstance(r, UpdateRequest):
+            update_requests.append(r)
+        elif isinstance(r, DeleteRequest):
+            delete_requests.append(r)
+        else:
+            # TODO handle <commit/> specially out of band
+            other_requests.append(r)
+            logger.debug("Unhandled request - %s" % r)
+
+    if delete_requests:
+        r = DeleteRequest.toxml_all(delete_requests)
+        post_solr(h1, url, r, debug)
+    if update_requests:
+        r = UpdateRequest.toxml_all(update_requests)
+        post_solr(h1, url, r, debug)
+
     h1.close()
 
 def listify(f):
@@ -977,12 +993,27 @@ class UpdateRequest:
         """
         Create the XML <add> element of this request to send to Solr.
 
-        :rtype: str
+        :rtype: bytes
         """
-        node = dict2element(self.doc)
         root = Element("add")
+        node = dict2element(self.doc)
         root.append(node)
-        return tostring(root).encode('utf-8')
+        return tostring(root, encoding='utf-8')
+
+
+    @staticmethod
+    def toxml_all(requests):
+        """
+        Create the XML <add> document for a set of requests
+
+        :rtype: bytes
+        """
+        root = Element("add")
+        for r in requests:
+            node = dict2element(r.doc)
+            root.append(node)
+        return tostring(root, encoding='utf-8')
+
 
     def tojson(self):
         """
@@ -1005,10 +1036,24 @@ class DeleteRequest:
         """
         Create the XML <delete> element of this request to send to Solr.
 
-        :rtype: str or None
+        :rtype: UTF-8 bytes
         """
         if self.keys:
             return make_delete_query(self.keys)
+
+    @staticmethod
+    def toxml_all(requests):
+        """
+        Create the XML <delete> element for a set of delete requests
+
+        :rtype: bytes for utf-8 encoded XML doc
+        """
+        keys = []
+        for r in requests:
+            if r.keys:
+                keys.extend(r.keys)
+        if keys:
+            return make_delete_query(keys)
 
 def process_edition_data(edition_data):
     """Returns a solr document corresponding to an edition using given edition data.
@@ -1158,6 +1203,7 @@ def update_work(work):
         else:
             if solr_doc is not None:
                 # Delete all ia:foobar keys
+                # FIXME: Some type of obsolete legacy cleanup?
                 if solr_doc.get('ia'):
                     requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
                 requests.append(UpdateRequest(solr_doc))
@@ -1188,7 +1234,7 @@ def make_delete_query(keys):
     for key in keys:
         query = SubElement(delete_query,'query')
         query.text = 'key:%s' % key
-    return tostring(delete_query)
+    return tostring(delete_query, encoding='utf-8')
 
 def update_author(akey, a=None, handle_redirects=True):
     """
