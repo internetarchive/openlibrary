@@ -34,7 +34,7 @@ def parse_args():
     # Logging
     parser.add_argument("-p", "--progress", default=None, help="Where to store the progress (if specified)")
     parser.add_argument("-l", "--log-file", default=None, help="Send log to file instead of stdout (default)")
-    parser.add_argument("--log-level", default=logging.WARN, choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'],
+    parser.add_argument("--log-level", default=logging.WARN, choices=[logging.DEBUG, logging.INFO, logging.WARN, logging.ERROR, logging.CRITICAL],
                         type=lambda s: getattr(logging, s))
 
     return parser.parse_args()
