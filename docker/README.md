@@ -36,9 +36,9 @@ docker-machine start default # Start the docker daemon
 # a lot of RAM. Run: docker-machine stop default
 
 # build images
-docker build -t olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
-docker-compose build web # 10+ min (Win10Home/Dec 2018)
-docker-compose build solr # 5+ min (Win10Home/Dec 2018)
+docker build -t olbase:latest -f docker/Dockerfile.olbase . # 6 min (MacBook Pro/Jul 2019), 30+ min (Win10Home/Dec 2018)
+docker-compose build web # 2 min (MacBook Pro/Jul 2019), 10+ min (Win10Home/Dec 2018)
+docker-compose build solr # 1.5 min (MacBook Pro/Jul 2019), 5+ min (Win10Home/Dec 2018)
 
 # start the app
 docker-compose up    # Ctrl-C to stop
