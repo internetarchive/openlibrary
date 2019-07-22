@@ -1163,7 +1163,7 @@ def update_work(work):
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
         requests.append(DeleteRequest([wkey]))
     else:
-        logger.error("unrecognized type while updating work %s", wkey, exc_info=True)
+        logger.error("unrecognized type (or missing title) while updating work %s", wkey, exc_info=True)
 
     return requests
 
