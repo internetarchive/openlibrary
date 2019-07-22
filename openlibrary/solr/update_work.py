@@ -300,6 +300,7 @@ class SolrProcessor:
 
             # If the _ia_meta field is already set in the edition, use it instead of querying archive.org.
             # This is useful to when doing complete reindexing of solr.
+            # TODO: Where is this set up? (if anywhere?)
             if ia and '_ia_meta' in e:
                 ia_meta_fields = e['_ia_meta']
             elif ia:
@@ -702,7 +703,7 @@ def build_data2(w, editions, authors, ia, duplicates):
     :param duplicates: FIXME unused
     :rtype: dict
     """
-    resolve_redirects = False
+    resolve_redirects = False  #FIXME: don't we want this on by default?
 
     assert w['type']['key'] == '/type/work'
     title = w.get('title', None)
@@ -814,7 +815,7 @@ def build_data2(w, editions, authors, ia, duplicates):
 
 def solr_update(requests, debug=False, commitWithin=60000):
     """POSTs a collection of update requests to Solr.
-    TODO: Deprecate and remove string requests. Is anything else still generating them?
+    TODO: Deprecate and remove string requests. Is anything else still generating them? (Yes - "<commit/>" tags)
     :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
@@ -1392,7 +1393,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
 
     if requests:
         if commit:
-            requests += ['<commit />']
+            requests += ['<commit />'] # FIXME string request
 
         if output_file:
             with open(output_file, "w") as f:
@@ -1416,7 +1417,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
             logger.error("Failed to update edition %s", k, exc_info=True)
     if requests:
         if commit:
-            requests += ['<commit/>']
+            requests += ['<commit/>'] # FIXME string request
         _solr_update(requests, debug=True)
 
     # update authors
@@ -1441,7 +1442,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
         else:
             #solr_update(requests, debug=True)
             if commit:
-                requests += ['<commit />']
+                requests += ['<commit />'] # FIXME string request
             _solr_update(requests, debug=True, commitWithin=1000)
 
     # update subjects
@@ -1455,7 +1456,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
             logger.error("Failed to update subject %s", k, exc_info=True)
     if requests:
         if commit:
-            requests += ['<commit />']
+            requests += ['<commit />'] # FIXME string request
         _solr_update(requests, debug=True)
 
     logger.info("END update_keys")
