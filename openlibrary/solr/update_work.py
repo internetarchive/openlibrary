@@ -1510,7 +1510,7 @@ def parse_args():
     parser.add_argument("keys", nargs="+", help="The keys of the items to update (ex: /books/OL1M")
     parser.add_argument("-s", "--server", default="http://openlibrary.org/", help="URL of the openlibrary website")
     parser.add_argument("-c", "--config", default="openlibrary.yml", help="Open Library config file")
-    parser.add_argument("-o", "--output-file", help="Open Library config file")
+    parser.add_argument("-o", "--output-file", help="Output file to receive updates in JSON format")
     parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
     parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
     parser.add_argument("--data-provider", default='default', choices=['default', 'legacy'], help="Name of the data provider to use")
