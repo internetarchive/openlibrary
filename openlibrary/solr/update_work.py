@@ -1380,7 +1380,8 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
 
     # update works
     requests = []
-    requests += [DeleteRequest(deletes)]
+    if deletes:
+        requests += [DeleteRequest(deletes)]
     for k in wkeys:
         logger.info("updating work %s", k)
         try:
