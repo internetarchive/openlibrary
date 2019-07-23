@@ -153,7 +153,7 @@ class LocalPostgresDataProvider(DataProvider):
                         % (r.status_code, r.text, " ".join(ocaids)))
             return None
 
-    def cache_ia_metadata(self, ocaids, batch_size=750):
+    def cache_ia_metadata(self, ocaids, batch_size=200):
         """
         :param list of str ocaids:
         :param int batch_size:
@@ -203,8 +203,9 @@ class LocalPostgresDataProvider(DataProvider):
         self.query_all(q, cache_json=True)
 
     def cache_cached_editions_ia_metadata(self):
-        # Limit length of OCAIDs to avoid really long URLs. They just won't be cached.
-        ocaids = [doc['ocaid'] for doc in self.cache.itervalues() if 'ocaid' in doc and len(doc['ocaid']) < 50]
+        logger.debug("cache_cached_editions_ia_metadata for %d docs" % len(self.cache))
+        ocaids = [doc['ocaid'] for doc in self.cache.itervalues() if 'ocaid' in doc]
+        logger.debug("cache_cached_editions_ia_metadata got %d ocaid" % len(ocaids))
         self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
