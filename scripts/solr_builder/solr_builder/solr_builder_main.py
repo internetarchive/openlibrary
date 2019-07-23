@@ -231,7 +231,10 @@ class LocalPostgresDataProvider(DataProvider):
         if identifier in self.ia_cache:
             return self.ia_cache[identifier]
 
-        return ia.get_metadata(identifier)
+        # If it wasn't returned when we tried to cache it originally, it never will be,
+        # so don't bother asking again. It's just a waste of time.
+        #return ia.get_metadata(identifier)
+        return None
 
     def get_document(self, key):
         logger.info("get_document %s", key)
