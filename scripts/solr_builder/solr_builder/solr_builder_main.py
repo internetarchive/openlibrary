@@ -80,10 +80,12 @@ class LocalPostgresDataProvider(DataProvider):
         :param bool cache_json:
         :rtype: list
         """
+        logger.debug("BEGIN query_all %s" % query)
         cur = self._conn.cursor()
         cur.execute(query)
         rows = cur.fetchall()
         cur.close()
+        logger.debug("END query_all returned %d rows" % len(rows))
 
         if rows:
             if cache_json:
@@ -166,40 +168,47 @@ class LocalPostgresDataProvider(DataProvider):
             except:
                 logger.error("Error while caching IA", exc_info=True)
 
-    def cache_edition_works(self, lo_key, hi_key):
+    def cache_edition_works(self, keys):
+        assert(keys[0][-1] == 'M')
         q = """
             SELECT works.keyid, works.content
             FROM entity editions
             INNER JOIN entity works ON editions.content -> 'works' -> 0 ->> 'key' = works.keyid
-            WHERE editions.etype = '/type/edition' AND editions.keyid BETWEEN '%s' AND '%s'
-        """ % (lo_key, hi_key)
+            WHERE editions.etype = '/type/edition' AND editions.keyid IN ('%s')
+        """ % "','".join(keys)
         self.query_all(q, cache_json=True)
 
-    def cache_work_editions(self, lo_key, hi_key):
+    def cache_work_editions(self, keys):
+        logger.debug('cache_work_editions for %d keys' % len(keys))
+        assert(keys[0][-1] == 'W')
         q = """
             SELECT keyid, content
             FROM entity
-            WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
-        """ % (lo_key, hi_key)
+            WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' IN ('%s')
+        """ % "','".join(keys)
         self.query_all(q, cache_json=True)
 
-    def cache_edition_authors(self, lo_key, hi_key):
+    def cache_edition_authors(self, keys):
+        logger.debug('cache_edition_authors for %d keys' % len(keys))
+        assert(keys[0][-1] == 'M')
         q = """
             SELECT authors.keyid, authors.content
             FROM entity editions
             INNER JOIN entity works ON editions.content -> 'works' -> 0 ->> 'key' = works.keyid
             INNER JOIN entity authors ON works.content -> 'authors' -> 0 -> 'author' ->> 'key' = authors.keyid
-            WHERE editions.etype = '/type/edition' AND editions.keyid BETWEEN '%s' AND '%s'
-        """ % (lo_key, hi_key)
+            WHERE editions.etype = '/type/edition' AND editions.keyid IN ('%s')
+        """ % "','".join(keys)
         self.query_all(q, cache_json=True)
 
-    def cache_work_authors(self, lo_key, hi_key):
+    def cache_work_authors(self, keys):
+        logger.debug("cache_work_authors - %d keys" % len(keys))
+        assert(keys[0][-1] == 'W')
         q = """
             SELECT authors.keyid, authors.content
             FROM entity works
             INNER JOIN entity authors ON works.content -> 'authors' -> 0 -> 'author' ->> 'key' = authors.keyid
-            WHERE works.etype = '/type/work' AND works.keyid BETWEEN '%s' AND '%s'
-        """ % (lo_key, hi_key)
+            WHERE works.etype = '/type/work' AND works.keyid IN ('%s')
+        """ % "','".join(keys)
         self.query_all(q, cache_json=True)
 
     def cache_cached_editions_ia_metadata(self):
@@ -424,11 +433,10 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
             plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?', q_auth='?', q_ia='?')
 
             with LocalPostgresDataProvider(postgres) as db2:
-                key_range = [keys[0], keys[-1]]
 
                 if job == "works":
                     # cache editions
-                    editions_time, _ = simple_timeit(lambda: db2.cache_work_editions(*key_range))
+                    editions_time, _ = simple_timeit(lambda: db2.cache_work_editions(keys))
                     plog.update(q_1=editions_time, cached=len(db.cache) + len(db2.cache))
 
                     # cache editions' ocaid metadata
@@ -436,7 +444,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                     plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
-                    authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
+                    authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(keys))
                     plog.update(q_auth=authors_time, cached=len(db.cache) + len(db2.cache))
                 elif job == "orphans":
                     # cache editions' ocaid metadata
@@ -457,9 +465,12 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                 db.cache.update(db2.cache)
                 db.ia_cache.update(db2.ia_cache)
 
+            logger.debug("Calling update_keys for %d keys" % len(keys))
             update_keys(keys, commit=False, commit_way_later=True)
+            logger.debug("DONE with update_keys")
 
             seen += len(keys)
+            # TODO: add average and current rates
             plog.update(
                 elapsed=time.time() - start,
                 seen=seen, percent=seen/count,
