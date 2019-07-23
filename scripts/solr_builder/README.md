@@ -23,6 +23,7 @@ docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 # Download the dump
 time wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.5GB, 3min (7 Jun 2019, OJF); 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
 ```
+2019-07 18 min on 200 Mb/s US East residential connection
 
 Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
 
@@ -31,20 +32,15 @@ Now we insert the documents in the dump into postgres. Note that the database at
 time ./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6  # ~25min (Feb 2019, OJF)
 ```
 
-Unfortunately there's no indication of progress, so you'll just have to wait this one out. You can see if they're done by running: (it will display the number copied once complete.)
-
-```bash
-for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
-# Sample Output:
-# logs/psql-chunk-0.txt: COPY 8531084
-# logs/psql-chunk-17062168.txt: COPY 8531084
-# logs/psql-chunk-25593252.txt:
-# logs/psql-chunk-34124336.txt:
-# logs/psql-chunk-42655420.txt:
-# logs/psql-chunk-8531084.txt: COPY 8531084
-```
-
 Took 2 hrs (8 Jun 2019); 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
+
+This can be reduced to as low as 16 minutes using 3 shards and no staggered start, but a single stream import is only 19.5
+minutes and there appears to be a fencepost issue with the same record getting imported twice in the sharded import, so
+I'm just using the single stream import as simpler (plus it can be piped together with the network fetch).
+
+time ./psql-import-in-chunks.sh ol_dump_2019-06-30.txt.gz 1
+
+which takes just under 20 minutes on a modern laptop.
 
 Once that's all done, we create indices in postgres:
 
@@ -52,11 +48,9 @@ Once that's all done, we create indices in postgres:
 # 1 hr (8 June 2019, OJF); 1.25 hr (10 May 2019, OJF)
 time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
 ```
+2019-07 - 22 min. on modern laptop (44 min with new schema?)
 
-#### TODO
-- Investigate if it's better to just ungzip this from the start.
-- Right now the parallel processes are all running on the same docker container. Is this a problem?
-- Does postgres even benefit from parallel importing? I see some "COPY waiting" processes, maybe there's no benefit?
+TODO - Add VACUUM ANALYZE entity after all data is loaded?
 
 ## Step 2: Populate solr
 
@@ -65,6 +59,9 @@ time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql 
 ```bash
 # Build the image (same as openlibrary)
 time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../
+
+< 2 min on modern laptop
+
 # Launch solr
 docker-compose up --no-deps -d solr
 
@@ -83,6 +80,8 @@ psql -f sql/get-partition-markers.sql
 
 ### 2b: Insert works & orphaned editions
 
+2019-06-30 dump - 18257278 (18.2M) works, 3687292 (3.7M) orphans
+ 
 ```bash
 # Import over 5 cores
 ./index-works.sh
