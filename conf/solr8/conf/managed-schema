@@ -141,7 +141,7 @@
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text"/>
-    <field name="title_suggest" type="textgen"/>
+    <field name="title_suggest" type="text_general"/>
     <field name="subtitle" type="text"/>
     <field name="alternative_title" type="text" stored="false" multiValued="true"/>
     <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
@@ -157,27 +157,27 @@
     <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
     <field name="number_of_pages" type="int" multiValued="true"/>
-    <field name="lccn" type="textgen" multiValued="true"/>
+    <field name="lccn" type="text_general" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
     <field name="ia_count" type="int"/>
     <field name="oclc" type="text" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
-    <field name="contributor" type="textgen" multiValued="true"/>
+    <field name="contributor" type="text_general" multiValued="true"/>
     <field name="publish_place" type="text" multiValued="true"/>
     <field name="publisher" type="text" multiValued="true"/>
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
     <field name="first_sentence" type="text" multiValued="true"/>
     <field name="author_key" type="string" multiValued="true"/>
-    <field name="author_name" type="textgen" multiValued="true"/>
-    <field name="author_alternative_name" type="textgen" multiValued="true"/>
+    <field name="author_name" type="text_general" multiValued="true"/>
+    <field name="author_alternative_name" type="text_general" multiValued="true"/>
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject" type="text" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
-    <field name="place" type="textgen" multiValued="true"/>
+    <field name="place" type="text_general" multiValued="true"/>
     <field name="place_facet" type="string" stored="false" multiValued="true"/>
     <field name="place_key" type="string" stored="false" multiValued="true"/>
-    <field name="person" type="textgen" multiValued="true"/>
+    <field name="person" type="text_general" multiValued="true"/>
     <field name="person_facet" type="string" stored="false" multiValued="true"/>
     <field name="person_key" type="string" stored="false" multiValued="true"/>
     <field name="time" type="text" multiValued="true"/>
@@ -190,9 +190,9 @@
 
 
    <!-- fields used by documents of type author -->
-   <field name="name" type="textgen" indexed="true" stored="true"/>
+   <field name="name" type="text_general" indexed="true" stored="true"/>
    <field name="name_str" type="string" indexed="true" stored="false"/>
-   <field name="alternate_names" type="textgen" indexed="true" stored="true" multiValued="true"/>
+   <field name="alternate_names" type="text_general" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
