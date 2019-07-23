@@ -2,14 +2,14 @@ from __future__ import division
 
 import ConfigParser
 import logging
+import requests
+import requests_cache
+import simplejson as json
 import time
-import urllib
-import urllib2
 import uuid
 from collections import namedtuple
 
 import psycopg2
-import simplejson
 
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
@@ -17,6 +17,7 @@ from openlibrary.solr.update_work import load_configs, update_keys, using_cython
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
+requests_cache.install_cache('ol-solr-ia')
 
 def config_section_to_dict(config_file, section):
     """
@@ -131,12 +132,26 @@ class LocalPostgresDataProvider(DataProvider):
 
     @staticmethod
     def _get_lite_metadata(ocaids, rows=1000):
-        url = ''.join(["https://archive.org/advancedsearch.php?",
-                       "q=identifier:(" + urllib.quote(' OR '.join(ocaids)) + ")",
-                       "&fl[]=identifier&fl[]=boxid&fl[]=collection",
-                       "&rows=%d&page=1&output=json&save=yes" % rows])
-        resp_str = urllib2.urlopen(url).read()
-        return simplejson.loads(resp_str)['response']
+        logger.debug("Fetching metadata for %d ocaids" % len(ocaids))
+        query = {"q" : "identifier:(" + " OR ".join(ocaids) + ")",
+                 "fl[]" : "identifier,boxid,collection",
+                 "rows" : rows,
+                 "page" : 1,
+                 "output" : "json",
+                 }
+        r = requests.get("https://archive.org/advancedsearch.php", params = query)
+        if r.status_code == 200:
+            try:
+                response = r.json()['response']
+            except json.JSONDecodeError:
+                logger.error('Failed to JSON decode %s' % r.text)
+                return
+            logger.debug('Found %d results for %d queried' % (response['numFound'], len(ocaids)))
+            return response
+        else:
+            logger.warn("IA metadata request failed with code %d, %s for %s"
+                        % (r.status_code, r.text, " ".join(ocaids)))
+            return None
 
     def cache_ia_metadata(self, ocaids, batch_size=750):
         """
