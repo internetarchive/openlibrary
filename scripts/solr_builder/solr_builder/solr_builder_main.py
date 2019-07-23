@@ -2,6 +2,7 @@ from __future__ import division
 
 import ConfigParser
 import logging
+import re
 import requests
 import requests_cache
 import simplejson as json
@@ -14,10 +15,12 @@ import psycopg2
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import load_configs, update_keys, using_cython
+OCAID_PATTERN = re.compile('^[a-zA-Z0-9_-]+$')
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
 requests_cache.install_cache('ol-solr-ia')
+session = requests.Session()
 
 def config_section_to_dict(config_file, section):
     """
@@ -135,13 +138,17 @@ class LocalPostgresDataProvider(DataProvider):
     @staticmethod
     def _get_lite_metadata(ocaids, rows=1000):
         logger.debug("Fetching metadata for %d ocaids" % len(ocaids))
+        # Filter ids which will make API unhappy e.g. ironh))lond, https://archive.org/details/TheBookToLife
+        # TODO should we quote the identifiers too?
+        ocaids = list(filter(lambda x: OCAID_PATTERN.match(x), ocaids))
         query = {"q" : "identifier:(" + " OR ".join(ocaids) + ")",
                  "fl[]" : "identifier,boxid,collection",
                  "rows" : rows,
                  "page" : 1,
                  "output" : "json",
                  }
-        r = requests.get("https://archive.org/advancedsearch.php", params = query)
+        # TODO: retry on ConnectionError: ('Connection aborted.', BadStatusLine("''",))
+        r = session.get("https://archive.org/advancedsearch.php", params = query)
         if r.status_code == 200:
             try:
                 response = r.json()['response']
@@ -155,7 +162,7 @@ class LocalPostgresDataProvider(DataProvider):
                         % (r.status_code, r.text, " ".join(ocaids)))
             return None
 
-    def cache_ia_metadata(self, ocaids, batch_size=200):
+    def cache_ia_metadata(self, ocaids, batch_size=120):
         """
         :param list of str ocaids:
         :param int batch_size:
@@ -219,7 +226,7 @@ class LocalPostgresDataProvider(DataProvider):
 
     def find_redirects(self, key):
         """Returns keys of all things which redirect to this one."""
-        logger.info("find_redirects %s", key)
+        logger.debug("find_redirects %s", key)
         q = """
         SELECT keyid FROM entity
         WHERE etype = '/type/redirect' AND content ->> 'location' = '%s'
@@ -227,7 +234,7 @@ class LocalPostgresDataProvider(DataProvider):
         return [r[0] for r in self.query_iter(q)]
 
     def get_editions_of_work(self, work):
-        logger.info("get_editions_of_work %s", work['key'])
+        logger.debug("get_editions_of_work %s", work['key'])
         q = """
         SELECT content FROM entity
         WHERE etype = '/type/edition' AND content -> 'works' -> 0 ->> 'key' = '%s'
@@ -235,7 +242,7 @@ class LocalPostgresDataProvider(DataProvider):
         return [r[0] for r in self.query_iter(q)]
 
     def get_metadata(self, identifier):
-        logger.info("get_metadata %s", identifier)
+        logger.debug("get_metadata %s", identifier)
 
         if identifier in self.ia_cache:
             return self.ia_cache[identifier]
@@ -246,7 +253,7 @@ class LocalPostgresDataProvider(DataProvider):
         return None
 
     def get_document(self, key):
-        logger.info("get_document %s", key)
+        logger.debug("get_document %s", key)
 
         if key in self.cache:
             return self.cache[key]
