@@ -451,22 +451,23 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                     plog.update(q_1=editions_time, cached=len(db.cache) + len(db2.cache))
 
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
+                    #ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
+                    #plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
                     authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(keys))
                     plog.update(q_auth=authors_time, cached=len(db.cache) + len(db2.cache))
                 elif job == "orphans":
                     # cache editions' ocaid metadata
-                    db2.cache = db.cache # depends on cache being populated with editions
-                    ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
-                    plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
+                    #db2.cache = db.cache # depends on cache being populated with editions
+                    #ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
+                    #plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
                     # FIXME: code below only works for editions which have works (ie not orphans)
                     #authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
                     #plog.update(q_auth=authors_time, cached=len(db.cache) + len(db2.cache))
+                    pass
                 elif job == "authors":
                     # Nothing to cache; update_work.py queries solr directly for each other, and provides no way to
                     # cache.
