@@ -38,7 +38,7 @@
     catchall "text" field, and use that for searching.
 -->
 
-<schema name="default-config" version="1.6">
+<schema name="openlibrary-config" version="1.6">
     <!-- attribute "name" is the name of this schema and is only used for display purposes.
        version="x.y" is Solr's version number for the schema syntax and 
        semantics.  It should not normally be changed by applications.
@@ -110,21 +110,102 @@
          If you don't need it, consider removing it and the corresponding copyField directive.
     -->
 
+    <!--
     <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />
+    -->
     <!-- docValues are enabled by default for long type so we don't need to index the version field  -->
     <field name="_version_" type="plong" indexed="false" stored="false"/>
 
     <!-- If you don't use child/nested documents, then you should remove the next two fields:  -->
     <!-- for nested documents (minimal; points to root document) -->
+    <!--
     <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+    -->
     <!-- for nested documents (relationship tracking) -->
+    <!--
     <field name="_nest_path_" type="_nest_path_" /><fieldType name="_nest_path_" class="solr.NestPathField" />
 
     <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
+    -->
 
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->
     <!-- <copyField source="*" dest="_text_"/> -->
+
+
+    <!-- OpenLibrary field definitions -->
+
+    <field name="key" type="string" required="true" omitnorms="true"/>
+    <field name="type" type="string" required="true" omitnorms="true"/>
+
+    <field name="redirects" type="string" multiValued="true"/>
+    <field name="has_fulltext" type="boolean"/>
+    <field name="title" type="text"/>
+    <field name="title_suggest" type="textgen"/>
+    <field name="subtitle" type="text"/>
+    <field name="alternative_title" type="text" stored="false" multiValued="true"/>
+    <field name="alternative_subtitle" type="text" stored="false" multiValued="true"/>
+
+    <field name="edition_count" type="int"/>
+    <field name="edition_key" type="string" multiValued="true"/>
+    <field name="cover_edition_key" type="string" indexed="false"/>
+    <field name="by_statement" type="text" stored="false" multiValued="true"/>
+    <field name="publish_date" type="text" multiValued="true"/>
+    <field name="publish_year" type="int" multiValued="true"/>
+    <field name="first_publish_year" type="int"/>
+    <field name="first_edition" type="string" indexed="false"/>
+    <field name="first_publisher" type="string" indexed="false"/>
+    <field name="language" type="string" multiValued="true"/>
+    <field name="number_of_pages" type="int" multiValued="true"/>
+    <field name="lccn" type="textgen" multiValued="true"/>
+    <field name="ia" type="string" multiValued="true"/>
+    <field name="ia_count" type="int"/>
+    <field name="oclc" type="text" multiValued="true"/>
+    <field name="isbn" type="string" multiValued="true"/>
+    <field name="contributor" type="textgen" multiValued="true"/>
+    <field name="publish_place" type="text" multiValued="true"/>
+    <field name="publisher" type="text" multiValued="true"/>
+    <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
+    <field name="first_sentence" type="text" multiValued="true"/>
+    <field name="author_key" type="string" multiValued="true"/>
+    <field name="author_name" type="textgen" multiValued="true"/>
+    <field name="author_alternative_name" type="textgen" multiValued="true"/>
+    <field name="author_facet" type="string" stored="false" multiValued="true"/>
+    <field name="subject" type="text" multiValued="true"/>
+    <field name="subject_facet" type="string" stored="false" multiValued="true"/>
+    <field name="subject_key" type="string" stored="false" multiValued="true"/>
+    <field name="place" type="textgen" multiValued="true"/>
+    <field name="place_facet" type="string" stored="false" multiValued="true"/>
+    <field name="place_key" type="string" stored="false" multiValued="true"/>
+    <field name="person" type="textgen" multiValued="true"/>
+    <field name="person_facet" type="string" stored="false" multiValued="true"/>
+    <field name="person_key" type="string" stored="false" multiValued="true"/>
+    <field name="time" type="text" multiValued="true"/>
+    <field name="time_facet" type="string" stored="false" multiValued="true"/>
+    <field name="time_key" type="string" stored="false" multiValued="true"/>
+
+    <field name="text" type="text" multiValued="true"/>
+
+    <field name="seed" type="string" multiValued="true"/>
+
+
+   <!-- fields used by documents of type author -->
+   <field name="name" type="textgen" indexed="true" stored="true"/>
+   <field name="name_str" type="string" indexed="true" stored="false"/>
+   <field name="alternate_names" type="textgen" indexed="true" stored="true" multiValued="true"/>
+   <field name="birth_date" type="string" indexed="true" stored="true"/>
+   <field name="death_date" type="string" indexed="true" stored="true"/>
+   <field name="date" type="string" indexed="true" stored="true"/>
+   <field name="work_count" type="int" indexed="true" stored="true"/>
+   <field name="top_work" type="string" indexed="false" stored="true"/>
+   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
+
+   <!-- additional fields used by documents of type subject -->
+   <field name="subject_type" type="string" indexed="true" stored="true"/>
+
+
+   <!-- **** End of OpenLibrary field definitions **** -->
+
 
     <!-- Dynamic field definitions allow using convention over configuration
        for fields via the specification of patterns to match field names.
@@ -166,7 +247,7 @@
     <!-- Field to use to determine and enforce document uniqueness.
       Unless this field is marked with required="false", it will be a required field
     -->
-    <uniqueKey>id</uniqueKey>
+    <uniqueKey>key</uniqueKey>
 
     <!-- copyField commands copy one field to another at the time a document
        is added to the index.  It's used either to index the same field differently,
@@ -174,6 +255,48 @@
 
     <copyField source="sourceFieldName" dest="destinationFieldName"/>
     -->
+
+    <!-- *** copyFields for OpenLibrary fields *** -->
+    <!-- TODO: Can we pare this down for performance and storage? -->
+
+    <copyField source="title" dest="title_suggest"/>
+    <copyField source="publisher" dest="publisher_facet"/>
+    <copyField source="subject" dest="subject_facet"/>
+    <copyField source="place" dest="place_facet"/>
+    <copyField source="person" dest="person_facet"/>
+    <copyField source="time" dest="time_facet"/>
+
+    <copyField source="key" dest="text"/>
+    <copyField source="redirects" dest="text"/>
+    <copyField source="title" dest="text"/>
+    <copyField source="subtitle" dest="text"/>
+    <copyField source="alternative_title" dest="text"/>
+    <copyField source="alternative_subtitle" dest="text"/>
+    <copyField source="edition_key" dest="text"/>
+    <copyField source="by_statement" dest="text"/>
+    <copyField source="lccn" dest="text"/>
+    <copyField source="ia" dest="text"/>
+    <copyField source="oclc" dest="text"/>
+    <copyField source="isbn" dest="text"/>
+    <copyField source="contributor" dest="text"/>
+    <copyField source="publisher" dest="text"/>
+    <copyField source="first_sentence" dest="text"/>
+    <copyField source="author_key" dest="text"/>
+    <copyField source="author_name" dest="text"/>
+    <copyField source="author_alternative_name" dest="text"/>
+    <copyField source="subject" dest="text"/>
+    <copyField source="place" dest="text"/>
+    <copyField source="person" dest="text"/>
+    <copyField source="time" dest="text"/>
+
+    <!-- Copy author search fields into default search field "text" -->
+    <copyField source="name" dest="text"/>
+    <copyField source="name_str" dest="text"/>
+    <copyField source="alternate_names" dest="text"/>
+
+    <!-- *** END of OpenLibrary copyFields *** -->
+
+
 
     <!-- field type definitions. The "name" attribute is
        just a label to be used by field definitions.  The "class"
