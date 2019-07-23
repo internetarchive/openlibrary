@@ -140,6 +140,8 @@ class LocalPostgresDataProvider(DataProvider):
         logger.debug("Fetching metadata for %d ocaids" % len(ocaids))
         # Filter ids which will make API unhappy e.g. ironh))lond, https://archive.org/details/TheBookToLife
         # TODO should we quote the identifiers too?
+        # Empirically the maximum URL length seems to be about 3500 and we have ~150 char of overhead
+        # plus 4 characters per ocaid (" OR ")
         ocaids = list(filter(lambda x: OCAID_PATTERN.match(x), ocaids))
         query = {"q" : "identifier:(" + " OR ".join(ocaids) + ")",
                  "fl[]" : "identifier,boxid,collection",
