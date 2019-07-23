@@ -127,7 +127,7 @@ def add_field(doc, name, value):
     try:
         field.text = normalize('NFC', six.text_type(strip_bad_char(value)))
     except:
-        logger.error('Error in normalizing %r', value)
+        logger.error('Error in normalizing text to NFC for field %s - %r' % (field, value))
         raise
     doc.append(field)
 
