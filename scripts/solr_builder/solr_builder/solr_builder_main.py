@@ -162,12 +162,14 @@ class LocalPostgresDataProvider(DataProvider):
                         % (r.status_code, r.text, " ".join(ocaids)))
             return None
 
-    def cache_ia_metadata(self, ocaids, batch_size=120):
+    def cache_ia_metadata(self, ocaids, batch_size=110):
         """
         :param list of str ocaids:
         :param int batch_size:
         :return: None
         """
+        # FIXME we care about the maximum URL length and ocaids are variable length, so
+        # we should change the batching strategy here to take that into account
         for b in batches(ocaids, batch_size):
             try:
                 for doc in self._get_lite_metadata(b, rows=batch_size)['docs']:
