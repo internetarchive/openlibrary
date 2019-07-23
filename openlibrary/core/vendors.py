@@ -2,6 +2,7 @@ import re
 import web
 import urllib2
 import simplejson
+from amazon.api import SearchException
 from infogami import config
 from infogami.utils.view import public
 from . import lending, cache, helpers as h
@@ -26,8 +27,11 @@ def get_amazon_search(title='', author=''):
     kwargs = {'Title': title, 'Author': author, 'SearchIndex': 'Books'}
     results = lending.amazon_api.search(**kwargs)
     data = []
-    for product in results:
-        data.append(_serialize_amazon_product(product))
+    try:
+        for product in results:
+            data.append(_serialize_amazon_product(product))
+    except SearchException:
+        data = {'error': 'no results'}
     return data
 
 def _serialize_amazon_product(product):
