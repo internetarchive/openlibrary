@@ -64,6 +64,9 @@ window.Template = Template;
 // Extend existing prototypes
 String.prototype.join = join;
 
+// update jQuery
+jQuery.fn.exists = function(){return jQuery(this).length>0;}
+
 // Initialise some things
 $(function () {
     initValidate($);

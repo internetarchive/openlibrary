@@ -400,6 +400,14 @@ export default function init(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
+    initReadingListFeature(debounce);
+    initBorrowAndReadLinks();
+}
+
+/**
+ * @param {Function} debounce function
+ */
+export function initReadingListFeature(debounce) {
     /**
      * close an open dropdown in a given container
      * @param {jQuery.Object} $container
@@ -408,13 +416,15 @@ export default function init(){
         $container.find('.dropdown').slideUp(25);
         $container.find('.arrow').removeClass('up');
     }
-    $('.dropclick').on('click', debounce(function(){
+    // Events are registered on document as HTML is subject to change due to JS inside
+    // openlibrary/templates/lists/widget.html
+    $(document).on('click', '.dropclick', debounce(function(){
         $(this).next('.dropdown').slideToggle(25);
         $(this).parent().next('.dropdown').slideToggle(25);
         $(this).parent().find('.arrow').toggleClass("up");
     }, 300, false));
 
-    $('a.add-to-list').on('click', debounce(function(){
+    $(document).on('click', 'a.add-to-list', debounce(function(){
         $(this).closest('.dropdown').slideToggle(25);
         $(this).closest('.arrow').toggleClass("up");
     }, 300, false));
@@ -425,13 +435,13 @@ export default function init(){
     });
 
     // ... but don't let that happen if user is clicking inside dropdown
-    $('#widget-add').on('click', function(e) {
+    $(document).on('click', '#widget-add', function(e) {
         e.stopPropagation();
     });
 
     /* eslint-disable no-unused-vars */
     // success function receives data on successful request
-    $('.reading-log-lite select').change(function(e) {
+    $(document).on('change', '.reading-log-lite select', function(e) {
         var self = this;
         var form = $(self).closest("form");
         var remove = $(self).children("option").filter(':selected').text().toLowerCase() === "remove";
@@ -453,7 +463,9 @@ export default function init(){
         });
         e.preventDefault();
     });
+}
 
+export function initBorrowAndReadLinks() {
     // LOADING ONCLICK FUNCTIONS FOR BORROW AND READ LINKS
     /* eslint-disable no-unused-vars */
     // used in openlibrary/macros/AvailabilityButton.html and openlibrary/macros/LoanStatus.html
@@ -470,5 +482,3 @@ export default function init(){
 
     /* eslint-enable no-unused-vars */
 }
-
-jQuery.fn.exists = function(){return jQuery(this).length>0;}
