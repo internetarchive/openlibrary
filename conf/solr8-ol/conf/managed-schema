@@ -135,8 +135,8 @@
 
     <!-- OpenLibrary field definitions -->
 
-    <field name="key" type="string" required="true" omitnorms="true"/>
-    <field name="type" type="string" required="true" omitnorms="true"/>
+    <field name="key" type="string" required="true"/>
+    <field name="type" type="string" required="true"/>
 
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
