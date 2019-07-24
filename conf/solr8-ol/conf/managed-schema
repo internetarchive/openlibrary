@@ -135,6 +135,8 @@
 
     <!-- OpenLibrary field definitions -->
 
+    <fieldType name="int" class="solr.IntPointField"/>
+
     <field name="key" type="string" required="true"/>
     <field name="type" type="string" required="true"/>
 
