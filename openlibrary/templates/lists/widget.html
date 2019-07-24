@@ -104,6 +104,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     $ message = "Already Read"
                 $elif users_work_read_status == 2:
                     $ message = "Currently Reading"
+                $elif users_work_read_status == 4:
+                    $ message = "Stopped Reading"
                 $else:
                     $ message = "Want to Read"
                 $if users_work_read_status:
