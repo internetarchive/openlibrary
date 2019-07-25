@@ -1,0 +1,297 @@
+pipeline {
+  agent {
+    dockerfile {
+      filename 'Dockerfile'
+      dir 'scripts/solr_builder'
+      // Needed to make docker-in-docker work
+      args '-v /var/run/docker.sock:/var/run/docker.sock'
+      args '-v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data'
+      // Where to store dumps
+      args '-v /storage:/storage'
+    }
+  }
+  parameters {
+    string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
+  }
+  environment {
+    // The *host* location of Jenkins directory
+    JENKINS_HOME_DIR = sh(script: "docker volume inspect --format='{{.Mountpoint}}' jenkins-data", returnStdout: true).trim()
+    // Where to save the dump
+    DUMP_DIR = '/storage/openlibrary'
+    // Where the solr dumps are saved
+    SOLR_DUMP_DIR = '/storage/openlibrary/solr'
+    // The name of expanded solr dump
+    CUR_SOLR_BACKUP = '_solr-backup-cur'
+    // Where to download the ol full dump from
+    OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
+    // Get the date-suffixed name of the latest dump
+    FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+    // Nmae of partial dump file
+    PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
+    // Use partial dump file, if specified so in the parameters
+    OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
+    // The location of the repo on the host machine; needed for docker-in-docker images
+    HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
+
+    // As specified in docker-compose.yml
+    NEW_SOLR_URL = 'http://localhost:8984'
+    BACKUP_SOLR_URL = 'http://localhost:8985'
+  }
+  stages {
+    stage('1: Create a local postgres copy of the database') {
+      stages {
+        stage('Setup') {
+          parallel {
+            stage('Launch postgres containers') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh(label: 'Launch the database container',
+                    script: 'docker-compose up -d --no-deps db')
+
+                  sh(label: 'optional; GUI for the database at port 8087',
+                    script: 'docker-compose up -d --no-deps adminer')
+
+                  sh(label: 'Create the table to store the dump',
+                    script: 'docker-compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
+                }
+              }
+            }
+            stage('Setup dump file') {
+              stages {
+                stage('Download dump file') {
+                  steps {
+                    dir(env.DUMP_DIR) {
+                      sh "wget --progress=dot:giga --trust-server-names --no-clobber ${env.OL_DUMP_LINK}"
+                    }
+                  }
+                }
+                stage('Create partial dump file') {
+                  when { expression { return params.PARTIAL_IMPORT_SIZE } }
+                  steps {
+                    dir(env.DUMP_DIR) {
+                      sh "zcat ${env.FULL_OL_DUMP_FILE} | head -n ${params.PARTIAL_IMPORT_SIZE} | gzip > ${env.PARTIAL_OL_DUMP_FILE}"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Populate postgres') {
+          stages {
+            stage('Import dump into postgres') {
+              environment {
+                PARALLEL_PROCESSES = '6'
+              }
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh(label: 'Remove any existing logs',
+                    script: 'rm -f logs/psql-chunk-*')
+
+                  sh(label: 'Import dump into postgres',
+                    script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
+                  
+                  waitUntil {
+                    script {
+                      // Once completed, the log file says "COPY 8828224" (or however many records)
+                      // error if we have anything else
+                      // (cat at the end to avoid grep exiting when no match)
+                      def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
+                      if (error_output) {
+                        // Attach filenames for clearer output
+                        def logs = sh(script: 'for f in logs/psql-chunk-*; do echo -ne "$f: "; cat "$f"; done | grep -v COPY', returnStdout: true)
+                        throw new Exception(logs)
+                      }
+                      
+                      def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
+                      echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
+                      return cores_completed == env.PARALLEL_PROCESSES
+                    }
+                  }
+                }
+              }
+              post {
+                always {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    sh 'for f in logs/psql-chunk-*; do echo -ne "$f: "; cat "$f"; done > logs/psql-chunk-logs.txt'
+                    archiveArtifacts artifacts: 'logs/psql-chunk-logs.txt'
+                  }
+                }
+              }
+            }
+            stage('Test import successful') {
+              steps {
+                script {
+                  def lines_in_dump = sh(script: "zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
+                  def rows_in_db = sh(script: "source aliases.sh; psql postgres -q -f sql/count-all-rows.sql", returnStdout: true).trim()
+                  assert lines_in_dump == rows_in_db
+                }
+              }
+            }
+            stage('Create postgres indices') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh "docker-compose exec -T -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stage('2: Populate solr') {
+      stages {
+        stage('Setup') {
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Build the solr image',
+                script: 'docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../')
+              
+              sh(label: 'Launch solr',
+                script: 'docker-compose up --no-deps -d solr')
+
+              sh(label: 'Build "lite" ol environment',
+                script: 'docker-compose build ol')
+              
+              sh(label: 'Build the cython files',
+                script: 'docker-compose run ol ./build-cython.sh')
+              
+              sh(label: 'Load a helper function into postgres',
+                script: 'source aliases.sh; psql -f sql/get-partition-markers.sql')
+            }
+          }
+        }
+        stage('Insert works & orphaned editions') {
+          steps {
+            sh(label: 'Remove any existing progress/logs',
+              script: 'rm -f progress/{works_work,orphans}*')
+
+            sh './index-works.sh'
+            sh './index-orphans.sh'
+
+            waitUntil {
+              script {
+                def cores_completed = sh(script: 'for f in progress/{works_work,orphans}*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
+                return cores_completed == '6'
+              }
+            }
+
+            sh(label: 'Solr commit the changes',
+              script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+          }
+          post {
+            always {
+              dir(env.HOST_SOLR_BUILDER_DIR) {
+                sh 'for f in logs/works_work*; do echo "$f: "; cat "$f"; done > logs/works-indexing-logs.txt'
+                sh 'for f in logs/works_orphans*; do echo "$f: "; cat "$f"; done > logs/orphans-indexing-logs.txt'
+                archiveArtifacts artifacts: 'logs/{works,orphans}-indexing-logs.txt'
+              }
+            }
+          }
+        }
+        stage('Insert authors') {
+          steps {
+            sh(label: 'Remove any existing progress/logs',
+              script: 'rm -f progress/works_authors*')
+
+            sh './index-authors.sh'
+
+            waitUntil {
+              script {
+                def cores_completed = sh(script: 'for f in progress/work_authors*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
+                return cores_completed == '6'
+              }
+            }
+
+            sh(label: 'Solr commit the changes',
+              script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+          }
+          post {
+            always {
+              post {
+                always {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    sh 'for f in logs/work_authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing-logs.txt'
+                    archiveArtifacts artifacts: 'logs/authors-indexing-logs.txt'
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage('Insert subjects') {
+          input {
+            id "Download dump to ${env.SOLR_DUMP_DIR}"
+            message 'Is the file in the right location yet?'
+            ok 'Yes'
+            parameters {
+              string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'What is it called?')
+            }
+          }
+          stages {
+            stage('Decompress the dump') {
+              steps {
+                dir(env.SOLR_DUMP_DIR) {
+                  sh "mkdir ${env.CUR_SOLR_BACKUP}"
+                  sh "tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
+                }
+              }
+            }
+            stage('Launch solr-backup service') {
+              steps {
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh "docker-compose up -d --no-deps -e CUR_SOLR_BACKUP='${env.HOST_SOLR_BUILDER_DIR}/${env.CUR_SOLR_BACKUP}' solr-backup"
+                  script {
+                    // Assert backup has subjects in it
+                    assert query_solr_count(env.BACKUP_SOLR_URL, 'subject') != '0'
+                  }
+                }
+              }
+            }
+            stage('Copy subjects into main solr') {
+              steps {
+                // Don't know why, but can't seem to use the local name :/ Using public name instead
+                sh "curl -s ${env.NEW_SOLR_URL}/solr/dataimport?command=full-import"
+
+                waitUntil {
+                  script {
+                    def status_resp_cmd = "curl -s ${env.NEW_SOLR_URL}:8985/solr/dataimport"
+                    def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
+                    def status = sh(script: status_cmd, returnStdout: true).trim()
+                    return status == '?????'
+                  }
+                }
+
+                script {
+                  def backup_subjects_count = query_solr_count(env.BACKUP_SOLR_URL, 'subject')
+                  def new_subjects_count = query_solr_count(env.NEW_SOLR_URL, 'subject')
+                  assert backup_subjects_count == new_subjects_count
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+post {
+  always {
+    // Delete the workspace
+    deleteDir()
+
+    dir(env.DUMP_DIR) {
+      sh(label: 'Remove partial dump file, if we had one',
+        script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
+      sh(label: 'Remove solr backup directory',
+        script: "rm -rf ${env.SOLR_BACKUP}")
+    }
+  }
+}
+
+String query_solr_count(String solr_base_url, String type_to_count) {
+  def solr_url = "${solr_url}/solr/select/?q=type%3A${type_to_count}&rows=0"
+  def count_cmd = "curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
+  def count = sh(script: count_subjects_cmd, returnStdout: true).trim()
+  return count
+}
