@@ -6,6 +6,11 @@ import re
 import requests
 import sys
 import time
+try:
+    import urllib
+    from urllib.parse import urlparse
+except ImportError:
+     from urlparse import urlparse
 from collections import defaultdict
 from unicodedata import normalize
 
@@ -39,7 +44,7 @@ re_year = re.compile(r'(\d{4})$')
 data_provider = None
 _ia_db = None
 
-solr_host = None
+solr_base_url = None
 
 
 def urlopen(url, params=None, data=None):
@@ -51,20 +56,23 @@ def urlopen(url, params=None, data=None):
     response = requests.post(url, params=params, data=data, headers=headers)
     return response
 
-def get_solr():
+def get_solr_base_url():
     """
     Get Solr host
 
     :rtype: str
     """
-    global solr_host
+    global solr_base_url
 
     load_config()
 
-    if not solr_host:
-        solr_host = config.runtime_config['plugin_worksearch']['solr']
+    if not solr_base_url:
+        solr_base_url = config.runtime_config['plugin_worksearch']['solr_base_url']
 
-    return solr_host
+    return solr_base_url
+
+# TODO: Remove get_solr
+get_solr = get_solr_base_url
 
 def get_ia_collection_and_box_id(ia):
     """
@@ -846,10 +854,14 @@ def solr_update(requests, debug=False, commitWithin=60000):
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
-    h1 = HTTPConnection(get_solr())
-    url = 'http://%s/solr/update' % get_solr()
-
+    url = get_solr_base_url() + '/update'
+    parsed_url = urlparse(url)
+    if parsed_url.port:
+        h1 = HTTPConnection(parsed_url.host, parsed_url.port)
+    else:
+        h1 = HTTPConnection(parsed_url.host)
     logger.info("POSTing update to %s", url)
+    # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
 
     h1.connect()
@@ -1109,7 +1121,7 @@ def get_subject(key):
         'facet.mincount': 1,
         'facet.limit': 100
     }
-    base_url = 'http://' + get_solr() + '/solr/select'
+    base_url = get_solr_base_url() + '/select'
     result = urlopen(base_url, params).json()
 
     work_count = result['response']['numFound']
@@ -1241,7 +1253,7 @@ def update_author(akey, a=None, handle_redirects=True):
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
-    base_url = 'http://' + get_solr() + '/solr/select'
+    base_url = get_solr_base_url() + '/select'
 
     url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
@@ -1318,8 +1330,8 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
 
-    url = 'http://%s/solr/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
-        get_solr(),
+    url = '%s/select?wt=json&q=edition_key:%s&rows=1&fl=key' % (
+        get_solr_base_url(),
         url_quote(edition_key)
     )
     reply = urlopen(url).json()
