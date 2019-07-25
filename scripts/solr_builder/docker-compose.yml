@@ -35,6 +35,21 @@ services:
     networks:
       - solr-access
 
+  solr8:
+    image: solr:8
+    restart: on-failure
+    environment:
+      - SOLR_PORT=8080
+      - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+    ports:
+      - 8984:8080
+    volumes:
+      - solr8-data:/var/lib/solr/data/openlibrary
+      - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
+    networks:
+      - solr-access
+    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
+
   # We need ability to use openlibrary code
   ol:
     image: olpython:latest
@@ -54,6 +69,7 @@ services:
 volumes:
   postgres-data:
   solr-data:
+  solr8-data:
   ol-vendor:
 
 networks:
