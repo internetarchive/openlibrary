@@ -125,8 +125,9 @@
     <!--
     <field name="_nest_path_" type="_nest_path_" /><fieldType name="_nest_path_" class="solr.NestPathField" />
 
-    <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
     -->
+    <!-- FIXME: The field below appears to be required for some default processing -->
+    <field name="_text_" type="text_general" indexed="true" stored="false" multiValued="true"/>
 
     <!-- This can be enabled, in case the client does not know what fields may be searched. It isn't enabled by default
          because it's very expensive to index everything twice. -->
@@ -142,16 +143,16 @@
 
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
-    <field name="title" type="text_en_splitting"/>
-    <field name="title_suggest" type="text_general"/>
-    <field name="subtitle" type="text_en_splitting"/>
-    <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/>
-    <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="title" type="text_en_splitting"/> <!-- i18n -->
+    <field name="title_suggest" type="text_general"/> <!-- i18n -->
+    <field name="subtitle" type="text_en_splitting"/> <!-- i18n -->
+    <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
+    <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
 
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
-    <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
     <field name="publish_year" type="int" multiValued="true"/>
     <field name="first_publish_year" type="int"/>
@@ -164,16 +165,16 @@
     <field name="ia_count" type="int"/>
     <field name="oclc" type="text_en_splitting" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
-    <field name="contributor" type="text_general" multiValued="true"/>
-    <field name="publish_place" type="text_en_splitting" multiValued="true"/>
-    <field name="publisher" type="text_en_splitting" multiValued="true"/>
+    <field name="contributor" type="text_general" multiValued="true"/> <!-- i18n -->
+    <field name="publish_place" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
+    <field name="publisher" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
-    <field name="first_sentence" type="text_en_splitting" multiValued="true"/>
+    <field name="first_sentence" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
     <field name="author_key" type="string" multiValued="true"/>
-    <field name="author_name" type="text_general" multiValued="true"/>
-    <field name="author_alternative_name" type="text_general" multiValued="true"/>
+    <field name="author_name" type="text_general" multiValued="true"/> <!-- i18n -->
+    <field name="author_alternative_name" type="text_general" multiValued="true"/> <!-- i18n -->
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
-    <field name="subject" type="text_en_splitting" multiValued="true"/>
+    <field name="subject" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
     <field name="place" type="text_general" multiValued="true"/>
@@ -192,19 +193,23 @@
 
 
    <!-- fields used by documents of type author -->
-   <field name="name" type="text_general" indexed="true" stored="true"/>
-   <field name="name_str" type="string" indexed="true" stored="false"/>
-   <field name="alternate_names" type="text_general" indexed="true" stored="true" multiValued="true"/>
+   <field name="name" type="text_general" indexed="true" stored="true"/> <!-- i18n -->
+   <field name="name_str" type="string" indexed="true" stored="false"/> <!-- ?? -->
+   <field name="alternate_names" type="text_general" indexed="true" stored="true" multiValued="true"/>  <!-- i18n -->
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
    <field name="work_count" type="int" indexed="true" stored="true"/>
    <field name="top_work" type="string" indexed="false" stored="true"/>
-   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
+   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/> <!-- i18n -->
 
    <!-- additional fields used by documents of type subject -->
    <field name="subject_type" type="string" indexed="true" stored="true"/>
 
+   <!-- it looks like Solr's default field types is longs, which doesn't work for these, so define them specially -->
+   <dynamicField name="id_*" type="strings"  indexed="true"  stored="true"/>
+   <field name="ia_box_id" type="string" indexed="true" stored="true"/>
+   <field name="ia_loaded_id" type="string" indexed="true" stored="true"/>
 
    <!-- **** End of OpenLibrary field definitions **** -->
 
