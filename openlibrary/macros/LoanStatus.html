@@ -81,7 +81,7 @@ $elif (availability_status == 'borrow_unavailable'):
 
 $elif (not ocaid or page.is_access_restricted()) and editions_page:
   $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
-  $if user and user.is_sponsor() and isbn and all(page.get(x) for x in ['publishers', 'title', 'publish_date', 'covers']) and page.works and page.works[0].get('authors') and betterworldbooks_metadata and ('price_amt' in betterworldbooks_metadata) and (float(betterworldbooks_metadata['price_amt'])<15.00):
+  $if user and user.is_sponsor() and isbn and all(page.get(x) for x in ['publishers', 'title', 'publish_date', 'covers']) and page.works and page.works[0].get('authors') and betterworldbooks_metadata and ('price_amt' in betterworldbooks_metadata) and (float(betterworldbooks_metadata['price_amt']) < 15.00):
     $ user_id = user.key.split("/")[-1] if user.key else ''
     <a href="https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)" class="cta-btn cta-btn--sponsor">Sponsor eBook</a>
     <p>We don’t have this book yet. You can add it to our Lending Library with a \$50 tax deductible donation.
