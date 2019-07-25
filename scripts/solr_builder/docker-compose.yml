@@ -35,7 +35,10 @@ services:
     image: solr:8
     restart: on-failure
     environment:
+      # For historical compatibility with OL setup, but would be better to use default port
       - SOLR_PORT=8080
+      # This is optimized for bulk loading, but should be shortened for production
+      # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
       - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
     ports:
       - 8984:8080
@@ -44,6 +47,7 @@ services:
       - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
+    # On first launch will precreate a core called "openlibrary" with our config & schema
     command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   # Replica of production solr so we can get subjects

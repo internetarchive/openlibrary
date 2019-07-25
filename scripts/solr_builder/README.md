@@ -57,13 +57,14 @@ TODO - Add VACUUM ANALYZE entity after all data is loaded?
 ### 2a: Setup
 
 ```bash
-# Build the image (same as openlibrary)
-time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../
-
-< 2 min on modern laptop
-
-# Launch solr
+# Build the Solr image (same as openlibrary) and launch it
+time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../ # < 2 min on modern laptop
 docker-compose up --no-deps -d solr
+
+or launch standard pre-built solr:8 containter
+
+docker-compose up --no-deps -d solr8
+
 
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment
