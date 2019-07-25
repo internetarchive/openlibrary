@@ -1241,7 +1241,7 @@ def make_delete_query(keys):
     delete_query = Element('delete')
     for key in keys:
         query = SubElement(delete_query,'query')
-        query.text = 'key:%s' % key
+        query.text = 'key:"%s"' % key
     return tostring(delete_query, encoding='utf-8')
 
 def update_author(akey, a=None, handle_redirects=True):
