@@ -208,8 +208,8 @@
 
    <!-- it looks like Solr's default field types is longs, which doesn't work for these, so define them specially -->
    <dynamicField name="id_*" type="strings"  indexed="true"  stored="true"/>
-   <field name="ia_box_id" type="string" indexed="true" stored="true"/>
-   <field name="ia_loaded_id" type="string" indexed="true" stored="true"/>
+   <field name="ia_box_id" type="strings" indexed="true" stored="true"/>
+   <field name="ia_loaded_id" type="strings" indexed="true" stored="true"/>
 
    <!-- **** End of OpenLibrary field definitions **** -->
 
