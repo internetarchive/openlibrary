@@ -35,8 +35,8 @@ def ol_query(name, value):
 
 def get_solr_select_url():
     c = config.get("plugin_worksearch")
-    host = c and c.get('solr')
-    return host and ("http://" + host + "/solr/select")
+    base_url = c and c.get('solr_base_url')
+    return base_url and (base_url + "/select")
 
 
 def get_work_iaids(wkey):

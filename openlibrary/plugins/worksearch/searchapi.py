@@ -38,8 +38,8 @@ class search_api:
 
     def get_solr(self):
         c = config.get("plugin_worksearch")
-        host = c and c.get('solr')
-        return host and solr.Solr("http://" + host + "/solr")
+        base_url = c and c.get('solr_base_url')
+        return base_url and solr.Solr(base_url)
 
     def solr_select(self, query):
         solr = self.get_solr()

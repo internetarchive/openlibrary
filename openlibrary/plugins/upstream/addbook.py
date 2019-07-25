@@ -39,7 +39,7 @@ SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protecte
 
 
 def get_solr():
-    base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
+    base_url = config.plugin_worksearch.get('solr_base_url')
     return Solr(base_url)
 
 

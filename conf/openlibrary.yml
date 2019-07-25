@@ -45,7 +45,7 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr: solr:8080
+    solr_base_url: http://solr:8080/solr
     spellcheck_count: 3
     ebook_count_db_parameters:
         db: openlibrary_ebook_count
