@@ -10,8 +10,8 @@
     "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
     "lint:fix": "stylelint --syntax less --fix static/css/",
     "lint:js": "eslint --config .eslintrc.json .",
-    "test:unit": "jest --testRegex tests/unit/**/*.js",
-    "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js"
+    "test:unit": "jest --testRegex tests/unit/**/test.*.js",
+    "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
   },
   "bundlesize": [
     {
