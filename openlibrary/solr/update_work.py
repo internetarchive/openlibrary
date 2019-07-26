@@ -839,9 +839,9 @@ def solr_update(requests, debug=False, commitWithin=60000):
     url = get_solr_base_url() + '/update'
     parsed_url = urlparse(url)
     if parsed_url.port:
-        h1 = httplib.HTTPConnection(parsed_url.host, parsed_url.port)
+        h1 = httplib.HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
-        h1 = httplib.HTTPConnection(parsed_url.host)
+        h1 = httplib.HTTPConnection(parsed_url.hostname)
     logger.info("POSTing update to %s", url)
     # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
