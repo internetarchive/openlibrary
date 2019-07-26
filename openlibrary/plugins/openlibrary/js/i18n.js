@@ -3,8 +3,8 @@ export function sprintf(s) {
     var args = arguments;
     var i = 1;
     return s.replace(/%[%s]/g, function(match) {
-        if (match == "%%")
-            return "%";
+        if (match == '%%')
+            return '%';
         else
             return args[i++];
     });

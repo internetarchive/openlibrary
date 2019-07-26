@@ -29,11 +29,11 @@ $.fn.ol_confirm_dialog = function(callback, options) {
         modal: true,
         resizable: false,
         buttons: {
-            "Yes, I'm sure": function() {
+            'Yes, I\'m sure': function() {
                 callback.apply(_this);
             },
-            "No, cancel": function() {
-                $(_this).dialog("close");
+            'No, cancel': function() {
+                $(_this).dialog('close');
             }
         }
     };
@@ -63,7 +63,7 @@ export function closePopup() {
 // used in templates/admin/imports.html
 export function truncate(text, limit) {
     if (text.length > limit) {
-        return text.substr(0, limit) + "...";
+        return `${text.substr(0, limit)  }...`;
     } else {
         return text;
     }
@@ -87,7 +87,7 @@ export function initShowPasswords($) {
                 var c = function(a) {
                     var b;
                     a = $(a);
-                    b = $("<input type='text' />");
+                    b = $('<input type=\'text\' />');
                     b.insertAfter(a).attr({
                         'class': a.attr('class'),
                         'style': a.attr('style')

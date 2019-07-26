@@ -4,43 +4,43 @@
 export default function($) {
     var options;
     // Flash messages are hidden by default so that CSS is not on the critical path.
-    $(".flash-messages").show();
+    $('.flash-messages').show();
     // close-popup
-    $("a.close-popup").click(function() {
+    $('a.close-popup').click(function() {
         $.fn.colorbox.close();
     });
 
     // wmd editor
-    $("textarea.markdown").wmd({
-        helpLink: "/help/markdown",
-        helpHoverTitle: "Formatting Help",
-        helpTarget: "_new"
+    $('textarea.markdown').wmd({
+        helpLink: '/help/markdown',
+        helpHoverTitle: 'Formatting Help',
+        helpTarget: '_new'
     });
 
     // tabs
     options = {};
     if($.support.opacity){
-        options.fx = {"opacity": "toggle"};
+        options.fx = {'opacity': 'toggle'};
     }
 
-    if ($(".tabs:not(.ui-tabs)").tabs) {
-        $(".tabs:not(.ui-tabs)").tabs(options)
-        $(".tabs.autohash").bind("tabsselect", function(event, ui) {
+    if ($('.tabs:not(.ui-tabs)').tabs) {
+        $('.tabs:not(.ui-tabs)').tabs(options)
+        $('.tabs.autohash').bind('tabsselect', function(event, ui) {
             document.location.hash = ui.panel.id;
         });
     }
 
     // validate forms
-    $("form.validate").ol_validate();
+    $('form.validate').ol_validate();
 
     // hide info flash messages
-    $(".flash-messages .info").fadeTo(3000, 1).slideUp();
+    $('.flash-messages .info').fadeTo(3000, 1).slideUp();
 
     // hide all images in .no-img
-    $(".no-img img").hide();
+    $('.no-img img').hide();
 
     // disable save button after click
-    $("button[name='_save']").submit(function() {
-        $(this).attr("disabled", true);
+    $('button[name=\'_save\']').submit(function() {
+        $(this).attr('disabled', true);
     });
 }

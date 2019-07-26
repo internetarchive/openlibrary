@@ -115,14 +115,14 @@ export function websafe(value) {
     // Added try-catch to avoid it.
     try {
         if (value == null || value == undefined) {
-            return "";
+            return '';
         }
         else {
             return htmlquote(value.toString());
         }
     }
     catch (e) {
-        return "";
+        return '';
     }
 }
 
@@ -134,10 +134,10 @@ export function websafe(value) {
 export function htmlquote(text) {
     // This code exists for compatibility with template.js
     text = String(text);
-    text = text.replace(/&/g, "&amp;"); // Must be done first!
-    text = text.replace(/</g, "&lt;");
-    text = text.replace(/>/g, "&gt;");
-    text = text.replace(/'/g, "&#39;");
-    text = text.replace(/"/g, "&quot;");
+    text = text.replace(/&/g, '&amp;'); // Must be done first!
+    text = text.replace(/</g, '&lt;');
+    text = text.replace(/>/g, '&gt;');
+    text = text.replace(/'/g, '&#39;');
+    text = text.replace(/"/g, '&quot;');
     return text;
 }

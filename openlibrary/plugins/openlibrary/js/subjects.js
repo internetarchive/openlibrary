@@ -24,8 +24,8 @@ export function Subject(data, options) {
     this.slug = data.name.replace(/\s+/g, '-').toLowerCase();
     this.filter = {};
     this.published_in = options.published_in ? options.published_in : undefined;
-    this.has_fulltext = options.readable ? "true" : "false";
-    this.sort = options.sort ? options.sort : "editions";
+    this.has_fulltext = options.readable ? 'true' : 'false';
+    this.sort = options.sort ? options.sort : 'editions';
 
     this.init(data);
     this._data = data;
@@ -36,31 +36,31 @@ export function urlencode(query) {
     var parts = [];
     var k;
     for (k in query) {
-        parts.push(k + "=" + query[k]);
+        parts.push(`${k  }=${  query[k]}`);
     }
-    return parts.join("&");
+    return parts.join('&');
 }
 
 /* Should really use createElement() */
 export function renderTag(tag, keyvals, child) {
-    var html = '<' + tag + ' ';
+    var html = `<${  tag  } `;
     var key, val;
     for (key in keyvals) {
         val =  keyvals[key];
         if (val == '') {
-            html += key + ' ';
+            html += `${key  } `;
         } else {
-            html += key + '="' + val + '" ';
+            html += `${key  }="${  val  }" `;
         }
     }
     if (tag === 'img') {
-        return html + '/>';
+        return `${html  }/>`;
     }
     html += '>';
     if (child) {
         html += child;
     }
-    html += '</' + tag + '>';
+    html += `</${  tag  }>`;
     return html;
 }
 
@@ -76,7 +76,7 @@ export function slice(array, begin, end) {
 $.extend(Subject.prototype, {
 
     init: function(data) {
-        $.log(["init", this, arguments]);
+        $.log(['init', this, arguments]);
 
         $.extend(this, data);
         this.page_count = Math.ceil(this.work_count / this.settings.pagesize);
@@ -85,8 +85,8 @@ $.extend(Subject.prototype, {
         // cache already visited pages
         //@@ Can't this be handled by HTTP caching?
         this._pages = {};
-        if (this.has_fulltext != "true")
-            this._pages[0] = {"works": slice(data.works, 0, this.settings.pagesize)};
+        if (this.has_fulltext != 'true')
+            this._pages[0] = {'works': slice(data.works, 0, this.settings.pagesize)};
 
     // TODO: initialize additional pages when there are more works.
     },
@@ -96,7 +96,7 @@ $.extend(Subject.prototype, {
     },
 
     getPageCount: function() {
-        return this.has_fulltext == "true"? this.epage_count : this.page_count;
+        return this.has_fulltext == 'true'? this.epage_count : this.page_count;
     },
 
     renderWork: function(work) {
@@ -105,26 +105,26 @@ $.extend(Subject.prototype, {
         var ed, titlestring, bookcover_url, format, bookread_url, html
         for (author in work.authors)
             authors.push(work.authors[author].name);
-        ed = 'edition' + (work.edition_count > 1 ? 's' : '');
-        titlestring = work.title + " by " + authors.join(', ') +
-        ' (' + work.edition_count + ' ' + ed + ')';
-        bookcover_url = '//covers.openlibrary.org/b/id/' + work.cover_id + '-M.jpg';
+        ed = `edition${  work.edition_count > 1 ? 's' : ''}`;
+        titlestring = `${work.title  } by ${  authors.join(', ')
+        } (${  work.edition_count  } ${  ed  })`;
+        bookcover_url = `//covers.openlibrary.org/b/id/${  work.cover_id  }-M.jpg`;
         format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
         bookread_url = work.public_scan ?
-            ('//archive.org/stream/' + work.ia + '?ref=ol') :
-            '/borrow/ia/' + work.ia;
+            (`//archive.org/stream/${  work.ia  }?ref=ol`) :
+            `/borrow/ia/${  work.ia}`;
         html = renderTag('div', {'class': 'coverMagic'},
             renderTag('span', {
                 'itemtype': 'https://schema.org/Book',
                 'itemscope': ''},
             renderTag('div', {'class': 'SRPCover'},
                 renderTag('a', {'href': work.key, 'title': titlestring,
-                    'data-ol-link-track': 'subject-' + this.slug},
+                    'data-ol-link-track': `subject-${  this.slug}`},
                 renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
                     'alt': titlestring, 'class': 'cover'}))) +
         renderTag('div', {'class': 'coverEbook'},
             (format === 'public' ?
-                renderTag('a', {'href': bookread_url, "title": "Read online",
+                renderTag('a', {'href': bookread_url, 'title': 'Read online',
                     'class': 'cta-btn--available cta-btn'}, 'Read') :
                 renderTag('a', {
                     'href': bookread_url,
@@ -150,10 +150,10 @@ $.extend(Subject.prototype, {
         }
         else {
             params = {
-                "limit": limit,
-                "offset": offset,
-                "has_fulltext": this.has_fulltext,
-                "sort": this.sort
+                'limit': limit,
+                'offset': offset,
+                'has_fulltext': this.has_fulltext,
+                'sort': this.sort
             }
             if(this.published_in) {
                 params.published_in = this.published_in;
@@ -161,7 +161,7 @@ $.extend(Subject.prototype, {
             $.extend(params, this.filter);
 
             key = this.key.replace(/\s+/g, '_');
-            url = key + ".json?" + urlencode(params);
+            url = `${key  }.json?${  urlencode(params)}`;
             t = this;
 
             $.getJSON(url, function(data) {
@@ -173,10 +173,10 @@ $.extend(Subject.prototype, {
 
     _ajax: function(params, callback) {
         var key, url;
-        params = $.extend({"limit": this.settings.pagesize, "offset": 0},
+        params = $.extend({'limit': this.settings.pagesize, 'offset': 0},
             this.filter, params);
         key = this.key.replace(/\s+/g, '_');
-        url = key + ".json?" + urlencode(params);
+        url = `${key  }.json?${  urlencode(params)}`;
         $.getJSON(url, callback);
     },
 
@@ -190,7 +190,7 @@ $.extend(Subject.prototype, {
         this.filter = filter;
 
         _this = this;
-        this._ajax({"details": "true"}, function(data) {
+        this._ajax({'details': 'true'}, function(data) {
             _this.init(data);
             callback && callback();
         });

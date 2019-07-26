@@ -13,26 +13,26 @@ export default function($){
             nextRowId;
         options = options || {};
 
-        id = "#" + this.attr("id");
+        id = `#${  this.attr('id')}`;
         elems = {
             '_this': this,
-            'add': $(id + '-add'),
-            'form': $(id + '-form'),
-            'display': $(id + '-display'),
-            'template': $(id + '-template')
+            'add': $(`${id  }-add`),
+            'form': $(`${id  }-form`),
+            'display': $(`${id  }-display`),
+            'template': $(`${id  }-template`)
         }
 
         function createTemplate(selector) {
             code = $(selector).html()
-                .replace(/%7B%7B/gi, "<%=")
-                .replace(/%7D%7D/gi, "%>")
-                .replace(/{{/g, "<%=")
-                .replace(/}}/g, "%>");
+                .replace(/%7B%7B/gi, '<%=')
+                .replace(/%7D%7D/gi, '%>')
+                .replace(/{{/g, '<%=')
+                .replace(/}}/g, '%>');
             // Template is defined in openlibrary\plugins\openlibrary\js\template.js
             return Template(code);
         }
 
-        t = createTemplate(id + "-template");
+        t = createTemplate(`${id  }-template`);
 
         /**
          * Search elems.form for input fields and create an
@@ -43,10 +43,10 @@ export default function($){
          */
         function formdata() {
             var data = {};
-            $(":input", elems.form).each(function() {
+            $(':input', elems.form).each(function() {
                 var $e = $(this),
                     type = $e.attr('type'),
-                    name = $e.attr("name");
+                    name = $e.attr('name');
 
                 data[name] = $e.val().trim();
                 // reset the values we are copying across
@@ -78,33 +78,33 @@ export default function($){
 
             $.extend(data, options.vars || {});
 
-            newid = `${elems._this.attr("id")}--${nextRowId}`;
+            newid = `${elems._this.attr('id')}--${nextRowId}`;
             // increment the index to avoid situations where more than one element have same
             nextRowId++;
             // Create the HTML of a hidden input
             elems.template
                 .clone()
-                .attr("id", newid)
+                .attr('id', newid)
                 .html(t(data))
                 .show()
                 .appendTo(elems.display);
 
-            elems._this.trigger("repeat-add");
+            elems._this.trigger('repeat-add');
         }
         function onRemove(event) {
             event.preventDefault();
-            $(this).parents(".repeat-item:eq(0)").remove();
-            elems._this.trigger("repeat-remove");
+            $(this).parents('.repeat-item:eq(0)').remove();
+            elems._this.trigger('repeat-remove');
         }
-        addSelector = id + " .repeat-add";
-        removeSelector = id + " .repeat-remove";
+        addSelector = `${id  } .repeat-add`;
+        removeSelector = `${id  } .repeat-remove`;
         // Click handlers should apply to newly created add/remove selectors
         if (isOldJQuery) {
-            $(addSelector).on("click", addSelector, onAdd);
-            $(removeSelector).on("click", removeSelector, onRemove);
+            $(addSelector).on('click', addSelector, onAdd);
+            $(removeSelector).on('click', removeSelector, onRemove);
         } else {
-            $(document).on("click", addSelector, onAdd);
-            $(document).on("click", removeSelector, onRemove);
+            $(document).on('click', addSelector, onAdd);
+            $(document).on('click', removeSelector, onRemove);
         }
     }
 }
