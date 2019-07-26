@@ -16,5 +16,5 @@ WORKS_PARTITIONS=$(time psql -c "SELECT keyid FROM entity_get_partition_markers(
 for key in $WORKS_PARTITIONS; do
   key=${key//$'\r'/} # get rid of embedded returns
   RUN_SIG=works_${key//\//}_`date +%Y-%m-%d_%H-%M-%S`
-  docker_solr_builder works --log-level DEBUG --start-at $key --limit $WORKS_CHUNK_SIZE -p progress/$RUN_SIG.txt -l logs/$RUN_SIG.txt
+  docker_solr_builder works --ol-config ../../conf/openlibrary-docker.yml --log-level DEBUG --start-at $key --limit $WORKS_CHUNK_SIZE -p progress/$RUN_SIG.txt -l logs/$RUN_SIG.txt
 done;
