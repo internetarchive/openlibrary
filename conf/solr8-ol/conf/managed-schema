@@ -187,7 +187,7 @@
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
     <field name="time_key" type="string" stored="false" multiValued="true"/>
 
-    <field name="text" type="text_en_splitting" multiValued="true"/>
+    <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
 
