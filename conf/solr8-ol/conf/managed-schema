@@ -160,10 +160,10 @@
     <field name="first_publisher" type="string" indexed="false"/>
     <field name="language" type="string" multiValued="true"/>
     <field name="number_of_pages" type="int" multiValued="true"/>
-    <field name="lccn" type="text_general" multiValued="true"/>
+    <field name="lccn" type="string" multiValued="true"/>
     <field name="ia" type="string" multiValued="true"/>
     <field name="ia_count" type="int"/>
-    <field name="oclc" type="text_en_splitting" multiValued="true"/>
+    <field name="oclc" type="string" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
     <field name="contributor" type="text_general" multiValued="true"/> <!-- i18n -->
     <field name="publish_place" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
@@ -206,7 +206,7 @@
    <!-- additional fields used by documents of type subject -->
    <field name="subject_type" type="string" indexed="true" stored="true"/>
 
-   <!-- it looks like Solr's default field types is longs, which doesn't work for these, so define them specially -->
+   <!-- Solr's dynamic schema support is identifying these as longs, which is incompatible, so define them specially -->
    <dynamicField name="id_*" type="strings"  indexed="true"  stored="true"/>
    <field name="ia_box_id" type="strings" indexed="true" stored="true"/>
    <field name="ia_loaded_id" type="strings" indexed="true" stored="true"/>
