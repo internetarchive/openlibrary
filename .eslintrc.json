@@ -10,6 +10,8 @@
   },
   "globals": {},
   "rules": {
+    "prefer-template": "error",
+    "quotes": ["error", "single"],
     "eol-last": ["error", "always"],
     "indent": 2,
     "no-console": "error",
