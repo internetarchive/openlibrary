@@ -73,26 +73,26 @@ const Carousel = {
             var ocaid = work.availability.identifier;
             var cls = availabilityStatuses[availability].cls;
             var url = (cls == 'cta-btn--available') ?
-                ('/borrow/ia/' + ocaid) : (cls == 'cta-btn--unavailable') ?
-                    ('/books/' + work.availability.openlibrary_edition) : work.key;
+                (`/borrow/ia/${  ocaid}`) : (cls == 'cta-btn--unavailable') ?
+                    (`/books/${  work.availability.openlibrary_edition}`) : work.key;
             var cta = availabilityStatuses[availability].cta;
             var isClickable = availability == 'error' ? 'disabled' : '';
 
-            return '<div class="book carousel__item slick-slide slick-active" ' +
+            return `${'<div class="book carousel__item slick-slide slick-active" ' +
                 '"aria-hidden="false" role="option">' +
                 '<div class="book-cover">' +
-                  '<a href="' + work.key + '" ' + isClickable + '>' +
-                    '<img class="bookcover" width="130" height="200" title="' +
-                      work.title + '" ' +
-                      'src="//covers.openlibrary.org/b/id/' + cover_id + '-M.jpg">' +
+                  '<a href="'}${  work.key  }" ${  isClickable  }>` +
+                    `<img class="bookcover" width="130" height="200" title="${
+                        work.title  }" ` +
+                      `src="//covers.openlibrary.org/b/id/${  cover_id  }-M.jpg">` +
                   '</a>' +
                 '</div>' +
                 '<div class="book-cta">' +
-                  '<a class="btn cta-btn ' + cls + '" href="' + url +
-                    '" data-ol-link-track="subjects" ' +
-                    'title="' + cta + ': ' + work.title +
-                    '" data-key="subjects" data-ocaid="' + ocaid + '">' + cta +
-                  '</a>' +
+                  `<a class="btn cta-btn ${  cls  }" href="${  url
+                  }" data-ol-link-track="subjects" ` +
+                    `title="${  cta  }: ${  work.title
+                    }" data-key="subjects" data-ocaid="${  ocaid  }">${  cta
+                    }</a>` +
                 '</div>' +
               '</div>';
         }
@@ -113,10 +113,10 @@ const Carousel = {
 
             // Bind an action listener to this carousel on resize or advance
             $(selector).on('afterChange', function() {
-                var totalSlides = $(selector + '.slick-slider')
-                    .slick("getSlick").$slides.length;
-                var numActiveSlides = $(selector + ' .slick-active').length;
-                var currentLastSlide = $(selector + '.slick-slider')
+                var totalSlides = $(`${selector  }.slick-slider`)
+                    .slick('getSlick').$slides.length;
+                var numActiveSlides = $(`${selector  } .slick-active`).length;
+                var currentLastSlide = $(`${selector  }.slick-slider`)
                     .slick('slickCurrentSlide') + numActiveSlides;
                 // this allows us to pre-load before hitting last page
                 var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
@@ -142,8 +142,8 @@ const Carousel = {
                         success: function(subject_results) {
                             $.each(subject_results.works, function(work_idx) {
                                 var work = subject_results.works[work_idx];
-                                var lastSlidePos = $(selector + '.slick-slider')
-                                    .slick("getSlick").$slides.length - 1;
+                                var lastSlidePos = $(`${selector  }.slick-slider`)
+                                    .slick('getSlick').$slides.length - 1;
                                 $(selector).slick('slickAdd', addWork(work), lastSlidePos);
                             });
                             document.body.style.cursor='default'; // return cursor to ready

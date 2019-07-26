@@ -12,7 +12,7 @@ export function commify(n) {
     var re = /(\d+)(\d{3})/;
 
     while (re.test(text)) {
-        text = text.replace(re, "$1,$2");
+        text = text.replace(re, '$1,$2');
     }
 
     return text;
