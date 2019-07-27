@@ -7,13 +7,23 @@ import { getAvailabilityV2,
 import bookReaderInit from './bookreader_direct';
 import Carousel from './carousels';
 import { ungettext, ugettext,  sprintf } from './i18n';
-import { addFadeInFunctionsTojQuery } from './jquery.others';
+// Load jQuery plugins
+import './jquery.columnize';
+import './jquery.dataTables';
+import './jquery.hoverIntent';
+import './jquery.jTruncate';
+import toggleText from './jquery.toggleText';
+import addFadeInFunctionsTojQuery from './jquery.customFade';
+import fadeToggle from './jquery.fadeToggle';
 import jQueryRepeat from './jquery.repeat';
+import './jquery.scrollTo';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 // Note this import will also load various jQuery plugins.
 // (jQuery.ScrollTo, jquery.hoverIntent, jquery.dataTables, dataTableExt,
 // highlight, removeHighlight, jTruncate, columnize)
-import { plot_tooltip_graph, plot_minigraph } from './lazy';
+import { plot_minigraph, plot_tooltip_graph } from './plot';
+import removeHighlight from './removeHighlight';
+import highlight from './highlight';
 import initAnalytics from './ol.analytics';
 // Also pulls in jQuery.fn.exists
 import init, { closePop, bookCovers,
@@ -65,6 +75,10 @@ window.Template = Template;
 String.prototype.join = join;
 
 jQuery.fn.exists = function(){return jQuery(this).length>0;}
+jQuery.fn.removeHighlight = removeHighlight;
+jQuery.fn.highlight = highlight;
+jQuery.fn.fadeToggle = fadeToggle;
+jQuery.fn.toggleText = toggleText;
 
 // Initialise some things
 $(function () {
