@@ -19,4 +19,4 @@ export function debounce(func, threshold, execAsap) {
         }
         timeout = setTimeout(delayed, threshold || 100);
     };
-};
+}
