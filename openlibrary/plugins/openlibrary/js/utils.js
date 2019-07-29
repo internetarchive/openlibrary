@@ -1,6 +1,3 @@
-// We are blindly concatenating JS. The ; protects us in case the concatenation
-// goes wrong. This can be removed when we make use of a JS bundler e.g. webpack
-
 // source: http://snipplr.com/view/8916/jquery-toggletext/
 $.fn.toggleText = function(a, b) {
     return this.each(function() {
