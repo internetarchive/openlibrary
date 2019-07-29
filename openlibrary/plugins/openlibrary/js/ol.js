@@ -1,3 +1,5 @@
+import { debounce } from './nonjquery_utils.js';
+
 export var Browser = {
     getJsonFromUrl: function () {
         var query = location.search.substr(1);
@@ -81,7 +83,7 @@ export default function init(){
     };
     // stores the state of the search result for resizing window
     var instantSearchResultState = false;
-    var searchModes, searchModeDefault, defaultFacet, searchFacets, composeSearchUrl, marshalBookSearchQuery, renderInstantSearchResults, setFacet, setMode, setSearchMode, options, q, parts, debounce, enteredSearchMinimized, searchExpansionActivated, toggleSearchbar, renderInstantSearchResult, val, facet_value;
+    var searchModes, searchModeDefault, defaultFacet, searchFacets, composeSearchUrl, marshalBookSearchQuery, renderInstantSearchResults, setFacet, setMode, setSearchMode, options, q, parts, enteredSearchMinimized, searchExpansionActivated, toggleSearchbar, renderInstantSearchResult, val, facet_value;
 
     // searches should be cancelled if you click anywhere in the page
     $('body').on('click', function () {
@@ -242,25 +244,6 @@ export default function init(){
     // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
     // eslint-disable-next-line no-undef
     updateWorkAvailability();
-
-    debounce = function (func, threshold, execAsap) {
-        var timeout;
-        return function debounced () {
-            var obj = this, args = arguments;
-            function delayed () {
-                if (!execAsap)
-                    func.apply(obj, args);
-                timeout = null;
-            }
-
-            if (timeout) {
-                clearTimeout(timeout);
-            } else if (execAsap) {
-                func.apply(obj, args);
-            }
-            timeout = setTimeout(delayed, threshold || 100);
-        };
-    };
 
     $(document).on('submit','.trigger', function(e) {
         e.preventDefault(e);
