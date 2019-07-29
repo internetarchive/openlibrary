@@ -10,19 +10,27 @@ beforeEach(() => {
     sandbox.stub(global, '$').callsFake(jquery);
 });
 
-test('initReadingListFeature binds events to HTML added after initialisation', () => {
-    const spy = sinon.spy();
-    initReadingListFeature(() => spy);
-    $(document.body).html(`<div>
-    <div class="dropclick">test</div>
-    <a class="add-to-list"></a>
-</div>
-    `);
-    // trigger a click event
-    $('.dropclick').trigger('click');
-    // check the event handler was called
-    expect(spy.callCount).toBe(1);
-    $('.dropclick').trigger('click');
-    // check the dropclick event handler was called
-    expect(spy.callCount).toBe(2);
+describe('initReadingList', () => {
+    test('dropdown changes arrow direction on click', () => {
+        const clock = sinon.useFakeTimers();
+        initReadingListFeature();
+        $(document.body).html(`
+            <a href="javascript:;" class="dropclick dropclick-unactivated">
+                <div class="arrow arrow-unactivated"></div>
+            </a>
+        `);
+
+        const $dropclick = $('.dropclick');
+        const $arrow = $dropclick.find('.arrow');
+
+        for (let i = 0; i < 2; i++) {
+            $dropclick.trigger('click');
+            clock.next(); // need to step forward because using debounce
+            expect($arrow.hasClass('up')).toBe(true);
+            $dropclick.trigger('click');
+            clock.next();
+            expect($arrow.hasClass('up')).toBe(false);
+        }
+        clock.restore();
+    });
 });
