@@ -383,14 +383,11 @@ export default function init(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
-    initReadingListFeature(debounce);
+    initReadingListFeature();
     initBorrowAndReadLinks();
 }
 
-/**
- * @param {Function} debounce function
- */
-export function initReadingListFeature(debounce) {
+export function initReadingListFeature() {
     /**
      * close an open dropdown in a given container
      * @param {jQuery.Object} $container
