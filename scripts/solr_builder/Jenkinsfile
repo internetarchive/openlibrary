@@ -52,6 +52,9 @@ pipeline {
                   sh(label: 'optional; GUI for the database at port 8087',
                     script: 'docker-compose up -d --no-deps adminer')
 
+                  // Wait for postgres
+                  sleep 10
+
                   sh(label: 'Create the table to store the dump',
                     script: 'docker-compose exec -T -u postgres db psql -d postgres -f sql/create-dump-table.sql')
                 }
@@ -107,7 +110,7 @@ pipeline {
               post {
                 always {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/psql-chunk-*.txt; do echo -ne "$f: "; cat "$f"; done > logs/psql-import.log'
+                    sh 'for f in logs/psql-chunk-*.txt; do echo "$f: "; cat "$f"; done > logs/psql-import.log'
                     archiveArtifacts artifacts: 'logs/psql-import.log'
                   }
                 }
