@@ -20,5 +20,5 @@ for key in $PARTITION; do
   OLID=$(echo "${key}" | grep -oe 'OL[0-9]*[MWA]')
   RUN_SIG="${TYPE}s_${OLID}"
   docker_solr_builder "${TYPE}s" --start-at $key --limit $CHUNK_SIZE -p progress/$RUN_SIG.txt -l logs/$RUN_SIG.txt
-  sleep 60
+  # sleep 60
 done;
