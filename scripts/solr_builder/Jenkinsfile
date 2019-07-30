@@ -86,9 +86,6 @@ pipeline {
               }
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh(label: 'Remove any existing logs',
-                    script: 'rm -f logs/psql-chunk-*')
-
                   sh(label: 'Import dump into postgres',
                     script: "./psql-import-in-chunks.sh ${env.DUMP_DIR}/${env.OL_DUMP_FILE} ${env.PARALLEL_PROCESSES}")
                   
@@ -98,11 +95,7 @@ pipeline {
                       // error if we have anything else
                       // (cat at the end to avoid grep exiting when no match)
                       def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
-                      if (error_output) {
-                        // Attach filenames for clearer output
-                        def logs = sh(script: 'for f in logs/psql-chunk-*; do echo -ne "$f: "; cat "$f"; done | grep -v COPY', returnStdout: true)
-                        throw new Exception(logs)
-                      }
+                      assert !error_output
                       
                       def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
                       echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
@@ -122,10 +115,12 @@ pipeline {
             }
             stage('Test import successful') {
               steps {
-                script {
-                  def lines_in_dump = sh(script: "zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
-                  def rows_in_db = sh(script: "source aliases.sh; psql postgres -q -f sql/count-all-rows.sql", returnStdout: true).trim()
-                  assert lines_in_dump == rows_in_db
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  script {
+                    def lines_in_dump = sh(script: "zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
+                    def rows_in_db = sh(script: "source aliases.sh; psql postgres -q -f sql/count-all-rows.sql", returnStdout: true).trim()
+                    assert lines_in_dump == rows_in_db
+                  }
                 }
               }
             }
@@ -164,21 +159,20 @@ pipeline {
         }
         stage('Insert works & orphaned editions') {
           steps {
-            sh(label: 'Remove any existing progress/logs',
-              script: 'rm -f progress/{works_work,orphans}*')
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh './index-works.sh'
+              sh './index-orphans.sh'
 
-            sh './index-works.sh'
-            sh './index-orphans.sh'
-
-            waitUntil {
-              script {
-                def cores_completed = sh(script: 'for f in progress/{works_work,orphans}*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
-                return cores_completed == '6'
+              waitUntil {
+                script {
+                  def cores_completed = sh(script: 'for f in progress/{works_work,orphans}*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
+                  return cores_completed == '6'
+                }
               }
-            }
 
-            sh(label: 'Solr commit the changes',
-              script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+              sh(label: 'Solr commit the changes',
+                script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+            }
           }
           post {
             always {
@@ -192,20 +186,19 @@ pipeline {
         }
         stage('Insert authors') {
           steps {
-            sh(label: 'Remove any existing progress/logs',
-              script: 'rm -f progress/works_authors*')
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh './index-authors.sh'
 
-            sh './index-authors.sh'
-
-            waitUntil {
-              script {
-                def cores_completed = sh(script: 'for f in progress/work_authors*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
-                return cores_completed == '6'
+              waitUntil {
+                script {
+                  def cores_completed = sh(script: 'for f in progress/work_authors*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
+                  return cores_completed == '6'
+                }
               }
-            }
 
-            sh(label: 'Solr commit the changes',
-              script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+              sh(label: 'Solr commit the changes',
+                script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+            }
           }
           post {
             always {
