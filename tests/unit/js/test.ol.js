@@ -1,7 +1,8 @@
 import jquery from 'jquery';
 import sinon from 'sinon';
 import { initReadingListFeature } from '../../../openlibrary/plugins/openlibrary/js/ol';
-
+import { bookDropdownSample } from './html-test-data'
+import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 let sandbox;
 
 beforeEach(() => {
@@ -11,26 +12,23 @@ beforeEach(() => {
 });
 
 describe('initReadingList', () => {
-    test('dropdown changes arrow direction on click', () => {
-        const clock = sinon.useFakeTimers();
-        initReadingListFeature();
-        $(document.body).html(`
-            <a href="javascript:;" class="dropclick dropclick-unactivated">
-                <div class="arrow arrow-unactivated"></div>
-            </a>
-        `);
+    test.only('dropdown changes arrow direction on click', () => {
+        // Stub debounce to avoid have to manipulate time (!)
+        const stub = sinon.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
 
+        initReadingListFeature();
+        $(document.body).html(bookDropdownSample);
         const $dropclick = $('.dropclick');
         const $arrow = $dropclick.find('.arrow');
 
         for (let i = 0; i < 2; i++) {
             $dropclick.trigger('click');
-            clock.next(); // need to step forward because using debounce
             expect($arrow.hasClass('up')).toBe(true);
+
             $dropclick.trigger('click');
-            clock.next();
             expect($arrow.hasClass('up')).toBe(false);
         }
-        clock.restore();
+
+        stub.restore();
     });
 });

@@ -1,4 +1,4 @@
-const editionIdentifiersSample = `<fieldset id="identifiers">
+export const editionIdentifiersSample = `<fieldset id="identifiers">
 <table class="identifiers">
     <tbody><tr id="identifiers-form">
         <td align="right">
@@ -65,6 +65,9 @@ const editionIdentifiersSample = `<fieldset id="identifiers">
 </table>
 </div>`;
 
-export default {
-    editionIdentifiersSample
-};
+/** Part/Simplification of the #widget-add element */
+export const bookDropdownSample = `
+    <a href="javascript:;" class="dropclick dropclick-unactivated">
+        <div class="arrow arrow-unactivated"></div>
+    </a>
+`;
