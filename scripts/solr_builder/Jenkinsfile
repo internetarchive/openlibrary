@@ -22,6 +22,8 @@ pipeline {
     SOLR_DUMP_DIR = '/storage/openlibrary/solr'
     // The name of expanded solr dump
     CUR_SOLR_BACKUP = '_solr-backup-cur'
+    // The full path of the solr backup
+    SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
     // Where to download the ol full dump from
     OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
     // Get the date-suffixed name of the latest dump
@@ -240,7 +242,7 @@ pipeline {
             stage('Launch solr-backup service') {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose up -d --no-deps -e CUR_SOLR_BACKUP='${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}' solr-backup"
+                  sh "docker-compose up -d --no-deps solr-backup"
                   script {
                     // Assert backup has subjects in it
                     assert query_solr_count(env.BACKUP_SOLR_URL, 'subject') != '0'
@@ -277,9 +279,6 @@ pipeline {
 }
 post {
   always {
-    // Delete the workspace
-    deleteDir()
-
     dir(env.DUMP_DIR) {
       sh(label: 'Remove partial dump file, if we had one',
         script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
@@ -288,6 +287,9 @@ post {
       sh(label: 'Remove solr backup directory',
         script: "rm -rf ${env.CUR_SOLR_BACKUP}")
     }
+
+    // Delete the workspace
+    deleteDir()
   }
 }
 

@@ -39,7 +39,7 @@ services:
     ports:
       - 8985:8080
     volumes:
-      - "${CUR_SOLR_BACKUP}/var/lib/solr/data:/var/lib/solr/data"
+      - "${SOLR_BACKUP_PATH}/var/lib/solr/data:/var/lib/solr/data"
     networks:
       - solr-access
 
