@@ -17,19 +17,8 @@ pipeline {
   environment {
     // The *host* location of Jenkins directory
     JENKINS_HOME_DIR = sh(script: "docker volume inspect --format='{{.Mountpoint}}' jenkins-data", returnStdout: true).trim()
-    // Where to save the dump
+    // Where to save dumps
     DUMP_DIR = '/storage/openlibrary'
-    // Where the solr dumps are saved
-    SOLR_DUMP_DIR = '/storage/openlibrary/solr'
-    // The name of expanded solr dump
-    CUR_SOLR_BACKUP = '_solr-backup-cur'
-    // The full path of the solr backup
-    SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
-    // The location of the repo on the host machine; needed for docker-in-docker images
-    HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
-    // As specified in docker-compose.yml
-    NEW_SOLR_URL = 'http://localhost:8984'
-    BACKUP_SOLR_URL = 'http://localhost:8985'
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
@@ -163,6 +152,19 @@ pipeline {
       }
     }
     stage('2: Populate solr') {
+      environment {
+        // Where the solr dumps are saved
+        SOLR_DUMP_DIR = "${env.DUMP_DIR}/solr"
+        // The name of expanded solr dump
+        CUR_SOLR_BACKUP = '_solr-backup-cur'
+        // The full path of the solr backup
+        SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
+        // The location of the repo on the host machine; needed for docker-in-docker images
+        HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
+        // As specified in docker-compose.yml
+        NEW_SOLR_URL = 'http://localhost:8984'
+        BACKUP_SOLR_URL = 'http://localhost:8985'
+      }
       stages {
         stage('Setup') {
           steps {
