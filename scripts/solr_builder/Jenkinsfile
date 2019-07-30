@@ -22,6 +22,7 @@ pipeline {
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
+      when { expression { return !params.REUSE_POSTGRES } }
       environment {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
@@ -34,7 +35,6 @@ pipeline {
       }
       stages {
         stage('Setup') {
-          when { expression { return !params.REUSE_POSTGRES } }
           parallel {
             stage('Launch postgres containers') {
               steps {
@@ -74,21 +74,7 @@ pipeline {
             }
           }
         }
-        stage('Restart Postgres') {
-          // Have to restart to because the previous workspace was destroyed on cleanup
-          when { expression { return params.REUSE_POSTGRES } }
-          steps {
-            dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh(label: 'Stop the db containers',
-                'docker-compose stop db adminer')
-
-              sh(label: 'Start the db containers',
-                script: 'docker-compose up -d --no-deps db adminer')
-            }
-          }
-        }
         stage('Populate postgres') {
-          when { expression { return !params.REUSE_POSTGRES } }
           stages {
             stage('Import dump into postgres') {
               environment {
@@ -180,6 +166,19 @@ pipeline {
         BACKUP_SOLR_URL = 'http://localhost:8985'
       }
       stages {
+        stage('Restart Postgres') {
+          // Have to restart to because the previous workspace was destroyed on cleanup
+          when { expression { return params.REUSE_POSTGRES } }
+          steps {
+            dir(env.HOST_SOLR_BUILDER_DIR) {
+              sh(label: 'Stop the db containers',
+                script: 'docker-compose stop db adminer')
+
+              sh(label: 'Start the db containers',
+                script: 'docker-compose up -d --no-deps db adminer')
+            }
+          }
+        }
         stage('Setup') {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
