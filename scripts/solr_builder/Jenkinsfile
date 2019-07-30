@@ -117,7 +117,7 @@ pipeline {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   script {
-                    def lines_in_dump = sh(script: "zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
+                    def lines_in_dump = sh(script: "cd ${env.DUMP_DIR}; zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
                     def rows_in_db = sh(script: '''
                       . ./aliases.sh
                       psql -q -f sql/count-all-rows.sql''', returnStdout: true).trim()
@@ -133,6 +133,14 @@ pipeline {
                 }
               }
             }
+          }
+        }
+      }
+      post {
+        failure {
+          dir(env.HOST_SOLR_BUILDER_DIR) {
+            sh 'docker-compose stop'
+            sh 'docker-compose rm -f'
           }
         }
       }
@@ -282,8 +290,7 @@ pipeline {
           script: "rm -rf ${env.CUR_SOLR_BACKUP}")
       }
 
-      // Delete the workspace
-      deleteDir()
+      deleteDir() // Delete the workspace
     }
   }
 }
