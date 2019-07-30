@@ -143,7 +143,7 @@
 
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
-    <field name="title" type="text_en_splitting"/> <!-- i18n -->
+    <field name="title" type="text_international"/> <!-- i18n -->
     <field name="title_suggest" type="text_general"/> <!-- i18n? -->
     <field name="subtitle" type="text_en_splitting"/> <!-- i18n -->
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
@@ -437,8 +437,8 @@
     <!-- A text field with better cross-language defaults: 
                it tokenizes with StandardTokenizer,
 	       removes stop words from case-insensitive "stopwords.txt"
-	       (empty by default), and down cases.  At query time only, it
-	       also applies synonyms.
+	       (empty by default), and downcases, normalizes, and removes diacritics.
+	       At query time only, it also applies synonyms.
 	  -->
     <fieldType name="text_international" class="solr.TextField" positionIncrementGap="100" multiValued="true">
       <analyzer type="index">
