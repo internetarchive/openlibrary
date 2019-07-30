@@ -1,5 +1,12 @@
 This goes through building a solr instance from a dump file. Assume current directory is `scripts/solr_builder` for all commands unless otherwise stated.
 
+Disk space required:
+ - Docker Desktop with all containers including all data - 220 GB
+or individual disk space requirements for data:
+ - PostgreSQL DB - 55 GB
+ - Solr Index - 30 GB
+ - solr_builder logs - up to 30 GB
+
 ## Step 1: Create a local postgres copy of the database
 
 ### 1a: Create the postgres instance
@@ -63,8 +70,9 @@ docker-compose up --no-deps -d solr
 
 or launch standard pre-built solr:8 containter
 
-docker-compose up --no-deps -d solr8
-
+    docker-compose up --no-deps -d solr8
+#then create the openlibrary core (FIRST TIME ONLY)
+    docker-compose exec solr8 solr create -c openlibrary -d /opt/solr-8.1.1/server/solr/configsets/olconfig -n openlibrary
 
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment

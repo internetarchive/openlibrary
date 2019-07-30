@@ -31,6 +31,8 @@ services:
     networks:
       - solr-access
 
+  # On first launch need to create a core called "openlibrary" with our config & schema (one time only!)
+  # docker-compose exec solr8 solr create -c openlibrary -d /opt/solr-8.1.1/server/solr/configsets/olconfig -n openlibrary
   solr8:
     image: solr:8
     restart: on-failure
@@ -47,8 +49,6 @@ services:
       - ../../conf/solr8-ol:/opt/solr/server/solr/configsets/olconfig:ro
     networks:
       - solr-access
-    # On first launch will precreate a core called "openlibrary" with our config & schema
-    command: solr-precreate openlibrary /opt/solr/server/solr/configsets/olconfig
 
   # Replica of production solr so we can get subjects
   solr-backup:
