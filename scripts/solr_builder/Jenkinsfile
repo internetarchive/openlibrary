@@ -12,6 +12,7 @@ pipeline {
   }
   parameters {
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
+    booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -182,13 +183,12 @@ pipeline {
 
               waitUntil {
                 script {
-                  def cores_completed = sh(script: 'for f in progress/{works_work,orphans}*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
-                  return cores_completed == '6'
+                  print_indexing_progress('{works_work,orphans}')
+                  return count_indexers_completed('{works_work,orphans}') == '6'
                 }
               }
 
-              sh(label: 'Solr commit the changes',
-                script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+              solr_commit(env.NEW_SOLR_URL)
             }
           }
           post {
@@ -208,24 +208,19 @@ pipeline {
 
               waitUntil {
                 script {
-                  def cores_completed = sh(script: 'for f in progress/work_authors*; do tail -n1 $f; done | grep 100.00% | wc -l', returnStdout: true).trim()
-                  return cores_completed == '6'
+                  print_indexing_progress('work_authors')
+                  return count_indexers_completed('work_authors') == '6'
                 }
               }
 
-              sh(label: 'Solr commit the changes',
-                script: "curl ${env.NEW_SOLR_URL}/solr/update?commit=true")
+              solr_commit(env.NEW_SOLR_URL)
             }
           }
           post {
             always {
-              post {
-                always {
-                  dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/work_authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
-                    archiveArtifacts artifacts: 'logs/authors-indexing.log'
-                  }
-                }
+              dir(env.HOST_SOLR_BUILDER_DIR) {
+                sh 'for f in logs/work_authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
+                archiveArtifacts artifacts: 'logs/authors-indexing.log'
               }
             }
           }
@@ -254,14 +249,13 @@ pipeline {
                   sh "docker-compose up -d --no-deps solr-backup"
                   script {
                     // Assert backup has subjects in it
-                    assert query_solr_count(env.BACKUP_SOLR_URL, 'subject') != '0'
+                    assert solr_query_count(env.BACKUP_SOLR_URL, 'subject') != '0'
                   }
                 }
               }
             }
             stage('Copy subjects into main solr') {
               steps {
-                // Don't know why, but can't seem to use the local name :/ Using public name instead
                 sh "curl -s ${env.NEW_SOLR_URL}/solr/dataimport?command=full-import"
 
                 waitUntil {
@@ -274,8 +268,8 @@ pipeline {
                 }
 
                 script {
-                  def backup_subjects_count = query_solr_count(env.BACKUP_SOLR_URL, 'subject')
-                  def new_subjects_count = query_solr_count(env.NEW_SOLR_URL, 'subject')
+                  def backup_subjects_count = solr_query_count(env.BACKUP_SOLR_URL, 'subject')
+                  def new_subjects_count = solr_query_count(env.NEW_SOLR_URL, 'subject')
                   assert backup_subjects_count == new_subjects_count
                 }
               }
@@ -301,9 +295,32 @@ pipeline {
   }
 }
 
-String query_solr_count(String solr_base_url, String type_to_count) {
+String solr_query_count(String solr_base_url, String type_to_count) {
   def solr_url = "${solr_url}/solr/select/?q=type%3A${type_to_count}&rows=0"
   def count_cmd = "curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
   def count = sh(script: count_subjects_cmd, returnStdout: true).trim()
   return count
+}
+
+void solr_commit(String solr_base_url) {
+  sh(label: 'Solr commit the changes',
+    script: "curl ${solr_base_url}/solr/update?commit=true")
+}
+
+void print_indexing_progress(String prefix_glob) {
+  sh(label: 'Progress',
+    script: """
+    for f in progress/${prefix_glob}*; do 
+      printf "\$f: ";
+      tail -n1 \$f | grep -oe '[0-9]*\\.[0-9]*%';
+    done; """)
+}
+
+String count_indexers_completed(String prefix_glob) {
+  return sh(script: """
+    for f in progress/${prefix_glob}*; do
+      tail -n1 \$f; 
+    done | grep 100.00% | wc -l
+    """,
+    returnStdout: true).trim()
 }
