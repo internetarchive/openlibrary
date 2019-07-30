@@ -100,11 +100,15 @@ Works took 27 hrs with 5 cores and orphans also running simultaneously. Note onl
 
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
+Solr 8.1 - (projected @47%) ) ~21-24 hrs for 5 shards in parallel with orphans - 18.2M works, MacBook Pro, 2019-06-30 dump
+
 ```bash
 ./index-orphans.sh
 ```
 
 Orphans took 8 hrs over 1 core in parallel with works (8 hrs, 3711877 docs, 10 June 2019, OJF; 11 hrs, 3735145 docs, 13 May 2019, OJF).
+
+Solr 8.1 orphans - ~17 hrs (projected) in parallel with 5 shards of works (MacBook Pro, 3.7m orphans, 2019-06-30 dump)
 
 To check progress, run (clearing the progress folder as necessary):
 
@@ -129,6 +133,8 @@ Note: This must be done AFTER works and orphans; authors query solr to determine
 ```
 
 Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF). After this is done, we have to call `commit` on solr:
+
+Solr 8.1 (w/o ICU folding) - 11 hrs across 6 shards - (30 July MacBook Pro, 7026684 authors, 2019-06-30 dump)
 
 ```bash
 time curl localhost:8984/solr/update?commit=true # ~25s
