@@ -275,20 +275,20 @@ pipeline {
       }
     }
   }
-}
-post {
-  always {
-    dir(env.DUMP_DIR) {
-      sh(label: 'Remove partial dump file, if we had one',
-        script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
-    }
-    dir(env.SOLR_DUMP_DIR) {
-      sh(label: 'Remove solr backup directory',
-        script: "rm -rf ${env.CUR_SOLR_BACKUP}")
-    }
+  post {
+    always {
+      dir(env.DUMP_DIR) {
+        sh(label: 'Remove partial dump file, if we had one',
+          script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
+      }
+      dir(env.SOLR_DUMP_DIR) {
+        sh(label: 'Remove solr backup directory',
+          script: "rm -rf ${env.CUR_SOLR_BACKUP}")
+      }
 
-    // Delete the workspace
-    deleteDir()
+      // Delete the workspace
+      deleteDir()
+    }
   }
 }
 
