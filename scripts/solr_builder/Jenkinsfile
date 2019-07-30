@@ -311,7 +311,7 @@ pipeline {
         }
 
         unsuccessful {
-          dir(env.SOLR_DUMP_DIR) {
+          dir(env.HOST_SOLR_BUILDER_DIR) {
             sh 'docker-compose stop solr'
             sh 'docker-compose rm -f solr'
             sh 'docker volume rm solr_builder_solr-data'
