@@ -25,14 +25,6 @@ pipeline {
     CUR_SOLR_BACKUP = '_solr-backup-cur'
     // The full path of the solr backup
     SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
-    // Where to download the ol full dump from
-    OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
-    // Get the date-suffixed name of the latest dump
-    FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
-    // Nmae of partial dump file
-    PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
-    // Use partial dump file, if specified so in the parameters
-    OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
     // The location of the repo on the host machine; needed for docker-in-docker images
     HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
     // As specified in docker-compose.yml
@@ -41,6 +33,16 @@ pipeline {
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
+      environment {
+        // Where to download the ol full dump from
+        OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
+        // Get the date-suffixed name of the latest dump
+        FULL_OL_DUMP_FILE = sh(script: "curl '${env.OL_DUMP_LINK}' -s -L -I -o /dev/null -w '%{url_effective}'", returnStdout: true).trim().split('/').last()
+        // Nmae of partial dump file
+        PARTIAL_OL_DUMP_FILE = "partial_${env.FULL_OL_DUMP_FILE}"
+        // Use partial dump file, if specified so in the parameters
+        OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
+      }
       stages {
         stage('Setup') {
           parallel {
@@ -143,6 +145,13 @@ pipeline {
         }
       }
       post {
+        always {
+          dir(env.DUMP_DIR) {
+            sh(label: 'Remove partial dump file (if we had one)',
+              script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
+          }
+        }
+
         unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh 'docker-compose stop'
@@ -281,10 +290,6 @@ pipeline {
   }
   post {
     always {
-      dir(env.DUMP_DIR) {
-        sh(label: 'Remove partial dump file, if we had one',
-          script: "rm -f ${env.PARTIAL_OL_DUMP_FILE}")
-      }
       dir(env.SOLR_DUMP_DIR) {
         sh(label: 'Remove solr backup directory',
           script: "rm -rf ${env.CUR_SOLR_BACKUP}")
