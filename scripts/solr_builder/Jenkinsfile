@@ -34,7 +34,6 @@ pipeline {
     OL_DUMP_FILE = "${params.PARTIAL_IMPORT_SIZE ? env.PARTIAL_OL_DUMP_FILE : env.FULL_OL_DUMP_FILE}"
     // The location of the repo on the host machine; needed for docker-in-docker images
     HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
-
     // As specified in docker-compose.yml
     NEW_SOLR_URL = 'http://localhost:8984'
     BACKUP_SOLR_URL = 'http://localhost:8985'
@@ -115,8 +114,8 @@ pipeline {
               post {
                 always {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/psql-chunk-*; do echo -ne "$f: "; cat "$f"; done > logs/psql-chunk-logs.txt'
-                    archiveArtifacts artifacts: 'logs/psql-chunk-logs.txt'
+                    sh 'for f in logs/psql-chunk-*.txt; do echo -ne "$f: "; cat "$f"; done > logs/psql-import.log'
+                    archiveArtifacts artifacts: 'logs/psql-import.log'
                   }
                 }
               }
@@ -184,9 +183,9 @@ pipeline {
           post {
             always {
               dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/works_work*; do echo "$f: "; cat "$f"; done > logs/works-indexing-logs.txt'
-                sh 'for f in logs/works_orphans*; do echo "$f: "; cat "$f"; done > logs/orphans-indexing-logs.txt'
-                archiveArtifacts artifacts: 'logs/{works,orphans}-indexing-logs.txt'
+                sh 'for f in logs/works_work*; do echo "$f: "; cat "$f"; done > logs/works-indexing.log'
+                sh 'for f in logs/works_orphans*; do echo "$f: "; cat "$f"; done > logs/orphans-indexing.log'
+                archiveArtifacts artifacts: 'logs/{works,orphans}-indexing.log'
               }
             }
           }
@@ -213,8 +212,8 @@ pipeline {
               post {
                 always {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh 'for f in logs/work_authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing-logs.txt'
-                    archiveArtifacts artifacts: 'logs/authors-indexing-logs.txt'
+                    sh 'for f in logs/work_authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
+                    archiveArtifacts artifacts: 'logs/authors-indexing.log'
                   }
                 }
               }
