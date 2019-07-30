@@ -240,7 +240,7 @@ pipeline {
             stage('Launch solr-backup service') {
               steps {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose up -d --no-deps -e CUR_SOLR_BACKUP='${env.HOST_SOLR_BUILDER_DIR}/${env.CUR_SOLR_BACKUP}' solr-backup"
+                  sh "docker-compose up -d --no-deps -e CUR_SOLR_BACKUP='${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}' solr-backup"
                   script {
                     // Assert backup has subjects in it
                     assert query_solr_count(env.BACKUP_SOLR_URL, 'subject') != '0'
