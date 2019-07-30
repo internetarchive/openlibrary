@@ -33,6 +33,7 @@ pipeline {
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
+      when { expression { return !params.REUSE_POSTGRES } }
       environment {
         // Where to download the ol full dump from
         OL_DUMP_LINK = 'https://openlibrary.org/data/ol_dump_latest.txt.gz'
