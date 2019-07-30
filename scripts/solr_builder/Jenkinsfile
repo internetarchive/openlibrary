@@ -118,9 +118,11 @@ pipeline {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   script {
                     def lines_in_dump = sh(script: "cd ${env.DUMP_DIR}; zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
+                    echo lines_in_dump
                     def rows_in_db = sh(script: '''
                       . ./aliases.sh
                       psql -q -f sql/count-all-rows.sql''', returnStdout: true).trim()
+                    echo rows_in_db
                     assert lines_in_dump == rows_in_db
                   }
                 }
@@ -141,6 +143,7 @@ pipeline {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh 'docker-compose stop'
             sh 'docker-compose rm -f'
+            sh 'docker volume rm solr_builder_postgres-data'
           }
         }
       }
