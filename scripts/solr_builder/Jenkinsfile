@@ -118,7 +118,7 @@ pipeline {
                 dir(env.HOST_SOLR_BUILDER_DIR) {
                   script {
                     def lines_in_dump = sh(script: "zcat ${env.OL_DUMP_FILE} | wc -l", returnStdout: true).trim()
-                    def rows_in_db = sh(script: "source aliases.sh; psql postgres -q -f sql/count-all-rows.sql", returnStdout: true).trim()
+                    def rows_in_db = sh(script: ". ./aliases.sh; psql postgres -q -f sql/count-all-rows.sql", returnStdout: true).trim()
                     assert lines_in_dump == rows_in_db
                   }
                 }
@@ -153,7 +153,7 @@ pipeline {
                 script: 'docker-compose run ol ./build-cython.sh')
               
               sh(label: 'Load a helper function into postgres',
-                script: 'source aliases.sh; psql -f sql/get-partition-markers.sql')
+                script: '. ./aliases.sh; psql -f sql/get-partition-markers.sql')
             }
           }
         }
