@@ -309,6 +309,11 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
     :return: None
     """
 
+    # Create the log/progress files now, so that they're accessible
+    for path in [log_file, progress]:
+        if path:
+            open(path, 'a').close()
+
     logging.basicConfig(
         filename=log_file,
         level=log_level,

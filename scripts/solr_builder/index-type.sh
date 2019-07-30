@@ -10,7 +10,7 @@ set -o xtrace
 # One of 'work' or 'author'
 TYPE="$1"
 INSTANCES="$2"
-COUNT=$(psql -c "SELECT count(*) FROM test WHERE \"Type\" = '${TYPE}'")
+COUNT=$(psql -c "SELECT count(*) FROM test WHERE \"Type\" = '/type/${TYPE}'")
 CHUNK_SIZE=$(pymath "ceil($COUNT / $INSTANCES)")
 
 # Partitions the database (~35s)
