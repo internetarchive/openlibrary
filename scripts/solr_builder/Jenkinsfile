@@ -203,13 +203,13 @@ pipeline {
         stage('Insert works & orphaned editions') {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh './index-works.sh'
+              sh './index-type.sh work 5'
               sh './index-orphans.sh'
 
               waitUntil {
                 script {
-                  print_indexing_progress('{works,orphans}')
-                  return count_indexers_completed('{works,orphans}') == '6'
+                  print_indexing_progress('{works_,orphans}')
+                  return count_indexers_completed('{works_,orphans}') == '6'
                 }
               }
 
@@ -219,8 +219,8 @@ pipeline {
           post {
             always {
               dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/works*; do echo "$f: "; cat "$f"; done > logs/works-indexing.log'
-                sh 'for f in logs/orphans*; do echo "$f: "; cat "$f"; done > logs/orphans-indexing.log'
+                sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done > logs/works-indexing.log'
+                sh 'mv logs/orphans.txt logs/orphans-indexing.log'
                 archiveArtifacts artifacts: 'logs/{works,orphans}-indexing.log'
               }
             }
@@ -229,12 +229,12 @@ pipeline {
         stage('Insert authors') {
           steps {
             dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh './index-authors.sh'
+              sh './index-type.sh author 6'
 
               waitUntil {
                 script {
-                  print_indexing_progress('authors')
-                  return count_indexers_completed('authors') == '6'
+                  print_indexing_progress('authors_')
+                  return count_indexers_completed('authors_') == '6'
                 }
               }
 
@@ -244,7 +244,7 @@ pipeline {
           post {
             always {
               dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/authors*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
+                sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
                 archiveArtifacts artifacts: 'logs/authors-indexing.log'
               }
             }
