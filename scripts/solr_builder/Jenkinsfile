@@ -142,7 +142,7 @@ pipeline {
         }
       }
       post {
-        failure {
+        unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
             sh 'docker-compose stop'
             sh 'docker-compose rm -f'
