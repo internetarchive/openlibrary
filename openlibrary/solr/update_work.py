@@ -38,6 +38,24 @@ re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 re_solr_field = re.compile('^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
 
+# Blacklist uninformative subjects (at least for author top subjects for now)
+SUBJECT_BLACKLIST = [
+        "Accessible book", #2512580
+        #"History", #1245974,
+        #"Biography", #464651,
+        "In library" #,459479,
+        #"Fiction", #415393,
+        "Protected DAISY", #393245,
+        #"Congresses", #374268,
+        "Internet Archive Wishlist", #372761,
+        "General", #121376,
+        # ?"Early works to 1800", #89990,
+        "OverDrive", #69487,
+        "English language", #68921,
+        "OUR Brockhaus selection", #32858,
+]
+
+
 data_provider = None
 _ia_db = None
 
@@ -818,15 +836,19 @@ def build_data2(w, editions, authors, ia, duplicates):
     return doc
 
 def post_solr(connection, url, body, debug):
+    t1 = time.time()
     connection.request('POST', url, body, { 'Content-type': 'text/xml;charset=utf-8'})
     response = connection.getresponse()
     response_body = response.read()
+    t2 = time.time()
     if response.reason != 'OK':
         logger.error(response.reason)
         logger.error(response_body)
         logger.error(body)
     if debug:
-        logger.info(response.reason)
+        elapsed = t2 - t1
+        logger.debug('Response %s in %s secfor %d KiB (%5.2f KiB/s)' % (response.reason, elapsed, len(body)/1000, len(body)/elapsed/1000.0))
+        #logger.debug('Response body: %s' % response_body)
     return response_body
 
 def solr_update(requests, debug=False, commitWithin=60000):
@@ -837,17 +859,20 @@ def solr_update(requests, debug=False, commitWithin=60000):
     :param int commitWithin: Solr commitWithin, in ms
     """
     url = get_solr_base_url() + '/update'
+    logger.info("POSTing update to %s", url)
     parsed_url = urlparse(url)
+    t1 = time.time()
     if parsed_url.port:
         h1 = httplib.HTTPConnection(parsed_url.hostname, parsed_url.port)
     else:
         h1 = httplib.HTTPConnection(parsed_url.hostname)
-    logger.info("POSTing update to %s", url)
     # FIXME; commit strategy / timing should be managed in config, not code
     url = url + "?commitWithin=%d" % commitWithin
 
     # TODO: Switch to use requests modoule instead of home-rolled handling
     h1.connect()
+    t2 = time.time()
+    logger.debug("Connected in %s " % (t2-t1))
 
     delete_requests = []
     update_requests = []
@@ -864,8 +889,10 @@ def solr_update(requests, debug=False, commitWithin=60000):
 
     if delete_requests:
         r = DeleteRequest.toxml_all(delete_requests)
+        logger.debug('Posting %d DeleteRequests' % len(delete_requests))
         post_solr(h1, url, r, debug)
     if update_requests:
+        logger.debug('Posting %d UpdateRequests' % len(update_requests))
         r = UpdateRequest.toxml_all(update_requests)
         post_solr(h1, url, r, debug)
 
@@ -1272,6 +1299,7 @@ def update_author(akey, a=None, handle_redirects=True):
     facet_fields = ['subject', 'time', 'person', 'place']
     base_url = get_solr_base_url() + '/select'
 
+    # Query Solr for all works with this author_key
     url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
     url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
 
@@ -1288,7 +1316,8 @@ def update_author(akey, a=None, handle_redirects=True):
     all_subjects = []
     for f in facet_fields:
         for s, num in reply['facet_counts']['facet_fields'][f + '_facet']:
-            all_subjects.append((num, s))
+            if s not in SUBJECT_BLACKLIST:
+                all_subjects.append((num, s))
     all_subjects.sort(reverse=True)
     top_subjects = [s for num, s in all_subjects[:10]]
     d = dict(
@@ -1324,6 +1353,7 @@ def update_author(akey, a=None, handle_redirects=True):
         #if redirects:
         #    requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
+            logger.debug('Deleting %d (potential) redirect records' % len(redirect_keys))
             requests.append(DeleteRequest(redirect_keys))
     requests.append(UpdateRequest(d))
     return requests
@@ -1494,10 +1524,9 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            #solr_update(requests, debug=True)
             if commit:
                 requests += ['<commit />'] # FIXME string request
-            _solr_update(requests, debug=True, commitWithin=1000)
+            _solr_update(requests, debug=True, commitWithin=1000) #FIXME overriding commit time
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))
