@@ -342,6 +342,7 @@ void solr_commit(String solr_base_url) {
 void print_indexing_progress(String prefix_glob) {
   sh(label: 'Progress',
     script: """
+    #!/bin/bash
     for f in progress/${prefix_glob}*; do 
       printf "\$f: ";
       tail -n1 \$f | grep -oe '[0-9]*\\.[0-9]*%';
@@ -350,6 +351,7 @@ void print_indexing_progress(String prefix_glob) {
 
 String count_indexers_completed(String prefix_glob) {
   return sh(script: """
+    #!/bin/bash
     for f in progress/${prefix_glob}*; do
       tail -n1 \$f; 
     done | grep 100.00% | wc -l
