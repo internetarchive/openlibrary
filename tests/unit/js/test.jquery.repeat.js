@@ -1,6 +1,6 @@
 import jquery from 'jquery';
 import sinon from 'sinon';
-import testData from './html-test-data';
+import * as testData from './html-test-data';
 import { htmlquote } from '../../../openlibrary/plugins/openlibrary/js/jsdef';
 import jQueryRepeat from '../../../openlibrary/plugins/openlibrary/js/jquery.repeat';
 
