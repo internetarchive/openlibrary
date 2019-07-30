@@ -144,7 +144,7 @@
     <field name="redirects" type="string" multiValued="true"/>
     <field name="has_fulltext" type="boolean"/>
     <field name="title" type="text_en_splitting"/> <!-- i18n -->
-    <field name="title_suggest" type="text_general"/> <!-- i18n -->
+    <field name="title_suggest" type="text_general"/> <!-- i18n? -->
     <field name="subtitle" type="text_en_splitting"/> <!-- i18n -->
     <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
     <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
@@ -193,9 +193,9 @@
 
 
    <!-- fields used by documents of type author -->
-   <field name="name" type="text_general" indexed="true" stored="true"/> <!-- i18n -->
+   <field name="name" type="text_international" indexed="true" stored="true"/> <!-- i18n -->
    <field name="name_str" type="string" indexed="true" stored="false"/> <!-- ?? -->
-   <field name="alternate_names" type="text_general" indexed="true" stored="true" multiValued="true"/>  <!-- i18n -->
+   <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>  <!-- i18n -->
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
@@ -430,6 +430,31 @@
         <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords.txt" />
         <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
         <filter class="solr.LowerCaseFilterFactory"/>
+      </analyzer>
+    </fieldType>
+
+    
+    <!-- A text field with better cross-language defaults: 
+               it tokenizes with StandardTokenizer,
+	       removes stop words from case-insensitive "stopwords.txt"
+	       (empty by default), and down cases.  At query time only, it
+	       also applies synonyms.
+	  -->
+    <fieldType name="text_international" class="solr.TextField" positionIncrementGap="100" multiValued="true">
+      <analyzer type="index">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords-international.txt" />
+        <!-- in this example, we will only use synonyms at query time
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="index_synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter class="solr.FlattenGraphFilterFactory"/>
+        -->
+	<filter class="solr.ICUFoldingFilterFactory"/>
+      </analyzer>
+      <analyzer type="query">
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StopFilterFactory" ignoreCase="true" words="stopwords-international.txt" />
+        <filter class="solr.SynonymGraphFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="true"/>
+	<filter class="solr.ICUFoldingFilterFactory"/>
       </analyzer>
     </fieldType>
 

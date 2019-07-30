@@ -85,6 +85,9 @@
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-velocity-\d.*\.jar" />
   <lib dir="${solr.install.dir:../../../..}/dist/" regex="solr-ltr-\d.*\.jar" />
 
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lucene-libs/" regex="lucene-analyzers-icu-\d.*\.jar" />
+  <lib dir="${solr.install.dir:../../../..}/contrib/analysis-extras/lib/" regex="icu4j-\d.*\.jar" />
+
   <!-- an exact 'path' can be used instead of a 'dir' to specify a
        specific jar file.  This will cause a serious error to be logged
        if it can't be loaded.
