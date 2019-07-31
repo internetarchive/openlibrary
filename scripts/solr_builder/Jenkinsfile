@@ -342,6 +342,7 @@ void solr_commit(String solr_base_url) {
 
 void print_indexing_progress(String prefix_glob) {
   sh('pwd')
+  sh('ls progress')
   sh(label: 'Progress',
     script: """
     #!/bin/bash
