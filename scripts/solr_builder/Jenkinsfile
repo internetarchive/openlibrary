@@ -340,10 +340,12 @@ void solr_commit(String solr_base_url) {
 void print_indexing_progress(String prefix_glob) {
   sh(label: 'Progress',
     script: """
-    for f in progress/{works_,orphans}*; do 
+    set +x
+    for f in progress/${prefix_glob}*; do 
       printf "\$f: ";
       tail -n1 \$f;
-    done; """)
+    done;
+    set -x """)
 }
 
 String count_indexers_completed(String prefix_glob) {
