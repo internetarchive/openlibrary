@@ -353,9 +353,11 @@ void print_indexing_progress(String prefix_glob) {
 
 String count_indexers_completed(String prefix_glob) {
   return sh(script: """
+    set +x
     for f in progress/${prefix_glob}*; do
       tail -n1 \$f; 
     done | grep 100.00% | wc -l
+    set -x
     """,
     returnStdout: true).trim()
 }
