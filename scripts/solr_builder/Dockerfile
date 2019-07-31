@@ -29,3 +29,6 @@ RUN apt-get -qq update && apt-get install -y \
     moreutils \
     wget \
     xmlstarlet
+
+# Default to bash, not dash!
+RUN ln -sf /bin/bash /bin/sh
