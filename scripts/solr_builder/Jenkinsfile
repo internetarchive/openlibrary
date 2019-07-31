@@ -159,9 +159,6 @@ pipeline {
         SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
         // The location of the repo on the host machine; needed for docker-in-docker images
         HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
-        // As specified in docker-compose.yml
-        NEW_SOLR_URL = 'http://localhost:8984'
-        BACKUP_SOLR_URL = 'http://localhost:8985'
       }
       stages {
         stage('Restart Postgres') {
@@ -213,7 +210,7 @@ pipeline {
                 }
               }
 
-              solr_commit(env.NEW_SOLR_URL)
+              solr_commit('solr')
             }
           }
           post {
@@ -239,7 +236,7 @@ pipeline {
                 }
               }
 
-              solr_commit(env.NEW_SOLR_URL)
+              solr_commit('solr')
             }
           }
           post {
@@ -275,28 +272,30 @@ pipeline {
                   sh "docker-compose up -d --no-deps solr-backup"
                   script {
                     // Assert backup has subjects in it
-                    assert solr_query_count(env.BACKUP_SOLR_URL, 'subject') != '0'
+                    assert solr_query_count('solr-backup', 'subject') != '0'
                   }
                 }
               }
             }
             stage('Copy subjects into main solr') {
               steps {
-                sh "curl -s ${env.NEW_SOLR_URL}/solr/dataimport?command=full-import"
+                dir(env.HOST_SOLR_BUILDER_DIR) {
+                  sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
 
-                waitUntil {
-                  script {
-                    def status_resp_cmd = "curl -s ${env.NEW_SOLR_URL}:8985/solr/dataimport"
-                    def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
-                    def status = sh(script: status_cmd, returnStdout: true).trim()
-                    return status == '?????'
+                  waitUntil {
+                    script {
+                      def status_resp_cmd = "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport"
+                      def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
+                      def status = sh(script: status_cmd, returnStdout: true).trim()
+                      return status == '?????'
+                    }
                   }
-                }
 
-                script {
-                  def backup_subjects_count = solr_query_count(env.BACKUP_SOLR_URL, 'subject')
-                  def new_subjects_count = solr_query_count(env.NEW_SOLR_URL, 'subject')
-                  assert backup_subjects_count == new_subjects_count
+                  script {
+                    def backup_subjects_count = solr_query_count('solr-backup', 'subject')
+                    def new_subjects_count = solr_query_count('solr', 'subject')
+                    assert backup_subjects_count == new_subjects_count
+                  }
                 }
               }
             }
@@ -328,16 +327,16 @@ pipeline {
   }
 }
 
-String solr_query_count(String solr_base_url, String type_to_count) {
-  def solr_url = "${solr_url}/solr/select/?q=type%3A${type_to_count}&rows=0"
-  def count_cmd = "curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
+String solr_query_count(String solr_name, String type_to_count) {
+  def solr_url = "http://localhost:8080/solr/select/?q=type%3A${type_to_count}&rows=0"
+  def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
   def count = sh(script: count_subjects_cmd, returnStdout: true).trim()
   return count
 }
 
-void solr_commit(String solr_base_url) {
+void solr_commit(String solr_name) {
   sh(label: 'Solr commit the changes',
-    script: "curl ${solr_base_url}/solr/update?commit=true")
+    script: "docker-compose exec -T ${solr_name} curl http://localhost:8080/solr/update?commit=true")
 }
 
 void print_indexing_progress(String prefix_glob) {
