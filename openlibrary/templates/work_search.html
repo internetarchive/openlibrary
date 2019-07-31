@@ -30,7 +30,7 @@ $ error = None
 $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
-    $ rows = 100
+    $ rows = 20
     $ search_start = time()
     $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
