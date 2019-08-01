@@ -254,6 +254,11 @@ pipeline {
                   }
                 }
                 stage('Copy subjects into main solr') {
+                  input {
+                    id "Check format of data import"
+                    message "Check format of data import"
+                    ok 'Continue'
+                  }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
