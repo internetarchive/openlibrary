@@ -216,10 +216,10 @@ pipeline {
           post {
             always {
               dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done > logs/works-indexing.log'
-                archiveArtifacts artifacts: 'logs/works-indexing.log'
-                sh 'mv logs/orphans.txt logs/orphans-indexing.log'
-                archiveArtifacts artifacts: 'logs/orphans-indexing.log'
+                sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done | gzip > logs/works-indexing.log.gz'
+                archiveArtifacts artifacts: 'logs/works-indexing.log.gz'
+                sh 'gzip --to-stdout logs/orphans.txt > logs/orphans-indexing.log.gz'
+                archiveArtifacts artifacts: 'logs/orphans-indexing.log.gz'
               }
             }
           }
@@ -242,8 +242,8 @@ pipeline {
           post {
             always {
               dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done > logs/authors-indexing.log'
-                archiveArtifacts artifacts: 'logs/authors-indexing.log'
+                sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done | gzip > logs/authors-indexing.log.gz'
+                archiveArtifacts artifacts: 'logs/authors-indexing.log.gz'
               }
             }
           }
