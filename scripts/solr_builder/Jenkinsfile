@@ -227,11 +227,11 @@ pipeline {
             }
             stage('Insert subjects from solr backup') {
               input {
-                id "Download dump to ${env.SOLR_DUMP_DIR}"
-                message 'Is the file in the right location yet?'
-                ok 'Yes'
+                id "Place solr backup in ${env.SOLR_DUMP_DIR}"
+                message "Place solr backup in ${env.SOLR_DUMP_DIR}"
+                ok 'Continue'
                 parameters {
-                  string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'What is it called?')
+                  string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'Dump filename')
                 }
               }
               stages {
