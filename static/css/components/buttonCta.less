@@ -6,7 +6,7 @@
 // override default anchor styles
 a.cta-btn {
   font-size: 14px;
-  color: @white !important;
+  color: @white;
   width: 100%;
   display: block;
   border: 0;
@@ -21,12 +21,45 @@ a.cta-btn {
   background-color: @mid-grey;
   line-height: 1.5em;
 
+  &:link {
+    color: @white;
+    text-decoration: none;
+  }
+
+  &:visited {
+    color: @white;
+    text-decoration: none;
+  }
+
   &--available {
     background-color: @primary-blue;
+    color: @white;
   }
+
   &--unavailable {
     background-color: @orange;
+    color: @white;
   }
+
+  &--sponsor {
+    background: @white-blue;
+    border: 2px solid @link-blue;
+  }
+
+  &--sponsor:link {
+    color: @link-blue;
+  }
+
+  &--sponsor:visited {
+    color: @link-blue;
+  }
+  &--sponsor:hover {
+    border: 2px solid @link-blue;
+    background-color: @link-blue;
+    color: @white;
+    text-decoration: none;
+  }
+
   &__badge {
     background-color: @orange-two;
     padding: 4px 7px;

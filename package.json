@@ -28,7 +28,7 @@
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "7.1KB"
+      "maxSize": "7.17KB"
     },
     {
       "path": "static/build/page-edit.css",
@@ -40,19 +40,19 @@
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.85KB"
+      "maxSize": "4.88KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "18.9KB"
+      "maxSize": "19KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "6.68KB"
+      "maxSize": "6.73KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "18.6KB"
+      "maxSize": "18.66KB"
     }
   ],
   "devDependencies": {
