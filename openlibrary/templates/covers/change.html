@@ -68,7 +68,11 @@ function update_image(image) {
 window.q.push(function(){
     function add_iframe(selector, src) {
         \$(selector)
+<<<<<<< HEAD
             .append('<iframe frameborder="0" height="450" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+=======
+            .append('<iframe frameborder="0" height="350" width="580" marginheight="0" marginwidth="0" scrolling="auto"></iframe>')
+>>>>>>> bebace721c8502596b2254e7b56e603943cf535f
             .find('iframe')
             .attr("src", src);
     }
