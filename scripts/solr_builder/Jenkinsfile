@@ -246,19 +246,13 @@ pipeline {
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "docker-compose up -d --no-deps solr-backup"
-                      script {
-                        // Assert backup has subjects in it
-                        assert solr_query_count('solr-backup', 'subject') != '0'
-                      }
+                      sleep 60
+                      // Assert backup has subjects in it
+                      assert solr_query_count('solr-backup', 'subject') != '0'
                     }
                   }
                 }
                 stage('Copy subjects into main solr') {
-                  input {
-                    id "Check format of data import"
-                    message "Check format of data import"
-                    ok 'Continue'
-                  }
                   steps {
                     dir(env.HOST_SOLR_BUILDER_DIR) {
                       sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
@@ -268,7 +262,8 @@ pipeline {
                           def status_resp_cmd = "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport"
                           def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
                           def status = sh(script: status_cmd, returnStdout: true).trim()
-                          return status == '?????'
+                          // assert status_cmd == 'busy' || status_cmd 
+                          return status != 'busy'
                         }
                       }
 
@@ -283,13 +278,13 @@ pipeline {
               }
               post {
                 unsuccessful {
-                  dir(env.SOLR_DUMP_DIR) {
-                    sh(label: 'Remove solr backup directory',
-                      script: "rm -rf ${env.CUR_SOLR_BACKUP}")
-                  }
                   dir(env.HOST_SOLR_BUILDER_DIR) {
                     sh(label: 'Remove solr-backup service', 
                       script: 'docker-compose stop solr-backup; docker-compose rm -f solr-backup')
+                  }
+                  dir(env.SOLR_DUMP_DIR) {
+                    sh(label: 'Remove solr backup directory',
+                      script: "rm -rf ${env.CUR_SOLR_BACKUP}")
                   }
                 }
               }
