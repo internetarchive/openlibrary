@@ -330,7 +330,7 @@ pipeline {
 String solr_query_count(String solr_name, String type_to_count) {
   def solr_url = "http://localhost:8080/solr/select/?q=type%3A${type_to_count}&rows=0"
   def count_cmd = "docker-compose exec -T ${solr_name} curl -s '${solr_url}' | xmlstarlet sel -t -v '//result/@numFound'"
-  def count = sh(script: count_subjects_cmd, returnStdout: true).trim()
+  def count = sh(script: count_cmd, returnStdout: true).trim()
   return count
 }
 
