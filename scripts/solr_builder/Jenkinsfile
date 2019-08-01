@@ -248,7 +248,7 @@ pipeline {
                       sh "docker-compose up -d --no-deps solr-backup"
                       sleep 60
                       // Assert backup has subjects in it
-                      assert solr_query_count('solr-backup', 'subject') != '0'
+                      script { assert solr_query_count('solr-backup', 'subject') != '0' }
                     }
                   }
                 }
