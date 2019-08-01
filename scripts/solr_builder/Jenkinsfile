@@ -200,56 +200,19 @@ pipeline {
               stages {
                 stage('Insert works & orphaned editions') {
                   steps {
-                    dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh './index-type.sh work 5'
-                      sh './index-orphans.sh'
-
-                      // Wait for the progress files to be written
-                      sleep 60
-
-                      waitUntil {
-                        script {
-                          print_indexing_progress('{works_,orphans}')
-                          return count_indexers_completed('{works_,orphans}') == '6'
-                        }
-                      }
-
-                      solr_commit('solr')
-                    }
+                    insert_into_solr('./index-type.sh work 5; ./index-orphans.sh', '6', '{works_,orphans}*')
                   }
                   post {
                     always {
-                      dir(env.HOST_SOLR_BUILDER_DIR) {
-                        sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done | gzip > logs/works-indexing.log.gz'
-                        archiveArtifacts artifacts: 'logs/works-indexing.log.gz'
-                        sh 'gzip --to-stdout logs/orphans.txt > logs/orphans-indexing.log.gz'
-                        archiveArtifacts artifacts: 'logs/orphans-indexing.log.gz'
-                      }
+                      artifact_indexing_logs('works_*', 'works-indexing.log.gz')
+                      artifact_indexing_logs('orphans.txt', 'orphans-indexing.log.gz')
                     }
                   }
                 }
                 stage('Insert authors') {
-                  steps {
-                    dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh './index-type.sh author 6'
-
-                      waitUntil {
-                        script {
-                          print_indexing_progress('authors_')
-                          return count_indexers_completed('authors_') == '6'
-                        }
-                      }
-
-                      solr_commit('solr')
-                    }
-                  }
+                  steps { insert_into_solr('./index-type.sh author 6', '6', 'authors_*') }
                   post {
-                    always {
-                      dir(env.HOST_SOLR_BUILDER_DIR) {
-                        sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done | gzip > logs/authors-indexing.log.gz'
-                        archiveArtifacts artifacts: 'logs/authors-indexing.log.gz'
-                      }
-                    }
+                    always { artifact_indexing_logs('authors_*', 'authors-indexing.log.gz') }
                   }
                 }
               }
@@ -350,24 +313,38 @@ void solr_commit(String solr_name) {
     script: "docker-compose exec -T ${solr_name} curl http://localhost:8080/solr/update?commit=true")
 }
 
-void print_indexing_progress(String prefix_glob) {
-  sh(label: 'Progress',
-    script: """
-    set +x
-    for f in progress/${prefix_glob}*; do 
-      printf "\$f: ";
-      tail -n1 \$f;
-    done;
-    set -x """)
+void insert_into_solr(String index_cmd, String cores, String log_file_glob) {
+  dir(env.HOST_SOLR_BUILDER_DIR) {
+    sh index_cmd
+    sleep 60 // wait for progress file
+    waitUntil {
+      script {
+        sh(label: 'Progress',
+          script: """
+          set +x
+          for f in progress/${log_file_glob}; do 
+            printf "\$f: ";
+            tail -n1 \$f;
+          done;
+          set -x """)
+        def cores_completed = sh(script: """
+          set +x
+          for f in progress/${log_file_glob}; do
+            tail -n1 \$f; 
+          done | grep 100.00% | wc -l
+          set -x
+          """,
+          returnStdout: true).trim()
+        return cores_completed == cores
+      }
+    }
+    solr_commit('solr')
+  }
 }
 
-String count_indexers_completed(String prefix_glob) {
-  return sh(script: """
-    set +x
-    for f in progress/${prefix_glob}*; do
-      tail -n1 \$f; 
-    done | grep 100.00% | wc -l
-    set -x
-    """,
-    returnStdout: true).trim()
+void artifact_indexing_logs(String log_file_glob, String result_file_name) {
+  dir(env.HOST_SOLR_BUILDER_DIR) {
+    sh """for f in logs/${log_file_glob}; do echo "\$f: "; cat "\$f"; done | gzip > logs/${result_file_name}"""
+    archiveArtifacts artifacts: "logs/${result_file_name}"
+  }
 }
