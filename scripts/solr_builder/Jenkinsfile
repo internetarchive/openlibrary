@@ -194,127 +194,138 @@ pipeline {
             }
           }
         }
-        stage('Insert works & orphaned editions') {
-          steps {
-            dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh './index-type.sh work 5'
-              sh './index-orphans.sh'
+        stage('Reindexing') {
+          parallel {
+            stage('Reindex from ol dump') {
+              stages {
+                stage('Insert works & orphaned editions') {
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh './index-type.sh work 5'
+                      sh './index-orphans.sh'
 
-              // Wait for the progress files to be written
-              sleep 60
+                      // Wait for the progress files to be written
+                      sleep 60
 
-              waitUntil {
-                script {
-                  print_indexing_progress('{works_,orphans}')
-                  return count_indexers_completed('{works_,orphans}') == '6'
-                }
-              }
+                      waitUntil {
+                        script {
+                          print_indexing_progress('{works_,orphans}')
+                          return count_indexers_completed('{works_,orphans}') == '6'
+                        }
+                      }
 
-              solr_commit('solr')
-            }
-          }
-          post {
-            always {
-              dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done | gzip > logs/works-indexing.log.gz'
-                archiveArtifacts artifacts: 'logs/works-indexing.log.gz'
-                sh 'gzip --to-stdout logs/orphans.txt > logs/orphans-indexing.log.gz'
-                archiveArtifacts artifacts: 'logs/orphans-indexing.log.gz'
-              }
-            }
-          }
-        }
-        stage('Insert authors') {
-          steps {
-            dir(env.HOST_SOLR_BUILDER_DIR) {
-              sh './index-type.sh author 6'
-
-              waitUntil {
-                script {
-                  print_indexing_progress('authors_')
-                  return count_indexers_completed('authors_') == '6'
-                }
-              }
-
-              solr_commit('solr')
-            }
-          }
-          post {
-            always {
-              dir(env.HOST_SOLR_BUILDER_DIR) {
-                sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done | gzip > logs/authors-indexing.log.gz'
-                archiveArtifacts artifacts: 'logs/authors-indexing.log.gz'
-              }
-            }
-          }
-        }
-        stage('Insert subjects') {
-          input {
-            id "Download dump to ${env.SOLR_DUMP_DIR}"
-            message 'Is the file in the right location yet?'
-            ok 'Yes'
-            parameters {
-              string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'What is it called?')
-            }
-          }
-          stages {
-            stage('Decompress the dump') {
-              steps {
-                dir(env.SOLR_DUMP_DIR) {
-                  sh "mkdir ${env.CUR_SOLR_BACKUP}"
-                  sh "tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
-                }
-              }
-            }
-            stage('Launch solr-backup service') {
-              steps {
-                dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose up -d --no-deps solr-backup"
-                  script {
-                    // Assert backup has subjects in it
-                    assert solr_query_count('solr-backup', 'subject') != '0'
-                  }
-                }
-              }
-            }
-            stage('Copy subjects into main solr') {
-              steps {
-                dir(env.HOST_SOLR_BUILDER_DIR) {
-                  sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
-
-                  waitUntil {
-                    script {
-                      def status_resp_cmd = "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport"
-                      def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
-                      def status = sh(script: status_cmd, returnStdout: true).trim()
-                      return status == '?????'
+                      solr_commit('solr')
                     }
                   }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        sh 'for f in logs/works_*; do echo "$f: "; cat "$f"; done | gzip > logs/works-indexing.log.gz'
+                        archiveArtifacts artifacts: 'logs/works-indexing.log.gz'
+                        sh 'gzip --to-stdout logs/orphans.txt > logs/orphans-indexing.log.gz'
+                        archiveArtifacts artifacts: 'logs/orphans-indexing.log.gz'
+                      }
+                    }
+                  }
+                }
+                stage('Insert authors') {
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh './index-type.sh author 6'
 
-                  script {
-                    def backup_subjects_count = solr_query_count('solr-backup', 'subject')
-                    def new_subjects_count = solr_query_count('solr', 'subject')
-                    assert backup_subjects_count == new_subjects_count
+                      waitUntil {
+                        script {
+                          print_indexing_progress('authors_')
+                          return count_indexers_completed('authors_') == '6'
+                        }
+                      }
+
+                      solr_commit('solr')
+                    }
+                  }
+                  post {
+                    always {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        sh 'for f in logs/authors_*; do echo "$f: "; cat "$f"; done | gzip > logs/authors-indexing.log.gz'
+                        archiveArtifacts artifacts: 'logs/authors-indexing.log.gz'
+                      }
+                    }
+                  }
+                }
+              }
+              post {
+                unsuccessful {
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    sh(label: 'Remove solr service',
+                      script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
                   }
                 }
               }
             }
-          }
-        }
-      }
-      post {
-        always {
-          dir(env.SOLR_DUMP_DIR) {
-            sh(label: 'Remove solr backup directory',
-              script: "rm -rf ${env.CUR_SOLR_BACKUP}")
-          }
-        }
+            stage('Insert subjects from solr backup') {
+              input {
+                id "Download dump to ${env.SOLR_DUMP_DIR}"
+                message 'Is the file in the right location yet?'
+                ok 'Yes'
+                parameters {
+                  string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'What is it called?')
+                }
+              }
+              stages {
+                stage('Decompress the dump') {
+                  steps {
+                    dir(env.SOLR_DUMP_DIR) {
+                      sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
+                    }
+                  }
+                }
+                stage('Launch solr-backup service') {
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker-compose up -d --no-deps solr-backup"
+                      script {
+                        // Assert backup has subjects in it
+                        assert solr_query_count('solr-backup', 'subject') != '0'
+                      }
+                    }
+                  }
+                }
+                stage('Copy subjects into main solr') {
+                  steps {
+                    dir(env.HOST_SOLR_BUILDER_DIR) {
+                      sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport?command=full-import"
 
-        unsuccessful {
-          dir(env.HOST_SOLR_BUILDER_DIR) {
-            sh 'docker-compose stop solr'
-            sh 'docker-compose rm -f solr'
-            sh 'docker volume rm solr_builder_solr-data'
+                      waitUntil {
+                        script {
+                          def status_resp_cmd = "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport"
+                          def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
+                          def status = sh(script: status_cmd, returnStdout: true).trim()
+                          return status == '?????'
+                        }
+                      }
+
+                      script {
+                        def backup_subjects_count = solr_query_count('solr-backup', 'subject')
+                        def new_subjects_count = solr_query_count('solr', 'subject')
+                        assert backup_subjects_count == new_subjects_count
+                      }
+                    }
+                  }
+                }
+              }
+              post {
+                unsuccessful {
+                  dir(env.SOLR_DUMP_DIR) {
+                    sh(label: 'Remove solr backup directory',
+                      script: "rm -rf ${env.CUR_SOLR_BACKUP}")
+                  }
+                  dir(env.HOST_SOLR_BUILDER_DIR) {
+                    sh(label: 'Remove solr-backup service', 
+                      script: 'docker-compose stop solr-backup; docker-compose rm -f solr-backup')
+                  }
+                }
+              }
+            }
           }
         }
       }
