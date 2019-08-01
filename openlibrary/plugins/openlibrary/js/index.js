@@ -31,7 +31,7 @@ import init, { closePop, bookCovers,
 import { commify } from './python';
 import { Subject, urlencode, renderTag, slice } from './subjects';
 import Template from './template.js';
-// Add $.fn.toggleText, $.fn.focusNextInputField, $.fn.ol_confirm_dialog, $.fn.tap, $.log
+// Add $.fn.toggleText, $.fn.focusNextInputField, $.fn.ol_confirm_dialog, $.fn.tap
 import { closePopup, initShowPasswords, truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';

@@ -74,8 +74,6 @@ export function slice(array, begin, end) {
 $.extend(Subject.prototype, {
 
     init: function(data) {
-        $.log(['init', this, arguments]);
-
         $.extend(this, data);
         this.page_count = Math.ceil(this.work_count / this.settings.pagesize);
         this.epage_count = Math.ceil(this.ebook_count / this.settings.pagesize);
