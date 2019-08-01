@@ -44,13 +44,6 @@ $.fn.tap = function(callback) {
     return this;
 }
 
-// debug log
-$.log = function() {
-    if (window.console) {
-    //console.log.apply(console, arguments);
-    }
-};
-
 // closes active popup
 // used in templates/covers/saved.html
 export function closePopup() {

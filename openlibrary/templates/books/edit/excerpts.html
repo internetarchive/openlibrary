@@ -109,7 +109,6 @@ $def with (work)
                     "prefix": "work--excerpts",
                 },
                 validate: function(data) {
-                    \$.log(["validate", data]);
                     if (!data.excerpt) {
                         return error("#excerpts-errors", "#excerpts-excerpt", "$_('Please provide an excerpt.')");
                     }
