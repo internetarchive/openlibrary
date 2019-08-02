@@ -1315,7 +1315,8 @@ def update_author(akey, a=None, handle_redirects=True):
     if docs:
         top_work = docs[0]['title']
         if docs[0].get('subtitle', None):
-            top_work += ': ' + docs[0]['subtitle']
+            top_work = top_work + ': ' + docs[0]['subtitle']
+            assert str(top_work) == top_work
     all_subjects = []
     for f in facet_fields:
         for s, num in reply['facet_counts']['facet_fields'][f + '_facet']:
