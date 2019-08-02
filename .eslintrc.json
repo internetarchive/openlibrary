@@ -4,6 +4,11 @@
     "browser": true,
     "jquery": true
   },
+	{
+		"scripts": {
+			"lint": "./node_modules/.bin/eslint **/*.js"
+		}
+	},
   "parserOptions": {
     "sourceType": "module",
     "ecmaVersion": 6
