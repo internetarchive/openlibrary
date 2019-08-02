@@ -42,7 +42,7 @@ function init() {
         if (!_ids.length) {
             return callback({});
         }
-        url = `/availability/v2?type=${  _type}`;
+        url = `/availability/v2?type=${_type}`;
         $.ajax({
             url: url,
             type: 'POST',
@@ -70,7 +70,7 @@ function init() {
      */
     updateBookAvailability = function(selector) {
         var books, ocaids;
-        selector = `${selector || ''  }[data-ocaid]`;
+        selector = `${selector || ''}[data-ocaid]`;
         books = {};  // lets us keep track of which ocaids came from
         // which book (i.e. edition or work). As we learn
         // ocaids are available, we'll need a way to
@@ -108,11 +108,11 @@ function init() {
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
                             // update icon, ocaid, and url (to ia:)
                             // should limit scope to `selector` ! XXX
-                            $(`${selector  }[data-key=${  book_key   }]`)
-                                .attr('href', `/borrow/ia/${  book_ocaid}`);
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
+                                .attr('href', `/borrow/ia/${book_ocaid}`);
+                            $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--available').addClass(btnClassName)
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .text('Borrow');
                             // since we've found an available edition to
                             // represent this book, we can stop and remove
@@ -125,11 +125,11 @@ function init() {
                     for (book_key in books) {
                         book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .attr('title', 'Join waitlist');
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--unavailable').addClass(btnClassName);
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .text('Join Waitlist');
                             delete books[book_key];
                         }
@@ -138,15 +138,15 @@ function init() {
                     for (book_key in books) {
                         book_ocaids = books[book_key];
                         if (book_ocaids.indexOf(book_ocaid) > -1) {
-                            $(`${selector  }[data-key=${  book_key   }]`)
-                                .attr('href', $(`${selector  }[data-key=${  book_key   }]`).attr('data-key'))
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
+                                .attr('href', $(`${selector}[data-key=${book_key}]`).attr('data-key'))
+                            $(`${selector}[data-key=${book_key}]`)
                                 .attr('title', 'Check Availability');
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .removeClass('borrow-link');
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .addClass('check-book-availability').addClass(btnClassName);
-                            $(`${selector  }[data-key=${  book_key   }]`)
+                            $(`${selector}[data-key=${book_key}]`)
                                 .text('Check Availability');
                             delete books[book_key];
                         }
@@ -217,19 +217,19 @@ function init() {
                                 }
                             } else {
                                 if (work.status === 'open' || work.status === 'borrow_available') {
-                                    $(cta).append(`<a href="/books/${  work.openlibrary_edition  }/x/borrow" ` +
+                                    $(cta).append(`<a href="/books/${work.openlibrary_edition}/x/borrow" ` +
                                                   'class="cta-btn cta-btn--available" ' +
-                                                  `data-ol-link-track="${  work.status  }">${
+                                                  `data-ol-link-track="${work.status}">${
                                                       work.status === 'open' ? 'Read' : ' Borrow'
                                                   }</a>`);
                                 } else if (work.status === 'borrow_unavailable') {
                                     $(cta).append(`${'<form method="POST" ' +
-                                                  'action="/books/'}${  work.openlibrary_edition  }/x/borrow?action=join-waitinglist" ` +
+                                                  'action="/books/'}${work.openlibrary_edition}/x/borrow?action=join-waitinglist" ` +
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
-                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="${  work.status  }">` +
+                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="${work.status}">` +
                                                   `Join Waitlist${
-                                                      work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${  work.num_waitlist  }</span>` : ''
+                                                      work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
                                                   }</button></form>${
                                                       work.num_waitlist === '0' ? '<div class="waitlist-msg">You will be first in line!</div>' : ''}`);
                                 }

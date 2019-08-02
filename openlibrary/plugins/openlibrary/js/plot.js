@@ -52,7 +52,7 @@ export function plot_tooltip_graph(node, data, tooltip_message) {
     $.plot(node, [data], options);
 
     function showTooltip(x, y, contents) {
-        $(`<div id="chartLabelA">${  contents  }</div>`).css({
+        $(`<div id="chartLabelA">${contents}</div>`).css({
             position: 'absolute',
             display: 'none',
             top: y + 12,
@@ -77,7 +77,7 @@ export function plot_tooltip_graph(node, data, tooltip_message) {
             date = new Date(milli);
             x = date.toDateString();
             y = item.datapoint[1].toFixed(0);
-            showTooltip(item.pageX, item.pageY, `${y  } ${ tooltip_message } ${  x}`);
+            showTooltip(item.pageX, item.pageY, `${y} ${tooltip_message} ${x}`);
         } else {
             $('#chartLabelA').remove();
         }

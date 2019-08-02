@@ -23,6 +23,7 @@
     "no-unused-vars": "error",
     "no-useless-escape": "error",
     "space-in-parens": "error",
-    "vars-on-top": "error"
+    "vars-on-top": "error",
+    "template-curly-spacing": "error"
   }
 }

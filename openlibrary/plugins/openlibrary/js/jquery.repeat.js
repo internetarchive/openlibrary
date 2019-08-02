@@ -13,13 +13,13 @@ export default function($){
             nextRowId;
         options = options || {};
 
-        id = `#${  this.attr('id')}`;
+        id = `#${this.attr('id')}`;
         elems = {
             '_this': this,
-            'add': $(`${id  }-add`),
-            'form': $(`${id  }-form`),
-            'display': $(`${id  }-display`),
-            'template': $(`${id  }-template`)
+            'add': $(`${id}-add`),
+            'form': $(`${id}-form`),
+            'display': $(`${id}-display`),
+            'template': $(`${id}-template`)
         }
 
         function createTemplate(selector) {
@@ -32,7 +32,7 @@ export default function($){
             return Template(code);
         }
 
-        t = createTemplate(`${id  }-template`);
+        t = createTemplate(`${id}-template`);
 
         /**
          * Search elems.form for input fields and create an
@@ -96,8 +96,8 @@ export default function($){
             $(this).parents('.repeat-item:eq(0)').remove();
             elems._this.trigger('repeat-remove');
         }
-        addSelector = `${id  } .repeat-add`;
-        removeSelector = `${id  } .repeat-remove`;
+        addSelector = `${id} .repeat-add`;
+        removeSelector = `${id} .repeat-remove`;
         // Click handlers should apply to newly created add/remove selectors
         if (isOldJQuery) {
             $(addSelector).on('click', addSelector, onAdd);

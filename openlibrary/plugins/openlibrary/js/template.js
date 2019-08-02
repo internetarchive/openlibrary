@@ -12,10 +12,10 @@ export default function Template(tmpl_text) {
         js.push(text);
     }
     function addExpr(text) {
-        js.push(`_p.push(htmlquote(${  text  }));`);
+        js.push(`_p.push(htmlquote(${text}));`);
     }
     function addText(text) {
-        js.push(`_p.push(__s[${  s.length  }]);`);
+        js.push(`_p.push(__s[${s.length}]);`);
         s.push(text);
     }
 

@@ -17,7 +17,7 @@ export function validateEmail() {
         validClass: 'success',
         highlight: function(element, errorClass) {
             $(element).addClass(errorClass);
-            $(element.form).find(`label[for=${  element.id  }]`)
+            $(element.form).find(`label[for=${element.id}]`)
                 .addClass(errorClass);
         }
     });
@@ -50,7 +50,7 @@ export function validatePassword() {
         validClass: 'success',
         highlight: function(element, errorClass) {
             $(element).addClass(errorClass);
-            $(element.form).find(`label[for=${  element.id  }]`)
+            $(element.form).find(`label[for=${element.id}]`)
                 .addClass(errorClass);
         }
     });

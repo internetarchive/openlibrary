@@ -17,11 +17,11 @@
 export default function($){
     $.fn.add_new_field = function(_options) {
         $(this).each(function() {
-            var options = _options || {href: `#${  this.id  }-popup`};
+            var options = _options || {href: `#${this.id}-popup`};
             var $this = $(this);
 
             var $json = $('<input type="hidden">')
-                .attr('name', `${this.id  }-json`)
+                .attr('name', `${this.id}-json`)
                 .addClass('repeat-ignore') // tell repeat plugin to ignore this input
                 .val('[]')
                 .insertBefore($this);
