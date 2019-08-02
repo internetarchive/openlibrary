@@ -259,10 +259,11 @@ pipeline {
 
                       waitUntil {
                         script {
-                          def status_resp_cmd = "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport"
-                          def status_cmd = """${status_resp_cmd} | xmlstarlet sel -t -v "//str[@name='status']" """
-                          def status = sh(script: status_cmd, returnStdout: true).trim()
-                          // assert status_cmd == 'busy' || status_cmd 
+                          def log_file = 'logs/subjects-import.xml'
+                          sh "docker-compose exec -T solr curl -s http://localhost:8080/solr/dataimport > ${log_file}"
+                          archiveArtifacts artifacts: log_file
+                          def status = sh(script: """cat ${log_file} | xmlstarlet sel -t -v "//str[@name='status']" """, returnStdout: true).trim()
+                          echo status
                           return status != 'busy'
                         }
                       }
