@@ -19,6 +19,8 @@ pipeline {
     JENKINS_HOME_DIR = sh(script: "docker volume inspect --format='{{.Mountpoint}}' jenkins-data", returnStdout: true).trim()
     // Where to save dumps
     DUMP_DIR = '/storage/openlibrary'
+    // The location of the repo on the host machine; needed for docker-in-docker images
+    HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
   }
   stages {
     stage('1: Create a local postgres copy of the database') {
@@ -157,8 +159,6 @@ pipeline {
         CUR_SOLR_BACKUP = '_solr-backup-cur'
         // The full path of the solr backup
         SOLR_BACKUP_PATH = "${env.SOLR_DUMP_DIR}/${env.CUR_SOLR_BACKUP}"
-        // The location of the repo on the host machine; needed for docker-in-docker images
-        HOST_SOLR_BUILDER_DIR = "${env.WORKSPACE}/scripts/solr_builder".replaceFirst('/var/jenkins_home', env.JENKINS_HOME_DIR)
       }
       stages {
         stage('Restart Postgres') {
