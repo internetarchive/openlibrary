@@ -223,57 +223,7 @@ window.q.push(function() {
             </div>
         </div>
 
-
-
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Perhaps in another language?")</span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
-            </div>
-            $if book.other_titles and len(book.other_titles) > 1:
-                $for i, t in enumerate(book.other_titles):
-                    $if i > 0:
-                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
-        </div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label>
-                <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
-            </div>
-            <div class="input">
-                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
-            </div>
-        </div>
-
-    </div>
-    <div class="formBackRight">
-        <div class="illustration">
-            $:render_template("covers/book_cover", book)
-            $:render_template("covers/change", book)
-        </div>
-    </div>
-
-    <div class="clearfix"></div>
-
-        <div class="formElement">
-            <div class="label">
-                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
-            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
-            </div>
-            <div class="input">
-                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
-            </div>
-        </div>
-
-        <div class="clearfix"></div>
-
-        <fieldset class="minor formBackLeft">
+<fieldset class="minor formBackLeft">
             <legend>$_("Contributors")</legend>
 
             <div class="formElement" id="roles">
@@ -336,7 +286,57 @@ window.q.push(function() {
                 </div>
             </div>
 
-            <div class="formElement">
+
+
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-title_other">$_("Is it known by any other titles?")</label>
+                <span class="tip">$_("Perhaps in another language?")</span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
+                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
+            </div>
+            $if book.other_titles and len(book.other_titles) > 1:
+                $for i, t in enumerate(book.other_titles):
+                    $if i > 0:
+                        <input type="hidden" name="edition--other_titles--$i" value="$book.other_titles[i]"/>
+        </div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-edition_name">$_("Does this edition have a specific name?")</label>
+                <span class="tip">$_("For example:") <i>Centennial edition</i>; <i>First edition</i></span>
+            </div>
+            <div class="input">
+                <input type="text" name="edition--edition_name" id="edition-edition_name" value="$book.edition_name"/>
+            </div>
+        </div>
+
+    </div>
+    <div class="formBackRight">
+        <div class="illustration">
+            $:render_template("covers/book_cover", book)
+            $:render_template("covers/change", book)
+        </div>
+    </div>
+
+    <div class="clearfix"></div>
+
+        <div class="formElement">
+            <div class="label">
+                <label for="edition-notes">$_("Any notes about this specific edition?")</label>
+            <span class="tip">$_("Anything about the book that may be of interest.") $_("For example:") <i>A Plume Book</i>.</span>
+            </div>
+            <div class="input">
+                <textarea name="edition--notes" class="markdown" id="edition-notes" rows="3" cols="50">$book.notes</textarea>
+            </div>
+        </div>
+
+        <div class="clearfix"></div>
+
+                    <div class="formElement">
                 <div class="label">
                     <label for="edition-by_statement">$_("Is there a By Statement?")</label>
                     <span class="tip">$_("For example:") <em>edited by David Anderson</em></span>
