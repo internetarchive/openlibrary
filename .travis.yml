@@ -6,7 +6,11 @@ addons:
       - libgeoip-dev
 matrix:
   include:
-    - python: "2.7"
+    - name: “Python 2.7 on xenial”
+      python: "2.7"
+      dist: xenial
+    - name: “Python 2.7 on bionic”
+      python: "2.7"
     - python: "3.6"
     - python: "3.7"
   allow_failures:
