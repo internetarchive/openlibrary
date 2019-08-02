@@ -847,7 +847,7 @@ def post_solr(connection, url, body, debug):
         logger.error(body)
     if debug:
         elapsed = t2 - t1
-        logger.debug('Response %s in %s secfor %d KiB (%5.2f KiB/s)' % (response.reason, elapsed, len(body)/1000, len(body)/elapsed/1000.0))
+        logger.debug('Response %s in %s sec for %d KiB (%5.2f KiB/s)' % (response.reason, elapsed, len(body)/1000, len(body)/elapsed/1000.0))
         #logger.debug('Response body: %s' % response_body)
     return response_body
 
@@ -1240,9 +1240,11 @@ def update_work(work):
                 # Delete all ia:foobar keys
                 # FIXME: Some type of obsolete legacy cleanup?
                 if solr_doc.get('ia'):
+                    logger.debug('Deleting ia work(s) /works/ia:%s' % ','.join(solr_doc['ia']))
                     requests.append(DeleteRequest(["/works/ia:" + iaid for iaid in solr_doc['ia']]))
                 requests.append(UpdateRequest(solr_doc))
     elif work['type']['key'] in ['/type/delete', '/type/redirect']:
+        logger.debug('Deleting type delete or redirect - key:%s' % wkey)
         requests.append(DeleteRequest([wkey]))
     else:
         logger.error("unrecognized type (or missing title) while updating work %s", wkey, exc_info=True)
@@ -1289,6 +1291,7 @@ def update_author(akey, a=None, handle_redirects=True):
     if not a:
         a = data_provider.get_document(akey)
     if a['type']['key'] in ('/type/redirect', '/type/delete') or not a.get('name', None):
+        logger.debug('Deleting redirect or delete author record - key:%s' % akey)
         return [DeleteRequest([akey])]
     try:
         assert a['type']['key'] == '/type/author'
@@ -1353,7 +1356,7 @@ def update_author(akey, a=None, handle_redirects=True):
         #if redirects:
         #    requests.append('<delete>' + redirects + '</delete>')
         if redirect_keys:
-            logger.debug('Deleting %d (potential) redirect records' % len(redirect_keys))
+            logger.debug('Deleting %d (potential) author redirect records' % len(redirect_keys))
             requests.append(DeleteRequest(redirect_keys))
     requests.append(UpdateRequest(d))
     return requests
@@ -1457,6 +1460,11 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
                 # index the edition as it does not belong to any work
                 wkeys.add(k)
 
+    requests = []
+    if deletes:
+        logger.debug('Deleting (potentially) %d missing/redirect editing records' % len(deletes))
+        requests += [DeleteRequest(deletes)]
+
     # Add work keys
     wkeys.update(k for k in keys if k.startswith("/works/"))
 
@@ -1464,9 +1472,6 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     data_provider.preload_editions_of_works(wkeys)
 
     # update works
-    requests = []
-    if deletes:
-        requests += [DeleteRequest(deletes)]
     for k in wkeys:
         logger.info("updating work %s", k)
         try:
