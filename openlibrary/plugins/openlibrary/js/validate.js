@@ -59,13 +59,13 @@ export default function initValidate() {
             highlight: function(element, errorClass) {
                 $(element).addClass(errorClass);
                 $(element.form)
-                    .find(`label[for=${  element.id  }]`)
+                    .find(`label[for=${element.id}]`)
                     .addClass(errorClass);
             },
             unhighlight: function(element, errorClass) {
                 $(element).removeClass(errorClass);
                 $(element.form)
-                    .find(`label[for=${  element.id  }]`)
+                    .find(`label[for=${element.id}]`)
                     .removeClass(errorClass);
             }
         };

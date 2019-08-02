@@ -63,7 +63,7 @@
     "bundlesize": "^0.17.0",
     "css-loader": "2.1.1",
     "detect-libc": "^1.0.3",
-    "eslint": "^5.7.0",
+    "eslint": "^5.16.0",
     "jest": "^24.5.0",
     "jquery": "1.11.0",
     "less": "^3.8.1",

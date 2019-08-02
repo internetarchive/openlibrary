@@ -34,29 +34,29 @@ export function urlencode(query) {
     var parts = [];
     var k;
     for (k in query) {
-        parts.push(`${k  }=${  query[k]}`);
+        parts.push(`${k}=${query[k]}`);
     }
     return parts.join('&');
 }
 export function renderTag(tag, keyvals, child) {
-    var html = `<${  tag  } `;
+    var html = `<${tag} `;
     var key, val;
     for (key in keyvals) {
         val =  keyvals[key];
         if (val == '') {
-            html += `${key  } `;
+            html += `${key} `;
         } else {
-            html += `${key  }="${  val  }" `;
+            html += `${key}="${val}" `;
         }
     }
     if (tag === 'img') {
-        return `${html  }/>`;
+        return `${html}/>`;
     }
     html += '>';
     if (child) {
         html += child;
     }
-    html += `</${  tag  }>`;
+    html += `</${tag}>`;
     return html;
 }
 
@@ -99,21 +99,21 @@ Subject.prototype = {
         var ed, titlestring, bookcover_url, format, bookread_url, html
         for (author in work.authors)
             authors.push(work.authors[author].name);
-        ed = `edition${  work.edition_count > 1 ? 's' : ''}`;
-        titlestring = `${work.title  } by ${  authors.join(', ')
-        } (${  work.edition_count  } ${  ed  })`;
-        bookcover_url = `//covers.openlibrary.org/b/id/${  work.cover_id  }-M.jpg`;
+        ed = `edition${work.edition_count > 1 ? 's' : ''}`;
+        titlestring = `${work.title} by ${authors.join(', ')
+        } (${work.edition_count} ${ed})`;
+        bookcover_url = `//covers.openlibrary.org/b/id/${work.cover_id}-M.jpg`;
         format = work.public_scan ? 'public' : (work.printdisabled && !work.ia_collection.includes('inlibrary')) ? 'daisy' : 'borrow';
         bookread_url = work.public_scan ?
-            (`//archive.org/stream/${  work.ia  }?ref=ol`) :
-            `/borrow/ia/${  work.ia}`;
+            (`//archive.org/stream/${work.ia}?ref=ol`) :
+            `/borrow/ia/${work.ia}`;
         html = renderTag('div', {'class': 'coverMagic'},
             renderTag('span', {
                 'itemtype': 'https://schema.org/Book',
                 'itemscope': ''},
             renderTag('div', {'class': 'SRPCover'},
                 renderTag('a', {'href': work.key, 'title': titlestring,
-                    'data-ol-link-track': `subject-${  this.slug}`},
+                    'data-ol-link-track': `subject-${this.slug}`},
                 renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
                     'alt': titlestring, 'class': 'cover'}))) +
         renderTag('div', {'class': 'coverEbook'},
@@ -155,7 +155,7 @@ Subject.prototype = {
             $.extend(params, this.filter);
 
             key = this.key.replace(/\s+/g, '_');
-            url = `${key  }.json?${  urlencode(params)}`;
+            url = `${key}.json?${urlencode(params)}`;
             t = this;
 
             $.getJSON(url, function(data) {
@@ -170,7 +170,7 @@ Subject.prototype = {
         params = $.extend({'limit': this.settings.pagesize, 'offset': 0},
             this.filter, params);
         key = this.key.replace(/\s+/g, '_');
-        url = `${key  }.json?${  urlencode(params)}`;
+        url = `${key}.json?${urlencode(params)}`;
         $.getJSON(url, callback);
     },
 

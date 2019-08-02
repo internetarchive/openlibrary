@@ -54,7 +54,7 @@ export default function($) {
             .result(function(event, item) {
                 var $this;
 
-                $(`#${  this.id  }-key`).val(item.key);
+                $(`#${this.id}-key`).val(item.key);
                 $this = $(this);
 
                 //adding class directly is not working when tab is pressed. setTimeout seems to be working!
@@ -63,7 +63,7 @@ export default function($) {
                 }, 0);
             })
             .nomatch(function(){
-                $(`#${  this.id  }-key`).val('');
+                $(`#${this.id}-key`).val('');
                 $(this).addClass('reject');
             })
             .keypress(function() {
