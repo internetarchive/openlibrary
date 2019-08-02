@@ -19,8 +19,8 @@ export const editionIdentifiersSample = `<fieldset id="identifiers">
         <tr id="identifiers-template" style="display: none;" class="repeat-item">
             <td align="right"><strong>{{$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
             <td width="380">{{value}}
-                <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}">
-                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}">
+                <input type="hidden" name="{{prefix}}identifiers----name" value="{{name}}">
+                <input type="hidden" name="{{prefix}}identifiers----value" value="{{value}}">
             </td>
             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
         </tr>

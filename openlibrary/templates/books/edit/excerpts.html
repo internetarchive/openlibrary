@@ -52,10 +52,10 @@ $def with (work)
         <div class="label" id="excerpts-so-far"><h3>$_("Excerpts so far...")</h3></div>
         <div id="excerpts-display">
             <div class="formBack repeat-item" style="display: none" id="excerpts-template">
-                <input type="hidden" name="{{prefix}}--{{index}}--pages" value="{{pages}}"/>
-                <input type="hidden" name="{{prefix}}--{{index}}--excerpt" value="{{excerpt}}"/>
-                <input type="hidden" name="{{prefix}}--{{index}}--comment" value="{{comment}}"/>
-                <input type="hidden" name="{{prefix}}--{{index}}--author--key" value="$(ctx.user and ctx.user.key)"/>
+                <input type="hidden" name="{{prefix}}--{{uniqueRowId}}--pages" value="{{pages}}"/>
+                <input type="hidden" name="{{prefix}}--{{uniqueRowId}}--excerpt" value="{{excerpt}}"/>
+                <input type="hidden" name="{{prefix}}--{{uniqueRowId}}--comment" value="{{comment}}"/>
+                <input type="hidden" name="{{prefix}}--{{uniqueRowId}}--author--key" value="$(ctx.user and ctx.user.key)"/>
                 <div style="float:right;"><a href="javascript:;" class="repeat-remove red plain">[x]</a></div>
                 <blockquote>
                     {{excerpt}}

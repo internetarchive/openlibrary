@@ -39,8 +39,8 @@ $def with (work, prefix="")
                     <div class="linkRemove"><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this link')">[x]</a></div>
                     <a href="{{url}}">{{title}}</a>
                     <span class="link wrap">{{url}}</span>
-                    <input type="hidden" name="{{prefix}}links--{{index}}--title" value="{{title}}"/>
-                    <input type="hidden" name="{{prefix}}links--{{index}}--url" value="{{url}}"/>
+                    <input type="hidden" name="{{prefix}}links--{{uniqueRowId}}--title" value="{{title}}"/>
+                    <input type="hidden" name="{{prefix}}links--{{uniqueRowId}}--url" value="{{url}}"/>
                 </li>
 
                 $for index, link in enumerate(work.links):

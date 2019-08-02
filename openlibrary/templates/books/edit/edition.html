@@ -310,8 +310,8 @@ window.q.push(function() {
                             <tr id="roles-template" class="repeat-item" style="display: none;">
                                 <td align="right"><strong>{{role}}</strong></td>
                                 <td>{{name}}
-                                    <input type="hidden" name="{{prefix}}contributors--{{index}}--role" value="{{role}}"/>
-                                    <input type="hidden" name="{{prefix}}contributors--{{index}}--name" value="{{name}}"/>
+																	<input type="hidden" name="{{prefix}}contributors--{{uniqueRowId}}--role" value="{{role}}"/>
+                                    <input type="hidden" name="{{prefix}}contributors--{{uniqueRowId}}--name" value="{{name}}"/>
                                 </td>
                                 <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this contributor')">[x]</a></td>
                             </tr>
@@ -471,8 +471,8 @@ window.q.push(function() {
                         <tr id="identifiers-template" style="display: none;" class="repeat-item">
                             <td align="right"><strong>{{\$("#select-id").find("option[value=" + name + "]").html()}}</strong></td>
                             <td width="380">{{value}}
-                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--name" value="{{name}}"/>
-                                <input type="hidden" name="{{prefix}}identifiers--{{index}}--value" value="{{value}}"/>
+                                <input type="hidden" name="{{prefix}}identifiers--{{uniqueRowId}}--name" value="{{name}}"/>
+                                <input type="hidden" name="{{prefix}}identifiers--{{uniqueRowId}}--value" value="{{value}}"/>
                             </td>
                             <td><a href="javascript:;" class="repeat-remove red plain" title="Remove this identifier">[x]</a></td>
                         </tr>
@@ -537,8 +537,8 @@ window.q.push(function() {
                         <tr id="classifications-template" style="display: none;" class="repeat-item">
                             <td align="right"><strong>{{\$("#select-classification").find("option[value=" + name + "]").html()}}</strong></td>
                             <td width="380">{{value}}
-                                <input type="hidden" name="{{prefix}}classifications--{{index}}--name" value="{{name}}"/>
-                                <input type="hidden" name="{{prefix}}classifications--{{index}}--value" value="{{value}}"/>
+                                <input type="hidden" name="{{prefix}}classifications--{{uniqueRowId}}--name" value="{{name}}"/>
+                                <input type="hidden" name="{{prefix}}classifications--{{uniqueRowId}}--value" value="{{value}}"/>
                             </td>
                             <td><a href="javascript:;" class="repeat-remove red plain" title="$_('Remove this classification')">[x]</a></td>
                         </tr>
