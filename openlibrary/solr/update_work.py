@@ -1312,7 +1312,7 @@ def update_author(akey, a=None, handle_redirects=True):
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
-    if docs:
+    if docs and docs[0].get('title', None):
         top_work = docs[0]['title']
         if docs[0].get('subtitle', None):
             top_work = top_work + ': ' + docs[0]['subtitle']
