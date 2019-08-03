@@ -94,9 +94,10 @@ def qualifies_for_sponsorship(edition):
         dwwi = availability.get(work_id, {}).get('status', 'error') == 'error'
         if dwwi:
             bwb_price = get_betterworldbooks_metadata(isbn).get('price_amt')
-            scan_price = 3.0 + (.12 * num_pages)
-            total_price = scan_price + float(bwb_price)
-            return total_price <= PRICE_LIMIT
+            if bwb_price:
+                scan_price = 3.0 + (.12 * num_pages)
+                total_price = scan_price + float(bwb_price)
+                return total_price <= PRICE_LIMIT
     return False
 
 
