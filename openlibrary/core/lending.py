@@ -315,6 +315,7 @@ def get_availability_of_ocaids(ocaids):
     """
     return get_availability('identifier', ocaids)
 
+@public
 def get_work_availability(ol_work_id):
     return get_availability_of_works([ol_work_id])
 
