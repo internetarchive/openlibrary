@@ -15,7 +15,7 @@ $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and
 $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
-$ isbn = page.isbn_13[0] if page.isbn_13 else page.isbn_10[0] if page.isbn_10 else ''
+
 
 $if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
@@ -79,14 +79,17 @@ $elif (availability_status == 'borrow_unavailable'):
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
 
-$elif (not ocaid or page.is_access_restricted()) and editions_page:
-  $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
-  $ availability = get_work_availability(work.key.split("/")[-1])
-  $if user and user.is_sponsor() and isbn and all(page.get(x) for x in ['publishers', 'title', 'publish_date', 'covers']) and page.works and page.works[0].get('authors') and betterworldbooks_metadata and ('price_amt' in betterworldbooks_metadata) and (float(betterworldbooks_metadata['price_amt']) < 15.00) and not(availability[work.key.split("/")[-1]]['status']=='open'):
-    $ user_id = user.key.split("/")[-1] if user.key else ''
-    <a href="https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)" class="cta-btn cta-btn--sponsor">Sponsor eBook</a>
-    <p>We don’t have this book yet. You can add it to our Lending Library with a \$50 tax deductible donation.
-      <a href="https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)">Learn More</a>
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
+  $if user and user.is_sponsor() and qualifies_for_sponsorship(page):
+    $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
+    $ user_id = user.key.split("/")[-1]
+    $ donate_url = "https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)"
+    <a href="$donate_url"
+       class="cta-btn cta-btn--sponsor">Sponsor eBook</a>
+    <p>
+      We don’t have this book yet. You can add it to our Lending
+      Library with a \$50 tax deductible donation.
+      <a href="$donate_url">Learn More</a>
     </p>
   $else:
     <form>
@@ -95,15 +98,6 @@ $elif (not ocaid or page.is_access_restricted()) and editions_page:
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid)
-
-<div class="hidden">
-  <div class="floater" id="sponsorshipModal">
-      <div class="floaterHead">
-          <h2>Sponsor This eBook</h2>
-          <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
-      </div>
-  </div>
-</div>
 
 $if ocaid and page.is_access_restricted():
   $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
