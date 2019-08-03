@@ -65,7 +65,7 @@
     "detect-libc": "^1.0.3",
     "eslint": "^5.16.0",
     "jest": "^24.5.0",
-    "jquery": "1.11.0",
+    "jquery": "3.4.0",
     "less": "^3.8.1",
     "less-loader": "4.1.0",
     "node-gyp": "^3.8.0",
