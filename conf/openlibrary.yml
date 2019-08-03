@@ -170,7 +170,7 @@ ia_availability_api_v1_url: https://archive.org/services/loans/beta/loan/index.p
 ia_availability_api_v2_url: https://archive.org/services/availability/
 ia_base_url: https://archive.org
 
-plugin_civicrm:
+ia_civicrm_api:
     url: http://localhost/internal/fake/civicrm
     api_key: XXX
     site_key: XXX

@@ -7,10 +7,8 @@ from openlibrary import accounts
 from openlibrary.core.lending import get_work_availability
 from openlibrary.core.vendors import get_betterworldbooks_metadata
 from openlibrary.accounts import get_internet_archive_id
+from openlibrary.core.lending import config_ia_civicrm_api
 
-CIVI_SPONSOR_API = config.get('plugin_civicrm')
-CIVI_URL = CIVI_SPONSOR_API.get('url')
-CIVI_HEADERS = {'Authorization': 'Basic %s' % CIVI_SPONSOR_API.get('auth', '')}
 CIVI_ISBN = 'custom_52'
 CIVI_USERNAME = 'custom_51'
 CIVI_CONTEXT = 'custom_53'
@@ -32,15 +30,20 @@ def get_contact_id_by_username(username):
     data = {
         'entity': 'Contact',
         'action': 'get',
-        'api_key': CIVI_SPONSOR_API.get('api_key', ''),
-        'key': CIVI_SPONSOR_API.get('site_key', ''),
+        'api_key': config_ia_civicrm_api.get('api_key', ''),
+        'key': config_ia_civicrm_api.get('site_key', ''),
         'json': {
             "sequential": 1,
             CIVI_USERNAME: username
         }
     }
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
-    r = requests.get(CIVI_URL, params=urllib.urlencode(data), headers=CIVI_HEADERS)
+    r = requests.get(
+        config_ia_civicrm_api.get('url', ''),
+        params=urllib.urlencode(data),
+        headers={
+            'Authorization': 'Basic %s' % config_ia_civicrm_api.get('auth', '')
+        })
     contacts = r.json().get('values', None)
     return contacts and contacts[0].get('contact_id')
 
@@ -49,8 +52,8 @@ def get_sponsorships_by_contact_id(contact_id, isbn=None):
     data = {
         'entity': 'Contribution',
         'action': 'get',
-        'api_key': CIVI_SPONSOR_API.get('api_key', ''),
-        'key': CIVI_SPONSOR_API.get('site_key', ''),
+        'api_key': config_ia_civicrm_api.get('api_key', ''),
+        'key': config_ia_civicrm_api.get('site_key', ''),
         'json': {
             "sequential": 1,
             "financial_type_id": "Book Sponsorship",
@@ -60,7 +63,12 @@ def get_sponsorships_by_contact_id(contact_id, isbn=None):
     if isbn:
         data['json'][CIVI_ISBN] = isbn
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
-    r = requests.get(CIVI_URL, params=urllib.urlencode(data), headers=CIVI_HEADERS)
+    r = requests.get(
+        config_ia_civicrm_api.get('url', ''),
+        params=urllib.urlencode(data),
+        headers={
+            'Authorization': 'Basic %s' % config_ia_civicrm_api.get('auth', '')
+        })
     txs = r.json().get('values')
     return [{
         'isbn': t.pop(CIVI_ISBN),
