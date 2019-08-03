@@ -12,7 +12,6 @@ import './jquery.columnize';
 import './jquery.dataTables';
 import './jquery.hoverIntent';
 import './jquery.jTruncate';
-import toggleText from './jquery.toggleText';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
 import fadeToggle from './jquery.fadeToggle';
 import jQueryRepeat from './jquery.repeat';
@@ -31,7 +30,7 @@ import init, { closePop, bookCovers,
 import { commify } from './python';
 import { Subject, urlencode, renderTag, slice } from './subjects';
 import Template from './template.js';
-// Add $.fn.toggleText, $.fn.focusNextInputField, $.fn.ol_confirm_dialog, $.fn.tap
+// Add $.fn.focusNextInputField, $.fn.ol_confirm_dialog, $.fn.tap
 import { closePopup, initShowPasswords, truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
@@ -78,7 +77,6 @@ jQuery.fn.exists = function(){return jQuery(this).length>0;}
 jQuery.fn.removeHighlight = removeHighlight;
 jQuery.fn.highlight = highlight;
 jQuery.fn.fadeToggle = fadeToggle;
-jQuery.fn.toggleText = toggleText;
 
 // Initialise some things
 $(function () {
