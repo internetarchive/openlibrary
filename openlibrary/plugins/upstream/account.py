@@ -770,7 +770,7 @@ class public_my_books(delegate.page):
         if user.preferences().get('public_readlog', 'no') == 'yes':
             readlog = ReadingLog(user=user)
             books = readlog.get_works(key)
-            sponsorships = get_sponsored_editions(user).get('sponsorships')
+            sponsorships = get_sponsored_editions(user)
             page = render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
                 reading_log=readlog.reading_log_counts,
@@ -792,17 +792,22 @@ class fake_civi(delegate.page):
 
     @require_login
     def GET(self):
-        return delegate.RawText(simplejson.dumps({
-            "username": "@mekarpeles",
-            "transactions": [
-                {
-                    "receive_date": "2019-07-31 08:57:00",
-                    "isbn": "9780062457714",
-                    "total_amount": "50.00",
-                    "context": "ol"
-                }
-            ]
-        }), content_type="application/json")
+        i = web.input(entity='Contact')
+        contact = {
+            'values': [{
+                'contact_id': '270430'
+            }]
+        }
+        contributions = {
+            'values': [{
+                "receive_date": "2019-07-31 08:57:00",
+                "custom_52": "9780062457714",
+                "total_amount": "50.00",
+                "custom_54": "ol"
+            }]
+        }
+        entity = contributions if i.entity == 'Contribution' else contact
+        return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
 
 class account_my_books(delegate.page):
     path = "/account/books/([a-zA-Z_-]+)"
@@ -812,7 +817,7 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
-        sponsorships = get_sponsored_editions(user).get('sponsorships')
+        sponsorships = get_sponsored_editions(user)
         if key == 'sponsorships':
             books = (web.ctx.site.get(
                 web.ctx.site.things({

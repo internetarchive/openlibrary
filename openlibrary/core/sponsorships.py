@@ -24,10 +24,7 @@ def get_sponsored_editions(user):
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     contact_id = get_contact_id_by_username(archive_id)
-    return contact_id and {
-        'username': archive_id,
-        'sponsorships': get_sponsorships_by_contact_id(contact_id)
-    }
+    return contact_id and get_sponsorships_by_contact_id(contact_id)
 
 
 def get_contact_id_by_username(username):
