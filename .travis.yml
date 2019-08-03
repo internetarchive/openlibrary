@@ -1,3 +1,4 @@
+dist: bionic
 language: python
 addons:
   apt:
@@ -5,12 +6,15 @@ addons:
       - libgeoip-dev
 matrix:
   include:
-    - python: "2.7"
-    - python: "3.6"
-    - python: "3.7"
-      dist: xenial  # required for Python >= 3.7 (travis-ci/travis-ci#9069)
+    - name: “Python 2.7 on xenial”
+      python: "2.7"
+      dist: xenial
+    - name: “Python 2.7 on bionic”
+      python: "2.7"
+    - name: “Python 3.7 on bionic”
+      python: "3.7"
   allow_failures:
-    - python: "3.6"
+    - name: “Python 2.7 on bionic”
     - python: "3.7"
 install:
   - pip install flake8
