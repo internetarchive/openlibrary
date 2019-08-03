@@ -5,7 +5,7 @@ $ urlbase = ctx.path.rsplit('/', 1)[0]
 $ owners_page = not urlbase.startswith('/people')
 $ header_title = key.title().replace('-', ' ')
 $ username = user.key.split('/')[-1]
-$ meta_photo_url = "https://archive.org/services/img/%s"%get_internet_archive_id(ctx.user.key)
+$ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $if user:
   $ displayName = user.displayname
