@@ -852,8 +852,9 @@ def build_data2(w, editions, authors, ia, duplicates):
     return doc
 
 
-def post_solr(url, body, debug):
-    response = requests_session.post(url, data = body, headers = { 'Content-type': 'text/xml;charset=utf-8'})
+def post_solr(url, body, debug, commit=False):
+    params = {'update': 'true'} if commit else {}
+    response = requests_session.post(url, data=body, headers={'Content-type': 'text/xml;charset=utf-8'}, params=params)
     if response.reason != 'OK':
         logger.error(response.reason)
         logger.error(response.text)
@@ -865,9 +866,8 @@ def post_solr(url, body, debug):
     return response.text
 
 
-def solr_update(requests, debug=False, commitWithin=60000):
+def solr_update(requests, debug=False, commitWithin=60000, commit=False):
     """POSTs a collection of update requests to Solr.
-    TODO: Deprecate and remove string requests. Is anything else still generating them? (Yes - "<commit/>" tags)
     :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
@@ -884,9 +884,8 @@ def solr_update(requests, debug=False, commitWithin=60000):
         elif isinstance(r, DeleteRequest):
             delete_requests.append(r)
         else:
-            # TODO handle <commit/> specially out of band
             other_requests.append(r)
-            logger.debug("Unhandled request - %s" % r)
+            logger.error("Unhandled request - %s" % r)
 
     if delete_requests:
         r = DeleteRequest.toxml_all(delete_requests)
@@ -895,7 +894,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
     if update_requests:
         logger.debug('Posting %d UpdateRequests' % len(update_requests))
         r = UpdateRequest.toxml_all(update_requests)
-        post_solr(url, r, debug)
+        post_solr(url, r, debug, commit=commit)
 
 
 def listify(f):
@@ -1402,7 +1401,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     Insert/update the documents with the provided keys in Solr.
 
     :param list[str] keys: Keys to update (ex: ["/books/OL1M"]).
-    :param bool commit: Create <commit> tags to make Solr persist the changes (and make the public/searchable).
+    :param bool commit: Tell  Solr persist the changes (and make the public/searchable).
     :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
         Each line will be JSON object.
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
@@ -1411,11 +1410,11 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     logger.info("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
-    def _solr_update(requests, debug=False, commitWithin=60000):
+    def _solr_update(requests, debug=False, commitWithin=60000, commit=False):
         if commit_way_later:
-            return solr_update(requests, debug, commit_way_later_dur)
+            return solr_update(requests, debug, commit_way_later_dur, commit=commit)
         else:
-            return solr_update(requests, debug, commitWithin)
+            return solr_update(requests, debug, commitWithin, commit=commit)
 
     global data_provider
     global _ia_db
@@ -1492,9 +1491,6 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
             logger.error("Failed to update work %s", k, exc_info=True)
 
     if requests:
-        if commit:
-            requests += ['<commit />'] # FIXME string request
-
         if output_file:
             with open(output_file, "w") as f:
                 for r in requests:
@@ -1502,7 +1498,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            _solr_update(requests, debug=True)
+            _solr_update(requests, debug=True, commit=commit)
 
     # update editions
     requests = []
@@ -1516,9 +1512,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
         except:
             logger.error("Failed to update edition %s", k, exc_info=True)
     if requests:
-        if commit:
-            requests += ['<commit/>'] # FIXME string request
-        _solr_update(requests, debug=True)
+        _solr_update(requests, debug=True, commit=commit)
 
     # update authors
     requests = []
@@ -1540,9 +1534,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
                         f.write(r.tojson())
                         f.write("\n")
         else:
-            if commit:
-                requests += ['<commit />'] # FIXME string request
-            _solr_update(requests, debug=True, commitWithin=1000) #FIXME overriding commit time
+            _solr_update(requests, debug=True, commitWithin=1000, commit=commit) #FIXME overriding commit time
 
     # update subjects
     skeys = set(k for k in keys if k.startswith("/subjects/"))
@@ -1554,9 +1546,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
         except:
             logger.error("Failed to update subject %s", k, exc_info=True)
     if requests:
-        if commit:
-            requests += ['<commit />'] # FIXME string request
-        _solr_update(requests, debug=True)
+        _solr_update(requests, debug=True, commit=commit)
 
     logger.info("END update_keys")
 
