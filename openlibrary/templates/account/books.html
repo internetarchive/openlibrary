@@ -8,7 +8,7 @@ $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$ total_items = int(reading_log[key])
+$ total_items = int(reading_log.get(key, sponsorship_count))
 
 $if user:
   $ displayName = user.displayname
