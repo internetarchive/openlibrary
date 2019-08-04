@@ -769,12 +769,13 @@ class public_my_books(delegate.page):
 
     def GET(self, username, key='loans'):
         """check if user's reading log is public"""
+        i = web.input(page=1)
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
         if user.preferences().get('public_readlog', 'no') == 'yes':
             readlog = ReadingLog(user=user)
-            books = readlog.get_works(key)
+            books = readlog.get_works(key, page=i.page)
             sponsorships = get_sponsored_editions(user)
             page = render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
@@ -831,7 +832,7 @@ class account_my_books(delegate.page):
                     'isbn_%s' % len(s['isbn']): s['isbn']
                 })[0]) for s in sponsorships)
         else:
-            works = readlog.get_works(key, page=i.page)
+            books = readlog.get_works(key, page=i.page)
         page = render['account/books'](
             books, key, sponsorship_count=len(sponsorships),
             reading_log=readlog.reading_log_counts, lists=readlog.lists,
