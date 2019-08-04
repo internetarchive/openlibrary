@@ -79,11 +79,11 @@ $elif (availability_status == 'borrow_unavailable'):
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
 
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:   
-  $if user and (input('sponsorship') or user.is_sponsor()) and qualifies_for_sponsorship(page):
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+  $if user and (input(sponsorship=None) or user.is_sponsor()) and qualifies_for_sponsorship(page):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
     $ user_id = user.key.split("/")[-1]
-    $ donate_url = "https://archive.org/donate?context=ol&userid=$(user_id)&campaign=pilot&type=book-sponsorship&isbn=$(isbn)"
+    $ donate_url = "https://archive.org/donate?context=ol&userid=%s&campaign=pilot&type=book-sponsorship&isbn=%s" % (user_id, isbn)
     <a href="$donate_url"
        class="cta-btn cta-btn--sponsor">Sponsor eBook</a>
     <p>
