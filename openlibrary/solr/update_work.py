@@ -1,13 +1,12 @@
 from __future__ import print_function
 import datetime
-import httplib
 import logging
 import os
 import re
+import requests
 import sys
 import time
-import urllib
-import urllib2
+import urllib3
 try:
     from urllib.parse import urlparse
 except ImportError:
@@ -28,6 +27,12 @@ from openlibrary.core import helpers as h
 from openlibrary.core import ia
 from openlibrary.utils.isbn import opposite_isbn
 
+# Hack to workaround lack of availability of __file__ at top level for Cython
+# http://bugs.python.org/issue13429 https://stackoverflow.com/a/19225368/167425
+import inspect
+if not hasattr(sys.modules[__name__], '__file__'):
+    __file__ = inspect.getfile(inspect.currentframe())
+
 logger = logging.getLogger("openlibrary.solr")
 
 re_lang_key = re.compile(r'^/(?:l|languages)/([a-z]{3})$')
@@ -37,6 +42,8 @@ re_edition_key = re.compile(r"/books/([^/]+)")
 re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
 re_solr_field = re.compile('^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
+
+HTTP_TIMEOUT = (9.1, 300)
 
 # Blacklist uninformative subjects (at least for author top subjects for now)
 SUBJECT_BLACKLIST = [
@@ -61,17 +68,26 @@ _ia_db = None
 
 solr_base_url = None
 
+requests_session = requests.Session()
+requests_session.headers.update({
+        'User-Agent': 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, "%s.%s.%s" % sys.version_info[:3]),
+        })
+requests_session.mount('http', requests.adapters.HTTPAdapter(
+        # Use Retry object with our adapter to enable retries on Solr server 500s
+        # TODO: May want to expand the set of codes for production if there are gateways in the middle
+        max_retries=urllib3.util.retry.Retry(connect=3, read=3, backoff_factor=0.2, status_forcelist=(500, 503))
+        ))
+
 def using_cython():
     print("NOT USING CYTHON!")
 
-def urlopen(url, data=None):
-    version = "%s.%s.%s" % sys.version_info[:3]
-    user_agent = 'Mozilla/5.0 (openlibrary; %s) Python/%s' % (__file__, version)
-    headers = {
-        'User-Agent': user_agent
-    }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+def get_json(url, params=None):
+    response = requests_session.get(url, params = params, timeout = HTTP_TIMEOUT)
+    logger.debug('Elapsed time for request to %s was %s', url, response.elapsed)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logger.error('Get of %s failed with %s, params = %s', url, response.reason)
 
 def get_solr_base_url():
     """
@@ -544,8 +560,8 @@ class SolrProcessor:
         # Anand - Oct 2013
         # If not public scan then add the work to Protected DAISY subject.
         # This is not the right place to add it, but seems to the quickest way.
-        if has_fulltext and not d.get('public_scan_b'):
-            subjects['subject']['Protected DAISY'] = 1
+        #if has_fulltext and not d.get('public_scan_b'):
+        #    subjects['subject']['Protected DAISY'] = 1
 
         return d
 
@@ -835,21 +851,19 @@ def build_data2(w, editions, authors, ia, duplicates):
 
     return doc
 
-def post_solr(connection, url, body, debug):
-    t1 = time.time()
-    connection.request('POST', url, body, { 'Content-type': 'text/xml;charset=utf-8'})
-    response = connection.getresponse()
-    response_body = response.read()
-    t2 = time.time()
+
+def post_solr(url, body, debug):
+    response = requests_session.post(url, data = body, headers = { 'Content-type': 'text/xml;charset=utf-8'})
     if response.reason != 'OK':
         logger.error(response.reason)
-        logger.error(response_body)
+        logger.error(response.text)
         logger.error(body)
     if debug:
-        elapsed = t2 - t1
-        logger.debug('Response %s in %s sec for %d KiB (%5.2f KiB/s)' % (response.reason, elapsed, len(body)/1000, len(body)/elapsed/1000.0))
+        rate = len(body)/response.elapsed.total_seconds()/1000
+        logger.debug('Response %s in %s sec for %d KiB (%5.2f KiB/s)' % (response.reason, response.elapsed, len(body)/1000, rate))
         #logger.debug('Response body: %s' % response_body)
-    return response_body
+    return response.text
+
 
 def solr_update(requests, debug=False, commitWithin=60000):
     """POSTs a collection of update requests to Solr.
@@ -860,19 +874,6 @@ def solr_update(requests, debug=False, commitWithin=60000):
     """
     url = get_solr_base_url() + '/update'
     logger.info("POSTing update to %s", url)
-    parsed_url = urlparse(url)
-    t1 = time.time()
-    if parsed_url.port:
-        h1 = httplib.HTTPConnection(parsed_url.hostname, parsed_url.port)
-    else:
-        h1 = httplib.HTTPConnection(parsed_url.hostname)
-    # FIXME; commit strategy / timing should be managed in config, not code
-    url = url + "?commitWithin=%d" % commitWithin
-
-    # TODO: Switch to use requests modoule instead of home-rolled handling
-    h1.connect()
-    t2 = time.time()
-    logger.debug("Connected in %s " % (t2-t1))
 
     delete_requests = []
     update_requests = []
@@ -890,13 +891,12 @@ def solr_update(requests, debug=False, commitWithin=60000):
     if delete_requests:
         r = DeleteRequest.toxml_all(delete_requests)
         logger.debug('Posting %d DeleteRequests' % len(delete_requests))
-        post_solr(h1, url, r, debug)
+        post_solr(url, r, debug)
     if update_requests:
         logger.debug('Posting %d UpdateRequests' % len(update_requests))
         r = UpdateRequest.toxml_all(update_requests)
-        post_solr(h1, url, r, debug)
+        post_solr(url, r, debug)
 
-    h1.close()
 
 def listify(f):
     """Decorator to transform a generator function into a function
@@ -1161,11 +1161,10 @@ def get_subject(key):
         'facet': 'true',
         'facet.field': facet_field,
         'facet.mincount': 1,
-        'facet.limit': 100
+        'facet.limit': 100,
     }
-    base_url = get_solr_base_url() + '/select'
-    url = base_url + '?' + urllib.urlencode(params)
-    result = json.load(urlopen(url))
+    url = get_solr_base_url() + '/select'
+    result = get_json(url, params)
 
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
@@ -1300,15 +1299,21 @@ def update_author(akey, a=None, handle_redirects=True):
         raise
 
     facet_fields = ['subject', 'time', 'person', 'place']
-    base_url = get_solr_base_url() + '/select'
+    url = get_solr_base_url() + '/select'
 
     # Query Solr for all works with this author_key
-    url = base_url + '?wt=json&json.nl=arrarr&q=author_key:%s&sort=edition_count+desc&rows=1&fl=title,subtitle&facet=true&facet.mincount=1' % author_id
-    url += ''.join('&facet.field=%s_facet' % f for f in facet_fields)
+    # This only works with a sequence of tuples, not a dict due to duplicate keys
+    params = (('wt', 'json'),
+              ('json.nl', 'arrarr'),
+              ('q', 'author_key,%s'  % author_id),
+              ('sort', 'edition_count desc'),
+              ('rows', 1),
+              ('fl', 'title,subtitle'),
+              ('facet', 'true'),
+              ('facet.mincount', 1),
+              ) + tuple([('facet.field', '%s_facet' % f) for f in facet_fields])
 
-    logger.info("urlopen %s", url)
-
-    reply = json.load(urlopen(url))
+    reply = get_json(url, params)
     work_count = reply['response']['numFound']
     docs = reply['response'].get('docs', [])
     top_work = None
@@ -1381,8 +1386,13 @@ def solr_select_work(edition_key):
 
     edition_key = solr_escape(edition_key)
 
-    url = get_solr_base_url() + '/select?wt=json&q=edition_key:%s&rows=1&fl=key' % edition_key
-    reply = json.load(urlopen(url))
+    url = get_solr_base_url() + '/select'
+    params = {'wt': 'json',
+              'q': 'edition_key:%s' % edition_key,
+              'rows': 1,
+              'fl': 'key',
+              }
+    reply = get_json(url, params)
     docs = reply['response'].get('docs', [])
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
