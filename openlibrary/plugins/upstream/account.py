@@ -726,19 +726,19 @@ class ReadingLog(object):
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
 
-    def get_want_to_read(self, page=1, limit=100):
+    def get_want_to_read(self, page=1, limit=500):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_currently_reading(self, page=1, limit=100):
+    def get_currently_reading(self, page=1, limit=500):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_already_read(self, page=1, limit=100):
+    def get_already_read(self, page=1, limit=500):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit)]
