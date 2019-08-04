@@ -209,3 +209,25 @@ class Bookshelves(object):
                  " GROUP BY bookshelf_id")
         result = oldb.query(query, vars={'work_id': int(work_id)})
         return dict([(i['bookshelf_id'], i['user_count']) for i in result]) if result else {}
+
+    @classmethod
+    def user_with_most_books(cls):
+        """
+        Which super patrons have the most books logged?
+
+        SELECT username, count(*) AS counted from bookshelves_books WHERE bookshelf_id=ANY('{1,3,2}'::int[]) GROUP BY username ORDER BY counted DESC, username LIMIT 10
+        """
+        oldb = db.get_db()
+        _bookshelf_ids = ','.join([str(x) for x in cls.PRESET_BOOKSHELVES.values()])
+        query = ("SELECT username, count(*) AS counted "
+                 "FROM bookshelves_books WHERE "
+                 "bookshelf_id=ANY('{" + _bookshelf_ids + "}'::int[]) "
+                 "GROUP BY username "
+                 "ORDER BY counted DESC, username LIMIT 100")
+        result = oldb.query(query)
+        return list(result)
+
+    @classmethod
+    def search_my_readinglog(cls, q, bookshelf_id):
+        oldb = db.get_db()
+        pass
