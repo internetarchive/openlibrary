@@ -37,6 +37,7 @@ from six.moves import range
 
 logger = logging.getLogger("openlibrary.account")
 
+RESULTS_PER_PAGE = 25
 USERNAME_RETRIES = 3
 
 # XXX: These need to be cleaned up
@@ -675,9 +676,14 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
+
+
+
 class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
+
+    
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
@@ -726,32 +732,31 @@ class ReadingLog(object):
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
 
-    def get_want_to_read(self, page=1, limit=100):
+    def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_currently_reading(self, page=1, limit=100):
+    def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_already_read(self, page=1, limit=100):
+    def get_already_read(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_works(self, key):
+    def get_works(self, key, page=1):
         key = key.lower()
         if key in self.KEYS:
-            return self.KEYS[key]()
+            return self.KEYS[key](page=page)
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
-
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -786,10 +791,11 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self, key='loans'):
+        i = web.input(page=1)
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
-        works = readlog.get_works(key)
+        works = readlog.get_works(key, page=i.page)
         page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
         page.v2 = True
         return page

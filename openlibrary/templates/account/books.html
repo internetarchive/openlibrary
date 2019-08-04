@@ -7,6 +7,9 @@ $ header_title = key.title().replace('-', ' ')
 $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
+$ current_page = int(input(page=1).page)
+$ total_items = int(reading_log[key])
+
 $if user:
   $ displayName = user.displayname
 $else:
@@ -72,6 +75,7 @@ $if og_title:
           </ul>
       </div>
       <div class="mybooks-list">
+        $:macros.Pager(current_page, total_items, results_per_page=25)
         <ul class="list-books" id="siteSearch">
           $if items:
             $ bookshelf_id = 1 if key == 'want-to-read' else 2 if key == 'currently-reading' else 3 if key == 'already-read' else None
@@ -92,6 +96,7 @@ $if og_title:
           $else:
             <li>No books are on this shelf</li>
         </ul>
+        $:macros.Pager(current_page, total_items, results_per_page=25)
       </div>
     </div>
   </div>
