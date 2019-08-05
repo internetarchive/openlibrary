@@ -72,3 +72,7 @@ Follow these rules when creating a PR:
 2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
 3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
 4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+
+## QA Testing
+
+Once a Pull Request has been subitted, ask an approved member of staff to spin up an isolated kubernetes Open Library pod for the branch that you're working on. They will give you a link which will let you test your branch's current code against a near-production environment. Read more about our [Plans for Kubernetes](#kubernetes)
