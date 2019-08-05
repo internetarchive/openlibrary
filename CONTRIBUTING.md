@@ -75,4 +75,4 @@ Follow these rules when creating a PR:
 
 ## QA Testing
 
-Once a Pull Request has been subitted, ask an approved member of staff to spin up an isolated kubernetes Open Library pod for the branch that you're working on. They will give you a link which will let you test your branch's current code against a near-production environment. Read more about our [Plans for Kubernetes](#kubernetes)
+Once a Pull Request has been subitted, ask an approved member of staff to spin up an isolated kubernetes Open Library pod for the branch that you're working on. They will give you a link which will let you test your branch's current code against a near-production environment. Read more about our [Plans for Kubernetes](https://github.com/internetarchive/openlibrary/wiki/Kubernetes)
