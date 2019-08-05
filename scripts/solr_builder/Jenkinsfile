@@ -97,6 +97,7 @@ pipeline {
                       
                       def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
                       echo "Completed ${cores_completed} core(s) of ${env.PARALLEL_PROCESSES}"
+                      sleep 15*60 // By default this checks every 15s; that's unnecessary for a ~3.5 hour process
                       return cores_completed == env.PARALLEL_PROCESSES
                     }
                   }
@@ -264,6 +265,7 @@ pipeline {
                           archiveArtifacts artifacts: log_file
                           def status = sh(script: """cat ${log_file} | xmlstarlet sel -t -v "//str[@name='status']" """, returnStdout: true).trim()
                           echo status
+                          sleep 30*60 // By default this checks every 15s; that's unnecessary for a ~6 hour process
                           return status != 'busy'
                         }
                       }
@@ -318,6 +320,7 @@ void insert_into_solr(String index_cmd, String cores, String log_file_glob) {
   dir(env.HOST_SOLR_BUILDER_DIR) {
     sh index_cmd
     sleep 60 // wait for progress file
+
     waitUntil {
       script {
         sh(label: 'Progress',
@@ -336,6 +339,8 @@ void insert_into_solr(String index_cmd, String cores, String log_file_glob) {
           set -x
           """,
           returnStdout: true).trim()
+        echo cores_completed
+        sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
         return cores_completed == cores
       }
     }
