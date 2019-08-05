@@ -13,6 +13,7 @@ pipeline {
   parameters {
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
+    booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -236,20 +237,25 @@ pipeline {
                 }
               }
               stages {
-                stage('Decompress the dump') {
-                  steps {
-                    dir(env.SOLR_DUMP_DIR) {
-                      sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
+                stage('Setup solr-backup') {
+                  when { expression { return params.REUSE_SOLRBACKUP } }
+                  stages {
+                    stage('Decompress the dump') {
+                      steps {
+                        dir(env.SOLR_DUMP_DIR) {
+                          sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
+                        }
+                      }
                     }
-                  }
-                }
-                stage('Launch solr-backup service') {
-                  steps {
-                    dir(env.HOST_SOLR_BUILDER_DIR) {
-                      sh "docker-compose up -d --no-deps solr-backup"
-                      sleep 60
-                      // Assert backup has subjects in it
-                      script { assert solr_query_count('solr-backup', 'subject') != '0' }
+                    stage('Launch solr-backup service') {
+                      steps {
+                        dir(env.HOST_SOLR_BUILDER_DIR) {
+                          sh "docker-compose up -d --no-deps solr-backup"
+                          sleep 60
+                          // Assert backup has subjects in it
+                          script { assert solr_query_count('solr-backup', 'subject') != '0' }
+                        }
+                      }
                     }
                   }
                 }
