@@ -343,7 +343,7 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob) {
           done;
           set -x """)
         int running_indexers = sh(script: 'docker container ls -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
-        echo running_indexers
+        echo "${running_indexers}"
         int cores_completed = sh(script: """
           set +x
           for f in progress/${log_file_glob}; do
@@ -352,7 +352,7 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob) {
           set -x
           """,
           returnStdout: true).trim() as Integer
-        echo cores_completed
+        echo "${cores_completed}"
         assert running_indexers == (cores - cores_completed)
         sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
         return running_indexers == 0
