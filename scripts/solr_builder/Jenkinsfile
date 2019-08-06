@@ -202,7 +202,7 @@ pipeline {
               stages {
                 stage('Insert works & orphaned editions') {
                   steps {
-                    insert_into_solr('./index-type.sh work 5; ./index-orphans.sh', '6', '{works_,orphans}*')
+                    insert_into_solr('./index-type.sh work 5; ./index-orphans.sh', 6, '{works_,orphans}*')
                   }
                   post {
                     always {
@@ -212,7 +212,7 @@ pipeline {
                   }
                 }
                 stage('Insert authors') {
-                  steps { insert_into_solr('./index-type.sh author 6', '6', 'authors_*') }
+                  steps { insert_into_solr('./index-type.sh author 6', 6, 'authors_*') }
                   post {
                     always { artifact_indexing_logs('authors_*', 'authors-indexing.log.gz') }
                   }
@@ -327,7 +327,7 @@ void solr_commit(String solr_name) {
     script: "docker-compose exec -T ${solr_name} curl http://localhost:8080/solr/update?commit=true")
 }
 
-void insert_into_solr(String index_cmd, String cores, String log_file_glob) {
+void insert_into_solr(String index_cmd, Integer cores, String log_file_glob) {
   dir(env.HOST_SOLR_BUILDER_DIR) {
     sh index_cmd
     sleep 60 // wait for progress file
@@ -342,17 +342,20 @@ void insert_into_solr(String index_cmd, String cores, String log_file_glob) {
             tail -n1 \$f;
           done;
           set -x """)
-        def cores_completed = sh(script: """
+        int running_indexers = sh(script: 'docker container ls -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
+        echo running_indexers
+        int cores_completed = sh(script: """
           set +x
           for f in progress/${log_file_glob}; do
             tail -n1 \$f; 
           done | grep 100.00% | wc -l
           set -x
           """,
-          returnStdout: true).trim()
+          returnStdout: true).trim() as Integer
         echo cores_completed
+        assert running_indexers == (cores - cores_completed)
         sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
-        return cores_completed == cores
+        return running_indexers == 0
       }
     }
     solr_commit('solr')
