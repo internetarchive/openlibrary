@@ -338,7 +338,7 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob) {
           done;
           set -x """)
         sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
-        int running_indexers = sh(script: 'docker container ls -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
+        int running_indexers = sh(script: 'docker container ls -q -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
         echo "${running_indexers}"
         return running_indexers == 0
       }
