@@ -327,14 +327,13 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob, Str
 
         int running_indexers = sh(script: 'docker container ls -q -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
         echo "${running_indexers}"
-
-        // Archive the artifacts
-        sh """for f in logs/${log_file_glob}.txt; do echo "\$f: "; cat "\$f"; done | gzip > logs/${artifact_file_name}"""
-        archiveArtifacts artifacts: "logs/${artifact_file_name}"
-
         return running_indexers == 0
       }
     }
+
+    // Save the logs as artifacts
+    sh """for f in logs/${log_file_glob}.txt; do echo "\$f: "; cat "\$f"; done | gzip > logs/${artifact_file_name}"""
+    archiveArtifacts artifacts: "logs/${artifact_file_name}"
 
     int cores_completed = sh(
       script: """for f in progress/${log_file_glob}; do tail -n1 \$f; done | grep 100.00% | wc -l""",
