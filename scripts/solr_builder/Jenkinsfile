@@ -258,6 +258,18 @@ pipeline {
                       }
                     }
                   }
+                  post {
+                    unsuccessful {
+                      dir(env.HOST_SOLR_BUILDER_DIR) {
+                        sh(label: 'Remove solr-backup service', 
+                          script: 'docker-compose stop solr-backup; docker-compose rm -f solr-backup')
+                      }
+                      dir(env.SOLR_DUMP_DIR) {
+                        sh(label: 'Remove solr backup directory',
+                          script: "rm -rf ${env.CUR_SOLR_BACKUP}")
+                      }
+                    }
+                  }
                 }
                 stage('Copy subjects into main solr') {
                   steps {
@@ -282,18 +294,6 @@ pipeline {
                         assert backup_subjects_count == new_subjects_count
                       }
                     }
-                  }
-                }
-              }
-              post {
-                unsuccessful {
-                  dir(env.HOST_SOLR_BUILDER_DIR) {
-                    sh(label: 'Remove solr-backup service', 
-                      script: 'docker-compose stop solr-backup; docker-compose rm -f solr-backup')
-                  }
-                  dir(env.SOLR_DUMP_DIR) {
-                    sh(label: 'Remove solr backup directory',
-                      script: "rm -rf ${env.CUR_SOLR_BACKUP}")
                   }
                 }
               }
