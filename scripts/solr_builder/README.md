@@ -1,158 +1,37 @@
-This goes through building a solr instance from a dump file. Assume current directory is `scripts/solr_builder` for all commands unless otherwise stated.
+This goes through building a solr instance from a dump file. To build the reindex (only tested on the OJF environment):
 
-## Step 1: Create a local postgres copy of the database
-
-### 1a: Create the postgres instance
-
-Start up the database docker container. Note the info in `postgres.ini` for database name, user, password, etc.
-
+1. Start Jenkins (altering the details as necessary):
 ```bash
-# launch the database container
-docker-compose up -d --no-deps db
-
-# optional; GUI for the database at port 8087
-docker-compose up -d --no-deps adminer
-
-# create the "test" table to store the dump
-docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
+docker run \
+  -u root \
+  --rm \
+  -d \
+  -p 8080:8080 \
+  -p 50000:50000 \
+  -v jenkins-data:/var/jenkins_home \
+  -v /storage:/storage \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data \
+  --name jenkins \
+  jenkinsci/blueocean
 ```
+2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
+3. Follow these steps to create a new Pipeline from git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
+    - Be sure to set the script path 
+4. Run the pipeline!
 
-### 1b: Populate the postgres instance
+Notes:
+- Jenkins has a classic UI and a new, Blue Ocean UI. Each has its benefits.
+- Logs are stored as artifacts after the jobs are finished, but you can also access the logs by clicking on "workspaces" in the classic UI and navigating to the logs directory (you can usually ignore the paths containing `@`)
+- Although it _looks_ like we are starting a Jenkins docker image, which starts a building docker image, which starts the `solr_builder` docker images, because we are forwarding the docker socket, everything is actually happening with the host docker (this is best practice). This has some caveats:
+    - You should not assume you have full control of what's running; if you're not careful you will stop other containers
+    - You should not try to run multiple re-indexes at the same time. This might be possible, but the current pipeline makes assumptions which would cause this to error   
 
-```bash
-# Download the dump
-time wget https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.5GB, 3min (7 Jun 2019, OJF); 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
-```
-
-Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
-
-```bash
-# Start 6 parallel import jobs
-time ./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6  # ~25min (Feb 2019, OJF)
-```
-
-Unfortunately there's no indication of progress, so you'll just have to wait this one out. You can see if they're done by running: (it will display the number copied once complete.)
-
-```bash
-for f in logs/psql-chunk-*; do echo "${f}:" `cat "$f"`; done;
-# Sample Output:
-# logs/psql-chunk-0.txt: COPY 8531084
-# logs/psql-chunk-17062168.txt: COPY 8531084
-# logs/psql-chunk-25593252.txt:
-# logs/psql-chunk-34124336.txt:
-# logs/psql-chunk-42655420.txt:
-# logs/psql-chunk-8531084.txt: COPY 8531084
-```
-
-Took 2 hrs (8 Jun 2019); 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
-
-Once that's all done, we create indices in postgres:
-
-```bash
-# 1 hr (8 June 2019, OJF); 1.25 hr (10 May 2019, OJF)
-time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
-```
-
-#### TODO
-- Investigate if it's better to just ungzip this from the start.
-- Right now the parallel processes are all running on the same docker container. Is this a problem?
-- Does postgres even benefit from parallel importing? I see some "COPY waiting" processes, maybe there's no benefit?
-
-## Step 2: Populate solr
-
-### 2a: Setup
-
-```bash
-# Build the image (same as openlibrary)
-time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../
-# Launch solr
-docker-compose up --no-deps -d solr
-
-# Build the environment we use to run code that copies data into solr
-# This is like a "lite" version of the OL environment
-time docker-compose build ol  # ~5 min (Linux/Jan 2019)
-# Build the cython files (necessary otherwsie they get overwritten)
-docker-compose run ol ./build-cython.sh
-
-# Some convenience aliases/functions
-source aliases.sh
-
-# Load a helper function into postgres
-psql -f sql/get-partition-markers.sql
-```
-
-### 2b: Insert works & orphaned editions
-
-```bash
-# Import over 5 cores
-./index-works.sh
-```
-
-Works took 27 hrs with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours. (27 hrs, 18188010 works, 10 June 2019; 29 hrs, 18081999 works, 13 May 2019, OJF)
-
-And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
-
-```bash
-./index-orphans.sh
-```
-
-Orphans took 8 hrs over 1 core in parallel with works (8 hrs, 3711877 docs, 10 June 2019, OJF; 11 hrs, 3735145 docs, 13 May 2019, OJF).
-
-To check progress, run (clearing the progress folder as necessary):
-
-```bash
-for f in progress/*; do tail -n1 $f; done;
-```
-
-Note the work chunks happen to be (for some reason) pretty uneven, so start the subjects (step 2d) when one of the chunks finishes.
-
-And commit:
-```bash
-time curl localhost:8984/solr/update?commit=true # ~35s
-```
-
-### 2c: Insert authors
-
-Note: This must be done AFTER works and orphans; authors query solr to determine how many works are by a given author.
-
-```bash
-# index authors over 6 cores
-./index-authors.sh
-```
-
-Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF). After this is done, we have to call `commit` on solr:
-
-```bash
-time curl localhost:8984/solr/update?commit=true # ~25s
-```
-
-### 2d: Insert subjects
-
-It is currently unknown how subjects make their way into Solr (See See https://github.com/internetarchive/openlibrary/issues/1896 ). As result, in the interest of progress, we are choosing to just use a solr dump.
-
-1. Create a backup of prod's solr (See https://github.com/internetarchive/openlibrary/wiki/Solr#creating-a-solr-backup )
-2. Extract the backup (NOT in the repo; anywhere else):
-   ```bash
-   mkdir ~/solr-backup
-   time tar xzf /storage/openlibrary/solr/backup-2019-06-09.tar.gz -C ~/solr-backup # 20min
-   mv ~/solr-backup/var/lib/solr/data ~/solr-backup
-   rm -r ~/solr-backup/var
-   ```
-3. Launch the `solr-backup` service, modifying `docker-compose.yml` if the above command was run differently.
-    ```bash
-    docker-compose up -d --no-deps solr-backup
-    ```
-4. Copy the subjects into our main solr. 6.75 hrs (May 2019, OJF, 1514068 docs)
-    ```bash
-    # check the status by going to localhost:8984/solr/dataimport
-    curl server.openjournal.foundation:8984/solr/dataimport?command=full-import
-    ```
-
-## Step 3: Final Sync
+## Final Sync
 
 NOTE: These aren't the exact instructions; use with discretion.
 
-We now have to deal with any changes that occurred since. The last step is to run `solr-updater` on dev linked to the production Infobase logs, and the new solr. Something like:
+We now have to deal with any changes that occurred since the dump. The last step is to run `solr-updater` on dev linked to the production Infobase logs, and the new solr. Something like:
 
 ```bash
 DAY_BEFORE_DUMP='2019-04-30'
