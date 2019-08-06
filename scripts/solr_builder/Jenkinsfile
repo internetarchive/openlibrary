@@ -228,19 +228,19 @@ pipeline {
               }
             }
             stage('Insert subjects from solr backup') {
-              input {
-                id "Place solr backup in ${env.SOLR_DUMP_DIR}"
-                message "Place solr backup in ${env.SOLR_DUMP_DIR}"
-                ok 'Continue'
-                parameters {
-                  string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'Dump filename')
-                }
-              }
               stages {
                 stage('Setup solr-backup') {
-                  when { expression { return params.REUSE_SOLRBACKUP } }
+                  when { expression { return !params.REUSE_SOLRBACKUP } }
                   stages {
                     stage('Decompress the dump') {
+                      input {
+                        id "Place solr backup in ${env.SOLR_DUMP_DIR}"
+                        message "Place solr backup in ${env.SOLR_DUMP_DIR}"
+                        ok 'Continue'
+                        parameters {
+                          string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'Dump filename')
+                        }
+                      }
                       steps {
                         dir(env.SOLR_DUMP_DIR) {
                           sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
