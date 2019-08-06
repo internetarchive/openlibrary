@@ -11,6 +11,7 @@ pipeline {
     }
   }
   parameters {
+    string(name: 'SOLR_BACKUP_GZIP', defaultValue: 'backup-2019-07-30.tar.gz', description: 'Location of the dump gzip in /storage/openlibrary/solr')
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
     booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
@@ -238,17 +239,9 @@ pipeline {
                   when { expression { return !params.REUSE_SOLRBACKUP } }
                   stages {
                     stage('Decompress the dump') {
-                      input {
-                        id "Place solr backup in ${env.SOLR_DUMP_DIR}"
-                        message "Place solr backup in ${env.SOLR_DUMP_DIR}"
-                        ok 'Continue'
-                        parameters {
-                          string(name: 'SOLR_BACKUP_FILE', defaultValue: '', description: 'Dump filename')
-                        }
-                      }
                       steps {
                         dir(env.SOLR_DUMP_DIR) {
-                          sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${SOLR_BACKUP_FILE} -C ${env.CUR_SOLR_BACKUP}"
+                          sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${params.SOLR_BACKUP_GZIP} -C ${env.CUR_SOLR_BACKUP}"
                         }
                       }
                     }
