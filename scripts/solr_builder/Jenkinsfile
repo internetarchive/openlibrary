@@ -95,6 +95,7 @@ pipeline {
                       // error if we have anything else
                       // (cat at the end to avoid grep exiting when no match)
                       def error_output = sh(script: 'cat logs/psql-chunk-* | grep -v COPY | cat', returnStdout: true)
+                      echo "Assert no psql error"
                       assert !error_output
                       
                       def cores_completed = sh(script: 'cat logs/psql-chunk-* | grep COPY | wc -l', returnStdout: true).trim()
@@ -122,6 +123,7 @@ pipeline {
                     echo lines_in_dump
                     def rows_in_db = sh(script: 'source ./aliases.sh; psql -q -f sql/count-all-rows.sql', returnStdout: true).trim()
                     echo rows_in_db
+                    echo "Assert db has same number of rows as ol dump file"
                     assert lines_in_dump == rows_in_db
                   }
                 }
@@ -250,7 +252,7 @@ pipeline {
                         dir(env.HOST_SOLR_BUILDER_DIR) {
                           sh "docker-compose up -d --no-deps solr-backup"
                           sleep 60
-                          // Assert backup has subjects in it
+                          echo "Assert backup has all subjects in it"
                           script { assert solr_query_count('solr-backup', 'subject') != '0' }
                         }
                       }
@@ -335,22 +337,23 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob) {
             tail -n1 \$f;
           done;
           set -x """)
+        sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
         int running_indexers = sh(script: 'docker container ls -f "name=ol_run" | wc -l', returnStdout: true).trim() as Integer
         echo "${running_indexers}"
-        int cores_completed = sh(script: """
-          set +x
-          for f in progress/${log_file_glob}; do
-            tail -n1 \$f; 
-          done | grep 100.00% | wc -l
-          set -x
-          """,
-          returnStdout: true).trim() as Integer
-        echo "${cores_completed}"
-        assert running_indexers == (cores - cores_completed)
-        sleep 60*60 // By default this checks every 15s; that's unnecessary for a ~20 hour process
         return running_indexers == 0
       }
     }
+    int cores_completed = sh(script: """
+      set +x
+      for f in progress/${log_file_glob}; do
+        tail -n1 \$f; 
+      done | grep 100.00% | wc -l
+      set -x
+      """,
+      returnStdout: true).trim() as Integer
+    echo "${cores_completed}"
+    echo "Assert all cores completed"
+    assert cores_completed == cores
     solr_commit('solr')
   }
 }
