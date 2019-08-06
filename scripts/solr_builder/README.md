@@ -1,3 +1,5 @@
+## Solr reindex from OL dump
+
 This goes through building a solr instance from a dump file. To build the reindex (only tested on the OJF environment):
 
 1. Start Jenkins (altering the details as necessary):
@@ -16,16 +18,21 @@ docker run \
   jenkinsci/blueocean
 ```
 2. Follow the steps here to finish setting up Jenkins: https://jenkins.io/doc/book/installing/#setup-wizard
-3. Follow these steps to create a new Pipeline from git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
-    - Be sure to set the script path 
+3. Follow these steps to create a new Pipeline Project using git: https://jenkins.io/doc/book/pipeline/getting-started/#defining-a-pipeline-in-scm
+    - Be sure to set the script path to the `Jenkinsfile` in this directory  
 4. Run the pipeline!
 
 Notes:
 - Jenkins has a classic UI and a new, Blue Ocean UI. Each has its benefits.
-- Logs are stored as artifacts after the jobs are finished, but you can also access the logs by clicking on "workspaces" in the classic UI and navigating to the logs directory (you can usually ignore the paths containing `@`)
+- Logs are stored as artifacts after the jobs are finished, but you can also access the logs by clicking on "workspaces" in the classic UI and navigating to the logs directory (you can usually ignore the paths containing `@`).
 - Although it _looks_ like we are starting a Jenkins docker image, which starts a building docker image, which starts the `solr_builder` docker images, because we are forwarding the docker socket, everything is actually happening with the host docker (this is best practice). This has some caveats:
     - You should not assume you have full control of what's running; if you're not careful you will stop other containers
-    - You should not try to run multiple re-indexes at the same time. This might be possible, but the current pipeline makes assumptions which would cause this to error   
+    - You should not try to run multiple re-indexes at the same time. This might be possible, but the current pipeline makes assumptions which would cause this to error
+
+### Editing the Jenkins Pipeline
+- If you want to modify the pipeline, you can set the Jenkin's Project to use a local path. Note that you will have to restart Jenkins so that it mounts the path (i.e. `-v "$HOME:/home"`). Alternatively, you can also change the Git url to that of your fork, and specify a branch (e.g. `*/solr-builder--jenkins`) and push to the branch whenever you want to test your code. Jenkins will pull from the branch when you run the project.
+- Use VS Code to write your Pipeline; it has a validation extension. See https://jenkins.io/doc/book/pipeline/development/ for other editors/tips
+- Read https://jenkins.io/doc/book/pipeline/development/ for general development tips
 
 ## Final Sync
 
