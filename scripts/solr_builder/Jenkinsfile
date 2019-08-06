@@ -223,6 +223,11 @@ pipeline {
                   dir(env.HOST_SOLR_BUILDER_DIR) {
                     sh(label: 'Remove solr service',
                       script:'docker-compose stop solr; docker-compose rm -f solr; docker volume rm solr_builder_solr-data')
+                    sh(label: 'Stop/rm running indexers',
+                      script: '''
+                      docker stop $(docker container ls -f "name=ol_run" -q)
+                      docker rm $(docker container ls -f "name=ol_run" -aq)
+                      ''')
                   }
                 }
               }
