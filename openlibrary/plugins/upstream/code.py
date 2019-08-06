@@ -190,7 +190,7 @@ class revert(delegate.mode):
             raise web.seeother(web.changequery({}))
 
         user = web.ctx.site.get_user()
-        if user and (user.is_admin() or user.is_librarian() and web.ctx.site.can_write(key)):
+        if not user and (user.is_admin() or user.is_librarian() and web.ctx.site.can_write(key)):
             return render.permission_denied(web.ctx.fullpath, "Permission denied to edit " + key + ".")
 
         thing = web.ctx.site.get(key, i.v)
