@@ -97,11 +97,6 @@ export class SearchBar {
             SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
         });
 
-        this.$results.on('click', 'li a', event => {
-            // also set the anchor element, because it's "hand" by default
-            $([document.body, event.target]).css('cursor', 'wait');
-        });
-
         this.$input.on('keyup', debounce(event => {
             this.instantSearchResultState = true;
             // ignore directional keys and enter for callback
