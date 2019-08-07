@@ -149,9 +149,8 @@ pipeline {
 
         unsuccessful {
           dir(env.HOST_SOLR_BUILDER_DIR) {
-            sh 'docker-compose stop'
-            sh 'docker-compose rm -f'
-            sh 'docker volume rm solr_builder_postgres-data'
+            sh (label: 'Cleanup postgres',
+              script:'docker-compose stop db adminer; docker-compose rm -f db adminer; docker volume rm solr_builder_postgres-data')
           }
         }
       }
