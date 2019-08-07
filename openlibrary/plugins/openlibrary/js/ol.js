@@ -14,48 +14,263 @@ function isScrolledIntoView(elem) {
     return false;
 }
 
-export default function init(){
-    var $searchResults = $('header#header-bar .search-component ul.search-results');
-    var $searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
-    var cover_url = function(id) {
-        return `//covers.openlibrary.org/b/id/${id}-S.jpg`
-    };
-    // stores the state of the search result for resizing window
-    var instantSearchResultState = false;
-    var searchModes, searchModeDefault, defaultFacet, searchFacets, composeSearchUrl, marshalBookSearchQuery, renderInstantSearchResults, setFacet, setMode, setSearchMode, options, q, parts, enteredSearchMinimized, searchExpansionActivated, toggleSearchbar, renderInstantSearchResult, val, facet_value;
+const SEARCH_MODES = ['everything', 'ebooks', 'printdisabled'];
+const SEARCH_MODE_DEFAULT = 'ebooks';
+const SEARCH_FACETS = {
+    title: 'books',
+    author: 'authors',
+    lists: 'lists',
+    subject: 'subjects',
+    all: 'all',
+    advanced: 'advancedsearch',
+    text: 'inside',
+};
+const DEFAULT_SEARCH_FACET = 'all';
+const RENDER_INSTANT_SEARCH_RESULT = {
+    books(work) {
+        const author_name = work.author_name ? work.author_name[0] : '';
+        $('header#header-bar .search-component ul.search-results').append(
+            `<li class="instant-result">
+                <a href="${work.key}">
+                    <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg"/>
+                    <span class="book-desc">
+                        <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
+                    </span>
+                </a>
+            </li>`
+        );
+    },
+    authors(author) {
+        // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
+        $('header#header-bar .search-component ul.search-results').append(
+            `<li>
+                <a href="/authors/${author.key}">
+                    <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg"/>
+                    <span class="author-desc"><div class="author-name">${author.name}</div></span>
+                </a>
+            </li>`
+        );
+    }
+}
 
-    // searches should be cancelled if you click anywhere in the page
-    $('body').on('click', function () {
-        instantSearchResultState = false;
-        $searchResults.empty();
-    });
-    // but clicking search input should not empty search results.
-    $searchInput.on('click', false);
+/** Manages search state variables */
+class SearchState {
+    constructor(urlParams) {
+        this._listeners = {};
 
-    $(window).scroll(function(){
-        var scroller = $('#formScroll');
-        if (isScrolledIntoView(scroller)){$('#scrollBtm').show();} else {$('#scrollBtm').hide();}
-    });
+        if (!(this.facet in SEARCH_FACETS)) {
+            this.facet = DEFAULT_SEARCH_FACET;
+        }
+        this.facet = urlParams.facet || this.facet || DEFAULT_SEARCH_FACET;
+        this.searchMode = urlParams.mode;
+    }
 
-    // Search mode
-    searchModes = ['everything', 'ebooks', 'printdisabled'];
-    searchModeDefault = 'ebooks';
+    get facet() {
+        return localStorage.getItem('facet');
+    }
+    set facet(newFacet) {
+        const oldValue = this.facet;
+        localStorage.setItem('facet', newFacet);
+        this._trigger('facet', newFacet, oldValue);
+    }
 
-    // Maps search facet label with value
-    defaultFacet = 'all';
-    searchFacets = {
-        title: 'books',
-        author: 'authors',
-        lists: 'lists',
-        subject: 'subjects',
-        all: 'all',
-        advanced: 'advancedsearch',
-        text: 'inside'
-    };
+    get searchMode() {
+        return localStorage.getItem('mode');
+    }
+    set searchMode(mode) {
+        const oldValue = this.searchMode;
+        const searchMode = (mode && mode.toLowerCase()) || oldValue;
+        const isValidMode = SEARCH_MODES.indexOf(searchMode) != -1;
+        const newMode = isValidMode ? searchMode : SEARCH_MODE_DEFAULT;
+        localStorage.setItem('mode', newMode);
+        this._trigger('searchMode', newMode, oldValue);
+    }
 
-    composeSearchUrl = function(q, json, limit) {
-        var facet_value = searchFacets[localStorage.getItem('facet')];
-        var url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
+    sync(key, handler, user_opts={}) {
+        const DEFAULT_OPTS = {
+            fireAtStart: true,
+            onlyFireOnChange: true
+        };
+
+        if (!(key in this))
+            throw Error('Invalid key', key);
+
+        const opts = Object.assign({}, DEFAULT_OPTS, user_opts);
+        this._listeners[key] = this._listeners[key] || [];
+        this._listeners[key].push({ handle: handler, opts });
+        if (opts.fireAtStart) handler(this[key]);
+    }
+
+    /**
+     * @param {String} key
+     * @param {any} newValue
+     * @param {any} oldValue
+     */
+    _trigger(key, newValue, oldValue) {
+        if (!(key in this._listeners)) {
+            return;
+        }
+
+        for (let listener of this._listeners[key]) {
+            if (listener.opts.onlyFireOnChange) {
+                if (newValue != oldValue) {
+                    listener.handle(newValue)
+                }
+            } else {
+                listener.handle(newValue);
+            }
+        }
+    }
+}
+
+class SearchBar {
+    /**
+     *
+     * @param {SearchState} searchState
+     * @param {Object} urlParams
+     */
+    constructor(searchState, urlParams) {
+        this.searchState = searchState;
+        /** The search input element */
+        this.$searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
+        /** Autocomplete search results */
+        this.$searchResults = $('header#header-bar .search-component ul.search-results');
+        /** stores the state of the search result for resizing window */
+        this.instantSearchResultState = false;
+        /** Whether the search bar is expanded */
+        this.searchExpansionActivated = false;
+        /** ?? Not sure */
+        this.enteredSearchMinimized = false;
+
+        if (urlParams.q) {
+            let q = urlParams.q.replace(/\+/g, ' ');
+            if (searchState.facet === 'title' && q.indexOf('title:') != -1) {
+                const parts = q.split('"');
+                if (parts.length === 3) {
+                    q = parts[1];
+                }
+            }
+            $('.search-bar-input [type=text]').val(q);
+        }
+
+        if ($(window).width() < 568) {
+            if (!this.enteredSearchMinimized) {
+                $('.search-bar-input').addClass('trigger')
+            }
+            this.enteredSearchMinimized = true;
+        }
+
+        // searches should be cancelled if you click anywhere in the page
+        $(document.body).on('click', this.cancelSearch.bind(this));
+        // but clicking search input should not empty search results.
+        $(window).resize(this.handleResize.bind(this));
+        this.$searchInput.on('click', false);
+        // Bind to changes in the search state
+        this.searchState.sync('facet', this.handleFacetChange.bind(this));
+        this.searchState.sync('searchMode', this.handleSearchModeChange.bind(this));
+        $('header#header-bar .search-facet-selector select').change(event => {
+            const facet = $('header .search-facet-selector select').val();
+            // Ignore advanced, because we don't want it to stick (since it acts like a button)
+            if (facet == 'advanced') {
+                event.preventDefault();
+                window.location.assign('/advancedsearch');
+            } else {
+                this.searchState.facet = facet;
+            }
+        });
+
+        $('form.search-bar-input').on('submit', () => {
+            const q = this.$searchInput.val();
+            const facet_value = SEARCH_FACETS[this.searchState.facet];
+            if (facet_value === 'books') {
+                $('header#header-bar .search-component .search-bar-input input[type=text]').val(SearchBar.marshalBookSearchQuery(q));
+            }
+            // TODO can we remove this?
+            SearchUtils.updateSearchMode('.search-bar-input', this.searchState.searchMode);
+        });
+
+        $('li.instant-result a').on('click', event => {
+            $('html, body').css('cursor', 'wait');
+            $(event.target).css('cursor', 'wait');
+        });
+
+        $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
+            $(document.body).css({cursor: 'wait'});
+        }, 300, false));
+
+        this.$searchInput.on('keyup', debounce(event => {
+            this.instantSearchResultState = true;
+            // ignore directional keys and enter for callback
+            if (![13,37,38,39,40].includes(event.keyCode)) {
+                this.renderInstantSearchResults($(event.target).val());
+            }
+        }, 500, false));
+
+        this.$searchInput.on('focus', debounce(event => {
+            this.instantSearchResultState = true;
+            event.stopPropagation();
+            this.renderInstantSearchResults($(event.target).val());
+        }, 300, false));
+
+        $(document).on('submit','.trigger', event => {
+            event.preventDefault();
+            this.toggle();
+            $('.search-bar-input [type=text]').focus();
+        });
+    }
+
+    handleResize() {
+        if ($(window).width() < 568){
+            if (!this.enteredSearchMinimized) {
+                $('.search-bar-input').addClass('trigger')
+                $('header#header-bar .search-component ul.search-results').empty()
+            }
+            this.enteredSearchMinimized = true;
+        } else {
+            if (this.enteredSearchMinimized) {
+                $('.search-bar-input').removeClass('trigger');
+                const search_query = this.$searchInput.val()
+                if (search_query && this.instantSearchResultState) {
+                    this.renderInstantSearchResults(search_query);
+                }
+            }
+            this.enteredSearchMinimized = false;
+            this.searchExpansionActivated = false;
+            $('header#header-bar .logo-component').removeClass('hidden');
+            $('header#header-bar .search-component').removeClass('search-component-expand');
+        }
+    }
+
+    cancelSearch() {
+        this.instantSearchResultState = false;
+        this.$searchResults.empty();
+    }
+
+    /**
+     * Expands/hides the searchbar
+     */
+    toggle() {
+        this.searchExpansionActivated = !this.searchExpansionActivated;
+        if (this.searchExpansionActivated) {
+            $('header#header-bar .logo-component').addClass('hidden');
+            $('header#header-bar .search-component').addClass('search-component-expand');
+            $('.search-bar-input').removeClass('trigger');
+        } else {
+            $('header#header-bar .logo-component').removeClass('hidden');
+            $('header#header-bar .search-component').removeClass('search-component-expand');
+            $('.search-bar-input').addClass('trigger');
+        }
+    }
+
+    /**
+     * Compose search url for what?!? is the clickable? The autocomplete?!? WHAT?!?
+     * @param {String} q query
+     * @param {Boolean} [json]
+     * @param {Number} [limit]
+     */
+    static composeSearchUrl(q, json, limit) {
+        const facet_value = SEARCH_FACETS[localStorage.getItem('facet')];
+        let url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
         if (json) {
             url += '.json';
         }
@@ -66,60 +281,102 @@ export default function init(){
         return `${url}&mode=${localStorage.getItem('mode')}`;
     }
 
-    marshalBookSearchQuery = function(q) {
+    /**
+     * Marshal into what? From what?
+     * @param {String} q
+     */
+    static marshalBookSearchQuery(q) {
         if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
             q = `title: "${q}"`;
         }
         return q;
     }
 
-    renderInstantSearchResults = function(q) {
-        const facet_value = searchFacets[localStorage.getItem('facet')];
+    /**
+     * Perform the query and update autocomplete results
+     * @param {String} q
+     */
+    renderInstantSearchResults(q) {
+        const facet_value = SEARCH_FACETS[localStorage.getItem('facet')];
         // Not implemented; also, this call is _expensive_ and should not be done!
         if (facet_value === 'inside') return;
-
         if (q === '') {
             return;
         }
         if (facet_value === 'books') {
-            q = marshalBookSearchQuery(q);
+            q = SearchBar.marshalBookSearchQuery(q);
         }
 
-        const url = composeSearchUrl(q, true, 10);
-        const facet = facet_value === 'all'? 'books' : facet_value;
-        $searchResults.css('opacity', 0.5);
-        $.getJSON(url, function(data) {
-            var d;
-            $searchResults.css('opacity', 1).empty();
-            for (d in data.docs) {
-                renderInstantSearchResult[facet](data.docs[d]);
+        this.$searchResults.css('opacity', 0.5);
+        $.getJSON(SearchBar.composeSearchUrl(q, true, 10), data => {
+            const facet = facet_value === 'all' ? 'books' : facet_value;
+            this.$searchResults.css('opacity', 1).empty();
+            for (let d in data.docs) {
+                RENDER_INSTANT_SEARCH_RESULT[facet](data.docs[d]);
             }
         });
     }
 
-    setFacet = function(facet) {
-        var facet_key = facet.toLowerCase();
-        var text, url;
-
-        if (facet_key === 'advanced') {
-            localStorage.setItem('facet', '');
-            window.location.assign('/advancedsearch')
-            return;
-        }
-
-        localStorage.setItem('facet', facet_key);
-        $('header#header-bar .search-facet-selector select').val(facet_key)
-        text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+    /**
+     * Set the selected facet
+     * @param {String} facet
+     */
+    handleFacetChange(newFacet) {
+        $('header#header-bar .search-facet-selector select').val(newFacet)
+        const text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
         $('header#header-bar .search-component ul.search-results').empty()
-        q = $searchInput.val();
-        url = composeSearchUrl(q)
+        const q = this.$searchInput.val();
+        const url = SearchBar.composeSearchUrl(q);
         $('.search-bar-input').attr('action', url);
-        renderInstantSearchResults(q);
+        this.renderInstantSearchResults(q);
     }
 
-    setMode = function(form) {
-        var url;
+    handleSearchModeChange(newMode) {
+        $('.instantsearch-mode').val(newMode);
+        $(`input[name=mode][value=${newMode}]`).prop('checked', true);
+        SearchUtils.updateSearchMode('.search-bar-input', this.searchState.searchMode);
+    }
+}
+
+class SearchPage {
+    /**
+     * @param {SearchState} searchState
+     */
+    constructor(searchState) {
+        this.searchState = searchState;
+        this.searchState.sync('searchMode', () => SearchUtils.updateSearchMode('.olform', this.searchState.searchMode));
+
+        updateWorkAvailability();
+
+        $('.search-mode').change(event => {
+            $('html,body').css('cursor', 'wait');
+            this.searchState.searchMode = $(event.target).val();
+            if ($('.olform').length) {
+                $('.olform').submit();
+            } else {
+                location.reload();
+            }
+        });
+
+        $('.olform').submit(() => {
+            if (this.searchState.searchMode !== 'everything') {
+                $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
+            }
+            if (this.searchState.searchMode === 'printdisabled') {
+                $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+            }
+        });
+    }
+}
+
+class SearchUtils {
+    /**
+     * Oh, between SEARCH_MODES
+     * @param {HTMLFormElement|String|JQuery} form
+     * @param {String} searchState
+     */
+    static updateSearchMode(form, searchMode) {
         if (!$(form).length) {
             return;
         }
@@ -127,7 +384,7 @@ export default function init(){
         $('input[value=\'Protected DAISY\']').remove();
         $('input[name=\'has_fulltext\']').remove();
 
-        url = $(form).attr('action');
+        let url = $(form).attr('action');
         if (url) {
             url = Browser.removeURLParameter(url, 'm');
             url = Browser.removeURLParameter(url, 'has_fulltext');
@@ -138,178 +395,32 @@ export default function init(){
             return;
         }
 
-        if (localStorage.getItem('mode') !== 'everything') {
+        if (searchMode !== 'everything') {
             $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
-        } if (localStorage.getItem('mode') === 'printdisabled') {
+            url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
+        }
+        if (searchMode === 'printdisabled') {
             $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
         }
+
         $(form).attr('action', url);
     }
+}
 
-    setSearchMode = function(mode) {
-        var searchMode = mode || localStorage.getItem('mode');
-        var isValidMode = searchModes.indexOf(searchMode) != -1;
-        localStorage.setItem('mode', isValidMode?
-            searchMode : searchModeDefault);
-        $('.instantsearch-mode').val(localStorage.getItem('mode'));
-        $(`input[name=mode][value=${localStorage.getItem('mode')}]`)
-            .prop('checked', true);
-        setMode('.olform');
-        setMode('.search-bar-input');
-    }
+export default function init() {
+    const urlParams = Browser.getJsonFromUrl(location.search);
+    const searchState = new SearchState(urlParams);
+    new SearchBar(searchState, urlParams);
+    new SearchPage(searchState);
 
-    options = Browser.getJsonFromUrl(location.search);
-
-    if (!searchFacets[localStorage.getItem('facet')]) {
-        localStorage.setItem('facet', defaultFacet)
-    }
-    setFacet(options.facet || localStorage.getItem('facet') || defaultFacet);
-    setSearchMode(options.mode);
-
-    if (options.q) {
-        q = options.q.replace(/\+/g, ' ')
-        if (localStorage.getItem('facet') === 'title' && q.indexOf('title:') != -1) {
-            parts = q.split('"');
-            if (parts.length === 3) {
-                q = parts[1];
-            }
-        }
-        $('.search-bar-input [type=text]').val(q);
-    }
-
-    updateWorkAvailability();
-
-    $(document).on('submit','.trigger', function(e) {
-        e.preventDefault(e);
-        toggleSearchbar();
-        $('.search-bar-input [type=text]').focus();
-    });
-
-    enteredSearchMinimized = false;
-    searchExpansionActivated = false;
-    if ($(window).width() < 568) {
-        if (!enteredSearchMinimized) {
-            $('.search-bar-input').addClass('trigger')
-        }
-        enteredSearchMinimized = true;
-    }
-    $(window).resize(function(){
-        var search_query;
-        if ($(this).width() < 568){
-            if (!enteredSearchMinimized) {
-                $('.search-bar-input').addClass('trigger')
-                $('header#header-bar .search-component ul.search-results').empty()
-            }
-            enteredSearchMinimized = true;
+    $(window).scroll(function(){
+        var scroller = $('#formScroll');
+        if (isScrolledIntoView(scroller)) {
+            $('#scrollBtm').show();
         } else {
-            if (enteredSearchMinimized) {
-                $('.search-bar-input').removeClass('trigger');
-                search_query = $searchInput.val()
-                if (search_query && instantSearchResultState) {
-                    renderInstantSearchResults(search_query);
-                }
-            }
-            enteredSearchMinimized = false;
-            searchExpansionActivated = false;
-            $('header#header-bar .logo-component').removeClass('hidden');
-            $('header#header-bar .search-component').removeClass('search-component-expand');
+            $('#scrollBtm').hide();
         }
     });
-
-    toggleSearchbar = function() {
-        searchExpansionActivated = !searchExpansionActivated;
-        if (searchExpansionActivated) {
-            $('header#header-bar .logo-component').addClass('hidden');
-            $('header#header-bar .search-component').addClass('search-component-expand');
-            $('.search-bar-input').removeClass('trigger')
-        } else {
-            $('header#header-bar .logo-component').removeClass('hidden');
-            $('header#header-bar .search-component').removeClass('search-component-expand');
-            $('.search-bar-input').addClass('trigger')
-        }
-    }
-
-    $('header#header-bar .search-facet-selector select').change(function(e) {
-        var facet = $('header .search-facet-selector select').val();
-        if (facet.toLowerCase() === 'advanced') {
-            e.preventDefault(e);
-        }
-        setFacet(facet);
-    })
-
-    renderInstantSearchResult = {
-        books: function(work) {
-            var author_name = work.author_name ? work.author_name[0] : '';
-            $('header#header-bar .search-component ul.search-results').append(
-                `<li class="instant-result"><a href="${work.key}"><img src="${cover_url(work.cover_i)
-                }"/><span class="book-desc"><div class="book-title">${
-                    work.title}</div>by <span class="book-author">${
-                    author_name}</span></span></a></li>`
-            );
-        },
-        authors: function(author) {
-            // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
-            $('header#header-bar .search-component ul.search-results').append(
-                `<li><a href="/authors/${author.key}"><img src="` + `http://covers.openlibrary.org/a/olid/${author.key}-S.jpg` + `"/><span class="author-desc"><div class="author-name">${
-                    author.name}</div></span></a></li>`
-            );
-        }
-    }
-
-    // e is a event object
-    $('form.search-bar-input').on('submit', function() {
-        q = $searchInput.val();
-        facet_value = searchFacets[localStorage.getItem('facet')];
-        if (facet_value === 'books') {
-            $('header#header-bar .search-component .search-bar-input input[type=text]').val(marshalBookSearchQuery(q));
-        }
-        setMode('.search-bar-input');
-    });
-
-
-    $('.search-mode').change(function() {
-        $('html,body').css('cursor', 'wait');
-        setSearchMode($(this).val());
-        if ($('.olform').length) {
-            $('.olform').submit();
-        } else {
-            location.reload();
-        }
-    });
-
-    $('.olform').submit(function() {
-        if (localStorage.getItem('mode') !== 'everything') {
-            $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
-        } if (localStorage.getItem('mode') === 'printdisabled') {
-            $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-        }
-
-    });
-
-    $('li.instant-result a').on('click', function() {
-        $('html,body').css('cursor', 'wait');
-        $(this).css('cursor', 'wait');
-    });
-
-    // e is a event object
-    $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
-        $(document.body).css({cursor: 'wait'});
-    }, 300, false));
-
-    $searchInput.on('keyup', debounce(function(e) {
-        instantSearchResultState = true;
-        // ignore directional keys and enter for callback
-        if (![13,37,38,39,40].includes(e.keyCode)){
-            renderInstantSearchResults($(this).val());
-        }
-    }, 500, false));
-
-    $searchInput.on('focus',debounce(function(e) {
-        instantSearchResultState = true;
-        e.stopPropagation();
-        val = $(this).val();
-        renderInstantSearchResults(val);
-    }, 300, false));
 
     initReadingListFeature();
     initBorrowAndReadLinks();
