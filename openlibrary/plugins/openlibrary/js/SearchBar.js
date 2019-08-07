@@ -5,7 +5,7 @@ const RENDER_INSTANT_SEARCH_RESULT = {
     books(work) {
         const author_name = work.author_name ? work.author_name[0] : '';
         return `
-            <li class="instant-result">
+            <li>
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg"/>
                     <span class="book-desc">
@@ -97,14 +97,10 @@ export class SearchBar {
             SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
         });
 
-        this.$results.find('li.instant-result a').on('click', event => {
-            $('html, body').css('cursor', 'wait');
-            $(event.target).css('cursor', 'wait');
+        this.$results.on('click', 'li a', event => {
+            // also set the anchor element, because it's "hand" by default
+            $([document.body, event.target]).css('cursor', 'wait');
         });
-
-        this.$results.find('li a').on('click', debounce(function() {
-            $(document.body).css({cursor: 'wait'});
-        }, 300, false));
 
         this.$input.on('keyup', debounce(event => {
             this.instantSearchResultState = true;
