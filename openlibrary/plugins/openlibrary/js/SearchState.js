@@ -1,8 +1,8 @@
 /** Manages search state variables */
 
-const SEARCH_MODES = ['everything', 'ebooks', 'printdisabled'];
-const SEARCH_MODE_DEFAULT = 'ebooks';
-const SEARCH_FACETS = {
+const MODES = ['everything', 'ebooks', 'printdisabled'];
+const DEFAULT_MODE = 'ebooks';
+const FACET_TO_ENDPOINT = {
     title: 'books',
     author: 'authors',
     lists: 'lists',
@@ -11,16 +11,16 @@ const SEARCH_FACETS = {
     advanced: 'advancedsearch',
     text: 'inside',
 };
-const DEFAULT_SEARCH_FACET = 'all';
+const DEFAULT_FACET = 'all';
 
 export class SearchState {
     constructor(urlParams) {
         this._listeners = {};
 
-        if (!(this.facet in SEARCH_FACETS)) {
-            this.facet = DEFAULT_SEARCH_FACET;
+        if (!(this.facet in FACET_TO_ENDPOINT)) {
+            this.facet = DEFAULT_FACET;
         }
-        this.facet = urlParams.facet || this.facet || DEFAULT_SEARCH_FACET;
+        this.facet = urlParams.facet || this.facet || DEFAULT_FACET;
         this.searchMode = urlParams.mode;
     }
 
@@ -33,7 +33,7 @@ export class SearchState {
         this._trigger('facet', newFacet, oldValue);
     }
     get facetValue() {
-        return SEARCH_FACETS[this.facet];
+        return FACET_TO_ENDPOINT[this.facet];
     }
 
     get searchMode() {
@@ -42,8 +42,8 @@ export class SearchState {
     set searchMode(mode) {
         const oldValue = this.searchMode;
         const searchMode = (mode && mode.toLowerCase()) || oldValue;
-        const isValidMode = SEARCH_MODES.indexOf(searchMode) != -1;
-        const newMode = isValidMode ? searchMode : SEARCH_MODE_DEFAULT;
+        const isValidMode = MODES.indexOf(searchMode) != -1;
+        const newMode = isValidMode ? searchMode : DEFAULT_MODE;
         localStorage.setItem('mode', newMode);
         this._trigger('searchMode', newMode, oldValue);
     }

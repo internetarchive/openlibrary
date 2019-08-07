@@ -90,7 +90,7 @@ export class SearchBar {
 
         this.$form.on('submit', () => {
             const q = this.$input.val();
-            if (this.searchState.facetValue === 'books') {
+            if (this.searchState.facetEndpoint === 'books') {
                 this.$input.val(SearchBar.marshalBookSearchQuery(q));
             }
             // TODO can we remove this?
@@ -168,7 +168,7 @@ export class SearchBar {
      * @param {Number} [limit]
      */
     composeSearchUrl(q, json, limit) {
-        const facet_value = this.searchState.facetValue;
+        const facet_value = this.searchState.facetEndpoint;
         let url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
         if (json) {
             url += '.json';
@@ -196,7 +196,7 @@ export class SearchBar {
      * @param {String} q
      */
     renderInstantSearchResults(q) {
-        const facet_value = this.searchState.facetValue;
+        const facet_value = this.searchState.facetEndpoint;
         // Not implemented; also, this call is _expensive_ and should not be done!
         if (facet_value === 'inside') return;
         if (q === '') {
