@@ -6,7 +6,7 @@ export class SearchPage {
      */
     constructor(searchState) {
         this.searchState = searchState;
-        this.searchState.sync('searchMode', () => SearchUtils.updateSearchMode('.olform', this.searchState.searchMode));
+        this.searchState.sync('searchMode', newMode => SearchUtils.updateSearchMode('.olform', newMode));
 
         // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
         // eslint-disable-next-line no-undef

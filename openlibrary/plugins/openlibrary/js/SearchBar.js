@@ -4,29 +4,27 @@ import * as SearchUtils from './SearchUtils';
 const RENDER_INSTANT_SEARCH_RESULT = {
     books(work) {
         const author_name = work.author_name ? work.author_name[0] : '';
-        $('header#header-bar .search-component ul.search-results').append(
-            `<li class="instant-result">
+        return `
+            <li class="instant-result">
                 <a href="${work.key}">
                     <img src="//covers.openlibrary.org/b/id/${work.cover_i}-S.jpg"/>
                     <span class="book-desc">
                         <div class="book-title">${work.title}</div> by <span class="book-author">${author_name}</span>
                     </span>
                 </a>
-            </li>`
-        );
+            </li>`;
     },
     authors(author) {
         // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
-        $('header#header-bar .search-component ul.search-results').append(
-            `<li>
+        return `
+            <li>
                 <a href="/authors/${author.key}">
                     <img src="http://covers.openlibrary.org/a/olid/${author.key}-S.jpg"/>
                     <span class="author-desc"><div class="author-name">${author.name}</div></span>
                 </a>
-            </li>`
-        );
+            </li>`;
     }
-};
+}
 
 /**
  * Manages the interactions associated with the search bar in the header
@@ -37,11 +35,15 @@ export class SearchBar {
      * @param {Object} urlParams
      */
     constructor(searchState, urlParams) {
+        /** UI Elements */
+        this.$component = $('header#header-bar .search-component');
+        this.$form = this.$component.find('form.search-bar-input');
+        this.$input = this.$form.find('input[type="text"]');
+        this.$results = this.$component.find('ul.search-results');
+        this.$facetSelect = this.$component.find('.search-facet-selector select');
+
+        /** State */
         this.searchState = searchState;
-        /** The search input element */
-        this.$searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
-        /** Autocomplete search results */
-        this.$searchResults = $('header#header-bar .search-component ul.search-results');
         /** stores the state of the search result for resizing window */
         this.instantSearchResultState = false;
         /** Whether the search bar is expanded */
@@ -57,12 +59,12 @@ export class SearchBar {
                     q = parts[1];
                 }
             }
-            $('.search-bar-input [type=text]').val(q);
+            this.$input.val(q);
         }
 
         if ($(window).width() < 568) {
             if (!this.enteredSearchMinimized) {
-                $('.search-bar-input').addClass('trigger')
+                this.$form.addClass('trigger');
             }
             this.enteredSearchMinimized = true;
         }
@@ -71,12 +73,12 @@ export class SearchBar {
         $(document.body).on('click', this.cancelSearch.bind(this));
         // but clicking search input should not empty search results.
         $(window).resize(this.handleResize.bind(this));
-        this.$searchInput.on('click', false);
+        this.$input.on('click', false);
         // Bind to changes in the search state
         this.searchState.sync('facet', this.handleFacetChange.bind(this));
         this.searchState.sync('searchMode', this.handleSearchModeChange.bind(this));
-        $('header#header-bar .search-facet-selector select').change(event => {
-            const facet = $('header .search-facet-selector select').val();
+        this.$facetSelect.change(event => {
+            const facet = this.$facetSelect.val();
             // Ignore advanced, because we don't want it to stick (since it acts like a button)
             if (facet == 'advanced') {
                 event.preventDefault();
@@ -86,25 +88,25 @@ export class SearchBar {
             }
         });
 
-        $('form.search-bar-input').on('submit', () => {
-            const q = this.$searchInput.val();
+        this.$form.on('submit', () => {
+            const q = this.$input.val();
             if (this.searchState.facetValue === 'books') {
-                $('header#header-bar .search-component .search-bar-input input[type=text]').val(SearchBar.marshalBookSearchQuery(q));
+                this.$input.val(SearchBar.marshalBookSearchQuery(q));
             }
             // TODO can we remove this?
-            SearchUtils.updateSearchMode('.search-bar-input', this.searchState.searchMode);
+            SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
         });
 
-        $('li.instant-result a').on('click', event => {
+        this.$results.find('li.instant-result a').on('click', event => {
             $('html, body').css('cursor', 'wait');
             $(event.target).css('cursor', 'wait');
         });
 
-        $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
+        this.$results.find('li a').on('click', debounce(function() {
             $(document.body).css({cursor: 'wait'});
         }, 300, false));
 
-        this.$searchInput.on('keyup', debounce(event => {
+        this.$input.on('keyup', debounce(event => {
             this.instantSearchResultState = true;
             // ignore directional keys and enter for callback
             if (![13,37,38,39,40].includes(event.keyCode)) {
@@ -112,7 +114,7 @@ export class SearchBar {
             }
         }, 500, false));
 
-        this.$searchInput.on('focus', debounce(event => {
+        this.$input.on('focus', debounce(event => {
             this.instantSearchResultState = true;
             event.stopPropagation();
             this.renderInstantSearchResults($(event.target).val());
@@ -121,21 +123,21 @@ export class SearchBar {
         $(document).on('submit','.trigger', event => {
             event.preventDefault();
             this.toggle();
-            $('.search-bar-input [type=text]').focus();
+            this.$input.focus();
         });
     }
 
     handleResize() {
         if ($(window).width() < 568){
             if (!this.enteredSearchMinimized) {
-                $('.search-bar-input').addClass('trigger')
-                $('header#header-bar .search-component ul.search-results').empty()
+                this.$form.addClass('trigger');
+                this.$results.empty();
             }
             this.enteredSearchMinimized = true;
         } else {
             if (this.enteredSearchMinimized) {
-                $('.search-bar-input').removeClass('trigger');
-                const search_query = this.$searchInput.val()
+                this.$form.removeClass('trigger');
+                const search_query = this.$input.val();
                 if (search_query && this.instantSearchResultState) {
                     this.renderInstantSearchResults(search_query);
                 }
@@ -143,13 +145,13 @@ export class SearchBar {
             this.enteredSearchMinimized = false;
             this.searchExpansionActivated = false;
             $('header#header-bar .logo-component').removeClass('hidden');
-            $('header#header-bar .search-component').removeClass('search-component-expand');
+            this.$component.removeClass('search-component-expand');
         }
     }
 
     cancelSearch() {
         this.instantSearchResultState = false;
-        this.$searchResults.empty();
+        this.$results.empty();
     }
 
     /**
@@ -159,12 +161,12 @@ export class SearchBar {
         this.searchExpansionActivated = !this.searchExpansionActivated;
         if (this.searchExpansionActivated) {
             $('header#header-bar .logo-component').addClass('hidden');
-            $('header#header-bar .search-component').addClass('search-component-expand');
-            $('.search-bar-input').removeClass('trigger');
+            this.$component.addClass('search-component-expand');
+            this.$form.removeClass('trigger');
         } else {
             $('header#header-bar .logo-component').removeClass('hidden');
-            $('header#header-bar .search-component').removeClass('search-component-expand');
-            $('.search-bar-input').addClass('trigger');
+            this.$component.removeClass('search-component-expand');
+            this.$form.addClass('trigger');
         }
     }
 
@@ -213,12 +215,13 @@ export class SearchBar {
             q = SearchBar.marshalBookSearchQuery(q);
         }
 
-        this.$searchResults.css('opacity', 0.5);
+        this.$results.css('opacity', 0.5);
         $.getJSON(this.composeSearchUrl(q, true, 10), data => {
             const facet = facet_value === 'all' ? 'books' : facet_value;
-            this.$searchResults.css('opacity', 1).empty();
+            this.$results.css('opacity', 1).empty();
             for (let d in data.docs) {
-                RENDER_INSTANT_SEARCH_RESULT[facet](data.docs[d]);
+                const html = RENDER_INSTANT_SEARCH_RESULT[facet](data.docs[d]);
+                this.$results.append(html);
             }
         });
     }
@@ -231,8 +234,8 @@ export class SearchBar {
         $('header#header-bar .search-facet-selector select').val(newFacet)
         const text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
         $('header#header-bar .search-facet-value').html(text);
-        $('header#header-bar .search-component ul.search-results').empty()
-        const q = this.$searchInput.val();
+        this.$results.empty()
+        const q = this.$input.val();
         const url = this.composeSearchUrl(q);
         $('.search-bar-input').attr('action', url);
         this.renderInstantSearchResults(q);
