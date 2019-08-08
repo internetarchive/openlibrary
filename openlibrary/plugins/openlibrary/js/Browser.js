@@ -2,28 +2,26 @@
 
 /**
  * Convert url parameters to an object
+ * @param {String} urlSearch everything after (and including) the '?' of the url
  * @returns {UrlParams}
  */
-export function getJsonFromUrl() {
-    var query = location.search.substr(1);
-    var result = {};
-    query.split('&').forEach(function(part) {
-        var item = part.split('=');
-        result[item[0]] = decodeURIComponent(item[1]);
-    });
+export function getJsonFromUrl(urlSearch) {
+    const query = urlSearch.substr(1);
+    const result = {};
+    if (query) {
+        query.split('&').forEach(part => {
+            const item = part.split('=');
+            result[item[0]] = decodeURIComponent(item[1]);
+        });
+    }
     return result;
 }
 
-export function change_url(query) {
-    var getUrl = window.location;
-    var baseUrl = `${getUrl.protocol}//${getUrl.host
-    }/${getUrl.pathname.split('/')[1]}`;
-    window.history.pushState({
-        'html': document.html,
-        'pageTitle': `${document.title} ${query}`,
-    }, '', `${baseUrl}?id=${query}`);
-}
-
+/**
+ * @param {String} url
+ * @param {String} parameter name of param to remove
+ * @returns {String}
+ */
 export function removeURLParameter(url, parameter) {
     var urlparts = url.split('?');
     var prefix = urlparts[0];

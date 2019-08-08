@@ -177,7 +177,7 @@ export default function init(){
         setMode('.search-bar-input');
     }
 
-    options = Browser.getJsonFromUrl();
+    options = Browser.getJsonFromUrl(location.search);
 
     if (!searchFacets[localStorage.getItem('facet')]) {
         localStorage.setItem('facet', defaultFacet)
