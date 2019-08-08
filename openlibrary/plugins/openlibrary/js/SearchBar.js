@@ -1,6 +1,6 @@
 import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
-import { PersistentValue } from './SearchState';
+import { PersistentValue } from './SearchUtils';
 
 const FACET_TO_ENDPOINT = {
     title: 'books',
