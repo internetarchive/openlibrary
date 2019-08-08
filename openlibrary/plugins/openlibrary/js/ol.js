@@ -22,7 +22,7 @@ export default function init() {
     if (urlParams.mode) {
         searchMode.write(urlParams.mode);
     }
-    new SearchBar(urlParams);
+    new SearchBar($('header#header-bar .search-component'), urlParams);
 
     if ($('.siteSearch.olform').length) {
         // Only applies to search results page (as of writing)

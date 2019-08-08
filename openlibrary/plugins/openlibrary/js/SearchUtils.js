@@ -1,4 +1,5 @@
 import { removeURLParameter } from './Browser';
+import $ from 'jquery';
 
 /**
  * Adds hidden input elements/modifes the action of the form to match the given search mode

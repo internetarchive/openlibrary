@@ -1,6 +1,7 @@
 import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
+import $ from 'jquery';
 
 /** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
@@ -43,11 +44,12 @@ const RENDER_AUTOCOMPLETE_RESULT = {
  */
 export class SearchBar {
     /**
-     * @param {Object} urlParams
+     * @param {HTMLElement|JQuery}
+     * @param {Object?} urlParams
      */
-    constructor(urlParams) {
+    constructor(component, urlParams={}) {
         /** UI Elements */
-        this.$component = $('header#header-bar .search-component');
+        this.$component = $(component);
         this.$form = this.$component.find('form.search-bar-input');
         this.$input = this.$form.find('input[type="text"]');
         this.$results = this.$component.find('ul.search-results');
@@ -103,8 +105,8 @@ export class SearchBar {
     }
 
     submitForm() {
-        const q = this.$input.val();
         if (this.facet.read() === 'title') {
+            const q = this.$input.val();
             this.$input.val(SearchBar.marshalBookSearchQuery(q));
         }
         this.$form.attr('action', this.composeSearchUrl(this.$input.val()));
@@ -114,7 +116,9 @@ export class SearchBar {
     /** Initialize event handlers that allow the form to collapse for small screens */
     initCollapsibleMode() {
         this.toggleCollapsibleModeForSmallScreens();
-        $(window).resize(debounce(this.toggleCollapsibleModeForSmallScreens.bind(this), 50));
+        $(window).resize(debounce(() => {
+            this.toggleCollapsibleModeForSmallScreens($(window).width());
+        }, 50));
         $(document).on('submit','.in-collapsible-mode', event => {
             if (this.collapsed) {
                 event.preventDefault();
@@ -124,8 +128,12 @@ export class SearchBar {
         });
     }
 
-    toggleCollapsibleModeForSmallScreens() {
-        if ($(window).width() < 568) {
+    /**
+     * Enables/disables CollapsibleMode depending on screen size
+     * @param {Number} windowWidth
+     */
+    toggleCollapsibleModeForSmallScreens(windowWidth) {
+        if (windowWidth < 568) {
             if (!this.inCollapsibleMode) {
                 this.enableCollapisbleMode();
                 this.collapse();

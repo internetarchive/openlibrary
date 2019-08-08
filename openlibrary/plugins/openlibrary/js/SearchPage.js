@@ -1,4 +1,5 @@
 import { addModeInputsToForm, mode as searchMode } from './SearchUtils';
+import $ from 'jquery';
 
 /** Manages some (PROBABLY VERY FEW) of the interactions on the search page */
 export class SearchPage {
