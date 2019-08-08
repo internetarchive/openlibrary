@@ -53,18 +53,42 @@ export class SearchBar {
         this.$facetSelect = this.$component.find('.search-facet-selector select');
 
         /** State */
-        /** stores the state of the search result for resizing window */
-        this.instantSearchResultState = false;
-        /** Whether the search bar is expanded? */
-        this.searchExpansionActivated = false;
-        /** ?? Not sure */
-        this.enteredSearchMinimized = false;
+        /** Whether the search bar is currently collapsed */
+        this.collapsed = false;
         /** Selected facet (persisted) */
         this.facet = new PersistentValue('facet', {
             default: DEFAULT_FACET,
             initValidation(val) { return val in FACET_TO_ENDPOINT; }
         });
 
+        this.initFromUrlParams(urlParams);
+        this.initCollapsibleMode();
+
+        // searches should be cancelled if you click anywhere in the page
+        $(document.body).on('click', this.clearResults.bind(this));
+        // but clicking search input should not empty search results.
+        this.$input.on('click', false);
+        // Bind to changes in the search state
+        SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
+        this.facet.change(this.handleFacetValueChange.bind(this));
+        this.$facetSelect.change(() => this.handleFacetSelectChange(this.$facetSelect.val()));
+
+        this.$form.on('submit', () => {
+            const q = this.$input.val();
+            if (this.facetEndpoint === 'books') {
+                this.$input.val(SearchBar.marshalBookSearchQuery(q));
+            }
+            SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
+        });
+
+        this.initAutocompletionLogic();
+    }
+
+    get facetEndpoint() {
+        return FACET_TO_ENDPOINT[this.facet.read()];
+    }
+
+    initFromUrlParams(urlParams) {
         if (urlParams.facet in FACET_TO_ENDPOINT) {
             this.facet.write(urlParams.facet);
         }
@@ -79,44 +103,10 @@ export class SearchBar {
             }
             this.$input.val(q);
         }
+    }
 
-        if ($(window).width() < 568) {
-            if (!this.enteredSearchMinimized) {
-                this.$form.addClass('trigger');
-            }
-            this.enteredSearchMinimized = true;
-        }
-
-        // searches should be cancelled if you click anywhere in the page
-        $(document.body).on('click', this.cancelSearch.bind(this));
-        // but clicking search input should not empty search results.
-        $(window).resize(this.handleResize.bind(this));
-        this.$input.on('click', false);
-        // Bind to changes in the search state
-        SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
-        this.facet.change(this.handleFacetValueChange.bind(this));
-        this.$facetSelect.change(() => {
-            const newFacet = this.$facetSelect.val();
-            // We don't want to persist advanced becaues it behaves like a button
-            if (newFacet == 'advanced') {
-                event.preventDefault();
-                window.location.assign('/advancedsearch');
-            } else {
-                this.facet.write(newFacet);
-            }
-        });
-
-        this.$form.on('submit', () => {
-            const q = this.$input.val();
-            if (this.facetEndpoint === 'books') {
-                this.$input.val(SearchBar.marshalBookSearchQuery(q));
-            }
-            // TODO can we remove this?
-            SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
-        });
-
+    initAutocompletionLogic() {
         this.$input.on('keyup', debounce(event => {
-            this.instantSearchResultState = true;
             // ignore directional keys and enter for callback
             if (![13,37,38,39,40].includes(event.keyCode)) {
                 this.renderInstantSearchResults($(event.target).val());
@@ -124,63 +114,59 @@ export class SearchBar {
         }, 500, false));
 
         this.$input.on('focus', debounce(event => {
-            this.instantSearchResultState = true;
             event.stopPropagation();
             this.renderInstantSearchResults($(event.target).val());
         }, 300, false));
-
-        $(document).on('submit','.trigger', event => {
-            event.preventDefault();
-            this.toggle();
-            this.$input.focus();
-        });
     }
 
-    get facetEndpoint() {
-        return FACET_TO_ENDPOINT[this.facet.read()];
+    initCollapsibleMode() {
+        this.handleResize();
+        $(window).resize(debounce(this.handleResize.bind(this)));
+        $(document).on('submit','.in-collapsible-mode', event => {
+            if (this.collapsed) {
+                event.preventDefault();
+                this.toggleCollapse();
+                this.$input.focus();
+            }
+        });
     }
 
     handleResize() {
         if ($(window).width() < 568){
-            if (!this.enteredSearchMinimized) {
-                this.$form.addClass('trigger');
-                this.$results.empty();
-            }
-            this.enteredSearchMinimized = true;
+            this.collapse();
+            this.$form.addClass('in-collapsible-mode');
+            this.clearResults();
         } else {
-            if (this.enteredSearchMinimized) {
-                this.$form.removeClass('trigger');
-                const search_query = this.$input.val();
-                if (search_query && this.instantSearchResultState) {
-                    this.renderInstantSearchResults(search_query);
-                }
-            }
-            this.enteredSearchMinimized = false;
-            this.searchExpansionActivated = false;
-            $('header#header-bar .logo-component').removeClass('hidden');
-            this.$component.removeClass('search-component-expand');
+            this.expand();
+            this.$form.removeClass('in-collapsible-mode');
         }
     }
 
-    cancelSearch() {
-        this.instantSearchResultState = false;
+    clearResults() {
         this.$results.empty();
     }
 
     /**
      * Expands/hides the searchbar
      */
-    toggle() {
-        this.searchExpansionActivated = !this.searchExpansionActivated;
-        if (this.searchExpansionActivated) {
-            $('header#header-bar .logo-component').addClass('hidden');
-            this.$component.addClass('search-component-expand');
-            this.$form.removeClass('trigger');
+    toggleCollapse() {
+        if (this.collapsed) {
+            this.expand();
         } else {
-            $('header#header-bar .logo-component').removeClass('hidden');
-            this.$component.removeClass('search-component-expand');
-            this.$form.addClass('trigger');
+            this.collapse();
         }
+    }
+
+    collapse() {
+        $('header#header-bar .logo-component').removeClass('hidden');
+        this.$component.removeClass('search-component-expand');
+        this.collapsed = true;
+    }
+
+    expand() {
+        $('header#header-bar .logo-component').addClass('hidden');
+        this.$component.addClass('search-component-expand');
+        this.collapsed = false;
     }
 
     /**
@@ -189,7 +175,7 @@ export class SearchBar {
      * @param {Boolean} [json]
      * @param {Number} [limit]
      */
-    composeSearchUrl(q, json, limit) {
+    composeSearchUrl(q, json=true, limit=10) {
         const facet_value = this.facetEndpoint;
         let url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
         if (json) {
@@ -229,9 +215,10 @@ export class SearchBar {
         }
 
         this.$results.css('opacity', 0.5);
-        $.getJSON(this.composeSearchUrl(q, true, 10), data => {
+        $.getJSON(this.composeSearchUrl(q), data => {
             const facet = facet_value === 'all' ? 'books' : facet_value;
-            this.$results.css('opacity', 1).empty();
+            this.$results.css('opacity', 1);
+            this.clearResults();
             for (let d in data.docs) {
                 const html = RENDER_INSTANT_SEARCH_RESULT[facet](data.docs[d]);
                 this.$results.append(html);
@@ -250,11 +237,23 @@ export class SearchBar {
         $('header#header-bar .search-facet-value').html(text);
 
         // Get new results
-        this.$results.empty();
-        const q = this.$input.val();
-        const url = this.composeSearchUrl(q);
-        this.$form.attr('action', url);
-        this.renderInstantSearchResults(q);
+        this.clearResults();
+        if (this.$input.is(':focus')) {
+            const q = this.$input.val();
+            const url = this.composeSearchUrl(q);
+            this.$form.attr('action', url);
+            this.renderInstantSearchResults(q);
+        }
+    }
+
+    handleFacetSelectChange(newFacet) {
+        // We don't want to persist advanced becaues it behaves like a button
+        if (newFacet == 'advanced') {
+            event.preventDefault();
+            window.location.assign('/advancedsearch');
+        } else {
+            this.facet.write(newFacet);
+        }
     }
 
     handleSearchModeChange(newMode) {
