@@ -3,6 +3,7 @@ import * as Browser from './Browser';
 import { updateWorkAvailability } from './availability';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
+import { SearchModeButtons } from './SearchUtils';
 
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
@@ -19,7 +20,14 @@ function isScrolledIntoView(elem) {
 export default function init() {
     const urlParams = Browser.getJsonFromUrl(location.search);
     new SearchBar(urlParams);
-    new SearchPage();
+
+    if ($('.siteSearch.olform').length) {
+        // Only applies to search results page (as of writing)
+        new SearchPage($('.siteSearch.olform'), new SearchModeButtons(false));
+    } else {
+        // Only applies to authors page (as of writing)
+        new SearchModeButtons(true);
+    }
 
     $(window).scroll(function(){
         var scroller = $('#formScroll');

@@ -1,39 +1,29 @@
 import { removeURLParameter } from './Browser';
 
 /**
- * No clue what this is doing
- * @param {HTMLFormElement|String|JQuery} form
+ * Adds hidden input elements/modifes the action of the form to match the given search mode
+ * @param {JQuery} form the form we'll modify
  * @param {String} searchMode
  */
-export function updateSearchMode(form, searchMode) {
-    if (!$(form).length) {
-        return;
-    }
-
+export function addModeInputsToForm($form, searchMode) {
     $('input[value=\'Protected DAISY\']').remove();
     $('input[name=\'has_fulltext\']').remove();
 
-    let url = $(form).attr('action');
-    if (url) {
-        url = removeURLParameter(url, 'm');
-        url = removeURLParameter(url, 'has_fulltext');
-        url = removeURLParameter(url, 'subject_facet');
-    } else {
-        // Don't set mode if no action.. it's too risky!
-        // see https://github.com/internetarchive/openlibrary/issues/1569
-        return;
-    }
+    let url = $form.attr('action');
+    url = removeURLParameter(url, 'm');
+    url = removeURLParameter(url, 'has_fulltext');
+    url = removeURLParameter(url, 'subject_facet');
 
     if (searchMode !== 'everything') {
-        $(form).append('<input type="hidden" name="has_fulltext" value="true"/>');
+        $form.append('<input type="hidden" name="has_fulltext" value="true"/>');
         url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}has_fulltext=true`;
     }
     if (searchMode === 'printdisabled') {
-        $(form).append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-        url = `${url + (url.indexOf('?') > -1 ? '&' : '?')}subject_facet=Protected DAISY`;
+        $form.append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
+        url += `${url.indexOf('?') > -1 ? '&' : '?'}subject_facet=Protected DAISY`;
     }
 
-    $(form).attr('action', url);
+    $form.attr('action', url);
 }
 
 
@@ -111,3 +101,22 @@ export const mode = new PersistentValue('mode', {
         return isValidMode ? mode : DEFAULT_MODE;
     }
 });
+
+/**
+ * Manages interactions of the search mode buttons
+ */
+export class SearchModeButtons {
+    constructor(autoreload=false) {
+        this.$buttons = $('.search-mode');
+        this.change(newMode => {
+            mode.write(newMode);
+            if (autoreload) {
+                location.reload();
+            }
+        });
+    }
+
+    change(handler) {
+        this.$buttons.change(event => handler($(event.target).val()));
+    }
+}

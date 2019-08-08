@@ -1,30 +1,22 @@
-import * as SearchUtils from './SearchUtils';
+import { addModeInputsToForm, mode as searchMode } from './SearchUtils';
 
+/**
+ * Manages some (PROBABLY VERY FEW) of the interactions on the search page
+ */
 export class SearchPage {
-    constructor() {
-        SearchUtils.mode.change(newMode => SearchUtils.updateSearchMode('.olform', newMode));
+    /**
+     * @param {HTMLFormElement|JQuery} form
+     * @param {import('./SearchUtils').SearchModeButtons} searchModeButtons
+     */
+    constructor(form, searchModeButtons) {
+        this.$form = $(form);
+        searchMode.change(this.updateModeInputs.bind(this));
+        this.$form.submit(this.updateModeInputs.bind(this));
+        searchModeButtons.change(() => this.$form.submit());
+    }
 
-        // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
-        // eslint-disable-next-line no-undef
-        updateWorkAvailability();
-
-        $('.search-mode').change(event => {
-            $('html,body').css('cursor', 'wait');
-            SearchUtils.mode.write($(event.target).val());
-            if ($('.olform').length) {
-                $('.olform').submit();
-            } else {
-                location.reload();
-            }
-        });
-
-        $('.olform').submit(() => {
-            if (SearchUtils.mode.read() !== 'everything') {
-                $('.olform').append('<input type="hidden" name="has_fulltext" value="true"/>');
-            }
-            if (SearchUtils.mode.read() === 'printdisabled') {
-                $('.olform').append('<input type="hidden" name="subject_facet" value="Protected DAISY"/>');
-            }
-        });
+    /** {@see addModeInputsToForm} */
+    updateModeInputs() {
+        addModeInputsToForm(this.$form, searchMode.read());
     }
 }

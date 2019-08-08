@@ -112,7 +112,7 @@ export class SearchBar {
                 this.$input.val(SearchBar.marshalBookSearchQuery(q));
             }
             // TODO can we remove this?
-            SearchUtils.updateSearchMode(this.$form, SearchUtils.mode.read());
+            SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
         });
 
         this.$input.on('keyup', debounce(event => {
@@ -260,6 +260,6 @@ export class SearchBar {
     handleSearchModeChange(newMode) {
         $('.instantsearch-mode').val(newMode);
         $(`input[name=mode][value=${newMode}]`).prop('checked', true);
-        SearchUtils.updateSearchMode(this.$form, SearchUtils.mode.read());
+        SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
     }
 }
