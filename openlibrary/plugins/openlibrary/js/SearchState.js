@@ -2,38 +2,11 @@
 
 const MODES = ['everything', 'ebooks', 'printdisabled'];
 const DEFAULT_MODE = 'ebooks';
-const FACET_TO_ENDPOINT = {
-    title: 'books',
-    author: 'authors',
-    lists: 'lists',
-    subject: 'subjects',
-    all: 'all',
-    advanced: 'advancedsearch',
-    text: 'inside',
-};
-const DEFAULT_FACET = 'all';
 
 export class SearchState {
     constructor(urlParams) {
         this._listeners = {};
-
-        if (!(this.facet in FACET_TO_ENDPOINT)) {
-            this.facet = DEFAULT_FACET;
-        }
-        this.facet = urlParams.facet || this.facet || DEFAULT_FACET;
         this.searchMode = urlParams.mode;
-    }
-
-    get facet() {
-        return localStorage.getItem('facet');
-    }
-    set facet(newFacet) {
-        const oldValue = this.facet;
-        localStorage.setItem('facet', newFacet);
-        this._trigger('facet', newFacet, oldValue);
-    }
-    get facetValue() {
-        return FACET_TO_ENDPOINT[this.facet];
     }
 
     get searchMode() {
@@ -84,3 +57,57 @@ export class SearchState {
         }
     }
 }
+
+/**
+ * @typedef {Object} PersistentValue.Options
+ * @property {any?} [default]
+ * @property {Function?} [initValidation] validation to perform on intialization
+ */
+
+/**
+ * String value that's persisted to localstorage.
+ */
+export class PersistentValue {
+    /**
+     * @param {String} key
+     * @param {PersistentValue.Options} options
+     */
+    constructor(key, options={}) {
+        this.key = key;
+        this.options = Object.assign({}, PersistentValue.DEFAULT_OPTIONS, options);
+        this._listeners = [];
+
+        const noValue = this.read() == null;
+        const isValid = () => !this.initValidation || this.initValidation(this.read());
+        if (noValue || !isValid()) {
+            this.write(this.options.default);
+        }
+    }
+
+    read() {
+        return localStorage.getItem(this.key);
+    }
+
+    write(newValue) {
+        const oldValue = this.read();
+        localStorage.setItem(this.key, newValue);
+        if (oldValue != newValue) {
+            this._trigger(newValue);
+        }
+    }
+
+    change(handler, fireAtStart=true) {
+        this._listeners.push(handler);
+        if (fireAtStart) handler(this.read());
+    }
+
+    _trigger(newValue) {
+        this._listeners.forEach(listener => listener(newValue));
+    }
+}
+
+/** @type {PersistentValue.Options} */
+PersistentValue.DEFAULT_OPTIONS = {
+    default: null,
+    initValidation: null,
+};

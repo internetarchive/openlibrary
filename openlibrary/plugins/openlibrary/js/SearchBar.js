@@ -1,6 +1,17 @@
 import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
+import { PersistentValue } from './SearchState';
 
+const FACET_TO_ENDPOINT = {
+    title: 'books',
+    author: 'authors',
+    lists: 'lists',
+    subject: 'subjects',
+    all: 'all',
+    advanced: 'advancedsearch',
+    text: 'inside',
+};
+const DEFAULT_FACET = 'all';
 const RENDER_INSTANT_SEARCH_RESULT = {
     books(work) {
         const author_name = work.author_name ? work.author_name[0] : '';
@@ -43,17 +54,27 @@ export class SearchBar {
         this.$facetSelect = this.$component.find('.search-facet-selector select');
 
         /** State */
+        /** Misc Search parameters */
         this.searchState = searchState;
         /** stores the state of the search result for resizing window */
         this.instantSearchResultState = false;
-        /** Whether the search bar is expanded */
+        /** Whether the search bar is expanded? */
         this.searchExpansionActivated = false;
         /** ?? Not sure */
         this.enteredSearchMinimized = false;
+        /** Selected facet (persisted) */
+        this.facet = new PersistentValue('facet', {
+            default: DEFAULT_FACET,
+            initValidation(val) { return val in FACET_TO_ENDPOINT; }
+        });
+
+        if (urlParams.facet in FACET_TO_ENDPOINT) {
+            this.facet.write(urlParams.facet);
+        }
 
         if (urlParams.q) {
             let q = urlParams.q.replace(/\+/g, ' ');
-            if (searchState.facet === 'title' && q.indexOf('title:') != -1) {
+            if (this.facet.read() === 'title' && q.indexOf('title:') != -1) {
                 const parts = q.split('"');
                 if (parts.length === 3) {
                     q = parts[1];
@@ -75,22 +96,22 @@ export class SearchBar {
         $(window).resize(this.handleResize.bind(this));
         this.$input.on('click', false);
         // Bind to changes in the search state
-        this.searchState.sync('facet', this.handleFacetChange.bind(this));
         this.searchState.sync('searchMode', this.handleSearchModeChange.bind(this));
-        this.$facetSelect.change(event => {
-            const facet = this.$facetSelect.val();
-            // Ignore advanced, because we don't want it to stick (since it acts like a button)
-            if (facet == 'advanced') {
+        this.facet.change(this.handleFacetValueChange.bind(this));
+        this.$facetSelect.change(() => {
+            const newFacet = this.$facetSelect.val();
+            // We don't want to persist advanced becaues it behaves like a button
+            if (newFacet == 'advanced') {
                 event.preventDefault();
                 window.location.assign('/advancedsearch');
             } else {
-                this.searchState.facet = facet;
+                this.facet.write(newFacet);
             }
         });
 
         this.$form.on('submit', () => {
             const q = this.$input.val();
-            if (this.searchState.facetEndpoint === 'books') {
+            if (this.facetEndpoint === 'books') {
                 this.$input.val(SearchBar.marshalBookSearchQuery(q));
             }
             // TODO can we remove this?
@@ -116,6 +137,10 @@ export class SearchBar {
             this.toggle();
             this.$input.focus();
         });
+    }
+
+    get facetEndpoint() {
+        return FACET_TO_ENDPOINT[this.facet.read()];
     }
 
     handleResize() {
@@ -168,7 +193,7 @@ export class SearchBar {
      * @param {Number} [limit]
      */
     composeSearchUrl(q, json, limit) {
-        const facet_value = this.searchState.facetEndpoint;
+        const facet_value = this.facetEndpoint;
         let url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
         if (json) {
             url += '.json';
@@ -196,7 +221,7 @@ export class SearchBar {
      * @param {String} q
      */
     renderInstantSearchResults(q) {
-        const facet_value = this.searchState.facetEndpoint;
+        const facet_value = this.facetEndpoint;
         // Not implemented; also, this call is _expensive_ and should not be done!
         if (facet_value === 'inside') return;
         if (q === '') {
@@ -219,22 +244,25 @@ export class SearchBar {
 
     /**
      * Set the selected facet
-     * @param {String} facet
+     * @param {String} newFacet
      */
-    handleFacetChange(newFacet) {
-        $('header#header-bar .search-facet-selector select').val(newFacet)
-        const text = $('header#header-bar .search-facet-selector select').find('option:selected').text()
+    handleFacetValueChange(newFacet) {
+        // update the UI
+        this.$facetSelect.val(newFacet);
+        const text = this.$facetSelect.find('option:selected').text();
         $('header#header-bar .search-facet-value').html(text);
-        this.$results.empty()
+
+        // Get new results
+        this.$results.empty();
         const q = this.$input.val();
         const url = this.composeSearchUrl(q);
-        $('.search-bar-input').attr('action', url);
+        this.$form.attr('action', url);
         this.renderInstantSearchResults(q);
     }
 
     handleSearchModeChange(newMode) {
         $('.instantsearch-mode').val(newMode);
         $(`input[name=mode][value=${newMode}]`).prop('checked', true);
-        SearchUtils.updateSearchMode('.search-bar-input', this.searchState.searchMode);
+        SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
     }
 }
