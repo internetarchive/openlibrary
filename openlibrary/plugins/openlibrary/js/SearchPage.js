@@ -1,11 +1,9 @@
 import { addModeInputsToForm, mode as searchMode } from './SearchUtils';
 
-/**
- * Manages some (PROBABLY VERY FEW) of the interactions on the search page
- */
+/** Manages some (PROBABLY VERY FEW) of the interactions on the search page */
 export class SearchPage {
     /**
-     * @param {HTMLFormElement|JQuery} form
+     * @param {HTMLFormElement|JQuery} form the .olform search form
      * @param {import('./SearchUtils').SearchModeButtons} searchModeButtons
      */
     constructor(form, searchModeButtons) {
@@ -15,7 +13,7 @@ export class SearchPage {
         searchModeButtons.change(() => this.$form.submit());
     }
 
-    /** {@see addModeInputsToForm} */
+    /** Convenience wrapper of {@link addModeInputsToForm} */
     updateModeInputs() {
         addModeInputsToForm(this.$form, searchMode.read());
     }

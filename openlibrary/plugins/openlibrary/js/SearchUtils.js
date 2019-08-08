@@ -2,6 +2,7 @@ import { removeURLParameter } from './Browser';
 
 /**
  * Adds hidden input elements/modifes the action of the form to match the given search mode
+ * (Don't really understand what's happening, so just not gonna touch it too much)
  * @param {JQuery} form the form we'll modify
  * @param {String} searchMode
  */
@@ -35,9 +36,7 @@ export function addModeInputsToForm($form, searchMode) {
  * transforms a value before save.
  */
 
-/**
- * String value that's persisted to localstorage.
- */
+/** String value that's persisted to localstorage */
 export class PersistentValue {
     /**
      * @param {String} key
@@ -71,6 +70,11 @@ export class PersistentValue {
         }
     }
 
+    /**
+     * Listen for changes
+     * @param {Function} handler
+     * @param {Boolean} fireAtStart whether to call the handler right now
+     */
     change(handler, fireAtStart=true) {
         this._listeners.push(handler);
         if (fireAtStart) handler(this.read());
@@ -91,7 +95,7 @@ PersistentValue.DEFAULT_OPTIONS = {
 
 const MODES = ['everything', 'ebooks', 'printdisabled'];
 const DEFAULT_MODE = 'ebooks';
-/** The type of thing the user is searching for. {@see MODES} */
+/** Search mode; {@see MODES} */
 export const mode = new PersistentValue('mode', {
     default: DEFAULT_MODE,
     initValidation: mode => MODES.indexOf(mode) != -1,
@@ -102,9 +106,7 @@ export const mode = new PersistentValue('mode', {
     }
 });
 
-/**
- * Manages interactions of the search mode buttons
- */
+/** Manages interactions of the search mode buttons */
 export class SearchModeButtons {
     constructor(autoreload=false) {
         this.$buttons = $('.search-mode');
@@ -116,6 +118,10 @@ export class SearchModeButtons {
         });
     }
 
+    /**
+     * Listen for changes
+     * @param {Function} handler
+     */
     change(handler) {
         this.$buttons.change(event => handler($(event.target).val()));
     }

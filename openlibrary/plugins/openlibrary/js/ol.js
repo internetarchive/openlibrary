@@ -3,7 +3,7 @@ import * as Browser from './Browser';
 import { updateWorkAvailability } from './availability';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
-import { SearchModeButtons } from './SearchUtils';
+import { SearchModeButtons, mode as searchMode } from './SearchUtils';
 
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
@@ -19,6 +19,9 @@ function isScrolledIntoView(elem) {
 
 export default function init() {
     const urlParams = Browser.getJsonFromUrl(location.search);
+    if (urlParams.mode) {
+        searchMode.write(urlParams.mode);
+    }
     new SearchBar(urlParams);
 
     if ($('.siteSearch.olform').length) {

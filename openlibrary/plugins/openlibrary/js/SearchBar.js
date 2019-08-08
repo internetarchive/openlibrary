@@ -2,18 +2,19 @@ import { debounce } from './nonjquery_utils.js';
 import * as SearchUtils from './SearchUtils';
 import { PersistentValue } from './SearchUtils';
 
+/** Mapping of search bar facets to search endpoints */
 const FACET_TO_ENDPOINT = {
-    title: 'books',
-    author: 'authors',
-    lists: 'lists',
-    subject: 'subjects',
-    all: 'all',
-    advanced: 'advancedsearch',
-    text: 'inside',
+    title: '/search',
+    author: '/search/authors',
+    lists: '/search/lists',
+    subject: '/search/subjects',
+    all: '/search',
+    text: '/search/inside',
 };
 const DEFAULT_FACET = 'all';
-const RENDER_INSTANT_SEARCH_RESULT = {
-    books(work) {
+/** Functions that render autocomplete results */
+const RENDER_AUTOCOMPLETE_RESULT = {
+    ['/search'](work) {
         const author_name = work.author_name ? work.author_name[0] : '';
         return `
             <li>
@@ -25,7 +26,7 @@ const RENDER_INSTANT_SEARCH_RESULT = {
                 </a>
             </li>`;
     },
-    authors(author) {
+    ['/search/authors'](author) {
         // Todo: default author img to: https://dev.openlibrary.org/images/icons/avatar_author-lg.png
         return `
             <li>
@@ -53,6 +54,8 @@ export class SearchBar {
         this.$facetSelect = this.$component.find('.search-facet-selector select');
 
         /** State */
+        /** Whether the bar is in collapsible mode */
+        this.inCollapsibleMode = false;
         /** Whether the search bar is currently collapsed */
         this.collapsed = false;
         /** Selected facet (persisted) */
@@ -64,30 +67,24 @@ export class SearchBar {
         this.initFromUrlParams(urlParams);
         this.initCollapsibleMode();
 
-        // searches should be cancelled if you click anywhere in the page
-        $(document.body).on('click', this.clearResults.bind(this));
-        // but clicking search input should not empty search results.
-        this.$input.on('click', false);
         // Bind to changes in the search state
         SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
         this.facet.change(this.handleFacetValueChange.bind(this));
         this.$facetSelect.change(() => this.handleFacetSelectChange(this.$facetSelect.val()));
-
-        this.$form.on('submit', () => {
-            const q = this.$input.val();
-            if (this.facetEndpoint === 'books') {
-                this.$input.val(SearchBar.marshalBookSearchQuery(q));
-            }
-            SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
-        });
+        this.$form.on('submit', this.submitForm.bind(this));
 
         this.initAutocompletionLogic();
     }
 
+    /** @type {String} The endpoint of the active facet */
     get facetEndpoint() {
         return FACET_TO_ENDPOINT[this.facet.read()];
     }
 
+    /**
+     * Update internal state from url parameters
+     * @param {Object} urlParams
+     */
     initFromUrlParams(urlParams) {
         if (urlParams.facet in FACET_TO_ENDPOINT) {
             this.facet.write(urlParams.facet);
@@ -105,23 +102,19 @@ export class SearchBar {
         }
     }
 
-    initAutocompletionLogic() {
-        this.$input.on('keyup', debounce(event => {
-            // ignore directional keys and enter for callback
-            if (![13,37,38,39,40].includes(event.keyCode)) {
-                this.renderInstantSearchResults($(event.target).val());
-            }
-        }, 500, false));
-
-        this.$input.on('focus', debounce(event => {
-            event.stopPropagation();
-            this.renderInstantSearchResults($(event.target).val());
-        }, 300, false));
+    submitForm() {
+        const q = this.$input.val();
+        if (this.facet.read() === 'title') {
+            this.$input.val(SearchBar.marshalBookSearchQuery(q));
+        }
+        this.$form.attr('action', this.composeSearchUrl(this.$input.val()));
+        SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
     }
 
+    /** Initialize event handlers that allow the form to collapse for small screens */
     initCollapsibleMode() {
-        this.handleResize();
-        $(window).resize(debounce(this.handleResize.bind(this)));
+        this.toggleCollapsibleModeForSmallScreens();
+        $(window).resize(debounce(this.toggleCollapsibleModeForSmallScreens.bind(this), 50));
         $(document).on('submit','.in-collapsible-mode', event => {
             if (this.collapsed) {
                 event.preventDefault();
@@ -131,24 +124,21 @@ export class SearchBar {
         });
     }
 
-    handleResize() {
-        if ($(window).width() < 568){
-            this.collapse();
-            this.$form.addClass('in-collapsible-mode');
-            this.clearResults();
+    toggleCollapsibleModeForSmallScreens() {
+        if ($(window).width() < 568) {
+            if (!this.inCollapsibleMode) {
+                this.enableCollapisbleMode();
+                this.collapse();
+            }
+            this.clearAutocompletionResults();
         } else {
-            this.expand();
-            this.$form.removeClass('in-collapsible-mode');
+            if (this.inCollapsibleMode) {
+                this.disableCollapsibleMode();
+            }
         }
     }
 
-    clearResults() {
-        this.$results.empty();
-    }
-
-    /**
-     * Expands/hides the searchbar
-     */
+    /** Collapses or expands the searchbar */
     toggleCollapse() {
         if (this.collapsed) {
             this.expand();
@@ -159,25 +149,35 @@ export class SearchBar {
 
     collapse() {
         $('header#header-bar .logo-component').removeClass('hidden');
-        this.$component.removeClass('search-component-expand');
+        this.$component.removeClass('expanded');
         this.collapsed = true;
     }
 
     expand() {
         $('header#header-bar .logo-component').addClass('hidden');
-        this.$component.addClass('search-component-expand');
+        this.$component.addClass('expanded');
         this.collapsed = false;
     }
 
+    enableCollapisbleMode() {
+        this.$form.addClass('in-collapsible-mode');
+        this.inCollapsibleMode = true;
+    }
+
+    disableCollapsibleMode() {
+        this.collapse();
+        this.$form.removeClass('in-collapsible-mode');
+        this.inCollapsibleMode = false;
+    }
+
     /**
-     * Compose search url for what?!? is the clickable? The autocomplete?!? WHAT?!?
-     * @param {String} q query
-     * @param {Boolean} [json]
-     * @param {Number} [limit]
+     * Converts an already processed query into a search url
+     * @param {String} q query that's ready to get passed to the search endpoint
+     * @param {Boolean} [json] whether to hit the JSON endpoint
+     * @param {Number} [limit] how many items to get
      */
-    composeSearchUrl(q, json=true, limit=10) {
-        const facet_value = this.facetEndpoint;
-        let url = ((facet_value === 'books' || facet_value === 'all')? '/search' : `/search/${facet_value}`);
+    composeSearchUrl(q, json, limit) {
+        let url = this.facetEndpoint;
         if (json) {
             url += '.json';
         }
@@ -185,12 +185,14 @@ export class SearchBar {
         if (limit) {
             url += `&limit=${limit}`;
         }
-        return `${url}&mode=${SearchUtils.mode.read()}`;
+        url += `&mode=${SearchUtils.mode.read()}`;
+        return url;
     }
 
     /**
-     * Marshal into what? From what?
+     * Prepare an unprocessed query for book searching
      * @param {String} q
+     * @return {String}
      */
     static marshalBookSearchQuery(q) {
         if (q && q.indexOf(':') == -1 && q.indexOf('"') == -1) {
@@ -199,35 +201,53 @@ export class SearchBar {
         return q;
     }
 
-    /**
-     * Perform the query and update autocomplete results
-     * @param {String} q
-     */
-    renderInstantSearchResults(q) {
-        const facet_value = this.facetEndpoint;
-        // Not implemented; also, this call is _expensive_ and should not be done!
-        if (facet_value === 'inside') return;
-        if (q === '') {
+    /** Setup event listeners for autocompletion */
+    initAutocompletionLogic() {
+        // searches should be cancelled if you click anywhere in the page
+        $(document.body).on('click', this.clearAutocompletionResults.bind(this));
+        // but clicking search input should not empty search results.
+        this.$input.on('click', false);
+
+        this.$input.on('keyup', debounce(event => {
+            // ignore directional keys and enter for callback
+            if (![13,37,38,39,40].includes(event.keyCode)) {
+                this.renderAutocompletionResults();
+            }
+        }, 500, false));
+
+        this.$input.on('focus', debounce(event => {
+            event.stopPropagation();
+            this.renderAutocompletionResults();
+        }, 300, false));
+    }
+
+    /** Cleans up and performs the query, then update the autocomplete results */
+    renderAutocompletionResults() {
+        let q = this.$input.val();
+        if (q === '' || !(this.facetEndpoint in RENDER_AUTOCOMPLETE_RESULT)) {
             return;
         }
-        if (facet_value === 'books') {
+        if (this.facet.read() === 'title') {
             q = SearchBar.marshalBookSearchQuery(q);
         }
 
         this.$results.css('opacity', 0.5);
-        $.getJSON(this.composeSearchUrl(q), data => {
-            const facet = facet_value === 'all' ? 'books' : facet_value;
+        $.getJSON(this.composeSearchUrl(q, true, 10), data => {
+            const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
-            this.clearResults();
+            this.clearAutocompletionResults();
             for (let d in data.docs) {
-                const html = RENDER_INSTANT_SEARCH_RESULT[facet](data.docs[d]);
-                this.$results.append(html);
+                this.$results.append(renderer(data.docs[d]));
             }
         });
     }
 
+    clearAutocompletionResults() {
+        this.$results.empty();
+    }
+
     /**
-     * Set the selected facet
+     * Updates the UI to match after the facet is changed
      * @param {String} newFacet
      */
     handleFacetValueChange(newFacet) {
@@ -237,15 +257,12 @@ export class SearchBar {
         $('header#header-bar .search-facet-value').html(text);
 
         // Get new results
-        this.clearResults();
         if (this.$input.is(':focus')) {
-            const q = this.$input.val();
-            const url = this.composeSearchUrl(q);
-            this.$form.attr('action', url);
-            this.renderInstantSearchResults(q);
+            this.renderAutocompletionResults();
         }
     }
 
+    /** Handles changes to the facet from the UI */
     handleFacetSelectChange(newFacet) {
         // We don't want to persist advanced becaues it behaves like a button
         if (newFacet == 'advanced') {
@@ -256,9 +273,14 @@ export class SearchBar {
         }
     }
 
+    /**
+     * Makes changes to the UI after a change occurs to the mode
+     * (Parts of this might be dead code)
+     * @param {String} newMode
+     */
     handleSearchModeChange(newMode) {
         $('.instantsearch-mode').val(newMode);
         $(`input[name=mode][value=${newMode}]`).prop('checked', true);
-        SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
+        SearchUtils.addModeInputsToForm(this.$form, newMode);
     }
 }

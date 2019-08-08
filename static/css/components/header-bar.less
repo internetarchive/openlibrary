@@ -231,7 +231,7 @@
 
     // stylelint-disable selector-max-specificity
     // stylelint-disable max-nesting-depth
-    .search-component-expand {
+    &.expanded {
       -webkit-box-flex: 1;
       -ms-flex: 1;
       flex: 1;
@@ -266,20 +266,6 @@
         display: block;
       }
 
-      .search-facet {
-        display: block;
-      }
-    }
-
-    .expand {
-      .search-bar-advanced-btn {
-        display: block;
-      }
-      .search-bar-input {
-        input {
-          width: 100%;
-        }
-      }
       .search-facet {
         display: block;
       }
@@ -420,50 +406,6 @@
         border-right: 4px solid transparent;
         border-top: 4px solid currentColor;
       }
-    }
-  }
-
-  .search-component-expand {
-    -webkit-box-flex: 1;
-    -ms-flex: 1;
-    flex: 1;
-    margin-top: 8px;
-    -ms-flex-item-align: center;
-    align-self: center;
-    height: 54px;
-
-    .search-bar-component {
-      width: 100%;
-    }
-
-    /* stylelint-disable selector-max-specificity */
-    .search-bar {
-      width: auto;
-
-      .search-bar-input {
-        .display-flex();
-      }
-    }
-
-    .search-bar-input {
-      input[type=text] {
-        display: block;
-        width: 100%;
-      }
-    }
-    /* stylelint-enable selector-max-specificity */
-
-    .search-bar-submit {
-      margin-right: 5px;
-      cursor: pointer;
-    }
-
-    .search-facet-selector {
-      display: block;
-    }
-
-    .search-facet {
-      display: block;
     }
   }
 }
