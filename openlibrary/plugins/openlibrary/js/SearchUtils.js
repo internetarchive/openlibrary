@@ -49,7 +49,7 @@ export class PersistentValue {
         this._listeners = [];
 
         const noValue = this.read() == null;
-        const isValid = () => !this.initValidation || this.initValidation(this.read());
+        const isValid = () => !this.options.initValidation || this.options.initValidation(this.read());
         if (noValue || !isValid()) {
             this.write(this.options.default);
         }
@@ -65,7 +65,13 @@ export class PersistentValue {
         if (this.options.writeTransformation) {
             toWrite = this.options.writeTransformation(newValue, oldValue);
         }
-        localStorage.setItem(this.key, toWrite);
+
+        if (toWrite == null) {
+            localStorage.removeItem(this.key);
+        } else {
+            localStorage.setItem(this.key, toWrite);
+        }
+
         if (oldValue != toWrite) {
             this._trigger(toWrite);
         }
