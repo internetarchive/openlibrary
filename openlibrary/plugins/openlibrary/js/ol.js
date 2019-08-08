@@ -1,7 +1,6 @@
 import { debounce } from './nonjquery_utils.js';
 import * as Browser from './Browser';
 import { updateWorkAvailability } from './availability';
-import { SearchState } from './SearchState';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
 
@@ -19,9 +18,8 @@ function isScrolledIntoView(elem) {
 
 export default function init() {
     const urlParams = Browser.getJsonFromUrl(location.search);
-    const searchState = new SearchState(urlParams);
-    new SearchBar(searchState, urlParams);
-    new SearchPage(searchState);
+    new SearchBar(urlParams);
+    new SearchPage();
 
     $(window).scroll(function(){
         var scroller = $('#formScroll');

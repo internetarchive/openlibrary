@@ -42,10 +42,9 @@ const RENDER_INSTANT_SEARCH_RESULT = {
  */
 export class SearchBar {
     /**
-     * @param {SearchState} searchState
      * @param {Object} urlParams
      */
-    constructor(searchState, urlParams) {
+    constructor(urlParams) {
         /** UI Elements */
         this.$component = $('header#header-bar .search-component');
         this.$form = this.$component.find('form.search-bar-input');
@@ -54,8 +53,6 @@ export class SearchBar {
         this.$facetSelect = this.$component.find('.search-facet-selector select');
 
         /** State */
-        /** Misc Search parameters */
-        this.searchState = searchState;
         /** stores the state of the search result for resizing window */
         this.instantSearchResultState = false;
         /** Whether the search bar is expanded? */
@@ -96,7 +93,7 @@ export class SearchBar {
         $(window).resize(this.handleResize.bind(this));
         this.$input.on('click', false);
         // Bind to changes in the search state
-        this.searchState.sync('searchMode', this.handleSearchModeChange.bind(this));
+        SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
         this.facet.change(this.handleFacetValueChange.bind(this));
         this.$facetSelect.change(() => {
             const newFacet = this.$facetSelect.val();
@@ -115,7 +112,7 @@ export class SearchBar {
                 this.$input.val(SearchBar.marshalBookSearchQuery(q));
             }
             // TODO can we remove this?
-            SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
+            SearchUtils.updateSearchMode(this.$form, SearchUtils.mode.read());
         });
 
         this.$input.on('keyup', debounce(event => {
@@ -202,7 +199,7 @@ export class SearchBar {
         if (limit) {
             url += `&limit=${limit}`;
         }
-        return `${url}&mode=${this.searchState.searchMode}`;
+        return `${url}&mode=${SearchUtils.mode.read()}`;
     }
 
     /**
@@ -263,6 +260,6 @@ export class SearchBar {
     handleSearchModeChange(newMode) {
         $('.instantsearch-mode').val(newMode);
         $(`input[name=mode][value=${newMode}]`).prop('checked', true);
-        SearchUtils.updateSearchMode(this.$form, this.searchState.searchMode);
+        SearchUtils.updateSearchMode(this.$form, SearchUtils.mode.read());
     }
 }

@@ -1,4 +1,5 @@
 import { removeURLParameter } from './Browser';
+import { PersistentValue } from './SearchState';
 
 /**
  * Oh, between SEARCH_MODES
@@ -35,3 +36,16 @@ export function updateSearchMode(form, searchMode) {
 
     $(form).attr('action', url);
 }
+
+const MODES = ['everything', 'ebooks', 'printdisabled'];
+const DEFAULT_MODE = 'ebooks';
+/** The type of thing the user is searching for. {@see MODES} */
+export const mode = new PersistentValue('mode', {
+    default: DEFAULT_MODE,
+    initValidation: mode => MODES.indexOf(mode) != -1,
+    writeTransformation(newValue, oldValue) {
+        const mode = (newValue && newValue.toLowerCase()) || oldValue;
+        const isValidMode = MODES.indexOf(mode) != -1;
+        return isValidMode ? mode : DEFAULT_MODE;
+    }
+});
