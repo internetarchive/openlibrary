@@ -72,7 +72,7 @@ export class SearchBar {
         // Bind to changes in the search state
         SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
         this.facet.change(this.handleFacetValueChange.bind(this));
-        this.$facetSelect.change(() => this.handleFacetSelectChange(this.$facetSelect.val()));
+        this.$facetSelect.change(this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
 
         this.initAutocompletionLogic();
@@ -115,7 +115,7 @@ export class SearchBar {
 
     /** Initialize event handlers that allow the form to collapse for small screens */
     initCollapsibleMode() {
-        this.toggleCollapsibleModeForSmallScreens();
+        this.toggleCollapsibleModeForSmallScreens($(window).width());
         $(window).resize(debounce(() => {
             this.toggleCollapsibleModeForSmallScreens($(window).width());
         }, 50));
@@ -270,8 +270,12 @@ export class SearchBar {
         }
     }
 
-    /** Handles changes to the facet from the UI */
-    handleFacetSelectChange(newFacet) {
+    /**
+     * Handles changes to the facet from the UI
+     * @param {JQuery.Event} event
+     */
+    handleFacetSelectChange(event) {
+        const newFacet = this.$facetSelect.val();
         // We don't want to persist advanced becaues it behaves like a button
         if (newFacet == 'advanced') {
             event.preventDefault();

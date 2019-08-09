@@ -2,14 +2,7 @@ import sinon from 'sinon';
 import { SearchBar } from '../../../openlibrary/plugins/openlibrary/js/SearchBar';
 import $ from 'jquery';
 import * as SearchUtils from '../../../openlibrary/plugins/openlibrary/js/SearchUtils';
-
-
-let sandbox;
-beforeEach(() => {
-    sandbox = sinon.createSandbox();
-    global.$ = $;
-    sandbox.stub(global, '$').callsFake($);
-});
+import * as nonjquery_utils from '../../../openlibrary/plugins/openlibrary/js/nonjquery_utils.js';
 
 describe('SearchBar', () => {
     const DUMMY_COMPONENT_HTML = `
@@ -52,6 +45,12 @@ describe('SearchBar', () => {
             sb.initFromUrlParams({q: 'title: "Harry"', facet: 'title'});
             expect(sb.$input.val()).toBe('Harry');
         });
+
+        test('Persists value in url param', () => {
+            expect(localStorage.getItem('facet')).not.toBe('title');
+            sb.initFromUrlParams({facet: 'title'});
+            expect(localStorage.getItem('facet')).toBe('title');
+        });
     });
 
     describe('submitForm', () => {
@@ -86,9 +85,7 @@ describe('SearchBar', () => {
     describe('toggleCollapsibleModeForSmallScreens', () => {
         /** @type {SearchBar?} */
         let sb;
-        beforeEach(() => {
-            sb = new SearchBar($(DUMMY_COMPONENT_HTML));
-        });
+        beforeEach(() => sb = new SearchBar($(DUMMY_COMPONENT_HTML)));
         afterEach(() => localStorage.clear());
 
         test('Only enters collapsible mode if not already there', () => {
@@ -120,5 +117,83 @@ describe('SearchBar', () => {
             expect(fn('author:"Harry Potter"')).toBe('author:"Harry Potter"');
             expect(fn('"Harry Potter"')).toBe('"Harry Potter"');
         });
+    });
+
+    describe('Misc', () => {
+        const sandbox = sinon.createSandbox();
+        afterEach(() => {
+            sandbox.restore();
+            localStorage.clear();
+        });
+
+        test('When localStorage empty, defaults to facet=all', () => {
+            localStorage.clear();
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+            expect(sb.facet.read()).toBe('all');
+        });
+
+        test('Facet persists between page loads', () => {
+            localStorage.setItem('facet', 'title');
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+            expect(sb.facet.read()).toBe('title');
+            const sb2 = new SearchBar($(DUMMY_COMPONENT_HTML));
+            expect(sb2.facet.read()).toBe('title');
+        });
+
+        test('Advanced facet triggers redirect', () => {
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+            const locationStub = sandbox.stub(window.location, 'assign');
+            sandbox.stub(sb.$facetSelect, 'val').returns('advanced');
+            sb.handleFacetSelectChange(new $.Event());
+            expect(locationStub.callCount).toBe(1);
+            expect(locationStub.args[0]).toEqual(['/advancedsearch']);
+        });
+
+        for (let facet of ['title', 'author', 'all']) {
+            test(`Facet "${facet}" searches tigger autocomplete`, () => {
+                // Stub debounce to avoid have to manipulate time (!)
+                sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+                const sb = new SearchBar($(DUMMY_COMPONENT_HTML), { facet });
+                const getJSONStub = sandbox.stub($, 'getJSON');
+
+                sb.$input.val('Harry');
+                sb.$input.focus();
+                expect(getJSONStub.callCount).toBe(1);
+            });
+        }
+
+        test('Title searches tigger autocomplete even if containing title: prefix', () => {
+            // Stub debounce to avoid have to manipulate time (!)
+            sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
+            const getJSONStub = sandbox.stub($, 'getJSON');
+            sb.$input.val('title:"Harry"');
+            sb.$input.focus();
+            expect(getJSONStub.callCount).toBe(1);
+        });
+
+        test('Focussing on input when empty does not trigger autocomplete', () => {
+            // Stub debounce to avoid have to manipulate time (!)
+            sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+            const sb = new SearchBar($(DUMMY_COMPONENT_HTML), {facet: 'title'});
+            const getJSONStub = sandbox.stub($, 'getJSON');
+            sb.$input.val('');
+            sb.$input.focus();
+            expect(getJSONStub.callCount).toBe(0);
+        });
+
+        for (let facet of ['lists', 'subject', 'text']) {
+            test(`Facet "${facet}" does not tigger autocomplete`, () => {
+                // Stub debounce to avoid have to manipulate time (!)
+                sandbox.stub(nonjquery_utils, 'debounce').callsFake(fn => fn);
+                const sb = new SearchBar($(DUMMY_COMPONENT_HTML));
+                const getJSONStub = sandbox.stub($, 'getJSON');
+
+                sb.$input.val('foo bar');
+                sb.facet.write(facet);
+                sb.$input.focus();
+                expect(getJSONStub.callCount).toBe(0);
+            });
+        }
     });
 });
