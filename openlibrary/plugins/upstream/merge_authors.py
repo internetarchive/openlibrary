@@ -5,6 +5,7 @@ import re
 import simplejson
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
+from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
@@ -269,8 +270,11 @@ class merge_authors_json(delegate.page):
         duplicates = data['duplicates']
 
         engine = AuthorMergeEngine()
-        result = engine.merge(master, duplicates)
-        return delegate.RawText(simplejson.dumps(result),  content_type="application/json")
+        try:
+            result = engine.merge(master, duplicates)
+        except ClientException as e:
+            raise web.badrequest(simplejson.loads(e.json))
+        return delegate.RawText(simplejson.dumps(result), content_type="application/json")
 
 def setup():
     pass
