@@ -19,5 +19,7 @@ install:
   - pip install flake8
   - make lint
   - pip install -r requirements_test.txt
+  # if Travis is running Python 3, then create a legacy Python for npm/node
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then pyenv install 2.7.14; fi
   - npm install
 script: make test
