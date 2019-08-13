@@ -242,6 +242,56 @@ class author_works(delegate.page):
             "entries": works
         }
 
+class eligibility(delegate.page):
+    path = '/sponsorship/eligibility'
+
+    @jsonapi
+    def GET(self):
+        i = web.input(isbn='')
+        if not (i.isbn):
+            return simplejson.dumps({
+                'error': 'isbn required'
+            })
+        id_ = normalize_isbn(i.isbn)
+        id_type = 'isbn_' + ('13' if len(id_) == 13 else '10')
+
+        metadata = {
+            'price':{
+                'betterworldbooks': get_betterworldbooks_metadata(id_)
+            }
+        }
+        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
+
+        # if bwb fails and isbn10, try again with isbn13
+        # if id_type == 'isbn_10' and \
+        #    metadata['price']['betterworldbooks'].get('price') is None:
+        #     isbn_13 = isbn_10_to_isbn_13(id_)
+        #     metadata['price']['betterworldbooks'] = isbn_13 and get_betterworldbooks_metadata(
+        #         isbn_13) or {}
+
+        # fetch book by isbn if it exists
+        # TODO: perform exisiting OL lookup by ASIN if supplied, if possible
+        matches = web.ctx.site.things({
+            'type': '/type/edition',
+            id_type: id_,
+        })
+
+        book_key = matches[0] if matches else None
+
+        # # if no OL edition for isbn, attempt to create
+        # if (not book_key) and get_amazon_metadata(id_, id_type=id_type[:4]):
+        #     book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
+
+        # include ol edition metadata in response, if available
+        if book_key:
+            ed = web.ctx.site.get(book_key)
+            if ed:
+                metadata['key'] = ed.key
+                if getattr(ed, 'ocaid'):
+                    metadata['ocaid'] = ed.ocaid
+
+        return simplejson.dumps(metadata)
+
 class price_api(delegate.page):
     path = r'/prices'
 
