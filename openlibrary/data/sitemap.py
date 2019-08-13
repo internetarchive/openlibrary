@@ -73,11 +73,11 @@ def find_path(key, type, json):
     if type in ['/type/edition', '/type/work']:
         data = simplejson.loads(json)
         return key + '/' + urlsafe(data.get('title', 'untitled'))
-    elif doc.type == '/type/author':
+    elif type == '/type/author':
         data = simplejson.loads(json)
         return key + '/' + urlsafe(data.get('name', 'unnamed'))
     else:
-        return doc.key
+        return key
 
 def gzwrite(path, data):
     f = gzopen(path, 'w')
