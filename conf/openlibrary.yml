@@ -162,6 +162,9 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
+bwb_api:
+    url: http://products.betterworldbooks.com/service.aspx?ItemId=
+
 ia_loan_api_url: http://127.0.0.1/internal/fake/loans
 ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
 
