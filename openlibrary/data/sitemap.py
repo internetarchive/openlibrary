@@ -69,15 +69,6 @@ $for path, title in docs:
 </ul>
 """)
 
-def find_path(key, type, json):
-    if type in ['/type/edition', '/type/work']:
-        data = simplejson.loads(json)
-        return key + '/' + urlsafe(data.get('title', 'untitled'))
-    elif type == '/type/author':
-        data = simplejson.loads(json)
-        return key + '/' + urlsafe(data.get('name', 'unnamed'))
-    else:
-        return key
 
 def gzwrite(path, data):
     f = gzopen(path, 'w')
