@@ -17,10 +17,6 @@ import fadeToggle from './jquery.fadeToggle';
 import jQueryRepeat from './jquery.repeat';
 import './jquery.scrollTo';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
-// Note this import will also load various jQuery plugins.
-// (jQuery.ScrollTo, jquery.hoverIntent, jquery.dataTables, dataTableExt,
-// highlight, removeHighlight, jTruncate, columnize)
-import { plot_minigraph, plot_tooltip_graph } from './plot';
 import removeHighlight from './removeHighlight';
 import highlight from './highlight';
 import initAnalytics from './ol.analytics';
@@ -48,8 +44,6 @@ window.getAvailabilityV2 = getAvailabilityV2;
 window.isScrolledIntoView = isScrolledIntoView;
 window.htmlquote = htmlquote;
 window.len = len;
-window.plot_tooltip_graph = plot_tooltip_graph;
-window.plot_minigraph = plot_minigraph;
 window.range = range;
 window.renderTag = renderTag;
 window.slice = slice;

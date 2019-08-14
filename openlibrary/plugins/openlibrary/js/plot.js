@@ -21,6 +21,10 @@ export function plot_minigraph(node, data) {
 
 export function plot_tooltip_graph(node, data, tooltip_message) {
     var i, options;
+    // empty set of rows. Escape early.
+    if (!data.length) {
+        return;
+    }
     for (i = 0; i < data.length; ++i) {
         data[i][0] += 60 * 60 * 1000;
     }
