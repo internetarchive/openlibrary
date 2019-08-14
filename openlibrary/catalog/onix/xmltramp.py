@@ -192,7 +192,7 @@ class Element:
         if len(_pos) > 1:
             for i in range(0, len(_pos), 2):
                 self._attrs[_pos[i]] = _pos[i+1]
-        if len(_pos) == 1 is not None:
+        if len(_pos) == 1:
             return self._attrs[_pos[0]]
         if len(_pos) == 0:
             return self._attrs
