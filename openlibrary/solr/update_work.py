@@ -60,6 +60,18 @@ SUBJECT_BLACKLIST = [
         "OverDrive", #69487,
         "English language", #68921,
         "OUR Brockhaus selection", #32858,
+        # "Translations into <language>",
+        # "Translations in to <language>",
+        # "open_syllabus_project",
+        # "great_books_of_the_western_world",
+        # "great_books",
+        # ?? any subject containing an underscore??
+        # "PRO Gotham Book Mart (former owner) (Gotham Book Mart Collection copy)",
+        # ? "Open Library Staff Picks", ?
+        "Popular Print Disabled Books",
+        "Lending Library",
+        # "<subject> in <language>" e.g. "Drama in Spanish"
+        # "<language> language books"
 ]
 
 
