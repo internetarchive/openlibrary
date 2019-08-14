@@ -476,7 +476,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                 db.ia_cache.update(db2.ia_cache)
 
             logger.debug("Calling update_keys for %d keys" % len(keys))
-            update_keys(keys, commit=False, commit_way_later=True)
+            update_keys(keys, commit=False, commit_way_later=True, bulk_update=True)
             logger.debug("DONE with update_keys")
 
             seen += len(keys)

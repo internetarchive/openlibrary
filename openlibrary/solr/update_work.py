@@ -867,6 +867,7 @@ def build_data2(w, editions, authors, ia, duplicates):
 def post_solr(url, body, debug, commit=False):
     params = {'update': 'true'} if commit else {}
     response = requests_session.post(url, data=body, headers={'Content-type': 'text/xml;charset=utf-8'}, params=params)
+    # FIXME - crash on 404 - it means we're not configured correctly and there's no sense in continuing
     if response.reason != 'OK':
         logger.error(response.reason)
         logger.error(response.text)
@@ -878,9 +879,9 @@ def post_solr(url, body, debug, commit=False):
     return response.text
 
 
-def solr_update(requests, debug=False, commitWithin=60000, commit=False):
+def solr_update(requests, debug=False, commitWithin=60000, commit=False, bulk_update=False):
     """POSTs a collection of update requests to Solr.
-    :param list[string or UpdateRequest or DeleteRequest] requests: Requests to send to Solr
+    :param list[UpdateRequest or DeleteRequest] requests: Requests to send to Solr
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
@@ -900,9 +901,12 @@ def solr_update(requests, debug=False, commitWithin=60000, commit=False):
             logger.error("Unhandled request - %s" % r)
 
     if delete_requests:
-        r = DeleteRequest.toxml_all(delete_requests)
-        logger.debug('Posting %d DeleteRequests' % len(delete_requests))
-        post_solr(url, r, debug)
+        if bulk_update:
+            r = DeleteRequest.toxml_all(delete_requests)
+            logger.debug('Posting %d DeleteRequests' % len(delete_requests))
+            post_solr(url, r, debug)
+        else:
+            logger.info('SKIPPED %d DeleteRequests due to bulk load' % len(delete_requests))
     if update_requests:
         logger.debug('Posting %d UpdateRequests' % len(update_requests))
         r = UpdateRequest.toxml_all(update_requests)
@@ -1185,7 +1189,7 @@ def get_subject(key):
     if names:
         name = names[0]
     else:
-        name = subject_key.replace("_", " ")
+        name = subject_key.replace("_", " ") # Inverse transform as fallback
 
     return {
         "key": key,
@@ -1200,7 +1204,7 @@ def update_subject(key):
     request_set = SolrRequestSet()
     request_set.delete(subject['key'])
 
-    if subject['work_count'] > 0:
+    if subject['work_count'] > 0: # FIXME: Use configurable (and higher) threshold
         request_set.add(subject)
     return request_set.get_requests()
 
@@ -1208,6 +1212,10 @@ def update_subject(key):
 def update_work(work):
     """
     Get the Solr requests necessary to insert/update this work into Solr.
+
+    TODO: Compare previously indexed record with current record:
+        - When subjects change, reindex both added and removed subjects.
+        - When authors change, reindex both added and removed authors.
 
     :param dict work: Work to insert/update
     :rtype: list[UpdateRequest or DeleteRequest]
@@ -1243,6 +1251,7 @@ def update_work(work):
         try:
             solr_doc = build_data(work)
             dict2element(solr_doc)
+            # TODO get all v=1 authors and create stub author docs for them.
         except:
             logger.error("failed to update work %s", work['key'], exc_info=True)
         else:
@@ -1257,7 +1266,7 @@ def update_work(work):
         logger.debug('Deleting type delete or redirect - key:%s' % wkey)
         requests.append(DeleteRequest([wkey]))
     else:
-        logger.error("unrecognized type (or missing title) while updating work %s", wkey, exc_info=True)
+        logger.error("unrecognized type (or missing title) while updating work %s, type %s", wkey, work['type']['key'], exc_info=True)
 
     return requests
 
@@ -1283,7 +1292,7 @@ def make_delete_query(keys):
         query.text = 'key:"%s"' % key
     return tostring(delete_query, encoding='utf-8')
 
-def update_author(akey, a=None, handle_redirects=True):
+def update_author(akey, a=None, handle_redirects=True, seed_work=None, bulk_update=False):
     """
     Get the Solr requests necessary to insert/update/delete an Author in Solr.
     :param string akey: The author key, e.g. /authors/OL23A
@@ -1311,6 +1320,21 @@ def update_author(akey, a=None, handle_redirects=True):
 
     facet_fields = ['subject', 'time', 'person', 'place']
     url = get_solr_base_url() + '/select'
+
+    # Query Solr for currently indexed author name. If it has changed, all works need to be reindexed.
+    # Online updates only, not bulk updates
+    # TODO
+    if not bulk_update:
+        params = {'wt': 'json',
+                  'q': 'key:%s' % akey,
+                  'fl': 'name',
+                  }
+        reply = get_json(url, params)
+        indexed_name = reply['response']['docs'][0]['name']
+        if indexed_name != a.get('name', None):
+            # reindex_all_works(akey) # TODO
+            logger.info('Reindexing works for %s due to name change')
+            pass
 
     # Query Solr for all works with this author_key
     # This only works with a sequence of tuples, not a dict due to duplicate keys
@@ -1408,7 +1432,7 @@ def solr_select_work(edition_key):
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
 
-def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
+def update_keys(keys, commit=True, output_file=None, commit_way_later=False, bulk_update=False):
     """
     Insert/update the documents with the provided keys in Solr.
 
@@ -1422,11 +1446,11 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     logger.info("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
 
-    def _solr_update(requests, debug=False, commitWithin=60000, commit=False):
+    def _solr_update(requests, debug=False, commitWithin=60000, commit=False, bulk_update=bulk_update):
         if commit_way_later:
             return solr_update(requests, debug, commit_way_later_dur, commit=commit)
         else:
-            return solr_update(requests, debug, commitWithin, commit=commit)
+            return solr_update(requests, debug, commitWithin, commit=commit, bulk_update=bulk_update)
 
     global data_provider
     global _ia_db
@@ -1534,7 +1558,7 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     for k in akeys:
         logger.info("updating author %s", k)
         try:
-            requests += update_author(k)
+            requests += update_author(k, bulk_update=bulk_update)
         except:
             logger.error("Failed to update author %s", k, exc_info=True)
 
