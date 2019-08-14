@@ -20,6 +20,10 @@
       "maxSize": "16.7KB"
     },
     {
+      "path": "static/build/graphs.js",
+      "maxSize": "17.2KB"
+    },
+    {
       "path": "static/build/markdown-editor.js",
       "maxSize": "10.5KB"
     },
@@ -29,7 +33,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "151.5KB"
+      "maxSize": "144.3KB"
     },
     {
       "path": "static/build/page-admin.css",

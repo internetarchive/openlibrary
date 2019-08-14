@@ -10,12 +10,8 @@ import '../../../../vendor/js/jquery-form/jquery.form.js';
 import '../../../../vendor/js/jquery-validate/jquery.validate.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// jquery-flot 0.7.0
-import '../../../../vendor/js/flot/jquery.flot.js';
-import '../../../../vendor/js/flot/jquery.flot.selection.js';
-import '../../../../vendor/js/flot/jquery.flot.crosshair.js';
-import '../../../../vendor/js/flot/jquery.flot.stack.js';
-import '../../../../vendor/js/flot/jquery.flot.pie.js';
+// unversioned.
+import '../../../../vendor/js/wmd/jquery.wmd.js'
 import { validateEmail, validatePassword } from './account.js';
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
@@ -26,7 +22,6 @@ import { ungettext, ugettext,  sprintf } from './i18n';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
-import { plot_minigraph, plot_tooltip_graph } from './plot';
 import initAnalytics from './ol.analytics';
 import init from './ol.js';
 import * as Browser from './Browser';
@@ -50,8 +45,6 @@ window.enumerate = enumerate;
 window.foreach = foreach;
 window.htmlquote = htmlquote;
 window.len = len;
-window.plot_tooltip_graph = plot_tooltip_graph;
-window.plot_minigraph = plot_minigraph;
 window.range = range;
 window.slice = slice;
 window.sprintf = sprintf;
@@ -104,5 +97,9 @@ jQuery(function () {
     if ($carouselElements.length) {
         import(/* webpackChunkName: "carousel" */ './carousel')
             .then((module) => module.init($carouselElements));
+    }
+    if ($('script[type="text/json+graph"]').length > 0) {
+        import(/* webpackChunkName: "graphs" */ './graphs')
+            .then((module) => module.init());
     }
 });
