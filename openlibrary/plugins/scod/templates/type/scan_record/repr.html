@@ -1,8 +1,0 @@
-$def with (p)
-
-<a href="$p.key">$p.edition.title</a> (<a href="$p.edition.key">edition</a>)
-
-$if p.scan_status == 'SCAN_IN_PROGRESS':
-    - <span>scan in progress</span>
-$elif p.scan_status == 'SCAN_COMPLETE':
-    - <span>scan complete</span>
