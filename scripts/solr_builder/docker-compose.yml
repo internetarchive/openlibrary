@@ -3,6 +3,7 @@ version: '3.1'
 services:
   db:
     image: postgres
+    shm_size: "512M"
     restart: on-failure
     environment:
       POSTGRES_PASSWORD: example
@@ -41,7 +42,8 @@ services:
       - SOLR_PORT=8080
       # This is optimized for bulk loading, but should be shortened for production
       # and we should set autoSoftCommit to a value that makes sense for our query usage (5-15 sec?)
-      - SOLR_OPTS=-Dsolr.autoCommit.maxTime=3600000
+      - SOLR_OPTS="-Dsolr.autoCommit.maxTime=3600000 -Dsolr.autoSoftCommit.maxTime=3600000"
+      - SOLR_HEAP=1024m
     ports:
       - 8984:8080
     volumes:
