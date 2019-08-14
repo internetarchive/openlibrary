@@ -24,4 +24,3 @@ Pygments==1.4
 python-amazon-simple-product-api==2.2.11
 isbnlib==3.9.3
 requests==2.20.0
-requests-cache==0.5.0

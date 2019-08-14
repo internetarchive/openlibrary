@@ -4,7 +4,6 @@ import ConfigParser
 import logging
 import re
 import requests
-import requests_cache
 import simplejson as json
 import time
 import uuid
@@ -19,7 +18,6 @@ OCAID_PATTERN = re.compile('^[a-zA-Z0-9_-]+$')
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
-requests_cache.install_cache('ol-solr-ia')
 session = requests.Session()
 
 def config_section_to_dict(config_file, section):
