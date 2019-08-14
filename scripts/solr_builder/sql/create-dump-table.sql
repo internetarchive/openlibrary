@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS entity CASCADE; -- ~5 min if table is populated
+DROP TYPE IF EXISTS type_enum CASCADE;
+
 CREATE TYPE type_enum as ENUM (
  '/type/edition',
  '/type/work',
