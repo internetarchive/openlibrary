@@ -20,7 +20,9 @@ docker-compose up -d --no-deps db
 # optional; GUI for the database at port 8087
 docker-compose up -d --no-deps adminer
 
-# create the "test" table to store the dump
+# create the "entity" table to store the dump
+docker-compose exec -u postgres db psql -d postgres -c "DROP TABLE entity CASCADE;" # ~ 5 min
+docker-compose exec -u postgres db psql -d postgres -c "DROP TYPE type_enum CASCADE;"
 docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 ```
 
@@ -31,6 +33,7 @@ docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
 time wget --trust-server-names https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.5GB, 3min (7 Jun 2019, OJF); 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
 ```
 2019-07 18 min on 200 Mb/s US East residential connection
+2019-07 30 min on 200 Mb/s US East residential connection
 
 The native location that the OpenLibrary URL points to is of the form:
 https://archive.org/download/ol_dump_2019-07-31/ol_dump_2019-07-31.txt.gz
@@ -39,7 +42,7 @@ https://archive.org/download/ol_dump_2019-07-31/ol_dump_2019-07-31.txt.gz
 Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
 
 ```bash
-# Start 6 parallel import jobs
+# Start import job(s)
 time ./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6  # ~25min (Feb 2019, OJF)
 ```
 
@@ -49,9 +52,17 @@ This can be reduced to as low as 16 minutes using 3 shards and no staggered star
 minutes and there appears to be a fencepost issue with the same record getting imported twice in the sharded import, so
 I'm just using the single stream import as simpler (plus it can be piped together with the network fetch).
 
-time ./psql-import-in-chunks.sh ol_dump_2019-06-30.txt.gz 1
+time ./psql-import-in-chunks.sh ol_dump_2019-06-30.txt.gz 1 # 20 minutes
 
-which takes just under 20 minutes on a modern laptop.
+time ./create-db.sh # 26.5 min to download and copy into table
+COPY 53530379
+
+ERROR:  invalid input syntax for type json
+DETAIL:  Token "created" is invalid.
+CONTEXT:  JSON data, line 1: ...s-Design fundamentals, Second edition\", "created...
+COPY entity, line 40111410, column content: "{"title": "Electric and hybrid vehicles-Design fundamentals, Second edition\", "created": {"type": "..."
+  NUL byte at end of string, not getting correctly stripped by SED (quoting/escaping?)
+
 
 Once that's all done, we create indices in postgres:
 
@@ -60,8 +71,8 @@ Once that's all done, we create indices in postgres:
 time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
 ```
 2019-07 - 22 min. on modern laptop (44 min with new schema?)
+2019-08 - 
 
-TODO - Add VACUUM ANALYZE entity after all data is loaded?
 
 ## Step 2: Populate solr
 
@@ -77,6 +88,8 @@ or launch standard pre-built solr:8 containter
     docker-compose up --no-deps -d solr8
 #then create the openlibrary core (FIRST TIME ONLY)
     docker-compose exec solr8 solr create -c openlibrary -d /opt/solr-8.1.1/server/solr/configsets/olconfig -n openlibrary
+to delete core, if needed:
+    docker-compose exec solr8 solr delete -c openlibrary
 
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment
@@ -87,14 +100,12 @@ docker-compose run ol ./build-cython.sh
 # Some convenience aliases/functions
 source aliases.sh
 
-# Load a helper function into postgres
-psql -f sql/get-partition-markers.sql
-```
 
 ### 2b: Insert works & orphaned editions
 
 2019-06-30 dump - 18257278 (18.2M) works, 3687292 (3.7M) orphans
- 
+2019-07-31 dump - 18450464 (18.4M) works, 3128386 (3.1M) orphans == 21578850 total - 21571191 loaded == 7659 missing (0.035%)
+
 ```bash
 # Import over 5 cores
 ./index-works.sh
@@ -104,7 +115,10 @@ Works took 27 hrs with 5 cores and orphans also running simultaneously. Note onl
 
 And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
 
-Solr 8.1 - 24-26 hrs (with deletes enabled) for 5 shards in parallel with orphans - 18.2M works, MacBook Pro, 2019-06-30 dump
+Solr 8.1 - 24-26 hrs (with deletes enabled) for 5 shards in parallel with orphans - 18257278 (18.2M) works, MacBook Pro, 2019-06-30 dump
+
+2019-07-31 - Orphans 4.8hrs (deletes off, batch = 1000), Works ETA 1428 hrs (!) with batch size of 1000 due to pathological SQL query plan
+  Works 9.3-10.3hrs across 5 shards (deletes off, batch = 5000) for 18450464 (18.4M) works
 
 ```bash
 ./index-orphans.sh
@@ -112,8 +126,8 @@ Solr 8.1 - 24-26 hrs (with deletes enabled) for 5 shards in parallel with orphan
 
 Orphans took 8 hrs over 1 core in parallel with works (8 hrs, 3711877 docs, 10 June 2019, OJF; 11 hrs, 3735145 docs, 13 May 2019, OJF).
 
-Solr 8.1 orphans - ~7.5 hrs  in parallel with 5 shards of works (MacBook Pro, 3.7m orphans, 2019-06-30 dump)
- (Time above is with deletes disabled. It was ~19hrs with them enabled. They aren't needed for bulk loads, but they need
+Solr 8.1 orphans - 4.8 hrs in parallel with 5 shards of works (MacBook Pro, 3128386 (3.1M) orphans, 2019-07-31 dump)
+ (Time above is with deletes disabled. It was 3x-4x with them enabled. They aren't needed for bulk loads, but they need
   to be fixed / optimized for normal production updates)
 
 To check progress, run (clearing the progress folder as necessary):
@@ -129,6 +143,8 @@ And commit:
 time curl localhost:8984/solr/openlibrary/update?commit=true # ~1s
 ```
 
+Verify counts: Works + Orphans = 21944570 - 21940724 = 3846 works or orphans missing ie 0.02% (2019-06-30 dump)
+
 ### 2c: Insert authors
 
 Note: This must be done AFTER works and orphans; authors query solr to determine how many works are by a given author.
@@ -138,15 +154,23 @@ Note: This must be done AFTER works and orphans; authors query solr to determine
 ./index-authors.sh
 ```
 
-Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF). After this is done, we have to call `commit` on solr:
+Authors took 12 hrs over 6 cores (6980217 authors, 15 May 2019, OJF).
 
-Solr 8.1 (w/o ICU folding) - 11 hrs across 6 shards - (30 July MacBook Pro, 7026684 authors, 2019-06-30 dump)
- with ICU folding & w/o deletes, after multi top work fix -  ~18 hrs  - uptime load avg of 8.5 for 6 cores allocated, so perhaps reduce jobs?
- missed 779 authors due to Solr HTTP 500 errors and 1 due to missing title in top work (7025808 authors loaded)
+Solr 8.1 (with ICU folding & w/o deletes) - 4.5 hrs across 6 shards - (Aug 2019 MacBook Pro, 7077262 authors, 2019-07-31 dump)
+ 7077096 loaded, missing 166 authors (0.002%) which require more investigation - no errors logged
 
+After this is done, we have to call `commit` on solr:
 ```bash
 time curl localhost:8984/solr/update?commit=true # ~10s
 ```
+and verify the number of records loaded:
+http://localhost:8984/solr/openlibrary/select?facet.field=type&facet=on&q=*%3A*&rows=0
+  "facet_counts":{
+    "facet_fields":{
+      "type":[
+        "work",21571191,
+        "author",7077096]},
+
 
 ### 2d: Insert subjects
 
