@@ -24,8 +24,12 @@
       "maxSize": "12.0KB"
     },
     {
+      "path": "static/build/graphs.js",
+      "maxSize": "17.2KB"
+    },
+    {
       "path": "static/build/all.js",
-      "maxSize": "159.2KB"
+      "maxSize": "145.8KB"
     },
     {
       "path": "static/build/page-admin.css",
