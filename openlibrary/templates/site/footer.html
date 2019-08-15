@@ -10,7 +10,7 @@ $if bodyid == 'user' or 'admin':
     $:render_template("lib/nav_foot", page)
 
 </body>
-    <script src="$static_url('build/vendor-v2.js')" type="text/javascript"></script>
+    <script src="$static_url('build/all.js')" type="text/javascript"></script>
     <!-- Must be loaded after jquery -->
     <script src="//archive.org/includes/analytics.js?v=0c15bbe" type="text/javascript"></script>
     $:render_template('lib/analytics', page)
@@ -21,7 +21,6 @@ $if bodyid == 'user' or 'admin':
         archive_analytics.send_pageview({});
     });
     </script>
-    <script src="$static_url('build/all.js')" type="text/javascript"></script>
 
     $if query_param("_firebug") == "true":
         <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
