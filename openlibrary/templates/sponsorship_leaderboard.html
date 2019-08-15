@@ -1,3 +1,5 @@
+$def with (random_books=[], random_users= [])
+
 <h1>Top Book Sponsors</h1>
 <hr>    
 <h1>This Month's Top Sponsors</h1>
@@ -8,20 +10,20 @@
             <th>
             <img src="/static/images/pantheon.png">
             <p>
-                @Username
+                $str(random_users['username'])
                 <br>
-                15 Books
+                $(random_books[i]) Books
             </p>
             </th>
         </tr>
         <tr>
-            $for i in range(5):
+            $for i in range(5,10):
             <th>
             <img src="/static/images/pantheon.png">
             <p>
-                @Username
+                $str(random_users['username'])
                 <br>
-                15 Books
+                $(random_books[i]) Books
             </p>
             </th>
         </tr>
@@ -32,24 +34,24 @@
 <div>
     <table style="width:100%;margin-left:20px">
         <tr>
-            $for i in range(5):
+            $for i in range(10,15):
             <th>
             <img src="/static/images/pantheon.png">
             <p>
-                @Username
+                $str(random_users['username'])
                 <br>
-                15 Books
+                $(random_books[i]) Books
             </p>
             </th>
         </tr>
         <tr>
-            $for i in range(5):
+            $for i in range(15,20):
             <th>
             <img src="/static/images/pantheon.png">
             <p>
-                @Username
+                $str(random_users['username'])
                 <br>
-                15 Books
+                $(random_books[i]) Books
             </p>
             </th>
         </tr>

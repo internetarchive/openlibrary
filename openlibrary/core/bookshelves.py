@@ -228,6 +228,17 @@ class Bookshelves(object):
         return list(result)
 
     @classmethod
+    def get_n_users(cls, n):
+        """Returns the total number of unique users who have logged a
+        book. `since` may be provided to only return the number of users after
+        a certain datetime.date.
+        """
+        oldb = db.get_db()
+        query = "select DISTINCT username from bookshelves_books limit $n"
+        results = oldb.query(query, vars={'n': n})
+        return results[0] if results else None
+
+    @classmethod
     def search_my_readinglog(cls, q, bookshelf_id):
         oldb = db.get_db()
         pass
