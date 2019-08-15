@@ -12,12 +12,11 @@ from infogami import config
 
 logger = logging.getLogger("openlibrary.home")
 
-class sponsorshipleaderboard(delegate.page):
+class sponsorship_leaderboard(delegate.page):
     path = "/sponsorship/leaderboard"
 
     def GET(self):
-        i = web.input(book='OL..M')
-        page = render_template("sponsorshipleaderboard", book=i.book)
+        page = render_template("sponsorship_leaderboard")
         page.v2 = True
         return page
 

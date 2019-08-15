@@ -821,10 +821,10 @@ def setup_context_defaults():
 def setup():
     from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
                                                  stats, support, events, design, status,
-                                                 merge_editions, authors, sponsorshipleaderboard)
+                                                 merge_editions, authors, sponsorship_leaderboard)
 
     home.setup()
-    sponsorshipleaderboard.setup()
+    sponsorship_leaderboard.setup()
     design.setup()
     inlibrary.setup()
     borrow_home.setup()
