@@ -172,7 +172,7 @@ export default function init(){
             searchMode : searchModeDefault);
         $('.instantsearch-mode').val(localStorage.getItem('mode'));
         $(`input[name=mode][value=${localStorage.getItem('mode')}]`)
-            .attr('checked', 'true');
+            .prop('checked', true);
         setMode('.olform');
         setMode('.search-bar-input');
     }
