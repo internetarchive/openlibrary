@@ -16,12 +16,8 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/vendor-v2.js",
-      "maxSize": "164KB"
-    },
-    {
       "path": "static/build/all.js",
-      "maxSize": "35.8KB"
+      "maxSize": "191.3KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -66,7 +62,9 @@
     "detect-libc": "^1.0.3",
     "eslint": "^5.16.0",
     "jest": "^24.5.0",
-    "jquery": "1.11.0",
+    "jquery": "^1.11.0",
+    "jquery-migrate": "1.2.1",
+    "jquery-ui": "1.12.1",
     "less": "^3.8.1",
     "less-loader": "4.1.0",
     "node-gyp": "^3.8.0",
@@ -76,8 +74,8 @@
     "stylelint": "^9.5.0",
     "stylelint-declaration-use-variable": "^1.7.0",
     "svgo": "1.1.1",
-    "webpack": "4.27.1",
-    "webpack-cli": "3.1.2"
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
   },
   "jest": {
     "collectCoverageFrom": [

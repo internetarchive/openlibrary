@@ -31,7 +31,6 @@ css:
 
 js:
 	mkdir -p $(BUILD)
-	bash static/js/vendor.jsh > $(BUILD)/vendor-v2.js
 	npm run build-assets:webpack
 
 i18n:
