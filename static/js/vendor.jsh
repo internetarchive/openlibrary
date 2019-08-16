@@ -29,31 +29,9 @@ xcat $VENDORJS/jquery-autocomplete/jquery.autocomplete-modified.js | $JSMIN
 
 xcat $VENDORJS/wmd/jquery.wmd.min.js 
 
-xcat $VENDORJS/flot/excanvas.min.js
 xcat $VENDORJS/flot/jquery.flot.min.js
 xcat $VENDORJS/flot/jquery.flot.selection.min.js
 xcat $VENDORJS/flot/jquery.flot.crosshair.min.js
 xcat $VENDORJS/flot/jquery.flot.stack.min.js
 xcat $VENDORJS/flot/jquery.flot.pie.min.js
 
-# for backward compatability
-xcat <<END
-function DragDrop() {}
-function Resizable() {}
-function Selectable() {}
-function Sortable() {}
-function Accordtion() {}
-function Dialog() {}
-function Slider() {}
-function Tabs() {}
-function Datepicker() {}
-function Progressbar() {}
-
-function boxPop() {}
-function bigCharts() {}
-function smallCharts() {}
-function passwordMask() {}
-function passwordsMask() {}
-function feedLoader() {}
-function validateForms(){}
-END
