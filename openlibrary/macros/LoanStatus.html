@@ -86,7 +86,8 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     $ user_id = user.key.split("/")[-1]
     $ donate_url = "https://archive.org/donate?context=ol&userid=%s&campaign=pilot&type=book-sponsorship&isbn=%s" % (user_id, isbn)
     <a href="$donate_url"
-       class="cta-btn cta-btn--sponsor">Sponsor eBook</a>
+       class="cta-btn cta-btn--sponsor"
+       data-ol-link-track="book-sponsorship">Sponsor eBook</a>
     <p>
       We don’t have this book yet. You can add it to our Lending
       Library with a \$50 tax deductible donation.
