@@ -17,7 +17,7 @@
   "bundlesize": [
     {
       "path": "static/build/all.js",
-      "maxSize": "191.3KB"
+      "maxSize": "185.2KB"
     },
     {
       "path": "static/build/page-admin.css",
