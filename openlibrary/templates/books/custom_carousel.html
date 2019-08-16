@@ -62,24 +62,22 @@ $if test or (books and len(books) >= min_books):
         </div>
       <div class="carousel-container carousel-container-decorated">
         $ attrs = ''
-        <div class="carousel carousel-$key">
+        $if load_more:
+          $ load_more_config = {
+          $  "url": load_more["url"].replace("&amp;", "&"),
+          $  "pageMode": load_more.get("mode", "offset"),
+          $  "limit": load_more.get("limit", 18)
+          $ }
+        $else:
+          $ load_more_config = {}
+        $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
+        <div class="carousel carousel-$key carousel--progressively-enhanced"
+          data-config="$json_encode(config)">
           $ cover_host = '//covers.openlibrary.org'
           $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
 
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5)
         </div>
-        <script type="text/javascript">
-              window.q.push(function() {
-                Carousel.add(
-                  '.carousel-$key', // dom element to bind slick
-                  6, 5, 4, 3, 2, 1, { // num books per responsive breakpoint
-                  $if load_more:
-                     url: '$:(load_more["url"].replace("&amp;", "&"))',
-                     pageMode: '$(load_more.get("mode", "offset"))',
-                     limit: $(load_more.get("limit", 18))
-                  });
-              });
-        </script>
       </div>
     </div>

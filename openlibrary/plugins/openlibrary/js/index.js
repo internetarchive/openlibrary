@@ -1,7 +1,5 @@
 import 'jquery';
 import 'jquery-migrate';
-// Slick#1.6.0 is not on npm
-import '../../../../vendor/js/slick/slick-1.6.0.min.js';
 // npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
 import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 // For dialog boxes (e.g. add to list)
@@ -80,7 +78,6 @@ window.ungettext = ungettext;
 window.uggettext = ugettext;
 
 window.Browser = Browser;
-window.Carousel = Carousel;
 window.Subject = Subject;
 window.Template = Template;
 
@@ -109,4 +106,13 @@ jQuery(function () {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
     }
+    // Enable any carousels in the page:
+    // Live NodeList is cast to static array to avoid infinite loops
+    Array.prototype.slice.call(
+        document.getElementsByClassName('carousel--progressively-enhanced')
+    ).forEach(function (carousel) {
+        Carousel.add.apply(Carousel,
+            JSON.parse(carousel.dataset.config)
+        );
+    });
 });

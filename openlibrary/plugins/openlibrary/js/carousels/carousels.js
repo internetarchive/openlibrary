@@ -1,3 +1,7 @@
+// Slick#1.6.0 is not on npm
+import '../../../../../vendor/js/slick/slick-1.6.0.min.js';
+import '../../../../../static/css/components/carousel--js.less';
+
 // used in templates/covers/add.html
 const Carousel = {
     add: function(selector, a, b, c, d, e, f, loadMore) {
