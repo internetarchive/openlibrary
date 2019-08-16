@@ -6,8 +6,6 @@ import '../../../../vendor/js/slick/slick-1.6.0.min.js';
 import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
-// jquery-sparkline @ 1.4.3
-import '../../../../vendor/js/jquery-sparkline/jquery.sparkline.js';
 // jquery-show-password#1.0 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-showpassword/jquery.showpassword.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
@@ -34,23 +32,13 @@ import bookReaderInit from './bookreader_direct';
 import Carousel from './carousels';
 import { ungettext, ugettext,  sprintf } from './i18n';
 // Load jQuery plugins
-import './jquery.columnize';
 import './jquery.dataTables';
-import './jquery.hoverIntent';
-import './jquery.jTruncate';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
-import fadeToggle from './jquery.fadeToggle';
 import jQueryRepeat from './jquery.repeat';
 import './jquery.scrollTo';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
-// Note this import will also load various jQuery plugins.
-// (jQuery.ScrollTo, jquery.hoverIntent, jquery.dataTables, dataTableExt,
-// highlight, removeHighlight, jTruncate, columnize)
 import { plot_minigraph, plot_tooltip_graph } from './plot';
-import removeHighlight from './removeHighlight';
-import highlight from './highlight';
 import initAnalytics from './ol.analytics';
-// Also pulls in jQuery.fn.exists
 import init, { closePop, bookCovers, isScrolledIntoView } from './ol.js';
 import * as Browser from './Browser';
 import { commify } from './python';
@@ -98,11 +86,6 @@ window.Template = Template;
 
 // Extend existing prototypes
 String.prototype.join = join;
-
-jQuery.fn.exists = function(){return jQuery(this).length>0;}
-jQuery.fn.removeHighlight = removeHighlight;
-jQuery.fn.highlight = highlight;
-jQuery.fn.fadeToggle = fadeToggle;
 
 window.jQuery = jQuery;
 window.$ = jQuery;
