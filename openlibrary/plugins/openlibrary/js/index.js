@@ -31,8 +31,6 @@ import { getAvailabilityV2,
 import bookReaderInit from './bookreader_direct';
 import Carousel from './carousels';
 import { ungettext, ugettext,  sprintf } from './i18n';
-// Load jQuery plugins
-import './jquery.dataTables';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
 import './jquery.scrollTo';
@@ -48,6 +46,8 @@ import Template from './template.js';
 import { closePopup, initShowPasswords, truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
+// polyfill Promise support for IE11
+import Promise from 'promise-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -89,6 +89,9 @@ String.prototype.join = join;
 
 window.jQuery = jQuery;
 window.$ = jQuery;
+
+window.Promise = Promise;
+
 // Initialise some things
 jQuery(function () {
     initValidate($);
@@ -101,4 +104,9 @@ jQuery(function () {
     initAnalytics($);
     init($);
     initShowPasswords($);
+    // conditionally load functionality based on what's in the page
+    if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
+        import(/* webpackChunkName: "editions-table" */ './editions-table')
+            .then(module => module.initEditionsTable());
+    }
 });
