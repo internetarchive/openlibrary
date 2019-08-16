@@ -78,7 +78,8 @@ window.q.push(function(){
                         </div>
                         <div class="carousel-section">
                             <div id="covers" class="carousel-container carousel-container-decorated carousel--minimal">
-                                <div id="popcovers" class="carousel">
+                                <div id="popcovers" class="carousel carousel--progressively-enhanced"
+                                    data-config="$json_encode(['#popcovers'])">
                                 $for cover in doc.get_edition_covers():
                                     <div class="book carousel__item" data-id="$cover.id">
                                         <div class="book-cover">
@@ -92,7 +93,6 @@ window.q.push(function(){
                         <input type="hidden" id="coverid" name="coverid" value=""/>
                         <script type="text/javascript">
                         window.q.push( function () {
-                            Carousel.add('#popcovers');
                             // Clicking a cover should set the form value to the data-id of that cover
                             \$("#popcovers .book").click(function() {
                                 \$(this).toggleClass("selected").siblings().removeClass("selected");

@@ -1,5 +1,18 @@
 // used in templates/covers/add.html
 const Carousel = {
+    /**
+     * @param {String} selector (CSS) referring to the node to be enhanced
+     * @param {Number} [a] number of books to show (default)
+     * @param {Number} [b] number of books to show @1200px or more
+     * @param {Number} [c] number of books to show @1024px or more
+     * @param {Number} [d] number of books to show @600px or more
+     * @param {Number} [e] number of books to show @480px or more
+     * @param {Number} [f] number of books to show @360px or more
+     * @param {Object} [loadMore] configuration
+     * @param {String} loadMore.url to use to load more items
+     * @param {Number} loadMore.limit of new items to receive
+     * @param {String} loadMore.pageMode of page e.g. `offset`
+     */
     add: function(selector, a, b, c, d, e, f, loadMore) {
         var responsive_settings, availabilityStatuses, addWork, url, default_limit;
 
@@ -155,4 +168,5 @@ const Carousel = {
         }
     }
 };
+
 export default Carousel;

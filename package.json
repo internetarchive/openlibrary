@@ -24,8 +24,12 @@
       "maxSize": "10.5KB"
     },
     {
+      "path": "static/build/carousel.js",
+      "maxSize": "12.1KB"
+    },
+    {
       "path": "static/build/all.js",
-      "maxSize": "173.0KB"
+      "maxSize": "151.5KB"
     },
     {
       "path": "static/build/page-admin.css",
