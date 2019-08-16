@@ -1,7 +1,5 @@
 import 'jquery';
 import 'jquery-migrate';
-// Slick#1.6.0 is not on npm
-import '../../../../vendor/js/slick/slick-1.6.0.min.js';
 // npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
 import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 // For dialog boxes (e.g. add to list)
@@ -27,7 +25,6 @@ import automaticInit from './automatic';
 import { getAvailabilityV2,
     updateBookAvailability, updateWorkAvailability } from './availability';
 import bookReaderInit from './bookreader_direct';
-import Carousel from './carousels';
 import { ungettext, ugettext,  sprintf } from './i18n';
 import addFadeInFunctionsTojQuery from './jquery.customFade';
 import jQueryRepeat from './jquery.repeat';
@@ -78,7 +75,6 @@ window.ungettext = ungettext;
 window.uggettext = ugettext;
 
 window.Browser = Browser;
-window.Carousel = Carousel;
 window.Subject = Subject;
 window.Template = Template;
 
@@ -93,6 +89,8 @@ window.Promise = Promise;
 // Initialise some things
 jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
+    // Live NodeList is cast to static array to avoid infinite loops
+    const $carouselElements = $('.carousel--progressively-enhanced');
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
@@ -112,5 +110,10 @@ jQuery(function () {
     if (document.getElementsByClassName('editions-table--progressively-enhanced').length) {
         import(/* webpackChunkName: "editions-table" */ './editions-table')
             .then(module => module.initEditionsTable());
+    }
+    // Enable any carousels in the page
+    if ($carouselElements.length) {
+        import(/* webpackChunkName: "carousel" */ './carousel')
+            .then((module) => module.init($carouselElements));
     }
 });
