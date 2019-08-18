@@ -25,8 +25,8 @@ import removeHighlight from './removeHighlight';
 import highlight from './highlight';
 import initAnalytics from './ol.analytics';
 // Also pulls in jQuery.fn.exists
-import init, { closePop, bookCovers,
-    isScrolledIntoView, Browser } from './ol.js';
+import init, { closePop, bookCovers, isScrolledIntoView } from './ol.js';
+import * as Browser from './Browser';
 import { commify } from './python';
 import { Subject, urlencode, renderTag, slice } from './subjects';
 import Template from './template.js';

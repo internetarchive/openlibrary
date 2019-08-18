@@ -1,50 +1,5 @@
 import { debounce } from './nonjquery_utils.js';
-
-export var Browser = {
-    getJsonFromUrl: function () {
-        var query = location.search.substr(1);
-        var result = {};
-        query.split('&').forEach(function(part) {
-            var item = part.split('=');
-            result[item[0]] = decodeURIComponent(item[1]);
-        });
-        return result;
-    },
-
-    change_url: function(query) {
-        var getUrl = window.location;
-        var baseUrl = `${getUrl.protocol}//${getUrl.host
-        }/${getUrl.pathname.split('/')[1]}`;
-        window.history.pushState({
-            'html': document.html,
-            'pageTitle': `${document.title} ${query}`,
-        }, '', `${baseUrl}?id=${query}`);
-    },
-
-    removeURLParameter: function(url, parameter) {
-        var urlparts = url.split('?');
-        var prefix = urlparts[0];
-        var query, paramPrefix, params, i;
-        if (urlparts.length >= 2) {
-            query = urlparts[1];
-            paramPrefix = `${encodeURIComponent(parameter)}=`;
-            params = query.split(/[&;]/g);
-
-            //reverse iteration as may be destructive
-            for (i = params.length; i-- > 0;) {
-                //idiom for string.startsWith
-                if (params[i].lastIndexOf(paramPrefix, 0) !== -1) {
-                    params.splice(i, 1);
-                }
-            }
-
-            url = prefix + (params.length > 0 ? `?${params.join('&')}` : '');
-            return url;
-        } else {
-            return url;
-        }
-    }
-}
+import * as Browser from './Browser';
 
 export function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
