@@ -19,7 +19,18 @@ install:
   - pip install flake8
   - make lint
   - pip install -r requirements_test.txt
-  # if Travis is running Python 3, then create a legacy Python for npm/node
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then pyenv install 2.7.14; fi
+  # if Travis is running Python 3, then
+  #   refresh the git submodule ./vendor/acs4_py
+  #   refresh the git submodule ./vendor/infogami
+  #   git commit those changes into this pull request
+  #   TODO: flake8 ./vendor --select=E9,F63,F7,F82 to unsure new versions pass
+  #   create a legacy Python for npm/node until nodejs/node#25789 is resolved
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then
+      pushd vendor/acs4_py  && git pull origin master && popd;
+      pushd vendor/infogami && git pull origin master && popd;
+      git status;
+      git commit -am"Update git submodules in .vendor";
+      pyenv install 2.7.14;
+    fi
   - npm install
 script: make test
