@@ -1,11 +1,13 @@
 import { addModeInputsToForm, mode as searchMode } from './SearchUtils';
 import $ from 'jquery';
 
+/** @typedef {import('./SearchUtils').SearchModeButtons} SearchModeButtons */
+
 /** Manages some (PROBABLY VERY FEW) of the interactions on the search page */
 export class SearchPage {
     /**
      * @param {HTMLFormElement|JQuery} form the .olform search form
-     * @param {import('./SearchUtils').SearchModeButtons} searchModeButtons
+     * @param {SearchModeButtons} searchModeButtons
      */
     constructor(form, searchModeButtons) {
         this.$form = $(form);
