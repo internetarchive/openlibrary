@@ -18,6 +18,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.sponsorships import isbn_qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     search_amazon, get_betterworldbooks_metadata)
@@ -249,7 +250,6 @@ class author_works(delegate.page):
             "entries": works
         }
 
-
 class amazon_search_api(delegate.page):
     """Librarian + admin only endpoint to check for books
     avaialable on Amazon via the Product Advertising API
@@ -298,6 +298,12 @@ class join_sponsorship_waitlist(delegate.page):
 
         raise web.seeother('/sponsorship')
 
+class sponsorship_eligibility_check(delegate.page):
+    path = r'/sponsorship/eligibility/(.*)'
+
+    @jsonapi
+    def GET(self, isbn):
+        return simplejson.dumps(isbn_qualifies_for_sponsorship(isbn))
 
 class price_api(delegate.page):
     path = r'/prices'

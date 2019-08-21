@@ -47,6 +47,7 @@ config_ia_xauth_api_url = None
 config_ia_availability_api_v1_url = None
 config_ia_availability_api_v2_url = None
 config_ia_access_secret = None
+config_ia_domain = None
 config_ia_ol_shared_key = None
 config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
@@ -74,10 +75,11 @@ def setup(config):
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
         config_ia_users_loan_history, config_ia_loan_api_developer_key, \
-        config_ia_civicrm_api
+        config_ia_civicrm_api, config_ia_domain
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
+    config_ia_domain = config.get('ia_base_url', 'https://archive.org')
     config_ia_loan_api_url = config.get('ia_loan_api_url')
     config_ia_availability_api_v1_url = config.get('ia_availability_api_v1_url')
     config_ia_availability_api_v2_url = config.get('ia_availability_api_v2_url')
