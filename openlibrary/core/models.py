@@ -18,6 +18,8 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -368,6 +370,30 @@ class Edition(Thing):
 
             if filename:
                 return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
+
+    @classmethod
+    def get_by_isbn(cls, isbn):
+        """Attempts to fetch an edition by isbn, or if no edition is found,
+        attempts to import from amazon
+        """
+        isbn13 = to_isbn_13(isbn)
+        isbn10 = isbn_13_to_isbn_10(isbn)
+
+        # Attempt to fetch book from OL
+        for isbn in [isbn13, isbn10]:
+            if isbn:
+                matches = web.ctx.site.things({
+                    "type": "/type/edition", 'isbn_%s' % len(isbn): isbn
+                })
+                if matches:
+                    return web.ctx.site.get(matches[0])
+
+        # Attempt to create from amazon, then fetch from OL
+        key = next(
+            create_edition_from_amazon_metadata(isbn)
+            for isbn in [isbn13, isbn10])
+        if key:
+            return web.ctx.site.get(key)
 
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
