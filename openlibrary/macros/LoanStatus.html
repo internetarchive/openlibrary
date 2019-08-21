@@ -80,17 +80,17 @@ $elif (availability_status == 'borrow_unavailable'):
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
-  $if user and (input(sponsorship=None) or user.is_sponsor()) and qualifies_for_sponsorship(page):
+  $ sponsorship = qualifies_for_sponsorship(page)
+  $if (input(sponsorship=None) or user and user.is_sponsor()) and sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
-    $ user_id = user.key.split("/")[-1]
-    $ donate_url = "https://archive.org/donate?context=ol&userid=%s&campaign=pilot&type=book-sponsorship&isbn=%s" % (user_id, isbn)
-    <a href="$donate_url"
+    $ user_id = user.key.split("/")[-1] if user else ''
+    <a href="$(sponsorship['url'])&userid=$(user_id)"
        class="cta-btn cta-btn--sponsor"
        data-ol-link-track="book-sponsorship">Sponsor eBook</a>
     <p>
       We don’t have this book yet. You can add it to our Lending
       Library with a \$50 tax deductible donation.
-      <a href="$donate_url">Learn More</a>
+      <a href="$$donate_url">Learn More</a>
     </p>
   $else:
     <form>
