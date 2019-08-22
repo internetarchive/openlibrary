@@ -1,5 +1,7 @@
 /* eslint-env node, es6 */
+// https://webpack.js.org/configuration
 const
+    webpack = require('webpack'),
     path = require('path'),
     prod = process.env.NODE_ENV === 'production',
     // The output directory for all build artifacts. Only absolute paths are accepted by
@@ -29,10 +31,15 @@ module.exports = {
         'all': './openlibrary/plugins/openlibrary/js/index.js'
     },
 
-    externals: [ 'jquery' ],
     resolve: {
         alias: {}
     },
+    plugins: [
+        new webpack.ProvidePlugin({
+            $: 'jquery',
+            jQuery: 'jquery'
+        })
+    ],
     module: {
         rules: [ {
             test: /\.js$/,
@@ -78,6 +85,8 @@ module.exports = {
     devtool: 'source-map',
 
     performance: {
+        maxAssetSize: 703 * 1024,
+        maxEntrypointSize: 703 * 1024,
         // Size violations for prod builds fail; development builds are unchecked.
         hints: prod ? 'error' : false
     }

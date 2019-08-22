@@ -1,10 +1,3 @@
-// source: http://snipplr.com/view/8916/jquery-toggletext/
-$.fn.toggleText = function(a, b) {
-    return this.each(function() {
-        $(this).text($(this).text() == a ? b : a);
-    });
-};
-
 // http://jqueryminute.com/set-focus-to-the-next-input-field-with-jquery/
 $.fn.focusNextInputField = function() {
     return this.each(function() {

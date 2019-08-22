@@ -157,7 +157,7 @@ def system(cmd):
 
 def log(*args):
     msg = " ".join(map(str, args))
-    print time.asctime(), msg
+    print("%s %s" % (time.asctime(), msg))
 
 def main(dumpfile):
     system("rm -rf sitemaps sitemaps_data.txt*; mkdir sitemaps")

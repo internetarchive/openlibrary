@@ -90,8 +90,8 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
 <div id="contentBody">
 
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
-       <div class="message hidden">
-            <div id="preMerge" class="hidden">
+       <div class="message" style="display: none;">
+            <div id="preMerge" style="display: none;">
                 <p class="larger collapse"><strong>Merging Authors...</strong></p>
                 <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
                 <p class="smaller lightgreen collapse">Duplicates</p>
@@ -105,13 +105,13 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                     </ul>
                 </p>
             </div>
-            <div id="postMerge" class="hidden">
+            <div id="postMerge" style="display: none;">
                 <p class="right small"><b><a href="$page.key">Refresh the page</a>?</b></p>
                 <p class="larger collapse"><strong>Success!</strong></p>
                 <p class="small collapse">OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i></p>
             </div>
 
-            <div id="errorMerge" class="hidden">
+            <div id="errorMerge" style="display: none;">
                 <p class="larger collapse"><strong>Argh!</strong></p>
                 <p class="small collapse">That merge didn't work. It's our fault, and we've made a note of it.</p>
             </div>

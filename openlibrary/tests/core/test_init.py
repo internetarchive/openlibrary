@@ -40,7 +40,7 @@ class TestService:
         s.start()
         assert s.poll() is None
         assert s.wait() == 0
-        assert s.poll() is 0
+        assert s.poll() == 0
 
     def test_stop(self, tmpdir):
         s = self.create_service("sleep", {

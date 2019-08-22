@@ -31,7 +31,6 @@ css:
 
 js:
 	mkdir -p $(BUILD)
-	bash static/js/vendor.jsh > $(BUILD)/vendor-v2.js
 	npm run build-assets:webpack
 
 i18n:
@@ -94,7 +93,7 @@ reindex-solr:
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
-	$(PYTHON) -m flake8 . --count --exclude=./.*,scripts/20*,vendor/*  --select=E901,E999,F822,F823 --show-source --statistics
+	$(PYTHON) -m flake8 . --count --exclude=./.*,scripts/20*,vendor/*,*/acs4.py  --select=E9,F63,F7,F822,F823 --show-source --statistics
 	# TODO: Add --select=F821 below into the line above as soon as the Undefined Name issues have been fixed
 	$(PYTHON) -m flake8 . --exit-zero --count --exclude=./.*,scripts/20*,vendor/*  --select=F821 --show-source --statistics
 ifndef CONTINUOUS_INTEGRATION

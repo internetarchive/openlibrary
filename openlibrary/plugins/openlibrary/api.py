@@ -15,6 +15,7 @@ from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.sponsorships import isbn_qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     get_betterworldbooks_metadata)
@@ -241,6 +242,13 @@ class author_works(delegate.page):
             "size": size,
             "entries": works
         }
+
+class sponsorship_eligibility_check(delegate.page):
+    path = r'/sponsorship/eligibility/(.*)'
+
+    @jsonapi
+    def GET(self, isbn):
+        return simplejson.dumps(isbn_qualifies_for_sponsorship(isbn))
 
 class price_api(delegate.page):
     path = r'/prices'

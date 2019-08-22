@@ -46,7 +46,7 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) is 2
+        assert len(web.ctx.site.docs) == 2
         assert web.ctx.site.get("/works/OL1W") is not None
         assert web.ctx.site.get("/works/OL1W").title == "Original Edition Title"
 
@@ -105,7 +105,7 @@ class TestSaveBookHelper:
         s = addbook.SaveBookHelper(None, edition)
         s.save(formdata)
 
-        assert len(web.ctx.site.docs) is 1
+        assert len(web.ctx.site.docs) == 1
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan_ignores_work_edits(self, monkeypatch):

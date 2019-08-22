@@ -1,3 +1,4 @@
+$# this template is likely unused.
 $def with (input, do_search, get_doc)
 
 $ facet_map = (
@@ -74,7 +75,12 @@ $if param:
                 <span class="small"><a href="$search_url()&$header=$k">$display</a></span>&nbsp;<span class="smaller gray">$commify(count)</span>
                 </div>
         $if len(counts) > 5:
-            <div class="facetEntry"><span class="small"><a href="javascript:;"  onClick="\$(this).toggleText('more','less');jQuery('div.$header').toggle();false" class="orange">more</a></span></div>
+            <script type="text/javascript">
+            window.deprecatedToggleText = function ( a, b ) {
+                \$(this).text(\$(this).text() == a ? b : a);
+            };
+            </script>
+            <div class="facetEntry"><span class="small"><a href="javascript:;"  onClick="window.deprecatedToggleText('more','less');jQuery('div.$header').toggle();false" class="orange">more</a></span></div>
         </div>
 
     </div>
