@@ -796,7 +796,6 @@ class account_my_books(delegate.page):
 class fake_civi(delegate.page):
     path = "/internal/fake/civicrm"
 
-    @require_login
     def GET(self):
         i = web.input(entity='Contact')
         contact = {
@@ -809,7 +808,7 @@ class fake_civi(delegate.page):
                 "receive_date": "2019-07-31 08:57:00",
                 "custom_52": "9780062457714",
                 "total_amount": "50.00",
-                "custom_54": "ol"
+                "custom_53": "ol"
             }]
         }
         entity = contributions if i.entity == 'Contribution' else contact
