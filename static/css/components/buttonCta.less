@@ -6,7 +6,7 @@
 // override default anchor styles
 a.cta-btn {
   font-size: 14px;
-  color: @white !important;
+  color: @white;
   width: 100%;
   display: block;
   border: 0;
@@ -25,6 +25,12 @@ a.cta-btn {
   }
   &--unavailable {
     background-color: @orange;
+    color: @white;
+  }
+  &--preview, &--preview:link, &--preview:visited {
+    background-color: @white;
+    border: 1px solid @lighter-grey;
+    color: @black;
   }
   &__badge {
     background-color: @orange-two;
@@ -34,7 +40,7 @@ a.cta-btn {
   }
 }
 
-// Top margin to button coming after another button 
+// Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
 }

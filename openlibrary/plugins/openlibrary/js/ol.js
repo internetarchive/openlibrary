@@ -338,6 +338,24 @@ export default function init(){
             $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
         }
     });
+
+    // For Book Preview Button
+    $(document).ready(function(){
+        $('#bookPreviewButton').colorbox({
+            inline: true,
+            opacity: '0.5',
+            href: '#bookPreview'
+        })
+    })
+
+    $('.lazyIframe').show(function(){
+        // Find the iframes within our newly-visible element
+        $(this).find('iframe').prop('src', function(){
+            // Set their src attribute to the value of data-src
+            return $(this).data('src');
+        });
+    });
+
     initReadingListFeature();
     initBorrowAndReadLinks();
 }
