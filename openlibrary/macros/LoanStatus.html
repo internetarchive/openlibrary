@@ -5,6 +5,7 @@ $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
 
+$ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
 $ contributor = meta_fields.get('contributor')
@@ -15,7 +16,7 @@ $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
 
-$if page.get('ocaid'):
+$if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
@@ -66,7 +67,7 @@ $elif (availability_status == 'borrow_unavailable'):
           <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
         </form>
 
-    $else:  
+    $else:
         <p class="waitinglist-message">
           $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
         </p>
@@ -75,29 +76,29 @@ $elif (availability_status == 'borrow_unavailable'):
           <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
         </form>
 
-$elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
+$elif ocaid and not page.is_access_restricted() and editions_page:
     $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
+    <a href="$viewbook.replace('XXX', ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
 
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+$elif (not ocaid or page.is_access_restricted()) and editions_page:
     <form>
       <input type="submit" class="cta-btn" disabled value="No ebook available">
     </form>
 
-
-$if editions_page and page.get('ocaid'):
-  $:macros.daisy(page, block_name=block_name)
-
-  $# If waitlisted, show other possible editions after daisy download link
-  $if (availability_status == 'borrow_unavailable'):
-      $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-      $if checkedout and not user_loan:
-        $if work and work.edition_count > 1:
-          <div class="check-availability">
-            <p>
-              Other editions of this book may be available:
-            </p>
-            <p class="check-other-editions">
-              <a data-ol-link-track="EditionPageCheckOtherEditionsButton" href="$work.url()">Check Other Editions</a>
-            </p>
-          </div>
+$if ocaid:
+  <p>
+    <a class="cta-btn cta-btn--preview" href="#bookPreview" id="bookPreviewButton">Preview</a>
+  </p>
+  <div class="hidden">
+    <div class="floater" id="bookPreview">
+      <div class="floaterHead">
+        <h2>Preview Book</h2>
+        <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      <div id="bookPreviewIframe" class="lazyIframe" style="border-top: 1px solid #eee;">
+        <iframe width="100%" height="515"
+                data-src="https://archive.org/stream/$ocaid">
+        </iframe>
+      </div>
+    </div>
+  </div>

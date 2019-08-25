@@ -63,6 +63,9 @@ $if isbn_10 and not asin:
         $if page.get('ocaid') and not page.is_access_restricted():
             $:macros.DownloadOptions(page)
 
+        $if editions_page and page.get('ocaid'):
+            $:macros.daisy(page, block_name="read-options-panel")
+
         $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
         $if isbn or asin or scribd:
