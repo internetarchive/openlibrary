@@ -24,12 +24,16 @@
       "maxSize": "12.0KB"
     },
     {
+      "path": "static/build/editor.js",
+      "maxSize": "10.4KB"
+    },
+    {
       "path": "static/build/graphs.js",
       "maxSize": "17.2KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "145.8KB"
+      "maxSize": "135.9KB"
     },
     {
       "path": "static/build/page-admin.css",

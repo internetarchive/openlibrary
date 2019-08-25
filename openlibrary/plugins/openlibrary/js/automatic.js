@@ -2,7 +2,7 @@
  * Setup actions on document.ready for standard classNames.
  */
 export default function($) {
-    var options;
+    var options, $markdownTextArea;
     // Flash messages are hidden by default so that CSS is not on the critical path.
     $('.flash-messages').show();
     // close-popup
@@ -11,11 +11,13 @@ export default function($) {
     });
 
     // wmd editor
-    $('textarea.markdown').wmd({
-        helpLink: '/help/markdown',
-        helpHoverTitle: 'Formatting Help',
-        helpTarget: '_new'
-    });
+    $markdownTextArea = $('textarea.markdown');
+    if ( $markdownTextArea.length ) {
+        import(/* webpackChunkName: "editor" */ './editor')
+            .then((module) => {
+                module.setupEditor( $markdownTextArea );
+            });
+    }
 
     // tabs
     options = {};

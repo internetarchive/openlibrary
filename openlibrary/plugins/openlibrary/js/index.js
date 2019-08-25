@@ -12,8 +12,6 @@ import '../../../../vendor/js/jquery-form/jquery.form.js';
 import '../../../../vendor/js/jquery-validate/jquery.validate.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// unversioned.
-import '../../../../vendor/js/wmd/jquery.wmd.js'
 import { validateEmail, validatePassword } from './account.js';
 import autocompleteInit from './autocomplete';
 import addNewFieldInit from './add_new_field';
