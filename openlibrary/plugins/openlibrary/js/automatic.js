@@ -10,13 +10,6 @@ export default function($) {
         $.fn.colorbox.close();
     });
 
-    // wmd editor
-    $('textarea.markdown').wmd({
-        helpLink: '/help/markdown',
-        helpHoverTitle: 'Formatting Help',
-        helpTarget: '_new'
-    });
-
     // tabs
     options = {};
     if($.support.opacity){
