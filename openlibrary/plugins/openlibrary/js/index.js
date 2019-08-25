@@ -14,8 +14,6 @@ import '../../../../vendor/js/jquery-form/jquery.form.js';
 import '../../../../vendor/js/jquery-validate/jquery.validate.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// unversioned.
-import '../../../../vendor/js/wmd/jquery.wmd.js'
 // jquery-flot 0.7.0
 import '../../../../vendor/js/flot/jquery.flot.js';
 import '../../../../vendor/js/flot/jquery.flot.selection.js';
@@ -94,10 +92,16 @@ window.Promise = Promise;
 
 // Initialise some things
 jQuery(function () {
+    const $markdownTextAreas = $('textarea.markdown');
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
     automaticInit($);
+    // wmd editor
+    if ($markdownTextAreas.length) {
+        import(/* webpackChunkName: "markdown-editor" */ './markdown-editor')
+            .then((module) => module.initMarkdownEditor($markdownTextAreas));
+    }
     bookReaderInit($);
     addFadeInFunctionsTojQuery($);
     jQueryRepeat($);
