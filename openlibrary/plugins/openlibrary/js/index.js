@@ -1,9 +1,5 @@
 import 'jquery';
 import 'jquery-migrate';
-// npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
-import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
-// For dialog boxes (e.g. add to list)
-import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery-show-password#1.0 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-showpassword/jquery.showpassword.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
@@ -37,6 +33,9 @@ import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
+import covers from './covers';
+import dialog from './dialog';
+import tabs from './tabs';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -80,6 +79,9 @@ window.Promise = Promise;
 
 // Initialise some things
 jQuery(function () {
+    dialog();
+    tabs();
+    covers();
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
