@@ -1,10 +1,6 @@
 import 'jquery';
 import 'jquery-migrate';
 import 'jquery-validation';
-// npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
-import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
-// For dialog boxes (e.g. add to list)
-import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
 // jquery-autocomplete#1.1 with modified
@@ -35,6 +31,8 @@ import '../../../../static/css/js-all.less';
 import Promise from 'promise-polyfill';
 import initDialogs from './dialog';
 import initTabs from './tabs.js';
+import initManageCovers from './manageCovers.js';
+import jQueryUI from './jquery-ui';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -71,10 +69,12 @@ window.Promise = Promise;
 // Initialise some things
 jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
-    // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
+
+    jQueryUI.stub();
     initDialogs();
     initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
+    initManageCovers();
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);

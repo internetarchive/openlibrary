@@ -1,3 +1,4 @@
+import initTabs from './tabs';
 
 /*
  * a confirm dialog for confirming actions
@@ -77,8 +78,16 @@ function initConfirmationDialogs() {
 export default function initDialogs() {
     $('.dialog--open').on('click', function () {
         const $link = $(this),
-            href = `#${$link.attr('aria-controls')}`;
+            href = `#${$link.attr('aria-controls')}`,
+            $dialogTabs = $(href).find('.tabs');
 
+        // setup any tabs inside dialog
+        // Note - in a perfect world these would not be so coupled, but this will require
+        // further work moving the HTML generation of the dialog from Python templates to JS
+        // Which we will get to soon!
+        if ($dialogTabs.length) {
+            initTabs($dialogTabs);
+        }
         $link.colorbox({ inline: true, opacity: '0.5', href,
             maxWidth: '640px', width: '100%' });
     });

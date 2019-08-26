@@ -16,6 +16,10 @@
   },
   "bundlesize": [
     {
+      "path": "static/build/ui.js",
+      "maxSize": "70.4KB"
+    },
+    {
       "path": "static/build/editions-table.js",
       "maxSize": "16.7KB"
     },
@@ -33,7 +37,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "146.3KB"
+      "maxSize": "75.3KB"
     },
     {
       "path": "static/build/page-admin.css",
