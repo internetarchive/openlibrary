@@ -469,6 +469,9 @@ $if ctx.user:
     }
 
     function setup_events() {
+        \$('.reading-lists').one('click', function () {
+          setup_dialog();
+        })
         \$("#create-new-list").click(function() {
            close_popup();
            \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
@@ -527,7 +530,6 @@ $if ctx.user:
     window.q.push(function(){
         setup_submit_event();
         setup_events();
-        setup_dialog();
 
         var mylist = \$('.dropdown');
         var listitems = mylist.children('p.list').get();
