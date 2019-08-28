@@ -65,7 +65,7 @@ def _serialize_amazon_product(product):
         'cover': product.large_image_url,
         'product_group': product.product_group,
     }
-    if product._safe_get_element('OfferSummary'):
+    if product._safe_get_element('OfferSummary') is not None:
      data['offer_summary'] = {
          'total_new': int(product._safe_get_element_text('OfferSummary.TotalNew')),
          'total_used': int(product._safe_get_element_text('OfferSummary.TotalUsed')),
