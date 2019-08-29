@@ -533,17 +533,6 @@ class waitinglists_admin:
         stats = WLStats()
         return render_template("admin/waitinglists", stats)
 
-class service_status(object):
-    def GET(self):
-        try:
-            f = open("%s/olsystem.yml"%config.admin.olsystem_root)
-            nodes = services.load_all(yaml.load(f), config.admin.nagios_url)
-            f.close()
-        except IOError as i:
-            f = None
-            nodes = []
-        return render_template("admin/services", nodes)
-
 class inspect:
     def GET(self, section):
         if section == "/store":
@@ -715,7 +704,6 @@ def setup():
     register_admin_page('/admin/attach_debugger', attach_debugger, label='Attach Debugger')
     register_admin_page('/admin/loans', loans_admin, label='')
     register_admin_page('/admin/waitinglists', waitinglists_admin, label='')
-    register_admin_page('/admin/status', service_status, label = "Open Library services")
     register_admin_page('/admin/inspect(?:(/.+))?', inspect, label="")
     register_admin_page('/admin/graphs', _graphs, label="")
     register_admin_page('/admin/logs', show_log, label="")
