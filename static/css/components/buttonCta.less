@@ -13,24 +13,28 @@ a.cta-btn {
   border-radius: 5px;
   box-sizing: border-box;
   cursor: pointer;
-  text-decoration: none;
   font-family: @lucida_sans_serif-1;
   text-align: center;
   padding: 7px 20px;
   white-space: nowrap;
   background-color: @mid-grey;
   line-height: 1.5em;
+  text-decoration: none;
+
+  &:link, &:visited {
+    color: @white;
+    text-decoration: none;
+  }
   &--available {
     background-color: @primary-blue;
   }
   &--unavailable {
     background-color: @orange;
-    color: @white;
   }
   &--preview, &--preview:link, &--preview:visited {
     background-color: @white;
     border: 1px solid @lighter-grey;
-    color: @black;
+    color: @primary-blue;
   }
   &__badge {
     background-color: @orange-two;
