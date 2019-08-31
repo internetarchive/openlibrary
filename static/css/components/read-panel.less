@@ -11,14 +11,9 @@
   margin-bottom: 10px;
   background-color: @white;
   border-radius: 5px;
-  border: 1px solid @lighter-grey;
-  border-bottom: 1px solid @mid-grey;
+  border: 2px solid @lighter-grey;
   margin-top: 0;
 
-  .waitinglist-message {
-    margin: 0 0 10px;
-    font-size: 12px;
-  }
   .cta-section {
     font-size: .78em;
   }
@@ -61,9 +56,6 @@
   td {
     text-align: left;
     width: 49%;
-    &.price {
-      text-align: right;
-    }
   }
   // stylelint-enable selector-max-specificity
 }
@@ -75,6 +67,12 @@
 
 .buy-options-table {
   white-space: nowrap;
+}
+
+.waitinglist-message {
+  white-space: nowrap;
+  margin: 0 0 10px;
+  font-size: 12px;
 }
 
 // For the button at the top
