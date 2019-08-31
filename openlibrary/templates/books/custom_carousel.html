@@ -28,12 +28,10 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('lending_edition'):
     $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
     $ cta = 'Borrow'
-  $elif book.get('lending_edition'):
-    $ cta_url = book.get('read_url')
-    $ cta = 'Read'
   $else:
     $ cta = 'Read'
-    $ cta_url = url
+    $ cta_url = url + '/x/resolve'
+    $ url += '/x/resolve'    
 
   $if lazy:
     $ img_attr = 'data-lazy'
