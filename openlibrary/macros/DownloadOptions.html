@@ -12,13 +12,14 @@ $if downloadbook or djvutxt or epub or mobi:
   <div class="cta-section">
     <p class="cta-section-title">Download Options</p>
     <ul class="ebook-download-options">
-      $if downloadbook:
-        <li><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></li>
       $if djvutxt:
         <li><a href="$djvutxt" title="Download a text version from Internet Archive">Plain text</a></li>
+      $if downloadbook:
+        <li><a href="$downloadbook" title="Download a PDF from Internet Archive">PDF</a></li>
       $if epub:
-        <li><a href="$epub" title="Download an ePub from Internet Archive">ePub</a></li>
+        <li><a href="$epub" title="Download an ePub from Internet Archive">EPUB</a></li>
       $if mobi:
         <li><a href="$mobi" title="Download a MOBI file from Internet Archive">MOBI</a></li>
+      <li><a href="$page.url('/daisy')" title="Download open DAISY from Internet Archive (print-disabled format)">DAISY</a></li>
     </ul>
   </div>
