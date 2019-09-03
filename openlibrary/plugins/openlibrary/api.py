@@ -17,7 +17,7 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
-    amazon_search, get_betterworldbooks_metadata)
+    search_amazon, get_betterworldbooks_metadata)
 
 
 class book_availability(delegate.page):
@@ -273,7 +273,7 @@ class amazon_search_api(delegate.page):
             return simplejson.dumps({
                 'error': 'author or title required'
             })
-        results = amazon_search(title=i.title, author=i.author)
+        results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
 
 

@@ -33,7 +33,7 @@ def get_amazon_metadata(id_, id_type='isbn'):
         return None
 
 
-def amazon_search(title='', author=''):
+def search_amazon(title='', author=''):
     """Uses the Amazon Product Advertising API ItemSearch endpoint to search for
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
@@ -44,8 +44,7 @@ def amazon_search(title='', author=''):
     :rtype: dict
     """
 
-    kwargs = {'Title': title, 'Author': author, 'SearchIndex': 'Books'}
-    results = lending.amazon_api.search(**kwargs)
+    results = lending.amazon_api.search('Title': title, 'Author': author, 'SearchIndex': 'Books')
     data = {'results': []}
     try:
         for product in results:
