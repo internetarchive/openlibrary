@@ -66,21 +66,21 @@ def _serialize_amazon_product(product):
         'product_group': product.product_group,
     }
     if product._safe_get_element('OfferSummary') is not None:
-     data['offer_summary'] = {
-         'total_new': int(product._safe_get_element_text('OfferSummary.TotalNew')),
-         'total_used': int(product._safe_get_element_text('OfferSummary.TotalUsed')),
-         'total_collectible': int(product._safe_get_element_text('OfferSummary.TotalCollectible')),
-     }
-     collectible = product._safe_get_element_text('OfferSummary.LowestCollectiblePrice.Amount')
-     if new:
-         data['offer_summary']['lowest_new'] = int(new)
-     if used:
-         data['offer_summary']['lowest_used'] = int(used)
-     if collectible:
-         data['offer_summary']['lowest_collectible'] = int(collectible)
-     amazon_offers = product._safe_get_element_text('Offers.TotalOffers')
-     if amazon_offers:
-         data['offer_summary']['amazon_offers'] = int(amazon_offers)
+        data['offer_summary'] = {
+            'total_new': int(product._safe_get_element_text('OfferSummary.TotalNew')),
+            'total_used': int(product._safe_get_element_text('OfferSummary.TotalUsed')),
+            'total_collectible': int(product._safe_get_element_text('OfferSummary.TotalCollectible')),
+        }
+        collectible = product._safe_get_element_text('OfferSummary.LowestCollectiblePrice.Amount')
+        if new:
+            data['offer_summary']['lowest_new'] = int(new)
+        if used:
+            data['offer_summary']['lowest_used'] = int(used)
+        if collectible:
+            data['offer_summary']['lowest_collectible'] = int(collectible)
+        amazon_offers = product._safe_get_element_text('Offers.TotalOffers')
+        if amazon_offers:
+            data['offer_summary']['amazon_offers'] = int(amazon_offers)
 
     if product.publication_date:
         # TODO: Don't populate false month and day for older products
