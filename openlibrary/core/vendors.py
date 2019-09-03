@@ -34,7 +34,7 @@ def get_amazon_metadata(id_, id_type='isbn'):
 
 
 def search_amazon(title='', author=''):
-    """Uses the Amazon Product Advertising API ItemSearch endpoint to search for
+    """Uses the Amazon Product Advertising API ItemSearch operation to search for
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
 
@@ -133,7 +133,7 @@ def _serialize_amazon_product(product):
 
 
 def _get_amazon_metadata(id_=None, id_type='isbn'):
-    """Uses the Amazon Product Advertising API ItemLookup endpoint to locatate a
+    """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
 
