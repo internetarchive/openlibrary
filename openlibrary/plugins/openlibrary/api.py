@@ -17,7 +17,8 @@ from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.core import ia, db, models, lending, helpers as h
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
-    get_amazon_search, get_betterworldbooks_metadata)
+    amazon_search, get_betterworldbooks_metadata)
+
 
 class book_availability(delegate.page):
     path = "/availability/v2"
@@ -49,6 +50,7 @@ class book_availability(delegate.page):
             else []
         )
 
+
 class browse(delegate.page):
     path = "/browse"
     encoding = "json"
@@ -73,6 +75,7 @@ class browse(delegate.page):
         return delegate.RawText(
             simplejson.dumps(result),
             content_type="application/json")
+
 
 class ratings(delegate.page):
     path = "/works/OL(\d+)W/ratings"
@@ -201,6 +204,7 @@ class work_editions(delegate.page):
             "entries": editions
         }
 
+
 class author_works(delegate.page):
     path = "(/authors/OL\d+A)/works"
     encoding = "json"
@@ -242,8 +246,22 @@ class author_works(delegate.page):
             "entries": works
         }
 
-class external_search_api(delegate.page):
-    path = '/ext'
+
+class amazon_search_api(delegate.page):
+    """Librarian + admin only endpoint to check for books
+    avaialable on Amazon via the Product Advertising API
+    ItemSearch operation.
+
+    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
+
+    Currently experimental to explore what data is avaialable to affiliates.
+
+    :return: JSON {"results": []} containing Amazon product metadata
+             for items matching the title and author search parameters.
+    :rtype: str
+    """
+
+    path = '/_tools/amazon_search'
 
     @jsonapi
     def GET(self):
@@ -255,8 +273,9 @@ class external_search_api(delegate.page):
             return simplejson.dumps({
                 'error': 'author or title required'
             })
-        results = get_amazon_search(title=i.title, author=i.author)
+        results = amazon_search(title=i.title, author=i.author)
         return simplejson.dumps(results)
+
 
 class price_api(delegate.page):
     path = r'/prices'
