@@ -44,7 +44,7 @@ def search_amazon(title='', author=''):
     :rtype: dict
     """
 
-    results = lending.amazon_api.search('Title': title, 'Author': author, 'SearchIndex': 'Books')
+    results = lending.amazon_api.search(Title=title, Author=author, SearchIndex='Books')
     data = {'results': []}
     try:
         for product in results:
