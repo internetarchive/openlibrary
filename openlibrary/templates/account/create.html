@@ -30,7 +30,7 @@ $else:
 
         <div class="formElement">
             <div class="label">
-                <label for="emailAddr">$("Your email address")</label>
+                <label for="emailAddr">$_("Your email address")</label>
                 <span class="smaller lighter"></span>
             </div>
             <div class="input">
@@ -46,12 +46,12 @@ $else:
             <div class="input">
                 <input type="text" class="required" name="username" id="username" value="$form.username.value" autocapitalize="off"/>
                 <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
-                <div class="sansserif smaller lighter">Your URL: https://openlibrary.org/people/<span id="userUrl">screenname</span></div>
+                <div class="sansserif smaller lighter">$_('Your URL: https://openlibrary.org/people/<span id="userUrl">screenname</span>')</div>
             </div>
         </div>
         <div class="formElement">
             <div class="label">
-                <label for="password">$("Choose a password")</label>
+                <label for="password">$_("Choose a password")</label>
             </div>
             <div class="input">
                 <input value="" type="password" class="required" name="password" id="password"/>
@@ -60,7 +60,7 @@ $else:
         </div>
         <div class="formElement">
             <div class="label">
-              <label for="password">$("Confirm password")</label>
+              <label for="password">$_("Confirm password")</label>
             </div>
             <div class="input">
               <input value="" type="password" class="required" name="password2" id="password2"/>

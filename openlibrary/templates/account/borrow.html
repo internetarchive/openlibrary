@@ -67,7 +67,7 @@ window.q.push(function(){
 <div id="contentBody">
   <h1>$_("Books You've Checked Out")</h1>
   $if len(loans) == 0:
-    <div><em>You've not checked out any books at this moment.</em></div>
+    <div><em>$_("You've not checked out any books at this moment.")</em></div>
 $else:
   $# Have current loans
   <div id="borrowTable" class="borrow collapse">
@@ -114,8 +114,8 @@ $else:
                 <td class="expires">
                     $if loan['expiry'] is None:
                         $# Not yet fulfilled
-                        <span class="red">Not yet downloaded. </span><br/>
-                        <a href="$loan['loan_link']">Download Now</a>
+                        <span class="red">$_("Not yet downloaded.") </span><br/>
+                        <a href="$loan['loan_link']">$_("Download Now")</a>
                     $else:
                         $:macros.FormatExpiry(loan['expiry'])
                 </td>
@@ -124,7 +124,7 @@ $else:
                         $:macros.LoanReadForm(loan['book'])
                         $:macros.ReturnForm(loan)
                     $else:
-                        <span class="smaller grey sansserif">Return via<br />Adobe Digital Editions</span>
+                        <span class="smaller grey sansserif">$_("Return via<br />Adobe Digital Editions")</span>
                 </td>
             </tr>
         </tbody>

@@ -21,8 +21,8 @@ $var title: Search Open Library for "$q"
             $if num_found >= 2 and ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()):
                 $ keys = '&'.join('key=%s' % doc['key'] for doc in response['docs'])
                 <div class="mergeThis">
-                    <p class="smaller brown sansserif collapse">Is the same author listed twice?</p>
-                    <a class="large sansserif" href="/authors/merge?$keys">Merge authors</a>
+                    <p class="smaller brown sansserif collapse">$_('Is the same author listed twice?')</p>
+                    <a class="large sansserif" href="/authors/merge?$keys">$_('Merge authors')</a>
                 </div>
     <h1>
         $_("Author Search")
@@ -30,9 +30,10 @@ $var title: Search Open Library for "$q"
 
     $if q and 'error' not in results:
         $if num_found:
+            <!-- FIXME: not internationalizable -->
             <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
         $else:
-            <p class="sansserif red collapse"><strong>No hits</strong></span></p>
+            <p class="sansserif red collapse"><strong>$_('No hits')</strong></span></p>
 </div>
 
 <div id="contentMeta">
@@ -59,6 +60,7 @@ $var title: Search Open Library for "$q"
         $for doc in response['docs']:
             $ n = doc['name']
             $ num = doc['work_count']
+            // FIXME: I18N
             $ wc = "1 book" if num == 1 else commify(num) + " books"
             $ date = ''
             $if 'birth_date' in doc or 'death_date' in doc:

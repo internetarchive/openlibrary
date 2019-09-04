@@ -53,6 +53,7 @@ $ book_list_excerpt = ''
 $if books and books.works:
     $ book_titles_excerpt = [work.title for work in books.works[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
+// FIXME: I18N
 $ description = "Author of " + book_list_excerpt
 $putctx("description", description)
 
@@ -71,7 +72,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     $:macros.databarView(page)
 
-    <h1>$page.get('name', 'name missing')</h1>
+    <h1>$page.get('name', $_('name missing'))</h1>
     <h2 class="author collapse">
     $if page.birth_date or page.death_date:
         $page.birth_date - $page.death_date
@@ -85,9 +86,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
        <div class="message" style="display: none;">
             <div id="preMerge" style="display: none;">
-                <p class="larger collapse"><strong>Merging Authors...</strong></p>
+                <p class="larger collapse"><strong>$_('Merging Authors...')</strong></p>
                 <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
-                <p class="smaller lightgreen collapse">Duplicates</p>
+                <p class="smaller lightgreen collapse">$_('Duplicates')</p>
                 <p class="small collapse">
                     <ul>
                         $ duplicates = ["/authors/" + k for k in query_param("duplicates", "").split(",")]
@@ -100,13 +101,13 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             </div>
             <div id="postMerge" style="display: none;">
                 <p class="right small"><b><a href="$page.key">Refresh the page</a>?</b></p>
-                <p class="larger collapse"><strong>Success!</strong></p>
-                <p class="small collapse">OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i></p>
+                <p class="larger collapse"><strong>$_('Success!')</strong></p>
+                <p class="small collapse">$('OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>')</p>
             </div>
 
             <div id="errorMerge" style="display: none;">
                 <p class="larger collapse"><strong>Argh!</strong></p>
-                <p class="small collapse">That merge didn't work. It's our fault, and we've made a note of it.</p>
+                <p class="small collapse">$_('That merge didn't work. It's our fault, and we've made a note of it.')</p>
             </div>
         </div>
 
@@ -129,28 +130,31 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
+                    <!-- FIXME: Not internationalizable -->
                     $commify(books.num_found) work$("s" if books.num_found != 1 else "")
-                    <span class="count smaller"><a href="/books/add?author=$page.key">Add another</a>?</span>
+                    <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books"><span class="tools">
                 $if books.num_found > 1:
                     <img src="/images/icons/icon_sort.png" alt="Sorting by" width="9" height="11" style="margin-right:5px;"/>
                     $if books.sort == 'editions':
-                        <strong class="lightgreen">Most Editions</strong> | <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a>
+                        <strong class="lightgreen">$_('Most Editions')</strong> | <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a>
                     $elif books.sort == 'old':
-                        <a href="$changequery(sort=None)#editions">Most Editions</a> | <strong class="lightgreen">First Published</strong> | <a href="$changequery(sort='new')#editions">Most Recent</a>
+                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> | <strong class="lightgreen">$_('First Published')</strong> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a>
                     $elif books.sort == 'new':
-                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <strong class="lightgreen">Most Recent</strong>
+                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> |  <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <strong class="lightgreen">$_('Most Recent')</strong>
                     $elif books.sort == 'title':
-                        <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
+                        <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> |  <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a> | <strong class="lightgreen">$_('Title')</strong>
                 </span>
 
+<
                 <p>
                   $if input(mode="everything").mode == "everything":
-                    Showing all works by author. Would you like to
+                    // FIXME: This is incomplete and needs work. It was added VERY recently WITHOUT internationalization
+                    $_('Showing all works by author. Would you like to')
                     see <a href="$changequery(mode='ebooks')">only ebooks</a>?
                   $else:
-                    Showing ebooks only. Would you like to see
+                    $_('Showing ebooks only. Would you like to see')
                     <a href="$changequery(mode='everything')">everything</a>
                     by this author?
                 </p>

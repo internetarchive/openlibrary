@@ -585,19 +585,19 @@ msgstr "Courriel de vérification envoyé"
 
 #: email/forgot-ia.html:6 email/forgot.html:6
 msgid "Forgot Your Internet Archive Email?"
-msgstr "Avez-vous oublié votre adresse de courriel pour Internet Archive&nbsp;?"
+msgstr "Avez-vous oublié votre adresse de courriel pour Internet Archive?"
 
 #: email/forgot-ia.html:39 password/forgot.html:6
 msgid "Forgot your Archive.org Password?"
-msgstr "Avez-vous oublié votre mot de passe pour Archive.org&nbsp;?"
+msgstr "Avez-vous oublié votre mot de passe pour Archive.org?"
 
 #: email/forgot.html:11
 msgid "Forgot Your Open Library Email?"
-msgstr "Avez-vous oublié votre adresse de courriel pour Open Library&nbsp;?"
+msgstr "Avez-vous oublié votre adresse de courriel pour Open Library?"
 
 #: email/forgot.html:44 openlibrary/templates/login.html:68
 msgid "Forgot your Password?"
-msgstr "Avez-vous oublié votre mot de passe&nbsp;?"
+msgstr "Avez-vous oublié votre mot de passe?"
 
 #: password/forgot.html:3 password/sent.html:3
 msgid "Username/Password Reminder"

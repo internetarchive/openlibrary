@@ -48,6 +48,7 @@ def main(cmd):
         ]
         macro_dir = 'openlibrary/macros/'
         macros = [
+            'databarView.html',
             'EditButtons.html',
         ]
         message_sources += [template_dir + template for template in templates]
