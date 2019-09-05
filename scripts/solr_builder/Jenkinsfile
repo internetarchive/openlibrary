@@ -188,7 +188,10 @@ pipeline {
                 script: 'docker-compose up --no-deps -d solr')
 
               sh(label: 'Build "lite" ol environment',
-                script: 'docker-compose build ol')
+                script: '''
+                docker build -t olbase:latest -f ../../docker/Dockerfile.olbase ../../
+                docker-compose build ol
+                ''')
               
               sh(label: 'Build the cython files',
                 script: 'docker-compose run ol ./build-cython.sh')
