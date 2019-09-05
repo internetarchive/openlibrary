@@ -83,8 +83,9 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
             <li class="read-option">
               <a href="$book.url('/daisy')" class="plain print-disabled-download">
+                $if availability.get('status') != 'open':
+                  <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
                 <span class="underline">DAISY for print-disabled</span>
-                <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
               </a>
             </li>
 
