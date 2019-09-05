@@ -339,27 +339,10 @@ export default function init(){
         }
     });
 
-    // For Book Preview Button
-    $(document).ready(function(){
-        $('#bookPreviewButton').colorbox({
-            width: '100%',
-            maxWidth: '640px',
-            inline: true,
-            opacity: '0.5',
-            href: '#bookPreview'
-        })
-    })
-
-    $('.lazyIframe').show(function(){
-        // Find the iframes within our newly-visible element
-        $(this).find('iframe').prop('src', function(){
-            // Set their src attribute to the value of data-src
-            return $(this).data('src');
-        });
-    });
 
     initReadingListFeature();
     initBorrowAndReadLinks();
+    initPreviewButton();
 }
 
 export function initReadingListFeature() {
@@ -436,4 +419,26 @@ export function initBorrowAndReadLinks() {
     });
 
     /* eslint-enable no-unused-vars */
+}
+
+export function initPreviewButton() {
+    /**
+     * Colorbox modal + iframe for Book Preview Button
+     */
+    $(document).ready(function(){
+        $('#bookPreviewButton').colorbox({
+            width: '100%',
+            maxWidth: '640px',
+            inline: true,
+            opacity: '0.5',
+            href: '#bookPreview'
+        })
+    })
+
+    $('.lazyIframe').show(function(){
+        // Find the iframes within our newly-visible element
+        const $iframe = $(this).find('iframe');
+        // Set their src attribute to the value of data-src
+        $iframe.prop('src', $iframe.data('src'));
+    });
 }
