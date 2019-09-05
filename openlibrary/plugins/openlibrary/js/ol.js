@@ -342,6 +342,8 @@ export default function init(){
     // For Book Preview Button
     $(document).ready(function(){
         $('#bookPreviewButton').colorbox({
+            width: '100%',
+            maxWidth: '640px',
             inline: true,
             opacity: '0.5',
             href: '#bookPreview'
