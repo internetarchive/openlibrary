@@ -141,18 +141,20 @@
     <field name="key" type="string" required="true"/>
     <field name="type" type="string" required="true"/>
 
+<!-- Appears to be unused
     <field name="redirects" type="string" multiValued="true"/>
+-->
     <field name="has_fulltext" type="boolean"/>
-    <field name="title" type="text_international"/> <!-- i18n -->
-    <field name="title_suggest" type="text_general"/> <!-- i18n? -->
-    <field name="subtitle" type="text_en_splitting"/> <!-- i18n -->
-    <field name="alternative_title" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
-    <field name="alternative_subtitle" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
+    <field name="title" type="text_international"/>
+    <field name="title_suggest" type="text_general"/>
+    <field name="subtitle" type="text_international"/>
+    <field name="alternative_title" type="text_international" stored="false" multiValued="true"/>
+    <field name="alternative_subtitle" type="text_international" stored="false" multiValued="true"/>
 
     <field name="edition_count" type="int"/>
     <field name="edition_key" type="string" multiValued="true"/>
     <field name="cover_edition_key" type="string" indexed="false"/>
-    <field name="by_statement" type="text_en_splitting" stored="false" multiValued="true"/> <!-- i18n -->
+    <field name="by_statement" type="text_international" stored="false" multiValued="true"/>
     <field name="publish_date" type="text_en_splitting" multiValued="true"/>
     <field name="publish_year" type="int" multiValued="true"/>
     <field name="first_publish_year" type="int"/>
@@ -165,43 +167,43 @@
     <field name="ia_count" type="int"/>
     <field name="oclc" type="string" multiValued="true"/>
     <field name="isbn" type="string" multiValued="true"/>
-    <field name="contributor" type="text_general" multiValued="true"/> <!-- i18n -->
-    <field name="publish_place" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
-    <field name="publisher" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
+    <field name="contributor" type="text_international" multiValued="true"/>
+    <field name="publish_place" type="text_international" multiValued="true"/>
+    <field name="publisher" type="text_international" multiValued="true"/>
     <field name="publisher_facet" type="string" stored="false" multiValued="true"/>
-    <field name="first_sentence" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
+    <field name="first_sentence" type="text_international" multiValued="true"/>
     <field name="author_key" type="string" multiValued="true"/>
-    <field name="author_name" type="text_general" multiValued="true"/> <!-- i18n -->
-    <field name="author_alternative_name" type="text_general" multiValued="true"/> <!-- i18n -->
+    <field name="author_name" type="text_international" multiValued="true"/>
+    <field name="author_alternative_name" type="text_international" multiValued="true"/>
     <field name="author_facet" type="string" stored="false" multiValued="true"/>
-    <field name="subject" type="text_en_splitting" multiValued="true"/> <!-- i18n -->
+    <field name="subject" type="text_international" multiValued="true"/>
     <field name="subject_facet" type="string" stored="false" multiValued="true"/>
     <field name="subject_key" type="string" stored="false" multiValued="true"/>
-    <field name="place" type="text_general" multiValued="true"/>
+    <field name="place" type="text_international" multiValued="true"/>
     <field name="place_facet" type="string" stored="false" multiValued="true"/>
     <field name="place_key" type="string" stored="false" multiValued="true"/>
-    <field name="person" type="text_general" multiValued="true"/>
+    <field name="person" type="text_international" multiValued="true"/>
     <field name="person_facet" type="string" stored="false" multiValued="true"/>
     <field name="person_key" type="string" stored="false" multiValued="true"/>
     <field name="time" type="text_en_splitting" multiValued="true"/>
     <field name="time_facet" type="string" stored="false" multiValued="true"/>
     <field name="time_key" type="string" stored="false" multiValued="true"/>
 
-    <field name="text" type="text_en_splitting" stored="false" multiValued="true"/>
+    <field name="text" type="text_international" stored="false" multiValued="true"/>
 
     <field name="seed" type="string" multiValued="true"/>
 
 
    <!-- fields used by documents of type author -->
-   <field name="name" type="text_international" indexed="true" stored="true"/> <!-- i18n -->
+   <field name="name" type="text_international" indexed="true" stored="true"/>
    <field name="name_str" type="string" indexed="true" stored="false"/> <!-- ?? -->
-   <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>  <!-- i18n -->
+   <field name="alternate_names" type="text_international" indexed="true" stored="true" multiValued="true"/>
    <field name="birth_date" type="string" indexed="true" stored="true"/>
    <field name="death_date" type="string" indexed="true" stored="true"/>
    <field name="date" type="string" indexed="true" stored="true"/>
    <field name="work_count" type="int" indexed="true" stored="true"/>
    <field name="top_work" type="string" indexed="false" stored="true"/>
-   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/> <!-- i18n -->
+   <field name="top_subjects" type="string" indexed="false" stored="true" multiValued="true"/>
 
    <!-- additional fields used by documents of type subject -->
    <field name="subject_type" type="string" indexed="true" stored="true"/>
@@ -273,22 +275,32 @@
     <copyField source="person" dest="person_facet"/>
     <copyField source="time" dest="time_facet"/>
 
+<!-- replace with explicit regex for OL IDs
     <copyField source="key" dest="text"/>
+-->
+<!-- Unused as far as I can tell
     <copyField source="redirects" dest="text"/>
+--> 
     <copyField source="title" dest="text"/>
     <copyField source="subtitle" dest="text"/>
     <copyField source="alternative_title" dest="text"/>
     <copyField source="alternative_subtitle" dest="text"/>
+<!--
     <copyField source="edition_key" dest="text"/>
+-->
     <copyField source="by_statement" dest="text"/>
+<!-- Identifiers need a different indexing scheme than text 
     <copyField source="lccn" dest="text"/>
     <copyField source="ia" dest="text"/>
     <copyField source="oclc" dest="text"/>
     <copyField source="isbn" dest="text"/>
+-->
     <copyField source="contributor" dest="text"/>
     <copyField source="publisher" dest="text"/>
     <copyField source="first_sentence" dest="text"/>
+<!--
     <copyField source="author_key" dest="text"/>
+-->
     <copyField source="author_name" dest="text"/>
     <copyField source="author_alternative_name" dest="text"/>
     <copyField source="subject" dest="text"/>
