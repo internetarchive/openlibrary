@@ -8,3 +8,5 @@ build
 **.pyc
 **__pycache__
 venv/
+**/ol_dump*.txt.gz
+scripts/solr_builder/logs/*
