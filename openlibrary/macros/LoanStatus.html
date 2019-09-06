@@ -87,5 +87,5 @@ $elif (not ocaid or page.is_access_restricted()) and editions_page:
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid)
 
-$if ocaid and page.is_access_restricted() and editions_page:
+$if ocaid and page.is_access_restricted():
   $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
