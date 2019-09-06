@@ -58,7 +58,7 @@ OpenLibrary is developed on top of the Infogami wiki system, which is itself bui
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
-Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase):
+Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase)
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
