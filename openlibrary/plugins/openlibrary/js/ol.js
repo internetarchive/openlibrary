@@ -425,14 +425,12 @@ export function initPreviewButton() {
     /**
      * Colorbox modal + iframe for Book Preview Button
      */
-    $(document).ready(function(){
-        $('#bookPreviewButton').colorbox({
-            width: '100%',
-            maxWidth: '640px',
-            inline: true,
-            opacity: '0.5',
-            href: '#bookPreview'
-        })
+    $('#bookPreviewButton').colorbox({
+        width: '100%',
+        maxWidth: '640px',
+        inline: true,
+        opacity: '0.5',
+        href: '#bookPreview'
     })
 
     $('.lazyIframe').show(function(){

@@ -9,11 +9,17 @@ $putctx("robots", "noindex,nofollow")
 <!--
 window.q.push( function () {
     if(jQuery.support.opacity){
-        \$("#tabsAddbook").tabs({fx:{opacity:'toggle'}});
+        \$('#tabsAddbook').tabs({fx:{opacity:'toggle'}});
     } else {
-        \$("#tabsAddbook").tabs();
+        \$('#tabsAddbook').tabs();
     };
-    \$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addCover"});
+    \$('#coverPop').colorbox({
+      width: '100%',
+      maxWidth: '640px',
+      inline:true,
+      opacity: '0.5',
+      href:'#addCover'
+    });
 } );
 
 function limitChars(textid, limit, infodiv) {
