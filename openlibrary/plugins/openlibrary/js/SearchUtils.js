@@ -126,10 +126,14 @@ export const mode = new PersistentValue('mode', {
     }
 });
 
-/** Manages interactions of the search mode buttons */
-export class SearchModeButtons {
-    constructor(autoreload=false) {
-        this.$buttons = $('.search-mode');
+/** Manages interactions of the search mode radio buttons */
+export class SearchModeSelector {
+    /**
+     * @param {JQuery} radioButtons
+     * @param {Boolean} [autoreload] whether to reload the browser page when the buttons change
+     */
+    constructor(radioButtons, autoreload=false) {
+        this.$radioButtons = radioButtons;
         this.change(newMode => {
             mode.write(newMode);
             if (autoreload) {
@@ -143,6 +147,6 @@ export class SearchModeButtons {
      * @param {Function} handler
      */
     change(handler) {
-        this.$buttons.change(event => handler($(event.target).val()));
+        this.$radioButtons.change(event => handler($(event.target).val()));
     }
 }

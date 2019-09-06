@@ -3,7 +3,7 @@ import * as Browser from './Browser';
 import { updateWorkAvailability } from './availability';
 import { SearchBar } from './SearchBar';
 import { SearchPage } from './SearchPage';
-import { SearchModeButtons, mode as searchMode } from './SearchUtils';
+import { SearchModeSelector, mode as searchMode } from './SearchUtils';
 
 function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
@@ -26,10 +26,10 @@ export default function init() {
 
     if ($('.siteSearch.olform').length) {
         // Only applies to search results page (as of writing)
-        new SearchPage($('.siteSearch.olform'), new SearchModeButtons(false));
+        new SearchPage($('.siteSearch.olform'), new SearchModeSelector($('.search-mode'), false));
     } else {
         // Only applies to authors page (as of writing)
-        new SearchModeButtons(true);
+        new SearchModeSelector(true);
     }
 
     $(window).scroll(function(){
