@@ -70,8 +70,8 @@ export class SearchBar {
         this.initCollapsibleMode();
 
         // Bind to changes in the search state
-        SearchUtils.mode.change(this.handleSearchModeChange.bind(this));
-        this.facet.change(this.handleFacetValueChange.bind(this));
+        SearchUtils.mode.sync(this.handleSearchModeChange.bind(this));
+        this.facet.sync(this.handleFacetValueChange.bind(this));
         this.$facetSelect.change(this.handleFacetSelectChange.bind(this));
         this.$form.on('submit', this.submitForm.bind(this));
 

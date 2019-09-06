@@ -31,7 +31,7 @@ export function addModeInputsToForm($form, searchMode) {
 
 /**
  * @typedef {Object} PersistentValue.Options
- * @property {any?} [default]
+ * @property {String?} [default]
  * @property {Function?} [initValidation] (str -> bool) validation to perform on intialization.
  * @property {Function?} [writeTransformation] ((newVal, oldVal) -> val) function to call that
  * transforms a value before save.
@@ -55,10 +55,18 @@ export class PersistentValue {
         }
     }
 
+    /**
+     * Read the stored value
+     * @return {String}
+     */
     read() {
         return localStorage.getItem(this.key);
     }
 
+    /**
+     * Update the stored value
+     * @param {String} newValue
+     */
     write(newValue) {
         const oldValue = this.read();
         let toWrite = newValue;
@@ -73,21 +81,26 @@ export class PersistentValue {
         }
 
         if (oldValue != toWrite) {
-            this._trigger(toWrite);
+            this._emit(toWrite);
         }
     }
 
     /**
-     * Listen for changes
-     * @param {Function} handler
-     * @param {Boolean} fireAtStart whether to call the handler right now
+     * Listen to updates to this value
+     * @param {Function} listener
+     * @param {Boolean} callAtStart whether to call the listener right now with the current value
      */
-    change(handler, fireAtStart=true) {
-        this._listeners.push(handler);
-        if (fireAtStart) handler(this.read());
+    sync(listener, callAtStart=true) {
+        this._listeners.push(listener);
+        if (callAtStart) listener(this.read());
     }
 
-    _trigger(newValue) {
+    /**
+     * @private
+     * Notify listeners of an update
+     * @param {String} newValue
+     */
+    _emit(newValue) {
         this._listeners.forEach(listener => listener(newValue));
     }
 }

@@ -73,7 +73,7 @@ describe('PersistentValue', () => {
         const pv = new PV('foo');
         pv.write('a');
         const spy = sinon.spy();
-        pv.change(spy, false);
+        pv.sync(spy, false);
         pv.write('b');
         expect(spy.callCount).toBe(1);
         expect(spy.args[0]).toEqual(['b']);
@@ -83,7 +83,7 @@ describe('PersistentValue', () => {
         const pv = new PV('foo');
         pv.write('a');
         const spy = sinon.spy();
-        pv.change(spy, false);
+        pv.sync(spy, false);
         pv.write('a');
         expect(spy.callCount).toBe(0);
     });
@@ -92,7 +92,7 @@ describe('PersistentValue', () => {
         const pv = new PV('foo');
         pv.write('a');
         const spy = sinon.spy();
-        pv.change(spy, true);
+        pv.sync(spy, true);
         expect(spy.callCount).toBe(1);
         expect(spy.args[0]).toEqual(['a']);
     });
