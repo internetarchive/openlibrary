@@ -9,69 +9,17 @@ or individual disk space requirements for data:
 
 ## Step 1: Create a local postgres copy of the database
 
-### 1a: Create the postgres instance
+    ./create-db.sh
 
-Start up the database docker container. Note the info in `postgres.ini` for database name, user, password, etc.
-
-```bash
-# launch the database container
-docker-compose up -d --no-deps db
+Which does the following:
+ - start the DB container (building it first, if necessary)
+ - create the database and necessary tables
+ - download the OpenLibrary dump, decompress it, and load it into the database
+   all as a piped streaming operation (~60min - 7857 MB 2019-08-31)
+ - create indexes for the tables (~40 min)
 
 # optional; GUI for the database at port 8087
 docker-compose up -d --no-deps adminer
-
-# create the "entity" table to store the dump
-docker-compose exec -u postgres db psql -d postgres -c "DROP TABLE entity CASCADE;" # ~ 5 min
-docker-compose exec -u postgres db psql -d postgres -c "DROP TYPE type_enum CASCADE;"
-docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
-```
-
-### 1b: Populate the postgres instance
-
-```bash
-# Download the dump
-time wget --trust-server-names https://openlibrary.org/data/ol_dump_latest.txt.gz  # 7.5GB, 3min (7 Jun 2019, OJF); 7.4GB, 3min (10 May 2019, OJF); 7.3GB, 6.5min (Feb 2019, OJF)
-```
-2019-07 18 min on 200 Mb/s US East residential connection
-2019-07 30 min on 200 Mb/s US East residential connection
-
-The native location that the OpenLibrary URL points to is of the form:
-https://archive.org/download/ol_dump_2019-07-31/ol_dump_2019-07-31.txt.gz
-(Yes, it would be simpler to script if they'd chosen the first instead of the last day of the month!)
-
-Now we insert the documents in the dump into postgres. Note that the database at this point has no primary key (for faster import). This does however mean that if you try to insert the same document twice, it will let you. Thankfully, postgres will abandon the whole COPY if it finds an error in the import, so you can just restart the chunk if you found something errored.
-
-```bash
-# Start import job(s)
-time ./psql-import-in-chunks.sh ol_dump_latest.txt.gz 6  # ~25min (Feb 2019, OJF)
-```
-
-Took 2 hrs (8 Jun 2019); 1.75 hrs (10 May 2019, OJF) ; ~2.5 hours (Feb 2019, OJF).
-
-This can be reduced to as low as 16 minutes using 3 shards and no staggered start, but a single stream import is only 19.5
-minutes and there appears to be a fencepost issue with the same record getting imported twice in the sharded import, so
-I'm just using the single stream import as simpler (plus it can be piped together with the network fetch).
-
-time ./psql-import-in-chunks.sh ol_dump_2019-06-30.txt.gz 1 # 20 minutes
-
-time ./create-db.sh # 26.5 min to download and copy into table
-COPY 53530379
-
-ERROR:  invalid input syntax for type json
-DETAIL:  Token "created" is invalid.
-CONTEXT:  JSON data, line 1: ...s-Design fundamentals, Second edition\", "created...
-COPY entity, line 40111410, column content: "{"title": "Electric and hybrid vehicles-Design fundamentals, Second edition\", "created": {"type": "..."
-  NUL byte at end of string, not getting correctly stripped by SED (quoting/escaping?)
-
-
-Once that's all done, we create indices in postgres:
-
-```bash
-# 1 hr (8 June 2019, OJF); 1.25 hr (10 May 2019, OJF)
-time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql | ts '[%Y-%m-%d %H:%M:%S]'
-```
-2019-07 - 22 min. on modern laptop (44 min with new schema?)
-2019-08 - 
 
 
 ## Step 2: Populate solr
@@ -79,17 +27,16 @@ time docker-compose exec -u postgres db psql postgres -f sql/create-indices.sql 
 ### 2a: Setup
 
 ```bash
-# Build the Solr image (same as openlibrary) and launch it
-time docker build -t olsolr:latest -f ../../docker/Dockerfile.olsolr ../../ # < 2 min on modern laptop
-docker-compose up --no-deps -d solr
-
-or launch standard pre-built solr:8 containter
+Launch standard pre-built solr:8 containter
 
     docker-compose up --no-deps -d solr8
 #then create the openlibrary core (FIRST TIME ONLY)
-    docker-compose exec solr8 solr create -c openlibrary -d /opt/solr-8.1.1/server/solr/configsets/olconfig -n openlibrary
+    docker-compose exec solr8 solr create -c openlibrary -d /opt/solr/server/solr/configsets/olconfig -n openlibrary
 to delete core, if needed:
     docker-compose exec solr8 solr delete -c openlibrary
+
+The configuration for this core is in openlibrary/config/solr8-ol/conf/solrconfig.xml and the schema is in
+managed-schema in the same directory.
 
 # Build the environment we use to run code that copies data into solr
 # This is like a "lite" version of the OL environment
@@ -111,24 +58,18 @@ source aliases.sh
 ./index-works.sh
 ```
 
-Works took 27 hrs with 5 cores and orphans also running simultaneously. Note only one batch took that long; all other batches took <18 hours. (27 hrs, 18188010 works, 10 June 2019; 29 hrs, 18081999 works, 13 May 2019, OJF)
-
-And start all the orphans in sequence to each other (in parallel to the works) since ordering them is slow and there aren't too many if them:
-
-Solr 8.1 - 24-26 hrs (with deletes enabled) for 5 shards in parallel with orphans - 18257278 (18.2M) works, MacBook Pro, 2019-06-30 dump
-
 2019-07-31 - Orphans 4.8hrs (deletes off, batch = 1000), Works ETA 1428 hrs (!) with batch size of 1000 due to pathological SQL query plan
   Works 9.3-10.3hrs across 5 shards (deletes off, batch = 5000) for 18450464 (18.4M) works
+  (original time was 27 hrs for OJF)
 
 ```bash
 ./index-orphans.sh
 ```
 
-Orphans took 8 hrs over 1 core in parallel with works (8 hrs, 3711877 docs, 10 June 2019, OJF; 11 hrs, 3735145 docs, 13 May 2019, OJF).
-
-Solr 8.1 orphans - 4.8 hrs in parallel with 5 shards of works (MacBook Pro, 3128386 (3.1M) orphans, 2019-07-31 dump)
+Solr 8.1 orphans - 4.8 hrs in parallel with 5 shards of works (MacBook Pro, 3128386 (3.1M) orphans, 2019-07-31 dump -- vs 8 hrs for OJF)
  (Time above is with deletes disabled. It was 3x-4x with them enabled. They aren't needed for bulk loads, but they need
   to be fixed / optimized for normal production updates)
+
 
 To check progress, run (clearing the progress folder as necessary):
 
@@ -176,23 +117,19 @@ http://localhost:8984/solr/openlibrary/select?facet.field=type&facet=on&q=*%3A*&
 
 It is currently unknown how subjects make their way into Solr (See See https://github.com/internetarchive/openlibrary/issues/1896 ). As result, in the interest of progress, we are choosing to just use a solr dump.
 
-1. Create a backup of prod's solr (See https://github.com/internetarchive/openlibrary/wiki/Solr#creating-a-solr-backup )
-2. Extract the backup (NOT in the repo; anywhere else):
-   ```bash
-   mkdir ~/solr-backup
-   time tar xzf /storage/openlibrary/solr/backup-2019-06-09.tar.gz -C ~/solr-backup # 20min
-   mv ~/solr-backup/var/lib/solr/data ~/solr-backup
-   rm -r ~/solr-backup/var
-   ```
-3. Launch the `solr-backup` service, modifying `docker-compose.yml` if the above command was run differently.
-    ```bash
-    docker-compose up -d --no-deps solr-backup
-    ```
-4. Copy the subjects into our main solr. 6.75 hrs (May 2019, OJF, 1514068 docs)
-    ```bash
-    # check the status by going to localhost:8984/solr/dataimport
-    curl server.openjournal.foundation:8984/solr/dataimport?command=full-import
-    ```
+Extract subjects from the dump
+
+time gzcat ol_dump_2019-08-31.txt.gz | grep '"subjects":' | cut -f 5 | jq -r .subjects[] | gzip > subjects.txt.gz # 55 min
+time gzcat subjects.txt.gz | sort | uniq -c | sort -r -n | gzip > subject-counts.txt.gz #
+
+
+ 7189632 total subjects
+ gzcat subjects-counts.txt.gz | grep -v -E "^ " | wc -l
+    4461 occurring > 1000 times
+ gzcat subjects-counts.txt.gz | grep -v -E "^  " | wc -l
+   45390 > 100 times
+ gzcat subjects-counts.txt.gz | grep -v -E "^   " | wc -l
+  379438 > 10 times
 
 ## Step 3: Final Sync
 
@@ -232,3 +169,164 @@ supervisorctl start solrbuilder-solrupdater
 
 - Monitor the logs for solrupdater. It will sometimes get overloading and slow down a lot; restarting it fixes the issues though.
 - 3 weeks of edits takes ~1 week to reindex.
+
+
+
+---------------------
+
+Simultaneous download and build DB
+
+s$ time ./create-db.sh
+++ CONTAINER=db
+++ DATE=2019-08-31
+++ FILE=https://archive.org/download/ol_dump_2019-08-31/ol_dump_2019-08-31.txt.gz
+++ alias 'psql=docker-compose exec -T -u postgres $CONTAINER psql postgres -X -t -A $1'
+++ docker-compose up -d --no-deps db
+Creating network "solr_builder_db-access" with the default driver
+Creating network "solr_builder_solr-access" with the default driver
+Creating volume "solr_builder_postgres-data" with default driver
+Creating volume "solr_builder_solr-data" with default driver
+Creating volume "solr_builder_solr8-data" with default driver
+Creating volume "solr_builder_ol-vendor" with default driver
+Building db
+Step 1/2 : FROM  postgres
+ ---> c3fe76fef0a6
+Step 2/2 : RUN apt-get update && apt-get -qq -y install curl
+ ---> Running in 91ea77f11e0f
+Ign:1 http://deb.debian.org/debian stretch InRelease
+Get:2 http://security.debian.org/debian-security stretch/updates InRelease [94.3 kB]
+Get:3 http://deb.debian.org/debian stretch-updates InRelease [91.0 kB]
+Get:4 http://deb.debian.org/debian stretch Release [118 kB]
+Get:5 http://deb.debian.org/debian stretch Release.gpg [2,434 B]
+Get:6 http://security.debian.org/debian-security stretch/updates/main amd64 Packages [503 kB]
+Get:7 http://deb.debian.org/debian stretch-updates/main amd64 Packages [27.4 kB]
+Get:8 http://deb.debian.org/debian stretch/main amd64 Packages [7,082 kB]
+Get:9 http://apt.postgresql.org/pub/repos/apt stretch-pgdg InRelease [51.4 kB]
+Get:10 http://apt.postgresql.org/pub/repos/apt stretch-pgdg/main amd64 Packages [182 kB]
+Fetched 8,152 kB in 2s (3,129 kB/s)
+Reading package lists...
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libssl1.0.2:amd64.
+(Reading database ... 12782 files and directories currently installed.)
+Preparing to unpack .../0-libssl1.0.2_1.0.2s-1~deb9u1_amd64.deb ...
+Unpacking libssl1.0.2:amd64 (1.0.2s-1~deb9u1) ...
+Selecting previously unselected package ca-certificates.
+Preparing to unpack .../1-ca-certificates_20161130+nmu1+deb9u1_all.deb ...
+Unpacking ca-certificates (20161130+nmu1+deb9u1) ...
+Selecting previously unselected package libidn2-0:amd64.
+Preparing to unpack .../2-libidn2-0_0.16-1+deb9u1_amd64.deb ...
+Unpacking libidn2-0:amd64 (0.16-1+deb9u1) ...
+Selecting previously unselected package libnghttp2-14:amd64.
+Preparing to unpack .../3-libnghttp2-14_1.18.1-1+deb9u1_amd64.deb ...
+Unpacking libnghttp2-14:amd64 (1.18.1-1+deb9u1) ...
+Selecting previously unselected package libpsl5:amd64.
+Preparing to unpack .../4-libpsl5_0.17.0-3_amd64.deb ...
+Unpacking libpsl5:amd64 (0.17.0-3) ...
+Selecting previously unselected package librtmp1:amd64.
+Preparing to unpack .../5-librtmp1_2.4+20151223.gitfa8646d.1-1+b1_amd64.deb ...
+Unpacking librtmp1:amd64 (2.4+20151223.gitfa8646d.1-1+b1) ...
+Selecting previously unselected package libssh2-1:amd64.
+Preparing to unpack .../6-libssh2-1_1.7.0-1+deb9u1_amd64.deb ...
+Unpacking libssh2-1:amd64 (1.7.0-1+deb9u1) ...
+Selecting previously unselected package libcurl3:amd64.
+Preparing to unpack .../7-libcurl3_7.52.1-5+deb9u9_amd64.deb ...
+Unpacking libcurl3:amd64 (7.52.1-5+deb9u9) ...
+Selecting previously unselected package curl.
+Preparing to unpack .../8-curl_7.52.1-5+deb9u9_amd64.deb ...
+Unpacking curl (7.52.1-5+deb9u9) ...
+Selecting previously unselected package publicsuffix.
+Preparing to unpack .../9-publicsuffix_20190415.1030-0+deb9u1_all.deb ...
+Unpacking publicsuffix (20190415.1030-0+deb9u1) ...
+Setting up libidn2-0:amd64 (0.16-1+deb9u1) ...
+Setting up libnghttp2-14:amd64 (1.18.1-1+deb9u1) ...
+Setting up libpsl5:amd64 (0.17.0-3) ...
+Setting up librtmp1:amd64 (2.4+20151223.gitfa8646d.1-1+b1) ...
+Setting up libssl1.0.2:amd64 (1.0.2s-1~deb9u1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.24.1 /usr/local/share/perl/5.24.1 /usr/lib/x86_64-linux-gnu/perl5/5.24 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl/5.24 /usr/share/perl/5.24 /usr/local/lib/site_perl /usr/lib/x86_64-linux-gnu/perl-base .) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+debconf: falling back to frontend: Teletype
+Setting up libssh2-1:amd64 (1.7.0-1+deb9u1) ...
+Processing triggers for libc-bin (2.24-11+deb9u4) ...
+Setting up publicsuffix (20190415.1030-0+deb9u1) ...
+Setting up ca-certificates (20161130+nmu1+deb9u1) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (TERM is not set, so the dialog frontend is not usable.)
+debconf: falling back to frontend: Readline
+debconf: unable to initialize frontend: Readline
+debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.24.1 /usr/local/share/perl/5.24.1 /usr/lib/x86_64-linux-gnu/perl5/5.24 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl/5.24 /usr/share/perl/5.24 /usr/local/lib/site_perl /usr/lib/x86_64-linux-gnu/perl-base .) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+debconf: falling back to frontend: Teletype
+Updating certificates in /etc/ssl/certs...
+151 added, 0 removed; done.
+Setting up libcurl3:amd64 (7.52.1-5+deb9u9) ...
+Setting up curl (7.52.1-5+deb9u9) ...
+Processing triggers for ca-certificates (20161130+nmu1+deb9u1) ...
+Updating certificates in /etc/ssl/certs...
+0 added, 0 removed; done.
+Running hooks in /etc/ca-certificates/update.d...
+done.
+Processing triggers for libc-bin (2.24-11+deb9u4) ...
+Removing intermediate container 91ea77f11e0f
+ ---> 793544414df8
+Successfully built 793544414df8
+Successfully tagged solr_builder_db:latest
+WARNING: Image for service db was built because it did not already exist. To rebuild this image you must use `docker-compose build` or `docker-compose up --build`.
+Creating solr_builder_db_1 ... done
+++ sleep 20
+++ docker-compose exec -u postgres db psql -d postgres -f sql/create-dump-table.sql
+psql:sql/create-dump-table.sql:1: NOTICE:  table "entity" does not exist, skipping
+DROP TABLE
+psql:sql/create-dump-table.sql:2: NOTICE:  type "type_enum" does not exist, skipping
+DROP TYPE
+CREATE TYPE
+CREATE TABLE
+
+real   0m1.465s
+user   0m0.502s
+sys    0m0.340s
+++ docker-compose exec -u postgres db bash -c 'time curl -L https://archive.org/download/ol_dump_2019-08-31/ol_dump_2019-08-31.txt.gz | gunzip | sed --expression='\''s/\\u0000//g'\'' |  psql -d postgres --user=postgres -c "COPY entity FROM STDIN with delimiter E'\''\t'\'' escape '\''\'\'' quote E'\''\b'\'' csv" '
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100 7850M  100 7850M    0     0  3928k      0  0:34:06  0:34:06 --:--:-- 4445k
+COPY 53586852
+
+real 34m6.623s
+user 6m24.290s
+sys  3m41.340s
+
+real 34m8.568s (To download and load data)
+user 0m0.860s
+sys  0m1.154s
+++ docker-compose exec -u postgres db psql -d postgres -f sql/create-indices.sql
+ALTER TABLE
+# computer sleep 6 hrs
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+CREATE INDEX
+VACUUM
+CREATE FUNCTION
+
+  count  
+---------
+ 7082715 (7M Authors)
+(1 row)
+
+ 26184230 (26.1M Editions)
+ 18472807 (18.5M Works)
+ 53586852 (53.5M All entity types)
+ 53586852 (Matches count from Copy command for DB load)
+ 53586852 (Matches count from gzcat ol_dump.txt.gz | wc -l)
+
+real	412m26.193s (-360 = 52m to create indexes)
+user	0m1.032s
+sys	0m2.846s
+
+real	459m54.233s (-360 = 100m)
+user	1m3.942s
+sys	1m22.033s
+
