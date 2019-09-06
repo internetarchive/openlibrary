@@ -85,30 +85,7 @@ $elif (not ocaid or page.is_access_restricted()) and editions_page:
   </form>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
-  <p>
-    <a class="cta-btn cta-btn--preview" href="#bookPreview" id="bookPreviewButton">Preview</a>
-  </p>
-  <div class="hidden">
-    <div class="floater" id="bookPreview">
-      <div class="book-preview">
-        <div class="floaterHead">
-          <h2>$_('Preview Book')</h2>
-          <a class="floaterShut" data-key="book_preview" data-ol-link-track="book_preview"
-             href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
-        </div>
-        <div id="bookPreviewIframe" class="lazyIframe">
-          <iframe width="100%" height="515"
-                  data-src="https://archive.org/stream/$ocaid?wrapper=false">
-          </iframe>
-        </div>
-        <p class="learn-more">
-          <a href="https://archive.org/details/$ocaid" data-key="book_preview_learn_more"
-             data-ol-link-track="book_preview_learn_more">See more</a>
-          about this book on Archive.org
-        </p>
-      </div>
-    </div>
-  </div>
+  $:macros.BookPreview(ocaid)
 
 $if ocaid and page.is_access_restricted() and editions_page:
-  $:macros.daisy(page, enc=page.is_access_restricted(), block_name=block_name)
+  $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
