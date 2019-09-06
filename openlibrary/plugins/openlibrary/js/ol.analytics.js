@@ -19,8 +19,6 @@ export default function initAnalytics() {
                 'ea':values['action'],
                 'el':location.pathname,
                 'ev':1,
-                // startTime is defined in openlibrary\plugins\openlibrary\js\ol.js
-                // eslint-disable-next-line no-undef
                 'loadtime':(endTime.getTime() - startTime.getTime()),
                 'cache_bust':Math.random()
             });
