@@ -109,7 +109,7 @@ export class SearchBar {
             const q = this.$input.val();
             this.$input.val(SearchBar.marshalBookSearchQuery(q));
         }
-        this.$form.attr('action', this.composeSearchUrl(this.$input.val()));
+        this.$form.attr('action', SearchBar.composeSearchUrl(this.facetEndpoint, this.$input.val()));
         SearchUtils.addModeInputsToForm(this.$form, SearchUtils.mode.read());
     }
 
@@ -180,12 +180,13 @@ export class SearchBar {
 
     /**
      * Converts an already processed query into a search url
+     * @param {String} facetEndpoint
      * @param {String} q query that's ready to get passed to the search endpoint
      * @param {Boolean} [json] whether to hit the JSON endpoint
      * @param {Number} [limit] how many items to get
      */
-    composeSearchUrl(q, json, limit) {
-        let url = this.facetEndpoint;
+    static composeSearchUrl(facetEndpoint, q, json, limit) {
+        let url = facetEndpoint;
         if (json) {
             url += '.json';
         }
@@ -240,7 +241,7 @@ export class SearchBar {
         }
 
         this.$results.css('opacity', 0.5);
-        $.getJSON(this.composeSearchUrl(q, true, 10), data => {
+        $.getJSON(SearchBar.composeSearchUrl(this.facetEndpoint, q, true, 10), data => {
             const renderer = RENDER_AUTOCOMPLETE_RESULT[this.facetEndpoint];
             this.$results.css('opacity', 1);
             this.clearAutocompletionResults();
@@ -275,7 +276,7 @@ export class SearchBar {
      * @param {JQuery.Event} event
      */
     handleFacetSelectChange(event) {
-        const newFacet = this.$facetSelect.val();
+        const newFacet = event.target.value;
         // We don't want to persist advanced becaues it behaves like a button
         if (newFacet == 'advanced') {
             event.preventDefault();
@@ -287,7 +288,8 @@ export class SearchBar {
 
     /**
      * Makes changes to the UI after a change occurs to the mode
-     * (Parts of this might be dead code)
+     * Parts of this might be dead code; I don't really understand why
+     * this is necessary, so opting to leave it alone for now.
      * @param {String} newMode
      */
     handleSearchModeChange(newMode) {
