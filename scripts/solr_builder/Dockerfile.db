@@ -1,0 +1,3 @@
+FROM  postgres
+
+RUN apt-get update && apt-get -qq -y install curl
