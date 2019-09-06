@@ -6,25 +6,35 @@
 // override default anchor styles
 a.cta-btn {
   font-size: 14px;
-  color: @white !important;
+  color: @white;
   width: 100%;
   display: block;
   border: 0;
   border-radius: 5px;
   box-sizing: border-box;
   cursor: pointer;
-  text-decoration: none;
   font-family: @lucida_sans_serif-1;
   text-align: center;
   padding: 7px 20px;
   white-space: nowrap;
   background-color: @mid-grey;
   line-height: 1.5em;
+  text-decoration: none;
+
+  &:link, &:visited {
+    color: @white;
+    text-decoration: none;
+  }
   &--available {
     background-color: @primary-blue;
   }
   &--unavailable {
     background-color: @orange;
+  }
+  &--preview, &--preview:link, &--preview:visited {
+    background-color: @white;
+    border: 2px solid @primary-blue;
+    color: @primary-blue;
   }
   &__badge {
     background-color: @orange-two;
@@ -34,7 +44,11 @@ a.cta-btn {
   }
 }
 
-// Top margin to button coming after another button 
+// Top margin to button coming after another button
 .cta-btn + form input.cta-btn, .cta-btn + .cta-btn {
   margin-top: 5px;
+}
+
+.waitinglist-message {
+  white-space: nowrap;
 }

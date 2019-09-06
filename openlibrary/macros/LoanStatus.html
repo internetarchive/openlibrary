@@ -5,6 +5,7 @@ $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
 
+$ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
 $ contributor = meta_fields.get('contributor')
@@ -15,7 +16,7 @@ $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
 
-$if page.get('ocaid'):
+$if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
   $if ctx.user:
@@ -38,12 +39,16 @@ $if user_loan:
   <a href="$borrow_link" title="Borrow from $contributor"
      data-userid="$(user_loan['userid'])" id="read_ebook"
      class="cta-btn cta-btn--available">Read eBook</a>
+  $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
+  <form action="$return_url" method="post" class="waitinglist-form return-book">
+    <input type="hidden" name="action" value="return" />
+    <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
+  </form>
 
-    $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
-    <form action="$return_url" method="post" class="waitinglist-form return-book">
-      <input type="hidden" name="action" value="return" />
-      <input type="submit" value="Return eBook" class="cta-btn cta-btn--available" id="return_ebook"/>
-    </form>
+$elif ocaid and not page.is_access_restricted() and editions_page:
+  $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
+  <a href="$viewbook.replace('XXX', ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
+
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
@@ -52,52 +57,35 @@ $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   </a>
 
 $elif (availability_status == 'borrow_unavailable'):
-    $ wlsize = availability.get('num_waitlist', 0)
-    $if waiting_loan:
-        <p class="waitinglist-message">
-          $ spot = ctx.user.get_waiting_loan_for(page)['position']
-          $if spot == 1:
-              You are <strong>next</strong> on the waiting list
-          $else:
-              You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
-        </p>
-        <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
-          <input type="hidden" name="action" value="leave-waitinglist"/>
-          <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
-        </form>
-
-    $else:  
-        <p class="waitinglist-message">
-          $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
-        </p>
-        <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
-          <input type="hidden" name="action" value="join-waitinglist"/>
-          <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
-        </form>
-
-$elif page.get('ocaid') and not page.is_access_restricted() and editions_page:
-    $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-    <a href="$viewbook.replace('XXX', page.ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
-
-$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
-    <form>
-      <input type="submit" class="cta-btn" disabled value="No ebook available">
+  $ wlsize = availability.get('num_waitlist', 0)
+  $if waiting_loan:
+    <p class="waitinglist-message">
+      $ spot = ctx.user.get_waiting_loan_for(page)['position']
+      $if spot == 1:
+          You are <strong>next</strong> on the waiting list
+      $else:
+          You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
+    </p>
+    <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
+      <input type="hidden" name="action" value="leave-waitinglist"/>
+      <input type="submit" class="cta-btn" id="unwaitlist_ebook" value="Leave waiting list"/>
+    </form>
+  $else:
+    <p class="waitinglist-message">
+      $("Readers waiting for this title: %s" % wlsize if wlsize else "You'll be next in line.")
+    </p>
+    <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
+      <input type="hidden" name="action" value="join-waitinglist"/>
+      <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
     </form>
 
+$elif (not ocaid or page.is_access_restricted()) and editions_page:
+  <form>
+    <input type="submit" class="cta-btn" disabled value="No ebook available">
+  </form>
 
-$if editions_page and page.get('ocaid'):
-  $:macros.daisy(page, block_name=block_name)
+$if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
+  $:macros.BookPreview(ocaid)
 
-  $# If waitlisted, show other possible editions after daisy download link
-  $if (availability_status == 'borrow_unavailable'):
-      $ checkedout = current_and_available_loans[0] if current_and_available_loans else []
-      $if checkedout and not user_loan:
-        $if work and work.edition_count > 1:
-          <div class="check-availability">
-            <p>
-              Other editions of this book may be available:
-            </p>
-            <p class="check-other-editions">
-              <a data-ol-link-track="EditionPageCheckOtherEditionsButton" href="$work.url()">Check Other Editions</a>
-            </p>
-          </div>
+$if ocaid and page.is_access_restricted():
+  $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
