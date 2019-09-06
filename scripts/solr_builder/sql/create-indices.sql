@@ -31,6 +31,7 @@ END; $$
 LANGUAGE plpgsql;
 
 -- Count all types and validate against download
+-- TODO: Turn off table headers and add labels to counts
 SELECT COUNT(*) FROM entity WHERE etype = CAST('/type/author' AS type_enum);
 SELECT COUNT(*) FROM entity WHERE etype = CAST('/type/edition' AS type_enum);
 SELECT COUNT(*) FROM entity WHERE etype = CAST('/type/work' AS type_enum);
