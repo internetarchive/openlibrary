@@ -1,0 +1,28 @@
+$def with (ocaid)
+
+<a class="cta-btn cta-btn--preview" href="#bookPreview"
+   id="bookPreviewButton">$_('Preview')</a>
+<div class="hidden">
+  <div class="floater" id="bookPreview">
+    <div class="book-preview">
+      <div class="floaterHead">
+        <h2>$_('Preview Book')</h2>
+        <a class="floaterShut" data-key="book_preview" data-ol-link-track="book_preview"
+           href="javascript:;" onclick="\$.fn.colorbox.close();"
+           title="$_('Close')">&times;<span class="shift">$_("Close")</span></a>
+      </div>
+      <div id="bookPreviewIframe" class="lazyIframe">
+        <iframe width="100%" height="515"
+                data-src="https://archive.org/stream/$ocaid?wrapper=false">
+        </iframe>
+      </div>
+      <p class="learn-more">
+        <a href="https://archive.org/details/$ocaid"
+           data-key="book_preview_learn_more"
+           data-ol-link-track="book_preview_learn_more">
+          $("See more about this book on Archive.org")
+        </a>
+      </p>
+    </div>
+  </div>
+</div>
