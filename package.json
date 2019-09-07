@@ -37,7 +37,7 @@
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "18.8KB"
+      "maxSize": "18.85KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -45,7 +45,7 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "18.9KB"
+      "maxSize": "18.95KB"
     },
     {
       "path": "static/build/page-subject.css",
@@ -53,7 +53,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "18.7KB"
+      "maxSize": "18.9KB"
     }
   ],
   "devDependencies": {
