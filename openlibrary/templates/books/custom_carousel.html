@@ -1,16 +1,19 @@
 $def with(books=[], title="", url="", key="", min_books=1, load_more=None, test=False)
 
 $def render_carousel_cover(book, lazy):
+  $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
+  $ cover_host = '//covers.openlibrary.org'
   $ url = book.get('key') or book.url
   $ title = book.title
+
   $if book.get('cover_url'):
     $ cover_url = book.get('cover_url')
   $elif book.get('cover_id'):
     $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
   $elif book.get('ia'):
-    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
+    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], False)
   $else:
-     $ cover_url = fallback_cover
+     $ cover_url = False
   $if book.get('authors'):
     $ author_names = [author.name for author in book.authors]
     $ byline = ' by ' + ', '.join(author_names)
@@ -43,10 +46,19 @@ $def render_carousel_cover(book, lazy):
   <div class="book carousel__item">
     <div class="book-cover">
       <a href="$(url)">
-        <img class="bookcover"
-          width="130" height="200"
-          title="$('%s%s'%(title,byline))"
-          $img_attr="$(cover_url)"/>
+        $if cover_url:
+          <img class="bookcover"
+            width="130" height="200"
+            title="$('%s%s'%(title,byline))"
+            $img_attr="$(cover_url)"/>
+        $else:
+          <div class="carousel__item__blankcover">
+              <div>
+                  <div>$:macros.TruncateString(title, 70)
+                    <em>$:macros.TruncateString(', '.join(author_names), 30)</em>
+                  </div>
+              </div>
+          </div>
       </a>
     </div>
     $if cta:

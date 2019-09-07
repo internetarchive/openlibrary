@@ -29,15 +29,15 @@
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "7.2KB"
+      "maxSize": "7.3KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "18.9KB"
+      "maxSize": "19.0KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "18.85KB"
+      "maxSize": "19.0KB"
     },
     {
       "path": "static/build/page-home.css",
@@ -45,11 +45,11 @@
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "18.95KB"
+      "maxSize": "19.1KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "6.75KB"
+      "maxSize": "6.9KB"
     },
     {
       "path": "static/build/page-user.css",
