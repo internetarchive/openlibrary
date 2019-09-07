@@ -26,6 +26,11 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  a,
+  a:link {
+    text-decoration: none;
+  }
+
   &__item {
     float: left;
     height: 100%;
@@ -113,4 +118,27 @@
     overflow: hidden;
   }
 }
+
+@padding-blank-cover: 15px;
+@height-blank-cover: 200px - (@padding-blank-cover * 2);
+.carousel__item__blankcover {
+  position: relative;
+  padding: @padding-blank-cover;
+  text-align: center;
+  background: @lighter-grey;
+  font-size: 1em;
+
+  > div {
+    border: 2px solid @white;
+    height: @height-blank-cover;
+    margin: 0 auto;
+  }
+
+  em {
+    color: hsl(0,0%,40%);
+    padding: 4px 4px 0;
+    font-size: 0.6875em;
+  }
+}
+
 @import (less) "category-item.less";
