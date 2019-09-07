@@ -10,15 +10,12 @@ $else:
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
 
-$ isbn = (page.isbn_10 and page.isbn_10[0]) or (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-$ isbn_13 = (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if page.isbn_10:
-    $ isbn_10 = page.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = (page.isbn_13 and page.isbn_13[0]).replace("-", "") or ""
+$ isbn_10 = (page.isbn_10 and page.isbn_10[0]).replace("-", "") or ""
+$if isbn_13 and not isbn_10:
+  $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn = isbn_10 or isbn_13
 
 $ asin = None
 $ scribd = None
@@ -65,26 +62,11 @@ $if isbn_10 and not asin:
 
         $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
-        $if isbn or asin or scribd:
-          <hr>
-          <div class="cta-section">
-            <p class="cta-section-title">Buy this book</p>
-            <div class="panel">
-              $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
-            </div>
-          </div>
-
-        $else:
-          <hr>
-          <div class="cta-section">
-              <p class="cta-section-title">Buy this book</p>
-              <div class="panel">
-                  $if page.is_fake_record():
-                      <p class="gray"><span id="isbnadd">Add an ISBN</span> in order to link to booksellers</p>
-                  $else:
-                      <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> in order to link to booksellers</p>
-              </div>
-          </div>
+        <hr>
+        <div class="cta-section">
+          <p class="cta-section-title">Buy this book</p>
+          $:macros.AffiliateLinks(page, {'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
+        </div>
 
         $:macros.SocialShare(page)
 
