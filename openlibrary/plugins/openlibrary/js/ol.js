@@ -332,14 +332,6 @@ export default function init(){
         renderInstantSearchResults(val);
     }, 300, false));
 
-    $('textarea.markdown').focus(function(){
-        $('.wmd-preview').show();
-        if ($('#prevHead').length == 0) {
-            $('.wmd-preview').before('<h3 id="prevHead" style="margin:15px 0 10px;padding:0;">Preview</h3>');
-        }
-    });
-
-
     initReadingListFeature();
     initBorrowAndReadLinks();
     initPreviewButton();
