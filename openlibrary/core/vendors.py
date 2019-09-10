@@ -14,7 +14,7 @@ from openlibrary import accounts
 
 
 BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
-amazon_full_date = re.compile('\d{4}-\d\d-\d\d')
+AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
 
 
 @public
@@ -113,7 +113,7 @@ def _serialize_amazon_product(product):
 
     if product.publication_date:
         data['publish_date'] = product._safe_get_element_text('ItemAttributes.PublicationDate')
-        if re.match(amazon_full_date, data['publish_date']):
+        if re.match(AMAZON_FULL_DATE_RE, data['publish_date']):
             data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
 
     if product.binding:
