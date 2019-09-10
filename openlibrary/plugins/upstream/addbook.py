@@ -196,12 +196,11 @@ class addbook(delegate.page):
 
     def find_matches(self, i):
         """
-        Tries to find an edition or a work or multiple works that match the given input data.
+        Tries to find an edition, or work, or multiple work candidates that match the given input data.
 
         Case#1: No match. None is returned.
-        Case#2: Work match but not editon. Work is returned.
+        Case#2: Work match but not edition. Work is returned.
         Case#3: Work match and edition match. Edition is returned
-        Case#3A: Work match and multiple edition match. List of works is returned
         Case#4: Multiple work match. List of works is returned.
 
         :param web.utils.Storage i: addbook user supplied formdata
@@ -216,14 +215,14 @@ class addbook(delegate.page):
 
         # work_key is set to none-of-these when user selects none-of-these link.
         if work_key == 'none-of-these':
-            return None
+            return None  # Case 1, from check page
 
         work = work_key and web.ctx.site.get(work_key)
         if work:
             edition = self.try_edition_match(work=work,
                 publisher=i.publisher, publish_year=i.publish_year,
                 id_name=i.id_name, id_value=i.id_value)
-            return edition or work
+            return edition or work  # Case 3 or 2, from check page
 
         edition = self.try_edition_match(
             title=i.title,
@@ -234,18 +233,19 @@ class addbook(delegate.page):
             id_value=i.id_value)
 
         if edition:
-            return edition
+            return edition  # Case 2 or 3 or 4, from add page
 
         solr = get_solr()
         author_key = i.author_key and i.author_key.split("/")[-1]
+        # Less exact solr search than try_edition_match(), search by supplied title and author only.
         result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
 
         if result.num_found == 0:
-            return None
+            return None  # Case 1, from add page
         elif result.num_found == 1:
-            return result.docs[0]
+            return result.docs[0]  # Case 2
         else:
-            return result.docs
+            return result.docs  # Case 4
 
     def extract_year(self, value):
         """
@@ -302,9 +302,10 @@ class addbook(delegate.page):
         result = solr.select(q, doc_wrapper=make_work, q_op="AND")
 
         if len(result.docs) > 1:
+            # found multiple work matches
             return result.docs
         elif len(result.docs) == 1:
-            # found one edition match
+            # found one work match
             work = result.docs[0]
             publisher = publisher and fuzzy_find(publisher, work.publisher,
                                                  stopwords=("publisher", "publishers", "and"))
@@ -321,6 +322,7 @@ class addbook(delegate.page):
                 if id_value and id_name in mapping:
                     if not id_name in e or id_value not in e[id_name]:
                         continue
+                # return the first good likely matching Edition
                 return e
 
     def work_match(self, saveutil, work, i):
