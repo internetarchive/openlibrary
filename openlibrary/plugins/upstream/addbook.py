@@ -157,9 +157,20 @@ class addbook(delegate.page):
                     'Please <a href="javascript:history.back()">go back</a> and try again.'
                 )
 
+        match = self.find_matches(i)
+
         saveutil = DocSaveHelper()
 
-        match = self.find_matches(saveutil, i)
+        if i.author_key == '__new__':
+            if i._test != 'true':
+                a = new_doc('/type/author', name=i.author_name)
+                comment = utils.get_message('comment_new_author')
+                # Save, but don't commit, new author.
+                # It will be committed when the Edition is created below.
+                saveutil.save(a)
+                i.author_key = a.key
+            # since new author is created it must be a new record
+            match = None
 
         if i._test == 'true' and not isinstance(match, list):
             if match:
@@ -183,7 +194,7 @@ class addbook(delegate.page):
             # no match
             return self.no_match(saveutil, i)
 
-    def find_matches(self, saveutil, i):
+    def find_matches(self, i):
         """
         Tries to find an edition or a work or multiple works that match the given input data.
 
@@ -193,8 +204,7 @@ class addbook(delegate.page):
         Case#3A: Work match and multiple edition match. List of works is returned
         Case#4: Multiple work match. List of works is returned.
 
-        :param DocSaveHelper saveutil:
-        :param i web.utils.Storage: addbook user supplied form data
+        :param web.utils.Storage i: addbook user supplied formdata
         :rtype: None or list or Work or Edition
         :return: None or Work or Edition or list of Works that are likely matches.
         """
@@ -214,14 +224,6 @@ class addbook(delegate.page):
                 publisher=i.publisher, publish_year=i.publish_year,
                 id_name=i.id_name, id_value=i.id_value)
             return edition or work
-
-        if i.author_key == "__new__":
-            a = new_doc("/type/author", name=i.author_name)
-            comment = utils.get_message("comment_new_author")
-            saveutil.save(a)
-            i.author_key = a.key
-            # since new author is created it must be a new record
-            return None
 
         edition = self.try_edition_match(
             title=i.title,
