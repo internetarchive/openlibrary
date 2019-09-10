@@ -364,7 +364,8 @@ class addbook(delegate.page):
         :param web.utils.Storage i:
         :rtype: None
         """
-        # TODO: Handle add-new-author
+        # Any new author has been created and added to
+        # saveutil, and author_key added to i
         work = new_doc("/type/work",
             title=i.title,
             authors=[{"author": {"key": i.author_key}}]
