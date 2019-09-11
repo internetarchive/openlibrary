@@ -139,8 +139,18 @@ def find_matching_work(e):
                 assert w.type.key == '/type/work'
                 return wkey
 
+
 def build_author_reply(author_in, edits):
-    # modifies edits
+    """
+    Steps through an import record's authors, and creates new records,
+    adding them to 'edits' to be saved later.
+
+    :param list author_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates
+    :param list edits: list of Things to be saved later. Is modfied by this method.
+    :rtype: tuple
+    :return: (list, list) authors [{"key": "/author/OL..A"}, ...], author_reply the JSON status response to return for each author
+    """
+
     authors = []
     author_reply = []
     for a in author_in:
@@ -155,6 +165,7 @@ def build_author_reply(author_in, edits):
             'status': ('created' if new_author else 'modified'),
         })
     return (authors, author_reply)
+
 
 def new_work(edition, rec, cover_id=None):
     """
@@ -463,8 +474,9 @@ def add_db_name(rec):
 
 def load_data(rec, account=None):
     """
-    Adds a new Edition to Open Library. Creates a new Work if required,
-    otherwise associates the new Edition with an existing Work.
+    Adds a new Edition to Open Library. Checks for existing Works.
+    Creates a new Work, and Author, if required,
+    otherwise associates the new Edition with the existing Work.
 
     :param dict rec: Edition record to add (no further checks at this point)
     :rtype: dict
@@ -477,9 +489,11 @@ def load_data(rec, account=None):
         {
             "success": True,
             "work": {"key": <key>, "status": "created" | "modified" | "matched"},
-            "edition": {"key": <key>, "status": "created"}
+            "edition": {"key": <key>, "status": "created"},
+            "authors": [{"status": "modified", "name": "John Smith", "key": <key>}, ...]
         }
     """
+
     cover_url = None
     if 'cover' in rec:
         cover_url = rec['cover']
@@ -499,7 +513,7 @@ def load_data(rec, account=None):
         cover_id = add_cover(cover_url, ekey, account=account)
         edition['covers'] = [cover_id]
 
-    edits = []
+    edits = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits

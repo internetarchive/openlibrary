@@ -23,6 +23,7 @@ def test_author_dates_match():
 def test_flip_name():
     assert flip_name('Smith, John.') == 'John Smith'
     assert flip_name('Smith, J.') == 'J. Smith'
+    assert flip_name('No comma.') == 'No comma'
 
 def test_pick_first_date():
     assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}

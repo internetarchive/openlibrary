@@ -30,9 +30,11 @@ re_year = re.compile(r'\b(\d{4})\b')
 
 re_brackets = re.compile('^(.+)\[.*?\]$')
 
+
 def key_int(rec):
     # extract the number from a key like /a/OL1234A
     return int(web.numify(rec['key']))
+
 
 def author_dates_match(a, b):
     # check if the dates of two authors
@@ -50,8 +52,18 @@ def author_dates_match(a, b):
         return False
     return True
 
+
 def flip_name(name):
-    # strip end dots like this: "Smith, John." but not like this: "Smith, J."
+    """
+    Flip author name about the comma, stripping the comma, and removing non
+    abbreviated end dots. Returns name with end dot stripped if no comma+space found.
+    The intent is to convert a Library indexed name to natural name order.
+
+    :param str name: e.g. "Smith, John." or "Smith, J."
+    :rtype: str
+    :return: e.g. "John Smith" or "J. Smith"
+    """
+
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
@@ -60,6 +72,7 @@ def flip_name(name):
         return name
     m = re_marc_name.match(name)
     return m.group(2) + ' ' + m.group(1)
+
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
