@@ -292,8 +292,8 @@ def _get_betterworldbooks_metadata(isbn):
             qlt = 'used'
 
         if new_qty and new_qty[0] and new_qty[0] != '0':
-            _price = used_price[0] if used_price else None
-            if price and _price and _price < price:
+            _price = new_price[0] if new_price else None
+            if _price and (not price or _price < price):
                 price = _price
                 qlt = 'new'
 
