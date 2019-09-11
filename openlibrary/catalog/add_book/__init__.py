@@ -50,6 +50,37 @@ import six
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
 
+
+type_map = {
+    'description': 'text',
+    'notes': 'text',
+    'number_of_pages': 'int',
+}
+
+
+class CoverNotSaved(Exception):
+    def __init__(self, f):
+        self.f = f
+    def __str__(self):
+        return "coverstore responded with: '%s'" % self.f
+
+
+class RequiredField(Exception):
+    def __init__(self, f):
+        self.f = f
+    def __str__(self):
+        return "missing required field: '%s'" % self.f
+
+
+# don't use any of these as work titles
+bad_titles = set(('Publications', 'Works. English', 'Missal', 'Works', 'Report', \
+    'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence', \
+    'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
+    'The Novels', 'Laws, etc'))
+
+subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ]
+
+
 def strip_accents(s):
     """http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string
     """
@@ -69,37 +100,23 @@ def normalize(s): # strip non-alphanums and truncate at 25 chars
     norm = re.sub(r' ?\(.*\)', '', norm)
     return norm.replace(' ', '')[:25]
 
-type_map = {
-    'description': 'text',
-    'notes': 'text',
-    'number_of_pages': 'int',
-}
 
-class CoverNotSaved(Exception):
-    def __init__(self, f):
-        self.f = f
-    def __str__(self):
-        return "coverstore responded with: '%s'" % self.f
+def is_redirect(thing):
+    """
+    :param Thing thing:
+    :rtype: bool
+    """
+    if not thing:
+        return False
+    return thing.type.key == '/type/redirect'
 
-class RequiredField(Exception):
-    def __init__(self, f):
-        self.f = f
-    def __str__(self):
-        return "missing required field: '%s'" % self.f
-
-# don't use any of these as work titles
-bad_titles = set(('Publications', 'Works. English', 'Missal', 'Works', 'Report', \
-    'Letters', 'Calendar', 'Bulletin', 'Plays', 'Sermons', 'Correspondence', \
-    'Bill', 'Bills', 'Selections', 'Selected works', 'Selected works. English', \
-    'The Novels', 'Laws, etc'))
-
-subject_fields = ['subjects', 'subject_places', 'subject_times', 'subject_people' ]
 
 def get_title(e):
     if not e.get('work_titles'):
         return e['title']
     wt = e['work_titles'][0]
     return e['title'] if wt in bad_titles else e['title']
+
 
 def find_matching_work(e):
     norm_title = mk_norm(get_title(e))
@@ -166,6 +183,283 @@ def new_work(edition, rec, cover_id=None):
         w['covers'] = edition['covers']
     w['key'] = wkey
     return w
+
+
+def add_cover(cover_url, ekey, account=None):
+    """
+    Adds a cover to coverstore and returns the cover id.
+
+    :param str cover_url: URL of cover image
+    :param str ekey: Edition key /book/OL..M
+    :rtype: int
+    :return: Cover id
+    """
+    olid = ekey.split("/")[-1]
+    coverstore_url = config.get('coverstore_url').rstrip('/')
+    upload_url = coverstore_url + '/b/upload2'
+    if upload_url.startswith("//"):
+        upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
+    user = account or accounts.get_current_user()
+    params = {
+        'author': user.get('key') or user.get('_key'),
+        'data': None,
+        'source_url': cover_url,
+        'olid': olid,
+        'ip': web.ctx.ip,
+    }
+    reply = None
+    for attempt in range(10):
+        try:
+            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+        except IOError:
+            sleep(2)
+            continue
+        body = res.read()
+        if res.getcode() == 500:
+            raise CoverNotSaved(body)
+        if body not in ['', 'None']:
+            reply = json.loads(body)
+            if res.getcode() == 200 and 'id' in reply:
+                break
+        sleep(2)
+    if not reply or reply.get('message') == 'Invalid URL':
+        return
+    cover_id = int(reply['id'])
+    return cover_id
+
+def get_ia_item(ocaid):
+    import internetarchive as ia
+    cfg = {'general': {'secure': False}}
+    item = ia.get_item(ocaid, config=cfg)
+    return item
+
+def modify_ia_item(item, data):
+    access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
+    secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
+    return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
+
+def create_ol_subjects_for_ocaid(ocaid, subjects):
+    item = get_ia_item(ocaid)
+    openlibrary_subjects = copy(item.metadata.get('openlibrary_subject')) or []
+
+    if not isinstance(openlibrary_subjects, list):
+        openlibrary_subjects = [openlibrary_subjects]
+
+    for subject in subjects:
+        if subject not in openlibrary_subjects:
+            openlibrary_subjects.append(subject)
+
+    r = modify_ia_item(item, {'openlibrary_subject': openlibrary_subjects})
+    if r.status_code != 200:
+        return ('%s failed: %s' % (item.identifier, r.content))
+    else:
+        return ("success for %s" % item.identifier)
+
+def update_ia_metadata_for_ol_edition(edition_id):
+    """edition_id is of the form OL...M"""
+
+    data = {'error': 'No qualifying edition'}
+    if edition_id:
+        ed = web.ctx.site.get('/books/%s' % edition_id)
+        if ed.ocaid:
+            work = ed.works[0] if ed.get('works') else None
+            if work and work.key:
+                item = get_ia_item(ed.ocaid)
+                work_id = work.key.split('/')[2]
+                r = modify_ia_item(item, {
+                    'openlibrary_work': work_id,
+                    'openlibrary_edition': edition_id
+                })
+                if r.status_code != 200:
+                    data = {'error': '%s failed: %s' % (item.identifier, r.content)}
+                else:
+                    data = item.metadata
+    return data
+
+
+def isbns_from_record(rec):
+    """
+    Returns a list of all isbns from the various possible isbn fields.
+
+    :param dict rec: Edition import record
+    :rtype: list
+    """
+    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
+    isbns = [isbn.replace('-', '').strip() for isbn in isbns]
+    return isbns
+
+
+def build_pool(rec):
+    """
+    Searches for existing edition matches on title and bibliographic keys.
+
+    :param dict rec: Edition record
+    :rtype: dict
+    :return: {<identifier: title | isbn | lccn etc>: [list of /books/OL..M keys that match rec on <identifier>]}
+    """
+    pool = defaultdict(set)
+    match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
+
+    # Find records with matching fields
+    for field in match_fields:
+        pool[field] = set(editions_matched(rec, field))
+
+    # update title pool with normalized title matches
+    pool['title'].update(set(editions_matched(rec, 'normalized_title_', normalize(rec['title']))))
+
+    # Find records with matching ISBNs
+    isbns = isbns_from_record(rec)
+    if isbns:
+        pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
+
+    return dict((k, list(v)) for k, v in pool.iteritems() if v)
+
+
+def early_exit(rec):
+    """
+    Attempts to quickly find an existing item match using bibliographic keys.
+
+    :param dict rec: Edition record
+    :rtype: str|bool
+    :return: First key matched of format "/books/OL..M" or False if no match found.
+    """
+
+    if 'openlibrary' in rec:
+        return '/books/' + rec['openlibrary']
+
+    ekeys = editions_matched(rec, 'ocaid')
+    if ekeys:
+        return ekeys[0]
+
+    isbns = isbns_from_record(rec)
+    if isbns:
+        ekeys = editions_matched(rec, 'isbn_', isbns)
+        if ekeys:
+            return ekeys[0]
+
+    # only searches for the first value from these lists
+    for f in 'source_records', 'oclc_numbers', 'lccn':
+        if rec.get(f):
+            ekeys = editions_matched(rec, f, rec[f][0])
+            if ekeys:
+                return ekeys[0]
+    return False
+
+
+def editions_matched(rec, key, value=None):
+    """
+    Search OL for editions matching record's 'key' value.
+
+    :param dict rec: Edition import record
+    :param str key: Key to search on
+    :param list|str value: Value or Values to use, overriding record values
+    :rtpye: list
+    :return: List of edition keys ["/books/OL..M",]
+    """
+    if value is None and key not in rec:
+        return []
+
+    if value is None:
+        value = rec[key]
+    q = {
+        'type':'/type/edition',
+        key: value
+    }
+    ekeys = list(web.ctx.site.things(q))
+    return ekeys
+
+
+def find_exact_match(rec, edition_pool):
+    """
+    Returns an edition key match for rec from edition_pool
+    Only returns a key if all values match?
+
+    :param dict rec: Edition import record
+    :param dict edition_pool:
+    :rtype: str|bool
+    :return: edition key
+    """
+    seen = set()
+    for field, editions in edition_pool.iteritems():
+        for ekey in editions:
+            if ekey in seen:
+                continue
+            seen.add(ekey)
+            existing = web.ctx.site.get(ekey)
+            match = True
+            for k, v in rec.items():
+                if k == 'source_records':
+                    continue
+                existing_value = existing.get(k)
+                if not existing_value:
+                    continue
+                if k == 'languages':
+                     existing_value = [str(re_lang.match(l.key).group(1)) for l in existing_value]
+                if k == 'authors':
+                     existing_value = [dict(a) for a in existing_value]
+                     for a in existing_value:
+                         del a['type']
+                         del a['key']
+                     for a in v:
+                        if 'entity_type' in a:
+                            del a['entity_type']
+                        if 'db_name' in a:
+                            del a['db_name']
+
+                if existing_value != v:
+                    match = False
+                    break
+            if match:
+                return ekey
+    return False
+
+
+def find_match(e1, edition_pool):
+    """
+    Find the best match for e1 in edition_pool and return its key.
+    :param dict e1: the new edition we are trying to match
+    :param list edition_pool: list of possible edition matches
+    :rtype: str|None
+    :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
+    """
+    seen = set()
+    for k, v in edition_pool.iteritems():
+        for edition_key in v:
+            if edition_key in seen:
+                continue
+            thing = None
+            found = True
+            while not thing or is_redirect(thing):
+                seen.add(edition_key)
+                thing = web.ctx.site.get(edition_key)
+                if thing is None:
+                    found = False
+                    break
+                if is_redirect(thing):
+                    edition_key = thing['location']
+            if not found:
+                continue
+            if try_merge(e1, edition_key, thing):
+                return edition_key
+
+
+def add_db_name(rec):
+    """
+    db_name = Author name followed by dates.
+    adds 'db_name' in place for each author.
+    """
+    if 'authors' not in rec:
+        return
+
+    for a in rec['authors']:
+        date = None
+        if 'date' in a:
+            assert 'birth_date' not in a and 'death_date' not in a
+            date = a['date']
+        elif 'birth_date' in a or 'death_date' in a:
+            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
+        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
+
 
 def load_data(rec, account=None):
     """
@@ -260,282 +554,6 @@ def load_data(rec, account=None):
     reply['work'] = {'key': wkey, 'status': work_state}
     return reply
 
-def is_redirect(thing):
-    """
-    :param Thing thing:
-    :rtype: bool
-    """
-    if not thing:
-        return False
-    return thing.type.key == '/type/redirect'
-
-def find_match(e1, edition_pool):
-    """
-    Find the best match for e1 in edition_pool and return its key.
-    :param dict e1: the new edition we are trying to match
-    :param list edition_pool: list of possible edition matches
-    :rtype: str|None
-    :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
-    """
-    seen = set()
-    for k, v in edition_pool.iteritems():
-        for edition_key in v:
-            if edition_key in seen:
-                continue
-            thing = None
-            found = True
-            while not thing or is_redirect(thing):
-                seen.add(edition_key)
-                thing = web.ctx.site.get(edition_key)
-                if thing is None:
-                    found = False
-                    break
-                if is_redirect(thing):
-                    edition_key = thing['location']
-            if not found:
-                continue
-            if try_merge(e1, edition_key, thing):
-                return edition_key
-
-def isbns_from_record(rec):
-    """
-    Returns a list of all isbns from the various possible isbn fields.
-
-    :param dict rec: Edition import record
-    :rtype: list
-    """
-    isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
-    isbns = [isbn.replace('-', '').strip() for isbn in isbns]
-    return isbns
-
-def build_pool(rec):
-    """
-    Searches for existing edition matches on title and bibliographic keys.
-
-    :param dict rec: Edition record
-    :rtype: dict
-    :return: {<identifier: title | isbn | lccn etc>: [list of /books/OL..M keys that match rec on <identifier>]}
-    """
-    pool = defaultdict(set)
-    match_fields = ('title', 'oclc_numbers', 'lccn', 'ocaid')
-
-    # Find records with matching fields
-    for field in match_fields:
-        pool[field] = set(editions_matched(rec, field))
-
-    # update title pool with normalized title matches
-    pool['title'].update(set(editions_matched(rec, 'normalized_title_', normalize(rec['title']))))
-
-    # Find records with matching ISBNs
-    isbns = isbns_from_record(rec)
-    if isbns:
-        pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
-
-    return dict((k, list(v)) for k, v in pool.iteritems() if v)
-
-def add_db_name(rec):
-    """
-    db_name = Author name followed by dates.
-    adds 'db_name' in place for each author.
-    """
-    if 'authors' not in rec:
-        return
-
-    for a in rec['authors']:
-        date = None
-        if 'date' in a:
-            assert 'birth_date' not in a and 'death_date' not in a
-            date = a['date']
-        elif 'birth_date' in a or 'death_date' in a:
-            date = a.get('birth_date', '') + '-' + a.get('death_date', '')
-        a['db_name'] = ' '.join([a['name'], date]) if date else a['name']
-
-def editions_matched(rec, key, value=None):
-    """
-    Search OL for editions matching record's 'key' value.
-
-    :param dict rec: Edition import record
-    :param str key: Key to search on
-    :param list|str value: Value or Values to use, overriding record values
-    :rtpye: list
-    :return: List of edition keys ["/books/OL..M",]
-    """
-    if value is None and key not in rec:
-        return []
-
-    if value is None:
-        value = rec[key]
-    q = {
-        'type':'/type/edition',
-        key: value
-    }
-    ekeys = list(web.ctx.site.things(q))
-    return ekeys
-
-def early_exit(rec):
-    """
-    Attempts to quickly find an existing item match using bibliographic keys.
-
-    :param dict rec: Edition record
-    :rtype: str|bool
-    :return: First key matched of format "/books/OL..M" or False if no match found.
-    """
-
-    if 'openlibrary' in rec:
-        return '/books/' + rec['openlibrary']
-
-    ekeys = editions_matched(rec, 'ocaid')
-    if ekeys:
-        return ekeys[0]
-
-    isbns = isbns_from_record(rec)
-    if isbns:
-        ekeys = editions_matched(rec, 'isbn_', isbns)
-        if ekeys:
-            return ekeys[0]
-
-    # only searches for the first value from these lists
-    for f in 'source_records', 'oclc_numbers', 'lccn':
-        if rec.get(f):
-            ekeys = editions_matched(rec, f, rec[f][0])
-            if ekeys:
-                return ekeys[0]
-    return False
-
-def find_exact_match(rec, edition_pool):
-    """
-    Returns an edition key match for rec from edition_pool
-    Only returns a key if all values match?
-
-    :param dict rec: Edition import record
-    :param dict edition_pool:
-    :rtype: str|bool
-    :return: edition key
-    """
-    seen = set()
-    for field, editions in edition_pool.iteritems():
-        for ekey in editions:
-            if ekey in seen:
-                continue
-            seen.add(ekey)
-            existing = web.ctx.site.get(ekey)
-            match = True
-            for k, v in rec.items():
-                if k == 'source_records':
-                    continue
-                existing_value = existing.get(k)
-                if not existing_value:
-                    continue
-                if k == 'languages':
-                     existing_value = [str(re_lang.match(l.key).group(1)) for l in existing_value]
-                if k == 'authors':
-                     existing_value = [dict(a) for a in existing_value]
-                     for a in existing_value:
-                         del a['type']
-                         del a['key']
-                     for a in v:
-                        if 'entity_type' in a:
-                            del a['entity_type']
-                        if 'db_name' in a:
-                            del a['db_name']
-
-                if existing_value != v:
-                    match = False
-                    break
-            if match:
-                return ekey
-    return False
-
-def add_cover(cover_url, ekey, account=None):
-    """
-    Adds a cover to coverstore and returns the cover id.
-
-    :param str cover_url: URL of cover image
-    :param str ekey: Edition key /book/OL..M
-    :rtype: int
-    :return: Cover id
-    """
-    olid = ekey.split("/")[-1]
-    coverstore_url = config.get('coverstore_url').rstrip('/')
-    upload_url = coverstore_url + '/b/upload2'
-    if upload_url.startswith("//"):
-        upload_url = "{0}:{1}".format(web.ctx.get("protocol", "http"), upload_url)
-    user = account or accounts.get_current_user()
-    params = {
-        'author': user.get('key') or user.get('_key'),
-        'data': None,
-        'source_url': cover_url,
-        'olid': olid,
-        'ip': web.ctx.ip,
-    }
-    reply = None
-    for attempt in range(10):
-        try:
-            res = urllib.urlopen(upload_url, urllib.urlencode(params))
-        except IOError:
-            sleep(2)
-            continue
-        body = res.read()
-        if res.getcode() == 500:
-            raise CoverNotSaved(body)
-        if body not in ['', 'None']:
-            reply = json.loads(body)
-            if res.getcode() == 200 and 'id' in reply:
-                break
-        sleep(2)
-    if not reply or reply.get('message') == 'Invalid URL':
-        return
-    cover_id = int(reply['id'])
-    return cover_id
-
-def get_ia_item(ocaid):
-    import internetarchive as ia
-    cfg = {'general': {'secure': False}}
-    item = ia.get_item(ocaid, config=cfg)
-    return item
-
-def modify_ia_item(item, data):
-    access_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_key']
-    secret_key = lending.config_ia_ol_metadata_write_s3 and lending.config_ia_ol_metadata_write_s3['s3_secret']
-    return item.modify_metadata(data, access_key=access_key, secret_key=secret_key)
-
-def create_ol_subjects_for_ocaid(ocaid, subjects):
-    item = get_ia_item(ocaid)
-    openlibrary_subjects = copy(item.metadata.get('openlibrary_subject')) or []
-
-    if not isinstance(openlibrary_subjects, list):
-        openlibrary_subjects = [openlibrary_subjects]
-
-    for subject in subjects:
-        if subject not in openlibrary_subjects:
-            openlibrary_subjects.append(subject)
-
-    r = modify_ia_item(item, {'openlibrary_subject': openlibrary_subjects})
-    if r.status_code != 200:
-        return ('%s failed: %s' % (item.identifier, r.content))
-    else:
-        return ("success for %s" % item.identifier)
-
-def update_ia_metadata_for_ol_edition(edition_id):
-    """edition_id is of the form OL...M"""
-
-    data = {'error': 'No qualifying edition'}
-    if edition_id:
-        ed = web.ctx.site.get('/books/%s' % edition_id)
-        if ed.ocaid:
-            work = ed.works[0] if ed.get('works') else None
-            if work and work.key:
-                item = get_ia_item(ed.ocaid)
-                work_id = work.key.split('/')[2]
-                r = modify_ia_item(item, {
-                    'openlibrary_work': work_id,
-                    'openlibrary_edition': edition_id
-                })
-                if r.status_code != 200:
-                    data = {'error': '%s failed: %s' % (item.identifier, r.content)}
-                else:
-                    data = item.metadata
-    return data
 
 def load(rec, account=None):
     """Given a record, tries to add/match that edition in the system.
@@ -545,6 +563,10 @@ def load(rec, account=None):
 
         * title
         * source_records
+
+    :param dict rec: Edition record to add
+    :rtype: dict
+    :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
     if not rec.get('title'):
         raise RequiredField('title')
