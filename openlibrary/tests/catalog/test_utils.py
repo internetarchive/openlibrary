@@ -91,7 +91,8 @@ def test_remove_trailing_dot():
         ('Test', 'Test'),
         ('Test.', 'Test'),
         ('Test J.', 'Test J.'),
-        ('Test...', 'Test...')
+        ('Test...', 'Test...'),
+        #('Test Jr.', 'Test Jr.'),
     ]
     for input, expect in data:
         output = remove_trailing_dot(input)
