@@ -127,8 +127,8 @@ def find_matching_work(e):
     :rtype: None or str
     :return: the matched work key "/works/OL..W" if found
     """
-    norm_title = mk_norm(get_title(e))
 
+    norm_title = mk_norm(get_title(e))
     seen = set()
     for a in e['authors']:
         q = {
@@ -275,7 +275,14 @@ def create_ol_subjects_for_ocaid(ocaid, subjects):
         return ("success for %s" % item.identifier)
 
 def update_ia_metadata_for_ol_edition(edition_id):
-    """edition_id is of the form OL...M"""
+    """
+    Writes the Open Library Edition and Work id to a linked
+    archive.org item.
+
+    :param str edition_id: of the form OL..M
+    :rtype: dict
+    :return: error report, or modified archive.org metadata on success
+    """
 
     data = {'error': 'No qualifying edition'}
     if edition_id:
@@ -570,7 +577,8 @@ def load_data(rec, account=None):
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
     # archive.org item after successful import:
-    update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
+    if 'ocaid' in rec:
+        update_ia_metadata_for_ol_edition(ekey.split('/')[-1])
 
     reply['success'] = True
     reply['edition'] = {'key': ekey, 'status': 'created'}
