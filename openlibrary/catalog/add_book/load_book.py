@@ -75,6 +75,7 @@ def pick_from_matches(author, match):
         return maybe[0]
     return min(maybe, key=key_int)
 
+
 def find_author(name):
     """
     Searches OL for an author by name.
@@ -98,6 +99,7 @@ def find_author(name):
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
+
 
 def find_entity(author):
     """
@@ -145,12 +147,14 @@ def find_entity(author):
 def import_author(author, eastern=False):
     """
     Converts an import style new-author dictionary into an
-    Open Library author representation.
+    Open Library existing author, or new author candidate, representation.
+    Does NOT create new authors.
 
     :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
     :rtype: dict
-    :return: Open Library style Author representation
+    :return: Open Library style Author representation, either exisiting with "key",
+             or new candidate without "key".
     """
     existing = find_entity(author)
     if existing:

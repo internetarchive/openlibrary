@@ -22,29 +22,26 @@ A record is loaded by calling the load function.
     response = load(record)
 
 """
-import re
 import json
-from time import sleep
-from collections import defaultdict
-import urllib
+import re
+import six
 import unicodedata
-from copy import copy
-
+import urllib
 import web
+
+from collections import defaultdict
+from copy import copy
+from time import sleep
+
 from infogami import config
 
-import six
-
+from openlibrary import accounts
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
-from openlibrary import accounts
 
-from load_book import build_query, import_author, east_in_by_statement, InvalidLanguage
-from merge import try_merge
-
-
-import six
+from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
+from openlibrary.catalog.add_book.merge import try_merge
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
@@ -89,6 +86,7 @@ def strip_accents(s):
     assert isinstance(s, six.text_type)
     return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
+
 def normalize(s): # strip non-alphanums and truncate at 25 chars
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
@@ -119,6 +117,16 @@ def get_title(e):
 
 
 def find_matching_work(e):
+    """
+    Looks for an existing Work representing the new import edition by
+    comparing normalised titles for every work by each author of the current edition.
+    Returns the first match found, or None.
+
+    :param dict e: An OL edition suitable for saving, has a key, and has full Authors with keys
+                   but has not yet been saved.
+    :rtype: None or str
+    :return: the matched work key "/works/OL..W" if found
+    """
     norm_title = mk_norm(get_title(e))
 
     seen = set()
@@ -515,6 +523,7 @@ def load_data(rec, account=None):
 
     edits = []  # Things (Edition, Work, Authors) to be saved
     reply = {}
+    # TOFIX: edition.authors has already been processed by import_authors() in build_query(), following line is a NOP?
     author_in = [import_author(a, eastern=east_in_by_statement(rec, a)) for a in edition.get('authors', [])]
     # build_author_reply() adds authors to edits
     (authors, author_reply) = build_author_reply(author_in, edits)
