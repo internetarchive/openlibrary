@@ -12,6 +12,7 @@ except NameError:
     def cmp(x, y):  # Python 3
         return (x > y) - (x < y)
 
+
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -67,7 +68,6 @@ def flip_name(name):
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
-
     if name.find(', ') == -1:
         return name
     m = re_marc_name.match(name)
@@ -235,7 +235,17 @@ def get_title(e):
         title = e['title']
     return title
 
+
 def mk_norm(s):
+    """
+    Normalizes titles and strips ALL spaces and small words
+    to aid with string comparisons of two titles.
+
+    :param str s: A book title to normalize and strip.
+    :rtype: str
+    :return: a lowercase string with no spaces, containg the main words of the title.
+    """
+
     m = re_brackets.match(s)
     if m:
         s = m.group(1)
@@ -247,6 +257,7 @@ def mk_norm(s):
         norm = norm[2:]
     return norm.replace(' ', '')
 
+
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)
     msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
@@ -254,22 +265,4 @@ def error_mail(msg_from, msg_to, subject, body):
     import smtplib
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, msg_to, msg)
-    server.quit()
-
-def bad_marc_alert(ia):
-    from pprint import pformat
-    msg_from = 'load_scribe@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad MARC: %s
-
-bad MARC: %s
-
-''' % (msg_from, msg_to, ia, ia)
-
-    import smtplib
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
     server.quit()

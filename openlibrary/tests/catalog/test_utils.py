@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
+import pytest
 from openlibrary.catalog.utils import (
     author_dates_match, flip_name,
     pick_first_date, pick_best_name, pick_best_author,
-    match_with_bad_chars, strip_count,
+    match_with_bad_chars, mk_norm, strip_count,
     remove_trailing_dot)
 
 def test_author_dates_match():
@@ -97,3 +100,14 @@ def test_remove_trailing_dot():
     for input, expect in data:
         output = remove_trailing_dot(input)
         assert output == expect
+
+mk_norm_conversions = [
+        ("Hello I'm a  title.", "helloi'matitle"),
+        (u"Hello I'm a  title.", "helloi'matitle"),
+        ('Forgotten Titles: A Novel.', 'forgottentitlesanovel'),
+        (u'Kitāb Yatīmat ud-Dahr', u'kitābyatīmatuddahr'),
+]
+
+@pytest.mark.parametrize('title,expected', mk_norm_conversions)
+def test_mk_norm(title, expected):
+    assert mk_norm(title) == expected
