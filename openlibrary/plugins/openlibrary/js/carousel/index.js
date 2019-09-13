@@ -1,5 +1,5 @@
 // Slick#1.6.0 is not on npm
-import '../../../../../vendor/js/slick/slick-1.6.0.min.js';
+import 'slick-carousel';
 import '../../../../../static/css/components/carousel--js.less';
 import Carousel from './Carousel';
 
