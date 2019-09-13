@@ -1,4 +1,19 @@
-from merge_marc import attempt_merge, build_marc, compare_authors
+import pytest
+from openlibrary.catalog.merge.merge_marc import attempt_merge, build_marc, build_titles, compare_authors
+
+def test_build_marc():
+    # TODO: this is used via add_book.load() ->
+    # Needs to be tested.
+    pass
+
+def test_build_titles():
+    # Used by build_marc()
+    a = 'This is a title.'
+    normalized = 'this is a title'
+    result = build_titles(a)
+    assert result['full_title'] == a
+    assert result['short_title'] == normalized
+    assert result['normalized_title'] == normalized
 
 def test_merge():
     bpl = {'authors': [{'birth_date': u'1897',
@@ -60,3 +75,14 @@ def test_author_contrib():
     assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
     threshold = 875
     assert attempt_merge(e1, e2, threshold) is True
+
+@pytest.mark.skip(reason="Fails because test data authors do not have `db_name`, may be a sign of a real issue.")
+def test_merge2():
+    amazon = {'publishers': [u'Collins'], 'isbn_10': ['0002167530'], 'number_of_pages': 287, 'short_title': u'sea birds britain ireland', 'normalized_title': u'sea birds britain ireland', 'full_title': u'Sea Birds Britain Ireland', 'titles': [u'Sea Birds Britain Ireland', u'sea birds britain ireland'], 'publish_date': u'1975',
+            'authors': [{'name': u'Stanley Cramp'}]}
+
+    marc = {'publisher': [u'Collins'], 'isbn_10': [u'0002167530'], 'short_title': u'seabirds of britain and i', 'normalized_title': u'seabirds of britain and ireland', 'full_title': u'seabirds of Britain and Ireland', 'titles': [u'seabirds of Britain and Ireland', u'seabirds of britain and ireland'], 'publish_date': '1974', 'authors': [{'db_name': u'Cramp, Stanley.', 'entity_type': 'person', 'name': u'Cramp, Stanley.', 'personal_name': u'Cramp, Stanley.'}], 'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'}
+    threshold = 735
+    # build_marc() will place all isbn_ types in the 'isbn' field.
+    # compare_author_fields() expects all authors to have a db_name
+    assert attempt_merge(build_marc(amazon), build_marc(marc), threshold)

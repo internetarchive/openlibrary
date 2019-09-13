@@ -1,17 +1,23 @@
 from __future__ import print_function
-from load_book import build_query, InvalidLanguage
-from . import load, RequiredField, build_pool, add_db_name
-from .. import add_book
+
 import os
 import pytest
-from infogami.infobase.core import Text
-from openlibrary.catalog.merge.merge_marc import build_marc
-from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
-from merge import try_merge
+
 from copy import deepcopy
 from urllib import urlopen
 from collections import defaultdict
+
+from infogami.infobase.core import Text
+
+from openlibrary.catalog import add_book
+from openlibrary.catalog.add_book import add_db_name, build_pool, editions_matched, isbns_from_record, load, RequiredField
+from openlibrary.catalog.add_book.load_book import build_query, InvalidLanguage
+from openlibrary.catalog.add_book.merge import try_merge
+
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.marc.parse import read_edition
+from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
+
 
 def open_test_data(filename):
     """Returns a file handle to file with specified filename inside test_data directory.
@@ -55,6 +61,21 @@ def test_build_query(add_languages):
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
     pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+
+def test_isbns_from_record():
+    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
+    result = isbns_from_record(rec)
+    assert isinstance(result, list)
+    assert '9780190906764' in result
+    assert '0190906766' in result
+    assert len(result) == 2
+
+def test_editions_matched(mock_site):
+    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
+    isbns = isbns_from_record(rec)
+    result = editions_matched(rec, 'isbn_', isbns)
+    #TODO: does a thing search with key = 'isbn_' work?
+    assert result == []
 
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}

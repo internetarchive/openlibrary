@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from merge import normalize
+from openlibrary.catalog.merge.normalize import normalize
 
 def test_normalize():
     assert normalize('Hello this is a           Title') == 'hello this is a title'

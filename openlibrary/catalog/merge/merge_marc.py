@@ -1,12 +1,13 @@
 from __future__ import print_function
+
 import re
-from names import match_name
-from normalize import normalize
+
+from openlibrary.catalog.merge.names import match_name
+from openlibrary.catalog.merge.normalize import normalize
 
 # fields needed for merge process:
 # title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
-re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
 isbn_match = 85
@@ -277,10 +278,13 @@ def compare_publisher(e1, e2):
     if 'publishers' not in e1 or 'publishers' not in e2:
         return ('publisher', 'either missing', 0)
 
+
 def build_marc(edition):
     """
+    Returns an expanded representation of an edition dict,
+    usable for accurate comparisons between existing and new
+    records.
     Called from openlibrary.catalog.add_book.load()
-    Returns an expanded representation of an edition dict
 
     :param dict edition: Import edition representation
     :rtype: dict
@@ -299,6 +303,7 @@ def build_marc(edition):
         if f in edition:
             marc[f] = edition[f]
     return marc
+
 
 def attempt_merge(e1, e2, threshold, debug=False):
     """

@@ -210,8 +210,8 @@ def add_cover(cover_url, ekey, account=None):
 
     :param str cover_url: URL of cover image
     :param str ekey: Edition key /book/OL..M
-    :rtype: int
-    :return: Cover id
+    :rtype: int or None
+    :return: Cover id, or None if upload did not succeed
     """
     olid = ekey.split("/")[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
@@ -377,7 +377,7 @@ def editions_matched(rec, key, value=None):
     Search OL for editions matching record's 'key' value.
 
     :param dict rec: Edition import record
-    :param str key: Key to search on
+    :param str key: Key to search on, e.g. 'isbn_'
     :param list|str value: Value or Values to use, overriding record values
     :rtpye: list
     :return: List of edition keys ["/books/OL..M",]
@@ -443,8 +443,8 @@ def find_exact_match(rec, edition_pool):
 def find_match(e1, edition_pool):
     """
     Find the best match for e1 in edition_pool and return its key.
-    :param dict e1: the new edition we are trying to match
-    :param list edition_pool: list of possible edition matches
+    :param dict e1: the new edition we are trying to match, output of build_marc(import record)
+    :param list edition_pool: list of possible edition matches, output of build_pool(import record)
     :rtype: str|None
     :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
     """
@@ -463,6 +463,8 @@ def find_match(e1, edition_pool):
                     break
                 if is_redirect(thing):
                     edition_key = thing['location']
+                    # FIXME: this updates edition_key, but leaves thing as redirect,
+                    # which will raise an exception in try_merge()
             if not found:
                 continue
             if try_merge(e1, edition_key, thing):

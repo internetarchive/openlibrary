@@ -1,5 +1,5 @@
 import pytest
-from amazon import (
+from openlibrary.catalog.merge.amazon import (
         attempt_merge,
         compare_authors, compare_publisher,
         full_title, build_titles, compare_title)

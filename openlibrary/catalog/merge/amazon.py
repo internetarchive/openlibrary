@@ -1,7 +1,7 @@
 from __future__ import print_function
 import re
-from names import match_name
-from normalize import normalize
+from openlibrary.catalog.merge.names import match_name
+from openlibrary.catalog.merge.normalize import normalize
 
 re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
