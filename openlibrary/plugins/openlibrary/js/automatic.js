@@ -13,7 +13,7 @@ export default function($) {
     // tabs
     options = {};
     if($.support.opacity){
-        options.fx = {'opacity': 'toggle'};
+        options.fx = {opacity: 'toggle'};
     }
 
     if ($('.tabs:not(.ui-tabs)').tabs) {

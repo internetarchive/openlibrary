@@ -47,7 +47,7 @@ function initAvailability() {
             url: url,
             type: 'POST',
             data: JSON.stringify({
-                'ids': _ids
+                ids: _ids
             }),
             dataType: 'json',
             contentType: 'application/json',
@@ -197,7 +197,7 @@ function initAvailability() {
 
         getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
             getAvailabilityV2('openlibrary_work', works, function(works_response) {
-                var response = {'books': editions_response, 'works': works_response};
+                var response = {books: editions_response, works: works_response};
                 $.each(results, function(index, e) {
                     var href = $(e).attr('href');
                     var _type_key_slug = href.split('/')

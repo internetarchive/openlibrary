@@ -16,11 +16,11 @@ export default function($){
 
         id = `#${this.attr('id')}`;
         elems = {
-            '_this': this,
-            'add': $(`${id}-add`),
-            'form': $(`${id}-form`),
-            'display': $(`${id}-display`),
-            'template': $(`${id}-template`)
+            _this: this,
+            add: $(`${id}-add`),
+            form: $(`${id}-form`),
+            display: $(`${id}-display`),
+            template: $(`${id}-template`)
         }
 
         function createTemplate(selector) {

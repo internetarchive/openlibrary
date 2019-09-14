@@ -23,7 +23,7 @@ test('identifiers of repeated elements are never the same.', () => {
     // turn on jQuery repeat
     $('#identifiers').repeat({
         vars: {
-            'prefix': 'edition--'
+            prefix: 'edition--'
         },
         validate: () => {}
     });

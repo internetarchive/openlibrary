@@ -80,7 +80,7 @@ Subject.prototype = {
         //@@ Can't this be handled by HTTP caching?
         this._pages = {};
         if (this.has_fulltext != 'true')
-            this._pages[0] = {'works': slice(data.works, 0, this.settings.pagesize)};
+            this._pages[0] = {works: slice(data.works, 0, this.settings.pagesize)};
 
     // TODO: initialize additional pages when there are more works.
     },
@@ -107,23 +107,23 @@ Subject.prototype = {
         bookread_url = work.public_scan ?
             (`//archive.org/stream/${work.ia}?ref=ol`) :
             `/borrow/ia/${work.ia}`;
-        html = renderTag('div', {'class': 'coverMagic'},
+        html = renderTag('div', {class: 'coverMagic'},
             renderTag('span', {
-                'itemtype': 'https://schema.org/Book',
-                'itemscope': ''},
-            renderTag('div', {'class': 'SRPCover'},
-                renderTag('a', {'href': work.key, 'title': titlestring,
+                itemtype: 'https://schema.org/Book',
+                itemscope: ''},
+            renderTag('div', {class: 'SRPCover'},
+                renderTag('a', {href: work.key, title: titlestring,
                     'data-ol-link-track': `subject-${this.slug}`},
-                renderTag('img', {'src': bookcover_url, 'itemprop': 'image',
-                    'alt': titlestring, 'class': 'cover'}))) +
-        renderTag('div', {'class': 'coverEbook'},
+                renderTag('img', {src: bookcover_url, itemprop: 'image',
+                    alt: titlestring, class: 'cover'}))) +
+        renderTag('div', {class: 'coverEbook'},
             (format === 'public' ?
-                renderTag('a', {'href': bookread_url, 'title': 'Read online',
-                    'class': 'cta-btn--available cta-btn'}, 'Read') :
+                renderTag('a', {href: bookread_url, title: 'Read online',
+                    class: 'cta-btn--available cta-btn'}, 'Read') :
                 renderTag('a', {
-                    'href': bookread_url,
-                    'title': 'Read this book',
-                    'class': 'cta-btn cta-btn--available',
+                    href: bookread_url,
+                    title: 'Read this book',
+                    class: 'cta-btn cta-btn--available',
                     'data-ocaid': work.ia,
                     'data-key': work.key
                 })))));
@@ -144,10 +144,10 @@ Subject.prototype = {
         }
         else {
             params = {
-                'limit': limit,
-                'offset': offset,
-                'has_fulltext': this.has_fulltext,
-                'sort': this.sort
+                limit: limit,
+                offset: offset,
+                has_fulltext: this.has_fulltext,
+                sort: this.sort
             }
             if(this.published_in) {
                 params.published_in = this.published_in;
@@ -167,7 +167,7 @@ Subject.prototype = {
 
     _ajax: function(params, callback) {
         var key, url;
-        params = $.extend({'limit': this.settings.pagesize, 'offset': 0},
+        params = $.extend({limit: this.settings.pagesize, offset: 0},
             this.filter, params);
         key = this.key.replace(/\s+/g, '_');
         url = `${key}.json?${urlencode(params)}`;
@@ -184,7 +184,7 @@ Subject.prototype = {
         this.filter = filter;
 
         _this = this;
-        this._ajax({'details': 'true'}, function(data) {
+        this._ajax({details: 'true'}, function(data) {
             _this.init(data);
             callback && callback();
         });
