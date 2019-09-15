@@ -32,7 +32,7 @@ import './jquery.scrollTo';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 import { plot_minigraph, plot_tooltip_graph } from './plot';
 import initAnalytics from './ol.analytics';
-import init, { closePop, bookCovers, isScrolledIntoView } from './ol.js';
+import init, { closePop, isScrolledIntoView } from './ol.js';
 import * as Browser from './Browser';
 import { commify } from './python';
 import { Subject, urlencode, renderTag, slice } from './subjects';
@@ -46,7 +46,6 @@ import Promise from 'promise-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
-window.bookCovers = bookCovers;
 window.closePop = closePop;
 window.closePopup = closePopup;
 window.commify = commify;

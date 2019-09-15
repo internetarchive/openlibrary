@@ -13,15 +13,6 @@ export function isScrolledIntoView(elem) {
     return false;
 }
 
-// BOOK COVERS
-// used in templates/work_search.html
-export function bookCovers(){
-    $('img.cover').error(function(){
-        $(this).closest('.SRPCover').hide();
-        $(this).closest('.coverMagic').find('.SRPCoverBlank').show();
-    });
-}
-
 // CLOSE POP-UP FROM IFRAME
 // used in templates/covers/saved.html
 export function closePop(){
