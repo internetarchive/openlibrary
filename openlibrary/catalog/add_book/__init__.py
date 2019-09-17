@@ -150,7 +150,7 @@ def find_matching_work(e):
 
 def build_author_reply(author_in, edits):
     """
-    Steps through an import record's authors, and creates new records,
+    Steps through an import record's authors, and creates new records if new,
     adding them to 'edits' to be saved later.
 
     :param list author_in: List of import sourced author dicts [{"name:" "Some One"}, ...], possibly with dates

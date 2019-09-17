@@ -8,17 +8,22 @@ from openlibrary.catalog.utils import (
     remove_trailing_dot)
 
 def test_author_dates_match():
-    _atype = {u'key': u'/type/author'}
-    basic = {u'name': u'John Smith', u'death_date': u'1688', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'type': _atype}
-    full_dates = {u'name': u'John Smith', u'death_date': u'23 June 1688', 'key': u'/a/OL6398452A', u'birth_date': u'01 January 1650', u'type': _atype}
-    full_different = {u'name': u'John Smith', u'death_date': u'12 June 1688', 'key': u'/a/OL6398452A', u'birth_date': u'01 December 1650', u'type': _atype}
-    no_death = {u'name': u'John Smith', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'type': _atype}
-    no_dates = {u'name': u'John Smith', 'key': u'/a/OL6398452A', u'type': _atype}
-    non_match = {u'name': u'John Smith', u'death_date': u'1999', 'key': u'/a/OL6398452A', u'birth_date': u'1950', u'type': _atype}
+    _atype = {'key': '/type/author'}
+    basic = {'name': 'John Smith', 'death_date': '1688', 'key': '/a/OL6398451A', 'birth_date': '1650', 'type': _atype}
+    full_dates = {'name': 'John Smith', 'death_date': '23 June 1688', 'key': '/a/OL6398452A', 'birth_date': '01 January 1650', 'type': _atype}
+    full_different = {'name': 'John Smith', 'death_date': '12 June 1688', 'key': '/a/OL6398453A', 'birth_date': '01 December 1650', 'type': _atype}
+    no_death = {'name': 'John Smith', 'key': '/a/OL6398454A', 'birth_date': '1650', 'type': _atype}
+    no_dates = {'name': 'John Smith', 'key': '/a/OL6398455A', 'type': _atype}
+    non_match = {'name': 'John Smith', 'death_date': u'1999', 'key': '/a/OL6398456A', 'birth_date': '1950', 'type': _atype}
+    different_name = {'name': 'Jane Farrier', 'key': '/a/OL6398457A', 'type': _atype}
+
     assert author_dates_match(basic, basic)
     assert author_dates_match(basic, full_dates)
     assert author_dates_match(basic, no_death)
     assert author_dates_match(basic, no_dates)
+    assert author_dates_match(no_dates, no_dates)
+    assert author_dates_match(no_dates, non_match)  # Without dates, the match returns True
+    assert author_dates_match(no_dates, different_name)  # This method only compares dates and ignores names
     assert author_dates_match(basic, non_match) is False
     # FIXME: the following should properly be False:
     assert author_dates_match(full_different, full_dates) # this shows matches are only occurring on year, full dates are ignored!
