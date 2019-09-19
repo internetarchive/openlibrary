@@ -8,7 +8,7 @@ $ scribd = opts.get('scribd')
 <ul class="buy-options-table">
   $if not is_bot():
       <li>
-        $ bwb_affiliate_url = 'http://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/' % affiliate_id('betterworldbooks')
+        $ bwb_affiliate_url = 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/' % affiliate_id('betterworldbooks')
         $if isbn:
           $ bwb_affiliate_url += '-id-%s.aspx' % isbn
         $else:
@@ -21,7 +21,7 @@ $ scribd = opts.get('scribd')
             <span name="price">$betterworldbooks_metadata['price'] - includes shipping</span>
       </li>
     $if asin:
-      $ amazon = "http://www.amazon.com/dp/%s/?tag=%s" % (asin, affiliate_id('amazon'))
+      $ amazon = "https://www.amazon.com/dp/%s/?tag=%s" % (asin, affiliate_id('amazon'))
       <li>
           <a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
           <br>
@@ -32,7 +32,7 @@ $ scribd = opts.get('scribd')
       </li>
     $if scribd and not (isbn or asin):
       <li>
-          <a href="http://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd" target="_blank">Scribd</a>
+          <a href="https://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd" target="_blank">Scribd</a>
           <br />
           <span class="gray smaller">eBook in browser</span>
       </li>
