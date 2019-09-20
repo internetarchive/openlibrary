@@ -306,7 +306,7 @@ export default function init(){
 
     // e is a event object
     $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
-        $(document.body).css({cursor : 'wait'});
+        $(document.body).css({cursor: 'wait'});
     }, 300, false));
 
     $searchInput.on('keyup', debounce(function(e) {
