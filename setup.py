@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 import glob
 import os
-from stat import *
+from stat import ST_MODE, S_IEXEC, S_ISDI
 
 def executable(path):
     st = os.stat(path)[ST_MODE]
