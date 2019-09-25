@@ -1,5 +1,7 @@
 from __future__ import print_function
 import re
+import warnings
+
 from openlibrary.catalog.merge.names import match_name
 from openlibrary.catalog.merge.normalize import normalize
 
@@ -38,6 +40,8 @@ def build_amazon(edition, authors):
 
 
 def build_titles(title):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.build_titles() instead.', DeprecationWarning)
+
     normalized_title = normalize(title).lower()
     titles = [ title, normalized_title ];
     if title.find(' & ') != -1:
@@ -89,6 +93,8 @@ def compare_date(e1, e2):
         return ('publish_date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.compare_isbn10() instead.', DeprecationWarning)
+
     if not (e1.get('isbn_10') and e2.get('isbn_10')):
         return ('isbn', 'missing', 0)
     for i in e1['isbn_10']:
@@ -98,6 +104,8 @@ def compare_isbn10(e1, e2):
     return ('ISBN', 'mismatch', -225)
 
 def level1_merge(e1, e2):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.level1_merge() instead.', DeprecationWarning)
+
     score = []
     if e1['short_title'] == e2['short_title']:
         score.append(('short_title', 'match', 450))
@@ -109,6 +117,8 @@ def level1_merge(e1, e2):
     return score
 
 def compare_authors(amazon, marc):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.compare_authors() instead.', DeprecationWarning)
+
     if len(amazon['authors']) == 0 and 'authors' not in marc:
         return ('authors', 'no authors', 75)
     if len(amazon['authors']) == 0:
@@ -245,6 +255,7 @@ def compare_publisher(amazon, marc):
     return ('publishers', 'mismatch', -25)
 
 def level2_merge(amazon, marc):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.level2_merge() instead.', DeprecationWarning)
     score = []
     score.append(compare_date(amazon, marc))
     score.append(compare_isbn10(amazon, marc))
@@ -266,6 +277,7 @@ def full_title(edition):
 
 
 def attempt_merge(amazon, marc, threshold, debug = False):
+    warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.attempt_merge() instead.', DeprecationWarning)
     l1 = level1_merge(amazon, marc)
     total = sum(i[2] for i in l1)
     if debug:
