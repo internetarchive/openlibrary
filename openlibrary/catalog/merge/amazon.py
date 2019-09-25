@@ -125,9 +125,9 @@ def compare_authors(amazon, marc):
         return ('authors', 'field missing from one record', -25)
 
     for name in amazon['authors']:
-        if 'authors' in marc and match_name(name[0], marc['authors'][0]['name']):
+        if 'authors' in marc and match_name(name, marc['authors'][0]['name']):
             return ('authors', 'exact match', 125)
-        if 'by_statement' in marc and marc['by_statement'].find(name[0]) != -1:
+        if 'by_statement' in marc and marc['by_statement'].find(name) != -1:
             return ('authors', 'exact match', 125)
     if 'authors' not in marc:
         return ('authors', 'field missing from one record', -25)

@@ -11,9 +11,9 @@ from openlibrary.catalog.merge.merge import (
     Investigate and clean up!
     """
 
-@pytest.mark.skip(reason="Should be tested on openlibrary.catalog.merge.merge_marc. Unclear what the authors tuple data is supposed to be.") 
 def test_compare_authors():
-    amazon = {'authors': [(u'Alistair Smith', u'Author')]}
+    # Not clear how the amazon record gets to be in this format, but that's what the current code works with.`
+    amazon = {'authors': ['Alistair Smith']}
     marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
     assert compare_authors(amazon, marc) == ('main', 'exact match', 125)
 
