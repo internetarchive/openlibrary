@@ -95,10 +95,10 @@ def compare_date(e1, e2):
 def compare_isbn10(e1, e2):
     warnings.warn('Deprecated, use openlibrary.catalog.merge.merge_marc.compare_isbn10() instead.', DeprecationWarning)
 
-    if not (e1.get('isbn_10') and e2.get('isbn_10')):
+    if len(e1['isbn']) == 0 or len(e2['isbn']) == 0:
         return ('isbn', 'missing', 0)
-    for i in e1['isbn_10']:
-        for j in e2['isbn_10']:
+    for i in e1['isbn']:
+        for j in e2['isbn']:
             if i == j:
                 return ('isbn', 'match', isbn_match)
     return ('ISBN', 'mismatch', -225)
