@@ -48,7 +48,7 @@ def test_build_marc():
     edition = {
             'title': 'A test title (parens)',
             'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
-            'source_record': 'test-source'
+            'source_records': ['ia:test-source']
             }
     result = build_marc(edition)
     assert isinstance(result['titles'], list)

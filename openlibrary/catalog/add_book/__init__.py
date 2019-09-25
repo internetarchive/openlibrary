@@ -14,7 +14,7 @@ called a record internally. Here is a sample record:
         }]
     }
 
-The title and source_record fields are mandatory.
+The title and source_records fields are mandatory.
 
 A record is loaded by calling the load function.
 
@@ -594,8 +594,8 @@ def load(rec, account=None):
     Record is a dictionary containing all the metadata of the edition.
     The following fields are mandatory:
 
-        * title
-        * source_records
+        * title: str
+        * source_records: list
 
     :param dict rec: Edition record to add
     :rtype: dict
