@@ -161,7 +161,18 @@ def compare_author_keywords(e1_authors, e2_authors):
     else:
         return ('authors', 'mismatch', -200)
 
+
 def compare_authors(e1, e2):
+    """
+    Compares the authors of two edition representations and
+    returns a evaluation and score.
+
+    :param dict e1: Edition, output of build_marc()
+    :param dict e2: Edition, output of build_marc()
+    :rtype: tuple
+    :return: str?, message, score
+    """
+
     if 'authors' in e1 and 'authors' in e2:
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
@@ -180,6 +191,7 @@ def compare_authors(e1, e2):
             return ('authors', 'exact match', 125)
         return ('authors', 'no authors', 75)
     return ('authors', 'field missing from one record', -25)
+
 
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()

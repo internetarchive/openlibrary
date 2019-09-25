@@ -4,7 +4,7 @@ from openlibrary.catalog.merge.amazon import (
         compare_authors, compare_publisher,
         full_title, build_titles, compare_title)
 
-def test_compare_authors():
+def test_compare_authors_by_statement():
     amazon = {'authors': [u'Alistair Smith', u'Author']}
     marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
     assert compare_authors(amazon, marc) == ('authors', 'exact match', 125)

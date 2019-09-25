@@ -1,6 +1,27 @@
 import pytest
 from openlibrary.catalog.merge.merge_marc import attempt_merge, build_marc, build_titles, compare_authors
 
+@pytest.mark.xfail(reason='Taken from openlibrary.catalog.merge.merge.compare_authors -- does not find a match.')
+def test_compare_authors_by_statement():
+    # requires db_name to be present on both records.
+    rec1 = {
+            'full_title': 'Full Title, required',
+            'authors': [{
+                'name': 'Alistair Smith',
+                'db_name': 'Alistair Smith'}]}
+    rec2 = {
+            'full_title': 'A different Full Title, only matching authors here.',
+            'authors': [{
+                'db_name': u'National Gallery (Great Britain)',
+                'name': u'National Gallery (Great Britain)',
+                'entity_type': 'org'}],
+            'by_statement': 'Alistair Smith.'}
+
+    result = compare_authors(build_marc(rec1), build_marc(rec2))
+    # This expected result taken from the amazon and merge versions of compare_author,
+    # Current merge_marc.compare_authors() does not take by_statement into account.
+    assert result == ('main', 'exact match', 125)
+
 def test_build_titles():
     # Used by build_marc()
     a = 'This is a title.'
