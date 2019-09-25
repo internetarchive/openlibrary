@@ -1,19 +1,85 @@
 import pytest
 from openlibrary.catalog.merge.merge_marc import attempt_merge, build_marc, build_titles, compare_authors
 
-def test_build_marc():
-    # TODO: this is used via add_book.load() ->
-    # Needs to be tested.
-    pass
-
 def test_build_titles():
     # Used by build_marc()
     a = 'This is a title.'
     normalized = 'this is a title'
     result = build_titles(a)
+    assert isinstance(result['titles'], list)
     assert result['full_title'] == a
     assert result['short_title'] == normalized
     assert result['normalized_title'] == normalized
+    assert result['titles'] == ['This is a title.', 'this is a title']
+
+def test_build_titles_complex():
+    # TODO: There are issues with this method
+    # see https://github.com/internetarchive/openlibrary/issues/2410
+    a = 'A test full title : subtitle (parens).'
+    b = 'A test full title : subtitle (parens)'
+    a_result = build_titles(a)
+    a_titles = a_result['titles']
+    assert a in a_titles
+
+    b_result = build_titles(b)
+    b_titles = b_result['titles']
+    assert b in b_titles
+
+    common_titles = [
+            'a test full title subtitle (parens)',
+            'test full title subtitle (parens)',
+            ]
+    for title in common_titles:
+        assert title in a_titles
+        assert title in b_titles
+
+    # Missing variations:
+    #assert 'test full title subtitle' in a_titles
+    assert 'test full title subtitle' in b_titles
+    #assert 'a test full title subtitle' in a_titles
+    assert 'a test full title subtitle' in b_titles
+
+    # Check for duplicates:
+    assert len(a_titles) == len(set(a_titles))
+    #assert len(b_titles) == len(set(b_titles))
+
+def test_build_marc():
+    # used in add_book.load() when trying to find an existing edition match
+    edition = {
+            'title': 'A test title (parens)',
+            'full_title': 'A test full title : subtitle (parens).',  # required, and set by add_book.load()
+            'source_record': 'test-source'
+            }
+    result = build_marc(edition)
+    assert isinstance(result['titles'], list)
+    assert result['isbn'] == []
+    assert result['normalized_title'] == 'a test full title subtitle (parens)'
+    assert result['short_title'] == 'a test full title subtitl'
+
+def test_author_contrib():
+    rec1 = {'authors': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
+    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado.',
+    'number_of_pages': 210,
+    'publish_country': 'xxu',
+    'publish_date': '1957',
+    'publishers': [u'Harvard U.P']}
+
+    rec2 = {'authors': [{'db_name': u'University of Colorado (Boulder campus). Dept. of Psychology.',
+                'name': u'University of Colorado (Boulder campus). Dept. of Psychology.'}],
+    'contribs': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
+    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado',
+    'lccn': ['57012963'],
+    'number_of_pages': 210,
+    'publish_country': 'mau',
+    'publish_date': '1957',
+    'publishers': [u'Harvard University Press']}
+
+    e1 = build_marc(rec1)
+    e2 = build_marc(rec2)
+
+    assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
+    threshold = 875
+    assert attempt_merge(e1, e2, threshold) is True
 
 def test_merge():
     bpl = {'authors': [{'birth_date': u'1897',
@@ -48,33 +114,9 @@ def test_merge():
                    u'eli whitney and the birth of american technology']}
 
     assert compare_authors(bpl, lc) == ('authors', 'exact match', 125)
-    threshold = 735
+    threshold = 875
     assert attempt_merge(bpl, lc, threshold) is True
 
-def test_author_contrib():
-    rec1 = {'authors': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
-    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado.',
-    'number_of_pages': 210,
-    'publish_country': 'xxu',
-    'publish_date': '1957',
-    'publishers': [u'Harvard U.P']}
-
-    rec2 = {'authors': [{'db_name': u'University of Colorado (Boulder campus). Dept. of Psychology.',
-                'name': u'University of Colorado (Boulder campus). Dept. of Psychology.'}],
-    'contribs': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],
-    'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado',
-    'lccn': ['57012963'],
-    'number_of_pages': 210,
-    'publish_country': 'mau',
-    'publish_date': '1957',
-    'publishers': [u'Harvard University Press']}
-
-    e1 = build_marc(rec1)
-    e2 = build_marc(rec2)
-
-    assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
-    threshold = 875
-    assert attempt_merge(e1, e2, threshold) is True
 
 @pytest.mark.skip(reason="Fails because test data authors do not have `db_name`, may be a sign of a real issue.")
 def test_merge2():

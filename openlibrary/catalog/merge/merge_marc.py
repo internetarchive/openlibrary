@@ -286,7 +286,7 @@ def build_marc(edition):
     records.
     Called from openlibrary.catalog.add_book.load()
 
-    :param dict edition: Import edition representation
+    :param dict edition: Import edition representation, requires 'full_title'
     :rtype: dict
     :return: An expanded version of an edition dict
         more titles, normalized + short
