@@ -353,7 +353,7 @@ def test_isbnx(monkeypatch):
     site.save({
         "key": "/books/OL1M",
         "type": {"key": "/type/edition"},
-        "isbn_10": "123456789X"
+        "isbn_10": ["123456789X"]
     })
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
