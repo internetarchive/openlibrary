@@ -39,7 +39,7 @@ def key_int(rec):
 
 def author_dates_match(a, b):
     """
-    Checks if the years of two authors match. Only compares dates,
+    Checks if the years of two authors match. Only compares years,
     not names or keys. Works by returning False if any year specified in one record
     does not match that in the other, otherwise True. If any one author does not have
     dates, it will return True.

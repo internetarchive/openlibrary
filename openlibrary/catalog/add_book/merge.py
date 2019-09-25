@@ -29,7 +29,7 @@ def try_merge(e1, edition_key, existing):
     thing_type = existing.type.key
     if thing_type == '/type/delete':
         return False
-    # FIXME: will fail if exisiting is a redirect.
+    # FIXME: will fail if existing is a redirect.
     assert thing_type == '/type/edition'
     rec2 = {}
     rec2['full_title'] = existing.title
