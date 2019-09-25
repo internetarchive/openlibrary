@@ -182,14 +182,21 @@ class MockSite:
 
         f = operations[op]
 
+        if name == 'isbn_':
+            names = ['isbn_10', 'isbn_13']
+        else:
+            names = [name]
+
         if isinstance(value, list): # Match any of the elements in value if it's a list
-            for i in index:
-                if i.name == name and any(f(i, v) for v in value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and any(f(i, v) for v in value):
+                        yield i.key
         else: # Otherwise just match directly
-            for i in index:
-                if i.name == name and f(i, value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and f(i, value):
+                        yield i.key
 
     def compute_index(self, doc):
         key = doc['key']

@@ -1,4 +1,3 @@
-from __future__ import print_function
 import datetime
 from openlibrary.mocks.mock_infobase import MockSite
 
@@ -52,15 +51,14 @@ class TestMockSite:
             "key": "/books/OL1M",
             "type": {"key": "/type/edition"},
             "title": "The Test Book",
-            "subjects": ["love", "san_francisco"]
+            "subjects": ["love", "san_francisco"],
+            "isbn_10": ["0123456789"],
+            "isbn_13": ["0123456789abc"]
         }
         timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
 
         mock_site.reset()
         mock_site.save(doc, timestamp=timestamp)
-
-        for i in mock_site.index:
-            print(dict(i))
 
         assert mock_site.things({"type": "/type/edition"}) == ["/books/OL1M"]
         assert mock_site.things({"type": "/type/work"}) == []
@@ -73,6 +71,11 @@ class TestMockSite:
 
         assert mock_site.things({"last_modified>": "2010-01-01"}) == ["/books/OL1M"]
         assert mock_site.things({"last_modified>": "2010-01-03"}) == []
+
+        assert mock_site.things({"isbn_10": ["nomatch", "0123456789"]}) == ["/books/OL1M"]
+        assert mock_site.things({"isbn_10": "0123456789"}) == ["/books/OL1M"]
+        assert mock_site.things({"isbn_": "0123456789"}) == ["/books/OL1M"]
+        assert mock_site.things({"isbn_": ["0123456789abc"]}) == ["/books/OL1M"]
 
     def test_work_authors(self, mock_site):
         a2 = mock_site.quicksave("/authors/OL2A", "/type/author", name="A2")
