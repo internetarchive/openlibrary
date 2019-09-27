@@ -17,15 +17,10 @@ $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&it
 $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
 
-$ isbn = (book.isbn_10 and book.isbn_10[0]) or (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
-$ isbn_13 = (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if book.isbn_10:
-    $ isbn_10 = book.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = book.get_isbn13()
+$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn = isbn_10 or isbn_13
 $ asin = isbn_10 or None
 
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
