@@ -1,4 +1,5 @@
-from openlibrary.core.vendors import clean_amazon_metadata_for_load
+import pytest
+from openlibrary.core.vendors import split_amazon_title, clean_amazon_metadata_for_load
 
 def test_clean_amazon_metadata_for_load_non_ISBN():
     # results from get_amazon_metadata() -> _serialize_amazon_product()
@@ -7,7 +8,6 @@ def test_clean_amazon_metadata_for_load_non_ISBN():
 
     result = clean_amazon_metadata_for_load(amazon)
     # this result is passed to load() from vendors.create_edition_from_amazon_metadata()
-    print(result)
     assert isinstance(result['publishers'], list)
     assert result['publishers'][0] == 'Dutton'
     assert result['cover'] == 'https://images-na.ssl-images-amazon.com/images/I/31aTq%2BNA1EL.jpg'
@@ -23,7 +23,6 @@ def test_clean_amazon_metadata_for_load_non_ISBN():
 def test_clean_amazon_metadata_for_load_ISBN():
     amazon =  {"publishers": ["Oxford University Press"], "price": "$9.50 (used)", "physical_format": "paperback", "edition": "3", "authors": [{"name": "Rachel Carson"}], "isbn_13": ["9780190906764"], "price_amt": "9.50", "source_records": ["amazon:0190906766"], "title": "The Sea Around Us", "url": "https://www.amazon.com/dp/0190906766/?tag=internetarchi-20", "offer_summary": {"amazon_offers": 1, "lowest_new": 1050, "total_new": 31, "lowest_used": 950, "total_collectible": 0, "total_used": 15}, "number_of_pages": "256", "cover": "https://images-na.ssl-images-amazon.com/images/I/51XKo3FsUyL.jpg", "languages": ["english"], "isbn_10": ["0190906766"], "publish_date": "Dec 18, 2018", "product_group": "Book", "qlt": "used"}
     result = clean_amazon_metadata_for_load(amazon)
-    print(result)
     # TODO: implement and test edition number
     assert isinstance(result['publishers'], list)
     assert result['cover'] == 'https://images-na.ssl-images-amazon.com/images/I/51XKo3FsUyL.jpg'
@@ -41,16 +40,34 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('offer_summary') is None
 
 
+amazon_titles = [
+        # Original title, title, subtitle
+        ['Test Title', 'Test Title', None],
+        ['Killers of the Flower Moon: The Osage Murders and the Birth of the FBI',
+            'Killers of the Flower Moon',
+            'The Osage Murders and the Birth of the FBI'],
+        ['Pachinko (National Book Award Finalist)',
+            'Pachinko', None],
+        ['Trapped in a Video Game (Book 1) (Volume 1)',
+            'Trapped in a Video Game', None],
+        ["An American Marriage (Oprah's Book Club): A Novel",
+            'An American Marriage', 'A Novel'],
+
+        ]
+
+@pytest.mark.parametrize('amazon,title,subtitle', amazon_titles)
+def test_split_amazon_title(amazon, title, subtitle):
+    assert split_amazon_title(amazon) == (title, subtitle)
+
 def test_clean_amazon_metadata_for_load_subtitle():
     amazon = {"publishers": ["Vintage"], "price": "$4.12 (used)", "physical_format": "paperback", "edition": "Reprint", "authors": [{"name": "David Grann"}], "isbn_13": ["9780307742483"], "price_amt": "4.12", "source_records": ["amazon:0307742482"], "title": "Killers of the Flower Moon: The Osage Murders and the Birth of the FBI", "url": "https://www.amazon.com/dp/0307742482/?tag=internetarchi-20", "offer_summary": {"lowest_new": 869, "amazon_offers": 1, "total_new": 57, "lowest_used": 412, "total_collectible": 2, "total_used": 133, "lowest_collectible": 1475}, "number_of_pages": "400", "cover": "https://images-na.ssl-images-amazon.com/images/I/51PP3iTK8DL.jpg", "languages": ["english"], "isbn_10": ["0307742482"], "publish_date": "Apr 03, 2018", "product_group": "Book", "qlt": "used"}
     result = clean_amazon_metadata_for_load(amazon)
-    print(result)
-    assert result['title'] == 'Killers of the Flower Moon: The Osage Murders and the Birth of the FBI'
-    assert result.get('subtitle') is None
-    assert result.get('full_title') is None
+    assert result['title'] == 'Killers of the Flower Moon'
+    assert result.get('subtitle') == 'The Osage Murders and the Birth of the FBI'
+    assert result.get('full_title') == 'Killers of the Flower Moon : The Osage Murders and the Birth of the FBI'
     #TODO: test for, and implement languages
 
 
 # Test cases to add:
 # Multiple authors
-# Title + subtitle, + bracketed content
+
