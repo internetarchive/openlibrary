@@ -332,11 +332,11 @@ def attempt_merge(e1, e2, threshold, debug=False):
     total = sum(i[2] for i in level1)
     if debug:
         print("E1: %s\nE2: %s" % (e1, e2))
-        print(total, level1)
+        print("TOTAL 1: %s - %s" % (total, level1))
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print(total, level2)
+        print("TOTAL 2: %s - %s" % (total, level2))
     return total >= threshold

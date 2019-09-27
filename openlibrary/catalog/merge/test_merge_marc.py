@@ -139,13 +139,13 @@ def test_merge():
     assert attempt_merge(bpl, lc, threshold) is True
 
 
-@pytest.mark.skip(reason="Fails because test data authors do not have `db_name`, may be a sign of a real issue.")
+@pytest.mark.skip(reason="Failed because test data authors do not have `db_name`, may be a sign of a real issue. Also fails on threshold.")
 def test_merge2():
     amazon = {'publishers': [u'Collins'], 'isbn_10': ['0002167530'], 'number_of_pages': 287, 'short_title': u'sea birds britain ireland', 'normalized_title': u'sea birds britain ireland', 'full_title': u'Sea Birds Britain Ireland', 'titles': [u'Sea Birds Britain Ireland', u'sea birds britain ireland'], 'publish_date': u'1975',
-            'authors': [{'name': u'Stanley Cramp'}]}
+            'authors': [{'name': 'Stanley Cramp', 'db_name': 'Cramp, Stanley'}]}
 
     marc = {'publisher': [u'Collins'], 'isbn_10': [u'0002167530'], 'short_title': u'seabirds of britain and i', 'normalized_title': u'seabirds of britain and ireland', 'full_title': u'seabirds of Britain and Ireland', 'titles': [u'seabirds of Britain and Ireland', u'seabirds of britain and ireland'], 'publish_date': '1974', 'authors': [{'db_name': u'Cramp, Stanley.', 'entity_type': 'person', 'name': u'Cramp, Stanley.', 'personal_name': u'Cramp, Stanley.'}], 'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'}
-    threshold = 735
+    threshold = 875
     # build_marc() will place all isbn_ types in the 'isbn' field.
     # compare_author_fields() expects all authors to have a db_name
-    assert attempt_merge(build_marc(amazon), build_marc(marc), threshold)
+    assert attempt_merge(build_marc(amazon), build_marc(marc), threshold, debug=True)
