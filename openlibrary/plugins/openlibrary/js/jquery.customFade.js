@@ -3,17 +3,17 @@
 export default function addFadeInFunctionsTojQuery($) {
     $.fn.customFadeIn = function(speed, callback) {
         $(this).fadeIn(speed, function() {
-            if(jQuery.browser.msie)
+            if (jQuery.browser.msie)
                 $(this).get(0).style.removeAttribute('filter');
-            if(callback != undefined)
+            if (callback != undefined)
                 callback();
         });
     };
     $.fn.customFadeOut = function(speed, callback) {
         $(this).fadeOut(speed, function() {
-            if(jQuery.browser.msie)
+            if (jQuery.browser.msie)
                 $(this).get(0).style.removeAttribute('filter');
-            if(callback != undefined)
+            if (callback != undefined)
                 callback();
         });
     };
