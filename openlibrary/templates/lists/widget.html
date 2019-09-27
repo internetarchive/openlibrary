@@ -494,6 +494,7 @@ $if ctx.user:
         \$("a.remove-from-list").click(function(event) {
             event.preventDefault();
             var id = \$(this).attr("id");
+            setup_dialog();
 
             \$("#remove-dialog")
                 .data("list-id", id)
@@ -526,7 +527,6 @@ $if ctx.user:
     window.q.push(function(){
         setup_submit_event();
         setup_events();
-        setup_dialog();
 
         var mylist = \$('.dropdown');
         var listitems = mylist.children('p.list').get();
