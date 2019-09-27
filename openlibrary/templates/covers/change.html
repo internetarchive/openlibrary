@@ -28,15 +28,6 @@ $else:
         $ size = "smallest"
 
 <script type="text/javascript">
-<!--
-window.q.push(function(){
-    if(jQuery.support.opacity){
-        \$("#tabsImages").tabs({fx:{opacity:'toggle'}});
-    } else {
-        \$("#tabsImages").tabs();
-    };
-});
-
 function update_image(image) {
     var url;
 
@@ -75,13 +66,7 @@ window.q.push(function(){
 
     // Add iframes lazily when the popup is loaded.
     // This avoids fetching the iframes along with main page.
-    \$('.coverPop').colorbox({
-        inline: true,
-        opacity: '0.5',
-        href: '#addImage',
-        width: '100%',
-        maxWidth: '640px'
-    })
+    \$('.coverPop')
         .bind("click", function() {
             // clear the content of #imagesAdd and #imagesManage before adding new
             \$("#imagesAdd").html("");
@@ -101,18 +86,12 @@ window.q.push(function(){
         });
     // Add function to close throbber
     closeThrobber = function() {\$("#throbber").customFadeOut();};
-    // Open larger cover image
-    \$(".coverLook").colorbox({
-        inline: true,
-        opacity:"0.5",
-        href: "#seeImage"
-    });
 });
 //-->
 </script>
 
 <div class="$size sansserif manageCoversContainer hidden--nojs">
-  <a href="#addImage" class="coverPop">
+  <a aria-controls="addImage" class="coverPop dialog--open">
     <div class="manageCovers">$change</div>
   </a>
 </div>

@@ -364,8 +364,7 @@ $if ctx.user and ctx.user.is_admin():
     <script type="text/javascript">
     <!--
     window.q.push(function(){
-        \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
-        \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
+        \$('#historyTools').append('| <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="Cite this on Wikipedia">Wikipedia citation</a>');
         \$('#wikiselect').focus(function(){\$(this).select();})
     });
     //-->

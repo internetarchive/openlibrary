@@ -62,7 +62,8 @@ $ web = ["download_url", "purchase_url"]
 
         <div class="illustration">
             $:macros.CoverImage(page)
-            <div class="smaller sansserif"><a href="javascript:;" id="coverPop">Change Cover</a></div>
+            <div class="smaller sansserif"><a aria-controls="addImage"
+                class="dialog--open" id="coverPop">Change Cover</a></div>
         </div>
 
     $if ids:
