@@ -1,7 +1,8 @@
 import { debounce } from './nonjquery_utils.js';
 import * as Browser from './Browser';
+import { updateWorkAvailability } from './availability';
 
-export function isScrolledIntoView(elem) {
+function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
     var elemTop, elemBottom;
@@ -11,14 +12,6 @@ export function isScrolledIntoView(elem) {
         return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
     }
     return false;
-}
-
-// CLOSE POP-UP FROM IFRAME
-// used in templates/covers/saved.html
-export function closePop(){
-    $('#popClose').click(function(){
-        parent.$.fn.colorbox.close();
-    });
 }
 
 export default function init(){
@@ -187,8 +180,6 @@ export default function init(){
         $('.search-bar-input [type=text]').val(q);
     }
 
-    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
-    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     $(document).on('submit','.trigger', function(e) {

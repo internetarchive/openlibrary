@@ -8,6 +8,7 @@ import Template from './template'
 export default function($){
     // For v2 and v1 page support. Can be removed when no v1 support needed
     var isOldJQuery = $('body').on === undefined;
+    // used in books/edit/exercpt, books/edit/web and books/edit/edition
     $.fn.repeat = function(options) {
         var addSelector, removeSelector, id, elems, t, code,
             nextRowId;
