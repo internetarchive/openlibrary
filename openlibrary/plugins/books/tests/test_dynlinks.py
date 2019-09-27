@@ -6,15 +6,15 @@ data0: This contains OL0A, OL0M and OL0W with each having just name/title.
 data1: This contains OL1A, OL1M, OL1W with each having name/tile and interconnections.
 data9: This contans OL9A, OL9M and OL9W with interconnections and almost all fields.
 """
-from __future__ import print_function
-from .. import dynlinks
 
 import pytest
 import re
 import simplejson
 import web
-from openlibrary.mocks import mock_infobase
+
 from openlibrary.core import ia
+from openlibrary.mocks import mock_infobase
+from openlibrary.plugins.books import dynlinks
 
 @pytest.fixture
 def data0(request):
@@ -353,7 +353,7 @@ def test_isbnx(monkeypatch):
     site.save({
         "key": "/books/OL1M",
         "type": {"key": "/type/edition"},
-        "isbn_": "123456789X"
+        "isbn_10": ["123456789X"]
     })
 
     monkeypatch.setattr(web.ctx, "site", site, raising=False)

@@ -10,7 +10,6 @@ verbose = False
 
 titles = frozenset([normalize(x) for x in ('Mrs', 'Sir', 'pseud', 'Lady', 'Baron', 'lawyer', 'Lord', 'actress', 'Dame', 'Mr', 'Viscount', 'professeur', 'Graf', 'Dr', 'Countess', 'Ministerialrat', 'Oberamtsrat', 'Rechtsanwalt')])
 
-# marquis de
 
 def flip_name(name):
     m = re_marc_name.match(name)

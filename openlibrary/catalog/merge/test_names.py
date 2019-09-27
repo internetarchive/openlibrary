@@ -1,6 +1,6 @@
 #-*- coding: utf-8 -*-
-import names
 import pytest
+from openlibrary.catalog.merge import names
 
 samples = [
     ("John Smith", "Smith, John"),

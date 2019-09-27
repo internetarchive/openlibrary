@@ -1,12 +1,13 @@
 from __future__ import print_function
+
 import re
-from names import match_name
-from normalize import normalize
+
+from openlibrary.catalog.merge.names import match_name
+from openlibrary.catalog.merge.normalize import normalize
 
 # fields needed for merge process:
 # title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
-re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
 isbn_match = 85
@@ -160,7 +161,18 @@ def compare_author_keywords(e1_authors, e2_authors):
     else:
         return ('authors', 'mismatch', -200)
 
+
 def compare_authors(e1, e2):
+    """
+    Compares the authors of two edition representations and
+    returns a evaluation and score.
+
+    :param dict e1: Edition, output of build_marc()
+    :param dict e2: Edition, output of build_marc()
+    :rtype: tuple
+    :return: str?, message, score
+    """
+
     if 'authors' in e1 and 'authors' in e2:
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
@@ -179,6 +191,7 @@ def compare_authors(e1, e2):
             return ('authors', 'exact match', 125)
         return ('authors', 'no authors', 75)
     return ('authors', 'field missing from one record', -25)
+
 
 def title_replace_amp(amazon):
     return normalize(amazon['full-title'].replace(" & ", " and ")).lower()
@@ -277,12 +290,15 @@ def compare_publisher(e1, e2):
     if 'publishers' not in e1 or 'publishers' not in e2:
         return ('publisher', 'either missing', 0)
 
+
 def build_marc(edition):
     """
+    Returns an expanded representation of an edition dict,
+    usable for accurate comparisons between existing and new
+    records.
     Called from openlibrary.catalog.add_book.load()
-    Returns an expanded representation of an edition dict
 
-    :param dict edition: Import edition representation
+    :param dict edition: Import edition representation, requires 'full_title'
     :rtype: dict
     :return: An expanded version of an edition dict
         more titles, normalized + short
@@ -300,6 +316,7 @@ def build_marc(edition):
             marc[f] = edition[f]
     return marc
 
+
 def attempt_merge(e1, e2, threshold, debug=False):
     """
     Determines (according to a threshold) whether two edition representations are
@@ -315,11 +332,11 @@ def attempt_merge(e1, e2, threshold, debug=False):
     total = sum(i[2] for i in level1)
     if debug:
         print("E1: %s\nE2: %s" % (e1, e2))
-        print(total, level1)
+        print("TOTAL 1: %s - %s" % (total, level1))
     if total >= threshold:
         return True
     level2 = level2_merge(e1, e2)
     total = sum(i[2] for i in level2)
     if debug:
-        print(total, level2)
+        print("TOTAL 2: %s - %s" % (total, level2))
     return total >= threshold

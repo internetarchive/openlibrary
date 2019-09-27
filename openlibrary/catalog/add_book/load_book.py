@@ -1,9 +1,19 @@
 import web
 import re
-import os
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 
+
 def east_in_by_statement(rec, author):
+    """
+    Returns False if there is no by_statement in rec.
+    Otherwise returns whether author name uses eastern name order.
+    TODO: elaborate on what this actually means, and how it is used.
+
+    :param dict rec: import source edition record
+    :param dict author: import source author dict: {"name": "Some One"}
+    :rtype: bool
+    """
+
     if 'by_statement' not in rec:
         return False
     if 'authors' not in rec:
@@ -13,8 +23,10 @@ def east_in_by_statement(rec, author):
     name = name.replace('.', '')
     name = name.replace(', ', '')
     if name == flipped.replace('.', ''):
+        # name was not flipped
         return False
     return rec['by_statement'].find(name) != -1
+
 
 def do_flip(author):
     """
@@ -22,6 +34,7 @@ def do_flip(author):
     i.e. Smith, John => John Smith
 
     :param dict author:
+    :rtype: None
     """
     if 'personal_name' not in author:
         return
@@ -40,6 +53,7 @@ def do_flip(author):
     name = flip_name(author['name'])
     author['name'] = name
     author['personal_name'] = name
+
 
 def pick_from_matches(author, match):
     """
@@ -60,6 +74,7 @@ def pick_from_matches(author, match):
     if len(maybe) == 1:
         return maybe[0]
     return min(maybe, key=key_int)
+
 
 def find_author(name):
     """
@@ -85,12 +100,13 @@ def find_author(name):
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
     return authors
 
+
 def find_entity(author):
     """
     Looks for an existing Author record in OL by name
     and returns it if found.
 
-    :param dict author: Author import dict
+    :param dict author: Author import dict {"name": "Some One"}
     :rtype: dict|None
     :return: Existing Author record, if one is found
     """
@@ -127,15 +143,18 @@ def find_entity(author):
         return match[0]
     return pick_from_matches(author, match)
 
+
 def import_author(author, eastern=False):
     """
     Converts an import style new-author dictionary into an
-    Open Library author representation.
+    Open Library existing author, or new author candidate, representation.
+    Does NOT create new authors.
 
-    :param dict author: Author import record
+    :param dict author: Author import record {"name": "Some One"}
     :param bool eastern: Eastern name order
     :rtype: dict
-    :return: Open Library style Author representation
+    :return: Open Library style Author representation, either exisiting with "key",
+             or new candidate without "key".
     """
     existing = find_entity(author)
     if existing:
@@ -149,11 +168,12 @@ def import_author(author, eastern=False):
         return new
     if not eastern:
         do_flip(author)
-    a = { 'type': { 'key': '/type/author' } }
+    a = {'type': {'key': '/type/author'}}
     for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':
         if f in author:
             a[f] = author[f]
     return a
+
 
 class InvalidLanguage(Exception):
     def __init__(self, code):
@@ -161,7 +181,9 @@ class InvalidLanguage(Exception):
     def __str__(self):
         return "invalid language code: '%s'" % self.code
 
+
 type_map = { 'description': 'text', 'notes': 'text', 'number_of_pages': 'int' }
+
 
 def build_query(rec):
     """
@@ -199,5 +221,4 @@ def build_query(rec):
                 book[k] = {'type': t, 'value': v}
         else:
             book[k] = v
-
     return book
