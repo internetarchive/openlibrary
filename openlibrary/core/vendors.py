@@ -164,6 +164,25 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
     return _serialize_amazon_product(product)
 
 
+def split_amazon_title(full_title):
+    """Splits an Amazon title into (title, subtitle),
+    strips parenthetical tags.
+    :param str full_title:
+    :rtype: tuple
+    :return: (title, subtitle | None)
+    """
+    # strip parens
+    full_title = re.sub('\([^\)]*\)', '', full_title)
+    re_split_title = re.compile(
+        r'''^
+        (.+?(?:\ \(.+\))?)
+        (?::\ (\ *[^:]+))?$
+        ''', re.X)
+    m = re_split_title.match(full_title)
+    (title, subtitle) = m.groups()
+    return (title.strip(), subtitle.strip() if subtitle else None)
+
+
 def clean_amazon_metadata_for_load(metadata):
     """This is a bootstrapping helper method which enables us to take the
     results of get_amazon_metadata() and create an
@@ -187,6 +206,16 @@ def clean_amazon_metadata_for_load(metadata):
     if metadata.get('source_records'):
         asin = metadata.get('source_records')[0].replace('amazon:', '')
         conforming_metadata['identifiers'] = {'amazon': [asin]}
+    title, subtitle = split_amazon_title(metadata['title'])
+    conforming_metadata['title'] == title
+    if subtitle:
+        conforming_metadata['full_title'] = title + ' : ' + subtitle
+        conforming_metadata['title'] = title
+        conforming_metadata['subtitle'] = subtitle
+    # Record original title if some content has been removed (i.e. parentheses)
+    if metadata['title'] != conforming_metadata.get('full_title', conforming_metadata['title']):
+        conforming_metadata['notes'] = "Source title: %s" % metadata['title']
+
     return conforming_metadata
 
 
