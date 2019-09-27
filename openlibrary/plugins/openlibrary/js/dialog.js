@@ -1,3 +1,35 @@
+
+/*
+ * a confirm dialog for confirming actions
+ * @return {Function}
+ */
+function confirmDialog() {
+    /**
+    * @param {Function} callback
+    * @param {Object} options
+    * @return {jQuery.Object}
+    */
+    return function(callback, options) {
+        var _this = this;
+        var defaults = {
+            autoOpen: false,
+            width: 400,
+            modal: true,
+            resizable: false,
+            buttons: {
+                'Yes, I\'m sure': function() {
+                    callback.apply(_this);
+                },
+                'No, cancel': function() {
+                    $(_this).dialog('close');
+                }
+            }
+        };
+        options = $.extend(defaults, options);
+        return this.dialog(options);
+    };
+}
+
 /**
  * Wires up confirmation prompts.
  * In future this will be generalised.
@@ -33,6 +65,7 @@ function initConfirmationDialogs() {
             }
         })
     );
+    $.fn.ol_confirm_dialog = confirmDialog();
 }
 
 /**

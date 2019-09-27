@@ -27,7 +27,7 @@ import * as Browser from './Browser';
 import { commify } from './python';
 import { Subject, urlencode, slice } from './subjects';
 import Template from './template.js';
-// Add $.fn.focusNextInputField, $.fn.ol_confirm_dialog
+// Add $.fn.focusNextInputField
 import { closePopup, truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
@@ -74,7 +74,7 @@ jQuery(function () {
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
     initDialogs();
-    initTabs($('#tabsAddbook,#tabsAddauthor'));
+    initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
