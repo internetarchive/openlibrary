@@ -33,6 +33,7 @@ import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
+import initDialogs from './dialog';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -73,6 +74,7 @@ jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
+    initDialogs();
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
