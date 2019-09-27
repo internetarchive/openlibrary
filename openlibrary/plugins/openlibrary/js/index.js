@@ -28,7 +28,7 @@ import jQueryRepeat from './jquery.repeat';
 import { enumerate, htmlquote, websafe, foreach, join, len, range } from './jsdef';
 import { plot_minigraph, plot_tooltip_graph } from './plot';
 import initAnalytics from './ol.analytics';
-import init, { bookCovers } from './ol.js';
+import init from './ol.js';
 import * as Browser from './Browser';
 import { commify } from './python';
 import { Subject, urlencode, slice } from './subjects';
@@ -42,8 +42,6 @@ import Promise from 'promise-polyfill';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
-// Can be removed once removed from templates. noop function to avoid JS errors.
-window.bookCovers = bookCovers;
 // closePopup used in openlibrary/templates/covers/saved.html
 window.closePopup = closePopup;
 window.commify = commify;

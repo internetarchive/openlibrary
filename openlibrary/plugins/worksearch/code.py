@@ -17,14 +17,10 @@ import logging
 
 ftoken_db = None
 
-from openlibrary.plugins.search.code import search as _edition_search
-
 logger = logging.getLogger("openlibrary.worksearch")
 
 re_to_esc = re.compile(r'[\[\]:]')
 
-class edition_search(_edition_search):
-    path = "/search/edition"
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')

@@ -14,16 +14,6 @@ function isScrolledIntoView(elem) {
     return false;
 }
 
-// BOOK COVERS
-// used in templates/work_search.html
-// I suspect this is dead code. See #2397.
-export function bookCovers(){
-    $('img.cover').error(function(){
-        $(this).closest('.SRPCover').hide();
-        $(this).closest('.coverMagic').find('.SRPCoverBlank').show();
-    });
-}
-
 export default function init(){
     var $searchResults = $('header#header-bar .search-component ul.search-results');
     var $searchInput = $('header#header-bar .search-component .search-bar-input input[type="text"]');
