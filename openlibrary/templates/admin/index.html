@@ -4,14 +4,8 @@ $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
 $ stats = get_admin_stats()
-<script type="text/javascript">
-window.q.push(function () {
-    var edits = $:json_encode(counts.human_edits.get_counts(80, True));
-    var members = $:json_encode(counts.members.get_counts(80, True));
-    plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
-    plot_tooltip_graph(\$("#membergraph"), members,"new members(s) on");
-    });
-</script>
+<script type="text/json+graph" id="graph-json-editgraph">$:json_encode(counts.human_edits.get_counts(80, True))</script>
+<script type="text/json+graph" id="graph-json-membergraph">$:json_encode(counts.members.get_counts(80, True))</script>
 
 <div id="contentHead">
     $if ctx.user and ctx.user.is_admin():
@@ -105,17 +99,12 @@ window.q.push(function () {
     </table>
   </div>
 
-
-  <script type="text/javascript">
-    window.q.push(function () {
-    plot_tooltip_graph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(150, True)), " works on ");
-    plot_tooltip_graph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(150, True)), " editions on ");
-    plot_tooltip_graph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(150, True)), " covers on ");
-    plot_tooltip_graph (\$("#authors_minigraph"), $:json_encode(counts.authors.get_counts(150, True)), " authors on ");
-    plot_tooltip_graph (\$("#lists_minigraph"), $:json_encode(counts.lists.get_counts(150, True)), " lists on ");
-    plot_tooltip_graph (\$("#members_minigraph"), $:json_encode(counts.members.get_counts(150, True)), " members on ");
-    });
-  </script>
+  <script type="text/json+graph" id="graph-json-works_minigraph">$:json_encode(counts.works.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-editions_minigraph">$:json_encode(counts.editions.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-covers_minigraph">$:json_encode(counts.covers.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-authors_minigraph">$:json_encode(counts.authors.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-lists_minigraph">$:json_encode(counts.lists.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-members_minigraph">$:json_encode(counts.members.get_counts(150, True))</script>
 
   <table class="measurements stripeEven">
     <tr>
