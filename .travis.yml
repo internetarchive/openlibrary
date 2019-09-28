@@ -25,7 +25,7 @@ install:
   # if Travis is running Python 3, then
   #   create a legacy Python for npm/node until nodejs/node#25789 is resolved
   - pushd vendor/acs4_py  && git pull origin master && popd
-  - pushd vendor/infogami && git pull origin master && popd
+  # - pushd vendor/infogami && git pull origin master && popd
   - git status
   - git commit -am"Update git submodules in .vendor"
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then
