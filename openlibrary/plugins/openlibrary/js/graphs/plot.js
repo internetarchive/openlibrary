@@ -96,9 +96,9 @@ export function loadEditionsGraph() {
     dateTo = plot.getAxes().xaxis.max.toFixed(0);
 
     if (jQuery.support.opacity) {
-        $('.chartYaxis').css({'top' : '60px', 'left' : '-60px'})
+        $('.chartYaxis').css({top: '60px', left: '-60px'})
     } else {
-        $('.chartYaxis').css({'top' : '0', 'left' : '0'})
+        $('.chartYaxis').css({top: '0', left: '0'})
     }
 
     if (dateFrom == (dateTo - 1)) {
