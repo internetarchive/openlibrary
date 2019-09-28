@@ -28,7 +28,7 @@ module.exports = {
 
     // A map of ResourceLoader module / entry chunk names to JavaScript files to pack.
     entry: {
-        'all': './openlibrary/plugins/openlibrary/js/index.js'
+        all: './openlibrary/plugins/openlibrary/js/index.js'
     },
 
     resolve: {

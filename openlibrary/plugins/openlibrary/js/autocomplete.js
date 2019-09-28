@@ -112,7 +112,7 @@ export default function($) {
             event.preventDefault();
 
             next_index = container.find('div.input').length;
-            new_input = $(input_renderer(next_index, {key:'', name: ''}));
+            new_input = $(input_renderer(next_index, {key: '', name: ''}));
             container.append(new_input);
             setup_autocomplete(
                 new_input.find(autocomplete_selector)[0],

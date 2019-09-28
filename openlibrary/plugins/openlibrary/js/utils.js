@@ -55,4 +55,3 @@ export function cond(predicate, true_value, false_value) {
         return false_value;
     }
 }
-
