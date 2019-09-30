@@ -757,6 +757,7 @@ def test_don_quixote(mock_site):
     print("Work status counts: %s" % work_status_counts)
     print("Author status counts: %s" % author_status_counts)
 
+
 def test_same_twice(mock_site, add_languages):
     rec = {
             'source_records': ['ia:test_item'],
@@ -785,7 +786,6 @@ def test_existing_work(mock_site, add_languages):
     }
     mock_site.save(author)
     mock_site.save(existing_work)
-
     rec = {
             'source_records': 'non-marc:test',
             'title': "Finding Existing Works",
@@ -799,4 +799,7 @@ def test_existing_work(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'matched'
+    assert reply['work']['key'] == '/works/OL16W'
     assert reply['authors'][0]['status'] == 'matched'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['key'] == '/works/OL16W'
