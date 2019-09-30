@@ -62,12 +62,15 @@ amazon_titles = [
         ['Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin (Semiotext(e) / Native Agents)',
             'Last Days at Hot Slit',
             'The Radical Feminism of Andrea Dworkin'],
-
-        ]
+        ['Bloody Times: The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis',
+            'Bloody Times',
+            'The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis'],
+]
 
 @pytest.mark.parametrize('amazon,title,subtitle', amazon_titles)
 def test_split_amazon_title(amazon, title, subtitle):
     assert split_amazon_title(amazon) == (title, subtitle)
+
 
 def test_clean_amazon_metadata_for_load_subtitle():
     amazon = {"publishers": ["Vintage"], "price": "$4.12 (used)", "physical_format": "paperback", "edition": "Reprint", "authors": [{"name": "David Grann"}], "isbn_13": ["9780307742483"], "price_amt": "4.12", "source_records": ["amazon:0307742482"], "title": "Killers of the Flower Moon: The Osage Murders and the Birth of the FBI", "url": "https://www.amazon.com/dp/0307742482/?tag=internetarchi-20", "offer_summary": {"lowest_new": 869, "amazon_offers": 1, "total_new": 57, "lowest_used": 412, "total_collectible": 2, "total_used": 133, "lowest_collectible": 1475}, "number_of_pages": "400", "cover": "https://images-na.ssl-images-amazon.com/images/I/51PP3iTK8DL.jpg", "languages": ["english"], "isbn_10": ["0307742482"], "publish_date": "Apr 03, 2018", "product_group": "Book", "qlt": "used"}
@@ -76,7 +79,6 @@ def test_clean_amazon_metadata_for_load_subtitle():
     assert result.get('subtitle') == 'The Osage Murders and the Birth of the FBI'
     assert result.get('full_title') == 'Killers of the Flower Moon : The Osage Murders and the Birth of the FBI'
     #TODO: test for, and implement languages
-
 
 # Test cases to add:
 # Multiple authors
