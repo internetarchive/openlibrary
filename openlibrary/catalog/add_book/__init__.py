@@ -170,7 +170,7 @@ def build_author_reply(author_in, edits):
         author_reply.append({
             'key': a['key'],
             'name': a['name'],
-            'status': ('created' if new_author else 'modified'),
+            'status': ('created' if new_author else 'matched'),
         })
     return (authors, author_reply)
 
@@ -507,7 +507,7 @@ def load_data(rec, account=None):
             "success": True,
             "work": {"key": <key>, "status": "created" | "modified" | "matched"},
             "edition": {"key": <key>, "status": "created"},
-            "authors": [{"status": "modified", "name": "John Smith", "key": <key>}, ...]
+            "authors": [{"status": "matched", "name": "John Smith", "key": <key>}, ...]
         }
     """
 

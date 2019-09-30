@@ -162,8 +162,16 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
-    assert reply['authors'][0]['status'] == 'modified'
     akey2 = reply['authors'][0]['key']
+
+    # TODO: There is no code that modifies an author if more data is provided.
+    # previously the status implied the record was always 'modified', when a match was found.
+    #assert reply['authors'][0]['status'] == 'modified'
+    #a = mock_site.get(akey2)
+    #assert 'entity_type' in a
+    #assert a.entity_type == 'person'
+
+    assert reply['authors'][0]['status'] == 'matched'
     assert akey1 == akey2 == '/authors/OL1A'
 
     # Tests same title with different ocaid and author is not overwritten
@@ -762,3 +770,33 @@ def test_same_twice(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
     assert reply['work']['status'] == 'matched'
+
+
+def test_existing_work(mock_site, add_languages):
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A'}
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': "Finding existing works",
+        'type': {'key': '/type/work'},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+
+    rec = {
+            'source_records': 'non-marc:test',
+            'title': "Finding Existing Works",
+            'authors': [{'name': 'John Smith'}],
+            'publishers': ['Black Spot'],
+            'publish_date': 'Jan 09, 2011',
+            'isbn_10': ['1250144051'],
+           }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'matched'
+    assert reply['authors'][0]['status'] == 'matched'
