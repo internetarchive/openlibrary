@@ -63,7 +63,10 @@ $var title: $page.title
                 <span itemprop="name">$page.title</span>
             $if page.edition_count:
                 <span class="tools" style="white-space:nowrap;">
-                  <a href="#editions" class="plain brown">$page.edition_count editions</a>
+                    $if page.edition_count>1:
+                        <a href="#editions" class="plain brown">$page.edition_count editions</a>
+                    $else:
+                        <a href="#editions" class="plain brown">$page.edition_count edition</a>
                 </span>
         </h1>
         <div class="clearfix"></div>
