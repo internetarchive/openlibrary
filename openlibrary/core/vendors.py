@@ -207,7 +207,7 @@ def clean_amazon_metadata_for_load(metadata):
         asin = metadata.get('source_records')[0].replace('amazon:', '')
         conforming_metadata['identifiers'] = {'amazon': [asin]}
     title, subtitle = split_amazon_title(metadata['title'])
-    conforming_metadata['title'] == title
+    conforming_metadata['title'] = title
     if subtitle:
         conforming_metadata['full_title'] = title + ' : ' + subtitle
         conforming_metadata['title'] = title
