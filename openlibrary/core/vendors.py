@@ -168,7 +168,7 @@ def split_amazon_title(full_title):
     """Splits an Amazon title into (title, subtitle),
     strips parenthetical tags.
     :param str full_title:
-    :rtype: tuple
+    :rtype: (str, str | None)
     :return: (title, subtitle | None)
     """
     # strip parens
