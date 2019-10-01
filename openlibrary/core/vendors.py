@@ -172,9 +172,10 @@ def split_amazon_title(full_title):
     :return: (title, subtitle | None)
     """
 
-
-    # strip parens
-    full_title = re.sub('\([^\)]*\)', '', full_title)
+    # strip parenthetical blocks wherever they occur
+    # can handle 1 level of nesting
+    re_parens_strip = re.compile('\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    full_title = re.sub(re_parens_strip, '', full_title)
 
     titles = full_title.split(':')
     subtitle = titles.pop().strip() if len(titles) > 1 else None
