@@ -52,6 +52,16 @@ amazon_titles = [
             'Trapped in a Video Game', None],
         ["An American Marriage (Oprah's Book Club): A Novel",
             'An American Marriage', 'A Novel'],
+        ['A Novel (German Edition)',
+            'A Novel', None],
+        ['Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : 10 Tips For an Amazing Trip',
+            'Vietnam Travel Guide 2019 : Ho Chi Minh City - First Journey',
+            '10 Tips For an Amazing Trip'],
+        ['Secrets of Adobe(r) Acrobat(r) 7. 150 Best Practices and Tips (Russian Edition)',
+            'Secrets of Adobe Acrobat 7. 150 Best Practices and Tips', None],
+        #['Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin (Semiotext(e) / Native Agents)',
+        #    'Last Days at Hot Slit',
+        #    'The Radical Feminism of Andrea Dworkin'],
 
         ]
 
