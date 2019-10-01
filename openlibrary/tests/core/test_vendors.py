@@ -59,9 +59,9 @@ amazon_titles = [
             '10 Tips For an Amazing Trip'],
         ['Secrets of Adobe(r) Acrobat(r) 7. 150 Best Practices and Tips (Russian Edition)',
             'Secrets of Adobe Acrobat 7. 150 Best Practices and Tips', None],
-        #['Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin (Semiotext(e) / Native Agents)',
-        #    'Last Days at Hot Slit',
-        #    'The Radical Feminism of Andrea Dworkin'],
+        ['Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin (Semiotext(e) / Native Agents)',
+            'Last Days at Hot Slit',
+            'The Radical Feminism of Andrea Dworkin'],
 
         ]
 
