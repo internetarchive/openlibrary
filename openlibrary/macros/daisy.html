@@ -1,6 +1,9 @@
 $def with(page, url='', msg='', protected=False, block_name=None)
 $# Takes following parameters:
 $# * page
+$# * url (in case page doesn't have one)
+$# * msg (in case default doesn't match context)
+$# * protected (is daisy encrypted or not)
 $# * block_name is a BEM block name
 
 $ msg = msg or _("Download for print-disabled")
