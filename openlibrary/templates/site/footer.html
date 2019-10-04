@@ -22,9 +22,6 @@ $if bodyid == 'user' or 'admin':
     });
     </script>
 
-    $if query_param("_firebug") == "true":
-        <script type='text/javascript' src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-
     $if any([path in request.canonical_url for path in ['/account/create', '/books/add', '/edit', '/books']]):
         <!-- Must be loaded in Sign Up and Add new Books page -->
         <!-- Must be loaded for all edit pages having link /books/*/*/edit -->
