@@ -677,6 +677,20 @@ class subject_search(delegate.page):
 
         return results
 
+class subject_search_json(subject_search):
+    path = '/search/subjects'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(q='', offset=0, limit=100)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 100)
+        limit = min(1000, limit)  # limit limit to 1000.
+
+        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
+
 class author_search(delegate.page):
     path = '/search/authors'
     def GET(self):
