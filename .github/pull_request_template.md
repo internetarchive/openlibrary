@@ -3,7 +3,6 @@ Closes #
 
 <!-- What does this PR achieve? [feature|hotfix|fix|refactor] -->
 
-
 ### Technical
 <!-- What should be noted about the implementation? -->
 
