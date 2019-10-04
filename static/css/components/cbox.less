@@ -92,17 +92,10 @@ div.imageIntro{
   margin: 10px;
 }
 
-a.floater {
-  &Shut {
-    text-decoration: none;
-    color: @dark-grey;
-    font-size: 1.2em;
-  }
-  &Close {
-    color: @red;
-    font-size: 1.1em;
-    padding-left: 20px;
-  }
+.dialog--close {
+  text-decoration: none;
+  color: @dark-grey;
+  font-size: 1.2em;
 }
 
 /* VIEW LARGER COVER POP-UP */
@@ -110,7 +103,7 @@ div.coverFloat {
   font-family: @lucida_sans_serif-1;
   background: @white;
   text-align: left;
-  a.floaterShut {
+  a.dialog--close {
     &:hover {
       background-position: 0 -16px;
     }
