@@ -50,8 +50,6 @@ window.slice = slice;
 window.sprintf = sprintf;
 window.truncate = truncate;
 window.urlencode = urlencode;
-window.validateEmail = validateEmail;
-window.validatePassword = validatePassword;
 window.websafe = websafe;
 window._ = ugettext;
 window.ungettext = ungettext;
@@ -103,4 +101,6 @@ jQuery(function () {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
+    validateEmail();
+    validatePassword();
 });

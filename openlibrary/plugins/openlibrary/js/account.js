@@ -1,6 +1,10 @@
 // used in templates/account/email.html
 export function validateEmail() {
-    $('form.email').validate({
+    const $form = $('form.email');
+    if (!$form.length) {
+        return;
+    }
+    $form.validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
             var message;
@@ -33,7 +37,11 @@ export function validateEmail() {
 
 // used in templates/account/password.html
 export function validatePassword() {
-    $('form.password').validate({
+    const $form = $('form.password');
+    if (!$form.length) {
+        return;
+    }
+    $form.validate({
         invalidHandler: function(form, validator) {
             var errors = validator.numberOfInvalids();
             var message;
