@@ -636,16 +636,59 @@ class list_search(delegate.page):
     path = '/search/lists'
 
     def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+
+        lists = self.get_results(i.q, i.offset, i.limit)['response']['docs']
+
+        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+
+    def get_results(self, q, offset=0, limit=100):
         if 'env' not in web.ctx:
             delegate.fakeload()
 
-        i = web.input(q='', offset='0', limit='10')
         keys = web.ctx.site.things({
-            "type": "/type/list", "name~": i.q,
-            "limit": int(i.limit), "offset": int(i.offset)
+            "type": "/type/list", "name~": q,
+            "limit": int(limit), "offset": int(offset)
         })
         lists = web.ctx.site.get_many(keys)
-        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+
+        return {
+            'response': {
+                'docs': lists
+            }
+        }
+
+class list_search_json(list_search):
+    path = '/search/lists'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(q='', offset=0, limit=10)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 10)
+        limit = min(100, limit)  # limit limit to 1000.
+
+        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+
+        response['docs'] = [
+            {
+                'key': list.key,
+                'url': list.url(),
+                'name': list.name,
+                'description': str(list.description),
+                'last_modified': list.last_modified.isoformat() if list.last_modified else None,
+                'seed_count': len(list.seeds),
+                'edition_count': list.edition_count,
+                'owner': {
+                    'key': list.get_owner().key,
+                },
+                'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in list.get_top_subjects(limit=5)],
+            }
+            for list in response['docs']
+        ]
+
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
 
 class subject_search(delegate.page):
     path = '/search/subjects'
