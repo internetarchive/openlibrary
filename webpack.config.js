@@ -61,6 +61,15 @@ module.exports = {
         } ]
     },
     optimization: {
+        splitChunks: {
+            cacheGroups: {
+                // Turn off webpack's default 'vendors' cache group. If this is desired
+                // later on, we can explicitly turn this on for clarity.
+                // https://webpack.js.org/plugins/split-chunks-plugin/#optimization-splitchunks
+                vendors: false,
+
+            }
+        },
         // Don't produce production output when a build error occurs.
         noEmitOnErrors: prod
     },
@@ -86,6 +95,7 @@ module.exports = {
     // The source map is intentionally exposed
     // to users via sourceMapFilename for prod debugging.
     devtool: 'source-map',
+    mode: prod,
 
     performance: {
         maxAssetSize: 703 * 1024,
