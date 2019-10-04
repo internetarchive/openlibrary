@@ -4,7 +4,7 @@ $def with (book)
     <div class="floater" id="addCover">
         <div class="floaterHead">
             <h2>Book Covers</h2>
-            <a class="floaterShut">&times;<span class="shift">$_("Close")</span></a>
+            <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <form class="floatform" id="addcover-form" name="bookcover" method="POST" enctype="multipart/form-data" action="/uploadcover">
             <div id="popThisUp2" class="floaterAlert hidden"><strong>Ahem.</strong> You appear not to have specified an image. Please choose one?</div>
@@ -29,7 +29,7 @@ $def with (book)
 
             <div class="formButtons">
                 <button type="submit" name="coverUpload" id="coverUpload" value="Upload" style="width:auto!important;">$_("Upload")</button>
-                <a id="coverClose" class="floaterShut">$_("Cancel")</a>
+                <a id="coverClose" class="dialog--close">$_("Cancel")</a>
             </div>
         </form>
     </div>
