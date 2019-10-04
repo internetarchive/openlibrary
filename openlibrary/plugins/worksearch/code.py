@@ -721,6 +721,20 @@ class edition_search(delegate.page):
 
         return render_template('search/editions.tmpl', get_results)
 
+class edition_search_json(edition_search):
+    path = '/search/editions'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(q='', offset=0, limit=100)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 100)
+        limit = min(1000, limit)  # limit limit to 1000.
+
+        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
+
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
