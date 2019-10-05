@@ -259,6 +259,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
+
     return inject_availability(subject_results)
 
 class SubjectEngine:
@@ -326,6 +327,15 @@ class SubjectEngine:
                     subject[meta.key].pop(i)
                     break
 
+        # Fetch more works until offset is > than work_count.
+        # This ensures that we render the correct ammount of works.
+        if offset < subject.work_count:
+            rest_subject = get_subject(
+                key, details=details, offset=limit + offset, sort=sort,
+                limit=limit, **filters)
+            if len(rest_subject.works) > 0:
+                subject.works.extend(rest_subject.works)
+            
         return subject
 
     def get_meta(self, key):
