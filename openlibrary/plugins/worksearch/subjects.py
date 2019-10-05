@@ -259,7 +259,6 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
-
     return inject_availability(subject_results)
 
 class SubjectEngine:

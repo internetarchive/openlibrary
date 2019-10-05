@@ -73,10 +73,7 @@ Subject.prototype = {
 
     init: function(data) {
         $.extend(this, data);
-        console.log("data: ", data);
-        console.log("this.work_count ", this.work_count);
         this.page_count = Math.ceil(this.work_count / this.settings.pagesize);
-        console.log("this.page_count ", this.page_count);
         this.epage_count = Math.ceil(this.ebook_count / this.settings.pagesize);
 
         // cache already visited pages
