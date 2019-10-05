@@ -46,7 +46,7 @@ $else:
 
     $if q and 'error' not in results:
         <div id="searchResults">
-        <ul id="siteSearch">
+        <ul id="siteSearch" class="list-books">
         $for doc in response['docs']:
             $ authors = zip(doc.get('author_key', []), doc.get('author_name', []))
             <li>

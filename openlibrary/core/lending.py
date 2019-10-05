@@ -1,5 +1,6 @@
 """Module for providing core functionality of lending on Open Library.
 """
+
 import web
 import simplejson
 import datetime
@@ -23,11 +24,6 @@ from . import msgbroker
 from . import helpers as h
 
 logger = logging.getLogger(__name__)
-
-# How long the auth token given to the BookReader should last.  After the auth token
-# expires the BookReader will not be able to access the book.  The BookReader polls
-# OL periodically to get fresh tokens.
-BOOKREADER_AUTH_SECONDS = dateutil.MINUTE_SECS * 10
 
 # When we generate a loan offer (.acsm) for a user we assume that the loan has occurred.
 # Once the loan fulfillment inside Digital Editions the book status server will know
@@ -56,6 +52,7 @@ config_ia_ol_xauth_s3 = None
 config_ia_s3_auth_url = None
 config_ia_ol_metadata_write_s3 = None
 config_ia_users_loan_history = None
+config_ia_loan_api_developer_key = None
 config_http_request_timeout = None
 config_loanstatus_url = None
 config_bookreader_host = None
@@ -75,7 +72,7 @@ def setup(config):
         config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
-        config_ia_users_loan_history
+        config_ia_users_loan_history, config_ia_loan_api_developer_key
 
     config_loanstatus_url = config.get('loanstatus_url')
     config_bookreader_host = config.get('bookreader_host', 'archive.org')
@@ -90,6 +87,7 @@ def setup(config):
     config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
     config_ia_s3_auth_url = config.get('ia_s3_auth_url')
     config_ia_users_loan_history = config.get('ia_users_loan_history')
+    config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
     config_amz_api = config.get('amazon_api')
@@ -112,13 +110,22 @@ def get_work_authors_and_related_subjects(work_id):
 
 @public
 def cached_work_authors_and_subjects(work_id):
-    return cache.memcache_memoize(
-        get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-        timeout=dateutil.HALF_DAY_SECS)(work_id)
+    try:
+        return cache.memcache_memoize(
+            get_work_authors_and_related_subjects, 'works_authors_and_subjects',
+            timeout=dateutil.HALF_DAY_SECS)(work_id)
+    except AttributeError:
+        return {'authors': [], 'subject': []}
 
 @public
 def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                    _type=None, sorts=None, advanced=True):
+    """This needs to be exposed by a generalized API endpoint within
+    plugins/openlibrary/api/browse which lets lazy-load more items for
+    the homepage carousel and support the upcoming /browse view
+    (backed by archive.org search, so we don't have to send users to
+    archive.org to see more books)
+    """
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
     q = 'openlibrary_work:(*)'
@@ -179,14 +186,14 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
                       (sorts if sorts and isinstance(sorts, list)
                        else [''])]))
     rows = limit or DEFAULT_IA_RESULTS
-    url = "https://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
+    url = "http://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
         config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
     return url
 
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url=("https://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
+        url=("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
              "+AND+loans__status__status:AVAILABLE"\
              "&fl=identifier,openlibrary_edition,loans__status__status"\
              "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
@@ -197,7 +204,7 @@ def get_random_available_ia_edition():
         return None
 
 def get_available(limit=None, page=1, subject=None, query=None,
-                  work_id=None, _type=None, sorts=None):
+                  work_id=None, _type=None, sorts=None, url=None):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -206,10 +213,19 @@ def get_available(limit=None, page=1, subject=None, query=None,
     used in such things as 'Staff Picks' carousel to retrieve a list
     of unique available books.
     """
-    url = compose_ia_url(limit=limit, page=page, subject=subject, query=query,
-                         work_id=work_id, _type=_type, sorts=sorts)    
+    url = url or compose_ia_url(
+        limit=limit, page=page, subject=subject, query=query,
+        work_id=work_id, _type=_type, sorts=sorts)
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        request = urllib2.Request(url=url)
+
+        # Internet Archive Elastic Search (which powers some of our
+        # carousel queries) needs Open Library to forward user IPs so
+        # we can attribute requests to end-users
+        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+        request.add_header('x-client-id', client_ip)
+
+        content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
         for item in items:
@@ -220,7 +236,13 @@ def get_available(limit=None, page=1, subject=None, query=None,
     except Exception as e:
         return {'error': 'request_timeout'}
 
+
 def get_availability(key, ids):
+    """
+    :param str key: the type of identifier
+    :param list of str ids:
+    :rtype: dict
+    """
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
@@ -240,6 +262,12 @@ def get_availability_of_editions(ol_edition_ids):
 @public
 def get_realtime_availability_of_ocaid(ocaid):
     url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
+    statuses = {
+        'available': 'borrow_available',
+        'unavailable': 'borrow_unavailable',
+        'private': 'private',
+        'error': 'error'
+    }
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
         metadata = simplejson.loads(content).get('metadata', {})
@@ -255,15 +283,23 @@ def get_realtime_availability_of_ocaid(ocaid):
 
 @public
 def add_availability(editions):
-    """Adds API v2 availability info to editions, e.g. for work's editions table
     """
-    
-    ocaids = [ed.get('ocaid') or ed.ia[0] for ed in editions if (ed.get('ia') or ed.get('ocaid'))]
-    availability = get_availability_of_ocaids(ocaids)
-    for i, ed in enumerate(editions):
-        if ed.get('ocaid') or ed.get('ia'):
-            ocaid = ed.get('ocaid') or ed.get('ia')[0]
-            editions[i]['availability'] = availability.get(ocaid)
+    Adds API v2 'availability' key to editions, e.g. for work's editions table
+    :param list of dict editions:
+    :rtype: list of dict
+    """
+    def get_ocaid(ed):
+        if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
+            return ed.get('ocaid') or ed.get('identifier') or (
+                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
+
+    ocaids = [get_ocaid(ed) for ed in editions]
+    ocaids = [ocaid for ocaid in ocaids if ocaid]
+    availabilities = get_availability_of_ocaids(ocaids)
+    for ed in editions:
+        ocaid = get_ocaid(ed)
+        success = ocaid and availabilities.get(ocaid)
+        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
     return editions
 
 @public
@@ -272,7 +308,11 @@ def get_availability_of_ocaid(ocaid):
     return get_availability('identifier', [ocaid])
 
 def get_availability_of_ocaids(ocaids):
-    """Retrieves availability based on ocaids/archive.org identifiers"""
+    """
+    Retrieves availability based on ocaids/archive.org identifiers
+    :param list[str] ocaids:
+    :rtype: dict
+    """
     return get_availability('identifier', ocaids)
 
 def get_work_availability(ol_work_id):
@@ -640,33 +680,6 @@ def get_resource_id(identifier, resource_type):
         if rtype == resource_type:
             return resource_id
 
-def make_ia_token(item_id, expiry_seconds):
-    """Make a key that allows a client to access the item on archive.org for the number of
-       seconds from now.
-    """
-    access_key = config_ia_access_secret
-    if access_key is None:
-        raise Exception("config value config.ia_access_secret is not present -- check your config")
-
-    timestamp = int(time.time() + expiry_seconds)
-    token_data = '%s-%d' % (item_id, timestamp)
-
-    token = '%d-%s' % (timestamp, hmac.new(access_key, token_data).hexdigest())
-    return token
-
-
-def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
-    """
-    Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
-    a borrowed book
-    """
-
-    access_token = make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s' % (
-        config_bookreader_host, loan_key, access_token, item_id, book_path, ol_host
-    )
-
-    return auth_url
 
 def update_loan_status(identifier):
     """Update the loan status in OL based off status in ACS4.  Used to check for early returns."""
@@ -786,8 +799,11 @@ class IA_Lending_API:
 
     def _post(self, **params):
         logger.info("POST %s %s", config_ia_loan_api_url, params)
+        if config_ia_loan_api_developer_key:
+            params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
+
         try:
             jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
                                        timeout=config_http_request_timeout).read()

@@ -6,7 +6,10 @@ import urlparse
 import string
 import re
 
-import babel, babel.core, babel.dates, babel.numbers
+import babel
+import babel.core
+import babel.dates
+import babel.numbers
 
 try:
     import genshi
@@ -15,9 +18,11 @@ except ImportError:
     genshi = None
 
 try:
-    from BeautifulSoup import BeautifulSoup
+    from bs4 import BeautifulSoup
 except ImportError:
     BeautifulSoup = None
+
+import six
 
 from infogami import config
 
@@ -43,9 +48,12 @@ __all__ = [
 ]
 __docformat__ = "restructuredtext en"
 
-def sanitize(html):
+def sanitize(html, encoding='utf8'):
     """Removes unsafe tags and attributes from html and adds
     ``rel="nofollow"`` attribute to all external links.
+    Using encoding=None if passing unicode strings e.g. for Python 3.
+    encoding="utf8" matches default format for earlier versions of Genshi
+    https://genshi.readthedocs.io/en/latest/upgrade/#upgrading-from-genshi-0-6-x-to-the-development-version
     """
 
     # Can't sanitize unless genshi module is available
@@ -63,11 +71,14 @@ def sanitize(html):
                 return 'nofollow'
 
     try:
-        html = genshi.HTML(html)
-    except (genshi.ParseError, UnicodeDecodeError, UnicodeError):
+        html = genshi.HTML(html, encoding=encoding)
+
+    # except (genshi.ParseError, UnicodeDecodeError, UnicodeError) as e:
+    # don't catch Unicode errors so we can tell if we're getting bytes
+    except genshi.ParseError:
         if BeautifulSoup:
             # Bad html. Tidy it up using BeautifulSoup
-            html = str(BeautifulSoup(html))
+            html = str(BeautifulSoup(html, "lxml"))
             try:
                 html = genshi.HTML(html)
             except Exception:
@@ -102,7 +113,7 @@ def safesort(iterable, key=None, reverse=False):
         return (k.__class__.__name__, k)
     return sorted(iterable, key=safekey, reverse=reverse)
 
-def datestr(then, now=None, lang=None, relative = True):
+def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
     if not relative:
         result = then.strftime("%b %d %Y")
@@ -163,7 +174,7 @@ def commify(number, lang=None):
         lang = lang or web.ctx.get("lang") or "en"
         return babel.numbers.format_number(int(number), lang)
     except:
-        return unicode(number)
+        return six.text_type(number)
 
 
 def truncate(text, limit):

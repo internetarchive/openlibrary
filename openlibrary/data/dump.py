@@ -6,8 +6,10 @@ Glossary:
 * cdump - Complete dump. Dump of all revisions of all documents.
 * idump - Incremental dump. Dump of all revisions created in the given day.
 """
+from __future__ import print_function
 
-import sys, os
+import sys
+import os
 import web
 import re
 import time
@@ -16,6 +18,9 @@ import itertools
 import gzip
 
 import db
+
+import six
+
 
 def print_dump(json_records, filter=None):
     """Print the given json_records in the dump format.
@@ -43,7 +48,7 @@ def print_dump(json_records, filter=None):
         if filter and filter(d) is False:
             continue
 
-        print "\t".join([type, key, str(d['revision']), timestamp, json])
+        print("\t".join([type, key, str(d['revision']), timestamp, json]))
 
 def read_data_file(filename):
     for line in xopen(filename):
@@ -51,7 +56,7 @@ def read_data_file(filename):
         yield pgdecode(json)
 
 def log(*args):
-    print >> sys.stderr, time.asctime(), " ".join(str(a) for a in args)
+    print(time.asctime(), " ".join(str(a) for a in args), file=sys.stderr)
 
 def xopen(path, mode='r'):
     if path.endswith(".gz"):
@@ -62,7 +67,7 @@ def xopen(path, mode='r'):
 def read_tsv(file, strip=True):
     """Read a tab seperated file and return an iterator over rows."""
     log("reading", file)
-    if isinstance(file, basestring):
+    if isinstance(file, six.string_types):
         file = xopen(file)
 
     for i, line in enumerate(file):
@@ -211,7 +216,7 @@ def make_index(dump_file):
             created = data['created']['value']
         else:
             created = "-"
-        print "\t".join([web.safestr(path), web.safestr(title), created, timestamp])
+        print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
 def make_bsddb(dbfile, dump_file):
     import bsddb
@@ -340,7 +345,7 @@ def main(cmd, args):
         from sitemap import generate_html_index
         generate_html_index(*args, **kwargs)
     else:
-        print >> sys.stderr, "Unknown command:", cmd
+        print("Unknown command:", cmd, file=sys.stderr)
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2:])

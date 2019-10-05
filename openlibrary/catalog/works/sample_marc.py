@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.marc.all import iter_marc
 import re
 
@@ -14,5 +15,5 @@ re_terms = re.compile('(' + '|'.join(terms) + ')', re.I)
 out = open('/1/pharos/edward/sample_marc2', 'w')
 for rec_no, pos, loc, data in iter_marc():
     if re_terms.search(data):
-        print >> out, (loc, data)
+        print((loc, data), file=out)
 out.close()

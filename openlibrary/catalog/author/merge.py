@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 from openlibrary.catalog.importer.db_read import withKey, get_things, get_mc
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
-import web, re, sys, codecs, urllib
+import web
+import re
+import sys
+import codecs
+import urllib
+
+import six
+
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal, Reference
 from openlibrary.catalog.utils.edit import fix_edition
@@ -37,44 +45,44 @@ def update_author(key, new):
     q = { 'key': key, }
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
-    print ol.write(q, comment='merge author')
+    print(ol.write(q, comment='merge author'))
 
 def update_edition(ol, e, old, new, debug=False):
     key = e['key']
     if debug:
-        print 'key:', key
-        print 'old:', old
-        print 'new:', new
+        print('key:', key)
+        print('old:', old)
+        print('new:', new)
     fix_edition(key, e, ol)
     authors = []
     if debug:
-        print 'current authors:', e['authors']
+        print('current authors:', e['authors'])
     for cur in e['authors']:
         cur = cur['key']
         if debug:
-            print old, cur in old
+            print(old, cur in old)
         a = new if cur in old else cur
         if debug:
-            print cur, '->', a
+            print(cur, '->', a)
         if a not in authors:
             authors.append(a)
     if debug:
-        print 'authors:', authors
+        print('authors:', authors)
     e['authors'] = [{'key': a} for a in authors]
 
     try:
         ret = ol.save(key, e, 'merge authors')
     except:
         if debug:
-            print e
+            print(e)
         raise
     if debug:
-        print ret
+        print(ret)
 
     update = []
     for wkey in e.get('works', []):
         need_update = False
-        print 'work:', wkey
+        print('work:', wkey)
         w = ol.get(wkey)
         for a in w['authors']:
             if a['author'] in old:
@@ -90,8 +98,8 @@ def switch_author(ol, old, new, other, debug=False):
     q = { 'authors': old, 'type': '/type/edition', }
     for e in query_iter(q):
         if debug:
-            print 'switch author:', e['key']
-        print e
+            print('switch author:', e['key'])
+        print(e)
         e = ol.get(e['key'])
         update_edition(ol, e, other, new, debug)
 
@@ -112,7 +120,7 @@ def do_normalize(author_key, best_key, authors):
                 if m:
                     need_update = True
                     v = v[:-len(m.group(1))]
-            if not isinstance(v, unicode):
+            if not isinstance(v, six.text_type):
                 continue
             norm_v = norm(v)
             if v == norm_v:
@@ -125,7 +133,7 @@ def do_normalize(author_key, best_key, authors):
         for k in author_keys:
             if k not in best:
                 v = a[k]
-                if not isinstance(v, unicode):
+                if not isinstance(v, six.text_type):
                     continue
                 norm_v = norm(v)
                 if v == norm_v:
@@ -136,7 +144,7 @@ def do_normalize(author_key, best_key, authors):
             v = best[k]
             if 'date' in k:
                 v = remove_trailing_number_dot(v)
-            if isinstance(v, unicode):
+            if isinstance(v, six.text_type):
                 v = norm(v)
             if k not in a or v != a[k]:
                 a[k] = v
@@ -158,7 +166,7 @@ def merge_authors(ol, keys, debug=False):
     not_redirect = set(a['key'] for a in authors)
     if debug:
         for a in authors:
-            print a
+            print(a)
 
     assert all(a['type']['key'] == '/type/author' for a in authors)
     name1 = authors[0]['name']
@@ -175,20 +183,20 @@ def merge_authors(ol, keys, debug=False):
         new_key = "/a/OL%dA" % min(key_int(a) for a in authors)
         # Molière and O. J. O. Ferreira
         if len(imgs) != 0:
-            print 'imgs:', imgs
+            print('imgs:', imgs)
             return # skip
         if not (imgs == [u'/a/OL21848A', u'/a/OL4280680A'] \
                 or imgs == [u'/a/OL325189A', u'/a/OL266422A'] \
                 or imgs == [u'/a/OL5160945A', u'/a/OL5776228A']):
-            print imgs
+            print(imgs)
             assert len(imgs) == 0
 
-    print new_key
-    print best_key
+    print(new_key)
+    print(best_key)
 
     do_normalize(new_key, best_key, authors)
     old_keys = set(k for k in keys if k != new_key)
-    print 'old keys:', old_keys
+    print('old keys:', old_keys)
 
     for old in old_keys:
         # /b/OL21291659M

@@ -1,1 +1,0 @@
-"""Scan on Demand plugin"""

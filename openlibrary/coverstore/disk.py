@@ -202,7 +202,7 @@ class ArchiveDisk(WARCDisk):
         f.seek(offset)
         return f.read(size)
 
-    def create_file(filename):
+    def create_file(self, filename):
         itemname = self.get_item_name(filename)
         url = self.item_url(itemname) + '/' + filename
         return warc.HTTPFile(url)

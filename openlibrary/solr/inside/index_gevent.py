@@ -1,14 +1,22 @@
+from __future__ import print_function
 from gevent import sleep, spawn, spawn_link_exception, monkey
 from gevent.queue import JoinableQueue
 from datetime import datetime
 monkey.patch_socket()
-import re, httplib, json, sys, os, codecs
+import re
+import httplib
+import json
+import sys
+import os
+import codecs
 from openlibrary.utils.ia import find_item
 from time import time
 from collections import defaultdict
 from lxml.etree import Element, tostring, parse, fromstring
 import urllib2
 from unicodedata import normalize
+
+import six
 
 scan_list = '/home/edward/scans/book_data_2011-01-07'
 input_count = 0
@@ -48,7 +56,7 @@ def done(ia, was_good):
         good_count += 1
     else:
         bad_count += 1
-    print >> book_log, ia
+    print(ia, file=book_log)
     done_count += 1
 
 re_ia_host = re.compile('^ia(\d+).us.archive.org$')
@@ -66,22 +74,22 @@ def urlread_keep_trying(url):
     for i in range(3):
         try:
             return urllib2.urlopen(url).read()
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code in (403, 404):
                 #print "404 for '%s'" % url
                 raise
             else:
-                print 'error:', error.code, error.msg
+                print('error:', error.code, error.msg)
             pass
         except httplib.BadStatusLine:
-            print 'bad status line'
+            print('bad status line')
         except httplib.IncompleteRead:
-            print 'incomplete read'
+            print('incomplete read')
         except urllib2.URLError:
             pass
-        print url, "failed"
+        print(url, "failed")
         sleep(2)
-        print "trying again"
+        print("trying again")
 
 def find_abbyy(dir_html, ia):
     if 'abbyy' not in dir_html:
@@ -95,7 +103,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print('bad abbyy:', repr(href, ia))
+            print(('bad abbyy:', repr(href, ia)))
 
 nl_meta = 'meta: '
 re_meta = re.compile('meta: ([a-z]+) (\d+)')
@@ -111,9 +119,9 @@ def read_text_from_node(host):
         url = 'http://%s/%s' % (host, path)
         try:
             dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code == 403:
-                print '403 on directory listing for:', ia
+                print('403 on directory listing for:', ia)
                 dir_html = None
         if not dir_html:
             done(ia, False)
@@ -129,7 +137,7 @@ def read_text_from_node(host):
         url = 'http://%s/~edward/abbyy_to_text.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
         try:
             reply = urlread_keep_trying(url)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 403:
                 raise
             url = 'http://%s/~edward/abbyy_to_text_p.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
@@ -140,8 +148,8 @@ def read_text_from_node(host):
             continue
         index = reply.rfind(nl_meta)
         if index == -1:
-            print 'bad reply'
-            print url
+            print('bad reply')
+            print(url)
             done(ia, False)
             host_queues[host].task_done()
             continue
@@ -152,7 +160,7 @@ def read_text_from_node(host):
         try:
             (lang, page_count) = re_meta.match(reply[index:-1]).groups()
         except:
-            print('searching:', index, reply[index:-1])
+            print(('searching:', index, reply[index:-1]))
             raise
         assert page_count.isdigit()
         if body != '':
@@ -263,17 +271,17 @@ def run_find_item():
         if body:
             try:
                 meta_xml = urlread_keep_trying('http://%s%s/%s_meta.xml' % (host, path, ia))
-            except urllib2.HTTPError, error:
+            except urllib2.HTTPError as error:
                 if error.code != 403:
                     raise
-                print '403 on meta XML for:', ia
+                print('403 on meta XML for:', ia)
                 item_queue.task_done() # skip
                 done(ia, False)
                 continue
             try:
                 root = fromstring(meta_xml)
             except:
-                print 'identifer:', ia
+                print('identifer:', ia)
             collection = [e.text for e in root.findall('collection')]
             elem_noindex = root.find('noindex')
             if elem_noindex is not None and elem_noindex.text == 'true' and ('printdisabled' not in collection and 'lendinglibrary' not in collection):
@@ -282,7 +290,7 @@ def run_find_item():
                 continue
             lang_elem = root.find('language')
             if lang_elem is None:
-                print meta_xml
+                print(meta_xml)
             if lang_elem is not None:
                 lang = tidy_lang(lang_elem.text) or 'other'
             else:
@@ -299,7 +307,7 @@ def run_find_item():
 
 def add_field(doc, name, value):
     field = Element("field", name=name)
-    field.text = normalize('NFC', unicode(value))
+    field.text = normalize('NFC', six.text_type(value))
     doc.append(field)
 
 def build_doc(ia, body, page_count):
@@ -313,7 +321,7 @@ def build_doc(ia, body, page_count):
 
 def run_solr_queue(queue_num):
     def log(line):
-        print >> load_log, queue_num, datetime.now().isoformat(), line
+        print(queue_num, datetime.now().isoformat(), line, file=load_log)
     global solr_ia_status, solr_error
     while True:
         log('solr_queue.get()')
@@ -358,12 +366,12 @@ def run_solr_queue(queue_num):
         h1.close()
         log(ia + ' - read solr connect and post done')
         if response.reason != 'OK':
-            print r[:100]
-            print '...'
-            print r[-100:]
+            print(r[:100])
+            print('...')
+            print(r[-100:])
 
-            print 'reason:', response.reason
-            print 'reason:', response_body
+            print('reason:', response.reason)
+            print('reason:', response_body)
             solr_error = (response.reason, response_body)
             break
         assert response.reason == 'OK'
@@ -378,12 +386,12 @@ def status_thread():
     while True:
         run_time = time() - t0
         if solr_error:
-            print '***solr error***'
-            print solr_error
-        print 'run time:            %8.2f minutes' % (float(run_time) / 60)
-        print 'input queue:         %8d' % item_queue.qsize()
+            print('***solr error***')
+            print(solr_error)
+        print('run time:            %8.2f minutes' % (float(run_time) / 60))
+        print('input queue:         %8d' % item_queue.qsize())
         #print 'after find_item:     %8d' % item_and_host_queue.qsize()
-        print 'solr queue:          %8d' % solr_queue.qsize()
+        print('solr queue:          %8d' % solr_queue.qsize())
 
         #rec_per_sec = float(input_count - items_skipped) / run_time
         if done_count:
@@ -392,13 +400,13 @@ def status_thread():
 
             sec_left = remain / rec_per_sec
             hours_left = float(sec_left) / (60 * 60)
-            print 'done count:          %8d (%.2f items/second)' % (done_count, rec_per_sec)
-            print '%8d good (%8.2f%%)   %8d bad (%8.2f%%)' % (good_count, ((float(good_count) * 100) / done_count), bad_count, ((float(bad_count) * 100) / done_count))
-            print '       %8.2f%%       %8.2f hours left (%.1f days/left)' % (((float(items_skipped + done_count) * 100.0) / total), hours_left, hours_left / 24)
+            print('done count:          %8d (%.2f items/second)' % (done_count, rec_per_sec))
+            print('%8d good (%8.2f%%)   %8d bad (%8.2f%%)' % (good_count, ((float(good_count) * 100) / done_count), bad_count, ((float(bad_count) * 100) / done_count)))
+            print('       %8.2f%%       %8.2f hours left (%.1f days/left)' % (((float(items_skipped + done_count) * 100.0) / total), hours_left, hours_left / 24))
 
         #print 'items processed:     %8d (%.2f items/second)' % (items_processed, float(items_processed) / run_time)
-        print 'current book:              ', current_book
-        print 'most recently feed to solr:', solr_ia_status
+        print('current book:              ', current_book)
+        print('most recently feed to solr:', solr_ia_status)
 
         host_count = 0
         queued_items = 0
@@ -407,12 +415,12 @@ def status_thread():
                 host_count += 1
             qsize = host_queue.qsize()
             queued_items += qsize
-        print 'host queues:         %8d' % host_count
-        print 'items queued:        %8d' % queued_items
+        print('host queues:         %8d' % host_count)
+        print('items queued:        %8d' % queued_items)
         if locator_times:
-            print 'average locator time: %8.2f secs' % (float(sum(t[0] for t in locator_times)) / len(locator_times))
+            print('average locator time: %8.2f secs' % (float(sum(t[0] for t in locator_times)) / len(locator_times)))
             #print sorted(locator_times, key=lambda t:t[0], reverse=True)[:10]
-        print
+        print()
         if run_time < 120:
             sleep(1)
         else:
@@ -430,17 +438,17 @@ if __name__ == '__main__':
     #joinall([t_run_find_item, t_item_queue, t_index_items, t_solr])
 
     sleep(1)
-    print 'join item_queue thread'
+    print('join item_queue thread')
     t_item_queue.join()
-    print 'item_queue thread complete'
+    print('item_queue thread complete')
     #print 'join item_and_host_queue:', item_and_host_queue.qsize()
     #item_and_host_queue.join()
     #print 'item_and_host_queue complete'
     for host, host_queue in host_queues.items():
         qsize = host_queue.qsize()
-        print 'host:', host, qsize
+        print('host:', host, qsize)
         host_queue.join()
 
-    print 'join solr_queue:', solr_queue.qsize()
+    print('join solr_queue:', solr_queue.qsize())
     solr_queue.join()
-    print 'solr_queue complete'
+    print('solr_queue complete')

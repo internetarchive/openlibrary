@@ -9,10 +9,15 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+from infogami.plugins.api.code import jsonapi
 from openlibrary import accounts
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
-from openlibrary.core import ia, db, models, lending, cache, helpers as h
+from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.vendors import (
+    get_amazon_metadata, create_edition_from_amazon_metadata,
+    search_amazon, get_betterworldbooks_metadata)
 
 
 class book_availability(delegate.page):
@@ -44,6 +49,33 @@ class book_availability(delegate.page):
             lending.get_availability_of_ocaids(ids) if id_type == "identifier"
             else []
         )
+
+
+class browse(delegate.page):
+    path = "/browse"
+    encoding = "json"
+
+    def GET(self):
+        i = web.input(q='', page=1, limit=100, subject='',
+                      work_id='', _type='', sorts='')
+        sorts = i.sorts.split(',')
+        page = int(i.page)
+        limit = int(i.limit)
+        url = lending.compose_ia_url(
+            query=i.q, limit=limit, page=page, subject=i.subject,
+            work_id=i.work_id, _type=i._type, sorts=sorts)
+        result = {
+            'query': url,
+            'works': [
+                work.dict() for work in lending.add_availability(
+                    lending.get_available(url=url)
+                )
+            ]
+        }
+        return delegate.RawText(
+            simplejson.dumps(result),
+            content_type="application/json")
+
 
 class ratings(delegate.page):
     path = "/works/OL(\d+)W/ratings"
@@ -77,7 +109,7 @@ class ratings(delegate.page):
                     raise ValueError
             except ValueError:
                 return response('invalid rating', status="error")
-                
+
             models.Ratings.add(
                 username=username, work_id=work_id,
                 rating=rating, edition_id=edition_id)
@@ -172,6 +204,7 @@ class work_editions(delegate.page):
             "entries": editions
         }
 
+
 class author_works(delegate.page):
     path = "(/authors/OL\d+A)/works"
     encoding = "json"
@@ -212,3 +245,83 @@ class author_works(delegate.page):
             "size": size,
             "entries": works
         }
+
+
+class amazon_search_api(delegate.page):
+    """Librarian + admin only endpoint to check for books
+    avaialable on Amazon via the Product Advertising API
+    ItemSearch operation.
+
+    https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
+
+    Currently experimental to explore what data is avaialable to affiliates.
+
+    :return: JSON {"results": []} containing Amazon product metadata
+             for items matching the title and author search parameters.
+    :rtype: str
+    """
+
+    path = '/_tools/amazon_search'
+
+    @jsonapi
+    def GET(self):
+        user = accounts.get_current_user()
+        if not (user and (user.is_admin() or user.is_librarian())):
+            return web.HTTPError('403 Forbidden')
+        i = web.input(title='', author='')
+        if not (i.author or i.title):
+            return simplejson.dumps({
+                'error': 'author or title required'
+            })
+        results = search_amazon(title=i.title, author=i.author)
+        return simplejson.dumps(results)
+
+
+class price_api(delegate.page):
+    path = r'/prices'
+
+    @jsonapi
+    def GET(self):
+        i = web.input(isbn='', asin='')
+        if not (i.isbn or i.asin):
+            return simplejson.dumps({
+                'error': 'isbn or asin required'
+            })
+        id_ = i.asin if i.asin else normalize_isbn(i.isbn)
+        id_type = 'asin' if i.asin else 'isbn_' + ('13' if len(id_) == 13 else '10')
+
+        metadata = {
+            'amazon': get_amazon_metadata(id_, id_type=id_type[:4]) or {},
+            'betterworldbooks': get_betterworldbooks_metadata(id_) if id_type.startswith('isbn_') else {}
+        }
+        # if user supplied isbn_{n} fails for amazon, we may want to check the alternate isbn
+
+        # if bwb fails and isbn10, try again with isbn13
+        if id_type == 'isbn_10' and \
+           metadata['betterworldbooks'].get('price') is None:
+            isbn_13 = isbn_10_to_isbn_13(id_)
+            metadata['betterworldbooks'] = isbn_13 and get_betterworldbooks_metadata(
+                isbn_13) or {}
+
+        # fetch book by isbn if it exists
+        # TODO: perform exisiting OL lookup by ASIN if supplied, if possible
+        matches = web.ctx.site.things({
+            'type': '/type/edition',
+            id_type: id_,
+        })
+
+        book_key = matches[0] if matches else None
+
+        # if no OL edition for isbn, attempt to create
+        if (not book_key) and metadata.get('amazon'):
+            book_key = create_edition_from_amazon_metadata(id_, id_type[:4])
+
+        # include ol edition metadata in response, if available
+        if book_key:
+            ed = web.ctx.site.get(book_key)
+            if ed:
+                metadata['key'] = ed.key
+                if getattr(ed, 'ocaid'):
+                    metadata['ocaid'] = ed.ocaid
+
+        return simplejson.dumps(metadata)

@@ -17,46 +17,50 @@ $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&it
 $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
 
-$ isbn = (book.isbn_10 and book.isbn_10[0]) or (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
-$ isbn_13 = (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if book.isbn_10:
-    $ isbn_10 = book.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = book.get_isbn13()
+$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn = isbn_10 or isbn_13
+$ asin = isbn_10 or None
 
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
-        <span class="hidden count"></span>
-        <div class="cover">
-            <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
-        </div>
-        <div class="title">
-            <div class="published">
+      <span class="hidden count"></span>
+      <div class="cover">
+          <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
+      </div>
+
+      <div class="title">
+        $if book.title:
+          <a href="$book.url()">
+            $if book.subtitle:
+              $(book.title): $(book.subtitle)
+            $else:
+              $book.title
+          </a>
+
+
+        $if book.publishers or book.publish_date:
+          <div class="published">
             $if book.publishers and book.publish_date:
-                $book.publish_date, $(', '.join(book.publishers))
+              $book.publish_date, $(', '.join(book.publishers))
             $elif book.publish_date:
-                $book.publish_date
+              $book.publish_date
             $elif book.publishers:
-                <em>Publish date unknown</em>, $(', '.join(book.publishers))
+              Publish date unknown, $(', '.join(book.publishers))
             $else:
-                <em>Publisher unknown</em>
-            </div>
-            $if book.title:
-                <a href="$book.url()">$book.title</a><br/>
-            $else:
-                <a href="$book.url()"><em>Title missing</em></a><br/>
-            <div class="format">
-                $book.physical_format.replace('[', '').replace(']','')
-                $if book.languages:
-                    in $', '.join(l.name for l in book.languages)
-            $if book.edition_name:
-                - $book.edition_name
-            </div>
+              Publisher unknown
+          </div>
+
+        <div class="format">
+          $book.physical_format.replace('[', '').replace(']','')
+          $if book.languages:
+            in $', '.join(l.name for l in book.languages)
+          $if book.edition_name:
+            - $book.edition_name
         </div>
+      </div>
     </td>
 
     $ availability_class = 'zzzz' if (not availability or availability.get('status') == 'error') else 'aaaa' if (availability.get('status') == 'open') else 'bbbb' if (availability.get('status') == 'borrow_available') else 'cccc' if (availability.get('status') == 'borrow_unavailable') else 'dddd'
@@ -64,50 +68,46 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="icon read $('inact' if not active else '')">
       <div class="$(availability_class)"></div>
-        <div class="links">
-          $if active:
-            <ul>
-              $if availability.get('status') == 'open':
-                <li class="read-option"><strong><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="read-btn">Read eBook</a></strong></li>
+      <div class="links">
+        $if active:
+          <ul class="read">
+            $if availability.get('status') == 'open':
+              <li class="read-option"><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="cta-btn cta-btn--available">Read</a></li>
 
-              $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
-                <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
+            $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
+              <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
 
-              <li class="read-option">
-                <a href="$book.url('/daisy')" class="plain print-disabled-download">
-                  <span class="underline">DAISY for print-disabled</span>
-                  <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Download ebook for print-disabled (DAISY)"/>
-                </a>
-              </li>
-
-              $if availability.get('status') == 'open':
-                <hr>
-                <ul>
-                  <li><a href="$downloadbook.replace('XXX', book.ocaid)" title="Download a PDF">PDF</a></li>
-                  <li><a href="$epub.replace('XXX', book.ocaid)" title="Download an ePub">ePub</a></li>
-                  <li><a href="$mobi.replace('XXX', book.ocaid)" title="Download a MOBI file from Internet Archive">MOBI</a></li>
-                  <li><a href="$djvutxt.replace('XXX', book.ocaid)" title="Download a plain text version">Plain text</a></li>
-                </ul>
-            </ul>
-        </div>
+            $if availability.get('status') == 'open':
+              $:macros.DownloadOptions(book)
+          </ul>
+        $else:
+          <form>
+            <input type="submit" class="cta-btn cta-btn--missing" disabled value="No ebook available">
+          </form>
+          $if book.ocaid:
+            $:macros.daisy(book, protected=True)
+      </div>
     </td>
 
     <td class="icon locate inact">
       <div class="zzzz"></div>
         <div class="links">
           $if oclc_numbers or isbn:
+            <div>Libraries near you:</div>
             <ul>
               <li>
-                <a class="plain" 
-                   href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                   title="Look for this edition at WorldCat">Find a Physical Copy</a>
-                <br /><span class="gray smaller">via WorldCat</span>
+                <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
+                   title="Look for this edition at WorldCat">WorldCat</a>
               </li>
+              $if isbn:
+                <li><a href="https://labs.library.link/services/borrow/?isbn=$(isbn_10_to_isbn_13(isbn))&embed=True&radius=500&refer=$(book.url(relative=False))">Library.link</a></li>
             </ul>
         </div>
     </td>
 
     <td class="icon buy inact">
       <div class="zzzz"></div>
-      <div class="links"></div>
+      <div class="links">
+        $:macros.AffiliateLinks(book, {'isbn': isbn, 'asin': asin, 'prices': False})
+      </div>
     </td>

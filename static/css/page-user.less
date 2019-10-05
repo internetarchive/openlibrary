@@ -35,6 +35,7 @@
 @import (less) "less/colors.less";
 @import (less) "less/breakpoints.less";
 @import (less) "less/mixins.less";
+@import (less) "less/font-families.less";
 
 body#user {
   background-color: @beige;
@@ -66,7 +67,7 @@ body#user {
     margin-bottom: 15px;
     background: @light-yellow;
     p {
-      font-family: "Lucida Grande","Arial",sans-serif;
+      font-family: @lucida_sans_serif-7;
     }
   }
   div.siteSearch {
@@ -88,27 +89,8 @@ body#user {
   div#headerPlace {
     background-color: @beige;
   }
-  /* stylelint-enable selector-max-specificity */
-  /* stylelint-disable selector-max-specificity */
-  #description {
-    padding-left: 130px;
-    padding-right: 60px;
-    background: url(/images/icons/icon_fav-big.png) 35px 35px no-repeat;
-    h2 {
-      font-size: 1.5em;
-      font-family: "Georgia", "Times New Roman", serif;
-      font-weight: normal;
-      color: @dark-grey;
-      margin: 0 0 10px;
-    }
-    p {
-      font-size: .875em;
-      margin: 0 0 30px;
-    }
-  }
-  /* stylelint-enable selector-max-specificity */
 }
 // Import all common components
 @import (less) "legacy.less";
 // Import styles specific to the BorrowTable for user pages
-@import (less) "components/borrowTable-adminUser.less";
+@import (less) "legacy-borrowTable-adminUser.less";

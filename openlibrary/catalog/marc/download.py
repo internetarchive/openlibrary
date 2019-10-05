@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # downloader so Karen doesn't need to download entire MARC files
+from __future__ import print_function
 import web
 import web.form as form
 import urllib2
-from pprint import pprint
 
 urls = (
     '/', 'index',
@@ -94,17 +94,17 @@ class index:
     def GET(self):
         this_form = myform()
         this_form.fill()
-        print '<form name="main" method="get">'
+        print('<form name="main" method="get">')
         if not this_form.valid:
-            print '<p class="error">Try again:</p>'
-        print this_form.render()
-        print '<input type="submit"></form>'
+            print('<p class="error">Try again:</p>')
+        print(this_form.render())
+        print('<input type="submit"></form>')
         if this_form['start'].value:
             file = this_form['file'].value
             (offset, length) = start_and_len(file, int(this_form['start'].value), int(this_form['count'].value))
-            print "%.1fKB" % (float(length) / 1024.0)
+            print("%.1fKB" % (float(length) / 1024.0))
             url = "http://wiki-beta.us.archive.org:9090/%s:%d:%d" % (file, offset, length)
-            print '<a href="%s">download</a>' % url
+            print('<a href="%s">download</a>' % url)
 
 class get:
     def GET(self, file, offset, length):
@@ -115,7 +115,7 @@ class get:
         url = "http://archive.org/download/bpl_marc/" + file
         ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
         f = urllib2.urlopen(ureq)
-        while 1:
+        while True:
             buf = f.read(1024)
             if not buf:
                 break

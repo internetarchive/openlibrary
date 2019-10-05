@@ -1,11 +1,6 @@
 -r requirements_common.txt
 
-Fabric==1.10.1
-Jinja2==2.6
-PIL==1.1.7
-amqplib==1.0.2
-anyjson==0.3.1
-args==0.1.0
+Jinja2==2.10.1
 backports.shutil-get-terminal-size==1.0.0
 bottlenose==1.1.2
 clint==0.5.1
@@ -21,17 +16,16 @@ kombu==1.5.1
 meld3==0.6.7
 ndg-httpsclient==0.4.2
 -e git+git@github.com:internetarchive/openlibrary.git@997a268222a2256876c1bd3296c96f982c29fd37#egg=openlibrary-origin/HEAD
-ordereddict==1.1
 pathlib2==2.1.0
 pexpect==4.2.1
 pickleshare==0.7.4
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
 py==1.4.5
-pyOpenSSL==16.2.0
+pyOpenSSL==17.5.0
 pyasn1==0.1.9
 python-dateutil==1.5
-requests==2.12.3
+requests==2.20.0
 schema==0.5.0
 simplegeneric==0.8.1
 traitlets==4.3.1

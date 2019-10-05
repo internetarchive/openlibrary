@@ -15,6 +15,7 @@ USAGE:
 
     $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080    
 """
+from __future__ import print_function
 import sys
 import os
 import yaml
@@ -35,7 +36,7 @@ def start_server():
     args = sys.argv[1:]
     
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
-        print >> sys.stderr, "USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0])
+        print("USAGE: %s configfile [subcommand] [arguments]" % (sys.argv[0]), file=sys.stderr)
         sys.exit(1)
 
     configfile, args = args[0], args[1:]

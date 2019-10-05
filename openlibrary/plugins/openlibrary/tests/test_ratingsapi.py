@@ -2,7 +2,8 @@ from py.test import config
 import web
 import simplejson
 
-import urllib, urllib2
+import urllib
+import urllib2
 import cookielib
 
 from openlibrary.plugins.openlibrary.api import ratings
@@ -69,4 +70,4 @@ def test_rating(config, monkeypatch):
     monkeypatch.setattr(models.Ratings, "remove", {})
     monkeypatch.setattr(models.Ratings, "add", {})
     result = api.rate_book(work_key, data)
-    assert 'success' in msg
+    assert 'success' in result

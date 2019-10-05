@@ -4,7 +4,8 @@ import logging
 import random
 import urllib
 import uuid
-import datetime, time
+import datetime
+import time
 import simplejson
 
 from infogami.utils import delegate
@@ -31,8 +32,12 @@ import utils
 import borrow
 
 
+from six.moves import range
+
+
 logger = logging.getLogger("openlibrary.account")
 
+RESULTS_PER_PAGE = 25
 USERNAME_RETRIES = 3
 
 # XXX: These need to be cleaned up
@@ -192,7 +197,9 @@ class account(delegate.page):
     @require_login
     def GET(self):
         user = accounts.get_current_user()
-        return render.account(user)
+        page = render.account(user)
+        page.v2 = True
+        return page
 
 class account_create(delegate.page):
     """New account creation.
@@ -203,7 +210,9 @@ class account_create(delegate.page):
 
     def GET(self):
         f = self.get_form()
-        return render['account/create'](f)
+        page = render['account/create'](f)
+        page.v2 = True
+        return page
 
     def get_form(self):
         f = forms.Register()
@@ -227,31 +236,37 @@ class account_create(delegate.page):
         i.displayname = i.get('displayname') or i.username
 
         f = self.get_form()
-        if not f.validates(i):
-            return render['account/create'](f)
 
-        if i.agreement != "yes":
-            f.note = utils.get_error("account_create_tos_not_selected")
-            return render['account/create'](f)
+        if f.validates(i):
+            if i.agreement == "yes":
+                ia_account = InternetArchiveAccount.get(email=i.email)
+                # Require email to not already be used in IA or OL
 
-        ia_account = InternetArchiveAccount.get(email=i.email)
-        # Require email to not already be used in IA or OL
-        if ia_account:
-            f.note = LOGIN_ERRORS['email_registered']
-            return render['account/create'](f)
+                if not ia_account:
+                    # Account doesn't already exist, proceed
+                    try:
+                        # Create ia_account: require they activate via IA email
+                        # and then login to OL. Logging in after activation with
+                        # IA credentials will auto create and link OL account.
+                        ia_account = InternetArchiveAccount.create(
+                            screenname=i.username, email=i.email, password=i.password,
+                            verified=False, retries=USERNAME_RETRIES)
+                        page = render['account/verify'](username=i.username, email=i.email)
+                        page.v2 = True
+                        return page
+                    except ValueError as e:
+                        f.note = LOGIN_ERRORS['max_retries_exceeded']
+                else:
+                    # Account with this email already exists
+                    f.note = LOGIN_ERRORS['email_registered']
+            else:
+                # User did not click terms of service
+                f.note = utils.get_error("account_create_tos_not_selected")
 
-        try:
-            # Create ia_account: require they activate via IA email
-            # and then login to OL. Logging in after activation with
-            # IA credentials will auto create and link OL account.
-            ia_account = InternetArchiveAccount.create(
-                screenname=i.username, email=i.email, password=i.password,
-                verified=False, retries=USERNAME_RETRIES)
-        except ValueError as e:
-            f.note = LOGIN_ERRORS['max_retries_exceeded']
-            return render['account/create'](f)
+        page = render['account/create'](f)
+        page.v2 = True
+        return page
 
-        return render['account/verify'](username=i.username, email=i.email)
 
 del delegate.pages['/account/register']
 
@@ -311,7 +326,9 @@ class account_login(delegate.page):
         i = web.input(redirect=referer)
         f = forms.Login()
         f['redirect'].value = i.redirect
-        return render.login(f)
+        page = render.login(f)
+        page.v2 = True
+        return page
 
     def POST(self):
         i = web.input(username="", connect=None, password="", remember=False,
@@ -336,7 +353,7 @@ class account_login(delegate.page):
     def POST_resend_verification_email(self, i):
         try:
             ol_login = OpenLibraryAccount.authenticate(i.email, i.password)
-        except ClientException, e:
+        except ClientException as e:
             code = e.get_data().get("code")
             if code != "account_not_verified":
                 return self.error("account_incorrect_password", i)
@@ -659,9 +676,14 @@ class account_lists(delegate.page):
         user = accounts.get_current_user()
         raise web.seeother(user.key + '/lists')
 
+
+
+
 class ReadingLog(object):
 
     """Manages the user's account page books (reading log, waitlists, loans)"""
+
+    
 
     def __init__(self, user=None):
         self.user = user or accounts.get_current_user()
@@ -705,37 +727,36 @@ class ReadingLog(object):
         ocaids = [i['identifier'] for i in waitlists]
         edition_keys = web.ctx.site.things({"type": "/type/edition", "ocaid": ocaids})
         editions = web.ctx.site.get_many(edition_keys)
-        for i in xrange(len(editions)):
+        for i in range(len(editions)):
             # insert the waitlist_entry corresponding to this edition
             editions[i].waitlist_record = keyed_waitlists[editions[i].ocaid]
         return editions
 
-    def get_want_to_read(self, page=1, limit=100):
+    def get_want_to_read(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Want to Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_currently_reading(self, page=1, limit=100):
+    def get_currently_reading(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Currently Reading'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_already_read(self, page=1, limit=100):
+    def get_already_read(self, page=1, limit=RESULTS_PER_PAGE):
         work_ids = ['/works/OL%sW' % i['work_id'] for i in Bookshelves.get_users_logged_books(
             self.user.get_username(), bookshelf_id=Bookshelves.PRESET_BOOKSHELVES['Already Read'],
             page=page, limit=limit)]
         return web.ctx.site.get_many(work_ids)
 
-    def get_works(self, key):
+    def get_works(self, key, page=1):
         key = key.lower()
         if key in self.KEYS:
-            return self.KEYS[key]()
+            return self.KEYS[key](page=page)
         else: # must be a list or invalid page!
             #works = web.ctx.site.get_many([ ... ])
             raise
-
 class public_my_books(delegate.page):
     path = "/people/([^/]+)/books"
 
@@ -770,13 +791,14 @@ class account_my_books(delegate.page):
 
     @require_login
     def GET(self, key='loans'):
+        i = web.input(page=1)
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
-        works = readlog.get_works(key)
-        return render['account/books'](
-            works, key, reading_log=readlog.reading_log_counts,
-            lists=readlog.lists, user=user, public=is_public)
+        works = readlog.get_works(key, page=i.page)
+        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        page.v2 = True
+        return page
 
 class account_loans(delegate.page):
     path = "/account/loans"

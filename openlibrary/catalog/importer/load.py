@@ -1,8 +1,10 @@
-import web, re, os
+from __future__ import print_function
+import web
+import re
+import os
 from db_read import withKey
-from openlibrary.catalog.utils import flip_name, author_dates_match, key_int, error_mail
+from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
-from pprint import pprint
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.api import OpenLibrary
 
@@ -25,15 +27,12 @@ def walk_redirects(obj, seen):
         seen.add(obj['key'])
     return obj
 
-def find_author(name, send_mail=True):
+def find_author(name, log_errors=True):
     q = {'type': '/type/author', 'name': name, 'limit': 0}
     reply = list(ol.query(q))
     authors = [ol.get(k) for k in reply]
     if any(a['type'] != '/type/author' for a in authors):
-        subject = 'author query redirect: ' + repr(q['name'])
-        body = 'Error: author query result should not contain redirects\n\n'
-        body += 'query: ' + repr(q) + '\n\nresult\n'
-        if send_mail:
+        if log_errors:
             result = ''
             for a in authors:
                 if a['type'] == '/type/redirect':
@@ -44,9 +43,6 @@ def find_author(name, send_mail=True):
                     result += a['key'] + ' is an author: ' + a['name'] + '\n'
                 else:
                     result += a['key'] + 'has bad type' + a + '\n'
-            body += result
-            addr = 'edward@archive.org'
-            #error_mail(addr, [addr], subject, body)
             db_error.insert('errors', query=name, result=result, t=web.SQLLiteral("now()"))
         seen = set()
         authors = [walk_redirects(a, seen) for a in authors if a['key'] not in seen]
@@ -120,8 +116,8 @@ def find_entity(author):
     try:
         return pick_from_matches(author, match)
     except ValueError:
-        print 'author:', author
-        print 'match:', match
+        print('author:', author)
+        print('match:', match)
         raise
 
 def import_author(author, eastern=False):
@@ -182,23 +178,19 @@ def build_query(loc, rec):
         'type': { 'key': '/type/edition'},
     }
 
-    try:
-        east = east_in_by_statement(rec)
-    except:
-        pprint(rec)
-        raise
+    east = east_in_by_statement(rec)
     if east:
-        print rec
+        print(rec)
 
     langs = rec.get('languages', [])
-    print langs
+    print(langs)
     if any(l['key'] == '/languages/zxx' for l in langs):
-        print 'zxx found in langs'
+        print('zxx found in langs')
         rec['languages'] = [l for l in langs if l['key'] != '/languages/zxx']
-        print 'fixed:', langs
+        print('fixed:', langs)
 
     for l in rec.get('languages', []):
-        print l
+        print(l)
         if l['key'] == '/languages/ser':
             l['key'] = '/languages/srp'
         if l['key'] in ('/languages/end', '/languages/enk', '/languages/ent', '/languages/enb'):

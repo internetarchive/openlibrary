@@ -12,7 +12,7 @@ $var title: Search Open Library for $q
     <input type="text" class="larger" name="q" value="$q"/>
     <input type="submit" class="generic-button" value="$_('Search')">
   </form>
-
+    $ num_found = 0
     $if q:
         $if results and 'error' not in results and results['hits']:
             $ hits = results['hits'].get('hits', [])

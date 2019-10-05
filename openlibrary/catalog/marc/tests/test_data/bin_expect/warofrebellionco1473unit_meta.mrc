@@ -5,7 +5,7 @@
   "publishers": [
     "Govt. Print. Off."
   ], 
-  "pagination": "70 v. in 128 ;", 
+  "pagination": "70 v. in 128",
   "subtitle": "a compilation of the official records of the Union and Confederate armies", 
   "title": "The War of the Rebellion", 
   "lccn": [

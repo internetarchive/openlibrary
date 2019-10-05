@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.olwrite import Infogami
 from catalog.read_rc import read_rc
 import sys
@@ -17,4 +18,4 @@ q = {
     'type': '/type/author',
 }
 
-print infogami.write(q, comment='create author')
+print(infogami.write(q, comment='create author'))

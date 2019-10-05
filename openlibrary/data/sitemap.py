@@ -12,12 +12,15 @@ http://www.archive.org/download/ol-sitemaps/sitindex-authors.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-works.xml.gz
 http://www.archive.org/download/ol-sitemaps/sitindex-subjects.xml.gz
 """
+from __future__ import print_function
 
-import sys, os
+import sys
+import os
 import web
 import datetime
 from gzip import open as gzopen
 
+import simplejson
 from openlibrary.plugins.openlibrary.processors import urlsafe
 
 t = web.template.Template
@@ -66,15 +69,6 @@ $for path, title in docs:
 </ul>
 """)
 
-def find_path(key, type, json):
-    if type in ['/type/edition', '/type/work']:
-        data = simplejson.loads(json)
-        return key + '/' + urlsafe(data.get('title', 'untitled'))
-    elif doc.type == '/type/author':
-        data = simplejson.loads(json)
-        return key + '/' + urlsafe(data.get('name', 'unnamed'))
-    else:
-        return doc.key
 
 def gzwrite(path, data):
     f = gzopen(path, 'w')
@@ -87,7 +81,7 @@ def write_sitemaps(data, outdir, prefix):
     # maximum permitted entries in one sitemap is 50K.
     for i, rows in enumerate(web.group(data, 50000)):
         filename = "sitemap_%s_%04d.xml.gz" % (prefix, i)
-        print >> sys.stderr, "generating", filename
+        print("generating", filename, file=sys.stderr)
 
         sitemap = web.safestr(t_sitemap(rows))
 
@@ -100,7 +94,7 @@ def write_siteindex(data, outdir, prefix):
     base_url = "http://openlibrary.org/static/sitemaps/"
 
     filename = "siteindex_%s.xml.gz" % prefix
-    print >> sys.stderr, "generating", filename
+    print("generating", filename, file=sys.stderr)
 
     path = os.path.join(outdir, filename)
     siteindex = web.safestr(t_siteindex(base_url, rows))
@@ -121,7 +115,7 @@ def mkdir_p(dir):
         os.makedirs(dir)
 
 def write(path, data):
-    print "writing", path
+    print("writing", path)
     mkdir_p(os.path.dirname(path))
 
     f = open(path, "w")

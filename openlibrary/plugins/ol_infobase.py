@@ -1,15 +1,19 @@
 #!/usr/bin/env python
 """Open Library plugin for infobase.
 """
+from __future__ import print_function
 import os
 import datetime
 import urllib
 import simplejson
-import logging, logging.config
+import logging
+import logging.config
 import sys
 import traceback
-import re, unicodedata
+import re
+import unicodedata
 
+import six
 import web
 from infogami.infobase import config, common, server, cache, dbstore
 
@@ -73,8 +77,8 @@ def setup_logging():
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
         logger.info("logging initialized")
         logger.debug("debug")
-    except Exception, e:
-        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+    except Exception as e:
+        print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 
 class reload_config:
@@ -94,7 +98,7 @@ class _inspect:
         try:
             import _inspect
             return _inspect.inspect()
-        except Exception, e:
+        except Exception as e:
             return traceback.format_exc()
 
 def get_db():
@@ -289,9 +293,9 @@ def http_notify(site, old, new):
     for url in config.http_listeners:
         try:
             response = urllib.urlopen(url, json).read()
-            print >> web.debug, "http_notify", repr(url), repr(key), repr(response)
+            print("http_notify", repr(url), repr(key), repr(response), file=web.debug)
         except:
-            print >> web.debug, "failed to send http_notify", repr(url), repr(key)
+            print("failed to send http_notify", repr(url), repr(key), file=web.debug)
             import traceback
             traceback.print_exc()
 
@@ -349,8 +353,8 @@ class MemcacheInvalidater:
         for e in editions:
             yield e['key']
 
-        # invalidate work.authors
-        authors = work.get('authors', [])
+        # invalidate old.authors
+        authors = old.get('authors', [])
         for a in authors:
             if 'author' in a and 'key' in a['author']:
                 yield a['author']['key']
@@ -402,7 +406,7 @@ def fix_table_of_contents(table_of_contents):
     """Some books have bad table_of_contents. This function converts them in to correct format.
     """
     def row(r):
-        if isinstance(r, basestring):
+        if isinstance(r, six.string_types):
             level = 0
             label = ""
             title = web.safeunicode(r)
@@ -478,7 +482,7 @@ class OLIndexer(_Indexer):
         if isinstance(title, str):
             title = title.decode('utf-8', "ignore")
 
-        if not isinstance(title, unicode):
+        if not isinstance(title, six.text_type):
             return ""
 
         # http://stackoverflow.com/questions/517923/what-is-the-best-way-to-remove-accents-in-a-python-unicode-string

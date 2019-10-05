@@ -7,7 +7,9 @@ from infogami.utils.view import render_template
 from infogami.utils import template, context
 from openlibrary.i18n import gettext
 from openlibrary.core.admin import Stats
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
+
+import six
 
 from openlibrary import core
 from openlibrary.plugins.openlibrary import home
@@ -25,30 +27,30 @@ class MockDoc(dict):
 
 class TestHomeTemplates:
     def test_about_template(self, render_template):
-        html = unicode(render_template("home/about"))
+        html = six.text_type(render_template("home/about"))
         assert "About the Project" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 0
 
         posts = [web.storage({
             "title": "Blog-post-0",
             "link": "http://blog.openlibrary.org/2011/01/01/blog-post-0",
-            "pubdate": datetime.datetime(2011, 01, 01)
+            "pubdate": datetime.datetime(2011, 1, 1)
         })]
-        html = unicode(render_template("home/about", blog_posts=posts))
+        html = six.text_type(render_template("home/about", blog_posts=posts))
         assert "About the Project" in html
         assert "Blog-post-0" in html
         assert "http://blog.openlibrary.org/2011/01/01/blog-post-0" in html
 
-        blog = BeautifulSoup(html).find("ul", {"id": "olBlog"})
+        blog = BeautifulSoup(html, "lxml").find("ul", {"id": "olBlog"})
         assert blog is not None
         assert len(blog.findAll("li")) == 1
 
     def test_stats_template(self, render_template):
         # Make sure that it works fine without any input (skipping section)
-        html = unicode(render_template("home/stats"))
+        html = six.text_type(render_template("home/stats"))
         assert html == ""
 
     def test_read_template(self, render_template, monkeypatch):
@@ -56,7 +58,7 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
         monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         books = home.readonline_carousel()
-        html = unicode(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
+        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
                                        key="public_domain"))
         assert html.strip() == ""
 
@@ -93,7 +95,7 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
-        html = unicode(render_template("home/index", stats=stats, test=True))
+        html = six.text_type(render_template("home/index", stats=stats, test=True))
         headers = ["Books We Love", "Recently Returned", "Kids",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]
         for h in headers:
@@ -102,58 +104,6 @@ class TestHomeTemplates:
         assert "Around the Library" in html
         assert "About the Project" in html
 
-class TestCarouselItem:
-    def setup_method(self, m):
-        context.context.features = []
-
-    def render(self, book):
-        if "authors" in book:
-            book["authors"] = [web.storage(a) for a in book['authors']]
-        return unicode(render_template("books/carousel_item", web.storage(book)))
-
-    def link_count(self, html):
-        links = BeautifulSoup(html).findAll("a") or []
-        return len(links)
-
-    def test_without_cover_url(self, render_template):
-        book = {
-            "work": None,
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [{"key": "/authors/OL1A", "name": "Some Author"}],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        }
-        assert book['title'] in self.render(book)
-        assert self.link_count(self.render(book)) == 2
-
-        del book['authors']
-        assert book['title'] in self.render(book)
-
-class Test_carousel:
-    def test_carousel(self, render_template):
-        book = web.storage({
-            "work": "/works/OL1W",
-            "key": "/books/OL1M",
-            "url": "/books/OL1M",
-            "title": "The Great Book",
-            "authors": [web.storage({"key": "/authors/OL1A", "name": "Some Author"})],
-            "read_url": "http://archive.org/stream/foo",
-            "borrow_url": "/books/OL1M/foo/borrow",
-            "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
-            "cover_url": ""
-        })
-
-        html = unicode(render_template("books/carousel", [book]))
-
-        assert book['title'] in html
-
-        soup = BeautifulSoup(html)
-        assert len(soup.findAll("li")) == 1
-        assert len(soup.findAll("a")) == 2
 
 class Test_format_book_data:
     def test_all(self, mock_site, mock_ia):

@@ -3,28 +3,28 @@ from openlibrary.core import helpers as h
 
 def test_sanitize():
     # plain html should pass through
-    assert h.sanitize("hello") == "hello"
-    assert h.sanitize("<p>hello</p>") == "<p>hello</p>"
+    assert h.sanitize(u"hello") == u"hello"
+    assert h.sanitize(u"<p>hello</p>") == u"<p>hello</p>"
 
     # broken html must be corrected
-    assert h.sanitize("<p>hello") == "<p>hello</p>"
+    assert h.sanitize(u"<p>hello") == u"<p>hello</p>"
 
     # css class is fine
-    assert h.sanitize('<p class="foo">hello</p>') == '<p class="foo">hello</p>'
+    assert h.sanitize(u'<p class="foo">hello</p>') == u'<p class="foo">hello</p>'
 
     # style attribute must be stripped
-    assert h.sanitize('<p style="color: red">hello</p>') == '<p>hello</p>'
+    assert h.sanitize(u'<p style="color: red">hello</p>') == u'<p>hello</p>'
 
     # style tags must be stripped
-    assert h.sanitize('<style type="text/css">p{color: red;}</style><p>hello</p>') == '<p>hello</p>'
+    assert h.sanitize(u'<style type="text/css">p{color: red;}</style><p>hello</p>') == u'<p>hello</p>'
 
     # script tags must be stripped
-    assert h.sanitize('<script>alert("dhoom")</script>hello') == 'hello'
+    assert h.sanitize(u'<script>alert("dhoom")</script>hello') == u'hello'
 
     # rel="nofollow" must be added absolute links
-    assert h.sanitize('<a href="https://example.com">hello</a>') == '<a href="https://example.com" rel="nofollow">hello</a>'
+    assert h.sanitize(u'<a href="https://example.com">hello</a>') == u'<a href="https://example.com" rel="nofollow">hello</a>'
     # relative links should pass through
-    assert h.sanitize('<a href="relpath">hello</a>') == '<a href="relpath">hello</a>'
+    assert h.sanitize(u'<a href="relpath">hello</a>') == u'<a href="relpath">hello</a>'
 
 def test_safesort():
     from datetime import datetime

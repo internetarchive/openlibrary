@@ -722,14 +722,6 @@ msgstr "Přidat tuto knihu"
 msgid "Add"
 msgstr "Přidat"
 
-#: carousel_item.html:32 covers.html:104
-msgid "Read online"
-msgstr "Číst online"
-
-#: carousel_item.html:38
-msgid "Borrow this book"
-msgstr "Půjčit si tuto knihu"
-
 #: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
 msgid "Add a Book"
 msgstr "Přidat knihu"

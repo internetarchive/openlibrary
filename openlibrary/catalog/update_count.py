@@ -1,7 +1,10 @@
 from olwrite import Infogami, add_to_database
-import web, dbhash
+import web
+import dbhash
 from read_rc import read_rc
-import cjson, re, sys
+import cjson
+import re
+import sys
 from time import time
 
 def commify(n):

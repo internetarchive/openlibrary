@@ -1,6 +1,9 @@
 """
 Open Library Plugin.
 """
+from __future__ import absolute_import
+from __future__ import print_function
+
 import web
 import simplejson
 import os
@@ -24,12 +27,13 @@ from infogami.utils.view import render, render_template, public, safeint, add_fl
 from infogami.infobase import client
 from infogami.core.db import ValidationException
 
+from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from openlibrary.utils.isbn import isbn_13_to_isbn_10, isbn_10_to_isbn_13
 from openlibrary.core.lending import get_work_availability, get_edition_availability
 import openlibrary.core.stats
 from openlibrary.plugins.openlibrary.home import format_work_data
 
-import processors
+from openlibrary.plugins.openlibrary import processors
 
 delegate.app.add_processor(processors.ReadableUrlProcessor())
 delegate.app.add_processor(processors.ProfileProcessor())
@@ -44,7 +48,7 @@ except:
 infogami.config.http_ext_header_uri = "http://openlibrary.org/dev/docs/api"
 
 # setup special connection with caching support
-import connection
+from openlibrary.plugins.openlibrary import connection
 client._connection_types['ol'] = connection.OLConnection
 infogami.config.infobase_parameters = dict(type="ol")
 
@@ -59,7 +63,7 @@ models.register_types()
 # Remove movefiles install hook. openlibrary manages its own files.
 infogami._install_hooks = [h for h in infogami._install_hooks if h.__name__ != "movefiles"]
 
-import lists
+from openlibrary.plugins.openlibrary import lists
 lists.setup()
 
 logger = logging.getLogger("openlibrary")
@@ -126,7 +130,9 @@ def sampledump():
             return
         elif key in visiting:
             # This is a case of circular-dependency. Add a stub object to break it.
-            print simplejson.dumps({'key': key, 'type': visiting[key]['type']})
+            print(simplejson.dumps({
+                'key': key, 'type': visiting[key]['type']
+            }))
             visited.add(key)
             return
 
@@ -144,7 +150,7 @@ def sampledump():
             visit(ref)
         visited.add(key)
 
-        print simplejson.dumps(d)
+        print(simplejson.dumps(d))
 
     keys = [
         '/scan_record',
@@ -166,7 +172,7 @@ def sampleload(filename="sampledump.txt.gz"):
         f = open(filename)
 
     queries = [simplejson.loads(line) for  line in f]
-    print web.ctx.site.save_many(queries)
+    print(web.ctx.site.save_many(queries))
 
 
 class routes(delegate.page):
@@ -322,27 +328,6 @@ def get_pages(type, processor):
     for p in pages:
         processor(web.ctx.site.get(p))
 
-class flipbook(delegate.page):
-    path = "/details/([a-zA-Z0-9_-]*)(?:/leaf(\d+))?"
-
-    SCRIPT_PATH = "/petabox/sw/bin/find_item.php"
-
-    def GET(self, identifier, leaf):
-        if leaf:
-            hash = '#page/n%s' % leaf
-        else:
-            hash = ""
-
-        url = "http://www.archive.org/stream/%s%s" % (identifier, hash)
-        raise web.seeother(url)
-
-class bookreader(delegate.page):
-    path = "/bookreader/(.*)"
-
-    def GET(self, id):
-        data = render.bookreader(id)
-        raise web.HTTPError("200 OK", {}, data)
-
 class robotstxt(delegate.page):
     path = "/robots.txt"
     def GET(self):
@@ -359,12 +344,16 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-class change_cover(delegate.mode):
-    def GET(self, key):
-        page = web.ctx.site.get(key)
-        if page is None or page.type.key not in  ['/type/edition', '/type/author']:
-            raise web.seeother(key)
-        return render.change_cover(page)
+class work2edition_resolver(delegate.page):
+    path = r"(/works/OL[0-9]+W)/resolve"
+
+    def GET(self, work_key):
+        """Resolves a work url to an editions page"""
+        doc = web.ctx.site.get(work_key)
+        matches = doc.get_ebook_info().get('ia', [])
+        if matches:
+            raise web.seeother('/ia/' + matches[0])
+        raise web.seeother(work_key)
 
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
@@ -417,11 +406,20 @@ class bookpage(delegate.page):
                     raise redirect(result[0], ext, suffix)
                 else:
                     raise redirect("/books/ia:" + value, ext, suffix)
+            elif key.startswith("isbn"):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed_key:
+                    raise web.seeother(ed_key)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
         except web.HTTPError:
             raise
         except:
+            if key.startswith('isbn'):
+                ed_key = create_edition_from_amazon_metadata(value)
+                if ed_key:
+                    raise web.seeother(ed_key)
+
             logger.error("unexpected error", exc_info=True)
             web.ctx.status = "404 Not Found"
             return render.notfound(web.ctx.path, create=False)
@@ -455,7 +453,7 @@ class opds(delegate.mode):
             raise web.notfound("")
         else:
             from infogami.utils import template
-            import opds
+            from openlibrary.plugins.openlibrary import opds
             try:
                 result = template.typetemplate('opds')(page, opds)
             except:
@@ -503,7 +501,7 @@ class _yaml(delegate.mode):
         data = dict(key=key, revision=v)
         try:
             d = api.request('/get', data=data)
-        except client.ClientException, e:
+        except client.ClientException as e:
             if e.json:
                 msg = self.dump(simplejson.loads(e.json))
             else:
@@ -535,7 +533,7 @@ class _yaml_edit(_yaml):
 
         try:
             d = self.get_data(key)
-        except web.HTTPError, e:
+        except web.HTTPError as e:
             if web.ctx.status.lower() == "404 not found":
                 d = {"key": key}
             else:
@@ -554,7 +552,7 @@ class _yaml_edit(_yaml):
             p = web.ctx.site.new(key, d)
             try:
                 p._save(i._comment)
-            except (client.ClientException, ValidationException), e:
+            except (client.ClientException, ValidationException) as e:
                 add_flash_message('error', str(e))
                 return render.edit_yaml(key, i.body)
             raise web.seeother(key + '.yml')
@@ -640,7 +638,7 @@ class new:
             h = api.get_custom_headers()
             comment = h.get('comment')
             action = h.get('action')
-        except Exception, e:
+        except Exception as e:
             raise BadRequest(str(e))
 
         self.verify_types(query)
@@ -650,7 +648,7 @@ class new:
             if not isinstance(query, list):
                 query = [query]
             web.ctx.site.save_many(query, comment=comment, action=action)
-        except client.ClientException, e:
+        except client.ClientException as e:
             raise BadRequest(str(e))
 
         #graphite/statsd tracking of bot edits
@@ -750,7 +748,7 @@ def save_error():
     f.write(error)
     f.close()
 
-    print >> web.debug, 'error saved to', path
+    print('error saved to', path, file=web.debug)
 
     return name
 
@@ -777,16 +775,6 @@ class memory(delegate.page):
         h = guppy.hpy()
         return delegate.RawText(str(h.heap()))
 
-class backdoor(delegate.page):
-    path = "/debug/backdoor"
-
-    def GET(self):
-        import backdoor
-        reload(backdoor)
-        result = backdoor.inspect()
-        if isinstance(result, basestring):
-            result = delegate.RawText(result)
-        return result
 
 def is_bot():
     """Generated on ol-www1 within /var/log/nginx with:
@@ -809,6 +797,8 @@ def is_bot():
         'buzzbot', 'laserlikebot', 'baiduspider', 'bingbot',
         'mj12bot', 'yoozbotadsbot'
     ]
+    if not web.ctx.env.get('HTTP_USER_AGENT'):
+        return True
     user_agent = web.ctx.env['HTTP_USER_AGENT'].lower()
     return any([bot in user_agent for bot in user_agent_bots])
 
@@ -834,12 +824,14 @@ def setup_context_defaults():
     from infogami.utils import context
     context.defaults.update({
         'features': [],
-        'user': None
+        'user': None,
+        'MAX_VISIBLE_BOOKS': 5
     })
 
 def setup():
-    import home, inlibrary, borrow_home, libraries, stats, support, \
-        events, design, status, merge_editions, authors
+    from openlibrary.plugins.openlibrary import (home, inlibrary, borrow_home, libraries,
+                                                 stats, support, events, design, status,
+                                                 merge_editions, authors)
 
     home.setup()
     design.setup()
@@ -853,12 +845,11 @@ def setup():
     merge_editions.setup()
     authors.setup()
 
-    import api
-    from stats import stats_hook
-    delegate.app.add_processor(web.unloadhook(stats_hook))
+    from openlibrary.plugins.openlibrary import api
+    delegate.app.add_processor(web.unloadhook(stats.stats_hook))
 
     if infogami.config.get("dev_instance") is True:
-        import dev_instance
+        from openlibrary.plugins.openlibrary import dev_instance
         dev_instance.setup()
 
     setup_context_defaults()

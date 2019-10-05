@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.infostore import get_site
 from catalog.olwrite import Infogami
 from catalog.read_rc import read_rc
@@ -14,7 +15,7 @@ keys = site.things({'type': '/type/scan_record', 'locations': '/scanning_center/
 while keys:
     for key in keys:
         sr = site.withKey(key)
-        print key
+        print(key)
         q = {
             'key': key,
             'type': { 'connect': 'update', 'value': '/type/delete' },

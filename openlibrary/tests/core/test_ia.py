@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.core import ia
 
 def test_xml2dict():
@@ -27,7 +28,7 @@ def test_get_metaxml(monkeypatch, mock_memcache):
     }
     """
 
-    print ia.get_meta_xml("foo00bar")
+    print(ia.get_meta_xml("foo00bar"))
     assert ia.get_meta_xml("foo00bar") == {
         "title": "Foo",
         "identifier": "foo00bar",

@@ -13,6 +13,8 @@ from xml.sax.saxutils import prepare_input_source
 from thread_utils import AsyncChannel, threaded_generator
 from onix import OnixProduct, OnixHandler, onix_codelists
 
+import six
+
 def parser (input):
 	# returns a generator that produces dicts representing Open Library items
 
@@ -70,8 +72,7 @@ def process_product (p):
 
 	# author, contributors
 	for c in op["Contributor":]:
-		role_codes = c["ContributorRole":]
-		role_codes.sort ()
+		role_codes = sorted(c["ContributorRole":])
 		role_code = role_codes[0]
 
 		name = person_name (c)
@@ -263,11 +264,9 @@ def person_name (x):
 	return name
 
 def elt_get (e, tag, reference_name):
-       ee = e.get (tag) or e.get (reference_name.lower ())
-       if ee:
-               return unicode (ee)
-       else:
-               return None
+     ee = e.get (tag) or e.get (reference_name.lower ())
+     return six.text_type(ee) if ee else None
+
 
 re_by = re.compile ("^\s*by\s+", re.IGNORECASE)
 re_iname = re.compile ("^(.*),\s*(.*)$")
@@ -275,4 +274,3 @@ re_iname = re.compile ("^(.*),\s*(.*)$")
 def add_val (o, key, val):
 	if val is not None:
 		o.setdefault (key, []).append (val)
-

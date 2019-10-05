@@ -3,6 +3,9 @@
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#carousel
  */
 
+@import (less) "components/read-panel.less";
+@import (less) "components/book.less";
+
 // Badly named. Should be renamed "carousel-heading" or similar.
 .home-h2 {
   font-size: 1.2em;
@@ -16,8 +19,10 @@
   margin: 0 -20px;
   padding: 3px 15px;
 }
+
 .carousel {
   .display-flex();
+  margin-bottom: 15px;
   overflow-x: scroll;
   padding: 10px 20px;
 
@@ -26,6 +31,15 @@
     height: 100%;
     margin: 0 10px;
     min-height: 1px;
+  }
+
+  // Modifiers
+  // A smaller carousel.
+  &--minimal {
+    img {
+      max-height: 100px;
+      width: auto;
+    }
   }
 
   > div {
@@ -42,6 +56,7 @@
   }
 
   .book {
+
     &:last-child {
       margin-right: 0;
     }
@@ -51,18 +66,23 @@
       margin: 0 auto;
     }
 
-    h2.book-title {
+    /*h2*/.book-title {
       font-size: .8em;
       margin: 5px 0;
       color: @dark-grey;
       font-weight: normal;
 
+      // stylelint-disable-next-line selector-max-specificity, max-nesting-depth
       a {
         color: @link-blue;
         text-decoration: none;
       }
     }
   }
+}
+
+.carousel__item .slick-loading {
+  opacity: 0;
 }
 
 /**
@@ -85,4 +105,12 @@
   }
 }
 
+// Hide horizontal scroll bar if JS is going to be loaded
+.client-js {
+  .carousel {
+    margin-bottom: 0;
+    // hide the overlay until carousel--js has loaded
+    overflow: hidden;
+  }
+}
 @import (less) "category-item.less";

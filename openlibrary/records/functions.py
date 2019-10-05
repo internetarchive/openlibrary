@@ -2,6 +2,7 @@
 Functions which are used by the records package. The two public ones
 are `search` and `create` which are callable from the outside world.
 """
+from __future__ import print_function
 
 import copy
 
@@ -99,7 +100,7 @@ def find_matches_by_isbn(isbns):
         'type':'/type/edition',
         'isbn_': str(isbns[0])
         }
-    print "ISBN query : ", q
+    print("ISBN query : ", q)
     ekeys = list(web.ctx.site.things(q))
     if ekeys:
         return ekeys[:1] # TODO: We artificially match only one item here

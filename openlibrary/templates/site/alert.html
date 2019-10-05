@@ -1,10 +1,11 @@
-$:get_donation_include('true')
+$if not is_bot():
+  $:get_donation_include('true')
 
 <div id="topNotice">
   <div class="page-banner page-banner-black page-banner-center">
     <div class="iaBar">
       <div class="iaBarLogo">
-	<a href="https://archive.org"><img alt="Internet Archive logo" src="/static/images/ia-logo.png"></a>
+	<a href="https://archive.org"><img alt="Internet Archive logo" src="/static/images/ia-logo.svg" width="160"></a>
       </div>
       <div class="iaBarMessage">
         <a class="ghost-btn" style="text-underline" href="https://archive.org/donate?platform=ol" data-ol-link-track="IABar|DonateButton">Donate <span class="heart" aria-hidden="true">♥</span></a>

@@ -30,7 +30,7 @@ $ error = None
 $if param:
     $ page = int(param.get('page', 1))
     $ sort = param.get('sort', None)
-    $ rows = 100
+    $ rows = 20
     $ search_start = time()
     $ results = do_search(param, sorts[sort] if sort else None, page, rows=rows, spellcheck_count=3)
     $ search_secs = time() - search_start
@@ -62,7 +62,7 @@ function more(header) {
         \$("#" + header + "_more").hide();
         \$("#" + header + "_bull").hide();
     }
-    \$(facetEntry +":hidden").slice(0,facet_inc).slideDown()
+    \$(facetEntry +":hidden").slice(0,facet_inc).removeClass('hidden');
 }
 
 function less(header) {
@@ -78,9 +78,9 @@ function less(header) {
         \$("#" + header + "_more").show();
         \$("#" + header + "_bull").show();
     }
-    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).slideUp()
+    \$(facetEntry + ":not(:hidden)").slice(shown-facet_inc,shown).addClass('hidden');
 }
-\$().ready(function(){
+window.q.push(function(){
     \$(".header_bull").hide();
 });
 //-->
@@ -217,14 +217,9 @@ $ )
 
     $elif param and not error and len(docs):
         <div class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</div>
-        <script type="text/javascript">
-        <!--
-            \$().ready(bookCovers);
-        //-->
-        </script>
-        <div class="resultsContainer">
+        <div class="resultsContainer search-results-container">
         <div id="searchResults">
-          <ul id="siteSearch">
+          <ul class="list-books" id="siteSearch">
             $ works = add_availability([get_doc(d) for d in docs])
 
             $ loans = ctx.user.get_loans() if ctx.user else []
@@ -239,6 +234,7 @@ $ )
                 $if 'has_fulltext' not in param or (ocaid and availability and availability not in ['error', 'private']):
                     $:macros.SearchResultsWork(work, user=user)
           </ul>
+          $:macros.Pager(page, num_found, rows)
         </div>
 <!-- /results -->
 
@@ -247,10 +243,8 @@ $ )
 $if error:
     <h3>BARF! Search engine ERROR!</h3>
     <pre>$error.decode('utf-8', 'ignore')</pre>
-
-$elif param and not error:
-    $if len(docs) != 0:
-        <div id="searchFacets">
+$elif param and len(docs):
+    <div id="searchFacets">
         <h3 class="collapse">$_("Zoom In")</h3>
         <div class="smallest lightgreen sansserif" style="margin-bottom:20px;">$_("Focus your results using these") <a href="/search/howto">$_("filters")</a></div>
         $for header, label in facet_map:
@@ -287,8 +281,6 @@ $elif param and not error:
     </div>
 
     $if param and not error and len(docs):
-        $:macros.Pager(page, num_found, rows)
-
         $ readapi_percent = 100
         $if ctx.user and ctx.user.is_admin():
             <div id="adminTiming" class="small sansserif clearfix"><br/><span class="adminOnly">Searching solr took $("%.2f" % search_secs) seconds</span></div>
@@ -297,23 +289,25 @@ $elif param and not error:
         $ ol = 'openlibrary.org'
         <script type="text/javascript">
         <!--
-        function readapi_callback(data, textStatus, jqXHR) {
-            endtime = Date.now();
-            //document.write(data.stats.summary.toSource());
-            duration = (endtime - starttime) / 1000;
-            disp = document.getElementById("adminTiming");
-            if (disp) {
-                disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
+        window.q.push( function () {
+            function readapi_callback(data, textStatus, jqXHR) {
+                endtime = Date.now();
+                //document.write(data.stats.summary.toSource());
+                duration = (endtime - starttime) / 1000;
+                disp = document.getElementById("adminTiming");
+                if (disp) {
+                    disp.innerHTML += '<br/><br/><span class="adminOnly">Read API call took ' + duration + ' seconds</span>';
+                }
             }
-        }
-        if (Math.random() * 100 < $readapi_percent) {
-            starttime = Date.now();
-            \$.ajax({
-                url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
-                dataType: 'jsonp',
-                success: readapi_callback
-            });
-        }
+            if (Math.random() * 100 < $readapi_percent) {
+                starttime = Date.now();
+                \$.ajax({
+                    url: 'https://$ol/api/volumes/brief/json/$wks?listofworks=True&no_details=True&stats=True',
+                    dataType: 'jsonp',
+                    success: readapi_callback
+                });
+            }
+        });
         //-->
         </script>
   </div>

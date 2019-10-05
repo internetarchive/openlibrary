@@ -1,7 +1,8 @@
 """Python library for accessing Solr.
 """
 import urlparse
-import urllib, urllib2
+import urllib
+import urllib2
 import re
 import web
 import simplejson

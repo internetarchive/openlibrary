@@ -43,11 +43,12 @@ class OLBrowser(web.AppBrowser):
 class OL:
     """Mock OL object for all tests.
     """
-    def __init__(self, request):
+    @pytest.fixture
+    def __init__(self, request, monkeypatch):
         self.request = request
 
-        self.monkeypatch = pytest_funcarg__monkeypatch(request)
-        self.site = pytest_funcarg__mock_site(request)
+        self.monkeypatch = monkeypatch(request)
+        self.site = mock_site(request)
 
         self.monkeypatch.setattr(ol_infobase, "init_plugin", lambda: None)
 

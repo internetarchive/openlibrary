@@ -1,8 +1,14 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-import web, sys, codecs, re, urllib2, httplib
+import web
+import sys
+import codecs
+import re
+import urllib2
+import httplib
 from openlibrary.catalog.importer import pool
 import simplejson as json
 from openlibrary.catalog.utils.query import query_iter
@@ -10,12 +16,12 @@ from openlibrary.catalog.importer.merge import try_merge
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.importer.load import build_query, east_in_by_statement, import_author
 from openlibrary.catalog.works.find_work_for_edition import find_matching_work
-#from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.get_ia import files, read_marc_file
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.importer.db_read import get_mc, withKey
 from openlibrary.catalog.marc.marc_subject import subjects_for_work
 from openlibrary.api import OpenLibrary, unmarshal
+import six
 
 from openlibrary.catalog.read_rc import read_rc
 
@@ -46,10 +52,10 @@ def get_with_retry(key):
     for i in range(3):
         try:
             return ol.get(key)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 500:
                 raise
-        print 'retry save'
+        print('retry save')
         sleep(10)
     return ol.get(key)
 
@@ -57,10 +63,10 @@ def save_with_retry(key, data, comment):
     for i in range(3):
         try:
             return ol.save(key, data, comment)
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code != 500:
                 raise
-        print 'retry save'
+        print('retry save')
         sleep(10)
 
 # urllib2.HTTPError: HTTP Error 500: Internal Server Error
@@ -111,7 +117,7 @@ def fix_toc(e):
         return
     if isinstance(toc[0], dict) and toc[0]['type'] == '/type/toc_item':
         return
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
@@ -128,8 +134,8 @@ def author_from_data(loc, data):
     if 'key' in a:
         return {'key': a['key']}
     ret = ol.new(a, comment='new author')
-    print 'ret:', ret
-    assert isinstance(ret, basestring)
+    print('ret:', ret)
+    assert isinstance(ret, six.string_types)
     return {'key': ret}
 
 def undelete_author(a):
@@ -145,7 +151,7 @@ def undelete_authors(authors):
         if a['type'] == '/type/delete':
             undelete_author(a)
         else:
-            print a
+            print(a)
             assert a['type'] == '/type/author'
 
 def add_source_records(key, new, thing, data):
@@ -181,17 +187,17 @@ def add_source_records(key, new, thing, data):
             new_author = author_from_data(new, data)
             e['authors'] = [new_author]
         else:
-            print e['authors']
+            print(e['authors'])
             authors = [get_with_retry(akey) for akey in e['authors']]
             while any(a['type'] == '/type/redirect' for a in authors):
-                print 'following redirects'
+                print('following redirects')
                 authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a for a in authors]
             e['authors'] = [{'key': a['key']} for a in authors]
             undelete_authors(authors)
     try:
-        print save_with_retry(key, e, 'found a matching MARC record')
+        print(save_with_retry(key, e, 'found a matching MARC record'))
     except:
-        print e
+        print(e)
         raise
     if new_toc:
         new_edition = ol.get(key)
@@ -199,7 +205,7 @@ def add_source_records(key, new, thing, data):
         assert 'title' in new_edition['table_of_contents'][0]
 
 def load_part(archive_id, part, start_pos=0):
-    print 'load_part:', archive_id, part
+    print('load_part:', archive_id, part)
     global rec_no, t_prev, load_count
     full_part = archive_id + "/" + part
     f = open(rc['marc_path'] + "/" + full_part)
@@ -216,18 +222,18 @@ def load_part(archive_id, part, start_pos=0):
         try:
             index_fields = fast_parse.index_fields(data, want)
         except KeyError:
-            print loc
-            print fast_parse.get_tag_lines(data, ['245'])
+            print(loc)
+            print(fast_parse.get_tag_lines(data, ['245']))
             raise
         except AssertionError:
-            print loc
+            print(loc)
             raise
         except fast_parse.NotBook:
             continue
         if not index_fields or 'title' not in index_fields:
             continue
 
-        print loc
+        print(loc)
         edition_pool = pool.build(index_fields)
 
         if not edition_pool:
@@ -249,7 +255,7 @@ def load_part(archive_id, part, start_pos=0):
                     thing = withKey(edition_key)
                     assert thing
                     if thing['type']['key'] == '/type/redirect':
-                        print 'following redirect %s => %s' % (edition_key, thing['location'])
+                        print('following redirect %s => %s' % (edition_key, thing['location']))
                         edition_key = thing['location']
                 if try_merge(e1, edition_key, thing):
                     add_source_records(edition_key, loc, thing, data)
@@ -264,7 +270,7 @@ def load_part(archive_id, part, start_pos=0):
 start = pool.get_start(archive_id)
 go = 'part' not in start
 
-print archive_id
+print(archive_id)
 
 def write(q): # unused
     if 0:
@@ -279,7 +285,7 @@ def write(q): # unused
     try:
         return ol.new(q, comment='initial import')
     except:
-        print q
+        print(q)
         raise
 
 def write_edition(loc, edition):
@@ -292,10 +298,10 @@ def write_edition(loc, edition):
             try:
                 ret = ol.new(a, comment='new author')
             except:
-                print a
+                print(a)
                 raise
-            print 'ret:', ret
-            assert isinstance(ret, basestring)
+            print('ret:', ret)
+            assert isinstance(ret, six.string_types)
 #            assert ret['status'] == 'ok'
 #            assert 'created' in ret and len(ret['created']) == 1
             authors.append({'key': ret})
@@ -331,42 +337,31 @@ def write_edition(loc, edition):
 
     for attempt in range(5):
         if attempt > 0:
-            print 'retrying'
+            print('retrying')
         try:
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
             sleep(10)
             continue
         except: # httplib.BadStatusLine
-            print q
+            print(q)
             raise
         break
-    print 'ret:', ret
-    assert isinstance(ret, basestring)
+    print('ret:', ret)
+    assert isinstance(ret, six.string_types)
     key = '/b/' + re_edition_key.match(ret).group(1)
-#    assert ret['status'] == 'ok'
-#    assert 'created' in ret
-#    editions = [i for i in ret['created'] if i.startswith('/b/OL')]
-#    assert len(editions) == 1
     # get key from return
     pool.update(key, q)
 
     return
 
-    for a in authors:
-        akey = a['key']
-        title_redirects = find_title_redirects(akey)
-        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-        works = list(works)
-        updated = update_works(akey, works, do_updates=True)
-
 for part, size in files(archive_id):
 #for part, size in marc_loc_updates:
-    print part, size
+    print(part, size)
     if not go:
         if part == start['part']:
             go = True
-            print "starting %s at %d" % (part, start['pos'])
+            print("starting %s at %d" % (part, start['pos']))
             part_iter = load_part(archive_id, part, start_pos=start['pos'])
         else:
             continue
@@ -380,15 +375,15 @@ for part, size in files(archive_id):
         rec = MarcBinary(data)
         edition = read_edition(rec)
         if edition['title'] == 'See.':
-            print 'See.', edition
+            print('See.', edition)
             continue
         if edition['title'] == 'See also.':
-            print 'See also.', edition
+            print('See also.', edition)
             continue
         load_count += 1
         if load_count % 100 == 0:
-            print "load count", load_count
+            print("load count", load_count)
         write_edition(loc, edition)
         sleep(2)
 
-print "finished"
+print("finished")

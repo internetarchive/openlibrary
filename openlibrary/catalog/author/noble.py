@@ -1,9 +1,14 @@
 # coding=utf-8
+from __future__ import print_function
 from catalog.get_ia import read_marc_file
 from catalog.read_rc import read_rc
 from time import time
 from catalog.marc.fast_parse import index_fields, get_tag_lines, get_first_tag, get_all_subfields
-import web, os, os.path, re, sys
+import web
+import os
+import os.path
+import re
+import sys
 
 titles = [ "Accolade", "Adi", "Aetheling", "Aga Khan", "Ajaw", "Ali'i",
         "Allamah", "Altgrave", "Ammaveedu", "Anji", "Ryūkyū", "Archtreasurer",
@@ -39,7 +44,7 @@ def process_record(pos, loc, data):
         if line:
             fields = list(get_all_subfields(line))
             if any(k == 'c' for k, v in fields):
-                print (loc, fields)
+                print((loc, fields))
 
 def files(ia):
     endings = ['.mrc', '.marc', '.out', '.dat', '.records.utf8']

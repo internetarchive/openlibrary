@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.infostore import get_site
 import web
 from catalog.marc.db.web_marc_db import search_query, show_locs
@@ -14,8 +15,8 @@ def author_search(author_key):
     book_keys = get_books_by_author(author_key)
     for key in book_keys:
         t = site.get(key)
-        print key, t.title, '<br>'
-        print '&nbsp;&nbsp;', t.isbn_10, '<br>'
+        print(key, t.title, '<br>')
+        print('&nbsp;&nbsp;', t.isbn_10, '<br>')
         locs = []
         for i in t.isbn_10 if t.isbn_10 else []:
             for l in search_query('isbn', i):
@@ -36,24 +37,24 @@ class index():
         web.header('Content-Type','text/html; charset=utf-8', unique=True)
         input = web.input()
         author_key = input.get('author', None)
-        print "<html>\n<head>\n<title>Author fixer</title>"
-        print '''
+        print("<html>\n<head>\n<title>Author fixer</title>")
+        print('''
 <style>
 th { text-align: left }
 td { padding: 5px; background: #eee }
-</style>'''
+</style>''')
 
-        print '</head><body><a name="top">'
-        print '<form name="main" method="get">'
+        print('</head><body><a name="top">')
+        print('<form name="main" method="get">')
         if author_key:
-            print '<input type="text" name="author" value="%s">' % web.htmlquote(author_key)
+            print('<input type="text" name="author" value="%s">' % web.htmlquote(author_key))
         else:
-            print '<input type="text" name="author">'
-        print '<input type="submit" value="find">'
-        print '</form>'
+            print('<input type="text" name="author">')
+        print('<input type="submit" value="find">')
+        print('</form>')
         if author_key:
             author_search(author_key)
-        print "</body></html>"
+        print("</body></html>")
 
 
 if __name__ == "__main__":

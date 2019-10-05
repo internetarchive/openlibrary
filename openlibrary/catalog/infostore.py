@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 web.config.db_printing = False
 from infogami.infobase import cache
@@ -36,7 +37,7 @@ def get_site(staging=False):
     rc = read_rc()
 
     param = dict((k, rc['staging_' + k if staging else k]) for k in ('db', 'user', 'pw', 'host'))
-    print param
+    print(param)
     param['dbn'] = 'postgres'
 
     infogami.config.db_parameters = param

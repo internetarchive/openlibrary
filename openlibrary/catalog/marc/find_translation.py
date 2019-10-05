@@ -1,6 +1,8 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from catalog.marc.fast_parse import *
-import sys, codecs
+import sys
+import codecs
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -16,4 +18,4 @@ for data, length in read_file(open(sys.argv[1])):
     start = value.lower().find('translation of')
     if start == -1 or start > 6:
         continue
-    print value
+    print(value)

@@ -30,7 +30,7 @@ want = [
     '035', # oclc
     '050', # lc classification
     '082', # dewey
-    '100', '110', '111', # authors TODO
+    '100', '110', '111', # authors
     '130', '240', # work title
     '245', # title
     '250', # edition
@@ -306,8 +306,7 @@ def read_author_person(f):
     return author
 
 # 1. if authors in 100, 110, 111 use them
-# 2. if first contrib is 710 or 711 use it
-# 3. if
+# 2. if first contrib is 700, 710, or 711 use it
 
 def person_last_name(f):
     v = list(f.get_subfield_values('a'))[0]
@@ -357,14 +356,16 @@ def read_pagination(rec):
     for f in fields:
         pagination += f.get_subfield_values(['a'])
     if pagination:
-        edition["pagination"] = ' '.join(pagination)
+        edition['pagination'] = ' '.join(pagination)
+        # strip trailing characters from pagination
+        edition['pagination'] = edition['pagination'].strip(' ,:;')
         num = [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2617696:825
         for x in pagination:
-            num += [ int(i) for i in re_int.findall(x.replace(',',''))]
-            num += [ int(i) for i in re_int.findall(x) ]
+            num += [int(i) for i in re_int.findall(x.replace(',',''))]
+            num += [int(i) for i in re_int.findall(x)]
         valid = [i for i in num if i < max_number_of_pages]
         if valid:
-            edition["number_of_pages"] = max(valid)
+            edition['number_of_pages'] = max(valid)
     return edition
 
 def read_series(rec):
@@ -448,6 +449,14 @@ def read_location(rec):
     return list(found)
 
 def read_contributions(rec):
+    """ Reads contributors from a MARC record
+    and use values in 7xx fields to set 'authors'
+    if the 1xx fields do not exist. Otherwise set
+    additional 'contributions'
+
+    :param (MarcBinary | MarcXml) rec:
+    :rtype: dict
+    """
     want = dict((
         ('700', 'abcdeq'),
         ('710', 'ab'),

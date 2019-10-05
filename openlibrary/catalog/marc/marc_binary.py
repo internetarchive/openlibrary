@@ -5,13 +5,16 @@ from unicodedata import normalize
 from pymarc import MARC8ToUnicode
 from openlibrary.catalog.marc import mnemonics
 
+import six
+
+
 marc8 = MARC8ToUnicode(quiet=True)
 
 class BadLength(MarcException):
     pass
 
 def norm(s):
-    return normalize('NFC', unicode(s))
+    return normalize('NFC', six.text_type(s))
 
 class BinaryDataField():
     def __init__(self, rec, line):
@@ -82,7 +85,7 @@ class BinaryDataField():
 class MarcBinary(MarcBase):
     def __init__(self, data):
         try:
-            assert len(data) and isinstance(data, basestring)
+            assert len(data) and isinstance(data, six.string_types)
             length = int(data[:5])
         except:
             raise BadMARC("No MARC data found")
@@ -127,7 +130,7 @@ class MarcBinary(MarcBase):
         if '\x1f' in f.line:
             return super(MarcBinary, self).read_isbn(f)
         else:
-            m = re_isbn.match(line[3:-1])
+            m = re_isbn.match(f.line[3:-1])
             if m:
                 return [m.group(1)]
         return []

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from marc_xml import MarcXml
 from lxml import etree
 import re
@@ -39,11 +40,11 @@ if __name__ == '__main__':
     samples = '''1893manualofharm00jadauoft 39002054008678.yale.edu flatlandromanceo00abbouoft nybc200247 onquietcomedyint00brid secretcodeofsucc00stjo warofrebellionco1473unit zweibchersatir01horauoft cu31924091184469'''.split()
 
     for filename in samples:
-        print 'test_data/xml_input/' + filename + '_marc.xml'
+        print('test_data/xml_input/' + filename + '_marc.xml')
         data = open('test_data/xml_input/' + filename + '_marc.xml').read()
         if data == '':
             continue
         rec = html_record(data)
-        print rec.leader
-        print rec.html()
-        print
+        print(rec.leader)
+        print(rec.html())
+        print()

@@ -1,4 +1,11 @@
-import web, re, httplib, sys, urllib2, threading
+from __future__ import print_function
+import os
+import web
+import re
+import httplib
+import sys
+import urllib2
+import threading
 import simplejson as json
 from lxml import etree
 import openlibrary.catalog.importer.pool as pool
@@ -13,7 +20,6 @@ from openlibrary.catalog.importer.update import add_source_records
 from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying, NoMARCXML, bad_ia_xml, marc_formats, get_marc_ia_data
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.solr.update_work import update_work, solr_update
-#from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
 from openlibrary.catalog.works.find_work_for_edition import find_matching_work
 from openlibrary.catalog.marc import fast_parse, is_display_marc
 from openlibrary.catalog.marc.parse import read_edition, NoTitle
@@ -22,9 +28,11 @@ from openlibrary.utils.ia import find_item
 from openlibrary import config
 from time import time, sleep
 from openlibrary.api import OpenLibrary
-from pprint import pprint
 from subprocess import Popen, PIPE
 import argparse
+
+import six
+
 
 parser = argparse.ArgumentParser(description='scribe loader')
 parser.add_argument('--skip_hide_books', action='store_true')
@@ -65,7 +73,7 @@ def make_index_fields(rec):
 
 def load_binary(ia, host, path):
     url = 'http://' + host + path + '/' + ia + '_meta.mrc'
-    print url
+    print(url)
     f = urlopen_keep_trying(url)
     data = f.read()
     assert '<title>Internet Archive: Page Not Found</title>' not in data[:200]
@@ -76,7 +84,7 @@ def load_binary(ia, host, path):
 
 def load_xml(ia, host, path):
     url = 'http://' + host + path + '/' + ia + '_marc.xml'
-    print url
+    print(url)
     f = urlopen_keep_trying(url)
     root = etree.parse(f).getroot()
     if root.tag == '{http://www.loc.gov/MARC21/slim}collection':
@@ -87,7 +95,7 @@ def load_xml(ia, host, path):
     return edition
 
 def load(ia, use_binary=False):
-    print "load", ia
+    print("load", ia)
     if not use_binary:
         try:
             rec = load_xml(ia, host, path)
@@ -99,7 +107,6 @@ def load(ia, use_binary=False):
     if use_binary:
         rec = load_binary(ia, host, path)
         edition = read_edition(rec)
-    pprint(edition)
     assert 'title' in edition
 
     edition['ocaid'] = ia
@@ -145,10 +152,10 @@ def write_edition(ia, edition, rec):
             try:
                 ret = ol.new(a, comment='new author')
             except:
-                print a
+                print(a)
                 raise
-            print 'ret:', ret
-            assert isinstance(ret, basestring)
+            print('ret:', ret)
+            assert isinstance(ret, six.string_types)
             authors.append({'key': ret})
     q['source_records'] = [loc]
     if authors:
@@ -191,42 +198,32 @@ def write_edition(ia, edition, rec):
     q['works'] = [{'key': wkey}]
     for attempt in range(50):
         if attempt > 0:
-            print 'retrying'
+            print('retrying')
         try:
-            pprint(q)
             ret = ol.new(q, comment='initial import')
         except httplib.BadStatusLine:
             sleep(30)
             continue
         except: # httplib.BadStatusLine
-            print q
+            print(q)
             raise
         break
-    print 'ret:', ret
-    assert isinstance(ret, basestring)
+    print('ret:', ret)
+    assert isinstance(ret, six.string_types)
     key = '/b/' + re_edition_key.match(ret).group(1)
     pool.update(key, q)
 
-    print 'add_cover_image'
+    print('add_cover_image')
     t = threading.Thread(target=add_cover_image, args=(ret, ia))
     t.start()
     return
 
-    print 'run work finder'
-
-
-    # too slow
-    for a in authors:
-        akey = a['key']
-        title_redirects = find_title_redirects(akey)
-        works = find_works(akey, get_books(akey, books_query(akey)), existing=title_redirects)
-        works = list(works)
-        updated = update_works(akey, works, do_updates=True)
+    print('run work finder')
 
 fh_log = None
 
 def write_log(ia, when, msg):
-    print >> fh_log, (ia, when, msg)
+    print((ia, when, msg), file=fh_log)
     fh_log.flush()
 
 hide_state_file = config.runtime_config['state_dir'] + '/load_scribe_hide'
@@ -234,7 +231,7 @@ ignore_noindex = set(['printdisabled', 'lendinglibrary', 'inlibrary'])
 
 def hide_books(start):
     hide_start = open(hide_state_file).readline()[:-1]
-    print 'hide start:', hide_start
+    print('hide start:', hide_start)
 
     mend = []
     fix_works = set()
@@ -246,28 +243,28 @@ def hide_books(start):
             collections = set(i.lower().strip() for i in row.collection.split(';'))
             if ignore_noindex & collections:
                 continue
-        print(repr(ia), row.updated)
+        print((repr(ia), row.updated))
         for eq in query({'type': '/type/edition', 'ocaid': ia}):
-            print eq['key']
+            print(eq['key'])
             e = ol.get(eq['key'])
             if 'ocaid' not in e:
                 continue
             if 'works' in e:
                 fix_works.update(e['works'])
-            print(e['key'], repr(e.get('title', None)))
+            print((e['key'], repr(e.get('title', None))))
             del e['ocaid']
             mend.append(e)
         last_updated = row.updated
-    print 'removing links from %d editions' % len(mend)
+    print('removing links from %d editions' % len(mend))
     if not mend:
         return
-    print ol.save_many(mend, 'remove link')
+    print(ol.save_many(mend, 'remove link'))
     requests = []
     for wkey in fix_works:
         requests += update_work(withKey(wkey))
     if fix_works:
         solr_update(requests + ['<commit/>'], debug=True)
-    print >> open(hide_state_file, 'w'), last_updated
+    print(last_updated, file=open(hide_state_file, 'w'))
 
 def load_error_mail(ia, marc_display, subject):
     msg_from = 'load_scribe@archive.org'
@@ -309,7 +306,7 @@ if __name__ == '__main__':
         if args.item_id:
             db_iter = db.query("select identifier, contributor, updated, noindex, collection, format from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and format is not null and identifier=$item_id", {'item_id': args.item_id})
         else:
-            print 'start:', start
+            print('start:', start)
             db_iter = db.query("select identifier, contributor, updated, noindex, collection, format from metadata where scanner is not null and mediatype='texts' and (not curatestate='dark' or curatestate is null) and scandate is not null and format is not null and updated between $start and date_add($start, interval 2 day) order by updated", {'start': start})
         t_start = time()
         for row in db_iter:
@@ -323,7 +320,7 @@ if __name__ == '__main__':
             if 'pdf' not in row.format.lower():
                 continue # scancenter and billing staff often use format like "%pdf%" as a proxy for having derived
             if row.contributor == 'Allen County Public Library Genealogy Center':
-                print 'skipping Allen County Public Library Genealogy Center'
+                print('skipping Allen County Public Library Genealogy Center')
                 continue
             if row.collection:
                 collections = set(i.lower().strip() for i in row.collection.split(';'))
@@ -336,34 +333,34 @@ if __name__ == '__main__':
                 if not ignore_noindex & collections:
                     continue
             if ia.startswith('annualreportspri'):
-                print 'skipping:', ia
+                print('skipping:', ia)
                 continue
             if 'shenzhentest' in collections:
                 continue
 
             if any('census' in c for c in collections):
-                print 'skipping census'
+                print('skipping census')
                 continue
 
             if re_census.match(ia) or ia.startswith('populationschedu') or ia.startswith('michigancensus') or 'census00reel' in ia or ia.startswith('populationsc1880'):
-                print 'ia:', ia
-                print 'collections:', list(collections)
-                print 'census not marked correctly'
+                print('ia:', ia)
+                print('collections:', list(collections))
+                print('census not marked correctly')
                 continue
             assert 'passportapplicat' not in ia and 'passengerlistsof' not in ia
             if 'passportapplicat' in ia:
-                print 'skip passport applications for now:', ia
+                print('skip passport applications for now:', ia)
                 continue
             if 'passengerlistsof' in ia:
-                print 'skip passenger lists', ia
+                print('skip passenger lists', ia)
                 continue
-            print(repr(ia), row.updated)
+            print((repr(ia), row.updated))
             when = str(row.updated)
             if query({'type': '/type/edition', 'ocaid': ia}):
-                print 'already loaded'
+                print('already loaded')
                 continue
             if query({'type': '/type/edition', 'source_records': 'ia:' + ia}):
-                print 'already loaded'
+                print('already loaded')
                 continue
 
             try:
@@ -373,10 +370,10 @@ if __name__ == '__main__':
                 continue
             use_binary = False
             bad_binary = None
-            print formats
+            print(formats)
             rec = {}
             if formats['bin']:
-                print 'binary'
+                print('binary')
                 use_binary = True
                 try:
                     marc_data = get_marc_ia_data(ia, host, path)
@@ -407,7 +404,7 @@ if __name__ == '__main__':
                     bad_binary = 'Internet Archive: Error'
                 if not bad_binary:
                     if str(marc_data)[6:8] != 'am': # only want books
-                        print 'not a book!'
+                        print('not a book!')
                         continue
                     try:
                         rec = fast_parse.read_edition(marc_data, accept_electronic = True)
@@ -431,7 +428,7 @@ if __name__ == '__main__':
                     write_log(ia, when, "error: HTTPError: " + str(error))
                     continue
             if not use_binary and not formats['xml']:
-                print 'skipping, no MARC'
+                print('skipping, no MARC')
                 continue
 
             if not rec:
@@ -441,15 +438,15 @@ if __name__ == '__main__':
                 format = rec['physical_format'].lower()
                 if format.startswith('[graphic') or format.startswith('[cartograph'):
                     continue
-            print rec
+            print(rec)
 
             if 'full_title' not in rec:
-                print "full_title missing"
+                print("full_title missing")
                 write_log(ia, when, "error: full_title missing")
                 continue
             index_fields = make_index_fields(rec)
             if not index_fields:
-                print "no index_fields"
+                print("no index_fields")
                 write_log(ia, when, "error: no index fields")
                 continue
 
@@ -475,12 +472,12 @@ if __name__ == '__main__':
                         thing = withKey(edition_key)
                         assert thing
                         if 'type' not in thing:
-                            print thing
+                            print(thing)
                         if thing.get('error') == 'notfound':
                             found = False
                             break
                         if thing['type']['key'] == '/type/redirect':
-                            print 'following redirect %s => %s' % (edition_key, thing['location'])
+                            print('following redirect %s => %s' % (edition_key, thing['location']))
                             edition_key = thing['location']
                     if not found:
                         continue
@@ -496,19 +493,19 @@ if __name__ == '__main__':
                 try:
                     load(ia, use_binary=use_binary)
                 except:
-                    print 'bad item:', ia
+                    print('bad item:', ia)
                     raise
                 write_log(ia, when, "loaded")
-            print >> open(state_file, 'w'), row.updated
+            print(row.updated, file=open(state_file, 'w'))
         start = row.updated
         secs = time() - t_start
         mins = secs / 60
-        print "finished %d took mins" % mins
+        print("finished %d took mins" % mins)
         if args.item_id:
             break
         if not args.skip_hide_books:
             hide_books(start)
-        print >> open(state_file, 'w'), start
+        print(start, file=open(state_file, 'w'))
         if mins < 30:
-            print 'waiting'
+            print('waiting')
             sleep(60 * 30 - secs)

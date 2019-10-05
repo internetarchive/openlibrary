@@ -1,3 +1,4 @@
+from __future__ import print_function
 import web
 import simplejson
 import urllib
@@ -84,8 +85,9 @@ class upload:
         success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
         failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
 
-        def error((code, msg)):
-            print >> web.debug, "ERROR: upload failed, ", i.olid, code, repr(msg)
+        def error(code__msg):
+            (code, msg) = code__msg
+            print("ERROR: upload failed, ", i.olid, code, repr(msg), file=web.debug)
             _cleanup()
             url = changequery(failure_url, errcode=code, errmsg=msg)
             raise web.seeother(url)
@@ -114,7 +116,7 @@ class upload:
         raise web.seeother(success_url)
 
 class upload2:
-    """Temporary upload handler for handling upstream.openlibrary.org cover upload.
+    """openlibrary.org POSTs here via openlibrary/plugins/upstream/covers.py upload
     """
     def POST(self, category):
         i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)
@@ -122,7 +124,8 @@ class upload2:
         web.ctx.pop("_fieldstorage", None)
         web.ctx.pop("_data", None)
 
-        def error((code, msg)):
+        def error(code__msg):
+            (code, msg) = code__msg
             _cleanup()
             e = web.badrequest()
             e.data = simplejson.dumps({"code": code, "message": msg})
@@ -161,7 +164,7 @@ def get_memcache():
 def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
-    print >> web.debug, time.asctime(), "_locate_item", item
+    print(time.asctime(), "_locate_item", item, file=web.debug)
     text = urllib.urlopen("https://archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
@@ -174,7 +177,7 @@ def locate_item(item):
         x = mc.get(item)
         if not x:
             x = _locate_item(item)
-            print >> web.debug, time.asctime(), "mc.set", item, x
+            print(time.asctime(), "mc.set", item, x, file=web.debug)
             mc.set(item, x, time=600) # cache it for 10 minutes
         return x
 

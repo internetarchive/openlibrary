@@ -1,5 +1,7 @@
 #!/usr/local/bin/python2.5
-import sys, codecs
+from __future__ import print_function
+import sys
+import codecs
 from catalog.merge.names import match_name
 from catalog.utils import fmt_author, get_title, mk_norm
 from catalog.utils.query import query_iter, set_staging, withKey
@@ -54,10 +56,10 @@ for w in query_iter(q):
 
     if not found:
         continue
-    print w
-    print titles
-    print wakey + ':', fmt_author(work_author)
+    print(w)
+    print(titles)
+    print(wakey + ':', fmt_author(work_author))
     for e, a in found:
-        print '  ', a['key'] + ": ", fmt_author(a)
-        print '  ', e
-    print
+        print('  ', a['key'] + ": ", fmt_author(a))
+        print('  ', e)
+    print()

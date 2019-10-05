@@ -1,0 +1,101 @@
+/**
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#merge-form
+ */
+// Consider using .merge-form OR #mergeForm for a common parent selector
+// openlibrary/templates/merge/editions.html
+div.merge {
+    font-family: @lucida_sans_serif-2;
+    width: 100%;
+    float: left;
+    margin-bottom: 15px;
+    .entry {
+      width: 100%;
+      padding: 10px 0;
+      float: left;
+      clear: right;
+      border-bottom: 1px solid @lighter-grey;
+    }
+    .header {
+      width: 100%;
+      padding: 0 !important;
+      float: left;
+      clear: right;
+      border-bottom: 1px solid @lighter-grey;
+      div {
+        padding: 5px;
+      }
+    }
+    .master {
+      background-color: @light-yellow!important;
+    }
+    .data {
+      padding: 0 5px;
+    }
+    .input {
+      width: 37px;
+      float: left;
+      text-align: center;
+      padding: 3px 5px 0;
+    }
+    .record {
+      ul {
+        margin-top: 5px;
+        margin-bottom: 0 !important;
+      }
+      li {
+        color: @grey!important;
+        font-size: .75em;
+      }
+      label {
+        display: block;
+      }
+    }
+    .metaDate {
+      color: @brown;
+      font-size: .8125em;
+      padding-left: 10px;
+    }
+    .metaSubject {
+      color: @grey;
+      font-size: .8125em;
+      display: block;
+    }
+
+    .name {
+        font-weight: 700;
+        color: @black;
+
+        /* stylelint-disable selector-max-specificity */
+        a:link,
+        a:visited {
+          color: @black;
+          text-decoration: none;
+        }
+        a:hover,
+        a:active {
+          color: @link-blue;
+          text-decoration: underline;
+        }
+        /* stylelint-enable selector-max-specificity */
+    }
+    .count {
+      font-size: .8125em;
+      text-align: right;
+    }
+  }
+  
+@media all and ( min-width: @width-breakpoint-desktop ) {
+    div.merge {
+        .record {
+            float: left;
+            width: 710px;
+        }
+        label {
+            width: 710px;
+        }
+        .count {
+          width: 86px;
+          float: left;
+        }
+    }
+}

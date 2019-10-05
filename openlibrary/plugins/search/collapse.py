@@ -17,7 +17,7 @@ def collapse_groups(page_numbers):
     # for another example of this construction
 
     g_iter = groupby(enumerate(sorted(page_numbers)),
-                     lambda (i,n): i-n)
+                     lambda i_n: i_n[0]-i_n[1])
 
     # now flatten that iterator into a list of lists of leaf numbers
     groups = list(list(z for _, z in y) for _, y in g_iter)

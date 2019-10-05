@@ -1,10 +1,13 @@
+from __future__ import print_function
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc import parse
+from openlibrary.catalog.marc import fast_parse, parse
 from infogami import config
 from lxml import etree
 import xml.parsers.expat
-import urllib2, os.path, socket
+import urllib2
+import os.path
+import socket
 from time import sleep
 import traceback
 from openlibrary.core import ia
@@ -22,7 +25,7 @@ def urlopen_keep_trying(url):
         try:
             f = urllib2.urlopen(url)
             return f
-        except urllib2.HTTPError, error:
+        except urllib2.HTTPError as error:
             if error.code in (403, 404, 416):
                 raise
         except urllib2.URLError:
@@ -62,7 +65,7 @@ def get_marc_record_from_ia(identifier):
             root = etree.fromstring(data)
             return MarcXml(root)
         except Exception as e:
-            print "Unable to read MarcXML: %s" % e
+            print("Unable to read MarcXML: %s" % e)
             traceback.print_exc()
 
     # If that fails, try marc.bin
@@ -91,7 +94,7 @@ def files(identifier):
     try:
         tree = etree.parse(urlopen_keep_trying(url))
     except:
-        print "error reading", url
+        print("error reading", url)
         raise
     assert tree
     for i in tree.getroot():
@@ -209,7 +212,7 @@ def marc_formats(identifier, host=None, path=None):
     try:
         root = etree.fromstring(data)
     except:
-        print('bad:', repr(data))
+        print(('bad:', repr(data)))
         return has
     for e in root:
         name = e.attrib['name']
@@ -224,9 +227,9 @@ def get_from_local(locator):
     try:
         file, offset, length = locator.split(':')
     except:
-        print('locator:', repr(locator))
+        print(('locator:', repr(locator)))
         raise
-    f = open(rc['marc_path'] + '/' + file)
+    f = open(rc['marc_path'] + '/' + file)  # noqa: F821 DEPRECATED
     f.seek(int(offset))
     buf = f.read(int(length))
     f.close()
@@ -243,7 +246,7 @@ def get_data(loc):
         return None
     if not os.path.exists(marc_path + '/' + filename):
         return None
-    f = open(rc['marc_path'] + '/' + filename)
+    f = open(rc['marc_path'] + '/' + filename)  # noqa: F821 DEPRECATED
     f.seek(int(p))
     buf = f.read(int(l))
     f.close()

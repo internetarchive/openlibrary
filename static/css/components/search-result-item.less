@@ -1,0 +1,131 @@
+/**
+ * Search Result Item
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#searchresultitem
+ */
+@import 'buttonBtn.less';
+@import 'buttonCta.less';
+
+// Also used on openlibrary/templates/search/editions.html
+// Can be folded into searchResultItem  when that page is using this component
+.bookauthor {
+  font-family: @lucida_sans_serif-6;
+}
+
+.searchResultItem {
+  .display-flex();
+  list-style-type: none;
+  line-height: 1.5em;
+  background-color: @grey-fafafa;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 3px;
+  border-bottom: 1px solid @light-beige;
+  flex-wrap: wrap;
+  align-items: center;
+
+  a {
+    text-decoration: none;
+  }
+  > div {
+    margin-top: 10px;
+    padding: 0 5px 0 15px;
+  }
+  h3 {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    color: @dark-grey;
+    font-size: 1.0em;
+    font-weight: 700;
+    font-family: @lucida_sans_serif-6;
+  }
+  .details {
+    width: 100%;
+    padding: 5px;
+  }
+  span.resultTitle {
+    display: block;
+    margin: 0 !important;
+    font-family: @lucida_sans_serif-1;
+    color: @grey;
+  }
+  span.resultPublisher {
+    font-size: .75em;
+    color: @grey;
+    font-family: @lucida_sans_serif-6;
+    display: block;
+  }
+  span.resultType {
+    font-size: .6875em;
+  }
+  .bookcover {
+    width: 100%;
+    margin: 10px 10px 0 5px;
+    text-align: center;
+    overflow: hidden;
+    img {
+      max-width: 100%;
+      max-height: 300px;
+      width: 175px;
+    }
+  }
+  .imageLg {
+    text-align: center;
+    width: 100%;
+    margin: 10px 10px 0px 5px;
+    img {
+      max-width: 100%;
+      max-height: 110px;
+    }
+  }
+}
+
+// Delete trashcan appears on https://openlibrary.org/people/jdlrobson/lists
+.listDelete {
+  white-space: nowrap;
+  max-width: 150px;
+  line-height: 28px;
+  .display-flex();
+  margin-bottom: 5px;
+  a {
+    span {
+      margin-right: 5px;
+      background-image: url(/images/back_list-trash.png);
+      background-repeat: no-repeat;
+      background-position: 0 0;
+      height: 28px;
+      width: 21px;
+      display: inline-block;
+      position: relative;
+      top: 5px;
+    }
+  }
+  a:hover span {
+    background-position: 21px 0;
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .list-books {
+    .searchResultItem {
+       flex-wrap: nowrap;
+       .bookcover {
+        width: 175px;
+        text-align: right;
+      }
+      .imageLg {
+        width: 175px;
+        text-align: center;
+      }
+    }
+  }
+  .list-results {
+    .searchResultItem {
+      flex-wrap: nowrap;
+      .imageLg {
+        width: 175px;
+        text-align: right;
+      }
+    }
+  }
+}

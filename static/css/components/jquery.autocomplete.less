@@ -1,7 +1,9 @@
+@import (less) "../less/z-index.less";
+
 .ac_results {
   padding: 0;
   overflow: hidden;
-  z-index: 99999;
+  z-index: @z-index-level-16;
   position: absolute;
   display: none;
   top: -5px;
@@ -12,31 +14,12 @@
   opacity: .95;
   text-align: left;
 
-  ul {
-    width: 100%;
-    list-style-position: outside;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      font-family: "Lucida Grande",Verdana,Geneva,Helvetica,sans-serif;
-      cursor: pointer;
-      color: @light-grey;
-      line-height: normal;
-
-      &.ac_over {
-        background-color: @light-yellow;
-      }
-    }
-  }
-
   li {
     margin: 0;
     padding: 5px;
     cursor: default;
     display: block;
-    font: menu;
+    font: menu, sans-serif;
     font-size: 12px;
     /*
     it is very important, if line-height not set or set
@@ -44,73 +27,112 @@
     */
     line-height: 16px;
     overflow: hidden;
+    border-bottom: 1px solid @light-grey;
+    &:last-child {
+      border-bottom: 0;
+    }
   }
 
-  .ac_language {
+  ul {
+    width: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      font-family: @lucida_sans_serif-2;
+      cursor: pointer;
+      color: @dark-grey;
+      line-height: normal;
+
+      // stylelint-disable-next-line max-nesting-depth
+      &.ac_over {
+        background-color: @light-yellow;
+      }
+    }
+  }
+}
+
+.ac_results .ac_language {
+  font-size: 16px;
+  color: @black;
+}
+
+.ac_results .ac_author {
+  .action {
+    font-size: 9px;
+    color: @olive;
+  }
+
+  .books {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .subject {
+    font-size: 11px;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    font-size: 16px;
+    display: block;
+    color: @black;
+  }
+
+  .work {
+    font-size: 11px;
+
+    // stylelint-disable-next-line selector-max-specificity
+    i {
+      color: @brown;
+    }
+  }
+}
+
+.ac_results .ac_work {
+  .cover {
+    float: left;
+    margin-right: 5px;
+    width: 5em;
+    height: 5em;
+    overflow: hidden;
+    border-radius: 2px;
+    mask-image: linear-gradient(to top, rgba(0,0,0,0), black 15%);
+
+    // stylelint-disable-next-line selector-max-specificity
+    img {
+      width: 100%;
+    }
+  }
+
+  .edition_count {
+    font-size: 12px;
+    color: @dark-green;
+    font-weight: 700;
+    padding: 0;
+  }
+
+  .olid {
+    font-family: @monospace;
+  }
+
+  .name {
+    display: block;
+  }
+
+  .title {
     font-size: 16px;
     color: @black;
   }
 
-  .ac_author {
-    .action {
-      font-size: 9px;
-      color: @olive;
-    }
-
-    .books {
-      font-size: 12px;
-      color: @dark-green;
-      font-weight: 700;
-      padding: 0;
-    }
-
-    .subject {
-      font-size: 11px;
-    }
-
-    .olid {
-      font-family: monospace;
-    }
-
-    .name {
-      font-size: 16px;
-      display: block;
-      color: @black;
-    }
-
-    .work {
-      font-size: 11px;
-
-      i {
-        color: @brown;
-      }
-    }
-  }
-
-  .ac_work {
-    .edition_count {
-      font-size: 12px;
-      color: @dark-green;
-      font-weight: 700;
-      padding: 0;
-    }
-
-    .olid {
-      font-family: monospace;
-    }
-
-    .name {
-      display: block;
-    }
-
-    .title {
-      font-size: 16px;
-      color: @black;
-    }
-
-    .first_publish_year {
-      font-size: 12px;
-    }
+  .first_publish_year {
+    font-size: 12px;
   }
 }
 
@@ -130,10 +152,4 @@
 .ac_even,
 .ac_odd {
   background-color: inherit;
-}
-
-.ac_addnew {
-  border-top: 1px solid @mid-grey;
-  padding: 5px 0 0 !important;
-  margin-top: -5px;
 }

@@ -1,7 +1,10 @@
 #!/usr/bin/python
 
-import web, re, sys, codecs
-from pprint import pprint
+from __future__ import print_function
+import web
+import re
+import sys
+import codecs
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
@@ -109,7 +112,6 @@ def switch_author(old, new):
             'key': key,
             'authors': { 'connect': 'update_list', 'value': authors }
         }
-#        pprint(q)
         site.write(q, comment='fix author name')
 
 def make_redirect(old, new):
@@ -121,8 +123,7 @@ def make_redirect(old, new):
     for k in old.iterkeys():
         if k != 'key':
             q[str(k)] = { 'connect': 'update', 'value': None }
-#    pprint(q)
-    print site.write(q, comment='replace with redirect')
+    print(site.write(q, comment='replace with redirect'))
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
@@ -139,16 +140,15 @@ def update_author(key, new):
     q = { 'key': key, }
     for k, v in new.iteritems():
         q[k] = { 'connect': 'update', 'value': v }
-#    pprint(q)
-    print site.write(q, comment='fix author name')
+    print(site.write(q, comment='fix author name'))
 
 def merge_authors(author, merge_with, name):
-    print 'merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name'])
+    print('merge author %s:"%s" and %s:"%s"' % (author['key'], author['name'], merge_with['key'], merge_with['name']))
     new_name = pick_name(author['name'], merge_with['name'], name)
-    print 'becomes: "%s"' % new_name
+    print('becomes: "%s"' % new_name)
     if key_int(author) < key_int(merge_with):
         new_key = author['key']
-        print "copy fields from merge_with to", new_key
+        print("copy fields from merge_with to", new_key)
         new = copy_fields(merge_with, author, new_name)
         update_author(new_key, new)
         switch_author(merge_with, author)
@@ -156,15 +156,15 @@ def merge_authors(author, merge_with, name):
         make_redirect(merge_with, author)
     else:
         new_key = merge_with['key']
-        print "copy fields from author to", new_key
+        print("copy fields from author to", new_key)
         new = copy_fields(merge_with, author, new_name)
         update_author(new_key, new)
         switch_author(author, merge_with)
 #        print "delete author"
         make_redirect(author, merge_with)
-    print
+    print()
 
-print 'running query'
+print('running query')
 # limit for test runs
 for thing_row in web.select('thing', what='id, key', where='type='+repr(author_type_id), limit=10000):
     id = thing_row.id
@@ -183,7 +183,7 @@ for thing_row in web.select('thing', what='id, key', where='type='+repr(author_t
     other = get_other_authors(name)
     if len(other) == 0 and not re_odd_dot.search(author['name']):
         by_statements = find_by_statements(author['key'])
-        print author['name'], "by:", ', '.join('"%s"' % i for i in by_statements)
+        print(author['name'], "by:", ', '.join('"%s"' % i for i in by_statements))
         if east_in_by_statement(author['name'], name, by_statements):
             print("east in by statement")
             continue
@@ -205,18 +205,13 @@ for thing_row in web.select('thing', what='id, key', where='type='+repr(author_t
         continue
 
     merge_with = get_thing(other[0])
-    try:
-        if not author_dates_match(author, merge_with):
-            print "date mismatch"
-            continue
-    except KeyError:
-        pprint(author)
-        pprint(merge_with)
-        raise
+    if not author_dates_match(author, merge_with):
+        print("date mismatch")
+        continue
     by_statements = find_by_statements(author['key'])
-    print author['name'], "by:", ', '.join('"%s"' % i for i in by_statements)
+    print(author['name'], "by:", ', '.join('"%s"' % i for i in by_statements))
     if east_in_by_statement(author['name'], name, by_statements):
-        print "east in by statement"
-        print
+        print("east in by statement")
+        print()
         continue
     merge_authors(author, merge_with, name)

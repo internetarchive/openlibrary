@@ -50,7 +50,9 @@ class index(delegate.page):
         if web.ctx.encoding in ["json", "yml"]:
             return self.handle_encoding(query, web.ctx.encoding)
 
-        return render_template("recentchanges/index", query)
+        page = render_template("recentchanges/index", query)
+        page.v2 = True
+        return page
 
     def handle_encoding(self, query, encoding):
         i = web.input(bot="", limit=100, offset=0, text="false")

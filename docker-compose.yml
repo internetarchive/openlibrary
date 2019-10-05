@@ -1,0 +1,47 @@
+version: "3"
+services:
+  web:
+    image: oldev:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.oldev
+    ports:
+      - 8080:80
+      - 7000:7000
+      - 8081:8081
+      - 3000:3000
+    volumes:
+      # Persistent volume mount for installed git submodules
+      - ol-vendor:/openlibrary/vendor
+      # Persistent volume mount for generated css and js
+      - ol-build:/openlibrary/static/build
+      # Persistent volume mount for node_modules
+      - ol-nodemodules:/openlibrary/node_modules
+      # The above volume mounts are required so that the local dev bind mount below
+      # does not clobber the data generated inside the image / container
+      - .:/openlibrary
+    networks:
+      - webnet
+  solr:
+    image: olsolr:latest
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.olsolr
+    ports:
+      - 8983:8080
+    volumes:
+      - solr-data:/var/lib/solr/data
+    networks:
+      - webnet
+  memcached:
+    image: memcached
+    networks:
+      - webnet
+  #covers:
+networks:
+  webnet:
+volumes:
+  solr-data:
+  ol-vendor:
+  ol-build:
+  ol-nodemodules:

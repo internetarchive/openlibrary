@@ -6,7 +6,8 @@ from .. import app
 import web
 import urllib2
 import os.path
-import sys, re
+import sys
+import re
 
 class old_show_marc(app.view):
     path = "/show-marc/(.*)"
@@ -22,7 +23,7 @@ class show_ia(app.view):
         url = 'http://www.archive.org/download/%s/%s_meta.mrc' % (ia, ia)
         try:
             data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             if e.code == 404:
                 error_404 = True
             else:
@@ -32,7 +33,7 @@ class show_ia(app.view):
             url = 'http://www.archive.org/download/%s/%s_meta.xml' % (ia, ia)
             try:
                 data = urllib2.urlopen(url).read()
-            except urllib2.HTTPError, e:
+            except urllib2.HTTPError as e:
                 return "ERROR:" + str(e)
             raise web.seeother('http://www.archive.org/details/' + ia)
 
@@ -60,13 +61,17 @@ class show_ia(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showia", ia, record, books)
+        template = app.render_template("showia", ia, record, books)
+        template.v2 = True
+        return template
 
 class show_amazon(app.view):
     path = "/show-records/amazon:(.*)"
 
     def GET(self, asin):
-        return app.render_template("showamazon", asin)
+        template = app.render_template("showamazon", asin)
+        template.v2 = True
+        return template
 
 re_bad_meta_mrc = re.compile('^([^/]+)_meta\.mrc$')
 re_lc_sanfranpl = re.compile('^sanfranpl(\d+)/sanfranpl(\d+)\.out')
@@ -108,7 +113,7 @@ class show_marc(app.view):
 
         try:
             result = urllib2.urlopen(ureq).read(100000)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             return "ERROR:" + str(e)
 
         len_in_rec = int(result[:5])
@@ -122,4 +127,6 @@ class show_marc(app.view):
         except ValueError:
             record = None
 
-        return app.render_template("showmarc", record, filename, offset, length, books)
+        template = app.render_template("showmarc", record, filename, offset, length, books)
+        template.v2 = True
+        return template

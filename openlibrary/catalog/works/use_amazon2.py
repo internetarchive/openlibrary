@@ -1,4 +1,9 @@
-import os, re, sys, codecs, dbhash
+from __future__ import print_function
+import os
+import re
+import sys
+import codecs
+import dbhash
 from catalog.amazon.other_editions import find_others
 from catalog.infostore import get_site
 from catalog.read_rc import read_rc
@@ -19,4 +24,4 @@ for filename in os.listdir(dir):
     l = find_others(filename, dir)
     if len(l) < 8:
         continue
-    print filename, len(l)
+    print(filename, len(l))

@@ -11,13 +11,19 @@ Look through our issues related to [`contributing`](https://github.com/interneta
 - Ask here to join our Open Library slack: https://github.com/internetarchive/openlibrary/issues/686
 - Join us for our Open Library Community Call every Tuesday @ 11:30am PT
 
+## Common Setup Tasks
+
+### Logging in as Admin
+Our login process on Open Library's dev instance is a bit funky. You need to correctly enter the right credentials (email: `openlibrary@example.com` pw: `admin123`) the **first** time or you will be logged in with a non-admin account (and will not be able to login as admin until you clear your cookies). More info here:
+- https://github.com/internetarchive/openlibrary/issues/1197#issuecomment-479752932
+
+### Adding Data to Open Library
+- In case you are looking to add data using MARC and ONIX records, possibly in bulk please do it via at https://github.com/internetarchive/openlibrary-bots (the Open Library Bots).
+
 ## Submitting Issues
 
 ### Data Cleanup
 - If you notice a set of entries on Open Library which need to be updated (possibly in bulk) please report them as an issue to https://github.com/internetarchive/openlibrary-client (the Open Library Client).
-
-### Adding Data to Open Library
-- In case you are looking to add data using MARC and ONIX records, possibly in bulk please do it via at https://github.com/internetarchive/openlibrary-bots (the Open Library Bots).
 
 ### Tagging
 - If a task requires immediate fixing, please respond to its corresponding issue by asking if it can be promoted to [`blocker`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3Ablocker) using the blocker issue label.
@@ -29,10 +35,9 @@ We usually discuss weekly goals via our Tuesday Community Call and using slack.
 - Look for issues with labels such as [`good first issue`](https://github.com/internetarchive/openlibrary/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) and [`easy`](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aopen+is%3Aissue+label%3Aeasy)
 
 ### Our Roadmap(s)
-- Our on-going tasks are tracked here: https://github.com/internetarchive/openlibrary/projects/1
-- Our quarterly goals can be found on the projects board: https://github.com/internetarchive/openlibrary/projects
+- Our quarterly goals can be found on the corresponding projects board: https://github.com/internetarchive/openlibrary/projects
 
-## Development
+## Development Practices
 
 Whenever working on a new feature/hotfix/refactor, the first step is to make sure a corresponding issue exists. We then take this issue number and affix it to the branch name which we will use for development.
 
@@ -57,8 +62,33 @@ Note, many issues can be fixed automatically without any manual work from your p
 npm run lint:fix
 ```
 
-## Pull Requests
+## Submitting Pull Requests
 
-* Pull Requests (PRs) should link to the issue they resolve. Please take the time to check whether someone has already raised the issue you are solving. At the very least PRs should contain enough detail in the description to explain the purpose of the PR; what feature it adds, or problem it solves. Please expect PRs without sufficient details to be rejected until an clear description of the benefit is added. Thank you for your contributions!
+Once you've finished making your changes, submit a pull request (PR) to get your code into Open Library. Please take the time to check whether someone has already raised the issue you are solving. Thank you for your contributions!
 
-* When your code is ready for review, please follow our [Pull Request Template](https://github.com/internetarchive/openlibrary/blob/master/PULL_REQUEST_TEMPLATE.md) to close the corresponding Issue.
+Follow these rules when creating a PR:
+
+1. **Follow the pull request template**: It's easier for a maintainer to reject a PR than it is for them to fill it out for you.
+2. **Make PRs _self-contained_**: They should clearly describe what changes have taken place. A reviewer should (for the most part) be able to complete a review without having to look at other issues.
+3. **Resolve all code review (CR) comments**: Treat comments as a todo list. Most PRs will require some edits before getting merged, so don't get discouraged if you have to make some changes!
+4. **Reply when resolving CR comments**: When resolving a comment, reply with either "DONE" or "WON'T FIX because ...". A reviewer will unresolve a comment if they feel it's necessary.
+
+## Merging Pull Requests
+
+For members who have been given permission to merge, we use assignee to denote PR ownership. If you are the assignee, then you should have the PR on your todo list until you merge it.
+- **Assigned yourself** to the PR if you have the time to take on the responsibilities of ownership (described below).
+- **Don't assign others** unless there's a technical requirement (e.g. This PR requires changes to our deploy process, and only Mek can make those changes).
+
+The assignee of a PR is responsible for:
+- **being the primary contact** for the PR author. Be polite; you're the face of the community to this contributor.
+- **managing the PR's labels**. Add `Needs: Author Input`, or `Needs: Review`, etc. as neccessary.
+- **ensuring the PR doesn't get stuck**. Avoid leaving the author wondering about the state of the PR. If you don't have time right now, saying "I'm a little swamped now but will try to get to this in _" is better than radio silence for a week.
+- **getting the PR code reviewed** either by yourself (often so) or by someone else.
+- **testing the PR** before merging. Comment about how you tested in the PR. Note if _any_ changes are made to the PR code, you will have to test it again before merging.
+- **merging** the PR.
+
+We strive for every PR to have an assignee so that nothing gets stuck.
+
+## QA Testing
+
+Once a Pull Request has been subitted, ask an approved member of staff to spin up an isolated kubernetes Open Library pod for the branch that you're working on. They will give you a link which will let you test your branch's current code against a near-production environment. Read more about our [Plans for Kubernetes](https://github.com/internetarchive/openlibrary/wiki/Kubernetes)

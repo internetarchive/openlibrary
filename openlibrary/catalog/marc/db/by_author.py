@@ -1,5 +1,6 @@
 #!/usr/bin/python2.5
-import web, re
+import web
+import re
 from catalog.utils.query import query_iter, withKey
 from web_marc_db import search_query, marc_data, esc
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields

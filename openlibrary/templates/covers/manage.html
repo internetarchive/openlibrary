@@ -4,7 +4,7 @@ $putctx("bodyid", "form")
 $putctx('robots', 'noindex,nofollow')
 
 <script type="text/javascript">
-\$(function() {
+window.q.push(function () {
     \$(".column").sortable({
         connectWith: '.trash'
     });
@@ -13,10 +13,6 @@ $putctx('robots', 'noindex,nofollow')
     });
     \$(".column").disableSelection();
     \$(".trash").disableSelection();
-});
-</script>
-<script type="text/javascript">
-\$().ready(function(){
     \$("#topNotice").hide();
 });
 </script>

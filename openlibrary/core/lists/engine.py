@@ -7,6 +7,9 @@ import re
 import simplejson
 import web
 
+import six
+
+
 def reduce_seeds(values):
     """Function to reduce the seed values got from works db.
     """
@@ -36,7 +39,7 @@ def get_seeds(work):
         return [a['author'] for a in work.get('authors', []) if 'author' in a]
 
     def _get_subject(subject, prefix):
-        if isinstance(subject, basestring):
+        if isinstance(subject, six.string_types):
             key = prefix + RE_SUBJECT.sub("_", subject.lower()).strip("_")
             return {"key": key, "name": subject}
 
@@ -86,7 +89,7 @@ class SubjectProcessor:
             self.subjects[s['key']].append(s['name'])
 
     def _get_subject(self, prefix, subject_name):
-        if isinstance(subject_name, basestring):
+        if isinstance(subject_name, six.string_types):
             key = prefix + RE_SUBJECT.sub("_", subject_name.lower()).strip("_")
             return {"key": key, "name": subject_name}
 

@@ -1,4 +1,7 @@
-import re, web, sys
+from __future__ import print_function
+import re
+import web
+import sys
 import simplejson as json
 from urllib2 import urlopen, URLError
 from openlibrary.catalog.read_rc import read_rc
@@ -6,7 +9,8 @@ from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
 from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.api import OpenLibrary, unmarshal, marshal
-from pprint import pprint
+
+import six
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")
@@ -22,12 +26,11 @@ def fix_toc(e):
     toc = e.get('table_of_contents', None)
     if not toc:
         return
-    print e['key']
-    pprint(toc)
+    print(e['key'])
     # http://openlibrary.org/books/OL789133M - /type/toc_item missing from table_of_contents
     if isinstance(toc[0], dict) and ('pagenum' in toc[0] or toc[0]['type'] == '/type/toc_item'):
         return
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i != u'']
 
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
@@ -47,7 +50,7 @@ def undelete_authors(authors):
         if a['type'] == '/type/delete':
             undelete_author(a)
         else:
-            print a
+            print(a)
             assert a['type'] == '/type/author'
 
 re_edition_key = re.compile('^/b(?:ooks)?/(OL\d+M)')
@@ -69,7 +72,7 @@ def add_source_records(key, ia, v=None):
         e['source_records'].append(new)
     else:
         existing = get_mc(old_style_key)
-        print 'get_mc(%s) == %s' % (old_style_key, existing)
+        print('get_mc(%s) == %s' % (old_style_key, existing))
         if existing is None:
             sr = []
         elif existing.startswith('ia:') or existing.startswith('amazon:'):
@@ -77,11 +80,11 @@ def add_source_records(key, ia, v=None):
         else:
             m = re_meta_mrc.match(existing)
             sr = ['marc:' + existing if not m else 'ia:' + m.group(1)]
-        print 'ocaid:', e['ocaid']
+        print('ocaid:', e['ocaid'])
         if 'ocaid' in e and 'ia:' + e['ocaid'] not in sr:
             sr.append('ia:' + e['ocaid'])
-        print 'sr:', sr
-        print 'ocaid:', e['ocaid']
+        print('sr:', sr)
+        print('ocaid:', e['ocaid'])
         if new not in sr:
             e['source_records'] = sr + [new]
         else:
@@ -97,18 +100,18 @@ def add_source_records(key, ia, v=None):
         e['subjects'] = subjects
     if 'authors' in e:
         assert not any(a=='None' for a in e['authors'])
-        print e['authors']
+        print(e['authors'])
         authors = [ol.get(akey) for akey in e['authors']]
         authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
                 for a in authors]
         for a in authors:
             if a['type'] == '/type/redirect':
-                print 'double redirect on:', e['key']
+                print('double redirect on:', e['key'])
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
-    print 'saving', key
+    print('saving', key)
     assert 'source_records' in e
-    print ol.save(key, e, 'found a matching MARC record')
+    print(ol.save(key, e, 'found a matching MARC record'))
     add_cover_image(key, ia)
 
 def ocaid_and_source_records(key, ocaid, source_records):
@@ -126,16 +129,16 @@ def ocaid_and_source_records(key, ocaid, source_records):
         e['subjects'] = subjects
     if 'authors' in e:
         assert not any(a=='None' for a in e['authors'])
-        print e['authors']
+        print(e['authors'])
         authors = [ol.get(akey) for akey in e['authors']]
         authors = [ol.get(a['location']) if a['type'] == '/type/redirect' else a \
                 for a in authors]
         e['authors'] = [{'key': a['key']} for a in authors]
         undelete_authors(authors)
     try:
-        print ol.save(key, e, 'merge scanned books')
+        print(ol.save(key, e, 'merge scanned books'))
     except:
-        print e
+        print(e)
         raise
     if new_toc:
         new_edition = ol.get(key)

@@ -20,10 +20,13 @@ import os
 import re
 import datetime
 from ConfigParser import ConfigParser
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 import web
 import logging
+
+import six
 
 logger = logging.getLogger("openlibrary.api")
 
@@ -51,7 +54,7 @@ class OpenLibrary:
             req = urllib2.Request(url, data, headers)
             req.get_method = lambda: method
             return urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -95,7 +98,7 @@ class OpenLibrary:
         try:
             data = simplejson.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
@@ -212,9 +215,9 @@ def marshal(data):
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
-        return {"type": "/type/text", "value": unicode(data)}
+        return {"type": "/type/text", "value": six.text_type(data)}
     elif isinstance(data, Reference):
-        return {"key": unicode(data)}
+        return {"key": six.text_type(data)}
     else:
         return data
 
@@ -258,11 +261,11 @@ def parse_datetime(value):
         return datetime.datetime(*map(int, tokens))
 
 
-class Text(unicode):
+class Text(six.text_type):
     def __repr__(self):
-        return "<text: %s>" % unicode.__repr__(self)
+        return u"<text: %s>" % six.text_type.__repr__(self)
 
 
-class Reference(unicode):
+class Reference(six.text_type):
     def __repr__(self):
-        return "<ref: %s>" % unicode.__repr__(self)
+        return u"<ref: %s>" % six.text_type.__repr__(self)

@@ -1,3 +1,4 @@
+from __future__ import print_function
 from fast_parse import *
 from warnings import warn
 from openlibrary.catalog.utils import pick_first_date
@@ -135,7 +136,7 @@ def read_authors(fields):
         return {}
     if len(author) != 1:
         for tag in ('100', '110', '111'):
-            print tag, fields[tag]
+            print(tag, fields[tag])
     assert len(author) == 1
     if '100' in fields:
         line = fields['100'][0]
@@ -431,7 +432,7 @@ def read_description(fields):
         if len(this) != 1:
 #            print repr(fields['520'])
 #            print repr(line)
-            print len(this)
+            print(len(this))
         assert len(this) == 1
         found += this
         if line[-3:-1] == '++':

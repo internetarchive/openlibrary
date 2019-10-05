@@ -1,3 +1,4 @@
+from __future__ import print_function
 # fast parse for merge
 
 import re
@@ -20,8 +21,8 @@ def translate(bytes_in, leader_says_marc8=False):
             data = bytes_in.decode('utf-8')
         return normalize('NFC', data)
     except:
-        print('translate error for:', repr(bytes_in))
-        print('marc8:', leader_says_marc8)
+        print(('translate error for:', repr(bytes_in)))
+        print(('marc8:', leader_says_marc8))
         raise
 
 re_question = re.compile('^\?+$')
@@ -55,7 +56,7 @@ def read_file(f):
     :return: Data, length
     """
     buf = None
-    while 1:
+    while True:
         if buf:
             length = buf[:5]
             try:
@@ -69,7 +70,7 @@ def read_file(f):
         if length == "":
             break
         if not length.isdigit():
-            print('not a digit:', repr(length))
+            print(('not a digit:', repr(length)))
             raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
@@ -176,12 +177,12 @@ def read_directory(data):
         raise BadDictionary
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
-        print 'directory is the wrong size'
+        print('directory is the wrong size')
         # directory is the wrong size
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
-            print len(directory) / 12
+            print(len(directory) / 12)
             raise BadDictionary
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
@@ -217,7 +218,7 @@ def get_person_content(line, is_marc8=False):
         contents.setdefault(k, []).append(v)
     return contents
 
-def get_contents(line, want):
+def get_contents(line, want, is_marc8=False):
     contents = {}
     for k, v in get_subfields(line, want, is_marc8):
         contents.setdefault(k, []).append(v)
@@ -461,7 +462,7 @@ def read_edition(data, accept_electronic=False):
     if 'control_number' in edition:
         del edition['control_number']
     if not accept_electronic and tag_006_says_electric and not is_real_book:
-        print 'electronic resources'
+        print('electronic resources')
         return None
 
     return edition
@@ -488,7 +489,7 @@ def split_line(s):
     # TODO: document this function
     pos = -1
     marks = []
-    while 1:
+    while True:
         pos = s.find('\x1f', pos + 1)
         if pos == -1:
             break

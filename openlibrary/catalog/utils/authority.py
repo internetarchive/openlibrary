@@ -1,5 +1,7 @@
+from __future__ import print_function
 from mechanize import Browser
-import re, os.path
+import re
+import os.path
 from openlibrary.catalog.read_rc import read_rc
 
 rc = read_rc()
@@ -43,7 +45,7 @@ def read_serp(fh):
             continue
         m = re_row.match(row)
         if not m:
-            print row
+            print(row)
         (param, a, row_num, bib_records, heading, type_of_heading) = m.groups()
         assert str(cur_row) == row_num
         yield {
@@ -70,7 +72,7 @@ def search(arg):
     br.close()
     out = open(filename, 'w')
     for i in found:
-        print >> out, i
+        print(i, file=out)
     out.close()
     return found
 

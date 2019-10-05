@@ -1,10 +1,12 @@
 """Handlers for borrowing books"""
 
 import copy
-import datetime, time
+import datetime
+import time
 import hmac
 import re
 import simplejson
+import urllib
 import urllib2
 import logging
 
@@ -21,9 +23,10 @@ from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import waitinglist
+from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
-from openlibrary.core import ab
+from openlibrary.utils import dateutil
 
 from lxml import etree
 
@@ -60,7 +63,8 @@ bookreader_loan_seconds = 60*60*24*14
 # How long the auth token given to the BookReader should last.  After the auth token
 # expires the BookReader will not be able to access the book.  The BookReader polls
 # OL periodically to get fresh tokens.
-bookreader_auth_seconds = 10*60
+BOOKREADER_AUTH_SECONDS = dateutil.MINUTE_SECS * 10
+READER_AUTH_SECONDS = dateutil.MINUTE_SECS * 2
 
 # Base URL for BookReader
 try:
@@ -181,7 +185,9 @@ class borrow(delegate.page):
                             stats.increment('ol.loans.bookreader')
 
                         raise web.seeother(make_bookreader_auth_link(
-                            loan.get_key(), edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                            loan.get_key(), edition.ocaid,
+                            '/stream/' + edition.ocaid, ol_host,
+                            ia_userid=ia_itemname))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
                         raise web.seeother(loan_link)
@@ -226,7 +232,10 @@ class borrow(delegate.page):
             loans = get_loans(user)
             for loan in loans:
                 if loan['book'] == edition.key:
-                    raise web.seeother(make_bookreader_auth_link(loan['_key'], edition.ocaid, '/stream/' + edition.ocaid, ol_host))
+                    raise web.seeother(make_bookreader_auth_link(
+                        loan['_key'], edition.ocaid, '/stream/' + edition.ocaid,
+                        ol_host, ia_userid=ia_itemname
+                    ))
         elif action == 'join-waitinglist':
             return self.POST_join_waitinglist(edition, user)
         elif action == 'leave-waitinglist':
@@ -468,7 +477,7 @@ class borrow_receive_notification(delegate.page):
             notify_obj = acs4.el_to_o(notify_xml)
 
             output = simplejson.dumps({'success':True})
-        except Exception, e:
+        except Exception as e:
             output = simplejson.dumps({'success':False, 'error': str(e)})
         return delegate.RawText(output, content_type='application/json')
 
@@ -546,7 +555,7 @@ def get_bookreader_host():
 def get_all_store_values(**query):
     """Get all values by paging through all results. Note: adds store_key with the row id."""
     query = copy.deepcopy(query)
-    if not query.has_key('limit'):
+    if 'limit' not in query:
         query['limit'] = 500
     query['offset'] = 0
     values = []
@@ -899,7 +908,10 @@ def get_ia_auth_dict(user, item_id, user_specified_loan_key, access_token):
         if not user_has_current_loan:
             raise Exception('lending: no current loan for this user found but no error condition specified')
 
-    return { 'success': True, 'token': make_ia_token(item_id, bookreader_auth_seconds) }
+    return {
+        'success': True,
+        'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS)
+    }
 
 
 def make_ia_token(item_id, expiry_seconds):
@@ -952,19 +964,23 @@ def ia_token_is_current(item_id, access_token):
 
     return False
 
-def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host):
+def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=None):
     """
-    Generate a link to BookReaderAuth.php that starts the BookReader with the information to initiate reading
-    a borrowed book
+    Generate a link to BookReaderAuth.php that starts the BookReader
+    with the information to initiate reading a borrowed book
     """
-
-    olAuthUrl = "https://{0}/ia_auth/XXX".format(ol_host)
-    access_token = make_ia_token(item_id, bookreader_auth_seconds)
-    auth_url = 'https://%s/bookreader/BookReaderAuth.php?uuid=%s&token=%s&id=%s&bookPath=%s&olHost=%s&olAuthUrl=%s' % (
-        bookreader_host, loan_key, access_token, item_id, book_path, ol_host, olAuthUrl
-    )
-
-    return auth_url
+    auth_link = 'https://%s/bookreader/BookReaderAuth.php?' % bookreader_host
+    params = {
+        'uuid': loan_key,
+        'token': make_ia_token(item_id, BOOKREADER_AUTH_SECONDS),
+        'id': item_id,
+        'bookPath': book_path,
+        'olHost': ol_host,
+        'olAuthUrl': "https://{0}/ia_auth/XXX".format(ol_host),
+        'iaUserId': ia_userid,
+        'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS)
+    }
+    return auth_link + urllib.urlencode(params)
 
 def on_loan_update(loan):
     # update the waiting list and ebook document.

@@ -1,11 +1,23 @@
+/**
+ * PageBanner
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#pagebanner
+ */
+@import "components/buttonBtn.less";
+@import "less/breakpoints.less";
+
 .page-banner {
+  display:none;
   color: @white;
-  font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+  font-family: @lucida_sans_serif-1;
   background: @link-blue;
   padding: 15px;
   border-top-right-radius: 3px;
   border-top-left-radius: 3px;
   border-bottom: 1px solid @beige;
+
+  @media screen and (min-width: @width-breakpoint-tablet) {
+    display:block;
+  }
 
   &-black {
     background-color: @dark-grey;
@@ -28,6 +40,8 @@
     border: 1px solid @mid-blue;
     color: @light-olive; // this is the only place this color is used. refactor?
   }
+  /* stylelint-disable selector-max-specificity */
+  /* FIXME: Is this actually used anywhere? I think this block can be removed. */
   a.button {
     text-decoration: none;
     background: @mid-blue;
@@ -36,6 +50,12 @@
       background: @button-hover-blue;
       color: @white;
     }
+  }
+  /* stylelint-enable selector-max-specificity */
+  .btn {
+    display: block;
+    max-width: 200px;
+    margin: auto;
   }
   &-body {
     font-size: .85em;

@@ -2,16 +2,21 @@
  * Open Library Form
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#olform
  */
+@import (less) "less/font-families.less";
 
-form.olform {
-  font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, sans-serif;
+.olform {
+  font-family: @lucida_sans_serif-4;
 
+  .formBack {
+    padding: 10px;
+    background-color: @lightest-grey;
+  }
   .label {
     padding: 10px 0 2px;
 
     label {
       font-size: 1.0em;
-      font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+      font-family: @lucida_sans_serif-5;
       font-weight: 700;
     }
 
@@ -19,34 +24,61 @@ form.olform {
       font-weight: normal;
     }
   }
+  textarea {
+    width: 100%;
+  }
 
+  input[type=number],
+  input[type=text] {
+    margin: 0 10px 5px 0;
+  }
+
+  input[type=number],
   input[type=text],
   input[type=email],
   input[type=password],
   textarea {
     font-size: 1.0em;
-    font-family: "Lucida Grande", "Trebuchet MS", Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-5;
     padding: 3px;
     max-width: 100%;
   }
 
+  input[type=number] {
+    width: 4em;
+  }
+
+  input[type=email],
+  input[type=password],
+  .required {
+    padding: 8px;
+  }
+
   select {
+    width: 100%;
     font-size: 1.125em;
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
     padding: 3px;
   }
 
-  textarea {
-    font-size: .75em;
-  }
-
-  &.books {
-    fieldset.major input[type=text],
-    fieldset.major input[type=email],
-    fieldset.major input[type=password],
-    fieldset.major textarea {
-      font-size: .875em;
+  .minor {
+    input {
+      max-width: 300px;
     }
+  }
+  &.books {
+    /* stylelint-disable selector-max-specificity */
+    .major {
+      // stylelint-disable-next-line max-nesting-depth
+      input[type=text],
+      input[type=email],
+      input[type=password],
+      textarea {
+        font-size: .875em;
+        width: 100%;
+      }
+    }
+    /* stylelint-enable selector-max-specificity */
 
     .input,
     .label {
@@ -54,14 +86,99 @@ form.olform {
     }
 
     .TitleAuthor {
+      margin-bottom: 20px;
+
+      /* stylelint-disable selector-max-specificity */
+      // stylelint-disable-next-line max-nesting-depth
       input#work-title {
         font-size: 1.875em !important;
         margin: 0;
+        width: 100%;
       }
 
+      // stylelint-disable-next-line max-nesting-depth
       input#author {
         font-size: 1em !important;
+        width: 100%;
+      }
+      /* stylelint-enable selector-max-specificity */
+    }
+  }
+  // Form elements can be accompanied by tips
+  // e.g. on the book edit page. /books/OL9737752M/The_Odyssey/edit
+  // "You can search by author name (like j k rowling) or by Open Library ID (like OL23919A)."
+  .tip {
+    font-size: 11px;
+    color: @grey;
+    font-family: @lucida_sans_serif-1!important;
+  }
+}
+
+.olform__input--large {
+  height: 265px;
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .olform {
+    // formBackLeft and formBackRight are presently only used in
+    // openlibrary/templates/books/edit/edition.html (edit form)
+    .formBackLeft {
+      float: left;
+      width: 670px;
+    }
+    .formBackRight {
+      float: left;
+      width: 220px;
+    }
+    .formBack:after {
+      display: block;
+      content: '';
+      clear: both;
+    }
+  }
+}
+
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  /* stylelint-disable selector-max-specificity */
+  .olform {
+    input[type=text],
+    input[type=email],
+    input[type=password],
+    textarea {
+      width: 475px;
+    }
+
+    .input {
+      width: 90%;
+    }
+
+    .label {
+      width: 90%;
+    }
+
+    .input {
+      select {
+        width: 130px;
+      }
+    }
+    table {
+      input {
+        width: 300px;
+      }
+    }
+    &.books {
+      .TitleAuthor {
+        // stylelint-disable-next-line max-nesting-depth
+        input#work-title {
+          width: 900px !important;
+        }
+
+        // stylelint-disable-next-line max-nesting-depth
+        input#author {
+          width: 550px !important;
+        }
       }
     }
   }
+  /* stylelint-enable selector-max-specificity */
 }

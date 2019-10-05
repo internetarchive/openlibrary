@@ -2,19 +2,20 @@
 Contains stuff needed to list services and modules run by OpenLibrary
 for the admin panel
 """
+from __future__ import print_function
 
 import re
 import urllib
 from collections import defaultdict
 
-import BeautifulSoup
+from bs4 import BeautifulSoup
 
 class Nagios(object):
     def __init__(self, url):
         try:
-            self.data = BeautifulSoup.BeautifulSoup(urllib.urlopen(url).read())
-        except Exception, m:
-            print m
+            self.data = BeautifulSoup(urllib.urlopen(url).read(), "lxml")
+        except Exception as m:
+            print(m)
             self.data = None
 
     def get_service_status(self, service):
@@ -61,4 +62,3 @@ def load_all(config, nagios_url):
             for service in services:
                 d[node].append(Service(node = node, name = service, nagios = nagios))
     return d
-

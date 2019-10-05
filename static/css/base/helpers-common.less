@@ -1,0 +1,31 @@
+// A standard list of helpers
+.hidden {
+  display: none !important;
+}
+.inline {
+  display: inline;
+
+  // All inline elements following an inline element
+  // e.g. heading should be a little smaller
+  // See /subjects "Try a keyword"
+  + span {
+    font-size: 11px;
+  }
+}
+.hidden--nojs {
+  display: none;
+  .client-js & {
+    display: block;
+  }
+}
+.clearfix {
+  width: 100%;
+  clear: both;
+  padding: 5px;
+}
+// To be used for shifting content so its accessible to screen readers
+// but not visible to anyone else.
+.shift {
+  position: absolute !important;
+  left: -10000px !important;
+}

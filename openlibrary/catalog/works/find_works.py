@@ -2,15 +2,19 @@
 
 # find works and create pages on production
 
-import re, sys, web, urllib2
+from __future__ import print_function
+import re
+import sys
+import web
+import urllib2
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.utils.query import query_iter, withKey
-from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+from pprint import pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
 from urllib import urlopen
@@ -19,6 +23,9 @@ from lxml import etree
 from time import sleep, time, strftime
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 import simplejson as json
+
+import six
+
 
 ol = OpenLibrary("http://openlibrary.org")
 
@@ -42,7 +49,7 @@ def get_with_retry(k):
             return ol.get(k)
         except:
             pass
-        print 'retry'
+        print('retry')
         sleep(5)
     return ol.get()
 
@@ -127,20 +134,20 @@ def get_work_title(e, mc):
         try:
             data = get_data(src)
         except ValueError:
-            print 'bad record source:', src
-            print 'http://openlibrary.org' + e['key']
+            print('bad record source:', src)
+            print('http://openlibrary.org' + e['key'])
             continue
-        except urllib2.HTTPError, error:
-            print 'HTTP error:', error.code, error.msg
-            print e['key']
+        except urllib2.HTTPError as error:
+            print('HTTP error:', error.code, error.msg)
+            print(e['key'])
         if not data:
             continue
         is_marc8 = data[9] != 'a'
         try:
             line = get_first_tag(data, set(['240']))
         except BadDictionary:
-            print 'bad dictionary:', src
-            print 'http://openlibrary.org' + e['key']
+            print('bad dictionary:', src)
+            print('http://openlibrary.org' + e['key'])
             continue
         if line:
             wt = ' '.join(get_subfield_values(line, ['a'], is_marc8)).strip('. ')
@@ -165,7 +172,7 @@ def get_books(akey, query, do_get_mc=True):
             if not e.get('title', None):
                 continue
         except:
-            print e
+            print(e)
 #        if len(e.get('authors', [])) != 1:
 #            continue
         if 'title_prefix' in e and e['title_prefix']:
@@ -197,7 +204,7 @@ def get_books(akey, query, do_get_mc=True):
             book['lang'] = [re_lang_key.match(l['key']).group(1) for l in lang]
 
         if e.get('table_of_contents', None):
-            if isinstance(e['table_of_contents'][0], basestring):
+            if isinstance(e['table_of_contents'][0], six.string_types):
                 book['table_of_contents'] = e['table_of_contents']
             else:
                 assert isinstance(e['table_of_contents'][0], dict)
@@ -249,7 +256,7 @@ def get_first_version(key):
     try:
         return json.load(urlopen(url))
     except:
-        print url
+        print(url)
         raise
 
 def get_existing_works(akey):
@@ -267,14 +274,14 @@ def get_existing_works(akey):
         try:
             w = get_with_retry(wkey)
         except:
-            print wkey
+            print(wkey)
             raise
         if w['type'] in ('/type/redirect', '/type/delete'):
             continue
         if w['type'] != '/type/work':
-            print 'infobase error, should only return works'
-            print q
-            print w['key']
+            print('infobase error, should only return works')
+            print(q)
+            print(w['key'])
         assert w['type'] == '/type/work'
         yield w
 
@@ -284,13 +291,13 @@ def find_title_redirects(akey):
         try:
             norm_wt = mk_norm(w['title'])
         except:
-            print w['key']
+            print(w['key'])
             raise
         q = {'type':'/type/redirect', 'location': str(w['key']), 'limit': 0}
         try:
             query_iter = ol.query(q)
         except:
-            print q
+            print(q)
             raise
         for r in map(get_first_version, query_iter):
             redirect_history = json.load(urlopen('http://openlibrary.org%s.json?m=history' % r['key']))
@@ -407,7 +414,7 @@ def find_works(book_iter, existing={}, do_get_mc=True):
         try:
             subjects = four_types(get_work_subjects(w, do_get_mc=do_get_mc))
         except:
-            print w
+            print(w)
             raise
         if subjects:
             w['subjects'] = subjects
@@ -415,10 +422,10 @@ def find_works(book_iter, existing={}, do_get_mc=True):
 
 def print_works(works):
     for w in works:
-        print len(w['editions']), w['title']
-        print '   ', [e['key'] for e in w['editions']]
-        print '   ', w.get('subtitle', None)
-        print '   ', w.get('subjects', None)
+        print(len(w['editions']), w['title'])
+        print('   ', [e['key'] for e in w['editions']])
+        print('   ', w.get('subtitle', None))
+        print('   ', w.get('subjects', None))
 
 
 def books_from_cache():
@@ -438,13 +445,13 @@ def add_subjects_to_work(subjects, w):
         existing_subjects = set(w.get(k, []))
         w.setdefault(k, []).extend(s for s in subjects if s not in existing_subjects)
         if w.get(k):
-            w[k] = [unicode(i) for i in w[k]]
+            w[k] = [six.text_type(i) for i in w[k]]
         try:
             assert all(i != '' and not i.endswith(' ') for i in w[k])
         except AssertionError:
-            print 'subjects end with space'
-            print w
-            print subjects
+            print('subjects end with space')
+            print(w)
+            print(subjects)
             raise
 
 def add_detail_to_work(i, j):
@@ -454,16 +461,16 @@ def add_detail_to_work(i, j):
         add_subjects_to_work(i['subjects'], j)
 
 def fix_up_authors(w, akey, editions):
-    print 'looking for author:', akey
+    print('looking for author:', akey)
     #print (w, akey, editions)
     seen_akey = False
     need_save = False
     for a in w.get('authors', []):
-        print 'work:', w['key']
+        print('work:', w['key'])
         obj = withKey(a['author']['key'])
         if obj['type']['key'] == '/type/redirect':
             a['author']['key'] = obj['location']
-            print obj['key'], 'redirects to', obj['location']
+            print(obj['key'], 'redirects to', obj['location'])
             #a['author']['key'] = '/authors/' + re_author_key.match(a['author']['key']).group(1)
             assert a['author']['key'].startswith('/authors/')
             obj = withKey(a['author']['key'])
@@ -473,23 +480,23 @@ def fix_up_authors(w, akey, editions):
             seen_akey = True
     if seen_akey:
         if need_save:
-            print 'need save:', a
+            print('need save:', a)
         return need_save
     try:
         ekey = editions[0]['key']
     except:
-        print 'editions:', editions
+        print('editions:', editions)
         raise
     #print 'author %s missing. copying from first edition %s' % (akey, ekey)
     #print 'before:'
     for a in w.get('authors', []):
-        print a
+        print(a)
     e = withKey(ekey)
     #print e
     if not e.get('authors', None):
-        print 'no authors in edition'
+        print('no authors in edition')
         return
-    print 'authors from first edition', e['authors']
+    print('authors from first edition', e['authors'])
     w['authors'] = [{'type':'/type/author_role', 'author':a} for a in e['authors']]
     #print 'after:'
     #for a in w['authors']:
@@ -503,7 +510,7 @@ def new_work(akey, w, do_updates, fh_log):
         'authors': [{'type':'/type/author_role', 'author': akey}],
     }
     add_detail_to_work(w, ol_work)
-    print >> fh_log, ol_work
+    print(ol_work, file=fh_log)
     if do_updates:
         for attempt in range(5):
             try:
@@ -512,27 +519,23 @@ def new_work(akey, w, do_updates, fh_log):
             except:
                 if attempt == 4:
                     raise
-                print 'retrying: %d attempt' % attempt
-        print >> fh_log, 'new work:', wkey, repr(w['title'])
+                print('retrying: %d attempt' % attempt)
+        print('new work:', wkey, repr(w['title']), file=fh_log)
     else:
-        print >> fh_log, 'new work:', repr(w['title'])
+        print('new work:', repr(w['title']), file=fh_log)
     update = []
     for e in w['editions']:
         try:
             e = ol.get(e['key'])
         except:
-            print 'edition:', e['key']
+            print('edition:', e['key'])
             raise
         if do_updates:
             e['works'] = [{'key': wkey}]
         assert e['type'] == '/type/edition'
         update.append(e)
     if do_updates:
-        try:
-            print >> fh_log, ol.save_many(update, "add editions to new work")
-        except:
-            pprint(update)
-            # raise # ignore errors
+        print(ol.save_many(update, "add editions to new work"), file=fh_log)
         return [wkey]
     return []
 
@@ -547,7 +550,7 @@ def fix_toc(e):
         print('toc')
         print(toc)
         print(repr(toc))
-    return [{'title': unicode(i), 'type': '/type/toc_item'} for i in toc if i != u'']
+    return [{'title': six.text_type(i), 'type': '/type/toc_item'} for i in toc if i]
 
 def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     work_updated = []
@@ -592,11 +595,9 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             or ('subtitle' in w and 'subtitle' not in cur_work) \
             or ('subjects' in w and 'subjects' not in cur_work):
         if cur_work['title'] != w['title']:
-            print( 'update work title:', best, repr(cur_work['title']), '->', repr(w['title']))
+            print(( 'update work title:', best, repr(cur_work['title']), '->', repr(w['title'])))
         existing_work = get_with_retry(best)
-        if existing_work['type'] != '/type/work':
-            pprint(existing_work)
-        assert existing_work['type'] == '/type/work'
+        assert existing_work['type'] == '/type/work', "{type} == '/type/work'".format(**existing_work)
         existing_work['title'] = w['title']
         for k, v in subjects_from_existing_works.items():
             existing_subjects = set(existing_work.get(k, []))
@@ -611,16 +612,16 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
             assert new_akey.startswith('/authors/')
             obj = withKey(new_akey)
             assert obj['type']['key'] == '/type/author'
-        print >> fh_log, 'existing:', existing_work
-        print >> fh_log, 'subtitle:', repr(existing_work['subtitle']) if 'subtitle' in existing_work else 'n/a'
+        print('existing:', existing_work, file=fh_log)
+        print('subtitle:', repr(existing_work['subtitle']) if 'subtitle' in existing_work else 'n/a', file=fh_log)
         update.append(existing_work)
         work_updated.append(best)
     if do_updates:
         try:
-            print >> fh_log, ol.save_many(update, 'merge works')
+            print(ol.save_many(update, 'merge works'), file=fh_log)
         except:
             for page in update:
-                print page
+                print(page)
             raise
     return work_updated
 
@@ -633,9 +634,8 @@ def update_works(akey, works, do_updates=False):
 
     fh_log = open('/1/var/log/openlibrary/work_finder/' + strftime('%F_%T'), 'w')
     works = list(works)
-    print >> fh_log, akey
-    print >> fh_log, 'works:'
-    pprint(works, fh_log)
+    print(akey, file=fh_log)
+    print('works:', file=fh_log)
 
     while True: # until redirects repaired
         q = {'type':'/type/edition', 'authors': akey, 'works': None}
@@ -655,7 +655,7 @@ def update_works(akey, works, do_updates=False):
             w = withKey(k)
             if w['type']['key'] == '/type/redirect':
                 wkey = w['location']
-                print >> fh_log, 'redirect found', w['key'], '->', wkey, editions
+                print('redirect found', w['key'], '->', wkey, editions, file=fh_log)
                 assert re_work_key.match(wkey)
                 for ekey in editions:
                     e = get_with_retry(ekey)
@@ -664,24 +664,24 @@ def update_works(akey, works, do_updates=False):
                 continue
             work_by_key[k] = w
         if not fix_redirects:
-            print >> fh_log, 'no redirects left'
+            print('no redirects left', file=fh_log)
             break
-        print >> fh_log, 'save redirects'
+        print('save redirects', file=fh_log)
         try:
             ol.save_many(fix_redirects, "merge works")
         except:
             for r in fix_redirects:
-                print r
+                print(r)
             raise
 
     all_existing = set()
     work_keys = []
-    print >> fh_log, 'edition_to_work:'
-    print >> fh_log, repr(dict(edition_to_work))
-    print >> fh_log
-    print >> fh_log, 'work_to_edition'
-    print >> fh_log, repr(dict(work_to_edition))
-    print >> fh_log
+    print('edition_to_work:', file=fh_log)
+    print(repr(dict(edition_to_work)), file=fh_log)
+    print(file=fh_log)
+    print('work_to_edition', file=fh_log)
+    print(repr(dict(work_to_edition)), file=fh_log)
+    print(file=fh_log)
 
 #    open('edition_to_work', 'w').write(repr(dict(edition_to_work)))
 #    open('work_to_edition', 'w').write(repr(dict(work_to_edition)))
@@ -696,7 +696,7 @@ def update_works(akey, works, do_updates=False):
                 try:
                     wtitle = work_by_key[wkey]['title']
                 except:
-                    print 'bad work:', wkey
+                    print('bad work:', wkey)
                     raise
                 if wtitle == w['title']:
                     work_title_match[wkey] = w['title']
@@ -746,9 +746,7 @@ def update_works(akey, works, do_updates=False):
     works_updated_this_session = set()
 
     for w in works: # 4th pass
-        if 'has_conflict' in w:
-            pprint(w)
-        assert 'has_conflict' not in w
+        assert 'has_conflict' not in w, 'w: {}'.format(w)
         if len(w['existing_works']) == 1:
             existing_wkey = w['existing_works'].keys()[0]
             if not other_matches(w, existing_wkey):
@@ -757,8 +755,8 @@ def update_works(akey, works, do_updates=False):
             updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
             for wkey in updated:
                 if wkey in works_updated_this_session:
-                    print >> fh_log, wkey, 'already updated!'
-                    print wkey, 'already updated!'
+                    print(wkey, 'already updated!', file=fh_log)
+                    print(wkey, 'already updated!')
                 works_updated_this_session.update(updated)
             continue
         if not w['existing_works']:
@@ -774,8 +772,8 @@ def update_works(akey, works, do_updates=False):
         updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
         for wkey in updated:
             if wkey in works_updated_this_session:
-                print >> fh_log, wkey, 'already updated!'
-                print wkey, 'already updated!'
+                print(wkey, 'already updated!', file=fh_log)
+                print(wkey, 'already updated!')
         works_updated_this_session.update(updated)
 
     #if not do_updates:

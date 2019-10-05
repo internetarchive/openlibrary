@@ -1,0 +1,32 @@
+{
+  "root": true,
+  "env": {
+    "browser": true,
+    "jquery": true
+  },
+  "parser": "babel-eslint",
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 6
+  },
+  "globals": {},
+  "rules": {
+    "prefer-template": "error",
+    "quotes": ["error", "single"],
+    "eol-last": ["error", "always"],
+    "indent": 2,
+    "no-console": "error",
+    "no-extra-semi": "error",
+    "no-mixed-spaces-and-tabs": "error",
+    "no-redeclare": "error",
+    "no-trailing-spaces": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "no-useless-escape": "error",
+    "space-in-parens": "error",
+    "vars-on-top": "error",
+    "template-curly-spacing": "error",
+    "quote-props": ["error", "as-needed"],
+    "key-spacing": ["error", { "mode": "strict" }]
+  }
+}

@@ -1,3 +1,5 @@
+/* stylelint-disable no-descending-specificity */
+
 /**
  * Dropper
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#dropper
@@ -6,9 +8,15 @@
  * - openlibrary/templates/lists/widget.html
  */
 
-div.dropit {
+@import (less) "less/z-index.less";
+
+.dropit {
+  position: relative;
+  min-height: 50px;
+  z-index: 10;
+
   // heart icon
-  div.icon {
+  .icon {
     position: absolute;
     top: 0;
     left: 0;
@@ -25,11 +33,13 @@ div.dropit {
   }
 }
 
-div.dropper {
+.dropper {
   &.on {
-    div.arrow {
+    /* stylelint-disable selector-max-specificity */
+    .arrow {
       width: 23px;
       margin: 6px 5px;
+      // stylelint-disable-next-line max-nesting-depth
       &.up {
         background-position: -22px 0;
       }
@@ -47,36 +57,38 @@ div.dropper {
       background-position: 0 0;
       background-size: 45px;
     }
+    /* stylelint-enable selector-max-specificity */
   }
-  div.dropdown {
+  .dropdown {
+    /* stylelint-disable selector-max-specificity */
     p.create a {
       color: @dark-grey;
       text-decoration: none;
     }
-    div.reading-lists p.reading-list-title {
+    .reading-lists .reading-list-title {
       background: @white;
       padding: 5px 0 0 10px;
       margin: 0;
       font-size: .8em;
     }
-    div.my-lists {
+    .my-lists {
       background: @white;
       max-height: 250px;
       overflow-y: scroll;
       padding: 10px 15px;
+
+      // stylelint-disable-next-line max-nesting-depth
       p a {
         display: block;
       }
+      /* stylelint-enable selector-max-specificity */
     }
   }
 }
 
+/* stylelint-disable selector-max-specificity */
 div#subjectLists {
   div.dropit {
-    float: left;
-    position: relative;
-    width: 282px;
-    min-height: 50px;
     h3 {
       font-weight: normal;
       margin: 0;
@@ -94,11 +106,11 @@ div#subjectLists {
     top: 0;
     left: 32px;
     width: 230px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
 
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @light-mid-grey;
+      border: 1px solid @mid-grey;
       border-radius: 4px;
     }
     h3 {
@@ -111,6 +123,7 @@ div#subjectLists {
     div.dropdown {
       display: none;
       padding-top: 10px;
+      /* stylelint-disable max-nesting-depth */
       p {
         font-size: .875em;
         margin: 0 0 5px;
@@ -122,6 +135,7 @@ div#subjectLists {
           font-size: .8125em;
         }
       }
+      /* stylelint-enable max-nesting-depth */
     }
   }
 }
@@ -146,15 +160,12 @@ div#subjectLists {
 
 div.Tools {
   div.dropper {
+    z-index: @z-index-level-14;
     position: absolute;
-    top: 0;
-    left: 32px;
-    width: 198px;
-    z-index: 10000;
 
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @light-mid-grey;
+      border: 1px solid @mid-grey;
       border-radius: 4px;
     }
 
@@ -169,6 +180,7 @@ div.Tools {
     div.dropdown {
       border-top: 1px solid @lighter-grey;
       display: none;
+      /* stylelint-disable max-nesting-depth */
       p {
         font-size: .875em;
         padding-left: 0;
@@ -182,11 +194,11 @@ div.Tools {
           font-size: .875em;
         }
       }
+      /* stylelint-enable max-nesting-depth */
     }
   }
 
   div.dropit {
-    min-height: 45px;
     p.listed {
       color: @grey;
       font-size: .8125em;
@@ -196,22 +208,19 @@ div.Tools {
   }
 
   // Where is widget-add.old-style-lists used?
+  // It's used on authors pages!
+  // And Orphaned Editions (no work)
   #widget-add.old-style-lists {
-    div.dropper {
-      margin: 0;
-      position: absolute;
-      top: 35px;
-      left: 10px;
-      padding: 5px 10px;
-      width: 209px;
-    }
     .dropclick {
+      padding: 10px;
       text-decoration: none;
 
+      /* stylelint-disable-next-line max-nesting-depth */
       h3 {
         font-size: .75em;
-        text-align: center;
-        padding: 8px 10px;
+        text-align: left;
+        padding: 0px 10px;
+        min-width: 150px;
       }
     }
   }
@@ -219,10 +228,6 @@ div.Tools {
 
 div#listsWork {
   div.dropit {
-    position: relative;
-    width: 215px;
-    min-height: 45px;
-
     p.listed {
       color: @grey;
       font-size: .8125em;
@@ -235,10 +240,10 @@ div#listsWork {
     top: 0;
     left: 32px;
     width: 161px;
-    z-index: 1001;
+    z-index: @z-index-level-7;
     &.on {
       background-color: @lightest-grey;
-      border: 1px solid @light-mid-grey;
+      border: 1px solid @mid-grey;
       border-radius: 4px;
     }
     h3 {
@@ -252,6 +257,7 @@ div#listsWork {
       border-top: 1px solid @lighter-grey;
       display: none;
       padding-top: 10px;
+      /* stylelint-disable max-nesting-depth */
       p {
         font-size: .875em;
         padding-left: 0;
@@ -264,9 +270,11 @@ div#listsWork {
           font-size: .8125em;
         }
       }
+      /* stylelint-enable max-nesting-depth */
     }
   }
 }
+/* stylelint-enable selector-max-specificity */
 
 // The log work will always be a child of .dropper
 .log-work {
@@ -286,6 +294,7 @@ div#listsWork {
     padding: 7px 0;
     margin: 0;
 
+    /* stylelint-disable selector-max-specificity */
     &.activated {
       color: @dark-grey;
       background: @lightest-grey;
@@ -302,6 +311,7 @@ div#listsWork {
       color: @green;
       margin-right: 2px;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 
@@ -329,19 +339,29 @@ div#listsWork {
 
 .user-book-options {
   div.tools-override {
+    /* stylelint-disable selector-max-specificity */
     div.dropit {
       margin: 0;
       position: relative;
       width: auto;
     }
+    /* stylelint-enable selector-max-specificity */
   }
 }
 
 div.tools-override {
   div.dropper {
-    z-index: 10000;
+    z-index: @z-index-level-14;
     width: 180px;
     top: unset;
     left: -1px;
+    margin: auto;
   }
+}
+
+a:hover > h3 {
+    text-decoration: underline;
+}
+a.dropclick.plain {
+  text-decoration: none;
 }

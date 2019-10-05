@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.infostore import get_site
 from catalog.marc.db.web_marc_db import search_query
 from catalog.get_ia import get_data
@@ -7,12 +8,12 @@ site = get_site()
 
 name = sys.argv[1] # example: 'Leonardo da Vinci'
 author_keys = site.things({'type': '/type/author', 'name': name})
-print len(author_keys), 'authors found'
+print(len(author_keys), 'authors found')
 
 edition_keys = set()
 for ak in author_keys:
     edition_keys.update(site.things({'type': '/type/edition', 'authors': ak}))
-print len(edition_keys), 'editions found'
+print(len(edition_keys), 'editions found')
 
 locs = set()
 for ek in edition_keys:
@@ -23,7 +24,7 @@ for ek in edition_keys:
         locs.update(search_query('lccn', i))
     for i in e.oclc_numbers if e.oclc_numbers else []:
         locs.update(search_query('oclc', i))
-print len(locs), 'MARC records found'
+print(len(locs), 'MARC records found')
 
 def ldv(line):
     for s in ('1452', '1519', 'eonard', 'inci'):
@@ -35,12 +36,12 @@ for loc in locs:
 #    print loc
     data = get_data(loc)
     if not data:
-        print "couldn't get"
+        print("couldn't get")
         continue
     line = get_first_tag(data, set(['100', '110', '111']))
     if line and ldv(line):
-        print list(get_all_subfields(line))
+        print(list(get_all_subfields(line)))
 
     line = get_first_tag(data, set(['700', '710', '711']))
     if line and ldv(line):
-        print list(get_all_subfields(line))
+        print(list(get_all_subfields(line)))

@@ -1,5 +1,6 @@
 """Hooks for collecting performance stats.
 """
+from __future__ import print_function
 import logging
 import traceback
 
@@ -29,15 +30,15 @@ def evaluate_and_store_stat(name, stat, summary):
         return
     try:
         if f(**stat):
-            if stat.has_key("time"):
+            if "time" in stat:
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
-            elif stat.has_key("count"):
+            elif "count" in stat:
                 #print "Storing count for key %s"%stat.count
                 # XXX-Anand: where is the code to update counts?
                 pass
             else:
                 l.warning("No storage item specified for stat %s", name)
-    except Exception, k:
+    except Exception as k:
         l.warning("Error while storing stats (%s). Complete traceback follows"%k)
         l.warning(traceback.format_exc())
 
@@ -60,9 +61,9 @@ def stats_hook():
     try:
         if "stats-header" in web.ctx.features:
             web.header("X-OL-Stats", format_stats(stats_summary))
-    except Exception, e:
+    except Exception as e:
         # don't let errors in stats collection break the app.
-        print >> web.debug, str(e)
+        print(str(e), file=web.debug)
 
     openlibrary.core.stats.increment('ol.pageviews')
 

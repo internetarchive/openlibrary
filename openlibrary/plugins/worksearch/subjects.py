@@ -15,6 +15,7 @@ from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
 
 from openlibrary.core.models import Subject
+from openlibrary.core.lending import add_availability
 from openlibrary.utils import str_to_key, finddict
 
 __all__ = [
@@ -43,7 +44,10 @@ class subjects_index(delegate.page):
     path = "/subjects"
 
     def GET(self):
-        return render_template("subjects/index.html")
+        delegate.context.setdefault('bodyid', 'subject')
+        page = render_template("subjects/index.html")
+        page.v2 = True
+        return page
 
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
@@ -53,13 +57,23 @@ class subjects(delegate.page):
         if nkey != key:
             raise web.redirect(nkey)
 
-        page = get_subject(key, details=True)
+        # this needs to be updated to include:
+        #q=public_scan_b:true+OR+lending_edition_s:*
+        subj = get_subject(key, details=True, filters={
+            'public_scan_b': 'false',
+            'lending_edition_s': '*'
+        })
 
-        if not page or page.work_count == 0:
+        subj.v2 = True
+        delegate.context.setdefault('bodyid', 'subject')
+        if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
-            return render_template('subjects/notfound.tmpl', key)
+            page = render_template('subjects/notfound.tmpl', key)
+        else:
+            page = render_template("subjects", page=subj)
 
-        return render_template("subjects", page)
+        page.v2 = True
+        return page
 
     def normalize_key(self, key):
         key = key.lower()
@@ -89,6 +103,7 @@ class subjects_json(delegate.page):
         i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
                       sort='editions', available='false')
 
+
         filters = {}
         if i.get('has_fulltext') == 'true':
             filters['has_fulltext'] = 'true'
@@ -107,10 +122,11 @@ class subjects_json(delegate.page):
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort, details=i.details.lower() == 'true', **filters)
+        subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
+                                      details=i.details.lower() == 'true', **filters)
         if i.has_fulltext:
-            subject['ebook_count'] = subject['work_count']
-        return json.dumps(subject)
+            subject_results['ebook_count'] = subject_results['work_count']
+        return json.dumps(subject_results)
 
     def normalize_key(self, key):
         return key.lower()
@@ -153,8 +169,8 @@ class subject_works_json(delegate.page):
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
-        return json.dumps(subject)
+        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
+        return json.dumps(results)
 
     def normalize_key(self, key):
         return key.lower()
@@ -162,6 +178,13 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
+def inject_availability(subject_results):
+    works = add_availability(subject_results.works)
+    for work in works:
+        ocaid = work.ia if work.ia else None
+        availability = work.get('availability', {}).get('status')
+    subject_results.works = works
+    return subject_results
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
@@ -233,7 +256,10 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     sort_order = sort_options.get(sort) or sort_options['editions']
 
     engine = create_engine()
-    return engine.get_subject(key, details=details, offset=offset, sort=sort_order, limit=limit, **filters)
+    subject_results = engine.get_subject(
+        key, details=details, offset=offset, sort=sort_order,
+        limit=limit, **filters)
+    return inject_availability(subject_results)
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
@@ -249,9 +275,11 @@ class SubjectEngine:
             kw = {}
 
         from search import work_search
-        result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
+        result = work_search(
+            q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:
             return None
+
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
             w['checked_out'] = False

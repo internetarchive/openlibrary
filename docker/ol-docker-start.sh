@@ -3,7 +3,8 @@
 # quick method to start all ol services from one script
 # inside an container, bypass all upstart/services
 
-CONFIG=conf/openlibrary-docker.yml
+CONFIG=conf/openlibrary.yml
+COVER_CONFIG=conf/coverstore.yml
 
 reindex-solr() {
   server=$1
@@ -23,9 +24,6 @@ echo "Starting ol services."
 # postgres
 su postgres -c "/etc/init.d/postgresql start"
 
-# memcached
-service memcached start
-
 # infobase
 su openlibrary -c "scripts/infobase-server conf/infobase.yml 7000" &
 
@@ -34,12 +32,15 @@ export -f reindex-solr
 su openlibrary -c "until pg_isready; do sleep 5; done && reindex-solr localhost $CONFIG" &
 
 # solr updater
-su openlibrary -c "python scripts/new-solr-updater.py \
+su solrupdater -c "python scripts/new-solr-updater.py \
   -c $CONFIG \
   --state-file solr-update.offset \
   --ol-url http://web/" &
 
+# In dev mode, run the coverstore locally (in the background)
+su openlibrary -c "scripts/coverstore-server $COVER_CONFIG \
+    --gunicorn --workers 1 --max-requests 250 --bind :8081" &
+
 # ol server, running in the foreground to avoid exiting container
 su openlibrary -c "authbind --deep scripts/openlibrary-server $CONFIG \
                      --gunicorn --reload --workers 4 --timeout 180 --bind :80"
-

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import socket
 
 #url = "http://www.amazon.com/dp/1847195881"
@@ -20,13 +21,13 @@ def get(sock, host, url):
 
     while True:
         chunk_size = int(fp.readline(),16)
-        print chunk_size
+        print(chunk_size)
         if chunk_size == 0:
             break
         print(len(fp.read(chunk_size)))
-        print(repr(fp.read(2))
+        print(repr(fp.read(2)))
     line = fp.readline()
-    print((line))
+    print(line)
     fp.close()
 
 host = 'openlibrary.org'

@@ -1,9 +1,13 @@
 'Merge editions'
-import web, re
+import web
+import re
 from openlibrary.utils import uniq, dicthash
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from collections import defaultdict
+
+import six
+
 
 re_nonword = re.compile(r'\W', re.U)
 
@@ -89,7 +93,7 @@ class merge_editions(delegate.page):
         for k in 'source_records', 'ia_box_id':
             merged[k] = []
             for e in editions:
-                if e.get(k) and isinstance(e[k], basestring):
+                if e.get(k) and isinstance(e[k], six.string_types):
                     e[k] = [e[k]]
                 if e.get(k):
                     assert isinstance(e[k], list)

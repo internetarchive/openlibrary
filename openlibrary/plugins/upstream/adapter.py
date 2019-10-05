@@ -8,9 +8,13 @@ Upstream requires:
 
 This adapter module is a filter that sits above an Infobase server and fakes the new URL structure.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 import simplejson
 import web
+
+import six
+
 
 urls = (
     '/([^/]*)/get', 'get',
@@ -64,7 +68,7 @@ class proxy:
             req = urllib2.Request(server + self.path + '?' + urllib.urlencode(self.input), self.data, headers=headers)
             req.get_method = lambda: web.ctx.method
             response = urllib2.urlopen(req)
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             response = e
         self.status_code = response.code
         self.status_msg = response.msg
@@ -172,7 +176,7 @@ class things(proxy):
                     return dict((k, convert_keys(v)) for k, v in q.items())
                 elif isinstance(q, list):
                     return [convert_keys(x) for x in q]
-                elif isinstance(q, basestring):
+                elif isinstance(q, six.string_types):
                     return convert_key(q)
                 else:
                     return q
@@ -246,7 +250,8 @@ class account(proxy):
             i.username = convert_key(i.username)
 
 def main():
-    import sys, os
+    import sys
+    import os
     web.config.infobase_server = sys.argv[1].rstrip('/')
     os.environ['REAL_SCRIPT_NAME'] = ''
 

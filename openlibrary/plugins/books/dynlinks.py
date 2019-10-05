@@ -1,3 +1,4 @@
+from __future__ import print_function
 import simplejson
 import web
 import sys
@@ -6,6 +7,7 @@ import traceback
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+import six
 
 from infogami.utils.delegate import register_exception
 
@@ -209,7 +211,7 @@ class DataProcessor:
         def format_table_of_contents(toc):
             # after openlibrary.plugins.upstream.models.get_table_of_contents
             def row(r):
-                if isinstance(r, basestring):
+                if isinstance(r, six.string_types):
                     level = 0
                     label = ""
                     title = r
@@ -401,7 +403,7 @@ def format_result(result, options):
         >>> format_result({'x': 1}, {})
         'var _OLBookInfo = {"x": 1};'
         >>> format_result({'x': 1}, {'callback': 'f'})
-        'f({"x": 1});'
+        '{"x": 1}'
     """
     format = options.get('format', '').lower()
     if format == 'json':
@@ -410,7 +412,8 @@ def format_result(result, options):
         json = simplejson.dumps(result)
         callback = options.get("callback")
         if callback:
-            return "%s(%s);" % (callback, json)
+            # the API handles returning the data as a callback
+            return "%s" % json
         else:
             return "var _OLBookInfo = %s;" % json
 
@@ -423,7 +426,7 @@ def dynlinks(bib_keys, options):
         result = query_docs(bib_keys)
         result = process_result(result, options.get('jscmd'))
     except:
-        print >> sys.stderr, "Error in processing Books API"
+        print("Error in processing Books API", file=sys.stderr)
         register_exception()
 
         result = {}

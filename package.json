@@ -4,52 +4,111 @@
   "repository": "github:internetarchive:openlibrary",
   "license": "AGPL-3.0",
   "scripts": {
+    "watch": "webpack --watch --mode=development --progress",
+    "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
-    "lint:fix": "stylelint --syntax less --fix static/css/",
-    "test": "npm run check-bundles && stylelint  --syntax less static/css/"
+    "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
+    "lint:fix": "eslint --config .eslintrc.json . --fix && stylelint --syntax less --fix static/css/",
+    "lint:js": "eslint --config .eslintrc.json .",
+    "test:unit": "jest --testRegex tests/unit/**/test.*.js",
+    "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
   },
   "bundlesize": [
     {
-      "path": "static/build/vendor.js",
-      "maxSize": "135.57KB"
+      "path": "static/build/editions-table.js",
+      "maxSize": "16.7KB"
     },
     {
-      "path": "static/build/vendor-v2.js",
-      "maxSize": "183.8KB"
+      "path": "static/build/graphs.js",
+      "maxSize": "17.2KB"
+    },
+    {
+      "path": "static/build/markdown-editor.js",
+      "maxSize": "10.5KB"
+    },
+    {
+      "path": "static/build/carousel.js",
+      "maxSize": "12.1KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "32.3KB"
+      "maxSize": "144.3KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "24.7KB"
+      "maxSize": "19.1KB"
+    },
+    {
+      "path": "static/build/page-book.css",
+      "maxSize": "7.2KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "24.9KB"
+      "maxSize": "18.9KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "24.9KB"
+      "maxSize": "18.85KB"
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "4.1KB"
+      "maxSize": "5.0KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "25KB"
+      "maxSize": "18.95KB"
+    },
+    {
+      "path": "static/build/page-subject.css",
+      "maxSize": "6.75KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "24.9KB"
+      "maxSize": "18.9KB"
     }
   ],
   "devDependencies": {
-    "bundlesize": "^0.17.0",
+    "@babel/core": "7.2.2",
+    "@babel/plugin-syntax-dynamic-import": "7.2.0",
+    "@babel/preset-env": "7.3.1",
+    "@babel/register": "7.0.0",
+    "babel-eslint": "10.0.2",
+    "babel-loader": "8.0.5",
+    "bundlesize": "^0.17.2",
+    "css-loader": "2.1.1",
+    "detect-libc": "^1.0.3",
+    "eslint": "^5.16.0",
+    "jest": "^24.5.0",
+    "jquery": "^1.11.0",
+    "jquery-migrate": "1.2.1",
+    "jquery-ui": "1.12.1",
     "less": "^3.8.1",
-    "stylelint": "^9.5.0"
+    "less-loader": "4.1.0",
+    "node-gyp": "^3.8.0",
+    "prebuild-install": "^5.2.1",
+    "promise-polyfill": "8.1.3",
+    "sinon": "7.3.2",
+    "slick-carousel": "1.6.0",
+    "style-loader": "0.23.1",
+    "stylelint": "^9.5.0",
+    "stylelint-declaration-use-variable": "^1.7.0",
+    "svgo": "1.1.1",
+    "webpack": "^4.27.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "openlibrary/plugins/openlibrary/js/**/*.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 1,
+        "functions": 6,
+        "lines": 7,
+        "statements": 3
+      }
+    },
+    "collectCoverage": true
   }
 }

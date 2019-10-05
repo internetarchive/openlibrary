@@ -14,54 +14,55 @@
  *     - On cancel/close:
  *         - value of the select is set to "" to select "select xxx"
  */
-;(function($){
+export default function($){
     $.fn.add_new_field = function(_options) {
         $(this).each(function() {
-            var options = _options || {href: "#" + this.id + "-popup"};
+            var options = _options || {href: `#${this.id}-popup`};
             var $this = $(this);
 
             var $json = $('<input type="hidden">')
-                        .attr("name", this.id + "-json")
-                        .addClass("repeat-ignore") // tell repeat plugin to ignore this input
-                        .val("[]")
-                        .insertBefore($this);
+                .attr('name', `${this.id}-json`)
+                .addClass('repeat-ignore') // tell repeat plugin to ignore this input
+                .val('[]')
+                .insertBefore($this);
 
             $this.change(function(){
                 var value = $this.val();
-                if (value == "__add__") {
+                if (value == '__add__') {
                     if (options.onshow) {
                         options.onshow.apply($this, []);
                     }
                     $.fn.colorbox({
-                       inline: true,
-                       opacity: "0.5",
-                       href: options.href,
-                       open: true
+                        inline: true,
+                        opacity: '0.5',
+                        href: options.href,
+                        open: true
                     });
                 }
             });
 
             // handle cancel
-            $(options.href).bind("cbox_closed", function() {
+            $(options.href).bind('cbox_closed', function() {
 
-               if ($this.val() == "__add__") {
-                   $this.val("");
-                   $this.focus();
-               }
-               if (options.cancel) {
-                   options.cancel();
-               }
+                if ($this.val() == '__add__') {
+                    $this.val('');
+                    $this.focus();
+                }
+                if (options.cancel) {
+                    options.cancel();
+                }
             });
 
             // handle submit
-            $("form:first", $(options.href)).submit(function(event) {
+            $('form:first', $(options.href)).submit(function(event) {
+                var array, d, i, data;
                 event.preventDefault();
 
                 // extract data
-                var array = $(this).serializeArray();
-                var d = {};
+                array = $(this).serializeArray();
+                d = {};
 
-                for (var i in array) {
+                for (i in array) {
                     d[array[i].name] = $.trim(array[i].value);
                 }
 
@@ -74,18 +75,19 @@
                 $.fn.colorbox.close();
 
                 // add new option
-                $("<option/>")
+                $('<option/>')
                     .html(d.label || d.value)
-                    .attr("value", d.value)
-                    .insertBefore($this.find("option:last").prev()) // insert before ---
+                    .attr('value', d.value)
+                    .insertBefore($this.find('option:last').prev()) // insert before ---
                     .parent().val(d.value);
 
                 // add JSON to hidden field
+                data = null;
                 try {
-                    var data = JSON.parse($json.val());
+                    data = JSON.parse($json.val());
                 }
                 catch (err) {
-                    var data = [];
+                    data = [];
                 }
                 data.push(d);
                 $json.val(JSON.stringify(data));
@@ -96,4 +98,4 @@
             return this;
         });
     };
-})(jQuery);
+}

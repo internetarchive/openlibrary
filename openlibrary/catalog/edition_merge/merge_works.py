@@ -1,7 +1,14 @@
-import MySQLdb, datetime, re, sys
+from __future__ import print_function
+import MySQLdb
+import datetime
+import re
+import sys
+from openlibrary.catalog.utils import cmp
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
-from pprint import pprint
+
+import six
+
 
 conn = MySQLdb.connect(db='merge_editions')
 cur = conn.cursor()
@@ -49,7 +56,7 @@ def merge_works(works):
         for f in 'covers', 'subjects', 'subject_places', 'subject_people', 'subject_times', 'lc_classifications', 'dewey_number':
             if not w.get(f):
                 continue
-            assert not isinstance(w[f], basestring)
+            assert not isinstance(w[f], six.string_types)
             for i in w[f]:
                 if i not in master.setdefault(f, []):
                     master[f].append(i)
@@ -74,14 +81,14 @@ def merge_works(works):
             except KeyError:
                 pass
 
-        print w
+        print(w)
         assert not w
     updates.append(master)
-    print len(updates), [(doc['key'], doc['type']) for doc in updates]
+    print(len(updates), [(doc['key'], doc['type']) for doc in updates])
     # update master
     # update editions to point at master
     # replace works with redirects
-    print ol.save_many(updates, 'merge works')
+    print(ol.save_many(updates, 'merge works'))
 
 skip = 'seventeenagainst00voig'
 skip = 'inlineskatingbas00sava'
@@ -110,7 +117,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
         if not all(author0 == e['authors'][0] for e in editions[1:]):
             continue
     except:
-        print 'editions:', [e['key'] for e in editions]
+        print('editions:', [e['key'] for e in editions])
         raise
     if all(work0 == e['works'][0] for e in editions[1:]):
         continue
@@ -129,15 +136,14 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
     title0 = works[0]['title'].lower()
     if not all(w['title'].lower() == title0 for w in works[1:]):
         continue
-    print ia, ekeys
-    print '  works:', wkeys
+    print(ia, ekeys)
+    print('  works:', wkeys)
     def work_key_int(wkey):
         return int(re_work_key.match(wkey).group(1))
     works = sorted(works, cmp=lambda a,b:-cmp(a['number_of_editions'],b['number_of_editions']) or cmp(work_key_int(a['key']), work_key_int(b['key'])))
-    print '  titles:', [(w['title'], w['number_of_editions']) for w in works]
-    print author0
+    print('  titles:', [(w['title'], w['number_of_editions']) for w in works])
+    print(author0)
     #print [w['authors'][0]['author'] for w in works]
     assert all(author0 == w['authors'][0]['author'] for w in works)
     merge_works(works)
-    print
-
+    print()

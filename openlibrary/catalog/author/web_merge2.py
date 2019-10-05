@@ -1,4 +1,5 @@
-import web, re
+import web
+import re
 from urllib2 import urlopen
 import simplejson as json
 from pprint import pformat

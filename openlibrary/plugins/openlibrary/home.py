@@ -20,6 +20,9 @@ from openlibrary.plugins.worksearch import search, subjects
 from openlibrary.plugins.openlibrary import lists
 
 
+import six
+
+
 logger = logging.getLogger("openlibrary.home")
 
 CAROUSELS_PRESETS = {
@@ -29,6 +32,32 @@ CAROUSELS_PRESETS = {
     'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
 }
 
+
+def get_homepage():
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+    try:
+        stats = admin.get_stats()
+    except Exception:
+        logger.error("Error in getting stats", exc_info=True)
+        stats = None
+    blog_posts = get_blog_feeds()
+
+    # render tempalte should be setting ctx.bodyid
+    # but because get_homepage is cached, this doesn't happen
+    # during subsequent called
+    page = render_template(
+        "home/index", stats=stats,
+        blog_posts=blog_posts
+    )
+    page.v2 = True    
+    return dict(page)
+
+def get_cached_homepage():
+    five_minutes = 5 * dateutil.MINUTE_SECS
+    return cache.memcache_memoize(
+        get_homepage, "home.homepage", timeout=five_minutes)()
+
 class home(delegate.page):
     path = "/"
 
@@ -36,18 +65,11 @@ class home(delegate.page):
         return "lending_v2" in web.ctx.features
 
     def GET(self):
-        try:
-            stats = admin.get_stats()
-        except Exception:
-            logger.error("Error in getting stats", exc_info=True)
-            stats = None
-        blog_posts = get_blog_feeds()
-        page = render_template(
-            "home/index", stats=stats,
-            blog_posts=blog_posts,
-        )
-        page.v2 = True
-        return page
+        cached_homepage = get_cached_homepage()
+        # when homepage is cached, home/index.html template
+        # doesn't run ctx.setdefault to set the bodyid so we must do so here:
+        web.template.Template.globals['ctx']['bodyid'] = 'home'
+        return web.template.TemplateResult(cached_homepage)
 
 class random_book(delegate.page):
     path = "/random"
@@ -100,32 +122,11 @@ def generic_carousel(query=None, subject=None, work_id=None, _type=None,
     books = cached_ia_carousel_books(
         query=query, subject=subject, work_id=work_id, _type=_type,
         sorts=sorts, limit=limit)
-    return storify(books)
-
-@public
-def carousel_from_list(key, randomize=False, limit=60):
-    css_id = key.split("/")[-1] + "_carousel"
-
-    data = format_list_editions(key)
-    if randomize:
-        random.shuffle(data)
-    data = data[:limit]
-    return render_template(
-        "books/carousel", storify(data), id=css_id, pixel="CarouselList")
-
-@public
-def loans_carousel(loans=None, cssid="loans_carousel", pixel="CarouselLoans"):
-    """Generates 'Your Loans' carousel on home page"""
-    if not loans:
-        return ''
-    books = []
-    for loan in loans:
-        loan_book = web.ctx.site.get(loan['book'])
-        if loan_book:
-            books.append(format_book_data(loan_book))
-    return render_template(
-        'books/carousel', storify(books), id=cssid, pixel=pixel, loans=True
-    ) if books else ''
+    if not books:
+        books = cached_ia_carousel_books.update(
+            query=query, subject=subject, work_id=work_id, _type=_type,
+            sorts=sorts, limit=limit)[0]
+    return storify(books) if books else books
 
 @public
 def readonline_carousel():
@@ -175,7 +176,7 @@ def format_list_editions(key):
 
     editions = {}
     for seed in seed_list.seeds:
-        if not isinstance(seed, basestring):
+        if not isinstance(seed, six.string_types):
             if seed.type.key == "/type/edition":
                 editions[seed.key] = seed
             else:

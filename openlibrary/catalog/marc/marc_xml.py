@@ -2,6 +2,8 @@ from lxml import etree
 from marc_base import MarcBase, MarcException
 from unicodedata import normalize
 
+import six
+
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'
 subfield_tag = '{http://www.loc.gov/MARC21/slim}subfield'
@@ -21,7 +23,7 @@ def read_marc_file(f):
         elem.clear()
 
 def norm(s):
-    return normalize('NFC', unicode(s.replace(u'\xa0', ' ')))
+    return normalize('NFC', six.text_type(s.replace(u'\xa0', ' ')))
 
 def get_text(e):
     return norm(e.text) if e.text else u''

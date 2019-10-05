@@ -36,7 +36,9 @@ Whatever you pass in, will replace the *Python Interface by Fuzzyman* part.
 **0.1.2** will change with the version of this interface.
 
 """
-import os, sys
+from __future__ import print_function
+import os
+import sys
 import urllib2
 from urllib import urlencode
 
@@ -92,12 +94,12 @@ class Akismet(object):
 
 
     def _safeRequest(self, url, data, headers):
-        print "_safeRequest", url
+        print("_safeRequest", url)
         try:
             req = urllib2.Request(url, data, headers)
             h = urllib2.urlopen(req)
             resp = h.read()
-        except (urllib2.HTTPError, urllib2.URLError, IOError), e:
+        except (urllib2.HTTPError, urllib2.URLError, IOError) as e:
             raise AkismetError(str(e))
         return resp
 

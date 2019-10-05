@@ -1,5 +1,7 @@
 /* GLOBAL TOP NOTICE */
 // (Internet Archive Bar)
+@import "components/buttonGhost.less";
+
 .iaBar {
   .display-flex();
   max-width: 960px;
@@ -22,6 +24,8 @@
   color: @heart-color;
   font-size: 1.2em;
 }
+
+/* stylelint-disable selector-max-specificity */
 #topNotice {
   font-weight: 100;
   font-size: .9em;
@@ -40,6 +44,7 @@
       padding-right: 8px;
       text-decoration: none;
       color: @white;
+      // stylelint-disable-next-line max-nesting-depth
       &:hover {
         color: @white;
       }

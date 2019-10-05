@@ -1,11 +1,13 @@
+from __future__ import print_function
+
 import re
-from names import match_name
-from normalize import normalize
+
+from openlibrary.catalog.merge.names import match_name
+from openlibrary.catalog.merge.normalize import normalize
 
 # fields needed for merge process:
 # title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
-re_year = re.compile('(\d{4})$')
 re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
 
 isbn_match = 85
@@ -85,7 +87,7 @@ def compare_date(e1, e2):
             return ('date', '+/-2 years', -25)
         else:
             return ('date', 'mismatch', -250)
-    except ValueError, TypeError:
+    except ValueError as TypeError:
         return ('date', 'mismatch', -250)
 
 def compare_isbn10(e1, e2):
@@ -95,12 +97,16 @@ def compare_isbn10(e1, e2):
         for j in e2['isbn']:
             if i == j:
                 return ('ISBN', 'match', isbn_match)
-
     return ('ISBN', 'mismatch', -225)
 
 # 450 + 200 + 85 + 200
 
 def level1_merge(e1, e2):
+    """
+    :param dict e1, e2: editions to match
+    :rtype: list
+    :return: a list of tuples (field/category, result str, score int)
+    """
     score = []
     if e1['short_title'] == e2['short_title']:
         score.append(('short-title', 'match', 450))
@@ -110,6 +116,24 @@ def level1_merge(e1, e2):
     score.append(compare_lccn(e1, e2))
     score.append(compare_date(e1, e2))
     score.append(compare_isbn10(e1, e2))
+    return score
+
+def level2_merge(e1, e2):
+    """
+    :rtype: list
+    :return: a list of tuples (field/category, result str, score int)
+    """
+    score = []
+    score.append(compare_date(e1, e2))
+    score.append(compare_country(e1, e2))
+    score.append(compare_isbn10(e1, e2))
+    score.append(compare_title(e1, e2))
+    score.append(compare_lccn(e1, e2))
+    page_score = compare_number_of_pages(e1, e2)
+    if page_score:
+        score.append(page_score)
+    score.append(compare_publisher(e1, e2))
+    score.append(compare_authors(e1, e2))
     return score
 
 def compare_author_fields(e1_authors, e2_authors):
@@ -137,7 +161,18 @@ def compare_author_keywords(e1_authors, e2_authors):
     else:
         return ('authors', 'mismatch', -200)
 
+
 def compare_authors(e1, e2):
+    """
+    Compares the authors of two edition representations and
+    returns a evaluation and score.
+
+    :param dict e1: Edition, output of build_marc()
+    :param dict e2: Edition, output of build_marc()
+    :rtype: tuple
+    :return: str?, message, score
+    """
+
     if 'authors' in e1 and 'authors' in e2:
         if compare_author_fields(e1['authors'], e2['authors']):
             return ('authors', 'exact match', 125)
@@ -165,7 +200,7 @@ def substr_match(a, b):
     return a.find(b) != -1 or b.find(a) != -1
 
 def keyword_match(in1, in2):
-    s1, s2 = [i.split() for i in in1, in2]
+    s1, s2 = [i.split() for i in (in1, in2)]
     s1_set = set(s1)
     s2_set = set(s2)
     match = s1_set & s2_set
@@ -255,29 +290,17 @@ def compare_publisher(e1, e2):
     if 'publishers' not in e1 or 'publishers' not in e2:
         return ('publisher', 'either missing', 0)
 
-def level2_merge(e1, e2):
-    score = []
-    score.append(compare_date(e1, e2))
-    score.append(compare_country(e1, e2))
-    score.append(compare_isbn10(e1, e2))
-    score.append(compare_title(e1, e2))
-    score.append(compare_lccn(e1, e2))
-    page_score = compare_number_of_pages(e1, e2)
-    if page_score:
-        score.append(page_score)
-
-    score.append(compare_publisher(e1, e2))
-    score.append(compare_authors(e1, e2))
-
-    return score
 
 def build_marc(edition):
     """
+    Returns an expanded representation of an edition dict,
+    usable for accurate comparisons between existing and new
+    records.
     Called from openlibrary.catalog.add_book.load()
 
-    :param dict edition: Import edition representation
+    :param dict edition: Import edition representation, requires 'full_title'
     :rtype: dict
-    :return: An expanded version of an Import edition
+    :return: An expanded version of an edition dict
         more titles, normalized + short
         all isbns in "isbn": []
     """
@@ -293,15 +316,27 @@ def build_marc(edition):
             marc[f] = edition[f]
     return marc
 
+
 def attempt_merge(e1, e2, threshold, debug=False):
-    l1 = level1_merge(e1, e2)
-    total = sum(i[2] for i in l1)
+    """
+    Determines (according to a threshold) whether two edition representations are
+    sufficiently the same. Used when importing new books.
+
+    :param dict e1: dict representing an edition
+    :param dict e2: dict representing an edition
+    :param int threshold: each field match or difference adds or subtracts a score. Example: 875 for standard edition matching
+    :rtype: bool
+    :return: Whether two editions have sufficient fields in common to be considered the same
+    """
+    level1 = level1_merge(e1, e2)
+    total = sum(i[2] for i in level1)
     if debug:
-        print total, l1
+        print("E1: %s\nE2: %s" % (e1, e2))
+        print("TOTAL 1: %s - %s" % (total, level1))
     if total >= threshold:
         return True
-    l2 = level2_merge(e1, e2)
-    total = sum(i[2] for i in l2)
+    level2 = level2_merge(e1, e2)
+    total = sum(i[2] for i in level2)
     if debug:
-        print total, l2
+        print("TOTAL 2: %s - %s" % (total, level2))
     return total >= threshold

@@ -1,6 +1,7 @@
 """Utilities for coverstore"""
 
-import urllib, urllib2
+import urllib
+import urllib2
 import socket
 import os
 import mimetypes
@@ -12,6 +13,12 @@ import string
 
 import config
 import oldb
+
+try:
+    file           # Python 2
+except NameError:  # Python 3
+    from io import IOBase as file
+
 
 class AppURLopener(urllib.FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"

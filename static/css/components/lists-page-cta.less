@@ -1,0 +1,29 @@
+/**
+ * ListEntry
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#listspagecta
+ */
+
+.lists-page-cta {
+  background-repeat: no-repeat;
+  background-image: url(/images/icons/icon_fav-big.png);
+  padding-top: 70px;
+  background-position: center 0;
+  h2 {
+    font-size: 1.5em;
+    font-family: @georgia_serif-2;
+    font-weight: normal;
+    color: @dark-grey;
+    margin: 0 0 10px;
+  }
+  p {
+    font-size: .875em;
+    margin: 0 0 30px;
+  }
+}
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  .lists-page-cta {
+    background-position: 35px 35px;
+    padding-left: 130px;
+    padding-right: 60px;
+  }
+}

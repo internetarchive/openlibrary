@@ -1,3 +1,4 @@
+from __future__ import print_function
 # read Talis, find books with ISBN and author date, add date to author
 
 from catalog.read_rc import read_rc
@@ -59,8 +60,8 @@ for data, length in read_file(open(filename)):
         continue
     seen.update(isbn_list)
     person = read_author_person(fields['100'])
-    print list(get_all_subfields(fields['100']))
-    print person
-    print isbn_list
+    print(list(get_all_subfields(fields['100'])))
+    print(person)
+    print(isbn_list)
     find_authors(isbn_list, person['personal_name'])
 #        fields.append(tag, list(get_all_subfields(line)))

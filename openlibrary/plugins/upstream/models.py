@@ -1,9 +1,11 @@
+from __future__ import print_function
 
 import web
 import urllib2
 import simplejson
 import re
 from collections import defaultdict
+from isbnlib import canonical
 
 from infogami import config
 from infogami.infobase import client
@@ -16,6 +18,7 @@ from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.utils.isbn import isbn_10_to_isbn_13
 from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
@@ -23,8 +26,11 @@ import account
 import borrow
 import logging
 
+import six
+
+
 def follow_redirect(doc):
-    if isinstance(doc, basestring) and doc.startswith("/a/"):
+    if isinstance(doc, six.string_types) and doc.startswith("/a/"):
         #Some edition records have authors as ["/a/OL1A""] insead of [{"key": "/a/OL1A"}].
         # Hack to fix it temporarily.
         doc = web.ctx.site.get(doc.replace("/a/", "/authors/"))
@@ -107,6 +113,16 @@ class Edition(models.Edition):
         w, h = image_sizes[size.upper()]
         return "https://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
 
+    def get_isbn13(self):
+        """Fetches either isbn10 or isbn13 from record and returns canonical
+        isbn13
+        """
+        isbn_13 = self.isbn_13 and canonical(self.isbn_13[0]) or ""
+        if not isbn_13:            
+            isbn_10 = self.isbn_10 and self.isbn_10[0] or ""
+            return isbn_10 and isbn_10_to_isbn_13(isbn_10)
+        return isbn_13
+    
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
@@ -376,7 +392,7 @@ class Edition(models.Edition):
 
     def get_table_of_contents(self):
         def row(r):
-            if isinstance(r, basestring):
+            if isinstance(r, six.string_types):
                 level = 0
                 label = ""
                 title = r
@@ -559,7 +575,7 @@ class Work(models.Work):
     def get_author_names(self, blacklist=None):
         author_names = []
         for author in self.get_authors():
-            author_name = (author if isinstance(author, basestring)
+            author_name = (author if isinstance(author, six.string_types)
                            else author.name)
             if not blacklist or author_name.lower() not in blacklist:
                 author_names.append(author_name)
@@ -581,7 +597,7 @@ class Work(models.Work):
                 return b.strip() + " " + a.strip()
             return name
 
-        if subjects and not isinstance(subjects[0], basestring):
+        if subjects and not isinstance(subjects[0], six.string_types):
             subjects = [flip(s.name) for s in subjects]
         return subjects
 
@@ -603,7 +619,7 @@ class Work(models.Work):
             if (_subject not in blacklist and
                 (not filter_unicode or (
                     subject.replace(' ', '').isalnum() and 
-                    type(subject) is not unicode)) and
+                    not isinstance(subject, six.text_type))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects        
@@ -616,12 +632,12 @@ class Work(models.Work):
         w = self._solr_data
         editions = w.get('edition_key') if w else []
 
-        # solr is stale
-        if len(editions) != self.edition_count:
-            q = {"type": "/type/edition", "works": self.key, "limit": 10000}
-            editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
-
         if editions:
+            # solr is stale
+            if len(editions) != self.edition_count:
+                q = {"type": "/type/edition", "works": self.key, "limit": 10000}
+                editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
+
             books = web.ctx.site.get_many(["/books/" + olid for olid in editions])
 
             availability = lending.get_availability_of_ocaids([
@@ -666,8 +682,8 @@ class Subject(client.Thing):
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
             data = urllib2.urlopen(url).read()
             cover_ids = simplejson.loads(data)
-        except IOError, e:
-            print >> web.debug, 'ERROR in getting cover_ids', str(e)
+        except IOError as e:
+            print('ERROR in getting cover_ids', str(e), file=web.debug)
             cover_ids = {}
 
         def make_cover(edition):

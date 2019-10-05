@@ -1,4 +1,4 @@
-from __future__ import with_statement
+from __future__ import print_function
 import web
 import stopword
 import pdb
@@ -10,7 +10,8 @@ from infogami.utils import view, template
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 
-import re, web
+import re
+import web
 import solr_client
 import time
 import simplejson
@@ -18,6 +19,8 @@ from functools import partial
 from gzip import open as gzopen
 import cPickle
 from collections import defaultdict
+
+import six
 
 render = template.render
 
@@ -63,7 +66,7 @@ if solr_fulltext_address:
 
 def lookup_ocaid(ocaid):
     ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
-    assert type(ocat)==list, (ocaid,ocat)
+    assert isinstance(ocat, list), (ocaid,ocat)
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
@@ -116,11 +119,11 @@ class fullsearch(delegate.page):
                         out.append((oln_thing, ocaid,
                                     collapse_groups(solr_pagetext.pagetext_search
                                                     (ocaid, q))))
-                except IndexError, e:
-                    print >> web.debug, ('fullsearch index error', e, e.args)
+                except IndexError as e:
+                    print(('fullsearch index error', e, e.args), file=web.debug)
                     pass
             timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
-        except IOError, e:
+        except IOError as e:
             errortext = 'fulltext search is temporarily unavailable (%s)' % \
                         str(e)
 
@@ -157,162 +160,6 @@ class Timestamp1(object):
         self.last_t = t
         self.key = key
 
-class search(delegate.page):
-    def POST(self):
-        i = web.input(wtitle='',
-                      wauthor='',
-                      wtopic='',
-                      wisbn='',
-                      wpublisher='',
-                      wdescription='',
-                      psort_order='',
-                      pfulltext='',
-                      ftokens=[],
-                      q='',
-                      _unicode=False
-                      )
-        timings = Timestamp()
-        results = []
-        qresults = web.storage(begin=0, total_results=0)
-        facets = []
-        errortext = None
-
-        if solr is None:
-            errortext = 'Solr is not configured.'
-        if i.q:
-            q0 = [clean_punctuation(i.q)]
-        else:
-            q0 = []
-        for formfield, searchfield in \
-                (('wtitle', 'title'),
-                 ('wauthor', 'authors'),
-                 ('wtopic', 'subjects'),
-                 ('wisbn', ['isbn_10', 'isbn_13']),
-                 ('wpublisher', 'publishers'),
-                 ('wdescription', 'description'),
-                 ('pfulltext', 'has_fulltext'),
-                 ):
-            v = clean_punctuation(i.get(formfield))
-            if v:
-                if type(searchfield) == str:
-                    q0.append('%s:(%s)'% (searchfield, v))
-                elif type(searchfield) == list:
-                    q0.append('(%s)'% \
-                              ' OR '.join(('%s:(%s)'%(s,v))
-                                          for s in searchfield))
-            # @@
-            # @@ need to unpack date range field and sort order here
-            # @@
-
-        # print >> web.debug, '** i.q=(%s), q0=(%s)'%(i.q, q0)
-
-        # get list of facet tokens by splitting out comma separated
-        # tokens, and remove duplicates.  Also remove anything in the
-        # initial set `init'.
-        def strip_duplicates(seq, init=[]):
-            """>>> print strip_duplicates((1,2,3,3,4,9,2,0,3))
-            [1, 2, 3, 4, 9, 0]
-            >>> print strip_duplicates((1,2,3,3,4,9,2,0,3), [3])
-            [1, 2, 4, 9, 0]"""
-            fs = set(init)
-            return list(t for t in seq if not (t in fs or fs.add(t)))
-
-        # we use multiple tokens fields in the input form so we can support
-        # date_range and fulltext_only in advanced search, and can add
-        # more like that if needed.
-        tokens2 = ','.join(i.ftokens)
-        ft_list = strip_duplicates((t for t in tokens2.split(',') if t),
-                                   (i.get('remove'),))
-        # reassemble ftokens string in case it had duplicates
-        i.ftokens = ','.join(ft_list)
-
-        # don't throw a backtrace if there's junk tokens.  Robots have
-        # been sending them, so just throw away any invalid ones.
-        # assert all(re.match('^[a-z]{5,}$', a) for a in ft_list), \
-        #       ('invalid facet token(s) in',ft_list)
-
-        ft_list = filter(partial(re.match, '^[a-z]{5,}$'), ft_list)
-
-        qtokens = ' facet_tokens:(%s)'%(' '.join(ft_list)) if ft_list else ''
-        ft_pairs = list((t, solr.facet_token_inverse(t)) for t in ft_list)
-
-        # we have somehow gotten some queries for facet tokens with no
-        # inverse.  remove these from the list.
-        ft_pairs = filter(lambda (a,b): b, ft_pairs)
-
-        if not q0 and not qtokens:
-            errortext = 'You need to enter some search terms.'
-            return render.advanced_search(i.get('wtitle',''),
-                                          qresults,
-                                          results,
-                                          [], # works_groups
-                                          [], # facets
-                                          i.ftokens,
-                                          ft_pairs,
-                                          [], # timings
-                                          errortext=errortext)
-
-        out = []
-        works_groups = []
-        i.q = ' '.join(q0)
-        try:
-            # work around bug in PHP module that makes queries
-            # containing stopwords come back empty.
-            query = stopword.basic_strip_stopwords(i.q.strip()) + qtokens
-            bquery = solr.basic_query(query)
-            offset = int(i.get('offset', '0') or 0)
-            qresults = solr.advanced_search(bquery, start=offset)
-            # print >> web.debug,('qresults',qresults.__dict__)
-            # qresults = solr.basic_search(query, start=offset)
-            timings.update("begin faceting")
-            facets = solr.facets(bquery, maxrows=5000)
-            timings.update("done faceting")
-            # results = munch_qresults(qresults.result_list)
-            results = munch_qresults_stored(qresults)
-            results = filter(bool, results)
-            timings.update("done expanding, %d results"% len(results))
-
-            if 0:
-                # temporarily disable computing works, per
-                # launchpad bug # 325843
-                results, works_groups = collect_works(results)
-                print >> web.debug, ('works', results, works_groups)
-
-            timings.update("done finding works, (%d,%d) results"%
-                           (len(results), len(works_groups)))
-
-            # print >> web.debug, ('works result',
-            #                    timings.ts,
-            #                    (len(results),results),
-            #                    (len(works_groups),works_groups))
-
-        except (solr_client.SolrError, Exception), e:
-            import traceback
-            errortext = 'Sorry, there was an error in your search.'
-            if i.get('safe')=='false':
-                errortext +=  '(%r)' % (e.args,)
-                errortext += '<p>' + traceback.format_exc()
-
-        # print >> web.debug, 'basic search: about to advanced search (%r)'% \
-        #     list((i.get('q', ''),
-        #           qresults,
-        #           results,
-        #           facets,
-        #           i.ftokens,
-        #           ft_pairs))
-
-        return render.advanced_search(i.get('q', ''),
-                                      qresults,
-                                      results,
-                                      works_groups,
-                                      facets,
-                                      i.ftokens,
-                                      ft_pairs,
-                                      timings.results(),
-                                      errortext=errortext)
-
-    GET = POST
-
 def munch_qresults_stored(qresults):
     def mk_author(a,ak):
         class Pseudo_thing(Thing):
@@ -322,7 +169,7 @@ def munch_qresults_stored(qresults):
                 self.__dict__[a] = v
 
         authortype = Thing(web.ctx.site,u'/type/author')
-        d = Pseudo_thing(web.ctx.site, unicode(ak))
+        d = Pseudo_thing(web.ctx.site, six.text_type(ak))
         d.name = a
         d.type = authortype
         # print >> web.debug, ('mk_author made', d)
@@ -331,7 +178,7 @@ def munch_qresults_stored(qresults):
         # print >> web.debug, ('mk_author db retrieval', dba)
         return d
     def mk_book(d):
-        assert type(d)==dict
+        assert isinstance(d, dict)
         d['key'] = d['identifier']
         for x in ['title_prefix', 'ocaid','publish_date',
                   'publishers', 'physical_format']:
@@ -363,8 +210,8 @@ def collect_works(result_list):
 
     # print >> web.debug, ('collect works', rs,wds)
 
-    s_works = sorted(wds.items(), key=lambda (a,b): len(b), reverse=True)
-    return rs, [(web.ctx.site.get(a), b) for a,b in s_works]
+    s_works = sorted(wds.items(), key=lambda a_b: len(a_b[1]), reverse=True)
+    return rs, [(web.ctx.site.get(a), b) for a, b in s_works]
 
 
 # somehow the leading / got stripped off the book identifiers during some
@@ -381,7 +228,7 @@ def exact_facet_count(query, selected_facets, facet_name, facet_value):
                                facet_name, facet_value)
     t1 = time.time()-t0
     qfn = (query, facet_name, facet_value)
-    print >> web.debug, ('*** efc', qfn, r, t1)
+    print(('*** efc', qfn, r, t1), file=web.debug)
     return r
 
 def get_books(keys):
@@ -446,8 +293,8 @@ class search_api:
     def GET(self):
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
-                if type(callback) != str or \
-                       not re.match('[a-z][a-z0-9\.]*$', callback, re.I):
+                if (not isinstance(callback, str) or
+                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 
@@ -479,7 +326,7 @@ class search_api:
 
         dval = dict()
 
-        if type(query) == list:
+        if isinstance(query, list):
             qval = list(self._lookup(i, q, offset, rows) for q in query)
             dval["result_list"] = qval
         else:

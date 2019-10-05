@@ -1,17 +1,23 @@
 #!/usr/local/bin/python2.5
-import re, sys, codecs, web
+from __future__ import print_function
+import re
+import sys
+import codecs
+import web
 from openlibrary.catalog.get_ia import get_from_archive
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
-from openlibrary.catalog.utils import mk_norm
+from openlibrary.catalog.utils import cmp, mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
-from pprint import pprint, pformat
+
 from catalog.utils.edit import fix_edition
 import urllib
-sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, Reference
 import olapi
+
+import six
+
 
 rc = read_rc()
 
@@ -34,7 +40,7 @@ def withKey(key):
 
 def find_new_work_key():
     global work_num
-    while 1:
+    while True:
         key = "/w/OL%dW" % work_num
         ret = withKey(key)
         if ret.startswith("Not Found:"):
@@ -122,7 +128,7 @@ def get_books(akey):
             book['lang'] = [l['key'][3:] for l in e['languages']]
 
         if e.get('table_of_contents', None):
-            if isinstance(e['table_of_contents'][0], basestring):
+            if isinstance(e['table_of_contents'][0], six.string_types):
                 book['table_of_contents'] = e['table_of_contents']
             else:
                 assert isinstance(e['table_of_contents'][0], dict)
@@ -214,10 +220,10 @@ def find_works(akey):
 
 def print_works(works):
     for w in works:
-        print len(w['editions']), w['title']
+        print(len(w['editions']), w['title'])
 
 def toc_items(toc_list):
-    return [{'title': unicode(item), 'type': Reference('/type/toc_item')} for item in toc_list]
+    return [{'title': six.text_type(item), 'type': Reference('/type/toc_item')} for item in toc_list]
 
 def add_works(akey, works):
     queue = []
@@ -231,7 +237,7 @@ def add_works(akey, works):
             'title': w['title']
         }
         #queue.append(q)
-        print ol.write(q, comment='create work')
+        print(ol.write(q, comment='create work'))
         for ekey in w['editions']:
             e = ol.get(ekey)
             fix_edition(ekey, e, ol)
@@ -239,8 +245,8 @@ def add_works(akey, works):
             try:
                 ol.save(ekey, e, 'found a work')
             except olapi.OLError:
-                print ekey
-                print e
+                print(ekey)
+                print(e)
                 raise
 
 def by_authors():
@@ -252,7 +258,7 @@ def by_authors():
     for a in query_iter(q, offset=215000):
         akey = a['key']
         if skipping:
-            print 'skipping:', akey, a['name']
+            print('skipping:', akey, a['name'])
             if akey == '/a/OL218496A':
                 skipping = False
             continue
@@ -262,7 +268,7 @@ def by_authors():
             'authors': akey,
         }
         if query(q):
-            print(akey, repr(a['name']), 'has works')
+            print((akey, repr(a['name']), 'has works'))
             continue
 
     #    print akey, a['name']
@@ -270,18 +276,9 @@ def by_authors():
         works = [i for i in found if len(i['editions']) > 2]
         if works:
             #open('found/' + akey[3:], 'w').write(repr(works))
-            print(akey, repr(a['name']))
-            #pprint(works)
+            print((akey, repr(a['name'])))
             #print_works(works)
             add_works(akey, works)
-            print
+            print()
 
 by_authors()
-sys.exit(0)
-akey = '/a/OL27695A'
-akey = '/a/OL2527041A'
-akey = '/a/OL17005A'
-akey = '/a/OL117645A'
-print akey
-works = list(find_works(akey))
-pprint(works)

@@ -153,7 +153,8 @@ def load_sample_data():
     This is unused as of now.
     """
     env = {}
-    execfile("scripts/copydocs.py", env, env)
+    with open("scripts/copydocs.py") as in_file:
+        exec(in_file.read(), env, env)
     src = env['OpenLibrary']()
     dest = web.ctx.site
     comment = "Loaded sample data."

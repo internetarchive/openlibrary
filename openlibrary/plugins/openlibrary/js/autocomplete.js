@@ -1,6 +1,6 @@
 // jquery plugins to provide author and language autocompletes.
 
-;(function($) {
+export default function($) {
     /**
      * Some extra options for when creating an autocomplete input field
      * @typedef {Object} OpenLibraryAutocompleteOptions
@@ -22,10 +22,12 @@
             mustMatch: true,
             formatMatch: function(item) { return item.name; },
             parse: function(text) {
-                var rows = JSON.parse(text);
+                // in v2, text IS the JSON
+                var rows = typeof text === 'string' ? JSON.parse(text) : text;
                 var parsed = [];
-                for (var i=0; i < rows.length; i++) {
-                    var row = rows[i];
+                var i, row, query;
+                for (i=0; i < rows.length; i++) {
+                    row = rows[i];
                     parsed.push({
                         data: row,
                         value: row.name,
@@ -34,11 +36,11 @@
                 }
 
                 // XXX: this won't work when _this is multiple values (like $("input"))
-                var query = $(_this).val();
+                query = $(_this).val();
                 if (ol_ac_opts.addnew && ol_ac_opts.addnew(query)) {
                     parsed = parsed.slice(0, ac_opts.max - 1);
                     parsed.push({
-                        data: {name: query, key: "__new__"},
+                        data: {name: query, key: '__new__'},
                         value: query,
                         result: query
                     });
@@ -50,20 +52,22 @@
         $(_this)
             .autocomplete(ol_ac_opts.endpoint, $.extend(default_ac_opts, ac_opts))
             .result(function(event, item) {
-                $("#" + this.id + "-key").val(item.key);
-                var $this = $(this);
+                var $this;
+
+                $(`#${this.id}-key`).val(item.key);
+                $this = $(this);
 
                 //adding class directly is not working when tab is pressed. setTimeout seems to be working!
                 setTimeout(function() {
-                    $this.addClass("accept");
+                    $this.addClass('accept');
                 }, 0);
             })
             .nomatch(function(){
-                $("#" + this.id + "-key").val("");
-                $(this).addClass("reject");
+                $(`#${this.id}-key`).val('');
+                $(this).addClass('reject');
             })
             .keypress(function() {
-                $(this).removeClass("accept").removeClass("reject");
+                $(this).removeClass('accept').removeClass('reject');
             });
     }
 
@@ -83,31 +87,32 @@
         });
 
         function update_visible() {
-            if (container.find("div.input").length > 1) {
-                container.find("a.remove").show();
+            if (container.find('div.input').length > 1) {
+                container.find('a.remove').show();
             }
             else {
-                container.find("a.remove").hide();
+                container.find('a.remove').hide();
             }
 
-            container.find("a.add:not(:last)").hide();
-            container.find("a.add:last").show();
+            container.find('a.add:not(:last)').hide();
+            container.find('a.add:last').show();
         }
 
         update_visible();
 
-        container.find("a.remove").live("click", function() {
-            if (container.find("div.input").length > 1) {
-                $(this).closest("div.input").remove();
+        container.on('click', 'a.remove', function() {
+            if (container.find('div.input').length > 1) {
+                $(this).closest('div.input').remove();
                 update_visible();
             }
         });
 
-        container.find("a.add").live("click", function(event) {
+        container.on('click', 'a.add', function(event) {
+            var next_index, new_input;
             event.preventDefault();
 
-            var next_index = container.find("div.input").length;
-            var new_input = $(input_renderer(next_index, {key:"", name: ""}));
+            next_index = container.find('div.input').length;
+            new_input = $(input_renderer(next_index, {key: '', name: ''}));
             container.append(new_input);
             setup_autocomplete(
                 new_input.find(autocomplete_selector)[0],
@@ -116,4 +121,4 @@
             update_visible();
         });
     };
-})(jQuery);
+}

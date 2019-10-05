@@ -10,15 +10,10 @@ $else:
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
 
-$ isbn = (page.isbn_10 and page.isbn_10[0]) or (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-$ isbn_13 = (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if page.isbn_10:
-    $ isbn_10 = page.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = page.get_isbn13()
+$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn = isbn_10 or isbn_13
 
 $ asin = None
 $ scribd = None
@@ -45,13 +40,13 @@ $if isbn_10 and not asin:
           </div>
 
     <div class="panel">
-      <div class="btn-notice" id="read-options">
-        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page)
+      <div class="btn-notice read-options" id="read-options">
+        $:macros.LoanStatus(page, ctx.user, editions_page=editions_page, block_name="read-options-panel")
 
         $# Added here instead of LoanStatus to avoid the js being bound to every item
         $# in a work's edition listing
         <script type="text/javascript">
-          \$(function() {
+          window.q.push(function() {
             \$('.return-book').submit(function(event) {
               if (!confirm("Really return this book?")) {
                 event.preventDefault();
@@ -65,26 +60,11 @@ $if isbn_10 and not asin:
 
         $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
-        $if isbn or asin or scribd:
-          <hr>
-          <div class="cta-section">
-            <p class="cta-section-title">Buy this book</p>
-            <div class="panel">
-              $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
-            </div>
-          </div>
-
-        $else:
-          <hr>
-          <div class="cta-section">
-              <p class="cta-section-title">Buy this book</p>
-              <div class="panel">
-                  $if page.is_fake_record():
-                      <p class="smaller gray"><span id="isbnadd">Add an ISBN</span> <span class="smaller">in order to<br> link to booksellers</span></p>
-                  $else:
-                      <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> <span class="smaller">in order to<br> link to booksellers</span></p>
-              </div>
-          </div>
+        <hr>
+        <div class="cta-section">
+          <p class="cta-section-title">Buy this book</p>
+          $:macros.AffiliateLinks(page, {'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
+        </div>
 
         $:macros.SocialShare(page)
 

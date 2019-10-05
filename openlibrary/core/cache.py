@@ -16,6 +16,9 @@ from infogami.utils import stats
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
+import six
+
+
 __all__ = [
     "cached_property",
     "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
@@ -425,7 +428,7 @@ class memoize:
         self.expires = expires
 
     def _make_key_func(self, key):
-        if isinstance(key, basestring):
+        if isinstance(key, six.string_types):
             return PrefixKeyFunc(key)
         else:
             return key

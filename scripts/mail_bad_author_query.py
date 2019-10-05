@@ -1,5 +1,8 @@
 #!/usr/bin/python
-import web, os, smtplib, sys
+import web
+import os
+import smtplib
+import sys
 from email.mime.text import MIMEText
 
 password = open(os.path.expanduser('~/.openlibrary_db_password')).read()

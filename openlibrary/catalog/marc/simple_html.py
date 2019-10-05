@@ -1,8 +1,12 @@
 #!/usr/bin/python2.5
+from __future__ import print_function
 from catalog.marc.fast_parse import *
 from html import as_html
 from build_record import build_record
-import sys, re
+import sys
+import re
+
+import six
 
 trans = {'&':'&amp;','<':'&lt;','>':'&gt;','\n':'<br>'}
 re_html_replace = re.compile('([&<>\n])')
@@ -83,7 +87,7 @@ def output_record_as_html(rec):
         elif rec[k] is None:
             v = '<em>empty</em>'
         else:
-            v = esc(unicode(rec[k]))
+            v = esc(six.text_type(rec[k]))
         rows.append('<tr><th>%s</th><td>%s</td></tr>\n' % (label, v))
 
     return '<table>' + ''.join(rows) + '</table>'
@@ -97,7 +101,7 @@ th { text-align: left; vertical-align: top; }
 dir = sys.argv[2]
 
 index = open(dir + "/index.html", "w")
-print >> index, "<html>\n<head><title>MARC records</title>" + style + "</head>\n<body>\n<ul>"
+print("<html>\n<head><title>MARC records</title>" + style + "</head>\n<body>\n<ul>", file=index)
 
 rec_no = 0
 for data, length in read_file(open(sys.argv[1])):
@@ -106,13 +110,13 @@ for data, length in read_file(open(sys.argv[1])):
     title = rec['title']
     filename = dir + "/" + str(rec_no) + ".html"
     f = open(filename, 'w')
-    print >> f, "<html>\n<head><title>" + title + "</title>" + style + "</head>\n<body>"
-    print >> f, '<a href="index.html">Back to index</a><br>'
-    print >> f, output_record_as_html(rec)
-    print >> f, "<h2>MARC record</h2>"
-    print >> f, as_html(data)
-    print >> f, '<br>\n<a href="index.html">Back to index</a>'
-    print >> f, "</body></html>"
-    print >> index, '<li><a href="%d.html">%s</a>' % (rec_no, title)
+    print("<html>\n<head><title>" + title + "</title>" + style + "</head>\n<body>", file=f)
+    print('<a href="index.html">Back to index</a><br>', file=f)
+    print(output_record_as_html(rec), file=f)
+    print("<h2>MARC record</h2>", file=f)
+    print(as_html(data), file=f)
+    print('<br>\n<a href="index.html">Back to index</a>', file=f)
+    print("</body></html>", file=f)
+    print('<li><a href="%d.html">%s</a>' % (rec_no, title), file=index)
 
-print >> index, "</ul>\n</body></html>"
+print("</ul>\n</body></html>", file=index)

@@ -2,6 +2,7 @@
 Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
+from __future__ import print_function
 import sys
 import urllib
 import re
@@ -47,7 +48,7 @@ def get_work_iaids(wkey):
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
     json_data = urllib.urlopen(solr_select).read()
     stats.end()
-    print json_data
+    print(json_data)
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -413,7 +414,7 @@ def readlinks(req, options):
             s['summary'] = summary
             s['stats'] = web.ctx.get('stats', [])
     except:
-        print >> sys.stderr, 'Error in processing Read API'
+        print('Error in processing Read API', file=sys.stderr)
         if options.get('show_exception'):
             register_exception()
             result = {'success': False}

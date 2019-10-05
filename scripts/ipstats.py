@@ -4,6 +4,7 @@ Store count of unique IPs per day to infobase by parsing the nginx log files dir
 
 This file is currently (17 July 2018) run on production using cron.
 """
+from __future__ import print_function
 from datetime import datetime, timedelta
 import os
 import subprocess

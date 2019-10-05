@@ -1,4 +1,7 @@
-import sys,re, os
+from __future__ import print_function
+import sys
+import re
+import os
 from parse import read_edition
 from lxml.html import fromstring
 import catalog.importer.pool as pool
@@ -8,6 +11,9 @@ from catalog.get_ia import get_from_local, get_ia
 from catalog.merge.merge_marc import build_marc
 import catalog.marc.fast_parse as fast_parse
 import urllib2
+
+import six
+
 
 re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
 
@@ -56,7 +62,7 @@ def read_amazon_file(f):
         try:
             edition = read_edition(fromstring(page))
         except:
-            print 'bad record:', asin
+            print('bad record:', asin)
             raise
         if not edition:
             continue
@@ -70,7 +76,7 @@ def follow_redirects(key):
         thing = withKey(key)
         assert thing
         if thing['type']['key'] == '/type/redirect':
-            print 'following redirect %s => %s' % (key, thing['location'])
+            print('following redirect %s => %s' % (key, thing['location']))
             key = thing['location']
     return (keys, thing)
 
@@ -84,7 +90,7 @@ def ia_match(a, ia):
     try:
         e1 = build_marc(rec)
     except TypeError:
-        print rec
+        print(rec)
         raise
     return amazon_merge.attempt_merge(a, e1, threshold, debug=False)
 
@@ -111,7 +117,7 @@ def source_records_match(a, thing):
                 break
         elif src.startswith(ia):
             if src == 'ia:ic':
-                print thing['source_records']
+                print(thing['source_records'])
             if ia_match(a, src[len(ia):]):
                 match = True
                 break
@@ -124,14 +130,14 @@ def source_records_match(a, thing):
 def try_merge(edition, ekey, thing):
     thing_type = thing['type']['key']
     if 'isbn_10' not in edition:
-        print edition
+        print(edition)
     asin = edition.get('isbn_10', None) or edition['asin']
     if 'authors' in edition:
         authors = [i['name'] for i in edition['authors']]
     else:
         authors = []
     a = amazon_merge.build_amazon(edition, authors)
-    assert isinstance(asin, basestring)
+    assert isinstance(asin, six.string_types)
     assert thing_type == '/type/edition'
     #print edition['asin'], ekey
     if 'source_records' in thing:
@@ -155,11 +161,11 @@ def import_file(filename):
         index_fields = build_index_fields(asin, edition)
         found = pool.build(index_fields)
         if 'title' not in found:
-            print found
-            print asin
-            print edition
-            print index_fields
-            print
+            print(found)
+            print(asin)
+            print(edition)
+            print(index_fields)
+            print()
 
         if not found['title'] and not found['isbn']:
             #print 'no pool load book:', asin
@@ -183,10 +189,10 @@ def import_file(filename):
                 try:
                     m = try_merge(edition, ekey, thing)
                 except:
-                    print asin
-                    print edition
-                    print ekey
-                    print found
+                    print(asin)
+                    print(edition)
+                    print(ekey)
+                    print(found)
                     raise
 
 # import_file(sys.argv[1])
@@ -195,7 +201,7 @@ d = sys.argv[1]
 for f in os.listdir(d):
     if not f.startswith('amazon.'):
         continue
-    print f
+    print(f)
     if '2009-02' in f:
         continue
     import_file(d + "/" + f)

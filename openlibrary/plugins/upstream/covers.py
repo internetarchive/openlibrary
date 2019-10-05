@@ -1,6 +1,7 @@
 """Handle book cover/author photo upload.
 """
-import urllib, urllib2
+import urllib
+import urllib2
 import web
 import simplejson
 
@@ -54,9 +55,16 @@ class add_cover(delegate.page):
             i.url = ""
 
         user = accounts.get_current_user()
-        params = dict(author=user and user.key, data=data, source_url=i.url, olid=olid, ip=web.ctx.ip)
+        params = {
+            "author": user and user.key,
+            "data": data,
+            "source_url": i.url,
+            "olid": olid,
+            "ip": web.ctx.ip
+        }
 
-        upload_url = '%s/%s/upload2' % (get_coverstore_url(), self.cover_category)
+        upload_url = '%s/%s/upload2' % (
+            get_coverstore_url(), self.cover_category)
 
         if upload_url.startswith("//"):
             upload_url = "http:" + upload_url
@@ -64,8 +72,8 @@ class add_cover(delegate.page):
         try:
             response = urllib2.urlopen(upload_url, urllib.urlencode(params))
             out = response.read()
-        except urllib2.HTTPError, e:
-            out = e.read()
+        except urllib2.HTTPError as e:
+            out = {'error': e.read()}
 
         return web.storage(simplejson.loads(out))
 

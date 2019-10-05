@@ -1,7 +1,17 @@
 # -*- coding: utf-8 -*-
-import re, web, cgitb
+import re
+import web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
+
+import six
+
+try:
+    cmp = cmp       # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
+
 
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
@@ -21,12 +31,23 @@ re_year = re.compile(r'\b(\d{4})\b')
 
 re_brackets = re.compile('^(.+)\[.*?\]$')
 
+
 def key_int(rec):
     # extract the number from a key like /a/OL1234A
     return int(web.numify(rec['key']))
 
+
 def author_dates_match(a, b):
-    # check if the dates of two authors
+    """
+    Checks if the years of two authors match. Only compares years,
+    not names or keys. Works by returning False if any year specified in one record
+    does not match that in the other, otherwise True. If any one author does not have
+    dates, it will return True.
+
+    :param dict a: Author import dict {"name": "Some One", "birth_date": "1960"}
+    :param dict b: Author import dict {"name": "Some One"}
+    :rtype: bool
+    """
     for k in ['birth_date', 'death_date', 'date']:
         if k not in a or a[k] is None or k not in b or b[k] is None:
             continue
@@ -41,16 +62,26 @@ def author_dates_match(a, b):
         return False
     return True
 
+
 def flip_name(name):
-    # strip end dots like this: "Smith, John." but not like this: "Smith, J."
+    """
+    Flip author name about the comma, stripping the comma, and removing non
+    abbreviated end dots. Returns name with end dot stripped if no comma+space found.
+    The intent is to convert a Library indexed name to natural name order.
+
+    :param str name: e.g. "Smith, John." or "Smith, J."
+    :rtype: str
+    :return: e.g. "John Smith" or "J. Smith"
+    """
+
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
-
     if name.find(', ') == -1:
         return name
     m = re_marc_name.match(name)
     return m.group(2) + ' ' + m.group(1)
+
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
@@ -119,30 +150,16 @@ def pick_first_date(dates):
 
     return { 'date': fix_l_in_date(' '.join([remove_trailing_number_dot(d) for d in dates])) }
 
-def test_date():
-    assert pick_first_date(["Mrs.", "1839-"]) == {'birth_date': '1839'}
-    assert pick_first_date(["1882-."]) == {'birth_date': '1882'}
-    assert pick_first_date(["1900-1990.."]) == {'birth_date': u'1900', 'death_date': u'1990'}
-    assert pick_first_date(["4th/5th cent."]) == {'date': '4th/5th cent.'}
-
 def strip_accents(s):
-    return normalize('NFKD', unicode(s)).encode('ASCII', 'ignore')
-
-def combinations(items, n):
-    if n==0:
-        yield []
-    else:
-        for i in xrange(len(items)):
-            for cc in combinations(items[i+1:], n-1):
-                yield [items[i]]+cc
+    return normalize('NFKD', six.text_type(s)).encode('ASCII', 'ignore')
 
 re_drop = re.compile('[?,]')
 
 def match_with_bad_chars(a, b):
-    if unicode(a) == unicode(b):
+    if six.text_type(a) == six.text_type(b):
         return True
-    a = normalize('NFKD', unicode(a)).lower()
-    b = normalize('NFKD', unicode(b)).lower()
+    a = normalize('NFKD', six.text_type(a)).lower()
+    b = normalize('NFKD', six.text_type(b)).lower()
     if a == b:
         return True
     a = a.encode('ASCII', 'ignore')
@@ -157,7 +174,7 @@ def accent_count(s):
     return len([c for c in norm(s) if ord(c) > 127])
 
 def norm(s):
-    return normalize('NFC', s) if isinstance(s, unicode) else s
+    return normalize('NFC', s) if isinstance(s, six.text_type) else s
 
 def pick_best_name(names):
     names = [norm(n) for n in names]
@@ -173,43 +190,6 @@ def pick_best_author(authors):
     authors.sort(key=lambda a:accent_count(a['name']), reverse=True)
     assert '?' not in authors[0]['name']
     return authors[0]
-
-def test_pick_best_name():
-    names = [u'Andre\u0301 Joa\u0303o Antonil', u'Andr\xe9 Jo\xe3o Antonil', 'Andre? Joa?o Antonil']
-    best = names[1]
-    assert pick_best_name(names) == best
-
-    names = [u'Antonio Carvalho da Costa', u'Anto\u0301nio Carvalho da Costa', u'Ant\xf3nio Carvalho da Costa']
-    best = names[2]
-    assert pick_best_name(names) == best
-
-def test_pick_best_author():
-    a1 = {u'name': u'Bretteville, Etienne Dubois abb\xe9 de', u'death_date': u'1688', 'key': u'/a/OL6398452A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, Etienne Dubois', u'type': {u'key': u'/type/author'}, }
-    a2 = {u'name': u'Bretteville, \xc9tienne Dubois abb\xe9 de', u'death_date': u'1688', u'key': u'/a/OL4953701A', u'birth_date': u'1650', u'title': u'abb\xe9 de', u'personal_name': u'Bretteville, \xc9tienne Dubois', u'type': {u'key': u'/type/author'}, }
-    assert pick_best_author([a1, a2])['key'] == a2['key']
-
-def test_match_with_bad_chars():
-    samples = [
-        [u'Machiavelli, Niccolo, 1469-1527', u'Machiavelli, Niccol\xf2 1469-1527'],
-        [u'Humanitas Publica\xe7\xf5es', 'Humanitas Publicac?o?es'],
-        [u'A pesquisa ling\xfc\xedstica no Brasil',
-          'A pesquisa lingu?i?stica no Brasil'],
-        [u'S\xe3o Paulo', 'Sa?o Paulo'],
-        [u'Diccionario espa\xf1ol-ingl\xe9s de bienes ra\xedces',
-         u'Diccionario Espan\u0303ol-Ingle\u0301s de bienes rai\u0301lces'],
-        [u'Konfliktunterdru?ckung in O?sterreich seit 1918',
-         u'Konfliktunterdru\u0308ckung in O\u0308sterreich seit 1918',
-         u'Konfliktunterdr\xfcckung in \xd6sterreich seit 1918'],
-        [u'Soi\ufe20u\ufe21z khudozhnikov SSSR.',
-         u'Soi?u?z khudozhnikov SSSR.',
-         u'Soi\u0361uz khudozhnikov SSSR.'],
-        [u'Andrzej Weronski', u'Andrzej Wero\u0144ski', u'Andrzej Weron\u0301ski'],
-    ]
-    for l in samples:
-        for a, b in combinations(l, 2):
-#            print a, len(a)
-#            print b, len(b)
-            assert match_with_bad_chars(a, b)
 
 def tidy_isbn(input):
     output = []
@@ -239,7 +219,7 @@ def tidy_isbn(input):
 def strip_count(counts):
     foo = {}
     for i, j in counts:
-        foo.setdefault(i.rstrip('.').lower() if isinstance(i, basestring) else i, []).append((i, j))
+        foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
     ret = {}
     for k, v in foo.iteritems():
         m = max(v, key=lambda x: len(x[1]))[0]
@@ -248,29 +228,6 @@ def strip_count(counts):
             bar.extend(j)
         ret[m] = bar
     return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
-
-def test_strip_count():
-    input = [
-        ('Side by side', [ u'a', u'b', u'c', u'd' ]),
-        ('Side by side.', [ u'e', u'f', u'g' ]),
-        ('Other.', [ u'h', u'i' ]),
-    ]
-    expect = [
-        ('Side by side', [ u'a', u'b', u'c', u'd', u'e', u'f', u'g' ]),
-        ('Other.', [ u'h', u'i' ]),
-    ]
-    assert strip_count(input) == expect
-
-def test_remove_trailing_dot():
-    data = [
-        ('Test', 'Test'),
-        ('Test.', 'Test'),
-        ('Test J.', 'Test J.'),
-        ('Test...', 'Test...')
-    ]
-    for input, expect in data:
-        output = remove_trailing_dot(input)
-        assert output == expect
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
@@ -287,7 +244,17 @@ def get_title(e):
         title = e['title']
     return title
 
+
 def mk_norm(s):
+    """
+    Normalizes titles and strips ALL spaces and small words
+    to aid with string comparisons of two titles.
+
+    :param str s: A book title to normalize and strip.
+    :rtype: str
+    :return: a lowercase string with no spaces, containg the main words of the title.
+    """
+
     m = re_brackets.match(s)
     if m:
         s = m.group(1)
@@ -299,6 +266,7 @@ def mk_norm(s):
         norm = norm[2:]
     return norm.replace(' ', '')
 
+
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)
     msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
@@ -307,31 +275,3 @@ def error_mail(msg_from, msg_to, subject, body):
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, msg_to, msg)
     server.quit()
-
-def catch_and_mail_exception(func, msg):
-    try:
-        func()
-    except:
-        body = msg + '\n\n' + cgitb.text(sys.exc_info())
-
-        error_mail( 'edward@archive.org', ['edward@archive.org'], \
-            'Open Library script exception', body)
-
-def bad_marc_alert(ia):
-    from pprint import pformat
-    msg_from = 'load_scribe@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad MARC: %s
-
-bad MARC: %s
-
-''' % (msg_from, msg_to, ia, ia)
-
-    import smtplib
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
-    server.quit()
-

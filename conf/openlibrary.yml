@@ -15,7 +15,7 @@ smtp_server: localhost
 dummy_sendmail: True
 debug: True
 
-coverstore_url: http://0.0.0.0:8080/covers/
+coverstore_url: http://0.0.0.0:8081/
 
 state_dir: var/run
 
@@ -26,7 +26,7 @@ admin_password: admin123
 errorlog: /var/log/openlibrary/ol-errors
 login_cookie_name: session
 
-infobase_server: localhost:7000
+infobase_server: web:7000
 
 # contents of this file are assigned to config["infobase"]
 # Path can be relative to this file
@@ -37,7 +37,7 @@ loanstatus_url: http://localhost/
 ia_access_secret: foobar
 
 memcache_servers:
-    - localhost:11211
+    - memcached:11211
 
 plugin_modules:
     - openlibrary
@@ -45,7 +45,7 @@ plugin_modules:
     - infogami.plugins.api
 
 plugin_worksearch:
-    solr: localhost:8983
+    solr: solr:8080
     spellcheck_count: 3
     ebook_count_db_parameters:
         db: openlibrary_ebook_count
@@ -53,28 +53,27 @@ plugin_worksearch:
 
 http_request_timeout: 10
 
-stats_solr: localhost:8983
+stats_solr: solr:8080
 
 features:
-    upstream: enabled
     cache_most_recent: enabled
-    recentchanges_v2: enabled
+    dev: enabled
     history_v2: admin
+    inlibrary: enabled
+    lending_v2: enabled
+    lists: enabled
     merge-authors:
         filter: usergroup
         usergroup: /usergroup/librarians
     merge-editions: admin
-    undo: enabled
-    dev: enabled
-    lists: enabled
-    lending_v2: enabled
+    publishers: enabled
+    recentchanges_v2: enabled
     stats: enabled
     stats-header: enabled
-    inlibrary: enabled
-    support: admin
     superfast: enabled
-    publishers: enabled
-    languages: enabled
+    support: admin
+    undo: enabled
+    upstream: enabled
 
 upstream_to_www_migration: true
 default_template_root: /upstream
@@ -163,8 +162,8 @@ ia_ol_xauth_s3:
     s3_key: XXX
     s3_secret: XXX
 
-ia_loan_api_url: http://127.0.0.1:8080/internal/fake/loans
-ia_xauth_api_url: http://127.0.0.1:8080/internal/fake/xauth
+ia_loan_api_url: http://127.0.0.1/internal/fake/loans
+ia_xauth_api_url: http://127.0.0.1/internal/fake/xauth
 
 internal_tests_api_key: 8oPd1tx747YH374ohs48ZO5s2Nt1r9yD
 ia_availability_api_v1_url: https://archive.org/services/loans/beta/loan/index.php

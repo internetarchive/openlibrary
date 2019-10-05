@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.read_rc import read_rc
 from catalog.infostore import get_site
 from catalog.get_ia import get_from_archive
@@ -34,10 +35,10 @@ for key in site.things({'type': '/type/scan_record'}):
         data = get_data(loc)
         if not data or data.find('icrof') == -1:
             continue
-        print "http://openlibrary.org" + edition_key
-        print "http://openlibrary.org/show-marc/" + loc
+        print("http://openlibrary.org" + edition_key)
+        print("http://openlibrary.org/show-marc/" + loc)
         for tag, tag_line in get_all_tag_lines(data):
             if tag_line.find('icrof') == -1:
                 continue
-            print tag + ":", tag_line[2:-1].replace('\x1f', ' $')
-        print
+            print(tag + ":", tag_line[2:-1].replace('\x1f', ' $'))
+        print()

@@ -1,6 +1,6 @@
 {
   "physical_format": "[microform] /",
-  "pagination": "v. :",
+  "pagination": "v.",
   "title": "The Williams record",
   "work_titles": [
     "Williams record (1975)"

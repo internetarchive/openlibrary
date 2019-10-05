@@ -13,7 +13,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
         $ cover = "//archive.org/download/%s/page/cover_w60_h60.jpg" % doc.get('ocaid')
     $else:
         $ cover = "/images/icons/avatar_book-sm.png"
-    <a href="$book_url"><img itemprop="image" src="$cover" height="70" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
+    <a href="$book_url"><img itemprop="image" src="$cover" alt="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')" title="Cover of: $doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')"/></a>
   </span>
 
 

@@ -1,5 +1,9 @@
+from __future__ import print_function
 from Queue import Queue
-import threading, datetime, re, httplib
+import threading
+import datetime
+import re
+import httplib
 from collections import defaultdict
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
 from urllib import urlopen
@@ -7,9 +11,11 @@ from time import sleep, time
 from lxml.etree import Element, tostring
 from unicodedata import normalize
 
+import six
+
 def add_field(doc, name, value):
     field = Element("field", name=name)
-    field.text = normalize('NFC', unicode(value))
+    field.text = normalize('NFC', six.text_type(value))
     doc.append(field)
 
 solr_host = 'ia331509:8984'
@@ -26,7 +32,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print('bad abbyy:', repr(href, ia))
+            print(('bad abbyy:', repr(href, ia)))
 
 item_queue = Queue(maxsize=10000)
 item_and_host_queue = Queue(maxsize=10000)
@@ -106,16 +112,17 @@ def run_find_item():
 def run_queues():
     live = dict((t.name, t) for t in threading.enumerate())
 
-    for host, queue in host_queues.items():
-        if host in live and live[host].is_alive():
-            continue
-        ia, filename = queue.pop()
-        t = threading.Thread(name=host, target=read_text_from_node, args=(ia, host, filename))
-        t.start()
-        print >> log, ('thread started', host, ia)
-        log.flush()
-        if not queue:
-            del host_queues[host]
+    with open('solr_inside_run_queues_log.txt', 'a') as logfile:
+        for host, queue in host_queues.items():
+            if host in live and live[host].is_alive():
+                continue
+            ia, filename = queue.pop()
+            t = threading.Thread(name=host, target=read_text_from_node, args=(ia, host, filename))
+            t.start()
+            print(('thread started', host, ia), file=logfile)
+            logfile.flush()
+            if not queue:
+                del host_queues[host]
 
 nl_page_count = 'page count: '
 def read_text_from_node(host):
@@ -134,7 +141,7 @@ def read_text_from_node(host):
         assert reply[-1] == '\n'
         page_count = reply[index+len(nl_page_count):-1]
         if not page_count.isdigit():
-            print url
+            print(url)
         assert page_count.isdigit()
         solr_queue.put((ia, body, page_count))
         counter_lock.acquire()
@@ -156,7 +163,7 @@ def find_abbyy(dir_html, ia):
         if href.endswith('abbyy.gz') or href.endswith('abbyy.zip') or href.endswith('abbyy.xml'):
             return href
         elif 'abbyy' in href:
-            print('bad abbyy:', repr(href, ia))
+            print(('bad abbyy:', repr(href, ia)))
 
 
 def index_items():
@@ -219,10 +226,10 @@ def status_thread():
     sleep(1)
     while True:
         run_time = time() - t0
-        print 'run time:         %8.2f minutes' % (float(run_time) / 60)
-        print 'input queue:      %8d' % item_queue.qsize()
-        print 'after find_item:  %8d' % item_and_host_queue.qsize()
-        print 'solr queue:       %8d' % solr_queue.qsize()
+        print('run time:         %8.2f minutes' % (float(run_time) / 60))
+        print('input queue:      %8d' % item_queue.qsize())
+        print('after find_item:  %8d' % item_and_host_queue.qsize())
+        print('solr queue:       %8d' % solr_queue.qsize())
 
         input_counter_lock.acquire()
         rec_per_sec = float(input_count) / run_time
@@ -231,17 +238,17 @@ def status_thread():
 
         sec_left = remain / rec_per_sec
         hours_left = float(sec_left) / (60 * 60)
-        print 'input count:      %8d (%.2f items/second)' % (input_count, rec_per_sec)
-        print '                  %8.2f hours left (%.1f days/left)' % (hours_left, hours_left / 24)
+        print('input count:      %8d (%.2f items/second)' % (input_count, rec_per_sec))
+        print('                  %8.2f hours left (%.1f days/left)' % (hours_left, hours_left / 24))
 
         counter_lock.acquire()
-        print 'items processed:  %8d (%.2f items/second)' % (items_processed, float(items_processed) / run_time)
+        print('items processed:  %8d (%.2f items/second)' % (items_processed, float(items_processed) / run_time))
         counter_lock.release()
         current_book_lock.acquire()
-        print 'current book:', current_book
+        print('current book:', current_book)
         current_book_lock.release()
         solr_ia_status_lock.acquire()
-        print 'most recently feed to solr:', solr_ia_status
+        print('most recently feed to solr:', solr_ia_status)
         solr_ia_status_lock.release()
 
         host_count = 0
@@ -251,9 +258,9 @@ def status_thread():
                 host_count += 1
             qsize = host_queue.qsize()
             queued_items += qsize
-        print 'host queues:      %8d' % host_count
-        print 'items queued:     %8d' % queued_items
-        print
+        print('host queues:      %8d' % host_count)
+        print('items queued:     %8d' % queued_items)
+        print()
         if run_time < 120:
             sleep(1)
         else:

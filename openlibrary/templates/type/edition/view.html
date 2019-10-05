@@ -1,14 +1,15 @@
-$def with (page)
+$def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
+$ ocaid = page.get('ocaid')
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
 $ book_subtitle = page.subtitle if page.get('subtitle') else (work.subtitle if work and work.get('subtitle') else '')
 $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
-$ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
-
+$ meta_cover_url = item_image(page.get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
+$ _x = ctx.setdefault('bodyid', 'book')
 $var title: $title
 
 $code:
@@ -59,68 +60,66 @@ $code:
 
 $def display_value(label, value, itemprop=None):
     $if value:
-        <tr>
-            <td class="title"><span class="title">$label</span></td>
-            $if itemprop:
-                <td><span itemprop="$itemprop" class="object">$:thingrepr(value)</span></td>
-            $else:
-                <td><span class="object">$:thingrepr(value)</span></td>
-        </tr>
+        <dt>$label</dt>
+        $if itemprop:
+            <dd itemprop="$itemprop" class="object">$:thingrepr(value)</dd>
+        $else:
+            <dd class="object">$:thingrepr(value)</dd>
 
 $def display_identifiers(label, ids, itemprop=None):
     $if label != "Goodreads":
         $ all_ids = [-1!=id['value'].find('openlib-') for id in ids]
         $if (True in all_ids) and (1==len(all_ids)):
             $return
-        <tr>
-            <td class="title"><span class="title">$label</span></td>
-            <td class="object"><span class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
-                $for id in ids:
-                    $ sep = cond(loop.last, "", ", ")
-                    $if -1 != id.value.find('openlib-'):
-                        $continue
-                    $if id.url:
-                        <a href="$id.url">$id.value</a>$sep
-                    $else:
-                        ${id.value}$sep
-            </span></td>
-        </tr>
+
+        <dt>$label</dt>
+        <dd class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
+            $for id in ids:
+                $ sep = cond(loop.last, "", ", ")
+                $if -1 != id.value.find('openlib-'):
+                    $continue
+                $if id.url:
+                    <a href="$id.url$('?tag=' + affiliate_id('amazon') if 'amazon.' in id.url else '')">$id.value</a>$sep
+                $else:
+                    ${id.value}$sep
+        </dd>
 
 $def display_goodreads(label, ids):
     $if label == "Goodreads":
-        <table class="meta collapse">
-            <tbody>
-            <tr>
-                <td class="title"><span class="title">$label</span></td>
-                <td class="object">
-                    <span class="object">
-                    $for id in ids:
-                        <a href="$id.url">$id.value</a>
-                    </span>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <dt>$label</dt>
+        $for id in ids:
+            <dd><a href="$id.url">$id.value</a></dd>
 
 $def display_contributor(c):
     <li><span>$c.role</span><br />$c.name </li>
 
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the book on Open Library.")
-$add_metatag(property="twitter:image", content=meta_cover_url)
-
-$add_metatag(property="og:title", content=title_with_site)
-$add_metatag(property="og:type", content="books.book")
-$add_metatag(property="og:image", content=meta_cover_url)
-$add_metatag(property="og:url", content=request.canonical_url)
-$add_metatag(property="og:site_name", content="Open Library")
-$add_metatag(property="og:description", content=description)
-
+$:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
+$if ctx.user and ctx.user.is_admin():
+  <div class="admin-bar">
+    $ work = page.works and page.works[0]
+    $if work:
+      <!-- Add this whole work to staff picks -->
+      <form action="/admin/staffpicks" method="POST">
+        <input type="hidden" value="add" name="action"/>
+        <input type="hidden" name="work_id" value="$(work.key.split('/')[2])"/>
+        <input type="submit" value="Add to Staff Picks"/>
+      </form>
+    $if ocaid:
+      <form method="GET" action="/admin/sync">
+        <input type="hidden" name="edition_id" value="$(page.key.split('/')[2])"/>
+        <input type="submit" value="Sync Archive.org ID"/>
+      </form>
+      <form method="GET" action="https://archive.org/details/$ocaid">
+        <input type="submit" value="View Book on Archive.org"/>
+      </form>
+    $if not work:
+      <strong>Orphaned Edition!</strong>
+  </div>
+
 <div id="contentHead">
+
     <table width="100%">
       <tbody>
         <tr>
@@ -135,19 +134,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <td valign="top" width="100%">
     $:macros.databarView(page)
+
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
-        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <span class="booktitle">$truncate(work_title, 60)</span> found in the catalog.
+        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
-        <br />
-        <div class="shift">
-            $if page.ocaid:
-                An ebook is available for this edition.
-                <a href="#read">Go to the read section to download</a>.
-            $else:
-                No ebook is available for this edition.
-        </div>
     </div>
     </td>
     </tr></tbody></table>
@@ -205,7 +197,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 <ul class="readers-stats">
                   $if rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
                     <li class="avg-ratings">
-                      $:('<span class="star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
+                      $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
                     </li>
                     <li>
                       $rating_stats['num_ratings'] Ratings
@@ -243,12 +235,12 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
           $if work:
             $def render_subjects(label, subjects, prefix=""):
                 $if subjects:
-                    <div class="section">
-                        <h6 class="collapse black uppercase">$label</h6>
-                        <div class="sansserif">
+                    <div class="section link-box">
+                        <h6>$label</h6>
+                        <div><span>
                         $for subject in subjects:
                             <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
-                        </div>
+                        </span></div>
                     </div>
             $:render_subjects("Subjects", work.get_subjects())
             $:render_subjects("People", work.subject_people, prefix="person:")
@@ -256,17 +248,19 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $:render_subjects("Times", work.subject_times, prefix="time:")
 
         </div>
-        <h3 class="collapse">$_("About the Book")</h3>
-          $if page.description:
-            $:sanitize(format(page.description))
-          $elif work and work.description:
-            $:sanitize(format(work.description))
-          $elif not (page.description or page.excerpts or page.first_sentence):
-            <div class="workHelp brown sansserif">
-              There's no description for this book yet. Can
-              you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
-            </div>
 
+        $if page.description or (work and work.description):
+          $if work and work.description:
+            <h3 class="collapse">$_("About the Book")</h3>
+            $:sanitize(format(work.description))        
+          $if page.description:
+            <h3 class="collapse">$_("About the Edition")</h3>
+            $:sanitize(format(page.description))
+        $else:
+          <p class="workHelp">
+            There's no description for this book yet. Can
+            you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
+          </p>
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
             <p>$page.first_sentence</p>
@@ -292,62 +286,55 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
             <div class="section">
-                <h3 class="collapse">$_("Edition Notes")</h3>
+                <h3>$_("Edition Notes")
+                </h3>
                 $if page.notes:
-                    <span class="sansserif">$:format(page.notes)</span>
-                <table class="meta">
-                    <tbody>
-                        $:display_value(_("Series"), page.series)
-                        $:display_value(_("Volume"), page.volume)
-                        $:display_value(_("Genre"), page.genres)
-                        $:display_value(_("Other Titles"), page.other_titles)
-                        $:display_value(_("Copyright Date"), page.copyright_date)
-                        $:display_value(_("Translation Of"), page.translation_of)
-                        $:display_value(_("Translated From"), page.translated_from)
-                    </tbody>
-                </table>
+                    $:format(page.notes)
+                <dl class="meta">
+                    $:display_value(_("Series"), page.series)
+                    $:display_value(_("Volume"), page.volume)
+                    $:display_value(_("Genre"), page.genres)
+                    $:display_value(_("Other Titles"), page.other_titles)
+                    $:display_value(_("Copyright Date"), page.copyright_date)
+                    $:display_value(_("Translation Of"), page.translation_of)
+                    $:display_value(_("Translated From"), page.translated_from)
+                </dl>
             </div>
 
         $ classifications = page.get_classifications().multi_items()
         $if classifications:
             <div class="section">
-                <h3 class="collapse">$_("Classifications")</h3>
-                <table class="meta">
-                <tbody>
+                <h3 class="list-header collapse">$_("Classifications")</h3>
+                <dl class="meta">
                     $for name, values in classifications:
                         $:display_identifiers(values[0].label, values)
-                </tbody>
-                </table>
+                </dl>
             </div>
 
         $if has_any("physical_format", "pagination", "physical_dimensions", "weight"):
             <div class="section">
-            <h3 class="collapse">$_("The Physical Object")</h3>
-            <table class="meta">
-            <tbody>
+            <dl class="meta">
+                <h3 class="list-header collapse">$_("The Physical Object")</h3>
                 $:display_value(_("Format"), page.physical_format)
                 $:display_value(_("Pagination"), page.pagination)
                 $:display_value(_("Number of pages"), page.number_of_pages, itemprop="numberOfPages")
                 $:display_value(_("Dimensions"), page.physical_dimensions)
                 $:display_value(_("Weight"), page.weight)
-            </tbody>
-            </table>
+            </dl>
             </div>
 
         <div class="section">
-            <h3 class="collapse">$_("ID Numbers")</h3>
-            <table class="meta">
-            <tbody>
+            <dl class="meta">
+                <h3 class="list-header collapse">$_("ID Numbers")</h3>
                 $:display_identifiers("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
                 $for name, values in page.get_identifiers().multi_items():
                     $ identifier_label = values[0].label
                     $if not (page.is_in_private_collection() and identifier_label == 'Internet Archive'):
                         $:display_identifiers(identifier_label, values, itemprop=cond(name in ["isbn_10", "isbn_13"], "isbn", None))
-            </tbody>
-            </table>
             $:display_goodreads("Open Library", [storage(url=None, value=page.key.split("/")[-1])])
             $for name, values in page.get_identifiers().multi_items():
                 $:display_goodreads(values[0].label, values)
+            </dl>
         </div>
 
         </div>
@@ -360,6 +347,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     </div>
 
     $ work = page.works and page.works[0]
+
+    $if show_other_editions:
+      <div class="clearfix"></div>
+      $:render_template("type/work/editions_datatable", work)
+
     $:macros.RelatedWorksCarousel(work)
 
     $if ctx.user and ctx.user.is_admin():
@@ -369,7 +361,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     <script type="text/javascript">
     <!--
-    \$(function(){
+    window.q.push(function(){
         \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
         \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
         \$('#wikiselect').focus(function(){\$(this).select();})
@@ -379,8 +371,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
     <div class="hidden">
         <div class="coverFloat" id="wikicode">
             <div class="coverFloatHead">
-                Wikipedia citation
-                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">Close</span></a>
+              <h2>Wikipedia citation</h2>
+              <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">Close</span></a>
             </div>
             <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
             <form method="get">

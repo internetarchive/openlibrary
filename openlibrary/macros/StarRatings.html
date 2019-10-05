@@ -1,7 +1,7 @@
 $def with (work_key, edition_key=None, rating=None)
 
 <form id="ratingsForm" method="POST" action="$(work_key)/ratings.json"
-      roperty="reviewRating" typeof="Rating" vocab="http://schema.org/" typeof="Books">
+      property="reviewRating" typeof="Rating" vocab="http://schema.org/" typeof="Books">
   <meta property="worstRating" content="1"/>
   <meta property="bestRating" content="5"/>
   <input type="hidden" value="$edition_key" name="edition_id"/>

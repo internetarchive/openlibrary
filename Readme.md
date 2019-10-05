@@ -32,50 +32,9 @@ Open Library is an effort started in 2006 to create "one web page for every book
 ### Docker
 **We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
 
+[![Open Library Docker Tutorial](https://user-images.githubusercontent.com/978325/47388313-ada5e800-d6c6-11e8-9501-fc04e3152f20.png)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+
 Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
-
-### Vagrant (Legacy & Windows)
-
-First you need to have installed [Virtualbox](https://www.virtualbox.org/) and [Vagrant](https://www.vagrantup.com/).
-
-Next, fork the [OpenLibrary repo](https://github.com/internetarchive/openlibrary) to your own [Github](https://www.github.com) account and clone your forked repo to your local machine:
-
-```
-git clone git@github.com:YOURACCOUNT/openlibrary.git
-```
-
-Enter the project directory and provision + launch the dev virtual machine instance using vagrant:
-
-```bash
-cd openlibrary
-vagrant up
-```
-
-You can now view your running instance by loading `http://localhost:8080` in a web browser.
-
-You can turn off the virtual machine from the host machine using:
-```
-vagrant halt
-```	
-
-To administrate and ssh into the vagrant dev virtual machine, type:
-
-```
-vagrant ssh
-```
-
-**Note:** <br>
-Remember that, thanks to vagrant and virtual box, your local folder `openlibrary` (where you ran `vagrant up`) contains *exactly* the same files as `/openlibrary` in the dev virtual machine (the one that you login to via `vagrant ssh`).
-
-### Reload vagrant services:
-
-- From within vagrant restart the Open Library service via:
-``` sudo systemctl restart ol-web. ``` <br>
-- If you are not in the vagrant dev virtual machine you can simply run ``` vagrant reload ``` for the same.
-
-### Help!
-
-If running in Vagrant, but services don't seem to have been properly started -- e.g. the site works but you can't login with the default credentials -- try running `vagrant up --provision`.
 
 ### Developer's Guide
 
@@ -99,7 +58,7 @@ OpenLibrary is developed on top of the Infogami wiki system, which is itself bui
 
 - [Overview of Backend Web Technologies](https://openlibrary.org/about/tech)
 
-Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase):
+Once you've read the overview of OpenLibrary Backend technologies, it's highly encouraged you read the developer primer which explains how to use Infogami (and its database, Infobase)
 
 - [Infogami Developer Tutorial](https://openlibrary.org/dev/docs/infogami)
 
@@ -107,11 +66,11 @@ Once you've read the overview of OpenLibrary Backend technologies, it's highly e
 
 Open Library tests can be run using pytest. Kindly look up on our [Testing Document](https://github.com/internetarchive/openlibrary/wiki/Testing) for more details
 
-Inside vagrant, go to the application base directory:
+Run tests while the docker container is running
 
 ```
-cd /openlibrary
-make test
+cd docker/
+docker-compose exec web make test
 ```
 
 ### Integration Tests

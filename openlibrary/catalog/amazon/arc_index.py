@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 arc_dir = '/2/edward/amazon/arc'
@@ -10,7 +11,7 @@ def read_arc(filename):
         line = f.readline()
         if line == '':
             break
-        print >> idx, pos
+        print(pos, file=idx)
         size = int(line[:-1].split(' ')[4])
         f.read(size)
         line = f.readline()
@@ -18,5 +19,5 @@ def read_arc(filename):
     idx.close()
 
 for filename in (i for i in os.listdir(arc_dir) if i.endswith('.arc')):
-    print filename
+    print(filename)
     read_arc(filename)

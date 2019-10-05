@@ -1,4 +1,7 @@
-import web, re, urllib, urllib2
+import web
+import re
+import urllib
+import urllib2
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -7,20 +10,17 @@ import simplejson as json
 from openlibrary.core.lending import get_availability_of_ocaids
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
-from openlibrary.utils import url_quote, read_isbn, escape_bracket
+from openlibrary.utils import url_quote, escape_bracket
+from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
 from unicodedata import normalize
 import logging
 
 ftoken_db = None
 
-from openlibrary.plugins.search.code import search as _edition_search
-
 logger = logging.getLogger("openlibrary.worksearch")
 
 re_to_esc = re.compile(r'[\[\]:]')
 
-class edition_search(_edition_search):
-    path = "/search/edition"
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
@@ -118,7 +118,7 @@ def parse_query_fields(q):
                 v = v[:-len(m.group(0))]
                 op_found = m.group(1)
         if field_name == 'isbn':
-            isbn = read_isbn(v)
+            isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
         yield {'field': field_name, 'value': v.replace(':', '\:')}
@@ -140,7 +140,7 @@ def build_q_list(param):
         elif re_fields.search(q_param):
             q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
         else:
-            isbn = read_isbn(q_param)
+            isbn = normalize_isbn(q_param)
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
@@ -162,7 +162,7 @@ def build_q_list(param):
         check_params = ['title', 'publisher', 'oclc', 'lccn', 'contribtor', 'subject', 'place', 'person', 'time']
         q_list += ['%s:(%s)' % (k, param[k]) for k in check_params if k in param]
         if param.get('isbn'):
-            q_list.append('isbn:(%s)' % (read_isbn(param['isbn']) or param['isbn']))
+            q_list.append('isbn:(%s)' % (normalize_isbn(param['isbn']) or param['isbn']))
     return (q_list, use_dismax)
 
 def parse_json_from_solr_query(url):
@@ -444,14 +444,15 @@ class search(delegate.page):
             raise web.seeother(web.changequery(**params))
 
     def isbn_redirect(self, isbn_param):
-        isbn = read_isbn(isbn_param)
+        isbn = normalize_isbn(isbn_param)
         if not isbn:
             return
         editions = []
-        for f in 'isbn_10', 'isbn_13':
-            q = {'type': '/type/edition', f: isbn}
+        for isbn_len in (10, 13):
+            qisbn = isbn if len(isbn) == isbn_len else opposite_isbn(isbn)
+            q = {'type': '/type/edition', 'isbn_%d' % isbn_len: qisbn}
             editions += web.ctx.site.things(q)
-        if len(editions) == 1:
+        if len(editions):
             raise web.seeother(editions[0])
 
     def GET(self):
@@ -474,7 +475,7 @@ class search(delegate.page):
 
         self.redirect_if_needed(i)
 
-        if 'isbn' in i and all(not v for k, v in i.items() if k != 'isbn'):
+        if 'isbn' in i:
             self.isbn_redirect(i.isbn)
 
         q_list = []
@@ -491,9 +492,11 @@ class search(delegate.page):
             if k in i:
                 v = re_to_esc.sub(lambda m:'\\' + m.group(), i[k].strip())
                 q_list.append(k + ':' + v)
-        return render.work_search(
+        page = render.work_search(
             i, ' '.join(q_list), do_search, get_doc,
             get_availability_of_ocaids, fulltext_search)
+        page.v2 = True
+        return page
 
 
 def works_by_author(akey, sort='editions', page=1, rows=100):
@@ -579,13 +582,17 @@ class improve_search(delegate.page):
     def GET(self):
         i = web.input(q=None)
         boost = dict((f, i[f]) for f in search_fields if f in i)
-        return render.improve_search(search_fields, boost, i.q, simple_search)
+        template = render.improve_search(search_fields, boost, i.q, simple_search)
+        template.v2 = True
+        return template
 
 class advancedsearch(delegate.page):
     path = "/advancedsearch"
 
     def GET(self):
-        return render_template("search/advancedsearch.html")
+        template = render_template("search/advancedsearch.html")
+        template.v2 = True
+        return template
 
 class merge_author_works(delegate.page):
     path = "/authors/(OL\d+A)/merge-works"
@@ -752,7 +759,7 @@ class search_json(delegate.page):
                                                 fields="*")
 
             response = json.loads(reply)['response'] or ''
-        except (ValueError, IOError), e:
+        except (ValueError, IOError) as e:
             logger.error("Error in processing search API.")
             response = dict(start=0, numFound=0, docs=[], error=str(e))
 

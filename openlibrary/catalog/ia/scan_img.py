@@ -1,7 +1,10 @@
+from __future__ import print_function
 import httplib
 import xml.etree.ElementTree as et
-import xml.parsers.expat, socket # for exceptions
-import urllib, re
+import xml.parsers.expat
+import socket # for exceptions
+import urllib
+import re
 from openlibrary.catalog.get_ia import urlopen_keep_trying
 from openlibrary.utils.ia import find_item
 
@@ -34,7 +37,7 @@ def zip_test(ia_host, ia_path, ia, zip_type):
     try:
         assert r1.status in (200, 403, 404)
     except AssertionError:
-        print r1.status, r1.reason
+        print(r1.status, r1.reason)
         raise
     return r1.status
 
@@ -76,7 +79,7 @@ def find_img(item_id):
     (ia_host, ia_path) = find_item(item_id)
 
     if not ia_host:
-        print 'no host', item_id, ia_host
+        print('no host', item_id, ia_host)
         return
     url = 'http://' + ia_host + ia_path + "/" + item_id + "_scandata.xml"
     scandata = None
@@ -94,11 +97,11 @@ def find_img(item_id):
     try:
         status = zip_test(ia_host, ia_path, item_id, zip_type)
     except socket.error:
-        print 'socket error:', ia_host
+        print('socket error:', ia_host)
         bad_hosts.add(ia_host)
         return
     if status in (403, 404):
-        print zip_type, ' not found:', item_id
+        print(zip_type, ' not found:', item_id)
         return
 
     (cover, title) = parse_scandata_xml(scandata)
@@ -126,4 +129,4 @@ def test_find_img2():
 
 def test_no_full_text():
     item_id = 'histoirepopulair02cabeuoft'
-    print find_img(item_id)
+    print(find_img(item_id))

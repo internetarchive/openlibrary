@@ -30,11 +30,9 @@ $var title: $_("Add a book")
             <div class="label"><label for="author">$_("Author")</label> <span class="smaller lighter">$_('Like, "Agatha Christie" or "Jean-Paul Sartre." We\'ll also do a live check to see if we already know the author.')</span></div>
             <div class="input">
                 $if author:
-                    <input type="text" id="author" disabled="disabled" value="$author.name"/>
-                    <input type="hidden" name="author_name" value="$author.name"/>
+                    $:render_template("books/author-autocomplete", [ author ])
                 $else:
-                    <input type="text" name="author_name" id="author" class="author-autocomplete required author" value=""/>
-                <input type="hidden" name="author_key" id="author-key" class="author" value="$(author and author.key)"/>
+                    $:render_template("books/author-autocomplete", [])
             </div>
         </div>
 
@@ -84,3 +82,4 @@ $var title: $_("Add a book")
         </div>
     </form>
 </div>
+

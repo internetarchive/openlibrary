@@ -33,7 +33,7 @@ class TestInvalidationProcessor:
             "key": "/templates/site.tmpl",
             "type": "/type/template"
         }
-        web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 01, 01))
+        web.ctx.site.save(doc, timestamp=datetime.datetime(2010, 1, 1))
 
         hook = invalidation._InvalidationHook("/templates/site.tmpl", cookie_name="invalidation-cookie", expire_time=120)
         hook.on_new_version(web.ctx.site.get(doc['key']))
@@ -134,9 +134,12 @@ class TestInvalidationProcessor:
         assert self.hook.call_count == 0
 
         web.ctx.env['HTTP_COOKIE'] = "invalidation_cookie=" + datetime.datetime.utcnow().isoformat()
+        # Clear parsed cookie cache to force our new value to be parsed
+        if "_parsed_cookies" in web.ctx:
+            del web.ctx._parsed_cookies
         p(lambda: None)
 
-        # cookie is set, hook call is expetected
+        # cookie is set, hook call is expected
         assert self.hook.call_count == 1
         assert self.hook.recent_doc.dict() == web.ctx.site.get("/templates/site.tmpl").dict()
 

@@ -1,5 +1,5 @@
 {
-  "pagination": "iv, 291 leaves :",
+  "pagination": "iv, 291 leaves",
   "title": "1,3-Dipolar cycloadditions of fluorinated allenes and studies of fluorinated trimethylenemethanes",
   "notes": "Typescript.\n\nVita.\n\nThesis (Ph. D.)--University of Florida, 1984.\n\nBibliography: leaves 284-290.",
   "number_of_pages": 291,

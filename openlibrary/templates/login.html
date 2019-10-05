@@ -6,12 +6,6 @@ $var title: $("Log In")
     <h1>$_("Log In")</h1>
 </div>
 
-<script type="text/javascript">
-  //\$().ready(passwordMask);
-  //\$().ready(validateForms);
-  //\$().ready(validateLogin);
-</script>
-
 <div id="contentBody">
   $if not ctx.user:
       <p>Please enter your <a href="https://archive.org">Internet Archive</a> email and password to access your Open Library account.</p>
@@ -34,7 +28,7 @@ $var title: $("Log In")
             </div>
 
             <div class="input">
-              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="email" autocapitalize="off" autocorrect="off"/>
+              <input type="email" class="required" id="username" name="username" value="$(form.username.value or query_param('username'))" placeholder="Email" autocapitalize="off" autocorrect="off"/>
               <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
             </div>
         </div>
@@ -69,5 +63,5 @@ $var title: $("Log In")
             <br/><br/>
             $:_('Not a member of Open Library? <a href="/account/create">Sign up now</a>.')</div>
         </div>
-      </form>
-    </div>
+    </form>
+</div>

@@ -26,7 +26,7 @@ class Task:
 
     Each task should extend this class and implement map and reduce functions.
     """
-    def __init__(self, tmpdir="mapreduce", filecount=100, hashfunc=None):
+    def __init__(self, tmpdir="/tmp/mapreduce", filecount=100, hashfunc=None):
         self.tmpdir = tmpdir
         self.filecount = 100
         self.hashfunc = None

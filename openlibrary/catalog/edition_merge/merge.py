@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
-import MySQLdb, datetime, re, sys
+import MySQLdb
+import datetime
+import re
+import sys
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 from flask import Flask, render_template, request, flash, redirect, url_for, g
@@ -229,18 +232,7 @@ def merge(ia):
     merged = build_merged(editions)
     all_keys = merged.keys()
 
-    wkeys = set()
     works = []
-    if False:
-        for e in editions:
-            for wkey in e.get('works', []):
-                if wkey not in wkeys:
-                    w = ol.get(wkey)
-                    works.append(w)
-                    q = {'type':'/type/edition', 'works':wkey, 'limit': 1000}
-                    work_editions = ol.query(q)
-                    w['number_of_editions'] = len(work_editions)
-                    wkeys.add(wkey)
 
     return render_template('merge.html',
             ia=ia,

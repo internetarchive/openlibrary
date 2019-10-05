@@ -17,6 +17,7 @@ A sample dict looks like one of these:
 {'publishers': [u'Ace Books'], 'pagination': u'271 p. ;', 'title': u'Neuromancer', 'lccn': [u'91174394'], 'notes': u'Hugo award book, 1985; Nebula award ; Philip K. Dick award', 'number_of_pages': 271, 'isbn_13': [u'9780441569595'], 'languages': ['eng'], 'dewey_decimal_class': [u'813/.54'], 'lc_classifications': [u'PS3557.I2264 N48 1984', u'PR9199.3.G53 N49 1984'], 'publish_date': '1984', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1948', 'personal_name': u'Gibson, William', 'name': u'Gibson, William', 'entity_type': 'person'}], 'by_statement': u'William Gibson', 'oclc_numbers': ['24379880'], 'publish_places': [u'New York'], 'isbn_10': [u'0441569595']}
 {'publishers': [u'Grosset & Dunlap'], 'pagination': u'156 p.', 'title': u'Great trains of all time', 'lccn': [u'62051844'], 'number_of_pages': 156, 'languages': ['eng'], 'dewey_decimal_class': [u'625.2'], 'lc_classifications': [u'TF147 .H8'], 'publish_date': '1962', 'publish_country': 'nyu', 'authors': [{'birth_date': u'1894', 'personal_name': u'Hubbard, Freeman H.', 'name': u'Hubbard, Freeman H.', 'entity_type': 'person'}], 'by_statement': u'Illustrated by Herb Mott', 'oclc_numbers': [u'1413013'], 'publish_places': [u'New York']}
 """
+from __future__ import print_function
 
 class import_edition_builder:
 
@@ -72,7 +73,7 @@ class import_edition_builder:
 
     def add(self, key, val, restrict_keys=True):
         if restrict_keys and not key in self.type_dict:
-            print 'import_edition_builder invalid key: ' + key
+            print('import_edition_builder invalid key: ' + key)
             return
 
         if key in self.type_dict:

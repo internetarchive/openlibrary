@@ -2,8 +2,11 @@
 
 Loaded from Infogami plugin mechanism.
 """
-import sys, os
-import logging, logging.config
+from __future__ import print_function
+import sys
+import os
+import logging
+import logging.config
 
 from infogami.utils import template, macro, i18n, delegate
 import infogami
@@ -41,8 +44,8 @@ def setup_logging():
         logconfig = infogami.config.get("logging_config_file")
         if logconfig and os.path.exists(logconfig):
             logging.config.fileConfig(logconfig, disable_existing_loggers=False)
-    except Exception, e:
-        print >> sys.stderr, "Unable to set logging configuration:", str(e)
+    except Exception as e:
+        print("Unable to set logging configuration:", str(e), file=sys.stderr)
         raise
 
 def load_views():

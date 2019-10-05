@@ -1,8 +1,11 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 from time import sleep, time
-import urllib, web, subprocess, sys
-from pprint import pprint
+import urllib
+import web
+import subprocess
+import sys
 from catalog.read_rc import read_rc
 
 rc = read_rc()
@@ -25,12 +28,12 @@ if __name__ == '__main__':
     rows = 1000
     out = open(sys.argv[1], 'w')
     for i in range(20):
-        print i
+        print(i)
         books = list(get_books(rows=rows, start=i * rows))
         if not books:
             break
         for b in books:
-            print >> out, b
+            print(b, file=out)
     out.close()
 
-    print "finished"
+    print("finished")

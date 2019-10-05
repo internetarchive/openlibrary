@@ -1,7 +1,10 @@
+from __future__ import print_function
 from lxml import etree
 import xml.parsers.expat
 from parse import read_edition
 from unicodedata import normalize
+
+import six
 
 slim = '{http://www.loc.gov/MARC21/slim}'
 leader_tag = slim + 'leader'
@@ -12,7 +15,7 @@ collection_tag = slim + 'collection'
 record_tag = slim + 'record'
 
 def norm(s):
-    return normalize('NFC', unicode(s))
+    return normalize('NFC', six.text_type(s))
 
 class BadSubtag:
     pass
@@ -90,7 +93,7 @@ def parse(f):
     rec = xml_rec(f)
     edition = {}
     if rec.has_blank_tag:
-        print 'has blank tag'
+        print('has blank tag')
     if rec.has_blank_tag or not read_edition(rec, edition):
         return {}
     return edition

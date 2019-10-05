@@ -46,7 +46,7 @@ $def render_edition():
         </div>
     </td>
 
-<table id="listResults" class="narrow">
+<table id="listResults" class="list-books">
 $for e in page.get_sorted_editions():
     <tr>$:render_edition(e)</tr>
 </table>

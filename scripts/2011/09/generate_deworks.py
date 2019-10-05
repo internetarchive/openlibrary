@@ -38,6 +38,7 @@ from collections import defaultdict
 import re
 import shutil
 
+import _init_path
 from openlibrary.data import mapreduce
 from openlibrary.utils import compress
 

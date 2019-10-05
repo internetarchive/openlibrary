@@ -1,5 +1,8 @@
 #!/usr/local/bin/python2.5
-import web, dbhash, sys
+from __future__ import print_function
+import web
+import dbhash
+import sys
 import simplejson as json
 from openlibrary.catalog.load import add_keys
 from copy import deepcopy
@@ -77,11 +80,11 @@ class index: # unused
         q = web.input()
         fields = dict((f, q[f].split('_')) for f in dbm_fields if f in q)
         pool = build_pool(fields)
-        print cjson.encode({'fields': fields, 'pool': pool})
+        print(cjson.encode({'fields': fields, 'pool': pool}))
     def POST(self):
         q = cjson.decode(web.data())
         add_to_indexes(q, dbm)
-        print 'success',
+        print('success', end=' ')
 
 class store:
     def GET(self, key):
@@ -106,9 +109,9 @@ if __name__ == '__main__':
     try:
         app.run()
     except:
-        print "closing dbm files"
+        print("closing dbm files")
 #        for v in dbm.itervalues():
 #            v.close()
         store_db.close()
-        print "closed"
+        print("closed")
         raise

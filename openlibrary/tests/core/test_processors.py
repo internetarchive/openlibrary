@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.core.processors import readableurls as processors
 from infogami.infobase import client, common
 import web
@@ -113,7 +114,7 @@ def test_book_urls():
 def test_list_urls():
     f = get_readable_path
 
-    print f(u"/people/joe/lists/OL1L")
+    print(f(u"/people/joe/lists/OL1L"))
 
     assert f(u"/people/joe/lists/OL1L") == (
         u"/people/joe/lists/OL1L",

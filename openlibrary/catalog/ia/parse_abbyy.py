@@ -1,3 +1,4 @@
+from __future__ import print_function
 from lxml.etree import iterparse, tostring
 import re
 
@@ -21,7 +22,7 @@ def abbyy_to_par(f, debug=False):
         if element.tag == page_tag:
             page_count+= 1
             if debug:
-                print 'page', page_count
+                print('page', page_count)
             page_break = True
             for block in element:
                 assert block.tag == block_tag
@@ -36,7 +37,7 @@ def abbyy_to_par(f, debug=False):
                     e_text = block[1]
                     assert e_text.tag == text_tag
                 if debug:
-                    print 'block', block.attrib
+                    print('block', block.attrib)
                 first_line_in_block = True
                 for par in e_text:
                     assert par.tag == par_tag
@@ -50,7 +51,7 @@ def abbyy_to_par(f, debug=False):
                                 first_line_in_block = False
                                 if re_page_num.match(cur.strip()):
                                     if debug:
-                                        print 'page number:', cur
+                                        print('page number:', cur)
                                     continue
                             if formatting[0].attrib['wordStart'] == 'true' and text and text[-1] != ' ':
                                 text += ' '
@@ -81,4 +82,4 @@ def abbyy_to_par(f, debug=False):
 if __name__ == '__main__':
     import sys
     for i in abbyy_to_par(sys.stdin, debug=False):
-        print i.encode('utf-8')
+        print(i.encode('utf-8'))

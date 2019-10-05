@@ -1,4 +1,5 @@
-import web, os
+import web
+import os
 from StringIO import StringIO
 
 arc_dir = '/2/edward/amazon/arc'

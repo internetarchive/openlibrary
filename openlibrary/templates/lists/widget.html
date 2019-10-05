@@ -90,10 +90,10 @@ $jsdef show_list(list):
         </span>
     </li>
 
-$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl):
+$jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
       <div class="icon list hidetool"></div>
-          $if edition and not work_key:
+          $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
             <div class="dropper on">
@@ -168,7 +168,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                   </form>
               </div>
 
-              $if not readinglog_only:
+              $if not readinglogonly:
                 <div class="reading-lists">
                   <p class="reading-list-title">My Reading Lists:</p>
                   <div class="my-lists">
@@ -195,7 +195,6 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                           <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                     </div>
                     <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                      <a href="javascript:;" class="hidden listClick"></a>
                     </p>
                   </div>
                 </div>
@@ -241,7 +240,7 @@ $if include_widget:
     $:macros.StarRatings(work_key, edition_key=edition_key, rating=users_work_rating)
   $if ctx.user or not work_key:
     <div id="widget-add" $:(not work_key and 'class="old-style-lists"')>
-      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url())
+      $:render_widget_add(user_lists, work_key, edition_key, users_work_read_status, ctx.user, page.url(), readinglog_only)
     </div>
   $else:
     <div class="dropit">
@@ -275,7 +274,7 @@ $if ctx.user:
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
                 <h2>Create a new list</h2>
-                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();"><span class="shift">$_("Close")</span></a>
+                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
             </div>
             <form method="post" class="floatform" name="new-list" id="new-list">
             <div class="formElement">
@@ -386,7 +385,7 @@ $if ctx.user:
 
     function reload_widget() {
         \$("#widget-head").html(render_head());
-        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, pageurl));
+        \$("#widget-add").html(render_widget_add(user_lists, work_key, edition_key, users_work_read_status, username, page_url));
 
         \$("#widget-lists").html(render_widget_display(page_lists, 3));
         setup_events();
@@ -470,11 +469,9 @@ $if ctx.user:
     }
 
     function setup_events() {
-        \$(".listClick").colorbox({inline: true, opacity: "0.5", href: "#addList"});
-
         \$("#create-new-list").click(function() {
            close_popup();
-           \$(".listClick").click();
+           \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
         });
 
         \$("a.add-to-list").click(function(event) {
@@ -527,7 +524,7 @@ $if ctx.user:
 
     }
 
-    \$().ready(function(){
+    window.q.push(function(){
         setup_submit_event();
         setup_events();
         setup_dialog();
@@ -545,7 +542,7 @@ $if ctx.user:
         \$.each(listitems, function(idx, itm) { mylist.append(itm); });
         \$('.dropdown').append(listcreate);
 
-        \$('.book-progress-btn, .nostyle-btn').live('click', function(e) {
+        \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
            \$('.book-progress-btn').text("saving...");
         });
 

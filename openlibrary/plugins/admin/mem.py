@@ -4,6 +4,9 @@ import memory
 import web
 import gc
 
+import six
+
+
 def render_template(name, *a, **kw):
     return render[name](*a, **kw)
 
@@ -35,7 +38,7 @@ class Object:
 
         for o in gc.get_referrers(self.obj):
             name = None
-            if type(o) == type({}):
+            if isinstance(o, dict):
                 name = web.dictfind(o, self.obj)
                 for r in gc.get_referrers(o):
                     if getattr(r, "__dict__", None) is o:
@@ -44,7 +47,7 @@ class Object:
             elif isinstance(o, dict): # other dict types
                 name = web.dictfind(o, self.obj)
 
-            if not isinstance(name, basestring):
+            if not isinstance(name, six.string_types):
                 name = None
 
             d.append(Object(o, name))
@@ -122,4 +125,3 @@ class _memory_id:
         if not obj:
             raise web.notfound()
         return render_template("admin/memory/object", obj)
-

@@ -1,5 +1,7 @@
+from __future__ import print_function
 from xml.etree.cElementTree import iterparse, tostring, Element
-import sys, re
+import sys
+import re
 
 ns = '{http://www.abbyy.com/FineReader_xml/FineReader6-schema-v1.xml}'
 page_tag = ns + 'page'
@@ -68,7 +70,7 @@ def par_iter(ia):
                 last_line = par[-1]
                 if end_column_par is not None:
                     if line_end_dot(last_line) and int(par[0].attrib['t']) < int(end_column_par[0].attrib['b']):
-                        print 'end column par'
+                        print('end column par')
                         yield list(end_column_par) + list(par)
                         end_column_par = None
                         continue
@@ -97,5 +99,5 @@ def par_iter(ia):
 for lines in par_iter(sys.argv[1]):
     lines = [l for l in lines if not isinstance(l, PageBreak)]
     text = par_text(lines)
-    print text.encode('utf-8')
-    print
+    print(text.encode('utf-8'))
+    print()

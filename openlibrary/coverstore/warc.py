@@ -88,7 +88,7 @@ class HTTPFile:
         elif whence == 1:
             self.offset += offset
         else:
-            raise "Invalid whence", whence
+            raise Exception("Invalid whence {}".format(whence))
 
     def tell(self):
         return self.offset

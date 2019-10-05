@@ -3,6 +3,8 @@
 import sys
 from threading import Thread, Lock, Condition
 
+from six import reraise
+
 class AsyncChannel:
 	# yes, i believe this is just Queue ... i was new to python and couldn't find it
 
@@ -38,7 +40,7 @@ class ForeignException:
 		self.exc_traceback = exc_traceback
 
 	def re_raise (self):
-		raise self.exc_type, self.exc_value, self.exc_traceback
+		reraise(self.exc_type, self.exc_value, self.exc_traceback)
 
 def ForeignException_extract ():
 	(exc_type, exc_value, exc_traceback) = sys.exc_info()

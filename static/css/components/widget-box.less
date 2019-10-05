@@ -1,0 +1,29 @@
+/**
+ * WidgetBox
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#widgetbox
+ */
+.widget-box {
+  .head {
+    > div {
+      color: @olive!important;
+      font-size: 10px;
+    }
+  }
+  ul,
+  // FIXME: The unordered class should be replaced with the semantic
+  // ul tag given this means the same thing!
+  .unordered {
+    margin-top: 10px;
+    line-height: 150%;
+    > * {
+      font-size: 13px;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .widget-box {
+    float:left;
+    width:282px;
+  }
+}

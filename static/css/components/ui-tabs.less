@@ -1,13 +1,18 @@
+@import (less) "../less/z-index.less";
+/**
+ * TabPanel
+ * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#tabspanel
+ */
+
 .ui-tabs {
   &-nav,
   &-panel {
-    font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif;
+    font-family: @lucida_sans_serif-1;
   }
 
   &-nav {
     list-style: none !important;
-    margin-bottom: -3px !important;
-    margin-left: 15px !important;
+    margin: 0 0 18px !important;
     clear: right;
     &:after { /* clearing without presentational markup, IE gets extra treatment */
       display: block;
@@ -16,7 +21,6 @@
     }
     li {
       list-style: none !important;
-      float: left;
       margin: 0 0 0 1px;
       min-width: 54px; /* be nice to Opera */
     }
@@ -27,11 +31,11 @@
       background: @white;
       border-bottom: 3px solid @lightest-grey;
       padding: 4px 8px 3px;
-      margin: 8px 3px 0;
       text-decoration: none;
       text-transform: uppercase;
       white-space: nowrap; /* required in IE 6 */
       outline: 0; /* prevent dotted border in Firefox */
+      /* stylelint-disable max-nesting-depth */
       &:link,
       &:visited {
         color: @link-blue;
@@ -40,26 +44,25 @@
         color: @link-blue;
         text-decoration: underline;
       }
+      /* stylelint-enable max-nesting-depth */
     }
-    .ui-tabs-selected {
+    /* stylelint-disable selector-max-specificity */
+    .ui-tabs-active {
+
+      /* stylelint-disable max-nesting-depth */
       a {
-        margin: 0 3px !important;
-        padding: 3px 11px;
-        z-index: 2000;
         &:link,
         &:visited { /* @ Opera, use pseudo classes otherwise it confuses cursor... */
           background: @lightest-grey;
-          padding: 8px 11px 3px;
           border: 1px solid @lightest-grey;
           border-bottom: 3px solid @lightest-grey;
           color: @teal;
-          text-transform: capitalize !important;
-          font-size: 1.125em !important;
-          margin: 0 3px;
           cursor: default;
         }
       }
+      /* stylelint-enable max-nesting-depth */
     }
+    /* stylelint-disable no-descending-specificity */
     a:hover,
     a:focus,
     a:active,
@@ -68,6 +71,8 @@
     .ui-tabs-deselectable a:active { /* @ Opera, we need to be explicit again here now... */
       cursor: pointer;
     }
+    /* stylelint-enable no-descending-specificity */
+    /* stylelint-enable selector-max-specificity */
   }
   &-disabled {
     opacity: .4;
@@ -75,15 +80,26 @@
   }
   &-panel {
     border: 3px solid @lightest-grey;
-    padding: 15px 30px 20px !important;
     background: @white;
     /* declare background color for container to avoid distorted fonts in IE while fading */
   }
   &-loading {
     em {
       padding: 0 0 0 20px;
-      background: url(loading.gif) no-repeat 0 50%;
     }
+  }
+}
+
+// These rules apply within overlays
+// e.g. when you click "change cover" on a books page
+// Need to investigate whether these can be generalised somehow.
+.floater {
+  .ui-tabs-panel {
+    border: none;
+    border-top: 3px solid @lightest-grey;
+    padding: 15px 30px !important;
+    background: @white;
+    /* declare background color for container to avoid distorted fonts in IE while fading */
   }
 }
 
@@ -96,4 +112,33 @@
   /* @ IE 7 Standards Mode - do not group selectors,
   otherwise IE 6 will ignore complete rule (because of the unknown + combinator)... */
   display: inline-block;
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .tabs-panel {
+    padding: 15px 30px 20px !important;
+  }
+  .ui-tabs-nav {
+    margin-bottom: -3px !important;
+    li {
+      float: left;
+    }
+    a {
+      margin: 8px 3px 0;
+    }
+    .ui-tabs-active {
+      a {
+        padding: 2px 8px 3px;
+      }
+    }
+  }
+}
+
+/* Caution! Ensure accessibility in print and other media types... */
+@media projection, screen, print {
+  /* Use class for showing/hiding tab content,
+  so that visibility can be better controlled in different media types... */
+  .ui-tabs-hide {
+    display: none;
+  }
 }

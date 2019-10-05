@@ -1,5 +1,9 @@
+from __future__ import print_function
 from catalog.read_rc import read_rc
-import web, urllib2, sys, os.path
+import web
+import urllib2
+import sys
+import os.path
 from time import time
 
 rc = read_rc()
@@ -21,7 +25,7 @@ for i, row in enumerate(isbn_iter):
     url = 'http://www.amazon.com/dp/other-editions/' + isbn
     try:
         page = urllib2.urlopen(url).read()
-    except urllib2.HTTPError, error:
+    except urllib2.HTTPError as error:
         if error.code != 404:
             raise
         page = ''
@@ -29,4 +33,4 @@ for i, row in enumerate(isbn_iter):
     if i % chunk == 0:
         t1 = time() - t0
         rec_per_sec = float(i) / float(t1)
-        print "%s %s %.2f rec/sec" % (url, isbn, rec_per_sec)
+        print("%s %s %.2f rec/sec" % (url, isbn, rec_per_sec))

@@ -1,8 +1,11 @@
 import web
 import simplejson
-import babel, babel.core, babel.dates
+import babel
+import babel.core
+import babel.dates
 from UserDict import DictMixin
 from collections import defaultdict
+import re
 import random
 import urllib
 import urllib2
@@ -12,6 +15,8 @@ import gzip
 import StringIO
 import logging
 from HTMLParser import HTMLParser
+
+import six
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -58,7 +63,7 @@ class MultiDict(DictMixin):
         if values:
             return values[-1]
         else:
-            raise KeyError, key
+            raise KeyError(key)
 
     def __setitem__(self, key, value):
         self._items.append((key, value))
@@ -319,11 +324,6 @@ def get_history(page):
 
     return h
 
-    if 'history_v2' in web.ctx.features:
-        return get_history_v2(page)
-    else:
-        return get_history_v1(page)
-
 @public
 def get_version(key, revision):
     try:
@@ -381,11 +381,11 @@ class Metatag:
         self.attrs = attrs
 
     def __str__(self):
-        attrs = " ".join('%s="%s"' % (web.websafe(k), web.websafe(v)) for k, v in self.attrs.items())
-        return "<%s %s />" % (self.tag, attrs)
+        attrs = ' '.join('%s="%s"' % (k, websafe(v).encode('utf8')) for k, v in self.attrs.items())
+        return '<%s %s />' % (self.tag, attrs)
 
     def __repr__(self):
-        return "Metatag(%s)" % str(self)
+        return 'Metatag(%s)' % str(self)
 
 @public
 def add_metatag(tag="meta", **attrs):
@@ -394,7 +394,7 @@ def add_metatag(tag="meta", **attrs):
 
 @public
 def url_quote(text):
-    if isinstance(text, unicode):
+    if isinstance(text, six.text_type):
         text = text.encode('utf8')
     return urllib.quote_plus(text)
 
@@ -503,12 +503,12 @@ def get_markdown(text, safe_mode=False):
     return md
 
 
-class HTML(unicode):
+class HTML(six.text_type):
     def __init__(self, html):
-        unicode.__init__(self, web.safeunicode(html))
+        six.text_type.__init__(self, web.safeunicode(html))
 
     def __repr__(self):
-        return "<html: %s>" % unicode.__repr__(self)
+        return "<html: %s>" % six.text_type.__repr__(self)
 
 _websafe = web.websafe
 def websafe(text):
@@ -670,7 +670,13 @@ _get_blog_feeds = cache.memcache_memoize(_get_blog_feeds, key_prefix="upstream.g
 
 def get_donation_include(include):
     web_input = web.input()
-    url_banner_source = "https://archive.org/includes/donate.php"
+
+    # The following allows archive.org staff to test banners without
+    # needing to reload openlibrary services:
+    dev_host = web_input.pop("dev_host", "")  # e.g. `www-user`
+    if dev_host and re.match('^[a-zA-Z0-9-.]+$', dev_host):
+        dev_host += "."   # e.g. `www-user.`
+    url_banner_source = "https://%sarchive.org/includes/donate.php" % dev_host
     param = '?platform=ol'
     if 'ymd' in web_input:
         param += '&ymd=' + web_input.ymd

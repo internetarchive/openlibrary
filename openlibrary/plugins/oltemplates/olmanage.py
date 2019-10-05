@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 
+from __future__ import print_function
 import os
 import urllib
 import simplejson
@@ -21,7 +22,7 @@ def to_local_path(path):
     elif path.startswith('/css'):
         return path[1:]
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def to_server_path(path):
     """
@@ -37,7 +38,7 @@ def to_server_path(path):
     elif path.startswith('css/'):
         return '/' + path
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def jsonget(url):
     return simplejson.loads(urllib.urlopen(url).read())
@@ -50,7 +51,7 @@ def thing2data(d):
     if d['type']['key'] == '/type/rawtext':
         return d['body']['value']
     else:
-        error
+        raise ValueError("Unrecognised path: {}".format(path))
 
 def update_thing(d, filename):
     data = open(filename).read()
@@ -62,7 +63,7 @@ def update_thing(d, filename):
         elif filename.startswith('css'):
             d = {'type': '/type/rawtext', 'content_type': 'text/css'}
         else:
-            error
+            raise ValueError("Unrecognised filename: {}".format(filename))
         d['key'] = to_server_path(filename)
 
     if d['type'] == '/type/template':
@@ -72,8 +73,7 @@ def update_thing(d, filename):
     elif d['type'] == '/type/rawtext':
         d['body'] = data
     else:
-        print d
-        error
+        raise ValueError("Unrecognised thing: {}".format(d))
     return d
 
 def olget(server, key):
@@ -91,7 +91,7 @@ def get_ol(server):
     return ol
 
 def olput(server, key, filename, comment):
-    print "olput", server, repr(key), repr(comment)
+    print("olput", server, repr(key), repr(comment))
     def get(key):
         try:
             return ol.get(key)
@@ -100,7 +100,7 @@ def olput(server, key, filename, comment):
 
     ol = get_ol(server)
     d = update_thing(get(key), filename)
-    print ol.save(key, d, comment=comment)
+    print(ol.save(key, d, comment=comment))
 
 def find_files(dir):
     """Find all files in the given dir.
@@ -119,18 +119,18 @@ def write(path, data):
     f.close()
 
 def pull_one(server, filename):
-    print 'pull', filename
+    print('pull', filename)
     key = to_server_path(filename)
     data = olget(server, key)
     write(filename, data)
 
 def push_one(server, filename, comment=None):
-    print 'push', filename
+    print('push', filename)
     key = to_server_path(filename)
     olput(server, key, filename, comment=comment)
 
 def diff_one(server, filename):
-    print 'diff', filename
+    print('diff', filename)
     key = to_server_path(filename)
     data = olget(server, key)
     write('/tmp/server-file', data)
@@ -163,7 +163,7 @@ def pullall(options, *args):
 
     for d in pages:
         path = os.path.join(options.output, to_local_path(d['key']))
-        print 'writing', path
+        print('writing', path)
         write(path, thing2data(d))
 
 def get_templates(server):
@@ -198,7 +198,7 @@ def pushall(options, *args):
             query.append(d)
 
     for q in query:
-        print q['key']
+        print(q['key'])
 
     get_ol(options.server).save_many(query, comment=options.message)
 

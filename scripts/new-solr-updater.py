@@ -6,13 +6,13 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-
 import _init_path
 
 import yaml
 import logging
 import json
-import urllib, urllib2
+import urllib
+import urllib2
 import argparse
 import datetime
 import time
@@ -31,15 +31,16 @@ LOAD_IA_SCANS = False
 COMMIT = True
 args = {}
 
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config')
+    parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
     parser.add_argument('--state-file', default="solr-update.state")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
     parser.add_argument('--no-commit', dest="commit", action="store_false", default=True)
-    parser.add_argument('--monkeypatch', action='store_true', default=False, help='Monkey patch solr updater to make it run faster.')
     return parser.parse_args()
 
 def read_state_file(path):
@@ -168,7 +169,6 @@ def update_keys(keys):
     update_work.load_configs(args.ol_url, args.config, 'default')
 
     keys = (k for k in keys if k.count("/") == 2 and k.split("/")[1] in ["books", "authors", "works"])
-    update_work.clear_monkeypatch_cache(max_size=10000)
 
     count = 0
     for chunk in web.group(keys, 100):
@@ -212,17 +212,25 @@ class Solr:
         update_work.solr_update(['<commit/>'])
         logger.info("END commit")
 
+
 def process_args(args):
+    if args.debugger:
+        import ptvsd
+
+        logger.info("Enabling debugger attachment (attach if it hangs here)")
+        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        logger.info("Waiting for debugger to attach...")
+        ptvsd.wait_for_attach()
+        logger.info("Debugger attached to port 3000")
+
     # Sometimes archive.org requests blocks forever.
     # Setting a timeout will make the request fail instead of waiting forever.
     socket.setdefaulttimeout(args.socket_timeout)
 
-    if args.monkeypatch:
-        update_work.monkeypatch(args.config)
-
     global LOAD_IA_SCANS, COMMIT
     LOAD_IA_SCANS = args.load_ia_scans
     COMMIT = args.commit
+
 
 def main():
     global args
@@ -239,7 +247,7 @@ def main():
         host = web.lstrips(args.ol_url, "http://").strip("/")
         update_work.set_query_host(host)
 
-    print str(args)
+    logger.info(str(args))
     logger.info("loading config from %s", args.config)
     load_config(args.config)
 
@@ -272,6 +280,7 @@ def main():
         if count == 0:
             logger.debug("No more log records available, sleeping...")
             time.sleep(5)
+
 
 if __name__ == "__main__":
     main()

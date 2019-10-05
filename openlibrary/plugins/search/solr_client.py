@@ -1,15 +1,17 @@
 #!/usr/bin/python
-# from __future__ import with_statement
 from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
-import os, re
+import os
+import re
 from collections import defaultdict
 import cgi
 import web
 import simplejson
 from facet_hash import facet_token
 import pdb
+
+import six
 
 php_location = "/petabox/setup.inc"
 
@@ -58,7 +60,7 @@ class PetaboxQueryProcessor:
                      (php_location, qhex))
         aq = f.read()
         if aq and aq[0] == '\n':
-            raise SolrError, ('invalid response from basic query conversion', aq, php_location)
+            raise SolrError('invalid response from basic query conversion', aq, php_location)
 
         self.cache[query] = aq
         return aq
@@ -101,9 +103,9 @@ class Solr_result(object):
             w = result_xml.encode('utf-8')
             def tx(a): return (type(a), len(a))
             et.parse(StringIO(w))
-        except SyntaxError, e:
+        except SyntaxError as e:
             ptb = traceback.extract_stack()
-            raise SolrError, (e, result_xml, traceback.format_list(ptb))
+            raise SolrError(e, result_xml, traceback.format_list(ptb))
         range_info = et.find('info').find('range_info')
 
         def gn(tagname):
@@ -129,9 +131,9 @@ class SR2(Solr_result):
             self.contained_in_this_set = len(r['docs'])
             self.result_list = list(d['identifier'] for d in r['docs'])
             self.raw_results = r['docs']
-        except Exception, e:
+        except Exception as e:
             ptb = traceback.extract_stack()
-            raise SolrError, (e, result_json, traceback.format_list(ptb))
+            raise SolrError(e, result_json, traceback.format_list(ptb))
 
 # Solr search client; fancier version will have multiple persistent
 # connections, etc.
@@ -184,7 +186,7 @@ class Solr_client(object):
         # need to add an LRU cache for performance.  @@
 
         if not re.match('^[a-z]+$', token):
-            raise SolrError, 'invalid facet token'
+            raise SolrError('invalid facet token')
         m = simplejson.loads(self.raw_search('facet_tokens:%s'% token,
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
@@ -193,7 +195,7 @@ class Solr_client(object):
                 kfs = k in facet_set
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())
-                for v in map(unicode, vvx):
+                for v in map(six.text_type, vvx):
                     if facet_token(k,v) == token:
                         return (k,v)
         return None
@@ -211,7 +213,7 @@ class Solr_client(object):
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
         # return list of document id's
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s&wt=json&fl=*'% \
@@ -222,7 +224,7 @@ class Solr_client(object):
             py = ru.read()
             ru.close()
         except IOError:
-            raise SolrError, "Search temporarily unavailable, please try later"
+            raise SolrError("Search temporarily unavailable, please try later")
         return SR2(py)
 
     advanced_search = search
@@ -237,8 +239,8 @@ class Solr_client(object):
         e = ElementTree()
         try:
             e.parse(StringIO(result_list))
-        except SyntaxError, e:
-            raise SolrError, e
+        except SyntaxError as e:
+            raise SolrError(e)
 
         total_nbr_text = e.find('info/range_info/total_nbr').text
         # total_nbr_text = e.find('result').get('numFound')  # for raw xml
@@ -249,7 +251,7 @@ class Solr_client(object):
             for d in r.find('metadata'):
                 for x in list(d.getiterator()):
                     if x.tag == "identifier":
-                        xid = unicode(x.text).encode('utf-8')
+                        xid = six.text_type(x.text).encode('utf-8')
                         if xid.startswith('OCA/'):
                             xid = xid[4:]
                         elif xid.endswith('.txt'):
@@ -289,8 +291,8 @@ class Solr_client(object):
         XML = ElementTree()
         try:
             XML.parse(StringIO(page_hits))
-        except SyntaxError, e:
-            raise SolrError, e
+        except SyntaxError as e:
+            raise SolrError(e)
         page_ids = list(e.text for e in XML.getiterator('identifier'))
         return [extract(x)[1] for x in page_ids]
 
@@ -333,9 +335,9 @@ class Solr_client(object):
         try:
             # print >> web.debug, '*** parsing result_set=', result_set
             h1 = simplejson.loads(result_set)
-        except SyntaxError, e:   # we got a solr stack dump
+        except SyntaxError as e:   # we got a solr stack dump
             # print >> web.debug, '*** syntax error result_set=(%r)'% result_set
-            raise SolrError, (e, result_set)
+            six.reraise(SolrError, e, result_set)
 
         docs = h1['response']['docs']
         r = facet_counts(docs, facet_list)
@@ -345,7 +347,7 @@ class Solr_client(object):
         # raw search: directly post a Solr search which uses fieldnames etc.
         # return the raw xml or json result that comes from solr
         # need to refactor this class to combine some of these methods @@
-        assert type(query) == str
+        assert isinstance(query, str)
 
         server_url = 'http://%s:%d/solr/select' % self.server_addr
         query_url = '%s?q=%s'% (server_url, self.__query_fmt(query, **params))
@@ -363,14 +365,16 @@ class Solr_client(object):
         # search query into an advanced (i.e. expanded) query.  "Basic" searches
         # can actually use complicated syntax that the PHP script transforms
         # by adding search weights, range expansions, and so forth.
-        assert type(query)==str         # not sure what to do with unicode @@
+        assert isinstance(query, str)         # not sure what to do with unicode @@
 
         bquery = self.basic_query(query)
         # print >> web.debug, '* basic search: query=(%r)'% bquery
         return self.advanced_search(bquery, **params)
 
-# get second element of a tuple
-def snd((a,b)): return b
+def snd(a__b):
+    """Get second element of a tuple."""
+    (a, b) = a__b
+    return b
 
 def facet_counts(result_list, facet_fields):
     """Return list of facet counts for a search result set.
@@ -415,7 +419,7 @@ def facet_counts(result_list, facet_fields):
                 facets_k[x] += 1
 
     return filter(snd, ((f, sorted(facets[f].items(),
-                                   key=lambda (a,b): (-b,a)))
+                                   key=lambda a_b: (-a_b[1],a_b[0])))
                         for f in facet_fields))
 
 if __name__ == '__main__':

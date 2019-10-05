@@ -38,7 +38,7 @@ def fulltext_search(q, page=1, limit=100):
     if 'error' not in ia_results and ia_results['hits']:
         hits = ia_results['hits'].get('hits', [])
         ocaids = [hit['fields'].get('identifier', [''])[0] for hit in hits]
-        availability = get_availability_of_ocaids(ocaids)                
+        availability = get_availability_of_ocaids(ocaids)
         if 'error' in availability:
             return []
         editions = web.ctx.site.get_many([
@@ -46,9 +46,10 @@ def fulltext_search(q, page=1, limit=100):
             for ocaid in availability
             if availability[ocaid].get('openlibrary_edition')])
         for ed in editions:
-            idx = ocaids.index(ed.ocaid)
-            ia_results['hits']['hits'][idx]['edition'] = ed
-            ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
+            if ed.ocaid in ocaids:
+                idx = ocaids.index(ed.ocaid)
+                ia_results['hits']['hits'][idx]['edition'] = ed
+                ia_results['hits']['hits'][idx]['availability'] = availability[ed.ocaid]
     return ia_results
 
 

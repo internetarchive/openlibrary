@@ -5,8 +5,10 @@ ENV LANG en_US.UTF-8
 # required for postgres
 ENV LC_ALL POSIX
 
-# add openlibrary user
-RUN groupadd -r openlibrary && useradd --no-log-init -r -g openlibrary openlibrary
+# add openlibrary users
+RUN groupadd --system openlibrary \
+  && useradd --no-log-init --system --gid openlibrary openlibrary \
+  && useradd --no-log-init --system --gid openlibrary solrupdater
 
 RUN apt-get -qq update && apt-get install -y \
     nginx \
@@ -14,13 +16,12 @@ RUN apt-get -qq update && apt-get install -y \
     postgresql \
     build-essential \
     git-core \
-    memcached \
     libpq-dev \
     libxml2-dev \
     libxslt-dev \
+    libffi-dev \
     curl \
     screen \
-    npm \
     python-dev \
     python-pip \
     libgeoip-dev \
@@ -28,7 +29,9 @@ RUN apt-get -qq update && apt-get install -y \
     python-psycopg2 \
     python-yaml
 
-RUN npm install less -g && ln -s /usr/bin/nodejs /usr/bin/node
+# Install LTS version of node.js
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+    && apt-get install -y nodejs
 
 # enable users to bind to port 80
 RUN touch /etc/authbind/byport/80 && chmod 777 /etc/authbind/byport/80
@@ -40,10 +43,16 @@ RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/si
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
 
-COPY --chown=openlibrary:openlibrary . /openlibrary
+RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
 WORKDIR /openlibrary
 
-RUN pip install -r requirements_common.txt
+COPY requirements*.txt ./
+RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
+
+COPY package*.json ./
+RUN npm install && npm install -g less
+
+COPY --chown=openlibrary:openlibrary . /openlibrary
 
 USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami
@@ -52,5 +61,5 @@ RUN make
 
 # Expose Open Library and Infobase
 EXPOSE 80 7000
-CMD authbind --deep scripts/openlibrary-server conf/openlibrary-docker.yml \
+CMD authbind --deep scripts/openlibrary-server conf/openlibrary.yml \
     --gunicorn --workers 4 --timeout 180 --bind :80

@@ -1,5 +1,6 @@
 """Language pages
 """
+from __future__ import print_function
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
@@ -20,16 +21,6 @@ def get_language_name(code):
 
 class languages(subjects.subjects):
     path = '(/languages/[^_][^/]*)'
-
-    def GET(self, key):
-        page = subjects.get_subject(key, details=True)
-        page.name = get_language_name(key.split("/")[-1])
-
-        if page.work_count == 0:
-            web.ctx.status = "404 Not Found"
-            return render_template('languages/notfound.tmpl', key)
-
-        return render_template("languages/view", page)
 
     def is_enabled(self):
         return "languages" in web.ctx.features
@@ -68,11 +59,13 @@ class index(delegate.page):
         result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]
-        print >> web.debug, languages[:10]
-        return render_template("languages/index", languages)
+        print(languages[:10], file=web.debug)
+        page = render_template("languages/index", languages)
+        page.v2 = True
+        return page
 
     def is_enabled(self):
-        return "languages" in web.ctx.features
+        return True
 
 class language_search(delegate.page):
     path = '/search/languages'

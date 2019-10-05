@@ -9,6 +9,7 @@
  * - openlibrary/templates/borrow_admin.html
  */
 
+// stylelint-disable selector-max-specificity
 #borrowTable {
   table {
     td {
@@ -16,6 +17,7 @@
       border-bottom: 1px solid @beige-three;
       vertical-align: top;
 
+      // stylelint-disable max-nesting-depth
       &.actions {
         padding: 15px 0;
         font-size: .75em;
@@ -46,6 +48,7 @@
         font-size: .75em;
         padding: 15px;
       }
+      // stylelint-enable max-nesting-depth
     }
     div.date {
       font-size: .75em;

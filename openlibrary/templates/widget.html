@@ -1,5 +1,5 @@
 $def with (item=None)
-
+$# Template for widget displayed at /books/OL9737752M/The_Odyssey/widget
 $ cover_url = ("//covers.openlibrary.org/w/id/%s-M.jpg" % item['covers'][0]) if len(item.get('covers', [])) else ""
 $ canonical_url = lambda uri: '//%s%s' % (ctx.site, uri)
 $ book_status = item["availability"]["status"]

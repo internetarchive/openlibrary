@@ -1,6 +1,7 @@
 from setuptools import setup, find_packages
-import glob, os
-from stat import *
+import glob
+import os
+from stat import ST_MODE, S_IEXEC, S_ISDIR
 
 def executable(path):
     st = os.stat(path)[ST_MODE]
@@ -10,7 +11,7 @@ dependencies = """
 Babel
 PIL
 argparse
-BeautifulSoup
+beautifulsoup4
 DBUtils
 genshi
 gunicorn

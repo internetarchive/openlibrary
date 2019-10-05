@@ -1,5 +1,6 @@
 """Spam control using akismet api.
 """
+from __future__ import print_function
 import socket
 
 # akismet module changes socket default timeout.
@@ -64,7 +65,7 @@ class hooks(client.hook):
         spam = api.comment_check(web.safestr(comment), data)
         if spamlog:
             f = open(spamlog, 'a')
-            print >> f, spam, data
+            print(spam, data, file=f)
             f.close()
 
         if spam:

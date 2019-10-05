@@ -1,8 +1,10 @@
+from __future__ import print_function
 from py.test import config
 import web
 import simplejson
 
-import urllib, urllib2
+import urllib
+import urllib2
 import cookielib
 
 def pytest_funcarg__config(request):
@@ -35,7 +37,7 @@ class ListAPI:
     def login(self):
         data = dict(username=self.username, password=self.password)
         self.urlopen("/account/login", data=urllib.urlencode(data), method="POST")
-        print self.cookiejar
+        print(self.cookiejar)
 
     def create_list(self, data):
         json = simplejson.dumps(data)

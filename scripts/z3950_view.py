@@ -1,7 +1,8 @@
 import web
 from PyZ3950 import zoom
 from lxml import etree
-import sys, re
+import sys
+import re
 from urllib import urlopen
 from openlibrary.catalog.marc.html import html_record
 from openlibrary.catalog.marc import xml_to_html

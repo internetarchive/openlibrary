@@ -3,7 +3,7 @@ $def with (page)
 $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
     <script type="text/javascript">
     // <!--
-    \$().ready(function() {
+    window.q.push(function() {
         if ("$query_param('merge', 'false')" == "true") {
             \$("#preMerge").parent().andSelf().show();
 
@@ -41,7 +41,7 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
 
 $ title = page.get('name', 'name missing')
 $ title_with_site = title + " | Open Library"
-$ meta_photo_url = item_image(page.get_photo_url("M"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
+$ meta_photo_url = item_image(page.get_photo_url("L"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
 $var title: $title
 $var history: $page.history
@@ -53,16 +53,10 @@ $ book_list_excerpt = ''
 $if books and books.works:
     $ book_titles_excerpt = [work.title for work in books.works[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
-$ description = "Books by " + page.get("name", "") + ', ' + book_list_excerpt
+$ description = "Author of " + book_list_excerpt
 $putctx("description", description)
 
 $ library = (get_library() if 'inlibrary' in ctx.features else None)
-
-$add_metatag(property="twitter:card", content="summary")
-$add_metatag(property="twitter:site", content="@openlibrary")
-$add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the author on Open Library.")
-$add_metatag(property="twitter:image", content=meta_photo_url)
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.author")
@@ -89,15 +83,15 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 <script type="text/javascript">
 <!--
-\$().ready(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addImage"});});
+window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addImage"});});
 //-->
 </script>
 
 <div id="contentBody">
 
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':
-       <div class="message hidden">
-            <div id="preMerge" class="hidden">
+       <div class="message" style="display: none;">
+            <div id="preMerge" style="display: none;">
                 <p class="larger collapse"><strong>Merging Authors...</strong></p>
                 <p class="collapse adjust"><img src="/images/ajax-loader-bar.gif" width="220" height="19" alt="In progress..."/></p>
                 <p class="smaller lightgreen collapse">Duplicates</p>
@@ -111,13 +105,13 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                     </ul>
                 </p>
             </div>
-            <div id="postMerge" class="hidden">
+            <div id="postMerge" style="display: none;">
                 <p class="right small"><b><a href="$page.key">Refresh the page</a>?</b></p>
                 <p class="larger collapse"><strong>Success!</strong></p>
                 <p class="small collapse">OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i></p>
             </div>
 
-            <div id="errorMerge" class="hidden">
+            <div id="errorMerge" style="display: none;">
                 <p class="larger collapse"><strong>Argh!</strong></p>
                 <p class="small collapse">That merge didn't work. It's our fault, and we've made a note of it.</p>
             </div>
@@ -170,7 +164,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 
                 <div id="searchResults">
-                    <ul id="siteSearch">
+                    <ul id="siteSearch" class="list-books">
                       $for doc in books.works:
                          $:macros.SearchResultsWork(doc)
                     </ul>
@@ -204,10 +198,8 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <!-- /SUBJECTS -->
 
         $if "lists" in ctx.features:
-            <div class="section">
-                <div class="Tools" style="margin:0 0 25px 0;float:left;">
-                    $:render_template("lists/widget", page)
-                </div>
+            <div class="section Tools">
+                $:render_template("lists/widget", page, include_rating=False)
             </div>
 
         <div class="section">

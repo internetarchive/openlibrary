@@ -6,6 +6,8 @@ A lightweight version of github.com/internetarchive/bookserver
 import lxml.etree as ET
 from infogami.infobase.utils import parse_datetime
 
+import six
+
 class OPDS():
     xmlns_atom    = 'http://www.w3.org/2005/Atom'
     xmlns_dcterms = 'http://purl.org/dc/terms/'
@@ -61,9 +63,9 @@ class OPDS():
     def add_list(self, name, values, prefix='', attrs={}):
         if isinstance(values, list) or isinstance(values, tuple):
             for v in values:
-                self.add(name, prefix+unicode(v), attrs)
+                self.add(name, prefix+six.text_type(v), attrs)
         elif values:
-            self.add(name, prefix+unicode(values), attrs)
+            self.add(name, prefix+six.text_type(values), attrs)
 
     # add_author()
     #___________________________________________________________________________
@@ -254,4 +256,3 @@ def xmlsafe(s):
         s = s.decode('utf-8')
     # ignore the first 32 bytes of ASCII, which are not allowd in XML
     return u"".join(c for c in s if ord(c) >= 0x20)
-

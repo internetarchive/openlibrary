@@ -1,8 +1,10 @@
 #!/usr/bin/python
 
+from __future__ import print_function
 import sys
 import web
-import sys, codecs
+import sys
+import codecs
 from catalog.utils.query import query_iter, set_staging, withKey
 
 from catalog.merge.merge_marc import *
@@ -153,7 +155,7 @@ td { background: #eee; }
     def oclc_search(self, v):
         q = {'type': '/type/edition', 'oclc_numbers': v, 'title': None, 'subtitle': None, 'isbn_10': None}
         editions = []
-        print q
+        print(q)
         for e in query_iter(q):
             e['oclc_numbers'] = v
             editions.append(e)

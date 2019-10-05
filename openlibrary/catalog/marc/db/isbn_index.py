@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.get_ia import *
 from catalog.read_rc import read_rc
 from catalog.marc.sources import sources
@@ -41,13 +42,13 @@ def progress_update(rec_no, t):
     remaining = total - rec_no
     rec_per_sec = chunk / t
     mins = (float((t/chunk) * remaining) / 60)
-    print "isbn %d %.3f rec/sec" % (rec_no, rec_per_sec),
+    print("isbn %d %.3f rec/sec" % (rec_no, rec_per_sec), end=' ')
     if mins > 1440:
-        print "%.3f days left" % (mins / 1440)
+        print("%.3f days left" % (mins / 1440))
     elif mins > 60:
-        print "%.3f hours left" % (mins / 60)
+        print("%.3f hours left" % (mins / 60))
     else:
-        print "%.3f minutes left" % mins
+        print("%.3f minutes left" % mins)
 
 t_prev = time()
 rec_no = 0
@@ -55,9 +56,9 @@ chunk = 1000
 total = 32856039
 
 for ia, name in sources():
-    print ia, name
+    print(ia, name)
     for part, size in files(ia):
-        print part, size
+        print(part, size)
         full_part = ia + "/" + part
         filename = rc['marc_path'] + full_part
         if not os.path.exists(filename):

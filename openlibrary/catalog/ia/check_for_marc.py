@@ -1,3 +1,4 @@
+from __future__ import print_function
 from openlibrary.utils.ia import find_item
 from time import sleep
 import httplib
@@ -15,38 +16,38 @@ later = open('later', 'w')
 for line in open('to_load'):
     ia = line[:-1]
     if line.startswith('('):
-        print >> no, ia
+        print(ia, file=no)
         continue
     (host, path) = find_item(ia)
     if not host:
-        print >> no, ia
+        print(ia, file=no)
         continue
     if host in bad_machine:
-        print >> later, ia
+        print(ia, file=later)
         continue
 #    print "http://" + host + path + "/" + ia + "_marc.xml"
     try:
         r1 = head(host, path, ia)
     except socket.error:
-        print 'socket error'
-        print "http://" + host + path + "/" + ia + "_marc.xml"
-        print 'try later'
+        print('socket error')
+        print("http://" + host + path + "/" + ia + "_marc.xml")
+        print('try later')
         bad_machine.add(ia)
-        print >> later, ia
+        print(ia, file=later)
         continue
-        print 'retry in 2 seconds'
+        print('retry in 2 seconds')
 
     if r1.status in (403, 404):
-        print >> no, ia
+        print(ia, file=no)
         continue
     if r1.status != 200:
-        print ia, host, path
-        print r1.status, r1.reason
-        print "http://" + host + path + "/" + ia + "_marc.xml"
+        print(ia, host, path)
+        print(r1.status, r1.reason)
+        print("http://" + host + path + "/" + ia + "_marc.xml")
     assert r1.status == 200
 
-    print ia
-    print >> out, ia
+    print(ia)
+    print(ia, file=out)
 out.close()
 later.close()
 no.close()

@@ -82,7 +82,7 @@ def run_gathering_functions(infobase_db, coverstore_db,
             d[key] = ret
         except numbers.NoStats:
             logger.warning("  %s - No statistics available", i)
-        except Exception, k:
+        except Exception as k:
             logger.warning("  Failed with %s", k)
     return d
 
@@ -115,7 +115,7 @@ def main(infobase_config, openlibrary_config, coverstore_config, ndays = 1):
         infobase_db = connect_to_pg(infobase_config)
         coverstore_db = connect_to_pg(coverstore_config)
         logroot = get_config_info(infobase_config)
-    except KeyError,k:
+    except KeyError as k:
         logger.critical("Config file section '%s' missing", k.args[0])
         return -1
 

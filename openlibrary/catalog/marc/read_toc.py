@@ -1,3 +1,4 @@
+from __future__ import print_function
 from catalog.marc.fast_parse import get_all_subfields
 import re
 
@@ -20,12 +21,12 @@ for line in open('test_data/marc_toc'):
     if re_at.match(subtags):
         a = subfields[0][1]
         m = re_end_num.search(a)
-        print(bool(m), repr(a))
+        print((bool(m), repr(a)))
         continue
 
         if not m:
             for k, v in subfields:
-                print(k, repr(v))
+                print((k, repr(v)))
         assert m
     continue
     if re_gtr.match(subtags):
@@ -42,9 +43,9 @@ for line in open('test_data/marc_toc'):
             g = subfields[i * 2][1]
             t = subfields[i * 2 + 1][1].strip('- /')
             print(repr(g, t))
-        print
+        print()
         continue
     print(subtags)
     for k, v in subfields:
-        print(k, repr(v))
-    print
+        print((k, repr(v)))
+    print()

@@ -2,13 +2,16 @@
  * EditionsTable
  * https://github.com/internetarchive/openlibrary/wiki/Design-Pattern-Library#editionstable
  */
+@import (less) "less/font-families.less";
 
-table#editions {
+/* stylelint-disable selector-max-specificity */
+table#editions,
+.editions-table {
   clear: both;
-  font-family: "Lucida Grande",Verdana,Geneva,Helvetica,Arial,sans-serif;
+  font-family: @lucida_sans_serif-1;
 
   th {
-    font-family: "News Gothic MT","Trebuchet MS",Geneva,Helvetica,sans-serif;
+    font-family: @news_gothic_sans_serif-2;
     font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
@@ -25,17 +28,6 @@ table#editions {
 
   td.book {
     vertical-align: top;
-  }
-
-  td.icon {
-    text-align: left;
-    vertical-align: top;
-    padding: 10px 0 10px 10px;
-    width: 143px;
-
-    ul {
-      margin-bottom: 0;
-    }
   }
 
   div.cover {
@@ -62,6 +54,7 @@ table#editions {
   }
   .btn-notice {
     padding: 0;
+    // stylelint-disable-next-line sh-waqar/declaration-use-variable
     background-color: none !important;
   }
 
@@ -71,17 +64,28 @@ table#editions {
       list-style-type: none;
     }
   }
+
+  td.icon {
+    text-align: left;
+    vertical-align: top;
+    padding: 10px 0 10px 10px;
+    width: 143px;
+
+    ul {
+      margin-bottom: 0;
+    }
+  }
 }
 
 .lists {
   table#editions {
     h3 {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       font-size: .75em;
       display: inline;
     }
     th {
-      font-family: "Lucida Grande", Verdana, Geneva, Helvetica, Arial, sans-serif!important;
+      font-family: @lucida_sans_serif-1!important;
       background-color: transparent;
       text-align: left;
       font-weight: normal;
@@ -95,6 +99,7 @@ table#editions {
       color: @dark-grey;
       vertical-align: top;
 
+      // stylelint-disable max-nesting-depth
       &.what {
         min-width: 410px;
       }
@@ -113,6 +118,80 @@ table#editions {
           max-width: 40px;
         }
       }
+      // stylelintenable max-nesting-depth
     }
+  }
+}
+@media all and ( min-width: @width-breakpoint-desktop ) {
+  table#editions {
+    float: left;
+    width: 918px;
+
+    div.title {
+      float: left;
+      width: 350px;
+    }
+
+    div.cover {
+      float: left;
+    }
+  }
+}
+
+@media only screen and (max-width: @width-breakpoint-tablet) {
+  table#editions {
+    thead {
+      display: none;
+    }
+    tr {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 1px solid @lighter-grey;
+      padding-bottom: 10px;
+    }
+    hr {
+      visibility: hidden;
+    }
+    form {
+      padding: 10px;
+    }
+    ul.links ul,li {
+      display: inline;
+    }
+    td.book {
+      width: 100%;
+      display: inline-flex;
+    }
+    div.title {
+      width: 100%;
+    }
+    .links a {
+      font-size: 120%;
+    }
+
+    td.icon {
+      width: 100%;
+      padding: 0px;
+    }
+
+    td.icon.read {
+      order: 3;
+        .read {
+          display: flex;
+          flex-direction: column;
+          ul {
+            order: -1;
+            padding: 10px 0px;
+          }
+      }
+    }
+
+    td.icon.locate {
+      .links {
+        display: flex;
+      }
+      padding: 0px 10px;
+    }
+
   }
 }

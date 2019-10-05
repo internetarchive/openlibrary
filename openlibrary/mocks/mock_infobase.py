@@ -9,6 +9,9 @@ import simplejson
 from infogami.infobase import client, common, account, config as infobase_config
 from infogami import config
 
+import six
+
+
 key_patterns = {
     'work': '/works/OL%dW',
     'edition': '/books/OL%dM',
@@ -134,7 +137,7 @@ class MockSite:
                 d[k] = self._process(v)
             return client.create_thing(self, d.get('key'), d)
         elif isinstance(value, common.Reference):
-            return client.create_thing(self, unicode(value), None)
+            return client.create_thing(self, six.text_type(value), None)
         else:
             return value
 
@@ -154,6 +157,13 @@ class MockSite:
         keys = set(self.docs.keys())
 
         for k, v in query.items():
+            if isinstance(v, dict):
+                # query keys need to be flattened properly,
+                # this corrects any nested keys that have been included
+                # in values.
+                flat = common.flatten_dict(v)[0]
+                k += '.' + web.rstrips(flat[0], '.key')
+                v = flat[1]
             keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
 
         keys = sorted(keys)
@@ -161,7 +171,7 @@ class MockSite:
 
     def filter_index(self, index, name, value):
         operations = {
-            "~": lambda i, value: isinstance(i.value, basestring) and i.value.startswith(web.rstrips(value, "*")),
+            "~": lambda i, value: isinstance(i.value, six.string_types) and i.value.startswith(web.rstrips(value, "*")),
             "<": lambda i, value: i.value < value,
             ">": lambda i, value: i.value > value,
             "!": lambda i, value: i.value != value,
@@ -179,14 +189,21 @@ class MockSite:
 
         f = operations[op]
 
+        if name == 'isbn_':
+            names = ['isbn_10', 'isbn_13']
+        else:
+            names = [name]
+
         if isinstance(value, list): # Match any of the elements in value if it's a list
-            for i in index:
-                if i.name == name and any(f(i, v) for v in value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and any(f(i, v) for v in value):
+                        yield i.key
         else: # Otherwise just match directly
-            for i in index:
-                if i.name == name and f(i, value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and f(i, value):
+                        yield i.key
 
     def compute_index(self, doc):
         key = doc['key']
@@ -199,7 +216,7 @@ class MockSite:
 
             if k.endswith(".key"):
                 yield web.storage(key=key, datatype="ref", name=web.rstrips(k, ".key"), value=v)
-            elif isinstance(v, basestring):
+            elif isinstance(v, six.string_types):
                 yield web.storage(key=key, datatype="str", name=k, value=v)
             elif isinstance(v, int):
                 yield web.storage(key=key, datatype="int", name=k, value=v)
@@ -243,13 +260,13 @@ class MockSite:
                 email=email,
                 password=password,
                 data={"displayname": displayname})
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             raise client.ClientException("bad_data", str(e))
 
     def activate_account(self, username):
         try:
             self.account_manager.activate(username=username)
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             raise client.ClientException(str(e))
 
     def update_account(self, username, **kw):

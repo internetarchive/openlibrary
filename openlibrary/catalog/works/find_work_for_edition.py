@@ -1,3 +1,4 @@
+from __future__ import print_function
 # try and find an existing work for a book
 
 from openlibrary.api import OpenLibrary
@@ -21,7 +22,7 @@ def find_matching_work(e):
         t0 = time()
         work_keys = list(ol.query(q))
         t1 = time() - t0
-        print 'time to find books by author: %.1f seconds' % t1
+        print('time to find books by author: %.1f seconds' % t1)
         for w in work_keys:
             wkey = w['key']
             if wkey in seen:
@@ -35,8 +36,8 @@ def find_matching_work(e):
 
 def test_book():
     ekey = '/books/OL24335218M'
-    wkey = find_matching_work(e)
+    wkey = find_matching_work(ekey)
     if wkey:
-        print 'found match:', wkey
+        print('found match:', wkey)
     else:
-        print 'no match'
+        print('no match')

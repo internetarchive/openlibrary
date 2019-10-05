@@ -1,8 +1,11 @@
 """Helper functions used by the List model.
 """
 from collections import defaultdict
+import datetime
 import re
-import urllib, urllib2
+import time
+import urllib
+import urllib2
 
 import simplejson
 import web
@@ -16,6 +19,9 @@ from openlibrary.core import helpers as h
 from openlibrary.core import cache
 
 from openlibrary.plugins.worksearch.search import get_solr
+
+import six
+
 
 logger = logging.getLogger("openlibrary.lists.model")
 
@@ -49,7 +55,7 @@ def cached_property(name, getter):
 class ListMixin:
     def _get_rawseeds(self):
         def process(seed):
-            if isinstance(seed, basestring):
+            if isinstance(seed, six.string_types):
                 return seed
             else:
                 return seed.key
@@ -316,7 +322,7 @@ class Seed:
         self._list = list
 
         self.value = value
-        if isinstance(value, basestring):
+        if isinstance(value, six.string_types):
             self.key = value
             self.type = "subject"
         else:
@@ -325,7 +331,7 @@ class Seed:
         self._solrdata = None
 
     def get_document(self):
-        if isinstance(self.value, basestring):
+        if isinstance(self.value, six.string_types):
             doc = get_subject(self.get_subject_url(self.value))
         else:
             doc = self.value
