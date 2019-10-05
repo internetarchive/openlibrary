@@ -753,16 +753,6 @@ class author_search_json(author_search):
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
 
-class edition_search(delegate.page):
-    path = '/search/editions'
-    def GET(self):
-        def get_results(q, offset=0, limit=100):
-            q = escape_bracket(q)
-            solr_select = solr_select_url + "?fq=type:edition&q.op=AND&q=%s&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            return run_solr_search(solr_select)
-
-        return render_template('search/editions.tmpl', get_results)
-
 class search_json(delegate.page):
     path = "/search"
     encoding = "json"
