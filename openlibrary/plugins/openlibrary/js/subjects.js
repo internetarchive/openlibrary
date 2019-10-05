@@ -8,7 +8,7 @@
 //              "works": [...]
 //          },
 //          {
-//              "pagsize": 12
+//              "pagesize": 6
 //          });
 //
 
@@ -17,7 +17,7 @@
 function Subject(data, options, callback) {
     options = options || {};
     var defaults = {
-        pagesize: 12
+        pagesize: 6
     }
     this.settings = $.extend(defaults, options);
     this.slug = data.name.replace(/\s+/g, '-').toLowerCase();

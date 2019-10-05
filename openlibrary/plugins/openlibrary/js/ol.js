@@ -178,6 +178,7 @@ $().ready(function() {
 
 // BUILD CAROUSEL
 function carouselSetup(loadCovers, loadLists) {
+  console.log(loadCovers);
   $('#coversCarousel').jcarousel({
     visible: 1,
     scroll: 1,

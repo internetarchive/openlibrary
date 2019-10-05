@@ -1,6 +1,9 @@
 version: "3"
 services:
   web:
+    build:
+      context: .
+      dockerfile: ./Dockerfile.oldev
     image: oldev
     ports:
       - 8080:80
@@ -13,10 +16,14 @@ services:
       # The above volume mounts are required so that the local dev bind mount below
       # does not clobber the data generated inside the image / container
       - ..:/openlibrary
+#    depends_on:
+#      - solr
     networks:
       - webnet
   solr:
-    image: olsolr
+    build:
+      context: .
+      dockerfile: ./Dockerfile.olsolr
     ports:
       - 8983:8080
     volumes:
