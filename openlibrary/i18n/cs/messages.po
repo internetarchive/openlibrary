@@ -295,7 +295,7 @@ msgstr "Knihy na které čekáte"
 #, python-format
 msgid "%d book"
 msgid_plural "%d books"
-msgstr[0] "kniha"
+msgstr[0] "%d kniha"
 msgstr[1] "%d knihy"
 
 #: borrow.html:213
