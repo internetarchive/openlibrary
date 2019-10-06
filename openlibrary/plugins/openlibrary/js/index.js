@@ -6,7 +6,7 @@ import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
-// jquery-validate#1.6 not on npm
+// jquery-validate#1.19.1 not on npm
 import '../../../../vendor/js/jquery-validate/jquery.validate.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
