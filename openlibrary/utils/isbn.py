@@ -54,5 +54,10 @@ def opposite_isbn(isbn): # ISBN10 -> ISBN13 and ISBN13 -> ISBN10
             return alt
 
 def normalize_isbn(isbn):
-    """Removes spaces and dashes from isbn and ensures length."""
-    return canonical(isbn) or None
+    """Removes spaces and dashes from isbn and ensures length.
+
+    :param: str isbn: An isbn to normalize
+    :rtype: str|None
+    :return: A valid isbn, or None
+    """
+    return isbn and canonical(isbn) or None

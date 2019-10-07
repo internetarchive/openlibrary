@@ -17,6 +17,7 @@ def test_opposite_isbn():
     assert opposite_isbn('BAD-ISBN') is None
 
 def test_normalize_isbn():
+    assert normalize_isbn(None) is None
     assert normalize_isbn('a') is None
     assert normalize_isbn('1841151866') == '1841151866'
     assert normalize_isbn('184115186x') == '184115186X'
