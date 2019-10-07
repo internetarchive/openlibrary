@@ -16,10 +16,7 @@ $ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
 $ isbn = isbn_10 or isbn_13
 
 $ asin = None
-$ scribd = None
 $if page.get('identifiers'):
-    $if page.identifiers.get('scribd'):
-        $ scribd = page.identifiers.scribd[0]
     $if page.identifiers.get('amazon'):
         $ asin = page.identifiers.amazon[0]
 
@@ -63,7 +60,7 @@ $if isbn_10 and not asin:
         <hr>
         <div class="cta-section">
           <p class="cta-section-title">Buy this book</p>
-          $:macros.AffiliateLinks(page, {'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
+          $:macros.AffiliateLinks(page, {'isbn': isbn, 'asin': asin, 'prices': prices})
         </div>
 
         $:macros.SocialShare(page)

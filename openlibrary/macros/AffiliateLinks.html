@@ -3,7 +3,6 @@ $def with (page, opts)
 $ prices = opts.get('prices')
 $ isbn = opts.get('isbn')
 $ asin = opts.get('asin')
-$ scribd = opts.get('scribd')
 
 <ul class="buy-options-table">
   $if not is_bot():
@@ -29,11 +28,5 @@ $ scribd = opts.get('scribd')
               $ amazon_metadata = get_amazon_metadata(isbn)
               $if amazon_metadata and 'price' in amazon_metadata and amazon_metadata['price']:
                   <span name="price">$(amazon_metadata['price'])</span>
-      </li>
-    $if scribd and not (isbn or asin):
-      <li>
-          <a href="https://www.scribd.com/doc/$scribd" title="Look for this edition for sale at Scribd" target="_blank">Scribd</a>
-          <br />
-          <span class="gray smaller">eBook in browser</span>
       </li>
 </ul>
