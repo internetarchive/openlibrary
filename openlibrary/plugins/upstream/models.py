@@ -18,7 +18,7 @@ from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
-from openlibrary.utils.isbn import isbn_10_to_isbn_13
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
@@ -113,13 +113,23 @@ class Edition(models.Edition):
         w, h = image_sizes[size.upper()]
         return "https://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
 
-    def get_isbn13(self):
-        """Fetches either isbn10 or isbn13 from record and returns canonical
-        isbn13
+    def get_isbn10(self):
+        """Fetches either isbn_10 or isbn_13 from record and returns canonical
+        isbn_10
         """
-        isbn_13 = self.isbn_13 and canonical(self.isbn_13[0]) or ""
-        if not isbn_13:            
-            isbn_10 = self.isbn_10 and self.isbn_10[0] or ""
+        isbn_10 = self.isbn_10 and canonical(self.isbn_10[0])
+        if not isbn_10:
+            isbn_13 = self.get_isbn13()
+            return isbn_13 and isbn_13_to_isbn_10(isbn_13)
+        return isbn_10
+
+    def get_isbn13(self):
+        """Fetches either isbn_13 or isbn_10 from record and returns canonical
+        isbn_13
+        """
+        isbn_13 = self.isbn_13 and canonical(self.isbn_13[0])
+        if not isbn_13:
+            isbn_10 = self.isbn_10 and self.isbn_10[0]
             return isbn_10 and isbn_10_to_isbn_13(isbn_10)
         return isbn_13
     
