@@ -33,7 +33,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "144.3KB"
+      "maxSize": "145.8KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -83,6 +83,7 @@
     "jquery": "^1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
+    "jquery-validation": "1.19.1",
     "less": "^3.8.1",
     "less-loader": "4.1.0",
     "node-gyp": "^3.8.0",

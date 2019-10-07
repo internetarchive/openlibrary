@@ -1,13 +1,12 @@
 import 'jquery';
 import 'jquery-migrate';
+import 'jquery-validation';
 // npm jquery-ui@1.12.1 package does not match the one we have here, so for now we load from vendor
 import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 // For dialog boxes (e.g. add to list)
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
-// jquery-validate#1.6 not on npm
-import '../../../../vendor/js/jquery-validate/jquery.validate.js';
 // jquery-autocomplete#1.1 with modified
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 // unversioned.
