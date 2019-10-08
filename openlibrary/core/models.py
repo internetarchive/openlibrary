@@ -578,11 +578,16 @@ class User(Thing):
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
+    def is_usergroup_member(self, usergroup):
+        if not usergroup.startswith('/usergroup/'):
+            usergroup = '/usergroup/%s' % usergroup
+        return usergroup in [g.key for g in self.usergroups]
+
     def is_admin(self):
-        return '/usergroup/admin' in [g.key for g in self.usergroups]
+        return self.is_usergroup_member('/usergroup/admin')
 
     def is_librarian(self):
-        return '/usergroup/librarians' in [g.key for g in self.usergroups]
+        return self.is_usergroup_member('/usergroup/librarians')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
@@ -826,6 +831,33 @@ class Library(Thing):
         name = self.key.split("/")[-1]
         stats = loanstats.LoanStats(library=name)
         return stats.get_loans_per_day(resource_type=resource_type)
+
+class UserGroup(web.storage):
+
+    @classmethod
+    def add_user(cls, userkey, usergroup):
+        """Administrative utility (designed to be used in conjunction with
+        accounts.escalate_privilege_and_run_as) to add a patron to a usergroup
+
+        :param str userkey: e.g. /people/mekBot
+        :param str usergroup: e.g. /usergroup/sponsor-waitlist
+        :rtype: str
+        :return: the string "success" or an error string
+        """
+        # make sure user_key exists
+        if web.ctx.site.get(userkey):
+            doc = web.ctx.site.get("/usergroup/%s" % usergroup)
+            if doc:
+                group = doc.dict()
+                # Make sure userkey not already in group members:
+                group.setdefault('members', [])
+                if not any(userkey == member['key'] for member in group['members']):
+                    group['members'].append({'key': userkey})
+                    web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
+                return "success"
+            return "usergroup"
+        return "userkey"
+
 
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):

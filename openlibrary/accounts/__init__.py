@@ -11,6 +11,32 @@ def get_group(name):
     return web.ctx.site.get("/usergroup/%s"%name)
 
 
+def escalate_privilege_and_run_as(username, action, kwargs=None):
+    """Ecalates privileges to become username, performs action as user,
+    and then de-escalates to original user.
+
+    :param str username: Username e.g. /people/mekBot of user to run action as
+    :param function action: lambda to execute under username
+    :param dict kwargs: a dictionary of kwargs to send to action
+    :return: Any result of the action function
+    """
+    # Save token of currently logged in user (or no-user)
+    account = get_current_user()
+    auth_token = account and account.generate_login_code()
+    try:
+        # Temporarily become user
+        tmp_account = find(username=username)
+        web.ctx.conn.set_auth_token(tmp_account.generate_login_code())
+        kwargs = kwargs or {}
+        resp = action(**kwargs)
+    except Exception as e:
+        web.ctx.conn.set_auth_token(auth_token)
+        raise e
+
+    # Return auth token to original user or no-user
+    web.ctx.conn.set_auth_token(auth_token)
+    return resp
+
 ## Confirmed functions (these have to be here)
 def get_current_user():
     """
