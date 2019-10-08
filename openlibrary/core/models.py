@@ -835,7 +835,16 @@ class Library(Thing):
 class UserGroup(Thing):
 
     @classmethod
-    def add_user(cls, userkey, usergroup):
+    def from_key(cls, key):
+        """
+        :param str key: e.g. /usergroup/sponsor-waitlist
+        :rtype: UserGroup | None
+        """
+        if not key.startswith('/usergroup/'):
+            key = "/usergroup/%s" % key
+        return web.ctx.site.get(key)
+
+    def add_user(self, userkey):
         """Administrative utility (designed to be used in conjunction with
         accounts.RunAs) to add a patron to a usergroup
 
@@ -845,16 +854,12 @@ class UserGroup(Thing):
         if not web.ctx.site.get(userkey):
             raise KeyError("Invalid userkey")
 
-        doc = web.ctx.site.get("/usergroup/%s" % usergroup)
-        if not doc:
-            raise KeyError("Invalid usergroup key")
-
-        group = doc.dict()
         # Make sure userkey not already in group members:
-        group.setdefault('members', [])
-        if not any(userkey == member['key'] for member in group['members']):
-            group['members'].append({'key': userkey})
-            web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
+        members = self.get('members', [])
+        if not any(userkey == member['key'] for member in members):
+            members.append({'key': userkey})
+            self.members = members
+            web.ctx.site.save(self.dict(), "Adding %s to %s" % (userkey, self.key))
 
 
 class Subject(web.storage):

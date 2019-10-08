@@ -292,7 +292,7 @@ class join_sponsorship_waitlist(delegate.page):
             raise web.seeother("/account/login?redirect=/sponsorship/join")
         try:
             with accounts.RunAs('archive_support'):
-                models.UserGroup.add_user(user.key, 'sponsors-waitlist')
+                models.UserGroup.from_key('sponsor-waitlist').add_user(user.key)
         except KeyError as e:
             add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
 
