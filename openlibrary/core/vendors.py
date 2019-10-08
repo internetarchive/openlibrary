@@ -232,14 +232,12 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     md = get_amazon_metadata(id_, id_type=id_type)
 
     if md and md.get('product_group') == 'Book':
-        reply = accounts.run_as(
-            username='ImportBot',
-            action=lambda: load(
+        with accounts.RunAs('ImportBot'):
+            reply = load(
                 clean_amazon_metadata_for_load(md),
                 account=accounts.get_current_user())
-        )
-        if reply and reply.get('success'):
-            return reply['edition'].get('key')
+            if reply and reply.get('success'):
+                return reply['edition'].get('key')
 
 
 def cached_get_amazon_metadata(*args, **kwargs):
