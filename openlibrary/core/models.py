@@ -837,7 +837,7 @@ class UserGroup(web.storage):
     @classmethod
     def add_user(cls, userkey, usergroup):
         """Administrative utility (designed to be used in conjunction with
-        accounts.escalate_privilege_and_run_as) to add a patron to a usergroup
+        accounts.run_as) to add a patron to a usergroup
 
         :param str userkey: e.g. /people/mekBot
         :param str usergroup: e.g. /usergroup/sponsor-waitlist

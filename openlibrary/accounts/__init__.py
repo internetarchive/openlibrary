@@ -11,8 +11,8 @@ def get_group(name):
     return web.ctx.site.get("/usergroup/%s"%name)
 
 
-def escalate_privilege_and_run_as(username, action, kwargs=None):
-    """Ecalates privileges to become username, performs action as user,
+def run_as(username, action, kwargs=None):
+    """Escalates privileges to become username, performs action as user,
     and then de-escalates to original user.
 
     :param str username: Username e.g. /people/mekBot of user to run action as

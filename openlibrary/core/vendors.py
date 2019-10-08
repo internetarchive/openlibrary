@@ -232,7 +232,7 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     md = get_amazon_metadata(id_, id_type=id_type)
 
     if md and md.get('product_group') == 'Book':
-        reply = accounts.escalate_privilege_and_run_as(
+        reply = accounts.run_as(
             username='ImportBot',
             action=lambda: load(
                 clean_amazon_metadata_for_load(md),

@@ -290,7 +290,7 @@ class join_sponsorship_waitlist(delegate.page):
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             raise web.seeother("/account/login?redirect=/sponsorship/join")
-        resp = accounts.escalate_privilege_and_run_as(
+        resp = accounts.run_as(
             username='archive_support',
             action=lambda: models.UserGroup.add_user(user.key, 'sponsors-waitlist')
         )
