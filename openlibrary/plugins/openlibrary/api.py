@@ -290,12 +290,12 @@ class join_sponsorship_waitlist(delegate.page):
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
             raise web.seeother("/account/login?redirect=/sponsorship/join")
-        resp = accounts.escalate_privilege_and_run_as(
-            username='archive_support',
-            action=lambda: models.UserGroup.add_user(user.key, 'sponsors-waitlist')
-        )
-        if resp != "success":
-            add_flash_message('error', 'Unable to join waitlist: invalid %s' % resp)
+        try:
+            with accounts.RunAs('archive_support'):
+                models.UserGroup.from_key('sponsor-waitlist').add_user(user.key)
+        except KeyError as e:
+            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
+
         raise web.seeother('/sponsorship')
 
 

@@ -835,28 +835,31 @@ class Library(Thing):
 class UserGroup(Thing):
 
     @classmethod
-    def add_user(cls, userkey, usergroup):
+    def from_key(cls, key):
+        """
+        :param str key: e.g. /usergroup/sponsor-waitlist
+        :rtype: UserGroup | None
+        """
+        if not key.startswith('/usergroup/'):
+            key = "/usergroup/%s" % key
+        return web.ctx.site.get(key)
+
+    def add_user(self, userkey):
         """Administrative utility (designed to be used in conjunction with
-        accounts.escalate_privilege_and_run_as) to add a patron to a usergroup
+        accounts.RunAs) to add a patron to a usergroup
 
         :param str userkey: e.g. /people/mekBot
         :param str usergroup: e.g. /usergroup/sponsor-waitlist
-        :rtype: str
-        :return: the string "success" or an error string
         """
-        # make sure user_key exists
-        if web.ctx.site.get(userkey):
-            doc = web.ctx.site.get("/usergroup/%s" % usergroup)
-            if doc:
-                group = doc.dict()
-                # Make sure userkey not already in group members:
-                group.setdefault('members', [])
-                if not any(userkey == member['key'] for member in group['members']):
-                    group['members'].append({'key': userkey})
-                    web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
-                return "success"
-            return "usergroup"
-        return "userkey"
+        if not web.ctx.site.get(userkey):
+            raise KeyError("Invalid userkey")
+
+        # Make sure userkey not already in group members:
+        members = self.get('members', [])
+        if not any(userkey == member['key'] for member in members):
+            members.append({'key': userkey})
+            self.members = members
+            web.ctx.site.save(self.dict(), "Adding %s to %s" % (userkey, self.key))
 
 
 class Subject(web.storage):
@@ -906,6 +909,7 @@ def register_models():
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/library', Library)
+    client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
     """Register default types for various path patterns used in OL.
