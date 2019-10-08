@@ -832,7 +832,7 @@ class Library(Thing):
         stats = loanstats.LoanStats(library=name)
         return stats.get_loans_per_day(resource_type=resource_type)
 
-class UserGroup(web.storage):
+class UserGroup(Thing):
 
     @classmethod
     def add_user(cls, userkey, usergroup):
@@ -904,6 +904,7 @@ def register_models():
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/library', Library)
+    client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
     """Register default types for various path patterns used in OL.
