@@ -841,15 +841,13 @@ class UserGroup(web.storage):
 
         :param str userkey: e.g. /people/mekBot
         :param str usergroup: e.g. /usergroup/sponsor-waitlist
-        :rtype: str
-        :return: the string "success" or an error string
         """
         if not web.ctx.site.get(userkey):
-            return "userkey"
+            raise KeyError("Invalid userkey")
 
         doc = web.ctx.site.get("/usergroup/%s" % usergroup)
         if not doc:
-            return "usergroup"
+            raise KeyError("Invalid usergroup key")
 
         group = doc.dict()
         # Make sure userkey not already in group members:
@@ -857,8 +855,6 @@ class UserGroup(web.storage):
         if not any(userkey == member['key'] for member in group['members']):
             group['members'].append({'key': userkey})
             web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
-
-        return "success"
 
 
 class Subject(web.storage):
