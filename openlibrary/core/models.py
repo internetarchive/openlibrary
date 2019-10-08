@@ -849,7 +849,6 @@ class UserGroup(Thing):
         accounts.RunAs) to add a patron to a usergroup
 
         :param str userkey: e.g. /people/mekBot
-        :param str usergroup: e.g. /usergroup/sponsor-waitlist
         """
         if not web.ctx.site.get(userkey):
             raise KeyError("Invalid userkey")
