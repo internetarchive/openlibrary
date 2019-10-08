@@ -832,7 +832,7 @@ class Library(Thing):
         stats = loanstats.LoanStats(library=name)
         return stats.get_loans_per_day(resource_type=resource_type)
 
-class UserGroup(web.storage):
+class UserGroup(Thing):
 
     @classmethod
     def add_user(cls, userkey, usergroup):
