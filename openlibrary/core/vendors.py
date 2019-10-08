@@ -230,26 +230,14 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     """
 
     md = get_amazon_metadata(id_, id_type=id_type)
+
     if md and md.get('product_group') == 'Book':
-        # Save token of currently logged in user (or no-user)
-        account = accounts.get_current_user()
-        auth_token = account.generate_login_code() if account else ''
-
-        try:
-            # Temporarily behave (act) as ImportBot for import
-            tmp_account = accounts.find(username='ImportBot')
-            web.ctx.conn.set_auth_token(tmp_account.generate_login_code())
-            reply = load(clean_amazon_metadata_for_load(md),
-                         account=tmp_account)
-        except Exception as e:
-            web.ctx.conn.set_auth_token(auth_token)
-            raise e
-
-        # Return auth token to original user or no-user
-        web.ctx.conn.set_auth_token(auth_token)
-
-        if reply and reply.get('success'):
-            return reply['edition'].get('key')
+        with accounts.RunAs('ImportBot'):
+            reply = load(
+                clean_amazon_metadata_for_load(md),
+                account=accounts.get_current_user())
+            if reply and reply.get('success'):
+                return reply['edition'].get('key')
 
 
 def cached_get_amazon_metadata(*args, **kwargs):
