@@ -26,14 +26,11 @@ def run_as(username, action):
         # Temporarily become user
         tmp_account = find(username=username)
         web.ctx.conn.set_auth_token(tmp_account.generate_login_code())
-        resp = action()
-    except Exception as e:
+        return action()
+    finally:
+        # Return auth token to original user or no-user
         web.ctx.conn.set_auth_token(auth_token)
-        raise e
 
-    # Return auth token to original user or no-user
-    web.ctx.conn.set_auth_token(auth_token)
-    return resp
 
 ## Confirmed functions (these have to be here)
 def get_current_user():
