@@ -844,19 +844,21 @@ class UserGroup(web.storage):
         :rtype: str
         :return: the string "success" or an error string
         """
-        # make sure user_key exists
-        if web.ctx.site.get(userkey):
-            doc = web.ctx.site.get("/usergroup/%s" % usergroup)
-            if doc:
-                group = doc.dict()
-                # Make sure userkey not already in group members:
-                group.setdefault('members', [])
-                if not any(userkey == member['key'] for member in group['members']):
-                    group['members'].append({'key': userkey})
-                    web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
-                return "success"
+        if not web.ctx.site.get(userkey):
+            return "userkey"
+
+        doc = web.ctx.site.get("/usergroup/%s" % usergroup)
+        if not doc:
             return "usergroup"
-        return "userkey"
+
+        group = doc.dict()
+        # Make sure userkey not already in group members:
+        group.setdefault('members', [])
+        if not any(userkey == member['key'] for member in group['members']):
+            group['members'].append({'key': userkey})
+            web.ctx.site.save(group, "Adding %s to %s" % (userkey, usergroup))
+
+        return "success"
 
 
 class Subject(web.storage):
