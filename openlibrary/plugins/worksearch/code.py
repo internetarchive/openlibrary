@@ -661,7 +661,7 @@ class list_search_json(list_search):
         i = web.input(q='', offset=0, limit=10)
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
-        limit = min(100, limit)  # limit limit to 1000.
+        limit = min(100, limit)
 
         docs = self.get_results(i.q, offset=offset, limit=limit)
 
