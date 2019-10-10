@@ -638,7 +638,7 @@ class list_search(delegate.page):
     def GET(self):
         i = web.input(q='', offset='0', limit='10')
 
-        lists = self.get_results(i.q, i.offset, i.limit)['response']['docs']
+        lists = self.get_results(i.q, i.offset, i.limit)
 
         return render_template('search/lists.tmpl', q=i.q, lists=lists)
 
@@ -650,13 +650,8 @@ class list_search(delegate.page):
             "type": "/type/list", "name~": q,
             "limit": int(limit), "offset": int(offset)
         })
-        lists = web.ctx.site.get_many(keys)
 
-        return {
-            'response': {
-                'docs': lists
-            }
-        }
+        return web.ctx.site.get_many(keys)
 
 class list_search_json(list_search):
     path = '/search/lists'
@@ -668,24 +663,26 @@ class list_search_json(list_search):
         limit = safeint(i.limit, 10)
         limit = min(100, limit)  # limit limit to 1000.
 
-        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        docs = self.get_results(i.q, offset=offset, limit=limit)
 
-        response['docs'] = [
-            {
-                'key': doc.key,
-                'url': doc.url(),
-                'name': doc.name,
-                'description': str(doc.description),
-                'last_modified': doc.last_modified.isoformat() if doc.last_modified else None,
-                'seed_count': len(doc.seeds),
-                'edition_count': doc.edition_count,
-                'owner': {
-                    'key': doc.get_owner().key,
-                },
-                'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in doc.get_top_subjects(limit=5)],
-            }
-            for doc in response['docs']
-        ]
+        response = {
+            'docs': [
+                {
+                    'key': doc.key,
+                    'url': doc.url(),
+                    'name': doc.name,
+                    'description': str(doc.description),
+                    'last_modified': doc.last_modified.isoformat() if doc.last_modified else None,
+                    'seed_count': len(doc.seeds),
+                    'edition_count': doc.edition_count,
+                    'owner': {
+                        'key': doc.get_owner().key,
+                    },
+                    'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in doc.get_top_subjects(limit=5)],
+                }
+                for doc in docs
+            ]
+        }
 
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
