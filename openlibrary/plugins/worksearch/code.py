@@ -668,6 +668,7 @@ class list_search_json(list_search):
         docs = self.get_results(i.q, offset=offset, limit=limit)
 
         response = {
+            'start': offset,
             'docs': [doc.preview() for doc in docs]
         }
 
