@@ -135,11 +135,11 @@ const Carousel = {
                 var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
 
                 if (loadMore.pageMode == 'page') {
-                  // for first time, we're on page 1 already so initialize as page 2
-                  // otherwise advance to next page
-                  loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
+                    // for first time, we're on page 1 already so initialize as page 2
+                    // otherwise advance to next page
+                    loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
                 } else { // i.e. offset, start from last slide
-                  loadMore.page = totalSlides;
+                    loadMore.page = totalSlides;
                 }
 
                 if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage) && loadMore.page - 1 <= totalSlides/numActiveSlides) {
