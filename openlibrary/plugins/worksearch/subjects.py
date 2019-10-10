@@ -325,7 +325,7 @@ class SubjectEngine:
                     subject.name = s.name;
                     subject[meta.key].pop(i)
                     break
-            
+
         return subject
 
     def get_meta(self, key):
