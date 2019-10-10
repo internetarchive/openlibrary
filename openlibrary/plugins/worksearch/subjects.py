@@ -328,12 +328,12 @@ class SubjectEngine:
 
         # Fetch more works until offset is > than work_count.
         # This ensures that we render the correct ammount of works.
-        if offset < subject.work_count:
-            rest_subject = get_subject(
-                key, details=details, offset=limit + offset, sort=sort,
-                limit=limit, **filters)
-            if len(rest_subject.works) > 0:
-                subject.works.extend(rest_subject.works)
+#        if offset < subject.work_count:
+#            rest_subject = get_subject(
+#                key, details=details, offset=limit + offset, sort=sort,
+#                limit=limit, **filters)
+#            if len(rest_subject.works) > 0:
+#                subject.works.extend(rest_subject.works)
             
         return subject
 

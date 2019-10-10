@@ -134,17 +134,17 @@ const Carousel = {
                 // this allows us to pre-load before hitting last page
                 var lastSlideOn2ndLastPage = (totalSlides - numActiveSlides);
 
-                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage)) {
+                if (loadMore.pageMode == 'page') {
+                  // for first time, we're on page 1 already so initialize as page 2
+                  // otherwise advance to next page
+                  loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
+                } else { // i.e. offset, start from last slide
+                  loadMore.page = totalSlides;
+                }
+
+                if (!loadMore.locked && (currentLastSlide >= lastSlideOn2ndLastPage) && loadMore.page - 1 <= totalSlides/numActiveSlides) {
                     loadMore.locked = true; // lock for critical section
                     document.body.style.cursor='wait'; // change mouse to spin
-
-                    if (loadMore.pageMode == 'page') {
-                        // for first time, we're on page 1 already so initialize as page 2
-                        // otherwise advance to next page
-                        loadMore.page = loadMore.page ? loadMore.page + 1 : 2;
-                    } else { // i.e. offset, start from last slide
-                        loadMore.page = totalSlides;
-                    }
 
                     // update the current page or offset within the URL
                     url.searchParams.set(loadMore.pageMode, loadMore.page);
