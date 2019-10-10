@@ -647,8 +647,10 @@ class list_search(delegate.page):
             delegate.fakeload()
 
         keys = web.ctx.site.things({
-            "type": "/type/list", "name~": q,
-            "limit": int(limit), "offset": int(offset)
+            "type": "/type/list",
+            "name~": q,
+            "limit": int(limit),
+            "offset": int(offset)
         })
 
         return web.ctx.site.get_many(keys)
