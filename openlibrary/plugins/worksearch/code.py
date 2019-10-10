@@ -666,22 +666,7 @@ class list_search_json(list_search):
         docs = self.get_results(i.q, offset=offset, limit=limit)
 
         response = {
-            'docs': [
-                {
-                    'key': doc.key,
-                    'url': doc.url(),
-                    'name': doc.name,
-                    'description': str(doc.description),
-                    'last_modified': doc.last_modified.isoformat() if doc.last_modified else None,
-                    'seed_count': len(doc.seeds),
-                    'edition_count': doc.edition_count,
-                    'owner': {
-                        'key': doc.get_owner().key,
-                    },
-                    'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in doc.get_top_subjects(limit=5)],
-                }
-                for doc in docs
-            ]
+            'docs': [doc.preview() for doc in docs]
         }
 
         web.header('Content-Type', 'application/json')
