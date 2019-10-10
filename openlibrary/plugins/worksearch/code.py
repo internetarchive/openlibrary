@@ -672,19 +672,19 @@ class list_search_json(list_search):
 
         response['docs'] = [
             {
-                'key': list.key,
-                'url': list.url(),
-                'name': list.name,
-                'description': str(list.description),
-                'last_modified': list.last_modified.isoformat() if list.last_modified else None,
-                'seed_count': len(list.seeds),
-                'edition_count': list.edition_count,
+                'key': doc.key,
+                'url': doc.url(),
+                'name': doc.name,
+                'description': str(doc.description),
+                'last_modified': doc.last_modified.isoformat() if doc.last_modified else None,
+                'seed_count': len(doc.seeds),
+                'edition_count': doc.edition_count,
                 'owner': {
-                    'key': list.get_owner().key,
+                    'key': doc.get_owner().key,
                 },
-                'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in list.get_top_subjects(limit=5)],
+                'top_subjects': [{"key": s.key, "url": s.url, "name": s.name} for s in doc.get_top_subjects(limit=5)],
             }
-            for list in response['docs']
+            for doc in response['docs']
         ]
 
         web.header('Content-Type', 'application/json')
