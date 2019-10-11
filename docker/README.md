@@ -21,7 +21,7 @@ git reset --hard HEAD
 
 Before attempting to build openlibrary using the docker instructions below, please follow this checklist. If you encounter an error, this section may serve as a troubleshooting guide:
 
-- These instructions require `docker-ce 18.*` 
+- These instructions require `docker-ce 18.*` or `docker-ce 19.*`
 - You will need to first install `docker-compose`
 - Make sure you `git clone` openlibrary using `ssh` instead of `https` as git submodules (e.g. `infogami` and `acs`) may not fetch correctly otherwise. You can modify an existing openlibrary repository using `git remote rm origin` and then `git remote add origin git@github.com:internetarchive/openlibrary.git`
 
@@ -55,7 +55,7 @@ docker-compose stop
 docker-compose rm -v
 ```
 
-Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a pre-populated development database and any other tools that are helpful for local development and can only be run once on any given `olbase` image. Currently (Oct 2018) these docker images are only intended for development environments.
+Note: You must build `olbase` first before `oldev`. `olbase` is intended to be the core Open Library image, acting as a base for production and development. `oldev` adds a pre-populated development database and any other tools that are helpful for local development and can only be run once on any given `olbase` image. This development environment also has a small number of books in the database for testing purposes. Currently (Oct 2018) these docker images are only intended for development environments.
 
 This exposes the following ports:
 
