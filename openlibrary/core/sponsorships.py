@@ -10,7 +10,8 @@ from openlibrary.core import models
 from openlibrary.core.lending import (
     get_work_availability, config_ia_domain)
 from openlibrary.core.vendors import (
-    get_betterworldbooks_metadata, create_edition_from_amazon_metadata)
+    get_betterworldbooks_metadata, create_edition_from_amazon_metadata,
+    get_amazon_metadata)
 from openlibrary.accounts import get_internet_archive_id
 from openlibrary.core.lending import config_ia_civicrm_api
 from openlibrary.utils.isbn import to_isbn_13
@@ -136,22 +137,28 @@ def qualifies_for_sponsorship(edition):
         'price': None
     }
 
-    work = edition.works and edition.works[0]
     edition.isbn13 = to_isbn_13(edition.isbn_13 and edition.isbn_13[0] or
                               edition.isbn_10 and edition.isbn_10[0])
-    req_fields = [edition.get(x) for x in [
-        'publishers', 'title', 'publish_date', 'covers',
-        'number_of_pages', 'isbn13'
-    ]]
-    if not (work and all(req_fields) and edition.isbn13):
+    edition.cover = edition.get('covers') and (
+        'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.get('covers')[0])
+
+    if not edition.isbn13:
+        resp['error'] = {
+            'reason': 'Missing ISBN',
+        }
+
+    amz_metadata = get_amazon_metadata(edition.isbn13) or {}
+    req_fields = ['publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
+    fields = dict((field, (edition.get(field) or amz_metadata.get(field))) for field in req_fields)    
+    work = edition.works and edition.works[0]
+    if not (work and all(fields.values())):
         resp['error'] = {
             'reason': 'Open Library is missing book metadata necessary for sponsorship',
-            'values': req_fields
+            'values': fields
         }
         return resp
 
     work_id = work.key.split("/")[-1]
-    num_pages = int(edition.get('number_of_pages'))
     dwwi, matches = do_we_want_it(edition.isbn13, work_id)
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(
@@ -159,6 +166,7 @@ def qualifies_for_sponsorship(edition):
         if bwb_price:
             SETUP_COST_CENTS = 300
             PAGE_COST_CENTS = 12
+            num_pages = int(fields['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
             book_cost_cents = int(float(bwb_price) * 100)
             total_price_cents = scan_price_cents + book_cost_cents
@@ -173,6 +181,7 @@ def qualifies_for_sponsorship(edition):
             'reason': 'matches',
             'values': matches
         }
+    resp.update(fields)
     resp.update({
         'url': config_ia_domain + '/donate?' + urllib.urlencode({
             'campaign': 'pilot',
