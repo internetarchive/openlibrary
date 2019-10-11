@@ -26,7 +26,6 @@ logger = logging.getLogger("openlibrary.sponsorship")
 CIVI_ISBN = 'custom_52'
 CIVI_USERNAME = 'custom_51'
 CIVI_CONTEXT = 'custom_53'
-PRICE_LIMIT_CENTS = 5000
 
 
 def get_sponsored_editions(user):
@@ -166,19 +165,13 @@ def qualifies_for_sponsorship(edition):
             resp['price'] = {
                 'book_cost_cents': book_cost_cents,
                 'scan_price_cents': scan_price_cents,
-                'total_price_cents': total_price_cents
+                'total_price_cents': total_price_cents,
             }
-            if total_price_cents <= PRICE_LIMIT_CENTS:
-                resp['is_eligible'] = eligibility_check(edition)
-            else:
-                resp['error'] = {
-                    'reason': 'cost exceeds %s' % PRICE_LIMIT_CENTS,
-                    'values': total_price_cents
-                }
+            resp['is_eligible'] = eligibility_check(edition)
     else:
         resp['error'] = {
             'reason': 'matches',
-            'values': maches
+            'values': matches
         }
     resp.update({
         'url': config_ia_domain + '/donate?' + urllib.urlencode({
