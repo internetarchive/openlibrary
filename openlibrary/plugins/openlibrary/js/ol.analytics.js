@@ -2,10 +2,6 @@
  * OpenLibrary-specific convenience functions for use with Archive.org analytics.js
  *
  * Depends on Archive.org analytics.js function archive_analytics.send_ping()
- *
- * Usage:
- *     $("select#role").add_new_field({href: "#role-popup"});
- *
  */
 export default function initAnalytics() {
     var startTime = new Date();

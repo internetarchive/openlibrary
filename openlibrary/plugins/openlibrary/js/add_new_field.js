@@ -6,8 +6,6 @@
  *
  * Conventions:
  *     - value of option "select xxx" must be ""
- *     - value of option "add new xxx" must be "__add__"
- *     - the popup should have a form and the type of add button must be "submit".
  *     - On submit:
  *         - JSON of the form input is appended to a hidden field with name this.id + "_json"
  *         - new option is added to the select box with value=d.value || d.label and contents=d.label, where d is the form data.
@@ -26,33 +24,6 @@ export default function($){
                 .val('[]')
                 .insertBefore($this);
 
-            $this.change(function(){
-                var value = $this.val();
-                if (value == '__add__') {
-                    if (options.onshow) {
-                        options.onshow.apply($this, []);
-                    }
-                    $.fn.colorbox({
-                        inline: true,
-                        opacity: '0.5',
-                        href: options.href,
-                        open: true
-                    });
-                }
-            });
-
-            // handle cancel
-            $(options.href).bind('cbox_closed', function() {
-
-                if ($this.val() == '__add__') {
-                    $this.val('');
-                    $this.focus();
-                }
-                if (options.cancel) {
-                    options.cancel();
-                }
-            });
-
             // handle submit
             $('form:first', $(options.href)).submit(function(event) {
                 var array, d, i, data;
@@ -70,9 +41,6 @@ export default function($){
                 if (options.validate && options.validate.apply($this, [d]) == false) {
                     return;
                 }
-
-                // close popup
-                $.fn.colorbox.close();
 
                 // add new option
                 $('<option/>')

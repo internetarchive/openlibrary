@@ -291,9 +291,6 @@ window.q.push(function() {
                                     <option value="" selected="selected">$_("Select role")</option>
                                     $for role in edition_config.roles:
                                         <option>$role</option>
-
-                                    <!-- <option>---</option> -->
-                                    <!-- <option value="__add__">$_("Add a new role")</option> -->
                                 </select>
                             </td>
                             <td>
@@ -455,9 +452,6 @@ window.q.push(function() {
                                 <optgroup label="----------"></optgroup>
                                 $for id in set2:
                                     <option value="$id.name">$id.label</option>
-
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">Add a new ID type</option> -->
                             </select>
                         </td>
                         <td>
@@ -521,9 +515,6 @@ window.q.push(function() {
                                 <option value="">$_("Select one of many...")</option>
                                 $for d in edition_config.classifications:
                                     <option value="$d.name">$d.label</option>
-
-                                <!-- <option>---</option> -->
-                                <!-- <option value="__add__">$_("Add a new classification type")</option> -->
                             </select>
                         </td>
                         <td>
