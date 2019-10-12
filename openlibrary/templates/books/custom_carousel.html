@@ -63,7 +63,7 @@ $if test or (books and len(books) >= min_books):
         $if load_more:
           $ load_more_config = {
           $  "url": load_more["url"].replace("&amp;", "&"),
-          $  "pageMode": load_more.get("mode", "page"),
+          $  "pageMode": load_more.get("mode", "offset"),
           $  "limit": load_more.get("limit", 18)
           $ }
         $else:
