@@ -174,6 +174,9 @@ def qualifies_for_sponsorship(edition):
                 'book_cost_cents': book_cost_cents,
                 'scan_price_cents': scan_price_cents,
                 'total_price_cents': total_price_cents,
+                'total_price_display': '${:,.2f}'.format(
+                    total_price_cents / 100.
+                ),
             }
             resp['is_eligible'] = eligibility_check(edition)
     else:
