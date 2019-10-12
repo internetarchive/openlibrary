@@ -149,12 +149,12 @@ def qualifies_for_sponsorship(edition):
 
     amz_metadata = get_amazon_metadata(edition.isbn13) or {}
     req_fields = ['publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
-    fields = dict((field, (edition.get(field) or amz_metadata.get(field))) for field in req_fields)    
+    edition_data = dict((field, (edition.get(field) or amz_metadata.get(field))) for field in req_fields)
     work = edition.works and edition.works[0]
-    if not (work and all(fields.values())):
+    if not (work and all(edition_data.values())):
         resp['error'] = {
             'reason': 'Open Library is missing book metadata necessary for sponsorship',
-            'values': fields
+            'values': edition_data
         }
         return resp
 
@@ -166,7 +166,7 @@ def qualifies_for_sponsorship(edition):
         if bwb_price:
             SETUP_COST_CENTS = 300
             PAGE_COST_CENTS = 12
-            num_pages = int(fields['number_of_pages'])
+            num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
             book_cost_cents = int(float(bwb_price) * 100)
             total_price_cents = scan_price_cents + book_cost_cents
@@ -181,9 +181,9 @@ def qualifies_for_sponsorship(edition):
             'reason': 'matches',
             'values': matches
         }
-    resp.update(fields)
     resp.update({
-        'url': config_ia_domain + '/donate?' + urllib.urlencode({
+        'edition': edition_data,
+        'sponsor_url': config_ia_domain + '/donate?' + urllib.urlencode({
             'campaign': 'pilot',
             'type': 'sponsorship',
             'context': 'ol',
