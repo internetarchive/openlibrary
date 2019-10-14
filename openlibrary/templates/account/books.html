@@ -68,7 +68,7 @@ $if og_title:
           <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
           <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
         </ul>
-        $if urlbase.startswith('/account') and ctx.user and ctx.user.is_sponsor():
+        $if urlbase.startswith('/account') and ctx.user and ctx.user.in_sponsorship_beta():
           <!-- only show to owners -->
           <ul class="preset-lists">
             <li class="subsection">Sponsorships</li>
