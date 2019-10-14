@@ -122,14 +122,6 @@ def do_we_want_it(isbn, work_id):
     # err on the side of false negative
     return False
 
-
-
-def isbn_qualifies_for_sponsorship(isbn):
-    """Checks possible isbn10 + isbn13 variations to"""
-    edition = models.Edition.get_by_isbn(isbn)
-    if edition:
-        return qualifies_for_sponsorship(edition)
-
 @public
 def qualifies_for_sponsorship(edition):
     resp = {
