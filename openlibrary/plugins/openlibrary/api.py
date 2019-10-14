@@ -5,6 +5,7 @@ its experience. This does not include public facing APIs with LTS
 """
 
 import web
+import re
 import simplejson
 
 from infogami import config
@@ -18,7 +19,7 @@ from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
-from openlibrary.core.sponsorships import isbn_qualifies_for_sponsorship
+from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     search_amazon, get_betterworldbooks_metadata)
@@ -302,8 +303,14 @@ class sponsorship_eligibility_check(delegate.page):
     path = r'/sponsorship/eligibility/(.*)'
 
     @jsonapi
-    def GET(self, isbn):
-        return simplejson.dumps(isbn_qualifies_for_sponsorship(isbn))
+    def GET(self, _id):
+        edition = (
+            web.ctx.site.get('/books/%s' % _id)
+            if re.match(r'OL[0-9]+M', _id)
+            else models.Edition.get_by_isbn(_id)
+        )
+        return simplejson.dumps(qualifies_for_sponsorship(edition))
+
 
 class price_api(delegate.page):
     path = r'/prices'
