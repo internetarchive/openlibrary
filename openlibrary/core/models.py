@@ -372,7 +372,7 @@ class Edition(Thing):
                 return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
 
     @classmethod
-    def get_by_isbn(cls, isbn):
+    def from_isbn(cls, isbn):
         """Attempts to fetch an edition by isbn, or if no edition is found,
         attempts to import from amazon
         """
