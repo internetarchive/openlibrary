@@ -779,7 +779,7 @@ class public_my_books(delegate.page):
             sponsorships = get_sponsored_editions(user)
             page = render['account/books'](
                 books, key, sponsorship_count=len(sponsorships),
-                reading_log=readlog.reading_log_counts,
+                reading_log_counts=readlog.reading_log_counts,
                 lists=readlog.lists, user=user)
             page.v2 = True
             return page
@@ -834,7 +834,7 @@ class account_my_books(delegate.page):
             books = readlog.get_works(key, page=i.page)
         page = render['account/books'](
             books, key, sponsorship_count=len(sponsorships),
-            reading_log=readlog.reading_log_counts, lists=readlog.lists,
+            reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
             user=user, public=is_public
         )
         page.v2 = True
