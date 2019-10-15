@@ -48,6 +48,11 @@ def isbn_10_to_isbn_13(isbn_10):
     return isbn_13 + check_digit_13(isbn_13)
 
 def to_isbn_13(isbn):
+    """
+    Tries to make an isbn into an isbn13; regardless of input isbn type
+    :param str isbn:
+    :rtype: str|None
+    """
     isbn = normalize_isbn(isbn)
     return isbn and (isbn if len(isbn) == 13 else isbn_10_to_isbn_13(isbn))
 
