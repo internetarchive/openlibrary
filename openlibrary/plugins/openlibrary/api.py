@@ -307,7 +307,8 @@ class sponsorship_eligibility_check(delegate.page):
         edition = (
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
-            else models.Edition.get_by_isbn(_id)
+            else models.Edition.from_isbn(_id)
+            
         )
         return simplejson.dumps(qualifies_for_sponsorship(edition))
 

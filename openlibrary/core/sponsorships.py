@@ -28,20 +28,26 @@ def get_sponsored_editions(user):
     """
     Gets a list of books from the civi API which internet archive
     @archive_username has sponsored
+
+    :param user user: infogami user
+    :rtype: list
+    :return: list of editions sponsored by user
     """
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     contact_id = get_contact_id_by_username(archive_id)
-    return contact_id and get_sponsorships_by_contact_id(contact_id)
+    return get_sponsorships_by_contact_id(contact_id) if contact_id else []
 
 
 def do_we_want_it(isbn, work_id):
-    """Returns True if we don't have this edition (or other editions of
+    """
+    Returns True if we don't have this edition (or other editions of
     the same work), if the isbn has not been promised to us, has not
     yet been sponsored, and is not already in our possession.
 
-    Args:
-        isbn - str isbn10 or 13
-        work_id - str openlibrary work id
+    :param str isbn: isbn10 or isbn13
+    :param str work_id: e.g. OL123W
+    :rtype: dict
+    :return: True if we don't have any edition of this work
     """
     availability = get_work_availability(work_id)  # checks all editions
     if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
@@ -63,19 +69,40 @@ def do_we_want_it(isbn, work_id):
     except:
         logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
     # err on the side of false negative
-    return False
+    return False, []
 
 @public
 def qualifies_for_sponsorship(edition):
+    """
+    :param edition edition: An infogami book edition
+    :rtype: dict
+    :return: A dict with book eligibility:
+    {
+     "edition": {
+        "publishers": ["University of Wisconsin Press"],
+        "number_of_pages": 262,
+        "publish_date": "September 22, 2004",
+        "cover": "https://covers.openlibrary.org/b/id/2353907-L.jpg",
+        "title": "Lords of the Ring"
+       },
+       "price": {
+          "scan_price_cents": 3444,
+          "book_cost_cents": 298,
+          "total_price_display": "$37.42",
+          "total_price_cents": 3742
+        },
+       "is_eligible": true,
+       "sponsor_url": "https://archive.org/donate?isbn=9780299204204&type=sponsorship&context=ol&campaign=pilot"
+    }
+    """
     resp = {
         'is_eligible': False,
         'price': None
     }
 
-    edition.isbn13 = to_isbn_13(edition.isbn_13 and edition.isbn_13[0] or
-                              edition.isbn_10 and edition.isbn_10[0])
+    edition.isbn13 = edition.get_isbn13()
     edition.cover = edition.get('covers') and (
-        'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.get('covers')[0])
+        'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.covers[0])
 
     if not edition.isbn13:
         resp['error'] = {

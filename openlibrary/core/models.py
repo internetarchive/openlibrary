@@ -375,6 +375,9 @@ class Edition(Thing):
     def from_isbn(cls, isbn):
         """Attempts to fetch an edition by isbn, or if no edition is found,
         attempts to import from amazon
+        :param str isbn:
+        :rtype: edition|None
+        :return: an open library work for this isbn
         """
         isbn13 = to_isbn_13(isbn)
         isbn10 = isbn_13_to_isbn_10(isbn)
@@ -389,9 +392,7 @@ class Edition(Thing):
                     return web.ctx.site.get(matches[0])
 
         # Attempt to create from amazon, then fetch from OL
-        key = next(
-            create_edition_from_amazon_metadata(isbn)
-            for isbn in [isbn13, isbn10])
+        key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(isbn10 or isbn13)
         if key:
             return web.ctx.site.get(key)
 
