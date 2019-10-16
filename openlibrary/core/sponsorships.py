@@ -9,7 +9,7 @@ from openlibrary.core.lending import (
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
-from openlibrary.accounts import get_internet_archive_id
+from openlibrary.accounts.model import get_internet_archive_id
 from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
@@ -46,8 +46,8 @@ def do_we_want_it(isbn, work_id):
 
     :param str isbn: isbn10 or isbn13
     :param str work_id: e.g. OL123W
-    :rtype: dict
-    :return: True if we don't have any edition of this work
+    :rtype: (bool, list)
+    :return: bool answer to do-we-want-it, list of matching books
     """
     availability = get_work_availability(work_id)  # checks all editions
     if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
@@ -65,7 +65,7 @@ def do_we_want_it(isbn, work_id):
     try:
         data = r.json()
         dwwi = data.get('response', 0)
-        return dwwi, data.get('books')
+        return dwwi==1, data.get('books', [])
     except:
         logger.error("DWWI Failed for isbn %s" % isbn, exc_info=True)
     # err on the side of false negative
