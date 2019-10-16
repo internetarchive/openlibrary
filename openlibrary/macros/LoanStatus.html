@@ -16,6 +16,7 @@ $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
 
+
 $if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
@@ -77,12 +78,24 @@ $elif (availability_status == 'borrow_unavailable'):
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
       <input type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook" value="Join Waitlist"/>
-    </form>
 
-$elif (not ocaid or page.is_access_restricted()) and editions_page:
-  <form>
-    <input type="submit" class="cta-btn" disabled value="No ebook available">
-  </form>
+$elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
+  $ sponsorship = qualifies_for_sponsorship(page)
+  $if (input(sponsorship=None) or user and user.in_sponsorship_beta()) and sponsorship.get('is_eligible'):
+    $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
+    $ user_id = user.key.split("/")[-1] if user else ''
+    <a href="$(sponsorship['sponsor_url'])&userid=$(user_id)"
+       class="cta-btn cta-btn--sponsor"
+       data-ol-link-track="book-sponsorship">Sponsor eBook</a>
+    <p>
+      We don’t have this book yet. You can add it to our Lending
+      Library with a $sponsorship['price']['total_price_display'] tax deductible donation.
+      <a href="/sponsorship" target="_blank">Learn More</a>
+    </p>
+  $else:
+    <form>
+      <input type="submit" class="cta-btn" disabled value="No ebook available">
+    </form>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid)

@@ -25,16 +25,38 @@ a.cta-btn {
     color: @white;
     text-decoration: none;
   }
+
   &--available {
     background-color: @primary-blue;
+    color: @white;
   }
+
   &--unavailable {
     background-color: @orange;
+    color: @white;
   }
   &--preview, &--preview:link, &--preview:visited {
     background-color: @white;
     border: 2px solid @primary-blue;
     color: @primary-blue;
+  }
+  &--sponsor {
+    border: 2px solid @link-blue;
+    background: lighten(desaturate(@link-blue, 50%), 78%);
+    transition: background-color 0.2s;
+  }
+
+  &--sponsor:link {
+      color: @link-blue;
+  }
+
+  &--sponsor:visited {
+    color: @link-blue;
+  }
+  &--sponsor:hover {
+    border: 2px solid @link-blue;
+    background-color: @link-blue;
+    color: @white;
   }
   &__badge {
     background-color: @orange-two;
