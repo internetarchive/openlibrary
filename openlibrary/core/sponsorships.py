@@ -111,7 +111,7 @@ def qualifies_for_sponsorship(edition):
 
     amz_metadata = get_amazon_metadata(edition.isbn13) or {}
     req_fields = ['publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
-    edition_data = dict((field, (edition.get(field) or amz_metadata.get(field))) for field in req_fields)
+    edition_data = dict((field, (amz_metadata.get(field) or edition.get(field))) for field in req_fields)
     work = edition.works and edition.works[0]
     if not (work and all(edition_data.values())):
         resp['error'] = {
