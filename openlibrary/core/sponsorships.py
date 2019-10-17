@@ -83,7 +83,8 @@ def qualifies_for_sponsorship(edition):
         "number_of_pages": 262,
         "publish_date": "September 22, 2004",
         "cover": "https://covers.openlibrary.org/b/id/2353907-L.jpg",
-        "title": "Lords of the Ring"
+        "title": "Lords of the Ring",
+        "isbn": "9780299204204"
        },
        "price": {
           "scan_price_cents": 3444,
@@ -100,17 +101,11 @@ def qualifies_for_sponsorship(edition):
         'price': None
     }
 
-    edition.isbn13 = edition.get_isbn13()
+    edition.isbn = edition.get_isbn13()
     edition.cover = edition.get('covers') and (
         'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.covers[0])
-
-    if not edition.isbn13:
-        resp['error'] = {
-            'reason': 'Missing ISBN',
-        }
-
-    amz_metadata = get_amazon_metadata(edition.isbn13) or {}
-    req_fields = ['publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
+    amz_metadata = get_amazon_metadata(edition.isbn) or {}
+    req_fields = ['isbn', 'publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
     edition_data = dict((field, (amz_metadata.get(field) or edition.get(field))) for field in req_fields)
     work = edition.works and edition.works[0]
     if not (work and all(edition_data.values())):
@@ -121,10 +116,9 @@ def qualifies_for_sponsorship(edition):
         return resp
 
     work_id = work.key.split("/")[-1]
-    dwwi, matches = do_we_want_it(edition.isbn13, work_id)
+    dwwi, matches = do_we_want_it(edition.isbn, work_id)
     if dwwi:
-        bwb_price = get_betterworldbooks_metadata(
-            edition.isbn13).get('price_amt')
+        bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
         if bwb_price:
             SETUP_COST_CENTS = 300
             PAGE_COST_CENTS = 12
@@ -152,7 +146,7 @@ def qualifies_for_sponsorship(edition):
             'campaign': 'pilot',
             'type': 'sponsorship',
             'context': 'ol',
-            'isbn': edition.isbn13
+            'isbn': edition.isbn
         })
     })
     return resp
