@@ -1,17 +1,23 @@
 from __future__ import print_function
-from load_book import build_query, InvalidLanguage
-from . import load, RequiredField, build_pool, add_db_name
-from .. import add_book
+
 import os
 import pytest
-from infogami.infobase.core import Text
-from openlibrary.catalog.merge.merge_marc import build_marc
-from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
-from merge import try_merge
+
 from copy import deepcopy
 from urllib import urlopen
 from collections import defaultdict
+
+from infogami.infobase.core import Text
+
+from openlibrary.catalog import add_book
+from openlibrary.catalog.add_book import add_db_name, build_pool, editions_matched, isbns_from_record, load, RequiredField
+from openlibrary.catalog.add_book.load_book import build_query, InvalidLanguage
+from openlibrary.catalog.add_book.merge import try_merge
+
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.marc.parse import read_edition
+from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
+
 
 def open_test_data(filename):
     """Returns a file handle to file with specified filename inside test_data directory.
@@ -55,6 +61,36 @@ def test_build_query(add_languages):
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
 
     pytest.raises(InvalidLanguage, build_query, {'languages': ['wtf']})
+
+def test_isbns_from_record():
+    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
+    result = isbns_from_record(rec)
+    assert isinstance(result, list)
+    assert '9780190906764' in result
+    assert '0190906766' in result
+    assert len(result) == 2
+
+def test_editions_matched_no_results(mock_site):
+    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
+    isbns = isbns_from_record(rec)
+    result = editions_matched(rec, 'isbn_', isbns)
+    # returns no results because there are no existing editions
+    assert result == []
+
+def test_editions_matched(mock_site, add_languages, ia_writeback):
+    rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766'], 'source_records': ['test:001']}
+    load(rec)
+    isbns = isbns_from_record(rec)
+
+    result_10 = editions_matched(rec, 'isbn_10', '0190906766')
+    assert result_10 == ['/books/OL1M']
+
+    result_13 = editions_matched(rec, 'isbn_13', '9780190906764')
+    assert result_13 == ['/books/OL1M']
+
+    # searching on key isbn_ will return a matching record on either isbn_10 or isbn_13 metadata fields
+    result = editions_matched(rec, 'isbn_', isbns)
+    assert result == ['/books/OL1M']
 
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
@@ -126,8 +162,16 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'created'
     assert reply['work']['status'] == 'created'
-    assert reply['authors'][0]['status'] == 'modified'
     akey2 = reply['authors'][0]['key']
+
+    # TODO: There is no code that modifies an author if more data is provided.
+    # previously the status implied the record was always 'modified', when a match was found.
+    #assert reply['authors'][0]['status'] == 'modified'
+    #a = mock_site.get(akey2)
+    #assert 'entity_type' in a
+    #assert a.entity_type == 'person'
+
+    assert reply['authors'][0]['status'] == 'matched'
     assert akey1 == akey2 == '/authors/OL1A'
 
     # Tests same title with different ocaid and author is not overwritten
@@ -582,7 +626,7 @@ def test_no_extra_author(mock_site, add_languages):
         "publishers": ["The University of Alberta Press"],
         "physical_format": "Paperback",
         "key": "/books/OL1M",
-        "authors": [{"key": "/authors/OL2894448A"}],
+        "authors": [{"key": "/authors/OL1A"}],
         "identifiers": {"goodreads": ["4340973"], "librarything": ["5580522"]},
         "isbn_13": ["9780888643513"],
         "isbn_10": ["0888643519"],
@@ -595,18 +639,21 @@ def test_no_extra_author(mock_site, add_languages):
     marc = MarcBinary(open_test_data(src).read())
     rec = read_edition(marc)
     rec['source_records'] = ['marc:' + src]
+
     reply = load(rec)
     assert reply['success'] is True
+    assert reply['edition']['status'] == 'modified'
+    assert reply['work']['status'] == 'modified'
+    assert 'authors' not in reply
 
-    a = mock_site.get(reply['authors'][0]['key'])
-
-    assert reply['authors'][0]['key'] == author['key']
     assert reply['edition']['key'] == edition['key']
     assert reply['work']['key'] == work['key']
 
     e = mock_site.get(reply['edition']['key'])
     w = mock_site.get(reply['work']['key'])
+
     assert 'source_records' in e
+    assert 'subjects' in w
     assert len(e['authors']) == 1
     assert len(w['authors']) == 1
 
@@ -710,6 +757,7 @@ def test_don_quixote(mock_site):
     print("Work status counts: %s" % work_status_counts)
     print("Author status counts: %s" % author_status_counts)
 
+
 def test_same_twice(mock_site, add_languages):
     rec = {
             'source_records': ['ia:test_item'],
@@ -723,3 +771,68 @@ def test_same_twice(mock_site, add_languages):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
     assert reply['work']['status'] == 'matched'
+
+
+def test_existing_work(mock_site, add_languages):
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A'}
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': 'Finding existing works',
+        'type': {'key': '/type/work'},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    rec = {
+            'source_records': 'non-marc:test',
+            'title': 'Finding Existing Works',
+            'authors': [{'name': 'John Smith'}],
+            'publishers': ['Black Spot'],
+            'publish_date': 'Jan 09, 2011',
+            'isbn_10': ['1250144051'],
+           }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'matched'
+    assert reply['work']['key'] == '/works/OL16W'
+    assert reply['authors'][0]['status'] == 'matched'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['key'] == '/works/OL16W'
+
+
+def test_existing_work_with_subtitle(mock_site, add_languages):
+    author = {
+        'type': {'key': '/type/author'},
+        'name': 'John Smith',
+        'key': '/authors/OL20A'}
+    existing_work = {
+        'authors': [{'author': '/authors/OL20A', 'type': {'key': '/type/author_role'}}],
+        'key': '/works/OL16W',
+        'title': 'Finding existing works',
+        'type': {'key': '/type/work'},
+    }
+    mock_site.save(author)
+    mock_site.save(existing_work)
+    rec = {
+            'source_records': 'non-marc:test',
+            'title': 'Finding Existing Works',
+            'subtitle': 'the ongoing saga!',
+            'authors': [{'name': 'John Smith'}],
+            'publishers': ['Black Spot'],
+            'publish_date': 'Jan 09, 2011',
+            'isbn_10': ['1250144051'],
+           }
+
+    reply = load(rec)
+    assert reply['success'] is True
+    assert reply['edition']['status'] == 'created'
+    assert reply['work']['status'] == 'matched'
+    assert reply['work']['key'] == '/works/OL16W'
+    assert reply['authors'][0]['status'] == 'matched'
+    e = mock_site.get(reply['edition']['key'])
+    assert e.works[0]['key'] == '/works/OL16W'

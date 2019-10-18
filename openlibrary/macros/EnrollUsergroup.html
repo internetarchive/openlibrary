@@ -1,0 +1,12 @@
+$def with (usergroup, endpoint, callback="")
+
+$if ctx.user and ctx.user.is_usergroup_member(usergroup):
+  <p><b>You have successfully joined the waitlist.</b></p>
+  $ subject = '[REMOVE]%20' + ctx.user.key.split('/')[2] + '%20from%20' + usergroup
+  <p>You may leave this list by <a href="mailto:openlibrary@archive.org?subject=$subject">sending a note</a> to our Librarian team</p>
+$else:
+  <form method="GET" action="$endpoint">
+    <input type="hidden" name="usergroup" value="$usergroup">
+    <input type="hidden" name="callback" value="$callback">
+    <button action="submit">Join the Waitlist</button>
+  </form>

@@ -7,7 +7,7 @@ clint==0.5.1
 decorator==4.0.10
 docopt==0.6.2
 docutils==0.8.1
-ecdsa==0.11
+ecdsa==0.13.3
 enum34==1.1.6
 ipython==5.1.0
 ipython-genutils==0.1.0

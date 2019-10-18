@@ -1,7 +1,8 @@
 import { debounce } from './nonjquery_utils.js';
 import * as Browser from './Browser';
+import { updateWorkAvailability } from './availability';
 
-export function isScrolledIntoView(elem) {
+function isScrolledIntoView(elem) {
     var docViewTop = $(window).scrollTop();
     var docViewBottom = docViewTop + $(window).height();
     var elemTop, elemBottom;
@@ -11,23 +12,6 @@ export function isScrolledIntoView(elem) {
         return ((docViewTop < elemTop) && (docViewBottom > elemBottom));
     }
     return false;
-}
-
-// BOOK COVERS
-// used in templates/work_search.html
-export function bookCovers(){
-    $('img.cover').error(function(){
-        $(this).closest('.SRPCover').hide();
-        $(this).closest('.coverMagic').find('.SRPCoverBlank').show();
-    });
-}
-
-// CLOSE POP-UP FROM IFRAME
-// used in templates/covers/saved.html
-export function closePop(){
-    $('#popClose').click(function(){
-        parent.$.fn.colorbox.close();
-    });
 }
 
 export default function init(){
@@ -60,13 +44,13 @@ export default function init(){
     // Maps search facet label with value
     defaultFacet = 'all';
     searchFacets = {
-        'title': 'books',
-        'author': 'authors',
-        'lists': 'lists',
-        'subject': 'subjects',
-        'all': 'all',
-        'advanced': 'advancedsearch',
-        'text': 'inside'
+        title: 'books',
+        author: 'authors',
+        lists: 'lists',
+        subject: 'subjects',
+        all: 'all',
+        advanced: 'advancedsearch',
+        text: 'inside'
     };
 
     composeSearchUrl = function(q, json, limit) {
@@ -196,8 +180,6 @@ export default function init(){
         $('.search-bar-input [type=text]').val(q);
     }
 
-    // updateWorkAvailability is defined in openlibrary\openlibrary\plugins\openlibrary\js\availability.js
-    // eslint-disable-next-line no-undef
     updateWorkAvailability();
 
     $(document).on('submit','.trigger', function(e) {
@@ -314,7 +296,7 @@ export default function init(){
 
     // e is a event object
     $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
-        $(document.body).css({'cursor' : 'wait'});
+        $(document.body).css({cursor: 'wait'});
     }, 300, false));
 
     $searchInput.on('keyup', debounce(function(e) {
@@ -377,12 +359,12 @@ export function initReadingListFeature() {
         var remove = $(self).children('option').filter(':selected').text().toLowerCase() === 'remove';
         var url = $(form).attr('action');
         $.ajax({
-            'url': url,
-            'type': 'POST',
-            'data': {
+            url: url,
+            type: 'POST',
+            data: {
                 bookshelf_id: $(self).val()
             },
-            'datatype': 'json',
+            datatype: 'json',
             success: function(data) {
                 if (remove) {
                     $(self).closest('.searchResultItem').remove();

@@ -63,24 +63,24 @@ export function initEditionsTable() {
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 16) {
         $('#editions').dataTable({
-            'aoColumns': [{'sType':'html'},null,null,null],
-            'aaSorting': [ [1,'asc'] ],
-            'bPaginate': false,
-            'bInfo': false,
-            'bFilter': false,
-            'bStateSave': false,
-            'bAutoWidth': false
+            aoColumns: [{sType: 'html'},null,null,null],
+            aaSorting: [ [1,'asc'] ],
+            bPaginate: false,
+            bInfo: false,
+            bFilter: false,
+            bStateSave: false,
+            bAutoWidth: false
         });
     } else {
         $('#editions').dataTable({
-            'aoColumns': [{'sType':'html'},null,null,null],
-            'aaSorting': [ [1,'asc'] ],
-            'bPaginate': true,
-            'bInfo': true,
-            'sPaginationType': 'full_numbers',
-            'bFilter': false,
-            'bStateSave': false,
-            'bAutoWidth': false
+            aoColumns: [{sType: 'html'},null,null,null],
+            aaSorting: [ [1,'asc'] ],
+            bPaginate: true,
+            bInfo: true,
+            sPaginationType: 'full_numbers',
+            bFilter: false,
+            bStateSave: false,
+            bAutoWidth: false
         });
     }
     $('.return-book').submit(function(event) {

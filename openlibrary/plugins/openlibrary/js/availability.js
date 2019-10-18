@@ -19,7 +19,7 @@
 var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 /* eslint-enable no-unused-vars */
 
-function init() {
+function initAvailability() {
     var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
     var whitelist = {
@@ -47,7 +47,7 @@ function init() {
             url: url,
             type: 'POST',
             data: JSON.stringify({
-                'ids': _ids
+                ids: _ids
             }),
             dataType: 'json',
             contentType: 'application/json',
@@ -197,7 +197,7 @@ function init() {
 
         getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
             getAvailabilityV2('openlibrary_work', works, function(works_response) {
-                var response = {'books': editions_response, 'works': works_response};
+                var response = {books: editions_response, works: works_response};
                 $.each(results, function(index, e) {
                     var href = $(e).attr('href');
                     var _type_key_slug = href.split('/')
@@ -243,5 +243,8 @@ function init() {
     }
 }
 
-init();
-export { getAvailabilityV2, updateBookAvailability, updateWorkAvailability };
+initAvailability();
+
+export {
+    updateWorkAvailability
+};

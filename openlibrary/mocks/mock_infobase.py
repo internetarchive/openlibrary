@@ -157,6 +157,13 @@ class MockSite:
         keys = set(self.docs.keys())
 
         for k, v in query.items():
+            if isinstance(v, dict):
+                # query keys need to be flattened properly,
+                # this corrects any nested keys that have been included
+                # in values.
+                flat = common.flatten_dict(v)[0]
+                k += '.' + web.rstrips(flat[0], '.key')
+                v = flat[1]
             keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
 
         keys = sorted(keys)
@@ -182,14 +189,21 @@ class MockSite:
 
         f = operations[op]
 
+        if name == 'isbn_':
+            names = ['isbn_10', 'isbn_13']
+        else:
+            names = [name]
+
         if isinstance(value, list): # Match any of the elements in value if it's a list
-            for i in index:
-                if i.name == name and any(f(i, v) for v in value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and any(f(i, v) for v in value):
+                        yield i.key
         else: # Otherwise just match directly
-            for i in index:
-                if i.name == name and f(i, value):
-                    yield i.key
+            for n in names:
+                for i in index:
+                    if i.name == n and f(i, value):
+                        yield i.key
 
     def compute_index(self, doc):
         key = doc['key']

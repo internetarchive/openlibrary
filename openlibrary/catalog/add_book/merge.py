@@ -11,20 +11,25 @@ def db_name(a):
         date = a.date
     return ' '.join([a['name'], date]) if date else a['name']
 
+# FIXME: badly named. edition_record_equal? (candidate_ed, existing_ed)
 def try_merge(e1, edition_key, existing):
     """
     Converts the existing edition into a comparable dict and performs a
     thresholded comparison to decide whether they are the same.
+    Used by add_book.load() -> add_book.find_match() to check whether two
+    editions match.
 
-    :param dict e1:
-    :param str edition_key:
-    :param Thing existing: Edition object that most likely matches e1, the object of edition_key
+    :param dict e1: Output of build_marc(import record candidate)
+    :param str edition_key: edition key of existing
+    :param Thing existing: Edition object to be tested against e1, the object of edition_key
     :rtype: bool
     :return: Whether e1 is sufficiently the same as the 'existing' edition
     """
+
     thing_type = existing.type.key
     if thing_type == '/type/delete':
         return False
+    # FIXME: will fail if existing is a redirect.
     assert thing_type == '/type/edition'
     rec2 = {}
     rec2['full_title'] = existing.title
