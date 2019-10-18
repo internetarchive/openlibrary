@@ -34,7 +34,7 @@ export default function init(){
 
     $(window).scroll(function(){
         var scroller = $('#formScroll');
-        if(isScrolledIntoView(scroller)){$('#scrollBtm').show();}else{$('#scrollBtm').hide();}
+        if (isScrolledIntoView(scroller)){$('#scrollBtm').show();} else {$('#scrollBtm').hide();}
     });
 
     // Search mode
@@ -198,7 +198,7 @@ export default function init(){
     }
     $(window).resize(function(){
         var search_query;
-        if($(this).width() < 568){
+        if ($(this).width() < 568){
             if (!enteredSearchMinimized) {
                 $('.search-bar-input').addClass('trigger')
                 $('header#header-bar .search-component ul.search-results').empty()

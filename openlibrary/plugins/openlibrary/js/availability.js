@@ -82,12 +82,12 @@ function initAvailability() {
         $(selector).each(function(index, elem) {
             var data_ocaid = $(elem).attr('data-ocaid');
             var book_ocaids, book_key;
-            if(data_ocaid) {
+            if (data_ocaid) {
                 book_ocaids = data_ocaid.split(',')
                     .filter(function(book) { return book !== '' });
                 book_key = $(elem).attr('data-key');
 
-                if(book_ocaids.length) {
+                if (book_ocaids.length) {
                     books[book_key] = book_ocaids;
                     Array.prototype.push.apply(ocaids, book_ocaids);
                 }
@@ -168,7 +168,7 @@ function initAvailability() {
                 filter = whitelist[page].filter;
             }
         }
-        if(!checkAvailability) {
+        if (!checkAvailability) {
             return;
         }
 

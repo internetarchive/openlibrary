@@ -27,6 +27,7 @@
     "vars-on-top": "error",
     "template-curly-spacing": "error",
     "quote-props": ["error", "as-needed"],
+    "keyword-spacing": ["error", { "before": true, "after": true } ],
     "key-spacing": ["error", { "mode": "strict" }]
   }
 }

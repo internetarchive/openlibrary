@@ -12,7 +12,7 @@ export default function($) {
 
     // tabs
     options = {};
-    if($.support.opacity){
+    if ($.support.opacity){
         options.fx = {opacity: 'toggle'};
     }
 
