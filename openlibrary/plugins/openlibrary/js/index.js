@@ -103,4 +103,7 @@ jQuery(function () {
     }
     validateEmail();
     validatePassword();
+    $(document).on('click', '.slide-toggle', function () {
+        $(`#${$(this).attr('aria-controls')}`).slideToggle();
+    });
 });
