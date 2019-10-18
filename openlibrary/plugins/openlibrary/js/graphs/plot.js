@@ -217,7 +217,7 @@ export function loadGraph(id, options = {}, tooltip_message = '', color = null) 
             `No graph associated with ${id} on the page.`
         );
     }
-    if(!dataSource) {
+    if (!dataSource) {
         throw new Error(
             `No data associated with ${id} - make sure a script tag with type text/json and id "${graphSelector}" is present on the page.`
         );
