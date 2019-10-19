@@ -353,6 +353,9 @@ class work2edition_resolver(delegate.page):
         matches = doc.get_ebook_info().get('ia', [])
         if matches:
             raise web.seeother('/ia/' + matches[0])
+        ed = doc.get_one_edition()
+        if ed:
+            raise web.seeother(ed.key)
         raise web.seeother(work_key)
 
 class bookpage(delegate.page):
