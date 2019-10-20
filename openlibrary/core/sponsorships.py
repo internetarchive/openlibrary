@@ -3,8 +3,7 @@ import requests
 import logging
 import web
 from infogami.utils.view import public
-from openlibrary.core.lending import (
-    get_work_availability, config_ia_domain)
+from openlibrary.core import lending
 from openlibrary.core import models, cache
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
@@ -82,7 +81,7 @@ def do_we_want_it(isbn, work_id):
     :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
     """
-    availability = get_work_availability(work_id)  # checks all editions
+    availability = lending.get_work_availability(work_id)  # checks all editions
     if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
         return False, availability
 
@@ -93,7 +92,7 @@ def do_we_want_it(isbn, work_id):
         'include_promises': 'true',  # include promises and sponsored books
         'search_id': isbn
     }
-    url = '%s/book/marc/ol_dedupe.php?%s' % (config_ia_domain,  urllib.urlencode(params))
+    url = '%s/book/marc/ol_dedupe.php?%s' % (lending.config_ia_domain,  urllib.urlencode(params))
     r = requests.get(url)
     try:
         data = r.json()
@@ -183,7 +182,7 @@ def qualifies_for_sponsorship(edition):
     })
     resp.update({
         'edition': edition_data,
-        'sponsor_url': config_ia_domain + '/donate?' + urllib.urlencode({
+        'sponsor_url': lending.config_ia_domain + '/donate?' + urllib.urlencode({
             'campaign': 'pilot',
             'type': 'sponsorship',
             'context': 'ol',
