@@ -63,9 +63,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
     <a href="$read_link" data-ol-link-track="read_unrestricted" title="Use BookReader to read online"
        id="read_ebook" class="cta-btn--available cta-btn">Read</a>
 $else:
-  <form>
-    <input type="button" class="cta-btn--missing cta-btn" disabled value="No ebook available">
-  </form>
+  <a href="$page.key" class="cta-btn--missing cta-btn">No ebook available</a>
   $if page.ia:
     $ daisy_url = "/ia/%s/daisy" % page.ia[0]
     $:macros.daisy(page, url=daisy_url, protected=True, msg=_("Print-disabled access available"))

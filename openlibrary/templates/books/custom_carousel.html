@@ -18,7 +18,12 @@ $def render_carousel_cover(book, lazy):
     $ byline = ''
   $ modifier = ''
   $ cta = None
-  $if book.get('ocaid'):
+  $ cta_cls = 'available'
+  $if book.get('eligibility', {}).get('is_eligible'):
+    $ cta_url = book['eligibility']['sponsor_url']
+    $ cta = 'Sponsor'
+    $ cta_cls = 'sponsor'
+  $elif book.get('ocaid'):
     $ modifier = 'borrow-link'
     $ cta_url = '/borrow/ia/%s' % book.ocaid
     $ cta = 'Borrow'
@@ -30,7 +35,8 @@ $def render_carousel_cover(book, lazy):
     $ cta = 'Borrow'
   $else:
     $ cta = 'Read'
-    $ url += '/x/resolve'
+    $if not is_bot():
+      $ url += '?edition=best'
     $ cta_url = url
 
   $if lazy:
@@ -48,7 +54,7 @@ $def render_carousel_cover(book, lazy):
       </a>
     </div>
     $if cta:
-      <div class="book-cta"><a class="cta-btn cta-btn--available $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
+      <div class="book-cta"><a class="cta-btn cta-btn--$(cta_cls) $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
         data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
   </div>
 

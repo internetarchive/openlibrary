@@ -13,6 +13,7 @@ from infogami import config
 from openlibrary import accounts
 from openlibrary.core import admin, cache, ia, inlibrary, lending, \
     helpers as h
+from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
@@ -107,6 +108,16 @@ def get_featured_subjects():
     ]
     return dict([(subject_name, subjects.get_subject('/subjects/' + subject_name, sort='edition_count'))
                  for subject_name in FEATURED_SUBJECTS])
+
+
+def get_cachable_sponsorable_editions():
+    return [format_book_data(ed) for ed in get_sponsorable_editions()]
+
+@public
+def get_cached_sponsorable_editions():
+    return storify(cache.memcache_memoize(
+        get_cachable_sponsorable_editions, "books.sponsorable_editions",
+        timeout=dateutil.HOUR_SECS)())
 
 @public
 def get_cached_featured_subjects():
@@ -220,6 +231,7 @@ def format_book_data(book):
     d.url = book.url()
     d.title = book.title or None
     d.ocaid = book.get("ocaid")
+    d.eligibility = book.get("eligibility", {})
 
     def get_authors(doc):
         return [web.storage(key=a.key, name=a.name or None) for a in doc.get_authors()]
