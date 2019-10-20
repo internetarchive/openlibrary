@@ -35,14 +35,14 @@ class TestSponsorship:
         }
 
         # We already have an edition for this work ...
-        monkeypatch.setattr(sponsorships, 'get_work_availability',
+        monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__reject)
         dwwi, availability = do_we_want_it(isbn, work_id)
         assert dwwi == False
         assert availability == mock_availability__reject
 
         # Simulating exception / API call failure ...
-        monkeypatch.setattr(sponsorships, 'get_work_availability',
+        monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
         monkeypatch.setattr(sponsorships.requests, 'get', lambda url: {'invalid': 'json'})
         dwwi, matches = do_we_want_it(isbn, work_id)
@@ -50,7 +50,7 @@ class TestSponsorship:
         assert matches == []
 
         # Check archive.org promise items, previous sponsorships ...
-        monkeypatch.setattr(sponsorships, 'get_work_availability',
+        monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
         monkeypatch.setattr(sponsorships.requests, 'get', lambda url: None)
         dwwi, matches = do_we_want_it(isbn, work_id)
