@@ -17,7 +17,7 @@ meld3==0.6.7
 ndg-httpsclient==0.4.2
 -e git+git@github.com:internetarchive/openlibrary.git@997a268222a2256876c1bd3296c96f982c29fd37#egg=openlibrary-origin/HEAD
 pathlib2==2.1.0
-pexpect==4.2.1
+pexpect==4.7.0
 pickleshare==0.7.4
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
