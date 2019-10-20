@@ -81,10 +81,9 @@ $elif (availability_status == 'borrow_unavailable'):
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
   $ sponsorship = qualifies_for_sponsorship(page)
-  $if (input(sponsorship=None).sponsorship or user and user.in_sponsorship_beta()) and sponsorship.get('is_eligible'):
+  $if  sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
-    $ user_id = user.key.split("/")[-1] if user else ''
-    <a href="$(sponsorship['sponsor_url'])&userid=$(user_id)"
+    <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"
        data-ol-link-track="book-sponsorship">Sponsor eBook</a>
     <p>
@@ -93,9 +92,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
       <a href="/sponsorship" target="_blank">Learn More</a>
     </p>
   $else:
-    <form>
-      <input type="submit" class="cta-btn" disabled value="No ebook available">
-    </form>
+    <a href="$work.key" class="cta-btn cta-btn--missing">No ebook available</a>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid)

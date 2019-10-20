@@ -61,19 +61,16 @@ window.q.push(function(){
 });
 //-->
 </script>
-
 <div id="contentHead">
-    <div class="small sansserif grey" style="margin-bottom:5px;""><a href="$ctx.user.key">$ctx.user.displayname</a> /</div>
-    <h1>$_("Books You've Checked Out")</h1>
-
+  <div class="small sansserif grey" style="margin-bottom:5px;"><a href="$ctx.user.key">$ctx.user.displayname</a> /</div>
 </div>
-
 <div id="contentBody">
-$if len(loans) == 0:
+  <h1>$_("Books You've Checked Out")</h1>
+  $if len(loans) == 0:
     <div><em>You've not checked out any books at this moment.</em></div>
 $else:
-    $# Have current loans
-    <div id="borrowTable" class="borrow collapse">
+  $# Have current loans
+  <div id="borrowTable" class="borrow collapse">
     <table>
         <thead>
             <tr>
@@ -90,10 +87,9 @@ $else:
         <tbody>
         <!-- for each borrow -->
         $for loan in loans:
-            $ book = get_document(loan['book'])
-            $if book is None:
-                $continue
-            <tr data-userid="$(loan['userid'])">
+          $ book = get_document(loan['book'])
+          $if book:
+              <tr data-userid="$(loan['userid'])">
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)
                 </td>
@@ -133,8 +129,8 @@ $else:
             </tr>
         </tbody>
     </table>
-    </div>
-    <!--
+  </div>
+  <!--
     $for loan in loans:
         $:macros.BorrowTrouble(loan['expiry'])
     <h3>How To Return eBooks through Adobe Digital Editions</h3>
@@ -149,12 +145,14 @@ $else:
     </ol>
     -->
 
+
 <h1>$_("Books You're Waiting For")</h1>
 $ waitinglist = user.get_waitinglist()
 $if len(waitinglist) == 0:
     <div><em>You are not waiting for any books at this moment.</em></div>
 $else:
-    <div id="leave-waitinglist-dialog" class="hidden dialog" title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
+    <div id="leave-waitinglist-dialog" class="hidden dialog"
+         title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
     <script type="text/javascript">
     window.q.push(function() {
         \$("#leave-waitinglist-dialog").dialog({
@@ -196,8 +194,9 @@ $else:
         </thead>
         <tbody>
         $for record in waitinglist:
-            $ book = record.get_book()
-            $ status = record['status']
+          $ book = record.get_book()
+          $ status = record['status']
+          $if book:
             <tr class="row-$status">
                 <td class="cover">
                 $:render_template('covers/book_cover_small', book)

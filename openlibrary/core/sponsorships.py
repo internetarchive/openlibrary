@@ -1,11 +1,11 @@
 import urllib
 import requests
 import logging
-from infogami import config
+import web
 from infogami.utils.view import public
-from openlibrary.core import models
 from openlibrary.core.lending import (
     get_work_availability, config_ia_domain)
+from openlibrary.core import models, cache
 from openlibrary.core.vendors import (
     get_betterworldbooks_metadata,
     get_amazon_metadata)
@@ -14,6 +14,7 @@ from openlibrary.core.civicrm import (
     get_contact_id_by_username,
     get_sponsorships_by_contact_id)
 from openlibrary.utils.isbn import to_isbn_13
+
 try:
     from booklending_utils.sponsorship import eligibility_check
 except ImportError:
@@ -36,6 +37,38 @@ def get_sponsored_editions(user):
     archive_id = get_internet_archive_id(user.key if 'key' in user else user._key)
     contact_id = get_contact_id_by_username(archive_id)
     return get_sponsorships_by_contact_id(contact_id) if contact_id else []
+
+def get_sponsorable_editions():
+    """This should move to an infogami type so any admin can add editions
+    to the list. This will need to be paginated.
+    """
+    candidates = [
+        '/books/OL25448615M',  # Reinventing_Organizations
+        '/books/OL25211152M',  # Design_in_nature
+        '/books/OL24852632M',  # Lottie Paris and the Best Place
+        '/books/OL25259757M',  # Tiny_beautiful_things
+        '/books/OL25912312M',  # The_Three-Body_Problem
+        '/books/OL375600M',    # Maps_of_Meaning'
+        '/books/OL26673217M',  # A_Mind_for_Numbers
+        '/books/OL3970166M',   # The_mastery_and_uses_of_fire_in_antiquity,
+        '/books/OL6407672M',   # One_thousand_ways_to_make_1000.
+        '/books/OL9891207M',   # The_33_Strategies_of_War
+        '/books/OL9498934M',   # The_Joy_of_Living
+        '/books/OL12225883M',  # What_It_Is
+        '/books/OL2207952M',   # Perspectives_on_the_computer_revolution
+        '/books/OL27454936M',  # Reinventing_Discovery
+        '/books/OL26297205M',  # Rogue_archives
+        '/books/OL27452618M',  # Intertwingled
+        '/books/OL26832636M',  # Forge_Your_Future_with_Open_Source
+
+    ]
+    eligible_editions = []
+    for key in candidates:
+        ed = web.ctx.site.get(key)
+        ed.eligibility= qualifies_for_sponsorship(ed)
+        if ed.eligibility.get('is_eligible'):
+            eligible_editions.append(ed)
+    return eligible_editions
 
 
 def do_we_want_it(isbn, work_id):
@@ -85,6 +118,8 @@ def qualifies_for_sponsorship(edition):
         "cover": "https://covers.openlibrary.org/b/id/2353907-L.jpg",
         "title": "Lords of the Ring",
         "isbn": "9780299204204"
+        "openlibrary_edition": "OL2347684W",
+        "openlibrary_work": "OL10317216M"
        },
        "price": {
           "scan_price_cents": 3444,
@@ -108,6 +143,7 @@ def qualifies_for_sponsorship(edition):
     req_fields = ['isbn', 'publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
     edition_data = dict((field, (amz_metadata.get(field) or edition.get(field))) for field in req_fields)
     work = edition.works and edition.works[0]
+
     if not (work and all(edition_data.values())):
         resp['error'] = {
             'reason': 'Open Library is missing book metadata necessary for sponsorship',
@@ -116,6 +152,7 @@ def qualifies_for_sponsorship(edition):
         return resp
 
     work_id = work.key.split("/")[-1]
+    edition_id = edition.key.split('/')[-1]
     dwwi, matches = do_we_want_it(edition.isbn, work_id)
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
@@ -140,6 +177,10 @@ def qualifies_for_sponsorship(edition):
             'reason': 'matches',
             'values': matches
         }
+    edition_data.update({
+        'openlibrary_edition': work_id,
+        'openlibrary_work': edition_id
+    })
     resp.update({
         'edition': edition_data,
         'sponsor_url': config_ia_domain + '/donate?' + urllib.urlencode({

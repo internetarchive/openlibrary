@@ -637,6 +637,20 @@ class Work(models.Work):
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects())
 
+    def get_representative_edition(self):
+        """When we have confidence we can direct patrons to the best edition
+        of a work (for them), return qualifying edition key. Attempts
+        to find best (most available) edition of work using
+        archive.org work availability API. May be extended to support language
+
+        :rtype str: infogami edition key or url which resolves to an edition
+        """
+        work_id = self.key.replace('/works/', '')
+        availability = lending.get_work_availability(work_id)
+        if work_id in availability:
+            if 'openlibrary_edition' in availability[work_id]:
+                return '/books/%s' % availability[work_id]['openlibrary_edition']
+
     def get_sorted_editions(self):
         """Return a list of works sorted by publish date"""
         w = self._solr_data

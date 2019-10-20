@@ -344,17 +344,6 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-class work2edition_resolver(delegate.page):
-    path = r"(/works/OL[0-9]+W)/resolve"
-
-    def GET(self, work_key):
-        """Resolves a work url to an editions page"""
-        doc = web.ctx.site.get(work_key)
-        matches = doc.get_ebook_info().get('ia', [])
-        if matches:
-            raise web.seeother('/ia/' + matches[0])
-        raise web.seeother(work_key)
-
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
 
