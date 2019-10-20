@@ -3,7 +3,7 @@ import requests
 import urllib
 
 from infogami import config
-from openlibrary.core.lending import config_ia_civicrm_api
+from openlibrary.core import lending 
 
 CIVI_ISBN = 'custom_52'
 CIVI_USERNAME = 'custom_51'
@@ -15,8 +15,8 @@ def get_contact_id_by_username(username):
     data = {
         'entity': 'Contact',
         'action': 'get',
-        'api_key': config_ia_civicrm_api.get('api_key', ''),
-        'key': config_ia_civicrm_api.get('site_key', ''),
+        'api_key': lending.config_ia_civicrm_api.get('api_key', ''),
+        'key': lending.config_ia_civicrm_api.get('site_key', ''),
         'json': {
             "sequential": 1,
             CIVI_USERNAME: username
@@ -24,10 +24,10 @@ def get_contact_id_by_username(username):
     }
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
     r = requests.get(
-        config_ia_civicrm_api.get('url', ''),
+        lending.config_ia_civicrm_api.get('url', ''),
         params=urllib.urlencode(data),
         headers={
-            'Authorization': 'Basic %s' % config_ia_civicrm_api.get('auth', '')
+            'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
         })
     contacts = r.json().get('values', None)
     return contacts and contacts[0].get('contact_id')
@@ -37,8 +37,8 @@ def get_sponsorships_by_contact_id(contact_id, isbn=None):
     data = {
         'entity': 'Contribution',
         'action': 'get',
-        'api_key': config_ia_civicrm_api.get('api_key', ''),
-        'key': config_ia_civicrm_api.get('site_key', ''),
+        'api_key': lending.config_ia_civicrm_api.get('api_key', ''),
+        'key': lending.config_ia_civicrm_api.get('site_key', ''),
         'json': {
             "sequential": 1,
             "financial_type_id": "Book Sponsorship",
@@ -49,10 +49,10 @@ def get_sponsorships_by_contact_id(contact_id, isbn=None):
         data['json'][CIVI_ISBN] = isbn
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
     r = requests.get(
-        config_ia_civicrm_api.get('url', ''),
+        lending.config_ia_civicrm_api.get('url', ''),
         params=urllib.urlencode(data),
         headers={
-            'Authorization': 'Basic %s' % config_ia_civicrm_api.get('auth', '')
+            'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
         })
     txs = r.json().get('values')
     return [{
