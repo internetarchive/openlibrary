@@ -19,6 +19,31 @@
 var getAvailabilityV2, updateBookAvailability, updateWorkAvailability;
 /* eslint-enable no-unused-vars */
 
+/**
+ * @param {jQuery.Object} $elements
+ * @return {Object} worksAndEditions
+ */
+function getWorksAndEditionsFromElements($elements) {
+    const editions = [],
+        works = [];
+
+    $.each($elements, function(index, e) {
+        const href = $(e).attr('href'),
+            _type_key_slug = href && href.split('/'),
+            _type = _type_key_slug[1],
+            key = _type_key_slug[2].split('?')[0];
+
+        if (_type === 'works') {
+            works.push(key);
+        } else if (_type === 'books') {
+            editions.push(key);
+        }
+    });
+    return {
+        works, editions
+    };
+}
+
 function initAvailability() {
     var btnClassName = 'cta-btn';
     // pages still relying on legacy client-side availability checking
@@ -161,7 +186,7 @@ function initAvailability() {
         // Determine whether availability check necessary for page
         var checkAvailability = false;
         var filter = false;
-        var page, daisies, editions, works, results;
+        var page, daisies, worksAndEditions, editions, works, results;
         for (page in whitelist) {
             if (window.location.pathname.match(page)) {
                 checkAvailability = true;
@@ -180,20 +205,9 @@ function initAvailability() {
             return;
         }
 
-        editions = [];
-        works = [];
-        results = $('a.results');
-        $.each(results, function(index, e) {
-            var href = $(e).attr('href');
-            var _type_key_slug = href.split('/')
-            var _type = _type_key_slug[1];
-            var key = _type_key_slug[2];
-            if (_type === 'works') {
-                works.push(key);
-            } else if (_type === 'books') {
-                editions.push(key);
-            }
-        });
+        worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
+        editions = worksAndEditions.editions;
+        works = worksAndEditions.works;
 
         getAvailabilityV2('openlibrary_edition', editions, function(editions_response) {
             getAvailabilityV2('openlibrary_work', works, function(works_response) {
@@ -246,5 +260,6 @@ function initAvailability() {
 initAvailability();
 
 export {
+    getWorksAndEditionsFromElements,
     updateWorkAvailability
 };
