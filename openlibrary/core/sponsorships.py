@@ -117,8 +117,8 @@ def qualifies_for_sponsorship(edition):
         "cover": "https://covers.openlibrary.org/b/id/2353907-L.jpg",
         "title": "Lords of the Ring",
         "isbn": "9780299204204"
-        "openlibrary_edition": "OL2347684W",
-        "openlibrary_work": "OL10317216M"
+        "openlibrary_edition": "OL2347684M",
+        "openlibrary_work": "OL10317216W"
        },
        "price": {
           "scan_price_cents": 3444,
@@ -177,8 +177,8 @@ def qualifies_for_sponsorship(edition):
             'values': matches
         }
     edition_data.update({
-        'openlibrary_edition': work_id,
-        'openlibrary_work': edition_id
+        'openlibrary_edition': edition_id,
+        'openlibrary_work': work_id
     })
     resp.update({
         'edition': edition_data,
