@@ -64,7 +64,7 @@ $elif ocaid and not page.is_access_restricted() and editions_page:
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   <div class="cta-button-group">
     <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="cta-btn cta-btn--available">Borrow</a>
-    $:listen_button(borrow_link + "?", "Borrow this book and listen to it using text-to-speech")
+    $# $:listen_button(borrow_link + "?", "Borrow this book and listen to it using text-to-speech")
   </div>
 
 $elif (availability_status == 'borrow_unavailable'):
