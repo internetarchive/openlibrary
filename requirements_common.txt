@@ -6,7 +6,7 @@ gunicorn==19.9.0
 iptools==0.6.1; python_version < '3.0'
 internetarchive==1.8.1
 lxml==4.2.5
-Pillow==5.3.0
+Pillow==6.2.1
 pymarc==3.1.11
 python-memcached==1.59
 simplejson==3.16.0
