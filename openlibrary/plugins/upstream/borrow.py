@@ -153,6 +153,10 @@ class borrow(delegate.page):
         if action == 'borrow' and user.has_borrowed(edition):
             action = 'read'
 
+        bookPath = '/stream/' + edition.ocaid
+        if i._autoReadAloud is not None:
+            bookPath += '?_autoReadAloud=show'
+
         if action == 'borrow':
             resource_type = i.format or 'bookreader'
 
@@ -192,7 +196,7 @@ class borrow(delegate.page):
 
                         raise web.seeother(make_bookreader_auth_link(
                             loan.get_key(), edition.ocaid,
-                            '/stream/' + edition.ocaid, ol_host,
+                            bookPath, ol_host,
                             ia_userid=ia_itemname))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
@@ -239,7 +243,7 @@ class borrow(delegate.page):
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(make_bookreader_auth_link(
-                        loan['_key'], edition.ocaid, '/stream/' + edition.ocaid,
+                        loan['_key'], edition.ocaid, bookPath,
                         ol_host, ia_userid=ia_itemname
                     ))
         elif action == 'join-waitinglist':
