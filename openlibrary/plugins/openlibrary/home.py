@@ -111,6 +111,9 @@ def get_featured_subjects():
 
 
 def get_cachable_sponsorable_editions():
+    if 'env' not in web.ctx:
+        delegate.fakeload()
+
     return [format_book_data(ed) for ed in get_sponsorable_editions()]
 
 @public
