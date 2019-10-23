@@ -23,15 +23,11 @@ $ current_and_available_loans = []
 $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $ read_link = '/borrow/ia/%s' % availability['identifier']
 
-  $if loan:
-    <a href="$read_link" title="Borrow"
-       data-userid="$(loan['userid'])" id="read_ebook"
-       class="cta-btn--available cta-btn" >Read</a>
+  $if loan or (availability_status == 'open'):
+    $:macros.ReadButton(ocaid, listen=True, loan=loan)
 
   $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-    <a href="$read_link" class="cta-btn--available cta-btn" title="Borrow" id="borrow_ebook">
-      Borrow
-    </a>
+    $:macros.ReadButton(ocaid, borrow=True, listen=True)
 
   $elif (availability_status == 'borrow_unavailable'):
     $if waiting_loan:
@@ -65,9 +61,6 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
             Be first in line!
           </div>
 
-  $elif (availability_status == 'open'):
-    <a href="$read_link" data-ol-link-track="read_unrestricted" title="Use BookReader to read online"
-       id="read_ebook" class="cta-btn--available cta-btn">Read</a>
 $else:
   <a href="$page.key" class="cta-btn--missing cta-btn">No ebook available</a>
   $if page.ia:
