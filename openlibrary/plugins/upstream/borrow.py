@@ -85,10 +85,12 @@ class checkout_with_ocaid(delegate.page):
         """Redirect shim: Translate an IA identifier into an OL identifier and
         then redirects user to the canonical OL borrow page.
         """
+        i = web.input()
+        params = urllib.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
         edition = web.ctx.site.get(ia_edition.location)
         url = '%s/x/borrow' % (edition.key)
-        raise web.seeother(url)
+        raise web.seeother(url + '?' + params)
 
     def POST(self, ocaid):
         """Redirect shim: Translate an IA identifier into an OL identifier and

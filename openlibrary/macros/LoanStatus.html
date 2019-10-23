@@ -22,7 +22,6 @@ $ availability = page.availability or page.get_realtime_availability()
 $ availability_status = availability.get('status', 'error')
 $ current_and_available_loans = []
 
-
 $if ocaid:
   $ current_and_available_loans = page.get_current_and_available_loans()
   $ user_loan = None
@@ -43,9 +42,7 @@ $if user:
 $ borrow_link = page.url() + '/borrow'
 
 $if user_loan:
-  <a href="$borrow_link" title="Borrow from $contributor"
-     data-userid="$(user_loan['userid'])" id="read_ebook"
-     class="cta-btn cta-btn--available">Read eBook</a>
+  $:macros.ReadButton(ocaid, loan=user_loan, listen=True)
   $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
     <input type="hidden" name="action" value="return" />
@@ -53,19 +50,10 @@ $if user_loan:
   </form>
 
 $elif ocaid and not page.is_access_restricted() and editions_page:
-  $ stream_url = "//%s/stream/%s?ref=ol" % (bookreader_host(), ocaid)
-  <div class="cta-button-group">
-    <a href="$stream_url" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
-    $:listen_button(stream_url + "&", "Listen to this book using text-to-speech")
-  </div>
-
-
+  $:macros.ReadButton(ocaid, listen=True)
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-  <div class="cta-button-group">
-    <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="cta-btn cta-btn--available">Borrow</a>
-    $:listen_button(borrow_link + "?", "Borrow this book and listen to it using text-to-speech")
-  </div>
+  $:macros.ReadButton(ocaid, borrow=True, listen=True)
 
 $elif (availability_status == 'borrow_unavailable'):
   $ wlsize = availability.get('num_waitlist', 0)
