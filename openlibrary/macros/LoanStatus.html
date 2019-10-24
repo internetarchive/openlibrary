@@ -5,6 +5,12 @@ $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
 
+$def listen_button(book_url, title):
+    <a href="$(book_url)_autoReadAloud=show" title="$title" class="cta-btn cta-btn--available">
+        <span class="btn-icon read-aloud"></span>
+        <span class="btn-label">Listen</span>
+    </a>
+
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
@@ -47,15 +53,19 @@ $if user_loan:
   </form>
 
 $elif ocaid and not page.is_access_restricted() and editions_page:
-  $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
-  <a href="$viewbook.replace('XXX', ocaid)" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
+  $ stream_url = "//%s/stream/%s?ref=ol" % (bookreader_host(), ocaid)
+  <div class="cta-button-group">
+    <a href="$stream_url" title="Use BookReader to read online" class="cta-btn cta-btn--available">Read</a>
+    $:listen_button(stream_url + "&", "Listen to this book using text-to-speech")
+  </div>
+
 
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
-  <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook"
-     class="cta-btn cta-btn--available">
-    Borrow
-  </a>
+  <div class="cta-button-group">
+    <a href="$borrow_link" title="Borrow from $contributor" id="borrow_ebook" class="cta-btn cta-btn--available">Borrow</a>
+    $:listen_button(borrow_link + "?", "Borrow this book and listen to it using text-to-speech")
+  </div>
 
 $elif (availability_status == 'borrow_unavailable'):
   $ wlsize = availability.get('num_waitlist', 0)
