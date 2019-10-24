@@ -79,10 +79,10 @@ export function loadEditionsGraph() {
                 y = item.datapoint[1].toFixed(0);
                 if (y == 1) {
                     showTooltip(item.pageX, item.pageY,
-                        `${y} $_('edition in') ${x}`);
+                        `${y} edition in ${x}`);
                 } else {
                     showTooltip(item.pageX, item.pageY,
-                        `${y} $_('editions in') ${x}`);
+                        `${y} editions in ${x}`);
                 }
             }
         }
@@ -102,9 +102,9 @@ export function loadEditionsGraph() {
     }
 
     if (dateFrom == (dateTo - 1)) {
-        $('.clickdata').text(`$_('published in') ${dateFrom}`);
+        $('.clickdata').text(`Published in ${dateFrom}`);
     } else {
-        $('.clickdata').text(`$_('published between') ${dateFrom} & ${dateTo-1}.`);
+        $('.clickdata').text(`Published between ${dateFrom} & ${dateTo-1}.`);
     }
 }
 
