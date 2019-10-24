@@ -108,7 +108,7 @@ class borrow(delegate.page):
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
 
-        i = web.input(action='borrow', format=None, ol_host=None)
+        i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None)
 
         if i.ol_host:
             ol_host = i.ol_host
@@ -123,10 +123,14 @@ class borrow(delegate.page):
         # to result if `open`, redirect to bookreader
         response = lending.get_availability_of_ocaid(edition.ocaid)
         availability = response[edition.ocaid] if response else {}
-        if availability and availability['status'] == 'open':
-            raise web.seeother('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
+        archive_url = 'https://archive.org/stream/' + edition.ocaid + '?ref=ol'
+        if i._autoReadAloud is not None:
+            archive_url += '&_autoReadAloud=show'
 
-        error_redirect = ('https://archive.org/stream/' + edition.ocaid + '?ref=ol')
+        if availability and availability['status'] == 'open':
+            raise web.seeother(archive_url)
+
+        error_redirect = (archive_url)
         user = accounts.get_current_user()
 
         if user:
@@ -134,8 +138,10 @@ class borrow(delegate.page):
             ia_itemname = account.itemname if account else None
         if not user or not ia_itemname:
             web.setcookie(config.login_cookie_name, "", expires=-1)
-            raise web.seeother("/account/login?redirect=%s/borrow?action=%s" % (
-                edition.url(), i.action))
+            redirect_url = "/account/login?redirect=%s/borrow?action=%s" % (edition.url(), i.action)
+            if i._autoReadAloud is not None:
+                redirect_url += '&_autoReadAloud=' + i._autoReadAloud
+            raise web.seeother(redirect_url)
 
         action = i.action
 
@@ -146,6 +152,10 @@ class borrow(delegate.page):
         # whether the book has been checked out or not.
         if action == 'borrow' and user.has_borrowed(edition):
             action = 'read'
+
+        bookPath = '/stream/' + edition.ocaid
+        if i._autoReadAloud is not None:
+            bookPath += '?_autoReadAloud=show'
 
         if action == 'borrow':
             resource_type = i.format or 'bookreader'
@@ -186,7 +196,7 @@ class borrow(delegate.page):
 
                         raise web.seeother(make_bookreader_auth_link(
                             loan.get_key(), edition.ocaid,
-                            '/stream/' + edition.ocaid, ol_host,
+                            bookPath, ol_host,
                             ia_userid=ia_itemname))
                     elif resource_type == 'pdf':
                         stats.increment('ol.loans.pdf')
@@ -233,7 +243,7 @@ class borrow(delegate.page):
             for loan in loans:
                 if loan['book'] == edition.key:
                     raise web.seeother(make_bookreader_auth_link(
-                        loan['_key'], edition.ocaid, '/stream/' + edition.ocaid,
+                        loan['_key'], edition.ocaid, bookPath,
                         ol_host, ia_userid=ia_itemname
                     ))
         elif action == 'join-waitinglist':

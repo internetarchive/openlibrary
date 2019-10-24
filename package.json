@@ -37,35 +37,35 @@
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "19.2KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "7.25KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "18.93KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "18.9KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "5.0KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "19.01KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "6.81KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "18.8KB"
+      "maxSize": "19KB"
     }
   ],
   "devDependencies": {
