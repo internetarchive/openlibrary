@@ -21,6 +21,22 @@ a.cta-btn {
   line-height: 1.5em;
   text-decoration: none;
 
+  transition: background-color .2s;
+
+  .btn-icon {
+    width: 40px;
+    flex-shrink: 0;
+  }
+  // stylelint-disable-next-line selector-max-specificity
+  .btn-icon.read-aloud {
+    background-image: url('/static/images/icons/read aloud.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+  }
+
+  .btn-label { padding: 0 20px; }
+
   &:link, &:visited {
     color: @white;
     text-decoration: none;
@@ -29,11 +45,13 @@ a.cta-btn {
   &--available {
     background-color: @primary-blue;
     color: @white;
+    &:hover { background-color: darken(@primary-blue, 20%); }
   }
 
   &--unavailable {
     background-color: @orange;
     color: @white;
+    &:hover { background-color: darken(@orange, 20%); }
   }
   &--preview, &--preview:link, &--preview:visited {
     background-color: @white;
@@ -43,21 +61,18 @@ a.cta-btn {
   &--sponsor {
     border: 2px solid @link-blue;
     background: lighten(desaturate(@link-blue, 56%), 67%);
-    transition: background-color 0.2s;
   }
 
-  &--sponsor:link {
+  &--sponsor:link, &--sponsor:visited {
       color: @link-blue;
   }
 
-  &--sponsor:visited {
-    color: @link-blue;
-  }
   &--sponsor:hover {
     border: 2px solid @link-blue;
     background-color: @link-blue;
     color: @white;
   }
+
   &__badge {
     background-color: @orange-two;
     padding: 4px 7px;
@@ -73,4 +88,34 @@ a.cta-btn {
 
 .waitinglist-message {
   white-space: nowrap;
+}
+
+.cta-button-group {
+  display: flex;
+  align-items: center;
+  position: relative;
+
+  .cta-btn {
+    margin: 0;
+    padding: 8px 0;
+
+    &:first-child {
+      flex: 1;
+      padding: 8px 16px;
+      overflow: hidden;
+    }
+
+    &:not(:first-child) {
+      margin-left: 2px;
+      width: 40px;
+      transition: width 0.2s;
+      overflow: hidden;
+      display: flex;
+    }
+    // stylelint-disable-next-line selector-max-specificity
+    &:not(:first-child):hover { width: 100%; }
+
+    &:not(:last-child) { border-radius: 6px 2px 2px 6px; }
+    &:not(:first-child) { border-radius: 2px 6px 6px 2px; }
+  }
 }

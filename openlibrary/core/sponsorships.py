@@ -41,30 +41,11 @@ def get_sponsorable_editions():
     """This should move to an infogami type so any admin can add editions
     to the list. This will need to be paginated.
     """
-    candidates = [
-        '/books/OL25448615M',  # Reinventing_Organizations
-        '/books/OL25211152M',  # Design_in_nature
-        '/books/OL24852632M',  # Lottie Paris and the Best Place
-        '/books/OL25259757M',  # Tiny_beautiful_things
-        '/books/OL25912312M',  # The_Three-Body_Problem
-        '/books/OL375600M',    # Maps_of_Meaning'
-        '/books/OL26673217M',  # A_Mind_for_Numbers
-        '/books/OL3970166M',   # The_mastery_and_uses_of_fire_in_antiquity,
-        '/books/OL6407672M',   # One_thousand_ways_to_make_1000.
-        '/books/OL9891207M',   # The_33_Strategies_of_War
-        '/books/OL9498934M',   # The_Joy_of_Living
-        '/books/OL12225883M',  # What_It_Is
-        '/books/OL2207952M',   # Perspectives_on_the_computer_revolution
-        '/books/OL27454936M',  # Reinventing_Discovery
-        '/books/OL26297205M',  # Rogue_archives
-        '/books/OL27452618M',  # Intertwingled
-        '/books/OL26832636M',  # Forge_Your_Future_with_Open_Source
-
-    ]
+    candidates = web.ctx.site.get('/sponsorship/books').get('editions')
     eligible_editions = []
     for key in candidates:
         ed = web.ctx.site.get(key)
-        ed.eligibility= qualifies_for_sponsorship(ed)
+        ed.eligibility = qualifies_for_sponsorship(ed)
         if ed.eligibility.get('is_eligible'):
             eligible_editions.append(ed)
     return eligible_editions
@@ -126,7 +107,7 @@ def qualifies_for_sponsorship(edition):
           "total_price_display": "$37.42",
           "total_price_cents": 3742
         },
-       "is_eligible": true,
+       "is_eligible": True,
        "sponsor_url": "https://archive.org/donate?isbn=9780299204204&type=sponsorship&context=ol&campaign=pilot"
     }
     """

@@ -14,7 +14,7 @@ ipython-genutils==0.1.0
 jsonpatch==0.4
 kombu==1.5.1
 meld3==2.0.0
-ndg-httpsclient==0.4.2
+ndg-httpsclient==0.5.1
 -e git+git@github.com:internetarchive/openlibrary.git@997a268222a2256876c1bd3296c96f982c29fd37#egg=openlibrary-origin/HEAD
 pathlib2==2.1.0
 pexpect==4.2.1
@@ -22,10 +22,10 @@ pickleshare==0.7.4
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
 py==1.4.5
-pyOpenSSL==17.5.0
+pyOpenSSL==19.0.0
 pyasn1==0.1.9
 python-dateutil==1.5
-requests==2.20.0
+requests==2.22.0
 schema==0.5.0
 simplegeneric==0.8.1
 traitlets==4.3.1
