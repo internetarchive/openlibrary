@@ -21,7 +21,7 @@ pexpect==4.7.0
 pickleshare==0.7.4
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
-py==1.4.5
+py==1.8.0
 pyOpenSSL==19.0.0
 pyasn1==0.1.9
 python-dateutil==1.5
