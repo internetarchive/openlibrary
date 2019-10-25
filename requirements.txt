@@ -18,7 +18,7 @@ ndg-httpsclient==0.5.1
 -e git+git@github.com:internetarchive/openlibrary.git@997a268222a2256876c1bd3296c96f982c29fd37#egg=openlibrary-origin/HEAD
 pathlib2==2.3.5
 pexpect==4.7.0
-pickleshare==0.7.4
+pickleshare==0.7.5
 prompt-toolkit==1.0.9
 ptyprocess==0.5.1
 py==1.8.0
