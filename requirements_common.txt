@@ -7,7 +7,7 @@ iptools==0.6.1; python_version < '3.0'
 internetarchive==1.8.5
 lxml==4.4.1
 Pillow==6.2.1
-pymarc==3.1.11
+pymarc==3.1.13
 python-memcached==1.59
 simplejson==3.16.0
 web.py==0.39; python_version < '3.0'
