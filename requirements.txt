@@ -12,7 +12,7 @@ enum34==1.1.6
 ipython==5.8.0
 ipython-genutils==0.1.0
 jsonpatch==0.4
-kombu==1.5.1
+kombu==4.6.5
 meld3==2.0.0
 ndg-httpsclient==0.5.1
 -e git+git@github.com:internetarchive/openlibrary.git@997a268222a2256876c1bd3296c96f982c29fd37#egg=openlibrary-origin/HEAD
