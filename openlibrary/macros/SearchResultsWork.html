@@ -20,8 +20,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
   <span class="details">
       <span class="resultTitle">
          <h3 class="booktitle">
-           $ url = book_url if is_bot() else '%s?edition=best' % book_url
-           <a itemprop="name" href="$url"
+           <a itemprop="name" href="$book_url"
               class="results">$doc.title$(': ' + doc.subtitle if doc.get('subtitle', None) else '')</a>
            $if doc.get('publish_date'):
              ($(doc['publish_date']))

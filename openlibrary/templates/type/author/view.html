@@ -152,16 +152,15 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                         <a href="$changequery(sort=None)#editions">Most Editions</a> |  <a href="$changequery(sort='old')#editions">First Published</a> | <a href="$changequery(sort='new')#editions">Most Recent</a> | <strong class="lightgreen">Title</strong>
                 </span>
 
-                <span class="mode-options">
-                  <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-                  <label for="mode-search-everything">Everything</label>
-                  <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode">
-                  <label for="mode-search-ebooks">Ebooks</label>
-                  <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-                  <label for="mode-search-printdisabled">Print Disabled</label>
-                </span>
-</p>
-
+                <p>
+                  $if input(mode="everything").mode == "everything":
+                    Showing all works by author. Would you like to
+                    see <a href="$changequery(mode='ebooks')">only ebooks</a>?
+                  $else:
+                    Showing ebooks only. Would you like to see
+                    <a href="$changequery(mode='everything')">everything</a>
+                    by this author?
+                </p>
 
                 <div id="searchResults">
                     <ul id="siteSearch" class="list-books">
@@ -170,10 +169,8 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                     </ul>
                 </div>
         </div>
-
     </div>
     <div class="contentOnethird">
-
         <div class="illustration">
             $:render_template("covers/author_photo", page)
             $:render_template("covers/change", page, ".bookCover img")

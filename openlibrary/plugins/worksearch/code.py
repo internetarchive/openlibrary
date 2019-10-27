@@ -7,7 +7,7 @@ from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint
 import simplejson as json
-from openlibrary.core.lending import get_availability_of_ocaids
+from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, escape_bracket
@@ -499,7 +499,7 @@ class search(delegate.page):
         return page
 
 
-def works_by_author(akey, sort='editions', page=1, rows=100):
+def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False):
     # called by merge_author_works
     q='author_key:' + akey
     offset = rows * (page - 1)
@@ -508,7 +508,8 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
+    fq = 'has_fulltext:true' if has_fulltext else ''  # ebooks_only
+    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=%s&start=%d&rows=%d&fl=%s&wt=json" % (q, fq, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
@@ -537,7 +538,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
 
     return web.storage(
         num_found = int(reply['response']['numFound']),
-        works = works,
+        works = add_availability(works),
         years = [(int(k), v) for k, v in get_facet('publish_year')],
         get_facet = get_facet,
         sort = sort,
