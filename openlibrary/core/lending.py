@@ -263,27 +263,14 @@ def get_availability_of_editions(ol_edition_ids):
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
 
-@public
-def get_realtime_availability_of_ocaid(ocaid):
+def get_edition_ia_metadata(ocaid):
     url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
-    statuses = {
-        'available': 'borrow_available',
-        'unavailable': 'borrow_unavailable',
-        'private': 'private',
-        'error': 'error'
-    }
     try:
-        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
-        status = metadata.get('loans__status__status', 'error').lower()
-        return {
-            'status': statuses[status],
-            'num_waitlist': int(metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(metadata.get('loans__status__num_loans', 0))
-        }
+        content = urllib.urlopen(url=url, timeout=config_http_request_timeout).read()
+        return simplejson.loads(content).get('metadata', {})
     except Exception as e:
-        return {'error': 'request_timeout'}
+        logger.info("BEGIN sync_loan %s", e)
+    return {}
 
 @public
 def add_availability(editions):

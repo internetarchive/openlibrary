@@ -12,8 +12,7 @@ $ meta_fields = page.get_ia_meta_fields() or {}
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
-$ availability = page.availability or page.get_realtime_availability()
-$ availability_status = availability.get('status', 'error')
+$ availability_status = page.availability.get('status', 'error')
 $ current_and_available_loans = []
 
 $if ocaid:
@@ -51,7 +50,7 @@ $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   $:macros.ReadButton(ocaid, borrow=True, listen=True)
 
 $elif (availability_status == 'borrow_unavailable'):
-  $ wlsize = availability.get('num_waitlist', 0)
+  $ wlsize = page.availability.get('num_waitlist', 0)
   $if waiting_loan:
     <p class="waitinglist-message">
       $ spot = ctx.user.get_waiting_loan_for(page)['position']
@@ -74,7 +73,7 @@ $elif (availability_status == 'borrow_unavailable'):
 
 $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
   $ sponsorship = qualifies_for_sponsorship(page)
-  $if  sponsorship.get('is_eligible'):
+  $if sponsorship.get('is_eligible'):
     $ isbn = (page.isbn_13 and page.isbn_13[0] or page.isbn_10 and page.isbn_10[0])
     <a href="$(sponsorship['sponsor_url'])"
        class="cta-btn cta-btn--sponsor"

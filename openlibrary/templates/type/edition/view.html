@@ -1,6 +1,7 @@
 $def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
+$ page.inject_ia_metadata()
 $ ocaid = page.get('ocaid')
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
@@ -10,6 +11,7 @@ $ title = book_title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
 $ meta_cover_url = item_image(page.get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
+
 $var title: $title
 
 $code:
@@ -185,6 +187,7 @@ $if ctx.user and ctx.user.is_admin():
         </div>
 
         <div class="editionAbout">
+
             <div class="book-overview section sansserif">
               <h1 class="work-title" itemprop="name">$book_title</h1>
               $if book_subtitle:
@@ -350,6 +353,15 @@ $if ctx.user and ctx.user.is_admin():
 
         <div class="editionTools">
             $:macros.databarWork(page, editions_page=True)
+
+            $if page.donor and page.donor_msg:
+              <div class="Tools read-options">
+                <p class="cta-section-title">Dedication</p>
+                <p>This book generously <a href="/sponsorship">sponsored</a>
+                  by: $page.donor
+                </p>
+                <p>"$page.donor_msg"</p>
+              </div>
         </div>
 
     </div>
