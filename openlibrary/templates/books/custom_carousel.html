@@ -35,8 +35,6 @@ $def render_carousel_cover(book, lazy):
     $ cta = 'Borrow'
   $else:
     $ cta = 'Read'
-    $if not is_bot():
-      $ url += '?edition=best'
     $ cta_url = url
 
   $if lazy:
