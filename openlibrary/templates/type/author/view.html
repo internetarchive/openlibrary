@@ -162,12 +162,16 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                     by this author?
                 </p>
 
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
+
                 <div id="searchResults">
                     <ul id="siteSearch" class="list-books">
                       $for doc in books.works:
                          $:macros.SearchResultsWork(doc)
                     </ul>
                 </div>
+
+                $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
         </div>
     </div>
     <div class="contentOnethird">
@@ -231,38 +235,6 @@ window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", h
                 </div>
 
     </div>
-
-    $ pages = (books.num_found / 100) + 1
-    $ page_num = safeint(query_param('page'), default=1)
-        $if pages != 1:
-            $ pages_in_set = 10
-            $ half = pages_in_set/2
-            $if pages < pages_in_set:
-                $ first_page_in_set = 1
-                $ last_page_in_set = pages
-            $elif page_num < half:
-                $ first_page_in_set = 1
-                $ last_page_in_set = min((pages_in_set, pages))
-            $elif page_num > (pages-half):
-                $ first_page_in_set = pages-pages_in_set
-                $ last_page_in_set = pages
-            $else:
-                $ first_page_in_set = page_num-half
-                $ last_page_in_set = page_num+half
-            <div class="clearfix"></div>
-            <div class="pagination">
-            $if page_num != 1:
-                <a href="$changequery(page=None)" class="ChoosePage">&laquo;&nbsp;First</a>
-                <a href="$changequery(page=page_num-1)" class="ChoosePage">&lt;&nbsp;Previous</a>
-            $for p in range(first_page_in_set, last_page_in_set+1):
-                $if p == page_num:
-                    <span class="this">$p</span>
-                $else:
-                    <a href="$changequery(page=p)" class="ChoosePage">$p</a>
-            $if page_num < pages:
-                <a href="$changequery(page=page_num+1)" class="ChoosePage">Next&nbsp;&gt;</a>
-                <a href="$changequery(page=pages)" class="ChoosePage">Last&nbsp;&raquo;</a>
-            </div>
 
     $:render_template("lib/history", page)
 </div>
