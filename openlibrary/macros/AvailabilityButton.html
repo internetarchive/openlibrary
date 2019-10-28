@@ -1,6 +1,12 @@
 $def with(page, availability, user)
 
 $ ocaid = availability and availability.get('identifier')
+$ loan = waiting_loan = None
+$if ocaid and user:
+  $ loans = [loan for loan in user.get('loans') if loan and ocaid == loan.get('ocaid')]
+  $ loan = loans and loans[0]
+  $ waiting_loans = [request for request in user.get('waitlists') if request and ocaid == request.get('identifier')]
+  $ waiting_loan = waiting_loans and waiting_loans[0]
 $ loan = ocaid and user and [loan for loan in user.get('loans') if loan and ocaid == loan.get('ocaid')]
 $ waiting_loan = ocaid and user and [request for request in user.get('waitlists') if request and ocaid == request.get('identifier')]
 $if loan:
