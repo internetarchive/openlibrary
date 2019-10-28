@@ -30,13 +30,13 @@ $var title: $name
             </tr>
         </thead>
         <tbody>
-            $for v in h:
             <tr>
                 <td colspan="4"></td>
                 <td colspan="1" style="text-align:center;">
                     <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
                 </td>
             </tr>
+            $for v in h:
                 <tr>
                     <td class="number">$v.revision</td>
                     <td class="history"><a href="$page.get_url(v=v.revision)" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
