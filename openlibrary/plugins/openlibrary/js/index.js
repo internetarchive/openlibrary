@@ -7,8 +7,6 @@ import '../../../../vendor/js/jquery-ui/jquery-ui-1.12.1.min.js';
 import '../../../../vendor/js/colorbox/1.5.14.js';
 // jquery.form#2.36 not on npm, no longer getting worked on
 import '../../../../vendor/js/jquery-form/jquery.form.js';
-// jquery-autocomplete#1.1 with modified
-import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 // unversioned.
 import '../../../../vendor/js/wmd/jquery.wmd.js'
 import { validateEmail, validatePassword } from './account.js';
