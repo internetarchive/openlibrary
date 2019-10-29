@@ -157,7 +157,9 @@ $if ctx.user and ctx.user.is_admin():
                 $if not page.is_fake_record():
                     $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
-
+            <div class="mobile-borrow-cta">
+              $:macros.LoanStatus(page, ctx.user, editions_page=True)
+            </div>
             $# pages like /books/ia:foo00bar are fake records created from metadata API.
             $# Adding them to lists doesn't work. Disabling it to avoid any issues.
             $if "lists" in ctx.features and not page.is_fake_record():
