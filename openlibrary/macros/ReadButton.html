@@ -1,7 +1,7 @@
-$def with(ocaid, borrow=False, listen=False, contributor="Internet Archive", loan=None)
+$def with(ocaid, borrow=False, listen=False, loan=None)
 
 $ action = "borrow" if (borrow and not loan) else "read"
-$ title = "%s ebook from %s" % (action, contributor)
+$ title = "%s ebook from Internet Archive" % action
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 <div class="cta-button-group">

@@ -14,7 +14,6 @@ $def listen_button(book_url, title):
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
-$ contributor = meta_fields.get('contributor')
 $ user_loan = None
 $ waiting_loan = ctx.user and ctx.user.get_waiting_loan_for(page)
 $ my_turn_to_borrow = waiting_loan and waiting_loan['status'] == 'available' and waiting_loan['position'] == 1
