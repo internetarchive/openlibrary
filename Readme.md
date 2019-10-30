@@ -29,16 +29,13 @@ Open Library is an effort started in 2006 to create "one web page for every book
 
 ## Installation
 
-### Docker
-**We're supporting Docker, moving forward**. If you are a new contributor, especially on linux, please consider setting up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md).
-
-[![Open Library Docker Tutorial](https://user-images.githubusercontent.com/978325/47388313-ada5e800-d6c6-11e8-9501-fc04e3152f20.png)](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2)
+The development environment can be set up using the [Docker Instructions](https://github.com/internetarchive/openlibrary/blob/master/docker/README.md). You can also watch the [video tutorial](https://archive.org/embed/openlibrary-developer-docs/zoom_0.mp4?autoplay=1&start=2) for a more detailed explanation.
 
 Our `Docker` environment is in active development. Want to contribute? Here's our top-level [`Docker` todo-list](https://github.com/internetarchive/openlibrary/issues/1067) and a [list of open `Docker` issues](https://github.com/internetarchive/openlibrary/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Adocker).
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance and build instructions for developers, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
+For instructions on administrating your Open Library instance, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
 
 You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
