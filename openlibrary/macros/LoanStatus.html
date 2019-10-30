@@ -44,6 +44,7 @@ $if user_loan:
 
 $elif ocaid and not page.is_access_restricted() and editions_page:
   $:macros.ReadButton(ocaid, listen=True)
+  $:macros.BookSearchInside(ocaid)
 
 $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
   $:macros.ReadButton(ocaid, borrow=True, listen=True)

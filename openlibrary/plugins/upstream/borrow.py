@@ -129,6 +129,9 @@ class borrow(delegate.page):
         if i._autoReadAloud is not None:
             archive_url += '&_autoReadAloud=show'
 
+        if i.q:
+            archive_url += "#page/-/mode/2up/search/%s" % i.q
+
         if availability and availability['status'] == 'open':
             raise web.seeother(archive_url)
 

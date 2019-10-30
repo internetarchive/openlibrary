@@ -16,7 +16,7 @@ $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
   $if listen:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"
-       data-ol-link-track="listen""
+       data-ol-link-track="CTALink|$(action.capitalize())Listen"
        class="cta-btn cta-btn--available">
       <span class="btn-icon read-aloud"></span>
       <span class="btn-label">Listen</span>
