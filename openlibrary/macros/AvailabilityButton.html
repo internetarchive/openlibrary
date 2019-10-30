@@ -23,8 +23,11 @@ $ current_and_available_loans = []
 $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
   $ read_link = '/borrow/ia/%s' % availability['identifier']
 
-  $if loan or (availability_status == 'open'):
+  $if loan:
     $:macros.ReadButton(ocaid, listen=True, loan=loan)
+
+  $elif availability_status == 'open':
+    $:macros.ReadButton(ocaid, listen=True)
 
   $elif (availability_status == 'borrow_available') or my_turn_to_borrow:
     $:macros.ReadButton(ocaid, borrow=True, listen=True)
