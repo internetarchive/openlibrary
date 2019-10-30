@@ -5,12 +5,6 @@ $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
 
-$def listen_button(book_url, title):
-    <a href="$(book_url)_autoReadAloud=show" title="$title" class="cta-btn cta-btn--available">
-        <span class="btn-icon read-aloud"></span>
-        <span class="btn-label">Listen</span>
-    </a>
-
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
 $ meta_fields = page.get_ia_meta_fields() or {}
