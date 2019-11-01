@@ -92,7 +92,6 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
-      <div class="icon list hidetool"></div>
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
@@ -244,7 +243,6 @@ $if include_widget:
     </div>
   $else:
     <div class="dropit">
-      <div class="icon list hidetool"></div>
         <div class="dropper on">
           $if work:
             <div class="log-work">
