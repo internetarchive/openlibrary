@@ -13,7 +13,7 @@
 .dropit {
   position: relative;
   min-height: 50px;
-  z-index: 10;
+  z-index: @z-index-level-4;
 
   // heart icon
   .icon {
@@ -161,7 +161,6 @@ div#subjectLists {
 div.Tools {
   div.dropper {
     z-index: @z-index-level-14;
-    position: absolute;
 
     &.on {
       background-color: @lightest-grey;
@@ -352,7 +351,6 @@ div#listsWork {
 div.tools-override {
   div.dropper {
     z-index: @z-index-level-14;
-    width: 180px;
     top: unset;
     left: -1px;
     margin: auto;
@@ -364,4 +362,19 @@ a:hover > h3 {
 }
 a.dropclick.plain {
   text-decoration: none;
+}
+
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  div.Tools {
+    div.dropper {
+      position: absolute;
+    }
+  }
+
+  div.tools-override {
+    div.dropper {
+      width: 180px;
+    }
+  }
 }
