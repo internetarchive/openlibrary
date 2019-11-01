@@ -413,34 +413,6 @@ class account_verify_old(account_verify):
         # Show failed message without thinking.
         return render['account/verify/failed']()
 
-class account_email(delegate.page):
-    """Change email.
-    """
-    path = "/account/email"
-
-    def get_email(self):
-        user = accounts.get_current_user()
-        return user.get_account()['email']
-
-    @require_login
-    def POST(self):
-        f = forms.ChangeEmail()
-        i = web.input()
-
-        if not f.validates(i):
-            return render['account/email'](self.get_email(), f)
-        else:
-            user = accounts.get_current_user()
-            username = user.key.split('/')[-1]
-
-            displayname = user.displayname or username
-
-            send_email_change_email(username, i.email)
-
-            title = _("Hi, %(user)s", user=user.displayname or username)
-            message = _("We've sent an email to %(email)s. You'll need to read that and click on the verification link to update your email.", email=i.email)
-            return render.message(title, message)
-
 class account_email_verify(delegate.page):
     path = "/account/email/verify/([0-9a-f]*)"
 
@@ -478,37 +450,6 @@ class account_email_verify_old(account_email_verify):
         # All old links must be expired by now.
         # Show failed message without thinking.
         return self.bad_link()
-
-class account_password(delegate.page):
-    path = "/account/password"
-
-    @require_login
-    def GET(self):
-        f = forms.ChangePassword()
-        return render['account/password'](f)
-
-    @require_login
-    def POST(self):
-        f = forms.ChangePassword()
-        i = web.input()
-
-        if not f.validates(i):
-            return render['account/password'](f)
-
-        user = accounts.get_current_user()
-        username = user.key.split("/")[-1]
-
-        if self.try_login(username, i.password):
-            accounts.update_account(username, password=i.new_password)
-            add_flash_message('note', _('Your password has been updated successfully.'))
-            raise web.seeother('/account')
-        else:
-            f.note = "Invalid password"
-            return render['account/password'](f)
-
-    def try_login(self, username, password):
-        account = accounts.find(username=username)
-        return account and account.verify_password(password)
 
 class account_ia_email_forgot(delegate.page):
     path = "/account/email/forgot-ia"
