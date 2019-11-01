@@ -11,7 +11,6 @@ import '../../../../vendor/js/jquery-form/jquery.form.js';
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 // unversioned.
 import '../../../../vendor/js/wmd/jquery.wmd.js'
-import { validateEmail, validatePassword } from './account.js';
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
@@ -105,8 +104,6 @@ jQuery(function () {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
-    validateEmail();
-    validatePassword();
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
