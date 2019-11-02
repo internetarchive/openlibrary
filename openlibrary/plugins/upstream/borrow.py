@@ -130,7 +130,8 @@ class borrow(delegate.page):
             archive_url += '&_autoReadAloud=show'
 
         if i.q:
-            archive_url += "#page/-/mode/2up/search/%s" % i.q
+            _q = urllib.quote(i.q, safe='')
+            archive_url += "#page/-/mode/2up/search/%s" % _q
 
         if availability and availability['status'] == 'open':
             raise web.seeother(archive_url)
