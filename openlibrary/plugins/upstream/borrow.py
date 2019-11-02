@@ -110,7 +110,7 @@ class borrow(delegate.page):
     def POST(self, key):
         """Called when the user wants to borrow the edition"""
 
-        i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None)
+        i = web.input(action='borrow', format=None, ol_host=None, _autoReadAloud=None, q="")
 
         if i.ol_host:
             ol_host = i.ol_host
