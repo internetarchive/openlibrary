@@ -8,17 +8,15 @@ import six
 
 from infogami.utils import delegate
 
-from openlibrary.utils import dateutil
 from openlibrary.core.models import Edition
-from openlibrary.core.helpers import get_coverstore_url
 from openlibrary.core.helpers import bookreader_host
 from openlibrary.core.lending import config_http_request_timeout
 
 
 PRESET_QUERIES = {
-    'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
-    'preset:children': '(creator:("parish, Peggy") OR creator:("avi") OR title:("goosebumps") OR creator:("Dahl, Roald") OR creator:("ahlberg, allan") OR creator:("Seuss, Dr") OR creator:("Carle, Eric") OR creator:("Pilkey, Dav"))',
-    'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
+    'preset:thrillers': '(creator:("Clancy, Tom" OR "King, Stephen" OR "Clive Cussler" OR "Cussler, Clive" OR "Dean Koontz" OR "Koontz, Dean" OR "Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
+    'preset:children': 'creator:("parish, Peggy" OR "avi" OR "Dahl, Roald" OR "ahlberg, allan" OR "Seuss, Dr" OR "Carle, Eric" OR "Pilkey, Dav") OR title:"goosebumps"',
+    'preset:comics': 'subject:"comics" OR creator:("Gary Larson" OR "Larson, Gary" OR "Charles M Schulz" OR "Schulz, Charles M" OR "Jim Davis" OR "Davis, Jim" OR "Bill Watterson" OR "Watterson, Bill" OR "Lee, Stan")',
     'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
 }
 
@@ -102,6 +100,8 @@ def _expand_api_query(query):
     """Expands short / more easily cacheable preset queries
     and fixes query to ensure only text archive.org items
     are returned having openlibrary_work
+    :param str query: preset query or regular IA query
+    :rtype: str
     """
     # Expand preset queries
     if query in PRESET_QUERIES:

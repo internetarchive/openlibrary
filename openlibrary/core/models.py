@@ -206,6 +206,12 @@ class Edition(Thing):
 
     @staticmethod
     def canonicalize(edition):
+        """
+        Adds properties for `ocaid`; normalizes `authors` to be an array 
+
+        :param dict or web.storage edition:
+        :rtype: Edition
+        """
         work = edition.works and edition.works[0]
 
         # Use ocaid as canonical internet archive identifier
