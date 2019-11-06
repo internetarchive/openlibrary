@@ -19,7 +19,6 @@ from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 
-from . import ia
 from . import msgbroker
 from . import helpers as h
 
@@ -669,6 +668,8 @@ def get_resource_id(identifier, resource_type):
     The resource_id is found by looking at external_identifiers field in the
     metadata of the item.
     """
+    from openlibrary.core import ia  # avoid circular dependency
+
     if resource_type == "bookreader":
         return "bookreader:" + identifier
 

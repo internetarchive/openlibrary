@@ -232,7 +232,8 @@ class Edition(Thing):
                   for doc in [edition, work]
                   if doc and doc.get_cover()), None)
             or (edition.ocaid
-                and 'https://archive.org/services/img/%s' % edition.ocaid)
+                and '%s/services/img/%s' % (
+                    lending.config_ia_domain, edition.ocaid))
             or '/images/icons/avatar_book.png'
         )
         return edition
