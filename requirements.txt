@@ -2,7 +2,7 @@
 
 Jinja2==2.10.3
 backports.shutil-get-terminal-size==1.0.0
-bottlenose==1.1.2
+bottlenose==1.1.8
 clint==0.5.1
 decorator==4.0.10
 docopt==0.6.2
