@@ -575,7 +575,7 @@ def load_data(rec, account=None):
     edition['key'] = ekey
     edits.append(edition)
 
-    web.ctx.site.save_many(edits, 'import new book')
+    web.ctx.site.save_many(edits, comment='import new book', action='add-book')
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
     # archive.org item after successful import:
@@ -725,7 +725,7 @@ def load(rec, account=None):
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:
-        web.ctx.site.save_many(edits, 'import existing book')
+        web.ctx.site.save_many(edits, comment='import existing book', action='edit-book')
     if 'ocaid' in rec:
         update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply
