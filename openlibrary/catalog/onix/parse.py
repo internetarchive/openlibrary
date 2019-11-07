@@ -168,7 +168,7 @@ def process_product (p):
 		o["language"] = self.codelists["List74"][lang_code][0]
 
 	# subject
-	bisac = op.get ("BASICMainSubject")
+	bisac = op.get ("BISACMainSubject")
 	if bisac:
 		add_val (o, "BISAC_subject_categories", bisac)
 	for subject in op["Subject":]:
