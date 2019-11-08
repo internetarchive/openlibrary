@@ -22,7 +22,8 @@ except ImportError:
         return False
 
 logger = logging.getLogger("openlibrary.sponsorship")
-
+SETUP_COST_CENTS = 300
+PAGE_COST_CENTS = 12
 
 def get_sponsored_editions(user):
     """
@@ -141,8 +142,6 @@ def qualifies_for_sponsorship(edition):
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
         if bwb_price:
-            SETUP_COST_CENTS = 300
-            PAGE_COST_CENTS = 12
             num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
             book_cost_cents = int(float(bwb_price) * 100)
@@ -175,3 +174,49 @@ def qualifies_for_sponsorship(edition):
         })
     })
     return resp
+
+def summary():
+    from internetarchive import search_items
+    params = {'page': 1, 'rows': 500}
+    fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
+              'book_price', 'repub_state', 'imagecount', 'title']
+    q = 'collection:openlibraryscanningteam'
+    config = dict(general=dict(secure=False))
+    s = search_items(q, fields=fields, params=params, config=config)
+    items = list(s)
+    statuses = {}
+    for i, book in enumerate(items):
+        if not book.get('book_price'):
+            items[i]['status'] = 0
+            statuses[0] = statuses.get(0, 1) + 1
+        elif int(book.get('repub_state', -1)) == -1:
+            items[i]['status'] = 1
+            statuses[1] = statuses.get(1, 1) + 1
+        elif int(book.get('repub_state', 0)) < 14:
+            items[i]['status'] = 2
+            statuses[2] = statuses.get(2, 0) + 1
+        else:
+            items[i]['status'] = 3
+            statuses[3] = statuses.get(3, 0) + 1
+
+    total_pages_scanned = sum(int(i.get('imagecount', 0)) for i in items)
+    total_unscanned_books = len([i for i in items if not i.get('imagecount', 0)])
+    total_cost_cents = sum(int(i.get('est_book_price', 0)) + int(i.get('est_scan_price', 0))
+                           for i in items)
+    book_cost_cents = sum(int(i.get('book_price', 0)) for i in items)
+    est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
+    scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
+    est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
+    return {
+        'books': items,
+        'statuses': statuses,
+        'total_pages_scanned': total_pages_scanned,
+        'total_unscanned_books': total_unscanned_books,
+        'total_cost_cents': total_cost_cents,
+        'book_cost_cents': book_cost_cents,
+        'est_book_cost_cents': est_book_cost_cents,
+        'delta_book_cost_cents': est_book_cost_cents - book_cost_cents,
+        'scan_cost_cents': scan_cost_cents,
+        'est_scan_cost_cents': est_scan_cost_cents,
+        'delta_scan_cost_cents': est_scan_cost_cents - scan_cost_cents,
+    }    

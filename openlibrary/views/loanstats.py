@@ -81,6 +81,14 @@ class lending_stats(app.view):
     def GET(self, key, value):
         raise web.seeother("/")
 
+class sponsorship_stats(app.view):
+    path = '/stats/sponsorship'
+
+    def GET(self):
+        from openlibrary.core.sponsorships import summary
+        return app.render_template("admin/sponsorship", summary())
+
+
 
 class readinglog_stats(app.view):
     path = "/stats/readinglog"

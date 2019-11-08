@@ -56,6 +56,7 @@ def get_homepage():
 
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
+    return get_homepage()
     return cache.memcache_memoize(
         get_homepage, "home.homepage", timeout=five_minutes)()
 

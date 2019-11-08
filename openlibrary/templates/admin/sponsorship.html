@@ -1,0 +1,142 @@
+$def with (summary)
+
+$ _x = ctx.setdefault('bodyid', 'admin')
+$ _x = ctx.setdefault('usergroup', 'admin')
+
+$ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishing', 3: 'Complete'}
+
+<style type="text/css">
+  .status--0 { color: red; }
+  .status--1 { color: orange; }
+  .status--2 { color: blue; }
+  .status--3 { color: green; }
+  .earnings--profit { color: green; }
+  .earnings--loss { color: red; }
+  .table th {
+    background-color: #fafafa;
+    padding: 5px;
+    border-bottom: 1px solid #ccc;
+    text-transform: uppercase;
+    font-size: .65em;
+    font-weight: bold;
+  }
+</style>
+
+<div id="contentHead">
+  <h1>Book Sponsorship</h1>
+</div>
+
+<div id="contentBody">
+  <p>We've sponsored <strong>$len(summary['books'])</strong> books</p>
+
+  <table class="table">
+    <tr>
+      $for status in range(4):
+        <th>$statuses[status]</th>
+        <td>$summary['statuses'].get(status, 0)</td>
+    </tr>
+  </table>
+
+  <hr>
+
+  <table class="table">
+    <tr>
+      <th>Internet Archive Revenue</th>
+      <td class="earnings--profit">\$$('{:,.2f}'.format(summary['total_cost_cents'] / 100.))</td>
+      <th>Better World Books Revenue</th>
+      <td class="earnings--profit">\$$('{:,.2f}'.format(summary['book_cost_cents'] / 100.))</td>
+    </tr>
+    <tr>
+      <th>Book Costs</th>
+      <td>\$$('{:,.2f}'.format(summary['book_cost_cents'] / 100.))</td>
+      <th>Est. Book Costs</th>
+      <td>\$$('{:,.2f}'.format(summary['est_book_cost_cents'] / 100.))</td>
+      <th>Δ Book Costs</th>
+      <td class="earnings--$('loss' if summary['delta_book_cost_cents'] < 0 else 'profit')">\$$('{:,.2f}'.format(summary['delta_book_cost_cents'] / 100.))</td>
+    </tr>
+    <tr>
+      <th>Scanning Costs</th>
+      <td>\$$('{:,.2f}'.format(summary['scan_cost_cents'] / 100.))</td>
+      <th>Est. Scanning Costs</th>
+      <td>\$$('{:,.2f}'.format(summary['est_scan_cost_cents'] / 100.))</td>
+      <th>Δ Scanning Costs</th>
+      <td class="earnings--$('loss' if summary['delta_scan_cost_cents'] < 0 else 'profit')">\$$('{:,.2f}'.format(summary['delta_scan_cost_cents'] / 100.))</td>
+    </tr>
+    <tr>
+      <th>Profit/Loss</th>
+      $ profit_loss = (summary['total_cost_cents'] - summary['book_cost_cents'] - summary['scan_cost_cents'])
+      <td class="earnings--$('loss' if profit_loss < 0 else 'profit')">\$$(profit_loss / 100.)</td>
+    </tr>
+  </table>
+
+  <hr>
+
+  <table class="table">
+    <tr>
+      <th>Total Unscanned Books</th>
+      <td>$summary['total_unscanned_books']</td>
+    </tr>
+    <tr>
+      <th>Average Scan Cost</th>
+      $ num_total_books = len(summary['books'])
+      $ num_scanned_books = num_total_books - summary['total_unscanned_books']
+      $ avg_scan_cost = summary['scan_cost_cents'] / num_scanned_books
+      <td>\$$('{:,.2f}'.format(avg_scan_cost / 100.))</td>
+    </tr>
+    <tr>
+      <th>Est. Remaining Scanning Liability</th>
+      $ scan_cost_liability = avg_scan_cost * summary['total_unscanned_books']
+      <td class="earnings--$('loss' if scan_cost_liability > 0 else 'profit')">\$$('{:,.2f}'.format(scan_cost_liability / 100.))</td>
+    </tr>
+    <tr>
+      <th>Projected Profit/Loss</th>
+      $ adj_profit_loss = profit_loss - scan_cost_liability
+      <td class="earnings--$('loss' if adj_profit_loss < 0 else 'profit')">\$$(adj_profit_loss / 100.)</td>
+    </tr>
+  </table>
+  
+  <hr>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Cover</th>
+        <th>ID</th>      
+        <th>Title</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      $ i = 1
+      $for status in range(4):
+        $for book in summary['books']:
+          $if book.get('status') == status:
+            <tr>
+              <td>
+                <div class="id--$i"></div>
+                $i
+              </td>
+              <td>
+                <div class="cover--$i"></div>
+                <img width="50" height="75"
+                     src="https://archive.org/services/img/$book['identifier']">
+              </td>
+              <td>
+                <div class="$book['identifier']"></div>
+                <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+              </td>
+              <td>
+                <div class="$book['title']"></div>
+                <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
+              </td>
+              <td class="status--$(book.get('status'))">
+                <div class="$(book.get('status'))"></div>
+                $statuses[book.get('status')]
+              </td>
+            </tr>
+            $ i += 1
+    </tbody>
+  </table>
+
+</div>
