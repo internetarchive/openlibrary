@@ -151,9 +151,9 @@ class work_bookshelves(delegate.page):
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status:
+        if bookshelf_id == current_status or bookshelf_id == -1:
             work_bookshelf = models.Bookshelves.remove(
-                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
+                username=username, work_id=work_id, bookshelf_id=current_status)
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None

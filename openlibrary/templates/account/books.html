@@ -64,9 +64,9 @@ $if og_title:
       <div class="mybooks-menu">
         <ul class="preset-lists">
           <li class="subsection">Reading Log</li>
-          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log_counts['currently-reading']))</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log_counts['want-to-read']))</a></li>
-          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log_counts['already-read']))</a></li>
+          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading</a></li>
+          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read</a></li>
+          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read</a></li>
         </ul>
         $if urlbase.startswith('/account') and ctx.user and ctx.user.in_sponsorship_beta():
           <!-- only show to owners -->
