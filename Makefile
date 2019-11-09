@@ -12,8 +12,8 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 
 define lessc
-	echo Compressing page-$(1).less; \
-	lessc -x static/css/$(1).less $(BUILD)/$(1).css
+	echo Compressing $(1).less; \
+	lessc static/css/$(1).less $(BUILD)/$(1).css --clean-css="--s1 --advanced --compatibility=ie8"
 endef
 
 # Use python from local env if it exists or else default to python in the path.
@@ -21,9 +21,13 @@ PYTHON=$(if $(wildcard env),env/bin/python,python)
 
 .PHONY: all clean distclean git css js i18n lint
 
+globalinstall:
+	# check if less-plugin-clean-css is installed globally.
+	npm list --depth 1 --global less-plugin-clean-css || npm install -g lessc less-plugin-clean-css
+
 all: git css js i18n
 
-css:
+css: globalinstall
 	mkdir -p $(BUILD)
 	for asset in admin book edit form home lists plain subject user book-widget design dev; do \
 		$(call lessc,page-$$asset); \

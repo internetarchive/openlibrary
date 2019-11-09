@@ -86,6 +86,7 @@
     "jquery-validation": "1.19.1",
     "less": "^3.8.1",
     "less-loader": "4.1.0",
+    "less-plugin-clean-css": "^1.5.1",
     "node-gyp": "^3.8.0",
     "prebuild-install": "^5.2.1",
     "promise-polyfill": "8.1.3",
