@@ -27,6 +27,7 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
 </div>
 
 <div id="contentBody">
+
   <p>We've sponsored <strong>$len(summary['books'])</strong> books</p>
 
   <table class="table">
@@ -75,6 +76,9 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
     <tr>
       <th>Total Unscanned Books</th>
       <td>$summary['total_unscanned_books']</td>
+      $if ctx.user and ctx.user.is_admin():
+        $ isbns = ','.join([s['identifier'].replace('isbn_', '') for s in summary['books']])
+        <td><a href="https://8882k.csb.app/#isbns=$isbns">Print Slips</a></td>
     </tr>
     <tr>
       <th>Average Scan Cost</th>
@@ -102,7 +106,7 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
       <tr>
         <th>#</th>
         <th>Cover</th>
-        <th>ID</th>      
+        <th>IDs</th>      
         <th>Title</th>
         <th>Status</th>
       </tr>
@@ -123,8 +127,14 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
                      src="https://archive.org/services/img/$book['identifier']">
               </td>
               <td>
-                <div class="$book['identifier']"></div>
-                <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+                <ul>
+                  <li>
+                    <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+                  </li>
+                  <li>
+                    <a href="/books/$book['openlibrary_edition']">$book['openlibrary_edition']</a>
+                    </li>
+                </ul>
               </td>
               <td>
                 <div class="$book['title']"></div>

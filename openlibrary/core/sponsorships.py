@@ -79,6 +79,7 @@ def do_we_want_it(isbn, work_id):
         'search_id': isbn
     }
     url = '%s/book/marc/ol_dedupe.php?%s' % (lending.config_ia_domain,  urllib.urlencode(params))
+    print(url)
     r = requests.get(url)
     try:
         data = r.json()
@@ -179,7 +180,8 @@ def summary():
     from internetarchive import search_items
     params = {'page': 1, 'rows': 500}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
-              'book_price', 'repub_state', 'imagecount', 'title']
+              'book_price', 'repub_state', 'imagecount', 'title',
+              'openlibrary_edition']
     q = 'collection:openlibraryscanningteam'
     config = dict(general=dict(secure=False))
     s = search_items(q, fields=fields, params=params, config=config)
