@@ -74,10 +74,10 @@ const Carousel = {
         });
 
         availabilityStatuses = {
-            'open': {cls: 'cta-btn--available', cta: 'Read'},
-            'borrow_available': {cls: 'cta-btn--available', cta: 'Borrow'},
-            'borrow_unavailable': {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
-            'error': {cls: 'cta-btn--missing', cta: 'No eBook'}
+            open: {cls: 'cta-btn--available', cta: 'Read'},
+            borrow_available: {cls: 'cta-btn--available', cta: 'Borrow'},
+            borrow_unavailable: {cls: 'cta-btn--unavailable', cta: 'Join Waitlist'},
+            error: {cls: 'cta-btn--missing', cta: 'No eBook'}
         };
 
         addWork = function(work) {
@@ -150,8 +150,8 @@ const Carousel = {
                     url.searchParams.set(loadMore.pageMode, loadMore.page);
 
                     $.ajax({
-                        'url': url,
-                        'type': 'GET',
+                        url: url,
+                        type: 'GET',
                         success: function(subject_results) {
                             $.each(subject_results.works, function(work_idx) {
                                 var work = subject_results.works[work_idx];

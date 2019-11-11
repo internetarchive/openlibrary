@@ -9,7 +9,7 @@
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
     "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
-    "lint:fix": "stylelint --syntax less --fix static/css/",
+    "lint:fix": "eslint --config .eslintrc.json . --fix && stylelint --syntax less --fix static/css/",
     "lint:js": "eslint --config .eslintrc.json .",
     "test:unit": "jest --testRegex tests/unit/**/test.*.js",
     "test": "npm run check-bundles && stylelint --syntax less static/css/ && npm run lint:js && npm run test:unit"
@@ -18,6 +18,10 @@
     {
       "path": "static/build/editions-table.js",
       "maxSize": "16.7KB"
+    },
+    {
+      "path": "static/build/graphs.js",
+      "maxSize": "17.2KB"
     },
     {
       "path": "static/build/markdown-editor.js",
@@ -29,39 +33,39 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "151.5KB"
+      "maxSize": "145.8KB"
     },
     {
       "path": "static/build/page-admin.css",
-      "maxSize": "19.1KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-book.css",
-      "maxSize": "7.2KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/page-edit.css",
-      "maxSize": "18.9KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-form.css",
-      "maxSize": "18.85KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-home.css",
-      "maxSize": "5.0KB"
+      "maxSize": "6KB"
     },
     {
       "path": "static/build/page-plain.css",
-      "maxSize": "18.95KB"
+      "maxSize": "20KB"
     },
     {
       "path": "static/build/page-subject.css",
-      "maxSize": "6.75KB"
+      "maxSize": "8KB"
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "18.9KB"
+      "maxSize": "19KB"
     }
   ],
   "devDependencies": {
@@ -79,6 +83,7 @@
     "jquery": "^1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
+    "jquery-validation": "1.19.1",
     "less": "^3.8.1",
     "less-loader": "4.1.0",
     "node-gyp": "^3.8.0",

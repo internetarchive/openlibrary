@@ -81,35 +81,7 @@ $var title: Imports
             </tr>
     </table>
 </div>
-<script type="text/javascript">
-window.q.push(function() {
-    \$.plot("#books-added-per-day", [{
-        "data": $:json_encode(stats.get_books_imported_per_day()),
-    }], {
-        series: {
-            stack: 0,
-            bars: {
-                show: true,
-                align: "left",
-                barWidth: 20 * 60 * 60 * 1000,
-            },
-        },
-        grid: {
-            hoverable: true,
-            show: true,
-            borderWidth: 1,
-            borderColor: "#d9d9d9"
-        },
-        xaxis: {
-            mode: "time"
-        },
-        legend: {
-            show: true,
-            position: "nw"
-        }
-    });
-});
-</script>
+<script type="text/json+graph" id="json-books-imported-daily">$:json_encode(stats.get_books_imported_per_day())</script>
 
 <style type="text/css">
 div.graph, div.chart{

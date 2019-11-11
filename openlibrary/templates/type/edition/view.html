@@ -157,7 +157,9 @@ $if ctx.user and ctx.user.is_admin():
                 $if not page.is_fake_record():
                     $:render_template('covers/change', page, ".edition-cover .bookCover img")
             </div>
-
+            <div class="mobile-borrow-cta">
+              $:macros.LoanStatus(page, ctx.user, editions_page=True)
+            </div>
             $# pages like /books/ia:foo00bar are fake records created from metadata API.
             $# Adding them to lists doesn't work. Disabling it to avoid any issues.
             $if "lists" in ctx.features and not page.is_fake_record():
@@ -372,7 +374,7 @@ $if ctx.user and ctx.user.is_admin():
         <div class="coverFloat" id="wikicode">
             <div class="coverFloatHead">
               <h2>Wikipedia citation</h2>
-              <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">Close</span></a>
+              <a class="dialog--close">&times;<span class="shift">Close</span></a>
             </div>
             <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
             <form method="get">

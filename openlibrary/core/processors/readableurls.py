@@ -140,6 +140,16 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     thing = _get_object(site, prefix)
 
+    # XXX For a 1-week trial ~Oct 23 2019
+    # if ?edition qualifier present on work url, redirect patron to
+    # "best" representative edition
+    if thing.key.startswith('/works/'):
+        i = web.input(edition="")
+        if i.edition:
+            ed = thing.get_representative_edition()
+            if ed:
+                raise web.seeother(ed)
+
     # get_object may handle redirections.
     if thing:
         prefix = thing.key

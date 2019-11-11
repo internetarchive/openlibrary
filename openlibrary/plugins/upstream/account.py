@@ -26,6 +26,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+from openlibrary.core.sponsorships import get_sponsored_editions
 
 import forms
 import utils
@@ -767,16 +768,21 @@ class public_my_books(delegate.page):
     path = "/people/([^/]+)/books/([a-zA-Z_-]+)"
 
     def GET(self, username, key='loans'):
-        """check if user's reading log is public"""        
+        """check if user's reading log is public"""
+        i = web.input(page=1)
         user = web.ctx.site.get('/people/%s' % username)
         if not user:
             return render.notfound("User %s"  % username, create=False)
         if user.preferences().get('public_readlog', 'no') == 'yes':
             readlog = ReadingLog(user=user)
-            works = readlog.get_works(key)
-            return render['account/books'](
-                works, key, reading_log=readlog.reading_log_counts,
+            books = readlog.get_works(key, page=i.page)
+            sponsorships = get_sponsored_editions(user)
+            page = render['account/books'](
+                books, key, sponsorship_count=len(sponsorships),
+                reading_log_counts=readlog.reading_log_counts,
                 lists=readlog.lists, user=user)
+            page.v2 = True
+            return page
         raise web.seeother(user.key)
 
 class account_my_books(delegate.page):
@@ -785,6 +791,28 @@ class account_my_books(delegate.page):
     @require_login
     def GET(self):
         raise web.seeother('/account/books/want-to-read')
+
+# This would be by the civi backend which would require the api keys
+class fake_civi(delegate.page):
+    path = "/internal/fake/civicrm"
+
+    def GET(self):
+        i = web.input(entity='Contact')
+        contact = {
+            'values': [{
+                'contact_id': '270430'
+            }]
+        }
+        contributions = {
+            'values': [{
+                "receive_date": "2019-07-31 08:57:00",
+                "custom_52": "9780062457714",
+                "total_amount": "50.00",
+                "custom_53": "ol"
+            }]
+        }
+        entity = contributions if i.entity == 'Contribution' else contact
+        return delegate.RawText(simplejson.dumps(entity), content_type="application/json")
 
 class account_my_books(delegate.page):
     path = "/account/books/([a-zA-Z_-]+)"
@@ -795,8 +823,20 @@ class account_my_books(delegate.page):
         user = accounts.get_current_user()
         is_public = user.preferences().get('public_readlog', 'no') == 'yes'
         readlog = ReadingLog()
-        works = readlog.get_works(key, page=i.page)
-        page = render['account/books'](works, key, reading_log=readlog.reading_log_counts, lists=readlog.lists, user=user, public=is_public)
+        sponsorships = get_sponsored_editions(user)
+        if key == 'sponsorships':
+            books = (web.ctx.site.get(
+                web.ctx.site.things({
+                    'type': '/type/edition',
+                    'isbn_%s' % len(s['isbn']): s['isbn']
+                })[0]) for s in sponsorships)
+        else:
+            books = readlog.get_works(key, page=i.page)
+        page = render['account/books'](
+            books, key, sponsorship_count=len(sponsorships),
+            reading_log_counts=readlog.reading_log_counts, lists=readlog.lists,
+            user=user, public=is_public
+        )
         page.v2 = True
         return page
 

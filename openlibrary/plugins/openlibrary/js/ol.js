@@ -34,7 +34,7 @@ export default function init(){
 
     $(window).scroll(function(){
         var scroller = $('#formScroll');
-        if(isScrolledIntoView(scroller)){$('#scrollBtm').show();}else{$('#scrollBtm').hide();}
+        if (isScrolledIntoView(scroller)){$('#scrollBtm').show();} else {$('#scrollBtm').hide();}
     });
 
     // Search mode
@@ -44,13 +44,13 @@ export default function init(){
     // Maps search facet label with value
     defaultFacet = 'all';
     searchFacets = {
-        'title': 'books',
-        'author': 'authors',
-        'lists': 'lists',
-        'subject': 'subjects',
-        'all': 'all',
-        'advanced': 'advancedsearch',
-        'text': 'inside'
+        title: 'books',
+        author: 'authors',
+        lists: 'lists',
+        subject: 'subjects',
+        all: 'all',
+        advanced: 'advancedsearch',
+        text: 'inside'
     };
 
     composeSearchUrl = function(q, json, limit) {
@@ -198,7 +198,7 @@ export default function init(){
     }
     $(window).resize(function(){
         var search_query;
-        if($(this).width() < 568){
+        if ($(this).width() < 568){
             if (!enteredSearchMinimized) {
                 $('.search-bar-input').addClass('trigger')
                 $('header#header-bar .search-component ul.search-results').empty()
@@ -296,7 +296,7 @@ export default function init(){
 
     // e is a event object
     $('header#header-bar .search-component .search-results li a').on('click', debounce(function() {
-        $(document.body).css({'cursor' : 'wait'});
+        $(document.body).css({cursor: 'wait'});
     }, 300, false));
 
     $searchInput.on('keyup', debounce(function(e) {
@@ -359,12 +359,12 @@ export function initReadingListFeature() {
         var remove = $(self).children('option').filter(':selected').text().toLowerCase() === 'remove';
         var url = $(form).attr('action');
         $.ajax({
-            'url': url,
-            'type': 'POST',
-            'data': {
+            url: url,
+            type: 'POST',
+            data: {
                 bookshelf_id: $(self).val()
             },
-            'datatype': 'json',
+            datatype: 'json',
             success: function(data) {
                 if (remove) {
                     $(self).closest('.searchResultItem').remove();

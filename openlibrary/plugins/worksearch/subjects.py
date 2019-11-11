@@ -178,13 +178,6 @@ class subject_works_json(delegate.page):
     def process_key(self, key):
         return key
 
-def inject_availability(subject_results):
-    works = add_availability(subject_results.works)
-    for work in works:
-        ocaid = work.ia if work.ia else None
-        availability = work.get('availability', {}).get('status')
-    subject_results.works = works
-    return subject_results
 
 def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
     """Returns data related to a subject.
@@ -259,7 +252,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     subject_results = engine.get_subject(
         key, details=details, offset=offset, sort=sort_order,
         limit=limit, **filters)
-    return inject_availability(subject_results)
+    return subject_results
 
 class SubjectEngine:
     def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
@@ -298,7 +291,7 @@ class SubjectEngine:
             name=name,
             subject_type=subject_type,
             work_count = result['num_found'],
-            works=result['docs']
+            works=add_availability(result['docs'])
         )
 
         if details:

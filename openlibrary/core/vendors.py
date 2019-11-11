@@ -15,7 +15,7 @@ from openlibrary import accounts
 
 BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
 AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
-
+ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 @public
 def get_amazon_metadata(id_, id_type='isbn'):
@@ -164,6 +164,25 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
     return _serialize_amazon_product(product)
 
 
+def split_amazon_title(full_title):
+    """Splits an Amazon title into (title, subtitle),
+    strips parenthetical tags.
+    :param str full_title:
+    :rtype: (str, str | None)
+    :return: (title, subtitle | None)
+    """
+
+    # strip parenthetical blocks wherever they occur
+    # can handle 1 level of nesting
+    re_parens_strip = re.compile('\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    full_title = re.sub(re_parens_strip, '', full_title)
+
+    titles = full_title.split(':')
+    subtitle = titles.pop().strip() if len(titles) > 1 else None
+    title = ISBD_UNIT_PUNCT.join([unit.strip() for unit in titles])
+    return (title, subtitle)
+
+
 def clean_amazon_metadata_for_load(metadata):
     """This is a bootstrapping helper method which enables us to take the
     results of get_amazon_metadata() and create an
@@ -187,6 +206,15 @@ def clean_amazon_metadata_for_load(metadata):
     if metadata.get('source_records'):
         asin = metadata.get('source_records')[0].replace('amazon:', '')
         conforming_metadata['identifiers'] = {'amazon': [asin]}
+    title, subtitle = split_amazon_title(metadata['title'])
+    conforming_metadata['title'] = title
+    if subtitle:
+        conforming_metadata['full_title'] = title + ISBD_UNIT_PUNCT + subtitle
+        conforming_metadata['subtitle'] = subtitle
+    # Record original title if some content has been removed (i.e. parentheses)
+    if metadata['title'] != conforming_metadata.get('full_title', conforming_metadata['title']):
+        conforming_metadata['notes'] = "Source title: %s" % metadata['title']
+
     return conforming_metadata
 
 
@@ -202,26 +230,14 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
     """
 
     md = get_amazon_metadata(id_, id_type=id_type)
+
     if md and md.get('product_group') == 'Book':
-        # Save token of currently logged in user (or no-user)
-        account = accounts.get_current_user()
-        auth_token = account.generate_login_code() if account else ''
-
-        try:
-            # Temporarily behave (act) as ImportBot for import
-            tmp_account = accounts.find(username='ImportBot')
-            web.ctx.conn.set_auth_token(tmp_account.generate_login_code())
-            reply = load(clean_amazon_metadata_for_load(md),
-                         account=tmp_account)
-        except Exception as e:
-            web.ctx.conn.set_auth_token(auth_token)
-            raise e
-
-        # Return auth token to original user or no-user
-        web.ctx.conn.set_auth_token(auth_token)
-
-        if reply and reply.get('success'):
-            return reply['edition'].get('key')
+        with accounts.RunAs('ImportBot'):
+            reply = load(
+                clean_amazon_metadata_for_load(md),
+                account=accounts.get_current_user())
+            if reply and reply.get('success'):
+                return reply['edition'].get('key')
 
 
 def cached_get_amazon_metadata(*args, **kwargs):

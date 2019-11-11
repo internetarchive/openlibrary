@@ -5,16 +5,21 @@ its experience. This does not include public facing APIs with LTS
 """
 
 import web
+import re
 import simplejson
 
+from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from infogami.plugins.api.code import jsonapi
+from infogami.utils.view import add_flash_message
 from openlibrary import accounts
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, normalize_isbn
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.worksearch.subjects import get_subject
+from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary.core import ia, db, models, lending, helpers as h
+from openlibrary.core.sponsorships import qualifies_for_sponsorship
 from openlibrary.core.vendors import (
     get_amazon_metadata, create_edition_from_amazon_metadata,
     search_amazon, get_betterworldbooks_metadata)
@@ -246,7 +251,6 @@ class author_works(delegate.page):
             "entries": works
         }
 
-
 class amazon_search_api(delegate.page):
     """Librarian + admin only endpoint to check for books
     avaialable on Amazon via the Product Advertising API
@@ -275,6 +279,38 @@ class amazon_search_api(delegate.page):
             })
         results = search_amazon(title=i.title, author=i.author)
         return simplejson.dumps(results)
+
+class join_sponsorship_waitlist(delegate.page):
+    path = r'/sponsorship/join'
+
+    def GET(self):
+        user = accounts.get_current_user()
+        if user:
+            account = OpenLibraryAccount.get_by_email(user.email)
+            ia_itemname = account.itemname if account else None
+        if not user or not ia_itemname:
+            web.setcookie(config.login_cookie_name, "", expires=-1)
+            raise web.seeother("/account/login?redirect=/sponsorship/join")
+        try:
+            with accounts.RunAs('archive_support'):
+                models.UserGroup.from_key('sponsors-waitlist').add_user(user.key)
+        except KeyError as e:
+            add_flash_message('error', 'Unable to join waitlist: %s' % e.message)
+
+        raise web.seeother('/sponsorship')
+
+class sponsorship_eligibility_check(delegate.page):
+    path = r'/sponsorship/eligibility/(.*)'
+
+    @jsonapi
+    def GET(self, _id):
+        edition = (
+            web.ctx.site.get('/books/%s' % _id)
+            if re.match(r'OL[0-9]+M', _id)
+            else models.Edition.from_isbn(_id)
+            
+        )
+        return simplejson.dumps(qualifies_for_sponsorship(edition))
 
 
 class price_api(delegate.page):

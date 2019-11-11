@@ -157,6 +157,13 @@ class MockSite:
         keys = set(self.docs.keys())
 
         for k, v in query.items():
+            if isinstance(v, dict):
+                # query keys need to be flattened properly,
+                # this corrects any nested keys that have been included
+                # in values.
+                flat = common.flatten_dict(v)[0]
+                k += '.' + web.rstrips(flat[0], '.key')
+                v = flat[1]
             keys = set(k for k in self.filter_index(self.index, k, v) if k in keys)
 
         keys = sorted(keys)

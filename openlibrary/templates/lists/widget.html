@@ -92,7 +92,6 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
-      <div class="icon list hidetool"></div>
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
@@ -244,7 +243,6 @@ $if include_widget:
     </div>
   $else:
     <div class="dropit">
-      <div class="icon list hidetool"></div>
         <div class="dropper on">
           $if work:
             <div class="log-work">
@@ -274,7 +272,7 @@ $if ctx.user:
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
                 <h2>Create a new list</h2>
-                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
+                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
             </div>
             <form method="post" class="floatform" name="new-list" id="new-list">
             <div class="formElement">
@@ -297,7 +295,7 @@ $if ctx.user:
                 <div class="input">
                     <button type="submit" class="larger">Create new list</button>
                     &nbsp; &nbsp;
-                    <a href="javascript:;" onclick="\$.fn.colorbox.close();" class="small plain red">Cancel</a>
+                    <a class="small dialog--close plain red">Cancel</a>
                 </div>
                 <div class="label"></div>
             </div>

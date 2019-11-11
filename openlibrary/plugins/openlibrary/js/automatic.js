@@ -5,15 +5,11 @@ export default function($) {
     var options;
     // Flash messages are hidden by default so that CSS is not on the critical path.
     $('.flash-messages').show();
-    // close-popup
-    $('a.close-popup').click(function() {
-        $.fn.colorbox.close();
-    });
 
     // tabs
     options = {};
-    if($.support.opacity){
-        options.fx = {'opacity': 'toggle'};
+    if ($.support.opacity){
+        options.fx = {opacity: 'toggle'};
     }
 
     if ($('.tabs:not(.ui-tabs)').tabs) {

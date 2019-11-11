@@ -90,10 +90,17 @@ class TestMockSite:
         assert a.dict() == a2.dict()
 
 
-        assert a.key == "/authors/OL2A"
-        assert a.type.key == "/type/author"
-        assert a.name == "A2"
+        assert a.key == '/authors/OL2A'
+        assert a.type.key == '/type/author'
+        assert a.name == 'A2'
 
         assert [a.type.key for a in work.get_authors()] == ['/type/author']
         assert [a.type.key for a in work.get_authors()] == ['/type/author']
 
+        # this is the query format used in openlibrary/openlibrary/catalog/works/find_works.py get_existing_works(akey)
+        # and https://github.com/internetarchive/openlibrary/blob/dabd7b8c0c42e3ac2700779da9f303a6344073f6/openlibrary/plugins/openlibrary/api.py#L228
+        author_works_q = {
+            'type':'/type/work',
+            'authors': {'author': {'key': a.key}}
+        }
+        assert mock_site.things(author_works_q) == ['/works/OL1W']

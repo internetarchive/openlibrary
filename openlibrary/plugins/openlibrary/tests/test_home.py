@@ -58,11 +58,11 @@ class TestHomeTemplates:
         # Empty list should be returned when there is error.
         monkeypatch.setattr(home, 'random_ebooks', lambda: None)
         books = home.readonline_carousel()
-        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books", url="/read",
-                                       key="public_domain"))
+        html = six.text_type(render_template("books/custom_carousel", books=books, title="Classic Books",
+                                             url="/read", key="public_domain"))
         assert html.strip() == ""
 
-    def test_home_template(self, render_template, mock_site):
+    def test_home_template(self, render_template, mock_site, monkeypatch):
         docs = [MockDoc(_id=datetime.datetime.now().strftime("counts-%Y-%m-%d"),
                         human_edits=1, bot_edits=1, lists=1,
                         visitors=1, loans=1, members=1,
@@ -95,8 +95,10 @@ class TestHomeTemplates:
                 "inlibrary_borrow_url": "/books/OL1M/foo/borrow",
                 "cover_url": ""
             }]
+
+        monkeypatch.setattr(home, 'get_cachable_sponsorable_editions', lambda: [])
         html = six.text_type(render_template("home/index", stats=stats, test=True))
-        headers = ["Books We Love", "Recently Returned", "Kids",
+        headers = ["Books We Love", "Recently Returned", "Kids", "Books to Sponsor",
                    "Thrillers", "Romance", "Classic Books", "Textbooks"]
         for h in headers:
             assert h in html

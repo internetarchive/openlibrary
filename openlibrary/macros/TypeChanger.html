@@ -1,5 +1,6 @@
 $def with (type, usetable=0)
-
+$# Used on http://localhost:8080/about?m=edit for blank page
+$# and any generic page in the admin UI; e.g. creating a page.
 <div class="formElement pagetype collapse adminOnly" id="pageType">
     $if ctx.user and ctx.user.is_admin():
         <script>
@@ -10,9 +11,10 @@ $def with (type, usetable=0)
         </script>
         <div class="label">
             <label for="type.key">$_("Page Type")</label>
-            <span class="small gray">&nbsp;<a href="javascript:;" onclick="\$('#typeSplain').slideToggle();">Huh</a>?</span>
+            <span class="small gray">&nbsp;<a href="javascript:;"
+                aria-haspopup="true" aria-controls="typeSplain" class="slide-toggle">Huh</a>?</span>
         </div>
-        <div class="hidden" id="typeSplain">
+        <div style="display:none;" id="typeSplain">
             <p class="smaller">Every piece of Open Library is defined by the type of content it displays, usually by content definition (e.g. Authors, Editions, Works) but sometimes by content use (e.g. macro, template, rawtext). Changing this for an existing page will alter its presentation and the data fields available for editing its content. <span class="red">Please use caution changing Page Type!</span></p><p class="smaller">(Simplest solution: If you aren't sure whether this should be changed, don't change it.)</p>
         </div>
         <div class="input">

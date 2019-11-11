@@ -3,8 +3,9 @@ $def with(expiry)
 $if expiry is None:
     <h3>Trouble Downloading?</h3>
     <p class="small sansserif">Our records indicate that you've borrowed a book, but have <span class="red">not yet downloaded</span> it. In order to keep our books available to everyone, you'll have a 5-minute window to load your borrowed book into Adobe Digital Editions. After that period, we return the book to the shelf.</p>
-    <p class="small sansserif"><a href="javascript:;" onclick="\$('#borrowHelp').slideToggle();">Need help</a>?</p>
-    <div class="hidden" id="borrowHelp">
+    <p class="small sansserif"><a href="javascript:;"
+        aria-haspopup="true" aria-controls="borrowHelp" class="slide-toggle">Need help</a>?</p>
+    <div style="display: none" id="borrowHelp">
     <ol class="small sansserif">
         <li><a href="http://www.adobe.com/products/digitaleditions/#fp" title="Get the reader" target="new_window">Digital Editions</a> is required for this book. Adobe provides support for <a href="http://kb2.adobe.com/cps/403/kb403051.html" target="new_window">installation problems</a>.</li>
         <li>To download the application, Adobe also requires that <a href="http://get.adobe.com/flashplayer/" target="new_window">Adobe Flash Player</a> is installed in your web browser.</li>

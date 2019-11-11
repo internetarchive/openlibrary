@@ -13,24 +13,7 @@
 .dropit {
   position: relative;
   min-height: 50px;
-  z-index: 10;
-
-  // heart icon
-  .icon {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 32px;
-    height: 32px;
-    background-image: url(/images/icons/icons_sprite.png);
-    background-repeat: no-repeat;
-    &.list {
-      background-position: 0 0;
-    }
-    &.listed {
-      background-position: -32px 0;
-    }
-  }
+  z-index: @z-index-level-4;
 }
 
 .dropper {
@@ -161,7 +144,6 @@ div#subjectLists {
 div.Tools {
   div.dropper {
     z-index: @z-index-level-14;
-    position: absolute;
 
     &.on {
       background-color: @lightest-grey;
@@ -352,7 +334,6 @@ div#listsWork {
 div.tools-override {
   div.dropper {
     z-index: @z-index-level-14;
-    width: 180px;
     top: unset;
     left: -1px;
     margin: auto;
@@ -364,4 +345,19 @@ a:hover > h3 {
 }
 a.dropclick.plain {
   text-decoration: none;
+}
+
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  div.Tools {
+    div.dropper {
+      position: absolute;
+    }
+  }
+
+  div.tools-override {
+    div.dropper {
+      width: 180px;
+    }
+  }
 }

@@ -13,14 +13,14 @@ export default function initAnalytics() {
         window.archive_analytics.ol_send_event_ping = function(values) {
             var endTime = new Date();
             window.archive_analytics.send_ping({
-                'service':'ol',
-                'kind':'event',
-                'ec':values['category'],
-                'ea':values['action'],
-                'el':location.pathname,
-                'ev':1,
-                'loadtime':(endTime.getTime() - startTime.getTime()),
-                'cache_bust':Math.random()
+                service: 'ol',
+                kind: 'event',
+                ec: values['category'],
+                ea: values['action'],
+                el: location.pathname,
+                ev: 1,
+                loadtime: (endTime.getTime() - startTime.getTime()),
+                cache_bust: Math.random()
             });
         }
     }
