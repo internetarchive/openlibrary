@@ -28,7 +28,7 @@ install:
   - pushd vendor/infogami && git pull origin master && popd
   - git status
   - git commit -am"Update git submodules in .vendor"
-  - if [ "$TRAVIS_PYTHON_VERSION" == "3.7" ]; then
+  - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pyenv install 2.7.14;
     fi
   - npm install
