@@ -7,4 +7,4 @@ flake8==3.7.7
 mockcache==1.0.3; python_version < '3.0'
 ptvsd==4.3.2
 pytest==4.6.6; python_version < '3.0'
-pytest==5.2.2; python_version < '3.0'
+pytest==5.2.2; python_version >= '3.0'
