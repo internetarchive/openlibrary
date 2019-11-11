@@ -399,7 +399,7 @@ export function initPreviewButton() {
     /**
      * Colorbox modal + iframe for Book Preview Button
      */
-    $('#bookPreviewButton').colorbox({
+    $('.cta-btn--preview').colorbox({
         width: '100%',
         maxWidth: '640px',
         inline: true,

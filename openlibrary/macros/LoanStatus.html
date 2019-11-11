@@ -1,9 +1,10 @@
-$def with (page, user, editions_page=False, block_name='')
+$def with (page, user, editions_page=False, block_name='', render_preview_floater=True)
 $# Takes following parameters:
 $# * page
 $# * user
 $# * editions_page renders additional data if you're seeing LoanStatus rendered in the sidebar of an edition page v. in the work's table.
 $# * block_name is a BEM block name
+$# * render_preview_floater whether to render the HTML for the preview floater
 
 $ ocaid = page.get('ocaid')
 $ work = page.works and page.works[0]
@@ -87,7 +88,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     <a href="$work.key" class="cta-btn cta-btn--missing">No ebook available</a>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
-  $:macros.BookPreview(ocaid)
+  $:macros.BookPreview(ocaid, render_preview_floater)
 
 $if ocaid and page.is_access_restricted():
   $:macros.daisy(page, protected=page.is_access_restricted(), block_name=block_name)
