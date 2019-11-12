@@ -6,8 +6,8 @@ $else:
     $ h = get_history(page)
 
 $ versions = h.recent + h.initial
-
 $ cur_v = query_param("v", None)
+$ show_wikipedia_citation_link = page.wp_citation_fields
 
 <div class="clearfix"></div>
 <div id="pageHistory">
@@ -43,7 +43,34 @@ $ cur_v = query_param("v", None)
                 $if page.key.startswith("/books"):
                     /
                     <a rel="nofollow" href="$opds">OPDS</a>
+                $if show_wikipedia_citation_link:
+                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="Cite this on Wikipedia">Wikipedia citation</a>
             </span>
+
+            $if show_wikipedia_citation_link:
+                <div class="hidden">
+                    <div class="coverFloat" id="wikicode">
+                        <div class="coverFloatHead">
+                          <h2>Wikipedia citation</h2>
+                          <a class="dialog--close">&times;<span class="shift">Close</span></a>
+                        </div>
+                        <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+                        <form method="get">
+                            <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
+                $for k, v in page.wp_citation_fields.iteritems():
+                   |$k = $v
+                }}</textarea>
+                        </form>
+                    </div>
+                </div>
+
+                <script type="text/javascript">
+                <!--
+                window.q.push(function(){
+                    \$('#wikiselect').focus(function(){\$(this).select();})
+                });
+                //-->
+                </script>
     </div>
 
     <table class="history">
