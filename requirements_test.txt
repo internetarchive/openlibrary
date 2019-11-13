@@ -3,7 +3,8 @@
 # see .travis.yml for more details.
 
 -r requirements_common.txt
-flake8==3.7.8
+flake8==3.7.9
 mockcache==1.0.3; python_version < '3.0'
-ptvsd==4.2.8
-pytest==4.4.0
+ptvsd==4.3.2
+pytest==4.6.6; python_version < '3.0'
+pytest==5.2.2; python_version >= '3.0'
