@@ -155,25 +155,8 @@ $else:
          title="Leave the Waiting List">Are you sure you want to leave the waiting list of<br/><strong>TITLE</strong>?</div>
     <script type="text/javascript">
     window.q.push(function() {
-        \$("#leave-waitinglist-dialog").dialog({
-            autoOpen: false,
-            width: 450,
-            modal: true,
-            resizable: false,
-            buttons: {
-                "Yes, I'm sure": function() {
-                    \$(this).dialog("close");
-                    \$(this).data("origin").closest("td").find("form").submit();
-                },
-                "No, cancel": function() {
-                    \$(this).dialog("close");
-                }
-            }
-        });
         \$("a.leave").click(function() {
             var title = \$(this).parents("tr").find(".book").text();
-            console.log("click");
-            console.log([title, \$(this), \$(this).parents("tr")[0]]);
             \$("#leave-waitinglist-dialog strong").text(title);
             \$("#leave-waitinglist-dialog")
                 .data("origin", \$(this))

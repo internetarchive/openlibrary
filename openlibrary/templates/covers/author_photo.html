@@ -6,7 +6,7 @@ $ author_photo_url = author.get_photo_url("L")
 $if author_thumbnail_url:
     <div class="author coverMagic">
         <div class="SRPCover bookCover">
-            <a href="#seeImage" class="coverLook" title="Pull up a larger author photo"><img src="$author_thumbnail_url" class="cover" alt="Photo of $author.name"/></a>
+            <a aria-controls="seeImage" class="coverLook dialog--open" title="Pull up a larger author photo"><img src="$author_thumbnail_url" class="cover" alt="Photo of $author.name"/></a>
         </div>
     </div>
     <div class="hidden">

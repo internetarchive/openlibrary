@@ -80,13 +80,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             $page.date
     </h2>
 </div>
-
-<script type="text/javascript">
-<!--
-window.q.push(function(){\$("#coverPop").colorbox({inline:true, opacity:"0.5", href:"#addImage"});});
-//-->
-</script>
-
 <div id="contentBody">
 
     $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and query_param('merge', 'false') == 'true':

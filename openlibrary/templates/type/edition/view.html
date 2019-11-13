@@ -360,32 +360,6 @@ $if ctx.user and ctx.user.is_admin():
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$page.url('/borrow_admin')">View loan debugging information</a></span></div>
 
     $:render_template("lib/history", page)
-
-    <script type="text/javascript">
-    <!--
-    window.q.push(function(){
-        \$('#historyTools').append('| <a href="javascript:;" id="wikilink" title="Cite this on Wikipedia">Wikipedia citation</a>');
-        \$('#wikilink').colorbox({inline:true,opacity:"0.5",href:"#wikicode"});
-        \$('#wikiselect').focus(function(){\$(this).select();})
-    });
-    //-->
-    </script>
-    <div class="hidden">
-        <div class="coverFloat" id="wikicode">
-            <div class="coverFloatHead">
-              <h2>Wikipedia citation</h2>
-              <a class="dialog--close">&times;<span class="shift">Close</span></a>
-            </div>
-            <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
-            <form method="get">
-                <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
-    $for k, v in page.wp_citation_fields.iteritems():
-       |$k = $v
-    }}</textarea>
-            </form>
-        </div>
-    </div>
-
 </div>
 
 <!-- source_records: $page.get('source_records', []) -->
