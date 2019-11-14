@@ -12,8 +12,8 @@ ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 
 define lessc
-	echo Compressing page-$(1).less; \
-	lessc -x static/css/$(1).less $(BUILD)/$(1).css
+	echo Compressing $(1).less; \
+	npx lessc static/css/$(1).less $(BUILD)/$(1).css --clean-css="--s1 --advanced --compatibility=ie8"
 endef
 
 # Use python from local env if it exists or else default to python in the path.
