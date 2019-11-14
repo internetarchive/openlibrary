@@ -176,7 +176,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                         <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                   </div>
                   <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                    <a href="javascript:;" class="hidden listClick"></a>
+                    <a aria-controls="addList"
+                      class="hidden listClick dialog--open"></a>
                   </p>
                 </div>
             </div>

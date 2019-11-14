@@ -33,7 +33,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "145.8KB"
+      "maxSize": "146.1KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -75,7 +75,7 @@
     "@babel/register": "7.0.0",
     "babel-eslint": "10.0.2",
     "babel-loader": "8.0.5",
-    "bundlesize": "^0.17.2",
+    "bundlesize": "^0.18.0",
     "css-loader": "2.1.1",
     "detect-libc": "^1.0.3",
     "eslint": "^5.16.0",
