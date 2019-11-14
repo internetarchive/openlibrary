@@ -7,7 +7,6 @@ BUILD=static/build
 
 PYBUNDLE_URL=http://www.archive.org/download/ol_vendor/openlibrary.pybundle
 OL_VENDOR=http://www.archive.org/download/ol_vendor
-SOLR_VERSION=apache-solr-1.4.0
 ACCESS_LOG_FORMAT='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s"'
 GITHUB_EDITOR_WIDTH=127
 
@@ -54,12 +53,6 @@ venv:
 	virtualenv env
 	./env/bin/pip install --download-cache var/cache/pip $(OL_VENDOR)/openlibrary.pybundle
 
-install_solr:
-	@echo "** installing solr **"
-	mkdir -p var/lib/solr var/cache usr/local
-	wget -c $(OL_VENDOR)/$(SOLR_VERSION).tgz -O var/cache/$(SOLR_VERSION).tgz
-	cd usr/local && tar xzf ../../var/cache/$(SOLR_VERSION).tgz && ln -fs $(SOLR_VERSION) solr
-
 setup_coverstore:
 	@echo "** setting up coverstore **"
 	$(PYTHON) scripts/setup_dev_instance.py --setup-coverstore
@@ -71,7 +64,7 @@ setup_ol: git
 	@# Invoking make again to pick the right PYTHON.
 	make all
 
-bootstrap: venv install_solr setup_coverstore setup_ol
+bootstrap: venv setup_coverstore setup_ol
 
 run:
 	$(PYTHON) scripts/openlibrary-server conf/openlibrary.yml
