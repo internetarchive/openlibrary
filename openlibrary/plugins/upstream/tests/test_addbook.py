@@ -307,3 +307,39 @@ class TestSaveBookHelper:
         s.save(formdata)
 
         assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
+
+    def test_moving_edition_to_new_work(self, monkeypatch):
+        def mock_user():
+            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
+
+        monkeypatch.setattr(accounts, "get_current_user", mock_user)
+
+        web.ctx.site.save_many([
+            {
+                "type": {"key": "/type/work"},
+                "key": "/works/OL100W",
+                "title": "Original Work Title"
+            },
+            {
+                "type": {"key": "/type/edition"},
+                "key": "/books/OL1M",
+                "title": "Original Edition Title",
+                "works": [{"key": "/works/OL100W"}],
+            }])
+
+        work = web.ctx.site.get("/works/OL100W")
+        edition = web.ctx.site.get("/books/OL1M")
+
+        formdata = web.storage({
+            "work--key": "/works/OL100W",
+            "work--title": "Original Work Title",
+            "edition--title": "Original Edition Title",
+            "edition--works--0--key": "__new__",
+        })
+
+        s = addbook.SaveBookHelper(work, edition)
+        s.save(formdata)
+
+        assert len(web.ctx.site.docs) == 3
+        assert web.ctx.site.get("/works/OL1W") is not None
+        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
