@@ -8,6 +8,7 @@ export default function($) {
      * @property{(boolean|Function)} [addnew] - when (or whether) to display a "Create new record"
      *     element in the autocomplete list. The function takes the query and should return a boolean.
      *     a boolean.
+     * @property{string} [new_name] - name to display when __new__ selected. Defaults to the query
      */
 
     /**
@@ -37,12 +38,13 @@ export default function($) {
 
                 // XXX: this won't work when _this is multiple values (like $("input"))
                 query = $(_this).val();
-                if (ol_ac_opts.addnew && ol_ac_opts.addnew(query)) {
+                if (ol_ac_opts.addnew == true || (ol_ac_opts.addnew && ol_ac_opts.addnew(query))) {
                     parsed = parsed.slice(0, ac_opts.max - 1);
+                    const name = ol_ac_opts.new_name || query;
                     parsed.push({
-                        data: {name: query, key: '__new__'},
-                        value: query,
-                        result: query
+                        data: {name, key: '__new__'},
+                        value: name,
+                        result: name
                     });
                 }
                 return parsed;
