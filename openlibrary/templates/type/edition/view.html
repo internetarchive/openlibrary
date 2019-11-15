@@ -146,8 +146,9 @@ $if ctx.user and ctx.user.is_admin():
 </div>
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
-
     <div class="workDetails">
+        $if work:
+            <link itemprop="exampleOfWork" href="$work.key">
 
         <div class="editionCover">
 
@@ -196,13 +197,14 @@ $if ctx.user and ctx.user.is_admin():
               $ rating_stats = work.get_rating_stats() if work else {}
               $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
               $if rating_stats or stats_by_bookshelf:
-                <ul class="readers-stats">
-                  $if rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1:
+                $ show_ratings = rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1
+                <ul class="readers-stats" $:cond(show_ratings, 'itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"', '')>
+                  $if show_ratings:
                     <li class="avg-ratings">
-                      $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) $(rating_stats['avg_rating'])
+                        $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
                     </li>
                     <li>
-                      $rating_stats['num_ratings'] Ratings
+                        <span itemprop="reviewCount">$rating_stats['num_ratings']</span> Ratings
                     </li>
                   $if stats_by_bookshelf.get('want-to-read', 0) > 1:
                     <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] Want to read</li>
@@ -231,7 +233,7 @@ $if ctx.user and ctx.user.is_admin():
                                  <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
                         <span class="adjust">.</span>
                     $if page.languages:
-                    <br/>Written in <span itemprop="In language">$:thingrepr(page.languages)</span>.
+                    <br/>Written in <span itemprop="inLanguage">$:thingrepr(page.languages)</span>.
               </h4>
 
           $if work:
