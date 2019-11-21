@@ -415,6 +415,16 @@ def get_facet(facets, f, limit=None):
 re_olid = re.compile('^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
+class scan(delegate.page):
+    """
+    Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
+    """
+    path = "/_scan"
+    def GET(self):
+        page = render.scan()
+        page.v2 = True
+        return page
+
 class search(delegate.page):
     def redirect_if_needed(self, i):
         params = {}
