@@ -128,6 +128,12 @@ jQuery(function () {
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
+    const $pageScanEl = $('#page-scan');
+    if ($pageScanEl.length) {
+        import(/* webpackChunkName: "page_scan" */ './page_scan')
+            .then((module) => module.init());
+    }
+
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });
