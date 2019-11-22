@@ -1,28 +1,29 @@
 """Caching utilities.
 """
+import functools
 import random
 import string
-import time
 import threading
-import functools
+import time
+
+import six
 
 import memcache
 import simplejson
 import web
-
 from infogami import config
 from infogami.utils import stats
-
 from openlibrary.utils import olmemcache
 from openlibrary.utils.dateutil import MINUTE_SECS
 
-import six
-
-
 __all__ = [
     "cached_property",
-    "Cache", "MemoryCache", "MemcacheCache", "RequestCache",
-    "memoize", "memcache_memoize"
+    "Cache",
+    "MemoryCache",
+    "MemcacheCache",
+    "RequestCache",
+    "memoize",
+    "memcache_memoize",
 ]
 
 DEFAULT_CACHE_LIFETIME = 2 * MINUTE_SECS
@@ -43,6 +44,7 @@ class memcache_memoize:
     :param servers: list of  memcached servers, each specified as "ip:port"
     :param timeout: timeout in seconds after which the return value must be updated
     """
+
     def __init__(self, f, key_prefix=None, timeout=MINUTE_SECS):
         """Creates a new memoized function for ``f``.
         """
@@ -52,12 +54,7 @@ class memcache_memoize:
 
         self._memcache = None
 
-        self.stats = web.storage(
-            calls=0,
-            hits=0,
-            updates=0,
-            async_updates=0
-        )
+        self.stats = web.storage(calls=0, hits=0, updates=0, async_updates=0)
         self.active_threads = {}
 
     def _get_memcache(self):
@@ -66,8 +63,11 @@ class memcache_memoize:
             if servers:
                 self._memcache = memcache.Client(servers)
             else:
-                web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+                web.debug(
+                    "Could not find memcache_servers in the configuration. Used dummy memcache."
+                )
                 import mockcache
+
                 self._memcache = mockcache.Client()
 
         return self._memcache
@@ -171,7 +171,9 @@ class memcache_memoize:
         """Computes memcache key for storing result of function call with given arguments.
         """
         key = self.key_prefix + "-" + self.encode_args(args, kw)
-        return key.replace(" ", "_") #XXX: temporary fix to handle spaces in the arguments
+        return key.replace(
+            " ", "_"
+        )  # XXX: temporary fix to handle spaces in the arguments
 
     def json_encode(self, value):
         """simplejson.dumps without extra spaces.
@@ -211,7 +213,9 @@ class memcache_memoize:
 
         return json and self.json_decode(json)
 
+
 ####
+
 
 def cached_property(getter):
     """Decorator like `property`, but the value is computed on first call and cached.
@@ -223,6 +227,7 @@ def cached_property(getter):
             ...
     """
     name = getter.__name__
+
     def g(self):
         if name in self.__dict__:
             return self.__dict__[name]
@@ -230,10 +235,13 @@ def cached_property(getter):
         value = getter(self)
         self.__dict__[name] = value
         return value
+
     return property(g)
+
 
 class Cache(object):
     """Cache interface."""
+
     def get(self, key):
         """Returns the value for given key. Returns None if that key is not present in the cache.
         """
@@ -264,6 +272,7 @@ class Cache(object):
 class MemoryCache(Cache):
     """Cache implementation in memory.
     """
+
     def __init__(self):
         self.d = {}
 
@@ -290,14 +299,18 @@ class MemcacheCache(Cache):
 
     Expects that the memcache servers are specified in web.config.memcache_servers.
     """
+
     @cached_property
     def memcache(self):
         servers = config.get("memcache_servers", None)
         if servers:
             return olmemcache.Client(servers)
         else:
-            web.debug("Could not find memcache_servers in the configuration. Used dummy memcache.")
+            web.debug(
+                "Could not find memcache_servers in the configuration. Used dummy memcache."
+            )
             import mockcache
+
             return mockcache.Client()
 
     def get(self, key):
@@ -330,11 +343,13 @@ class MemcacheCache(Cache):
         stats.end()
         return value
 
+
 class RequestCache(Cache):
     """Request-Local cache.
 
     The values are cached only in the context of the current request.
     """
+
     @property
     def d(self):
         return web.ctx.setdefault("request-local-cache", {})
@@ -351,21 +366,25 @@ class RequestCache(Cache):
     def delete(self, key):
         return self.d.pop(key, None) is not None
 
+
 memory_cache = MemoryCache()
 memcache_cache = MemcacheCache()
 request_cache = RequestCache()
 
+
 def get_memcache():
     return memcache_cache.memcache
+
 
 def _get_cache(engine):
     d = {
         "memory": memory_cache,
         "memcache": memcache_cache,
         "memcache+memory": memcache_cache,
-        "request": request_cache
+        "request": request_cache,
     }
     return d.get(engine)
+
 
 class memoize:
     """Memoize decorator to cache results in various cache engines.
@@ -421,7 +440,10 @@ class memoize:
         def get_page(key):
             pass
     """
-    def __init__(self, engine="memory", key=None, expires=0, background=False, cacheable=None):
+
+    def __init__(
+        self, engine="memory", key=None, expires=0, background=False, cacheable=None
+    ):
         self.cache = _get_cache(engine)
         self.keyfunc = self._make_key_func(key)
         self.cacheable = cacheable
@@ -436,6 +458,7 @@ class memoize:
     def __call__(self, f):
         """Returns the memoized version of f.
         """
+
         @functools.wraps(f)
         def func(*args, **kwargs):
             """The memoized function.
@@ -449,6 +472,7 @@ class memoize:
                 value = f(*args, **kwargs)
                 self.cache_set(key, value)
             return value
+
         return func
 
     def cache_get(self, key):
@@ -494,9 +518,11 @@ class memoize:
         else:
             return self.cache.set(key, value, expires=self.expires)
 
+
 class PrefixKeyFunc:
     """A function to generate cache keys using a prefix and arguments.
     """
+
     def __init__(self, prefix):
         self.prefix = prefix
 
@@ -521,6 +547,7 @@ class PrefixKeyFunc:
         """
         return simplejson.dumps(value, separators=(",", ":"), sort_keys=True)
 
+
 def method_memoize(f):
     """object-local memoize.
 
@@ -528,10 +555,12 @@ def method_memoize(f):
 
     TODO: support arguments.
     """
+
     @functools.wraps(f)
     def g(self):
-        cache = self.__dict__.setdefault('_memoize_cache', {})
+        cache = self.__dict__.setdefault("_memoize_cache", {})
         if f.__name__ not in cache:
             cache[f.__name__] = f(self)
         return cache[f.__name__]
+
     return g

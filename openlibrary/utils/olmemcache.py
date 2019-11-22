@@ -1,13 +1,15 @@
 """Memcache interface to store data in memcached."""
 
 import memcache
-from olcompress import OLCompressor
 import web
+from olcompress import OLCompressor
+
 
 class Client:
     """Wrapper to memcache Client to enable OL specific compression and unicode keys.
     Compatible with memcache Client API.
     """
+
     def __init__(self, servers):
         self._client = memcache.Client(servers)
         compressor = OLCompressor()

@@ -3,6 +3,7 @@ from openlibrary.core import models
 # this should be moved to openlibrary.core
 from openlibrary.plugins.upstream.models import UnitParser
 
+
 class MockSite:
     def get(self, key):
         return models.Thing(self, key, data={})
@@ -10,22 +11,20 @@ class MockSite:
     def _get_backreferences(self, thing):
         return {}
 
+
 class MockLendableEdition(models.Edition):
     def get_ia_collections(self):
-        return ['lendinglibrary']
+        return ["lendinglibrary"]
+
 
 class MockPrivateEdition(models.Edition):
     def get_ia_collections(self):
-        return ['lendinglibrary', 'georgetown-university-law-library-rr']
+        return ["lendinglibrary", "georgetown-university-law-library-rr"]
 
 
 class TestEdition:
     def mock_edition(self, edition_class):
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "title": "foo"
-        }
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}, "title": "foo"}
         return edition_class(MockSite(), "/books/OL1M", data=data)
 
     def test_url(self):
@@ -34,10 +33,7 @@ class TestEdition:
         assert e.url(v=1) == "/books/OL1M/foo?v=1"
         assert e.url(suffix="/add-cover") == "/books/OL1M/foo/add-cover"
 
-        data = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-        }
+        data = {"key": "/books/OL1M", "type": {"key": "/type/edition"}}
         e = models.Edition(MockSite(), "/books/OL1M", data=data)
         assert e.url() == "/books/OL1M/untitled"
 
@@ -64,11 +60,7 @@ class TestEdition:
 
 class TestAuthor:
     def test_url(self):
-        data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
-            "name": "foo"
-        }
+        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}, "name": "foo"}
 
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
 
@@ -76,19 +68,14 @@ class TestAuthor:
         assert e.url(v=1) == "/authors/OL1A/foo?v=1"
         assert e.url(suffix="/add-photo") == "/authors/OL1A/foo/add-photo"
 
-        data = {
-            "key": "/authors/OL1A",
-            "type": {"key": "/type/author"},
-        }
+        data = {"key": "/authors/OL1A", "type": {"key": "/type/author"}}
         e = models.Author(MockSite(), "/authors/OL1A", data=data)
         assert e.url() == "/authors/OL1A/unnamed"
 
 
 class TestSubject:
     def test_url(self):
-        subject = models.Subject({
-            "key": "/subjects/love"
-        })
+        subject = models.Subject({"key": "/subjects/love"})
         assert subject.url() == "/subjects/love"
         assert subject.url("/lists") == "/subjects/love/lists"
 
@@ -102,13 +89,14 @@ class TestList:
 
     def _test_list_owner(self, user_key):
         from openlibrary.mocks.mock_infobase import MockSite
+
         site = MockSite()
         list_key = user_key + "/lists/OL1L"
 
         self.save_doc(site, "/type/user", user_key)
         self.save_doc(site, "/type/list", list_key)
 
-        list =  site.get(list_key)
+        list = site.get(list_key)
         assert list is not None
         assert isinstance(list, models.List)
 
@@ -116,27 +104,24 @@ class TestList:
         assert list.get_owner().key == user_key
 
     def save_doc(self, site, type, key, **fields):
-        d = {
-            "key": key,
-            "type": {"key": type}
-        }
+        d = {"key": key, "type": {"key": type}}
         d.update(fields)
         site.save(d)
 
+
 class TestLibrary:
     def test_class(self, mock_site):
-        mock_site.save({
-            "key": "/libraries/ia",
-            "type": {"key": "/type/library"}
-        })
+        mock_site.save({"key": "/libraries/ia", "type": {"key": "/type/library"}})
         doc = mock_site.get("/libraries/ia")
         assert doc.__class__.__name__ == "Library"
 
     def test_parse_ip_ranges(self):
         doc = models.Library(None, "/libraries/foo")
+
         def compare_ranges(test, expect):
             result = list(doc.parse_ip_ranges(test))
             assert result == expect
+
         compare_ranges("", [])
         compare_ranges("1.2.3.4", ["1.2.3.4"])
         compare_ranges("1.2.3.4", ["1.2.3.4"])
@@ -154,14 +139,19 @@ class TestLibrary:
         compare_ranges("1.2.3.", [("1.2.3.0", "1.2.3.255")])
         compare_ranges("1.1.", [])
         compare_ranges("1.2.3.1-254", [("1.2.3.1", "1.2.3.254")])
-        compare_ranges("216.63.14.0/24\n207.193.121.0/24\n207.193.118.0/24", ["216.63.14.0/24", "207.193.121.0/24", "207.193.118.0/24"])
+        compare_ranges(
+            "216.63.14.0/24\n207.193.121.0/24\n207.193.118.0/24",
+            ["216.63.14.0/24", "207.193.121.0/24", "207.193.118.0/24"],
+        )
         compare_ranges("208.70.20-30.", [])
 
     def test_bad_ip_ranges(self):
         doc = models.Library(None, "/libraries/foo")
+
         def test_ranges(test, expect):
             result = doc.find_bad_ip_ranges(test)
             assert result == expect
+
         test_ranges("", [])
         test_ranges("1.2.3.4", [])
         test_ranges("1.1.1.1\n2.2.2.2", [])
@@ -176,18 +166,20 @@ class TestLibrary:
         test_ranges("*.1", ["*.1"])
         test_ranges("1.2.3-10.*", [])
         test_ranges("1.2.3.", [])
-        test_ranges("1.1.", ['1.1.'])
+        test_ranges("1.1.", ["1.1."])
         test_ranges("1.2.3.1-254", [])
         test_ranges("216.63.14.0/24\n207.193.121.0/24\n207.193.118.0/24", [])
         test_ranges("1.2.3.4,2.3.4.5", ["1.2.3.4,2.3.4.5"])
         test_ranges("1.2-3.*", ["1.2-3.*"])
 
     def test_has_ip(self, mock_site):
-        mock_site.save({
-            "key": "/libraries/ia",
-            "type": {"key": "/type/library"},
-            "ip_ranges": "1.1.1.1\n2.2.2.0/24"
-        })
+        mock_site.save(
+            {
+                "key": "/libraries/ia",
+                "type": {"key": "/type/library"},
+                "ip_ranges": "1.1.1.1\n2.2.2.0/24",
+            }
+        )
 
         ia = mock_site.get("/libraries/ia")
         assert ia.has_ip("1.1.1.1")
@@ -196,11 +188,13 @@ class TestLibrary:
         assert ia.has_ip("2.2.2.10")
         assert not ia.has_ip("2.2.10.2")
 
-        mock_site.save({
-            "key": "/libraries/ia",
-            "type": {"key": "/type/library"},
-            "ip_ranges": "1.1.1.",
-        })
+        mock_site.save(
+            {
+                "key": "/libraries/ia",
+                "type": {"key": "/type/library"},
+                "ip_ranges": "1.1.1.",
+            }
+        )
 
         ia = mock_site.get("/libraries/ia")
         assert ia.has_ip("1.1.1.1")
@@ -209,11 +203,13 @@ class TestLibrary:
         assert not ia.has_ip("2.2.2.10")
         assert not ia.has_ip("2.2.10.2")
 
-        mock_site.save({
-            "key": "/libraries/ia",
-            "type": {"key": "/type/library"},
-            "ip_ranges": "1.1.",
-        })
+        mock_site.save(
+            {
+                "key": "/libraries/ia",
+                "type": {"key": "/type/library"},
+                "ip_ranges": "1.1.",
+            }
+        )
 
         ia = mock_site.get("/libraries/ia")
 

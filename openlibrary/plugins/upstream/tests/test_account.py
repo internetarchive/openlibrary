@@ -1,7 +1,11 @@
-from .. import account
-import web
 import re
+
 import pytest
+
+import web
+
+from .. import account
+
 
 def test_create_list_doc(wildcard):
     key = "account/foo/verify"
@@ -18,8 +22,9 @@ def test_create_list_doc(wildcard):
         "email": email,
         "code": wildcard,
         "created_on": wildcard,
-        "expires_on": wildcard
+        "expires_on": wildcard,
     }
+
 
 @pytest.mark.xfail
 class TestAccount:
@@ -27,18 +32,18 @@ class TestAccount:
         b.open("/account/create")
         b.select_form(name="signup")
 
-        b['displayname'] = displayname
-        b['username'] = username
-        b['password'] = password
-        b['email'] = email
-        b['agreement'] = ['yes']
+        b["displayname"] = displayname
+        b["username"] = username
+        b["password"] = password
+        b["email"] = email
+        b["agreement"] = ["yes"]
         b.submit()
 
     def login(self, b, username, password):
         """Attempt login and return True if successful.
         """
         b.open("/account/login")
-        b.select_form(name="register") # wrong name
+        b.select_form(name="register")  # wrong name
         b["username"] = username
         b["password"] = password
         b.submit()
@@ -47,7 +52,13 @@ class TestAccount:
 
     def test_create(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="blackgoat", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="blackgoat",
+            email="foo@example.com",
+        )
 
         assert "Hi, foo!" in b.get_text(id="contentHead")
         assert "sent an email to foo@example.com" in b.get_text(id="contentBody")
@@ -62,12 +73,20 @@ class TestAccount:
     def test_activate(self, ol):
         b = ol.browser()
 
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
 
         assert "Hi, Foo!" in b.get_text(id="contentHead")
-        assert "Yay! Your email address has been verified." in b.get_text(id="contentBody")
+        assert "Yay! Your email address has been verified." in b.get_text(
+            id="contentBody"
+        )
 
         self.login(b, "foo", "secret")
 
@@ -77,26 +96,39 @@ class TestAccount:
     def test_forgot_password(self, ol):
         b = ol.browser()
 
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
 
         b.open("/account/password/forgot")
-        b.select_form(name="register") # why is the form called register?
-        b['email'] = "foo@example.com"
+        b.select_form(name="register")  # why is the form called register?
+        b["email"] = "foo@example.com"
         b.submit()
 
         assert "Thanks" in b.get_text(id="contentHead")
-        assert "We've sent an email to foo@example.com with instructions" in b.get_text(id="contentBody")
+        assert "We've sent an email to foo@example.com with instructions" in b.get_text(
+            id="contentBody"
+        )
 
         link = ol.sentmail.extract_links()[0]
-        assert re.match("^http://0.0.0.0:8080/account/password/reset/[0-9a-f]{32}$", link)
+        assert re.match(
+            "^http://0.0.0.0:8080/account/password/reset/[0-9a-f]{32}$", link
+        )
 
         b.open(link)
         assert "Reset Password" in b.get_text(id="contentHead")
-        assert "Please enter a new password for your Open Library account" in b.get_text(id="contentBody")
+        assert (
+            "Please enter a new password for your Open Library account"
+            in b.get_text(id="contentBody")
+        )
         b.select_form(name="reset")
-        b['password'] = "secret2"
+        b["password"] = "secret2"
         b.submit()
 
         self.login(b, "foo", "secret2")
@@ -110,15 +142,21 @@ class TestAccount:
 
     def test_change_password(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
         link = ol.sentmail.extract_links()[0]
         b.open(link)
         self.login(b, "foo", "secret")
 
         b.open("/account/password")
         b.select_form(name="register")
-        b['password'] = "secret"
-        b['new_password'] = "more_secret"
+        b["password"] = "secret"
+        b["new_password"] = "more_secret"
         b.submit()
 
         assert b.path == "/account"
@@ -128,7 +166,13 @@ class TestAccount:
 
     def test_change_email(self, ol):
         b = ol.browser()
-        self.signup(b, displayname="Foo", username="foo", password="secret", email="foo@example.com")
+        self.signup(
+            b,
+            displayname="Foo",
+            username="foo",
+            password="secret",
+            email="foo@example.com",
+        )
 
         link = ol.sentmail.extract_links()[0]
         b.open(link)
@@ -140,11 +184,13 @@ class TestAccount:
         assert "foo@example.com" in b.data
 
         b.select_form(name="register")
-        b['email'] = "foobar@example.com"
+        b["email"] = "foobar@example.com"
         b.submit()
 
         assert "Hi Foo" in b.get_text(id="contentHead")
-        assert "We've sent an email to foobar@example.com" in b.get_text(id="contentBody")
+        assert "We've sent an email to foobar@example.com" in b.get_text(
+            id="contentBody"
+        )
 
         link = ol.sentmail.extract_links()[0]
         b.open(link)

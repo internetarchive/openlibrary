@@ -1,17 +1,20 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc
-from openlibrary import config
-from ftplib import FTP
-from time import sleep
-from lxml import etree
-import os
-import sys
+
+import argparse
 import httplib
 import json
-import argparse
+import os
+import sys
+from ftplib import FTP
+from time import sleep
+
+from lxml import etree
+
+from openlibrary import config
+from openlibrary.catalog.importer.scribe import BadImport
+from openlibrary.catalog.read_rc import read_rc
 
 parser = argparse.ArgumentParser(description='Library of Congress MARC update')
 parser.add_argument('--config', default='openlibrary.yml')

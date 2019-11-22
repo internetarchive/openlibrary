@@ -1,17 +1,19 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-import _init_path
 
-from openlibrary import config
 import argparse
-import simplejson
 import re
 import sys
+from time import sleep, time
 from urllib import urlopen
 from urllib2 import URLError
-from time import time, sleep
-from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+
+import _init_path
+import simplejson
+from openlibrary import config
+from openlibrary.catalog.works.find_works import (books_query, find_title_redirects,
+                                                  find_works, get_books, update_works)
 
 parser = argparse.ArgumentParser(description='solr author merge')
 parser.add_argument('--config', default='openlibrary.yml')

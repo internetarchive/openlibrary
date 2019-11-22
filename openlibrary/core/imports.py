@@ -1,14 +1,16 @@
 """Interface to import queue.
 """
-from collections import defaultdict
-import logging
 import datetime
+import logging
 import time
+from collections import defaultdict
+
 import web
 
 from . import db
 
 logger = logging.getLogger("openlibrary.imports")
+
 
 class Batch(web.storage):
     @staticmethod
@@ -34,11 +36,20 @@ class Batch(web.storage):
         if not items:
             return
         logger.info("batch %s: adding %d items", self.name, len(items))
-        already_present = [row.ia_id for row in db.query("SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals())]
+        already_present = [
+            row.ia_id
+            for row in db.query(
+                "SELECT ia_id FROM import_item WHERE ia_id IN $items", vars=locals()
+            )
+        ]
         # ignore already present
         items = list(set(items) - set(already_present))
 
-        logger.info("batch %s: %d items are already present, ignoring...", self.name, len(already_present))
+        logger.info(
+            "batch %s: %d items are already present, ignoring...",
+            self.name,
+            len(already_present),
+        )
         if items:
             values = [dict(batch_id=self.id, ia_id=item) for item in items]
             db.get_db().multiple_insert("import_item", values)
@@ -47,6 +58,7 @@ class Batch(web.storage):
     def get_items(self, status="pending"):
         result = db.where("import_item", batch_id=self.id, status=status)
         return [ImportItem(row) for row in result]
+
 
 class ImportItem(web.storage):
     @staticmethod
@@ -66,31 +78,34 @@ class ImportItem(web.storage):
             status=status,
             error=error,
             ol_key=ol_key,
-            import_time=datetime.datetime.utcnow())
+            import_time=datetime.datetime.utcnow(),
+        )
         db.update("import_item", where="id=$id", vars=self, **d)
         self.update(d)
 
     def mark_failed(self, error):
-        self.set_status(status='failed', error=error)
+        self.set_status(status="failed", error=error)
 
     def mark_found(self, ol_key):
-        self.set_status(status='found', ol_key=ol_key)
+        self.set_status(status="found", ol_key=ol_key)
 
     def mark_created(self, ol_key):
-        self.set_status(status='created', ol_key=ol_key)
+        self.set_status(status="created", ol_key=ol_key)
 
     def mark_modified(self, ol_key):
-        self.set_status(status='modified', ol_key=ol_key)
+        self.set_status(status="modified", ol_key=ol_key)
 
 
 class Stats:
     """Import Stats."""
+
     def get_imports_per_hour(self):
         """Returns the number imports happened in past one hour duration.
         """
         result = db.query(
-            "SELECT count(*) as count FROM import_item" +
-            " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour")
+            "SELECT count(*) as count FROM import_item"
+            + " WHERE import_time > CURRENT_TIMESTAMP - interval '1' hour"
+        )
         return result[0].count
 
     def get_count(self, status=None):
@@ -98,10 +113,9 @@ class Stats:
             where = "status=$status"
         else:
             where = "1=1"
-        rows = db.select("import_item",
-            what="count(*) as count",
-            where=where,
-            vars=locals())
+        rows = db.select(
+            "import_item", what="count(*) as count", where=where, vars=locals()
+        )
         return rows[0].count
 
     def get_count_by_status(self, date=None):
@@ -110,12 +124,12 @@ class Stats:
 
     def get_count_by_date_status(self, ndays=10):
         result = db.query(
-            "SELECT added_time::date as date, status, count(*)" +
-            " FROM import_item " +
-            " WHERE added_time > current_date - interval '$ndays' day"
-            " GROUP BY 1, 2" +
-            " ORDER BY 1 desc",
-            vars=locals())
+            "SELECT added_time::date as date, status, count(*)"
+            + " FROM import_item "
+            + " WHERE added_time > current_date - interval '$ndays' day"
+            " GROUP BY 1, 2" + " ORDER BY 1 desc",
+            vars=locals(),
+        )
         d = defaultdict(dict)
         for row in result:
             d[row.date][row.status] = row.count
@@ -124,10 +138,9 @@ class Stats:
     def get_books_imported_per_day(self):
         rows = db.query(
             "SELECT import_time::date as date, count(*) as count"
-            " FROM import_item" +
-            " WHERE status='created'"
-            " GROUP BY 1" +
-            " ORDER BY 1")
+            " FROM import_item" + " WHERE status='created'"
+            " GROUP BY 1" + " ORDER BY 1"
+        )
         return [[self.date2millis(row.date), row.count] for row in rows]
 
     def date2millis(self, date):
@@ -140,21 +153,18 @@ class Stats:
             where = "added_time::date = $date"
         else:
             where = "1 = 1"
-        return db.select("import_item",
-            where=where,
-            order=order,
-            limit=limit,
-            vars=locals())
+        return db.select(
+            "import_item", where=where, order=order, limit=limit, vars=locals()
+        )
 
     def get_items_summary(self, date):
         """Returns all rows with given added date.
         """
         rows = db.query(
-                "SELECT status, count(*) as count" +
-                " FROM import_item" +
-                " WHERE added_time::date = $date"
-                " GROUP BY status",
-                vars=locals())
-        return {
-            "counts": dict([(row.status, row.count) for row in rows])
-        }
+            "SELECT status, count(*) as count"
+            + " FROM import_item"
+            + " WHERE added_time::date = $date"
+            " GROUP BY status",
+            vars=locals(),
+        )
+        return {"counts": dict([(row.status, row.count) for row in rows])}

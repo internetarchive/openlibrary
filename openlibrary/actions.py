@@ -1,8 +1,11 @@
 """Custom OL Actions.
 """
 from __future__ import print_function
-import infogami
+
 import sys
+
+import infogami
+
 
 @infogami.action
 def runmain(modulename, *args):

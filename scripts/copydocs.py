@@ -13,18 +13,17 @@ This script can also be used to copy books and authors from OL to dev instance.
 """
 from __future__ import print_function
 
-from collections import namedtuple
-
-import _init_path
-import sys
 import os
-import simplejson
-import web
-
-from openlibrary.api import OpenLibrary, marshal, unmarshal
+import sys
+from collections import namedtuple
 from optparse import OptionParser
 
 import six
+
+import _init_path
+import simplejson
+import web
+from openlibrary.api import OpenLibrary, marshal, unmarshal
 
 __version__ = "0.2"
 

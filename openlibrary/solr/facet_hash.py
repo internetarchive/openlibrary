@@ -4,7 +4,6 @@ from hashlib import sha1 as mkhash
 import six
 from six.moves import range
 
-
 # choose token length to make collisions unlikely (if there is a
 # rare collision once in a while, we tolerate it, it just means
 # that users may occasionally see some extra search results.
@@ -23,10 +22,11 @@ facet_token_length = 12
 # if necessary.
 def coerce_str(v):
     if isinstance(v, six.text_type):
-        v = v.encode('utf-8')
-    v = str(v)    # in case v is a numeric type
+        v = v.encode("utf-8")
+    v = str(v)  # in case v is a numeric type
     assert isinstance(v, str), (type(v), v)
     return v
+
 
 # str, str -> str
 def facet_token(field, v):
@@ -34,8 +34,8 @@ def facet_token(field, v):
     v = coerce_str(v)
     field = coerce_str(field)
 
-    q = int(mkhash('FT,%s,%s'%(field,v)).hexdigest(), 16)
+    q = int(mkhash("FT,%s,%s" % (field, v)).hexdigest(), 16)
     for i in range(facet_token_length):
-        q,r = divmod(q, 26)
+        q, r = divmod(q, 26)
         token.append(string.lowercase[r])
-    return ''.join(token)
+    return "".join(token)

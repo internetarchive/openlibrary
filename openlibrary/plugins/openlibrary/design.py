@@ -1,11 +1,11 @@
-
-import web
 import logging
 
+import web
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import public, render_template
 
 logger = logging.getLogger("openlibrary.design")
+
 
 class home(delegate.page):
     path = "/developers/design"
@@ -14,6 +14,7 @@ class home(delegate.page):
         template = render_template("design")
         template.v2 = True
         return template
+
 
 def setup():
     pass

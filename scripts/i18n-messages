@@ -3,10 +3,12 @@
 macros and write to openlibrary/i18n/messages.pot file.
 """
 from __future__ import print_function
-import _init_path
 
 import sys
+
+import _init_path
 from openlibrary import i18n
+
 
 def help():
     print("utility to manage i18n messages")

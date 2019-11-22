@@ -1,23 +1,27 @@
 import re
 
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_isbn = re.compile("([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?")
 # handle ISBN like: 1402563884c$26.95
-re_isbn_and_price = re.compile('^([-\d]+X?)c\$[\d.]+$')
+re_isbn_and_price = re.compile("^([-\d]+X?)c\$[\d.]+$")
+
 
 class MarcException(Exception):
     # Base MARC exception class
     pass
 
+
 class BadMARC(MarcException):
     pass
+
 
 class NoTitle(MarcException):
     pass
 
+
 class MarcBase(object):
     def read_isbn(self, f):
         found = []
-        for k, v in f.get_subfields(['a', 'z']):
+        for k, v in f.get_subfields(["a", "z"]):
             m = re_isbn_and_price.match(v)
             if not m:
                 m = re_isbn.match(v)

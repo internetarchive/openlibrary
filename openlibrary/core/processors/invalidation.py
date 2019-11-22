@@ -1,12 +1,11 @@
-import web
 import datetime
-from infogami.infobase import client
 
+import web
+from infogami.infobase import client
 from openlibrary.core import helpers as h
 
-__all__ = [
-    "InvalidationProcessor"
-]
+__all__ = ["InvalidationProcessor"]
+
 
 class InvalidationProcessor:
     """Application processor to invalidate/update locally cached documents.
@@ -68,6 +67,7 @@ class InvalidationProcessor:
     * last_update_time: timestamp of the most recent update known to this
       process.
     """
+
     def __init__(self, prefixes, timeout=60, cookie_name="lastupdate"):
         self.prefixes = prefixes
         self.timeout = datetime.timedelta(0, timeout)
@@ -78,7 +78,9 @@ class InvalidationProcessor:
 
         # set expire_time slightly more than timeout
         self.expire_time = 3 * timeout
-        self.hook = _InvalidationHook(prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time)
+        self.hook = _InvalidationHook(
+            prefixes=prefixes, cookie_name=cookie_name, expire_time=self.expire_time
+        )
 
     def __call__(self, handler):
         def t(date):
@@ -93,8 +95,14 @@ class InvalidationProcessor:
 
         # last update in recent timeout seconds?
         has_recent_update = (self.last_poll_time - self.last_update_time) < self.timeout
-        if has_recent_update and (cookie_time is None or cookie_time < self.last_update_time):
-            web.setcookie(self.cookie_name, self.last_update_time.isoformat(), expires=self.expire_time)
+        if has_recent_update and (
+            cookie_time is None or cookie_time < self.last_update_time
+        ):
+            web.setcookie(
+                self.cookie_name,
+                self.last_update_time.isoformat(),
+                expires=self.expire_time,
+            )
 
         return handler()
 
@@ -123,7 +131,11 @@ class InvalidationProcessor:
 
         keys = []
         for prefix in self.prefixes:
-            q = {"key~": prefix + "*", "last_modified>": self.last_poll_time.isoformat(), "limit": 1000}
+            q = {
+                "key~": prefix + "*",
+                "last_modified>": self.last_poll_time.isoformat(),
+                "limit": 1000,
+            }
             keys += web.ctx.site.things(q)
 
         if keys:
@@ -141,11 +153,13 @@ class InvalidationProcessor:
         self.last_poll_time = t
         return reloaded
 
+
 class _InvalidationHook:
     """Infogami client hook to get notification on edits.
 
     This sets a cookie when any of the documents under the given prefixes is modified.
     """
+
     def __init__(self, prefixes, cookie_name, expire_time):
         self.prefixes = prefixes
         self.cookie_name = cookie_name

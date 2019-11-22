@@ -1,15 +1,16 @@
 """Generic web.py application processors.
 """
-import web
 import time
 
-__all__ = [
-    "RateLimitProcessor"
-]
+import web
+
+__all__ = ["RateLimitProcessor"]
+
 
 class RateLimitProcessor:
     """Application processor to ratelimit the access per ip.
     """
+
     def __init__(self, limit, window_size=600, path_regex="/.*"):
         """Creates a rate-limit processor to limit the number of
         requests/ip in the time frame.

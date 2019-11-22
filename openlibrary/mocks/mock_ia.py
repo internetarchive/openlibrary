@@ -1,7 +1,9 @@
 """Mock of openlibrary.core.ia module.
 """
 import pytest
+
 from openlibrary.core import ia
+
 
 @pytest.fixture
 def mock_ia(request, monkeypatch):

@@ -4,6 +4,7 @@ import urllib
 import urllib2
 from StringIO import StringIO
 
+
 class Mock:
     def __init__(self):
         self.calls = []
@@ -20,6 +21,7 @@ class Mock:
         call = a, kw, _return
         self.calls.append(call)
 
+
 def monkeypatch_urllib(monkeypatch, url, response_string):
     """Monkey-patches urllib.urlopen to return the given response
     when urlopen is called with the given url.
@@ -34,6 +36,7 @@ def monkeypatch_urllib(monkeypatch, url, response_string):
             return _urlopen(url, *a, **kw)
 
     monkeypatch.setattr(urllib, "urlopen", urlopen)
+
 
 def monkeypatch_urllib2(monkeypatch, url, response_string):
     """Monkey-patches urllib2.urlopen to return the given response

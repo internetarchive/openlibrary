@@ -1,31 +1,30 @@
-from py.test import config
-import web
-import simplejson
-
+import cookielib
 import urllib
 import urllib2
-import cookielib
 
-from openlibrary.plugins.openlibrary.api import ratings
+from py.test import config
+
+import simplejson
+import web
 from openlibrary import accounts
 from openlibrary.core import models
+from openlibrary.plugins.openlibrary.api import ratings
 
 
 def pytest_funcarg__config(request):
     return request.config
 
-class RatingsAPI:
 
+class RatingsAPI:
     def __init__(self, config):
-        self.server = config.getvalue('server')
+        self.server = config.getvalue("server")
         self.username = config.getvalue("username")
         self.password = config.getvalue("password")
 
         self.cookiejar = cookielib.CookieJar()
 
         self.opener = urllib2.build_opener()
-        self.opener.add_handler(
-            urllib2.HTTPCookieProcessor(self.cookiejar))
+        self.opener.add_handler(urllib2.HTTPCookieProcessor(self.cookiejar))
 
     def urlopen(self, path, data=None, method=None, headers={}):
         """url open with cookie support."""
@@ -44,12 +43,11 @@ class RatingsAPI:
         self.urlopen("/account/login", data=urllib.urlencode(data), method="POST")
 
     def rate_book(self, work_key, data):
-        url = '%s/ratings.json' % (work_key)
-        headers = {
-            "content-type": "application/json"
-        }
+        url = "%s/ratings.json" % (work_key)
+        headers = {"content-type": "application/json"}
         r = self.urlopen(
-                url, data=simplejson.dumps(data), headers=headers, method="POST")
+            url, data=simplejson.dumps(data), headers=headers, method="POST"
+        )
         return simplejson.loads(r.read())
 
 
@@ -58,16 +56,14 @@ def test_rating(config, monkeypatch):
     api.login()
 
     work_key = "/works/OL123W"
-    data = {
-        "rating": "5"
-    }
+    data = {"rating": "5"}
 
     class FakeUser:
         def __init__(self, key):
-            self.key = '/users/%s' % key
-    
-    monkeypatch.setattr(accounts, "get_current_user", FakeUser('test'))
+            self.key = "/users/%s" % key
+
+    monkeypatch.setattr(accounts, "get_current_user", FakeUser("test"))
     monkeypatch.setattr(models.Ratings, "remove", {})
     monkeypatch.setattr(models.Ratings, "add", {})
     result = api.rate_book(work_key, data)
-    assert 'success' in result
+    assert "success" in result

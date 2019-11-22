@@ -5,14 +5,15 @@ USAGE:
     python sitemaps.py suffix dump.txt.gz
 """
 
-import web
-import os
-import itertools
 import datetime
 import gzip
-import re
+import itertools
 import json
+import os
+import re
 import time
+
+import web
 
 t_sitemap = """$def with (things)
 <?xml version="1.0" encoding="UTF-8"?>

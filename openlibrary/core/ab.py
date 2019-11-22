@@ -12,33 +12,36 @@ ab:
         - one-row
         - two-rows
 """
-import web
-from sixpack.sixpack import Session
 import logging
+
+import web
 from infogami import config
+from sixpack.sixpack import Session
 
 logger = logging.getLogger("openlibrary.ab")
+
 
 def get_session():
     if "sixpack_session" not in web.ctx:
         cookies = web.cookies(sixpack_id=None)
         session = Session(client_id=cookies.sixpack_id, options=_get_sixpack_options())
         if session.client_id != cookies.sixpack_id:
-            web.setcookie('sixpack_id', session.client_id)
+            web.setcookie("sixpack_id", session.client_id)
         web.ctx.sixpack_session = session
     return web.ctx.sixpack_session
 
+
 def _get_sixpack_options():
-    host = config.get('sixpack_url')
-    return {
-        'host': host
-    }
+    host = config.get("sixpack_url")
+    return {"host": host}
+
 
 def get_ab_value(testname):
     cache = web.ctx.setdefault("sixpack_cache", {})
     if testname not in cache:
         cache[testname] = participate(testname)
     return cache[testname]
+
 
 def participate(testname, alternatives=None):
     if alternatives is None:
@@ -48,11 +51,12 @@ def participate(testname, alternatives=None):
         force = web.input(_method="GET").get("sixpack-force-" + testname)
         response = get_session().participate(testname, alternatives, force=force)
         logger.info("participate %s %s -> %s", testname, alternatives, response)
-        value = response['alternative']['name']
+        value = response["alternative"]["name"]
     else:
         # default value when no alternatives are provided in config.
-        value = 'control'
+        value = "control"
     return value
+
 
 def convert(testname):
     logger.info("convert %s", testname)

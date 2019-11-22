@@ -19,8 +19,8 @@ A sample dict looks like one of these:
 """
 from __future__ import print_function
 
-class import_edition_builder:
 
+class import_edition_builder:
     def add_string(self, key, val):
         self.edition_dict[key] = val
 
@@ -33,51 +33,46 @@ class import_edition_builder:
     def add_author(self, key, val):
         # We don't know birth_date or death_date.
         # Should name and personal_name be the same value?
-        author_dict = {
-           'personal_name': val,
-           'name': val,
-           'entity_type': 'person'
-        }
-        self.add_list('authors', author_dict)
+        author_dict = {"personal_name": val, "name": val, "entity_type": "person"}
+        self.add_list("authors", author_dict)
 
     def add_illustrator(self, key, val):
-        self.add_list('contributions', val + u' (Illustrator)')
+        self.add_list("contributions", val + u" (Illustrator)")
 
     def __init__(self, init_dict={}):
         self.edition_dict = init_dict.copy()
 
         self.type_dict = {
-            'title'              : ['title',          self.add_string],
-            'author'             : ['authors',        self.add_author],
-            'publisher'          : ['publishers',     self.add_list],
-            'publish_place'      : ['publish_places', self.add_list],
-            'publish_date'       : ['publish_date',   self.add_string],
-            'pagination'         : ['pagination',     self.add_string],
-            'subject'            : ['subjects',       self.add_list],
-            'language'           : ['languages',      self.add_list],
-            'description'        : ['description',    self.add_string],
-            'lccn'               : ['lccn',           self.add_list],
-            'oclc_number'        : ['oclc_numbers',   self.add_list],
-            'isbn_10'            : ['isbn_10',        self.add_list],
-            'isbn_13'            : ['isbn_13',        self.add_list],
-            'ocaid'              : ['ocaid',          self.add_string],
-            'illustrator'        : ['contributions',  self.add_illustrator],
-            'source_record'      : ['source_records', self.add_list],
-            'dewey_decimal_class': ['dewey_decimal_class', self.add_list],
-            'lc_classification'  : ['lc_classifications',  self.add_list],
+            "title": ["title", self.add_string],
+            "author": ["authors", self.add_author],
+            "publisher": ["publishers", self.add_list],
+            "publish_place": ["publish_places", self.add_list],
+            "publish_date": ["publish_date", self.add_string],
+            "pagination": ["pagination", self.add_string],
+            "subject": ["subjects", self.add_list],
+            "language": ["languages", self.add_list],
+            "description": ["description", self.add_string],
+            "lccn": ["lccn", self.add_list],
+            "oclc_number": ["oclc_numbers", self.add_list],
+            "isbn_10": ["isbn_10", self.add_list],
+            "isbn_13": ["isbn_13", self.add_list],
+            "ocaid": ["ocaid", self.add_string],
+            "illustrator": ["contributions", self.add_illustrator],
+            "source_record": ["source_records", self.add_list],
+            "dewey_decimal_class": ["dewey_decimal_class", self.add_list],
+            "lc_classification": ["lc_classifications", self.add_list],
         }
-
 
     def get_dict(self):
         return self.edition_dict
 
     def add(self, key, val, restrict_keys=True):
         if restrict_keys and not key in self.type_dict:
-            print('import_edition_builder invalid key: ' + key)
+            print("import_edition_builder invalid key: " + key)
             return
 
         if key in self.type_dict:
-            new_key  = self.type_dict[key][0]
+            new_key = self.type_dict[key][0]
             add_func = self.type_dict[key][1]
             add_func(new_key, val)
         else:

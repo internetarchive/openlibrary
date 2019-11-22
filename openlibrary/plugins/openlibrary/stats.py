@@ -1,21 +1,21 @@
 """Hooks for collecting performance stats.
 """
 from __future__ import print_function
+
 import logging
 import traceback
 
-from openlibrary.core import stats as graphite_stats
-
+import filters as stats_filters
+import openlibrary.core.stats as graphite_stats
 import web
 from infogami import config
 from infogami.utils import stats
-import openlibrary.core.stats
-
-import filters as stats_filters
+from openlibrary.core import stats as graphite_stats
 
 l = logging.getLogger("openlibrary.stats")
 
 filters = {}
+
 
 def evaluate_and_store_stat(name, stat, summary):
     """Evaluates whether the given statistic is to be recorded and if
@@ -33,14 +33,15 @@ def evaluate_and_store_stat(name, stat, summary):
             if "time" in stat:
                 graphite_stats.put(name, summary[stat.time]["time"] * 100)
             elif "count" in stat:
-                #print "Storing count for key %s"%stat.count
+                # print "Storing count for key %s"%stat.count
                 # XXX-Anand: where is the code to update counts?
                 pass
             else:
                 l.warning("No storage item specified for stat %s", name)
     except Exception as k:
-        l.warning("Error while storing stats (%s). Complete traceback follows"%k)
+        l.warning("Error while storing stats (%s). Complete traceback follows" % k)
         l.warning(traceback.format_exc())
+
 
 def update_all_stats(stats_summary):
     """
@@ -48,6 +49,7 @@ def update_all_stats(stats_summary):
     """
     for stat in config.get("stats", []):
         evaluate_and_store_stat(stat, config.stats.get(stat), stats_summary)
+
 
 def stats_hook():
     """web.py unload hook to add X-OL-Stats header.
@@ -65,31 +67,33 @@ def stats_hook():
         # don't let errors in stats collection break the app.
         print(str(e), file=web.debug)
 
-    openlibrary.core.stats.increment('ol.pageviews')
+    openlibrary.core.stats.increment("ol.pageviews")
 
     memcache_hits = 0
     memcache_misses = 0
     for s in web.ctx.get("stats", []):
-        if s.name == 'memcache.get':
-            if s.data['hit']:
+        if s.name == "memcache.get":
+            if s.data["hit"]:
                 memcache_hits += 1
             else:
                 memcache_misses += 1
 
     if memcache_hits:
-        openlibrary.core.stats.increment('ol.memcache.hits', memcache_hits)
+        openlibrary.core.stats.increment("ol.memcache.hits", memcache_hits)
     if memcache_misses:
-        openlibrary.core.stats.increment('ol.memcache.misses', memcache_misses)
+        openlibrary.core.stats.increment("ol.memcache.misses", memcache_misses)
 
     for name, value in stats_summary.items():
         name = name.replace(".", "_")
         time = value.get("time", 0.0) * 1000
-        key  = 'ol.'+name
+        key = "ol." + name
         openlibrary.core.stats.put(key, time)
+
 
 def format_stats(stats):
     s = " ".join("%s %d %0.03f" % entry for entry in process_stats(stats))
-    return '"%s"' %s
+    return '"%s"' % s
+
 
 labels = {
     "total": "TT",
@@ -99,6 +103,7 @@ labels = {
     "archive.org": "IA",
     "couchdb": "CD",
 }
+
 
 def process_stats(stats):
     """Process stats and returns a list of (label, count, time) for each entry.
@@ -117,6 +122,7 @@ def process_stats(stats):
         d[label] = xcount + count, xtime + time
 
     return [(label, count, time) for label, (count, time) in sorted(d.items())]
+
 
 def register_filter(name, function):
     global filters

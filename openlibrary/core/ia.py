@@ -1,28 +1,30 @@
 """Library for interacting wih archive.org.
 """
+import datetime
+import logging
 import os
 import urllib2
-import datetime
 from xml.dom import minidom
-import simplejson
-import web
-import logging
-from infogami import config
-from infogami.utils import stats
-import cache
-from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
 
-logger = logging.getLogger('openlibrary.ia')
+import cache
+import simplejson
+import web
+from infogami import config
+from infogami.utils import stats
+from openlibrary.utils.dateutil import date_n_days_ago
 
-VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
+logger = logging.getLogger("openlibrary.ia")
+
+VALID_READY_REPUB_STATES = ["4", "19", "20", "22"]
+
 
 def get_item_json(itemid):
     itemid = web.safestr(itemid.strip())
-    url = 'http://archive.org/metadata/%s' % itemid
+    url = "http://archive.org/metadata/%s" % itemid
     try:
-        stats.begin('archive.org', url=url)
+        stats.begin("archive.org", url=url)
         metadata_json = urllib2.urlopen(url).read()
         stats.end()
         return simplejson.loads(metadata_json)
@@ -30,23 +32,29 @@ def get_item_json(itemid):
         stats.end()
         return {}
 
+
 def extract_item_metadata(item_json):
-    metadata = process_metadata_dict(item_json.get('metadata', {}))
+    metadata = process_metadata_dict(item_json.get("metadata", {}))
     if metadata:
         # if any of the files is access restricted, consider it as
         # an access-restricted item.
-        files = item_json.get('files', [])
-        metadata['access-restricted'] = any(f.get('private') == 'true' for f in files)
+        files = item_json.get("files", [])
+        metadata["access-restricted"] = any(f.get("private") == "true" for f in files)
 
         # remember the filenames to construct download links
-        metadata['_filenames'] = [f['name'] for f in files]
+        metadata["_filenames"] = [f["name"] for f in files]
     return metadata
+
 
 def get_metadata(itemid):
     item_json = get_item_json(itemid)
     return extract_item_metadata(item_json)
 
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+
+get_metadata = cache.memcache_memoize(
+    get_metadata, key_prefix="ia.get_metadata", timeout=5 * 60
+)
+
 
 def process_metadata_dict(metadata):
     """Process metadata dict to make sure multi-valued fields like
@@ -57,22 +65,27 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    mutlivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
+    mutlivalued = set(
+        ["collection", "external-identifier", "isbn", "subject", "oclc-id"]
+    )
+
     def process_item(k, v):
         if k in mutlivalued and not isinstance(v, list):
             v = [v]
         elif k not in mutlivalued and isinstance(v, list):
             v = v[0]
         return (k, v)
+
     return dict(process_item(k, v) for k, v in metadata.items() if v)
+
 
 def _old_get_meta_xml(itemid):
     """Returns the contents of meta_xml as JSON.
     """
     itemid = web.safestr(itemid.strip())
-    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
+    url = "http://www.archive.org/download/%s/%s_meta.xml" % (itemid, itemid)
     try:
-        stats.begin('archive.org', url=url)
+        stats.begin("archive.org", url=url)
         metaxml = urllib2.urlopen(url).read()
         stats.end()
     except IOError:
@@ -92,9 +105,11 @@ def _old_get_meta_xml(itemid):
         logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
         return web.storage()
 
+
 def get_meta_xml(itemid):
     # use metadata API instead of parsing meta xml manually
     return get_metadata(itemid)
+
 
 def xml2dict(xml, **defaults):
     """Converts xml to python dictionary assuming that the xml is not nested.
@@ -125,6 +140,7 @@ def xml2dict(xml, **defaults):
 
     return d
 
+
 def _get_metadata(itemid):
     """Returns metadata by querying the archive.org metadata API.
     """
@@ -137,14 +153,17 @@ def _get_metadata(itemid):
     except (IOError, ValueError):
         return None
 
+
 # cache the results in memcache for a minute
 _get_metadata = web.memoize(_get_metadata, expires=60)
+
 
 def locate_item(itemid):
     """Returns (hostname, path) for the item.
     """
     d = _get_metadata(itemid)
-    return d.get('server'), d.get('dir')
+    return d.get("server"), d.get("dir")
+
 
 def edition_from_item_metadata(itemid, metadata):
     """Converts the item metadata into a form suitable to be used as edition
@@ -158,8 +177,9 @@ def edition_from_item_metadata(itemid, metadata):
         e.add_metadata(metadata)
         return e
 
+
 def get_item_manifest(item_id, item_server, item_path):
-    url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
+    url = "https://%s/BookReader/BookReaderJSON.php" % item_server
     url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
     try:
         stats.begin("archive.org", url=url)
@@ -170,15 +190,19 @@ def get_item_manifest(item_id, item_server, item_path):
         stats.end()
         return {}
 
+
 def get_item_status(itemid, metadata, **server):
-    item_server = server.pop('item_server', None)
-    item_path = server.pop('item_path', None)
-    return ItemEdition.get_item_status(itemid, metadata, item_server=item_server,
-                                       item_path=item_path)
+    item_server = server.pop("item_server", None)
+    item_path = server.pop("item_path", None)
+    return ItemEdition.get_item_status(
+        itemid, metadata, item_server=item_server, item_path=item_path
+    )
+
 
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict.
     """
+
     def __init__(self, itemid):
         dict.__init__(self)
         self.itemid = itemid
@@ -187,15 +211,17 @@ class ItemEdition(dict):
         # if not self._is_valid_item(itemid, metadata):
         #     return None
 
-        self.update({
-            "key": "/books/ia:" + itemid,
-            "type": {"key": "/type/edition"},
-            "title": itemid,
-            "ocaid": itemid,
-            "revision": 1,
-            "created": timestamp,
-            "last_modified": timestamp
-        })
+        self.update(
+            {
+                "key": "/books/ia:" + itemid,
+                "type": {"key": "/type/edition"},
+                "title": itemid,
+                "ocaid": itemid,
+                "revision": 1,
+                "created": timestamp,
+                "last_modified": timestamp,
+            }
+        )
 
     @classmethod
     def get_item_status(cls, itemid, metadata, item_server=None, item_path=None):
@@ -223,7 +249,7 @@ class ItemEdition(dict):
                 return "no-imagecount"
             else:
                 manifest = get_item_manifest(itemid, item_server, item_path)
-                if not manifest.get('numPages'):
+                if not manifest.get("numPages"):
                     return "no-imagecount"
 
         # items start with these prefixes are not books
@@ -240,14 +266,16 @@ class ItemEdition(dict):
         collections = metadata.get("collection", [])
         if not isinstance(collections, list):
             collections = [collections]
-        if metadata.get("noindex") == "true" \
-            and "printdisabled" not in collections \
-            and "inlibrary" not in collections \
-            and "lendinglibrary" not in collections:
+        if (
+            metadata.get("noindex") == "true"
+            and "printdisabled" not in collections
+            and "inlibrary" not in collections
+            and "lendinglibrary" not in collections
+        ):
             return "noindex-true"
         # Gio - April 2016
         # items with metadata no_ol_import=true will be not imported
-        if metadata.get("no_ol_import", '').lower() == 'true':
+        if metadata.get("no_ol_import", "").lower() == "true":
             return "no-ol-import"
 
         return "ok"
@@ -260,16 +288,16 @@ class ItemEdition(dict):
         Items that are not book scans, darked or with noindex=true etc. are
         not eligible to be shown in Open Library.
         """
-        return cls.get_item_status(itemid, metadata) == 'ok'
+        return cls.get_item_status(itemid, metadata) == "ok"
 
     def add_metadata(self, metadata):
         self.metadata = metadata
 
-        self.add('title')
-        self.add('description', 'description')
-        self.add_list('publisher', 'publishers')
+        self.add("title")
+        self.add("description", "description")
+        self.add_list("publisher", "publishers")
         self.add_list("creator", "author_names")
-        self.add('date', 'publish_date')
+        self.add("date", "publish_date")
 
         self.add_isbns()
         self.add_subjects()
@@ -306,7 +334,7 @@ class ItemEdition(dict):
             self[key2] = value
 
     def add_isbns(self):
-        isbns = self.metadata.get('isbn')
+        isbns = self.metadata.get("isbn")
         isbn_10 = []
         isbn_13 = []
         if isbns:
@@ -323,15 +351,15 @@ class ItemEdition(dict):
 
     def add_subjects(self):
         collections = self.metadata.get("collection", [])
-        mapping = {
-            "inlibrary": "In library",
-            "lendinglibrary": "Lending library"
-        }
+        mapping = {"inlibrary": "In library", "lendinglibrary": "Lending library"}
         subjects = [subject for c, subject in mapping.items() if c in collections]
         if subjects:
-            self['subjects'] = subjects
+            self["subjects"] = subjects
+
 
 _ia_db = None
+
+
 def get_ia_db(configfile=None):
     """Metadata API is slow.
 
@@ -340,6 +368,7 @@ def get_ia_db(configfile=None):
     """
     if configfile:
         from openlibrary.config import load_config
+
         load_config(configfile)
 
     if not config.get("ia_db"):
@@ -347,18 +376,25 @@ def get_ia_db(configfile=None):
     global _ia_db
     if not _ia_db:
         settings = config.ia_db
-        host = settings['host']
-        db = settings['db']
-        user = settings['user']
-        pw = os.popen(settings['pw_file']).read().strip()
+        host = settings["host"]
+        db = settings["db"]
+        user = settings["user"]
+        pw = os.popen(settings["pw_file"]).read().strip()
         _ia_db = web.database(dbn="postgres", host=host, db=db, user=user, pw=pw)
     return _ia_db
 
 
-def get_candidate_ocaids(since_days=None, since_date=None,
-                         scanned_within_days=60, repub_states=None,
-                         marcs=True, custom=None, lazy=False,
-                         count=False, db=None):
+def get_candidate_ocaids(
+    since_days=None,
+    since_date=None,
+    scanned_within_days=60,
+    repub_states=None,
+    marcs=True,
+    custom=None,
+    lazy=False,
+    count=False,
+    db=None,
+):
     """Returns a list of identifiers which match the specified criteria
     and are candidates for ImportBot.
 
@@ -394,24 +430,27 @@ def get_candidate_ocaids(since_days=None, since_date=None,
     repub_states = repub_states or VALID_READY_REPUB_STATES
 
     qvars = {
-        'c1': '%opensource%',
-        'c2': '%additional_collections%',
-        'c3': '%printdisabled%'
+        "c1": "%opensource%",
+        "c2": "%additional_collections%",
+        "c3": "%printdisabled%",
     }
 
-    _valid_repub_states_sql = "(%s)" % (', '.join(str(i) for i in repub_states))
+    _valid_repub_states_sql = "(%s)" % (", ".join(str(i) for i in repub_states))
     q = (
-        "SELECT " + ("count(identifier)" if count else "identifier") + " FROM metadata" +
-        " WHERE repub_state IN " + _valid_repub_states_sql +
-        "   AND mediatype='texts'" +
-        "   AND (noindex IS NULL OR collection LIKE $c3)" +
-        "   AND scancenter IS NOT NULL" +
-        "   AND scanner IS NOT NULL" +
-        "   AND collection NOT LIKE $c1" +
-        "   AND collection NOT LIKE $c2" +
-        "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))" +
-        "   AND scandate is NOT NULL" +
-        "   AND lower(format) LIKE '%%pdf%%'"
+        "SELECT "
+        + ("count(identifier)" if count else "identifier")
+        + " FROM metadata"
+        + " WHERE repub_state IN "
+        + _valid_repub_states_sql
+        + "   AND mediatype='texts'"
+        + "   AND (noindex IS NULL OR collection LIKE $c3)"
+        + "   AND scancenter IS NOT NULL"
+        + "   AND scanner IS NOT NULL"
+        + "   AND collection NOT LIKE $c1"
+        + "   AND collection NOT LIKE $c2"
+        + "   AND (curatestate IS NULL OR curatestate NOT IN ('freeze', 'dark'))"
+        + "   AND scandate is NOT NULL"
+        + "   AND lower(format) LIKE '%%pdf%%'"
     )
 
     if custom:
@@ -421,11 +460,11 @@ def get_candidate_ocaids(since_days=None, since_date=None,
         q += " AND (lower(format) LIKE '%%marc;%%' OR lower(format) LIKE '%%marc')"
 
     if min_scandate:
-        qvars['min_scandate'] = min_scandate.strftime("%Y%m%d")
+        qvars["min_scandate"] = min_scandate.strftime("%Y%m%d")
         q += " AND scandate > $min_scandate"
 
     if date:
-        qvars['date'] = date.isoformat()
+        qvars["date"] = date.isoformat()
         q += " AND updated > $date AND updated < ($date::date + INTERVAL '1' DAY)"
 
     results = db.query(q, vars=qvars)

@@ -1,11 +1,14 @@
-import web
 import time
 
+import web
+
 from ..processors import RateLimitProcessor
+
 
 class TestRateLimitProcessor:
     """py.test testcase for testing RateLimitProcessor.
     """
+
     def setup_method(self, method):
         web.ctx.ip = "127.0.0.1"
 
@@ -25,10 +28,10 @@ class TestRateLimitProcessor:
 
         # window should continue to be the same from time 1 to 9.
         w = p.get_window()
-        w['foo'] = 'bar'
+        w["foo"] = "bar"
 
         d.time = 9
-        assert p.get_window() == {'foo': 'bar'}
+        assert p.get_window() == {"foo": "bar"}
 
         # and the window should get cleared when time becomes 10.
         d.time = 10

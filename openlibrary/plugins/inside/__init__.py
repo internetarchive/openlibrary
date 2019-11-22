@@ -1,1 +1,1 @@
-'Work search plugin.'
+"Work search plugin."

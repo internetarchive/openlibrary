@@ -4,12 +4,13 @@ Reader and writer for WARC file format version 0.10.
 http://archive-access.sourceforge.net/warc/warc_file_format-0.10.html
 """
 
-import urllib
-import httplib
 import datetime
+import httplib
+import urllib
 
 WARC_VERSION = "0.10"
 CRLF = "\r\n"
+
 
 class WARCReader:
     """Reader to read records from a warc file.
@@ -27,11 +28,13 @@ class WARCReader:
     >>> records == [r1, r2]
     True
     """
+
     def __init__(self, file):
         self._file = file
 
     def read(self):
         """Returns an iterator over all the records in the WARC file."""
+
         def consume_crlf():
             assert self._readline() == CRLF
 
@@ -46,6 +49,7 @@ class WARCReader:
 
     def _read_header(self):
         """Reads the header of a record from the WARC file."""
+
         def consume_crlf():
             line = self._file.readline()
             assert line == CRLF
@@ -55,28 +59,39 @@ class WARCReader:
             return None
 
         tokens = line.strip().split()
-        warc_id, data_length, record_type, subject_uri, creation_date, record_id, content_type = tokens
-        header = WARCHeader(warc_id,
-            data_length, record_type, subject_uri,
-            creation_date, record_id, content_type, {})
+        warc_id, data_length, record_type, subject_uri, creation_date, record_id, content_type = (
+            tokens
+        )
+        header = WARCHeader(
+            warc_id,
+            data_length,
+            record_type,
+            subject_uri,
+            creation_date,
+            record_id,
+            content_type,
+            {},
+        )
 
         while True:
             line = self._file.readline()
             if line == CRLF:
                 break
-            k, v = line.strip().split(':', 1)
+            k, v = line.strip().split(":", 1)
             header.headers[k.strip()] = v.strip()
         return header
 
     def _readline(self):
         line = self._file.readline()
-        if line[-2:-1] == '\r':
+        if line[-2:-1] == "\r":
             return line
         else:
             return line + self._readline()
 
+
 class HTTPFile:
     """File like interface to HTTP url."""
+
     def __init__(self, url, chunk_size=1024):
         self.url = url
         self.offset = 0
@@ -95,10 +110,10 @@ class HTTPFile:
 
     def readline(self):
         """Reads a line from file."""
-        data = ''
+        data = ""
         offset = self.tell()
-        data = "".join(self._readuntil(lambda chunk: '\n' in chunk or chunk == ''))
-        data = data[:data.find('\n') + 1]
+        data = "".join(self._readuntil(lambda chunk: "\n" in chunk or chunk == ""))
+        data = data[: data.find("\n") + 1]
         self.seek(offset + len(data))
         return data
 
@@ -112,8 +127,8 @@ class HTTPFile:
     def read(self, size):
         protocol, host, port, path = self.urlsplit(self.url)
         conn = httplib.HTTPConnection(host, port)
-        headers = {'Range': 'bytes=%d-%d' % (self.offset, self.offset + size - 1)}
-        conn.request('GET', path, None, headers)
+        headers = {"Range": "bytes=%d-%d" % (self.offset, self.offset + size - 1)}
+        conn.request("GET", path, None, headers)
         response = conn.getresponse()
         data = response.read()
         self.offset += len(data)
@@ -131,6 +146,7 @@ class HTTPFile:
         host, port = urllib.splitport(hostport)
         return protocol, host, port, path
 
+
 class WARCHeader:
     r"""WARCHeader class represents the header in the WARC file format.
 
@@ -143,9 +159,18 @@ class WARCHeader:
     >>> WARCHeader("WARC/0.10", 10, "resource", "subject_uri", "20080808080808", "record_42", "image/jpeg", {'hello': 'world'})
     <header: 'WARC/0.10 10 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\n'>
     """
-    def __init__(self, warc_id,
-            data_length, record_type, subject_uri,
-            creation_date, record_id, content_type, headers):
+
+    def __init__(
+        self,
+        warc_id,
+        data_length,
+        record_type,
+        subject_uri,
+        creation_date,
+        record_id,
+        content_type,
+        headers,
+    ):
         self.warc_id = warc_id
         self.data_length = str(data_length)
         self.record_type = record_type
@@ -162,8 +187,15 @@ class WARCHeader:
         return not (self == other)
 
     def __str__(self):
-        params = [self.warc_id, self.data_length, self.record_type, self.subject_uri,
-                self.creation_date, self.record_id, self.content_type]
+        params = [
+            self.warc_id,
+            self.data_length,
+            self.record_type,
+            self.subject_uri,
+            self.creation_date,
+            self.record_id,
+            self.content_type,
+        ]
 
         a = " ".join([str(p) for p in params])
         b = "".join(["%s: %s\r\n" % (k, v) for k, v in self.headers.items()])
@@ -171,12 +203,21 @@ class WARCHeader:
 
     def dict(self):
         d = dict(self.headers)
-        for k in ["warc_id", "data_length", "record_type", "subject_uri", "creation_date", "record_id", "content_type"]:
+        for k in [
+            "warc_id",
+            "data_length",
+            "record_type",
+            "subject_uri",
+            "creation_date",
+            "record_id",
+            "content_type",
+        ]:
             d[k] = getattr(self, k)
         return d
 
     def __repr__(self):
         return "<header: %s>" % repr(str(self))
+
 
 class WARCRecord:
     r"""A record in a WARC file.
@@ -184,19 +225,40 @@ class WARCRecord:
     >>> WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
     <record: 'WARC/0.10 7 resource subject_uri 20080808080808 record_42 image/jpeg\r\nhello: world\r\n\r\nfoo bar'>
     """
-    def __init__(self, record_type, subject_uri, content_type, headers, data, creation_date=None, record_id=None):
+
+    def __init__(
+        self,
+        record_type,
+        subject_uri,
+        content_type,
+        headers,
+        data,
+        creation_date=None,
+        record_id=None,
+    ):
         warc_id = "WARC/" + WARC_VERSION
         data_length = len(data)
-        creation_date = creation_date or datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        creation_date = creation_date or datetime.datetime.utcnow().strftime(
+            "%Y%m%d%H%M%S"
+        )
         record_id = record_id or self.create_uuid()
 
-        self._header = WARCHeader(warc_id, data_length, record_type, subject_uri,
-                                creation_date, record_id, content_type, headers)
+        self._header = WARCHeader(
+            warc_id,
+            data_length,
+            record_type,
+            subject_uri,
+            creation_date,
+            record_id,
+            content_type,
+            headers,
+        )
         self._data = data
 
     def create_uuid(self):
         import uuid
-        return 'urn:uuid:' + str(uuid.uuid1())
+
+        return "urn:uuid:" + str(uuid.uuid1())
 
     def get_header(self):
         return self._header
@@ -205,7 +267,10 @@ class WARCRecord:
         return self._data
 
     def __eq__(self, other):
-        return self.get_header() == other.get_header() and self.get_data() == other.get_data()
+        return (
+            self.get_header() == other.get_header()
+            and self.get_data() == other.get_data()
+        )
 
     def __ne__(self, other):
         return not (self == other)
@@ -215,6 +280,7 @@ class WARCRecord:
 
     def __repr__(self):
         return "<record: %s>" % repr(str(self))
+
 
 class LazyWARCRecord(WARCRecord):
     """Class to create WARCRecord lazily.
@@ -227,6 +293,7 @@ class LazyWARCRecord(WARCRecord):
     >>> r1 == r2
     True
     """
+
     def __init__(self, file, offset, header):
         self.header = header
         self.file = file
@@ -243,6 +310,7 @@ class LazyWARCRecord(WARCRecord):
             self._data = self.file.read(int(self.header.data_length))
             self.file.seek(offset)
         return self._data
+
 
 class WARCWriter:
     r"""Writes to write warc records to file.
@@ -269,6 +337,7 @@ class WARCWriter:
     'bar\r\n'
     '\r\n'
     """
+
     def __init__(self, file):
         self.file = file
 
@@ -286,6 +355,8 @@ class WARCWriter:
         self.file.flush()
         return offset
 
+
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

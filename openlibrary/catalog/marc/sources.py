@@ -1,5 +1,6 @@
-import sys
 import os
+import sys
+
 
 def find_sources():
     for p in sys.path:
@@ -7,5 +8,6 @@ def find_sources():
         if os.path.exists(f):
             return f
 
+
 def sources():
-    return [tuple(i[:-1].split('\t')) for i in open(find_sources())]
+    return [tuple(i[:-1].split("\t")) for i in open(find_sources())]

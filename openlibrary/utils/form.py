@@ -2,11 +2,12 @@
 
 (this should go to web.py)
 """
-import web
 import copy
 import re
 
+import web
 from infogami.utils.view import render
+
 
 class AttributeList(dict):
     """List of atributes of input.
@@ -15,6 +16,7 @@ class AttributeList(dict):
     >>> a
     <attrs: 'type="text" name="x" value="20"'>x
     """
+
     def copy(self):
         return AttributeList(self)
 
@@ -22,23 +24,24 @@ class AttributeList(dict):
         return " ".join('%s="%s"' % (k, web.websafe(v)) for k, v in self.items())
 
     def __repr__(self):
-        return '<attrs: %s>' % repr(str(self))
+        return "<attrs: %s>" % repr(str(self))
+
 
 class Input:
     def __init__(self, name, description=None, value=None, **kw):
         self.name = name
         self.description = description or ""
         self.value = value
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
 
-        self.help = kw.pop('help', None)
-        self.note = kw.pop('note', None)
+        self.help = kw.pop("help", None)
+        self.note = kw.pop("note", None)
 
-        self.id = kw.pop('id', name)
+        self.id = kw.pop("id", name)
         self.__dict__.update(kw)
 
-        if 'klass' in kw:
-            kw['class'] = kw.pop('klass')
+        if "klass" in kw:
+            kw["class"] = kw.pop("klass")
 
         self.attrs = AttributeList(kw)
 
@@ -50,12 +53,12 @@ class Input:
 
     def render(self):
         attrs = self.attrs.copy()
-        attrs['id'] = self.id
-        attrs['type'] = self.get_type()
-        attrs['name'] = self.name
-        attrs['value'] = self.value or ''
+        attrs["id"] = self.id
+        attrs["type"] = self.get_type()
+        attrs["name"] = self.name
+        attrs["value"] = self.value or ""
 
-        return '<input ' + str(attrs) + ' />'
+        return "<input " + str(attrs) + " />"
 
     def validate(self, value):
         self.value = value
@@ -64,6 +67,7 @@ class Input:
                 self.note = v.msg
                 return False
         return True
+
 
 class Textbox(Input):
     """Textbox input.
@@ -76,8 +80,10 @@ class Textbox(Input):
     >>> t.render()
     '<input name="name" value="joe" class="input" type="text" id="name" size="10" />'
     """
+
     def get_type(self):
         return "text"
+
 
 class Password(Input):
     """Password input.
@@ -85,8 +91,10 @@ class Password(Input):
         >>> Password("password", description='Password', value='secret').render()
         '<input type="password" id="password" value="secret" name="password" />'
     """
+
     def get_type(self):
         return "password"
+
 
 class Checkbox(Input):
     """Checkbox input."""
@@ -94,19 +102,22 @@ class Checkbox(Input):
     def get_type(self):
         return "checkbox"
 
+
 class Hidden(Input):
     """Hidden input.
     """
+
     def is_hidden(self):
         return True
 
     def get_type(self):
         return "hidden"
 
+
 class Form:
     def __init__(self, *inputs, **kw):
         self.inputs = inputs
-        self.validators = kw.pop('validators', [])
+        self.validators = kw.pop("validators", [])
         self.note = None
 
     def __call__(self):
@@ -123,7 +134,7 @@ class Form:
 
     def __getattr__(self, name):
         # don't interfere with deepcopy
-        inputs = self.__dict__.get('inputs') or []
+        inputs = self.__dict__.get("inputs") or []
         for x in inputs:
             if x.name == name:
                 return x
@@ -152,6 +163,7 @@ class Form:
                 return False
         return True
 
+
 class Validator:
     def __init__(self, msg, test):
         self.msg = msg
@@ -170,7 +182,9 @@ class Validator:
     def __repr__(self):
         return "<validator: %r >" % self.msg
 
+
 notnull = Validator("Required", bool)
+
 
 class RegexpValidator(Validator):
     def __init__(self, rexp, msg):
@@ -180,6 +194,8 @@ class RegexpValidator(Validator):
     def valid(self, value):
         return bool(self.rexp.match(value))
 
+
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -12,10 +12,13 @@ USAGE:
     $ python ./scripts/infobase-server infobase.yaml fastcgi 7070
 """
 from __future__ import print_function
-import sys
+
 import os
+import sys
+
 import _init_path
 import web
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable

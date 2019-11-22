@@ -1,26 +1,23 @@
 """Subject pages.
 """
 
-import web
-import re
-import simplejson as json
-import logging
-from collections import defaultdict
-import urllib
 import datetime
+import logging
+import re
+import urllib
+from collections import defaultdict
 
+import simplejson as json
+import web
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
-
-from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
-from openlibrary.utils import str_to_key, finddict
+from openlibrary.core.models import Subject
+from openlibrary.utils import finddict, str_to_key
 
-__all__ = [
-    "SubjectEngine", "get_subject"
-]
+__all__ = ["SubjectEngine", "get_subject"]
 
 # These two are available in .code module. Importing it here will result in a
 # circular import. To avoid that, these values are set by the code.setup
@@ -31,26 +28,52 @@ solr_select_url = None
 logger = logging.getLogger("openlibrary.worksearch")
 
 re_chars = re.compile("([%s])" % re.escape(r'+-!(){}[]^"~*?:\\'))
-re_year = re.compile(r'\b(\d+)$')
+re_year = re.compile(r"\b(\d+)$")
 
 SUBJECTS = [
-    web.storage(name="person", key="people", prefix="/subjects/person:", facet="person_facet", facet_key="person_key"),
-    web.storage(name="place", key="places", prefix="/subjects/place:", facet="place_facet", facet_key="place_key"),
-    web.storage(name="time", key="times", prefix="/subjects/time:", facet="time_facet", facet_key="time_key"),
-    web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
+    web.storage(
+        name="person",
+        key="people",
+        prefix="/subjects/person:",
+        facet="person_facet",
+        facet_key="person_key",
+    ),
+    web.storage(
+        name="place",
+        key="places",
+        prefix="/subjects/place:",
+        facet="place_facet",
+        facet_key="place_key",
+    ),
+    web.storage(
+        name="time",
+        key="times",
+        prefix="/subjects/time:",
+        facet="time_facet",
+        facet_key="time_key",
+    ),
+    web.storage(
+        name="subject",
+        key="subjects",
+        prefix="/subjects/",
+        facet="subject_facet",
+        facet_key="subject_key",
+    ),
 ]
+
 
 class subjects_index(delegate.page):
     path = "/subjects"
 
     def GET(self):
-        delegate.context.setdefault('bodyid', 'subject')
+        delegate.context.setdefault("bodyid", "subject")
         page = render_template("subjects/index.html")
         page.v2 = True
         return page
 
+
 class subjects(delegate.page):
-    path = '(/subjects/[^/]+)'
+    path = "(/subjects/[^/]+)"
 
     def GET(self, key):
         nkey = self.normalize_key(key)
@@ -58,17 +81,18 @@ class subjects(delegate.page):
             raise web.redirect(nkey)
 
         # this needs to be updated to include:
-        #q=public_scan_b:true+OR+lending_edition_s:*
-        subj = get_subject(key, details=True, filters={
-            'public_scan_b': 'false',
-            'lending_edition_s': '*'
-        })
+        # q=public_scan_b:true+OR+lending_edition_s:*
+        subj = get_subject(
+            key,
+            details=True,
+            filters={"public_scan_b": "false", "lending_edition_s": "*"},
+        )
 
         subj.v2 = True
-        delegate.context.setdefault('bodyid', 'subject')
+        delegate.context.setdefault("bodyid", "subject")
         if not subj or subj.work_count == 0:
             web.ctx.status = "404 Not Found"
-            page = render_template('subjects/notfound.tmpl', key)
+            page = render_template("subjects/notfound.tmpl", key)
         else:
             page = render_template("subjects", page=subj)
 
@@ -87,7 +111,7 @@ class subjects(delegate.page):
 
 
 class subjects_json(delegate.page):
-    path = '(/subjects/[^/]+)'
+    path = "(/subjects/[^/]+)"
     encoding = "json"
 
     @jsonapi
@@ -100,32 +124,43 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
-                      sort='editions', available='false')
-
+        i = web.input(
+            offset=0,
+            limit=12,
+            details="false",
+            has_fulltext="true",
+            sort="editions",
+            available="false",
+        )
 
         filters = {}
-        if i.get('has_fulltext') == 'true':
-            filters['has_fulltext'] = 'true'
+        if i.get("has_fulltext") == "true":
+            filters["has_fulltext"] = "true"
 
-        if i.get('published_in'):
-            if '-' in i.published_in:
-                begin, end = i.published_in.split('-', 1)
+        if i.get("published_in"):
+            if "-" in i.published_in:
+                begin, end = i.published_in.split("-", 1)
 
                 if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters['publish_year'] = (begin, end) # range
+                    filters["publish_year"] = (begin, end)  # range
             else:
                 y = safeint(i.published_in, None)
                 if y is not None:
-                    filters['publish_year'] = i.published_in
+                    filters["publish_year"] = i.published_in
 
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
-                                      details=i.details.lower() == 'true', **filters)
+        subject_results = get_subject(
+            key,
+            offset=i.offset,
+            limit=i.limit,
+            sort=i.sort,
+            details=i.details.lower() == "true",
+            **filters
+        )
         if i.has_fulltext:
-            subject_results['ebook_count'] = subject_results['work_count']
+            subject_results["ebook_count"] = subject_results["work_count"]
         return json.dumps(subject_results)
 
     def normalize_key(self, key):
@@ -136,7 +171,7 @@ class subjects_json(delegate.page):
 
 
 class subject_works_json(delegate.page):
-    path = '(/subjects/[^/]+)/works'
+    path = "(/subjects/[^/]+)/works"
     encoding = "json"
 
     @jsonapi
@@ -169,7 +204,9 @@ class subject_works_json(delegate.page):
         i.limit = safeint(i.limit, 12)
         i.offset = safeint(i.offset, 0)
 
-        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
+        results = get_subject(
+            key, offset=i.offset, limit=i.limit, details=False, **filters
+        )
         return json.dumps(results)
 
     def normalize_key(self, key):
@@ -179,7 +216,7 @@ class subject_works_json(delegate.page):
         return key
 
 
-def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
+def get_subject(key, details=False, offset=0, sort="editions", limit=12, **filters):
     """Returns data related to a subject.
 
     By default, it returns a storage object with key, name, work_count and works.
@@ -235,6 +272,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
 
     Optional arguments has_fulltext and published_in can be passed to filter the results.
     """
+
     def create_engine():
         for d in SUBJECTS:
             if key.startswith(d.prefix):
@@ -242,20 +280,26 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
                 return Engine()
         return SubjectEngine()
 
-    sort_options = {
-        'editions': 'edition_count desc',
-        'new': 'first_publish_year desc',
-    }
-    sort_order = sort_options.get(sort) or sort_options['editions']
+    sort_options = {"editions": "edition_count desc", "new": "first_publish_year desc"}
+    sort_order = sort_options.get(sort) or sort_options["editions"]
 
     engine = create_engine()
     subject_results = engine.get_subject(
-        key, details=details, offset=offset, sort=sort_order,
-        limit=limit, **filters)
+        key, details=details, offset=offset, sort=sort_order, limit=limit, **filters
+    )
     return subject_results
 
+
 class SubjectEngine:
-    def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
+    def get_subject(
+        self,
+        key,
+        details=False,
+        offset=0,
+        limit=12,
+        sort="first_publish_year desc",
+        **filters
+    ):
         meta = self.get_meta(key)
 
         q = self.make_query(key, filters)
@@ -268,17 +312,17 @@ class SubjectEngine:
             kw = {}
 
         from search import work_search
-        result = work_search(
-            q, offset=offset, limit=limit, sort=sort, **kw)
+
+        result = work_search(q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:
             return None
 
         for w in result.docs:
             w.ia = w.ia and w.ia[0] or None
-            w['checked_out'] = False
-            if not w.get('public_scan') and w.ia and w.get('lending_identifier'):
-                doc = web.ctx.site.store.get("ebooks/" + w['lending_identifier']) or {}
-                w['checked_out'] = doc.get("borrowed") == "true"
+            w["checked_out"] = False
+            if not w.get("public_scan") and w.ia and w.get("lending_identifier"):
+                doc = web.ctx.site.store.get("ebooks/" + w["lending_identifier"]) or {}
+                w["checked_out"] = doc.get("borrowed") == "true"
 
             # XXX-Anand: Oct 2013
             # Somewhere something is broken, work keys are coming as OL1234W/works/
@@ -290,13 +334,13 @@ class SubjectEngine:
             key=key,
             name=name,
             subject_type=subject_type,
-            work_count = result['num_found'],
-            works=add_availability(result['docs'])
+            work_count=result["num_found"],
+            works=add_availability(result["docs"]),
         )
 
         if details:
             subject.ebook_count = dict(result.facets["has_fulltext"]).get("true", 0)
-            #subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
+            # subject.ebook_count = self.get_ebook_count(meta.name, q[meta.facet_key], q.get('publish_year'))
 
             subject.subjects = result.facets["subject_facet"]
             subject.places = result.facets["place_facet"]
@@ -305,17 +349,21 @@ class SubjectEngine:
 
             subject.authors = result.facets["author_facet"]
             subject.publishers = result.facets["publisher_facet"]
-            subject.languages = result.facets['language']
+            subject.languages = result.facets["language"]
 
             # Ignore bad dates when computing publishing_history
             # year < 1000 or year > current_year+1 are considered bad dates
             current_year = datetime.datetime.utcnow().year
-            subject.publishing_history = [[year, count] for year, count in result.facets["publish_year"] if 1000 < year <= current_year+1]
+            subject.publishing_history = [
+                [year, count]
+                for year, count in result.facets["publish_year"]
+                if 1000 < year <= current_year + 1
+            ]
 
             # strip self from subjects and use that to find exact name
             for i, s in enumerate(subject[meta.key]):
                 if "key" in s and s.key.lower() == key.lower():
-                    subject.name = s.name;
+                    subject.name = s.name
                     subject[meta.key].pop(i)
                     break
 
@@ -334,7 +382,7 @@ class SubjectEngine:
         """
         for d in SUBJECTS:
             if key.startswith(d.prefix):
-                return d.prefix, key[len(d.prefix):]
+                return d.prefix, key[len(d.prefix) :]
         return None, None
 
     def make_query(self, key, filters):
@@ -344,9 +392,9 @@ class SubjectEngine:
 
         if filters:
             if filters.get("has_fulltext") == "true":
-                q['has_fulltext'] = "true"
+                q["has_fulltext"] = "true"
             if filters.get("publish_year"):
-                q['publish_year'] = filters['publish_year']
+                q["publish_year"] = filters["publish_year"]
         return q
 
     def normalize_key(self, key):
@@ -359,12 +407,19 @@ class SubjectEngine:
         if facet == "publish_year":
             return [int(value), count]
         elif facet == "publisher_facet":
-            return web.storage(name=value, count=count, key="/publishers/" + value.replace(" ", "_"))
+            return web.storage(
+                name=value, count=count, key="/publishers/" + value.replace(" ", "_")
+            )
         elif facet == "author_facet":
             author = read_author_facet(value)
             return web.storage(name=author[1], key="/authors/" + author[0], count=count)
         elif facet in ["subject_facet", "person_facet", "place_facet", "time_facet"]:
-            return web.storage(key=finddict(SUBJECTS, facet=facet).prefix + str_to_key(value).replace(" ", "_"), name=value, count=count)
+            return web.storage(
+                key=finddict(SUBJECTS, facet=facet).prefix
+                + str_to_key(value).replace(" ", "_"),
+                name=value,
+                count=count,
+            )
         elif facet == "has_fulltext":
             return [value, count]
         else:
@@ -374,16 +429,21 @@ class SubjectEngine:
         """Additional query options to be added when details=True.
         """
         kw = {}
-        kw['facets'] = [
+        kw["facets"] = [
             {"name": "author_facet", "sort": "count"},
             "language",
             "publisher_facet",
             {"name": "publish_year", "limit": -1},
-            "subject_facet", "person_facet", "place_facet", "time_facet",
-            "has_fulltext", "language"]
-        kw['facet.mincount'] = 1
-        kw['facet.limit'] = 25
-        kw['facet_wrapper'] = self.facet_wrapper
+            "subject_facet",
+            "person_facet",
+            "place_facet",
+            "time_facet",
+            "has_fulltext",
+            "language",
+        ]
+        kw["facet.mincount"] = 1
+        kw["facet.limit"] = 25
+        kw["facet_wrapper"] = self.facet_wrapper
         return kw
 
 
@@ -395,29 +455,33 @@ def get_ebook_count(field, key, publish_year=None):
         return 0
 
     def db_lookup(field, key, publish_year=None):
-        sql = 'select sum(ebook_count) as num from subjects where field=$field and key=$key'
+        sql = "select sum(ebook_count) as num from subjects where field=$field and key=$key"
         if publish_year:
             if isinstance(publish_year, (tuple, list)):
-                sql += ' and publish_year between $y1 and $y2'
+                sql += " and publish_year between $y1 and $y2"
                 (y1, y2) = publish_year
             else:
-                sql += ' and publish_year=$publish_year'
+                sql += " and publish_year=$publish_year"
         return list(ebook_count_db.query(sql, vars=locals()))[0].num
 
     total = db_lookup(field, key, publish_year)
     if total:
         return total
     elif publish_year:
-        sql = 'select ebook_count as num from subjects where field=$field and key=$key limit 1'
+        sql = "select ebook_count as num from subjects where field=$field and key=$key limit 1"
         if len(list(ebook_count_db.query(sql, vars=locals()))) != 0:
             return 0
     years = find_ebook_count(field, key)
     if not years:
         return 0
     for year, count in sorted(years.iteritems()):
-        ebook_count_db.query('insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)', vars=locals())
+        ebook_count_db.query(
+            "insert into subjects (field, key, publish_year, ebook_count) values ($field, $key, $year, $count)",
+            vars=locals(),
+        )
 
     return db_lookup(field, key, publish_year)
+
 
 @web.memoize
 def get_ebook_count_db():
@@ -426,20 +490,27 @@ def get_ebook_count_db():
     The database object is created on the first call to this function and
     cached by memoize. Subsequent calls return the same object.
     """
-    params = config.plugin_worksearch.get('ebook_count_db_parameters')
+    params = config.plugin_worksearch.get("ebook_count_db_parameters")
     if params:
-        params.setdefault('dbn', 'postgres')
+        params.setdefault("dbn", "postgres")
         return web.database(**params)
     else:
-        logger.warn("ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0.")
+        logger.warn(
+            "ebook_count_db_parameters is not specified in the config. ebook-count on subject pages will be displayed as 0."
+        )
         return None
 
+
 def find_ebook_count(field, key):
-    q = '%s_key:%s+AND+ia:*' % (field, re_chars.sub(r'\\\1', key).encode('utf-8'))
+    q = "%s_key:%s+AND+ia:*" % (field, re_chars.sub(r"\\\1", key).encode("utf-8"))
     return execute_ebook_count_query(q)
 
+
 def execute_ebook_count_query(q):
-    root_url = solr_select_url + '?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key'
+    root_url = (
+        solr_select_url
+        + "?wt=json&indent=on&rows=%d&start=%d&q.op=AND&q=%s&fl=edition_key"
+    )
     rows = 1000
 
     ebook_count = 0
@@ -447,24 +518,26 @@ def execute_ebook_count_query(q):
     solr_url = root_url % (rows, start, q)
 
     stats.begin("solr", url=solr_url)
-    response = json.load(urllib.urlopen(solr_url))['response']
+    response = json.load(urllib.urlopen(solr_url))["response"]
     stats.end()
 
-    num_found = response['numFound']
+    num_found = response["numFound"]
     years = defaultdict(int)
     while start < num_found:
         if start:
             solr_url = root_url % (rows, start, q)
             stats.begin("solr", url=solr_url)
-            response = json.load(urllib.urlopen(solr_url))['response']
+            response = json.load(urllib.urlopen(solr_url))["response"]
             stats.end()
-        for doc in response['docs']:
-            for k in doc['edition_key']:
-                e = web.ctx.site.get('/books/' + k)
-                ia = set(i[3:] for i in e.get('source_records', []) if i.startswith('ia:'))
-                if e.get('ocaid'):
-                    ia.add(e['ocaid'])
-                pub_date = e.get('publish_date')
+        for doc in response["docs"]:
+            for k in doc["edition_key"]:
+                e = web.ctx.site.get("/books/" + k)
+                ia = set(
+                    i[3:] for i in e.get("source_records", []) if i.startswith("ia:")
+                )
+                if e.get("ocaid"):
+                    ia.add(e["ocaid"])
+                pub_date = e.get("publish_date")
                 pub_year = -1
                 if pub_date:
                     m = re_year.search(pub_date)
@@ -476,6 +549,7 @@ def execute_ebook_count_query(q):
         start += rows
 
     return dict(years)
+
 
 def setup():
     """Placeholder for doing any setup required.

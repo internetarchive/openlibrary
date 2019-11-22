@@ -1,15 +1,18 @@
 """Generic utilities"""
 
-from urllib import quote_plus
 import re
+from urllib import quote_plus
 
-to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
+to_drop = set(""";/?:@&=+$,<>#%"{}|\\^[]`\n\r""")
+
 
 def str_to_key(s):
-    return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
+    return "".join(c if c != " " else "_" for c in s.lower() if c not in to_drop)
+
 
 def url_quote(s):
-    return quote_plus(s.encode('utf-8')) if s else ''
+    return quote_plus(s.encode("utf-8")) if s else ""
+
 
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.
@@ -19,15 +22,19 @@ def finddict(dicts, **filters):
         {'x': 1, 'y': 2}
     """
     for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.iteritems())):
+        if all(d.get(k) == v for k, v in filters.iteritems()):
             return d
 
-re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
-re_bracket = re.compile(r'[\[\]]')
+
+re_solr_range = re.compile(r"\[.+\bTO\b.+\]", re.I)
+re_bracket = re.compile(r"[\[\]]")
+
+
 def escape_bracket(q):
     if re_solr_range.search(q):
         return q
-    return re_bracket.sub(lambda m:'\\'+m.group(), q)
+    return re_bracket.sub(lambda m: "\\" + m.group(), q)
+
 
 def uniq(values, key=None):
     """Returns the unique entries from the given values in the original order.
@@ -46,6 +53,7 @@ def uniq(values, key=None):
             result.append(v)
     return result
 
+
 def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
     """
@@ -56,15 +64,22 @@ def dicthash(d):
     else:
         return d
 
-author_olid_re = re.compile(r'^OL\d+A$')
+
+author_olid_re = re.compile(r"^OL\d+A$")
+
+
 def is_author_olid(s):
     """Case sensitive check for strings like 'OL123A'."""
     return bool(author_olid_re.match(s))
 
-work_olid_re = re.compile(r'^OL\d+W$')
+
+work_olid_re = re.compile(r"^OL\d+W$")
+
+
 def is_work_olid(s):
     """Case sensitive check for strings like 'OL123W'."""
     return bool(work_olid_re.match(s))
+
 
 def extract_numeric_id_from_olid(olid):
     """
@@ -73,13 +88,14 @@ def extract_numeric_id_from_olid(olid):
     >>> "/authors/OL123A"
     123
     """
-    if '/' in olid:
-        olid = olid.split('/')[-1]
-    if olid.lower().startswith('ol'):
+    if "/" in olid:
+        olid = olid.split("/")[-1]
+    if olid.lower().startswith("ol"):
         olid = olid[2:]
     if not is_number(olid[-1].lower()):
         olid = olid[:-1]
     return olid
+
 
 def is_number(s):
     try:

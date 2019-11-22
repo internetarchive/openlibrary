@@ -1,15 +1,15 @@
-import web
-
-import socket
 import datetime
+import socket
 import subprocess
 
+import web
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template, public
+from infogami.utils.view import public, render_template
 
 status_info = {}
 feature_flags = {}
+
 
 class status(delegate.page):
     def GET(self):
@@ -17,24 +17,38 @@ class status(delegate.page):
         template.v2 = True
         return template
 
+
 @public
 def get_git_revision_short_hash():
-    return (status_info.get('Software version')
-            if status_info and isinstance(status_info, dict) 
-            else None)
+    return (
+        status_info.get("Software version")
+        if status_info and isinstance(status_info, dict)
+        else None
+    )
+
 
 def get_software_version():
-    return subprocess.Popen("git rev-parse --short HEAD --".split(), stdout = subprocess.PIPE, stderr = subprocess.STDOUT).stdout.read().strip()
+    return (
+        subprocess.Popen(
+            "git rev-parse --short HEAD --".split(),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+        )
+        .stdout.read()
+        .strip()
+    )
+
 
 def get_features_enabled():
     return config.features
 
+
 def setup():
     "Basic startup status for the server"
     global status_info, feature_flags
-    status_info = {"Software version" : get_software_version(),
-                   "Host" : socket.gethostname(),
-                   "Start time" : datetime.datetime.utcnow()
-                   }
+    status_info = {
+        "Software version": get_software_version(),
+        "Host": socket.gethostname(),
+        "Start time": datetime.datetime.utcnow(),
+    }
     feature_flags = get_features_enabled()
-

@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import os
-import sys
 import datetime
 import logging
 import optparse
+import os
+import sys
+
 import _init_path
 from openlibrary.core import minicron
 
@@ -42,9 +43,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-
-
-

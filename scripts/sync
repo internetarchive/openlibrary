@@ -33,18 +33,19 @@ USAGE:
 """
 from __future__ import print_function
 
-import _init_path
-
-import sys
-import os
 import glob
+import os
 import shutil
-import urllib, urllib2
-import simplejson
-from optparse import OptionParser
+import sys
+import urllib
+import urllib2
 from ConfigParser import ConfigParser
+from optparse import OptionParser
 
+import _init_path
+import simplejson
 from openlibrary import api as olapi
+
 
 class LocalSource:
     def __init__(self, root, static):
@@ -325,4 +326,3 @@ def main(args):
     
 if __name__ == "__main__":
     main(sys.argv)
-    

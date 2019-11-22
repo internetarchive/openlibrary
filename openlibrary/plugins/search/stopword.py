@@ -11,16 +11,20 @@ def basic_strip_stopwords(q):
     """
 
     # standard list of Lucene stopwords, from solr distribution
-    stopwords = set("""an and are as at be but by for if in into is it no
+    stopwords = set(
+        """an and are as at be but by for if in into is it no
     not of on or s such t that the their then there these they this to
-    was will with""".split())
+    was will with""".split()
+    )
 
     w = q.strip().split()
     if all(all(map(str.isalpha, a)) for a in w):
-        return ' '.join(a for a in w if a not in stopwords)
+        return " ".join(a for a in w if a not in stopwords)
     else:
         return q
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -1,13 +1,17 @@
 from __future__ import print_function
-from catalog.utils import pick_first_date
-import web
+
+import codecs
 import re
 import sys
-import codecs
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 
-re_marc_name = re.compile('^(.*), (.*)$')
-re_end_dot = re.compile('[^ ][^ ]\.$', re.UNICODE)
+import web
+from catalog.utils import pick_first_date
+
+sys.stdout = codecs.getwriter("utf-8")(sys.stdout)
+
+re_marc_name = re.compile("^(.*), (.*)$")
+re_end_dot = re.compile("[^ ][^ ]\.$", re.UNICODE)
+
 
 def flip_name(name):
     # strip end dots like this: "Smith, John." but not like this: "Smith, J."
@@ -16,13 +20,13 @@ def flip_name(name):
         name = name[:-1]
 
     m = re_marc_name.match(name)
-    return m.group(2) + ' ' + m.group(1)
+    return m.group(2) + " " + m.group(1)
+
 
 for wikipedia, marc in (eval(i) for i in open("matches4")):
-    dates = pick_first_date(v for k, v in marc if k == 'd')
-    name = ' '.join(v for k, v in marc if k in 'abc')
+    dates = pick_first_date(v for k, v in marc if k == "d")
+    name = " ".join(v for k, v in marc if k in "abc")
     print(name)
-    if ', ' in name:
+    if ", " in name:
         print(flip_name(name))
     print(dates)
-

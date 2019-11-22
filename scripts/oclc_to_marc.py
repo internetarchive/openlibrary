@@ -3,7 +3,9 @@
 Usage: python oclc_to_marc.py oclc_1 oclc_2
 """
 from __future__ import print_function
+
 import urllib
+
 import simplejson
 
 root = "http://openlibrary.org"

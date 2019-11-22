@@ -1,38 +1,36 @@
 """Helper functions used by the List model.
 """
-from collections import defaultdict
 import datetime
+import logging
 import re
 import time
 import urllib
 import urllib2
-
-import simplejson
-import web
-import logging
-
-from infogami import config
-from infogami.infobase import client, common
-from infogami.utils import stats
-
-from openlibrary.core import helpers as h
-from openlibrary.core import cache
-
-from openlibrary.plugins.worksearch.search import get_solr
+from collections import defaultdict
 
 import six
 
+import simplejson
+import web
+from infogami import config
+from infogami.infobase import client, common
+from infogami.utils import stats
+from openlibrary.core import cache
+from openlibrary.core import helpers as h
+from openlibrary.plugins.worksearch.search import get_solr
 
 logger = logging.getLogger("openlibrary.lists.model")
 
 # this will be imported on demand to avoid circular dependency
 subjects = None
 
+
 def get_subject(key):
     global subjects
     if subjects is None:
         from openlibrary.plugins.worksearch import subjects
     return subjects.get_subject(key)
+
 
 def cached_property(name, getter):
     """Just like property, but the getter is called only for the first access.
@@ -45,12 +43,14 @@ def cached_property(name, getter):
 
         count = cached_property("count", get_count)
     """
+
     def f(self):
         value = getter(self)
         self.__dict__[name] = value
         return value
 
     return property(f)
+
 
 class ListMixin:
     def _get_rawseeds(self):
@@ -95,7 +95,7 @@ class ListMixin:
             "name": self.name or "",
             "seed_count": len(self.seeds),
             "edition_count": self.edition_count,
-            "last_update": self.last_update and self.last_update.isoformat() or None
+            "last_update": self.last_update and self.last_update.isoformat() or None,
         }
 
     def get_editions(self, limit=50, offset=0, _raw=False):
@@ -103,17 +103,21 @@ class ListMixin:
 
         When _raw=True, the edtion dicts are returned instead of edtion objects.
         """
-        edition_keys = set([
-                seed.key for seed in self.seeds
-                if seed and seed.type.key == '/type/edition'])
-        
+        edition_keys = set(
+            [
+                seed.key
+                for seed in self.seeds
+                if seed and seed.type.key == "/type/edition"
+            ]
+        )
+
         editions = web.ctx.site.get_many(list(edition_keys))
-        
+
         return {
             "count": len(editions),
             "offset": offset,
             "limit": limit,
-            "editions": editions
+            "editions": editions,
         }
         # TODO
         # We should be able to get the editions from solr and return that.
@@ -129,9 +133,13 @@ class ListMixin:
         This works even for lists with too many seeds as it doesn't try to
         return editions in the order of last-modified.
         """
-        edition_keys = set([
-                seed.key for seed in self.seeds
-                if seed and seed.type.key == '/type/edition'])
+        edition_keys = set(
+            [
+                seed.key
+                for seed in self.seeds
+                if seed and seed.type.key == "/type/edition"
+            ]
+        )
 
         def get_query_term(seed):
             if seed.type.key == "/type/work":
@@ -140,12 +148,13 @@ class ListMixin:
                 return "author_key:%s" % seed.key.split("/")[-1]
 
         query_terms = [get_query_term(seed) for seed in self.seeds]
-        query_terms = [q for q in query_terms if q] # drop Nones
+        query_terms = [q for q in query_terms if q]  # drop Nones
         edition_keys = set(self._get_edition_keys_from_solr(query_terms))
 
         # Add all editions
-        edition_keys.update(seed.key for seed in self.seeds
-                            if seed and seed.type.key == '/type/edition')
+        edition_keys.update(
+            seed.key for seed in self.seeds if seed and seed.type.key == "/type/edition"
+        )
 
         return [doc.dict() for doc in web.ctx.site.get_many(list(edition_keys))]
 
@@ -155,10 +164,10 @@ class ListMixin:
         q = " OR ".join(query_terms)
         solr = get_solr()
         result = solr.select(q, fields=["edition_key"], rows=10000)
-        for doc in result['docs']:
-            if 'edition_key' not in doc:
-                 continue
-            for k in doc['edition_key']:
+        for doc in result["docs"]:
+            if "edition_key" not in doc:
+                continue
+            for k in doc["edition_key"]:
                 yield "/books/" + k
 
     def _preload(self, keys):
@@ -166,14 +175,13 @@ class ListMixin:
         return self._site.get_many(keys)
 
     def preload_works(self, editions):
-        return self._preload(w.key for e in editions
-                                   for w in e.get('works', []))
+        return self._preload(w.key for e in editions for w in e.get("works", []))
 
     def preload_authors(self, editions):
         works = self.preload_works(editions)
-        return self._preload(a.author.key for w in works
-                                          for a in w.get("authors", [])
-                                          if "author" in a)
+        return self._preload(
+            a.author.key for w in works for a in w.get("authors", []) if "author" in a
+        )
 
     def load_changesets(self, editions):
         """Adds "recent_changeset" to each edition.
@@ -193,7 +201,9 @@ class ListMixin:
         for e in editions:
             if "recent_changeset" not in e:
                 try:
-                    e['recent_changeset'] = self._site.recentchanges({"key": e.key, "limit": 1})[0]
+                    e["recent_changeset"] = self._site.recentchanges(
+                        {"key": e.key, "limit": 1}
+                    )[0]
                 except IndexError:
                     pass
 
@@ -207,24 +217,26 @@ class ListMixin:
 
         # Solr has a maxBooleanClauses constraint there too many seeds, the
         if len(self.seeds) > 500:
-            logger.warn("More than 500 seeds. skipping solr query for finding subjects.")
+            logger.warn(
+                "More than 500 seeds. skipping solr query for finding subjects."
+            )
             return []
 
-        facet_names = ['subject_facet', 'place_facet', 'person_facet', 'time_facet']
+        facet_names = ["subject_facet", "place_facet", "person_facet", "time_facet"]
         try:
-            result = solr.select(q,
-                fields=[],
-                facets=facet_names,
-                facet_limit=20,
-                facet_mincount=1)
+            result = solr.select(
+                q, fields=[], facets=facet_names, facet_limit=20, facet_mincount=1
+            )
         except IOError:
-            logger.error("Error in finding subjects of list %s", self.key, exc_info=True)
+            logger.error(
+                "Error in finding subjects of list %s", self.key, exc_info=True
+            )
             return []
 
         def get_subject_prefix(facet_name):
             name = facet_name.replace("_facet", "")
-            if name == 'subject':
-                return ''
+            if name == "subject":
+                return ""
             else:
                 return name + ":"
 
@@ -232,16 +244,12 @@ class ListMixin:
             prefix = get_subject_prefix(facet_name)
             key = prefix + title.lower().replace(" ", "_")
             url = "/subjects/" + key
-            return web.storage({
-                "title": title,
-                "name": title,
-                "count": count,
-                "key": key,
-                "url": url
-            })
+            return web.storage(
+                {"title": title, "name": title, "count": count, "key": key, "url": url}
+            )
 
         def process_all():
-            facets = result['facets']
+            facets = result["facets"]
             for k in facet_names:
                 for f in facets.get(k, []):
                     yield process_subject(f.name, f.value, f.count)
@@ -278,16 +286,18 @@ class ListMixin:
 
     def get_seed(self, seed):
         if isinstance(seed, dict):
-            seed = seed['key']
+            seed = seed["key"]
         return Seed(self, seed)
 
     def has_seed(self, seed):
         if isinstance(seed, dict):
-            seed = seed['key']
+            seed = seed["key"]
         return seed in self._get_rawseeds()
 
     # cache the default_cover_id for 60 seconds
-    @cache.memoize("memcache", key=lambda self: ("d" + self.key, "default-cover-id"), expires=60)
+    @cache.memoize(
+        "memcache", key=lambda self: ("d" + self.key, "default-cover-id"), expires=60
+    )
     def _get_default_cover_id(self):
         for s in self.get_seeds():
             cover = s.get_cover()
@@ -296,13 +306,16 @@ class ListMixin:
 
     def get_default_cover(self):
         from openlibrary.core.models import Image
+
         cover_id = self._get_default_cover_id()
-        return Image(self._site, 'b', cover_id)
+        return Image(self._site, "b", cover_id)
+
 
 def valuesort(d):
     """Sorts the keys in the dictionary based on the values.
     """
     return sorted(d, key=lambda k: d[k])
+
 
 class Seed:
     """Seed of a list.
@@ -318,6 +331,7 @@ class Seed:
         * url
         * cover
     """
+
     def __init__(self, list, value):
         self._list = list
 
@@ -346,13 +360,13 @@ class Seed:
         return self.document.key.split("/")[-1]
 
     def get_solr_query_term(self):
-        if self.type == 'edition':
+        if self.type == "edition":
             return "edition_key:" + self._get_document_basekey()
-        elif self.type == 'work':
-            return 'key:/works/' + self._get_document_basekey()
-        elif self.type == 'author':
+        elif self.type == "work":
+            return "key:/works/" + self._get_document_basekey()
+        elif self.type == "author":
             return "author_key:" + self._get_document_basekey()
-        elif self.type == 'subject':
+        elif self.type == "subject":
             type, value = self.key.split(":", 1)
             # escaping value as it can have special chars like : etc.
             value = get_solr().escape(value)
@@ -366,31 +380,39 @@ class Seed:
     def _load_solrdata(self):
         if self.type == "edition":
             return {
-                'ebook_count': int(bool(self.document.ocaid)),
-                'edition_count': 1,
-                'work_count': 1,
-                'last_update': self.document.last_modified
+                "ebook_count": int(bool(self.document.ocaid)),
+                "edition_count": 1,
+                "work_count": 1,
+                "last_update": self.document.last_modified,
             }
         else:
             q = self.get_solr_query_term()
             if q:
                 solr = get_solr()
                 result = solr.select(q, fields=["edition_count", "ebook_count_i"])
-                last_update_i = [doc['last_update_i'] for doc in result.docs if 'last_update_i' in doc]
+                last_update_i = [
+                    doc["last_update_i"]
+                    for doc in result.docs
+                    if "last_update_i" in doc
+                ]
                 if last_update_i:
                     last_update = self._inttime_to_datetime(last_update_i)
                 else:
                     # if last_update is not present in solr, consider last_modfied of
                     # that document as last_update
-                    if self.type in ['work', 'author']:
+                    if self.type in ["work", "author"]:
                         last_update = self.document.last_modified
                     else:
                         last_update = None
                 return {
-                    'ebook_count': sum(doc.get('ebook_count_i', 0) for doc in result.docs),
-                    'edition_count': sum(doc.get('edition_count', 0) for doc in result.docs),
-                    'work_count': result.num_found,
-                    'last_update': last_update
+                    "ebook_count": sum(
+                        doc.get("ebook_count_i", 0) for doc in result.docs
+                    ),
+                    "edition_count": sum(
+                        doc.get("edition_count", 0) for doc in result.docs
+                    ),
+                    "work_count": result.num_found,
+                    "last_update": last_update,
                 }
         return {}
 
@@ -440,11 +462,11 @@ class Seed:
             return "/subjects/" + subject
 
     def get_cover(self):
-        if self.type in ['work', 'edition']:
+        if self.type in ["work", "edition"]:
             return self.document.get_cover()
-        elif self.type == 'author':
+        elif self.type == "author":
             return self.document.get_photo()
-        elif self.type == 'subject':
+        elif self.type == "subject":
             return self.document.get_default_cover()
         else:
             return None
@@ -453,19 +475,18 @@ class Seed:
         return self.get_solrdata().get("last_update") or None
 
     def _get_ebook_count(self):
-        return self.get_solrdata().get('ebook_count', 0)
+        return self.get_solrdata().get("ebook_count", 0)
 
     def _get_edition_count(self):
-        return self.get_solrdata().get('edition_count', 0)
+        return self.get_solrdata().get("edition_count", 0)
 
     def _get_work_count(self):
-        return self.get_solrdata().get('work_count', 0)
+        return self.get_solrdata().get("work_count", 0)
 
     work_count = property(_get_work_count)
     edition_count = property(_get_edition_count)
     ebook_count = property(_get_ebook_count)
     last_update = property(_get_last_update)
-
 
     title = property(get_title)
     url = property(get_url)
@@ -487,18 +508,18 @@ class Seed:
             "work_count": self.work_count,
             "edition_count": self.edition_count,
             "ebook_count": self.ebook_count,
-            "last_update": self.last_update and self.last_update.isoformat() or None
+            "last_update": self.last_update and self.last_update.isoformat() or None,
         }
         cover = self.get_cover()
         if cover:
-            d['picture'] = {
-                "url": cover.url("S")
-            }
+            d["picture"] = {"url": cover.url("S")}
         return d
 
     def __repr__(self):
         return "<seed: %s %s>" % (self.type, self.key)
+
     __str__ = __repr__
+
 
 def crossproduct(A, B):
     return [(a, b) for a in A for b in B]

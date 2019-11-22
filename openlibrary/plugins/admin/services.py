@@ -10,6 +10,7 @@ from collections import defaultdict
 
 from bs4 import BeautifulSoup
 
+
 class Nagios(object):
     def __init__(self, url):
         try:
@@ -26,13 +27,19 @@ class Nagios(object):
         # walk up the nodes to find the enclosing <tr> that contains
         # the service in question. A single step is not enough since
         # there are nested tables in the layout.
-        service = self.data.find(text = re.compile(service))
+        service = self.data.find(text=re.compile(service))
         if service:
             service_tr = service.findParents("tr")[2]
-            status_td  = service_tr.find("td", attrs = {"class" : re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")})
-            return status_td['class'].replace("status","")
+            status_td = service_tr.find(
+                "td",
+                attrs={
+                    "class": re.compile(r"status(OK|RECOVERY|UNKNOWN|WARNING|CRITICAL)")
+                },
+            )
+            return status_td["class"].replace("status", "")
         else:
             return "error-nosuchservice"
+
 
 class Service(object):
     """
@@ -40,7 +47,7 @@ class Service(object):
     manipulate it.
     """
 
-    def __init__(self, node, name, nagios, logs = False):
+    def __init__(self, node, name, nagios, logs=False):
         self.node = node
         self.name = name
         self.logs = logs
@@ -48,7 +55,11 @@ class Service(object):
         self.nagios = nagios.get_service_status(name)
 
     def __repr__(self):
-        return "Service(name = '%s', node = '%s', logs = '%s')"%(self.name, self.node, self.logs)
+        return "Service(name = '%s', node = '%s', logs = '%s')" % (
+            self.name,
+            self.node,
+            self.logs,
+        )
 
 
 def load_all(config, nagios_url):
@@ -57,8 +68,8 @@ def load_all(config, nagios_url):
     d = defaultdict(list)
     nagios = Nagios(nagios_url)
     for node in config:
-        services = config[node].get('services', [])
+        services = config[node].get("services", [])
         if services:
             for service in services:
-                d[node].append(Service(node = node, name = service, nagios = nagios))
+                d[node].append(Service(node=node, name=service, nagios=nagios))
     return d

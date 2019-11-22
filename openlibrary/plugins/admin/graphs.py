@@ -1,11 +1,14 @@
 """Utilities for rendering Graphite graphs.
 """
 import urllib
+
 import web
 from infogami import config
 
+
 def get_graphite_base_url():
     return config.get("graphite_base_url", "")
+
 
 class GraphiteGraph:
     """Representation of Graphite graph.
@@ -22,6 +25,7 @@ class GraphiteGraph:
         $g.add("stats.timers.ol.pageload.all.mean").apply("movingAverage", 20).alias("all")
         $:g.render()
     """
+
     def __init__(self):
         self.series_list = []
 
@@ -43,11 +47,16 @@ class GraphiteGraph:
 
             $:g.render(yLimit=100, width=300, height=400)
         """
-        return '<img src="%s/render/?%s"/>' % (get_graphite_base_url(), urllib.urlencode(self.get_queryparams(**options), doseq=True))
+        return '<img src="%s/render/?%s"/>' % (
+            get_graphite_base_url(),
+            urllib.urlencode(self.get_queryparams(**options), doseq=True),
+        )
+
 
 class Series:
     """One series in the GraphiteGraph.
     """
+
     def __init__(self, name):
         self.name = name
 
@@ -56,7 +65,11 @@ class Series:
 
         :return: Returns self
         """
-        self.name = "%s(%s, %s)" % (funcname, self.name, ", ".join(repr(a) for a in args))
+        self.name = "%s(%s, %s)" % (
+            funcname,
+            self.name,
+            ", ".join(repr(a) for a in args),
+        )
         return self
 
     def alias(self, name):
@@ -71,7 +84,6 @@ class Series:
         # Returning empty string to allow template use $g.add("foo") without printing anything.
         return ""
 
+
 def setup():
-    web.template.Template.globals.update({
-        'GraphiteGraph': GraphiteGraph,
-    })
+    web.template.Template.globals.update({"GraphiteGraph": GraphiteGraph})

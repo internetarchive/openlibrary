@@ -16,11 +16,15 @@ USAGE:
     $ ./scripts/openlibrary-server infogami.yml startserver --gunicorn -b 0.0.0.0:8080    
 """
 from __future__ import print_function
-import sys
+
 import os
+import sys
+
 import yaml
-from gunicorn.app.base import Application
+
 import web
+from gunicorn.app.base import Application
+
 
 def setup_env():
     # make sure PYTHON_EGG_CACHE is writable

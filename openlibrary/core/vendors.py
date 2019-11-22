@@ -1,24 +1,31 @@
 import re
-import web
 import urllib2
+
 import simplejson
+import web
 from amazon.api import SearchException
 from infogami import config
 from infogami.utils.view import public
-from . import lending, cache, helpers as h
+from openlibrary import accounts
+from openlibrary.catalog.add_book import load
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
-    normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
-from openlibrary.catalog.add_book import load
-from openlibrary import accounts
+    isbn_10_to_isbn_13,
+    isbn_13_to_isbn_10,
+    normalize_isbn,
+)
 
+from . import cache
+from . import helpers as h
+from . import lending
 
-BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
-AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
-ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
+BETTERWORLDBOOKS_API_URL = "http://products.betterworldbooks.com/service.aspx?ItemId="
+AMAZON_FULL_DATE_RE = re.compile("\d{4}-\d\d-\d\d")
+ISBD_UNIT_PUNCT = " : "  # ISBD cataloging title-unit separator punctuation
+
 
 @public
-def get_amazon_metadata(id_, id_type='isbn'):
+def get_amazon_metadata(id_, id_type="isbn"):
     """Main interface to Amazon LookupItem API. Will cache results.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
@@ -34,7 +41,7 @@ def get_amazon_metadata(id_, id_type='isbn'):
         return None
 
 
-def search_amazon(title='', author=''):
+def search_amazon(title="", author=""):
     """Uses the Amazon Product Advertising API ItemSearch operation to search for
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
@@ -45,13 +52,13 @@ def search_amazon(title='', author=''):
     :rtype: dict
     """
 
-    results = lending.amazon_api.search(Title=title, Author=author, SearchIndex='Books')
-    data = {'results': []}
+    results = lending.amazon_api.search(Title=title, Author=author, SearchIndex="Books")
+    data = {"results": []}
     try:
         for product in results:
-            data['results'].append(_serialize_amazon_product(product))
+            data["results"].append(_serialize_amazon_product(product))
     except SearchException:
-        data = {'error': 'no results'}
+        data = {"error": "no results"}
     return data
 
 
@@ -65,76 +72,82 @@ def _serialize_amazon_product(product):
     """
 
     price_fmt = price = qlt = None
-    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
-    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
+    used = product._safe_get_element_text("OfferSummary.LowestUsedPrice.Amount")
+    new = product._safe_get_element_text("OfferSummary.LowestNewPrice.Amount")
 
     # prioritize lower prices and newer, all things being equal
     if used and new:
-        price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
+        price, qlt = (used, "used") if int(used) < int(new) else (new, "new")
     # accept whichever is available
     elif used or new:
-        price, qlt = (used, 'used') if used else (new, 'new')
+        price, qlt = (used, "used") if used else (new, "new")
 
     if price:
-        price = '{:00,.2f}'.format(int(price)/100.)
+        price = "{:00,.2f}".format(int(price) / 100.0)
         if qlt:
             price_fmt = "$%s (%s)" % (price, qlt)
 
     data = {
-        'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-            product.asin, h.affiliate_id('amazon')),
-        'price': price_fmt,
-        'price_amt': price,
-        'qlt': qlt,
-        'title': product.title,
-        'authors': [{'name': name} for name in product.authors],
-        'source_records': ['amazon:%s' % product.asin],
-        'number_of_pages': product.pages,
-        'languages': list(product.languages),
-        'cover': product.large_image_url,
-        'product_group': product.product_group,
+        "url": "https://www.amazon.com/dp/%s/?tag=%s"
+        % (product.asin, h.affiliate_id("amazon")),
+        "price": price_fmt,
+        "price_amt": price,
+        "qlt": qlt,
+        "title": product.title,
+        "authors": [{"name": name} for name in product.authors],
+        "source_records": ["amazon:%s" % product.asin],
+        "number_of_pages": product.pages,
+        "languages": list(product.languages),
+        "cover": product.large_image_url,
+        "product_group": product.product_group,
     }
-    if product._safe_get_element('OfferSummary') is not None:
-        data['offer_summary'] = {
-            'total_new': int(product._safe_get_element_text('OfferSummary.TotalNew')),
-            'total_used': int(product._safe_get_element_text('OfferSummary.TotalUsed')),
-            'total_collectible': int(product._safe_get_element_text('OfferSummary.TotalCollectible')),
+    if product._safe_get_element("OfferSummary") is not None:
+        data["offer_summary"] = {
+            "total_new": int(product._safe_get_element_text("OfferSummary.TotalNew")),
+            "total_used": int(product._safe_get_element_text("OfferSummary.TotalUsed")),
+            "total_collectible": int(
+                product._safe_get_element_text("OfferSummary.TotalCollectible")
+            ),
         }
-        collectible = product._safe_get_element_text('OfferSummary.LowestCollectiblePrice.Amount')
+        collectible = product._safe_get_element_text(
+            "OfferSummary.LowestCollectiblePrice.Amount"
+        )
         if new:
-            data['offer_summary']['lowest_new'] = int(new)
+            data["offer_summary"]["lowest_new"] = int(new)
         if used:
-            data['offer_summary']['lowest_used'] = int(used)
+            data["offer_summary"]["lowest_used"] = int(used)
         if collectible:
-            data['offer_summary']['lowest_collectible'] = int(collectible)
-        amazon_offers = product._safe_get_element_text('Offers.TotalOffers')
+            data["offer_summary"]["lowest_collectible"] = int(collectible)
+        amazon_offers = product._safe_get_element_text("Offers.TotalOffers")
         if amazon_offers:
-            data['offer_summary']['amazon_offers'] = int(amazon_offers)
+            data["offer_summary"]["amazon_offers"] = int(amazon_offers)
 
     if product.publication_date:
-        data['publish_date'] = product._safe_get_element_text('ItemAttributes.PublicationDate')
-        if re.match(AMAZON_FULL_DATE_RE, data['publish_date']):
-            data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
+        data["publish_date"] = product._safe_get_element_text(
+            "ItemAttributes.PublicationDate"
+        )
+        if re.match(AMAZON_FULL_DATE_RE, data["publish_date"]):
+            data["publish_date"] = product.publication_date.strftime("%b %d, %Y")
 
     if product.binding:
-        data['physical_format'] = product.binding.lower()
+        data["physical_format"] = product.binding.lower()
     if product.edition:
-        data['edition'] = product.edition
+        data["edition"] = product.edition
     if product.publisher:
-        data['publishers'] = [product.publisher]
+        data["publishers"] = [product.publisher]
     if product.isbn:
         isbn = product.isbn
         if len(isbn) == 10:
-            data['isbn_10'] = [isbn]
-            data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
+            data["isbn_10"] = [isbn]
+            data["isbn_13"] = [isbn_10_to_isbn_13(isbn)]
         elif len(isbn) == 13:
-            data['isbn_13'] = [isbn]
-            if isbn.startswith('978'):
-                data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
+            data["isbn_13"] = [isbn]
+            if isbn.startswith("978"):
+                data["isbn_10"] = [isbn_13_to_isbn_10(isbn)]
     return data
 
 
-def _get_amazon_metadata(id_=None, id_type='isbn'):
+def _get_amazon_metadata(id_=None, id_type="isbn"):
     """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
@@ -146,11 +159,13 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
     """
 
     kwargs = {}
-    if id_type == 'isbn':
+    if id_type == "isbn":
         id_ = normalize_isbn(id_)
-        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
-    kwargs['ItemId'] = id_
-    kwargs['MerchantId'] = 'Amazon'  # Only affects Offers Response Group, does Amazon sell this directly?
+        kwargs = {"SearchIndex": "Books", "IdType": "ISBN"}
+    kwargs["ItemId"] = id_
+    kwargs[
+        "MerchantId"
+    ] = "Amazon"  # Only affects Offers Response Group, does Amazon sell this directly?
     try:
         if not lending.amazon_api:
             raise Exception
@@ -174,10 +189,10 @@ def split_amazon_title(full_title):
 
     # strip parenthetical blocks wherever they occur
     # can handle 1 level of nesting
-    re_parens_strip = re.compile('\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
-    full_title = re.sub(re_parens_strip, '', full_title)
+    re_parens_strip = re.compile("\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)")
+    full_title = re.sub(re_parens_strip, "", full_title)
 
-    titles = full_title.split(':')
+    titles = full_title.split(":")
     subtitle = titles.pop().strip() if len(titles) > 1 else None
     title = ISBD_UNIT_PUNCT.join([unit.strip() for unit in titles])
     return (title, subtitle)
@@ -195,30 +210,40 @@ def clean_amazon_metadata_for_load(metadata):
 
     # TODO: convert languages into /type/language list
     conforming_fields = [
-        'title', 'authors', 'publish_date', 'source_records',
-        'number_of_pages', 'publishers', 'cover', 'isbn_10',
-        'isbn_13', 'physical_format']
+        "title",
+        "authors",
+        "publish_date",
+        "source_records",
+        "number_of_pages",
+        "publishers",
+        "cover",
+        "isbn_10",
+        "isbn_13",
+        "physical_format",
+    ]
     conforming_metadata = {}
     for k in conforming_fields:
         # if valid key and value not None
         if metadata.get(k) is not None:
             conforming_metadata[k] = metadata[k]
-    if metadata.get('source_records'):
-        asin = metadata.get('source_records')[0].replace('amazon:', '')
-        conforming_metadata['identifiers'] = {'amazon': [asin]}
-    title, subtitle = split_amazon_title(metadata['title'])
-    conforming_metadata['title'] = title
+    if metadata.get("source_records"):
+        asin = metadata.get("source_records")[0].replace("amazon:", "")
+        conforming_metadata["identifiers"] = {"amazon": [asin]}
+    title, subtitle = split_amazon_title(metadata["title"])
+    conforming_metadata["title"] = title
     if subtitle:
-        conforming_metadata['full_title'] = title + ISBD_UNIT_PUNCT + subtitle
-        conforming_metadata['subtitle'] = subtitle
+        conforming_metadata["full_title"] = title + ISBD_UNIT_PUNCT + subtitle
+        conforming_metadata["subtitle"] = subtitle
     # Record original title if some content has been removed (i.e. parentheses)
-    if metadata['title'] != conforming_metadata.get('full_title', conforming_metadata['title']):
-        conforming_metadata['notes'] = "Source title: %s" % metadata['title']
+    if metadata["title"] != conforming_metadata.get(
+        "full_title", conforming_metadata["title"]
+    ):
+        conforming_metadata["notes"] = "Source title: %s" % metadata["title"]
 
     return conforming_metadata
 
 
-def create_edition_from_amazon_metadata(id_, id_type='isbn'):
+def create_edition_from_amazon_metadata(id_, id_type="isbn"):
     """Fetches Amazon metadata by id from Amazon Product Advertising API, attempts to
     create OL edition from metadata, and returns the resulting edition
     key `/key/OL..M` if successful or None otherwise.
@@ -231,13 +256,13 @@ def create_edition_from_amazon_metadata(id_, id_type='isbn'):
 
     md = get_amazon_metadata(id_, id_type=id_type)
 
-    if md and md.get('product_group') == 'Book':
-        with accounts.RunAs('ImportBot'):
+    if md and md.get("product_group") == "Book":
+        with accounts.RunAs("ImportBot"):
             reply = load(
-                clean_amazon_metadata_for_load(md),
-                account=accounts.get_current_user())
-            if reply and reply.get('success'):
-                return reply['edition'].get('key')
+                clean_amazon_metadata_for_load(md), account=accounts.get_current_user()
+            )
+            if reply and reply.get("success"):
+                return reply["edition"].get("key")
 
 
 def cached_get_amazon_metadata(*args, **kwargs):
@@ -253,8 +278,10 @@ def cached_get_amazon_metadata(*args, **kwargs):
     # fetch/compose a cache controller obj for
     # "upstream.code._get_amazon_metadata"
     memoized_get_amazon_metadata = cache.memcache_memoize(
-        _get_amazon_metadata, "upstream.code._get_amazon_metadata",
-        timeout=dateutil.WEEK_SECS)
+        _get_amazon_metadata,
+        "upstream.code._get_amazon_metadata",
+        timeout=dateutil.WEEK_SECS,
+    )
     # fetch cached value from this controller
     result = memoized_get_amazon_metadata(*args, **kwargs)
     if result is None:
@@ -298,40 +325,46 @@ def _get_betterworldbooks_metadata(isbn):
         product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
         new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
         new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
-        used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
+        used_price = re.findall(
+            "<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response
+        )
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
 
         price_fmt = price = qlt = None
 
-        if used_qty and used_qty[0] and used_qty[0] != '0':
-            price = used_price[0] if used_price else ''
-            qlt = 'used'
+        if used_qty and used_qty[0] and used_qty[0] != "0":
+            price = used_price[0] if used_price else ""
+            qlt = "used"
 
-        if new_qty and new_qty[0] and new_qty[0] != '0':
+        if new_qty and new_qty[0] and new_qty[0] != "0":
             _price = new_price[0] if new_price else None
             if _price and (not price or float(_price) < float(price)):
                 price = _price
-                qlt = 'new'
+                qlt = "new"
 
         if price and qlt:
             price_fmt = "$%s (%s)" % (price, qlt)
 
         return {
-            'url': (
-                'http://www.anrdoezrs.net/links/'
-                '%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx' % (
-                    h.affiliate_id('betterworldbooks'), isbn)),
-            'price': price_fmt,
-            'price_amt': price,
-            'qlt': qlt
+            "url": (
+                "http://www.anrdoezrs.net/links/"
+                "%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx"
+                % (h.affiliate_id("betterworldbooks"), isbn)
+            ),
+            "price": price_fmt,
+            "price_amt": price,
+            "qlt": qlt,
         }
     except urllib2.HTTPError as e:
         try:
             response = e.read()
         except simplejson.decoder.JSONDecodeError:
-            return {'error': e.read(), 'code': e.code}
+            return {"error": e.read(), "code": e.code}
         return simplejson.loads(response)
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
-    _get_betterworldbooks_metadata, "upstream.code._get_betterworldbooks_metadata", timeout=dateutil.HALF_DAY_SECS)
+    _get_betterworldbooks_metadata,
+    "upstream.code._get_betterworldbooks_metadata",
+    timeout=dateutil.HALF_DAY_SECS,
+)

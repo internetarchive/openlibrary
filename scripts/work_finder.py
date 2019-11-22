@@ -1,9 +1,12 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+
 import sys
 from pprint import pprint
+
+from openlibrary.catalog.works.find_works import (books_query, find_title_redirects,
+                                                  find_works, get_books, update_works)
 
 akey = sys.argv[1]
 title_redirects = find_title_redirects(akey)

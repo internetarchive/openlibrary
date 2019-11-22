@@ -8,6 +8,7 @@ This is used only for running the dev instance. In production, these services
 are typically run on multiple nodes and monitored using upstart.
 """
 from __future__ import print_function
+
 import os
 import shlex
 import subprocess
@@ -16,9 +17,11 @@ import time
 
 import formats
 
+
 class Init:
     """Init process for starting and managing OL services.
     """
+
     def __init__(self, config):
         self.services = {}
         for name, value in config.items():
@@ -51,6 +54,7 @@ class Init:
         for s in services:
             s.stop()
 
+
 class Service:
     def __init__(self, init, name, config):
         self.init = init
@@ -63,19 +67,19 @@ class Service:
         """
         config = self.config
 
-        print("start:", config['command'])
+        print("start:", config["command"])
 
-        args = shlex.split(config['command'])
+        args = shlex.split(config["command"])
         cwd = config.get("root", os.getcwd())
 
-        stdout = self._open_file(config.get('stdout'), 'a')
-        stderr = self._open_file(config.get('stderr'), 'a')
+        stdout = self._open_file(config.get("stdout"), "a")
+        stderr = self._open_file(config.get("stderr"), "a")
         print(self.name, stdout, stderr)
 
         self.process = subprocess.Popen(args, cwd=cwd, stdout=stdout, stderr=stderr)
         return self
 
-    def _open_file(self, filename, mode='r'):
+    def _open_file(self, filename, mode="r"):
         filename = filename or self.name + ".log"
 
         if filename == "-":
@@ -93,7 +97,7 @@ class Service:
 
             if exit_status is None:
                 self._kill()
-                time.sleep(0.1) # wait for process to get killed
+                time.sleep(0.1)  # wait for process to get killed
 
             return self.poll()
 

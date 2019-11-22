@@ -1,36 +1,45 @@
 from __future__ import print_function
-import web
-import simplejson
-import urllib
-import os
-import datetime
-import time
-import logging
+
 import array
-import memcache
+import datetime
+import logging
+import os
+import time
+import urllib
 
-import db
 import config
-from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
-
-from coverlib import save_image, read_image, read_file
-
+import db
+import memcache
 import ratelimit
+import simplejson
+import web
+from coverlib import read_file, read_image, save_image
+from utils import changequery, download, ol_get, ol_things, random_string, rm_f, safeint
 
 logger = logging.getLogger("coverstore")
 
 urls = (
-    '/', 'index',
-    '/([^ /]*)/upload', 'upload',
-    '/([^ /]*)/upload2', 'upload2',
-    '/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg', 'cover',
-    '/([^ /]*)/([a-zA-Z]*)/(.*)().jpg', 'cover',
-    '/([^ /]*)/([a-zA-Z]*)/(.*).json', 'cover_details',
-    '/([^ /]*)/query', 'query',
-    '/([^ /]*)/touch', 'touch',
-    '/([^ /]*)/delete', 'delete',
+    "/",
+    "index",
+    "/([^ /]*)/upload",
+    "upload",
+    "/([^ /]*)/upload2",
+    "upload2",
+    "/([^ /]*)/([a-zA-Z]*)/(.*)-([SML]).jpg",
+    "cover",
+    "/([^ /]*)/([a-zA-Z]*)/(.*)().jpg",
+    "cover",
+    "/([^ /]*)/([a-zA-Z]*)/(.*).json",
+    "cover_details",
+    "/([^ /]*)/query",
+    "query",
+    "/([^ /]*)/touch",
+    "touch",
+    "/([^ /]*)/delete",
+    "delete",
 )
 app = web.application(urls, locals())
+
 
 def get_cover_id(olkeys):
     """Return the first cover from the list of ol keys."""
@@ -39,51 +48,63 @@ def get_cover_id(olkeys):
         if not doc:
             continue
 
-        if doc['key'].startswith("/authors"):
-            covers = doc.get('photos', [])
+        if doc["key"].startswith("/authors"):
+            covers = doc.get("photos", [])
         else:
-            covers = doc.get('covers', [])
+            covers = doc.get("covers", [])
 
         # Sometimes covers is stored as [-1] to indicate no covers. Consider it as no covers.
         if covers and covers[0] >= 0:
             return covers[0]
 
+
 def _query(category, key, value):
-    if key == 'olid':
+    if key == "olid":
         prefixes = dict(a="/authors/", b="/books/", w="/works/")
         if category in prefixes:
             olkey = prefixes[category] + value
             return get_cover_id([olkey])
     else:
-        if category == 'b':
-            if key == 'isbn':
+        if category == "b":
+            if key == "isbn":
                 value = value.replace("-", "").strip()
                 key = "isbn_"
-            if key == 'oclc':
-                key = 'oclc_numbers'
+            if key == "oclc":
+                key = "oclc_numbers"
             olkeys = ol_things(key, value)
             return get_cover_id(olkeys)
     return None
+
 
 ERROR_EMPTY = 1, "No image found"
 ERROR_INVALID_URL = 2, "Invalid URL"
 ERROR_BAD_IMAGE = 3, "Invalid Image"
 
+
 class index:
     def GET(self):
         return '<h1>Open Library Book Covers Repository</h1><div>See <a href="https://openlibrary.org/dev/docs/api/covers">Open Library Covers API</a> for details.</div>'
+
 
 def _cleanup():
     web.ctx.pop("_fieldstorage", None)
     web.ctx.pop("_data", None)
     web.ctx.env = {}
 
+
 class upload:
     def POST(self, category):
-        i = web.input('olid', author=None, file={}, source_url=None, success_url=None, failure_url=None)
+        i = web.input(
+            "olid",
+            author=None,
+            file={},
+            source_url=None,
+            success_url=None,
+            failure_url=None,
+        )
 
-        success_url = i.success_url or web.ctx.get('HTTP_REFERRER') or '/'
-        failure_url = i.failure_url or web.ctx.get('HTTP_REFERRER') or '/'
+        success_url = i.success_url or web.ctx.get("HTTP_REFERRER") or "/"
+        failure_url = i.failure_url or web.ctx.get("HTTP_REFERRER") or "/"
 
         def error(code__msg):
             (code, msg) = code__msg
@@ -108,18 +129,29 @@ class upload:
             error(ERROR_EMPTY)
 
         try:
-            save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=web.ctx.ip)
+            save_image(
+                data,
+                category=category,
+                olid=i.olid,
+                author=i.author,
+                source_url=i.source_url,
+                ip=web.ctx.ip,
+            )
         except ValueError:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
         raise web.seeother(success_url)
 
+
 class upload2:
     """openlibrary.org POSTs here via openlibrary/plugins/upstream/covers.py upload
     """
+
     def POST(self, category):
-        i = web.input(olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False)
+        i = web.input(
+            olid=None, author=None, data=None, source_url=None, ip=None, _unicode=False
+        )
 
         web.ctx.pop("_fieldstorage", None)
         web.ctx.pop("_data", None)
@@ -144,12 +176,20 @@ class upload2:
             error(ERROR_EMPTY)
 
         try:
-            d = save_image(data, category=category, olid=i.olid, author=i.author, source_url=i.source_url, ip=i.ip)
+            d = save_image(
+                data,
+                category=category,
+                olid=i.olid,
+                author=i.author,
+                source_url=i.source_url,
+                ip=i.ip,
+            )
         except ValueError:
             error(ERROR_BAD_IMAGE)
 
         _cleanup()
         return simplejson.dumps({"ok": "true", "id": d.id})
+
 
 def trim_microsecond(date):
     # ignore microseconds
@@ -161,13 +201,15 @@ def get_memcache():
     servers = config.get("memcache_servers")
     return memcache.Client(servers)
 
+
 def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
     print(time.asctime(), "_locate_item", item, file=web.debug)
     text = urllib.urlopen("https://archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
-    return d['server'], d['dir']
+    return d["server"], d["dir"]
+
 
 def locate_item(item):
     mc = get_memcache()
@@ -178,26 +220,33 @@ def locate_item(item):
         if not x:
             x = _locate_item(item)
             print(time.asctime(), "mc.set", item, x, file=web.debug)
-            mc.set(item, x, time=600) # cache it for 10 minutes
+            mc.set(item, x, time=600)  # cache it for 10 minutes
         return x
+
 
 def zipview_url(item, zipfile, filename):
     server, dir = locate_item(item)
 
     # http or https
     protocol = web.ctx.protocol
-    return "%(protocol)s://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s" % locals()
+    return (
+        "%(protocol)s://%(server)s/zipview.php?zip=%(dir)s/%(zipfile)s&file=%(filename)s"
+        % locals()
+    )
+
 
 # Number of images stored in one archive.org item
 IMAGES_PER_ITEM = 10000
 
+
 def zipview_url_from_id(coverid, size):
     suffix = size and ("-" + size.upper())
-    item_index = coverid/IMAGES_PER_ITEM
+    item_index = coverid / IMAGES_PER_ITEM
     itemid = "olcovers%d" % item_index
     zipfile = itemid + suffix + ".zip"
     filename = "%d%s.jpg" % (coverid, suffix)
     return zipview_url(itemid, zipfile, filename)
+
 
 class cover:
     def GET(self, category, key, value, size):
@@ -212,7 +261,11 @@ class cover:
                 # this is only used in development
                 base = web.rstrips(config.upstream_base_url, "/")
                 raise web.redirect(base + web.ctx.fullpath)
-            elif config.default_image and i.default.lower() != "false" and not is_valid_url(i.default):
+            elif (
+                config.default_image
+                and i.default.lower() != "false"
+                and not is_valid_url(i.default)
+            ):
                 return read_file(config.default_image)
             elif is_valid_url(i.default):
                 raise web.seeother(i.default)
@@ -223,15 +276,15 @@ class cover:
             size_part = size and ("-" + size) or ""
             url = "/%s/id/%s%s.jpg" % (category, id, size_part)
 
-            query = web.ctx.env.get('QUERY_STRING')
+            query = web.ctx.env.get("QUERY_STRING")
             if query:
-                url += '?' + query
+                url += "?" + query
             raise web.found(url)
 
-        if key == 'isbn':
-            value = value.replace("-", "").strip() # strip hyphens from ISBN
+        if key == "isbn":
+            value = value.replace("-", "").strip()  # strip hyphens from ISBN
             # Disabling ratelimit as iptables is taking care of botnets.
-            #value = self.ratelimit_query(category, key, value)
+            # value = self.ratelimit_query(category, key, value)
             value = self.query(category, key, value)
 
             # Redirect isbn requests to archive.org.
@@ -241,13 +294,13 @@ class cover:
             if value and self.is_cover_in_cluster(value):
                 url = zipview_url_from_id(int(value), size)
                 raise web.found(url)
-        elif key == 'ia':
+        elif key == "ia":
             url = self.get_ia_cover_url(value, size)
             if url:
                 raise web.found(url)
             else:
-                value = None # notfound or redirect to default. handled later.
-        elif key != 'id':
+                value = None  # notfound or redirect to default. handled later.
+        elif key != "id":
             value = self.query(category, key, value)
 
         if value and safeint(value) in config.blocked_covers:
@@ -263,18 +316,22 @@ class cover:
             return notfound()
 
         # set cache-for-ever headers only when requested with ID
-        if key == 'id':
+        if key == "id":
             etag = "%s-%s" % (d.id, size.lower())
             if not web.modified(trim_microsecond(d.created), etag=etag):
                 raise web.notmodified()
 
-            web.header('Cache-Control', 'public')
-            web.expires(100 * 365 * 24 * 3600) # this image is not going to expire in next 100 years.
+            web.header("Cache-Control", "public")
+            web.expires(
+                100 * 365 * 24 * 3600
+            )  # this image is not going to expire in next 100 years.
         else:
-            web.header('Cache-Control', 'public')
-            web.expires(10*60) # Allow the client to cache the image for 10 mins to avoid further requests
+            web.header("Cache-Control", "public")
+            web.expires(
+                10 * 60
+            )  # Allow the client to cache the image for 10 mins to avoid further requests
 
-        web.header('Content-Type', 'image/jpeg')
+        web.header("Content-Type", "image/jpeg")
         try:
             return read_image(d, size)
         except IOError:
@@ -289,11 +346,19 @@ class cover:
             return
 
         # Not a text item or no images or scan is not complete yet
-        if d.get("mediatype") != "texts" or d.get("repub_state", "4") not in ["4", "6"] or "imagecount" not in d:
+        if (
+            d.get("mediatype") != "texts"
+            or d.get("repub_state", "4") not in ["4", "6"]
+            or "imagecount" not in d
+        ):
             return
 
         w, h = config.image_sizes[size.upper()]
-        return "https://archive.org/download/%s/page/cover_w%d_h%d.jpg" % (identifier, w, h)
+        return "https://archive.org/download/%s/page/cover_w%d_h%d.jpg" % (
+            identifier,
+            w,
+            h,
+        )
 
     def get_details(self, coverid, size=""):
         try:
@@ -310,7 +375,9 @@ class cover:
                     key = "filename_%s" % size
                 else:
                     key = "filename"
-                return web.storage({"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)})
+                return web.storage(
+                    {"id": coverid, key: path, "created": datetime.datetime(2010, 1, 1)}
+                )
 
         return db.details(coverid)
 
@@ -347,6 +414,7 @@ class cover:
 
     ratelimit_query = ratelimit.ratelimit()(query)
 
+
 @web.memoize
 def get_tar_index(tarindex, size):
     path = os.path.join(config.data_root, get_tarindex_path(tarindex, size))
@@ -354,6 +422,7 @@ def get_tar_index(tarindex, size):
         return None, None
 
     return parse_tarindex(open(path))
+
 
 def get_tarindex_path(index, size):
     name = "%06d" % index
@@ -364,35 +433,37 @@ def get_tarindex_path(index, size):
 
     itemname = "%s_%s" % (prefix, name[:4])
     filename = "%s_%s_%s.index" % (prefix, name[:4], name[4:6])
-    return os.path.join('items', itemname, filename)
+    return os.path.join("items", itemname, filename)
+
 
 def parse_tarindex(file):
     """Takes tarindex file as file objects and returns array of offsets and array of sizes. The size of the returned arrays will be 10000.
     """
-    array_offset = array.array('L', [0 for i in range(10000)])
-    array_size = array.array('L', [0 for i in range(10000)])
+    array_offset = array.array("L", [0 for i in range(10000)])
+    array_size = array.array("L", [0 for i in range(10000)])
 
     for line in file:
         line = line.strip()
         if line:
             name, offset, imgsize = line.split("\t")
-            coverid = int(name[:10]) # First 10 chars is coverid, followed by ".jpg"
+            coverid = int(name[:10])  # First 10 chars is coverid, followed by ".jpg"
             index = coverid % 10000
             array_offset[index] = int(offset)
             array_size[index] = int(imgsize)
     return array_offset, array_size
 
+
 class cover_details:
     def GET(self, category, key, value):
         d = _query(category, key, value)
 
-        if key == 'id':
-            web.header('Content-Type', 'application/json')
+        if key == "id":
+            web.header("Content-Type", "application/json")
             d = db.details(value)
             if d:
-                if isinstance(d['created'], datetime.datetime):
-                    d['created'] = d['created'].isoformat()
-                    d['last_modified'] = d['last_modified'].isoformat()
+                if isinstance(d["created"], datetime.datetime):
+                    d["created"] = d["created"].isoformat()
+                    d["last_modified"] = d["last_modified"].isoformat()
                 return simplejson.dumps(d)
             else:
                 raise web.notfound("")
@@ -403,9 +474,12 @@ class cover_details:
             else:
                 return web.found("/%s/id/%s.json" % (category, value))
 
+
 class query:
     def GET(self, category):
-        i = web.input(olid=None, offset=0, limit=10, callback=None, details="false", cmd=None)
+        i = web.input(
+            olid=None, offset=0, limit=10, callback=None, details="false", cmd=None
+        )
         offset = safeint(i.offset, 0)
         limit = safeint(i.limit, 10)
         details = i.details.lower() == "true"
@@ -413,8 +487,8 @@ class query:
         if limit > 100:
             limit = 100
 
-        if i.olid and ',' in i.olid:
-            i.olid = i.olid.split(',')
+        if i.olid and "," in i.olid:
+            i.olid = i.olid.split(",")
         result = db.query(category, i.olid, offset=offset, limit=limit)
 
         if i.cmd == "ids":
@@ -422,36 +496,40 @@ class query:
         elif not details:
             result = [r.id for r in result]
         else:
+
             def process(r):
                 return {
-                    'id': r.id,
-                    'olid': r.olid,
-                    'created': r.created.isoformat(),
-                    'last_modified': r.last_modified.isoformat(),
-                    'source_url': r.source_url,
-                    'width': r.width,
-                    'height': r.height
+                    "id": r.id,
+                    "olid": r.olid,
+                    "created": r.created.isoformat(),
+                    "last_modified": r.last_modified.isoformat(),
+                    "source_url": r.source_url,
+                    "width": r.width,
+                    "height": r.height,
                 }
+
             result = [process(r) for r in result]
 
         json = simplejson.dumps(result)
-        web.header('Content-Type', 'text/javascript')
+        web.header("Content-Type", "text/javascript")
         if i.callback:
             return "%s(%s);" % (i.callback, json)
         else:
-           return json
+            return json
+
 
 class touch:
     def POST(self, category):
         i = web.input(id=None, redirect_url=None)
-        redirect_url = i.redirect_url or web.ctx.get('HTTP_REFERRER')
+        redirect_url = i.redirect_url or web.ctx.get("HTTP_REFERRER")
 
         id = i.id and safeint(i.id, None)
         if id:
             db.touch(id)
             raise web.seeother(redirect_url)
         else:
-            return 'no such id: %s' % id
+            return "no such id: %s" % id
+
 
 class delete:
     def POST(self, category):
@@ -464,6 +542,6 @@ class delete:
             if redirect_url:
                 raise web.seeother(redirect_url)
             else:
-                return 'cover has been deleted successfully.'
+                return "cover has been deleted successfully."
         else:
-            return 'no such id: %s' % id
+            return "no such id: %s" % id

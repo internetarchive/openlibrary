@@ -6,24 +6,24 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-import _init_path
-
-import yaml
-import logging
-import json
-import urllib
-import urllib2
 import argparse
 import datetime
-import time
-import web
-import sys
+import json
+import logging
 import re
 import socket
+import sys
+import time
+import urllib
+import urllib2
 
-from openlibrary.solr import update_work
-from openlibrary.config import load_config
+import yaml
+
+import _init_path
+import web
 from infogami import config
+from openlibrary.config import load_config
+from openlibrary.solr import update_work
 
 logger = logging.getLogger("openlibrary.solr-updater")
 

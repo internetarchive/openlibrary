@@ -1,24 +1,26 @@
 """Controller for /libraries.
 """
 from __future__ import print_function
-import time
-import logging
+
+import csv
 import datetime
 import itertools
+import logging
+import time
 from cStringIO import StringIO
-import csv
-import simplejson
 
+import simplejson
 import web
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import render_template, add_flash_message, public
-from openlibrary.core import inlibrary, statsdb, geo_ip
+from infogami.utils.view import add_flash_message, public, render_template
 from openlibrary import accounts
+from openlibrary.core import geo_ip, inlibrary, statsdb
 from openlibrary.core.iprange import find_bad_ip_ranges
 
 logger = logging.getLogger("openlibrary.libraries")
-LIBRARY_OFFLINE = 'The libraries feature has been disabled.'
+LIBRARY_OFFLINE = "The libraries feature has been disabled."
+
 
 class libraries(delegate.page):
     def GET(self):
@@ -27,6 +29,7 @@ class libraries(delegate.page):
     def get_branches(self):
         branches = sorted(get_library_branches(), key=lambda b: b.name.upper())
         return itertools.groupby(branches, lambda b: b.name and b.name[0])
+
 
 class libraries_notes(delegate.page):
     path = "(/libraries/[^/]+)/notes"
@@ -42,7 +45,10 @@ class libraries_notes(delegate.page):
 
             user = accounts.get_current_user()
             author = user and {"key": user.key}
-            timestamp = {"type": "/type/datetime", "value": datetime.datetime.utcnow().isoformat()}
+            timestamp = {
+                "type": "/type/datetime",
+                "value": datetime.datetime.utcnow().isoformat(),
+            }
 
             note = {"note": i.note, "author": {"key": user.key}, "timestamp": timestamp}
 
@@ -52,6 +58,7 @@ class libraries_notes(delegate.page):
         doc._save(comment="Added a note.")
         raise web.seeother(key)
 
+
 def get_library_branches():
     """Returns library branches grouped by first letter."""
     libraries = inlibrary.get_libraries()
@@ -60,7 +67,8 @@ def get_library_branches():
             branch.library = lib.name
             yield branch
 
-#source: https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations
+
+# source: https://en.wikipedia.org/wiki/List_of_U.S._state_abbreviations
 US_STATE_CODES = """
 AL  01  Alabama
 AK  02  Alaska
@@ -113,11 +121,15 @@ WV  54  West Virginia
 WI  55  Wisconsin
 WY  56  Wyoming
 """
+
+
 def parse_state_codes():
     tokens = (line.split(None, 2) for line in US_STATE_CODES.strip().splitlines())
     return dict((code, name) for code, _, name in tokens)
 
+
 US_STATE_CODES_DICT = parse_state_codes()
+
 
 @public
 def group_branches_by_state(branches):
@@ -128,6 +140,7 @@ def group_branches_by_state(branches):
             state = US_STATE_CODES_DICT[state.upper()]
         d.setdefault(state, []).append(branch)
     return d
+
 
 def get_libraries_by_country():
     libraries = inlibrary.get_libraries()
@@ -140,7 +153,7 @@ def get_libraries_by_country():
         "USA": usa,
         "U.S.A.": usa,
         "United States": usa,
-        "UK": "United Kingdom"
+        "UK": "United Kingdom",
     }
     for lib in libraries:
         for branch in lib.get_branches():
@@ -149,6 +162,7 @@ def get_libraries_by_country():
             d.setdefault(country, []).append(branch)
     return d
 
+
 class libraries_dashboard(delegate.page):
     path = "/libraries/dashboard"
 
@@ -156,7 +170,9 @@ class libraries_dashboard(delegate.page):
         raise web.notfound(LIBRARY_OFFLINE)
 
     def get_pending_libraries(self):
-        docs = web.ctx.site.store.values(type="library", name="current_status", value="pending", limit=10000)
+        docs = web.ctx.site.store.values(
+            type="library", name="current_status", value="pending", limit=10000
+        )
         return [self._create_pending_library(doc) for doc in docs]
 
     def _create_pending_library(self, doc):
@@ -172,10 +188,11 @@ class libraries_dashboard(delegate.page):
             if k.startswith("_"):
                 del doc[k]
 
-        doc['key'] = key
-        doc['type'] = {"key": '/type/library'}
-        doc['title'] = doc.get("title", doc['name'])
+        doc["key"] = key
+        doc["type"] = {"key": "/type/library"}
+        doc["title"] = doc.get("title", doc["name"])
         return web.ctx.site.new(key, doc)
+
 
 class pending_libraries(delegate.page):
     path = "/(libraries/pending-\d+)"
@@ -188,7 +205,7 @@ class pending_libraries(delegate.page):
         raise web.notfound(LIBRARY_OFFLINE)
 
     def generate_key(self, doc):
-        key = "/libraries/" + doc['name'].lower().replace(" ", "_")
+        key = "/libraries/" + doc["name"].lower().replace(" ", "_")
 
         _key = key
         count = 1
@@ -203,8 +220,8 @@ class pending_libraries(delegate.page):
         if "_delete" in i:
             doc = web.ctx.site.store.get(key)
             if doc:
-                doc['current_status'] = "deleted"
-                web.ctx.site.store[doc['_key']] = doc
+                doc["current_status"] = "deleted"
+                web.ctx.site.store[doc["_key"]] = doc
                 add_flash_message("info", "The requested library has been deleted.")
                 raise web.seeother("/libraries/dashboard")
 
@@ -212,24 +229,32 @@ class pending_libraries(delegate.page):
         page = libraries_dashboard()._create_pending_library(i)
 
         if web.ctx.site.get(page.key):
-            raise web.notfound("error", "URL %s is already used. Please choose a different one." % page.key)
+            raise web.notfound(
+                "error",
+                "URL %s is already used. Please choose a different one." % page.key,
+            )
         elif not i.key.startswith("/libraries/"):
-            raise web.notfound( "The key must start with /libraries/." )
+            raise web.notfound("The key must start with /libraries/.")
 
         doc = web.ctx.site.store.get(key)
         if doc and "registered_on" in doc:
-            page.registered_on = {"type": "/type/datetime", "value": doc['registered_on']}
+            page.registered_on = {
+                "type": "/type/datetime",
+                "value": doc["registered_on"],
+            }
 
         page._save()
 
         if doc:
-            doc['current_status'] = "approved"
-            doc['page_key'] = page.key
-            web.ctx.site.store[doc['_key']] = doc
+            doc["current_status"] = "approved"
+            doc["page_key"] = page.key
+            web.ctx.site.store[doc["_key"]] = doc
         raise web.seeother(page.key)
+
 
 class libraries_register(delegate.page):
     path = "/libraries/register"
+
     def GET(self):
         raise web.notfound(LIBRARY_OFFLINE)
 
@@ -237,49 +262,52 @@ class libraries_register(delegate.page):
         i = web.input()
         doc = dict(i)
         errors = {}
-        if not doc.get('name'):
-            errors['name'] = 'name is a required field'
-        addresses = doc.get('addresses', '').strip()
+        if not doc.get("name"):
+            errors["name"] = "name is a required field"
+        addresses = doc.get("addresses", "").strip()
         if addresses:
             for line in addresses.splitlines():
-                tokens = line.split('|')
+                tokens = line.split("|")
                 if len(tokens) != 9:
-                    errors['addresses'] = 'address field is invalid'
+                    errors["addresses"] = "address field is invalid"
                     break
                 latlong = tokens[8]
-                if ',' not in latlong or len(latlong.split(',')) != 2:
-                    errors['addresses'] = 'Lat, Long is invalid'
+                if "," not in latlong or len(latlong.split(",")) != 2:
+                    errors["addresses"] = "Lat, Long is invalid"
                     break
         else:
-            errors['addresses'] = 'addresses is a required field'
+            errors["addresses"] = "addresses is a required field"
 
-        ip_ranges = doc.get('ip_ranges', '').strip()
+        ip_ranges = doc.get("ip_ranges", "").strip()
         if ip_ranges:
             bad = find_bad_ip_ranges(ip_ranges)
             if bad:
-                errors['ip_ranges'] = 'Invalid IP range(s): ' + '; '.join(bad)
+                errors["ip_ranges"] = "Invalid IP range(s): " + "; ".join(bad)
         else:
-            errors['ip_ranges'] = 'IP ranges is a required field'
+            errors["ip_ranges"] = "IP ranges is a required field"
 
         if errors:
             raise web.notfound(LIBRARY_OFFLINE)
 
         seq = web.ctx.site.seq.next_value("libraries")
 
-        doc.update({
-            "_key": "libraries/pending-%d" % seq,
-            "type": "library",
-            "current_status": "pending",
-            "registered_on": datetime.datetime.utcnow().isoformat()
-        })
-        web.ctx.site.store[doc['_key']] = doc
+        doc.update(
+            {
+                "_key": "libraries/pending-%d" % seq,
+                "type": "library",
+                "current_status": "pending",
+                "registered_on": datetime.datetime.utcnow().isoformat(),
+            }
+        )
+        web.ctx.site.store[doc["_key"]] = doc
 
-        self.sendmail(i.contact_email,
-            render_template("libraries/email_confirmation"))
+        self.sendmail(i.contact_email, render_template("libraries/email_confirmation"))
 
         if config.get("libraries_admin_email"):
-            self.sendmail(config.libraries_admin_email,
-                render_template("libraries/email_notification", i))
+            self.sendmail(
+                config.libraries_admin_email,
+                render_template("libraries/email_notification", i),
+            )
 
         raise web.notfound(LIBRARY_OFFLINE)
 
@@ -288,10 +316,10 @@ class libraries_register(delegate.page):
         subject = msg.subject.strip()
         body = web.safestr(msg).strip()
 
-        if config.get('dummy_sendmail'):
-            print('To:', to, file=web.debug)
-            print('From:', config.from_address, file=web.debug)
-            print('Subject:', subject, file=web.debug)
+        if config.get("dummy_sendmail"):
+            print("To:", to, file=web.debug)
+            print("From:", config.from_address, file=web.debug)
+            print("Subject:", subject, file=web.debug)
             print(file=web.debug)
             print(body, file=web.debug)
         else:
@@ -306,11 +334,13 @@ class locations(delegate.page):
         web.header("Content-Type", "text/plain")
         return delegate.RawText(render_template("libraries/locations", libraries))
 
+
 class stats(delegate.page):
     path = "/libraries/stats"
 
     def GET(self):
         raise web.seeother("/stats/lending")
+
 
 class stats_per_library(delegate.page):
     path = "/libraries/stats/(.*).csv"
@@ -331,22 +361,26 @@ class stats_per_library(delegate.page):
 
         fileobj = StringIO()
         writer = csv.writer(fileobj)
-        writer.writerow(["Date", "Total Loans", "PDF Loans", "ePub Loans", "Bookreader Loans"])
+        writer.writerow(
+            ["Date", "Total Loans", "PDF Loans", "ePub Loans", "Bookreader Loans"]
+        )
         writer.writerows(zip(dates, total, pdf, epub, bookreader))
 
         return delegate.RawText(fileobj.getvalue(), content_type="application/csv")
 
     def to_datestr(self, millis):
-        t = time.gmtime(millis/1000)
+        t = time.gmtime(millis / 1000)
         return "%04d-%02d-%02d" % (t.tm_year, t.tm_mon, t.tm_mday)
+
 
 @web.memoize
 def get_admin_couchdb():
     # Anand - Dec 2014
     # CouchDB is no more used in production now.
     return None
-    #db_url = config.get("admin", {}).get("counts_db")
-    #return db_url and couchdb.Database(db_url)
+    # db_url = config.get("admin", {}).get("counts_db")
+    # return db_url and couchdb.Database(db_url)
+
 
 class LoanStats:
     def __init__(self):
@@ -362,35 +396,40 @@ class LoanStats:
         if total == 0:
             return 0
         else:
-            return (100.0 * value)/total
+            return (100.0 * value) / total
 
     def get_summary(self):
-        d = web.storage({
-            "total_loans": 0,
-            "one_hour_loans": 0,
-            "expired_loans": 0
-        })
+        d = web.storage({"total_loans": 0, "one_hour_loans": 0, "expired_loans": 0})
 
         rows = self.view("loans/duration").rows
         if not rows:
             return d
 
-        d['total_loans']  = rows[0].value['count']
+        d["total_loans"] = rows[0].value["count"]
 
-        freq = rows[0].value['freq']
+        freq = rows[0].value["freq"]
 
-        d['one_hour_loans'] = freq.get("0", 0)
-        d['expired_loans'] = sum(count for time, count in freq.items() if int(time) >= 14*24)
+        d["one_hour_loans"] = freq.get("0", 0)
+        d["expired_loans"] = sum(
+            count for time, count in freq.items() if int(time) >= 14 * 24
+        )
         return d
 
     def get_loans_per_day(self, resource_type="total", library=None):
         if library is None:
             library = ""
-        rows = self.view("loans/loans", group=True, startkey=[library], endkey=[library,{}]).rows
-        return [[self.date2timestamp(*row.key[1:])*1000, row.value.get(resource_type, 0)] for row in rows]
+        rows = self.view(
+            "loans/loans", group=True, startkey=[library], endkey=[library, {}]
+        ).rows
+        return [
+            [self.date2timestamp(*row.key[1:]) * 1000, row.value.get(resource_type, 0)]
+            for row in rows
+        ]
 
     def date2timestamp(self, year, month=1, day=1):
-        return time.mktime((year, month, day, 0, 0, 0, 0, 0, 0)) # time.mktime takes 9-tuple as argument
+        return time.mktime(
+            (year, month, day, 0, 0, 0, 0, 0, 0)
+        )  # time.mktime takes 9-tuple as argument
 
     def date2millis(self, year, month=1, day=1):
         return self.date2timestamp(year, month, day) * 1000
@@ -402,13 +441,13 @@ class LoanStats:
 
         row = rows[0]
         d = {}
-        for time, count in row.value['freq'].items():
-            n = 1 + int(time)/24
+        for time, count in row.value["freq"].items():
+            n = 1 + int(time) / 24
 
             # The loan entry gets added to couch only when the loan is deleted in the database, which is probably triggered by a cron job.
             # Even though the max loan duration is 2 weeks, there is a chance that duration is more than 14.
             if n > 14:
-                n =15
+                n = 15
 
             d[n] = d.get(n, 0) + count
         return sorted(d.items())
@@ -417,21 +456,32 @@ class LoanStats:
         """Returns average duration per month."""
         rows = self.view("loans/duration", group_level=2).rows
         minutes_per_day = 60.0 * 24.0
-        return [[self.date2timestamp(*row.key)*1000, min(14, row.value['avg']/minutes_per_day)] for row in rows]
+        return [
+            [
+                self.date2timestamp(*row.key) * 1000,
+                min(14, row.value["avg"] / minutes_per_day),
+            ]
+            for row in rows
+        ]
 
     def get_average_duration_per_day(self):
         """Returns average duration per day."""
-        return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_day()]
+        return [
+            [self.date2millis(*key), value]
+            for key, value in self._get_average_duration_per_day()
+        ]
 
     def _get_average_duration_per_day(self):
         """Returns (date, duration-in-days) for each day with duration averaged per day."""
         rows = self.view("loans/duration", group=True).rows
         minutes_per_day = 60.0 * 24.0
-        return [[row.key, min(14, row.value['avg']/minutes_per_day)] for row in rows]
+        return [[row.key, min(14, row.value["avg"] / minutes_per_day)] for row in rows]
 
     def _get_average_duration_per_month(self):
         """Returns (date, duration-in-days) for each day with duration averaged per month."""
-        for month, chunk in itertools.groupby(self._get_average_duration_per_day(), lambda x: x[0][:2]):
+        for month, chunk in itertools.groupby(
+            self._get_average_duration_per_day(), lambda x: x[0][:2]
+        ):
             chunk = list(chunk)
             avg = sum(v for k, v in chunk) / len(chunk)
             for k, v in chunk:
@@ -439,10 +489,20 @@ class LoanStats:
 
     def get_average_duration_per_month(self):
         """Returns (date-in-millis, duration-in-days) for each day with duration averaged per month."""
-        return [[self.date2millis(*key), value] for key, value in self._get_average_duration_per_month()]
+        return [
+            [self.date2millis(*key), value]
+            for key, value in self._get_average_duration_per_month()
+        ]
 
     def get_popular_books(self, limit=10):
-        rows = self.view("loans/books", reduce=False, startkey=["", {}], endkey=[""], descending=True, limit=limit).rows
+        rows = self.view(
+            "loans/books",
+            reduce=False,
+            startkey=["", {}],
+            endkey=[""],
+            descending=True,
+            limit=limit,
+        ).rows
         counts = [row.key[-1] for row in rows]
         keys = [row.id for row in rows]
         books = web.ctx.site.get_many(keys)
@@ -450,12 +510,16 @@ class LoanStats:
 
     def get_loans_per_book(self, key="", limit=1):
         """Returns the distribution of #loans/book."""
-        rows = self.view("loans/books", group=True, startkey=[key], endkey=[key, {}]).rows
+        rows = self.view(
+            "loans/books", group=True, startkey=[key], endkey=[key, {}]
+        ).rows
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
 
     def get_loans_per_user(self, key="", limit=1):
         """Returns the distribution of #loans/user."""
-        rows = self.view("loans/people", group=True, startkey=[key], endkey=[key, {}]).rows
+        rows = self.view(
+            "loans/people", group=True, startkey=[key], endkey=[key, {}]
+        ).rows
         return [[row.key[-1], row.value] for row in rows if row.value >= limit]
 
     def get_loans_per_library(self):
@@ -464,7 +528,9 @@ class LoanStats:
 
     def get_loans_per_state(self):
         counts = self._get_lib_counts()
-        return [((lib.key, lib.name), count) for lib, count in counts if lib.lending_region]
+        return [
+            ((lib.key, lib.name), count) for lib, count in counts if lib.lending_region
+        ]
 
     def _get_lib_counts(self):
         # view contains:
@@ -472,7 +538,11 @@ class LoanStats:
         # Need to use group_level=1 and take key[0] to get the library key.
         rows = self.view("loans/libraries", group=True, group_level=1).rows
         libraries = self._get_libraries()
-        return [(libraries[row.key[0]], row.value) for row in rows if row.key[0] in libraries]
+        return [
+            (libraries[row.key[0]], row.value)
+            for row in rows
+            if row.key[0] in libraries
+        ]
 
     def get_active_loans_of_libraries(self):
         """Returns count of current active loans per library as a dictionary.
@@ -486,6 +556,7 @@ class LoanStats:
     def _get_libraries(self):
         return dict((lib.key, lib) for lib in inlibrary.get_libraries())
 
+
 @public
 def get_active_loans_of_libraries():
     return LoanStats().get_active_loans_of_libraries()
@@ -495,29 +566,30 @@ def on_loan_created_statsdb(loan):
     """Adds the loan info to the stats database.
     """
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
+    t_start = datetime.datetime.utcfromtimestamp(loan["loaned_at"])
     d = {
-        "book": loan['book'],
-        "identifier": loan['ocaid'],
-        "resource_type": loan['resource_type'],
+        "book": loan["book"],
+        "identifier": loan["ocaid"],
+        "resource_type": loan["resource_type"],
         "t_start": t_start.isoformat(),
-        "status": "active"
+        "status": "active",
     }
     library = inlibrary.get_library()
-    d['library'] = library and library.key
-    d['geoip_country'] = geo_ip.get_country(web.ctx.ip)
+    d["library"] = library and library.key
+    d["geoip_country"] = geo_ip.get_country(web.ctx.ip)
     statsdb.add_entry(key, d)
+
 
 def on_loan_completed_statsdb(loan):
     """Marks the loan as completed in the stats database.
     """
     key = _get_loan_key(loan)
-    t_start = datetime.datetime.utcfromtimestamp(loan['loaned_at'])
-    t_end = datetime.datetime.utcfromtimestamp(loan['returned_at'])
+    t_start = datetime.datetime.utcfromtimestamp(loan["loaned_at"])
+    t_end = datetime.datetime.utcfromtimestamp(loan["returned_at"])
     d = {
-        "book": loan['book'],
-        "identifier": loan['ocaid'],
-        "resource_type": loan['resource_type'],
+        "book": loan["book"],
+        "identifier": loan["ocaid"],
+        "resource_type": loan["resource_type"],
         "t_start": t_start.isoformat(),
         "t_end": t_end.isoformat(),
         "status": "completed",
@@ -536,7 +608,9 @@ def _get_loan_key(loan):
     # when uuid is not available.
     return "loans/" + loan.get("uuid") or loan["_key"]
 
+
 def setup():
     from openlibrary.core import msgbroker
+
     msgbroker.subscribe("loan-created", on_loan_created_statsdb)
     msgbroker.subscribe("loan-completed", on_loan_completed_statsdb)

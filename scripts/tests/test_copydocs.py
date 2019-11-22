@@ -1,4 +1,4 @@
-from ..copydocs import copy, KeyVersionPair
+from ..copydocs import KeyVersionPair, copy
 
 
 class TestKeyVersionPair():

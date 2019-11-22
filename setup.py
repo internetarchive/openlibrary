@@ -1,11 +1,14 @@
-from setuptools import setup, find_packages
 import glob
 import os
-from stat import ST_MODE, S_IEXEC, S_ISDIR
+from stat import S_IEXEC, S_ISDIR, ST_MODE
+
+from setuptools import find_packages, setup
+
 
 def executable(path):
     st = os.stat(path)[ST_MODE]
     return (st & S_IEXEC) and not S_ISDIR(st)
+
 
 dependencies = """
 Babel
@@ -33,11 +36,10 @@ mockcache
 """
 
 setup(
-    name='openlibrary',
-    version='2.0',
-    description='Open Library',
+    name="openlibrary",
+    version="2.0",
+    description="Open Library",
     packages=find_packages(exclude=["ez_setup"]),
-    scripts=filter(executable, glob.glob('scripts/*')),
-    install_requires=dependencies.split()
+    scripts=filter(executable, glob.glob("scripts/*")),
+    install_requires=dependencies.split(),
 )
-

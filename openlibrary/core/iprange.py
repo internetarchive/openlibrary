@@ -1,19 +1,20 @@
 """Tools to parse ip ranges.
 """
 import re
-import iptools
 
 import six
 
+import iptools
 
-four_octet = r'(\d+\.\d+\.\d+\.\d+)'
-re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
-re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
-re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
-re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
-re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
+four_octet = r"(\d+\.\d+\.\d+\.\d+)"
+re_range_star = re.compile(r"^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$")
+re_three = re.compile(r"^(\d+\.\d+\.\d+)\.$")
+re_four = re.compile(r"^" + four_octet + r"(/\d+)?$")
+re_range_in_last = re.compile(r"^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$")
+re_four_to_four = re.compile("^%s\s*-\s*%s$" % (four_octet, four_octet))
 
 patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
+
 
 def parse_ip_ranges(text):
     """Parses IP ranges in various formats from a multi-line text and returns them in standard representation.
@@ -45,21 +46,24 @@ def parse_ip_ranges(text):
         # accept IP ranges
         m = re_range_star.match(line)
         if m:
-            start = '%s.%s.0' % (m.group(1), m.group(2))
-            end = '%s.%s.255' % (m.group(1), m.group(3))
+            start = "%s.%s.0" % (m.group(1), m.group(2))
+            end = "%s.%s.255" % (m.group(1), m.group(3))
             yield (start, end)
             continue
 
         # consider 1.2.3 as 1.2.3.0 - 1.2.3.255
         m = re_three.match(line)
         if m:
-            yield ('%s.0' % m.group(1), '%s.255' % m.group(1))
+            yield ("%s.0" % m.group(1), "%s.255" % m.group(1))
             continue
 
         # consider 1.2.3.4-10 as 1.2.3.4 - 1.2.3.10
         m = re_range_in_last.match(line)
         if m:
-            yield ('%s.%s' % (m.group(1), m.group(2)), '%s.%s' % (m.group(1), m.group(3)))
+            yield (
+                "%s.%s" % (m.group(1), m.group(2)),
+                "%s.%s" % (m.group(1), m.group(3)),
+            )
             continue
 
         # accept 1.2.3.4 - 2.3.4.5
@@ -69,14 +73,18 @@ def parse_ip_ranges(text):
             continue
 
         # consider 1.2.*.* as 1.2.0.0/16
-        if '*' in line:
+        if "*" in line:
             collected = []
-            octets = line.split('.')
+            octets = line.split(".")
             while octets[0].isdigit():
                 collected.append(octets.pop(0))
-            if collected and all(octet == '*' for octet in octets):
-                yield '%s/%d' % ('.'.join(collected + ['0'] * len(octets)), len(collected) * 8)
+            if collected and all(octet == "*" for octet in octets):
+                yield "%s/%d" % (
+                    ".".join(collected + ["0"] * len(octets)),
+                    len(collected) * 8,
+                )
             continue
+
 
 def find_bad_ip_ranges(text):
     """Returns bad ip-ranges in the given text.
@@ -91,15 +99,16 @@ def find_bad_ip_ranges(text):
             continue
         if any(pat.match(line) for pat in patterns):
             continue
-        if '*' in line:
+        if "*" in line:
             collected = []
-            octets = line.split('.')
+            octets = line.split(".")
             while octets[0].isdigit():
                 collected.append(octets.pop(0))
-            if collected and all(octet == '*' for octet in octets):
+            if collected and all(octet == "*" for octet in octets):
                 continue
         bad.append(orig)
     return bad
+
 
 class IPDict:
     """Efficient dictionary of IP ranges to values.
@@ -114,6 +123,7 @@ class IPDict:
         'foo'
         >>> ipmap.get('1.2.5.5')
     """
+
     def __init__(self):
         # 2-level Dictionary for storing IP ranges
         #
@@ -144,7 +154,9 @@ class IPDict:
         # Find the integer representation of first 2 parts of the start and end IPs
         if isinstance(ip_range, tuple):
             # ignore bad ips
-            if not iptools.ipv4.validate_ip(ip_range[0]) or not iptools.ipv4.validate_ip(ip_range[1]):
+            if not iptools.ipv4.validate_ip(
+                ip_range[0]
+            ) or not iptools.ipv4.validate_ip(ip_range[1]):
                 return
 
             # Take the first 2 parts of the begin and end ip as integer
@@ -155,7 +167,7 @@ class IPDict:
             end = start
 
         # for each integer in the range add an entry.
-        for i in range(start, end+1):
+        for i in range(start, end + 1):
             self.ip_ranges.setdefault(i, {})[iptools.IpRange(ip_range)] = value
 
     def add_ip_range_text(self, ip_range_text, value):

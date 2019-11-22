@@ -16,16 +16,21 @@
     IOError: [Errno socket error] (61, 'Connection refused')
 """
 from __future__ import print_function
-from web.wsgiserver import CherryPyWSGIServer
-import urllib
+
 import threading
 import time
+import urllib
+
+from web.wsgiserver import CherryPyWSGIServer
+
 
 class HTTPServer:
     def __init__(self, port=8090):
         self.mappings = {}
         self.port = port
-        self.server = CherryPyWSGIServer(("0.0.0.0", port), self, server_name="localhost")
+        self.server = CherryPyWSGIServer(
+            ("0.0.0.0", port), self, server_name="localhost"
+        )
         self.started = False
         self.t = threading.Thread(target=self._start)
         self.t.start()
@@ -35,13 +40,13 @@ class HTTPServer:
         try:
             self.server.start()
         except Exception as e:
-            print('ERROR: failed to start server', str(e))
+            print("ERROR: failed to start server", str(e))
 
     def stop(self):
         self.server.stop()
         self.t.join()
 
-    def request(self, path, method='GET', query={}):
+    def request(self, path, method="GET", query={}):
         response = Respose()
 
         if isinstance(query, dict):
@@ -51,8 +56,8 @@ class HTTPServer:
         return response
 
     def __call__(self, environ, start_response):
-        _method = environ.get('REQUEST_METHOD', 'GET')
-        _path = environ.get('PATH_INFO')
+        _method = environ.get("REQUEST_METHOD", "GET")
+        _path = environ.get("PATH_INFO")
 
         for (path, method, query_string), response in self.mappings.items():
             if _path == path and _method == method:
@@ -60,9 +65,10 @@ class HTTPServer:
 
         return Respose()(start_response)
 
+
 class Respose:
     def __init__(self):
-        self.status = '404 Not Found'
+        self.status = "404 Not Found"
         self.data = "not found"
         self.headers = {}
 
@@ -75,6 +81,8 @@ class Respose:
         start_response(self.status, self.headers.items())
         return self.data
 
+
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -1,9 +1,8 @@
 """Generic date utilities.
 """
 
-import datetime
 import calendar
-
+import datetime
 
 MINUTE_SECS = 60
 HALF_HOUR_SECS = MINUTE_SECS * 30
@@ -33,6 +32,7 @@ def date_n_days_ago(n=None, start=None):
 DATE_ONE_MONTH_AGO = date_n_days_ago(n=days_in_current_month())
 DATE_ONE_WEEK_AGO = date_n_days_ago(n=7)
 
+
 def parse_date(datestr):
     """Parses date string.
 
@@ -49,6 +49,7 @@ def parse_date(datestr):
     yyyy, mm, dd = tokens[:3]
     return datetime.date(int(yyyy), mm and int(mm) or 1, dd and int(dd) or 1)
 
+
 def parse_daterange(datestr):
     """Parses date range.
 
@@ -58,15 +59,17 @@ def parse_daterange(datestr):
     date = parse_date(datestr)
     tokens = datestr.split("-")
 
-    if len(tokens) == 1: # only year specified
+    if len(tokens) == 1:  # only year specified
         return date, nextyear(date)
-    elif len(tokens) == 2: # year and month specified
+    elif len(tokens) == 2:  # year and month specified
         return date, nextmonth(date)
     else:
         return date, nextday(date)
 
+
 def nextday(date):
     return date + datetime.timedelta(1)
+
 
 def nextmonth(date):
     """Returns a new date object with first day of the next month."""
@@ -79,13 +82,14 @@ def nextmonth(date):
 
     return datetime.date(year, month, 1)
 
+
 def nextyear(date):
     """Returns a new date object with first day of the next year."""
-    return datetime.date(date.year+1, 1, 1)
+    return datetime.date(date.year + 1, 1, 1)
+
 
 def _resize_list(x, size):
     """Increase the size of the list x to the specified size it is smaller.
     """
     if len(x) < size:
         x += [None] * (size - len(x))
-

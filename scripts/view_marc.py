@@ -1,10 +1,12 @@
 #!/usr/bin/python2.5
 from __future__ import print_function
-from openlibrary.catalog.marc.fast_parse import *
-from openlibrary.catalog.get_ia import get_from_archive
-import sys
+
 import codecs
 import re
+import sys
+
+from openlibrary.catalog.get_ia import get_from_archive
+from openlibrary.catalog.marc.fast_parse import *
 
 sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 

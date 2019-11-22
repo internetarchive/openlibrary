@@ -1,15 +1,14 @@
 """Code for handling /data/*.txt.gz URLs.
 """
+import urllib2
+
+import simplejson
 import web
 from infogami import config
 from infogami.utils import delegate
 from infogami.utils.view import public
 
-import simplejson
-import urllib2
-
-
-IA_BASE_URL = config.get('ia_base_url')
+IA_BASE_URL = config.get("ia_base_url")
 
 
 def wget(url):
@@ -18,14 +17,17 @@ def wget(url):
 
 def get_ol_dumps():
     """Get list of all archive.org items in the ol_exports collection uploaded by archive.org staff."""
-    url = IA_BASE_URL + '/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=1000'
+    url = (
+        IA_BASE_URL
+        + "/advancedsearch.php?q=(ol_dump+OR+ol_cdump)+AND+collection:ol_exports&fl[]=identifier&output=json&rows=1000"
+    )
     d = simplejson.loads(wget(url))
-    return sorted(doc['identifier'] for doc in d['response']['docs'])
+    return sorted(doc["identifier"] for doc in d["response"]["docs"])
 
 
 # cache the result for half an hour
-get_ol_dumps = web.memoize(get_ol_dumps, 30*60, background=True)
-#public(get_ol_dumps)
+get_ol_dumps = web.memoize(get_ol_dumps, 30 * 60, background=True)
+# public(get_ol_dumps)
 
 
 def download_url(item, filename):

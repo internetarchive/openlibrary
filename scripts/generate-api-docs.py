@@ -1,9 +1,11 @@
 from __future__ import print_function
-import web
+
 import os
 import re
 import shutil
 from collections import defaultdict
+
+import web
 
 template = """\
 $def with (mod, submodules)

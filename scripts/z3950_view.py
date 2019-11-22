@@ -1,11 +1,13 @@
-import web
-from PyZ3950 import zoom
-from lxml import etree
-import sys
 import re
+import sys
 from urllib import urlopen
-from openlibrary.catalog.marc.html import html_record
+
+from lxml import etree
+
+import web
 from openlibrary.catalog.marc import xml_to_html
+from openlibrary.catalog.marc.html import html_record
+from PyZ3950 import zoom
 
 tree = etree.parse('/petabox/www/petabox/includes/ztargets.xml')
 root = tree.getroot()
@@ -141,4 +143,3 @@ class z3950_lookup:
 
 if __name__ == "__main__":
     app.run()
-

@@ -1,23 +1,23 @@
 """Loan Stats"""
 
 import re
+
 import web
 from infogami.utils import delegate
 
-from ..utils import dateutil
 from .. import app
 from ..core import cache
 from ..core.bookshelves import Bookshelves
 from ..core.ratings import Ratings
 from ..plugins.admin.code import get_counts
+from ..utils import dateutil
 
-
-LENDING_TYPES = '(libraries|regions|countries|collections|subjects|format)'
+LENDING_TYPES = "(libraries|regions|countries|collections|subjects|format)"
 
 
 def reading_log_summary():
     # enable to work w/ cached
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     stats = Bookshelves.summary()
@@ -26,36 +26,42 @@ def reading_log_summary():
 
 
 cached_reading_log_summary = cache.memcache_memoize(
-    reading_log_summary, 'stats.readling_log_summary',
-    timeout=dateutil.HOUR_SECS)
+    reading_log_summary, "stats.readling_log_summary", timeout=dateutil.HOUR_SECS
+)
 
 
 def reading_log_leaderboard(limit=None):
     # enable to work w/ cached
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
 
     most_read = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Already Read'], limit=limit)
+        Bookshelves.PRESET_BOOKSHELVES["Already Read"], limit=limit
+    )
     most_wanted_all = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit)
+        Bookshelves.PRESET_BOOKSHELVES["Want to Read"], limit=limit
+    )
     most_wanted_month = Bookshelves.most_logged_books(
-        Bookshelves.PRESET_BOOKSHELVES['Want to Read'], limit=limit,
-        since=dateutil.DATE_ONE_MONTH_AGO)
+        Bookshelves.PRESET_BOOKSHELVES["Want to Read"],
+        limit=limit,
+        since=dateutil.DATE_ONE_MONTH_AGO,
+    )
     return {
-        'leaderboard': {
-            'most_read': most_read,
-            'most_wanted_all': most_wanted_all,
-            'most_wanted_month': most_wanted_month,
-            'most_rated_all': Ratings.most_rated_books()
+        "leaderboard": {
+            "most_read": most_read,
+            "most_wanted_all": most_wanted_all,
+            "most_wanted_month": most_wanted_month,
+            "most_rated_all": Ratings.most_rated_books(),
         }
     }
 
 
 def cached_reading_log_leaderboard(limit=None):
     return cache.memcache_memoize(
-        reading_log_leaderboard, 'stats.readling_log_leaderboard',
-        timeout=dateutil.HOUR_SECS )(limit)
+        reading_log_leaderboard,
+        "stats.readling_log_leaderboard",
+        timeout=dateutil.HOUR_SECS,
+    )(limit)
 
 
 def get_cached_reading_log_stats(limit):
@@ -93,17 +99,21 @@ class readinglog_stats(app.view):
         stats = get_cached_reading_log_stats(limit=limit)
 
         # Fetch works from solr and inject into leaderboard
-        for i in range(len(stats['leaderboard']['most_read'])):
-            stats['leaderboard']['most_read'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_read'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_all'])):
-            stats['leaderboard']['most_wanted_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_all'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_wanted_month'])):
-            stats['leaderboard']['most_wanted_month'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_wanted_month'][i]['work_id'])
-        for i in range(len(stats['leaderboard']['most_rated_all'])):
-            stats['leaderboard']['most_rated_all'][i]['work'] = web.ctx.site.get(
-                '/works/OL%sW' % stats['leaderboard']['most_rated_all'][i]['work_id'])
+        for i in range(len(stats["leaderboard"]["most_read"])):
+            stats["leaderboard"]["most_read"][i]["work"] = web.ctx.site.get(
+                "/works/OL%sW" % stats["leaderboard"]["most_read"][i]["work_id"]
+            )
+        for i in range(len(stats["leaderboard"]["most_wanted_all"])):
+            stats["leaderboard"]["most_wanted_all"][i]["work"] = web.ctx.site.get(
+                "/works/OL%sW" % stats["leaderboard"]["most_wanted_all"][i]["work_id"]
+            )
+        for i in range(len(stats["leaderboard"]["most_wanted_month"])):
+            stats["leaderboard"]["most_wanted_month"][i]["work"] = web.ctx.site.get(
+                "/works/OL%sW" % stats["leaderboard"]["most_wanted_month"][i]["work_id"]
+            )
+        for i in range(len(stats["leaderboard"]["most_rated_all"])):
+            stats["leaderboard"]["most_rated_all"][i]["work"] = web.ctx.site.get(
+                "/works/OL%sW" % stats["leaderboard"]["most_rated_all"][i]["work_id"]
+            )
 
         return app.render_template("stats/readinglog", stats=stats)

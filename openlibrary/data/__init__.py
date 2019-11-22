@@ -1,9 +1,10 @@
 """Library for managing Open Library data"""
 
-import simplejson
 import re
 
+import simplejson
 from dump import pgdecode
+
 
 def parse_data_table(filename):
     """Parses the dump of data table and returns an iterator with
@@ -12,5 +13,4 @@ def parse_data_table(filename):
     for line in open(filename):
         thing_id, revision, json = pgdecode(line).strip().split("\t")
         d = simplejson.loads(json)
-        yield d['key'], d['type']['key'], str(d['revision']), json
-
+        yield d["key"], d["type"]["key"], str(d["revision"]), json

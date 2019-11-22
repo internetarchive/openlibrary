@@ -1,11 +1,15 @@
-import random
 import os
+import random
 import string
+
 import warc
 
 chars = string.letters + string.digits
+
+
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
+
 
 class Disk:
     """Disk interface to store files.
@@ -23,16 +27,17 @@ class Disk:
     >>> disk.read(f3)
     'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
     """
+
     def __init__(self, root):
         self.root = root
         if not os.path.exists(root):
             os.makedirs(root)
 
     def write(self, data, params={}):
-        prefix = params.get('olid', '')
+        prefix = params.get("olid", "")
         filename = self.make_filename(prefix)
         path = os.path.join(self.root, filename)
-        f = open(path, 'w')
+        f = open(path, "w")
         f.write(data)
         f.close()
         return filename
@@ -45,10 +50,12 @@ class Disk:
     def make_filename(self, prefix=""):
         def exists(filename):
             return os.path.exists(os.path.join(self.root, filename))
+
         filename = prefix + "_" + random_string(4)
         while exists(filename):
-            filename = prefix + "_"  + random_string(4)
+            filename = prefix + "_" + random_string(4)
         return filename
+
 
 class WARCDisk:
     def __init__(self, root, prefix="file", maxsize=500 * 1024 * 1024):
@@ -82,13 +89,13 @@ class WARCDisk:
 
     def get_item_name(self, warcfilename):
         # warc file file_xxxx_yy.warc is stored in item file_xxxx.
-        itemname, _ = warcfilename.rsplit('_', 1)
+        itemname, _ = warcfilename.rsplit("_", 1)
         return itemname
 
     def read(self, filename):
-        if filename.count(':') != 2:
+        if filename.count(":") != 2:
             return None
-        warcfilename, offset, size = filename.split(':')
+        warcfilename, offset, size = filename.split(":")
         offset = int(offset)
         size = int(size)
         path = self.get_path(warcfilename)
@@ -106,16 +113,16 @@ class WARCDisk:
     def write(self, data, headers={}):
         warcfilename = self.get_next_warcfile()
         path = self.get_path(warcfilename, create_dirs=True)
-        w = warc.WARCWriter(open(path, 'a'))
+        w = warc.WARCWriter(open(path, "a"))
 
         headers = dict(headers)
-        subject_uri = headers.pop('subject_uri', 'xxx')
-        mimetype = headers.pop('mimetype', 'application/octet-stream')
+        subject_uri = headers.pop("subject_uri", "xxx")
+        mimetype = headers.pop("mimetype", "application/octet-stream")
 
-        warc_record = warc.WARCRecord('resource', subject_uri, mimetype, headers, data)
+        warc_record = warc.WARCRecord("resource", subject_uri, mimetype, headers, data)
         offset = w.write(warc_record)
         w.close()
-        filename = '%s:%d:%d' % (warcfilename, offset, len(data))
+        filename = "%s:%d:%d" % (warcfilename, offset, len(data))
         return filename
 
     def find(self, dir):
@@ -149,25 +156,30 @@ class WARCDisk:
         """
         from web.utils import numify, denumify
 
-        #@@ this could be dangerous. If we clear the directory, it starts again from count 0.
-        #@@ Probably, this should be taken from database.
+        # @@ this could be dangerous. If we clear the directory, it starts again from count 0.
+        # @@ Probably, this should be taken from database.
         if self.next_warcfile is None:
-            files = [os.path.basename(f) for f in self.find(self.root) if f.endswith('.warc')]
+            files = [
+                os.path.basename(f) for f in self.find(self.root) if f.endswith(".warc")
+            ]
             if files:
                 files.sort()
                 self.next_warcfile = files[-1]
             else:
-                self.next_warcfile = self.warcfile_prefix + '_0000_00.warc'
+                self.next_warcfile = self.warcfile_prefix + "_0000_00.warc"
 
         path = self.get_path(self.next_warcfile)
         if os.path.exists(path) and self.filesize(path) >= self.maxsize:
             count = int(numify(self.next_warcfile)) + 1
-            self.next_warcfile = self.warcfile_prefix + denumify("%06d" % count, "_XXXX_XX.warc")
+            self.next_warcfile = self.warcfile_prefix + denumify(
+                "%06d" % count, "_XXXX_XX.warc"
+            )
 
         return self.next_warcfile
 
     def filesize(self, filename):
         return os.stat(filename).st_size
+
 
 class ArchiveDisk(WARCDisk):
     """Disk interface to internet archive storage.
@@ -175,13 +187,14 @@ class ArchiveDisk(WARCDisk):
     There is a convention that is used to name files and items.
     prefix_xxxx_yy.ext is saved in item named prefix_xxxx.
     """
+
     def make_warcfile(self, warcfilename):
         path = self.get_path(warcfilename)
         if os.path.exists(path):
             return open(path)
         else:
             itemname = self.get_item_name(warcfilename)
-            url = self.item_url(itemname) + '/' + warcfilename
+            url = self.item_url(itemname) + "/" + warcfilename
             return warc.HTTPFile(url)
 
     def read(self, filename):
@@ -195,7 +208,7 @@ class ArchiveDisk(WARCDisk):
         if data:
             return data
 
-        warcfilename, offset, size = filename.split(':')
+        warcfilename, offset, size = filename.split(":")
         offset = int(offset)
         size = int(size)
         f = self.make_warcfile(warcfilename)
@@ -204,32 +217,38 @@ class ArchiveDisk(WARCDisk):
 
     def create_file(self, filename):
         itemname = self.get_item_name(filename)
-        url = self.item_url(itemname) + '/' + filename
+        url = self.item_url(itemname) + "/" + filename
         return warc.HTTPFile(url)
 
     def get_item_name(self, warcfilename):
         # warc file file_xxxx_yy.warc is stored in item file_xxxx.
-        itemname, _ = warcfilename.rsplit('_', 1)
+        itemname, _ = warcfilename.rsplit("_", 1)
         return itemname
 
     def item_url(self, itemname):
         """Returns http url to access files from the item specified by the itemname."""
         from xml.dom import minidom
         import urllib
-        base_url = 'http://www.archive.org/services/find_file.php?loconly=1&file='
+
+        base_url = "http://www.archive.org/services/find_file.php?loconly=1&file="
         try:
-            data= urllib.urlopen(base_url + itemname).read()
+            data = urllib.urlopen(base_url + itemname).read()
             doc = minidom.parseString(data)
-            vals = ['http://' + e.getAttribute('host') + e.getAttribute('dir') for e in doc.getElementsByTagName('location')]
+            vals = [
+                "http://" + e.getAttribute("host") + e.getAttribute("dir")
+                for e in doc.getElementsByTagName("location")
+            ]
             return vals and vals[0]
         except Exception:
             return None
+
 
 class LayeredDisk:
     """Disk interface over multiple disks.
     Write always happens to the first disk and
     read happens on the first disk where the file is available.
     """
+
     def __init__(self, disks):
         self.disks = disks
 
@@ -242,7 +261,8 @@ class LayeredDisk:
     def write(self, data, headers={}):
         return self.disks[0].write(data, headers)
 
+
 if __name__ == "__main__":
     import doctest
-    doctest.testmod()
 
+    doctest.testmod()

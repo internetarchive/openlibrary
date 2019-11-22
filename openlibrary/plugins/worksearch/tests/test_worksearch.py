@@ -1,20 +1,38 @@
 from __future__ import print_function
+
 import unittest
-from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
+
 from lxml import etree
+
 from infogami import config
+from openlibrary.plugins.worksearch.code import (
+    build_q_list,
+    escape_bracket,
+    escape_colon,
+    get_doc,
+    parse_query_fields,
+    parse_search_response,
+    read_facets,
+    run_solr_query,
+    sorted_work_editions,
+)
+
 
 def test_escape_bracket():
-    assert escape_bracket('foo') == 'foo'
-    assert escape_bracket('foo[') == 'foo\\['
-    assert escape_bracket('[ 10 TO 1000]') == '[ 10 TO 1000]'
+    assert escape_bracket("foo") == "foo"
+    assert escape_bracket("foo[") == "foo\\["
+    assert escape_bracket("[ 10 TO 1000]") == "[ 10 TO 1000]"
+
 
 def test_escape_colon():
-    vf = ['key', 'name', 'type', 'count']
-    assert escape_colon('test key:test http://test/', vf) == 'test key:test http\\://test/'
+    vf = ["key", "name", "type", "count"]
+    assert (
+        escape_colon("test key:test http://test/", vf) == "test key:test http\\://test/"
+    )
+
 
 def test_read_facet():
-    xml = '''<response>
+    xml = """<response>
         <lst name="facet_counts">
             <lst name="facet_fields">
                 <lst name="has_fulltext">
@@ -23,13 +41,14 @@ def test_read_facet():
                 </lst>
             </lst>
         </lst>
-    </response>'''
+    </response>"""
 
-    expect = {'has_fulltext': [('true', 'yes', '2'), ('false', 'no', '46')]}
+    expect = {"has_fulltext": [("true", "yes", "2"), ("false", "no", "46")]}
     assert read_facets(etree.fromstring(xml)) == expect
 
+
 def test_sorted_work_editions():
-    json_data = '''{
+    json_data = """{
 "responseHeader":{
 "status":0,
 "QTime":1,
@@ -41,66 +60,64 @@ def test_sorted_work_editions():
 "response":{"numFound":1,"start":0,"docs":[
 {
  "edition_key":["OL7536692M","OL7825368M","OL3026366M"]}]
-}}'''
-    expect = ["OL7536692M","OL7825368M","OL3026366M"]
-    assert sorted_work_editions('OL100000W', json_data=json_data) == expect
+}}"""
+    expect = ["OL7536692M", "OL7825368M", "OL3026366M"]
+    assert sorted_work_editions("OL100000W", json_data=json_data) == expect
+
 
 def test_query_parser_fields():
     func = parse_query_fields
 
-    expect = [{'field': 'text', 'value': 'query here'}]
-    q = 'query here'
+    expect = [{"field": "text", "value": "query here"}]
+    q = "query here"
     print(q)
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'title', 'value': 'food rules'},
-        {'field': 'author_name', 'value': 'pollan'},
+        {"field": "title", "value": "food rules"},
+        {"field": "author_name", "value": "pollan"},
     ]
 
-    q = 'title:food rules author:pollan'
+    q = "title:food rules author:pollan"
     assert list(func(q)) == expect
 
-    q = 'title:food rules by:pollan'
+    q = "title:food rules by:pollan"
     assert list(func(q)) == expect
 
-    q = 'Title:food rules By:pollan'
+    q = "Title:food rules By:pollan"
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'title', 'value': '"food rules"'},
-        {'field': 'author_name', 'value': 'pollan'},
+        {"field": "title", "value": '"food rules"'},
+        {"field": "author_name", "value": "pollan"},
     ]
     q = 'title:"food rules" author:pollan'
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'text', 'value': 'query here'},
-        {'field': 'title', 'value': 'food rules'},
-        {'field': 'author_name', 'value': 'pollan'},
+        {"field": "text", "value": "query here"},
+        {"field": "title", "value": "food rules"},
+        {"field": "author_name", "value": "pollan"},
     ]
-    q = 'query here title:food rules author:pollan'
+    q = "query here title:food rules author:pollan"
+    assert list(func(q)) == expect
+
+    expect = [{"field": "text", "value": "flatland\:a romance of many dimensions"}]
+    q = "flatland:a romance of many dimensions"
+    assert list(func(q)) == expect
+
+    expect = [{"field": "title", "value": "flatland\:a romance of many dimensions"}]
+    q = "title:flatland:a romance of many dimensions"
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'text', 'value': 'flatland\:a romance of many dimensions'},
+        {"field": "author_name", "value": "Kim Harrison"},
+        {"op": "OR"},
+        {"field": "author_name", "value": "Lynsay Sands"},
     ]
-    q = 'flatland:a romance of many dimensions'
+    q = "authors:Kim Harrison OR authors:Lynsay Sands"
     assert list(func(q)) == expect
 
-    expect = [
-        { 'field': 'title', 'value': 'flatland\:a romance of many dimensions'},
-    ]
-    q = 'title:flatland:a romance of many dimensions'
-    assert list(func(q)) == expect
-
-    expect = [
-        { 'field': 'author_name', 'value': 'Kim Harrison' },
-        { 'op': 'OR' },
-        { 'field': 'author_name', 'value': 'Lynsay Sands' },
-    ]
-    q = 'authors:Kim Harrison OR authors:Lynsay Sands'
-    assert list(func(q)) == expect
 
 #     def test_public_scan(lf):
 #         param = {'subject_facet': ['Lending library']}
@@ -113,8 +130,10 @@ def test_query_parser_fields():
 #         for doc in docs:
 #             assert get_doc(doc).public_scan == False
 
+
 def test_get_doc():
-    sample_doc = etree.fromstring('''<doc>
+    sample_doc = etree.fromstring(
+        """<doc>
 <arr name="author_key"><str>OL218224A</str></arr>
 <arr name="author_name"><str>Alan Freedman</str></arr>
 <str name="cover_edition_key">OL1111795M</str>
@@ -126,30 +145,44 @@ def test_get_doc():
 <str name="lending_edition_s">OL1111795M</str>
 <bool name="public_scan_b">false</bool>
 <str name="title">The computer glossary</str>
-</doc>''')
+</doc>"""
+    )
 
     doc = get_doc(sample_doc)
     assert doc.public_scan == False
 
+
 def test_build_q_list():
-    param = {'q': 'test'}
-    expect = (['test'], True)
+    param = {"q": "test"}
+    expect = (["test"], True)
     assert build_q_list(param) == expect
 
-    param = {'q': 'title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)'}
-    expect = (['title:((Holidays are Hell))', 'author_name:((Kim Harrison))', 'OR', 'author_name:((Lynsay Sands))'], False)
+    param = {
+        "q": "title:(Holidays are Hell) authors:(Kim Harrison) OR authors:(Lynsay Sands)"
+    }
+    expect = (
+        [
+            "title:((Holidays are Hell))",
+            "author_name:((Kim Harrison))",
+            "OR",
+            "author_name:((Lynsay Sands))",
+        ],
+        False,
+    )
     query_fields = [
-        {'field': 'title', 'value': '(Holidays are Hell)'},
-        {'field': 'author_name', 'value': '(Kim Harrison)'},
-        {'op': 'OR'},
-        {'field': 'author_name', 'value': '(Lynsay Sands)'}
+        {"field": "title", "value": "(Holidays are Hell)"},
+        {"field": "author_name", "value": "(Kim Harrison)"},
+        {"op": "OR"},
+        {"field": "author_name", "value": "(Lynsay Sands)"},
     ]
-    assert list(parse_query_fields(param['q'])) == query_fields
+    assert list(parse_query_fields(param["q"])) == query_fields
     assert build_q_list(param) == expect
+
 
 def test_parse_search_response():
-    test_input = '<pre>org.apache.lucene.queryParser.ParseException: This is an error</pre>'
-    expect = {'error': 'This is an error'}
+    test_input = (
+        "<pre>org.apache.lucene.queryParser.ParseException: This is an error</pre>"
+    )
+    expect = {"error": "This is an error"}
     assert parse_search_response(test_input) == expect
-    assert parse_search_response('{"aaa": "bbb"}') == {'aaa': 'bbb'}
-
+    assert parse_search_response('{"aaa": "bbb"}') == {"aaa": "bbb"}

@@ -1,36 +1,36 @@
 from __future__ import print_function
-import web
-import stopword
+
+import cPickle
 import pdb
-
-from infogami import utils
-from infogami.utils import delegate
-from infogami.infobase.client import Thing
-from infogami.utils import view, template
-from infogami import config
-from infogami.plugins.api.code import jsonapi
-
 import re
-import web
-import solr_client
 import time
-import simplejson
+from collections import defaultdict
 from functools import partial
 from gzip import open as gzopen
-import cPickle
-from collections import defaultdict
 
 import six
+
+import facet_hash
+import simplejson
+import solr_client
+import stopword
+import web
+from collapse import collapse_groups
+from infogami import config, utils
+from infogami.infobase.client import Thing
+from infogami.plugins.api.code import jsonapi
+from infogami.utils import delegate, template, view
 
 render = template.render
 
 sconfig = web.storage()
-if hasattr(config, 'plugin_search'):
+if hasattr(config, "plugin_search"):
     sconfig = config.plugin_search
 
-sconfig.setdefault('solr', None)
-sconfig.setdefault('fulltext_solr', None)
-sconfig.setdefault('fulltext_shards', [])
+sconfig.setdefault("solr", None)
+sconfig.setdefault("fulltext_solr", None)
+sconfig.setdefault("fulltext_shards", [])
+
 
 def parse_host(host_and_port):
     """
@@ -39,72 +39,72 @@ def parse_host(host_and_port):
     """
     if host_and_port is None:
         return (None, None)
-    h,p = host_and_port.split(':')
+    h, p = host_and_port.split(":")
     return (h, int(p))
+
 
 solr_server_address = parse_host(sconfig.solr)
 solr_fulltext_address = parse_host(sconfig.fulltext_solr)
 solr_fulltext_shards = map(parse_host, sconfig.fulltext_shards)
 
 if solr_fulltext_address is not None:
-    if hasattr(sconfig, 'solr_pagetext_address'):
+    if hasattr(sconfig, "solr_pagetext_address"):
         solr_pagetext_address = parse_host(sconfig.solr_pagetext_address)
     else:
         solr_pagetext_address = solr_fulltext_address
 
 if solr_server_address:
     solr = solr_client.Solr_client(solr_server_address)
-    solr.query_processor = solr_client.create_query_processor(sconfig.get('query_processor'))
+    solr.query_processor = solr_client.create_query_processor(
+        sconfig.get("query_processor")
+    )
 else:
     solr = None
 
 if solr_fulltext_address:
-    solr_fulltext = solr_client.Solr_client(solr_fulltext_address,
-                                            shards=solr_fulltext_shards)
-    solr_pagetext = solr_client.Solr_client(solr_pagetext_address,
-                                            shards=solr_fulltext_shards)
+    solr_fulltext = solr_client.Solr_client(
+        solr_fulltext_address, shards=solr_fulltext_shards
+    )
+    solr_pagetext = solr_client.Solr_client(
+        solr_pagetext_address, shards=solr_fulltext_shards
+    )
+
 
 def lookup_ocaid(ocaid):
-    ocat = web.ctx.site.things(dict(type='/type/edition', ocaid=ocaid))
-    assert isinstance(ocat, list), (ocaid,ocat)
+    ocat = web.ctx.site.things(dict(type="/type/edition", ocaid=ocaid))
+    assert isinstance(ocat, list), (ocaid, ocat)
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
-from collapse import collapse_groups
+
 class fullsearch(delegate.page):
     def POST(self):
         errortext = None
         out = []
 
-        i = web.input(q = None,
-                      rows = 20,
-                      offset = 0,
-                      _unicode=False
-                      )
+        i = web.input(q=None, rows=20, offset=0, _unicode=False)
 
-        class Result_nums: pass
+        class Result_nums:
+            pass
+
         nums = Result_nums()
         timings = Timestamp()
 
-        nums.offset = int(i.get('offset', '0') or 0)
-        nums.rows = int(i.get('rows', '0') or 20)
+        nums.offset = int(i.get("offset", "0") or 0)
+        nums.rows = int(i.get("rows", "0") or 20)
         nums.total_nbr = 0
         q = i.q
 
         if not q:
-            errortext='you need to enter some search terms'
-            return render.fullsearch(q, out,
-                                     nums,
-                                     [], # timings
-                                     errortext=errortext)
+            errortext = "you need to enter some search terms"
+            return render.fullsearch(q, out, nums, [], errortext=errortext)  # timings
 
         try:
-            q = re.sub('[\r\n]+', ' ', q).strip()
-            nums.total_nbr, results = \
-                       solr_fulltext.fulltext_search(q,
-                                                     start=nums.offset,
-                                                     rows=nums.rows)
-            timings.update('fulltext done')
+            q = re.sub("[\r\n]+", " ", q).strip()
+            nums.total_nbr, results = solr_fulltext.fulltext_search(
+                q, start=nums.offset, rows=nums.rows
+            )
+            timings.update("fulltext done")
             t_ocaid = 0.0
             for ocaid in results:
                 try:
@@ -116,36 +116,41 @@ class fullsearch(delegate.page):
                         # print >> web.debug, 'No oln_thing found for', ocaid
                         pass
                     else:
-                        out.append((oln_thing, ocaid,
-                                    collapse_groups(solr_pagetext.pagetext_search
-                                                    (ocaid, q))))
+                        out.append(
+                            (
+                                oln_thing,
+                                ocaid,
+                                collapse_groups(
+                                    solr_pagetext.pagetext_search(ocaid, q)
+                                ),
+                            )
+                        )
                 except IndexError as e:
-                    print(('fullsearch index error', e, e.args), file=web.debug)
+                    print(("fullsearch index error", e, e.args), file=web.debug)
                     pass
-            timings.update('pagetext done (oca lookups: %.4f sec)'% t_ocaid)
+            timings.update("pagetext done (oca lookups: %.4f sec)" % t_ocaid)
         except IOError as e:
-            errortext = 'fulltext search is temporarily unavailable (%s)' % \
-                        str(e)
+            errortext = "fulltext search is temporarily unavailable (%s)" % str(e)
 
-        return render.fullsearch(q,
-                                 out,
-                                 nums,
-                                 timings.results(),
-                                 errortext=errortext)
+        return render.fullsearch(q, out, nums, timings.results(), errortext=errortext)
 
     GET = POST
 
-import facet_hash
+
 facet_token = view.public(facet_hash.facet_token)
+
 
 class Timestamp(object):
     def __init__(self):
         self.t0 = time.time()
         self.ts = []
+
     def update(self, msg):
-        self.ts.append((msg, time.time()-self.t0))
+        self.ts.append((msg, time.time() - self.t0))
+
     def results(self):
         return (time.ctime(self.t0), self.ts)
+
 
 # this is in progress, not used yet.
 class Timestamp1(object):
@@ -154,21 +159,24 @@ class Timestamp1(object):
         self.last_t = time.time()
         self.key = key
         self.switch(key)
+
     def switch(self, key):
         t = time.time()
         self.td[self.key] += self.last_t - t
         self.last_t = t
         self.key = key
 
+
 def munch_qresults_stored(qresults):
-    def mk_author(a,ak):
+    def mk_author(a, ak):
         class Pseudo_thing(Thing):
             def _get(self, key, revision=None):
                 return self
+
             def __setattr__(self, a, v):
                 self.__dict__[a] = v
 
-        authortype = Thing(web.ctx.site,u'/type/author')
+        authortype = Thing(web.ctx.site, u"/type/author")
         d = Pseudo_thing(web.ctx.site, six.text_type(ak))
         d.name = a
         d.type = authortype
@@ -177,23 +185,32 @@ def munch_qresults_stored(qresults):
         # dba = web.ctx.site.get(ak)
         # print >> web.debug, ('mk_author db retrieval', dba)
         return d
+
     def mk_book(d):
         assert isinstance(d, dict)
-        d['key'] = d['identifier']
-        for x in ['title_prefix', 'ocaid','publish_date',
-                  'publishers', 'physical_format']:
+        d["key"] = d["identifier"]
+        for x in [
+            "title_prefix",
+            "ocaid",
+            "publish_date",
+            "publishers",
+            "physical_format",
+        ]:
             if x not in d:
-                d[x] = ''
+                d[x] = ""
 
         def dget(attr):
             a = d.get(attr, [])
             a = [] if a is None else a
             return a
-        da, dak = dget('authors'), dget('author_keys')
+
+        da, dak = dget("authors"), dget("author_keys")
         # print >> web.debug, ('da,dak',da,dak)
-        d['authors'] = list(mk_author(a,k) for a,k in zip(da,dak) if k is not None)
+        d["authors"] = list(mk_author(a, k) for a, k in zip(da, dak) if k is not None)
         return web.storage(**d)
+
     return map(mk_book, qresults.raw_results)
+
 
 def collect_works(result_list):
     wds = defaultdict(list)
@@ -201,10 +218,10 @@ def collect_works(result_list):
     # split result_list into two lists, those editions that have been assigned
     # to a work and those that have not.
     for r in result_list:
-        ws = r.get('works')
+        ws = r.get("works")
         if ws:
             for w in ws:
-                wds[w['key']].append(r)
+                wds[w["key"]].append(r)
         else:
             rs.append(r)
 
@@ -218,18 +235,20 @@ def collect_works(result_list):
 # part of the search import process.  figure out where that happened and
 # fix it later.  for now, just put the slash back.
 def restore_slash(book):
-    if not book.startswith('/'): return '/'+book
+    if not book.startswith("/"):
+        return "/" + book
     return book
+
 
 @view.public
 def exact_facet_count(query, selected_facets, facet_name, facet_value):
     t0 = time.time()
-    r = solr.exact_facet_count(query, selected_facets,
-                               facet_name, facet_value)
-    t1 = time.time()-t0
+    r = solr.exact_facet_count(query, selected_facets, facet_name, facet_value)
+    t1 = time.time() - t0
     qfn = (query, facet_name, facet_value)
-    print(('*** efc', qfn, r, t1), file=web.debug)
+    print(("*** efc", qfn, r, t1), file=web.debug)
     return r
+
 
 def get_books(keys):
     """Get all books specified by the keys in a single query and also prefetch all the author records.
@@ -239,8 +258,7 @@ def get_books(keys):
     # prefetch the authors so they will be cached by web.ctx.site for
     # later use.  Avoid trapping in case some author record doesn't
     # have a key, since this seems to happen sometimes.
-    author_keys = set(getattr(a, 'key', None)
-                      for b in books for a in b.authors)
+    author_keys = set(getattr(a, "key", None) for b in books for a in b.authors)
     author_keys.discard(None)
 
     # actually retrieve the authors and don't do anything with them.
@@ -248,8 +266,9 @@ def get_books(keys):
     web.ctx.site.get_many(list(author_keys))
     return books
 
+
 def munch_qresults(qlist):
-    raise NotImplementedError   # make sure we're not using this func
+    raise NotImplementedError  # make sure we're not using this func
 
     results = []
     rset = set()
@@ -265,6 +284,7 @@ def munch_qresults(qlist):
     # for each result
     return get_books(map(restore_slash, results))
 
+
 # disable the above function by redefining it as a do-nothing.
 # This replaces a version that removed all punctuation from the
 # query (see change history, 2008-05-01).  Something a bit smarter
@@ -276,51 +296,57 @@ def munch_qresults(qlist):
 
 # hmm, this should be done only for unqualified and isbn-specific
 # fields, not other named fields.  test like this for now. @@
-def clean_punctuation(s,field=None):
+def clean_punctuation(s, field=None):
     def clean1(w):
-        x = w.lstrip(':')
+        x = w.lstrip(":")
         # return x                # actually don't compress ISBN for now.
-        maybe_isbn = list(c for c in x if c != '-')
-        if len(maybe_isbn) in [10,13] and all(c.isdigit() for c in maybe_isbn):
-            x = ''.join(maybe_isbn)
+        maybe_isbn = list(c for c in x if c != "-")
+        if len(maybe_isbn) in [10, 13] and all(c.isdigit() for c in maybe_isbn):
+            x = "".join(maybe_isbn)
         return x
+
     ws = map(clean1, s.split())
-    r = ' '.join(filter(bool,ws))
+    r = " ".join(filter(bool, ws))
     return r
 
+
 class search_api:
-    error_val = {'status':'error'}
+    error_val = {"status": "error"}
+
     def GET(self):
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
-                if (not isinstance(callback, str) or
-                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
+                if not isinstance(callback, str) or not re.match(
+                    "[a-z][a-z0-9\.]*$", callback, re.I
+                ):
                     val = self.error_val
                     callback = None
 
             if prettyprint:
-                json = simplejson.dumps(val, indent = 4)
+                json = simplejson.dumps(val, indent=4)
             else:
                 json = simplejson.dumps(val)
 
             if callback is None:
                 return json
             else:
-                return '%s(%s)'% (callback, json)
+                return "%s(%s)" % (callback, json)
 
-        i = web.input(q = None,
-                      rows = 20,
-                      offset = 0,
-                      format = None,
-                      callback = None,
-                      prettyprint=False,
-                      _unicode=False)
+        i = web.input(
+            q=None,
+            rows=20,
+            offset=0,
+            format=None,
+            callback=None,
+            prettyprint=False,
+            _unicode=False,
+        )
 
-        offset = int(i.get('offset', '0') or 0)
-        rows = int(i.get('rows', '0') or 20)
+        offset = int(i.get("offset", "0") or 0)
+        rows = int(i.get("rows", "0") or 20)
 
         try:
-            query = simplejson.loads(i.q).get('query')
+            query = simplejson.loads(i.q).get("query")
         except (ValueError, TypeError):
             return format(self.error_val, i.prettyprint, i.callback)
 
@@ -341,11 +367,9 @@ class search_api:
             return self.error_val
 
     def _lookup_1(self, i, query, offset, rows):
-        qresult = query and \
-                   solr.basic_search(query.encode('utf8'),
-                                     start=offset,
-                                     rows=rows
-                                     )
+        qresult = query and solr.basic_search(
+            query.encode("utf8"), start=offset, rows=rows
+        )
         if not qresult:
             result = []
         else:
@@ -354,15 +378,14 @@ class search_api:
         dval = dict()
 
         if i.format == "expanded":
-            eresult = list(book.dict() for book in munch_qresults(result)
-                           if book)
+            eresult = list(book.dict() for book in munch_qresults(result) if book)
             for e in eresult:
                 for a in e.get("authors", []):
                     ak = web.ctx.site.get(a["key"])
                     if ak:
                         akd = ak.dict()
-                        if 'books' in akd:
-                            del akd['books']
+                        if "books" in akd:
+                            del akd["books"]
                         a["expanded"] = akd
 
             dval["expanded_result"] = eresult
@@ -372,11 +395,12 @@ class search_api:
         dval["status"] = "ok"
         return dval
 
+
 class SearchProcessor:
     def _process_query(self, query):
         """Process a query dictionary and returns a query string."""
         query = dict(query)
-        q = query.pop('q', None)
+        q = query.pop("q", None)
 
         parts = []
         if q:
@@ -385,10 +409,10 @@ class SearchProcessor:
         for k, v in query.items():
             k = k.lower()
             v = self.normalize(v)
-            if k == 'isbn':
-                part = '(isbn_10:(%s) OR isbn_13:(%s))' % (v, v)
+            if k == "isbn":
+                part = "(isbn_10:(%s) OR isbn_13:(%s))" % (v, v)
             else:
-                part = '%s:(%s)' % (k, v)
+                part = "%s:(%s)" % (k, v)
             parts.append(part)
         return " ".join(parts)
 
@@ -402,15 +426,18 @@ class SearchProcessor:
 
     def _process_doc(self, doc):
         d = {
-            'key': doc['identifier'],
-            'type': {'key': '/type/edition'},
-            'title': doc.get('title', '')
+            "key": doc["identifier"],
+            "type": {"key": "/type/edition"},
+            "title": doc.get("title", ""),
         }
 
-        if 'authors' in doc and 'author_keys' in doc:
-            d['authors'] = [{'key': key, 'name': name} for key, name in zip(doc['author_keys'], doc['authors'])]
+        if "authors" in doc and "author_keys" in doc:
+            d["authors"] = [
+                {"key": key, "name": name}
+                for key, name in zip(doc["author_keys"], doc["authors"])
+            ]
 
-        keys = ['title', 'publishers', 'languages', 'subjects']
+        keys = ["title", "publishers", "languages", "subjects"]
         for k in keys:
             if k in doc:
                 d[k] = doc[k]
@@ -419,11 +446,11 @@ class SearchProcessor:
 
     def _process_result(self, result, facets=None):
         out = {
-            'matches': result.total_results,
-            'docs': [self._process_doc(d) for d in result.raw_results]
+            "matches": result.total_results,
+            "docs": [self._process_doc(d) for d in result.raw_results],
         }
         if facets is not None:
-            out['facets'] = facets
+            out["facets"] = facets
         return out
 
     def search(self, query):
@@ -441,16 +468,16 @@ class SearchProcessor:
         t1 = time.time()
 
         query = dict(query)
-        offset = query.pop('offset', 0)
+        offset = query.pop("offset", 0)
         try:
-            limit = int(query.pop('limit', 20))
+            limit = int(query.pop("limit", 20))
         except ValueError:
             limit = 20
 
         if limit > 1000:
             limit = 1000
 
-        facets = str(query.pop('facets', 'false')).lower() == 'true'
+        facets = str(query.pop("facets", "false")).lower() == "true"
 
         query_string = self._process_query(query)
         solr_query = self._solr_query(query_string)
@@ -460,8 +487,10 @@ class SearchProcessor:
 
             # query for 5000 rows and take the required part from the results to avoid another request
             result = solr.advanced_search(solr_query, start=offset, rows=5000)
-            facet_counts = solr_client.facet_counts(result.raw_results, solr_client.default_facet_list)
-            result.raw_results = result.raw_results[offset:offset+limit]
+            facet_counts = solr_client.facet_counts(
+                result.raw_results, solr_client.default_facet_list
+            )
+            result.raw_results = result.raw_results[offset : offset + limit]
 
             d = self._process_result(result, dict(facet_counts))
         else:
@@ -469,8 +498,9 @@ class SearchProcessor:
             d = self._process_result(result)
 
         t2 = time.time()
-        d['time_taken'] = t2-t1
+        d["time_taken"] = t2 - t1
         return d
+
 
 class search_json(delegate.page):
     path = "/search"
@@ -478,9 +508,9 @@ class search_json(delegate.page):
 
     @jsonapi
     def GET(self):
-        i = web.input(q='', query=None, _unicode=False)
+        i = web.input(q="", query=None, _unicode=False)
         # query can be either specified as json with parameter query or just query parameters
-        query = i.pop('query')
+        query = i.pop("query")
         if query:
             query = simplejson.loads(i.query)
         else:
@@ -489,11 +519,14 @@ class search_json(delegate.page):
         result = SearchProcessor().search(i)
         return simplejson.dumps(result)
 
-# add search API if api plugin is enabled.
-if 'api' in delegate.get_plugins():
-    from infogami.plugins.api import code as api
-    api.add_hook('search', search_api)
 
-if __name__ == '__main__':
+# add search API if api plugin is enabled.
+if "api" in delegate.get_plugins():
+    from infogami.plugins.api import code as api
+
+    api.add_hook("search", search_api)
+
+if __name__ == "__main__":
     import doctest
+
     doctest.testmod()

@@ -6,33 +6,36 @@ Usage:
 """
 from __future__ import print_function
 
+import argparse
+import json
+import logging
+import math
+import os
+import re
+import sys
+import time
+from datetime import date, datetime, timedelta
+
+import requests
+from six.moves import range
+
+import _init_path
+import web
+from openlibrary import config
+from openlibrary.core import helpers as h
+from openlibrary.data import db
+from openlibrary.solr import update_work
+
 __author__ = "Giovanni Damiola"
 __copyright__ = "Copyright 2015, Internet Archive"
 __license__ = "AGPL"
 __date__ = "2015-07-29"
 __version__ = "0.1"
 
-import _init_path
 
-import sys
-import os
-import re
-import logging
-import argparse
-import math
-import requests
-import web
-import time
-import json
 
-from datetime import datetime, timedelta, date
 
-from openlibrary.data import db
-from openlibrary import config
-from openlibrary.core import helpers as h
-from openlibrary.solr import update_work
 
-from six.moves import range
 
 
 logger = logging.getLogger("openlibrary.search-indexer")
@@ -326,4 +329,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

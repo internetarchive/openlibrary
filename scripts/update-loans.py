@@ -5,7 +5,9 @@ Tasks done:
 * delete all waiting-loans that are expired
 """
 from __future__ import print_function
+
 import sys
+
 import web
 from openlibrary.core import waitinglist
 from openlibrary.plugins.upstream import borrow
@@ -33,4 +35,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

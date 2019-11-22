@@ -37,14 +37,15 @@ To generate bookdump:
         $ ./scripts/jsondump.py bookdump type/edition.txt type/author.txt type/language.txt > bookdump.txt
 """
 from __future__ import print_function
-import sys
-import simplejson
-import re
-import time
+
 import os
+import re
+import sys
+import time
 
 import six
 
+import simplejson
 
 commands = {}
 def command(f):

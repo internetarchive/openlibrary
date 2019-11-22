@@ -1,27 +1,26 @@
 """Module for providing core functionality of lending on Open Library.
 """
 
-import web
-import simplejson
 import datetime
-import time
-import logging
-import uuid
 import hmac
+import logging
+import time
 import urllib
 import urllib2
-from amazon.api import AmazonAPI
+import uuid
 
-from infogami.utils.view import public
+import simplejson
+import web
+from amazon.api import AmazonAPI
 from infogami.utils import delegate
-from openlibrary.core import cache
+from infogami.utils.view import public
 from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary.core import cache
 from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 
-from . import ia
-from . import msgbroker
 from . import helpers as h
+from . import ia, msgbroker
 
 logger = logging.getLogger(__name__)
 
@@ -63,68 +62,73 @@ config_amz_api = None
 
 amazon_api = None
 
+
 def setup(config):
     """Initializes this module from openlibrary config.
     """
-    global config_loanstatus_url, \
-        config_ia_access_secret, config_bookreader_host, \
-        config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
-        config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api, \
-        config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
-        config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
-        config_http_request_timeout, config_ia_s3_auth_url, \
-        config_ia_users_loan_history, config_ia_loan_api_developer_key, \
-        config_ia_civicrm_api, config_ia_domain
+    global config_loanstatus_url, config_ia_access_secret, config_bookreader_host, config_ia_ol_shared_key, config_ia_ol_xauth_s3, config_internal_tests_api_key, config_ia_loan_api_url, config_http_request_timeout, config_amz_api, amazon_api, config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, config_http_request_timeout, config_ia_s3_auth_url, config_ia_users_loan_history, config_ia_loan_api_developer_key, config_ia_civicrm_api, config_ia_domain
 
-    config_loanstatus_url = config.get('loanstatus_url')
-    config_bookreader_host = config.get('bookreader_host', 'archive.org')
-    config_ia_domain = config.get('ia_base_url', 'https://archive.org')
-    config_ia_loan_api_url = config.get('ia_loan_api_url')
-    config_ia_availability_api_v1_url = config.get('ia_availability_api_v1_url')
-    config_ia_availability_api_v2_url = config.get('ia_availability_api_v2_url')
-    config_ia_xauth_api_url = config.get('ia_xauth_api_url')
-    config_ia_access_secret = config.get('ia_access_secret')
-    config_ia_ol_shared_key = config.get('ia_ol_shared_key')
-    config_ia_ol_auth_key = config.get('ia_ol_auth_key')
-    config_ia_ol_xauth_s3 = config.get('ia_ol_xauth_s3')
-    config_ia_ol_metadata_write_s3 = config.get('ia_ol_metadata_write_s3')
-    config_ia_s3_auth_url = config.get('ia_s3_auth_url')
-    config_ia_users_loan_history = config.get('ia_users_loan_history')
-    config_ia_loan_api_developer_key = config.get('ia_loan_api_developer_key')
-    config_ia_civicrm_api = config.get('ia_civicrm_api')
-    config_internal_tests_api_key = config.get('internal_tests_api_key')
-    config_http_request_timeout = config.get('http_request_timeout')
-    config_amz_api = config.get('amazon_api')
+    config_loanstatus_url = config.get("loanstatus_url")
+    config_bookreader_host = config.get("bookreader_host", "archive.org")
+    config_ia_domain = config.get("ia_base_url", "https://archive.org")
+    config_ia_loan_api_url = config.get("ia_loan_api_url")
+    config_ia_availability_api_v1_url = config.get("ia_availability_api_v1_url")
+    config_ia_availability_api_v2_url = config.get("ia_availability_api_v2_url")
+    config_ia_xauth_api_url = config.get("ia_xauth_api_url")
+    config_ia_access_secret = config.get("ia_access_secret")
+    config_ia_ol_shared_key = config.get("ia_ol_shared_key")
+    config_ia_ol_auth_key = config.get("ia_ol_auth_key")
+    config_ia_ol_xauth_s3 = config.get("ia_ol_xauth_s3")
+    config_ia_ol_metadata_write_s3 = config.get("ia_ol_metadata_write_s3")
+    config_ia_s3_auth_url = config.get("ia_s3_auth_url")
+    config_ia_users_loan_history = config.get("ia_users_loan_history")
+    config_ia_loan_api_developer_key = config.get("ia_loan_api_developer_key")
+    config_ia_civicrm_api = config.get("ia_civicrm_api")
+    config_internal_tests_api_key = config.get("internal_tests_api_key")
+    config_http_request_timeout = config.get("http_request_timeout")
+    config_amz_api = config.get("amazon_api")
 
     try:
         amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
+            config_amz_api.key, config_amz_api.secret, config_amz_api.id, MaxQPS=0.9
+        )
     except AttributeError:
         amazon_api = None
 
+
 def get_work_authors_and_related_subjects(work_id):
-    if 'env' not in web.ctx:
+    if "env" not in web.ctx:
         delegate.fakeload()
     work = web.ctx.site.get(work_id)
     return {
-        'authors': work.get_author_names(blacklist=['anonymous']) if work else [],
-        'subjects': work.get_related_books_subjects() if work else []
+        "authors": work.get_author_names(blacklist=["anonymous"]) if work else [],
+        "subjects": work.get_related_books_subjects() if work else [],
     }
+
 
 @public
 def cached_work_authors_and_subjects(work_id):
     try:
         return cache.memcache_memoize(
-            get_work_authors_and_related_subjects, 'works_authors_and_subjects',
-            timeout=dateutil.HALF_DAY_SECS)(work_id)
+            get_work_authors_and_related_subjects,
+            "works_authors_and_subjects",
+            timeout=dateutil.HALF_DAY_SECS,
+        )(work_id)
     except AttributeError:
-        return {'authors': [], 'subject': []}
+        return {"authors": [], "subject": []}
+
 
 @public
-def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
-                   _type=None, sorts=None, advanced=True):
+def compose_ia_url(
+    limit=None,
+    page=1,
+    subject=None,
+    query=None,
+    work_id=None,
+    _type=None,
+    sorts=None,
+    advanced=True,
+):
     """This needs to be exposed by a generalized API endpoint within
     plugins/openlibrary/api/browse which lets lazy-load more items for
     the homepage carousel and support the upcoming /browse view
@@ -132,25 +136,26 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     archive.org to see more books)
     """
     from openlibrary.plugins.openlibrary.home import CAROUSELS_PRESETS
+
     query = CAROUSELS_PRESETS[query] if query in CAROUSELS_PRESETS else query
-    q = 'openlibrary_work:(*)'
+    q = "openlibrary_work:(*)"
 
     # If we don't provide an openlibrary_subject and no collection is
     # specified in our query, we restrict our query to the `inlibrary`
     # collection (i.e. those books which are borrowable)
-    if (not subject) and (not query or 'collection:' not in query):
-        q += ' AND collection:(inlibrary)'
+    if (not subject) and (not query or "collection:" not in query):
+        q += " AND collection:(inlibrary)"
     # In the only case where we are not restricting our search to
     # borrowable books (i.e. `inlibrary`), we remove all the books
     # which are `printdisabled` *outside* of `inlibrary`.
-    if 'collection:(inlibrary)' not in q:
-        q += ' AND (collection:(inlibrary) OR (!collection:(printdisabled)))'
+    if "collection:(inlibrary)" not in q:
+        q += " AND (collection:(inlibrary) OR (!collection:(printdisabled)))"
 
     # If no lending restrictions (e.g. borrow, read) are imposed in
     # our query, we assume only borrowable books will be included in
     # results (not unrestricted/open books).
-    if (not query) or ('loans__status__status:' not in query):
-        q += ' AND loans__status__status:AVAILABLE'
+    if (not query) or ("loans__status__status:" not in query):
+        q += " AND loans__status__status:AVAILABLE"
     if query:
         q += " AND " + query
     if subject:
@@ -163,53 +168,84 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
             if works_authors_and_subjects:
                 if _type == "authors":
                     authors = []
-                    for author_name in works_authors_and_subjects.get('authors', []):
+                    for author_name in works_authors_and_subjects.get("authors", []):
                         authors.append(author_name)
-                        authors.append(','.join(author_name.split(' ', 1)[::-1]))
+                        authors.append(",".join(author_name.split(" ", 1)[::-1]))
                     if authors:
-                        _q = ' OR '.join(['creator:"%s"' % author for author in authors])
+                        _q = " OR ".join(
+                            ['creator:"%s"' % author for author in authors]
+                        )
                 elif _type == "subjects":
-                    subjects = works_authors_and_subjects.get('subjects', [])
+                    subjects = works_authors_and_subjects.get("subjects", [])
                     if subjects:
-                        _q = ' OR '.join(['subject:"%s"' % subject for subject in subjects])
+                        _q = " OR ".join(
+                            ['subject:"%s"' % subject for subject in subjects]
+                        )
             if not _q:
                 return []
-            q += ' AND (%s) AND !openlibrary_work:(%s)' % (_q, work_id.split('/')[-1])
+            q += " AND (%s) AND !openlibrary_work:(%s)" % (_q, work_id.split("/")[-1])
 
     if not advanced:
-        _sort = sorts[0] if sorts else ''
-        if '+desc' in _sort:
-            _sort = '-' + _sort.split('+desc')[0]
-        elif '+asc' in _sort:
-            _sort = _sort.split('+asc')[0]
-        return ('https://archive.org/search.php?query=%s' % q) + \
-            (('&sort=%s' % _sort) if _sort else '')
+        _sort = sorts[0] if sorts else ""
+        if "+desc" in _sort:
+            _sort = "-" + _sort.split("+desc")[0]
+        elif "+asc" in _sort:
+            _sort = _sort.split("+asc")[0]
+        return ("https://archive.org/search.php?query=%s" % q) + (
+            ("&sort=%s" % _sort) if _sort else ""
+        )
 
-    fields = ['identifier', 'openlibrary_edition', 'openlibrary_work', 'loans__status__status']
-    encoded_fields = '&'.join(['fl[]=' + f for f in fields])
-    sort = ('&'.join(['sort[]=%s' % s for s in
-                      (sorts if sorts and isinstance(sorts, list)
-                       else [''])]))
+    fields = [
+        "identifier",
+        "openlibrary_edition",
+        "openlibrary_work",
+        "loans__status__status",
+    ]
+    encoded_fields = "&".join(["fl[]=" + f for f in fields])
+    sort = "&".join(
+        [
+            "sort[]=%s" % s
+            for s in (sorts if sorts and isinstance(sorts, list) else [""])
+        ]
+    )
     rows = limit or DEFAULT_IA_RESULTS
     url = "http://%s/advancedsearch.php?q=%s&%s&%s&rows=%s&page=%s&output=json" % (
-        config_bookreader_host, q, encoded_fields, sort, str(rows), str(page))
+        config_bookreader_host,
+        q,
+        encoded_fields,
+        sort,
+        str(rows),
+        str(page),
+    )
     return url
+
 
 def get_random_available_ia_edition():
     """uses archive advancedsearch to raise a random book"""
     try:
-        url=("http://%s/advancedsearch.php?q=_exists_:openlibrary_work"\
-             "+AND+loans__status__status:AVAILABLE"\
-             "&fl=identifier,openlibrary_edition,loans__status__status"\
-             "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
+        url = (
+            "http://%s/advancedsearch.php?q=_exists_:openlibrary_work"
+            "+AND+loans__status__status:AVAILABLE"
+            "&fl=identifier,openlibrary_edition,loans__status__status"
+            "&output=json&rows=1&sort[]=random" % (config_bookreader_host)
+        )
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
+        items = simplejson.loads(content).get("response", {}).get("docs", [])
         return items[0]["openlibrary_edition"]
     except Exception as e:
         return None
 
-def get_available(limit=None, page=1, subject=None, query=None,
-                  work_id=None, _type=None, sorts=None, url=None):
+
+def get_available(
+    limit=None,
+    page=1,
+    subject=None,
+    query=None,
+    work_id=None,
+    _type=None,
+    sorts=None,
+    url=None,
+):
     """Experimental. Retrieves a list of available editions from
     archive.org advancedsearch which are available, in the inlibrary
     collection, and optionally apart of an `openlibrary_subject`.
@@ -219,27 +255,35 @@ def get_available(limit=None, page=1, subject=None, query=None,
     of unique available books.
     """
     url = url or compose_ia_url(
-        limit=limit, page=page, subject=subject, query=query,
-        work_id=work_id, _type=_type, sorts=sorts)
+        limit=limit,
+        page=page,
+        subject=subject,
+        query=query,
+        work_id=work_id,
+        _type=_type,
+        sorts=sorts,
+    )
     try:
         request = urllib2.Request(url=url)
 
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
         # we can attribute requests to end-users
-        client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
-        request.add_header('x-client-id', client_ip)
+        client_ip = web.ctx.env.get("HTTP_X_FORWARDED_FOR", "ol-internal")
+        request.add_header("x-client-id", client_ip)
 
         content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
-        items = simplejson.loads(content).get('response', {}).get('docs', [])
+        items = simplejson.loads(content).get("response", {}).get("docs", [])
         results = {}
         for item in items:
-            if item.get('openlibrary_work'):
-                results[item['openlibrary_work']] = item['openlibrary_edition']
-        books = web.ctx.site.get_many(['/books/%s' % result for result in results.values()])
+            if item.get("openlibrary_work"):
+                results[item["openlibrary_work"]] = item["openlibrary_edition"]
+        books = web.ctx.site.get_many(
+            ["/books/%s" % result for result in results.values()]
+        )
         return books
     except Exception as e:
-        return {'error': 'request_timeout'}
+        return {"error": "request_timeout"}
 
 
 def get_availability(key, ids):
@@ -248,43 +292,51 @@ def get_availability(key, ids):
     :param list of str ids:
     :rtype: dict
     """
-    url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
+    url = "%s?%s=%s" % (config_ia_availability_api_v2_url, key, ",".join(ids))
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        return simplejson.loads(content).get('responses', {})
+        return simplejson.loads(content).get("responses", {})
     except Exception as e:
-        return {'error': 'request_timeout', 'details': str(e)}
+        return {"error": "request_timeout", "details": str(e)}
+
 
 def get_edition_availability(ol_edition_id):
     return get_availability_of_editions([ol_edition_id])
+
 
 def get_availability_of_editions(ol_edition_ids):
     """Given a list of Open Library edition IDs, returns a list of
     Availability v2 results.
     """
-    return get_availability('openlibrary_edition', ol_edition_ids)
+    return get_availability("openlibrary_edition", ol_edition_ids)
+
 
 @public
 def get_realtime_availability_of_ocaid(ocaid):
-    url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
+    url = "https://archive.org/metadata/%s?dontcache=1" % ocaid
     statuses = {
-        'available': 'borrow_available',
-        'unavailable': 'borrow_unavailable',
-        'private': 'private',
-        'error': 'error'
+        "available": "borrow_available",
+        "unavailable": "borrow_unavailable",
+        "private": "private",
+        "error": "error",
     }
     try:
         content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
-        metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
-        status = metadata.get('loans__status__status', 'error').lower()
+        metadata = simplejson.loads(content).get("metadata", {})
+        statuses = {
+            "available": "borrow_available",
+            "unavailable": "borrow_unavailable",
+            "error": "error",
+        }
+        status = metadata.get("loans__status__status", "error").lower()
         return {
-            'status': statuses[status],
-            'num_waitlist': int(metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(metadata.get('loans__status__num_loans', 0))
+            "status": statuses[status],
+            "num_waitlist": int(metadata.get("loans__status__num_waitlist", 0)),
+            "num_loans": int(metadata.get("loans__status__num_loans", 0)),
         }
     except Exception as e:
-        return {'error': 'request_timeout'}
+        return {"error": "request_timeout"}
+
 
 @public
 def add_availability(editions):
@@ -293,10 +345,14 @@ def add_availability(editions):
     :param list of dict editions:
     :rtype: list of dict
     """
+
     def get_ocaid(ed):
-        if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
-            return ed.get('ocaid') or ed.get('identifier') or (
-                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
+        if ed.get("ocaid") or ed.get("identifier") or ed.get("ia"):
+            return (
+                ed.get("ocaid")
+                or ed.get("identifier")
+                or (ed["ia"][0] if isinstance(ed["ia"], list) else ed["ia"])
+            )
 
     ocaids = [get_ocaid(ed) for ed in editions]
     ocaids = [ocaid for ocaid in ocaids if ocaid]
@@ -304,13 +360,17 @@ def add_availability(editions):
     for ed in editions:
         ocaid = get_ocaid(ed)
         success = ocaid and availabilities.get(ocaid)
-        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
+        ed["availability"] = (
+            availabilities.get(ocaid) if success else {"status": "error"}
+        )
     return editions
+
 
 @public
 def get_availability_of_ocaid(ocaid):
     """Retrieves availability based on ocaid/archive.org identifier"""
-    return get_availability('identifier', [ocaid])
+    return get_availability("identifier", [ocaid])
+
 
 def get_availability_of_ocaids(ocaids):
     """
@@ -318,14 +378,17 @@ def get_availability_of_ocaids(ocaids):
     :param list[str] ocaids:
     :rtype: dict
     """
-    return get_availability('identifier', ocaids)
+    return get_availability("identifier", ocaids)
+
 
 @public
 def get_work_availability(ol_work_id):
     return get_availability_of_works([ol_work_id])
 
+
 def get_availability_of_works(ol_work_ids):
-    return get_availability('openlibrary_work', ol_work_ids)
+    return get_availability("openlibrary_work", ol_work_ids)
+
 
 def is_loaned_out(identifier):
     """Returns True if the given identifier is loaned out.
@@ -335,8 +398,11 @@ def is_loaned_out(identifier):
     # is_loaned_out_on_acs4 is to be deprecated, this logic (in PR)
     # should be handled by is_loaned_out_on_ia which calls
     # BorrowBooks.inc in petabox
-    return (is_loaned_out_on_ol(identifier) or is_loaned_out_on_acs4(identifier)
-            or is_loaned_out_on_ia(identifier))
+    return (
+        is_loaned_out_on_ol(identifier)
+        or is_loaned_out_on_acs4(identifier)
+        or is_loaned_out_on_ia(identifier)
+    )
 
 
 def is_loaned_out_on_acs4(identifier):
@@ -352,7 +418,7 @@ def is_loaned_out_on_ia(identifier):
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
         response = simplejson.loads(urllib2.urlopen(url).read())
-        return response and response.get('checkedout')
+        return response and response.get("checkedout")
     except:
         return None
 
@@ -363,6 +429,7 @@ def is_loaned_out_on_ol(identifier):
     loan = get_loan(identifier)
     return bool(loan)
 
+
 def get_loan(identifier, user_key=None):
     """Returns the loan object for given identifier, if a loan exists.
 
@@ -372,14 +439,17 @@ def get_loan(identifier, user_key=None):
     _loan = None
     account = None
     if user_key:
-        if user_key.startswith('@'):
+        if user_key.startswith("@"):
             account = OpenLibraryAccount.get(link=user_key)
         else:
             account = OpenLibraryAccount.get(key=user_key)
 
     d = web.ctx.site.store.get("loan-" + identifier)
-    if d and (user_key is None or (d['user'] == account.username) or \
-              (d['user'] == account.itemname)):
+    if d and (
+        user_key is None
+        or (d["user"] == account.username)
+        or (d["user"] == account.itemname)
+    ):
         loan = Loan(d)
         if loan.is_expired():
             return loan.delete()
@@ -400,27 +470,30 @@ def _get_ia_loan(identifier, userid):
     ia_loan = ia_lending_api.get_loan(identifier, userid)
     return ia_loan and Loan.from_ia_loan(ia_loan)
 
+
 def get_loans_of_user(user_key):
     """TODO: Remove inclusion of local data; should only come from IA"""
-    account = OpenLibraryAccount.get(username=user_key.split('/')[-1])
+    account = OpenLibraryAccount.get(username=user_key.split("/")[-1])
 
-    loandata = web.ctx.site.store.values(type='/type/loan', name='user', value=user_key)
-    loans = [Loan(d) for d in loandata] + (_get_ia_loans_of_user(account.itemname) +
-                                           _get_ia_loans_of_user(userkey2userid(user_key)))
+    loandata = web.ctx.site.store.values(type="/type/loan", name="user", value=user_key)
+    loans = [Loan(d) for d in loandata] + (
+        _get_ia_loans_of_user(account.itemname)
+        + _get_ia_loans_of_user(userkey2userid(user_key))
+    )
     return loans
+
 
 def _get_ia_loans_of_user(userid):
     ia_loans = ia_lending_api.find_loans(userid=userid)
     return [Loan.from_ia_loan(d) for d in ia_loans]
 
+
 def create_loan(identifier, resource_type, user_key, book_key=None):
     """Creates a loan and returns it.
     """
     ia_loan = ia_lending_api.create_loan(
-         identifier=identifier,
-         format=resource_type,
-         userid=user_key,
-         ol_key=book_key)
+        identifier=identifier, format=resource_type, userid=user_key, ol_key=book_key
+    )
 
     if ia_loan:
         loan = Loan.from_ia_loan(ia_loan)
@@ -432,7 +505,9 @@ def create_loan(identifier, resource_type, user_key, book_key=None):
     # loan.save()
     # return loan
 
+
 NOT_INITIALIZED = object()
+
 
 def sync_loan(identifier, loan=NOT_INITIALIZED):
     """Updates the loan info stored in openlibrary.
@@ -451,16 +526,17 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 
     # The data of the loan without the user info.
     loan_data = loan and dict(
-        uuid=loan['uuid'],
-        loaned_at=loan['loaned_at'],
-        resource_type=loan['resource_type'],
-        ocaid=loan['ocaid'],
-        book=loan['book'])
+        uuid=loan["uuid"],
+        loaned_at=loan["loaned_at"],
+        resource_type=loan["resource_type"],
+        ocaid=loan["ocaid"],
+        book=loan["book"],
+    )
 
     responses = get_availability_of_ocaid(identifier)
     response = responses[identifier] if responses else {}
     if response:
-        num_waiting = int(response.get('num_waitlist', 0) or 0)
+        num_waiting = int(response.get("num_waitlist", 0) or 0)
 
     ebook = EBookRecord.find(identifier)
 
@@ -477,9 +553,8 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         "type": "ebook",
         "identifier": identifier,
         "loan": ebook_loan_data,
-        "borrowed": str(
-            response['status'] not in ['open', 'borrow_available']).lower(),
-        "wl_size": num_waiting
+        "borrowed": str(response["status"] not in ["open", "borrow_available"]).lower(),
+        "wl_size": num_waiting,
     }
     try:
         ebook.update(**kwargs)
@@ -490,8 +565,8 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
         logger.error("failed to update ebook for %s", identifier, exc_info=True)
 
     # fire loan-completed event
-    if is_loan_completed and ebook.get('loan'):
-        _d = dict(ebook['loan'], returned_at=time.time())
+    if is_loan_completed and ebook.get("loan"):
+        _d = dict(ebook["loan"], returned_at=time.time())
         msgbroker.send_message("loan-completed", _d)
     logger.info("END sync_loan %s", identifier)
 
@@ -499,12 +574,12 @@ def sync_loan(identifier, loan=NOT_INITIALIZED):
 class EBookRecord(dict):
     @staticmethod
     def find(identifier):
-        key ="ebooks/" + identifier
+        key = "ebooks/" + identifier
         d = web.ctx.site.store.get(key) or {"_key": key, "type": "ebook", "_rev": 1}
         return EBookRecord(d)
 
     def update(self, **kwargs):
-        logger.info("updating %s %s", self['_key'], kwargs)
+        logger.info("updating %s %s", self["_key"], kwargs)
         # Nothing to update if what we have is same as what is being asked to
         # update.
         d = dict((k, self.get(k)) for k in kwargs)
@@ -512,12 +587,13 @@ class EBookRecord(dict):
             return
 
         dict.update(self, **kwargs)
-        web.ctx.site.store[self['_key']] = self
+        web.ctx.site.store[self["_key"]] = self
 
 
 class Loan(dict):
     """Model for loan.
     """
+
     @staticmethod
     def new(identifier, resource_type, user_key, book_key=None):
         """Creates a new loan object.
@@ -531,80 +607,91 @@ class Loan(dict):
 
         if resource_type == "bookreader":
             resource_id = "bookreader:" + identifier
-            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(config_bookreader_host, identifier)
-            expiry = (datetime.datetime.utcnow() + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)).isoformat()
+            loan_link = BOOKREADER_STREAM_URL_PATTERN.format(
+                config_bookreader_host, identifier
+            )
+            expiry = (
+                datetime.datetime.utcnow()
+                + datetime.timedelta(days=BOOKREADER_LOAN_DAYS)
+            ).isoformat()
         else:
-            raise Exception('No longer supporting ACS borrows directly from Open Library. Please go to Archive.org')
+            raise Exception(
+                "No longer supporting ACS borrows directly from Open Library. Please go to Archive.org"
+            )
 
         if not resource_id:
-            raise Exception('Could not find resource_id for %s - %s' % (identifier, resource_type))
+            raise Exception(
+                "Could not find resource_id for %s - %s" % (identifier, resource_type)
+            )
 
         key = "loan-" + identifier
-        return Loan({
-            '_key': key,
-            '_rev': 1,
-            'type': '/type/loan',
-            'fulfilled': 1,
-            'user': user_key,
-            'book': book_key,
-            'ocaid': identifier,
-            'expiry': expiry,
-            'uuid': _uuid,
-            'resource_type': 'bookreader',
-            'resource_id': 'bookreader:%s' % identifier,
-            'loaned_at': loaned_at,
-            'resource_type': resource_type,
-            'resource_id': resource_id,
-            'loan_link': loan_link,
-        })
+        return Loan(
+            {
+                "_key": key,
+                "_rev": 1,
+                "type": "/type/loan",
+                "fulfilled": 1,
+                "user": user_key,
+                "book": book_key,
+                "ocaid": identifier,
+                "expiry": expiry,
+                "uuid": _uuid,
+                "resource_type": "bookreader",
+                "resource_id": "bookreader:%s" % identifier,
+                "loaned_at": loaned_at,
+                "resource_type": resource_type,
+                "resource_id": resource_id,
+                "loan_link": loan_link,
+            }
+        )
 
     @staticmethod
     def from_ia_loan(data):
-        if data['userid'].startswith('ol:'):
-            user_key = '/people/' + data['userid'][len('ol:'):]
-        elif data['userid'].startswith('@'):
-            account = OpenLibraryAccount.get_by_link(data['userid'])
-            user_key = '/people/' + account.username
+        if data["userid"].startswith("ol:"):
+            user_key = "/people/" + data["userid"][len("ol:") :]
+        elif data["userid"].startswith("@"):
+            account = OpenLibraryAccount.get_by_link(data["userid"])
+            user_key = "/people/" + account.username
         else:
             user_key = None
 
-        if data['ol_key']:
-            book_key = data['ol_key']
+        if data["ol_key"]:
+            book_key = data["ol_key"]
         else:
-            book_key = resolve_identifier(data['identifier'])
+            book_key = resolve_identifier(data["identifier"])
 
-        created = h.parse_datetime(data['created'])
+        created = h.parse_datetime(data["created"])
 
         # For historic reasons, OL considers expiry == None as un-fulfilled
         # loan.
 
-        expiry = data.get('until')
+        expiry = data.get("until")
 
         d = {
-            '_key': "loan-{0}".format(data['identifier']),
-            '_rev': 1,
-            'type': '/type/loan',
-            'userid': data['userid'],
-            'user': user_key,
-            'book': book_key,
-            'ocaid': data['identifier'],
-            'expiry': expiry,
-            'fulfilled': data['fulfilled'],
-            'uuid': 'loan-{0}'.format(data['id']),
-            'loaned_at': time.mktime(created.timetuple()),
-            'resource_type': data['format'],
-            'resource_id': data['resource_id'],
-            'loan_link': data['loan_link'],
-            'stored_at': 'ia'
+            "_key": "loan-{0}".format(data["identifier"]),
+            "_rev": 1,
+            "type": "/type/loan",
+            "userid": data["userid"],
+            "user": user_key,
+            "book": book_key,
+            "ocaid": data["identifier"],
+            "expiry": expiry,
+            "fulfilled": data["fulfilled"],
+            "uuid": "loan-{0}".format(data["id"]),
+            "loaned_at": time.mktime(created.timetuple()),
+            "resource_type": data["format"],
+            "resource_id": data["resource_id"],
+            "loan_link": data["loan_link"],
+            "stored_at": "ia",
         }
         return Loan(d)
 
     def is_ol_loan(self):
         # self['user'] will be None for IA loans
-        return self['user'] is not None
+        return self["user"] is not None
 
     def get_key(self):
-        return self['_key']
+        return self["_key"]
 
     def save(self):
         # loans stored at IA are not supposed to be saved at OL.
@@ -612,24 +699,28 @@ class Loan(dict):
         if self.get("stored_at") == "ia":
             return
 
-        web.ctx.site.store[self['_key']] = self
+        web.ctx.site.store[self["_key"]] = self
 
         # Inform listers that a loan is creted/updated
         msgbroker.send_message("loan-created", self)
 
     def is_expired(self):
-        return self['expiry'] and self['expiry'] < datetime.datetime.utcnow().isoformat()
+        return (
+            self["expiry"] and self["expiry"] < datetime.datetime.utcnow().isoformat()
+        )
 
     def is_yet_to_be_fulfilled(self):
         """Returns True if the loan is not yet fulfilled and fulfillment time
         is not expired.
         """
-        return (self['expiry'] is None and
-                (time.time() - self['loaned_at']) < LOAN_FULFILLMENT_TIMEOUT_SECONDS)
+        return (
+            self["expiry"] is None
+            and (time.time() - self["loaned_at"]) < LOAN_FULFILLMENT_TIMEOUT_SECONDS
+        )
 
     def return_loan(self):
         logger.info("*** return_loan ***")
-        if self['resource_type'] == 'bookreader':
+        if self["resource_type"] == "bookreader":
             self.delete()
             return True
         else:
@@ -637,31 +728,34 @@ class Loan(dict):
 
     def delete(self):
         loan = dict(self, returned_at=time.time())
-        user_key = self['user']
+        user_key = self["user"]
         account = OpenLibraryAccount.get(key=user_key)
-        if self.get("stored_at") == 'ia':
-            ia_lending_api.delete_loan(self['ocaid'], userkey2userid(user_key))
+        if self.get("stored_at") == "ia":
+            ia_lending_api.delete_loan(self["ocaid"], userkey2userid(user_key))
             if account.itemname:
-                ia_lending_api.delete_loan(self['ocaid'], account.itemname)
+                ia_lending_api.delete_loan(self["ocaid"], account.itemname)
         else:
-            web.ctx.site.store.delete(self['_key'])
+            web.ctx.site.store.delete(self["_key"])
 
-        sync_loan(self['ocaid'])
+        sync_loan(self["ocaid"])
         # Inform listers that a loan is completed
         msgbroker.send_message("loan-completed", loan)
+
 
 def resolve_identifier(identifier):
     """Returns the OL book key for given IA identifier.
     """
-    keys = web.ctx.site.things(dict(type='/type/edition', ocaid=identifier))
+    keys = web.ctx.site.things(dict(type="/type/edition", ocaid=identifier))
     if keys:
         return keys[0]
     else:
         return "/books/ia:" + identifier
 
+
 def userkey2userid(user_key):
     username = user_key.split("/")[-1]
     return "ol:" + username
+
 
 def get_resource_id(identifier, resource_type):
     """Returns the resource_id for an identifier for the specified resource_type.
@@ -692,24 +786,27 @@ def update_loan_status(identifier):
     loan = get_loan(identifier)
 
     # if the loan is from ia, it is already updated when getting the loan
-    if loan is None or loan.get('from_ia'):
+    if loan is None or loan.get("from_ia"):
         return
 
-    if loan['resource_type'] == 'bookreader':
+    if loan["resource_type"] == "bookreader":
         if loan.is_expired():
             loan.delete()
             return
     else:
         acs4_loan = ACS4Item(identifier).get_loan()
         if not acs4_loan and not loan.is_yet_to_be_fulfilled():
-            logger.info("%s: loan returned or expired or timedout, deleting...", identifier)
+            logger.info(
+                "%s: loan returned or expired or timedout, deleting...", identifier
+            )
             loan.delete()
             return
 
-        if loan['expiry'] != acs4_loan['until']:
-            loan['expiry'] = acs4_loan['until']
+        if loan["expiry"] != acs4_loan["until"]:
+            loan["expiry"] = acs4_loan["until"]
             loan.save()
-            logger.info("%s: updated expiry to %s", identifier, loan['expiry'])
+            logger.info("%s: updated expiry to %s", identifier, loan["expiry"])
+
 
 class ACS4Item(object):
     """Represents an item on ACS4 server.
@@ -718,11 +815,12 @@ class ACS4Item(object):
 
     This class provides a way to access the loan info from ACS4 server.
     """
+
     def __init__(self, identifier):
         self.identifier = identifier
 
     def get_data(self):
-        url = '%s/item/%s' % (config_loanstatus_url, self.identifier)
+        url = "%s/item/%s" % (config_loanstatus_url, self.identifier)
         try:
             return simplejson.loads(urllib2.urlopen(url).read())
         except IOError:
@@ -735,41 +833,45 @@ class ACS4Item(object):
         """Returns the information about loan in the ACS4 server.
         """
         d = self.get_data() or {}
-        if not d.get('resources'):
+        if not d.get("resources"):
             return
-        for r in d['resources']:
-            if r['loans']:
-                loan = dict(r['loans'][0])
-                loan['resource_id'] = r['resourceid']
-                loan['resource_type'] = self._format2resource_type(r['format'])
+        for r in d["resources"]:
+            if r["loans"]:
+                loan = dict(r["loans"][0])
+                loan["resource_id"] = r["resourceid"]
+                loan["resource_type"] = self._format2resource_type(r["format"])
                 return loan
 
     def _format2resource_type(self, format):
-        formats = {
-            "application/epub+zip": "epub",
-            "application/pdf": "pdf"
-        }
+        formats = {"application/epub+zip": "epub", "application/pdf": "pdf"}
         return formats[format]
 
 
 class IA_Lending_API:
     """Archive.org waiting list API.
     """
+
     def get_loan(self, identifier, userid=None):
         params = dict(method="loan.query", identifier=identifier)
         if userid:
-            params['userid'] = userid
-        loans = self._post(**params).get('result', [])
+            params["userid"] = userid
+        loans = self._post(**params).get("result", [])
         if loans:
             return loans[0]
 
     def find_loans(self, **kw):
-        return self._post(method="loan.query", **kw).get('result', [])
+        return self._post(method="loan.query", **kw).get("result", [])
 
     def create_loan(self, identifier, userid, format, ol_key):
-        response = self._post(method="loan.create", identifier=identifier, userid=userid, format=format, ol_key=ol_key)
-        if response['status'] == 'ok':
-            return response['result']['loan']
+        response = self._post(
+            method="loan.create",
+            identifier=identifier,
+            userid=userid,
+            format=format,
+            ol_key=ol_key,
+        )
+        if response["status"] == "ok":
+            return response["result"]["loan"]
 
     def delete_loan(self, identifier, userid):
         self._post(method="loan.delete", identifier=identifier, userid=userid)
@@ -781,24 +883,23 @@ class IA_Lending_API:
         return self.query(userid=userid)
 
     def join_waitinglist(self, identifier, userid):
-        return self._post(method="waitinglist.join",
-                          identifier=identifier,
-                          userid=userid)
+        return self._post(
+            method="waitinglist.join", identifier=identifier, userid=userid
+        )
 
     def leave_waitinglist(self, identifier, userid):
-        return self._post(method="waitinglist.leave",
-                          identifier=identifier,
-                          userid=userid)
+        return self._post(
+            method="waitinglist.leave", identifier=identifier, userid=userid
+        )
 
     def update_waitinglist(self, identifier, userid, **kwargs):
-        return self._post(method="waitinglist.update",
-                          identifier=identifier,
-                          userid=userid,
-                          **kwargs)
+        return self._post(
+            method="waitinglist.update", identifier=identifier, userid=userid, **kwargs
+        )
 
     def query(self, **params):
         response = self._post(method="waitinglist.query", **params)
-        return response.get('result')
+        return response.get("result")
 
     def request(self, method, **arguments):
         return self._post(method=method, **arguments)
@@ -806,17 +907,19 @@ class IA_Lending_API:
     def _post(self, **params):
         logger.info("POST %s %s", config_ia_loan_api_url, params)
         if config_ia_loan_api_developer_key:
-            params['developer'] = config_ia_loan_api_developer_key
-        params['token'] = config_ia_ol_shared_key
+            params["developer"] = config_ia_loan_api_developer_key
+        params["token"] = config_ia_ol_shared_key
         payload = urllib.urlencode(params)
 
         try:
-            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
-                                       timeout=config_http_request_timeout).read()
+            jsontext = urllib2.urlopen(
+                config_ia_loan_api_url, payload, timeout=config_http_request_timeout
+            ).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
         except Exception as e:
             logger.exception("POST failed")
             raise
+
 
 ia_lending_api = IA_Lending_API()

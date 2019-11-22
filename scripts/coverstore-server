@@ -18,10 +18,12 @@ start coverstore using gunicorn webserver:
 """
 from __future__ import print_function
 
-import sys
 import os
+import sys
+
 import _init_path
 import web
+
 web.config.debug = False
 
 def setup_env():

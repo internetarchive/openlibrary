@@ -1,17 +1,25 @@
 from __future__ import print_function
-# build a merge database from JSON dump
 
-import simplejson
 import re
-from normalize import normalize
 from time import time
 
-re_escape = re.compile(r'[\n\r\t\0\\]')
-trans = { '\n': '\\n', '\r': '\\r', '\t': '\\t', '\\': '\\\\', '\0': '', }
+import simplejson
+from normalize import normalize
+
+# build a merge database from JSON dump
+
+
+re_escape = re.compile(r"[\n\r\t\0\\]")
+trans = {"\n": "\\n", "\r": "\\r", "\t": "\\t", "\\": "\\\\", "\0": ""}
+
 
 def esc_group(m):
     return trans[m.group(0)]
-def esc(str): return re_escape.sub(esc_group, str)
+
+
+def esc(str):
+    return re_escape.sub(esc_group, str)
+
 
 def add_to_index(fh, value, key):
     if not value:
@@ -22,59 +30,65 @@ def add_to_index(fh, value, key):
         return
     print("\t".join([key, esc(value)]), file=fh)
 
+
 def short_title(s):
     return normalize(s)[:25]
 
-re_letters = re.compile('[A-Za-z]')
-re_dash_or_space = re.compile('[- ]')
+
+re_letters = re.compile("[A-Za-z]")
+re_dash_or_space = re.compile("[- ]")
+
 
 def clean_lccn(lccn):
-    return re_letters.sub('', lccn).strip()
+    return re_letters.sub("", lccn).strip()
+
 
 def clean_isbn(isbn):
-    return re_dash_or_space.sub('', isbn)
+    return re_dash_or_space.sub("", isbn)
+
 
 def load_record(record, f):
-    if 'title' not in record or record['title'] is None:
+    if "title" not in record or record["title"] is None:
         return
-    if 'subtitle' in record and record['subtitle'] is not None:
-        title = record['title'] + ' ' + record['subtitle']
+    if "subtitle" in record and record["subtitle"] is not None:
+        title = record["title"] + " " + record["subtitle"]
     else:
-        title = record['title']
-    key = record['key']
-    add_to_index(f['title'], short_title(title), key)
-    if 'title_prefix' in record and record['title_prefix'] is not None:
-        title2 = short_title(record['title_prefix'] + title)
-        add_to_index(f['title'], title2, key)
+        title = record["title"]
+    key = record["key"]
+    add_to_index(f["title"], short_title(title), key)
+    if "title_prefix" in record and record["title_prefix"] is not None:
+        title2 = short_title(record["title_prefix"] + title)
+        add_to_index(f["title"], title2, key)
 
     fields = [
-        ('lccn', 'lccn', clean_lccn),
-        ('oclc_numbers', 'oclc', None),
-        ('isbn_10', 'isbn', clean_isbn),
-        ('isbn_13', 'isbn', clean_isbn),
+        ("lccn", "lccn", clean_lccn),
+        ("oclc_numbers", "oclc", None),
+        ("isbn_10", "isbn", clean_isbn),
+        ("isbn_13", "isbn", clean_isbn),
     ]
     for a, b, clean in fields:
         if a not in record:
             continue
         for v in record[a]:
-            if not v or b=='isbn' and len(v) < 10:
+            if not v or b == "isbn" and len(v) < 10:
                 continue
             if clean:
                 v = clean(v)
             add_to_index(f[b], v, key)
 
-total = 29107946 # FIXME
 
-path = '/1/edward/index/'
-index_fields = ('lccn', 'oclc', 'isbn', 'title')
-files = dict((i, open(path + i, 'w')) for i in index_fields)
+total = 29107946  # FIXME
+
+path = "/1/edward/index/"
+index_fields = ("lccn", "oclc", "isbn", "title")
+files = dict((i, open(path + i, "w")) for i in index_fields)
 
 rec_no = 0
 chunk = 10000
 t0 = time()
 t_prev = time()
 
-filename = '/1/anand/bsddb/json.txt'
+filename = "/1/anand/bsddb/json.txt"
 for line in open(filename):
     rec_no += 1
 
@@ -86,20 +100,22 @@ for line in open(filename):
         rec_per_sec_total = rec_no / t1
         remaining = total - rec_no
         sec = remaining / rec_per_sec_total
-        print("%d current: %.3f overall: %.3f" % \
-            (rec_no, rec_per_sec, rec_per_sec_total), end=' ')
+        print(
+            "%d current: %.3f overall: %.3f" % (rec_no, rec_per_sec, rec_per_sec_total),
+            end=" ",
+        )
         mins = sec / 60
         print("%.3f minutes left" % mins)
 
     # split line
-    key, type, json_data = line.split('\t')
-    if type != '/type/edition':
+    key, type, json_data = line.split("\t")
+    if type != "/type/edition":
         continue
     try:
         rec = simplejson.loads(json_data)
         load_record(rec, files)
     except:
-        print('record number:', rec_no)
+        print("record number:", rec_no)
         print(line)
         raise
 

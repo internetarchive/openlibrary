@@ -3,18 +3,18 @@
 import httplib
 import logging
 import re
-
-from lxml.etree import tostring, Element
 from unicodedata import normalize
 
 import six
-
+from lxml.etree import Element, tostring
 
 logger = logging.getLogger("openlibrary.solrwriter")
+
 
 class SolrWriter(object):
     """Interface to update solr.
     """
+
     def __init__(self, host, core=None):
         self.host = host
         if core:
@@ -36,19 +36,21 @@ class SolrWriter(object):
         """
         conn = self.get_conn()
 
-        logger.info('request: %r', xml[:65] + '...' if len(xml) > 65 else xml)
-        conn.request('POST', self.update_url, xml, { 'Content-type': 'text/xml;charset=utf-8'})
+        logger.info("request: %r", xml[:65] + "..." if len(xml) > 65 else xml)
+        conn.request(
+            "POST", self.update_url, xml, {"Content-type": "text/xml;charset=utf-8"}
+        )
         response = conn.getresponse()
         response_body = response.read()
 
         logger.info(response.reason)
-        if response.reason != 'OK':
+        if response.reason != "OK":
             logger.error(response_body)
-        assert response.reason == 'OK'
+        assert response.reason == "OK"
 
     def delete(self, key):
         logger.info("deleting %s", key)
-        q = '<delete><id>%s</id></delete>' % key
+        q = "<delete><id>%s</id></delete>" % key
         self.request(q)
 
     def update(self, document):
@@ -66,7 +68,7 @@ class SolrWriter(object):
                 root.append(node)
             logger.info("flushing %d documents", len(self.pending_updates))
             self.pending_updates = []
-            xml = tostring(root).encode('utf-8')
+            xml = tostring(root).encode("utf-8")
             self.request(xml)
 
     def commit(self):
@@ -78,11 +80,15 @@ class SolrWriter(object):
         logger.info("<optimize/>")
         self.request("<optimize/>")
 
-re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
+
+re_bad_char = re.compile("[\x01\x0b\x1a-\x1e]")
+
+
 def strip_bad_char(s):
     if not isinstance(s, six.string_types):
         return s
-    return re_bad_char.sub('', s)
+    return re_bad_char.sub("", s)
+
 
 def add_field(doc, name, value):
     if isinstance(value, (list, set)):
@@ -96,12 +102,13 @@ def add_field(doc, name, value):
         try:
             value = strip_bad_char(value)
             if isinstance(value, str):
-                value = value.decode('utf-8')
-            field.text = normalize('NFC', value)
+                value = value.decode("utf-8")
+            field.text = normalize("NFC", value)
         except:
-            logger.error('Error in normalizing %r', value)
+            logger.error("Error in normalizing %r", value)
             raise
         doc.append(field)
+
 
 def dict2element(d):
     doc = Element("doc")

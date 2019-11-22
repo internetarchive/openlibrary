@@ -1,12 +1,15 @@
 """Utility for loading config file.
 """
 import os
+
 import yaml
+
 import infogami
 from infogami import config
 from infogami.infobase import server
 
 runtime_config = {}
+
 
 def load(config_file):
     """legacy function to load openlibary config.
@@ -31,6 +34,7 @@ def load_config(config_file):
 
     # This sets web.config.db_parameters
     server.update_config(config.infobase)
+
 
 def setup_infobase_config(config_file):
     """Reads the infoabse config file and assign it to config.infobase.

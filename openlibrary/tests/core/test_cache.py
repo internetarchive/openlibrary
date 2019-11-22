@@ -1,16 +1,17 @@
 import time
-import simplejson
 
+import simplejson
 from openlibrary.core import cache
 from openlibrary.mocks import mock_memcache
+
 
 class Test_memcache_memoize:
     def test_encode_args(self):
         m = cache.memcache_memoize(None, key_prefix="foo")
 
-        assert m.encode_args([]) == ''
+        assert m.encode_args([]) == ""
         assert m.encode_args(["a"]) == '"a"'
-        assert m.encode_args([1]) == '1'
+        assert m.encode_args([1]) == "1"
         assert m.encode_args(["a", 1]) == '"a",1'
         assert m.encode_args([{"a": 1}]) == '{"a":1}'
         assert m.encode_args([["a", 1]]) == '["a",1]'
@@ -18,6 +19,7 @@ class Test_memcache_memoize:
     def test_generate_key_prefix(self):
         def foo():
             pass
+
         m = cache.memcache_memoize(foo)
         assert m.key_prefix[:4] == "foo_"
 
@@ -83,6 +85,7 @@ class Test_memcache_memoize:
         m(10)
         assert m.stats.updates == 2
 
+
 class Test_memoize:
     def teardown_method(self, method):
         cache.memory_cache.clear()
@@ -98,6 +101,7 @@ class Test_memoize:
             """Returns square x.
             """
             return x * x
+
         msquare = cache.memoize(engine="memory", key="square")(square)
         assert msquare.__name__ == square.__name__
         assert msquare.__doc__ == square.__doc__
@@ -111,7 +115,7 @@ class Test_memoize:
         assert self.get("square-2") == 4
 
         # It should read from cache instead of computing if entry is present in the cache
-        self.set('square-42', 43)
+        self.set("square-42", 43)
         assert square(42) == 43
 
     def test_cache_with_tuple_keys(self):

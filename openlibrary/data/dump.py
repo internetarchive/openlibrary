@@ -8,18 +8,18 @@ Glossary:
 """
 from __future__ import print_function
 
-import sys
-import os
-import web
-import re
-import time
-import simplejson
-import itertools
 import gzip
-
-import db
+import itertools
+import os
+import re
+import sys
+import time
 
 import six
+
+import db
+import simplejson
+import web
 
 
 def print_dump(json_records, filter=None):
@@ -29,12 +29,12 @@ def print_dump(json_records, filter=None):
         if i % 1000000 == 0:
             log(i)
         d = simplejson.loads(json)
-        d.pop('id', None)
+        d.pop("id", None)
         d = _process_data(d)
 
-        key = web.safestr(d['key'])
-        type = d['type']['key']
-        timestamp = d['last_modified']['value']
+        key = web.safestr(d["key"])
+        type = d["type"]["key"]
+        timestamp = d["last_modified"]["value"]
         json = simplejson.dumps(d)
 
         # skip user and admin pages
@@ -42,27 +42,36 @@ def print_dump(json_records, filter=None):
             continue
 
         # skip obsolete pages. Obsolete pages include volumes, scan_records and users marked as spam.
-        if key.startswith("/b/") or key.startswith("/scan") or key.startswith("/old/") or not key.startswith("/"):
+        if (
+            key.startswith("/b/")
+            or key.startswith("/scan")
+            or key.startswith("/old/")
+            or not key.startswith("/")
+        ):
             continue
 
         if filter and filter(d) is False:
             continue
 
-        print("\t".join([type, key, str(d['revision']), timestamp, json]))
+        print("\t".join([type, key, str(d["revision"]), timestamp, json]))
+
 
 def read_data_file(filename):
     for line in xopen(filename):
         thing_id, revision, json = line.strip().split("\t")
         yield pgdecode(json)
 
+
 def log(*args):
     print(time.asctime(), " ".join(str(a) for a in args), file=sys.stderr)
 
-def xopen(path, mode='r'):
+
+def xopen(path, mode="r"):
     if path.endswith(".gz"):
         return gzip.open(path, mode)
     else:
         return open(path, mode)
+
 
 def read_tsv(file, strip=True):
     """Read a tab seperated file and return an iterator over rows."""
@@ -77,6 +86,7 @@ def read_tsv(file, strip=True):
             line = line.strip()
         yield line.split("\t")
 
+
 def generate_cdump(data_file, date=None):
     """Generates cdump from a copy of data table.
     If date is specified, only revisions created on or before that date will be considered.
@@ -88,9 +98,10 @@ def generate_cdump(data_file, date=None):
     #   False
     #   >>> "2010-05-17T10:20:30" < "2010-05-17Z"
     #   True
-    filter = date and (lambda doc: doc['last_modified']['value'] < date + "Z")
+    filter = date and (lambda doc: doc["last_modified"]["value"] < date + "Z")
 
     print_dump(read_data_file(data_file), filter=filter)
+
 
 def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     """Sort the given dump based on key."""
@@ -98,10 +109,10 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
     if not os.path.exists(tmpdir):
         os.makedirs(tmpdir)
 
-    M = 1024*1024
+    M = 1024 * 1024
 
     filenames = [os.path.join(tmpdir, "%02x.txt.gz" % i) for i in range(256)]
-    files = [gzip.open(f, 'w') for f in filenames]
+    files = [gzip.open(f, "w") for f in filenames]
 
     if dump_file is None:
         stdin = sys.stdin
@@ -125,9 +136,12 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
 
     for fname in filenames:
         log("sorting", fname)
-        status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
+        status = os.system(
+            "gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals()
+        )
         if status != 0:
             raise Exception("sort failed with status %d" % status)
+
 
 def pmap(f, tasks):
     """Run tasks parallelly."""
@@ -135,17 +149,20 @@ def pmap(f, tasks):
         from subprocess import Pool
 
         from multiprocessing import Pool
+
         r = pool.map_async(f, tasks, callback=results.append)
-        r.wait() # Wait on the results
+        r.wait()  # Wait on the results
 
     except ImportError:
         Pool = None
+
 
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
 
     The given cdump must be sorted by key.
     """
+
     def process(data):
         revision = lambda cols: int(cols[2])
         for key, rows in itertools.groupby(data, key=lambda cols: cols[1]):
@@ -157,18 +174,23 @@ def generate_dump(cdump_file=None):
     # group by key and find the max by revision
     sys.stdout.writelines(tjoin(row) for row in process(data))
 
+
 def generate_idump(day, **db_parameters):
     """Generate incremental dump for the given day.
     """
     db.setup_database(**db_parameters)
-    rows = db.longquery("SELECT data.* FROM data, version, transaction "
+    rows = db.longquery(
+        "SELECT data.* FROM data, version, transaction "
         + " WHERE data.thing_id=version.thing_id"
         + "     AND data.revision=version.revision"
         + "     AND version.transaction_id=transaction.id"
         + "     AND transaction.created >= $day AND transaction.created < date $day + interval '1 day'"
         + " ORDER BY transaction.created",
-        vars=locals(), chunk_size=10000)
+        vars=locals(),
+        chunk_size=10000,
+    )
     print_dump(row.data for chunk in rows for row in chunk)
+
 
 def split_dump(dump_file=None, format="oldump_%s.txt"):
     """Split dump into authors, editions and works."""
@@ -193,6 +215,7 @@ def split_dump(dump_file=None, format="oldump_%s.txt"):
     for f in files.values():
         f.close()
 
+
 def make_index(dump_file):
     """Make index with "path", "title", "created" and "last_modified" columns."""
 
@@ -200,34 +223,43 @@ def make_index(dump_file):
 
     for type, key, revision, timestamp, json in read_tsv(dump_file):
         data = simplejson.loads(json)
-        if type == '/type/edition' or type == '/type/work':
-            title = data.get('title', 'untitled')
-            path = key + '/' + urlsafe(title)
-        elif type == '/type/author':
-            title = data.get('name', 'unnamed')
-            path = key + '/' + urlsafe(title)
+        if type == "/type/edition" or type == "/type/work":
+            title = data.get("title", "untitled")
+            path = key + "/" + urlsafe(title)
+        elif type == "/type/author":
+            title = data.get("name", "unnamed")
+            path = key + "/" + urlsafe(title)
         else:
-            title = data.get('title', key)
+            title = data.get("title", key)
             path = key
 
         title = title.replace("\t", " ")
 
-        if 'created' in data:
-            created = data['created']['value']
+        if "created" in data:
+            created = data["created"]["value"]
         else:
             created = "-"
         print("\t".join([web.safestr(path), web.safestr(title), created, timestamp]))
 
+
 def make_bsddb(dbfile, dump_file):
     import bsddb
-    db = bsddb.btopen(dbfile, 'w', cachesize=1024*1024*1024)
+
+    db = bsddb.btopen(dbfile, "w", cachesize=1024 * 1024 * 1024)
 
     from infogami.infobase.utils import flatten_dict
 
-    indexable_keys = set([
-        "authors.key",  "works.key", # edition
-        "authors.author.key", "subjects", "subject_places", "subject_people", "subject_times" # work
-    ])
+    indexable_keys = set(
+        [
+            "authors.key",
+            "works.key",  # edition
+            "authors.author.key",
+            "subjects",
+            "subject_places",
+            "subject_people",
+            "subject_times",  # work
+        ]
+    )
     for type, key, revision, timestamp, json in read_tsv(dump_file):
         db[key] = json
         d = simplejson.loads(json)
@@ -235,9 +267,9 @@ def make_bsddb(dbfile, dump_file):
         for k, v in index:
             k = web.rstrips(k, ".key")
             if k.startswith("subject"):
-                v = '/' + v.lower().replace(" ", "_")
+                v = "/" + v.lower().replace(" ", "_")
 
-            dbkey  = web.safestr('by_%s%s' % (k, v))
+            dbkey = web.safestr("by_%s%s" % (k, v))
             if dbkey in db:
                 db[dbkey] = db[dbkey] + " " + key
             else:
@@ -245,17 +277,23 @@ def make_bsddb(dbfile, dump_file):
     db.close()
     log("done")
 
+
 def _process_key(key):
     mapping = (
-        "/l/", "/languages/",
-        "/a/", "/authors/",
-        "/b/", "/books/",
-        "/user/", "/people/"
+        "/l/",
+        "/languages/",
+        "/a/",
+        "/authors/",
+        "/b/",
+        "/books/",
+        "/user/",
+        "/people/",
     )
     for old, new in web.group(mapping, 2):
         if key.startswith(old):
-            return new + key[len(old):]
+            return new + key[len(old) :]
     return key
+
 
 def _process_data(data):
     """Convert keys from /a/, /b/, /l/ and /user/ to /authors/, /books/, /languages/ and /people/ respectively.
@@ -263,16 +301,17 @@ def _process_data(data):
     if isinstance(data, list):
         return [_process_data(d) for d in data]
     elif isinstance(data, dict):
-        if 'key' in data:
-            data['key'] = _process_key(data['key'])
+        if "key" in data:
+            data["key"] = _process_key(data["key"])
 
         # convert date to ISO format
-        if 'type' in data and data['type'] == '/type/datetime':
-            data['value'] = data['value'].replace(' ', 'T')
+        if "type" in data and data["type"] == "/type/datetime":
+            data["value"] = data["value"].replace(" ", "T")
 
         return dict((k, _process_data(v)) for k, v in data.iteritems())
     else:
         return data
+
 
 def _make_sub(d):
     """Make substituter.
@@ -281,21 +320,27 @@ def _make_sub(d):
         >>> f('aabbb')
         'aaaabb'
     """
+
     def f(a):
         return d[a.group(0)]
+
     rx = re.compile("|".join(map(re.escape, d.keys())))
     return lambda s: s and rx.sub(f, s)
+
 
 def _invert_dict(d):
     return dict((v, k) for (k, v) in d.items())
 
-_pgencode_dict = {'\n': r'\n', '\r': r'\r', '\t': r'\t', '\\': r'\\'}
+
+_pgencode_dict = {"\n": r"\n", "\r": r"\r", "\t": r"\t", "\\": r"\\"}
 _pgencode = _make_sub(_pgencode_dict)
 _pgdecode = _make_sub(_invert_dict(_pgencode_dict))
+
 
 def pgencode(text):
     """Reverse of pgdecode."""
     return _pgdecode(text)
+
 
 def pgdecode(text):
     r"""Decode postgres encoded text.
@@ -304,6 +349,7 @@ def pgdecode(text):
         '\n'
     """
     return _pgdecode(text)
+
 
 def main(cmd, args):
     """Command Line interface for generating dumps.
@@ -314,38 +360,42 @@ def main(cmd, args):
     kwargs = {}
 
     for a in iargs:
-        if a.startswith('--'):
+        if a.startswith("--"):
             name = a[2:].replace("-", "_")
             value = iargs.next()
             kwargs[name] = value
         else:
             args.append(a)
 
-    if cmd == 'cdump':
+    if cmd == "cdump":
         generate_cdump(*args, **kwargs)
-    elif cmd == 'dump':
+    elif cmd == "dump":
         generate_dump(*args, **kwargs)
-    elif cmd == 'idump':
+    elif cmd == "idump":
         generate_idump(*args, **kwargs)
-    elif cmd == 'sort':
+    elif cmd == "sort":
         sort_dump(*args, **kwargs)
-    elif cmd == 'split':
+    elif cmd == "split":
         split_dump(*args, **kwargs)
-    elif cmd == 'index':
+    elif cmd == "index":
         make_index(*args, **kwargs)
-    elif cmd == 'bsddb':
+    elif cmd == "bsddb":
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
         import solr
+
         solr.generate_dump(*args, **kwargs)
-    elif cmd == 'sitemaps':
+    elif cmd == "sitemaps":
         from sitemap import generate_sitemaps
+
         generate_sitemaps(*args, **kwargs)
-    elif cmd == 'htmlindex':
+    elif cmd == "htmlindex":
         from sitemap import generate_html_index
+
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)
+
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2:])

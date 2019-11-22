@@ -2,13 +2,14 @@
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
 from __future__ import print_function
-import _init_path
 
 import os
-import web
 from optparse import OptionParser
 
+import _init_path
+import web
 from openlibrary.api import OpenLibrary, marshal
+
 
 def parse_options(args=None):
     parser = OptionParser(args)

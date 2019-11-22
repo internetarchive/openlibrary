@@ -32,6 +32,7 @@ result in compressed_record being 50% or less of the size of
 some_record, and restored_record being identical to some_record.
 """
 
+
 class Compressor(object):
     def __init__(self, seed):
         c = zlib.compressobj(9)
@@ -58,6 +59,7 @@ class Compressor(object):
             t += d.decompress(d.unconsumed_tail)
         return t
 
+
 def test():
     c = Compressor(__doc__)
     test_string = "zlib is a pretty good compression algorithm"
@@ -67,5 +69,6 @@ def test():
     # current doc text as compression seed, not bad for such short input.
     dt = c.decompress(ct)
     assert dt == test_string
+
 
 test()

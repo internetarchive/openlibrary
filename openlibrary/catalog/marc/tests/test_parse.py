@@ -1,43 +1,77 @@
-import pytest
-
-from openlibrary.catalog.marc.parse import read_edition, SeeAlsoAsTitle, NoTitle
-from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
-from lxml import etree
 import os
+
+import pytest
+from lxml import etree
+
 import simplejson
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import BadSubtag, BlankTag, MarcXml
+from openlibrary.catalog.marc.parse import NoTitle, SeeAlsoAsTitle, read_edition
 
-collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
-record_tag = '{http://www.loc.gov/MARC21/slim}record'
+collection_tag = "{http://www.loc.gov/MARC21/slim}collection"
+record_tag = "{http://www.loc.gov/MARC21/slim}record"
 
-xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
-    'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
-    'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
-    '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
-    'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
-    'cu31924091184469', # MARC XML collection record
-    'engineercorpsofh00sher',
-    ]
+xml_samples = [
+    "39002054008678.yale.edu",
+    "flatlandromanceo00abbouoft",
+    "nybc200247",
+    "secretcodeofsucc00stjo",
+    "warofrebellionco1473unit",
+    "zweibchersatir01horauoft",
+    "onquietcomedyint00brid",
+    "00schlgoog",
+    "0descriptionofta1682unit",
+    "1733mmoiresdel00vill",
+    "13dipolarcycload00burk",
+    "bijouorannualofl1828cole",
+    "soilsurveyrepor00statgoog",
+    "diebrokeradical400poll",
+    "cu31924091184469",  # MARC XML collection record
+    "engineercorpsofh00sher",
+]
 
-bin_samples = ['bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
-    'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
-    'lc_1416500308', 'ocm00400866', 'secretcodeofsucc00stjo_meta.mrc',
-    'uoft_4351105_1626', 'warofrebellionco1473unit_meta.mrc', 'wrapped_lines',
-    'wwu_51323556', 'zweibchersatir01horauoft_meta.mrc', 'talis_two_authors.mrc',
-    'talis_no_title.mrc', 'talis_740.mrc', 'talis_245p.mrc', 'talis_856.mrc',
-    'talis_multi_work_tiles.mrc', 'talis_empty_245.mrc', 'ithaca_two_856u.mrc',
-    'collingswood_bad_008.mrc', 'collingswood_520aa.mrc', 'upei_broken_008.mrc',
-    'upei_short_008.mrc', 'diebrokeradical400poll_meta.mrc', 'cu31924091184469_meta.mrc',
-    'engineercorpsofh00sher_meta.mrc', 'henrywardbeecher00robauoft_meta.mrc',
-    'thewilliamsrecord_vol29b_meta.mrc', '13dipolarcycload00burk_meta.mrc' ]
+bin_samples = [
+    "bpl_0486266893",
+    "flatlandromanceo00abbouoft_meta.mrc",
+    "histoirereligieu05cr_meta.mrc",
+    "ithaca_college_75002321",
+    "lc_0444897283",
+    "lc_1416500308",
+    "ocm00400866",
+    "secretcodeofsucc00stjo_meta.mrc",
+    "uoft_4351105_1626",
+    "warofrebellionco1473unit_meta.mrc",
+    "wrapped_lines",
+    "wwu_51323556",
+    "zweibchersatir01horauoft_meta.mrc",
+    "talis_two_authors.mrc",
+    "talis_no_title.mrc",
+    "talis_740.mrc",
+    "talis_245p.mrc",
+    "talis_856.mrc",
+    "talis_multi_work_tiles.mrc",
+    "talis_empty_245.mrc",
+    "ithaca_two_856u.mrc",
+    "collingswood_bad_008.mrc",
+    "collingswood_520aa.mrc",
+    "upei_broken_008.mrc",
+    "upei_short_008.mrc",
+    "diebrokeradical400poll_meta.mrc",
+    "cu31924091184469_meta.mrc",
+    "engineercorpsofh00sher_meta.mrc",
+    "henrywardbeecher00robauoft_meta.mrc",
+    "thewilliamsrecord_vol29b_meta.mrc",
+    "13dipolarcycload00burk_meta.mrc",
+]
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
 
-class TestParse():
-    @pytest.mark.parametrize('i', xml_samples)
+
+class TestParse:
+    @pytest.mark.parametrize("i", xml_samples)
     def test_xml(self, i):
         expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
-        path            = "%s/xml_input/%s_marc.xml"  % (test_data, i)
+        path = "%s/xml_input/%s_marc.xml" % (test_data, i)
         element = etree.parse(open(path)).getroot()
         # Handle MARC XML collection elements in our test_data expectations:
         if element.tag == collection_tag and element[0].tag == record_tag:
@@ -52,14 +86,14 @@ class TestParse():
             assert edition_marc_xml[k] == j[k]
         assert edition_marc_xml == j
 
-    @pytest.mark.parametrize('i', bin_samples)
+    @pytest.mark.parametrize("i", bin_samples)
     def test_binary(self, i):
         expect_filename = "%s/bin_expect/%s" % (test_data, i)
         data = open("%s/bin_input/%s" % (test_data, i)).read()
         if len(data) != int(data[:5]):
-            #TODO: Why are we fixing this in test expectations? Investigate.
+            # TODO: Why are we fixing this in test expectations? Investigate.
             #      affects histoirereligieu05cr_meta.mrc and zweibchersatir01horauoft_meta.mrc
-            data = data.decode('utf-8').encode('raw_unicode_escape')
+            data = data.decode("utf-8").encode("raw_unicode_escape")
         assert len(data) == int(data[:5])
         rec = MarcBinary(data)
         edition_marc_bin = read_edition(rec)
@@ -76,14 +110,14 @@ class TestParse():
 
     def test_raises_see_also(self):
         filename = "%s/bin_input/talis_see_also.mrc" % test_data
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
         filename = "%s/bin_input/talis_no_title2.mrc" % test_data
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)

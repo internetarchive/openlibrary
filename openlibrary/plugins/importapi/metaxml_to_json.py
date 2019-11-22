@@ -12,41 +12,44 @@ from __future__ import print_function
 
 from import_edition_builder import import_edition_builder
 
+
 def parse_collection(collection):
     collection_dict = {
-        'printdisabled'  : ['Protected DAISY', 'Accessible book'],
-        'lendinglibrary' : ['Lending library', 'Protected DAISY', 'Accessible book'],
-        'inlibrary'      : ['In library'],
+        "printdisabled": ["Protected DAISY", "Accessible book"],
+        "lendinglibrary": ["Lending library", "Protected DAISY", "Accessible book"],
+        "inlibrary": ["In library"],
     }
 
     return collection_dict.get(collection, [])
 
+
 def parse_isbn(isbn):
     if 13 == len(isbn):
-        return ('isbn_13', [isbn])
+        return ("isbn_13", [isbn])
     elif 10 == len(isbn):
-        return ('isbn_10', [isbn])
+        return ("isbn_10", [isbn])
     else:
-        return ('isbn', [])
+        return ("isbn", [])
+
 
 def metaxml_to_edition_dict(root):
 
     ia_to_ol_map = {
-        'identifier' : 'ocaid',
-        'creator'    : 'author',
-        'date'       : 'publish_date',
-        'boxid'      : 'ia_box_id',
+        "identifier": "ocaid",
+        "creator": "author",
+        "date": "publish_date",
+        "boxid": "ia_box_id",
     }
 
     edition_builder = import_edition_builder()
 
     for element in root.iter():
-        #print("got %s -> %s" % (element.tag, element.text))
+        # print("got %s -> %s" % (element.tag, element.text))
 
-        if 'collection' == element.tag:
-            key = 'subject'
+        if "collection" == element.tag:
+            key = "subject"
             values = parse_collection(element.text)
-        elif 'isbn' == element.tag:
+        elif "isbn" == element.tag:
             key, values = parse_isbn(element.text)
         elif element.tag in ia_to_ol_map:
             key = ia_to_ol_map[element.tag]
@@ -56,16 +59,18 @@ def metaxml_to_edition_dict(root):
             values = [element.text]
 
         for value in values:
-            if key.startswith('ia_'):
+            if key.startswith("ia_"):
                 edition_builder.add(key, value, restrict_keys=False)
             else:
                 edition_builder.add(key, value)
 
     return edition_builder.get_dict()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     from lxml import etree
     import sys
+
     assert 2 == len(sys.argv)
 
     tree = etree.parse(sys.argv[1])
@@ -74,6 +79,6 @@ if __name__ == '__main__':
     edition_dict = metaxml_to_edition_dict(root)
 
     import json
+
     json_str = json.dumps(edition_dict)
     print(json_str)
-

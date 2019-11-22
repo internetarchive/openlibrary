@@ -1,10 +1,13 @@
 """Library to mock memcache functionality.
 """
-import memcache
 import pytest
+
+import memcache
+
 
 class Client:
     """Mock memcache client."""
+
     def __init__(self, servers=[]):
         self.servers = servers
         self.cache = {}
@@ -28,6 +31,7 @@ class Client:
         except KeyError:
             pass
 
+
 @pytest.fixture
 def mock_memcache(request, monkeypatch):
     """This patches all the existing memcache connections to use mock memcache instance.
@@ -39,8 +43,10 @@ def mock_memcache(request, monkeypatch):
 
     def proxy(name):
         method = getattr(mock_memcache, name)
+
         def f(self, *a, **kw):
             return method(*a, **kw)
+
         return f
 
     m.setattr(memcache.Client, "get", proxy("get"))
@@ -48,4 +54,3 @@ def mock_memcache(request, monkeypatch):
     m.setattr(memcache.Client, "add", proxy("add"))
 
     return mock_memcache
-
