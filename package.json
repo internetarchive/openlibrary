@@ -85,7 +85,7 @@
     "jquery-ui": "1.12.1",
     "jquery-validation": "1.19.1",
     "less": "^3.8.1",
-    "less-loader": "4.1.0",
+    "less-loader": "5.0.0",
     "less-plugin-clean-css": "^1.5.1",
     "node-gyp": "^3.8.0",
     "prebuild-install": "^5.2.1",
