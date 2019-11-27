@@ -56,7 +56,9 @@ export function init() {
             <li>
                 <a class="thumbnail">
                     <img />
-                    <span class="code"></span>
+                    <div class="caption">
+                        <span class="code"></span>
+                    </div>
                 </a>
             </li>`.trim());
             $node.find("img").attr("src", canvas.toDataURL());
