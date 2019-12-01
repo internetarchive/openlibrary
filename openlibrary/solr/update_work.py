@@ -55,7 +55,7 @@ SUBJECT_BLACKLIST = [
         "Protected DAISY", #393245,
         #"Congresses", #374268,
         "Internet Archive Wishlist", #372761,
-        "General", #121376,
+        "General", #121376, # Typically, from a precomposed History-General or some such
         # ?"Early works to 1800", #89990,
         "OverDrive", #69487,
         "English language", #68921,
@@ -242,7 +242,7 @@ def pick_cover(w, editions):
 
 def get_work_subjects(w):
     """
-    Get's the subjects of the work grouped by type and then by count.
+    Gets the subjects of the work grouped by type and then by count.
 
     :param dict w: Work
     :rtype: dict[str, dict[str, int]]
@@ -277,6 +277,7 @@ def get_work_subjects(w):
 
     return subjects
 
+# Dupe of function in work_subjects.py
 def four_types(i):
     """
     Moves any subjects not of type subject, time, place, or person into type subject.
@@ -503,11 +504,11 @@ class SolrProcessor:
         # FIXME END_REMOVE
 
         # TODO This literally *exactly* how has_fulltext is calculated
-        if any(e.get('ocaid', None) for e in editions):
-            subjects.setdefault('subject', {})
-            subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
-            if not has_fulltext:
-                subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
+        #if any(e.get('ocaid', None) for e in editions):
+        #    subjects.setdefault('subject', {})
+        #    subjects['subject']['Accessible book'] = subjects['subject'].get('Accessible book', 0) + 1
+        #    if not has_fulltext:
+        #        subjects['subject']['Protected DAISY'] = subjects['subject'].get('Protected DAISY', 0) + 1
         return subjects
 
     def build_data(self, w, editions, subjects, has_fulltext):
@@ -1184,11 +1185,15 @@ def get_subject(key):
     work_count = result['response']['numFound']
     facets = result['facet_counts']['facet_fields'].get(facet_field, [])
 
+    # FIXME Inefficient brute force search for name mapping
     names = [name for name, count in facets if str_to_key(name) == subject_key]
+    name = None
+    for nam, count in facets:
+        if str_to_key(nam) == subject_key:
+            name = nam
+            break
 
-    if names:
-        name = names[0]
-    else:
+    if not name:
         name = subject_key.replace("_", " ") # Inverse transform as fallback
 
     return {
@@ -1340,16 +1345,19 @@ def update_author(akey, a=None, handle_redirects=True, seed_work=None, bulk_upda
     # This only works with a sequence of tuples, not a dict due to duplicate keys
     params = (('wt', 'json'),
               ('json.nl', 'arrarr'),
-              ('q', 'author_key,%s'  % author_id),
+              ('q', 'author_key:%s'  % author_id),
               ('sort', 'edition_count desc'),
               ('rows', 1),
               ('fl', 'title,subtitle'),
-              ('facet', 'true'),
+              ('facet', 'true'), # Facets used to retrieve top subjects
               ('facet.mincount', 1),
               ) + tuple([('facet.field', '%s_facet' % f) for f in facet_fields])
 
     reply = get_json(url, params)
     work_count = reply['response']['numFound']
+    if not work_count:
+        # TODO: Make this an error or assert?
+        logger.warn('No works found for author key %s' %  author_id)
     docs = reply['response'].get('docs', [])
     top_work = None
     if docs and docs[0].get('title', None):
