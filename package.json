@@ -97,7 +97,7 @@
     "stylelint-declaration-use-variable": "^1.7.0",
     "svgo": "1.1.1",
     "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2"
+    "webpack-cli": "^3.3.10"
   },
   "jest": {
     "collectCoverageFrom": [
