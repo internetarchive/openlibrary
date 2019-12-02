@@ -50,7 +50,7 @@ SUBJECT_BLACKLIST = [
         "Accessible book", #2512580
         #"History", #1245974,
         #"Biography", #464651,
-        "In library" #,459479,
+        "In library", #459479,
         #"Fiction", #415393,
         "Protected DAISY", #393245,
         #"Congresses", #374268,
@@ -72,6 +72,7 @@ SUBJECT_BLACKLIST = [
         "Lending Library",
         # "<subject> in <language>" e.g. "Drama in Spanish"
         # "<language> language books"
+        "Large type books",
 ]
 
 
