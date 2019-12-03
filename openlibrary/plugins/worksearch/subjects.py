@@ -40,6 +40,9 @@ SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
 ]
 
+DEFAULT_RESULTS = 12
+MAX_RESULTS = 1000
+
 class subjects_index(delegate.page):
     path = "/subjects"
 
@@ -100,9 +103,8 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
+        i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='true',
                       sort='editions', available='false')
-
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -119,7 +121,7 @@ class subjects_json(delegate.page):
                 if y is not None:
                     filters['publish_year'] = i.published_in
 
-        i.limit = safeint(i.limit, 12)
+        i.limit = min(safeint(i.limit, DEFAULT_RESULTS), MAX_RESULTS)
         i.offset = safeint(i.offset, 0)
 
         subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
@@ -149,7 +151,7 @@ class subject_works_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, has_fulltext="false")
+        i = web.input(offset=0, limit=DEFAULT_RESULTS, has_fulltext="false")
 
         filters = {}
         if i.get("has_fulltext") == "true":
@@ -166,7 +168,7 @@ class subject_works_json(delegate.page):
                 if y is not None:
                     filters["publish_year"] = i.published_in
 
-        i.limit = safeint(i.limit, 12)
+        i.limit = min(safeint(i.limit, DEFAULT_RESULTS), MAX_RESULTS)
         i.offset = safeint(i.offset, 0)
 
         results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
@@ -179,7 +181,7 @@ class subject_works_json(delegate.page):
         return key
 
 
-def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
+def get_subject(key, details=False, offset=0, sort='editions', limit=DEFAULT_RESULTS, **filters):
     """Returns data related to a subject.
 
     By default, it returns a storage object with key, name, work_count and works.
@@ -255,7 +257,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     return subject_results
 
 class SubjectEngine:
-    def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
+    def get_subject(self, key, details=False, offset=0, limit=DEFAULT_RESULTS, sort='first_publish_year desc', **filters):
         meta = self.get_meta(key)
 
         q = self.make_query(key, filters)
