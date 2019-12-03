@@ -33,7 +33,7 @@
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "146.1KB"
+      "maxSize": "146.3KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -96,7 +96,7 @@
     "stylelint": "^9.5.0",
     "stylelint-declaration-use-variable": "^1.7.0",
     "svgo": "1.1.1",
-    "webpack": "^4.27.1",
+    "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
   },
   "jest": {
