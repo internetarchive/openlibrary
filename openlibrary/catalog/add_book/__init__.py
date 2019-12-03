@@ -303,6 +303,19 @@ def update_ia_metadata_for_ol_edition(edition_id):
     return data
 
 
+def normalise_isbns(rec):
+    """
+    Returns the Edition import record with all ISBN fields cleaned.
+
+    :param dict rec: Edition import record
+    :rtype: dict
+    """
+    for field in ('isbn_13', 'isbn_10', 'isbn'):
+        if rec.get(field):
+            rec[field] = [isbn.replace('-', '').strip() for isbn in rec.get(field)]
+    return rec
+
+
 def isbns_from_record(rec):
     """
     Returns a list of all isbns from the various possible isbn fields.
@@ -311,7 +324,6 @@ def isbns_from_record(rec):
     :rtype: list
     """
     isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
-    isbns = [isbn.replace('-', '').strip() for isbn in isbns]
     return isbns
 
 
@@ -607,6 +619,8 @@ def load(rec, account=None):
         raise RequiredField('source_records')
     if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
+
+    rec = normalise_isbns(rec)
 
     edition_pool = build_pool(rec)
     if not edition_pool:
