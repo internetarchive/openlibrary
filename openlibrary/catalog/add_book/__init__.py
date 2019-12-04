@@ -39,6 +39,7 @@ from openlibrary import accounts
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
+from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
 from openlibrary.catalog.add_book.merge import try_merge
@@ -119,7 +120,7 @@ def get_title(e):
 def find_matching_work(e):
     """
     Looks for an existing Work representing the new import edition by
-    comparing normalised titles for every work by each author of the current edition.
+    comparing normalized titles for every work by each author of the current edition.
     Returns the first match found, or None.
 
     :param dict e: An OL edition suitable for saving, has a key, and has full Authors with keys
@@ -303,16 +304,17 @@ def update_ia_metadata_for_ol_edition(edition_id):
     return data
 
 
-def normalise_isbns(rec):
+def normalize_record_isbns(rec):
     """
     Returns the Edition import record with all ISBN fields cleaned.
 
     :param dict rec: Edition import record
     :rtype: dict
+    :return: A record with cleaned ISBNs in the various possible ISBN locations.
     """
     for field in ('isbn_13', 'isbn_10', 'isbn'):
         if rec.get(field):
-            rec[field] = [isbn.replace('-', '').strip() for isbn in rec.get(field)]
+            rec[field] = [normalize_isbn(isbn) for isbn in rec.get(field) if normalize_isbn(isbn)]
     return rec
 
 
@@ -620,7 +622,7 @@ def load(rec, account=None):
     if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
 
-    rec = normalise_isbns(rec)
+    rec = normalize_record_isbns(rec)
 
     edition_pool = build_pool(rec)
     if not edition_pool:
