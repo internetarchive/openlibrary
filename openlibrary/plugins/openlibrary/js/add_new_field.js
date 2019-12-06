@@ -32,7 +32,7 @@ export default function($){
                     if (options.onshow) {
                         options.onshow.apply($this, []);
                     }
-                    $.fn.colorbox({
+                    $.colorbox({
                         inline: true,
                         opacity: '0.5',
                         href: options.href,
