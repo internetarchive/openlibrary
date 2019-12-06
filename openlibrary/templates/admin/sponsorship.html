@@ -131,8 +131,9 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
                   <li>
                     <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
                   </li>
-                  <li>
-                    <a href="/books/$book['openlibrary_edition']">$book['openlibrary_edition']</a>
+                  $if book.get('openlibrary_edition'):
+                    <li>
+                      <a href="/books/$book['openlibrary_edition']">$book['openlibrary_edition']</a>
                     </li>
                 </ul>
               </td>
