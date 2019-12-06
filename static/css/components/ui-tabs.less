@@ -96,8 +96,6 @@
 .floater {
   .ui-tabs-panel {
     border: none;
-    border-top: 3px solid @lightest-grey;
-    padding: 15px 30px !important;
     background: @white;
     /* declare background color for container to avoid distorted fonts in IE while fading */
   }
@@ -115,6 +113,12 @@
 }
 
 @media only screen and (min-width: @width-breakpoint-tablet) {
+  .floater {
+    .ui-tabs-panel {
+      border-top: 3px solid @lightest-grey;
+    }
+  }
+
   .tabs-panel {
     padding: 15px 30px 20px !important;
   }
@@ -130,6 +134,12 @@
       a {
         padding: 2px 8px 3px;
       }
+    }
+  }
+  .floater {
+    .ui-tabs-panel {
+      padding: 15px 30px !important;
+      /* declare background color for container to avoid distorted fonts in IE while fading */
     }
   }
 }
