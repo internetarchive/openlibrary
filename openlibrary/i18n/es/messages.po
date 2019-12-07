@@ -1664,7 +1664,7 @@ msgstr "Libro aleatorio"
 
 #: nav_head.html:15 nav_head.html:93
 msgid "Recent Community Edits"
-msgstr "Recientes ediciones de la comunidad"
+msgstr "Ediciones recientes de la comunidad"
 
 #: nav_head.html:16 nav_head.html:92
 msgid "Advanced Search"
@@ -1680,7 +1680,7 @@ msgstr "Ayuda y soporte"
 
 #: nav_head.html:38
 msgid "All"
-msgstr "Tod"
+msgstr "Todo"
 
 #: nav_head.html:41 search_foot.html:7 search_head.html:7
 msgid "Subject"
@@ -1700,7 +1700,7 @@ msgstr "Buscar"
 
 #: nav_head.html:61
 msgid "Browse"
-msgstr "Navegar"
+msgstr "Explorar"
 
 #: nav_head.html:64
 msgid "Science"
