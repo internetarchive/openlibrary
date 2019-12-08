@@ -1,4 +1,6 @@
-$def with (book)
+$def with (book, sort_key)
+$# :param Edition book:
+$# :param str sort_key:
 
 $ availability = book.get('availability', {})
 
@@ -26,7 +28,7 @@ $ asin = isbn_10 or None
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
-      <span class="hidden count"></span>
+      <span class="hidden sort-key">$sort_key</span>
       <div class="cover">
           <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
       </div>
@@ -41,17 +43,16 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           </a>
 
 
-        $if book.publishers or book.publish_date:
-          <div class="published">
-            $if book.publishers and book.publish_date:
-              $book.publish_date, $(', '.join(book.publishers))
-            $elif book.publish_date:
-              $book.publish_date
-            $elif book.publishers:
-              Publish date unknown, $(', '.join(book.publishers))
-            $else:
-              Publisher unknown
-          </div>
+        <div class="published">
+          $if book.publishers and book.publish_date:
+            $book.publish_date, $(', '.join(book.publishers))
+          $elif book.publish_date:
+            $book.publish_date
+          $elif book.publishers:
+            Publish date unknown, $(', '.join(book.publishers))
+          $else:
+            Publisher unknown
+        </div>
 
         <div class="format">
           $book.physical_format.replace('[', '').replace(']','')
