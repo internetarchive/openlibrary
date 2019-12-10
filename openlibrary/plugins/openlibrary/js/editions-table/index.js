@@ -3,17 +3,6 @@ import '../../../../../static/css/legacy-datatables.less';
 
 export function initEditionsTable() {
     var rowCount;
-    $('#editions span.count').each(function(i){
-        var myLength = $(this).text().length;
-        $(this).text(i+1);
-        if (myLength == 1) {
-            $(this).prepend('000');
-        } else if (myLength == 2) {
-            $(this).prepend('00');
-        } else if (myLength == 3) {
-            $(this).prepend('0');
-        }
-    });
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');

@@ -654,27 +654,30 @@ class Work(models.Work):
                 return '/books/%s' % availability[work_id]['openlibrary_edition']
 
     def get_sorted_editions(self):
-        """Return a list of works sorted by publish date"""
-        w = self._solr_data
-        editions = w.get('edition_key') if w else []
+        """
+        Get this work's editions sorted by publication year
+        :rtype: list[Edition]
+        """
+        use_solr_data = self._solr_data and \
+                        self._solr_data.get('edition_key') and \
+                        len(self._solr_data.get('edition_key')) == self.edition_count
 
-        if editions:
-            # solr is stale
-            if len(editions) != self.edition_count:
-                q = {"type": "/type/edition", "works": self.key, "limit": 10000}
-                editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
-
-            books = web.ctx.site.get_many(["/books/" + olid for olid in editions])
-
-            availability = lending.get_availability_of_ocaids([
-                book.ocaid for book in books if book.ocaid
-            ])
-
-            for book in books:
-                book.availability = availability.get(book.ocaid) or {"status": "error"}
-            return books[::-1]
+        if use_solr_data:
+            edition_keys = ["/books/" + olid for olid in self._solr_data.get('edition_key')]
         else:
-            return []
+            db_query = {"type": "/type/edition", "works": self.key, "limit": 10000}
+            edition_keys = web.ctx.site.things(db_query)
+
+        editions = web.ctx.site.get_many(edition_keys)
+        editions.sort(key=lambda ed: ed.get_publish_year(), reverse=True)
+
+        availability = lending.get_availability_of_ocaids([
+            ed.ocaid for ed in editions if ed.ocaid
+        ])
+        for ed in editions:
+            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+
+        return editions
 
     def has_ebook(self):
         w = self._solr_data or {}
