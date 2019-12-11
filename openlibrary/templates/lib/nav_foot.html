@@ -6,40 +6,40 @@ $def with (page)
       <div>
         <h2>Open Library</h2>
         <ul>
-          <li><a href="/about/vision" title="$_('Vision')">Vision</a></li>
-          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">Careers</a></li>
-          <li><a href="https://blog.openlibrary.org/" title="$_('Blog')">Blog</a></li>
-          <li><a href="https://archive.org/about/terms.php" title="$_('Terms of Service')">Terms of Service</a></li>
-          <li><a href="https://archive.org/donate/?platform=ol" title="$_('Donate')">Donate</a></li>
+          <li><a href="/about/vision" title="$_('Vision')">$_('Vision')</a></li>
+          <li><a href="https://archive.org/about/jobs.php" title="$_('Jobs')">$_('Careers')</a></li>
+          <li><a href="https://blog.openlibrary.org/" title="$_('Blog')">$_('Blog')</a></li>
+          <li><a href="https://archive.org/about/terms.php" title="$_('Terms of Service')">$_('Terms of Service')</a></li>
+          <li><a href="https://archive.org/donate/?platform=ol" title="$_('Donate')">$_('Donate')</a></li>
         </ul>
       </div>
       <div>
-        <h2>Discover</h2>
+        <h2>$:_('Discover')</h2>
         <ul>
-          <li><a href="/" title="$_('Go home')">Home</a></li>
-          <li><a href="/search" title="$_('Explore Books')">Books</a></li>
-          <li><a href="/search/authors" title="$_('Explore authors')">Authors</a></li>
-          <li><a href="/subjects" title="$_('Explore subjects')">Subjects</a></li>
-          <li><a href="/advancedsearch" title="$_('Advanced Search')">Advanced Search</a></li>
-          <li><a href="#top" title="$_('Navigate to top of this page')">Return to Top</a></li>
+          <li><a href="/" title="$_('Go home')">$_('Home')</a></li>
+          <li><a href="/search" title="$_('Explore Books')">$_('Books')</a></li>
+          <li><a href="/search/authors" title="$_('Explore authors')">$_('Authors')</a></li>
+          <li><a href="/subjects" title="$_('Explore subjects')">$_('Subjects')</a></li>
+          <li><a href="/advancedsearch" title="$_('Advanced Search')">$_('Advanced Search')</a></li>
+          <li><a href="#top" title="$_('Navigate to top of this page')">$_('Return to Top')</a></li>
         </ul>
       </div>
       <div>
-        <h2>Develop</h2>
+        <h2>$:_('Develop')</h2>
         <ul>
-          <li><a href="/developers" title="$_('Explore Open Library Development Center')">Development Center</a></li>
-          <li><a href="/developers/api" title="$_('Explore Open Library APIs')">API Documentation</a></li>
-          <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">Bulk Data Dumps</a></li>
-          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">Writing Bots</a></li>
-          <li><a href="/books/add" title="$_('Add a new book to Open Library')">Add a Book</a></li>
+          <li><a href="/developers" title="$_('Explore Open Library Development Center')">$_('Development Center')</a></li>
+          <li><a href="/developers/api" title="$_('Explore Open Library APIs')">$_('API Documentation')</a></li>
+          <li><a href="/developers/dumps" title="$_('Bulk Open Library data')">$_('Bulk Data Dumps')</a></li>
+          <li><a href="https://github.com/internetarchive/openlibrary/wiki/Writing-Bots" title="$_('Write a bot')">$_('Writing Bots')</a></li>
+          <li><a href="/books/add" title="$_('Add a new book to Open Library')">$_('Add a Book')</a></li>
         </ul>
       </div>
       <div>
-        <h2>Help</h2>
+        <h2>$:_('Help')</h2>
         <ul>
-          <li><a href="/help" title="$_('Help Center')">Help Center</a></li>
-          <li><a href="/contact?path=$request.path" title="$_('Problems')">Report A Problem</a></li> 
-          <li><a href="/help/faq/editing" title="$_('Suggest Edits')">Suggesting Edits</a></li>
+          <li><a href="/help" title="$_('Help Center')">$_('Help Center')</a></li>
+          <li><a href="/contact?path=$request.path" title="$_('Problems')">$_('Report A Problem')</a></li>
+          <li><a href="/help/faq/editing" title="$_('Suggest Edits')">$_('Suggesting Edits')</a></li>
         </ul>
         <aside id="footer-icons">
           <a class="footer-icons__twitter" href="https://twitter.com/OpenLibrary">twitter</a>
@@ -51,12 +51,12 @@ $def with (page)
     <div id="footer-details">
       <img id="archive-logo" src="/static/images/pantheon.png" alt="" aria-hidden="true">
       <div id="legal-details" >
-        <span>Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a></span>
+        <span>$:_('Open Library is an initiative of the <a href="//archive.org/">Internet Archive</a>, a 501(c)(3) non-profit, building a digital library of Internet sites and other cultural artifacts in  digital form. Other <a href="//archive.org/projects/">projects</a> include the <a href="//archive.org/web/">Wayback Machine</a>, <a href="//archive.org/">archive.org</a> and <a href="//archive-it.org">archive-it.org</a>')</span>
       </div>
       $ git_rev_hash = get_git_revision_short_hash()
       $if git_rev_hash:
         <div id="version-details">
-          <span class="version">version <a href="https://github.com/internetarchive/openlibrary/commit/$(git_rev_hash)">$git_rev_hash</a></span>
+          <span class="version">$:_('version <a href="https://github.com/internetarchive/openlibrary/commit/$(git_rev_hash)">$git_rev_hash</a>')</span>
         </div>
     </div>
   </div>
