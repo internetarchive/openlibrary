@@ -24,9 +24,11 @@ $ book_keys = []
     <tbody>
         $ edition_list_start = time()
         $ editions = page.get_sorted_editions()
+        $ index_padding = len(str(len(editions)))
         $for book in editions:
             $ book_keys.append(book['key'].replace('/books/', ''))
-            <tr>$:render_template("books/edition-sort", book)</tr>
+            $ sort_key = str(loop.index0).zfill(index_padding)
+            <tr>$:render_template("books/edition-sort", book, sort_key)</tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>

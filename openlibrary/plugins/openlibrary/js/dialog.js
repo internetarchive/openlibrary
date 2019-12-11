@@ -1,6 +1,35 @@
+
+/**
+ * a confirm dialog for confirming actions
+ * @this jQuery.Object
+ * @param {Function} callback
+ * @param {Object} options
+ * @return {jQuery.Object}
+ */
+export function confirmDialog(callback, options) {
+    var _this = this;
+    var defaults = {
+        autoOpen: false,
+        width: 400,
+        modal: true,
+        resizable: false,
+        buttons: {
+            'Yes, I\'m sure': function() {
+                callback.apply(_this);
+            },
+            'No, cancel': function() {
+                $(_this).dialog('close');
+            }
+        }
+    };
+    options = $.extend(defaults, options);
+    return this.dialog(options);
+}
+
 /**
  * Wires up confirmation prompts.
  * In future this will be generalised.
+ * @return {Function} for creating a confirm dialog
  */
 function initConfirmationDialogs() {
     const CONFIRMATION_PROMPT_DEFAULTS = { autoOpen: false, modal: true };
@@ -41,7 +70,7 @@ function initConfirmationDialogs() {
  * opening of a dialog. The `aria-controls` attribute on that same element
  * communicates where the HTML of that dialog lives.
  */
-export default function initDialogs() {
+export function initDialogs() {
     $('.dialog--open').on('click', function () {
         const $link = $(this),
             href = `#${$link.attr('aria-controls')}`;
