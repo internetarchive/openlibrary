@@ -45,7 +45,7 @@ $if len(loans) >= 5:
     window.q.push(function(){
         \$("#contentMsg").show();
         \$(".alert span").css({'font-size':'.6875em','color':'#333'})
-        \$(".alert span").text("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early.");
+        \$(".alert span").text($_("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early."));
     });
     //-->
     </script>
@@ -124,7 +124,7 @@ $else:
                         $:macros.LoanReadForm(loan['book'])
                         $:macros.ReturnForm(loan)
                     $else:
-                        <span class="smaller grey sansserif">$_("Return via<br />Adobe Digital Editions")</span>
+                        <span class="smaller grey sansserif">$:_("Return via<br/>Adobe Digital Editions")</span>
                 </td>
             </tr>
         </tbody>
@@ -171,11 +171,12 @@ $else:
                 <th class="titles" colspan="2">
                 $ungettext("%d book", "%d books", len(waitinglist), len(waitinglist))
                 </th>
-                <th class="status">Status</th>
-                <th class="actions">actions</th>
+                <th class="status">$_("Status")</th>
+                <th class="actions">$_("Actions")</th>
             </tr>
         </thead>
         <tbody>
+        <!-- FIXME: Not internationalized. Uses internal status string directly -->
         $for record in waitinglist:
           $ book = record.get_book()
           $ status = record['status']
@@ -200,7 +201,7 @@ $else:
                             $ wsize = book.get_waitinglist_size()
                             $ pos = record.get_position()
                             $if pos == 1:
-                                You are the next person to receive this book.
+                                $_("You are the next person to receive this book.")
                             $else:
                                 $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)s people ahead of you in the waiting list.", pos-1, count=pos-1)
                     </div>
@@ -211,22 +212,20 @@ $else:
                         $ delta_hours = record.get_expiry_in_hours()
                         <div class="smaller" style="padding-top: 5px;">
                             $if delta_hours == 0:
-                                You have less than an hour to borrow it.
-                            $elif delta_hours == 1:
-                                You have one more hour to borrow it.
-                            $else:
-                                You have $delta_hours more hours to borrow it.
+                                $_("You have less than an hour to borrow it.")
+                            $else::
+                                $unggettext("You have one more hour to borrow it.", "You have %(hours)s more hours to borrow it.", delta_hours, hours=delta_hours)
                         </div>
                 </td>
                 <td class="actions">
                     $if status == "available":
                         <form action="$book.url('/borrow')" method="post">
                             <input type="hidden" name="action" value="borrow" />
-                            <input type="submit" value="Borrow Now" />
+                            <input type="submit" value=$_("Borrow Now") />
                         </form>
                     <form action="$book.url('/borrow?redirect=/account/loans')" method="POST" class="wlform">
                         <input type="hidden" name="action" value="leave-waitinglist"/>
-                        <a href="javascript:;" class="leave">Leave the waiting list?</a>
+                        <a href="javascript:;" class="leave">$_("Leave the waiting list?")</a>
                     </form>
                 </td>
             </tr>
@@ -264,19 +263,20 @@ $if len(loans) == 0 and len(waitinglist) == 0:
             <h3>$_("Getting Started")</h3>
             <p class="small sansserif">$_("All you need to borrow a book scanned at the Internet Archive is an Open Library account and Adobe Digital Editions.")</p>
             <p class="small sansserif">$_("Loans through WorldCat are managed through your local libraries, not through Open Library.")</p>
+            <!-- TODO: Language specific help page link? -->
             <p class="small sansserif">$:_('Check out the <a href="/help/faq#section-borrowing"><strong>Lending FAQ</strong></a> for more information.')</p>
         </div>
         <div class="section">
-            <h3>Which books are available?</h3>
+            <h3>$_("Which books are available?")</h3>
             <p class="small sansserif">$:_('Browse all the available books through the <a href="/subjects/lending_library">"Lending Library"</a> subject, or try a <a href="/search?subject_facet=Lending%20library">search</a>.')</p>
         </div>
     </div>
     <div class="contentSpacer"></div>
     <div class="contentQuarter">
-        <h3>Help/Downloads</h3>
+        <h3>$_("Help/Downloads")</h3>
         <img src="/images/logo_adobeACS.png" alt="logo: Adobe" width="43" height="72" class="left" style="margin-right:10px;"/>
-        <p class="small sansserif collapse"><a href="http://www.adobe.com/products/digitaleditions/#fp">Download Adobe Digital Editions</a></p>
-        <p class="small sansserif"><a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com</p>
+        <p class="small sansserif collapse"><a href="http://www.adobe.com/products/digitaleditions/#fp">$_("Download Adobe Digital Editions")</a></p>
+        <p class="small sansserif">$:_('<a href="http://www.adobe.com/products/digitaleditions/help/">Help</a> on adobe.com')</p>
     </div>
     <div class="clearfix"></div>
     <p class="small sansserif lightgreen">$:_('If you work at a library and are interested to find out more about lending ebooks through Open Library, please <a href="/contact">get in touch with us</a>!')</p>

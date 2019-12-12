@@ -16,14 +16,14 @@ $var title: $page.title
         if page.subtitle:
              title += ": " + page.subtitle
         if page.authors:
-            title += " by " + ", ".join(a.name or "" for a in page.get_authors())
+            title += " " + _("by")+ " " + ", ".join(a.name or "" for a in page.get_authors())
         items.append(title)
 
         if page.edition_count:
-            items.append("%d %s" % (page.edition_count, cond(page.edition_count > 1, "editions", "edition")))
+            items.append(ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count))
 
         if page.first_publish_year:
-            items.append("First published in %s" % page.first_publish_year)
+            items.append(_("First published in %s",page.first_publish_year))
 
         subjects = page.get_subjects()
         if subjects:
@@ -63,10 +63,7 @@ $var title: $page.title
                 <span itemprop="name">$page.title</span>
             $if page.edition_count:
                 <span class="tools" style="white-space:nowrap;">
-                    $if page.edition_count>1:
-                        <a href="#editions" class="plain brown">$page.edition_count editions</a>
-                    $else:
-                        <a href="#editions" class="plain brown">$page.edition_count edition</a>
+                    <a href="#editions" class="plain brown">$ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count)</a>
                 </span>
         </h1>
         <div class="clearfix"></div>
@@ -78,7 +75,7 @@ $var title: $page.title
 
         <div class="shift">
             $if page.has_ebook():
-                <a href="#editions">Go to the editions section to read or download ebooks</a>.
+                <a href="#editions">$_("Go to the editions section to read or download ebooks")</a>.
         </div>
     </div>
 
@@ -103,20 +100,20 @@ $var title: $page.title
         <div class="workAbout">
             $if not (page.description or page.excerpts or page.first_sentence):
                 <div class="workHelp brown sansserif">
-                     There's no description for this book yet. Can
-                     you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
+                     $:_("There's no description for this book yet. Can you <b><a href='%s'>add one</a></b>?", page.url('/edit#about'))
                 </div>
 
         <div class="workPadding">
             $if not page.excerpts and page.first_sentence:
-                <p class="largest" style="margin-bottom: 20px;" title="First Sentence"><em>"$page.first_sentence</em>"</p>
+                <p class="largest" style="margin-bottom: 20px;" title=$_("First Sentence")><em>"$page.first_sentence</em>"</p>
 
             $if page.description:
-                <div class="sansserif smallest brown collapse">About the Book</div>
+                <div class="sansserif smallest brown collapse">$_("About the Book")</div>
                 $:sanitize(format(page.description))
 
             $if page.original_languages:
-                <div class="sansserif smallest brown collapse">Original languages</div>
+                <div class="sansserif smallest brown collapse">$_("Original languages")</div>
+                <!-- TODO: Double check that these language names are localized -->
                 $', '.join(lang.name for lang in page.original_languages)<p>
 
             $def render_subjects(label, subjects, prefix=""):
@@ -129,10 +126,10 @@ $var title: $page.title
                         </span></div>
                     </div>
 
-            $:render_subjects("Subjects", page.get_subjects())
-            $:render_subjects("People", page.subject_people, prefix="person:")
-            $:render_subjects("Places", page.subject_places, prefix="place:")
-            $:render_subjects("Times", page.subject_times, prefix="time:")
+            $:render_subjects(_("Subjects"), page.get_subjects())
+            $:render_subjects(_("People"), page.subject_people, prefix="person:")
+            $:render_subjects(_("Places"), page.subject_places, prefix="place:")
+            $:render_subjects(_("Times"), page.subject_times, prefix="time:")
 
             $if page.excerpts:
                 <div class="section">
@@ -147,7 +144,7 @@ $var title: $page.title
                                 $if excerpt.pages:
                                     $_("Page") $excerpt.pages,
                                 $if excerpt.author:
-                                    $_("added by") <a href="$excerpt.author.key">$excerpt.author.displayname</a>.
+                                    $_("added by %s", '<a href="$excerpt.author.key">$excerpt.author.displayname</a>.')
                                 $else:
                                     $_("added anonymously").
                                 $if excerpt.comment:
@@ -161,7 +158,7 @@ $var title: $page.title
                     <h3>$_("Links") <span class="gray small sansserif">$_("(outside Open Library)")</span></h3>
                     <ul class="booklinks sansserif">
                     $if page.wikipedia and page.wikipedia.startswith("http"):
-                        <li><a href="$page.wikipedia">Wikipedia</a></li>
+                        <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>
                     $for link in page.links:
                         <li><a href="$link.url">$link.title</a></li>
                     </ul>
@@ -173,10 +170,10 @@ $var title: $page.title
                         <h3 class="collapse">$_("Classifications")</h3>
                         <table class="meta"><tbody>
                         $if page.lc_classifications:
-                            <tr><td class="title"><span class="title">Library of Congress</span></td>
+                            <tr><td class="title"><span class="title">$_('Library of Congress')</span></td>
                             <td><span class="object">$thingrepr(page.lc_classifications)</span></td></tr>
                         $if page.dewey_number:
-                            <tr><td class="title"><span class="title">Dewey</span></td>
+                            <tr><td class="title"><span class="title">$_('Dewey')</span></td>
                             <td><span class="object">$thingrepr(page.dewey_number)</span></td></tr>
                         </tbody></table>
                     </div>

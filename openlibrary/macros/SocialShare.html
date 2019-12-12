@@ -6,7 +6,7 @@ $def embed_iframe(page_url):
   <iframe frameborder="0" width="165" height="400" src="$(page_url)/widget"></iframe>
 
 <div class="shareLinks cta-section">
-  <p class="cta-section-title">Share this book</p>
+  <p class="cta-section-title">$_('Share this book')</p>
   <ul class="shareLinks-list">
     $for share_link in share_links:
       $ track_tag = share_link['text'].replace(' ', '-')
@@ -21,11 +21,11 @@ $def embed_iframe(page_url):
       $# rm special characters from url such as single quote which break js prompt/iframe
       $ clean_url = page_url.replace("'", "\\'")
       $ iframe_html = str(embed_iframe(clean_url)).strip()
-      <a class="embed-work-btn" title="Embed this book in your website" data-ol-link-track="Share|Embed"
+      <a class="embed-work-btn" title="$_('Embed this book in your website')" data-ol-link-track="Share|Embed"
          onclick="prompt('Copy embed code to clipboard:', '$iframe_html');">
         <img alt="Embed icon" class="share-link" src="$static_url('images/embed.png')">
       </a>
-      <div class="share-source">Embed</div>
+      <div class="share-source">$_('Embed')</div>
     </li>
   </ul>
 </div>

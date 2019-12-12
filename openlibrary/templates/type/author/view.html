@@ -39,7 +39,7 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
     //-->
     </script>
 
-$ title = page.get('name', 'name missing')
+$ title = page.get('name', _('name missing'))
 $ title_with_site = title + " | Open Library"
 $ meta_photo_url = item_image(page.get_photo_url("L"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
@@ -53,7 +53,7 @@ $ book_list_excerpt = ''
 $if books and books.works:
     $ book_titles_excerpt = [work.title for work in books.works[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
-// FIXME: I18N
+<!-- FIXME: I18N -->
 $ description = "Author of " + book_list_excerpt
 $putctx("description", description)
 
@@ -72,7 +72,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     $:macros.databarView(page)
 
-    <h1>$page.get('name', $_('name missing'))</h1>
+    <h1>$page.get('name', _('name missing'))</h1>
     <h2 class="author collapse">
     $if page.birth_date or page.death_date:
         $page.birth_date - $page.death_date
@@ -107,7 +107,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
             <div id="errorMerge" style="display: none;">
                 <p class="larger collapse"><strong>Argh!</strong></p>
-                <p class="small collapse">$_('That merge didn't work. It's our fault, and we've made a note of it.')</p>
+                <p class="small collapse">$_("That merge didn't work. It's our fault, and we've made a note of it.")</p>
             </div>
         </div>
 
@@ -130,8 +130,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
-                    <!-- FIXME: Not internationalizable -->
-                    $commify(books.num_found) work$("s" if books.num_found != 1 else "")
+                    $ungettext("%(count)s work", "%(count)s works", books.num_found, count=commify(books.num_found))
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books"><span class="tools">
@@ -150,13 +149,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 <
                 <p>
                   $if input(mode="everything").mode == "everything":
-                    // FIXME: This is incomplete and needs work. It was added VERY recently WITHOUT internationalization
-                    $_('Showing all works by author. Would you like to')
-                    see <a href="$changequery(mode='ebooks')">only ebooks</a>?
+                    $:_('Showing all works by author. Would you like to see <a href="$changequery(mode=\'ebooks\')">only ebooks</a>?')
                   $else:
-                    $_('Showing ebooks only. Would you like to see')
-                    <a href="$changequery(mode='everything')">everything</a>
-                    by this author?
+                    $:_('Showing ebooks only. Would you like to see <a href="$changequery(mode=\'everything\')">everything</a> by this author?')
                 </p>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
@@ -189,10 +184,10 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
         <!-- SUBJECTS DISPLAY -->
         $if books.num_found > 0:
-            $:render_subjects("Subjects", books.get_facet('subject_facet'), '')
-            $:render_subjects("Places", books.get_facet('place_facet'), 'place:')
-            $:render_subjects("People", books.get_facet('person_facet'), 'person:')
-            $:render_subjects("Time", books.get_facet('time_facet'), 'time:')
+            $:render_subjects(_("Subjects"), books.get_facet('subject_facet'), '')
+            $:render_subjects(_("Places"), books.get_facet('place_facet'), 'place:')
+            $:render_subjects(_("People"), books.get_facet('person_facet'), 'person:')
+            $:render_subjects(_("Time"), books.get_facet('time_facet'), 'time:')
         <!-- /SUBJECTS -->
 
         $if "lists" in ctx.features:

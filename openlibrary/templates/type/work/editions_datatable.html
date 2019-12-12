@@ -1,7 +1,7 @@
 $def with (page)
 <div class="head">
     <h2>
-    $commify(page.edition_count) $cond(page.edition_count != 1, "editions", "edition")
+    $ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count)
     $if page.first_publish_year:
         <span class="count">$_("First published in %s", page.first_publish_year)</span>
     </h2>
@@ -15,10 +15,10 @@ $ book_keys = []
 <table id="editions" class="editions-table editions-table--progressively-enhanced">
     <thead>
     <tr>
-        <th class="title" title=""><a href="javascript:;">Edition<span></span></a></th>
-        <th class="read" title=""><a href="javascript:;">Read<span></span></a></th>
-        <th class="locate" title=""><a href="javascript:;">Locate<span></span></a></th>
-        <th class="buy" title=""><a href="javascript:;">Buy<span></span></a></th>
+        <th class="title" title=""><a href="javascript:;">$_('Edition')<span></span></a></th>
+        <th class="read" title=""><a href="javascript:;">$_('Read')<span></span></a></th>
+        <th class="locate" title=""><a href="javascript:;">$_('Locate')<span></span></a></th>
+        <th class="buy" title=""><a href="javascript:;">$('Buy')<span></span></a></th>
     </tr>
     </thead>
     <tbody>
@@ -38,8 +38,9 @@ $# in a work's edition listing
 
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>
-    <div class="small sansserif"><span class="adminOnly"><a href="/books/merge?$'&'.join('key=' + k for k in book_keys)">Merge editions</a></span></div>
+    <div class="small sansserif"><span class="adminOnly"><a href="/books/merge?$'&'.join('key=' + k for k in book_keys)">$_('Merge editions')</a></span></div>
 
+<!-- Admin only text doesn't need to be translated -->
 $if ctx.user and ctx.user.is_admin():
     <div class="clearfix"></div>
     <div class="small sansserif"><span class="adminOnly">Getting list of editions took $("%.2f" % edition_list_secs) seconds</span></div>

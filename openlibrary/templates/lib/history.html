@@ -36,7 +36,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ json = page.key + ".json" + hist_addition
             $ opds = page.key + ".opds" + hist_addition
             <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
-                Download catalog record:
+                $_('Download catalog record:')
                 <a rel="nofollow" href="$rdf">RDF</a>
                 /
                 <a rel="nofollow" href="$json">JSON</a>
@@ -44,7 +44,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                     /
                     <a rel="nofollow" href="$opds">OPDS</a>
                 $if show_wikipedia_citation_link:
-                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="Cite this on Wikipedia" href="javascript:;">Wikipedia citation</a>
+                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="Cite this on Wikipedia" href="javascript:;">$_('Wikipedia citation')</a>
             </span>
 
             $if show_wikipedia_citation_link:
