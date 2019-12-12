@@ -68,7 +68,7 @@ class availability(delegate.page):
     path = "/internal/fake/availability"
 
     def POST(self):
-        """Internal private API required for testing on vagrant/localhost
+        """Internal private API required for testing on localhost
         """
         return delegate.RawText(simplejson.dumps({}),
                                 content_type="application/json")
@@ -77,7 +77,7 @@ class loans(delegate.page):
     path = "/internal/fake/loans"
 
     def POST(self):
-        """Internal private API required for testing on vagrant/localhost
+        """Internal private API required for testing on localhost
         """
         return delegate.RawText(simplejson.dumps({}),
                                 content_type="application/json")
@@ -86,7 +86,7 @@ class xauth(delegate.page):
     path = "/internal/fake/xauth"
 
     def POST(self):
-        """Internal private API required for testing login on vagrant/localhost
+        """Internal private API required for testing login on localhost
         which normally would have to hit archive.org's xauth
         service. This service is spoofable to return successful and
         unsuccessful login attempts depending on the provided GET parameters
