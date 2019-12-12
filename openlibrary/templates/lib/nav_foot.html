@@ -56,7 +56,7 @@ $def with (page)
       $ git_rev_hash = get_git_revision_short_hash()
       $if git_rev_hash:
         <div id="version-details">
-          <span class="version">$:_('version <a href="https://github.com/internetarchive/openlibrary/commit/$(git_rev_hash)">$git_rev_hash</a>')</span>
+          <span class="version">$:_('version <a href="https://github.com/internetarchive/openlibrary/commit/%s">%s</a>', git_rev_hash, git_rev_hash)</span>
         </div>
     </div>
   </div>
