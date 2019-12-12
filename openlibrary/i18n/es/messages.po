@@ -887,7 +887,7 @@ msgstr "Índice de contenidos"
 
 #: edition-show.html:119
 msgid "Edition Notes"
-msgstr "Notas de edición"
+msgstr "Notas de la edición"
 
 #: edition-show.html:124
 msgid "Series"
@@ -915,7 +915,7 @@ msgstr "Traducción de"
 
 #: edition-show.html:130
 msgid "Translated From"
-msgstr "Traducido de"
+msgstr "Traducido del"
 
 #: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
@@ -935,7 +935,7 @@ msgstr "Paginación"
 
 #: edition-show.html:154
 msgid "Number of pages"
-msgstr "Número de págians"
+msgstr "Número de páginas"
 
 #: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
