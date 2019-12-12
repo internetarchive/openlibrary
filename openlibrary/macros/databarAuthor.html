@@ -19,7 +19,8 @@ $if ctx.user:
                 <div class="dropdown">
                     <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p>
                     <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p>
-                    <p><a href="javascript:;" class="listClick">Create a new list</a></p>
+                    <p><a aria-controls="addList"
+                        class="listClick dialog--open">Create a new list</a></p>
                 </div>
             </div>
         </div>
@@ -27,7 +28,7 @@ $if ctx.user:
             <div class="floaterAdd" id="addList">
                 <div class="floaterHead">
                     <h2>Create a new list</h2>
-                    <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("×")</span></a>
+                    <a class="dialog--close">&times;<span class="shift">$_("×")</span></a>
                 </div>
                 <form method="post" action="" class="floatform">
                 <div class="formElement">
@@ -58,16 +59,13 @@ $if ctx.user:
                     <div class="input">
                         <button type="button" class="larger">Add new list</button>
                         &nbsp; &nbsp;
-                        <a href="javascript:;" onclick="\$.fn.colorbox.close();" class="small plain red">Cancel</a>
+                        <a class="small plain red dialog--close">Cancel</a>
                     </div>
                     <div class="label"></div>
                 </div>
                 </form>
             </div>
         </div>
-        <script type="text/javascript">
-        \$().ready(function(){\$(".listClick").colorbox({inline: true, opacity: "0.5", href: "#addList"})});
-        </script>
 
 </div>
 <!-- IF on a list: -->

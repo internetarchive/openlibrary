@@ -7,7 +7,7 @@ from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint
 import simplejson as json
-from openlibrary.core.lending import get_availability_of_ocaids
+from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, escape_bracket
@@ -17,14 +17,10 @@ import logging
 
 ftoken_db = None
 
-from openlibrary.plugins.search.code import search as _edition_search
-
 logger = logging.getLogger("openlibrary.worksearch")
 
 re_to_esc = re.compile(r'[\[\]:]')
 
-class edition_search(_edition_search):
-    path = "/search/edition"
 
 if hasattr(config, 'plugin_worksearch'):
     solr_host = config.plugin_worksearch.get('solr', 'localhost')
@@ -503,7 +499,7 @@ class search(delegate.page):
         return page
 
 
-def works_by_author(akey, sort='editions', page=1, rows=100):
+def works_by_author(akey, sort='editions', page=1, rows=100, has_fulltext=False):
     # called by merge_author_works
     q='author_key:' + akey
     offset = rows * (page - 1)
@@ -512,7 +508,8 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
         'first_publish_year', 'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
         'ia_collection_s', 'cover_i']
     fl = ','.join(fields)
-    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=&start=%d&rows=%d&fl=%s&wt=json" % (q, offset, rows, fl)
+    fq = 'has_fulltext:true' if has_fulltext else ''  # ebooks_only
+    solr_select = solr_select_url + "?fq=type:work&q.op=AND&q=%s&fq=%s&start=%d&rows=%d&fl=%s&wt=json" % (q, fq, offset, rows, fl)
     facet_fields = ["author_facet", "language", "publish_year", "publisher_facet", "subject_facet", "person_facet", "place_facet", "time_facet"]
     if sort == 'editions':
         solr_select += '&sort=edition_count+desc'
@@ -541,7 +538,7 @@ def works_by_author(akey, sort='editions', page=1, rows=100):
 
     return web.storage(
         num_found = int(reply['response']['numFound']),
-        works = works,
+        works = add_availability(works),
         years = [(int(k), v) for k, v in get_facet('publish_year')],
         get_facet = get_facet,
         sort = sort,
@@ -640,16 +637,44 @@ class list_search(delegate.page):
     path = '/search/lists'
 
     def GET(self):
+        i = web.input(q='', offset='0', limit='10')
+
+        lists = self.get_results(i.q, i.offset, i.limit)
+
+        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+
+    def get_results(self, q, offset=0, limit=100):
         if 'env' not in web.ctx:
             delegate.fakeload()
 
-        i = web.input(q='', offset='0', limit='10')
         keys = web.ctx.site.things({
-            "type": "/type/list", "name~": i.q,
-            "limit": int(i.limit), "offset": int(i.offset)
+            "type": "/type/list",
+            "name~": q,
+            "limit": int(limit),
+            "offset": int(offset)
         })
-        lists = web.ctx.site.get_many(keys)
-        return render_template('search/lists.tmpl', q=i.q, lists=lists)
+
+        return web.ctx.site.get_many(keys)
+
+class list_search_json(list_search):
+    path = '/search/lists'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(q='', offset=0, limit=10)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 10)
+        limit = min(100, limit)
+
+        docs = self.get_results(i.q, offset=offset, limit=limit)
+
+        response = {
+            'start': offset,
+            'docs': [doc.preview() for doc in docs]
+        }
+
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
 
 class subject_search(delegate.page):
     path = '/search/subjects'
@@ -680,6 +705,20 @@ class subject_search(delegate.page):
             doc['count'] = doc.get('work_count', 0)
 
         return results
+
+class subject_search_json(subject_search):
+    path = '/search/subjects'
+    encoding = 'json'
+
+    def GET(self):
+        i = web.input(q='', offset=0, limit=100)
+        offset = safeint(i.offset, 0)
+        limit = safeint(i.limit, 100)
+        limit = min(1000, limit)  # limit limit to 1000.
+
+        response = self.get_results(i.q, offset=offset, limit=limit)['response']
+        web.header('Content-Type', 'application/json')
+        return delegate.RawText(json.dumps(response))
 
 class author_search(delegate.page):
     path = '/search/authors'
@@ -714,16 +753,6 @@ class author_search_json(author_search):
         response = self.get_results(i.q, offset=offset, limit=limit)['response']
         web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response))
-
-class edition_search(delegate.page):
-    path = '/search/editions'
-    def GET(self):
-        def get_results(q, offset=0, limit=100):
-            q = escape_bracket(q)
-            solr_select = solr_select_url + "?fq=type:edition&q.op=AND&q=%s&start=%d&rows=%d&fl=*&qt=standard&wt=json" % (web.urlquote(q), offset, limit)
-            return run_solr_search(solr_select)
-
-        return render_template('search/editions.tmpl', get_results)
 
 class search_json(delegate.page):
     path = "/search"

@@ -1,16 +1,10 @@
-<span class="small brown">Need <a href="javascript:;" id="markdownPop">help with formatting</a>?</span>
-<script type="text/javascript">
-window.q.push(function(){
-    \$("#markdownPop").colorbox({
-        inline:true, opacity:"0.5", href:"#markdown"
-    });
-});
-</script>
+<span class="small brown">Need <a href="javascript:;"
+    aria-controls="markdown" class="dialog--open" id="markdownPop">help with formatting</a>?</span>
 <div class="hidden">
     <div class="floater" id="markdown">
         <div class="floaterHead">
             <h2>Formatting Help</h2>
-            <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
+            <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <div class="floaterBody">
 
@@ -75,7 +69,7 @@ window.q.push(function(){
         </table>
 
         <p>$_('To "escape" any Markdown tags (i.e. use an asterisk as an asterisk rather than emphasizing text) place a backslash \ prior to the character.')</p>
-        <div class="small"><a href="javascript:;" onclick="\$.fn.colorbox.close();" class="red">Close</a></div>
+        <div class="small"><a class="red dialog--close">Close</a></div>
 
         </div>
     </div>

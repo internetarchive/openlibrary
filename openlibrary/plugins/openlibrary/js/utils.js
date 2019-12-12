@@ -10,33 +10,6 @@ $.fn.focusNextInputField = function() {
     });
 };
 
-// Confirm dialog with OL styles.
-$.fn.ol_confirm_dialog = function(callback, options) {
-    var _this = this;
-    var defaults = {
-        autoOpen: false,
-        width: 400,
-        modal: true,
-        resizable: false,
-        buttons: {
-            'Yes, I\'m sure': function() {
-                callback.apply(_this);
-            },
-            'No, cancel': function() {
-                $(_this).dialog('close');
-            }
-        }
-    };
-    options = $.extend(defaults, options);
-    this.dialog(options);
-}
-
-// Tap into jquery chain
-$.fn.tap = function(callback) {
-    callback(this);
-    return this;
-}
-
 // closes active popup
 // used in templates/covers/saved.html
 export function closePopup() {
@@ -60,51 +33,4 @@ export function cond(predicate, true_value, false_value) {
     else {
         return false_value;
     }
-}
-
-// showPasswords implemented by Lance
-export function initShowPasswords($) {
-    $.fn.extend({
-        showPasswords: function(f) {
-            return this.each(function() {
-                var c = function(a) {
-                    var b;
-                    a = $(a);
-                    b = $('<input type=\'text\' />');
-                    b.insertAfter(a).attr({
-                        'class': a.attr('class'),
-                        'style': a.attr('style')
-                    });
-                    return b
-                };
-                var d = function($this, $that) {
-                    $that.val($this.val())
-                };
-                var e = function() {
-                    if ($checkbox.is(':checked')) {
-                        d($this, $clone);
-                        $clone.show();
-                        $this.hide()
-                    } else {
-                        d($clone, $this);
-                        $clone.hide();
-                        $this.show()
-                    }
-                };
-                var $clone = c(this),
-                    $this = $(this),
-                    $checkbox = $(f);
-                $checkbox.click(function() {
-                    e()
-                });
-                $this.keyup(function() {
-                    d($this, $clone)
-                });
-                $clone.keyup(function() {
-                    d($clone, $this)
-                });
-                e()
-            })
-        }
-    })
 }

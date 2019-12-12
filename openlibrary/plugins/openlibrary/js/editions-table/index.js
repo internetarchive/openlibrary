@@ -3,17 +3,6 @@ import '../../../../../static/css/legacy-datatables.less';
 
 export function initEditionsTable() {
     var rowCount;
-    $('#editions span.count').each(function(i){
-        var myLength = $(this).text().length;
-        $(this).text(i+1);
-        if (myLength == 1) {
-            $(this).prepend('000');
-        } else if (myLength == 2) {
-            $(this).prepend('00');
-        } else if (myLength == 3) {
-            $(this).prepend('0');
-        }
-    });
     $('#editions th.title').mouseover(function(){
         if ($(this).hasClass('sorting_asc')) {
             $(this).attr('title','Sort latest to earliest');
@@ -63,24 +52,24 @@ export function initEditionsTable() {
     rowCount = $('#editions tbody tr').length;
     if (rowCount < 16) {
         $('#editions').dataTable({
-            'aoColumns': [{'sType':'html'},null,null,null],
-            'aaSorting': [ [1,'asc'] ],
-            'bPaginate': false,
-            'bInfo': false,
-            'bFilter': false,
-            'bStateSave': false,
-            'bAutoWidth': false
+            aoColumns: [{sType: 'html'},null,null,null],
+            aaSorting: [ [1,'asc'] ],
+            bPaginate: false,
+            bInfo: false,
+            bFilter: false,
+            bStateSave: false,
+            bAutoWidth: false
         });
     } else {
         $('#editions').dataTable({
-            'aoColumns': [{'sType':'html'},null,null,null],
-            'aaSorting': [ [1,'asc'] ],
-            'bPaginate': true,
-            'bInfo': true,
-            'sPaginationType': 'full_numbers',
-            'bFilter': false,
-            'bStateSave': false,
-            'bAutoWidth': false
+            aoColumns: [{sType: 'html'},null,null,null],
+            aaSorting: [ [1,'asc'] ],
+            bPaginate: true,
+            bInfo: true,
+            sPaginationType: 'full_numbers',
+            bFilter: false,
+            bStateSave: false,
+            bAutoWidth: false
         });
     }
     $('.return-book').submit(function(event) {

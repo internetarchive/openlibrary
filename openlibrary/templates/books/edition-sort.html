@@ -1,4 +1,6 @@
-$def with (book)
+$def with (book, sort_key)
+$# :param Edition book:
+$# :param str sort_key:
 
 $ availability = book.get('availability', {})
 
@@ -17,20 +19,16 @@ $ kindle = "https://www.amazon.com/gp/digital/fiona/web-to-kindle?clientid=IA&it
 $ djvutxt = "//archive.org/download/XXX/XXX_djvu.txt"
 $ seeall = "//archive.org/download/XXX"
 
-$ isbn = (book.isbn_10 and book.isbn_10[0]) or (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (book.oclc_numbers and book.oclc_numbers[0]) or ""
-$ isbn_13 = (book.isbn_13 and book.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if book.isbn_10:
-    $ isbn_10 = book.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = book.get_isbn13()
+$ isbn_10 = isbn_13 and isbn_13_to_isbn_10(isbn_13)
+$ isbn = isbn_10 or isbn_13
+$ asin = isbn_10 or None
 
 $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="book">
-      <span class="hidden count"></span>
+      <span class="hidden sort-key">$sort_key</span>
       <div class="cover">
           <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
       </div>
@@ -45,17 +43,16 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           </a>
 
 
-        $if book.publishers or book.publish_date:
-          <div class="published">
-            $if book.publishers and book.publish_date:
-              $book.publish_date, $(', '.join(book.publishers))
-            $elif book.publish_date:
-              $book.publish_date
-            $elif book.publishers:
-              Publish date unknown, $(', '.join(book.publishers))
-            $else:
-              Publisher unknown
-          </div>
+        <div class="published">
+          $if book.publishers and book.publish_date:
+            $book.publish_date, $(', '.join(book.publishers))
+          $elif book.publish_date:
+            $book.publish_date
+          $elif book.publishers:
+            Publish date unknown, $(', '.join(book.publishers))
+          $else:
+            Publisher unknown
+        </div>
 
         <div class="format">
           $book.physical_format.replace('[', '').replace(']','')
@@ -111,5 +108,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
     <td class="icon buy inact">
       <div class="zzzz"></div>
-      <div class="links"></div>
+      <div class="links">
+        $:macros.AffiliateLinks(book, {'isbn': isbn, 'asin': asin, 'prices': False})
+      </div>
     </td>

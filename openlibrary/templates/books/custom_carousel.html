@@ -21,7 +21,12 @@ $def render_carousel_cover(book, lazy):
     $ byline = ''
   $ modifier = ''
   $ cta = None
-  $if book.get('ocaid'):
+  $ cta_cls = 'available'
+  $if book.get('eligibility', {}).get('is_eligible'):
+    $ cta_url = book['eligibility']['sponsor_url']
+    $ cta = 'Sponsor'
+    $ cta_cls = 'sponsor'
+  $elif book.get('ocaid'):
     $ modifier = 'borrow-link'
     $ cta_url = '/borrow/ia/%s' % book.ocaid
     $ cta = 'Borrow'
@@ -31,9 +36,6 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('lending_edition'):
     $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
     $ cta = 'Borrow'
-  $elif book.get('lending_edition'):
-    $ cta_url = book.get('read_url')
-    $ cta = 'Read'
   $else:
     $ cta = 'Read'
     $ cta_url = url
@@ -62,7 +64,7 @@ $def render_carousel_cover(book, lazy):
       </a>
     </div>
     $if cta:
-      <div class="book-cta"><a class="cta-btn cta-btn--available $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
+      <div class="book-cta"><a class="cta-btn cta-btn--$(cta_cls) $modifier" href="$cta_url" data-ol-link-track="$key" title="$cta $book.title"
         data-key="$(key)" data-ocaid="$(book.get('ia'))">$cta</a></div>
   </div>
 
@@ -74,24 +76,22 @@ $if test or (books and len(books) >= min_books):
         </div>
       <div class="carousel-container carousel-container-decorated">
         $ attrs = ''
-        <div class="carousel carousel-$key">
+        $if load_more:
+          $ load_more_config = {
+          $  "url": load_more["url"].replace("&amp;", "&"),
+          $  "pageMode": load_more.get("mode", "offset"),
+          $  "limit": load_more.get("limit", 18)
+          $ }
+        $else:
+          $ load_more_config = {}
+        $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
+        <div class="carousel carousel-$key carousel--progressively-enhanced"
+          data-config="$json_encode(config)">
           $ cover_host = '//covers.openlibrary.org'
           $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
 
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5)
         </div>
-        <script type="text/javascript">
-              window.q.push(function() {
-                Carousel.add(
-                  '.carousel-$key', // dom element to bind slick
-                  6, 5, 4, 3, 2, 1, { // num books per responsive breakpoint
-                  $if load_more:
-                     url: '$:(load_more["url"].replace("&amp;", "&"))',
-                     pageMode: '$(load_more.get("mode", "offset"))',
-                     limit: $(load_more.get("limit", 18))
-                  });
-              });
-        </script>
       </div>
     </div>

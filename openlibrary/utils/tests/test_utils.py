@@ -16,7 +16,7 @@ def test_url_quote():
     assert url_quote('test string') == 'test+string'
 
 def test_finddict():
-    dicts = [{"x": 1, "y": 2}, {"x": 3, "y": 4}]
+    dicts = [{'x': 1, 'y': 2}, {'x': 3, 'y': 4}]
     assert finddict(dicts, x=1) == {'x': 1, 'y': 2}
 
 def test_escape_bracket():

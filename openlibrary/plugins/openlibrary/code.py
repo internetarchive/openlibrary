@@ -344,7 +344,6 @@ class health(delegate.page):
         web.header('Content-Type', 'text/plain')
         raise web.HTTPError("200 OK", {}, 'OK')
 
-
 class bookpage(delegate.page):
     path = r"/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?"
 

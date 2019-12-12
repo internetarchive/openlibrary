@@ -1,4 +1,12 @@
-$def with (items, key, loans=None, waitlists=None, reading_log=None, lists=None, loan_history=None, user=None, public=False)
+$def with (items, key, sponsorship_count=None, reading_log_counts=None, lists=None, user=None, public=False)
+$# Displays a user's reading log
+$# :param list items:
+$# :param Literal['currently-reading', 'want-to-read', 'already-read', 'sponsorships', 'loans', 'waitlist'] key:
+$# :param int? sponsorship_count: number of books the user is sponsoring
+$# :param Dict[Literal['currently-reading', 'want-to-read', 'already-read'], int] reading_log_counts:
+$# :param list? lists:
+$# :param user:
+$# :param bool public:
 
 $ title = "My Books"
 $ urlbase = ctx.path.rsplit('/', 1)[0]
@@ -8,22 +16,22 @@ $ username = user.key.split('/')[-1]
 $ meta_photo_url = "https://archive.org/services/img/%s" % get_internet_archive_id(user.key)
 
 $ current_page = int(input(page=1).page)
-$ total_items = int(reading_log[key])
-
-$if user:
-  $ displayName = user.displayname
-$else:
-  $ displayName = ctx.user.displayname
+$ total_items = sponsorship_count if key == 'sponsorships' else int(reading_log_counts[key])
+$ userDisplayName = user.displayname or ctx.user.displayname
+$ userKey = user.key or ctx.user.key
 
 $if key == 'currently-reading':
-  $ og_title = "%s's reading log"%displayName
-  $ og_description = "{username} is reading {total} books. Join {username} on OpenLibrary.org and tell the world what you're reading.".format(username=displayName, total=reading_log['currently-reading'])
+  $ og_title = "Books %s is reading" % userDisplayName
+  $ og_description = "{username} is reading {total} books. Join {username} on OpenLibrary.org and tell the world what you're reading.".format(username=userDisplayName, total=total_items)
 $elif key == 'want-to-read':
-  $ og_title = "List of books %s wants to read"%displayName
-  $ og_description = "{username} wants to read {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=displayName, total=reading_log['want-to-read'])
+  $ og_title = "Books %s wants to read" % userDisplayName
+  $ og_description = "{username} wants to read {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
 $elif key == 'already-read':
-  $ og_title = "Books %s has read"%displayName
-  $ og_description = "{username} has read {total} books. Join {username} on OpenLibrary.org and tell the world about the books that you care about.".format(username=displayName, total=reading_log['already-read'])
+  $ og_title = "Books %s has read" % userDisplayName
+  $ og_description = "{username} has read {total} books. Join {username} on OpenLibrary.org and tell the world about the books that you care about.".format(username=userDisplayName, total=total_items)
+$elif key == 'sponsorships':
+  $ og_title = "Books %s is sponsoring" % userDisplayName
+  $ og_description = "{username} is sponsoring {total} books. Join {username} on OpenLibrary.org and share the books that you'll soon be reading!".format(username=userDisplayName, total=total_items)
 
 $if og_title:
   $add_metatag(property="og:title", content=og_title)
@@ -35,12 +43,7 @@ $if og_title:
 <div id="contentHead">
   <div id="mybooks">
     <div class="small sansserif grey account-settings-menu">
-      $if user:
-        <a href="$user.key">$displayName</a>
-      $else:
-        <a href="$ctx.user.key">$displayName</a>
-      &raquo;
-      $_("Reading Log")
+      <a href="$userKey">$userDisplayName</a> &raquo; $_("Reading Log")
     </div>
     <h1>
       $if not owners_page:
@@ -51,7 +54,7 @@ $if og_title:
 
     $if owners_page:
       <h3>
-        Your reading log is currently set to $("public" if public else "private") &mdash;          
+        Your reading log is currently set to $("public" if public else "private") &mdash;
         $if public:
           <button onclick="prompt('Copy share link to clipboard:', window.location.protocol + '//' + window.location.hostname + '/people/$(username)/books/$(key)');">Share</button> or
         <a href="/account/privacy">Manage your privacy settings</a>
@@ -59,12 +62,18 @@ $if og_title:
 
     <div class="mybooks">
       <div class="mybooks-menu">
-        <ul class="preset-lists">          
+        <ul class="preset-lists">
           <li class="subsection">Reading Log</li>
-          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log['currently-reading']))</a></li>
-          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log['want-to-read']))</a></li>
-          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log['already-read']))</a></li>
+          <li><a href="$urlbase/currently-reading" $('class=selected' if key == 'currently-reading' else '')>Currently Reading ($(reading_log_counts['currently-reading']))</a></li>
+          <li><a href="$urlbase/want-to-read" $('class=selected' if key == 'want-to-read' else '')>Want to Read ($(reading_log_counts['want-to-read']))</a></li>
+          <li><a href="$urlbase/already-read" $('class=selected' if key == 'already-read' else '')>Already Read ($(reading_log_counts['already-read']))</a></li>
         </ul>
+        $if urlbase.startswith('/account') and ctx.user and ctx.user.in_sponsorship_beta():
+          <!-- only show to owners -->
+          <ul class="preset-lists">
+            <li class="subsection">Sponsorships</li>
+            <li><a href="$urlbase/sponsorships" $('class=selected' if key == 'sponsorships' else '')>Sponsoring ($sponsorship_count)</a></li>
+          </ul>
         $if lists:
           <ul class="user-lists">
             <li class="subsection">Lists</li>
@@ -78,7 +87,7 @@ $if og_title:
         $:macros.Pager(current_page, total_items, results_per_page=25)
         <ul class="list-books" id="siteSearch">
           $if items:
-            $ bookshelf_id = 1 if key == 'want-to-read' else 2 if key == 'currently-reading' else 3 if key == 'already-read' else None
+            $ bookshelf_id = {'want-to-read': 1, 'currently-reading': 2, 'already-read': 3}.get(key, None)
             $for item in items:
               $if key == 'loans':
                 $ edition = get_document(item['book'])

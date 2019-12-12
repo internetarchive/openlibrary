@@ -30,6 +30,12 @@ $var title: $name
             </tr>
         </thead>
         <tbody>
+            <tr>
+                <td colspan="4"></td>
+                <td colspan="1" style="text-align:center;">
+                    <input type="submit" value="$_('Compare')"  name="_compare" title="$_('See Diff')"/>
+                </td>
+            </tr>
             $for v in h:
                 <tr>
                     <td class="number">$v.revision</td>

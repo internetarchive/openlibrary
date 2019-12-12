@@ -41,7 +41,6 @@ class read_singleget(delegate.page):
             result = []
         return simplejson.dumps(result)
 
-
 class read_multiget(delegate.page):
     """Handle the multi-lookup form of the Hathi-style API
     """

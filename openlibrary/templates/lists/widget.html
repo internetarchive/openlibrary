@@ -92,7 +92,6 @@ $jsdef show_list(list):
 
 $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, username, pageurl, readinglogonly):
     <div class="dropit">
-      <div class="icon list hidetool"></div>
           $if edition_key and not work_key:
             <div class="dropper on edition-page-lists-dropdown">
           $else:
@@ -177,7 +176,8 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                         <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                   </div>
                   <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
-                    <a href="javascript:;" class="hidden listClick"></a>
+                    <a aria-controls="addList"
+                      class="hidden listClick dialog--open"></a>
                   </p>
                 </div>
             </div>
@@ -244,7 +244,6 @@ $if include_widget:
     </div>
   $else:
     <div class="dropit">
-      <div class="icon list hidetool"></div>
         <div class="dropper on">
           $if work:
             <div class="log-work">
@@ -274,7 +273,7 @@ $if ctx.user:
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
                 <h2>Create a new list</h2>
-                <a class="floaterShut" href="javascript:;" onclick="\$.fn.colorbox.close();">&times;<span class="shift">$_("Close")</span></a>
+                <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
             </div>
             <form method="post" class="floatform" name="new-list" id="new-list">
             <div class="formElement">
@@ -297,7 +296,7 @@ $if ctx.user:
                 <div class="input">
                     <button type="submit" class="larger">Create new list</button>
                     &nbsp; &nbsp;
-                    <a href="javascript:;" onclick="\$.fn.colorbox.close();" class="small plain red">Cancel</a>
+                    <a class="small dialog--close plain red">Cancel</a>
                 </div>
                 <div class="label"></div>
             </div>
@@ -495,6 +494,7 @@ $if ctx.user:
         \$("a.remove-from-list").click(function(event) {
             event.preventDefault();
             var id = \$(this).attr("id");
+            setup_dialog();
 
             \$("#remove-dialog")
                 .data("list-id", id)
@@ -527,7 +527,6 @@ $if ctx.user:
     window.q.push(function(){
         setup_submit_event();
         setup_events();
-        setup_dialog();
 
         var mylist = \$('.dropdown');
         var listitems = mylist.children('p.list').get();

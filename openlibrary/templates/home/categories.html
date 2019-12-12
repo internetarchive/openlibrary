@@ -8,7 +8,8 @@ $if subjects:
     </div>
     <hr>
     <div class="carousel-container">
-      <div class="carousel" id="categories_carousel">
+      <div class="carousel carousel--progressively-enhanced" id="categories_carousel"
+        data-config="$json_encode(['#categories_carousel', 6, 5, 4, 3, 2])">
         $for subject_name in subjects:
           $ subject = subjects[subject_name]
           $ presentable_subject_name = subject_name.replace('_', ' ').title()
@@ -28,8 +29,4 @@ $if subjects:
       </div>
     </div>
   </div>
-  <script type="text/javascript">
-  window.q.push(function() {
-    Carousel.add('#categories_carousel', 6, 5, 4, 3, 2);
-  });
-  </script>
+

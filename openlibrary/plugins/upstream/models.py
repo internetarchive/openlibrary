@@ -5,6 +5,7 @@ import urllib2
 import simplejson
 import re
 from collections import defaultdict
+from isbnlib import canonical
 
 from infogami import config
 from infogami.infobase import client
@@ -17,6 +18,7 @@ from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
 
 from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
@@ -111,6 +113,26 @@ class Edition(models.Edition):
         w, h = image_sizes[size.upper()]
         return "https://archive.org/download/%s/page/cover_w%s_h%s.jpg" % (itemid, w, h)
 
+    def get_isbn10(self):
+        """Fetches either isbn_10 or isbn_13 from record and returns canonical
+        isbn_10
+        """
+        isbn_10 = self.isbn_10 and canonical(self.isbn_10[0])
+        if not isbn_10:
+            isbn_13 = self.get_isbn13()
+            return isbn_13 and isbn_13_to_isbn_10(isbn_13)
+        return isbn_10
+
+    def get_isbn13(self):
+        """Fetches either isbn_13 or isbn_10 from record and returns canonical
+        isbn_13
+        """
+        isbn_13 = self.isbn_13 and canonical(self.isbn_13[0])
+        if not isbn_13:
+            isbn_10 = self.isbn_10 and self.isbn_10[0]
+            return isbn_10 and isbn_10_to_isbn_13(isbn_10)
+        return isbn_13
+    
     def get_identifiers(self):
         """Returns (name, value) pairs of all available identifiers."""
         names = ['ocaid', 'isbn_10', 'isbn_13', 'lccn', 'oclc_numbers']
@@ -477,13 +499,15 @@ class Author(models.Author):
         return self.key.split('/')[-1]
 
     def get_books(self):
-        i = web.input(sort='editions', page=1)
+        i = web.input(sort='editions', page=1, rows=20, mode="")
         try:
             # safegaurd from passing zero/negative offsets to solr
             page = max(1, int(i.page))
         except ValueError:
             page = 1
-        return works_by_author(self.get_olid(), sort=i.sort, page=page, rows=100)
+        return works_by_author(self.get_olid(), sort=i.sort,
+                               page=page, rows=i.rows,
+                               has_fulltext=i.mode=="ebooks")
 
     def get_work_count(self):
         """Returns the number of works by this author.
@@ -615,28 +639,45 @@ class Work(models.Work):
     def get_related_books_subjects(self, filter_unicode=True):
         return self.filter_problematic_subjects(self.get_subjects())
 
+    def get_representative_edition(self):
+        """When we have confidence we can direct patrons to the best edition
+        of a work (for them), return qualifying edition key. Attempts
+        to find best (most available) edition of work using
+        archive.org work availability API. May be extended to support language
+
+        :rtype str: infogami edition key or url which resolves to an edition
+        """
+        work_id = self.key.replace('/works/', '')
+        availability = lending.get_work_availability(work_id)
+        if work_id in availability:
+            if 'openlibrary_edition' in availability[work_id]:
+                return '/books/%s' % availability[work_id]['openlibrary_edition']
+
     def get_sorted_editions(self):
-        """Return a list of works sorted by publish date"""
-        w = self._solr_data
-        editions = w.get('edition_key') if w else []
+        """
+        Get this work's editions sorted by publication year
+        :rtype: list[Edition]
+        """
+        use_solr_data = self._solr_data and \
+                        self._solr_data.get('edition_key') and \
+                        len(self._solr_data.get('edition_key')) == self.edition_count
 
-        if editions:
-            # solr is stale
-            if len(editions) != self.edition_count:
-                q = {"type": "/type/edition", "works": self.key, "limit": 10000}
-                editions = [k[len("/books/"):] for k in web.ctx.site.things(q)]
-
-            books = web.ctx.site.get_many(["/books/" + olid for olid in editions])
-
-            availability = lending.get_availability_of_ocaids([
-                book.ocaid for book in books if book.ocaid
-            ])
-
-            for book in books:
-                book.availability = availability.get(book.ocaid) or {"status": "error"}
-            return books[::-1]
+        if use_solr_data:
+            edition_keys = ["/books/" + olid for olid in self._solr_data.get('edition_key')]
         else:
-            return []
+            db_query = {"type": "/type/edition", "works": self.key, "limit": 10000}
+            edition_keys = web.ctx.site.things(db_query)
+
+        editions = web.ctx.site.get_many(edition_keys)
+        editions.sort(key=lambda ed: ed.get_publish_year(), reverse=True)
+
+        availability = lending.get_availability_of_ocaids([
+            ed.ocaid for ed in editions if ed.ocaid
+        ])
+        for ed in editions:
+            ed.availability = availability.get(ed.ocaid) or {"status": "error"}
+
+        return editions
 
     def has_ebook(self):
         w = self._solr_data or {}

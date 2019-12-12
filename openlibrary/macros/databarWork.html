@@ -10,21 +10,12 @@ $else:
 $ viewbook = "//%s/stream/XXX?ref=ol" % bookreader_host()
 $ prices = page.key.startswith('/books/')
 
-$ isbn = (page.isbn_10 and page.isbn_10[0]) or (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn = isbn.replace("-", "")
 $ oclc_numbers = (page.oclc_numbers and page.oclc_numbers[0]) or ""
-$ isbn_13 = (page.isbn_13 and page.isbn_13[0]) or ""
-$ isbn_10 = ""
-$if page.isbn_10:
-    $ isbn_10 = page.isbn_10[0].replace("-", "")
-$elif isbn_13:
-    $ isbn_10 = isbn_13_to_isbn_10(isbn_13)
+$ isbn_13 = page.get_isbn13()
+$ isbn_10 = page.get_isbn10()
 
 $ asin = None
-$ scribd = None
 $if page.get('identifiers'):
-    $if page.identifiers.get('scribd'):
-        $ scribd = page.identifiers.scribd[0]
     $if page.identifiers.get('amazon'):
         $ asin = page.identifiers.amazon[0]
 
@@ -63,28 +54,13 @@ $if isbn_10 and not asin:
         $if page.get('ocaid') and not page.is_access_restricted():
             $:macros.DownloadOptions(page)
 
-        $:macros.WorldcatLink(isbn=isbn, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
+        $:macros.WorldcatLink(isbn=isbn_13, oclc_numbers=oclc_numbers, referer=page.url(relative=False))
 
-        $if isbn or asin or scribd:
-          <hr>
-          <div class="cta-section">
-            <p class="cta-section-title">Buy this book</p>
-            <div class="panel">
-              $:macros.AffiliateLinks({'isbn': isbn, 'asin': asin, 'scribd': scribd, 'prices': prices})
-            </div>
-          </div>
-
-        $else:
-          <hr>
-          <div class="cta-section">
-              <p class="cta-section-title">Buy this book</p>
-              <div class="panel">
-                  $if page.is_fake_record():
-                      <p class="gray"><span id="isbnadd">Add an ISBN</span> in order to link to booksellers</p>
-                  $else:
-                      <p><a id="isbnadd" href="$edit_url">Add an ISBN</a> in order to link to booksellers</p>
-              </div>
-          </div>
+        <hr>
+        <div class="cta-section">
+          <p class="cta-section-title">Buy this book</p>
+          $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
+        </div>
 
         $:macros.SocialShare(page)
 

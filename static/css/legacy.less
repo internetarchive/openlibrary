@@ -309,7 +309,6 @@ q {
 @import (less) "base/helpers-common.less";
 @import (less) "base/helpers-misc.less";
 
-// openlibrary/plugins/search/templates/advanced_search.html
 // openlibrary/templates/lib/pagination.html
 // openlibrary/templates/type/author/view.html
 .pagination {
@@ -485,11 +484,12 @@ p {
 }
 
 .print-disabled-download {
+  a {
+    flex: 1;
+  }
   display: flex;
   font-size: 10px;
-  text-align: center;
-  margin-top: 5px;
-  padding: 5px;
+  align-items: center;
 }
 
 input[type=text],
@@ -772,7 +772,6 @@ div#scrollBtm {
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
-// openlibrary/templates/search/editions.html
 // openlibrary/templates/search/inside.html
 // openlibrary/templates/search/lists.html
 // openlibrary/templates/search/publishers.html
@@ -894,7 +893,6 @@ div.searchOptions {
 // openlibrary/templates/lists/home.html
 // openlibrary/templates/search/advancedsearch.html
 // openlibrary/templates/search/authors.html
-// openlibrary/templates/search/editions.html
 // openlibrary/templates/search/inside.html
 // openlibrary/templates/search/lists.html
 // openlibrary/templates/search/publishers.html
@@ -1098,10 +1096,7 @@ div#searchResults ul {
   margin-bottom: 0;
 }
 
-// openlibrary/macros/FulltextResults.html
-// openlibrary/plugins/search/templates/advanced_search.html
 // openlibrary/templates/books/check.html
-// openlibrary/templates/search/editions.html
 // openlibrary/templates/type/author/view.html
 // openlibrary/templates/work_search.html
 div#searchResults {
@@ -1226,7 +1221,6 @@ div#searchResults {
 
 @import (less) 'components/search-results-container.less';
 
-// openlibrary/plugins/search/templates/advanced_search.html
 // openlibrary/templates/work_search.html
 div#searchFacets {
   width: 220px;
@@ -1541,7 +1535,6 @@ ul {
 // openlibrary/templates/account/borrow.html
 // openlibrary/templates/publishers/view.html
 // openlibrary/templates/search/authors.html
-// openlibrary/templates/search/editions.html
 // openlibrary/templates/search/publishers.html
 // openlibrary/templates/search/subjects.html
 // openlibrary/templates/showia.html
@@ -1566,10 +1559,6 @@ ul {
 @import (less) "components/page-history.less";
 
 // openlibrary/macros/CoverImage.html
-// openlibrary/macros/CoverImageAuthor.html
-// openlibrary/macros/CoverImageWork.html
-// openlibrary/macros/EditionImageWork.html
-// openlibrary/macros/SearchResultsCovers.html
 // openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
@@ -1587,7 +1576,6 @@ ul {
   line-height: normal;
 }
 
-//openlibrary/macros/SearchResultsCovers.html
 // openlibrary/macros/SRPCoverImage.html
 // openlibrary/templates/covers/book_cover.html
 // openlibrary/templates/covers/book_cover_single_edition.html
@@ -1600,7 +1588,6 @@ ul {
 
 // openlibrary/macros/SearchResults.html
 // openlibrary/macros/SearchResultsWork.html
-// openlibrary/plugins/search/templates/advanced_search.html
 // openlibrary/templates/books/show.html
 // openlibrary/templates/books/works-show.html
 // openlibrary/templates/type/list/embed.html
@@ -1683,7 +1670,6 @@ span.actions {
 // openlibrary/templates/work_search.html
 // openlibrary/templates/books/check.html
 // openlibrary/templates/account/books.html
-// openlibrary/plugins/search/templates/advanced_search.html
 // openlibrary/macros/SearchResults.html
 // openlibrary/macros/FulltextResults.html
 // why not form#siteSearch ?
@@ -1693,13 +1679,11 @@ ul#siteSearch {
   }
   // openlibrary/macros/SearchResults.html
   // openlibrary/macros/SearchResultsWork.html
-  // openlibrary/plugins/search/templates/advanced_search.html
   // openlibrary/templates/books/check.html
   // openlibrary/templates/books/show.html
   // openlibrary/templates/books/works-show.html
   // openlibrary/templates/lists/preview.html
   // openlibrary/templates/lists/snippet.html
-  // openlibrary/templates/search/editions.html
   // openlibrary/templates/type/list/embed.html
   // openlibrary/templates/type/list/view.html
   span.resultTitle {
@@ -1712,7 +1696,6 @@ ul#siteSearch {
   // openlibrary/macros/SearchResultsWork.html
   span.resultTitle .bookauthor,
   // openlibrary/macros/SearchResultsWork.htm
-  // openlibrary/plugins/search/templates/advanced_search.html
   // openlibrary/templates/books/check.html
   // openlibrary/templates/books/show.html
   // openlibrary/templates/books/works-show.html
@@ -1724,10 +1707,8 @@ ul#siteSearch {
   // openlibrary/templates/books/works-show.html
   // openlibrary/templates/books/show.html
   // openlibrary/templates/books/check.html
-  // openlibrary/plugins/search/templates/advanced_search.html
   // openlibrary/macros/SearchResultsWork.html
   // openlibrary/macros/SearchResults.html
-  // openlibrary/templates/search/editions.html
   span.resultPublisher {
     display: block;
   }
@@ -1859,30 +1840,6 @@ div.addfield {
   }
 }
 
-// openlibrary/templates/type/about/view.html
-#flickr {
-  &_badge_uber_wrapper {
-    a {
-      &:hover,
-      &:link,
-      &:active,
-      &:visited {
-        text-decoration: none !important;
-        background: inherit !important;
-        color: @flickr-brand-blue;
-      }
-    }
-  }
-  &_badge_wrapper {
-    margin: 0 auto;
-    text-align: center;
-    img {
-      display: block;
-      margin: 0 auto 10px;
-    }
-  }
-}
-
 /* CHARTING */
 @import (less) "components/chart.less";
 
@@ -1913,8 +1870,6 @@ div.mergeThis {
 }
 
 /* BORROWING */
-// openlibrary/macros/LoanFormTest.html
-// openlibrary/macros/LoanForm.html
 div.preSubmit,
 div.postSubmit {
   text-align: center;
@@ -2026,13 +1981,6 @@ div#subjectLists {
 // openlibrary/macros/databarWork.html
 #read.panel {
   margin-bottom: 10px;
-}
-
-// openlibrary/macros/daisy.html
-// openlibrary/templates/books/edition-sort.html
-.daisy-lock {
-  position: relative;
-  top: 1px;
 }
 
 // openlibrary/macros/SearchResultsWork.html

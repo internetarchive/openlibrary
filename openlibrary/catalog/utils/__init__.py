@@ -12,6 +12,7 @@ except NameError:
     def cmp(x, y):  # Python 3
         return (x > y) - (x < y)
 
+
 re_date = map (re.compile, [
     '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
     '(?P<birth_date>\d+\??)-',
@@ -30,12 +31,23 @@ re_year = re.compile(r'\b(\d{4})\b')
 
 re_brackets = re.compile('^(.+)\[.*?\]$')
 
+
 def key_int(rec):
     # extract the number from a key like /a/OL1234A
     return int(web.numify(rec['key']))
 
+
 def author_dates_match(a, b):
-    # check if the dates of two authors
+    """
+    Checks if the years of two authors match. Only compares years,
+    not names or keys. Works by returning False if any year specified in one record
+    does not match that in the other, otherwise True. If any one author does not have
+    dates, it will return True.
+
+    :param dict a: Author import dict {"name": "Some One", "birth_date": "1960"}
+    :param dict b: Author import dict {"name": "Some One"}
+    :rtype: bool
+    """
     for k in ['birth_date', 'death_date', 'date']:
         if k not in a or a[k] is None or k not in b or b[k] is None:
             continue
@@ -50,16 +62,26 @@ def author_dates_match(a, b):
         return False
     return True
 
+
 def flip_name(name):
-    # strip end dots like this: "Smith, John." but not like this: "Smith, J."
+    """
+    Flip author name about the comma, stripping the comma, and removing non
+    abbreviated end dots. Returns name with end dot stripped if no comma+space found.
+    The intent is to convert a Library indexed name to natural name order.
+
+    :param str name: e.g. "Smith, John." or "Smith, J."
+    :rtype: str
+    :return: e.g. "John Smith" or "J. Smith"
+    """
+
     m = re_end_dot.search(name)
     if m:
         name = name[:-1]
-
     if name.find(', ') == -1:
         return name
     m = re_marc_name.match(name)
     return m.group(2) + ' ' + m.group(1)
+
 
 def remove_trailing_number_dot(date):
     m = re_number_dot.search(date)
@@ -222,7 +244,17 @@ def get_title(e):
         title = e['title']
     return title
 
+
 def mk_norm(s):
+    """
+    Normalizes titles and strips ALL spaces and small words
+    to aid with string comparisons of two titles.
+
+    :param str s: A book title to normalize and strip.
+    :rtype: str
+    :return: a lowercase string with no spaces, containg the main words of the title.
+    """
+
     m = re_brackets.match(s)
     if m:
         s = m.group(1)
@@ -234,6 +266,7 @@ def mk_norm(s):
         norm = norm[2:]
     return norm.replace(' ', '')
 
+
 def error_mail(msg_from, msg_to, subject, body):
     assert isinstance(msg_to, list)
     msg = 'From: %s\nTo: %s\nSubject: %s\n\n%s' % (msg_from, ', '.join(msg_to), subject, body)
@@ -241,22 +274,4 @@ def error_mail(msg_from, msg_to, subject, body):
     import smtplib
     server = smtplib.SMTP('mail.archive.org')
     server.sendmail(msg_from, msg_to, msg)
-    server.quit()
-
-def bad_marc_alert(ia):
-    from pprint import pformat
-    msg_from = 'load_scribe@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad MARC: %s
-
-bad MARC: %s
-
-''' % (msg_from, msg_to, ia, ia)
-
-    import smtplib
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
     server.quit()

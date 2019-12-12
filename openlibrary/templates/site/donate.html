@@ -1,12 +1,3 @@
 
 $if not is_bot():
   $:get_donation_include()
-
-<script type="text/javascript">
-// The donate javascript included via archive.org uses JQuery 1.6+.
-// The version of jquery used in OL is very old doesn't support .prop function used there.
-// This is a hack to support .prop('checked', true)
-\$.fn.prop = function(name, value) {
-  \$(this).attr(name, name);
-}
-</script>

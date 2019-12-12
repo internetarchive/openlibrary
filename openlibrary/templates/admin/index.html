@@ -4,14 +4,8 @@ $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
 $ stats = get_admin_stats()
-<script type="text/javascript">
-window.q.push(function () {
-    var edits = $:json_encode(counts.human_edits.get_counts(80, True));
-    var members = $:json_encode(counts.members.get_counts(80, True));
-    plot_tooltip_graph(\$("#editgraph"), edits, "edit(s) on");
-    plot_tooltip_graph(\$("#membergraph"), members,"new members(s) on");
-    });
-</script>
+<script type="text/json+graph" id="graph-json-editgraph">$:json_encode(counts.human_edits.get_counts(80, True))</script>
+<script type="text/json+graph" id="graph-json-membergraph">$:json_encode(counts.members.get_counts(80, True))</script>
 
 <div id="contentHead">
     $if ctx.user and ctx.user.is_admin():
@@ -105,63 +99,58 @@ window.q.push(function () {
     </table>
   </div>
 
-
-  <script type="text/javascript">
-    window.q.push(function () {
-    plot_tooltip_graph (\$("#works_minigraph"), $:json_encode(counts.works.get_counts(150, True)), " works on ");
-    plot_tooltip_graph (\$("#editions_minigraph"), $:json_encode(counts.editions.get_counts(150, True)), " editions on ");
-    plot_tooltip_graph (\$("#covers_minigraph"), $:json_encode(counts.covers.get_counts(150, True)), " covers on ");
-    plot_tooltip_graph (\$("#authors_minigraph"), $:json_encode(counts.authors.get_counts(150, True)), " authors on ");
-    plot_tooltip_graph (\$("#lists_minigraph"), $:json_encode(counts.lists.get_counts(150, True)), " lists on ");
-    plot_tooltip_graph (\$("#members_minigraph"), $:json_encode(counts.members.get_counts(150, True)), " members on ");
-    });
-  </script>
+  <script type="text/json+graph" id="graph-json-works_minigraph">$:json_encode(counts.works.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-editions_minigraph">$:json_encode(counts.editions.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-covers_minigraph">$:json_encode(counts.covers.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-authors_minigraph">$:json_encode(counts.authors.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-lists_minigraph">$:json_encode(counts.lists.get_counts(150, True))</script>
+  <script type="text/json+graph" id="graph-json-members_minigraph">$:json_encode(counts.members.get_counts(150, True))</script>
 
   <table class="measurements stripeEven">
     <tr>
-      <th></th>
+      <th><h2>Items Added</h2></th>
       <th>Last 7 days</th>
       <th>Last 28 days</th>
       <th>Trend</th>
       <th>Total</th>
     </tr>
     <tr class="major">
-      <td>Works</td>
+      <td>Works Added</td>
       <td class="amount">$commify(counts.works.get_summary(7))</td>
       <td class="amount">$commify(counts.works.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="works_minigraph" class="stats-spacer"></div></div></td>
       <td class="amount">$commify(counts.works.total)</td>
     </tr>
     <tr class="major">
-      <td>Editions</td>
+      <td>Editions Added</td>
       <td class="amount">$commify(counts.editions.get_summary(7))</td>
       <td class="amount">$commify(counts.editions.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="editions_minigraph" class="stats-spacer"></div></div></td>
       <td class="amount">$commify(counts.editions.total)</td>
     </tr>
     <tr class="major even">
-      <td>Authors</td>
+      <td>Authors Added</td>
       <td class="amount">$commify(counts.authors.get_summary(7))</td>
       <td class="amount">$commify(counts.authors.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="authors_minigraph" class="stats-spacer"></div></div></td>
       <td class="amount">$commify(counts.authors.total)</td>
     </tr>
     <tr class="major even">
-      <td>Covers</td>
+      <td>Covers Added</td>
       <td class="amount">$commify(counts.covers.get_summary(7))</td>
       <td class="amount">$commify(counts.covers.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="covers_minigraph" class="stats-spacer"></div></div></td>
       <td class="amount">$commify(counts.covers.total)</td>
     </tr>
     <tr class="major">
-      <td>Members</td>
+      <td>New Members</td>
       <td class="amount">$commify(counts.members.get_summary(7))</td>
       <td class="amount">$commify(counts.members.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="members_minigraph" class="stats-spacer"></div></div></td>
       <td class="amount">$commify(counts.members.total)</td>
     </tr>
     <tr class="major">
-      <td>Lists</td>
+      <td>Lists Added</td>
       <td class="amount">$commify(counts.lists.get_summary(7))</td>
       <td class="amount">$commify(counts.lists.get_summary(28))</td>
       <td><div class="sparkDisplay"><div id="lists_minigraph" class="stats-spacer"></div></div></td>
@@ -186,11 +175,11 @@ window.q.push(function () {
   <div class="clearfix"></div>
 
   <h2>Unique Visitors</h2>
-  <img src="http://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
+  <img alt="Unique visitors IPs per day graph" src="http://graphite.us.archive.org/render/?min=0&template=plain&lineMode=staircase&areaMode=stacked&areaAlpha=0.5&yAxisSide=right&title=openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)&hideLegend=true&target=cactiStyle(alias(summarize(sumSeries(group(stats.uniqueips.openlibrary)),%221day%22),%22openlibrary+++Unique+IPs+per+day+++(uip_openlibrary)%22))&colorList=00ff00&height=200&width=900&from=-60days"/>
 
   <h2>Borrows</h2>
-  <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
-  <img src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 3 months graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-3months&tz=UTC&width=900"/>
+  <img alt="Borrows, last 2 years graph" src="http://graphite.us.archive.org/render?target=hitcount(stats.ol.loans.bookreader,%221d%22)&from=-24months&tz=UTC&width=900"/>
 
   <div class="contentSpacer"></div>
 

@@ -19,7 +19,7 @@ from infogami.infobase import config, common, server, cache, dbstore
 
 # relative import
 from .openlibrary import schema
-from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
+from ..utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10, normalize_isbn
 
 logger = logging.getLogger("infobase.ol")
 
@@ -228,10 +228,10 @@ class clear_cache:
 class olid_to_key:
     @server.jsonify
     def GET(self, sitename):
-        i = server.input("olid")
-        d = get_db().query("SELECT key FROM thing WHERE get_olid(key) = $i.olid", vars=locals())
+        i = server.input('olid')
+        d = get_db().query('SELECT key FROM thing WHERE get_olid(key) = $i.olid', vars=locals())
         key = d and d[0].key or None
-        return {"olid": i.olid, "key": key}
+        return {'olid': i.olid, 'key': key}
 
 def write(path, data):
     dir = os.path.dirname(path)
@@ -249,10 +249,10 @@ def save_error(dir, prefix):
         path = '%s/%04d-%02d-%02d/%s-%02d%02d%02d.%06d.html' % (dir, \
             now.year, now.month, now.day, prefix,
             now.hour, now.minute, now.second, now.microsecond)
-        logger.error("Error saved to %s", path)
+        logger.error('Error saved to %s', path)
         write(path, web.safestr(error))
     except:
-        logger.error("Exception in saving the error", exc_info=True)
+        logger.error('Exception in saving the error', exc_info=True)
 
 def get_object_data(site, thing):
     """Return expanded data of specified object."""
@@ -293,9 +293,9 @@ def http_notify(site, old, new):
     for url in config.http_listeners:
         try:
             response = urllib.urlopen(url, json).read()
-            print("http_notify", repr(url), repr(key), repr(response), file=web.debug)
+            print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except:
-            print("failed to send http_notify", repr(url), repr(key), file=web.debug)
+            print('failed to send http_notify', repr(url), repr(key), file=web.debug)
             import traceback
             traceback.print_exc()
 
@@ -304,8 +304,8 @@ class MemcacheInvalidater:
         self.memcache = self.get_memcache_client()
 
     def get_memcache_client(self):
-        _cache = config.get("cache", {})
-        if _cache.get("type") == "memcache" and "servers" in _cache:
+        _cache = config.get('cache', {})
+        if _cache.get('type') == 'memcache' and 'servers' in _cache:
             return olmemcache.Client(_cache['servers'])
 
     def to_dict(self, d):
@@ -349,7 +349,7 @@ class MemcacheInvalidater:
         yield old.key
 
         # invalidate all work.editions
-        editions = site.things({"type": "/type/edition", "work": old.key})
+        editions = site.things({'type': '/type/edition', 'work': old.key})
         for e in editions:
             yield e['key']
 
@@ -364,7 +364,7 @@ class MemcacheInvalidater:
 
 # openlibrary.utils can't be imported directly because
 # openlibrary.plugins.openlibrary masks openlibrary module
-olmemcache = __import__("openlibrary.utils.olmemcache", None, None, ['x'])
+olmemcache = __import__('openlibrary.utils.olmemcache', None, None, ['x'])
 
 def MemcachedDict(servers=[]):
     """Cache implementation with OL customized memcache client."""
@@ -375,10 +375,10 @@ cache.register_cache('memcache', MemcachedDict)
 
 def _process_key(key):
     mapping = (
-        "/l/", "/languages/",
-        "/a/", "/authors/",
-        "/b/", "/books/",
-        "/user/", "/people/"
+        '/l/', '/languages/',
+        '/a/', '/authors/',
+        '/b/', '/books/',
+        '/user/', '/people/'
     )
     for old, new in web.group(mapping, 2):
         if key.startswith(old):
@@ -408,14 +408,14 @@ def fix_table_of_contents(table_of_contents):
     def row(r):
         if isinstance(r, six.string_types):
             level = 0
-            label = ""
+            label = ''
             title = web.safeunicode(r)
-            pagenum = ""
+            pagenum = ''
         elif 'value' in r:
             level = 0
-            label = ""
+            label = ''
             title = web.safeunicode(r['value'])
-            pagenum = ""
+            pagenum = ''
         elif isinstance(r, dict):
             level = safeint(r.get('level', '0'), 0)
             label = r.get('label', '')
@@ -432,7 +432,7 @@ def fix_table_of_contents(table_of_contents):
 def process_json(key, json):
     if key is None or json is None:
         return None
-    base = key[1:].split("/")[0]
+    base = key[1:].split('/')[0]
     if base in ['authors', 'books', 'works', 'languages', 'people', 'usergroup', 'permission']:
         data = simplejson.loads(json)
         data = _process_data(data)
@@ -461,7 +461,7 @@ class OLIndexer(_Indexer):
         return _Indexer.compute_index(self, doc)
 
     def get_type(self, doc):
-        return doc.get("type", {}).get("key")
+        return doc.get('type', {}).get('key')
 
     def process_edition_doc(self, doc):
         """Process edition doc to add computed fields used for import.
@@ -470,17 +470,17 @@ class OLIndexer(_Indexer):
         """
         doc = dict(doc)
 
-        title = doc.get("title", "")
+        title = doc.get('title', '')
         doc['normalized_title_'] = self.normalize_edition_title(title)
 
-        isbns = doc.get("isbn_10", []) + doc.get("isbn_13", [])
-        isbns = [self.normalize_isbn(isbn) for isbn in isbns]
+        isbns = doc.get('isbn_10', []) + doc.get('isbn_13', [])
+        isbns = [normalize_isbn(isbn) for isbn in isbns if normalize_isbn(isbn)]
         doc['isbn_'] = self.expand_isbns(isbns)
         return doc
 
     def normalize_edition_title(self, title):
         if isinstance(title, str):
-            title = title.decode('utf-8', "ignore")
+            title = title.decode('utf-8', 'ignore')
 
         if not isinstance(title, six.text_type):
             return ""
@@ -497,15 +497,11 @@ class OLIndexer(_Indexer):
             norm = norm[2:]
         return norm.replace(' ', '')[:25]
 
-    def normalize_isbn(self, isbn):
-        return isbn.strip().upper().replace(" ", "").replace("-", "")
-
     def expand_isbns(self, isbns):
         """Expands the list of isbns by adding ISBN-10 for ISBN-13 and vice-verse.
         """
         s = set(isbns)
         for isbn in isbns:
-            isbn = isbn.replace("-", "")
             if len(isbn) == 10:
                 s.add(isbn_10_to_isbn_13(isbn))
             else:

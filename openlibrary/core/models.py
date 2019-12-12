@@ -18,6 +18,8 @@ from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
+from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # relative imports
 from lists.model import ListMixin, Seed
@@ -369,6 +371,31 @@ class Edition(Thing):
             if filename:
                 return "https://archive.org/download/%s/%s" % (self.ocaid, filename)
 
+    @classmethod
+    def from_isbn(cls, isbn):
+        """Attempts to fetch an edition by isbn, or if no edition is found,
+        attempts to import from amazon
+        :param str isbn:
+        :rtype: edition|None
+        :return: an open library work for this isbn
+        """
+        isbn13 = to_isbn_13(isbn)
+        isbn10 = isbn_13_to_isbn_10(isbn)
+
+        # Attempt to fetch book from OL
+        for isbn in [isbn13, isbn10]:
+            if isbn:
+                matches = web.ctx.site.things({
+                    "type": "/type/edition", 'isbn_%s' % len(isbn): isbn
+                })
+                if matches:
+                    return web.ctx.site.get(matches[0])
+
+        # Attempt to create from amazon, then fetch from OL
+        key = (isbn10 or isbn13) and create_edition_from_amazon_metadata(isbn10 or isbn13)
+        if key:
+            return web.ctx.site.get(key)
+
     def is_ia_scan(self):
         metadata = self.get_ia_meta_fields()
         # all IA scans will have scanningcenter field set
@@ -578,11 +605,19 @@ class User(Thing):
         prefs['notifications'].update(new_prefs)
         web.ctx.site.save(prefs, msg)
 
+    def is_usergroup_member(self, usergroup):
+        if not usergroup.startswith('/usergroup/'):
+            usergroup = '/usergroup/%s' % usergroup
+        return usergroup in [g.key for g in self.usergroups]
+
     def is_admin(self):
-        return '/usergroup/admin' in [g.key for g in self.usergroups]
+        return self.is_usergroup_member('/usergroup/admin')
 
     def is_librarian(self):
-        return '/usergroup/librarians' in [g.key for g in self.usergroups]
+        return self.is_usergroup_member('/usergroup/librarians')
+
+    def in_sponsorship_beta(self):
+        return self.is_usergroup_member('/usergroup/sponsors')
 
     def get_lists(self, seed=None, limit=100, offset=0, sort=True):
         """Returns all the lists of this user.
@@ -827,6 +862,35 @@ class Library(Thing):
         stats = loanstats.LoanStats(library=name)
         return stats.get_loans_per_day(resource_type=resource_type)
 
+class UserGroup(Thing):
+
+    @classmethod
+    def from_key(cls, key):
+        """
+        :param str key: e.g. /usergroup/sponsor-waitlist
+        :rtype: UserGroup | None
+        """
+        if not key.startswith('/usergroup/'):
+            key = "/usergroup/%s" % key
+        return web.ctx.site.get(key)
+
+    def add_user(self, userkey):
+        """Administrative utility (designed to be used in conjunction with
+        accounts.RunAs) to add a patron to a usergroup
+
+        :param str userkey: e.g. /people/mekBot
+        """
+        if not web.ctx.site.get(userkey):
+            raise KeyError("Invalid userkey")
+
+        # Make sure userkey not already in group members:
+        members = self.get('members', [])
+        if not any(userkey == member['key'] for member in members):
+            members.append({'key': userkey})
+            self.members = members
+            web.ctx.site.save(self.dict(), "Adding %s to %s" % (userkey, self.key))
+
+
 class Subject(web.storage):
     def get_lists(self, limit=1000, offset=0, sort=True):
         q = {
@@ -874,6 +938,7 @@ def register_models():
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/library', Library)
+    client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
     """Register default types for various path patterns used in OL.

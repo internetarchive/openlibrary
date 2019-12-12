@@ -58,8 +58,9 @@ $if links:
                 Simple English: <a href="$simple.url">$(simple.title or simple.url)</a>
                 </span>
         $if len(wikipedia):
-            <span class="tag"><a href="javascript:;" onclick="\$('#full_list').slideToggle();">Other languages</a></span>
-            <div class="hidden" id="full_list"><span class="tag">
+            <span class="tag"><a href="javascript:;" class="slide-toggle"
+                aria-haspopup="true" aria-controls="full_list">Other languages</a></span>
+            <div style="display: none" id="full_list"><span class="tag">
             $for link in wikipedia:
                 $link.lang: <a href="$link.url">$(link.title or link.url)</a>&nbsp;
             </span></div>
