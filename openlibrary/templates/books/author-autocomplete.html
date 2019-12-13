@@ -31,7 +31,7 @@ $jsdef render_author_autocomplete_item(item):
                 <span class="subject">Subjects: ${', '.join(item.subjects)}</span>
         </div>
 
-$jsdef render_author(name_path, dict_path, i, author):
+$jsdef render_author(i, author):
     <div class="input">
         <input name="$name_path--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
         <input name="$dict_path--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
@@ -41,24 +41,5 @@ $jsdef render_author(name_path, dict_path, i, author):
 
 <div id="authors">
     $for author in (authors or [storage(name="", key="")]):
-        $:render_author(name_path, dict_path, loop.index0, author)
+        $:render_author(loop.index0, author)
 </div>
-<script type="text/javascript">
-window.q.push( function () {
-    \$("#authors").setup_multi_input_autocomplete(
-        "input.author-autocomplete",
-        render_author.bind(null, "$name_path", "$dict_path"),
-        {
-            endpoint: "/authors/_autocomplete",
-            // Don't render "Create new author" if searching by key
-            addnew: function(query) { return !/^OL\d+A/i.test(query); },
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_author_autocomplete_item
-        });
-} );
-</script>
