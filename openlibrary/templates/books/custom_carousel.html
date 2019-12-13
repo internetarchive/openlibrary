@@ -11,7 +11,7 @@ $def render_carousel_cover(book, lazy):
   $elif book.get('cover_id'):
     $ cover_url = '%s/b/id/%s-M.jpg'%(cover_host, book.get('cover_id'))
   $elif book.get('ia'):
-    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], False)
+    $ cover_url = '%s/b/ia/%s-M.jpg?default=%s'%(cover_host, book.get('ia')[0], fallback_cover)
   $else:
      $ cover_url = False
   $if book.get('authors'):
@@ -55,11 +55,9 @@ $def render_carousel_cover(book, lazy):
             $img_attr="$(cover_url)"/>
         $else:
           <div class="carousel__item__blankcover">
-              <div>
-                  <div>$:macros.TruncateString(title, 70)
-                    <em>$:macros.TruncateString(', '.join(author_names), 30)</em>
-                  </div>
-              </div>
+            <div class="carousel__item__blankcover--title">$:macros.TruncateString(title, 70)</div>
+            $if author_names:
+              <div class="carousel__item__blankcover--authors">$:macros.TruncateString(', '.join(author_names), 30)</div>
           </div>
       </a>
     </div>
@@ -87,9 +85,6 @@ $if test or (books and len(books) >= min_books):
         $ config = ['.carousel-' + key, 6, 5, 4, 3, 2, 1, load_more_config ]
         <div class="carousel carousel-$key carousel--progressively-enhanced"
           data-config="$json_encode(config)">
-          $ cover_host = '//covers.openlibrary.org'
-          $ fallback_cover = 'https://openlibrary.org/images/icons/avatar_book.png'
-
           $for index, book in enumerate(books or []):
               $:render_carousel_cover(book, index > 5)
         </div>
