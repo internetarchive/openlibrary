@@ -1,4 +1,87 @@
+// jquery-autocomplete#1.1 with modified
+import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 // jquery plugins to provide author and language autocompletes.
+
+// Possible globals defined using jsdef inside openlibrary/templates/books/edit/edition.html
+// In future we'll move these into JS but easier said than done!
+const render_translated_from_language_field = window.render_translated_from_language_field,
+    render_work_field = window.render_work_field,
+    render_language_autocomplete_item = window.render_language_autocomplete_item,
+    render_author_autocomplete_item = window.render_author_autocomplete_item,
+    render_language_field = window.render_language_field;
+
+/**
+ * Some options specific to certain endpoint services.
+ */
+const ENDPOINT_OPTIONS_AUTHORS = {
+    endpoint: "/authors/_autocomplete",
+    // Don't render "Create new author" if searching by key
+    addnew: function(query) { return !/^OL\d+A/i.test(query); },
+};
+
+const ENDPOINT_OPTIONS_LANGUAGES = {
+    endpoint: "/languages/_autocomplete"
+};
+
+const ENDPOINT_OPTIONS_WORKS = {
+    endpoint: "/works/_autocomplete"
+};
+
+/**
+ * Some default options for autocompletes.
+ */
+const AUTOCOMPLETE_OPTIONS = {
+    minChars: 2,
+    max: 11,
+    matchSubset: false,
+    autoFill: false
+};
+
+/**
+ * Some slightly different options for language autocompletes.
+ */
+const AUTOCOMPLETE_LANGUAGE_OPTIONS = {
+    max: 6,
+    formatItem: render_language_autocomplete_item
+};
+
+/**
+ * Initialises autocomplete elements in the page.
+ */
+function initPageElements() {
+    if ( render_author_autocomplete_item ) {
+        $("#authors").setup_multi_input_autocomplete(
+            "input.author-autocomplete",
+            render_author, ENDPOINT_OPTIONS_AUTHORS,
+            $.extend( {}, AUTOCOMPLETE_OPTIONS, {
+                formatItem: render_author_autocomplete_item
+            })
+        );
+    }
+
+    if ( render_language_field ) {
+        $("#languages").setup_multi_input_autocomplete(
+            "input.language-autocomplete",
+            render_language_field,
+            ENDPOINT_OPTIONS_LANGUAGES, AUTOCOMPLETE_LANGUAGE_OPTIONS);
+    }
+
+    if ( render_translated_from_language_field ) {
+        $("#translated_from_languages").setup_multi_input_autocomplete(
+            "input.language-autocomplete",
+            render_translated_from_language_field, ENDPOINT_OPTIONS_LANGUAGES, AUTOCOMPLETE_LANGUAGE_OPTIONS);
+    }
+
+    if ( render_work_field ) {
+        $("#works").setup_multi_input_autocomplete(
+            "input.work-autocomplete",
+            render_work_field, ENDPOINT_OPTIONS_WORKS,
+            $.extend( {}, AUTOCOMPLETE_OPTIONS, {
+                formatItem: render_work_autocomplete_item
+            })
+        )
+    }
+}
 
 export default function($) {
     /**
@@ -121,4 +204,5 @@ export default function($) {
             update_visible();
         });
     };
+    initPageElements();
 }

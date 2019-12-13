@@ -42,22 +42,3 @@ $jsdef render_author(i, author):
     $else:
         $:render_author(0, storage(name="", key=""))
 </div>
-<script type="text/javascript">
-window.q.push( function () {
-    \$("#authors").setup_multi_input_autocomplete(
-        "input.author-autocomplete",
-        render_author,
-        {
-            endpoint: "/authors/_autocomplete",
-            // Don't render "Create new author" if searching by key
-            addnew: function(query) { return !/^OL\d+A/i.test(query); },
-        },
-        {
-            minChars: 2,
-            max: 11,
-            matchSubset: false,
-            autoFill: false,
-            formatItem: render_author_autocomplete_item
-        });
-} );
-</script>
