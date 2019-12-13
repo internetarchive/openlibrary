@@ -1,3 +1,5 @@
+@import (less) "less/index.less";
+
 /**
  * NOT FOR PRODUCTION. If this stylesheet is loading on openlibrary.org please raise a github issue:
  * https://github.com/internetarchive/openlibrary/issues/new
@@ -15,28 +17,29 @@
 // Make banners less prominent for developers so they don't get in their way.
 // This is particularly important during fundraising season!
 #donate_banner {
-    min-height: 50px !important;
-    overflow: hidden;
-    display: block !important;
-    opacity: 0.2;
-    height: 50px;
+  min-height: 50px !important;
+  overflow: hidden;
+  display: block !important;
+  opacity: .2;
+  height: 50px;
 }
 
 .logo-txt {
-    position: relative;
-    &:after {
-        content: 'development version';
-        position: absolute;
-        background: #C6FFE0;
-        pointer-events: none;
-        padding: 0 .7em;
-        font-size: 0.8em;
-        line-height: 1.75;
-        border-radius: 2px;
-        box-shadow: 1px 1px 1px rgba(0,0,0,.1);
-        left: 40px;
-        top: 36px;
-        z-index: 2;
-        transform: rotate(0deg);
-    }
+  position: relative;
+
+  &:after {
+    content: "development version";
+    position: absolute;
+    background: #C6FFE0;
+    pointer-events: none;
+    padding: 0 .7em;
+    font-size: 0.8em;
+    line-height: 1.75;
+    border-radius: 2px;
+    box-shadow: 1px 1px 1px rgba(0,0,0,.1);
+    left: 40px;
+    top: 36px;
+    z-index: @z-index-level-2;
+    transform: rotate(0deg);
+  }
 }
