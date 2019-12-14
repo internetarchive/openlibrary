@@ -41,7 +41,11 @@ def get_sponsorable_editions():
     """This should move to an infogami type so any admin can add editions
     to the list. This will need to be paginated.
     """
-    candidates = web.ctx.site.get('/sponsorship/books').get('editions')
+    try:
+        candidates = web.ctx.site.get('/sponsorship/books').get('editions', [])
+    except AttributeError:
+        candidates = []
+
     eligible_editions = []
     for key in candidates:
         ed = web.ctx.site.get(key)
