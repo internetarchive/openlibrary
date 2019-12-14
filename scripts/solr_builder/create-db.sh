@@ -1,7 +1,7 @@
 set -x
 
 CONTAINER=db
-DATE="2019-08-31"
+DATE="2019-11-30"
 FILE="https://archive.org/download/ol_dump_$DATE/ol_dump_$DATE.txt.gz"
 
 alias psql='docker-compose exec -T -u postgres $CONTAINER psql postgres -X -t -A $1'
