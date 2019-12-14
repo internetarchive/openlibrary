@@ -7,8 +7,8 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary openlibrary \
-  && useradd --no-log-init --system --gid openlibrary solrupdater
+  && useradd --no-log-init --system -m --gid openlibrary openlibrary \
+  && useradd --no-log-init --system -m --gid openlibrary solrupdater
 
 RUN apt-get -qq update && apt-get install -y \
     nginx \

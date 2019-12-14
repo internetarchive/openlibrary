@@ -35,10 +35,12 @@ docker-machine start default # Start the docker daemon
 # You might want to stop the machine once you are done coding; it takes up
 # a lot of RAM. Run: docker-machine stop default
 
+Building the images below requires about 6 GB of space for Docker.
+
 # build images
-docker build -t olbase:latest -f docker/Dockerfile.olbase . # 30+ min (Win10Home/Dec 2018)
-docker-compose build web # 10+ min (Win10Home/Dec 2018)
-docker-compose build solr # 5+ min (Win10Home/Dec 2018)
+docker build -t olbase:latest -f docker/Dockerfile.olbase . # ~4 minutes on a 3 yr old Macbook Pro (Dec 2019)
+docker-compose build web # 1min15sec
+docker-compose build solr # 1 minute
 
 # start the app
 docker-compose up    # Ctrl-C to stop
