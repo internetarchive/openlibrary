@@ -1412,7 +1412,7 @@ msgid ""
 "\"Good\" means no spammy links, please. Keep them relevant to the book. "
 "Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr ""
-"«Bueno» significa que no sean enlaces 'spam', por favor. Procura que sean "
+"«Buenos» significa que no sean enlaces 'spam', por favor. Procura que sean "
 "enlaces relevantes en relación con el libro. Los sitios irrelevantes pueden ser "
 "eliminados. El 'spam' flagrante será eliminado sin remordimientos."
 
