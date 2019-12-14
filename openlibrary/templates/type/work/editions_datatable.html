@@ -1,9 +1,9 @@
-$def with (page)
+$def with (work, editions=None, edition=None)
 <div class="head">
     <h2>
-    $ungettext("1 edition", "%(count)s editions", page.edition_count, count=page.edition_count)
-    $if page.first_publish_year:
-        <span class="count">$_("First published in %(year)s", year=page.first_publish_year)</span>
+    $commify(work.edition_count) $cond(work.edition_count != 1, "editions", "edition")
+    $if work.first_publish_year:
+        <span class="count">$_("First published in %s", work.first_publish_year)</span>
     </h2>
     <div class="small sansserif brown">
       <a href="/books/add?work=$page.key" title="$_('Add another edition of %(work)s', work=page.title)">$_("Add another")</a>?
@@ -23,12 +23,14 @@ $ book_keys = []
     </thead>
     <tbody>
         $ edition_list_start = time()
-        $ editions = page.get_sorted_editions()
+        $ editions = editions or work.get_sorted_editions()
         $ index_padding = len(str(len(editions)))
-        $for book in editions:
+        $for book in editions:           
             $ book_keys.append(book['key'].replace('/books/', ''))
-            $ sort_key = str(loop.index0).zfill(index_padding)
-            <tr>$:render_template("books/edition-sort", book, sort_key)</tr>
+            $ sort_key = str(loop.index0).zfill(index_padding)   
+            <tr $('class=highlight' if book.key == edition.key else '')>
+              $:render_template("books/edition-sort", book, sort_key)
+            </tr>
         $ edition_list_secs = time() - edition_list_start
     </tbody>
 </table>
