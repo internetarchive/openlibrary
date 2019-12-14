@@ -1,6 +1,13 @@
-$def with (page, show_other_editions=False)
+$def with (page)
 
-$ work = page.works and page.works[0] or None
+$ editions = []
+$if page.key.startswith('/works'):
+  $ work = page
+  $ editions = work.get_sorted_editions()
+  $ page = ([e for e in editions if e.get('ocaid')] or editions)[0]
+$else:
+  $ work = page.works and page.works[0] or None
+
 $ ocaid = page.get('ocaid')
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
@@ -8,6 +15,7 @@ $ book_subtitle = page.get('subtitle', '')
 $ title_suffix = cond(page.publish_date, u"({0} edition)".format(page.publish_date), "(edition)")
 $ title = book_title + " " + title_suffix
 $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
+$ edition_count = work.edition_count if work and work.edition_count else 1
 $ meta_cover_url = item_image(page.get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
 
@@ -28,7 +36,6 @@ $code:
         else:
             edition = 'unknown'
 
-        work = page.works and page.works[0]
         title = cond(work, work.title, book.title)
         authors = cond(work, work and work.get_authors(), book.get_authors())
         author_info = " by " + ", ".join(a.name for a in authors)
@@ -49,7 +56,6 @@ $code:
 
 $code:
     def get_authors_byline(page, include_schema=False):
-        work = page.works and page.works[0]
         schema_attribute = cond(include_schema, ' itemprop="author"', '')
         authors = cond(work, work and work.get_authors(), page.get_authors())
         if authors:
@@ -101,7 +107,6 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   <!-- Don't need to translate admin only buttons (at least initially)-->
   <div class="admin-bar">
-    $ work = page.works and page.works[0]
     $if work:
       <!-- Add this whole work to staff picks -->
       <form action="/admin/staffpicks" method="POST">
@@ -126,27 +131,23 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
     <table width="100%">
       <tbody>
         <tr>
-    $ item_id = None
-    $if 'ocaid' in page:
-        $ item_id = page['ocaid']
-        $ meta_fields = page.get_ia_meta_fields()
-        $if meta_fields:
-            $ collection = meta_fields.get('collection', [])
-            $if 'printdisabled' in collection or 'lendinglibrary' in collection:
-                $ item_id = None
+          <td valign="top" width="100%">
+            $:macros.databarView(page)
 
-    <td valign="top" width="100%">
-    $:macros.databarView(page)
+            $ item_id = None
+            $if 'ocaid' in page:
+              $ item_id = page['ocaid']
+              $ meta_fields = page.get_ia_meta_fields()
 
-    <div class="navEdition sansserif">
-        $ edition_count = work.edition_count if work and work.edition_count else 1
-        $ url = work.url() if work else ''
-        $:ungettext('<a href="%(url)s"><strong>1 edition</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.','<a href="%(url)s"><strong>%(count)d editions</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.', edition_count, url=url,count=edition_count, title=websafe(truncate(work_title, 60)))
-        $if work:
-            <span><a href="/books/add?work=$work.key" title="$_('Add another edition of %(work)s', work=book_title)">$_("Add another edition?")</a></span>
-    </div>
-    </td>
-    </tr></tbody></table>
+            <div class="navEdition sansserif">              
+              <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
+              $if work:
+                <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
 </div>
 
 <div id="contentBody" role="main" itemscope itemtype="https://schema.org/Book">
@@ -189,8 +190,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
             <div class="book-overview section sansserif">
               <h1 class="work-title" itemprop="name">$book_title</h1>
-              $if book_subtitle:
-                <h2 class="work-subtitle">$book_subtitle</h2>
+
               $if page.edition_title or page.edition_name:
                 <h2 class="edition-title">
                   $page.edition_title $page.edition_name
@@ -199,25 +199,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
               $if authors_byline:
                 <h2 class="edition-byline">$_("by") $:authors_byline</h2>
 
-              $ rating_stats = work.get_rating_stats() if work else {}
-              $ stats_by_bookshelf = work.get_num_users_by_bookshelf() if work else {}
-              $if rating_stats or stats_by_bookshelf:
-                $ show_ratings = rating_stats and rating_stats['avg_rating'] > 0 and rating_stats['num_ratings'] > 1
-                <ul class="readers-stats" $:cond(show_ratings, 'itemprop="aggregateRating" itemscope itemtype="https://schema.org/AggregateRating"', '')>
-                  $if show_ratings:
-                    <li class="avg-ratings">
-                        $:('<span class="readers-stats__star">★</span>' * int(rating_stats['avg_rating'])) <span itemprop="ratingValue">$(rating_stats['avg_rating'])</span>
-                    </li>
-                    <li>
-                        <span itemprop="reviewCount">$rating_stats['num_ratings']</span> Ratings
-                    </li>
-                  $if stats_by_bookshelf.get('want-to-read', 0) > 1:
-                    <li class="reading-log-stat">$stats_by_bookshelf['want-to-read'] Want to read</li>
-                  $if stats_by_bookshelf.get('currently-reading', 0) > 1:
-                    <li class="reading-log-stat">$stats_by_bookshelf['currently-reading'] Currently reading</li>
-                  $if stats_by_bookshelf.get('already-read', 0) > 1:
-                    <li class="reading-log-stat">$stats_by_bookshelf['already-read'] Have read</li>
-                </ul>
+              $:macros.StarRatingsStats(page)
 
               <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
@@ -243,20 +225,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                         <br/>$:_('Written in %(language)s', language=lang_span())
               </h4>
 
-          $if work:
-            $def render_subjects(label, subjects, prefix=""):
-                $if subjects:
-                    <div class="section link-box">
-                        <h6>$label</h6>
-                        <div><span>
-                        $for subject in subjects:
-                            <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
-                        </span></div>
-                    </div>
-            $:render_subjects(_("Subjects"), work.get_subjects())
-            $:render_subjects(_("People"), work.subject_people, prefix="person:")
-            $:render_subjects(_("Places"), work.subject_places, prefix="place:")
-            $:render_subjects(_("Times"), work.subject_times, prefix="time:")
+            $:macros.SubjectTags(work)
 
         </div>
 
@@ -278,9 +247,9 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
         $ table_of_contents = page.get_table_of_contents()
         $if table_of_contents and len(table_of_contents) > 1:
             <div class="section">
-            <h3 class="collapse">$_("Table of Contents")</h3>
-            <table class="meta sansserif" id="toc-table">
-            <tbody>
+              <h3 class="collapse">$_("Table of Contents")</h3>
+              <table class="meta sansserif" id="toc-table">
+                <tbody>
                 $for toc in table_of_contents:
                     <tr class="toc-level-$toc.level">
                         <td class="toc-label">$toc.label</td>
@@ -290,8 +259,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                             <td class="toc-title">$toc.title</td>
                         <td class="toc-pagenum">$toc.pagenum</td>
                     </tr>
-            </tbody>
-            </table>
+                </tbody>
+              </table>
             </div>
 
         $if page.notes or page.series or page.volume or page.genres or page.other_titles or page.copyright_date or page.translation_of or page.translated_from:
@@ -372,11 +341,8 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
 
     </div>
 
-    $ work = page.works and page.works[0]
-
-    $if show_other_editions:
-      <div class="clearfix"></div>
-      $:render_template("type/work/editions_datatable", work)
+    <div class="clearfix"></div>
+    $:render_template("type/work/editions_datatable", work, editions=editions, edition=page)
 
     $:macros.RelatedWorksCarousel(work)
 

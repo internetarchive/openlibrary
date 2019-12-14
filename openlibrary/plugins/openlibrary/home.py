@@ -58,9 +58,6 @@ def get_cached_homepage():
 class home(delegate.page):
     path = "/"
 
-    def is_enabled(self):
-        return "lending_v2" in web.ctx.features
-
     def GET(self):
         cached_homepage = get_cached_homepage()
         # when homepage is cached, home/index.html template
