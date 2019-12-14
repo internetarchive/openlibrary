@@ -1,6 +1,6 @@
 @import (less) "../less/z-index.less";
 
-.ac_results {
+.ui-autocomplete {
   padding: 0;
   overflow: hidden;
   z-index: @z-index-level-16;
@@ -13,8 +13,12 @@
   border: 1px solid @light-grey;
   opacity: .95;
   text-align: left;
+  width: 100%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 
-  li {
+  .ui-menu-item-wrapper {
     margin: 0;
     padding: 5px;
     cursor: default;
@@ -33,32 +37,40 @@
     }
   }
 
-  ul {
-    width: 100%;
-    list-style: none;
-    padding: 0;
-    margin: 0;
 
-    li {
-      font-family: @lucida_sans_serif-2;
-      cursor: pointer;
-      color: @dark-grey;
-      line-height: normal;
+  li {
+    font-family: @lucida_sans_serif-2;
+    cursor: pointer;
+    color: @dark-grey;
+    line-height: normal;
 
-      // stylelint-disable-next-line max-nesting-depth
-      &.ac_over {
-        background-color: @light-yellow;
-      }
+    // stylelint-disable-next-line max-nesting-depth
+    .ui-state-active {
+      background-color: @light-yellow;
     }
+  }
+
+  .ui-autocomplete-loading {
+    background: @white url(/images/indicator.gif) right center no-  peat;
+  }
+
+  /* stylelint-disable selector-max-specificity */
+  .ui-menu-item:nth-child(odd) {
+    background-color: @lightest-grey;
+  }
+  /* stylelint-enable selector-max-specificity */
+
+  .ui-menu-item {
+    background-color: inherit;
   }
 }
 
-.ac_results .ac_language {
+.ui-autocomplete .ac_language {
   font-size: 16px;
   color: @black;
 }
 
-.ac_results .ac_author {
+.ui-autocomplete .ac_author {
   .action {
     font-size: 9px;
     color: @olive;
@@ -95,7 +107,7 @@
   }
 }
 
-.ac_results .ac_work {
+.ui-autocomplete .ac_work {
   .cover {
     float: left;
     margin-right: 5px;
@@ -134,22 +146,4 @@
   .first_publish_year {
     font-size: 12px;
   }
-}
-
-.ac_loading {
-  background: @white url(/images/indicator.gif) right center no-repeat;
-}
-
-.ac_odd {
-  background-color: @lightest-grey;
-}
-
-.ac_over {
-  background-color: @navy-blue;
-  color: @white;
-}
-
-.ac_even,
-.ac_odd {
-  background-color: inherit;
 }

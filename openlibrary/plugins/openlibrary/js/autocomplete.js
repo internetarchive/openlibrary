@@ -1,11 +1,9 @@
-// jquery-autocomplete#1.1 with modified
-import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
-// jquery plugins to provide author and language autocompletes.
-
 // Possible globals defined using jsdef inside openlibrary/templates/books/edit/edition.html
 // In future we'll move these into JS but easier said than done!
 const render_translated_from_language_field = window.render_translated_from_language_field,
     render_work_field = window.render_work_field,
+    render_author = window.render_author,
+    render_work_autocomplete_item = window.render_work_autocomplete_item,
     render_language_autocomplete_item = window.render_language_autocomplete_item,
     render_author_autocomplete_item = window.render_author_autocomplete_item,
     render_language_field = window.render_language_field;
@@ -14,17 +12,17 @@ const render_translated_from_language_field = window.render_translated_from_lang
  * Some options specific to certain endpoint services.
  */
 const ENDPOINT_OPTIONS_AUTHORS = {
-    endpoint: "/authors/_autocomplete",
+    endpoint: '/authors/_autocomplete',
     // Don't render "Create new author" if searching by key
     addnew: function(query) { return !/^OL\d+A/i.test(query); },
 };
 
 const ENDPOINT_OPTIONS_LANGUAGES = {
-    endpoint: "/languages/_autocomplete"
+    endpoint: '/languages/_autocomplete'
 };
 
 const ENDPOINT_OPTIONS_WORKS = {
-    endpoint: "/works/_autocomplete"
+    endpoint: '/works/_autocomplete'
 };
 
 /**
@@ -46,37 +44,83 @@ const AUTOCOMPLETE_LANGUAGE_OPTIONS = {
 };
 
 /**
+ * Setup an autocomplete on
+ * @param {jQuery.Object} $node to setup autocomplete for
+ * @param {string|object} urlOrData to use for sourcing results.
+ * @param {object} options
+ * @return {jQuery.Object}
+ */
+function autocompleteWithUrl($node, urlOrData, options) {
+    const isUrl = typeof urlOrData == 'string';
+    const $autocomplete = $node.autocomplete(
+        $.extend({}, options, {
+            source: isUrl ? function(request, response) {
+                const term = request.term;
+                const query = {
+                    q: term,
+                    timestamp: +new Date(),
+                    limit: options.max
+                };
+                $.ajax(`${urlOrData}?${$.param(query)}`).then(function (d) {
+                    response(
+                        d && d.length ? d.map((item) => {
+                            return {
+                                key: item.key,
+                                value: item.name,
+                                label: options.formatItem(item)
+                            }
+                        }) : [ {
+                            key: '__new__',
+                            value: term,
+                            label: options.formatItem({ key: '__new__', name: term })
+                        } ]
+                    )
+                })
+            } : urlOrData
+        })
+    );
+
+    // Allow HTML (based on https://github.com/scottgonzalez/jquery-ui-extensions/blob/master/src/autocomplete/jquery.ui.autocomplete.html.js)
+    $autocomplete.data('ui-autocomplete')._renderItem = function(ul, item) {
+        return $('<li></li>')
+            .data('item.autocomplete', item)
+            .append(item.label)
+            .appendTo(ul);
+    };
+    return $autocomplete;
+}
+/**
  * Initialises autocomplete elements in the page.
  */
 function initPageElements() {
-    if ( render_author_autocomplete_item ) {
-        $("#authors").setup_multi_input_autocomplete(
-            "input.author-autocomplete",
+    if (render_author_autocomplete_item) {
+        $('#authors').setup_multi_input_autocomplete(
+            'input.author-autocomplete',
             render_author, ENDPOINT_OPTIONS_AUTHORS,
-            $.extend( {}, AUTOCOMPLETE_OPTIONS, {
+            $.extend({}, AUTOCOMPLETE_OPTIONS, {
                 formatItem: render_author_autocomplete_item
             })
         );
     }
 
-    if ( render_language_field ) {
-        $("#languages").setup_multi_input_autocomplete(
-            "input.language-autocomplete",
+    if (render_language_field) {
+        $('#languages').setup_multi_input_autocomplete(
+            'input.language-autocomplete',
             render_language_field,
             ENDPOINT_OPTIONS_LANGUAGES, AUTOCOMPLETE_LANGUAGE_OPTIONS);
     }
 
-    if ( render_translated_from_language_field ) {
-        $("#translated_from_languages").setup_multi_input_autocomplete(
-            "input.language-autocomplete",
+    if (render_translated_from_language_field) {
+        $('#translated_from_languages').setup_multi_input_autocomplete(
+            'input.language-autocomplete',
             render_translated_from_language_field, ENDPOINT_OPTIONS_LANGUAGES, AUTOCOMPLETE_LANGUAGE_OPTIONS);
     }
 
-    if ( render_work_field ) {
-        $("#works").setup_multi_input_autocomplete(
-            "input.work-autocomplete",
+    if (render_work_field) {
+        $('#works').setup_multi_input_autocomplete(
+            'input.work-autocomplete',
             render_work_field, ENDPOINT_OPTIONS_WORKS,
-            $.extend( {}, AUTOCOMPLETE_OPTIONS, {
+            $.extend({}, AUTOCOMPLETE_OPTIONS, {
                 formatItem: render_work_autocomplete_item
             })
         )
@@ -102,54 +146,22 @@ export default function($) {
     function setup_autocomplete(_this, ol_ac_opts, ac_opts) {
         var default_ac_opts = {
             autoFill: true,
-            mustMatch: true,
-            formatMatch: function(item) { return item.name; },
-            parse: function(text) {
-                // in v2, text IS the JSON
-                var rows = typeof text === 'string' ? JSON.parse(text) : text;
-                var parsed = [];
-                var i, row, query;
-                for (i=0; i < rows.length; i++) {
-                    row = rows[i];
-                    parsed.push({
-                        data: row,
-                        value: row.name,
-                        result: row.name
-                    });
-                }
-
-                // XXX: this won't work when _this is multiple values (like $("input"))
-                query = $(_this).val();
-                if (ol_ac_opts.addnew && ol_ac_opts.addnew(query)) {
-                    parsed = parsed.slice(0, ac_opts.max - 1);
-                    parsed.push({
-                        data: {name: query, key: '__new__'},
-                        value: query,
-                        result: query
-                    });
-                }
-                return parsed;
-            },
+            mustMatch: true
         };
 
-        $(_this)
-            .autocomplete(ol_ac_opts.endpoint, $.extend(default_ac_opts, ac_opts))
-            .result(function(event, item) {
-                var $this;
+        autocompleteWithUrl($(_this), ol_ac_opts.endpoint, $.extend(default_ac_opts, ac_opts))
+            .on('autocompleteselect', function(event, data) {
+                const item = data.item;
+                const $this = $(this);
 
                 $(`#${this.id}-key`).val(item.key);
-                $this = $(this);
 
                 //adding class directly is not working when tab is pressed. setTimeout seems to be working!
                 setTimeout(function() {
                     $this.addClass('accept');
                 }, 0);
             })
-            .nomatch(function(){
-                $(`#${this.id}-key`).val('');
-                $(this).addClass('reject');
-            })
-            .keypress(function() {
+            .on('keypress', function() {
                 $(this).removeClass('accept').removeClass('reject');
             });
     }
