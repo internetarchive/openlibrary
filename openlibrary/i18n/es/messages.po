@@ -1470,7 +1470,7 @@ msgstr ""
 
 #: saved.html:21
 msgid "Saved!"
-msgstr "¡Guardado1"
+msgstr "¡Guardado!"
 
 #: saved.html:24
 msgid "Notes:"
