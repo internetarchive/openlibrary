@@ -887,7 +887,7 @@ msgstr "Índice de contenidos"
 
 #: edition-show.html:119
 msgid "Edition Notes"
-msgstr "Notas de edición"
+msgstr "Notas de la edición"
 
 #: edition-show.html:124
 msgid "Series"
@@ -915,7 +915,7 @@ msgstr "Traducción de"
 
 #: edition-show.html:130
 msgid "Translated From"
-msgstr "Traducido de"
+msgstr "Traducido del"
 
 #: edit/edition.html:487 edition-show.html:138
 msgid "Classifications"
@@ -935,7 +935,7 @@ msgstr "Paginación"
 
 #: edition-show.html:154
 msgid "Number of pages"
-msgstr "Número de págians"
+msgstr "Número de páginas"
 
 #: edit/edition.html:595 edition-show.html:155
 msgid "Dimensions"
@@ -1412,7 +1412,7 @@ msgid ""
 "\"Good\" means no spammy links, please. Keep them relevant to the book. "
 "Irrelevant sites may be removed. Blatant spam will be deleted without remorse."
 msgstr ""
-"«Bueno» significa que no sean enlaces 'spam', por favor. Procura que sean "
+"«Buenos» significa que no sean enlaces 'spam', por favor. Procura que sean "
 "enlaces relevantes en relación con el libro. Los sitios irrelevantes pueden ser "
 "eliminados. El 'spam' flagrante será eliminado sin remordimientos."
 
@@ -1470,7 +1470,7 @@ msgstr ""
 
 #: saved.html:21
 msgid "Saved!"
-msgstr "¡Guardado1"
+msgstr "¡Guardado!"
 
 #: saved.html:24
 msgid "Notes:"
