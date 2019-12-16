@@ -1,7 +1,7 @@
 # Getting Started
 
 ## Installing Open Library
-For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation). Also, refer to the [Quickstart Guide](https://github.com/internetarchive/openlibrary/wiki/Getting-Started).
+For instructions on setting up a local developer's instance of Open Library, please refer to the [Installation Guide](https://github.com/internetarchive/openlibrary#installation). Also, refer to the [Quickstart Guide](https://github.com/internetarchive/openlibrary/wiki/Getting-Started). [Here's a handy cheat sheet](https://github.com/internetarchive/openlibrary/wiki/Git-Cheat-Sheet) if you are new to using Git.
 
 ## Resources for Contributors
 

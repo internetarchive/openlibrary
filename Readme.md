@@ -34,7 +34,7 @@ Our `Docker` environment is in active development. Want to contribute? Here's ou
 
 ### Developer's Guide
 
-For instructions on administrating your Open Library instance, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide.
+For instructions on administrating your Open Library instance, refer the Developer's [Quickstart](https://github.com/internetarchive/openlibrary/wiki/Getting-Started) Guide. 
 
 You can also find more information regarding Developer Documentation for Open Library in the Open Library [Wiki](https://github.com/internetarchive/openlibrary/wiki/)
 
