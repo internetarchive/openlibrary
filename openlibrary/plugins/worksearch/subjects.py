@@ -91,7 +91,7 @@ class subjects(delegate.page):
 
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
-    encoding = "json"
+    encoding = 'json'
 
     @jsonapi
     def GET(self, key):
@@ -103,7 +103,7 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='true',
+        i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='false',
                       sort='editions', available='false')
 
         filters = {}
