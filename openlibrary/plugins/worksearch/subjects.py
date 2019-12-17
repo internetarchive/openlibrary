@@ -95,6 +95,7 @@ class subjects_json(delegate.page):
 
     @jsonapi
     def GET(self, key):
+        web.header('Content-Type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
         nkey = self.normalize_key(key)
         if nkey != key:
@@ -105,6 +106,11 @@ class subjects_json(delegate.page):
 
         i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='false',
                       sort='editions', available='false')
+        i.limit = safeint(i.limit, DEFAULT_RESULTS)
+        i.offset = safeint(i.offset, 0)
+        if i.limit > MAX_RESULTS:
+            msg = json.dumps({'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS})
+            raise web.HTTPError('400 Bad Request', data=msg)
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -120,9 +126,6 @@ class subjects_json(delegate.page):
                 y = safeint(i.published_in, None)
                 if y is not None:
                     filters['publish_year'] = i.published_in
-
-        i.limit = min(safeint(i.limit, DEFAULT_RESULTS), MAX_RESULTS)
-        i.offset = safeint(i.offset, 0)
 
         subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
                                       details=i.details.lower() == 'true', **filters)
