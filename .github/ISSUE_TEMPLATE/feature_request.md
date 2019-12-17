@@ -9,7 +9,7 @@ assignees: ''
 
 <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
 
-### Describe the solution you'd like
+### Describe the problem that you'd like solved
 <!-- A clear and concise description of what you want to happen. -->
 
 ### Proposal & Constraints
