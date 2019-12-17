@@ -1,6 +1,5 @@
 """Open Library Import API
 """
-from __future__ import print_function
 
 from infogami.plugins.api.code import add_hook
 from infogami import config
@@ -29,7 +28,7 @@ import logging
 
 IA_BASE_URL = config.get('ia_base_url')
 MARC_LENGTH_POS = 5
-logger = logging.getLogger("openlibrary.importapi")
+logger = logging.getLogger('openlibrary.importapi')
 
 class DataError(ValueError):
     pass
@@ -72,8 +71,7 @@ def parse_data(data):
             edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
             format = 'marcxml'
         else:
-            print('unrecognized XML format')
-            return None, None
+            raise DataError('unrecognized-XML-format')
     elif data.startswith('{') and data.endswith('}'):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
@@ -103,7 +101,7 @@ class importapi:
             'error': error
         }
         content.update(kwargs)
-        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
+        raise web.HTTPError('400 Bad Request', data=json.dumps(content))
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -144,7 +142,7 @@ class ia_importapi(importapi):
     Request Format:
 
         POST /api/import/ia
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -365,7 +363,7 @@ class ils_search:
     Request Format:
 
         POST /api/ils_search
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -424,12 +422,12 @@ class ils_search:
 
     def error(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def login(self, authstring):
         if not authstring:
@@ -554,7 +552,7 @@ class ils_cover_upload:
             return web.seeother(url)
         else:
             d = json.dumps({ "status" : "error", "reason" : reason})
-            return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+            return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def success(self, i):
@@ -567,7 +565,7 @@ class ils_cover_upload:
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def build_url(self, url, **params):
         if '?' in url:
