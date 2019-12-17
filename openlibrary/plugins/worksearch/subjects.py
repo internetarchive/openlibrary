@@ -137,50 +137,6 @@ class subjects_json(delegate.page):
         return key
 
 
-class subject_works_json(delegate.page):
-    path = '(/subjects/[^/]+)/works'
-    encoding = "json"
-
-    @jsonapi
-    def GET(self, key):
-        # If the key is not in the normalized form, redirect to the normalized form.
-        nkey = self.normalize_key(key)
-        if nkey != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(offset=0, limit=DEFAULT_RESULTS, has_fulltext="false")
-
-        filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
-
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
-
-                if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters["publish_year"] = (begin, end)
-            else:
-                y = safeint(i.published_in, None)
-                if y is not None:
-                    filters["publish_year"] = i.published_in
-
-        i.limit = min(safeint(i.limit, DEFAULT_RESULTS), MAX_RESULTS)
-        i.offset = safeint(i.offset, 0)
-
-        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
-        return json.dumps(results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
-
-
 def get_subject(key, details=False, offset=0, sort='editions', limit=DEFAULT_RESULTS, **filters):
     """Returns data related to a subject.
 
