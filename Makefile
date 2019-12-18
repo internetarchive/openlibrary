@@ -21,7 +21,7 @@ all: git css js i18n
 
 css:
 	mkdir -p $(BUILD)
-	for asset in admin book edit form home lists plain subject user book-widget design dev; do \
+	for asset in scan admin book edit form home lists plain subject user book-widget design dev; do \
 		$(call lessc,page-$$asset); \
 	done
 
