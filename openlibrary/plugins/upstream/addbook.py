@@ -521,9 +521,8 @@ class SaveBookHelper:
             # Create a new work if so desired
             new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
             if new_work_key == "__new__" and self.work is not None:
-                new_key = web.ctx.site.new_key('/type/work')
-                self.work.update({'key': new_key})
-                edition_data.works = [{'key': new_key}]
+                self.work = self.new_work(self.edition)
+                edition_data.works = [{'key': self.work.key}]
                 saveutil.save(self.work)
 
             identifiers = edition_data.pop('identifiers', [])
@@ -554,6 +553,8 @@ class SaveBookHelper:
         work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
             'key': work_key,
+            'title': edition.get('title'),
+            'subtitle': edition.get('subtitle'),
             'type': {'key': '/type/work'},
             'covers': edition.get('covers', []),
         })

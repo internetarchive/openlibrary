@@ -342,4 +342,6 @@ class TestSaveBookHelper:
 
         assert len(web.ctx.site.docs) == 3
         assert web.ctx.site.get("/works/OL1W") is not None
-        assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
+        new_work = web.ctx.site.get("/books/OL1M").works[0]
+        assert new_work.key == "/works/OL1W"
+        assert new_work.title == "Original Edition Title"
