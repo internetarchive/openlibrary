@@ -130,7 +130,7 @@ jQuery(function () {
 
     const $pageScanEl = $('#page-scan');
     if ($pageScanEl.length) {
-        import(/* webpackChunkName: "page_scan" */ './page_scan')
+        import(/* webpackChunkName: "page-scan" */ './page-scan')
             .then((module) => module.init());
     }
 

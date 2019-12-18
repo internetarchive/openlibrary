@@ -1,30 +1,12 @@
-<style>
-    #interactive.viewport {
-        position: relative;
-        width: 100%;
-    }
-    #interactive.viewport video, #interactive.viewport canvas {
-        width: 100%;
-        height: 50vh;
-        object-fit: cover;
-    }
-    #interactive.viewport canvas {
-        position: absolute;
-        top: 0;
-        left:0;
-    }
+$def with ()
 
+$var title: Barcode Scanner
 
-    #result-strip img { width: 100px; }
-    #result-strip { height: 200px ; overflow:auto; }
-    #result-strip a { display:flex; align-items: center; }
-    #result-strip a:hover { background: rgba(0,0,255, 0.1); }
-    #result-strip .caption { padding: 1em; }
-</style>
+$ ctx.setdefault('bodyid', 'scan')
+
 <div id="page-scan">
-<h2></h2>$_('Scan a barcode')</h2>
-  <div id="result-strip"><ul class="thumbnails"></ul></div>
-  <div id="interactive" class="viewport"></div>
-
+    <div id="interactive" class="viewport"></div>
+    <div id="result-strip">
+        <div class="empty">$_('Point your camera at a barcode! 📷')</div>
+    </div>
 </div>
-
