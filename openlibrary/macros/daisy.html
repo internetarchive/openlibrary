@@ -14,7 +14,7 @@ $else:
   $ prefix = ''
 
 <div class="cta-section print-disabled-download">
-  <a href="$(url or page.url('/daisy'))" title="Encrypted daisy download for authorized print-disabled patrons">
+  <a href="$(url or page.url('/daisy'))" title="$_('Encrypted daisy download for authorized print-disabled patrons')">
     $if protected:
       <img src="/images/icons/icon-encrypto-sm.png" class="daisy-lock" width="8" height="12" alt="Encrypted daisy lock"/>
     <meta itemprop="bookFormat" content="EBook/DAISY3"/>

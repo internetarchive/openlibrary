@@ -6,21 +6,21 @@ $if ctx.user:
         <!-- IF ON LIST -->
         <div class="dropit">
             <div class="icon listed"></div>
-            <p class="listed">$page.get('name', 'name missing') is on your <a href="#">List Name Which Could Be Long</a> list. <span class="smaller"><a href="#" class="red">Remove</a>?</span></p>
+            <p class="listed">$page.get('name', 'name missing') is on your <a href="#">$_("List Name Which Could Be Long")</a> list. <span class="smaller"><a href="#" class="red">$_("Remove")</a>?</span></p>
         </div>
         <!-- IF NOT ON LIST -->
         <div class="dropit">
             <div class="icon list"></div>
             <div class="dropper on">
                 <a href="javascript:;" class="dropclick plain">
-                    <h3>Add to list</h3>
+                    <h3>$_("Add to list")</h3>
                     <div class="arrow"></div>
                 </a>
                 <div class="dropdown">
-                    <p><span>Add to</span> <a href="javascript:;">This is a List Name</a></p>
-                    <p><span>Add to</span> <a href="javascript:;">This is Another List Name Which is Longer!</a></p>
+                    <p><span>Add to</span> <a href="javascript:;">$_("This is a List Name")</a></p>
+                    <p><span>Add to</span> <a href="javascript:;">$_("This is Another List Name Which is Longer!")</a></p>
                     <p><a aria-controls="addList"
-                        class="listClick dialog--open">Create a new list</a></p>
+                        class="listClick dialog--open">$_("Create a new list")</a></p>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@ $if ctx.user:
                     <div class="input">
                         <button type="button" class="larger">Add new list</button>
                         &nbsp; &nbsp;
-                        <a class="small plain red dialog--close">Cancel</a>
+                        <a class="small plain red dialog--close">$_("Cancel")</a>
                     </div>
                     <div class="label"></div>
                 </div>
@@ -78,8 +78,8 @@ $if ctx.user:
             <a href="$page.url"><img src="$cover" width="32" alt="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')" title="Cover of: $page.title$(': ' + page.subtitle if page.get('subtitle', None) else '')"/></a>
             </span>
             <span class="data">
-                <span class="label"><a href="LIST LINK">List Title</a></span>
-                <span class="owner">from <a href="PROFILE LINK">ownername</a></span>
+                <span class="label"><a href="LIST LINK">$_("List Title")</a></span>
+                <span class="owner">from <a href="PROFILE LINK">$_("ownername")</a></span>
             </span>
         </li>
     </ul>
