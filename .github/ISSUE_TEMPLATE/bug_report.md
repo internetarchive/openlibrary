@@ -2,10 +2,10 @@
 name: Bug report
 about: Create a report to help us improve
 title: ''
-labels: "Type: Bug"
+labels: ["Type: Bug", "State: Backlogged", "Needs: Triage"]
 assignees: ''
-
 ---
+
 <!-- What problem are we solving? What does the experience look like today? What are the symptoms? -->
 
 ### Evidence / Screenshot (if possible)
