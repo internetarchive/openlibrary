@@ -73,7 +73,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         $if active:
           <ul class="read">
             $if availability.get('status') == 'open':
-              <li class="read-option"><a href="$viewbook.replace('XXX', book.ocaid)" title="Read a scanned version in BookReader" class="cta-btn cta-btn--available">Read</a></li>
+              <li class="read-option">$:macros.ReadButton(book.ocaid, listen=True)</li>
 
             $elif availability.get('status') in ['borrow_available', 'borrow_unavailable']:
               <li class="read-option">$:macros.LoanStatus(book, ctx.user)</li>
