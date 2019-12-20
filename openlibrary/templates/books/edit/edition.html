@@ -49,7 +49,7 @@ $jsdef render_work_field(i, work):
 $jsdef render_work_autocomplete_item(item):
     $if item.key == "__new__":
         <div class="ac_work ac_addnew">
-            <span class="action">$_('>> Move to a new work')</span>
+            <span class="action">$_('-- Move to a new work')</span>
         </div>
     $else:
         <div class="ac_work" title="Select this work">
@@ -100,7 +100,7 @@ window.q.push(function() {
         {
             endpoint: "/works/_autocomplete",
             addnew: $cond(is_privileged_user, 'true', 'false'),
-            new_name: '$_('Create new work')',
+            new_name: '$_('-- Move to a new work')',
         },
         {
             minChars: 2,
