@@ -49,27 +49,34 @@ def get_sponsorable_editions():
     eligible_editions = []
     for key in candidates:
         ed = web.ctx.site.get(key)
-        ed.eligibility = qualifies_for_sponsorship(ed)
-        if ed.eligibility.get('is_eligible'):
-            eligible_editions.append(ed)
+        isbn = ed.get_isbn13()
+        dwwi, _ = do_we_want_it(isbn)
+        if dwwi:
+            bwb = get_betterworldbooks_metadata(isbn)
+            if bwb and bwb.get('price_amt'):
+                ed.eligibility = {
+                    'is_eligible': True,
+                    'sponsor_url': lending.config_ia_domain + '/donate?' + urllib.urlencode({
+                        'campaign': 'pilot',
+                        'type': 'sponsorship',
+                        'context': 'ol',
+                        'isbn': isbn
+                    })
+                }
+                eligible_editions.append(ed)
     return eligible_editions
 
 
-def do_we_want_it(isbn, work_id):
-    """
-    Returns True if we don't have this edition (or other editions of
-    the same work), if the isbn has not been promised to us, has not
-    yet been sponsored, and is not already in our possession.
+def do_we_want_it(isbn):
+    """Returns True if we don't have this edition, if the isbn has not
+    been promised to us, has not yet been sponsored, and is not
+    already in our possession.
 
     :param str isbn: isbn10 or isbn13
-    :param str work_id: e.g. OL123W
     :rtype: (bool, list)
     :return: bool answer to do-we-want-it, list of matching books
-    """
-    availability = lending.get_work_availability(work_id)  # checks all editions
-    if availability and availability.get(work_id, {}).get('status', 'error') != 'error':
-        return False, availability
 
+    """
     # We don't have any of these work's editions available to borrow
     # Let's confirm this edition hasn't already been sponsored or promised
     params = {
@@ -137,7 +144,7 @@ def qualifies_for_sponsorship(edition):
 
     work_id = work.key.split("/")[-1]
     edition_id = edition.key.split('/')[-1]
-    dwwi, matches = do_we_want_it(edition.isbn, work_id)
+    dwwi, matches = do_we_want_it(edition.isbn)
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
         if bwb_price:
