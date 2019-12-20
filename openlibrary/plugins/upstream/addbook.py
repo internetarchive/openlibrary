@@ -736,8 +736,7 @@ class SaveBookHelper:
 
         has_edition_work = 'works' in formdata.edition and \
                            formdata.edition.works and \
-                           formdata.edition.works[0].key and \
-                           formdata.edition.works[0].key != '__new__'
+                           formdata.edition.works[0].key
 
         if has_edition_work:
             old_work_key = formdata.work.key

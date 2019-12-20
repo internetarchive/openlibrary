@@ -332,7 +332,7 @@ class TestSaveBookHelper:
 
         formdata = web.storage({
             "work--key": "/works/OL100W",
-            "work--title": "Original Work Title",
+            "work--title": "FOO BAR",
             "edition--title": "Original Edition Title",
             "edition--works--0--key": "__new__",
         })
@@ -341,7 +341,10 @@ class TestSaveBookHelper:
         s.save(formdata)
 
         assert len(web.ctx.site.docs) == 3
+        # Should create new work with edition data
         assert web.ctx.site.get("/works/OL1W") is not None
         new_work = web.ctx.site.get("/books/OL1M").works[0]
         assert new_work.key == "/works/OL1W"
         assert new_work.title == "Original Edition Title"
+        # Should ignore edits to work data
+        assert web.ctx.site.get("/works/OL100W").title == "Original Work Title"
