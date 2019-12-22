@@ -79,7 +79,6 @@ def do_we_want_it(isbn, work_id):
         'search_id': isbn
     }
     url = '%s/book/marc/ol_dedupe.php?%s' % (lending.config_ia_domain,  urllib.urlencode(params))
-    print(url)
     r = requests.get(url)
     try:
         data = r.json()
@@ -190,10 +189,10 @@ def summary():
     for i, book in enumerate(items):
         if not book.get('book_price'):
             items[i]['status'] = 0
-            statuses[0] = statuses.get(0, 1) + 1
+            statuses[0] = statuses.get(0, 0) + 1
         elif int(book.get('repub_state', -1)) == -1:
             items[i]['status'] = 1
-            statuses[1] = statuses.get(1, 1) + 1
+            statuses[1] = statuses.get(1, 0) + 1
         elif int(book.get('repub_state', 0)) < 14:
             items[i]['status'] = 2
             statuses[2] = statuses.get(2, 0) + 1
@@ -221,4 +220,4 @@ def summary():
         'scan_cost_cents': scan_cost_cents,
         'est_scan_cost_cents': est_scan_cost_cents,
         'delta_scan_cost_cents': est_scan_cost_cents - scan_cost_cents,
-    }    
+    }

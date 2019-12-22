@@ -690,6 +690,12 @@ class show_log:
             with open(filepath) as f:
                 return f.read()
 
+class sponsorship_stats:
+
+    def GET(self):
+        from openlibrary.core.sponsorships import summary
+        return render_template("admin/sponsorship", summary())
+
 def setup():
     register_admin_page('/admin/git-pull', gitpull, label='git-pull')
     register_admin_page('/admin/reload', reload, label='Reload Templates')
@@ -716,6 +722,7 @@ def setup():
     register_admin_page('/admin/imports/add', imports_add, label="")
     register_admin_page('/admin/imports/(\d\d\d\d-\d\d-\d\d)', imports_by_date, label="")
     register_admin_page('/admin/spamwords', spamwords, label="")
+    register_admin_page('/admin/sponsorship', sponsorship_stats, label="Sponsorship")
 
     import mem
 
