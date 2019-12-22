@@ -1,4 +1,4 @@
-$def with (page, user, editions_page=False, block_name='', render_preview_floater=True)
+$def with (page, user=None, editions_page=False, block_name='', render_preview_floater=True)
 $# Takes following parameters:
 $# * page
 $# * user
@@ -86,6 +86,9 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
     </p>
   $else:
     <a href="$work.key" class="cta-btn cta-btn--missing">$_('Not in Library')</a>
+
+$else:
+  <a href="$work.key" class="cta-btn cta-btn--missing">$_('Not in Library')</a>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid, render_preview_floater)

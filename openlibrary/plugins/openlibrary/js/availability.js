@@ -51,9 +51,6 @@ function initAvailability() {
         '^/account/books/[^/]+': { // readinglog
             filter: false
         },
-        '^/people/[^/]+': { // lists
-            filter: false,
-        },
         '^/stats/[^/]+': {
             filter: false
         }
@@ -202,6 +199,7 @@ function initAvailability() {
             return;
         }
 
+        var results = $('a.results');
         worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
         editions = worksAndEditions.editions;
         works = worksAndEditions.works;

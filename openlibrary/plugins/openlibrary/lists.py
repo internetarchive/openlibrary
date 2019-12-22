@@ -1,19 +1,32 @@
 """Lists implementaion.
 """
 import random
+import six
 import web
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase import client, common
 
-import six
-
-from openlibrary.core import formats, cache
+from openlibrary.core import cache
+from openlibrary.core import formats
+from openlibrary.core.lending import add_availability
 import openlibrary.core.helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.plugins.worksearch import subjects
 
+
+@public
+def get_book_availability(lst):
+    """Returns a dictionary (keyed by olid, e.g. /works/OL123W or
+    /editions/OL123M) of the book objects (works and editions) found
+    on this reading list, with lending availability information added.
+
+    :param list lst: a list of seeds (from a reading list)
+    :rtype: dict
+    """
+    books = add_availability([seed.document for seed in lst if seed.type in ['work', 'edition']])
+    return dict((b.key, b) for b in books)
 
 class lists_home(delegate.page):
     path = "/lists"

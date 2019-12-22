@@ -3,7 +3,7 @@ $def with (list)
 $ title = list.name
 $ title_with_site = title + " | Lists | Open Library"
 $ page = safeint(query_param('page'), 1) - 1
-$ page_size = 50
+$ page_size = 25
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
 $ meta_description = title
 $if list.description:
@@ -28,7 +28,7 @@ $jsdef render_seed_count(seed_count):
     $ msg = ungettext("%s seed", "%s seeds", seed_count)
     $:sprintf(msg, seed_count)
 
-<div id="contentHead" style="margin-bottom:0;">
+<div id="contentHead">
 
     $:macros.databarView(list)
 
@@ -168,14 +168,13 @@ window.q.push(function(){
             $:format(list.description)
 
         <ul id="listResults" class="list-books">
-          $for seed in list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]:
+          $ seeds = list.get_seeds(sort=True)[page*page_size:page*page_size+page_size]
+          $ books = get_book_availability(seeds)
+          $for seed in seeds:
             <li id="seed-$loop.index" class="searchResultItem">
                 $ default_image = "https://openlibrary.org/images/icons/avatar_book-sm.png"
                 $ cover = seed.get_cover()
-                $if cover:
-                    $ cover_url = item_image(cover.url("M"), default=default_image)
-                $else:
-                    $ cover_url = default_image
+                $ cover_url = item_image(cover.url("M"), default=default_image) if cover else default_image
 
                 $# Use first found image as the OpenGraph image
                 $if not meta_cover_url:
@@ -188,11 +187,6 @@ window.q.push(function(){
                 <span class="seed-key hidden">$seed.key</span>
                 <span class="details">
                     <span class="resultTitle">
-                        $ ebook = {}
-                        $if seed.type in ['edition', 'work']:
-                            $ ebook = seed.document.get_ebook_info()
-                            $ doc = seed.document
-                            <!-- $:json_encode(ebook) -->
                         <h3 class="booktitle">
                             <a href="$seed.url" class="results">$seed.title</a>
                         </h3>
@@ -217,30 +211,26 @@ window.q.push(function(){
                             - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")
                         </span>
 
-                        $if 'daisy_url' in ebook:
-                            <div class="type small"><a href="$ebook['daisy_url']" title="Protected DAISY">Download DAISY eBook for print disabled</a></div>
-
                         $if seed.last_update:
                             <span class="time">
                                 Last updated
                                 <span>$datestr(seed.last_update)</span>
                             </span>
+
+                        $if ctx.user and ctx.user.key == list.get_owner().key:
+                          <span class="listDelete sansserif smaller">
+                            <a href="javascript:;"><span></span>Remove this item?</a>
+                          </span>
                     </span>
                 </span>
                 <span class="searchResultItemCTA">
-                    $if ctx.user and ctx.user.key == list.get_owner().key:
-                        <span class="listDelete sansserif smaller">
-                          <a href="javascript:;"><span></span>Remove this item?</a>
-                        </span>
-                    $if 'daisy_url' in ebook:
-                        <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
-                          <span class="actions">
-                            <span class="image daisy"></span>
-                          </span>
-                          <span class="label">Download DAISY</span>
-                        </a>
-                    <span class="searchResultItemCTA-lending">
-                    </span>
+                  <span class="searchResultItemCTA-lending">
+                    $if seed.type in ['edition', 'work']:
+                      $ doc = seed.document
+                      $if doc.key in books:
+                        $ book = books[doc.key]
+                        $:macros.LoanStatus(book)
+                  </span>
                 </span>
             </li>
         </ul>
