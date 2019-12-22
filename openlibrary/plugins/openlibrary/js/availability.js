@@ -199,7 +199,7 @@ function initAvailability() {
             return;
         }
 
-        var results = $('a.results');
+        results = $('a.results');
         worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
         editions = worksAndEditions.editions;
         works = worksAndEditions.works;
