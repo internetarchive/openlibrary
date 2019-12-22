@@ -308,8 +308,11 @@ class sponsorship_eligibility_check(delegate.page):
             web.ctx.site.get('/books/%s' % _id)
             if re.match(r'OL[0-9]+M', _id)
             else models.Edition.from_isbn(_id)
-            
         )
+        if not edition:
+            return simplejson.dumps({
+                'error': 'Invalid ISBN 13.'
+            })
         return simplejson.dumps(qualifies_for_sponsorship(edition))
 
 
