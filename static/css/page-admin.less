@@ -15,20 +15,20 @@
 @import (less) "components/admin-table.less";
 
 .status {
-  &--0 { color: red; }
-  &--1 { color: orange; }
-  &--2 { color: blue; }
-  &--3 { color: green; }
+  &--0 { color: @red; }
+  &--1 { color: @orange; }
+  &--2 { color: @blue; }
+  &--3 { color: @green; }
 }
 .earnings {
-  &--profit { color: green; }
-  &--loss { color: red; }
+  &--profit { color: @green; }
+  &--loss { color: @red; }
 }
 
 .sponsor th {
-  background-color: #fafafa;
+  background-color: @grey-fafafa;
   padding: 5px;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid @light-mid-grey;
   text-transform: uppercase;
   font-size: .65em;
   font-weight: bold;
