@@ -280,7 +280,7 @@ def copy_list(src, dest, list_key, comment):
         elif seed['type'] == 'work':
             keys.add(seed['url'])
         elif seed['type'] == 'subject':
-            doc = jsonget(seed['url'] + "/works.json")
+            doc = jsonget(seed['url'] + '.json')
             keys.update(w['key'] for w in doc['works'])
 
     seeds = get_list_seeds(list_key)
