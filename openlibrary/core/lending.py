@@ -300,12 +300,11 @@ def add_availability(editions):
 
     ocaids = [get_ocaid(ed) for ed in editions]
     ocaids = [ocaid for ocaid in ocaids if ocaid]
-    if ocaids:
-        availabilities = get_availability_of_ocaids(ocaids)
-        for ed in editions:
-            ocaid = get_ocaid(ed)
-            success = ocaid and availabilities.get(ocaid)
-            ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
+    availabilities = get_availability_of_ocaids(ocaids)
+    for ed in editions:
+        ocaid = get_ocaid(ed)
+        success = ocaid and availabilities.get(ocaid)
+        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
     return editions
 
 @public
