@@ -16,19 +16,19 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/editions-table.js",
+      "path": "static/build/editions-table.*.js",
       "maxSize": "16.7KB"
     },
     {
-      "path": "static/build/graphs.js",
+      "path": "static/build/graphs.*.js",
       "maxSize": "17.2KB"
     },
     {
-      "path": "static/build/markdown-editor.js",
+      "path": "static/build/markdown-editor.*.js",
       "maxSize": "10.5KB"
     },
     {
-      "path": "static/build/carousel.js",
+      "path": "static/build/carousel.*.js",
       "maxSize": "12.1KB"
     },
     {

@@ -27,6 +27,7 @@ css:
 
 js:
 	mkdir -p $(BUILD)
+	rm -f $(BUILD)/*.js $(BUILD)/*.js.map
 	npm run build-assets:webpack
 
 i18n:
