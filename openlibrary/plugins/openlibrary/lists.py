@@ -22,7 +22,7 @@ def get_book_availability(lst):
     /editions/OL123M) of the book objects (works and editions) found
     on this reading list, with lending availability information added.
 
-    :param list lst: a list of seeds (from a reading list)
+    :param list[openlibrary.core.lists.model.Seed] lst:
     :rtype: dict
     """
     books = add_availability([seed.document for seed in lst if seed.type in ['work', 'edition']])
