@@ -202,6 +202,7 @@ function initAvailability() {
             return;
         }
 
+        results = $('a.results');
         worksAndEditions = getWorksAndEditionsFromElements($('a.results'));
         editions = worksAndEditions.editions;
         works = worksAndEditions.works;
