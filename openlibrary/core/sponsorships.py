@@ -228,6 +228,7 @@ def summary():
 
     return {
         'books': items,
+        'status_ids': dict((name, i) for i, name in enumerate(STATUSES)),
         'status_counts': status_counts,
         'total_pages_scanned': total_pages_scanned,
         'total_unscanned_books': total_unscanned_books,

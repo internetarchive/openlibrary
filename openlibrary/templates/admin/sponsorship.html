@@ -91,38 +91,32 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       </tr>
     </thead>
     <tbody>
-      $for i, status in enumerate(summary['status_counts']):
-        $for book in summary['books']:
-          $if book.get('status') == status:
-            <tr>
-              <td>
-                <div class="id--$(loop.index)"></div>
-                $loop.index
-              </td>
-              <td>
-                <div class="cover--$(loop.index)"></div>
-                <img width="50" height="75"
-                     src="https://archive.org/services/img/$book['identifier']">
-              </td>
-              <td>
-                <ul>
-                  <li>
-                    <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
-                  </li>
-                  $if book.get('openlibrary_edition'):
-                    <li>
-                      <a href="/books/$book['openlibrary_edition']">$book['openlibrary_edition']</a>
-                    </li>
-                </ul>
-              </td>
-              <td>
-                <div class="$book['title']"></div>
-                <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
-              </td>
-              <td class="status--$(i)">
-                $book.get('status')
-              </td>
-            </tr>
+      $ summary['books'].sort(key=lambda b: summary['status_ids'][b['status']])
+      $for book in summary['books']:
+        <tr>
+          <td>$loop.index</td>
+          <td>
+            <img width="50" height="75"
+                 src="https://archive.org/services/img/$book['identifier']">
+          </td>
+          <td>
+            <ul>
+              <li>
+                <a href="https://archive.org/details/$book['identifier']">$book['identifier']</a>
+              </li>
+              $if book.get('openlibrary_edition'):
+                <li>
+                  <a href="/books/$book['openlibrary_edition']">$book['openlibrary_edition']</a>
+                </li>
+            </ul>
+          </td>
+          <td>
+            <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
+          </td>
+          <td class="status--$(summary['status_ids'][book.get('status')])">
+            $book.get('status')
+          </td>
+        </tr>
     </tbody>
   </table>
 
