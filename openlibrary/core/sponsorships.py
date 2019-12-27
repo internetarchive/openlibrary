@@ -205,7 +205,7 @@ def summary():
     for book in items:
         if not book.get('book_price'):
             book['status'] = STATES[0]
-            statuses[STATES[0]] = statuses.get(STATES[0], 0) + 1
+            statuses[STATES[0]] += 1
         elif int(book.get('repub_state', -1)) == -1:
             book['status'] = STATES[1]
             statuses[STATES[1]] = statuses.get(STATES[1], 0) + 1
