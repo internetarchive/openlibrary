@@ -35,7 +35,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <th>Est. Book Costs</th>
       <td>\$$('{:,.2f}'.format(summary['est_book_cost_cents'] / 100.))</td>
       <th>Δ Book Costs</th>
-      <td class="earnings--$('loss' if summary['delta_book_cost_cents'] < 0 else 'profit')">\$$('{:,.2f}'.format(summary['delta_book_cost_cents'] / 100.))</td>
+      <td class="earnings--$cond(summary['delta_book_cost_cents'] < 0, 'loss', 'profit')">\$$('{:,.2f}'.format(summary['delta_book_cost_cents'] / 100.))</td>
     </tr>
     <tr>
       <th>Scanning Costs</th>
@@ -43,12 +43,12 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <th>Est. Scanning Costs</th>
       <td>\$$('{:,.2f}'.format(summary['est_scan_cost_cents'] / 100.))</td>
       <th>Δ Scanning Costs</th>
-      <td class="earnings--$('loss' if summary['delta_scan_cost_cents'] < 0 else 'profit')">\$$('{:,.2f}'.format(summary['delta_scan_cost_cents'] / 100.))</td>
+      <td class="earnings--$cond(summary['delta_scan_cost_cents'] < 0, 'loss', 'profit')">\$$('{:,.2f}'.format(summary['delta_scan_cost_cents'] / 100.))</td>
     </tr>
     <tr>
       <th>Profit/Loss</th>
       $ profit_loss = (summary['total_cost_cents'] - summary['book_cost_cents'] - summary['scan_cost_cents'])
-      <td class="earnings--$('loss' if profit_loss < 0 else 'profit')">\$$(profit_loss / 100.)</td>
+      <td class="earnings--$cond(profit_loss < 0, 'loss', 'profit')">\$$(profit_loss / 100.)</td>
     </tr>
   </table>
 
