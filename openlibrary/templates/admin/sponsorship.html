@@ -13,10 +13,10 @@ $ _x = ctx.setdefault('usergroup', 'admin')
   <p>We've sponsored <strong>$len(summary['books'])</strong> books</p>
 
   <table class="sponsor">
-    $for i, status in enumerate(summary['statuses']):
+    $for i, status in enumerate(summary['status_counts']):
       <tr>
         <th class="status--$(i)">$status</th>
-        <td>$summary['statuses'].get(status, 0)</td>
+        <td>$summary['status_counts'].get(status, 0)</td>
       </tr>
   </table>
 
@@ -91,7 +91,7 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       </tr>
     </thead>
     <tbody>
-      $for i, status in enumerate(summary['statuses']):
+      $for i, status in enumerate(summary['status_counts']):
         $for book in summary['books']:
           $if book.get('status') == status:
             <tr>

@@ -200,21 +200,21 @@ def summary():
     items = list(s)
 
     # Construct a map of each state of the process to a count of books in that state
-    STATES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
-    statuses = OrderedDict((status, 0) for status in STATES)
+    STATUSES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
+    status_counts = OrderedDict((status, 0) for status in STATUSES)
     for book in items:
         if not book.get('book_price'):
-            book['status'] = STATES[0]
-            statuses[STATES[0]] += 1
+            book['status'] = STATUSES[0]
+            status_counts[STATUSES[0]] += 1
         elif int(book.get('repub_state', -1)) == -1:
-            book['status'] = STATES[1]
-            statuses[STATES[1]] = statuses.get(STATES[1], 0) + 1
+            book['status'] = STATUSES[1]
+            status_counts[STATUSES[1]] += 1
         elif int(book.get('repub_state', 0)) < 14:
-            book['status'] = STATES[2]
-            statuses[STATES[2]] = statuses.get(STATES[2], 0) + 1
+            book['status'] = STATUSES[2]
+            status_counts[STATUSES[2]] += 1
         else:
-            book['status'] = STATES[3]
-            statuses[STATES[3]] = statuses.get(STATES[3], 0) + 1
+            book['status'] = STATUSES[3]
+            status_counts[STATUSES[3]] += 1
 
     total_pages_scanned = sum(int(i.get('imagecount', 0)) for i in items)
     total_unscanned_books = len([i for i in items if not i.get('imagecount', 0)])
@@ -228,7 +228,7 @@ def summary():
 
     return {
         'books': items,
-        'statuses': statuses,
+        'status_counts': status_counts,
         'total_pages_scanned': total_pages_scanned,
         'total_unscanned_books': total_unscanned_books,
         'total_cost_cents': total_cost_cents,
