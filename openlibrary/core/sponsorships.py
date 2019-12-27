@@ -2,6 +2,8 @@ import urllib
 import requests
 import logging
 import web
+
+from collections import OrderedDict
 from infogami.utils.view import public
 from openlibrary.core import lending
 from openlibrary.core import models, cache
@@ -22,7 +24,8 @@ except ImportError:
         return False
 
 logger = logging.getLogger("openlibrary.sponsorship")
-
+SETUP_COST_CENTS = 300
+PAGE_COST_CENTS = 12
 
 def get_sponsored_editions(user):
     """
@@ -141,8 +144,6 @@ def qualifies_for_sponsorship(edition):
     if dwwi:
         bwb_price = get_betterworldbooks_metadata(edition.isbn).get('price_amt')
         if bwb_price:
-            SETUP_COST_CENTS = 300
-            PAGE_COST_CENTS = 12
             num_pages = int(edition_data['number_of_pages'])
             scan_price_cents = SETUP_COST_CENTS + (PAGE_COST_CENTS * num_pages)
             book_cost_cents = int(float(bwb_price) * 100)
@@ -175,3 +176,68 @@ def qualifies_for_sponsorship(edition):
         })
     })
     return resp
+
+def summary():
+    """
+    Provides data model (finances, state-of-process) for the /admin/sponsorship stats page.
+
+    Screenshot:
+    https://user-images.githubusercontent.com/978325/71494377-b975c880-27fb-11ea-9c95-c0c1bfa78bda.png
+    """
+    from internetarchive import search_items
+    params = {'page': 1, 'rows': 500}
+    fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
+              'book_price', 'repub_state', 'imagecount', 'title',
+              'openlibrary_edition']
+    q = 'collection:openlibraryscanningteam'
+    config = dict(general=dict(secure=False))
+
+    # XXX Note: This `search_items` query requires the `ia` tool (the
+    # one installed via virtualenv) to be configured with (scope:all)
+    # privileged s3 keys.
+    s = search_items(q, fields=fields, params=params, config=config)
+
+    items = list(s)
+
+    # Construct a map of each state of the process to a count of books in that state
+    STATUSES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
+    status_counts = OrderedDict((status, 0) for status in STATUSES)
+    for book in items:
+        if not book.get('book_price'):
+            book['status'] = STATUSES[0]
+            status_counts[STATUSES[0]] += 1
+        elif int(book.get('repub_state', -1)) == -1:
+            book['status'] = STATUSES[1]
+            status_counts[STATUSES[1]] += 1
+        elif int(book.get('repub_state', 0)) < 14:
+            book['status'] = STATUSES[2]
+            status_counts[STATUSES[2]] += 1
+        else:
+            book['status'] = STATUSES[3]
+            status_counts[STATUSES[3]] += 1
+
+    total_pages_scanned = sum(int(i.get('imagecount', 0)) for i in items)
+    total_unscanned_books = len([i for i in items if not i.get('imagecount', 0)])
+    total_cost_cents = sum(int(i.get('est_book_price', 0)) + int(i.get('est_scan_price', 0))
+                           for i in items)
+    book_cost_cents = sum(int(i.get('book_price', 0)) for i in items)
+    est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
+    scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
+    est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+
+    return {
+        'books': items,
+        'status_ids': dict((name, i) for i, name in enumerate(STATUSES)),
+        'status_counts': status_counts,
+        'total_pages_scanned': total_pages_scanned,
+        'total_unscanned_books': total_unscanned_books,
+        'total_cost_cents': total_cost_cents,
+        'book_cost_cents': book_cost_cents,
+        'est_book_cost_cents': est_book_cost_cents,
+        'delta_book_cost_cents': est_book_cost_cents - book_cost_cents,
+        'scan_cost_cents': scan_cost_cents,
+        'est_scan_cost_cents': est_scan_cost_cents,
+        'delta_scan_cost_cents': est_scan_cost_cents - scan_cost_cents,
+        'avg_scan_cost': avg_scan_cost,
+    }
