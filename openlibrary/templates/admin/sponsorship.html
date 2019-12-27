@@ -3,21 +3,19 @@ $def with (summary)
 $ _x = ctx.setdefault('bodyid', 'admin')
 $ _x = ctx.setdefault('usergroup', 'admin')
 
-$ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishing', 3: 'Complete'}
-
 <div id="contentHead">
   $:render_template("admin/menu")
   <h1>Book Sponsorship</h1>
 </div>
 
-<div id="contentBody">
+<div id="contentBody" class="page-admin--sponsorship">
 
   <p>We've sponsored <strong>$len(summary['books'])</strong> books</p>
 
   <table class="sponsor">
-    $for status in range(4):
+    $for i, status in enumerate(summary['statuses']):
       <tr>
-        <th class="status--$status">$statuses[status]</th>
+        <th class="status--$(i)">$status</th>
         <td>$summary['statuses'].get(status, 0)</td>
       </tr>
   </table>
@@ -66,14 +64,11 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
     </tr>
     <tr>
       <th>Average Scan Cost</th>
-      $ num_total_books = len(summary['books'])
-      $ num_scanned_books = num_total_books - summary['total_unscanned_books']
-      $ avg_scan_cost = summary['scan_cost_cents'] / num_scanned_books
-      <td>\$$('{:,.2f}'.format(avg_scan_cost / 100.))</td>
+      <td>\$$('{:,.2f}'.format(summary['avg_scan_cost'] / 100.))</td>
     </tr>
     <tr>
       <th>Est. Remaining Scanning Liability</th>
-      $ scan_cost_liability = avg_scan_cost * summary['total_unscanned_books']
+      $ scan_cost_liability = summary['avg_scan_cost'] * summary['total_unscanned_books']
       <td class="earnings--$('loss' if scan_cost_liability > 0 else 'profit')">\$$('{:,.2f}'.format(scan_cost_liability / 100.))</td>
     </tr>
     <tr>
@@ -96,17 +91,16 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
       </tr>
     </thead>
     <tbody>
-      $ i = 1
-      $for status in range(4):
+      $for i, status in enumerate(summary['statuses']):
         $for book in summary['books']:
           $if book.get('status') == status:
             <tr>
               <td>
-                <div class="id--$i"></div>
-                $i
+                <div class="id--$(loop.index)"></div>
+                $loop.index
               </td>
               <td>
-                <div class="cover--$i"></div>
+                <div class="cover--$(loop.index)"></div>
                 <img width="50" height="75"
                      src="https://archive.org/services/img/$book['identifier']">
               </td>
@@ -125,12 +119,11 @@ $ statuses = {0: 'Needs purchasing', 1: 'Needs digitizing', 2: 'Needs republishi
                 <div class="$book['title']"></div>
                 <a href="https://archive.org/details/$book['identifier']">$book['title']</a>
               </td>
-              <td class="status--$(book.get('status'))">
+              <td class="status--$(i)">
                 <div class="$(book.get('status'))"></div>
-                $statuses[book.get('status')]
+                $book.get('status')
               </td>
             </tr>
-            $ i += 1
     </tbody>
   </table>
 

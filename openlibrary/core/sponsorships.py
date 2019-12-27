@@ -2,6 +2,8 @@ import urllib
 import requests
 import logging
 import web
+
+from collections import OrderedDict
 from infogami.utils.view import public
 from openlibrary.core import lending
 from openlibrary.core import models, cache
@@ -176,6 +178,12 @@ def qualifies_for_sponsorship(edition):
     return resp
 
 def summary():
+    """
+    Provides data model (finances, state-of-process) for the /admin/sponsorship stats page.
+
+    Screenshot:
+    https://user-images.githubusercontent.com/978325/71494377-b975c880-27fb-11ea-9c95-c0c1bfa78bda.png
+    """
     from internetarchive import search_items
     params = {'page': 1, 'rows': 500}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
@@ -183,22 +191,30 @@ def summary():
               'openlibrary_edition']
     q = 'collection:openlibraryscanningteam'
     config = dict(general=dict(secure=False))
+
+    # XXX Note: This `search_items` query requires the `ia` tool (the
+    # one installed via virtualenv) to be configured with (scope:all)
+    # privileged s3 keys.
     s = search_items(q, fields=fields, params=params, config=config)
+
     items = list(s)
-    statuses = {}
-    for i, book in enumerate(items):
+
+    # Construct a map of each state of the process to a count of books in that state
+    STATES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
+    statuses = OrderedDict((status, 0) for status in STATES)
+    for book in items:
         if not book.get('book_price'):
-            items[i]['status'] = 0
-            statuses[0] = statuses.get(0, 0) + 1
+            book['status'] = STATES[0]
+            statuses[STATES[0]] = statuses.get(STATES[0], 0) + 1
         elif int(book.get('repub_state', -1)) == -1:
-            items[i]['status'] = 1
-            statuses[1] = statuses.get(1, 0) + 1
+            book['status'] = STATES[1]
+            statuses[STATES[1]] = statuses.get(STATES[1], 0) + 1
         elif int(book.get('repub_state', 0)) < 14:
-            items[i]['status'] = 2
-            statuses[2] = statuses.get(2, 0) + 1
+            book['status'] = STATES[2]
+            statuses[STATES[2]] = statuses.get(STATES[2], 0) + 1
         else:
-            items[i]['status'] = 3
-            statuses[3] = statuses.get(3, 0) + 1
+            book['status'] = STATES[3]
+            statuses[STATES[3]] = statuses.get(STATES[3], 0) + 1
 
     total_pages_scanned = sum(int(i.get('imagecount', 0)) for i in items)
     total_unscanned_books = len([i for i in items if not i.get('imagecount', 0)])
@@ -208,6 +224,8 @@ def summary():
     est_book_cost_cents = sum(int(i.get('est_book_price', 0)) for i in items)
     scan_cost_cents = (PAGE_COST_CENTS * total_pages_scanned) + (SETUP_COST_CENTS * len(items))
     est_scan_cost_cents = sum(int(i.get('est_scan_price', 0)) for i in items)
+    avg_scan_cost = scan_cost_cents / (len(items) - total_unscanned_books) 
+
     return {
         'books': items,
         'statuses': statuses,
@@ -220,4 +238,5 @@ def summary():
         'scan_cost_cents': scan_cost_cents,
         'est_scan_cost_cents': est_scan_cost_cents,
         'delta_scan_cost_cents': est_scan_cost_cents - scan_cost_cents,
+        'avg_scan_cost': avg_scan_cost,
     }
