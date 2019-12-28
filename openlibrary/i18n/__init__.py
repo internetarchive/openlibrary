@@ -30,14 +30,14 @@ def get_locales():
 def extract_templetor(fileobj, keywords, comment_tags, options):
     """Extract i18n messages from web.py templates."""
     try:
-        # Replace/remove inline js '\$' which interferes with the Babel python parser:
         instring = fileobj.read().decode('utf-8')
+        # Replace/remove inline js '\$' which interferes with the Babel python parser:
         cleaned_string = instring.replace('\$', '')
         code = web.template.Template.generate_code(cleaned_string, fileobj.name)
         f = BytesIO(code.encode('utf-8')) # Babel wants bytes, not strings
         f.name = fileobj.name
     except Exception as e:
-        print(fileobj.name + ':', e, file=web.debug)
+        print('Failed to extract ' + fileobj.name + ':', repr(e), file=web.debug)
         return []
     return extract_python(f, keywords, comment_tags, options)
 
