@@ -108,7 +108,7 @@ $else:
                     $ wlsize = book.get_waitinglist_size()
                     $if wlsize:
                         <div class="smallest lightgreen sansserif waitrank">
-                            $ungettext("There is one person waiting for this book.", "There are %(n)s people waiting for this book.", wlsize, n=wlsize)
+                            $ungettext("There is one person waiting for this book.", "There are %(n)d people waiting for this book.", wlsize, n=wlsize)
                         </div>
                 </td>
                 <td class="expires">
@@ -203,7 +203,7 @@ $else:
                             $if pos == 1:
                                 $_("You are the next person to receive this book.")
                             $else:
-                                $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)s people ahead of you in the waiting list.", pos-1, count=pos-1)
+                                $ungettext("There is one person ahead of you in the waiting list.", "There are %(count)d people ahead of you in the waiting list.", pos-1, count=pos-1)
                     </div>
                 </td>
                 <td class="status">
@@ -214,7 +214,7 @@ $else:
                             $if delta_hours == 0:
                                 $_("You have less than an hour to borrow it.")
                             $else::
-                                $unggettext("You have one more hour to borrow it.", "You have %(hours)s more hours to borrow it.", delta_hours, hours=delta_hours)
+                                $unggettext("You have one more hour to borrow it.", "You have %(hours)d more hours to borrow it.", delta_hours, hours=delta_hours)
                         </div>
                 </td>
                 <td class="actions">
