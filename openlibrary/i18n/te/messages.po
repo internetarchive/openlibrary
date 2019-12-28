@@ -8,22 +8,22 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2018-03-15 22:37+0000\n"
+"POT-Creation-Date: 2019-12-28 15:13-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.5.3\n"
+"Generated-By: Babel 2.7.0\n"
 
-#: account.py:347 account.py:382 account.py:422 password/reset_success.html:6
-#: verify.html:5 verify/activated.html:6 verify/success.html:6
+#: account.py:365 account.py:400 account.py:440 password/reset_success.html:10
+#: verify.html:9 verify/activated.html:10 verify/success.html:10
 #, python-format
 msgid "Hi, %(user)s"
 msgstr "స్వాగతం %(user)s"
 
-#: account.py:348 account.py:383
+#: account.py:366 account.py:401
 #, fuzzy, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
@@ -32,7 +32,7 @@ msgstr ""
 "మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
 "\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
 
-#: account.py:423
+#: account.py:441
 #, python-format
 msgid ""
 "We've sent an email to %(email)s. You'll need to read that and click on "
@@ -41,45 +41,49 @@ msgstr ""
 "మేము %(email)s కు ఈమెయిలు పంపాము. మీ ఖాతా సృష్టి పూర్తవటానికి \"\n"
 "\"మీరు దానిని చదివి అందులో ఉన్న దృవీకరణ లంకెను నొక్కండి."
 
-#: account.py:441
+#: account.py:459
 msgid "Email address is already used."
 msgstr "ఈమెయిలు ఇప్పటికే వాడబడింది"
 
-#: account.py:442
+#: account.py:460
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
-msgstr "మీ ఈమెయిల్ చిరునామా అప్డేట్ చేయబడలేదు. మీరు పేర్కొన్న ఈమెయిల్ చిరునామా ముందుగానే ఉపయోగించబడినది. "
+msgstr ""
+"మీ ఈమెయిల్ చిరునామా అప్డేట్ చేయబడలేదు. మీరు పేర్కొన్న ఈమెయిల్ చిరునామా "
+"ముందుగానే ఉపయోగించబడినది. "
 
-#: account.py:446
+#: account.py:464
 msgid "Email verification successful."
 msgstr "ఈమెయిలు ధ్రువీకరణ విజయవంతమయింది."
 
-#: account.py:447
+#: account.py:465
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
-msgstr "మీ ఈమెయిల్ చిరునామా విజయవంతంగా ధృవీకరించబడింది మరియు మీ యొక్క అకౌంట్లో అప్డేట్ చేయబడింది."
+msgstr ""
+"మీ ఈమెయిల్ చిరునామా విజయవంతంగా ధృవీకరించబడింది మరియు మీ యొక్క అకౌంట్లో "
+"అప్డేట్ చేయబడింది."
 
-#: account.py:451
+#: account.py:469
 msgid "Email address couldn't be verified."
 msgstr "ఈమెయిలు చిరునామా ధృవీకరించబడలేదు."
 
-#: account.py:452
+#: account.py:470
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
 msgstr "మీ ఈమెయిలు చిరునామా ధృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
 
-#: account.py:485
+#: account.py:503
 msgid "Your password has been updated successfully."
 msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
 
-#: account.py:579 account.py:589
+#: account.py:597 account.py:607
 msgid "Password reset failed."
 msgstr "సంకేతపదం మరలమార్చుట విఫలమయినది. "
 
-#: account.py:635 account.py:651
+#: account.py:653 account.py:669
 msgid "Notification preferences have been updated successfully."
 msgstr "మీ సందేశాల అభిరుచులు విజయవంతంగా మార్చబడ్డాయి."
 
@@ -87,7 +91,7 @@ msgstr "మీ సందేశాల అభిరుచులు విజయవ
 msgid "Username"
 msgstr "సభ్యనామము"
 
-#: forms.py:20 openlibrary/templates/login.html:43
+#: forms.py:20 openlibrary/templates/login.html:41
 msgid "Password"
 msgstr "సంకేతపదము"
 
@@ -124,25 +128,27 @@ msgstr "ఖచ్చితంగా 3 మరియు 20 అక్షరాల �
 msgid "Must be a valid email address"
 msgstr "ఖచ్చితంగా ఈమెయిల్  చిరునామా చెల్లుబాటు అయ్యేలా ఉండాలి."
 
-#: forms.py:47 forms.py:100
+#: create.html:37 forms.py:47 forms.py:100
 msgid "Your email address"
 msgstr "మీ ఈమెయిలు చిరునామా"
 
-#: create.html:44 forms.py:50
+#: create.html:47 forms.py:50
 #, fuzzy
 msgid "Choose a screen name"
 msgstr "ఒక సభ్యనామము ఎంచుకోండి"
 
 #: forms.py:52
 msgid "Only letters and numbers, please, and at least 3 characters."
-msgstr "దయచేసి అక్షరాలను మరియు అంకెలను మాత్రమే ఎంచుకోండి,మరియు కనీసం మూడు అక్షరాలు ఉండేలా చూడండి."
+msgstr ""
+"దయచేసి అక్షరాలను మరియు అంకెలను మాత్రమే ఎంచుకోండి,మరియు కనీసం మూడు "
+"అక్షరాలు ఉండేలా చూడండి."
 
-#: forms.py:54 forms.py:104
+#: create.html:58 forms.py:54 forms.py:104
 #, fuzzy
 msgid "Choose a password"
 msgstr "ఒక సంకేతపదం ఎంచుకోండి"
 
-#: forms.py:57
+#: create.html:67 forms.py:57
 #, fuzzy
 msgid "Confirm password"
 msgstr "సంకేతపదము తప్పు"
@@ -165,207 +171,374 @@ msgstr "మీ ప్రస్తుత సంకేతపదం"
 msgid "Choose a new password"
 msgstr "ఒక క్రొత్త సంకేతపదం ఎంచుకోండి"
 
-#: email.html:24 forms.py:96
+#: email.html:23 forms.py:96
 msgid "Your new email address"
 msgstr "మీ క్రొత్త ఈమెయిలు చిరునామా"
 
-#: edit.html:20
+#: edit.html:13
 msgid "Edit Author"
 msgstr "మారు రచయత"
 
-#: edit.html:33
+#: edit.html:26
 msgid "Name"
 msgstr "పేరు "
 
-#: edit.html:35
+#: edit.html:28
 msgid ""
 "Please use natural order. For example: <strong>Leo Tolstoy</strong> not "
 "<strong>Tolstoy, Leo</strong>."
 msgstr ""
 
-#: edit.html:36 edit.html:153 edit/addfield.html:96 edit/addfield.html:141
+#: edit.html:29 edit.html:92 edit/addfield.html:100 edit/addfield.html:145
 msgid "Required field"
 msgstr "కావలసిన విభాగం"
 
-#: edit.html:50
+#: edit.html:43
 msgid "About"
 msgstr "గురించి "
 
-#: edit.html:51 edit.html:177
+#: edit.html:44 edit.html:110 view.html:206
 msgid "Links"
 msgstr "లంకెలు"
 
-#: edit.html:60
+#: edit.html:53
 msgid "A short bio?"
 msgstr "ఓ చిన్న జీవితకథ?"
 
-#: edit.html:61
+#: edit.html:54
 msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite "
 "the source."
 msgstr ""
 
-#: edit.html:70
+#: edit.html:64
 msgid "Date of birth"
 msgstr "పుట్టిన తేదీ"
 
-#: edit.html:79
+#: edit.html:73
 msgid "Date of death"
 msgstr "మరణించిన తేదీ "
 
-#: edit.html:88
+#: edit.html:82
 msgid ""
 "We're not storing structured dates (yet) so a date like \"21 May 2000\" "
 "is recommended."
-msgstr "మేము ఇంకా సరైన విధంగా తేదీలను పొందుపరచట్లేదు కనుక ఉదాహరణకి \"21 May 2000\" లాంటిది సిఫార్సు చేయబడింది."
+msgstr ""
+"మేము ఇంకా సరైన విధంగా తేదీలను పొందుపరచట్లేదు కనుక ఉదాహరణకి \"21 May "
+"2000\" లాంటిది సిఫార్సు చేయబడింది."
 
-#: edit.html:96
+#: edit.html:90
 msgid "Does this author go by any other names?"
 msgstr "ఈ రచయితకు మరో పేరు ఏమైనా ఉందా?"
 
-#: edit.html:97 edit/about.html:17 edit/about.html:31 edit/about.html:45
-#: edit/about.html:59 edit/addfield.html:73 edit/addfield.html:100
-#: edit/addfield.html:109 edit/addfield.html:145 edit/edition.html:114
-#: edit/edition.html:135 edit/edition.html:184 edit/edition.html:216
-#: edit/edition.html:227 edit/edition.html:247 edit/edition.html:322
-#: edit/edition.html:573 edit/excerpts.html:15 edit/web.html:31
+#: edit.html:91 edit/about.html:21 edit/about.html:35 edit/about.html:49
+#: edit/about.html:63 edit/addfield.html:77 edit/addfield.html:104
+#: edit/addfield.html:113 edit/addfield.html:149 edit/edition.html:141
+#: edit/edition.html:162 edit/edition.html:211 edit/edition.html:243
+#: edit/edition.html:254 edit/edition.html:274 edit/edition.html:349
+#: edit/edition.html:600 edit/excerpts.html:19 edit/web.html:23
 msgid "For example:"
 msgstr "ఉదాహరణకు:"
 
-#: edit.html:108
+#: edit.html:102
 msgid "Websites"
 msgstr "వెబ్సైట్లు"
 
-#: edit.html:109
+#: edit.html:103
 msgid "Deprecated"
 msgstr "డిప్రికాట్ అవ్వబడింది"
 
-#: edit.html:138 edit.html:216 openlibrary/macros/EditButtons.html:21
+#: edit.html:132 edit.html:149 openlibrary/macros/EditButtons.html:25
 msgid "Delete Record"
 msgstr "రికార్డును తొలగించు "
 
-#: view.html:132
+#: view.html:46 view.html:79
+msgid "name missing"
+msgstr ""
+
+#: view.html:93
+msgid "Merging Authors..."
+msgstr ""
+
+#: view.html:95
+msgid "Duplicates"
+msgstr ""
+
+#: view.html:108
+msgid "Success!"
+msgstr ""
+
+#: view.html:114
+msgid "That merge didn't work. It's our fault, and we've made a note of it."
+msgstr ""
+
+#: view.html:124
 msgid "Website"
 msgstr "వెబ్సైట్లు"
 
-#: view.html:138
+#: view.html:130
 msgid "Location"
 msgstr "ప్రదేశం"
 
-#: view.html:237
+#: view.html:137
+#, fuzzy, python-format
+msgid "%(count)s work"
+msgid_plural "%(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: view.html:138
+#, fuzzy
+msgid "Add another?"
+msgstr "ఇంకొక చిత్రం చేర్చండి"
+
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:144 view.html:146
+#: view.html:148 view.html:150
+msgid "Most Editions"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:144 view.html:146
+#: view.html:148 view.html:150
+msgid "First Published"
+msgstr "ముదటి ప్రచురణ"
+
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:144 view.html:146
+#: view.html:148 view.html:150
+msgid "Most Recent"
+msgstr ""
+
+#: add.html:24 edit.html:92 nav_head.html:44 search_foot.html:8
+#: search_head.html:8 view.html:150
+msgid "Title"
+msgstr "శీర్షిక:"
+
+#: view.html:156
+msgid ""
+"Showing all works by author. Would you like to see <a "
+"href=\"$changequery(mode='ebooks')\">only ebooks</a>?"
+msgstr ""
+
+#: view.html:158
+msgid ""
+"Showing ebooks only. Would you like to see <a "
+"href=\"$changequery(mode='everything')\">everything</a> by this author?"
+msgstr ""
+
+#: view.html:194
+msgid "Subjects"
+msgstr "సబ్జక్టులు"
+
+#: view.html:195
+#, fuzzy
+msgid "Places"
+msgstr "ప్రదేశాలు"
+
+#: view.html:196
+msgid "People"
+msgstr ""
+
+#: view.html:197
+msgid "Time"
+msgstr ""
+
+#: view.html:206
+#, fuzzy
+msgid "outside Open Library"
+msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
+
+#: view.html:225
+msgid "No links yet."
+msgstr ""
+
+#: view.html:225
+msgid "Add one"
+msgstr ""
+
+#: view.html:232
 msgid "Alternative names"
 msgstr "ప్రత్యామ్నాయ పేర్లు"
 
-#: books.html:14
+#: books.html:50
 msgid "Reading Log"
 msgstr "చదివే ప్రదేశం "
 
-#: borrow.html:3 borrow.html:66
+#: borrow.html:7 borrow.html:72
 msgid "Books You've Checked Out"
 msgstr "మీరు తీసుకువెళ్తున్న పుస్తకాలు "
 
-#: borrow.html:81
+#: borrow.html:52
+msgid ""
+"You have 5 ebooks out at the moment. That's the limit! You can free up "
+"slots by returning books early."
+msgstr ""
+
+#: borrow.html:74
+msgid "You've not checked out any books at this moment."
+msgstr ""
+
+#: borrow.html:83
 msgid "1 Current Loan"
 msgstr "ప్రస్తుతం ఉన్న ఒక రుణం "
 
-#: borrow.html:83
+#: borrow.html:85
 #, fuzzy
 msgid "Current Loans"
 msgstr "మీ ప్రస్తుత సంకేతపదం"
 
-#: borrow.html:85
+#: borrow.html:87
 msgid "Loan Expires"
 msgstr "రుణం గడువు"
 
-#: borrow.html:86
+#: borrow.html:88
 msgid "Loan actions"
 msgstr " రుణం చర్యలు"
 
-#: borrow.html:114
+#: borrow.html:115
 #, python-format
 msgid "There is one person waiting for this book."
 msgid_plural "There are %(n)s people waiting for this book."
 msgstr[0] "ఒకేఒక్క మనిషి మాత్రం ఈ పుస్తకం కోసం వేచిఉన్నాడు."
 msgstr[1] "అక్కడ %(n)s మనుషులు ఈ పుస్తకం కోసం వేచిఉన్నారు."
 
-#: borrow.html:151
+#: borrow.html:121
+msgid "Not yet downloaded."
+msgstr ""
+
+#: borrow.html:122
+msgid "Download Now"
+msgstr ""
+
+#: borrow.html:131
+msgid "Return via<br/>Adobe Digital Editions"
+msgstr ""
+
+#: borrow.html:153
 msgid "Books You're Waiting For"
 msgstr "మీరు ఎదురు చూస్తున్న పుస్తకాలు "
 
-#: borrow.html:190
+#: borrow.html:176
 #, python-format
 msgid "%d book"
 msgid_plural "%d books"
 msgstr[0] "%d పుస్తకం"
 msgstr[1] "%d పుస్తకాలు "
 
-#: borrow.html:213
+#: borrow.html:178
+msgid "Status"
+msgstr ""
+
+#: borrow.html:179
+#, fuzzy
+msgid "Actions"
+msgstr " రుణం చర్యలు"
+
+#: borrow.html:201
 #, python-format
 msgid "Waiting for %d day"
 msgid_plural "Waiting for %d days"
 msgstr[0] "%d రోజు కోసం ఎదురు చూస్తున్నారు "
 msgstr[1] "%d రోజుల కోసం ఎదురు చూస్తున్నారు "
 
-#: borrow.html:222
+#: borrow.html:208
+msgid "You are the next person to receive this book."
+msgstr ""
+
+#: borrow.html:210
 #, python-format
 msgid "There is one person ahead of you in the waiting list."
 msgid_plural "There are %(count)s people ahead of you in the waiting list."
 msgstr[0] "ఒక్క మనిషి  మాత్రమే మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు"
 msgstr[1] "%s  మనిషులు మీ కన్నా ముందు వేచిచూసి జాబితాలో ఉన్నాడు "
 
-#: borrow.html:260
-msgid "There are 2 different sources for borrowing books through Open Library:"
-msgstr "గ్రంథలయం నుండి పుస్తకాలను తెచుకోవాడిని కేవలం రెండు మార్గాలు మాత్రమే ఉన్నాయి."
+#: borrow.html:219
+msgid "You have less than an hour to borrow it."
+msgstr ""
 
-#: borrow.html:264
+#: borrow.html:229
+msgid "Borrow Now"
+msgstr ""
+
+#: borrow.html:233
+msgid "Leave the waiting list?"
+msgstr ""
+
+#: borrow.html:247
+msgid "There are 2 different sources for borrowing books through Open Library:"
+msgstr ""
+"గ్రంథలయం నుండి పుస్తకాలను తెచుకోవాడిని కేవలం రెండు మార్గాలు మాత్రమే "
+"ఉన్నాయి."
+
+#: borrow.html:251
 msgid "Internet Archive"
 msgstr "అంతర్జాలపు ఆర్కైవ్"
 
-#: borrow.html:266
+#: borrow.html:253
 msgid "eBooks everywhere"
 msgstr "అన్ని చోట్లా ఈ-పుస్తకాలే"
 
-#: borrow.html:268
+#: borrow.html:255
 msgid ""
 "The <a href=\"//archive.org/\">Internet Archive</a> and several partner "
 "libraries are offering thousands of eBooks for loan to anyone with an "
 "Open Library account, anywhere in the world."
-msgstr "<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్ మరియు ఎన్నో భాగస్వాములతో కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
+msgstr ""
+"<a href=\"//archive.org/\">అంతర్జాలపు ఆర్కైవ్ మరియు ఎన్నో భాగస్వాములతో "
+"కలిసి, గ్రంథాలయాలు కొన్నివేల ఈ-పుస్తకాలను,అందరికి అందుబాటులో ఉండే  "
+"గ్రంథాలయం ఖాతా ఉన్నవారికి ప్రపంచంలో ఎక్కడ ఉన్న రుణాలుగా ఇస్తోంది. "
 
-#: borrow.html:274
+#: borrow.html:261
 msgid "physical books from your local library"
 msgstr "మీ స్థానిక గ్రంథాలయపు పుస్తకాలు."
 
-#: borrow.html:276
+#: borrow.html:263
 msgid ""
 "We connect our records to WorldCat wherever possible. You can tell "
 "WorldCat your postcode/zip code, and it will tell you the closest library"
 " with a copy of the book."
-msgstr "ఎక్కడ అందుబాటులో ఉంటే అక్కడ ఉండే వరల్డ్ కాట్ రికార్డులకు జత పరుస్తాం.మీరు వరల్డ్ కాట్కు మీ యొక్క పోస్టుసంకేతం/జిప్ సంకేతాన్ని చెప్పగలరు,మరియు అది మీ దగ్గరలో ఉన్న గ్రంథాలయం గురించి మరియు అందులో మీకు లభించే పుస్తకం యొక్క ప్రతుల వివరాలను తెలియజేస్తుంది."
+msgstr ""
+"ఎక్కడ అందుబాటులో ఉంటే అక్కడ ఉండే వరల్డ్ కాట్ రికార్డులకు జత పరుస్తాం.మీరు"
+" వరల్డ్ కాట్కు మీ యొక్క పోస్టుసంకేతం/జిప్ సంకేతాన్ని చెప్పగలరు,మరియు అది "
+"మీ దగ్గరలో ఉన్న గ్రంథాలయం గురించి మరియు అందులో మీకు లభించే పుస్తకం యొక్క "
+"ప్రతుల వివరాలను తెలియజేస్తుంది."
 
-#: borrow.html:281
+#: borrow.html:268
 msgid "Getting Started"
 msgstr "మొదలు అవుతోంది."
 
-#: borrow.html:282
+#: borrow.html:269
 msgid ""
 "All you need to borrow a book scanned at the Internet Archive is an Open "
 "Library account and Adobe Digital Editions."
 msgstr ""
 
-#: borrow.html:283
+#: borrow.html:270
 msgid ""
 "Loans through WorldCat are managed through your local libraries, not "
 "through Open Library."
-msgstr "వరల్డ్ కాట్ నుంచి తీసుకున్న రుణాలు స్థానిక గ్రంథాల నుంచి వ్యవహరించబడతాయి కానీ సార్వత్రిక గ్రంథాలయం నుంచి కాదు."
+msgstr ""
+"వరల్డ్ కాట్ నుంచి తీసుకున్న రుణాలు స్థానిక గ్రంథాల నుంచి వ్యవహరించబడతాయి "
+"కానీ సార్వత్రిక గ్రంథాలయం నుంచి కాదు."
 
-#: borrow.html:284
+#: borrow.html:272
 msgid ""
 "Check out the <a href=\"/help/faq#section-borrowing\"><strong>Lending "
 "FAQ</strong></a> for more information."
 msgstr ""
 
-#: borrow.html:288
+#: borrow.html:275
+msgid "Which books are available?"
+msgstr ""
+
+#: borrow.html:276
 #, python-format
 msgid ""
 "Browse all the available books through the <a "
@@ -373,38 +546,52 @@ msgid ""
 "try a <a href=\"/search?subject_facet=Lending%20library\">search</a>."
 msgstr ""
 
-#: borrow.html:299
+#: borrow.html:281
+msgid "Help/Downloads"
+msgstr ""
+
+#: borrow.html:283
+msgid "Download Adobe Digital Editions"
+msgstr ""
+
+#: borrow.html:284
+msgid ""
+"<a href=\"http://www.adobe.com/products/digitaleditions/help/\">Help</a> "
+"on adobe.com"
+msgstr ""
+
+#: borrow.html:287
 msgid ""
 "If you work at a library and are interested to find out more about "
 "lending ebooks through Open Library, please <a href=\"/contact\">get in "
 "touch with us</a>!"
 msgstr ""
 
-#: create.html:3
+#: create.html:7
 msgid "Sign Up to Open Library"
 msgstr "సార్వత్రిక గ్రంథాలయం కోసం సైన్ అప్ అవ్వండి "
 
-#: create.html:6 create.html:92 nav_head.html:106 search_head.html:74
+#: create.html:10 create.html:95 nav_head.html:115 search_head.html:78
 msgid "Sign Up"
 msgstr "సైన్ అప్"
 
-#: create.html:8
+#: create.html:12
 #, fuzzy
 msgid "Complete the form below to create a new Internet Archive account."
 msgstr ""
 "మీ క్రొత్త  సార్వత్రిక గ్రంధాలయ ఖాతా సృష్టించటానికి ఈ క్రింది ఫామ్ "
 "నింపండి."
 
-#: create.html:9
+#: create.html:13
 msgid "Each field is required"
 msgstr "ప్రతి ఒక్క విభాగం అవసరమే "
 
-#: create.html:25 openlibrary/templates/login.html:20
+#: create.html:28 openlibrary/templates/login.html:18
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
 msgstr "మీరు ముందు గానే సార్వత్రిక గ్రంథలయంలో ఈ %(user)s గా లాగిన్ అయ్యారు."
 
-#: create.html:26 openlibrary/templates/login.html:21
+#: create.html:29 openlibrary/templates/login.html:19
 msgid ""
 "If you'd like to create a new, different Open Library account, you'll "
 "need to <a href=\"javascript:;\" "
@@ -412,106 +599,110 @@ msgid ""
 "signup process afresh."
 msgstr ""
 
-#: create.html:45 create.html:56 create.html:65
+#: create.html:48
 msgid "Letters and numbers only please, and at least 3 characters."
 msgstr ""
 
-#: create.html:74
-msgid "Please type in the text or number(s) below."
-msgstr "దయచేసి అక్షరాలలో లేదా అంకెల రూపంలోనే కింద రాయండి."
+#: create.html:53
+msgid ""
+"Your URL: https://openlibrary.org/people/<span "
+"id=\"userUrl\">screenname</span>"
+msgstr ""
 
-#: create.html:74
+#: create.html:77
 msgid ""
 "If you have security settings or privacy blockers installed, please "
 "disable them to see the reCAPTCHA."
 msgstr ""
 
-#: create.html:84
+#: create.html:87
 msgid ""
 "I acknowledge that my use of Open Library is subject to the Internet "
 "Archive's <a href='//archive.org/about/terms.php' target='_new' "
 "title='Read the Terms of Use in a new browser.'>Terms of Use</a>."
 msgstr ""
 
-#: add.html:82 add.html:120 create.html:94 edit/addcover.html:32
-#: edit/addfield.html:83 edit/addfield.html:129 edit/addfield.html:173
-#: email.html:37 manage.html:65 notifications.html:52
-#: openlibrary/macros/EditButtons.html:19 password.html:43
-#: password/reset.html:20 privacy.html:49
+#: add.html:84 add.html:136 create.html:97 edit/addcover.html:36
+#: edit/addfield.html:87 edit/addfield.html:133 edit/addfield.html:177
+#: email.html:36 manage.html:65 notifications.html:59
+#: openlibrary/macros/EditButtons.html:23 password.html:42
+#: password/reset.html:24 privacy.html:56
 msgid "Cancel"
 msgstr "రద్దుచేయి"
 
-#: delete.html:2 delete.html:6
+#: delete.html:6 delete.html:10
 msgid "Delete Account"
 msgstr "మీ ఖాతా తొలగించండి"
 
-#: delete.html:11
+#: delete.html:15
 msgid "Sorry, this functionality is not yet implemented."
 msgstr "క్షమించండి ఈ సౌకర్యం ఇంకా అందుబాటులో లేదు."
 
-#: email.html:6 nav_head.html:120 notifications.html:9
-#: openlibrary/templates/account.html:3 openlibrary/templates/account.html:8
-#: password.html:6 privacy.html:9 search_head.html:67
+#: email.html:10 nav_head.html:129 notifications.html:13
+#: openlibrary/templates/account.html:7 openlibrary/templates/account.html:12
+#: password.html:10 privacy.html:13 search_head.html:71
 msgid "Settings"
 msgstr ""
 
-#: email.html:8
+#: email.html:12
 msgid "Change Your Email Address"
 msgstr "మీ ఈమెయిలు చిరునామా మార్చుకోండి"
 
-#: email.html:18
+#: email.html:17
 msgid "Your current email address is"
 msgstr "మీ ప్రస్తుత ఈమెయిలు చిరునామా"
 
-#: email.html:35
+#: email.html:34
 msgid "Change It"
 msgstr "మార్చండి"
 
-#: not_verified.html:3 not_verified.html:14 verify/failed.html:6
+#: not_verified.html:7 not_verified.html:18 verify/failed.html:10
 msgid "Oops!"
 msgstr "అయ్యో!"
 
-#: not_verified.html:32 verify/failed.html:25
+#: not_verified.html:36 verify/failed.html:29
 msgid "Resend the verification email"
 msgstr "మరల ధృవీరనా ఈ-మెయిల్ ను  పంపండి "
 
-#: notifications.html:3 notifications.html:12
+#: notifications.html:7 notifications.html:16
 msgid "Notifications from Open Library"
 msgstr "సార్వత్రిక గ్రంథాలయం నుండి సందేశాలు  "
 
-#: notifications.html:10
+#: notifications.html:14
 msgid "Notifications"
 msgstr "సందేశాలు  "
 
-#: notifications.html:24
+#: notifications.html:31
 msgid ""
 "Notifications are connected to Lists at the moment. If one of the books "
 "on your list gets edited, or a new book comes into the catalog, we'll let"
 " you know, if you want."
 msgstr ""
 
-#: notifications.html:28
-msgid "Would you like to receive very occasional emails from Open Library?"
-msgstr "అప్పుడప్పుడు మీరు సార్వత్రిక గ్రంథాలయం నుండి వచ్చే సందేశాలను శ్వీకరిస్తారా?"
-
 #: notifications.html:35
+msgid "Would you like to receive very occasional emails from Open Library?"
+msgstr ""
+"అప్పుడప్పుడు మీరు సార్వత్రిక గ్రంథాలయం నుండి వచ్చే సందేశాలను "
+"శ్వీకరిస్తారా?"
+
+#: notifications.html:42
 msgid "No, thank you"
 msgstr "వద్దండి, ఫరవాలేదు"
 
-#: notifications.html:42
+#: notifications.html:49
 msgid "Yes! Please!"
 msgstr "ఓ! తప్పకుండా!"
 
-#: manage.html:64 notifications.html:50 openlibrary/macros/EditButtons.html:17
-#: privacy.html:47
+#: manage.html:64 notifications.html:57 openlibrary/macros/EditButtons.html:21
+#: privacy.html:54
 msgid "Save"
 msgstr "భద్రపరచు"
 
-#: openlibrary/templates/account.html:12 password.html:8
+#: openlibrary/templates/account.html:16 password.html:12
 msgid "Change Password"
 msgstr "మీ సంకేత పదం మార్చుకోండి"
 
-#: password.html:9
+#: password.html:13
 msgid ""
 "Provide your existing password (to verify that it's you) and select a new"
 " password to replace it."
@@ -519,87 +710,87 @@ msgstr ""
 "మీ ప్రస్తుత సంకేతపదానన్ని ఇచ్చి (ఇది మీరేని దృవీకరించుకోవటానికి) దాని "
 "స్థానంలో మరొక క్రొత్త సంకేతపదాన్ని ఎంచుకోండి"
 
-#: password.html:41
+#: password.html:40
 msgid "Change"
 msgstr "మార్చండి"
 
-#: privacy.html:3
+#: privacy.html:7
 msgid "Your Privacy on Open Library"
 msgstr "సార్వత్రిక గ్రంథలయం లో మీ గోప్యత "
 
-#: privacy.html:12
+#: privacy.html:16
 msgid "Privacy Settings"
 msgstr "గోప్యంగా ఉంచే సెట్టింగ్స్ "
 
-#: privacy.html:32
+#: privacy.html:39
 msgid "Yes"
 msgstr "అవును"
 
-#: edit/edition.html:365 privacy.html:39
+#: edit/edition.html:390 privacy.html:46
 msgid "No"
 msgstr "కాదు"
 
-#: verify.html:3
+#: verify.html:7
 msgid "Verification email sent"
 msgstr "ధృవీరనా ఈ-మెయిల్ పంపబడినది "
 
-#: email/forgot-ia.html:6 email/forgot.html:6
+#: email/forgot-ia.html:10 email/forgot.html:10
 msgid "Forgot Your Internet Archive Email?"
 msgstr "అంతర్జాలపు ఆర్కైవ్ ఈ-మెయిల్ ను మర్చిపోయారా?"
 
-#: email/forgot-ia.html:39 password/forgot.html:6
+#: email/forgot-ia.html:43 password/forgot.html:10
 msgid "Forgot your Archive.org Password?"
 msgstr "అంతర్జాలపు ఆర్కైవ్.ఆర్గ్ సంకేత పదాన్ని  ను మర్చిపోయారా?"
 
-#: email/forgot.html:11
+#: email/forgot.html:15
 msgid "Forgot Your Open Library Email?"
 msgstr "సార్వత్రిక గ్రంథాలయానికి సంభందించిన ఈ-మెయిల్ ను మర్చిపోయారా?"
 
-#: email/forgot.html:44 openlibrary/templates/login.html:68
+#: email/forgot.html:48 openlibrary/templates/login.html:66
 #, fuzzy
 msgid "Forgot your Password?"
 msgstr "మీ సంకేత పదం మార్చుకోండి"
 
-#: password/forgot.html:3 password/sent.html:3
+#: password/forgot.html:7 password/sent.html:7
 msgid "Username/Password Reminder"
 msgstr ""
 
-#: password/forgot.html:7
+#: password/forgot.html:11
 msgid "Forgot your Archive.org password?"
 msgstr "అంతర్జాలపు ఆర్కైవ్.ఆర్గ్ సంకేత పదాన్ని  ను మర్చిపోయారా?"
 
-#: password/forgot.html:19
+#: password/forgot.html:23
 msgid "Send It"
 msgstr "పంపించు"
 
-#: password/reset.html:3 password/reset.html:6
+#: password/reset.html:7 password/reset.html:10
 msgid "Reset Password"
 msgstr ""
 
-#: password/reset.html:11
+#: password/reset.html:15
 msgid "Please enter a new password for your Open Library account."
 msgstr ""
 
-#: password/reset.html:19
+#: password/reset.html:23
 msgid "Reset"
 msgstr ""
 
-#: password/reset_success.html:3
+#: password/reset_success.html:7
 #, fuzzy
 msgid "Password Reset Successful"
 msgstr "మీ సంకేతపదం విజయవంతంగా మార్చబడింది."
 
-#: password/reset_success.html:10
+#: password/reset_success.html:14
 msgid ""
 "Your password has been updated. Please <a "
 "href='/account/login?redirect=/'>log in to continue</a>."
 msgstr ""
 
-#: password/sent.html:6
+#: password/sent.html:10
 msgid "Done."
 msgstr "అయిపోయింది "
 
-#: password/sent.html:10
+#: password/sent.html:14
 #, fuzzy, python-format
 msgid ""
 "We've sent an email to %(email)s with a reminder of your username and "
@@ -609,147 +800,155 @@ msgstr ""
 "సంకేతపదం మార్చుకోవటానికి సూచనలను %(email)sకు ఈమెయిలు పంపాము.\"\n"
 "\"దయచేసి మీ ఈమెయిలు చూసుకొని అందులోని సూచనలను పాటించండి."
 
-#: verify/activated.html:3
+#: verify/activated.html:7
 msgid "Account already activated"
 msgstr "అకౌంట్ ముందుగానే సక్రియం చేయబడింది "
 
-#: verify/activated.html:11
+#: verify/activated.html:15
 #, python-format
 msgid ""
 "Your account has been activated already. Please <a href=\"%s\">log in to "
 "continue</a>."
 msgstr ""
 
-#: verify/failed.html:3
+#: verify/failed.html:7
 msgid "Email Verification Failed"
 msgstr "ఈ-మెయిల్ ధ్రువీకరణ విఫలమైంది."
 
-#: verify/failed.html:10
+#: verify/failed.html:14
 #, fuzzy
 msgid ""
 "Your email address couldn't be verified. Your verification link seems "
 "invalid or expired."
 msgstr "మీ ఈమెయిలు చిరునామా దృవీకరించబడలేదు. దృవీకరణ లంకె తప్పుగా ఉన్నట్లుంది."
 
-#: verify/failed.html:18
+#: verify/failed.html:22
 #, fuzzy
 msgid "Enter your email address here"
 msgstr "మీ ఈమెయిలు చిరునామా మార్చాలా?"
 
-#: verify/failed.html:21
+#: verify/failed.html:25
 #, fuzzy
 msgid "No user registered with this email address."
 msgstr "ఇచ్చిన ఈమెయిలు చిరునామాతో ఏ సభ్యడూ నమోదు కాలేదు."
 
-#: verify/success.html:3
+#: verify/success.html:7
 msgid "Email Verification Successful"
 msgstr "ఈమెయిలు దృవీకరణ విజయవంతం"
 
-#: verify/success.html:11
+#: verify/success.html:15
 #, python-format
 msgid ""
 "Yay! Your email address has been verified. Please <a href='%s'>log in to "
 "continue</a>."
 msgstr ""
 
-#: add.html:3 check.html:3
+#: add.html:7 check.html:7
 msgid "Add a book"
 msgstr "ఒక పుస్తకం చేర్చు"
 
-#: add.html:7
+#: add.html:11
 msgid "Add a book to Open Library"
 msgstr ""
 
-#: add.html:9
+#: add.html:13
 msgid ""
 "We require a minimum set of fields to create a new record. These are "
 "those fields."
 msgstr ""
 
-#: add.html:20 edit.html:153 nav_head.html:39 search_foot.html:4
-#: search_head.html:4
-msgid "Title"
-msgstr "శీర్షిక:"
-
-#: add.html:30 edit.html:159 nav_head.html:40 search_foot.html:5
-#: search_head.html:5
+#: add.html:34 edit.html:98 nav_head.html:45 search_foot.html:9
+#: search_head.html:9
 msgid "Author"
 msgstr "రచయితల"
 
-#: add.html:30
+#: add.html:34
 msgid ""
 "Like, \"Agatha Christie\" or \"Jean-Paul Sartre.\" We'll also do a live "
 "check to see if we already know the author."
 msgstr ""
 
-#: add.html:42 edit/edition.html:93
+#: add.html:44 edit/edition.html:120
 msgid "Who is the publisher?"
 msgstr ""
 
-#: add.html:49 edit/edition.html:103
+#: add.html:51 edit/edition.html:130
 msgid "When was it published?"
 msgstr ""
 
-#: add.html:49
+#: add.html:51
 msgid "The year it was published is plenty."
 msgstr ""
 
-#: add.html:56
+#: add.html:58
 msgid ""
 "And optionally, an ID number &#151; like an ISBN &#151; would be "
 "helpful..."
 msgstr ""
 
-#: add.html:57
+#: add.html:59
 msgid "ID Type"
 msgstr ""
 
-#: add.html:60
+#: add.html:62
 msgid "Select"
 msgstr "ఎంచుకో"
 
-#: add.html:73
-msgid "Since you are not logged in, please type in the text or number(s) below."
+#: add.html:75
+msgid "Since you are not logged in, please satisfy the reCAPTCHA below."
 msgstr ""
 
-#: add.html:80
+#: add.html:82
 msgid "Add this book now"
 msgstr ""
 
-#: add.html:80 edit/addfield.html:81 edit/addfield.html:127
-#: edit/addfield.html:171 edit/edition.html:283 edit/edition.html:448
-#: edit/edition.html:514 edit/excerpts.html:46
+#: add.html:82 edit/addfield.html:85 edit/addfield.html:131
+#: edit/addfield.html:175 edit/edition.html:310 edit/edition.html:474
+#: edit/edition.html:540 edit/excerpts.html:50
 msgid "Add"
 msgstr ""
 
-#: check.html:6 nav_foot.html:9 nav_head.html:12 nav_head.html:89
+#: author-autocomplete.html:9
+msgid "Create a new record for"
+msgstr ""
+
+#: author-autocomplete.html:38
+msgid "Remove this author"
+msgstr ""
+
+#: author-autocomplete.html:39
+#, fuzzy
+msgid "Add another author?"
+msgstr "ఇంకొక చిత్రం చేర్చండి"
+
+#: check.html:10 nav_head.html:16 nav_head.html:99
 msgid "Add a Book"
 msgstr "పుస్తకం చేర్చు"
 
-#: check.html:8
+#: check.html:12
 #, python-format
 msgid ""
 "One moment... It looks like we already have <em>some potential "
 "matches</em> for <b>%s</b> by <b>%s</b>."
 msgstr ""
 
-#: check.html:10
+#: check.html:14
 msgid ""
 "Rather than creating a duplicate record, please click through the result "
 "you think best matches your book."
 msgstr ""
 
-#: edit.html:74 edit.html:77 edit.html:80
+#: edit.html:68 edit.html:71 edit.html:74
 msgid "Add a little more?"
 msgstr "ఇంకొంచెం చేరుస్తారా?"
 
-#: edit.html:75
+#: edit.html:69
 msgid ""
 "<p class=\"alert thanks\">Thank you for adding that book! Any more "
 "information you could provide would be wonderful!</p>"
 msgstr ""
 
-#: edit.html:78
+#: edit.html:72
 #, python-format
 msgid ""
 "<p class=\"alert thanks\">We already know about <b>%s</b>, but not the "
@@ -757,643 +956,558 @@ msgid ""
 "edition?</p>"
 msgstr ""
 
-#: edit.html:81
+#: edit.html:75
 #, python-format
 msgid ""
 "<p class=\"alert info\">We already know about the <b>%s %s edition</b> of"
 " <b>%s</b>, but please, tell us more!</p>"
 msgstr ""
 
-#: edit.html:83
+#: edit.html:77
 msgid "Editing..."
 msgstr ""
 
-#: edit.html:114
-msgid "Create a new record for"
-msgstr ""
-
-#: edit.html:143
-msgid "Remove this author"
-msgstr ""
-
-#: edit.html:144
-#, fuzzy
-msgid "Add another author?"
-msgstr "ఇంకొక చిత్రం చేర్చండి"
-
-#: edit.html:153
+#: edit.html:92
 msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 
-#: edit.html:175
+#: edit.html:108
 msgid "What's It About?"
 msgstr ""
 
-#: edit.html:176
+#: edit.html:109
 msgid "Add Excerpts"
 msgstr ""
 
-#: edit.html:216
+#: edit.html:149
 msgid "Delete this book?"
 msgstr ""
 
-#: edition-show.html:57
-msgid "There is only 1 edition record, so we'll show it here..."
-msgstr ""
-
-#: edition-show.html:59
-msgid "Add another edition of"
-msgstr ""
-
-#: edition-show.html:59
-msgid "Add edition"
-msgstr ""
-
-#: edition-show.html:80
+#: edition-sort.html:56
 #, python-format
-msgid "Show for other books from %s"
+msgid "Publish date unknown, %s"
 msgstr ""
 
-#: edition-show.html:82
-msgid "Search for other books from"
+#: edition-sort.html:58 works-show.html:30
+#, fuzzy
+msgid "Publisher unknown"
+msgstr "ప్రచురణ"
+
+#: edition-sort.html:81
+msgid "Read a scanned version in BookReader"
 msgstr ""
 
-#: edition-show.html:86
-msgid "Search for subjects about"
+#: edition-sort.html:102
+msgid "Libraries near you:"
 msgstr ""
 
-#: edition-show.html:94
-msgid "About the Book"
-msgstr "ఈ పుస్తకం గురించి"
-
-#: edition-show.html:98
-msgid "First Sentence"
+#: edition-sort.html:106
+msgid "Look for this edition at WorldCat"
 msgstr ""
 
-#: edition-show.html:104
-msgid "Table of Contents"
-msgstr "విషయ సూచిక"
-
-#: edition-show.html:119
-msgid "Edition Notes"
-msgstr ""
-
-#: edition-show.html:124
-msgid "Series"
-msgstr ""
-
-#: edition-show.html:125
-msgid "Volume"
-msgstr ""
-
-#: edition-show.html:126
-msgid "Genre"
-msgstr ""
-
-#: edition-show.html:127
-msgid "Other Titles"
-msgstr "ఇతర శీర్షికలు"
-
-#: edition-show.html:128
-msgid "Copyright Date"
-msgstr ""
-
-#: edition-show.html:129
-msgid "Translation Of"
-msgstr ""
-
-#: edition-show.html:130
-msgid "Translated From"
-msgstr ""
-
-#: edit/edition.html:487 edition-show.html:138
-msgid "Classifications"
-msgstr ""
-
-#: edit/edition.html:544 edition-show.html:149
-msgid "The Physical Object"
-msgstr ""
-
-#: edition-show.html:152
-msgid "Format"
-msgstr ""
-
-#: edition-show.html:153
-msgid "Pagination"
-msgstr ""
-
-#: edition-show.html:154
-msgid "Number of pages"
-msgstr "పేజీల సంఖ్య"
-
-#: edit/edition.html:595 edition-show.html:155
-msgid "Dimensions"
-msgstr "పరిమాణాలు"
-
-#: edition-show.html:156
-msgid "Weight"
-msgstr "బరువు"
-
-#: edit/edition.html:257 edition-show.html:164
-msgid "Contributors"
-msgstr ""
-
-#: edit/edition.html:413 edition-show.html:172
-msgid "ID Numbers"
-msgstr ""
-
-#: book_cover.html:36 book_cover_single_edition.html:13
-#: book_cover_single_edition.html:31 book_cover_small.html:14
-#: book_cover_work.html:13 book_cover_work.html:27
-#: openlibrary/templates/diff.html:36 show.html:12
+#: book_cover.html:41 book_cover_single_edition.html:18
+#: book_cover_single_edition.html:36 book_cover_small.html:18
+#: book_cover_work.html:18 book_cover_work.html:32
+#: openlibrary/templates/diff.html:42 show.html:16
 msgid "by"
 msgstr ""
 
-#: inside.html:80 show.html:30
+#: show.html:34
 msgid "Read"
 msgstr "చదువు"
 
-#: edit/about.html:6
+#: edit/about.html:10
 msgid "How would you describe this book?"
 msgstr "ఈ పుస్తకం గురించి ఏలా వివరిస్తారు?"
 
-#: edit/about.html:7
+#: edit/about.html:11
 msgid "There's no wrong answer here."
 msgstr "దీనికి తప్పు సమాధానం అంటూ ఉండదు."
 
-#: edit/about.html:16
-msgid "Some tags perhaps?"
+#: edit/about.html:20
+msgid "Subject keywords?"
 msgstr ""
 
-#: edit/about.html:17
+#: edit/about.html:21
 msgid "Please separate with commas."
 msgstr ""
 
-#: edit/about.html:30
+#: edit/about.html:34
 msgid "A person? Or, people?"
 msgstr ""
 
-#: edit/about.html:44
+#: edit/about.html:48
 msgid "Note any places mentioned?"
 msgstr ""
 
-#: edit/about.html:58
+#: edit/about.html:62
 msgid "When is it set or about?"
 msgstr ""
 
-#: edit/addcover.html:11
+#: author_photo.html:20 book_cover.html:39 book_cover_single_edition.html:34
+#: book_cover_work.html:30 change.html:107 edit/addcover.html:11
+#: markdown.html:12
+msgid "Close"
+msgstr ""
+
+#: edit/addcover.html:15
 msgid "There are two ways to get a cover image on Open Library:"
 msgstr ""
 
-#: edit/addcover.html:14
+#: edit/addcover.html:18
 msgid "Either choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
-#: edit/addcover.html:22
+#: edit/addcover.html:26
 msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 msgstr ""
 
-#: edit/addcover.html:31
+#: edit/addcover.html:35
 msgid "Upload"
 msgstr ""
 
-#: edit/addfield.html:66
+#: edit/addfield.html:70
 msgid "Add a New Contributor Role"
 msgstr ""
 
-#: edit/addfield.html:73 edit/addfield.html:100 edit/addfield.html:145
+#: edit/addfield.html:77 edit/addfield.html:104 edit/addfield.html:149
 msgid "What should we show in the menu?"
 msgstr ""
 
-#: edit/addfield.html:92
+#: edit/addfield.html:96
 msgid "Add a New Type of Identifier"
 msgstr ""
 
-#: edit/addfield.html:109
+#: edit/addfield.html:113
 msgid "If the system has a website, what's the homepage?"
 msgstr ""
 
-#: edit/addfield.html:118
+#: edit/addfield.html:122
 msgid "Please leave a note: Why is this ID useful?"
 msgstr ""
 
-#: edit/addfield.html:137
+#: edit/addfield.html:141
 msgid "Add a New Classification System"
 msgstr ""
 
-#: edit/addfield.html:154
+#: edit/addfield.html:158
 msgid "Please leave a note: Why is this classification useful?"
 msgstr ""
 
-#: edit/addfield.html:163
+#: edit/addfield.html:167
 msgid ""
 "Can you direct us to more information about this classification system "
 "online?"
 msgstr ""
 
-#: edit/edition.html:14
+#: edit/edition.html:21
 msgid "Select this language"
 msgstr ""
 
-#: edit/edition.html:23
+#: edit/edition.html:30 edit/edition.html:39
 msgid "Remove this language"
 msgstr ""
 
-#: edit/edition.html:32
+#: edit/edition.html:50
 msgid "Remove this work"
 msgstr ""
 
-#: edit/edition.html:83
-msgid "Expose another 20 fields about the edition"
-msgstr ""
-
-#: edit/edition.html:83
-msgid "Librarian Mode"
-msgstr ""
-
-#: edit/edition.html:87
+#: edit/edition.html:114
 msgid "Publishing Info"
 msgstr ""
 
-#: edit/edition.html:94
+#: edit/edition.html:121
 msgid "For example"
 msgstr "ఉదాహరణకు"
 
-#: edit/edition.html:104
+#: edit/edition.html:131
 msgid "You should be able to find this in the first few pages of the book."
 msgstr ""
 
-#: edit/edition.html:113
+#: edit/edition.html:140
 msgid "Where was the book published?"
 msgstr "ఈ పుస్తకం ఎక్కడ ప్రచురించబడింది?"
 
-#: edit/edition.html:114
+#: edit/edition.html:141
 msgid "City, Country please."
 msgstr ""
 
-#: edit/edition.html:124
+#: edit/edition.html:151
 msgid "Is there a copyright date?"
 msgstr ""
 
-#: edit/edition.html:125
+#: edit/edition.html:152
 msgid "The year following the copyright statement."
 msgstr ""
 
-#: edit/edition.html:134
+#: edit/edition.html:161
 msgid "Is the book part of a series?"
 msgstr ""
 
-#: edit/edition.html:135
+#: edit/edition.html:162
 msgid "The name of the publisher's series."
 msgstr ""
 
-#: edit/edition.html:145
+#: edit/edition.html:172
 msgid "This Edition"
 msgstr ""
 
-#: edit/edition.html:151
+#: edit/edition.html:178
 msgid "What work is this an edition of?"
 msgstr ""
 
-#: edit/edition.html:153
+#: edit/edition.html:180
 msgid ""
 "Sometimes editions can be associated with the wrong work. You can correct"
 " that here."
 msgstr ""
 
-#: edit/edition.html:154
+#: edit/edition.html:181
 msgid "You can search by title or by Open Library ID"
 msgstr ""
 
-#: edit/edition.html:158
-msgid ""
-"WARNING: Any edits made to the work from this page will be applied to the"
-" <b>old work</b>."
+#: edit/edition.html:185
+msgid "WARNING: Any edits made to the work from this page will be ignored."
 msgstr ""
 
-#: edit/edition.html:174
+#: edit/edition.html:201
 msgid "There are occasionally title variants amongst editions."
 msgstr ""
 
-#: edit/edition.html:183
+#: edit/edition.html:210
 msgid "Subtitle"
 msgstr "ఉపశీర్షిక:"
 
-#: edit/edition.html:184
+#: edit/edition.html:211
 msgid "Usually distinguished by different or smaller type."
 msgstr ""
 
-#: edit/edition.html:194
+#: edit/edition.html:221
 msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
 "new lines. Like this:"
 msgstr ""
 
-#: edit/edition.html:211
+#: edit/edition.html:238
 msgid "Is it known by any other titles?"
 msgstr ""
 
-#: edit/edition.html:212
+#: edit/edition.html:239
 msgid "Perhaps in another language?"
 msgstr "ఏదైనా వేరే భాషలో"
 
-#: edit/edition.html:216
+#: edit/edition.html:243
 msgid "is an alternate title for"
 msgstr ""
 
-#: edit/edition.html:226
+#: edit/edition.html:253
 msgid "Does this edition have a specific name?"
 msgstr ""
 
-#: edit/edition.html:246
+#: edit/edition.html:273
 msgid "Any notes about this specific edition?"
 msgstr ""
 
-#: edit/edition.html:247
+#: edit/edition.html:274
 msgid "Anything about the book that may be of interest."
 msgstr ""
 
-#: edit/edition.html:261
+#: edit/edition.html:284
+msgid "Contributors"
+msgstr ""
+
+#: edit/edition.html:288
 msgid "List the people involved"
 msgstr ""
 
-#: edit/edition.html:271
+#: edit/edition.html:298
 msgid "Select role"
 msgstr ""
 
-#: edit/edition.html:276
+#: edit/edition.html:303
 msgid "Add a new role"
 msgstr ""
 
-#: edit/edition.html:296 edit/edition.html:312
+#: edit/edition.html:323 edit/edition.html:339
 msgid "Remove this contributor"
 msgstr ""
 
-#: edit/edition.html:321
+#: edit/edition.html:348
 msgid "Is there a By Statement?"
 msgstr ""
 
-#: edit/edition.html:339
+#: edit/edition.html:364
 msgid "What language is this edition written in?"
 msgstr ""
 
-#: edit/edition.html:351
+#: edit/edition.html:376
 msgid "Is it a translation of another book?"
 msgstr "ఇది వేరే పుస్తకానికి అనువాదమా?"
 
-#: edit/edition.html:369
+#: edit/edition.html:394
 msgid "Yes, it's a translation"
 msgstr "అవును, ఇది అనువాదమే"
 
-#: edit/edition.html:374
+#: edit/edition.html:399
 msgid "What's the original book?"
 msgstr ""
 
-#: edit/edition.html:383
+#: edit/edition.html:408
 msgid "What language was the original written in?"
 msgstr ""
 
-#: edit/edition.html:400
+#: edit/edition.html:426
 msgid "Description of this edition"
 msgstr ""
 
-#: edit/edition.html:401
+#: edit/edition.html:427
 msgid "Only if it's different from the work's description"
 msgstr ""
 
-#: edit/edition.html:419
+#: edit/edition.html:439
+msgid "ID Numbers"
+msgstr ""
+
+#: edit/edition.html:445
 msgid "Do you know any identifiers for this edition?"
 msgstr ""
 
-#: edit/edition.html:420
+#: edit/edition.html:446
 msgid "Like, ISBN?"
 msgstr ""
 
-#: edit/edition.html:493
+#: edit/edition.html:513
+msgid "Classifications"
+msgstr ""
+
+#: edit/edition.html:519
 msgid "Do you know any classifications of this edition?"
 msgstr ""
 
-#: edit/edition.html:494
+#: edit/edition.html:520
 msgid "Like, Dewey Decimal?"
 msgstr ""
 
-#: edit/edition.html:502
+#: edit/edition.html:528
 msgid "Select one of many..."
 msgstr ""
 
-#: edit/edition.html:507
+#: edit/edition.html:533
 msgid "Add a new classification type"
 msgstr ""
 
-#: edit/edition.html:524 edit/edition.html:533
+#: edit/edition.html:550 edit/edition.html:559
 msgid "Remove this classification"
 msgstr ""
 
-#: edit/edition.html:550
+#: edit/edition.html:570
+msgid "The Physical Object"
+msgstr ""
+
+#: edit/edition.html:576
 msgid "What sort of book is it?"
 msgstr "ఇది ఎటువంటి పుస్తకం?"
 
-#: edit/edition.html:551
+#: edit/edition.html:577
 msgid "Paperback; Hardcover, etc."
 msgstr ""
 
-#: edit/edition.html:559
+#: edit/edition.html:585
 msgid "How many pages?"
 msgstr ""
 
-#: edit/edition.html:568
+#: edit/edition.html:595
 msgid "Pagination?"
 msgstr ""
 
-#: edit/edition.html:569
+#: edit/edition.html:596
 msgid "Note the highest number in each pagination pattern."
 msgstr ""
 
-#: edit/edition.html:579
+#: edit/edition.html:606
 msgid "How much does the book weigh?"
 msgstr ""
 
-#: edit/edition.html:603
+#: edit/edition.html:621
+msgid "Dimensions"
+msgstr "పరిమాణాలు"
+
+#: edit/edition.html:633
 msgid "Height:"
 msgstr "ఎత్తు:"
 
-#: edit/edition.html:607
+#: edit/edition.html:638
 msgid "Width:"
 msgstr "వెడల్:పు"
 
-#: edit/edition.html:615
+#: edit/edition.html:643
 msgid "Depth:"
 msgstr "లావు:"
 
-#: edit/edition.html:629 edit/edition.html:643
+#: edit/edition.html:658 edit/edition.html:672
 msgid "Admin Only"
 msgstr ""
 
-#: edit/edition.html:632
+#: edit/edition.html:661
 msgid "Additional Metadata"
 msgstr ""
 
-#: edit/edition.html:646
+#: edit/edition.html:675
 msgid "First sentence"
 msgstr ""
 
-#: edit/edition.html:670
+#: edit/edition.html:701
 msgid "Please select a role."
 msgstr ""
 
-#: edit/edition.html:674
+#: edit/edition.html:705
 msgid "You need to give this ROLE a name."
 msgstr ""
 
-#: edit/edition.html:687
+#: edit/edition.html:718
 msgid "Please select an identifier."
 msgstr ""
 
-#: edit/edition.html:691
+#: edit/edition.html:722
 msgid "You need to give a value to ID."
 msgstr ""
 
-#: edit/edition.html:694
+#: edit/edition.html:725
 msgid "ID ids cannot contain whitespace."
 msgstr ""
 
-#: edit/edition.html:697
+#: edit/edition.html:728
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr ""
 
-#: edit/edition.html:700
+#: edit/edition.html:731
 msgid "ID must be exactly 13 digits [0-9]."
 msgstr ""
 
-#: edit/edition.html:712
+#: edit/edition.html:743
 msgid "Please select a classification."
 msgstr ""
 
-#: edit/edition.html:717
+#: edit/edition.html:748
 msgid "You need to give a value to CLASS."
 msgstr ""
 
-#: edit/excerpts.html:9
+#: edit/excerpts.html:13
 msgid ""
 "If there are particular (short) passages you feel represent the book "
 "well, please feel free to transcribe them here."
 msgstr ""
 
-#: edit/excerpts.html:14
+#: edit/excerpts.html:18
 msgid "Page number?"
 msgstr "పేజి సంఖ్య"
 
-#: edit/excerpts.html:26
+#: edit/excerpts.html:30
 msgid "Transcribe the excerpt"
 msgstr ""
 
-#: edit/excerpts.html:27
+#: edit/excerpts.html:31
 msgid "Maximum length is 2000 characters. No HTML allowed."
 msgstr ""
 
-#: edit/excerpts.html:37
+#: edit/excerpts.html:41
 msgid "Why did you choose this excerpt?"
 msgstr ""
 
-#: edit/excerpts.html:38
+#: edit/excerpts.html:42
 msgid "Add an optional note."
 msgstr ""
 
-#: edit/excerpts.html:52
+#: edit/excerpts.html:56
 msgid "Excerpts so far..."
 msgstr ""
 
-#: edit/excerpts.html:66 edit/excerpts.html:88
+#: edit/excerpts.html:70 edit/excerpts.html:92
 msgid "noted:"
 msgstr ""
 
-#: edit/excerpts.html:68 edit/excerpts.html:90
+#: edit/excerpts.html:72 edit/excerpts.html:94
 msgid "An anonymous note:"
 msgstr ""
 
-#: edit/excerpts.html:86
+#: edit/excerpts.html:90
 msgid "From page"
 msgstr ""
 
-#: edit/excerpts.html:114
+#: edit/excerpts.html:117
 msgid "Please provide an excerpt."
 msgstr ""
 
-#: edit/excerpts.html:117
+#: edit/excerpts.html:120
 msgid "That excerpt is too long."
 msgstr ""
 
-#: edit/web.html:9
+#: edit/web.html:13
 msgid ""
 "Please connect Open Library records to <u>good</u><span "
 "class=\"orange\">*</span> online resources."
 msgstr ""
 
-#: edit/web.html:18
+#: edit/web.html:19
 msgid "Give your link a label"
 msgstr ""
 
-#: edit/web.html:56 edit/web.html:65
+#: edit/web.html:43 edit/web.html:52
 msgid "Remove this link"
 msgstr ""
 
-#: edit/web.html:85
+#: edit/web.html:72
 msgid "Please provide a URL."
 msgstr ""
 
-#: edit/web.html:90
+#: edit/web.html:77
 msgid "Please provide a label."
 msgstr ""
 
-#: edit/web.html:103
+#: edit/web.html:90
 msgid ""
 "\"Good\" means no spammy links, please. Keep them relevant to the book. "
 "Irrelevant sites may be removed. Blatant spam will be deleted without "
 "remorse."
 msgstr ""
 
-#: add.html:7
+#: add.html:11
 msgid "There are two ways to place an author's image on Open Library"
 msgstr ""
 
-#: add.html:10 add.html:16
+#: add.html:14 add.html:20
 msgid "There are two ways to get a cover image on Open Library"
 msgstr ""
 
-#: add.html:13
+#: add.html:17
 msgid "There are three ways to get a cover image on Open Library"
 msgstr ""
 
-#: add.html:23 add.html:27
+#: add.html:27 add.html:31
 msgid "Please provide a valid image."
 msgstr ""
 
-#: add.html:25
+#: add.html:29
 msgid "Please provide an image URL."
 msgstr ""
 
-#: add.html:79
+#: add.html:84
 msgid "<strong>Pick one</strong> from the existing covers,"
 msgstr ""
 
-#: add.html:102
+#: add.html:118
 msgid "Choose a JPG, GIF or PNG on your computer,"
 msgstr ""
 
-#: add.html:111
+#: add.html:127
 msgid "<u>Or</u></span>, paste in the image URL if it's on the web."
 msgstr ""
 
-#: add.html:119
+#: add.html:135
 msgid "Submit"
 msgstr ""
 
-#: author_photo.html:16 book_cover.html:34 book_cover_single_edition.html:29
-#: book_cover_work.html:25 change.html:111
-msgid "Close"
-msgstr ""
-
-#: change.html:81
+#: change.html:79
 msgid "One sec, we're searching for covers..."
 msgstr ""
 
@@ -1403,93 +1517,101 @@ msgid ""
 "them."
 msgstr ""
 
-#: saved.html:21
+#: saved.html:25
 msgid "Saved!"
 msgstr "భద్రపరచబడింది!"
 
-#: saved.html:24
+#: saved.html:28
 msgid "Notes:"
 msgstr ""
 
-#: saved.html:34
+#: saved.html:38
 msgid "Add another image"
 msgstr "ఇంకొక చిత్రం చేర్చండి"
 
-#: saved.html:41
+#: saved.html:45
 msgid "Finished"
 msgstr "అవిపోయింది"
 
-#: comment.html:28
+#: comment.html:36
 #, fuzzy
 msgid "Edited without comment."
 msgstr "వ్యాఖ్య లేకుండా మార్చబడింది"
 
-#: about.html:11
+#: about.html:15
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
 " page for every book ever published."
 msgstr ""
 
-#: about.html:12 nav_head.html:86
+#: about.html:16 nav_head.html:95 nav_head.html:96
 #, fuzzy
 msgid "More"
 msgstr "ఇంకా"
 
-#: index.html:3
+#: index.html:8
 #, fuzzy
 msgid "Welcome to Open Library"
 msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
 
-#: edit_head.html:9
+#: edit_head.html:17
 msgid "You're in edit mode."
 msgstr ""
 
-#: edit_head.html:10
+#: edit_head.html:18
 msgid "Cancel, and go back."
 msgstr "రద్దుచేసి, వెనక్కు పో"
 
-#: edit_head.html:14 view_head.html:10
+#: edit_head.html:22 view_head.html:14
 msgid "This doc was last edited by"
 msgstr ""
 
-#: edit_head.html:16 view_head.html:12
+#: edit_head.html:24 view_head.html:16
 msgid "This doc was last edited anonymously"
 msgstr ""
 
-#: history.html:15
+#: history.html:20
 msgid "History"
 msgstr "చరిత్ర"
 
-#: history.html:18
+#: history.html:24
 #, python-format
 msgid "Created %s"
 msgstr ""
 
-#: history.html:25
+#: history.html:31
 #, fuzzy
 msgid "revision"
 msgstr "రివిజన్ %d"
 
-#: history.html:51 openlibrary/templates/history.html:36
+#: history.html:43
+msgid "Download catalog record:"
+msgstr ""
+
+#: history.html:51
+msgid "Wikipedia citation"
+msgstr ""
+
+#: history.html:85 openlibrary/templates/history.html:46
 #, python-format
 msgid "View revision %s"
 msgstr "రివిజన్ %s చూడు"
 
-#: history.html:56 history.html:58
+#: history.html:90 history.html:92
 msgid "an anonymous user"
 msgstr ""
 
-#: history.html:60
+#: history.html:94
 #, python-format
 msgid "Created by %s"
 msgstr ""
 
-#: history.html:62
+#: history.html:96
 #, fuzzy, python-format
 msgid "Edited by %s"
 msgstr "%sని మార్చు"
 
-#: markdown.html:14
+#: markdown.html:16
 msgid ""
 "We use a system called Markdown to format the text in your edits on Open "
 "Library. Some HTML formatting is also accepted. Paragraphs are "
@@ -1498,689 +1620,664 @@ msgid ""
 "field."
 msgstr ""
 
-#: markdown.html:15
+#: markdown.html:17
 msgid "Formatting marks should envelope the effected text, for example:"
 msgstr ""
 
-#: markdown.html:74
+#: markdown.html:76
 msgid ""
 "To \"escape\" any Markdown tags (i.e. use an asterisk as an asterisk "
 "rather than emphasizing text) place a backslash \\ prior to the "
 "character."
 msgstr ""
 
-#: nav_foot.html:7
-msgid "Go to the top of this page"
+#: nav_foot.html:13
+#, fuzzy
+msgid "Vision"
+msgstr "రివిజన్ %d"
+
+#: nav_foot.html:14
+msgid "Jobs"
 msgstr ""
 
-#: nav_foot.html:7
-msgid "Top"
+#: nav_foot.html:15
+msgid "Blog"
 msgstr ""
 
-#: nav_foot.html:8
+#: nav_foot.html:16
+msgid "Terms of Service"
+msgstr ""
+
+#: nav_foot.html:17
+msgid "Donate"
+msgstr ""
+
+#: nav_foot.html:23
 msgid "Go home"
 msgstr ""
 
-#: nav_foot.html:8
-msgid "Home"
+#: nav_foot.html:24
+msgid "Explore Books"
 msgstr ""
 
-#: nav_foot.html:9
-msgid "Add a new book to Open Library"
-msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
-
-#: nav_foot.html:10
-msgid "Explore subjects"
-msgstr ""
-
-#: nav_foot.html:10
-msgid "Subjects"
-msgstr "సబ్జక్టులు"
-
-#: nav_foot.html:11
+#: nav_foot.html:25
 msgid "Explore authors"
 msgstr ""
 
-#: nav_foot.html:11 view.html:531
-msgid "Authors"
-msgstr "రచయితలు"
-
-#: nav_foot.html:12
-msgid "About the Open Library staff"
+#: nav_foot.html:26
+msgid "Explore subjects"
 msgstr ""
 
-#: nav_foot.html:12
-msgid "About Us"
-msgstr "మా గురించి"
-
-#: nav_foot.html:13
-msgid "Get help"
-msgstr "సహాయం పొందండి"
-
-#: nav_foot.html:13
-msgid "Help"
-msgstr "సహాయం"
-
-#: nav_foot.html:14
-msgid "Visit the Developers Center"
+#: nav_foot.html:27 nav_head.html:19 nav_head.html:101
+msgid "Advanced Search"
 msgstr ""
 
-#: nav_foot.html:14
-msgid "Developers"
+#: nav_foot.html:28
+msgid "Navigate to top of this page"
 msgstr ""
 
-#: nav_foot.html:20
-msgid "Report a problem."
+#: nav_foot.html:34
+msgid "Explore Open Library Development Center"
 msgstr ""
 
-#: nav_foot.html:21
-msgid "Problems?"
+#: nav_foot.html:35
+#, fuzzy
+msgid "Explore Open Library APIs"
+msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
+
+#: nav_foot.html:36
+msgid "Bulk Open Library data"
 msgstr ""
 
-#: nav_head.html:9 search_head.html:72
+#: nav_foot.html:37
+msgid "Write a bot"
+msgstr ""
+
+#: nav_foot.html:38
+msgid "Add a new book to Open Library"
+msgstr "సార్వత్రిక గ్రంధాలయానికి ఒక క్రొత్త పుస్తకాన్ని చేర్చండి"
+
+#: nav_foot.html:44
+msgid "Help Center"
+msgstr ""
+
+#: nav_foot.html:45
+msgid "Problems"
+msgstr ""
+
+#: nav_foot.html:46
+msgid "Suggest Edits"
+msgstr ""
+
+#: nav_head.html:13 search_head.html:76
 msgid "Log in"
 msgstr "లాగిన్"
 
-#: nav_head.html:10
+#: nav_head.html:14
 #, fuzzy
 msgid "Sign up"
 msgstr "సైన్ అప్"
 
-#: nav_head.html:13 nav_head.html:90
-msgid "Full-Text Search on Archive.org"
-msgstr ""
-
-#: nav_head.html:14 nav_head.html:91
+#: nav_head.html:17 nav_head.html:100
 #, fuzzy
 msgid "Random Book"
 msgstr "ఒక పుస్తకం చేర్చు"
 
-#: nav_head.html:15 nav_head.html:93
+#: nav_head.html:18 nav_head.html:102
 msgid "Recent Community Edits"
 msgstr ""
 
-#: nav_head.html:16 nav_head.html:92
-msgid "Advanced Search"
-msgstr ""
-
-#: nav_head.html:17 nav_head.html:94
+#: nav_head.html:20 nav_head.html:103
 msgid "Developer Center"
 msgstr ""
 
-#: nav_head.html:18 nav_head.html:95
+#: nav_head.html:21 nav_head.html:104
 msgid "Help & Support"
 msgstr ""
 
-#: nav_head.html:38
+#: nav_head.html:43
 msgid "All"
 msgstr ""
 
-#: nav_head.html:41 search_foot.html:7 search_head.html:7
+#: nav_head.html:46
+#, fuzzy
+msgid "Text"
+msgstr "ముందుకు"
+
+#: nav_head.html:47 search_foot.html:11 search_head.html:11
 #, fuzzy
 msgid "Subject"
 msgstr "సబ్జక్టులు"
 
-#: nav_head.html:42 search_foot.html:59 search_head.html:25
+#: lists.html:10 nav_head.html:48 search_head.html:70
+msgid "Lists"
+msgstr ""
+
+#: nav_head.html:49 search_foot.html:63 search_head.html:29
 msgid "Advanced"
 msgstr ""
 
-#: authors.html:43 editions.html:34 inside.html:39 nav_head.html:47
-#: notfound.html:17 openlibrary/templates/subjects.html:46
-#: openlibrary/templates/work_search.html:122
-#: openlibrary/templates/work_search.html:156 publishers.html:15
-#: search_head.html:20 subjects.html:32 view.html:584
+#: authors.html:49 inside.html:17 lists.html:17 nav_head.html:54
+#: notfound.html:19 openlibrary/templates/subjects.html:27
+#: openlibrary/templates/work_search.html:139 publishers.html:19
+#: search_head.html:24 subjects.html:34 view.html:176
 msgid "Search"
 msgstr "వెతుకు"
 
-#: nav_head.html:61
+#: nav_head.html:68 nav_head.html:69
 msgid "Browse"
 msgstr ""
 
-#: nav_head.html:64
+#: nav_head.html:72
 msgid "Science"
 msgstr ""
 
-#: nav_head.html:65
+#: nav_head.html:73
 msgid "Biographies"
 msgstr ""
 
-#: nav_head.html:66
+#: nav_head.html:74
 msgid "Textbooks"
 msgstr ""
 
-#: nav_head.html:67
+#: nav_head.html:75
 msgid "Sci-Fi"
 msgstr ""
 
-#: nav_head.html:68
+#: nav_head.html:76
 #, fuzzy
 msgid "Romance"
 msgstr "రద్దుచేయి"
 
-#: nav_head.html:69
+#: nav_head.html:77
 msgid "Fantasy"
 msgstr ""
 
-#: nav_head.html:70
+#: nav_head.html:78
 #, fuzzy
 msgid "More Subjects"
 msgstr "సబ్జక్టులు"
 
-#: nav_head.html:71
+#: nav_head.html:79
 msgid "Reading Lists"
 msgstr ""
 
-#: nav_head.html:76
+#: nav_head.html:84 nav_head.html:85
 msgid "My Books"
 msgstr ""
 
-#: nav_head.html:79 nav_head.html:117
+#: nav_head.html:88 nav_head.html:126
 msgid "My Loans"
 msgstr ""
 
-#: nav_head.html:80
+#: nav_head.html:89
 msgid "My Reading Log"
 msgstr ""
 
-#: nav_head.html:81 nav_head.html:118
+#: nav_head.html:90 nav_head.html:127
 msgid "My Lists"
 msgstr ""
 
-#: nav_head.html:105 openlibrary/templates/login.html:6
-#: openlibrary/templates/login.html:64
+#: nav_head.html:114 openlibrary/templates/login.html:10
+#: openlibrary/templates/login.html:62
 msgid "Log In"
 msgstr "లాగిన్"
 
-#: nav_head.html:113
+#: nav_head.html:122
 #, fuzzy
 msgid "My Account"
 msgstr "మీ ఖాతా"
 
-#: nav_head.html:119
+#: nav_head.html:128
 msgid "My Profile"
 msgstr ""
 
-#: nav_head.html:123
+#: nav_head.html:132
 msgid "Log out"
 msgstr "లాగౌట్"
 
-#: pagination.html:18
+#: pagination.html:22
 msgid "Previous"
 msgstr "వెనక్కు"
 
-#: openlibrary/templates/history.html:80 pagination.html:33
+#: openlibrary/templates/history.html:90 pagination.html:37
 msgid "Next"
 msgstr "ముందుకు"
 
-#: search_foot.html:8 search_head.html:8
+#: search_foot.html:12 search_head.html:12
 #, fuzzy
 msgid "Place"
 msgstr "ప్రదేశాలు"
 
-#: search_foot.html:9 search_head.html:9
+#: search_foot.html:13 search_head.html:13
 msgid "Person"
 msgstr ""
 
-#: search_foot.html:10 search_head.html:10
+#: search_foot.html:14 search_head.html:14
 msgid "Publisher"
 msgstr "ప్రచురణ"
 
-#: search_foot.html:25
+#: search_foot.html:29
 msgid "Language"
 msgstr "భాష"
 
-#: search_foot.html:27
+#: search_foot.html:31
 msgid "any"
 msgstr ""
 
-#: search_foot.html:28
+#: search_foot.html:32
 msgid "English"
 msgstr ""
 
-#: search_foot.html:29
+#: search_foot.html:33
 msgid "German"
 msgstr ""
 
-#: search_foot.html:30
+#: search_foot.html:34
 msgid "French"
 msgstr ""
 
-#: search_foot.html:31
+#: search_foot.html:35
 msgid "Spanish"
 msgstr ""
 
-#: search_foot.html:32
+#: search_foot.html:36
 msgid "Russian"
 msgstr ""
 
-#: search_foot.html:33
+#: search_foot.html:37
 msgid "Italian"
 msgstr ""
 
-#: search_foot.html:34
+#: search_foot.html:38
 msgid "Chinese"
 msgstr ""
 
-#: search_foot.html:35
+#: search_foot.html:39
 msgid "Arabic"
 msgstr ""
 
-#: search_foot.html:36
+#: search_foot.html:40
 msgid "Japanese"
 msgstr ""
 
-#: search_foot.html:37
+#: search_foot.html:41
 msgid "Portuguese"
 msgstr ""
 
-#: search_foot.html:38
+#: search_foot.html:42
 msgid "Polish"
 msgstr ""
 
-#: search_foot.html:64 search_head.html:30
+#: search_foot.html:68 search_head.html:34
 #, fuzzy
 msgid "Only eBooks"
 msgstr "ఈ-పుస్తకాలు మాత్రమే చూపించండి"
 
-#: search_foot.html:66 search_head.html:32
+#: search_foot.html:70 search_head.html:36
 msgid "Search eBook text"
 msgstr ""
 
-#: search_head.html:64
+#: search_head.html:68
 msgid "Your Profile"
 msgstr ""
 
-#: search_head.html:65
+#: search_head.html:69
 msgid "Loans"
 msgstr ""
 
-#: search_head.html:66
-msgid "Lists"
-msgstr ""
-
-#: site_legal.html:5
-msgid ""
-"Open Library is an initiative of the <a href=\"//archive.org/\">Internet "
-"Archive</a>, a 501(c)(3) non-profit, building a digital library of "
-"Internet sites and other cultural artifacts in digital form.<br/>Other <a"
-" href=\"//archive.org/projects/\">projects</a> include the <a "
-"href=\"//archive.org/web/\">Wayback Machine</a>, <a "
-"href=\"//archive.org/\">archive.org</a> and <a href=\"//archive-it.org"
-"\">archive-it.org</a>"
-msgstr ""
-
-#: site_legal.html:7
-msgid ""
-"Your use of the Open Library is subject to the Internet Archive's <a "
-"href=\"//archive.org/about/terms.php\">Terms of Use</a>."
-msgstr ""
-
-#: site_legal.html:21
-msgid ""
-"The Open Library website has not been optimized for Internet Explorer 6, "
-"so some features and graphic elements may not appear correctly. Many "
-"sites, including <a href=\"http://googleenterprise.blogspot.com/2010/01"
-"/modern-browsers-for-modern-applications.html\">Google</a> and Facebook, "
-"have phased out support for IE6 due to security and support issues. "
-"Please consider upgrading to <a "
-"href=\"http://www.microsoft.com/IE9\">Internet Explorer 9</a>, <a "
-"href=\"http://www.mozilla.com/firefox/\">Firefox</a>, <a "
-"href=\"http://www.google.com/chrome/\">Chrome</a>, <a "
-"href=\"http://www.apple.com/safari/\">Safari</a>, or <a "
-"href=\"http://www.opera.com/\">Opera</a> to use this and other web sites "
-"to your fullest advantage."
-msgstr ""
-
-#: notfound.html:6
+#: notfound.html:10
 #, fuzzy
 msgid "Publishers"
 msgstr "ప్రచురణ"
 
-#: notfound.html:11
+#: notfound.html:13
 #, python-format
 msgid "We couldn't find any books published by %s."
 msgstr ""
 
-#: notfound.html:13 openlibrary/templates/work_search.html:129
+#: notfound.html:15
 msgid "Try something else?"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:15 view.html:13
+#: openlibrary/templates/subjects.html:19 view.html:17
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openlibrary/templates/subjects.html:17 view.html:15
+#: view.html:19
 #, python-format
 msgid "%s ebook"
 msgid_plural "%s ebooks"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openlibrary/templates/subjects.html:23 view.html:21
-msgid "Clear this selection"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:62 view.html:54
+#: openlibrary/templates/subjects.html:44 view.html:32
 msgid "Publishing History"
 msgstr "ప్రచురణ చరిత్ర"
 
-#: view.html:55
+#: view.html:33
 msgid ""
 "This is a chart to show the when this publisher published books. Along "
 "the X axis is time, and on the y axis is the count of editions published."
 " <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:64 view.html:56
+#: openlibrary/templates/subjects.html:47 view.html:34
 msgid "Reset chart"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:64 view.html:56
+#: openlibrary/templates/subjects.html:47 view.html:34
 msgid "or continue zooming in."
 msgstr ""
 
-#: view.html:57
+#: view.html:35
 msgid ""
 "This graph charts editions from this publisher over time. Click to view a"
 " single year, or drag across a range."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:180 view.html:124
-msgid "edition in"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:183 view.html:127
-msgid "editions in"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:381 view.html:327
-msgid "published in"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:383 view.html:329
-msgid "published between"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:498 view.html:487
-msgid "You need to have JavaScript turned on to see the nifty chart!"
-msgstr ""
-
-#: openlibrary/templates/subjects.html:500 view.html:489
+#: openlibrary/templates/subjects.html:54 view.html:90
 #, fuzzy
 msgid "Editions Published"
 msgstr "ముదటి ప్రచురణ"
 
-#: openlibrary/templates/subjects.html:501 view.html:490
+#: openlibrary/templates/subjects.html:56 view.html:92
+msgid "You need to have JavaScript turned on to see the nifty chart!"
+msgstr ""
+
+#: openlibrary/templates/subjects.html:58 view.html:94
 msgid "Year of Publication"
 msgstr ""
 
-#: view.html:496
+#: view.html:100
 #, fuzzy
 msgid "Common Subjects"
 msgstr "సబ్జక్టులు"
 
-#: openlibrary/templates/subjects.html:521 view.html:508
+#: openlibrary/templates/subjects.html:78 view.html:112
 msgid "None found."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:538 view.html:525
+#: openlibrary/templates/subjects.html:93 view.html:129
 msgid "See more books by, and learn about, this author"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:540 publishers.html:25 view.html:527
+#: openlibrary/templates/subjects.html:95 publishers.html:29 view.html:131
 #, python-format
 msgid "%s book"
 msgid_plural "%s books"
 msgstr[0] ""
 msgstr[1] ""
 
-#: view.html:532
+#: view.html:135
+msgid "Authors"
+msgstr "రచయితలు"
+
+#: view.html:136
 msgid "published most by this publisher"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:568 view.html:555
+#: openlibrary/templates/subjects.html:126 view.html:159
 msgid "Get more information about this publisher"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:570 view.html:557
+#: openlibrary/templates/subjects.html:128 view.html:161
 #, python-format
 msgid "%s edition"
 msgid_plural "%s editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: header.html:25 index.html:3 index.html:7
+#: header.html:31 index.html:7 index.html:13
 msgid "Recent Changes"
 msgstr "ఇటీవలి మార్పులు"
 
-#: openlibrary/templates/history.html:26 render.html:28 updated_records.html:21
+#: openlibrary/templates/history.html:30 render.html:30 updated_records.html:28
 msgid "When"
 msgstr "ఎప్పుడు"
 
-#: render.html:29 updated_records.html:22
+#: render.html:31 updated_records.html:29
 msgid "What"
 msgstr "ఏమిటి"
 
-#: openlibrary/templates/history.html:27 render.html:30
+#: openlibrary/templates/history.html:31 render.html:32
 msgid "Who"
 msgstr "ఎవరు"
 
-#: render.html:59
+#: openlibrary/templates/history.html:32 render.html:33 updated_records.html:30
+msgid "Comment"
+msgstr ""
+
+#: render.html:61
 msgid "Older"
 msgstr "పాతవి"
 
-#: render.html:62
+#: render.html:64
 msgid "Newer"
 msgstr "క్రొత్తవి"
 
-#: default/message.html:25 edit-book/message.html:25
+#: default/message.html:29 edit-book/message.html:29
 msgid "opened a new Open Library account!"
 msgstr "క్రొత్త సార్వత్రిక గ్రంధాలయ ఖాతా తెరిచారు!"
 
-#: merge-authors/message.html:9
+#: merge-authors/message.html:13
 #, python-format
 msgid "%(who)s merged one duplicate of %(master)s"
 msgid_plural "%(who)s merged %(count)d duplicates of %(master)s"
 msgstr[0] ""
 msgstr[1] ""
 
-#: merge-authors/message.html:16
+#: merge-authors/message.html:20
 #, python-format
 msgid "one duplicate of %(master)s was merged anonymously"
 msgid_plural "%(count)d duplicates of %(master)s were merged anonymously"
 msgstr[0] ""
 msgstr[1] ""
 
-#: authors.html:27
+#: authors.html:28
+msgid "Is the same author listed twice?"
+msgstr ""
+
+#: authors.html:29
+#, fuzzy
+msgid "Merge authors"
+msgstr "రచయితలు"
+
+#: authors.html:32
 #, fuzzy
 msgid "Author Search"
 msgstr "రచయితలు"
 
-#: editions.html:14
-msgid "Edition Search"
+#: authors.html:40
+msgid "No hits"
 msgstr ""
 
-#: inside.html:27
+#: inside.html:10
 #, fuzzy
 msgid "Search Inside"
 msgstr "మరిన్ని శోధనావిధానాలు"
 
-#: inside.html:78
-msgid ""
-"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
-"formats from main book page"
-msgstr ""
-
-#: publishers.html:5
+#: publishers.html:9
 #, fuzzy
 msgid "Publishers Search"
 msgstr "ప్రచురణ"
 
-#: subjects.html:15
+#: subjects.html:19
 #, fuzzy
 msgid "Subject Search"
 msgstr "సబ్జక్టులు"
 
-#: openlibrary/templates/account.html:13
+#: openlibrary/templates/account.html:17
 msgid "Update Email Address"
 msgstr "ఈమెయిలు చిరునామా మార్చుకోండి"
 
-#: openlibrary/templates/account.html:14
+#: openlibrary/templates/account.html:18
 msgid "Your Notifications"
 msgstr ""
 
-#: openlibrary/templates/account.html:15
+#: openlibrary/templates/account.html:19
 msgid "Your Privacy Settings"
 msgstr ""
 
-#: openlibrary/templates/account.html:16
+#: openlibrary/templates/account.html:20
 msgid "View"
 msgstr "చూడు"
 
-#: openlibrary/templates/account.html:16
+#: openlibrary/templates/account.html:20
 msgid "or"
 msgstr "లేదా"
 
-#: openlibrary/templates/account.html:16
+#: openlibrary/macros/databarView.html:15 openlibrary/templates/account.html:20
 msgid "Edit"
 msgstr "మార్చు"
 
-#: openlibrary/templates/account.html:16
+#: openlibrary/templates/account.html:20
 msgid "Your Profile Page"
 msgstr ""
 
-#: openlibrary/templates/account.html:17
+#: openlibrary/templates/account.html:21
 msgid "View or Edit your Reading Log"
 msgstr ""
 
-#: openlibrary/templates/account.html:18
+#: openlibrary/templates/account.html:22
 msgid "View or Edit your Lists"
 msgstr ""
 
-#: openlibrary/templates/account.html:20
+#: openlibrary/templates/account.html:24
 msgid "Please contact us if you need help with anything else."
 msgstr ""
 
-#: openlibrary/templates/diff.html:3
+#: openlibrary/templates/diff.html:7
 #, python-format
 msgid "Diff on %s"
 msgstr ""
 
-#: openlibrary/templates/diff.html:22
+#: openlibrary/templates/diff.html:26
 msgid "Added"
 msgstr ""
 
-#: openlibrary/templates/diff.html:23
+#: openlibrary/templates/diff.html:27
 msgid "Modified"
 msgstr "మార్చబడింది"
 
-#: openlibrary/templates/diff.html:24
+#: openlibrary/templates/diff.html:28
 msgid "Removed"
 msgstr "తొలగించబడింది"
 
-#: openlibrary/templates/diff.html:25
+#: openlibrary/templates/diff.html:29
 #, fuzzy
 msgid "Not changed"
 msgstr "మార్చండి"
 
-#: openlibrary/templates/diff.html:33
+#: openlibrary/templates/diff.html:39
 #, python-format
 msgid "Revision %d"
 msgstr "రివిజన్ %d"
 
-#: openlibrary/templates/diff.html:38
+#: openlibrary/templates/diff.html:44
 msgid "by Anonymous"
 msgstr ""
 
-#: openlibrary/templates/diff.html:94
+#: openlibrary/templates/diff.html:110
 msgid "Differences"
 msgstr "తేడాలు"
 
-#: openlibrary/templates/diff.html:151
+#: openlibrary/templates/diff.html:168
 msgid "Both the revisions are identical."
 msgstr ""
 
-#: openlibrary/templates/history.html:17
+#: openlibrary/templates/history.html:21
 msgid "History of edits to"
 msgstr ""
 
-#: openlibrary/templates/history.html:25
+#: openlibrary/templates/history.html:29
 msgid "Revision"
 msgstr ""
 
-#: openlibrary/templates/history.html:28
-msgid "¿Qué?"
-msgstr ""
-
-#: openlibrary/templates/history.html:29
+#: openlibrary/templates/history.html:33
 #, fuzzy
 msgid "Diff"
 msgstr "తేడా"
 
-#: openlibrary/templates/history.html:53
+#: openlibrary/templates/history.html:40 openlibrary/templates/history.html:63
 msgid "Compare"
 msgstr "పోల్చు"
 
-#: openlibrary/templates/history.html:53
+#: openlibrary/templates/history.html:40 openlibrary/templates/history.html:63
 #, fuzzy
 msgid "See Diff"
 msgstr "తేడా"
 
-#: openlibrary/templates/history.html:78
+#: openlibrary/templates/history.html:88
 msgid "Back"
 msgstr "వెనక్కు"
 
-#: openlibrary/templates/internalerror.html:10
+#: openlibrary/templates/internalerror.html:14
 msgid "Sorry. There seems to be a problem with what you were just looking at."
 msgstr ""
 
-#: openlibrary/templates/internalerror.html:11
+#: openlibrary/templates/internalerror.html:15
 #, python-format
 msgid ""
 "We've noted the error %s and will look into it as soon as possible. Head "
 "for <a href=\"/\">home</a>?"
 msgstr ""
 
-#: openlibrary/templates/login.html:31
+#: openlibrary/templates/login.html:15
+msgid ""
+"Please enter your <a href=\"https://archive.org\">Internet Archive</a> "
+"email and password to access your Open Library account."
+msgstr ""
+
+#: openlibrary/templates/login.html:29
 #, fuzzy
 msgid "Email"
 msgstr "ఈ-మెయిలు"
 
-#: openlibrary/templates/login.html:70
+#: openlibrary/templates/login.html:31
+#, fuzzy
+msgid "Forgot your Internet Archive email?"
+msgstr "అంతర్జాలపు ఆర్కైవ్ ఈ-మెయిల్ ను మర్చిపోయారా?"
+
+#: openlibrary/templates/login.html:51
+msgid "Remember me"
+msgstr ""
+
+#: openlibrary/templates/login.html:68
 msgid "Not a member of Open Library? <a href=\"/account/create\">Sign up now</a>."
 msgstr ""
 
-#: openlibrary/templates/notfound.html:3
+#: openlibrary/templates/notfound.html:7
 #, python-format
 msgid "%s is not found"
 msgstr ""
 
-#: openlibrary/templates/notfound.html:10
+#: openlibrary/templates/notfound.html:14
 msgid "404 - Page Not Found"
 msgstr ""
 
-#: openlibrary/templates/notfound.html:14
+#: openlibrary/templates/notfound.html:18
 #, python-format
 msgid "%s does not exist."
 msgstr ""
 
-#: openlibrary/templates/notfound.html:18
+#: openlibrary/templates/notfound.html:22
 msgid "Create it?"
 msgstr ""
 
-#: openlibrary/templates/permission_denied.html:6
+#: openlibrary/templates/permission_denied.html:10
 msgid "Permission denied."
 msgstr ""
 
-#: openlibrary/templates/permission_denied.html:26
+#: openlibrary/templates/permission_denied.html:30
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:63
+#: openlibrary/templates/subjects.html:46
 msgid ""
 "This is a chart to show the publishing history of editions of works about"
 " this subject. Along the X axis is time, and on the y axis is the count "
@@ -2188,98 +2285,84 @@ msgid ""
 " chart</a>."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:65
-msgid ""
-"This graph charts editions published on this subject. Click to view a "
-"single year, or drag across a range."
+#: openlibrary/templates/subjects.html:48
+msgid "This graph charts editions published on this subject."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:507
+#: openlibrary/templates/subjects.html:64
 msgid "Related..."
 msgstr ""
 
-#: openlibrary/templates/subjects.html:544
+#: openlibrary/templates/subjects.html:99
 msgid "Prolific Authors"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:545
+#: openlibrary/templates/subjects.html:100
 msgid "who have written the most books on this subject"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:117
-msgid "Search Results"
-msgstr "శోధనా ఫలితాలు"
-
-#: openlibrary/templates/work_search.html:128
-msgid "No hits"
-msgstr ""
-
-#: openlibrary/templates/work_search.html:134
+#: openlibrary/templates/work_search.html:106
 msgid "Sorting by"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:136
-#: openlibrary/templates/work_search.html:138
-#: openlibrary/templates/work_search.html:140
-#: openlibrary/templates/work_search.html:142
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114
 msgid "Relevance"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:136
-#: openlibrary/templates/work_search.html:138
-#: openlibrary/templates/work_search.html:140
-#: openlibrary/templates/work_search.html:142
-msgid "Most Editions"
-msgstr ""
-
-#: openlibrary/templates/work_search.html:136
-#: openlibrary/templates/work_search.html:138
-#: openlibrary/templates/work_search.html:140
-#: openlibrary/templates/work_search.html:142
-msgid "First Published"
-msgstr "ముదటి ప్రచురణ"
-
-#: openlibrary/templates/work_search.html:136
-#: openlibrary/templates/work_search.html:138
-#: openlibrary/templates/work_search.html:140
-#: openlibrary/templates/work_search.html:142
-msgid "Most Recent"
-msgstr ""
-
-#: openlibrary/templates/work_search.html:218
+#: openlibrary/templates/work_search.html:203
 msgid "Click to remove this facet"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:255
+#: openlibrary/templates/work_search.html:217
+msgid "No results found."
+msgstr ""
+
+#: openlibrary/templates/work_search.html:220
+msgid "Showing books with similar text to:"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:258
 #, fuzzy
 msgid "Zoom In"
 msgstr "లాగిన్"
 
-#: openlibrary/templates/work_search.html:256
+#: openlibrary/templates/work_search.html:259
 msgid "Focus your results using these"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:256
+#: openlibrary/templates/work_search.html:259
 msgid "filters"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:284
+#: openlibrary/templates/work_search.html:287
 msgid "more"
 msgstr "ఇంకా"
 
-#: openlibrary/templates/work_search.html:284
+#: openlibrary/templates/work_search.html:287
 msgid "less"
 msgstr ""
 
-#: openlibrary/macros/EditButtons.html:5
+#: openlibrary/macros/databarView.html:23
+#, fuzzy, python-format
+msgid "Last edited by"
+msgstr "%sని మార్చు"
+
+#: openlibrary/macros/databarView.html:25
+msgid "Last edited anonymously"
+msgstr ""
+
+#: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
 msgstr "దయచేసి, మీ చేసిన మార్పు గురించి ఒక చిన్న వ్యాఖ్య వ్రాయండి:"
 
-#: openlibrary/macros/EditButtons.html:5
+#: openlibrary/macros/EditButtons.html:9
 msgid "(Optional, but very useful!)"
 msgstr ""
 
-#: openlibrary/macros/EditButtons.html:13
+#: openlibrary/macros/EditButtons.html:17
 msgid ""
 "By saving a change to this wiki, you agree that your contribution is "
 "given freely to the world under <a "
@@ -2432,3 +2515,204 @@ msgstr ""
 
 #~ msgid "We have %(email)s for you at the moment."
 #~ msgstr "మా దగ్గర ఇప్పుడు %(email)s ఉంది."
+
+#~ msgid "Please type in the text or number(s) below."
+#~ msgstr "దయచేసి అక్షరాలలో లేదా అంకెల రూపంలోనే కింద రాయండి."
+
+#~ msgid ""
+#~ "Since you are not logged in, "
+#~ "please type in the text or "
+#~ "number(s) below."
+#~ msgstr ""
+
+#~ msgid "There is only 1 edition record, so we'll show it here..."
+#~ msgstr ""
+
+#~ msgid "Add another edition of"
+#~ msgstr ""
+
+#~ msgid "Add edition"
+#~ msgstr ""
+
+#~ msgid "Show for other books from %s"
+#~ msgstr ""
+
+#~ msgid "Search for other books from"
+#~ msgstr ""
+
+#~ msgid "Search for subjects about"
+#~ msgstr ""
+
+#~ msgid "About the Book"
+#~ msgstr "ఈ పుస్తకం గురించి"
+
+#~ msgid "First Sentence"
+#~ msgstr ""
+
+#~ msgid "Table of Contents"
+#~ msgstr "విషయ సూచిక"
+
+#~ msgid "Edition Notes"
+#~ msgstr ""
+
+#~ msgid "Series"
+#~ msgstr ""
+
+#~ msgid "Volume"
+#~ msgstr ""
+
+#~ msgid "Genre"
+#~ msgstr ""
+
+#~ msgid "Other Titles"
+#~ msgstr "ఇతర శీర్షికలు"
+
+#~ msgid "Copyright Date"
+#~ msgstr ""
+
+#~ msgid "Translation Of"
+#~ msgstr ""
+
+#~ msgid "Translated From"
+#~ msgstr ""
+
+#~ msgid "Format"
+#~ msgstr ""
+
+#~ msgid "Pagination"
+#~ msgstr ""
+
+#~ msgid "Number of pages"
+#~ msgstr "పేజీల సంఖ్య"
+
+#~ msgid "Weight"
+#~ msgstr "బరువు"
+
+#~ msgid "Some tags perhaps?"
+#~ msgstr ""
+
+#~ msgid "Expose another 20 fields about the edition"
+#~ msgstr ""
+
+#~ msgid "Librarian Mode"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "WARNING: Any edits made to the "
+#~ "work from this page will be "
+#~ "applied to the <b>old work</b>."
+#~ msgstr ""
+
+#~ msgid "Go to the top of this page"
+#~ msgstr ""
+
+#~ msgid "Top"
+#~ msgstr ""
+
+#~ msgid "Home"
+#~ msgstr ""
+
+#~ msgid "About the Open Library staff"
+#~ msgstr ""
+
+#~ msgid "About Us"
+#~ msgstr "మా గురించి"
+
+#~ msgid "Get help"
+#~ msgstr "సహాయం పొందండి"
+
+#~ msgid "Help"
+#~ msgstr "సహాయం"
+
+#~ msgid "Visit the Developers Center"
+#~ msgstr ""
+
+#~ msgid "Developers"
+#~ msgstr ""
+
+#~ msgid "Report a problem."
+#~ msgstr ""
+
+#~ msgid "Problems?"
+#~ msgstr ""
+
+#~ msgid "Full-Text Search on Archive.org"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Open Library is an initiative of "
+#~ "the <a href=\"//archive.org/\">Internet Archive</a>,"
+#~ " a 501(c)(3) non-profit, building a"
+#~ " digital library of Internet sites "
+#~ "and other cultural artifacts in digital"
+#~ " form.<br/>Other <a "
+#~ "href=\"//archive.org/projects/\">projects</a> include the"
+#~ " <a href=\"//archive.org/web/\">Wayback Machine</a>,"
+#~ " <a href=\"//archive.org/\">archive.org</a> and "
+#~ "<a href=\"//archive-it.org\">archive-it.org</a>"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Your use of the Open Library is"
+#~ " subject to the Internet Archive's <a"
+#~ " href=\"//archive.org/about/terms.php\">Terms of "
+#~ "Use</a>."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "The Open Library website has not "
+#~ "been optimized for Internet Explorer 6,"
+#~ " so some features and graphic "
+#~ "elements may not appear correctly. Many"
+#~ " sites, including <a "
+#~ "href=\"http://googleenterprise.blogspot.com/2010/01/modern-"
+#~ "browsers-for-modern-applications.html\">Google</a> "
+#~ "and Facebook, have phased out support"
+#~ " for IE6 due to security and "
+#~ "support issues. Please consider upgrading "
+#~ "to <a href=\"http://www.microsoft.com/IE9\">Internet "
+#~ "Explorer 9</a>, <a "
+#~ "href=\"http://www.mozilla.com/firefox/\">Firefox</a>, <a "
+#~ "href=\"http://www.google.com/chrome/\">Chrome</a>, <a "
+#~ "href=\"http://www.apple.com/safari/\">Safari</a>, or <a"
+#~ " href=\"http://www.opera.com/\">Opera</a> to use "
+#~ "this and other web sites to your"
+#~ " fullest advantage."
+#~ msgstr ""
+
+#~ msgid "Clear this selection"
+#~ msgstr ""
+
+#~ msgid "edition in"
+#~ msgstr ""
+
+#~ msgid "editions in"
+#~ msgstr ""
+
+#~ msgid "published in"
+#~ msgstr ""
+
+#~ msgid "published between"
+#~ msgstr ""
+
+#~ msgid "Edition Search"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Open in online Book Reader. Downloads"
+#~ " available in ePub, DAISY, PDF, TXT"
+#~ " formats from main book page"
+#~ msgstr ""
+
+#~ msgid "¿Qué?"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "This graph charts editions published on"
+#~ " this subject. Click to view a "
+#~ "single year, or drag across a "
+#~ "range."
+#~ msgstr ""
+
+#~ msgid "Search Results"
+#~ msgstr "శోధనా ఫలితాలు"
