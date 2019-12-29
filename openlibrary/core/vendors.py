@@ -3,6 +3,7 @@ import web
 import urllib2
 import simplejson
 import requests
+from decimal import Decimal
 from amazon.api import SearchException
 from infogami import config
 from infogami.utils.view import public
@@ -15,6 +16,7 @@ from openlibrary import accounts
 
 
 BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
+BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
@@ -264,9 +266,8 @@ def cached_get_amazon_metadata(*args, **kwargs):
         result = memoized_get_amazon_metadata.update(*args, **kwargs)[0]
     return result
 
-
 @public
-def get_betterworldbooks_metadata(isbn):
+def get_betterworldbooks_metadata(isbn, thirdparty=False):
     """
     :param str isbn: Unormalisied ISBN10 or ISBN13
     :return: Metadata for a single BWB book, currently listed on their catalog, or error dict.
@@ -276,10 +277,28 @@ def get_betterworldbooks_metadata(isbn):
     isbn = normalize_isbn(isbn)
     try:
         if isbn:
-            return _get_betterworldbooks_metadata(isbn)
+            metadata = _get_betterworldbooks_metadata(isbn)
+            if not metadata.get('price') and thirdparty:
+                return _get_betterworldbooks_thirdparty_metadata(isbn)
+            return metadata
     except Exception:
         return {}
 
+def _get_betterworldbooks_thirdparty_metadata(isbn):
+    if isbn:
+        url = 'https://www.betterworldbooks.com/product/detail/-%s' % isbn
+        try:
+            r = requests.get(url)
+            results = [{
+                'url': BWB_AFFILIATE_LINK % (isbn),
+                'qlt': r[0].lower(),
+                'price': '$%s (%s)' % (r[1], r[0].lower()),
+                'price_amt': r[1],
+            } for r in re.findall('data-condition=\"(New|Used).*data-price=\"([0-9.]+)\"', r.content)]
+            cheapest = sorted(results, key=lambda r: Decimal(r['price_amt']))[0]
+            return cheapest
+        except Exception:
+            return {}
 
 def _get_betterworldbooks_metadata(isbn):
     """Returns price and other metadata (currently minimal)
@@ -316,10 +335,7 @@ def _get_betterworldbooks_metadata(isbn):
             price_fmt = "$%s (%s)" % (price, qlt)
 
         return {
-            'url': (
-                'http://www.anrdoezrs.net/links/'
-                '%s/type/dlg/http://www.betterworldbooks.com/-id-%s.aspx' % (
-                    h.affiliate_id('betterworldbooks'), isbn)),
+            'url': BWB_AFFILIATE_LINK % isbn,
             'price': price_fmt,
             'price_amt': price,
             'qlt': qlt
@@ -330,6 +346,8 @@ def _get_betterworldbooks_metadata(isbn):
         except simplejson.decoder.JSONDecodeError:
             return {'error': e.read(), 'code': e.code}
         return simplejson.loads(response)
+
+
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
