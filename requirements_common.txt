@@ -20,6 +20,6 @@ six==1.13.0
 sixpack-client==1.2.0
 psycopg2==2.8.4
 OL-GeoIP==1.2.4; python_version < '3.0'
-Pygments==2.4.2
+Pygments==2.5.2
 python-amazon-simple-product-api==2.2.11
 isbnlib==3.9.3
