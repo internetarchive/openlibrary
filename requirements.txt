@@ -10,7 +10,7 @@ docutils==0.8.1
 ecdsa==0.13.3
 enum34==1.1.6
 ipython==5.8.0
-ipython-genutils==0.1.0
+ipython-genutils==0.2.0
 jsonpatch==0.4
 kombu==4.6.5
 meld3==2.0.0
