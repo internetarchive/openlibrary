@@ -79,7 +79,7 @@
     "css-loader": "2.1.1",
     "detect-libc": "1.0.3",
     "eslint": "5.16.0",
-    "jest": "24.5.0",
+    "jest": "24.9.0",
     "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
