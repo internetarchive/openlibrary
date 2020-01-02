@@ -635,7 +635,7 @@ msgid ""
 "your inbox for a note from us."
 msgstr ""
 "Wir haben Ihnen eine Nachricht mit Ihrem Benutzernamen und einer Anleitung "
-zum Zurücksetzen Ihres Open-Library-Passworts an %(email)s geschickt. "
+"zum Zurücksetzen Ihres Open-Library-Passworts an %(email)s geschickt. "
 "Bitte schauen Sie in Ihren Posteingang."
 
 #: verify/activated.html:3
@@ -1915,7 +1915,7 @@ msgid ""
 " <a href=\"#subjectRelated\">Click here to skip the chart</a>."
 msgstr ""
 "Dieses Diagramm zeigt, wann dieser Verlag Bücher veröffentlicht hat. Die "
-X-Achse zeigt die Zeit an, und die Y-Achse die Anzahl der veröffetlichten Ausgaben."
+"X-Achse zeigt die Zeit an, und die Y-Achse die Anzahl der veröffetlichten Ausgaben."
 " <a href=\"#subjectRelated\">Klicken Sie hier, um das Diagramm zu überspringen</a>."
 
 #: openlibrary/templates/subjects.html:64 view.html:56
