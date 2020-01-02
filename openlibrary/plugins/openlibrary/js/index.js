@@ -128,9 +128,9 @@ jQuery(function () {
             .then(module => module.init(window.READINGLOG_STATS_CONFIG));
     }
 
-    const $pageScanEl = $('#page-scan');
-    if ($pageScanEl.length) {
-        import(/* webpackChunkName: "page-scan" */ './page-scan')
+    const pageEl = $('#page-barcodescanner');
+    if (pageEl.length) {
+        import(/* webpackChunkName: "page-barcodescanner" */ './page-barcodescanner')
             .then((module) => module.init());
     }
 

@@ -537,9 +537,9 @@ class scan(delegate.page):
     """
     Experimental EAN barcode scanner page to scan and add/view books by their barcodes.
     """
-    path = "/_scan"
+    path = "/barcodescanner"
     def GET(self):
-        page = render.scan()
+        page = render.barcodescanner()
         page.v2 = True
         return page
 
