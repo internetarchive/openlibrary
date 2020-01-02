@@ -1,25 +1,22 @@
 import Quagga from 'quagga';
 import LazyBookCard from './LazyBookCard';
 
-const BOX_STYLE = {color: "green", lineWidth: 2};
-const RESULT_BOX_STYLE = {color: "blue", lineWidth: 2};
+const BOX_STYLE = {color: 'green', lineWidth: 2};
+const RESULT_BOX_STYLE = {color: 'blue', lineWidth: 2};
 const RESULT_LINE_STYLE = {color: 'red', lineWidth: 15};
 
 export function init() {
     Quagga.init({
-        inputStream : {
-            name: "Live",
-            type: "LiveStream",
+        inputStream: {
+            name: 'Live',
+            type: 'LiveStream',
             target: $('#interactive')[0],
         },
         decoder: {
-            readers: ["ean_reader"]
+            readers: ['ean_reader']
         },
     }, function(err) {
-        if (err) {
-            console.log(err);
-            return
-        }
+        if (err) throw err;
         Quagga.start();
     });
 
@@ -30,8 +27,8 @@ export function init() {
         const drawingCanvas = Quagga.canvas.dom.overlay;
 
         if (result.boxes) {
-            const canvasWidth = parseFloat(drawingCanvas.getAttribute("width"));
-            const canvasHeight = parseFloat(drawingCanvas.getAttribute("height"));
+            const canvasWidth = parseFloat(drawingCanvas.getAttribute('width'));
+            const canvasHeight = parseFloat(drawingCanvas.getAttribute('height'));
             drawingCtx.clearRect(0, 0, canvasWidth, canvasHeight);
 
             result.boxes.forEach(box => {
@@ -55,19 +52,18 @@ export function init() {
         const code = result.codeResult.code;
         if (!isBarcodeISBN(code) || code == lastResult) return;
         lastResult = code;
-        console.log(code);
-        
+
         const isbn = code;
         const canvas = Quagga.canvas.dom.image;
         const card = LazyBookCard.fromISBN(isbn);
         card.updateState({coverSrc: canvas.toDataURL()});
-        $("#result-strip").prepend(card.render());
+        $('#result-strip').prepend(card.render());
     });
-};
+}
 
 /**
  * Check if scanned code is an isbn
- * @param {string} code 
+ * @param {string} code
  * @return {Boolean}
  */
 function isBarcodeISBN(code) {
