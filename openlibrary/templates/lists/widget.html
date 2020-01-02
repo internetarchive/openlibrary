@@ -78,12 +78,13 @@ $jsdef show_list(list):
         </span>
         <span class="data">
             <span class="label">
-                <a href="$list.key" title="See this list">$list.name</a>
+                <a href="$list.key" title="$_('See this list')">$list.name</a>
                 $if remove:
                     $ index = get_user_list_index(list)
-                    <a href="$list.key" class="remove-from-list red smaller arial plain" id="list_$index" title="Remove from your list?">[X]</a>
+                    <a href="$list.key" class="remove-from-list red smaller arial plain" id="list_$index" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
+                <!-- FIXME: I18N required -->
                 <span class="owner">from <a href="$list.owner.key">You</a></span>
             $else:
                 <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
@@ -100,11 +101,11 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
             <div class="log-work">
               <form method="POST" action="$(work_key)/bookshelves.json">
                 $if users_work_read_status == 3:
-                    $ message = "Already Read"
+                    $ message = _("Already Read")
                 $elif users_work_read_status == 2:
-                    $ message = "Currently Reading"
+                    $ message = _("Currently Reading")
                 $else:
-                    $ message = "Want to Read"
+                    $ message = _("Want to Read")
                 $if users_work_read_status:
                   <input type="hidden" name="action" value="remove"/>
                   <input type="hidden" name="redir" value="true"/>
@@ -185,7 +186,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
               $if username:
                 <div class="reading-lists">
                   <a href="javascript:;" class="dropclick">
-                    <h3>Add to List</h3>
+                    <h3>$_('Add to List')</h3>
                     <div class="arrow arrow-activated"></div>
                   </a>
                   <div class="dropdown">
@@ -223,8 +224,8 @@ $jsdef render_head():
           <h3 class="header">
             <span class="icon list heart-adjust"></span>
             $if len(page_lists) > 0:
-                $ msg = ungettext("%s List", "%s Lists", len(page_lists))
-                <span class="head"><a href="$page_url/lists">$(sprintf(msg, len(page_lists)))</a></span>
+                $ msg = ungettext("%(count)d List", "%(count)d Lists", len(page_lists), count=len(page_lists))
+                <span class="head"><a href="$page_url/lists">$(msg)</a></span>
             $else:
                 <span class="head">$_("Lists")</span>
           </h3>
@@ -266,19 +267,19 @@ $if include_showcase:
     $:render_widget_display(page_lists, 3)
   </ul>
 
-<div id="remove-dialog" class="hidden" title="Remove">Are you sure you want to remove <strong>$title</strong> from your list?</div>
+<div id="remove-dialog" class="hidden" title="$_('Remove')">$_('Are you sure you want to remove <strong>%(title)s</strong> from your list?', title=title)</div>
 
 $if ctx.user:
     <div class="hidden">
         <div class="floaterAdd" id="addList">
             <div class="floaterHead">
-                <h2>Create a new list</h2>
+                <h2>$_('Create a new list')</h2>
                 <a class="dialog--close">&times;<span class="shift">$_("Close")</span></a>
             </div>
             <form method="post" class="floatform" name="new-list" id="new-list">
             <div class="formElement">
                 <div class="label">
-                    <label for="list_label">Name:</label>
+                    <label for="list_label">$_('Name:')</label>
                 </div>
                 <div class="input">
                     <input type="text" name="list_label" id="list_label" class="text required" value=""/>
@@ -286,7 +287,7 @@ $if ctx.user:
             </div>
             <div class="formElement">
                 <div class="label">
-                    <label for="list_desc">Description:</label>
+                    <label for="list_desc">$_('Description:')</label>
                 </div>
                 <div class="input">
                     <textarea name="list_desc" id="list_desc" rows="5" cols="30"></textarea>
@@ -294,9 +295,9 @@ $if ctx.user:
             </div>
             <div class="formElement">
                 <div class="input">
-                    <button type="submit" class="larger">Create new list</button>
+                    <button type="submit" class="larger">$_('Create new list')</button>
                     &nbsp; &nbsp;
-                    <a class="small dialog--close plain red">Cancel</a>
+                    <a class="small dialog--close plain red">$_('Cancel')</a>
                 </div>
                 <div class="label"></div>
             </div>

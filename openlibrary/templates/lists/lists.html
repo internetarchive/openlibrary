@@ -91,7 +91,7 @@ $else:
             });
         }
     </script>
-    <div id="remove-dialog" class="hidden" title="Remove">$_('Are you sure you want to remove <strong>$header.title</strong> from this list?')</div>
+    <div id="remove-dialog" class="hidden" title="Remove">$:_('Are you sure you want to remove <strong>%(title)s</strong> from this list?', title=header.title)</div>
 
 <div id="contentBody">
     $if lists:

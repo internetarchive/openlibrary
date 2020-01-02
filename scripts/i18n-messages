@@ -33,6 +33,7 @@ def main(cmd):
             'history', # minimal messaging, but useful
             'home',    # main site pages, review
             'lib',     # needs review
+            'lists',
             'publishers',
             'recentchanges',
             'search',  # main search interface
@@ -50,6 +51,7 @@ def main(cmd):
         macros = [
             'databarView.html',
             'EditButtons.html',
+            'SearchResultsWork.html',
         ]
         message_sources += [template_dir + template for template in templates]
         message_sources += [macro_dir + macro for macro in macros]

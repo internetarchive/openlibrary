@@ -40,7 +40,7 @@ $if ctx.user and ("merge-authors" in ctx.features or ctx.user.is_admin()) and qu
     </script>
 
 $ title = page.get('name', _('name missing'))
-$ title_with_site = title + " | Open Library"
+$ title_with_site = _("%(page_title)s | Open Library", page_title=title)
 $ meta_photo_url = item_image(page.get_photo_url("L"), "https://openlibrary.org/images/icons/avatar_author-lg.png")
 
 $var title: $title
@@ -53,8 +53,7 @@ $ book_list_excerpt = ''
 $if books and books.works:
     $ book_titles_excerpt = [work.title for work in books.works[:8]]
     $ book_list_excerpt = ', '.join(book_titles_excerpt)
-<!-- FIXME: I18N -->
-$ description = "Author of " + book_list_excerpt
+$ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
 
 $ library = (get_library() if 'inlibrary' in ctx.features else None)
@@ -100,13 +99,13 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                 </p>
             </div>
             <div id="postMerge" style="display: none;">
-                <p class="right small"><b><a href="$page.key">Refresh the page</a>?</b></p>
+                <p class="right small"><b><a href="$page.key">$_('Refresh the page?')</a></b></p>
                 <p class="larger collapse"><strong>$_('Success!')</strong></p>
-                <p class="small collapse">$('OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>')</p>
+                <p class="small collapse">$:_('OK. The merge is in motion. <i>It will take <u>a few minutes to finish</u> the update.</i>')</p>
             </div>
 
             <div id="errorMerge" style="display: none;">
-                <p class="larger collapse"><strong>Argh!</strong></p>
+                <p class="larger collapse"><strong>$_('Argh!')</strong></p>
                 <p class="small collapse">$_("That merge didn't work. It's our fault, and we've made a note of it.")</p>
             </div>
         </div>
@@ -130,7 +129,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
-                    $ungettext("%(count)s work", "%(count)s works", books.num_found, count=commify(books.num_found))
+                    $ungettext("%(count)d work", "%(count)d works", books.num_found, count=books.num_found)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books"><span class="tools">
@@ -146,12 +145,11 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
                         <a href="$changequery(sort=None)#editions">$_('Most Editions')</a> |  <a href="$changequery(sort='old')#editions">$_('First Published')</a> | <a href="$changequery(sort='new')#editions">$_('Most Recent')</a> | <strong class="lightgreen">$_('Title')</strong>
                 </span>
 
-<
                 <p>
                   $if input(mode="everything").mode == "everything":
-                    $:_('Showing all works by author. Would you like to see <a href="$changequery(mode=\'ebooks\')">only ebooks</a>?')
+                    $:_('Showing all works by author. Would you like to see <a href=%(url)s>only ebooks</a>?', url=changequery(mode='ebook'))
                   $else:
-                    $:_('Showing ebooks only. Would you like to see <a href="$changequery(mode=\'everything\')">everything</a> by this author?')
+                    $:_('Showing ebooks only. Would you like to see <a href=%(url)s>everything</a> by this author?', url=changequery(mode='everything'))
                 </p>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
@@ -196,7 +194,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
             </div>
 
         <div class="section">
-            <h3>$_('Links') <span class="gray small sansserif">($_('outside Open Library'))</span></h3>
+            <h3>$:_('Links <span class="gray small sansserif">(outside Open Library)')</span></h3>
 
             $if page.links or page.remote_ids or (page.wikipedia and page.wikipedia.startswith("http")):
                 <ul class="booklinks sansserif">
