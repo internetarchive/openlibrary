@@ -14,7 +14,7 @@ from openlibrary.utils.isbn import (
 from openlibrary.catalog.add_book import load
 from openlibrary import accounts
 
-
+BWB_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
@@ -269,36 +269,41 @@ def cached_get_amazon_metadata(*args, **kwargs):
 @public
 def get_betterworldbooks_metadata(isbn, thirdparty=False):
     """
-    :param str isbn: Unormalisied ISBN10 or ISBN13
+    :param str isbn: Unnormalisied ISBN10 or ISBN13
+    :param bool thirdparty: If no Product API  match, scrape bwb website for 3rd party matches
     :return: Metadata for a single BWB book, currently listed on their catalog, or error dict.
     :rtype: dict
     """
 
     isbn = normalize_isbn(isbn)
     try:
-        if isbn:
-            metadata = _get_betterworldbooks_metadata(isbn)
-            if not metadata.get('price') and thirdparty:
-                return _get_betterworldbooks_thirdparty_metadata(isbn)
-            return metadata
+        metadata = _get_betterworldbooks_metadata(isbn)
+        if not metadata.get('price') and thirdparty:
+            return _get_betterworldbooks_thirdparty_metadata(isbn)
+        return metadata
     except Exception:
         return {}
 
 def _get_betterworldbooks_thirdparty_metadata(isbn):
-    if isbn:
-        url = 'https://www.betterworldbooks.com/product/detail/-%s' % isbn
-        try:
-            r = requests.get(url)
-            results = [{
-                'url': BWB_AFFILIATE_LINK % (isbn),
-                'qlt': r[0].lower(),
-                'price': '$%s (%s)' % (r[1], r[0].lower()),
-                'price_amt': r[1],
-            } for r in re.findall('data-condition=\"(New|Used).*data-price=\"([0-9.]+)\"', r.content)]
-            cheapest = sorted(results, key=lambda r: Decimal(r['price_amt']))[0]
-            return cheapest
-        except Exception:
-            return {}
+    """Scrapes metadata from betterworldbooks website in the case the
+    Product API returns no result (i.e. includes 3rd party vendor inventory)
+
+    :param str isbn: Unnormalisied ISBN10 or ISBN13
+    :return: Metadata for a single BWB book, currently listed on their catalog, or error dict.
+    :rtype: dict
+    """
+    url = '%s/product/detail/-%s' % (BWB_URL, isbn)
+    try:
+        content = urllib2.urlopen(url).read()
+        results = [betterworldbooks_fmt(
+            isbn,
+            qlt=i[0].lower(),
+            price=i[1]
+        ) for i in re.findall('data-condition="(New|Used).*data-price=\"([0-9.]+)"', content)]
+        cheapest = sorted(results, key=lambda i: Decimal(i['price_amt']))[0]
+        return cheapest
+    except Exception:
+        return betterworldbooks_fmt(isbn)
 
 def _get_betterworldbooks_metadata(isbn):
     """Returns price and other metadata (currently minimal)
@@ -311,15 +316,14 @@ def _get_betterworldbooks_metadata(isbn):
 
     url = BETTERWORLDBOOKS_API_URL + isbn
     try:
-        r = requests.get(url)
-        response = r.content
+        responses = urllib2.urlopen(url).read()
         product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
         new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
         new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
         used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
 
-        price_fmt = price = qlt = None
+        price = qlt = None
 
         if used_qty and used_qty[0] and used_qty[0] != '0':
             price = used_price[0] if used_price else ''
@@ -331,15 +335,8 @@ def _get_betterworldbooks_metadata(isbn):
                 price = _price
                 qlt = 'new'
 
-        if price and qlt:
-            price_fmt = "$%s (%s)" % (price, qlt)
+        return betterworldbooks_fmt(isbn, qlt, price)
 
-        return {
-            'url': BWB_AFFILIATE_LINK % isbn,
-            'price': price_fmt,
-            'price_amt': price,
-            'qlt': qlt
-        }
     except urllib2.HTTPError as e:
         try:
             response = e.read()
@@ -347,7 +344,22 @@ def _get_betterworldbooks_metadata(isbn):
             return {'error': e.read(), 'code': e.code}
         return simplejson.loads(response)
 
+def betterworldbooks_fmt(isbn, qlt=None, price=None):
+    """Defines a standard interface for returning bwb price info
 
+    :param str isbn:
+    :param str qlt: Quality of the book, e.g. "new", "used"
+    :param str price: Price of the book as a decimal str, e.g. "4.28"
+    :rtype: dict 
+    """
+    price_fmt = "$%s (%s)" % (price, qlt) if price and qlt else None
+    return {
+        'url': BWB_AFFILIATE_LINK % isbn,
+        'isbn': isbn,
+        'price': price_fmt,
+        'price_amt': price,
+        'qlt': qlt
+    }
 
 
 cached_get_betterworldbooks_metadata = cache.memcache_memoize(
