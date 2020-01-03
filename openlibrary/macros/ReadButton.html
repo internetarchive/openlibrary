@@ -1,6 +1,6 @@
 $def with(ocaid, borrow=False, listen=False, loan=None)
 
-<!-- FIXME: Not internationalizable -->
+<!-- FIXME: Not internationalizable. Can't use internal action names as user visible strings!-->
 $ action = "borrow" if (borrow and not loan) else "read"
 $ title = "%s ebook from Internet Archive" % action
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid

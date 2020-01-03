@@ -53,8 +53,12 @@ def main(cmd):
         macros = [
             'databarHistory.html',
             'databarView.html',
+            'databarWork.html',
             'EditButtons.html',
+            'LoanStatus.html',
             'SearchResultsWork.html',
+            'SocialShare.html',
+            'WorldcatLink.html',
         ]
         message_sources += [template_dir + template for template in templates]
         message_sources += [macro_dir + macro for macro in macros]

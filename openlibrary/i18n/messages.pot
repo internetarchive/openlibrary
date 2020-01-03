@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-02 21:03-0500\n"
+"POT-Creation-Date: 2020-01-02 22:42-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -318,15 +318,15 @@ msgid ""
 " by this author?"
 msgstr ""
 
-#: nav_foot.html:26 view.html:137 view.html:192 view.html:270
+#: nav_foot.html:26 view.html:137 view.html:192 view.html:273
 msgid "Subjects"
 msgstr ""
 
-#: view.html:139 view.html:193 view.html:272
+#: view.html:139 view.html:193 view.html:275
 msgid "Places"
 msgstr ""
 
-#: view.html:138 view.html:194 view.html:271
+#: view.html:138 view.html:194 view.html:274
 msgid "People"
 msgstr ""
 
@@ -350,15 +350,26 @@ msgstr ""
 msgid "Alternative names"
 msgstr ""
 
-#: editions.html:14 view.html:158
+#: view.html:159
+#, python-format
+msgid ""
+"<a href=\"%(url)s\"><strong>1 edition</strong></a> of <strong "
+"class=\"booktitle\">%(title)s</strong> found in the catalog."
+msgid_plural ""
+"<a href=\"%(url)s\"><strong>%(count)d editions</strong></a> of <strong "
+"class=\"booktitle\">%(title)s</strong> found in the catalog."
+msgstr[0] ""
+msgstr[1] ""
+
+#: editions.html:14 view.html:161
 msgid "Add another edition of"
 msgstr ""
 
-#: view.html:158
+#: view.html:161
 msgid "Add another edition"
 msgstr ""
 
-#: edit/edition.html:294 view.html:192
+#: edit/edition.html:294 view.html:195
 msgid "Contributors"
 msgstr ""
 
@@ -366,123 +377,123 @@ msgstr ""
 #: book_cover_single_edition.html:36 book_cover_small.html:18
 #: book_cover_work.html:18 book_cover_work.html:32
 #: openlibrary/macros/SearchResultsWork.html:33
-#: openlibrary/templates/diff.html:42 show.html:16 view.html:211
+#: openlibrary/templates/diff.html:42 show.html:16 view.html:214 view.html:243
 msgid "by"
 msgstr ""
 
-#: view.html:236
+#: view.html:239
 msgid "Published"
 msgstr ""
 
-#: view.html:243
+#: view.html:246
 #, python-format
 msgid "Show for other books from %s"
 msgstr ""
 
-#: view.html:245
+#: view.html:248
 msgid "Search for other books from"
 msgstr ""
 
-#: view.html:248
+#: view.html:251
 msgid "in"
 msgstr ""
 
-#: view.html:250
+#: view.html:253
 msgid "Search for subjects about"
 msgstr ""
 
-#: view.html:253
+#: view.html:256
 msgid "Written in"
 msgstr ""
 
-#: view.html:140 view.html:273
+#: view.html:140 view.html:276
 msgid "Times"
 msgstr ""
 
-#: view.html:116 view.html:279
+#: view.html:116 view.html:282
 msgid "About the Book"
 msgstr ""
 
-#: view.html:282
+#: view.html:285
 msgid "About the Edition"
 msgstr ""
 
-#: view.html:286
+#: view.html:289
 #, python-format
 msgid ""
 "There's no description for this book yet. Can you <b><a href='%s'>add "
 "one</a></b>?"
 msgstr ""
 
-#: view.html:113 view.html:289
+#: view.html:113 view.html:292
 msgid "First Sentence"
 msgstr ""
 
-#: view.html:295
+#: view.html:298
 msgid "Table of Contents"
 msgstr ""
 
-#: view.html:313
+#: view.html:316
 msgid "Edition Notes"
 msgstr ""
 
-#: view.html:318
+#: view.html:321
 msgid "Series"
 msgstr ""
 
-#: view.html:319
+#: view.html:322
 msgid "Volume"
 msgstr ""
 
-#: view.html:320
+#: view.html:323
 msgid "Genre"
 msgstr ""
 
-#: view.html:321
+#: view.html:324
 msgid "Other Titles"
 msgstr ""
 
-#: view.html:322
+#: view.html:325
 msgid "Copyright Date"
 msgstr ""
 
-#: view.html:323
+#: view.html:326
 msgid "Translation Of"
 msgstr ""
 
-#: view.html:324
+#: view.html:327
 msgid "Translated From"
 msgstr ""
 
-#: edit/edition.html:523 view.html:178 view.html:331
+#: edit/edition.html:523 view.html:178 view.html:334
 msgid "Classifications"
 msgstr ""
 
-#: edit/edition.html:580 view.html:341
+#: edit/edition.html:580 view.html:344
 msgid "The Physical Object"
 msgstr ""
 
-#: view.html:342
+#: view.html:345
 msgid "Format"
 msgstr ""
 
-#: view.html:343
+#: view.html:346
 msgid "Pagination"
 msgstr ""
 
-#: view.html:344
+#: view.html:347
 msgid "Number of pages"
 msgstr ""
 
-#: edit/edition.html:631 view.html:345
+#: edit/edition.html:631 view.html:348
 msgid "Dimensions"
 msgstr ""
 
-#: view.html:346
+#: view.html:349
 msgid "Weight"
 msgstr ""
 
-#: edit/edition.html:449 view.html:352
+#: edit/edition.html:449 view.html:355
 msgid "ID Numbers"
 msgstr ""
 
@@ -1197,7 +1208,7 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: edition-sort.html:92
+#: edition-sort.html:92 openlibrary/macros/LoanStatus.html:92
 msgid "Not in Library"
 msgstr ""
 
@@ -2723,6 +2734,18 @@ msgstr ""
 msgid "View this template's edit history"
 msgstr ""
 
+#: openlibrary/macros/databarWork.html:51
+msgid "Really return this book?"
+msgstr ""
+
+#: openlibrary/macros/databarWork.html:65
+msgid "Buy this book"
+msgstr ""
+
+#: openlibrary/macros/databarWork.html:81
+msgid "External Links"
+msgstr ""
+
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
 msgstr ""
@@ -2738,6 +2761,15 @@ msgid ""
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
 "target=\"_blank\" title=\"This link to Creative Commons will open in a "
 "new window\">CC0</a>. Yippee!"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:63
+msgid "You are <strong>next</strong> on the waiting list"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:65
+#, python-format
+msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr ""
 
 #: openlibrary/macros/SearchResultsWork.html:35
@@ -2758,4 +2790,20 @@ msgstr ""
 
 #: openlibrary/macros/SearchResultsWork.html:60
 msgid "Download DAISY"
+msgstr ""
+
+#: openlibrary/macros/SocialShare.html:11
+msgid "Share this book"
+msgstr ""
+
+#: openlibrary/macros/SocialShare.html:22
+msgid "Embed this book in your website"
+msgstr ""
+
+#: openlibrary/macros/WorldcatLink.html:10
+msgid "Check nearby libraries"
+msgstr ""
+
+#: openlibrary/macros/WorldcatLink.html:14
+msgid "Check WorldCat for an edition near you"
 msgstr ""

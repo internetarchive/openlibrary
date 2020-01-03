@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-02 21:03-0500\n"
+"POT-Creation-Date: 2020-01-02 22:42-0500\n"
 "PO-Revision-Date: 2018-03-27 22:28+0200\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -340,15 +340,15 @@ msgstr ""
 "Affichage des ebooks uniquement. Aimeriez-vous voir <a href=%(url)s> tout"
 " </a> de cet auteur?"
 
-#: nav_foot.html:26 view.html:137 view.html:192 view.html:270
+#: nav_foot.html:26 view.html:137 view.html:192 view.html:273
 msgid "Subjects"
 msgstr "Thèmes"
 
-#: view.html:139 view.html:193 view.html:272
+#: view.html:139 view.html:193 view.html:275
 msgid "Places"
 msgstr "Lieux"
 
-#: view.html:138 view.html:194 view.html:271
+#: view.html:138 view.html:194 view.html:274
 msgid "People"
 msgstr "Personnes"
 
@@ -372,15 +372,30 @@ msgstr "Ajouter un lien"
 msgid "Alternative names"
 msgstr "Autres noms"
 
-#: editions.html:14 view.html:158
+#: view.html:159
+#, python-format
+msgid ""
+"<a href=\"%(url)s\"><strong>1 edition</strong></a> of <strong "
+"class=\"booktitle\">%(title)s</strong> found in the catalog."
+msgid_plural ""
+"<a href=\"%(url)s\"><strong>%(count)d editions</strong></a> of <strong "
+"class=\"booktitle\">%(title)s</strong> found in the catalog."
+msgstr[0] ""
+"<a href=\"%(url)s\"><strong>1 édition</strong></a> de <strong "
+"class=\"booktitle\">%(title)s</strong> trouvé dans le catalogue."
+msgstr[1] ""
+"<a href=\"%(url)s\"><strong>%(count)d éditions</strong></a> de <strong "
+"class=\"booktitle\">%(title)s</strong> trouvé dans le catalogue."
+
+#: editions.html:14 view.html:161
 msgid "Add another edition of"
 msgstr "Ajouter un autre édition de "
 
-#: view.html:158
+#: view.html:161
 msgid "Add another edition"
 msgstr "Ajouter un autre édition"
 
-#: edit/edition.html:294 view.html:192
+#: edit/edition.html:294 view.html:195
 msgid "Contributors"
 msgstr "Contributeurs"
 
@@ -388,48 +403,48 @@ msgstr "Contributeurs"
 #: book_cover_single_edition.html:36 book_cover_small.html:18
 #: book_cover_work.html:18 book_cover_work.html:32
 #: openlibrary/macros/SearchResultsWork.html:33
-#: openlibrary/templates/diff.html:42 show.html:16 view.html:211
+#: openlibrary/templates/diff.html:42 show.html:16 view.html:214 view.html:243
 msgid "by"
 msgstr "par"
 
-#: view.html:236
+#: view.html:239
 msgid "Published"
 msgstr "Publiés"
 
-#: view.html:243
+#: view.html:246
 #, python-format
 msgid "Show for other books from %s"
 msgstr "Montrer les autres livres de %s"
 
-#: view.html:245
+#: view.html:248
 msgid "Search for other books from"
 msgstr "Chercher d'autres livres de"
 
-#: view.html:248
+#: view.html:251
 msgid "in"
 msgstr "en"
 
-#: view.html:250
+#: view.html:253
 msgid "Search for subjects about"
 msgstr "Chercher à propos de"
 
-#: view.html:253
+#: view.html:256
 msgid "Written in"
 msgstr "Écrit en"
 
-#: view.html:140 view.html:273
+#: view.html:140 view.html:276
 msgid "Times"
 msgstr "Dates"
 
-#: view.html:116 view.html:279
+#: view.html:116 view.html:282
 msgid "About the Book"
 msgstr "À propos du livre"
 
-#: view.html:282
+#: view.html:285
 msgid "About the Edition"
 msgstr "À propos de l'édition"
 
-#: view.html:286
+#: view.html:289
 #, python-format
 msgid ""
 "There's no description for this book yet. Can you <b><a href='%s'>add "
@@ -438,75 +453,75 @@ msgstr ""
 "Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
 "href='%s'> en ajouter un?</a></b>"
 
-#: view.html:113 view.html:289
+#: view.html:113 view.html:292
 msgid "First Sentence"
 msgstr "Première phrase"
 
-#: view.html:295
+#: view.html:298
 msgid "Table of Contents"
 msgstr "Table des matières"
 
-#: view.html:313
+#: view.html:316
 msgid "Edition Notes"
 msgstr "Notes d'édition"
 
-#: view.html:318
+#: view.html:321
 msgid "Series"
 msgstr "Série"
 
-#: view.html:319
+#: view.html:322
 msgid "Volume"
 msgstr "Volume"
 
-#: view.html:320
+#: view.html:323
 msgid "Genre"
 msgstr "Genres"
 
-#: view.html:321
+#: view.html:324
 msgid "Other Titles"
 msgstr "Autres titres"
 
-#: view.html:322
+#: view.html:325
 msgid "Copyright Date"
 msgstr "Date de copyright"
 
-#: view.html:323
+#: view.html:326
 msgid "Translation Of"
 msgstr "Traduction de"
 
-#: view.html:324
+#: view.html:327
 msgid "Translated From"
 msgstr "Traduit de"
 
-#: edit/edition.html:523 view.html:178 view.html:331
+#: edit/edition.html:523 view.html:178 view.html:334
 msgid "Classifications"
 msgstr "Classifications"
 
-#: edit/edition.html:580 view.html:341
+#: edit/edition.html:580 view.html:344
 msgid "The Physical Object"
 msgstr "L'objet physique"
 
-#: view.html:342
+#: view.html:345
 msgid "Format"
 msgstr "Format"
 
-#: view.html:343
+#: view.html:346
 msgid "Pagination"
 msgstr "Pagination"
 
-#: view.html:344
+#: view.html:347
 msgid "Number of pages"
 msgstr "Nombre de pages"
 
-#: edit/edition.html:631 view.html:345
+#: edit/edition.html:631 view.html:348
 msgid "Dimensions"
 msgstr "Dimensions"
 
-#: view.html:346
+#: view.html:349
 msgid "Weight"
 msgstr "Poids"
 
-#: edit/edition.html:449 view.html:352
+#: edit/edition.html:449 view.html:355
 msgid "ID Numbers"
 msgstr "Identifiants"
 
@@ -1296,7 +1311,7 @@ msgstr "Éditeur inconnu"
 msgid "in %(languagelist)s"
 msgstr "en %(languagelist)s"
 
-#: edition-sort.html:92
+#: edition-sort.html:92 openlibrary/macros/LoanStatus.html:92
 msgid "Not in Library"
 msgstr "Pas dans la bibliothèque"
 
@@ -2004,7 +2019,6 @@ msgid "Development Center"
 msgstr "Centre de développement"
 
 #: nav_foot.html:35
-#, fuzzy
 msgid "Explore Open Library APIs"
 msgstr ""
 
@@ -2880,6 +2894,18 @@ msgstr "Modifié anonymement"
 msgid "View this template's edit history"
 msgstr ""
 
+#: openlibrary/macros/databarWork.html:51
+msgid "Really return this book?"
+msgstr "Vraiment rendre ce livre?"
+
+#: openlibrary/macros/databarWork.html:65
+msgid "Buy this book"
+msgstr ""
+
+#: openlibrary/macros/databarWork.html:81
+msgid "External Links"
+msgstr "Liens externe"
+
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
 msgstr "Veuillez laisser une courte note sur ce que vous avez modifié:"
@@ -2902,6 +2928,15 @@ msgstr ""
 "target=\"_blank\" title=\"Ouvrir les termes de la Creative Commons dans "
 "une nouvelle fenêtre\">CC0</a>. Youpi!"
 
+#: openlibrary/macros/LoanStatus.html:63
+msgid "You are <strong>next</strong> on the waiting list"
+msgstr "Vous êtes <strong>suivant</strong> sur la liste d'attente"
+
+#: openlibrary/macros/LoanStatus.html:65
+#, python-format
+msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr "Vous êtes <strong>#%(spot)d</strong> de %(wlsize)d sur la liste d'attente."
+
 #: openlibrary/macros/SearchResultsWork.html:35
 msgid "Unknown author"
 msgstr "Auteur inconnu"
@@ -2921,6 +2956,22 @@ msgstr "- première publication en %(year)s"
 #: openlibrary/macros/SearchResultsWork.html:60
 msgid "Download DAISY"
 msgstr "Télécharger DAISY"
+
+#: openlibrary/macros/SocialShare.html:11
+msgid "Share this book"
+msgstr "Partager ce livre?"
+
+#: openlibrary/macros/SocialShare.html:22
+msgid "Embed this book in your website"
+msgstr "Intégrez ce livre dans votre site Web"
+
+#: openlibrary/macros/WorldcatLink.html:10
+msgid "Check nearby libraries"
+msgstr "Consultez les bibliothèques à proximité"
+
+#: openlibrary/macros/WorldcatLink.html:14
+msgid "Check WorldCat for an edition near you"
+msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 # ##########################################################################
 # # Everything below this line is believed to be obsolete and can be deleted
@@ -3943,9 +3994,6 @@ msgstr "Télécharger DAISY"
 #~ msgid "Get help"
 #~ msgstr "Obtenez de l'aide"
 
-#~ msgid "Help"
-#~ msgstr "Aide"
-
 #~ msgid "Visit the Developers Center"
 #~ msgstr "Visitez le centre de développement"
 
@@ -4108,9 +4156,6 @@ msgstr "Télécharger DAISY"
 #~ msgid "Change"
 #~ msgstr "Changer"
 
-#~ msgid "Read a scanned version in BookReader"
-#~ msgstr ""
-
 #~ msgid "There are two ways to get a cover image on Open Library:"
 #~ msgstr "Il y a deux manières d'ajouter une couverture sur Open Library:"
 
@@ -4119,7 +4164,4 @@ msgstr "Télécharger DAISY"
 
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
-
-#~ msgid "Last edited by"
-#~ msgstr "odifié  par"
 

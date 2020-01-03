@@ -56,9 +56,9 @@ $elif (availability_status == 'borrow_unavailable'):
     <p class="waitinglist-message">
       $ spot = ctx.user.get_waiting_loan_for(page)['position']
       $if spot == 1:
-          You are <strong>next</strong> on the waiting list
+          $:_('You are <strong>next</strong> on the waiting list')
       $else:
-          You are <strong>#$(spot)</strong> of $(wlsize) on the waiting list.
+          $:_('You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list.', spot=spot, wlsize=wlsize)
     </p>
     <form method="POST" action="$borrow_link" class="leave-waitlist waitinglist-form">
       <input type="hidden" name="action" value="leave-waitinglist"/>
