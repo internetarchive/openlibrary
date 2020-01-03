@@ -20,54 +20,45 @@ window.q.push( function(){
 });
 </script>
 
+$def field(input, label, help_text='', id=None, input_attrs='', suffix=''):
+    $# :param openlibrary.utils.form.Input input:
+    $# :param str label: User visible label
+    $# :param str help_text: User visible help text
+    $# :param str id: As used in HTML
+    $# :param str input_atts:
+    $# :param str suffix: HTML to put at bottom of input
+
+    $ id = id or input.name
+    <div class="formElement">
+        <div class="label">
+            <label for="$id">$label</label>
+            $if help_text:
+                <span class="smaller lighter">$help_text</span>
+        </div>
+        <div class="input">
+            <input type="text" class="required $input.name" name="$input.name" id="$id" value="$input.value" $:input_attrs/>
+            $if input.note:
+                <span class="invalid clearfix">$input.note</span>
+            $if suffix:
+                <div class="sansserif smaller lighter">$:suffix</div>
+        </div>
+    </div>
+
 $if ctx.user:
     $def user_link(): <a href="$ctx.user.key">$ctx.user.displayname</a>
     <p>$:_("You are already logged into Open Library as %(user)s.", user=str(user_link()))</p>
     <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 $else:
-    <form id="signup" class="olform create validate" name="signup" method="post" action="">
+    <form class="olform create validate" name="signup" method="post" action="">
         $if form.note:
             <div class="note">$form.note</div>
 
-        <div class="formElement">
-            <div class="label">
-                <label for="emailAddr">$_("Your email address")</label>
-                <span class="smaller lighter"></span>
-            </div>
-            <div class="input">
-                <input type="text" class="required email" name="email" id="emailAddr" value="$form.email.value"/>
-                <span class="invalid clearfix" htmlfor="email">$form.email.note</span>
-            </div>
-        </div>
-        <div class="formElement">
-            <div class="label">
-                <label for="username">$_("Choose a screen name")</label>
-                <span class="smaller lighter">$_("Letters and numbers only please, and at least 3 characters.")</span>
-            </div>
-            <div class="input">
-                <input type="text" class="required" name="username" id="username" value="$form.username.value" autocapitalize="off"/>
-                <span class="invalid clearfix" htmlfor="username">$form.username.note</span>
-                <div class="sansserif smaller lighter">$_('Your URL: https://openlibrary.org/people/<span id="userUrl">screenname</span>')</div>
-            </div>
-        </div>
-        <div class="formElement">
-            <div class="label">
-                <label for="password">$_("Choose a password")</label>
-            </div>
-            <div class="input">
-                <input value="" type="password" class="required" name="password" id="password"/>
-                <span class="invalid clearfix" htmlfor="password">$form.password.note</span>
-            </div>
-        </div>
-        <div class="formElement">
-            <div class="label">
-              <label for="password">$_("Confirm password")</label>
-            </div>
-            <div class="input">
-              <input value="" type="password" class="required" name="password2" id="password2"/>
-              <span class="invalid clearfix" htmlfor="password2">$form.password2.note</span>
-            </div>
-        </div>
+        $def screenname_url(): https://openlibrary.org/people/<span id="userUrl">$_('screenname')</span>
+
+        $:field(form.email, _("Your email address"), id="emailAddr")
+        $:field(form.username, _("Choose a screen name"), help_text=_("Letters and numbers only please, and at least 3 characters."), input_attrs='autocapitalize="off"', suffix=_('Your URL: %s') % str(screenname_url()))
+        $:field(form.password, _("Choose a password"))
+        $:field(form.password2, _("Confirm password"))
 
         $if form.has_recaptcha:
             <div class="formElement">
@@ -75,7 +66,7 @@ $else:
                 <div class="g-recaptcha" data-sitekey="$form['recaptcha'].public_key"></div>
                 <div class="input">
                     $if form['recaptcha'].error:
-                        <span class="invalid clearfix" htmlfor="email">Incorrect. Please try again.</span>
+                        <span class="invalid clearfix">$_('Incorrect. Please try again.')</span>
                 </div>
             </div>
 
@@ -89,7 +80,7 @@ $else:
         <div class="formElement bottom">
             <div class="input">
                 <br/>
-                <button type="submit" name="signup" id="signup" class="larger" title="$_('Sign Up')">$_("Sign Up")</button>
+                <button type="submit" name="signup" class="larger">$_("Sign Up")</button>
                 &nbsp;
                 <a href="javascript:history.go(-1);" class="smaller attn">$_("Cancel")</a>
             </div>
