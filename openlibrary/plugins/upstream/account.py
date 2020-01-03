@@ -233,36 +233,32 @@ class account_create(delegate.page):
         return name in delegate.get_plugins() or "openlibrary.plugins." + name in delegate.get_plugins()
 
     def POST(self):
-        i = web.input('email', 'password', 'username', agreement="no")
+        i = web.input('email', 'password', 'username')
         i.displayname = i.get('displayname') or i.username
 
         f = self.get_form()
 
         if f.validates(i):
-            if i.agreement == "yes":
-                ia_account = InternetArchiveAccount.get(email=i.email)
-                # Require email to not already be used in IA or OL
+            ia_account = InternetArchiveAccount.get(email=i.email)
+            # Require email to not already be used in IA or OL
 
-                if not ia_account:
-                    # Account doesn't already exist, proceed
-                    try:
-                        # Create ia_account: require they activate via IA email
-                        # and then login to OL. Logging in after activation with
-                        # IA credentials will auto create and link OL account.
-                        ia_account = InternetArchiveAccount.create(
-                            screenname=i.username, email=i.email, password=i.password,
-                            verified=False, retries=USERNAME_RETRIES)
-                        page = render['account/verify'](username=i.username, email=i.email)
-                        page.v2 = True
-                        return page
-                    except ValueError as e:
-                        f.note = LOGIN_ERRORS['max_retries_exceeded']
-                else:
-                    # Account with this email already exists
-                    f.note = LOGIN_ERRORS['email_registered']
+            if not ia_account:
+                # Account doesn't already exist, proceed
+                try:
+                    # Create ia_account: require they activate via IA email
+                    # and then login to OL. Logging in after activation with
+                    # IA credentials will auto create and link OL account.
+                    ia_account = InternetArchiveAccount.create(
+                        screenname=i.username, email=i.email, password=i.password,
+                        verified=False, retries=USERNAME_RETRIES)
+                    page = render['account/verify'](username=i.username, email=i.email)
+                    page.v2 = True
+                    return page
+                except ValueError as e:
+                    f.note = LOGIN_ERRORS['max_retries_exceeded']
             else:
-                # User did not click terms of service
-                f.note = utils.get_error("account_create_tos_not_selected")
+                # Account with this email already exists
+                f.note = LOGIN_ERRORS['email_registered']
 
         page = render['account/create'](f)
         page.v2 = True
