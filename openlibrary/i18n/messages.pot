@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-02 19:37-0500\n"
+"POT-Creation-Date: 2020-01-02 21:03-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2493,6 +2493,7 @@ msgstr ""
 msgid "or"
 msgstr ""
 
+#: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16 openlibrary/templates/account.html:20
 msgid "Edit"
 msgstr ""
@@ -2702,15 +2703,18 @@ msgstr ""
 msgid "less"
 msgstr ""
 
+#: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16
 msgid "Edit this template"
 msgstr ""
 
+#: openlibrary/macros/databarHistory.html:21
 #: openlibrary/macros/databarView.html:24
 #, python-format
 msgid "Last edited by <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>"
 msgstr ""
 
+#: openlibrary/macros/databarHistory.html:23
 #: openlibrary/macros/databarView.html:26
 msgid "Last edited anonymously"
 msgstr ""

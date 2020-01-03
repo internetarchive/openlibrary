@@ -8,12 +8,13 @@ $else:
 <div id="editTools" class="edit">
     $if not page.is_fake_record():
         <div id="editButton">
-            <a class="linkButton" href="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</a>
+            <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+            <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')" accesskey="e">$_("Edit")</a>
         </div>
     <div id="editInfo">
         $ author = get_recent_author(page)
         $if author:
-            <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
+            <div class="brown smaller sansserif">$:_('Last edited by <a href="$author.key" rel="nofollow">%(authorname)s</a>', authorname=author.displayname)</div>
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         <div class="smallest gray sansserif">

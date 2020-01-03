@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-02 19:37-0500\n"
+"POT-Creation-Date: 2020-01-02 21:03-0500\n"
 "PO-Revision-Date: 2018-03-27 22:28+0200\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -394,12 +394,12 @@ msgstr "par"
 
 #: view.html:236
 msgid "Published"
-msgstr "Publiés""
+msgstr "Publiés"
 
 #: view.html:243
 #, python-format
 msgid "Show for other books from %s"
- msgstr "Montrer les autres livres de %s"
+msgstr "Montrer les autres livres de %s"
 
 #: view.html:245
 msgid "Search for other books from"
@@ -467,7 +467,6 @@ msgid "Other Titles"
 msgstr "Autres titres"
 
 #: view.html:322
-#, fuzzy
 msgid "Copyright Date"
 msgstr "Date de copyright"
 
@@ -517,9 +516,8 @@ msgid "First published in %s"
 msgstr "- première publication en %(year)s"
 
 #: editions.html:14 editions_datatable.html:13
-#, fuzzy
 msgid "Add another"
-msgstr "Ajouter une autre image"
+msgstr "Ajouter une autre"
 
 #: editions_datatable.html:8 view.html:28 view.html:71
 #, python-format
@@ -565,7 +563,7 @@ msgid "%(title)s by %(authorlist)s"
 msgstr ""
 
 #: view.html:31
-#, fuzzy, python-format
+#, python-format
 msgid "First published in %(year)d"
 msgstr "- première publication en %(year)s"
 
@@ -606,7 +604,7 @@ msgid "Go to the editions section to read or download ebooks"
 msgstr ""
 
 #: view.html:108
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "There's no description for this book yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
@@ -623,7 +621,6 @@ msgid "Excerpts"
 msgstr "Extraits"
 
 #: view.html:153
-#, fuzzy
 msgid "Page"
 msgstr "De la page"
 
@@ -1962,7 +1959,6 @@ msgid "Home"
 msgstr "Aller à l'accueil"
 
 #: nav_foot.html:24
-#, fuzzy
 msgid "Explore Books"
 msgstr "Explorer des livres"
 
@@ -2010,7 +2006,7 @@ msgstr "Centre de développement"
 #: nav_foot.html:35
 #, fuzzy
 msgid "Explore Open Library APIs"
-msgstr "Bienvenue sur Open Library"
+msgstr ""
 
 #: nav_foot.html:35
 msgid "API Documentation"
@@ -2041,7 +2037,6 @@ msgid "Help Center"
 msgstr "Centre d'aide"
 
 #: nav_foot.html:45
-#, fuzzy
 msgid "Problems"
 msgstr "Des problèmes?"
 
@@ -2104,9 +2099,8 @@ msgid "All"
 msgstr "Tout"
 
 #: nav_head.html:46
-#, fuzzy
 msgid "Text"
-msgstr "Suivant"
+msgstr ""
 
 #: advancedsearch.html:29 nav_head.html:47 search_foot.html:11
 #: search_head.html:11
@@ -2307,11 +2301,11 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: header.html:52
-#, fuzzy, python-format
+#, python-format
 msgid "%s has %s list."
 msgid_plural "%s has %s lists."
-msgstr[0] "%s n'existe pas."
-msgstr[1] ""
+msgstr[0] "%s avez %s liste."
+msgstr[1] "%s avez %s listes."
 
 #: header.html:63
 #, python-format
@@ -2336,12 +2330,11 @@ msgid "Are you sure you want to delete this list?"
 msgstr ""
 
 #: lists.html:57
-#, fuzzy
 msgid "Remove this seed?"
 msgstr "Supprimer cette œuvre"
 
 #: lists.html:98
-#, fuzzy, python-format
+#, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from this list?"
 msgstr ""
 "Voulez-vous vraiment supprimer les <strong>%(title)s </strong> de votre "
@@ -2378,7 +2371,6 @@ msgid "Remove from your list?"
 msgstr "Supprimer de votre liste?"
 
 #: widget.html:108 widget.html:171
-#, fuzzy
 msgid "Already Read"
 msgstr "Livre déjà lu"
 
@@ -2640,6 +2632,7 @@ msgstr "Voir"
 msgid "or"
 msgstr "ou"
 
+#: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16 openlibrary/templates/account.html:20
 msgid "Edit"
 msgstr "Modifier"
@@ -2807,7 +2800,6 @@ msgstr ""
 "le graphe</a>."
 
 #: openlibrary/templates/subjects.html:48
-#, fuzzy
 msgid "This graph charts editions published on this subject."
 msgstr ""
 "Ce graphe montre les éditions publiées sur le sujet. Cliquez pour voir "
@@ -2841,9 +2833,8 @@ msgid "Click to remove this facet"
 msgstr "Cliquez pour supprimer ce volet"
 
 #: openlibrary/templates/work_search.html:217
-#, fuzzy
 msgid "No results found."
-msgstr "Aucun sujet n'a été trouvé."
+msgstr "Aucun oevres n'a été trouvé."
 
 #: openlibrary/templates/work_search.html:220
 msgid "Showing books with similar text to:"
@@ -2869,15 +2860,18 @@ msgstr "plus"
 msgid "less"
 msgstr "moins"
 
+#: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16
 msgid "Edit this template"
 msgstr "Modifier cette template"
 
+#: openlibrary/macros/databarHistory.html:21
 #: openlibrary/macros/databarView.html:24
 #, python-format
 msgid "Last edited by <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>"
 msgstr "Modifié par <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>"
 
+#: openlibrary/macros/databarHistory.html:23
 #: openlibrary/macros/databarView.html:26
 msgid "Last edited anonymously"
 msgstr "Modifié anonymement"
@@ -3937,7 +3931,6 @@ msgstr "Télécharger DAISY"
 #~ msgid "There is only 1 edition record, so we'll show it here..."
 #~ msgstr "Il n'y a qu'une édition enregistrée, la voici…"
 
-
 #~ msgid "Top"
 #~ msgstr "Haut"
 
@@ -4127,4 +4120,6 @@ msgstr "Télécharger DAISY"
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
 
+#~ msgid "Last edited by"
+#~ msgstr "odifié  par"
 
