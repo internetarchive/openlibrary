@@ -24,6 +24,8 @@ def main(cmd):
         message_sources = [
             'openlibrary/plugins/upstream',
             'openlibrary/templates/type/author',
+            'openlibrary/templates/type/edition',
+            'openlibrary/templates/type/work',
         ]
         template_dir = 'openlibrary/templates/'
         templates = [

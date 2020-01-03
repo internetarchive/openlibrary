@@ -5,6 +5,7 @@ $var title: $page.title
 
 
   $ title_with_site = title + " | Open Library"
+  $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
   $ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
   $ bodyid = ctx.get('bodyid', 'user')
 
@@ -14,26 +15,26 @@ $var title: $page.title
 
         title = page.title
         if page.subtitle:
-             title += ": " + page.subtitle
+             title = _("%(title)s: %(subtitle)s", title=page.title, subtitle=page.subtitle)
         if page.authors:
-            title += " " + _("by")+ " " + ", ".join(a.name or "" for a in page.get_authors())
+            title = _("%(title)s by %(authorlist)s", title=title, authorlist=", ".join(a.name or "" for a in page.get_authors()))
         items.append(title)
 
         if page.edition_count:
             items.append(ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count))
 
         if page.first_publish_year:
-            items.append(_("First published in %s",page.first_publish_year))
+            items.append(_("First published in %(year)d", year=page.first_publish_year))
 
         subjects = page.get_subjects()
         if subjects:
-            items.append("Subjects: " + ", ".join(s for s in subjects))
+            items.append(_("Subjects: %(subjectlist)s", subjectlist=", ".join(s for s in subjects)))
         if page.subject_places:
-            items.append("Places: " + ", ".join(s for s in page.subject_places))
+            items.append(_("Places: %(placelist)s", placelist=", ".join(s for s in page.subject_places)))
         if page.subject_people:
-            items.append("People: " + ", ".join(s for s in page.subject_people))
+            items.append(_("People: %(peoplelist)s", peoplelist= ", ".join(s for s in page.subject_people)))
         if page.subject_times:
-            items.append("Times: " + ", ".join(s for s in page.subject_times))
+            items.append(_("Times: %(timelist)s", timelist=", ".join(s for s in page.subject_times)))
 
         return "; ".join(items)
 
@@ -50,7 +51,7 @@ $var title: $page.title
             <form action="/admin/staffpicks" method="POST">
               <input type="hidden" value="add" name="action"/>
               <input type="hidden" name="work_id" value="$(page.key.split('/')[2])"/>
-              <input type="submit" value="Add to Staff Picks"/>
+              <input type="submit" value="$_('Add to Staff Picks')"/>
             </form>
           </div>
 
@@ -63,7 +64,7 @@ $var title: $page.title
                 <span itemprop="name">$page.title</span>
             $if page.edition_count:
                 <span class="tools" style="white-space:nowrap;">
-                    <a href="#editions" class="plain brown">$ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count)</a>
+                    <a href="#editions" class="plain brown">$ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count=page.edition_count)</a>
                 </span>
         </h1>
         <div class="clearfix"></div>
@@ -100,7 +101,7 @@ $var title: $page.title
         <div class="workAbout">
             $if not (page.description or page.excerpts or page.first_sentence):
                 <div class="workHelp brown sansserif">
-                     $:_("There's no description for this book yet. Can you <b><a href='%s'>add one</a></b>?", page.url('/edit#about'))
+                     $:_("There's no description for this book yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit#about'))
                 </div>
 
         <div class="workPadding">

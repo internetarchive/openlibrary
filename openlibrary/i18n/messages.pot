@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-02 17:25-0500\n"
+"POT-Creation-Date: 2020-01-02 19:37-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -159,7 +159,7 @@ msgstr ""
 msgid "About"
 msgstr ""
 
-#: edit.html:44 edit.html:110
+#: edit.html:44 edit.html:110 view.html:166
 msgid "Links"
 msgstr ""
 
@@ -216,7 +216,7 @@ msgstr ""
 msgid "name missing"
 msgstr ""
 
-#: view.html:47
+#: view.html:12 view.html:47
 #, python-format
 msgid "%(page_title)s | Open Library"
 msgstr ""
@@ -318,15 +318,15 @@ msgid ""
 " by this author?"
 msgstr ""
 
-#: nav_foot.html:26 view.html:192
+#: nav_foot.html:26 view.html:137 view.html:192 view.html:270
 msgid "Subjects"
 msgstr ""
 
-#: view.html:193
+#: view.html:139 view.html:193 view.html:272
 msgid "Places"
 msgstr ""
 
-#: view.html:194
+#: view.html:138 view.html:194 view.html:271
 msgid "People"
 msgstr ""
 
@@ -348,6 +348,279 @@ msgstr ""
 
 #: view.html:230
 msgid "Alternative names"
+msgstr ""
+
+#: editions.html:14 view.html:158
+msgid "Add another edition of"
+msgstr ""
+
+#: view.html:158
+msgid "Add another edition"
+msgstr ""
+
+#: edit/edition.html:294 view.html:192
+msgid "Contributors"
+msgstr ""
+
+#: book_cover.html:41 book_cover_single_edition.html:18
+#: book_cover_single_edition.html:36 book_cover_small.html:18
+#: book_cover_work.html:18 book_cover_work.html:32
+#: openlibrary/macros/SearchResultsWork.html:33
+#: openlibrary/templates/diff.html:42 show.html:16 view.html:211
+msgid "by"
+msgstr ""
+
+#: view.html:236
+msgid "Published"
+msgstr ""
+
+#: view.html:243
+#, python-format
+msgid "Show for other books from %s"
+msgstr ""
+
+#: view.html:245
+msgid "Search for other books from"
+msgstr ""
+
+#: view.html:248
+msgid "in"
+msgstr ""
+
+#: view.html:250
+msgid "Search for subjects about"
+msgstr ""
+
+#: view.html:253
+msgid "Written in"
+msgstr ""
+
+#: view.html:140 view.html:273
+msgid "Times"
+msgstr ""
+
+#: view.html:116 view.html:279
+msgid "About the Book"
+msgstr ""
+
+#: view.html:282
+msgid "About the Edition"
+msgstr ""
+
+#: view.html:286
+#, python-format
+msgid ""
+"There's no description for this book yet. Can you <b><a href='%s'>add "
+"one</a></b>?"
+msgstr ""
+
+#: view.html:113 view.html:289
+msgid "First Sentence"
+msgstr ""
+
+#: view.html:295
+msgid "Table of Contents"
+msgstr ""
+
+#: view.html:313
+msgid "Edition Notes"
+msgstr ""
+
+#: view.html:318
+msgid "Series"
+msgstr ""
+
+#: view.html:319
+msgid "Volume"
+msgstr ""
+
+#: view.html:320
+msgid "Genre"
+msgstr ""
+
+#: view.html:321
+msgid "Other Titles"
+msgstr ""
+
+#: view.html:322
+msgid "Copyright Date"
+msgstr ""
+
+#: view.html:323
+msgid "Translation Of"
+msgstr ""
+
+#: view.html:324
+msgid "Translated From"
+msgstr ""
+
+#: edit/edition.html:523 view.html:178 view.html:331
+msgid "Classifications"
+msgstr ""
+
+#: edit/edition.html:580 view.html:341
+msgid "The Physical Object"
+msgstr ""
+
+#: view.html:342
+msgid "Format"
+msgstr ""
+
+#: view.html:343
+msgid "Pagination"
+msgstr ""
+
+#: view.html:344
+msgid "Number of pages"
+msgstr ""
+
+#: edit/edition.html:631 view.html:345
+msgid "Dimensions"
+msgstr ""
+
+#: view.html:346
+msgid "Weight"
+msgstr ""
+
+#: edit/edition.html:449 view.html:352
+msgid "ID Numbers"
+msgstr ""
+
+#: editions.html:11
+#, python-format
+msgid "First published in %s"
+msgstr ""
+
+#: editions.html:14 editions_datatable.html:13
+msgid "Add another"
+msgstr ""
+
+#: editions_datatable.html:8 view.html:28 view.html:71
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: editions_datatable.html:10
+#, python-format
+msgid "First published in %(year)s"
+msgstr ""
+
+#: editions_datatable.html:13
+#, python-format
+msgid "Add another edition of %(worktitle)s"
+msgstr ""
+
+#: editions_datatable.html:22
+msgid "Edition"
+msgstr ""
+
+#: editions_datatable.html:23 show.html:34
+msgid "Read"
+msgstr ""
+
+#: editions_datatable.html:24
+msgid "Locate"
+msgstr ""
+
+#: editions_datatable.html:45
+msgid "Merge editions"
+msgstr ""
+
+#: edition-sort.html:44 view.html:22
+#, python-format
+msgid "%(title)s: %(subtitle)s"
+msgstr ""
+
+#: view.html:24
+#, python-format
+msgid "%(title)s by %(authorlist)s"
+msgstr ""
+
+#: view.html:31
+#, python-format
+msgid "First published in %(year)d"
+msgstr ""
+
+#: view.html:35
+#, python-format
+msgid "Subjects: %(subjectlist)s"
+msgstr ""
+
+#: view.html:37
+#, python-format
+msgid "Places: %(placelist)s"
+msgstr ""
+
+#: view.html:39
+#, python-format
+msgid "People: %(peoplelist)s"
+msgstr ""
+
+#: view.html:41
+#, python-format
+msgid "Times: %(timelist)s"
+msgstr ""
+
+#: view.html:58
+msgid "Add to Staff Picks"
+msgstr ""
+
+#: view.html:77
+msgid "By"
+msgstr ""
+
+#: view.html:79
+msgid "By <em>unknown author</em>"
+msgstr ""
+
+#: view.html:83
+msgid "Go to the editions section to read or download ebooks"
+msgstr ""
+
+#: view.html:108
+#, python-format
+msgid ""
+"There's no description for this book yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+
+#: view.html:120
+msgid "Original languages"
+msgstr ""
+
+#: view.html:144
+msgid "Excerpts"
+msgstr ""
+
+#: view.html:153
+msgid "Page"
+msgstr ""
+
+#: view.html:155
+#, python-format
+msgid "added by %s"
+msgstr ""
+
+#: view.html:157
+msgid "added anonymously"
+msgstr ""
+
+#: view.html:166
+msgid "(outside Open Library)"
+msgstr ""
+
+#: view.html:169
+msgid "Wikipedia"
+msgstr ""
+
+#: view.html:181
+msgid "Library of Congress"
+msgstr ""
+
+#: view.html:184
+msgid "Dewey"
 msgstr ""
 
 #: books.html:50
@@ -919,28 +1192,21 @@ msgstr ""
 msgid "Publisher unknown"
 msgstr ""
 
-#: edition-sort.html:91
+#: edition-sort.html:66
+#, python-format
+msgid "in %(languagelist)s"
+msgstr ""
+
+#: edition-sort.html:92
 msgid "Not in Library"
 msgstr ""
 
-#: edition-sort.html:102
+#: edition-sort.html:103
 msgid "Libraries near you:"
 msgstr ""
 
-#: edition-sort.html:106
+#: edition-sort.html:107
 msgid "Look for this edition at WorldCat"
-msgstr ""
-
-#: book_cover.html:41 book_cover_single_edition.html:18
-#: book_cover_single_edition.html:36 book_cover_small.html:18
-#: book_cover_work.html:18 book_cover_work.html:32
-#: openlibrary/macros/SearchResultsWork.html:33
-#: openlibrary/templates/diff.html:42 show.html:16
-msgid "by"
-msgstr ""
-
-#: show.html:34
-msgid "Read"
 msgstr ""
 
 #: edit/about.html:10
@@ -1121,10 +1387,6 @@ msgstr ""
 msgid "Anything about the book that may be of interest."
 msgstr ""
 
-#: edit/edition.html:294
-msgid "Contributors"
-msgstr ""
-
 #: edit/edition.html:298
 msgid "List the people involved"
 msgstr ""
@@ -1173,20 +1435,12 @@ msgstr ""
 msgid "Only if it's different from the work's description"
 msgstr ""
 
-#: edit/edition.html:449
-msgid "ID Numbers"
-msgstr ""
-
 #: edit/edition.html:455
 msgid "Do you know any identifiers for this edition?"
 msgstr ""
 
 #: edit/edition.html:456
 msgid "Like, ISBN?"
-msgstr ""
-
-#: edit/edition.html:523
-msgid "Classifications"
 msgstr ""
 
 #: edit/edition.html:529
@@ -1207,10 +1461,6 @@ msgstr ""
 
 #: edit/edition.html:560 edit/edition.html:569
 msgid "Remove this classification"
-msgstr ""
-
-#: edit/edition.html:580
-msgid "The Physical Object"
 msgstr ""
 
 #: edit/edition.html:586
@@ -1239,10 +1489,6 @@ msgstr ""
 
 #: edit/edition.html:616
 msgid "How much does the book weigh?"
-msgstr ""
-
-#: edit/edition.html:631
-msgid "Dimensions"
 msgstr ""
 
 #: edit/edition.html:643
@@ -1994,7 +2240,7 @@ msgstr ""
 msgid "Remove from your list?"
 msgstr ""
 
-#: widget.html:108
+#: widget.html:108 widget.html:171
 msgid "Already Read"
 msgstr ""
 
@@ -2004,6 +2250,14 @@ msgstr ""
 
 #: widget.html:112
 msgid "Want to Read"
+msgstr ""
+
+#: widget.html:177
+msgid "My Reading Lists:"
+msgstr ""
+
+#: widget.html:183 widget.html:280
+msgid "Create a new list"
 msgstr ""
 
 #: widget.html:193
@@ -2024,10 +2278,6 @@ msgstr ""
 #: widget.html:274
 #, python-format
 msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list?"
-msgstr ""
-
-#: widget.html:280
-msgid "Create a new list"
 msgstr ""
 
 #: widget.html:286

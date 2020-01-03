@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-02 17:25-0500\n"
+"POT-Creation-Date: 2020-01-02 19:37-0500\n"
 "PO-Revision-Date: 2018-03-27 22:28+0200\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -169,7 +169,7 @@ msgstr "Champ obligatoire"
 msgid "About"
 msgstr "À propos"
 
-#: edit.html:44 edit.html:110
+#: edit.html:44 edit.html:110 view.html:166
 msgid "Links"
 msgstr "Liens"
 
@@ -230,7 +230,7 @@ msgstr "Supprimer l'enregistrement"
 msgid "name missing"
 msgstr "nom manquant"
 
-#: view.html:47
+#: view.html:12 view.html:47
 #, python-format
 msgid "%(page_title)s | Open Library"
 msgstr "%(page_title)s | Open Library"
@@ -340,25 +340,25 @@ msgstr ""
 "Affichage des ebooks uniquement. Aimeriez-vous voir <a href=%(url)s> tout"
 " </a> de cet auteur?"
 
-#: nav_foot.html:26 view.html:192
+#: nav_foot.html:26 view.html:137 view.html:192 view.html:270
 msgid "Subjects"
 msgstr "Thèmes"
 
-#: view.html:193
+#: view.html:139 view.html:193 view.html:272
 msgid "Places"
-msgstr "Lieus"
+msgstr "Lieux"
 
-#: view.html:194
+#: view.html:138 view.html:194 view.html:271
 msgid "People"
-msgstr "Gens"
+msgstr "Personnes"
 
 #: view.html:195
 msgid "Time"
-msgstr "Dates"
+msgstr "Périodes"
 
 #: view.html:204
 msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
-msgstr "Liens <span class=\"gray small sansserif\">(hors Open Library)"
+msgstr "Liens <span class=\"gray small sansserif\">(en dehors d'Open Library)"
 
 #: view.html:223
 msgid "No links yet."
@@ -371,6 +371,286 @@ msgstr "Ajouter un lien"
 #: view.html:230
 msgid "Alternative names"
 msgstr "Autres noms"
+
+#: editions.html:14 view.html:158
+msgid "Add another edition of"
+msgstr "Ajouter un autre édition de "
+
+#: view.html:158
+msgid "Add another edition"
+msgstr "Ajouter un autre édition"
+
+#: edit/edition.html:294 view.html:192
+msgid "Contributors"
+msgstr "Contributeurs"
+
+#: book_cover.html:41 book_cover_single_edition.html:18
+#: book_cover_single_edition.html:36 book_cover_small.html:18
+#: book_cover_work.html:18 book_cover_work.html:32
+#: openlibrary/macros/SearchResultsWork.html:33
+#: openlibrary/templates/diff.html:42 show.html:16 view.html:211
+msgid "by"
+msgstr "par"
+
+#: view.html:236
+msgid "Published"
+msgstr "Publiés""
+
+#: view.html:243
+#, python-format
+msgid "Show for other books from %s"
+ msgstr "Montrer les autres livres de %s"
+
+#: view.html:245
+msgid "Search for other books from"
+msgstr "Chercher d'autres livres de"
+
+#: view.html:248
+msgid "in"
+msgstr "en"
+
+#: view.html:250
+msgid "Search for subjects about"
+msgstr "Chercher à propos de"
+
+#: view.html:253
+msgid "Written in"
+msgstr "Écrit en"
+
+#: view.html:140 view.html:273
+msgid "Times"
+msgstr "Dates"
+
+#: view.html:116 view.html:279
+msgid "About the Book"
+msgstr "À propos du livre"
+
+#: view.html:282
+msgid "About the Edition"
+msgstr "À propos de l'édition"
+
+#: view.html:286
+#, python-format
+msgid ""
+"There's no description for this book yet. Can you <b><a href='%s'>add "
+"one</a></b>?"
+msgstr ""
+"Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
+"href='%s'> en ajouter un?</a></b>"
+
+#: view.html:113 view.html:289
+msgid "First Sentence"
+msgstr "Première phrase"
+
+#: view.html:295
+msgid "Table of Contents"
+msgstr "Table des matières"
+
+#: view.html:313
+msgid "Edition Notes"
+msgstr "Notes d'édition"
+
+#: view.html:318
+msgid "Series"
+msgstr "Série"
+
+#: view.html:319
+msgid "Volume"
+msgstr "Volume"
+
+#: view.html:320
+msgid "Genre"
+msgstr "Genres"
+
+#: view.html:321
+msgid "Other Titles"
+msgstr "Autres titres"
+
+#: view.html:322
+#, fuzzy
+msgid "Copyright Date"
+msgstr "Date de copyright"
+
+#: view.html:323
+msgid "Translation Of"
+msgstr "Traduction de"
+
+#: view.html:324
+msgid "Translated From"
+msgstr "Traduit de"
+
+#: edit/edition.html:523 view.html:178 view.html:331
+msgid "Classifications"
+msgstr "Classifications"
+
+#: edit/edition.html:580 view.html:341
+msgid "The Physical Object"
+msgstr "L'objet physique"
+
+#: view.html:342
+msgid "Format"
+msgstr "Format"
+
+#: view.html:343
+msgid "Pagination"
+msgstr "Pagination"
+
+#: view.html:344
+msgid "Number of pages"
+msgstr "Nombre de pages"
+
+#: edit/edition.html:631 view.html:345
+msgid "Dimensions"
+msgstr "Dimensions"
+
+#: view.html:346
+msgid "Weight"
+msgstr "Poids"
+
+#: edit/edition.html:449 view.html:352
+msgid "ID Numbers"
+msgstr "Identifiants"
+
+#: editions.html:11
+#, python-format
+msgid "First published in %s"
+msgstr "- première publication en %(year)s"
+
+#: editions.html:14 editions_datatable.html:13
+#, fuzzy
+msgid "Add another"
+msgstr "Ajouter une autre image"
+
+#: editions_datatable.html:8 view.html:28 view.html:71
+#, python-format
+msgid "%(count)s edition"
+msgid_plural "%(count)s editions"
+msgstr[0] "%(count)d éditions"
+msgstr[1] "%(count)d éditions"
+
+#: editions_datatable.html:10
+#, python-format
+msgid "First published in %(year)s"
+msgstr "- première publication en %(year)s"
+
+#: editions_datatable.html:13
+#, python-format
+msgid "Add another edition of %(worktitle)s"
+msgstr "Ajoutez une autre édition de %(worktitle)s"
+
+#: editions_datatable.html:22
+msgid "Edition"
+msgstr "Édition"
+
+#: editions_datatable.html:23 show.html:34
+msgid "Read"
+msgstr "Lire"
+
+#: editions_datatable.html:24
+msgid "Locate"
+msgstr "Localiser"
+
+#: editions_datatable.html:45
+msgid "Merge editions"
+msgstr "Fusionner les éditions"
+
+#: edition-sort.html:44 view.html:22
+#, python-format
+msgid "%(title)s: %(subtitle)s"
+msgstr ""
+
+#: view.html:24
+#, python-format
+msgid "%(title)s by %(authorlist)s"
+msgstr ""
+
+#: view.html:31
+#, fuzzy, python-format
+msgid "First published in %(year)d"
+msgstr "- première publication en %(year)s"
+
+#: view.html:35
+#, python-format
+msgid "Subjects: %(subjectlist)s"
+msgstr "Sujets: %(subjectlist)s"
+
+#: view.html:37
+#, python-format
+msgid "Places: %(placelist)s"
+msgstr "Places: %(placelist)s"
+
+#: view.html:39
+#, python-format
+msgid "People: %(peoplelist)s"
+msgstr "Gens: %(peoplelist)s"
+
+#: view.html:41
+#, python-format
+msgid "Times: %(timelist)s"
+msgstr "Dates: %(timelist)s"
+
+#: view.html:58
+msgid "Add to Staff Picks"
+msgstr "Ajouter à la liste \"Staff Picks\""
+
+#: view.html:77
+msgid "By"
+msgstr "par"
+
+#: view.html:79
+msgid "By <em>unknown author</em>"
+msgstr "Auteur inconnu"
+
+#: view.html:83
+msgid "Go to the editions section to read or download ebooks"
+msgstr ""
+
+#: view.html:108
+#, fuzzy, python-format
+msgid ""
+"There's no description for this book yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
+msgstr ""
+"Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
+"href='%s'> en ajouter un?</a></b>"
+
+#: view.html:120
+msgid "Original languages"
+msgstr "Langues d'origine"
+
+#: view.html:144
+msgid "Excerpts"
+msgstr "Extraits"
+
+#: view.html:153
+#, fuzzy
+msgid "Page"
+msgstr "De la page"
+
+#: view.html:155
+#, python-format
+msgid "added by %s"
+msgstr "Ajouteé par %s"
+
+#: view.html:157
+msgid "added anonymously"
+msgstr "Ajouteé anonymement"
+
+#: view.html:166
+msgid "(outside Open Library)"
+msgstr "(au dehors d'Open Library)"
+
+#: view.html:169
+msgid "Wikipedia"
+msgstr ""
+
+#: view.html:181
+msgid "Library of Congress"
+msgstr ""
+
+#: view.html:184
+msgid "Dewey"
+msgstr ""
 
 #: books.html:50
 msgid "Reading Log"
@@ -1014,29 +1294,22 @@ msgstr "Date de publication inconnue, %s"
 msgid "Publisher unknown"
 msgstr "Éditeur inconnu"
 
-#: edition-sort.html:91
+#: edition-sort.html:66
+#, python-format
+msgid "in %(languagelist)s"
+msgstr "en %(languagelist)s"
+
+#: edition-sort.html:92
 msgid "Not in Library"
 msgstr "Pas dans la bibliothèque"
 
-#: edition-sort.html:102
+#: edition-sort.html:103
 msgid "Libraries near you:"
 msgstr "Bibliothèques près de chez vous:"
 
-#: edition-sort.html:106
+#: edition-sort.html:107
 msgid "Look for this edition at WorldCat"
 msgstr "Recherchez cette édition sur WorldCat"
-
-#: book_cover.html:41 book_cover_single_edition.html:18
-#: book_cover_single_edition.html:36 book_cover_small.html:18
-#: book_cover_work.html:18 book_cover_work.html:32
-#: openlibrary/macros/SearchResultsWork.html:33
-#: openlibrary/templates/diff.html:42 show.html:16
-msgid "by"
-msgstr "par"
-
-#: show.html:34
-msgid "Read"
-msgstr "Lire"
 
 #: edit/about.html:10
 msgid "How would you describe this book?"
@@ -1222,10 +1495,6 @@ msgstr "Des notes sur cette édition spécifique?"
 msgid "Anything about the book that may be of interest."
 msgstr "Tout ce qui pourrait être intéressant à propos du livre."
 
-#: edit/edition.html:294
-msgid "Contributors"
-msgstr "Contributeurs"
-
 #: edit/edition.html:298
 msgid "List the people involved"
 msgstr "Liste de personnes impliquées"
@@ -1274,10 +1543,6 @@ msgstr "Description de cette édition"
 msgid "Only if it's different from the work's description"
 msgstr "Seulement si elle est différente de la description de l'œuvre"
 
-#: edit/edition.html:449
-msgid "ID Numbers"
-msgstr "Identifiants"
-
 #: edit/edition.html:455
 msgid "Do you know any identifiers for this edition?"
 msgstr "Connaissez-vous des identifiants de cette édition?"
@@ -1285,10 +1550,6 @@ msgstr "Connaissez-vous des identifiants de cette édition?"
 #: edit/edition.html:456
 msgid "Like, ISBN?"
 msgstr "Comme, l'ISBN?"
-
-#: edit/edition.html:523
-msgid "Classifications"
-msgstr "Classifications"
 
 #: edit/edition.html:529
 msgid "Do you know any classifications of this edition?"
@@ -1309,10 +1570,6 @@ msgstr "Ajouter un nouveau type de classification"
 #: edit/edition.html:560 edit/edition.html:569
 msgid "Remove this classification"
 msgstr "Supprimer cette classification"
-
-#: edit/edition.html:580
-msgid "The Physical Object"
-msgstr "L'objet physique"
 
 #: edit/edition.html:586
 msgid "What sort of book is it?"
@@ -1338,15 +1595,11 @@ msgstr "Notez le plus grand numéro de chaque modèle de pagination."
 
 #: edit/edition.html:606 nav_foot.html:42
 msgid "Help"
-msgstr ""
+msgstr "Aide"
 
 #: edit/edition.html:616
 msgid "How much does the book weigh?"
 msgstr "Combien pèse ce livre?"
-
-#: edit/edition.html:631
-msgid "Dimensions"
-msgstr "Dimensions"
 
 #: edit/edition.html:643
 msgid "Height:"
@@ -1714,9 +1967,8 @@ msgid "Explore Books"
 msgstr "Explorer des livres"
 
 #: nav_foot.html:24
-#, fuzzy
 msgid "Books"
-msgstr "Manuels scolaires"
+msgstr "Livres"
 
 #: nav_foot.html:25
 msgid "Explore authors"
@@ -1752,7 +2004,6 @@ msgid "Explore Open Library Development Center"
 msgstr ""
 
 #: nav_foot.html:34
-#, fuzzy
 msgid "Development Center"
 msgstr "Centre de développement"
 
@@ -1766,9 +2017,8 @@ msgid "API Documentation"
 msgstr ""
 
 #: nav_foot.html:36
-#, fuzzy
 msgid "Bulk Open Library data"
-msgstr "À propos de l'équipe d'Open Library"
+msgstr ""
 
 #: nav_foot.html:36
 msgid "Bulk Data Dumps"
@@ -2127,7 +2377,7 @@ msgstr "Voire cette liste"
 msgid "Remove from your list?"
 msgstr "Supprimer de votre liste?"
 
-#: widget.html:108
+#: widget.html:108 widget.html:171
 #, fuzzy
 msgid "Already Read"
 msgstr "Livre déjà lu"
@@ -2140,16 +2390,24 @@ msgstr "En train de lire"
 msgid "Want to Read"
 msgstr "Veux lire"
 
+#: widget.html:177
+msgid "My Reading Lists:"
+msgstr "Listes de lecture"
+
+#: widget.html:183 widget.html:280
+msgid "Create a new list"
+msgstr "Créer une nouvelle liste"
+
 #: widget.html:193
 msgid "Add to List"
 msgstr "Ajouter à une liste"
 
 #: widget.html:231
-#, fuzzy, python-format
+#, python-format
 msgid "%(count)d List"
 msgid_plural "%(count)d Lists"
-msgstr[0] "%(count)d œuvre"
-msgstr[1] "%(count)d œuvres"
+msgstr[0] "%(count)d liste"
+msgstr[1] "%(count)d listes"
 
 #: widget.html:274
 msgid "Remove"
@@ -2161,10 +2419,6 @@ msgid "Are you sure you want to remove <strong>%(title)s</strong> from your list
 msgstr ""
 "Voulez-vous vraiment supprimer les <strong>%(title)s </strong> de votre "
 "liste?"
-
-#: widget.html:280
-msgid "Create a new list"
-msgstr "Créer une nouvelle liste"
 
 #: widget.html:286
 msgid "Name:"
@@ -2192,7 +2446,7 @@ msgid "Try something else?"
 msgstr "Essayez autre chose?"
 
 #: openlibrary/templates/subjects.html:19 view.html:17
-#, fuzzy, python-format
+#, python-format
 msgid "%s work"
 msgid_plural "%s works"
 msgstr[0] "%(count)d œuvre"
@@ -2324,26 +2578,23 @@ msgstr[1] "%(count)d copies de %(master)s ont été fusionnées anonymement"
 
 #: advancedsearch.html:11
 msgid "Keyword"
-msgstr ""
+msgstr "Mot-clé"
 
 #: advancedsearch.html:25
-#, fuzzy
 msgid "ISBN"
-msgstr "révision"
+msgstr "ISBN"
 
 #: advancedsearch.html:47
-#, fuzzy
 msgid "Full Text Search"
-msgstr "Recherche par sujet"
+msgstr ""
 
 #: authors.html:28
 msgid "Is the same author listed twice?"
 msgstr ""
 
 #: authors.html:29
-#, fuzzy
 msgid "Merge authors"
-msgstr "Explorer des auteurs"
+msgstr "Fusioner des auteurs"
 
 #: authors.html:32
 msgid "Author Search"
@@ -2815,12 +3066,6 @@ msgstr "Télécharger DAISY"
 #~ msgid "eBook?"
 #~ msgstr "livre électronique?"
 
-#~ msgid "Places"
-#~ msgstr "Lieux"
-
-#~ msgid "Times"
-#~ msgstr "Périodes"
-
 #~ msgid "First published"
 #~ msgstr "Première publication"
 
@@ -3236,7 +3481,7 @@ msgstr "Télécharger DAISY"
 #~ msgstr "# de modifications"
 
 #~ msgid "People"
-#~ msgstr "Personnes"
+#~ msgstr "Gens"
 
 #~ msgid "Email Address:"
 #~ msgstr "Adresse de courriel:"
@@ -3520,31 +3765,8 @@ msgstr "Télécharger DAISY"
 #~ msgid "Around the Library"
 #~ msgstr "Autour de la bibliothèque"
 
-#~ msgid ""
-#~ "Please use \"natural\" order: <em>Leo "
-#~ "Tolstoy</em> <strong>not</strong> <em>Tolstoy, "
-#~ "Leo</em>"
-#~ msgstr ""
-#~ "Veuillez utiliser l'ordre «naturel»: <em>Leo"
-#~ " Tolstoy</em> et <strong>pas</strong> "
-#~ "<em>Tolstoy, Leo</em>"
-
 #~ msgid "Web Resources"
 #~ msgstr "Ressources Web"
-
-#~ msgid ""
-#~ "We're not storing structured dates here"
-#~ " yet, so just add as much "
-#~ "detail as you know. Like \"21 May"
-#~ " 2000\"."
-#~ msgstr ""
-#~ "Nous ne stockons pas encore de "
-#~ "dates structurés, alors ajoutez autant "
-#~ "de détails que vous le pouvez. "
-#~ "Comme «21 June 200»."
-
-#~ msgid "Alternate names"
-#~ msgstr "Noms alternatifs"
 
 #~ msgid "Books by this Author"
 #~ msgstr "Livres par cet auteur"
@@ -3590,9 +3812,6 @@ msgstr "Télécharger DAISY"
 
 #~ msgid "By Statement"
 #~ msgstr "Déclaration «par»"
-
-#~ msgid "Written in"
-#~ msgstr "Écrit en"
 
 #~ msgid "Other Works by author not available via Edition records"
 #~ msgstr ""
@@ -3712,83 +3931,12 @@ msgstr "Télécharger DAISY"
 #~ msgid "added anonymously"
 #~ msgstr "ajouté anonymement"
 
-#~ msgid "(outside Open Library)"
-#~ msgstr "(en dehors d'Open Library)"
-
 #~ msgid "Please type in the text or number(s) below."
 #~ msgstr "Recopiez le texte ou les chiffres ci-dessous."
 
 #~ msgid "There is only 1 edition record, so we'll show it here..."
 #~ msgstr "Il n'y a qu'une édition enregistrée, la voici…"
 
-#~ msgid "Add another edition of"
-#~ msgstr "Ajouter une autre édition de"
-
-#~ msgid "Add edition"
-#~ msgstr "Ajouter une édition"
-
-#~ msgid "Show for other books from %s"
-#~ msgstr "Montrer les autres livres de %s"
-
-#~ msgid "Search for other books from"
-#~ msgstr "Chercher d'autres livres de"
-
-#~ msgid "Search for subjects about"
-#~ msgstr "Chercher à propos de"
-
-#~ msgid "About the Book"
-#~ msgstr "À propos du livre"
-
-#~ msgid "First Sentence"
-#~ msgstr "Première phrase"
-
-#~ msgid "Table of Contents"
-#~ msgstr "Table des matières"
-
-#~ msgid "Edition Notes"
-#~ msgstr "Notes sur l'édition"
-
-#~ msgid "Series"
-#~ msgstr "Série"
-
-#~ msgid "Volume"
-#~ msgstr "Volume"
-
-#~ msgid "Genre"
-#~ msgstr "Genre"
-
-#~ msgid "Other Titles"
-#~ msgstr "Autres titres"
-
-#~ msgid "Copyright Date"
-#~ msgstr "Date de copyright"
-
-#~ msgid "Translation Of"
-#~ msgstr "Traduction de"
-
-#~ msgid "Translated From"
-#~ msgstr "Traduit de"
-
-#~ msgid "Format"
-#~ msgstr "Format"
-
-#~ msgid "Pagination"
-#~ msgstr "Pagination"
-
-#~ msgid "Number of pages"
-#~ msgstr "Nombre de pages"
-
-#~ msgid "Weight"
-#~ msgstr "Poids"
-
-#~ msgid "Some tags perhaps?"
-#~ msgstr "Quelques étiquettes peut-être?"
-
-#~ msgid "Expose another 20 fields about the edition"
-#~ msgstr "Affiche 20 champs supplémentaires sur l'édition"
-
-#~ msgid "Librarian Mode"
-#~ msgstr "Mode bibliothécaire"
 
 #~ msgid "Top"
 #~ msgstr "Haut"
@@ -3918,9 +4066,6 @@ msgstr "Télécharger DAISY"
 #~ "format ePub, DAISY, PDF et TXT "
 #~ "depuis la page principale du livre"
 
-#~ msgid "¿Qué?"
-#~ msgstr "Quoi&nsbp;?"
-
 #~ msgid "Search Results"
 #~ msgstr "Résultats de recherche"
 
@@ -3982,18 +4127,4 @@ msgstr "Télécharger DAISY"
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
 
-#~ msgid "Upload"
-#~ msgstr "Envoyer"
 
-#~ msgid "outside Open Library"
-#~ msgstr "Bienvenue sur Open Library"
-
-#~ msgid "%d List"
-#~ msgid_plural "%d Lists"
-#~ msgstr[0] "%d Liste"
-#~ msgstr[1] "%d Listes"
-
-#~ msgid ""
-#~ "Are you sure you want to remove"
-#~ " <strong>$header.title</strong> from this list?"
-#~ msgstr ""

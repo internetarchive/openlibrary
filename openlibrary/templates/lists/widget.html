@@ -154,7 +154,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <input type="hidden" name="bookshelf_id" value="2"/>
                     $if edition_key:
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">Currently Reading</button>
+                    <button class="nostyle-btn" type="submit">$('Currently Reading')</button>
                   </form>
 
                 $if users_work_read_status != 3:
@@ -164,19 +164,19 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <input type="hidden" name="bookshelf_id" value="3"/>
                     $if edition_key:
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">Already Read</button>
+                    <button class="nostyle-btn" type="submit">$_('Already Read')</button>
                   </form>
               </div>
 
               $if not readinglogonly:
                 <div class="reading-lists">
-                  <p class="reading-list-title">My Reading Lists:</p>
+                  <p class="reading-list-title">$_('My Reading Lists:')</p>
                   <div class="my-lists">
                     $for i, list in enumerate(lists):
                       $if not list.active:
                         <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                   </div>
-                  <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                  <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     <a aria-controls="addList"
                       class="hidden listClick dialog--open"></a>
                   </p>
@@ -202,7 +202,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
 
               $else:
                 <a href="/account/login?redir=$pageurl" class="dropclick plain">
-                  <h3>Add to List</h3>
+                  <h3>$('Add to List')</h3>
                   <div class="arrow"></div>
                 </a>
       </div>

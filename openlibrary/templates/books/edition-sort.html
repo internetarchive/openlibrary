@@ -37,7 +37,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         $if book.title:
           <a href="$book.url()">
             $if book.subtitle:
-              $(book.title): $(book.subtitle)
+              $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
             $else:
               $book.title
           </a>
@@ -56,9 +56,10 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
 
         <div class="format">
           <!-- TODO: this section is going to be difficult to properly internationalize -->
+          <!-- Formats are store as a raw string -->
           $book.physical_format.replace('[', '').replace(']','')
           $if book.languages:
-            in $', '.join(l.name for l in book.languages)
+            $_('in %(languagelist)s', languagelist=', '.join(l.name for l in book.languages))
           $if book.edition_name:
             - $book.edition_name
         </div>
