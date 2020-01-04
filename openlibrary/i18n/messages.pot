@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-02 22:42-0500\n"
+"POT-Creation-Date: 2020-01-04 11:55-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -527,7 +527,8 @@ msgstr ""
 msgid "Edition"
 msgstr ""
 
-#: editions_datatable.html:23 show.html:34
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: show.html:34
 msgid "Read"
 msgstr ""
 
@@ -1149,6 +1150,14 @@ msgid ""
 "you think best matches your book."
 msgstr ""
 
+#: custom_carousel.html:34
+msgid "Sponsor"
+msgstr ""
+
+#: custom_carousel.html:39 custom_carousel.html:45
+msgid "Borrow"
+msgstr ""
+
 #: edit.html:68 edit.html:71 edit.html:74
 msgid "Add a little more?"
 msgstr ""
@@ -1716,6 +1725,10 @@ msgstr ""
 msgid "Edited without comment."
 msgstr ""
 
+#: about.html:9
+msgid "About the Project"
+msgstr ""
+
 #: about.html:15
 msgid ""
 "Open Library is an open, editable library catalog, building towards a web"
@@ -1726,8 +1739,112 @@ msgstr ""
 msgid "More"
 msgstr ""
 
+#: about.html:19
+msgid ""
+"Just like Wikipedia, you can contribute new information or corrections to"
+" the catalog. You can browse by <a href=\"/subjects\">subjects</a>, <a "
+"href=\"/authors\">authors</a> or <a href=\"/lists\">lists</a> members "
+"have created. If you love books, why not help build a library?"
+msgstr ""
+
+#: about.html:23
+msgid "Latest Blog Posts"
+msgstr ""
+
+#: categories.html:11
+msgid "Browse by Subject"
+msgstr ""
+
+#: categories.html:26
+#, python-format
+msgid "browse %(subject)s books"
+msgstr ""
+
+#: categories.html:31
+#, python-format
+msgid "%(count)s Books"
+msgstr ""
+
 #: index.html:8
 msgid "Welcome to Open Library"
+msgstr ""
+
+#: index.html:15
+msgid "Classic Books"
+msgstr ""
+
+#: index.html:17
+msgid "Books We Love"
+msgstr ""
+
+#: index.html:19
+msgid "Recently Returned"
+msgstr ""
+
+#: index.html:21 nav_head.html:76
+msgid "Romance"
+msgstr ""
+
+#: index.html:23
+msgid "Kids"
+msgstr ""
+
+#: index.html:25
+msgid "Thrillers"
+msgstr ""
+
+#: index.html:27 nav_head.html:74
+msgid "Textbooks"
+msgstr ""
+
+#: stats.html:9
+msgid "Around the Library"
+msgstr ""
+
+#: stats.html:10
+msgid ""
+"Here's what's happened over the last 28 days. More <a "
+"href=\"/recentchanges\">recent changes</a>"
+msgstr ""
+
+#: stats.html:15 stats.html:17
+msgid "See all visitors to OpenLibrary.org"
+msgstr ""
+
+#: stats.html:17
+msgid "Unique Visitors"
+msgstr ""
+
+#: stats.html:22 stats.html:24
+msgid "How many new Open Library members have we welcomed?"
+msgstr ""
+
+#: stats.html:24
+msgid "New Members"
+msgstr ""
+
+#: stats.html:28 stats.html:30
+msgid "People are constantly updating the catalog"
+msgstr ""
+
+#: stats.html:30
+msgid "Catalog Edits"
+msgstr ""
+
+#: stats.html:35 stats.html:37
+msgid "Members can create Lists"
+msgstr ""
+
+#: stats.html:37
+msgid "Lists Created"
+msgstr ""
+
+#: stats.html:42 stats.html:44
+msgid "We're a library, so we lend books, too"
+msgstr ""
+
+#: stats.html:44
+msgid "eBooks Borrowed"
 msgstr ""
 
 #: edit_head.html:17
@@ -2017,16 +2134,8 @@ msgstr ""
 msgid "Biographies"
 msgstr ""
 
-#: nav_head.html:74
-msgid "Textbooks"
-msgstr ""
-
 #: nav_head.html:75
 msgid "Sci-Fi"
-msgstr ""
-
-#: nav_head.html:76
-msgid "Romance"
 msgstr ""
 
 #: nav_head.html:77
@@ -2243,12 +2352,21 @@ msgid_plural "%s editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: widget.html:85
+#: widget.html:81
+#, python-format
+msgid "Cover of: %(listname)s)"
+msgstr ""
+
+#: widget.html:86
 msgid "See this list"
 msgstr ""
 
-#: widget.html:88
+#: widget.html:89
 msgid "Remove from your list?"
+msgstr ""
+
+#: widget.html:92
+msgid "You"
 msgstr ""
 
 #: widget.html:108 widget.html:171
@@ -2259,7 +2377,7 @@ msgstr ""
 msgid "Currently Reading"
 msgstr ""
 
-#: widget.html:112
+#: widget.html:112 widget.html:151 widget.html:260
 msgid "Want to Read"
 msgstr ""
 
@@ -2267,12 +2385,16 @@ msgstr ""
 msgid "My Reading Lists:"
 msgstr ""
 
-#: widget.html:183 widget.html:280
+#: widget.html:183 widget.html:202 widget.html:280
 msgid "Create a new list"
 msgstr ""
 
 #: widget.html:193
 msgid "Add to List"
+msgstr ""
+
+#: widget.html:224
+msgid "watch for edits or export all records"
 msgstr ""
 
 #: widget.html:231
@@ -2303,6 +2425,10 @@ msgstr ""
 msgid "Create new list"
 msgstr ""
 
+#: widget.html:550
+msgid "saving..."
+msgstr ""
+
 #: notfound.html:10
 msgid "Publishers"
 msgstr ""
@@ -2316,7 +2442,7 @@ msgstr ""
 msgid "Try something else?"
 msgstr ""
 
-#: openlibrary/templates/subjects.html:19 view.html:17
+#: view.html:17
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
@@ -2646,6 +2772,29 @@ msgstr ""
 #, python-format
 msgid "You may <a href=\"%s\">log in</a> if you have the required permissions."
 msgstr ""
+
+#: openlibrary/templates/subjects.html:9
+msgid "SUBJECTS"
+msgstr ""
+
+#: openlibrary/templates/subjects.html:9
+msgid "PLACES"
+msgstr ""
+
+#: openlibrary/templates/subjects.html:9
+msgid "PEOPLE"
+msgstr ""
+
+#: openlibrary/templates/subjects.html:9
+msgid "TIMES"
+msgstr ""
+
+#: openlibrary/templates/subjects.html:19
+#, python-format
+msgid "%(count)s work"
+msgid_plural "%(count)s works"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/templates/subjects.html:46
 msgid ""

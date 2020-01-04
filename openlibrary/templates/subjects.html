@@ -2,7 +2,7 @@ $def with (page)
 
 $var title: $page.name
 
-$ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10)]
+$ subject_list = [('subjects', _('SUBJECTS'), 20), ('places', _('PLACES'), 20), ('people', _('PEOPLE'), 10), ('times', _('TIMES'), 10)]
 
 <div id="scrollHere"></div>
 
@@ -12,7 +12,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
     </h1>
     <span class="heading">
         <span class="count" id="coversCount">
-            <strong><span>$sprintf(ungettext("%s work", "%s works", page.work_count), commify(page.work_count))</span></strong>
+            <strong><span>$ungettext("%(count)s work", "%(count)s works", page.work_count, count=commify(page.work_count))</span></strong>
         </span>
     </span>
     <a href="#search" class="shift">Search for books with subject ${page.name}.</a>
@@ -73,11 +73,11 @@ window.q.push( function () {
         $else:
             <span class="title"><em>$_("None found.")</em></span>
 
-    $for s, limit in subject_list:
+    $for category, label, limit in subject_list:
         <div class="contentQuarter link-box">
-          <h6 class="black collapse uppercase">$s</h6>
-          <div class="subjects" id="subjects-$s">
-            $:renderSubjects(page[s][:limit])
+          <h6 class="black collapse">$label</h6>
+          <div class="subjects" id="subjects-$category">
+            $:renderSubjects(page[category][:limit])
           </div>
         </div>
 

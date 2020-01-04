@@ -4,7 +4,7 @@ $ subjects = get_cached_featured_subjects() if not test else []
 $if subjects:
   <div class="carousel-section">
     <div class="carousel-section-header">
-      <h2 class="home-h2"><a href="/subjects">Browse by Subject</a></h2>
+      <h2 class="home-h2"><a href="/subjects">$_('Browse by Subject')</a></h2>
     </div>
     <hr>
     <div class="carousel-container">
@@ -19,14 +19,14 @@ $if subjects:
               <div class="category-icon">
                 <img class="category-img" src="/static/images/categories/$(subject_name).svg"
                     width="30" height="30"
-                    alt="browse $(presentable_subject_name) books"/>
+                    alt="$_('browse %(subject)s books', subject=presentable_subject_name)"/>
               </div>
               <p class="category-title">$presentable_subject_name</p>
               $if subject:
-                <p class="category-count" name="">$commify(subject.get('work_count', '')) Books</p>
+                $ count = commify(subject.get('work_count', ''))
+                <p class="category-count" name="">$_('%(count)s Books', count=count)</p>
             </a>
           </div>
       </div>
     </div>
   </div>
-

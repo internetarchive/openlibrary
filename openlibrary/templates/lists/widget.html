@@ -74,7 +74,8 @@ $jsdef show_list(list):
     $ remove = (list.owner.key == user_key)
     <li>
         <span class="image">
-            <a href="$list.key"><img src="$list.cover_url" alt="Cover of: $list.name" title="Cover of: $list.name"/></a>
+          $ title = _('Cover of: %(listname)s)', listname=list.name)
+          <a href="$list.key"><img src="$list.cover_url" alt="$title" title="$title"/></a>
         </span>
         <span class="data">
             <span class="label">
@@ -84,8 +85,7 @@ $jsdef show_list(list):
                     <a href="$list.key" class="remove-from-list red smaller arial plain" id="list_$index" title="$_('Remove from your list?')">[X]</a>
             </span>
             $if remove:
-                <!-- FIXME: I18N required -->
-                <span class="owner">from <a href="$list.owner.key">You</a></span>
+                <span class="owner">from <a href="$list.owner.key">$_('You')</a></span>
             $else:
                 <span class="owner">from <a href="$list.owner.key">$list.owner.displayname</a></span>
         </span>
@@ -144,7 +144,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                     <input type="hidden" name="bookshelf_id" value="1"/>
                     $if edition_key:
                       <input type="hidden" name="edition_id" value="$(edition_key)"/>
-                    <button class="nostyle-btn" type="submit">Want to Read</button>
+                    <button class="nostyle-btn" type="submit">$_('Want to Read')</button>
                   </form>
 
                 $if users_work_read_status != 2:
@@ -195,7 +195,7 @@ $jsdef render_widget_add(lists, work_key, edition_key, users_work_read_status, u
                         $if not list.active:
                           <p class="list"><a href="$list.key" class="add-to-list" id="list_$i">$list.name</a></p>
                     </div>
-                    <p class="create"><a href="javascript:;" id="create-new-list">Create a new list</a>
+                    <p class="create"><a href="javascript:;" id="create-new-list">$_('Create a new list')</a>
                     </p>
                   </div>
                 </div>
@@ -217,7 +217,7 @@ $jsdef render_head():
     $if seed_type == "subject":
         <div class="head">
           <h3>Lists</h3>
-          <div class="smallest lightgreen sansserif">watch for edits or export all records</div>
+          <div class="smallest lightgreen sansserif">$_('watch for edits or export all records')</div>
         </div>
     $else:
         <div>
@@ -253,7 +253,7 @@ $if include_widget:
                   $if edition_key:
                     <input type="hidden" name="edition_id" value="$(edition_key)"/>
 
-                  <button class="unactivated" type="submit">Want to Read</button>
+                  <button class="unactivated" type="submit">$_('Want to Read')</button>
                 </form>
                 <a href="/account/login?redir=$(page_url)" class="dropclick-prevent dropclick-unactivated">
                   <div class="arrow arrow-unactivated"></div>
@@ -543,7 +543,7 @@ $if ctx.user:
         \$('.dropdown').append(listcreate);
 
         \$(document).on( 'click', '.book-progress-btn, .nostyle-btn', function(e) {
-           \$('.book-progress-btn').text("saving...");
+           \$('.book-progress-btn').text("$_('saving...')");
         });
 
     });
