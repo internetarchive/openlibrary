@@ -1,7 +1,7 @@
 $def with (list)
 
 $ title = list.name
-$ title_with_site = title + " | Lists | Open Library"
+$ title_with_site = _("%(name)s | Lists | Open Library", name=title)
 $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 50
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
@@ -14,7 +14,7 @@ $var title: $list.name
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="View the list on Open Library.")
+$add_metatag(property="twitter:description", content="$_('View the list on Open Library.')")
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="website")
@@ -25,8 +25,7 @@ $add_metatag(property="og:description", content=meta_description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $jsdef render_seed_count(seed_count):
-    $ msg = ungettext("%s seed", "%s seeds", seed_count)
-    $:sprintf(msg, seed_count)
+    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
 
@@ -36,7 +35,7 @@ $jsdef render_seed_count(seed_count):
         $ owner = list.get_owner()
         <a href="$owner.key">$owner.displayname</a>
         /
-        <a href="$owner.key/lists">Lists</a>
+        <a href="$owner.key/lists">$_('Lists')</a>
     </div>
     <h1>$list.name</h1>
     <p class="collapse sansserif">
@@ -99,7 +98,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "Yes, I'm sure": function() {
+            "$_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
@@ -117,7 +116,7 @@ window.q.push(function(){
                     \$("#remove-seed-dialog").addClass('hidden');
                 });
             },
-            "No, cancel": function() {
+            "$_('No, cancel')": function() {
                 \$(this).dialog("close");
                 \$("#remove-seed-dialog").addClass('hidden');
             }
@@ -130,7 +129,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "Yes, I'm sure": function() {
+            "$_('Yes, I\'m sure')": function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
 
@@ -139,7 +138,7 @@ window.q.push(function(){
                     window.location.reload();
                 });
             },
-            "No, cancel": function() {
+            "$_('No, cancel')": function() {
                 \$(this).dialog("close");
             }
         }
@@ -150,14 +149,14 @@ window.q.push(function(){
 </script>
 
 <div id="contentBody">
-    <div id="remove-seed-dialog" class="hidden" title="Remove seed">Are you sure you want to remove this item from the list?</div>
-    <div id="delete-list-dialog" class="hidden" title="Remove Seed">
-        You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?
+    <div id="remove-seed-dialog" class="hidden" title="$_('Remove seed')">$_('Are you sure you want to remove this item from the list?')</div>
+    <div id="delete-list-dialog" class="hidden" title="$_('Remove Seed')">
+        $_('You are about the remove the last item in the list. That will delete the whole list. Are you sure you want to continue?')
     </div>
 
     $def render_authors(authors):
         $if not authors:
-            <em>Unknown authors</em>
+            <em>$_('Unknown authors')</em>
         $else:
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
@@ -208,21 +207,22 @@ window.q.push(function(){
                                     $ authors = seed.document.get_authors()
                             <div class="author">by $:render_authors(authors)</div>
                         <span class="meta">
+                          <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
                           <span class="type small">$seed.type</span>
                         $if seed.type == "edition" and seed.document.get('works'):
-                            - <a href="$seed.document.works[0].url()">$commify(work_editions_count) editions$("s" if seed.work_count != 1 else "")</a> in catalog
+                            $:ungettext('- <a href="$seed.document.works[0].url()">1 edition</a> in catalog', '- <a href="$seed.document.works[0].url()">%(count)s editions</a> in catalog', seed.work_count, count=commify(work_editions_count))
                         $elif seed.type == "work":
-                            - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")
+                            $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count, count=commify(seed.edition_count))
                         $else:
-                            - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")
+                            $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))
                         </span>
 
                         $if 'daisy_url' in ebook:
-                            <div class="type small"><a href="$ebook['daisy_url']" title="Protected DAISY">Download DAISY eBook for print disabled</a></div>
+                            <div class="type small"><a href="$ebook['daisy_url']" title="$_('Protected DAISY')">$_('Download DAISY eBook for print disabled')</a></div>
 
                         $if seed.last_update:
                             <span class="time">
-                                Last updated
+                                $_('Last updated')
                                 <span>$datestr(seed.last_update)</span>
                             </span>
                     </span>
@@ -230,14 +230,14 @@ window.q.push(function(){
                 <span class="searchResultItemCTA">
                     $if ctx.user and ctx.user.key == list.get_owner().key:
                         <span class="listDelete sansserif smaller">
-                          <a href="javascript:;"><span></span>Remove this item?</a>
+                          <a href="javascript:;"><span></span>$_('Remove this item?')</a>
                         </span>
                     $if 'daisy_url' in ebook:
-                        <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="Protected DAISY">
+                        <a class="cta-btn print-disabled-only hidden" href="//archive.org/download/$(doc.ia[0])/$(doc.ia[0])_daisy.zip" title="$_('Protected DAISY')">
                           <span class="actions">
                             <span class="image daisy"></span>
                           </span>
-                          <span class="label">Download DAISY</span>
+                          <span class="label">$_('Download DAISY')</span>
                         </a>
                     <span class="searchResultItemCTA-lending">
                     </span>
@@ -250,8 +250,8 @@ window.q.push(function(){
 
         $:render_template("type/list/exports", list)
 
-        <h3 class="collapse">List Meta</h3>
-        <div class="smaller lightgreen sansserif">Derived from seed metadata</div>
+        <h3 class="collapse">$_('List Meta')</h3>
+        <div class="smaller lightgreen sansserif">$_('Derived from seed metadata')</div>
         <br/>
 
         $def render_subjects(label, subjects):

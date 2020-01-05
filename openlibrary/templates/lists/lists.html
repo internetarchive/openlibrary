@@ -2,7 +2,7 @@ $def with (doc, lists)
 
 <div id="contentHead">
     $ header = render_template("lists/header", doc, lists)
-    $var title: $header.title / Lists
+    $var title: _('%(owner)s / Lists', owner=$header.title)
     $:header
 </div>
 
@@ -43,7 +43,7 @@ $if "type" in doc and doc.type.key == "/type/user":
                     });
             });
         </script>
-        <div id="delete-dialog" class="hidden" title="Delete list">$_('Are you sure you want to delete this list?')</div>
+        <div id="delete-dialog" class="hidden" title="$_('Delete list')">$_('Are you sure you want to delete this list?')</div>
 $else:
     <script type="text/javascript">
         window.q.push(function() {

@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-04 11:55-0500\n"
+"POT-Creation-Date: 2020-01-04 19:28-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
 #: account.py:365 account.py:400 password/reset_success.html:10 verify.html:9
 #: verify/activated.html:10 verify/success.html:10
@@ -497,6 +497,226 @@ msgstr ""
 msgid "ID Numbers"
 msgstr ""
 
+#: edit.html:14
+msgid "Edit List"
+msgstr ""
+
+#: edit.html:25
+msgid "Label"
+msgstr ""
+
+#: edit.html:34 edit.html:54
+msgid "Description"
+msgstr ""
+
+#: embed.html:17 home.html:46 preview.html:23 view.html:32
+#, python-format
+msgid "1 seed"
+msgid_plural "%(count)d seeds"
+msgstr[0] ""
+msgstr[1] ""
+
+#: embed.html:41 view.html:165
+msgid "Unknown authors"
+msgstr ""
+
+#: embed.html:67
+msgid ""
+"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
+"formats from main book page"
+msgstr ""
+
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: embed.html:69 show.html:34
+msgid "Read"
+msgstr ""
+
+#: embed.html:100
+#, python-format
+msgid "by %(name)s"
+msgstr ""
+
+#: embed.html:113
+#, python-format
+msgid "- %(count) edition"
+msgid_plural "- %(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: embed.html:115
+#, python-format
+msgid "- %(count)s work"
+msgid_plural "- %(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: exports.html:21 exports.html:41
+msgid "Subscribe"
+msgstr ""
+
+#: exports.html:22 exports.html:42
+#, python-format
+msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
+msgstr ""
+
+#: exports.html:29
+msgid "Export Not Available"
+msgstr ""
+
+#: exports.html:34
+#, python-format
+msgid "Only lists with up to %s editions can be exported. This one has %s."
+msgstr ""
+
+#: exports.html:36
+#, python-format
+msgid ""
+"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
+"download</a> of the catalog."
+msgstr ""
+
+#: view.html:8
+#, python-format
+msgid "%(name)s | Lists | Open Library"
+msgstr ""
+
+#: lists.html:10 nav_head.html:48 search_head.html:70 view.html:31 view.html:42
+#: view.html:60 widget.html:234
+msgid "Lists"
+msgstr ""
+
+#: view.html:105 view.html:136
+msgid "Yes, I'm sure"
+msgstr ""
+
+#: view.html:123 view.html:145
+msgid "No, cancel"
+msgstr ""
+
+#: view.html:156
+msgid "Remove seed"
+msgstr ""
+
+#: view.html:156
+msgid "Are you sure you want to remove this item from the list?"
+msgstr ""
+
+#: view.html:157
+msgid "Remove Seed"
+msgstr ""
+
+#: view.html:158
+msgid ""
+"You are about the remove the last item in the list. That will delete the "
+"whole list. Are you sure you want to continue?"
+msgstr ""
+
+#: view.html:220
+#, python-format
+msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
+msgid_plural ""
+"- <a href=\"$seed.document.works[0].url()\">%(count)s editions</a> in "
+"catalog"
+msgstr[0] ""
+msgstr[1] ""
+
+#: view.html:222
+#, python-format
+msgid "- 1 edition"
+msgid_plural "- %(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
+
+#: view.html:224
+#, python-format
+msgid "- 1 work"
+msgid_plural "- %(count)s works"
+msgstr[0] ""
+msgstr[1] ""
+
+#: view.html:228 view.html:243
+msgid "Protected DAISY"
+msgstr ""
+
+#: view.html:228
+msgid "Download DAISY eBook for print disabled"
+msgstr ""
+
+#: view.html:232
+msgid "Last updated"
+msgstr ""
+
+#: view.html:240
+msgid "Remove this item?"
+msgstr ""
+
+#: openlibrary/macros/SearchResultsWork.html:60 view.html:247
+msgid "Download DAISY"
+msgstr ""
+
+#: view.html:260
+msgid "List Meta"
+msgstr ""
+
+#: view.html:261
+msgid "Derived from seed metadata"
+msgstr ""
+
+#: edit.html:28
+msgid "Currently Editing:"
+msgstr ""
+
+#: edit.html:40
+msgid "Display Name"
+msgstr ""
+
+#: view.html:20
+#, python-format
+msgid "Joined %(date)s"
+msgstr ""
+
+#: nav_head.html:129 notifications.html:13 openlibrary/templates/account.html:7
+#: openlibrary/templates/account.html:12 privacy.html:13 search_head.html:71
+#: view.html:23
+msgid "Settings"
+msgstr ""
+
+#: search_head.html:69 view.html:25
+msgid "Loans"
+msgstr ""
+
+#: view.html:28
+msgid "admin page"
+msgstr ""
+
+#: books.html:50 view.html:46
+msgid "Reading Log"
+msgstr ""
+
+#: view.html:48
+msgid ""
+"This user has chosen to publicly share the books they are <a "
+"href=\"$(page.key)/books/currently-reading\">currently reading</a>, <a "
+"href=\"$(page.key)/books/already-read\">have already read</a>, and <a "
+"href=\"$(page.key)/books/want-to-read\">want to read</a>!"
+msgstr ""
+
+#: view.html:50
+msgid "This user has chosen to keep their Reading Log private"
+msgstr ""
+
+#: home.html:61 view.html:61
+msgid "See all"
+msgstr ""
+
+#: home.html:60 lists.html:113 view.html:75
+msgid "Recent Activity"
+msgstr ""
+
+#: view.html:78
+msgid "No edits. Yet."
+msgstr ""
+
 #: editions.html:11
 #, python-format
 msgid "First published in %s"
@@ -525,11 +745,6 @@ msgstr ""
 
 #: editions_datatable.html:22
 msgid "Edition"
-msgstr ""
-
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: show.html:34
-msgid "Read"
 msgstr ""
 
 #: editions_datatable.html:24
@@ -635,10 +850,6 @@ msgstr ""
 msgid "Dewey"
 msgstr ""
 
-#: books.html:50
-msgid "Reading Log"
-msgstr ""
-
 #: borrow.html:7 borrow.html:72
 msgid "Books You've Checked Out"
 msgstr ""
@@ -690,6 +901,20 @@ msgstr ""
 
 #: borrow.html:153
 msgid "Books You're Waiting For"
+msgstr ""
+
+#: borrow.html:156
+msgid "You are not waiting for any books at this moment."
+msgstr ""
+
+#: borrow.html:159
+msgid "Leave the Waiting List"
+msgstr ""
+
+#: borrow.html:159
+msgid ""
+"Are you sure you want to leave the waiting list "
+"of<br/><strong>TITLE</strong>?"
 msgstr ""
 
 #: borrow.html:176
@@ -899,11 +1124,6 @@ msgstr ""
 
 #: notifications.html:7 notifications.html:16
 msgid "Notifications from Open Library"
-msgstr ""
-
-#: nav_head.html:129 notifications.html:13 openlibrary/templates/account.html:7
-#: openlibrary/templates/account.html:12 privacy.html:13 search_head.html:71
-msgid "Settings"
 msgstr ""
 
 #: notifications.html:14
@@ -1148,6 +1368,11 @@ msgstr ""
 msgid ""
 "Rather than creating a duplicate record, please click through the result "
 "you think best matches your book."
+msgstr ""
+
+#: custom_carousel.html:25
+#, python-format
+msgid " by %(name)s"
 msgstr ""
 
 #: custom_carousel.html:34
@@ -1762,8 +1987,10 @@ msgstr ""
 
 #: categories.html:31
 #, python-format
-msgid "%(count)s Books"
-msgstr ""
+msgid "%(count)s Book"
+msgid_plural "%(count)s Books"
+msgstr[0] ""
+msgstr[1] ""
 
 #: index.html:8
 msgid "Welcome to Open Library"
@@ -2107,10 +2334,6 @@ msgstr ""
 msgid "Subject"
 msgstr ""
 
-#: lists.html:10 nav_head.html:48 search_head.html:70 widget.html:234
-msgid "Lists"
-msgstr ""
-
 #: nav_head.html:49 search_foot.html:63 search_head.html:29
 msgid "Advanced"
 msgstr ""
@@ -2267,54 +2490,74 @@ msgstr ""
 msgid "Your Profile"
 msgstr ""
 
-#: search_head.html:69
-msgid "Loans"
+#: header.html:11 header.html:38 header.html:47
+#, python-format
+msgid "<a href=\"$doc.key\">%(name)s</a> / Lists"
 msgstr ""
 
 #: header.html:16
 #, python-format
-msgid "This author is on <strong>%s list</strong>."
-msgid_plural "This author is on <strong>%s lists</strong>."
+msgid "This author is on <strong>1 list</strong>."
+msgid_plural "This author is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
-#: header.html:32
+#: header.html:31
 #, python-format
-msgid "This is edition is on <strong>%s list</strong>."
-msgid_plural "This edition is on <strong>%s lists</strong>."
+msgid "This is edition is on <strong>1 list</strong>."
+msgid_plural "This edition is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
-#: header.html:42
+#: header.html:40
 #, python-format
-msgid "This work is on <strong>%s list</strong>."
-msgid_plural "This work is on <strong>%s lists</strong>."
+msgid "This work is on <strong>1 list</strong>."
+msgid_plural "This work is on <strong>%(count)s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
-#: header.html:52
+#: header.html:49
 #, python-format
-msgid "%s has %s list."
-msgid_plural "%s has %s lists."
+msgid "%(name)s has %(count)s list."
+msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
 msgstr[1] ""
 
-#: header.html:63
+#: header.html:59
 #, python-format
-msgid "This subject is on <strong>%s list</strong>."
+msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%s lists</strong>."
 msgstr[0] ""
 msgstr[1] ""
 
-#: home.html:46
+#: header.html:86
+msgid "Hm. Can't find it."
+msgstr ""
+
+#: home.html:29
+msgid "Active Lists"
+msgstr ""
+
+#: home.html:43
 #, python-format
-msgid "1 seed"
-msgid_plural "%(count)d seeds"
-msgstr[0] ""
-msgstr[1] ""
+msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
+msgstr ""
+
+#: home.html:48 preview.html:27 snippet.html:20
+#, python-format
+msgid "Last modified %(date)s"
+msgstr ""
+
+#: home.html:54 snippet.html:26
+msgid "No description."
+msgstr ""
 
 #: lists.html:29
 msgid "Delete this list"
+msgstr ""
+
+#: lists.html:50
+msgid "Delete list"
 msgstr ""
 
 #: lists.html:50
@@ -2334,28 +2577,32 @@ msgstr ""
 msgid "No lists yet!"
 msgstr ""
 
-#: lists.html:113
-msgid "Recent Activity"
+#: preview.html:17 widget.html:92
+msgid "You"
 msgstr ""
 
-#: preview.html:23
+#: preview.html:24
 #, python-format
-msgid "%s seed"
-msgid_plural "%s seeds"
+msgid "1 edition"
+msgid_plural "%(count)s editions"
 msgstr[0] ""
 msgstr[1] ""
 
-#: openlibrary/templates/subjects.html:128 preview.html:25 view.html:161
+#: preview.html:40
+msgid "Themes:"
+msgstr ""
+
+#: snippet.html:9 widget.html:81
 #, python-format
-msgid "%s edition"
-msgid_plural "%s editions"
+msgid "Cover of: %(listname)s"
+msgstr ""
+
+#: snippet.html:18
+#, python-format
+msgid "%(count)d seed"
+msgid_plural "%(count)d seeds"
 msgstr[0] ""
 msgstr[1] ""
-
-#: widget.html:81
-#, python-format
-msgid "Cover of: %(listname)s)"
-msgstr ""
 
 #: widget.html:86
 msgid "See this list"
@@ -2363,10 +2610,6 @@ msgstr ""
 
 #: widget.html:89
 msgid "Remove from your list?"
-msgstr ""
-
-#: widget.html:92
-msgid "You"
 msgstr ""
 
 #: widget.html:108 widget.html:171
@@ -2519,6 +2762,13 @@ msgstr ""
 #: openlibrary/templates/subjects.html:126 view.html:159
 msgid "Get more information about this publisher"
 msgstr ""
+
+#: openlibrary/templates/subjects.html:128 view.html:161
+#, python-format
+msgid "%s edition"
+msgid_plural "%s editions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: header.html:31 index.html:7 index.html:13
 msgid "Recent Changes"
@@ -2935,10 +3185,6 @@ msgstr[1] ""
 #: openlibrary/macros/SearchResultsWork.html:44
 #, python-format
 msgid "- first published in %(year)s"
-msgstr ""
-
-#: openlibrary/macros/SearchResultsWork.html:60
-msgid "Download DAISY"
 msgstr ""
 
 #: openlibrary/macros/SocialShare.html:11

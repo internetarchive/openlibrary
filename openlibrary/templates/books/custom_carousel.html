@@ -16,7 +16,7 @@ $def render_carousel_cover(book, lazy):
      $ cover_url = False
   $if book.get('authors'):
     $ author_names = [author.name for author in book.authors]
-    $ byline = ' by ' + ', '.join(author_names)
+    $ byline = _(' by %(name)s', name=', '.join(author_names))
   $else:
     $ byline = ''
     $ author_names = ''

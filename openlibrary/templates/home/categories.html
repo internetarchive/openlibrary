@@ -24,7 +24,7 @@ $if subjects:
               <p class="category-title">$presentable_subject_name</p>
               $if subject:
                 $ count = commify(subject.get('work_count', ''))
-                <p class="category-count" name="">$_('%(count)s Books', count=count)</p>
+                <p class="category-count" name="">$ungettext('%(count)s Book', '%(count)s Books', subject.get('work_count'), count=count)</p>
             </a>
           </div>
       </div>

@@ -8,8 +8,7 @@ $ page = safeint(query_param('page'), 1) - 1
 $ page_size = 10
 
 $def render_seed_count(seed_count):
-    $ msg = ungettext("%s seed", "%s seeds", seed_count)
-    $:sprintf(msg, seed_count)
+    $ungettext("1 seed", "%(count)d seeds", seed_count, count=seed_count)
 
 <div id="contentHead" style="margin-bottom:0;">
     <div class="superNav">
@@ -30,7 +29,7 @@ $def render_seed_count(seed_count):
 <div id="contentBody">
     $def render_authors(authors):
         $if not authors:
-            <em>Unknown authors</em>
+            <em>$_('Unknown authors')</em>
         $else:
             $for a in authors:
                 <a href="$a.url()" class="results">$a.name</a>$cond(loop.last, "", ", ")
@@ -88,7 +87,7 @@ $def render_seed_count(seed_count):
                                 $ authors = seed.document.works[0].get_authors()
                             $else:
                                 $ authors = seed.document.get_authors()
-                        <span class="small">by $:render_authors(authors)</span>
+                        <span class="small">$:_('by %(name)s', name=render_authors(authors))</span>
                     <span class="meta">
                     $if seed.type == "author":
                         <span class="type author small">$seed.type</span>
@@ -101,9 +100,9 @@ $def render_seed_count(seed_count):
                     $elif seed.type == "person":
                         <span class="type people small">$seed.type</span>
                     $elif seed.type == "work":
-                        - $commify(seed.edition_count) edition$("s" if seed.edition_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $ungettext('- %(count) edition', '- %(count)s editions', seed.edition_count,  count=commify(seed.edition_count))$cond(seed.ebook_count, ",")
                     $else:
-                        - $commify(seed.work_count) work$("s" if seed.work_count != 1 else "")$cond(seed.ebook_count, ",")
+                        $ungettext('- %(count)s work', '- %(count)s works', seed.work_count, count=$commify(seed.work_count))$cond(seed.ebook_count, ",")
                     </span>
                 </div>
             </div>
