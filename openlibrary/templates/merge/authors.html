@@ -48,23 +48,23 @@ $if formdata:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>Select a &quot;master&quot; record that best represents the author -
+    <li>$_('Select a &quot;master&quot; record that best represents the author -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
-    <li>Select author records which should be merged with the master
+    <li>$_('Select author records which should be merged with the master')
         -
         <input type="checkbox" name="checkbox" id="checkbox" checked="checked" />
     </li>
-    <li>Press MERGE AUTHORS.
+    <li>$_('Press MERGE AUTHORS.')
     </li>
 </ol>
 
-<div id="noMaster" title="No Master record" style="text-align:left;">
-    <p>You must select a master record to point the duplicates toward.</p>
+<div id="noMaster" title="$_('No Master record')" style="text-align:left;">
+    <p>$_('You must select a master record to point the duplicates toward.')</p>
 </div>
 
 <div id="confirmMerge" title="Please Be Careful..." style="text-align:left;">
-    <p class="merge"><b>Are you sure</b> you want to merge these records?</p>
+    <p class="merge">$:_('<b>Are you sure</b> you want to merge these records?')</p>
 </div>
 
 <form method="POST" id="mergeForm" name="mergeForm">
@@ -72,9 +72,9 @@ $if formdata:
     <div class="merge" id="include">
 
         <div class="entry header">
-            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;"><strong>Master</strong></div>
-            <div class="data input smaller center"><strong>Merge</strong></div>
-            <div class="data record smaller"><strong>Authors</strong></div>
+            <div class="data input smaller center" style="background-color:#fffdcd;min-height:25px;">$_('Master')</div>
+            <div class="data input smaller center"><strong>$_('Merge')</strong></div>
+            <div class="data record smaller"><strong>$_('Authors')</strong></div>
             <div class="data count">&nbsp;</div>
         </div>
 
@@ -103,22 +103,22 @@ $if formdata:
                     </label>
                     <ul>
                     $for doc in top['books']:
-                        <li><a href="$doc.key" target="new" title="Open in a new window">$doc.title</a> <span class="smaller">$doc.edition_count edition$("s" if doc.edition_count != 1 else ""),
+                        <li><a href="$doc.key" target="new" title="$_('Open in a new window')">$doc.title</a> <span class="smaller">$ungettext('1 edition', '%(count)d editions', $doc.edition_count, doc.edition_count),
                         $if doc.get('first_publish_year'):
-                            <span title="First published in">$doc.first_publish_year</span>
+                            <span title="$_('First published in ')">$doc.first_publish_year</span>
                         </span></li>
                     </ul>
                 </div>
                 <div class="data count">
-                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$sprintf(ungettext("%s work", "%s works", top['total']), top['total'])</a>
+                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("1 work", "%(count)d works", top['total'], top['total'])</a>
                 </div>
             </div>
     </div>
 
 <p>
-<button id="save" class="larger" value="Merge Authors">Merge Authors</button>
+<button id="save" class="larger" value="Merge Authors">$_('Merge Authors')</button>
 &nbsp;&nbsp;
-<a href="javascript:history.go(-1);" class="small red sansserif">Cancel</a>
+<a href="javascript:history.go(-1);" class="small red sansserif">$_('Cancel')</a>
 </p>
 
 </form>

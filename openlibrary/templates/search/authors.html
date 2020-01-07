@@ -30,8 +30,7 @@ $var title: Search Open Library for "$q"
 
     $if q and 'error' not in results:
         $if num_found:
-            <!-- FIXME: not internationalizable -->
-            <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+            <p class="sansserif darkgreen collapse"><strong>$ungettext('%(count)s hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
         $else:
             <p class="sansserif red collapse"><strong>$_('No hits')</strong></span></p>
 </div>
@@ -60,8 +59,7 @@ $var title: Search Open Library for "$q"
         $for doc in response['docs']:
             $ n = doc['name']
             $ num = doc['work_count']
-            // FIXME: I18N
-            $ wc = "1 book" if num == 1 else commify(num) + " books"
+            $ wc = ungettext("1 book", "%(count)s books", num, count=commify(num))
             $ date = ''
             $if 'birth_date' in doc or 'death_date' in doc:
                 $ date = doc.get('birth_date', '') + ' - ' + doc.get('death_date', '')
@@ -71,8 +69,8 @@ $var title: Search Open Library for "$q"
             <a href="/authors/$doc['key']" class="larger">$n</a>&nbsp;<span class="brown small">$date</span><br />
             <span class="small grey"><b>$wc</b>
             $if 'top_subjects' in doc:
-                about $', '.join(doc['top_subjects']),
-            including <i>$doc.get('top_work', '')</i></span>
+                $_('about %(subjects)s', subjects=', '.join(doc['top_subjects'])),
+            $:_('including <i>%(topwork)s</i>', topwork=doc.get('top_work', ''))</span>
             </li>
         </ul>
 

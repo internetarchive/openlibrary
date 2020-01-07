@@ -20,7 +20,7 @@ $if q:
     $if 'error' not in results:
         $ response = results['response']
         $ num_found = int(response['numFound'])
-        <p class="sansserif darkgreen collapse"><strong>$commify(response['numFound']) hit$("s" if response['numFound'] != 1 else "")</strong></p>
+        <p class="sansserif darkgreen collapse"><strong>$ungettext('1 hit', '%(count)s hits', response['numFound'], count=commify(response['numFound']))</strong></p>
 </div>
 
 <div id="contentBody">
@@ -67,22 +67,22 @@ $if q and 'error' not in results:
                         return "other"
                 type = find_type()
                 if type == "type_time":
-                    note = '<span class="teal">time</span>'
+                    note = '<span class="teal">$_("time")</span>'
                 elif type == "type_subject":
-                    note = '<span class="darkgreen">subject</span>'
+                    note = '<span class="darkgreen">$_("subject")</span>'
                 elif type == "type_place":
-                    note = '<span class="orange">place</span>'
+                    note = '<span class="orange">$_("place")</span>'
                 elif type == "type_org":
-                    note = '<span class="blue">org</span>'
+                    note = '<span class="blue">$_("org")</span>'
                 elif type == "type_event":
-                    note = '<span class="grey">event</span>'
+                    note = '<span class="grey">$_("event")</span>'
                 elif type == "type_person":
-                    note = '<span class="red">person</span>'
+                    note = '<span class="red">$_("person")</span>'
                 elif type == "type_work":
-                    note = '<span class="black">work</span>'
+                    note = '<span class="black">$_("work")</span>'
                 else:
                     note = doc['type']
-            <span class="count">&nbsp;&nbsp;<b>$commify(doc['count']) book$("s" if doc['count'] != 1 else "")</b>, $:note</span>
+            <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)s books', doc['count'], count=commify(doc['count']))</b>, $:note</span>
         </li>
     </ul>
     $:macros.Pager(page, num_found, results_per_page)

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-04 19:28-0500\n"
+"POT-Creation-Date: 2020-01-07 13:30-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -318,15 +318,18 @@ msgid ""
 " by this author?"
 msgstr ""
 
-#: nav_foot.html:26 view.html:137 view.html:192 view.html:273
+#: nav_foot.html:26 openlibrary/templates/work_search.html:123 view.html:137
+#: view.html:192 view.html:273
 msgid "Subjects"
 msgstr ""
 
-#: view.html:139 view.html:193 view.html:275
+#: openlibrary/templates/work_search.html:125 view.html:139 view.html:193
+#: view.html:275
 msgid "Places"
 msgstr ""
 
-#: view.html:138 view.html:194 view.html:274
+#: openlibrary/templates/work_search.html:124 view.html:138 view.html:194
+#: view.html:274
 msgid "People"
 msgstr ""
 
@@ -375,7 +378,7 @@ msgstr ""
 
 #: book_cover.html:41 book_cover_single_edition.html:18
 #: book_cover_single_edition.html:36 book_cover_small.html:18
-#: book_cover_work.html:18 book_cover_work.html:32
+#: book_cover_work.html:18 book_cover_work.html:32 check.html:29
 #: openlibrary/macros/SearchResultsWork.html:33
 #: openlibrary/templates/diff.html:42 show.html:16 view.html:214 view.html:243
 msgid "by"
@@ -402,11 +405,11 @@ msgstr ""
 msgid "Search for subjects about"
 msgstr ""
 
-#: view.html:256
+#: openlibrary/templates/work_search.html:198 view.html:256
 msgid "Written in"
 msgstr ""
 
-#: view.html:140 view.html:276
+#: openlibrary/templates/work_search.html:126 view.html:140 view.html:276
 msgid "Times"
 msgstr ""
 
@@ -765,7 +768,7 @@ msgstr ""
 msgid "%(title)s by %(authorlist)s"
 msgstr ""
 
-#: view.html:31
+#: check.html:35 view.html:31
 #, python-format
 msgid "First published in %(year)d"
 msgstr ""
@@ -1291,7 +1294,9 @@ msgid ""
 msgstr ""
 
 #: add.html:34 advancedsearch.html:21 edit.html:98 nav_head.html:45
-#: search_foot.html:9 search_head.html:9
+#: openlibrary/templates/work_search.html:122
+#: openlibrary/templates/work_search.html:202 search_foot.html:9
+#: search_head.html:9
 msgid "Author"
 msgstr ""
 
@@ -1361,7 +1366,7 @@ msgstr ""
 #, python-format
 msgid ""
 "One moment... It looks like we already have <em>some potential "
-"matches</em> for <b>%s</b> by <b>%s</b>."
+"matches</em> for <b>%(title)s</b> by <b>%(author)s</b>."
 msgstr ""
 
 #: check.html:14
@@ -1369,6 +1374,17 @@ msgid ""
 "Rather than creating a duplicate record, please click through the result "
 "you think best matches your book."
 msgstr ""
+
+#: check.html:24 check.html:28
+msgid "Select this book"
+msgstr ""
+
+#: check.html:33 preview.html:24
+#, python-format
+msgid "1 edition"
+msgid_plural "%(count)s editions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: custom_carousel.html:25
 #, python-format
@@ -2100,15 +2116,26 @@ msgid "Created %s"
 msgstr ""
 
 #: history.html:31
-msgid "revision"
-msgstr ""
+#, python-format
+msgid " 1 revision"
+msgid_plural "%(count)d revisions"
+msgstr[0] ""
+msgstr[1] ""
 
 #: history.html:43
 msgid "Download catalog record:"
 msgstr ""
 
 #: history.html:51
+msgid "Cite this on Wikipedia"
+msgstr ""
+
+#: history.html:51
 msgid "Wikipedia citation"
+msgstr ""
+
+#: history.html:61
+msgid "Copy and paste this code into your Wikipedia page."
 msgstr ""
 
 #: history.html:85 openlibrary/templates/history.html:46
@@ -2338,7 +2365,7 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: authors.html:49 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
+#: authors.html:48 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
 #: notfound.html:19 openlibrary/templates/subjects.html:27
 #: openlibrary/templates/work_search.html:139 publishers.html:19
 #: search_head.html:24 subjects.html:34 view.html:176
@@ -2422,11 +2449,12 @@ msgstr ""
 msgid "Person"
 msgstr ""
 
-#: advancedsearch.html:41 search_foot.html:14 search_head.html:14
+#: advancedsearch.html:41 openlibrary/templates/work_search.html:128
+#: search_foot.html:14 search_head.html:14
 msgid "Publisher"
 msgstr ""
 
-#: search_foot.html:29
+#: openlibrary/templates/work_search.html:129 search_foot.html:29
 msgid "Language"
 msgstr ""
 
@@ -2580,13 +2608,6 @@ msgstr ""
 #: preview.html:17 widget.html:92
 msgid "You"
 msgstr ""
-
-#: preview.html:24
-#, python-format
-msgid "1 edition"
-msgid_plural "%(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
 
 #: preview.html:40
 msgid "Themes:"
@@ -2840,13 +2861,49 @@ msgstr ""
 msgid "Author Search"
 msgstr ""
 
-#: authors.html:40
+#: authors.html:37
+#, python-format
+msgid "%(count)s hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
+
+#: authors.html:39
 msgid "No hits"
+msgstr ""
+
+#: authors.html:66 subjects.html:89
+#, python-format
+msgid "1 book"
+msgid_plural "%(count)s books"
+msgstr[0] ""
+msgstr[1] ""
+
+#: authors.html:76
+#, python-format
+msgid "about %(subjects)s"
+msgstr ""
+
+#: authors.html:77
+#, python-format
+msgid "including <i>%(topwork)s</i>"
 msgstr ""
 
 #: inside.html:10
 msgid "Search Inside"
 msgstr ""
+
+#: inside.html:29
+#, python-format
+msgid "No hits for: %(query)s"
+msgstr ""
+
+#: inside.html:32
+#, python-format
+msgid "About 1 result found in %(seconds)s"
+msgid_plural "About %(count)s results found in %(seconds)s"
+msgstr[0] ""
+msgstr[1] ""
 
 #: publishers.html:9
 msgid "Publishers Search"
@@ -2855,6 +2912,14 @@ msgstr ""
 #: subjects.html:19
 msgid "Subject Search"
 msgstr ""
+
+#: openlibrary/templates/work_search.html:103
+#: openlibrary/templates/work_search.html:229 subjects.html:27
+#, python-format
+msgid "1 hit"
+msgid_plural "%(count)s hits"
+msgstr[0] ""
+msgstr[1] ""
 
 #: openlibrary/templates/account.html:16
 msgid "Change Password"
@@ -3081,6 +3146,54 @@ msgstr ""
 msgid "Relevance"
 msgstr ""
 
+#: openlibrary/templates/work_search.html:121
+msgid "eBook?"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:127
+msgid "First published"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:130
+msgid "Classic eBooks"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:142
+msgid "Everything"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:144
+msgid "Ebooks"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:146
+msgid "Print Disabled"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:162
+msgid "eBook"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:165
+msgid "Classic eBook"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:184
+msgid "Explore Classic eBooks"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:184
+msgid "Only Classic eBooks"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:196
+msgid "First published in"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:200
+msgid "Published by"
+msgstr ""
+
 #: openlibrary/templates/work_search.html:203
 msgid "Click to remove this facet"
 msgstr ""
@@ -3160,6 +3273,12 @@ msgid ""
 "href=\"https://creativecommons.org/publicdomain/zero/1.0/\" "
 "target=\"_blank\" title=\"This link to Creative Commons will open in a "
 "new window\">CC0</a>. Yippee!"
+msgstr ""
+
+#: openlibrary/macros/EditButtons.html:27
+msgid ""
+"<em>Please Note:</em> Only Admins can delete things. <a href=\"/contact\""
+" class=\"blue\">Let us know</a> if there's a problem."
 msgstr ""
 
 #: openlibrary/macros/LoanStatus.html:63
