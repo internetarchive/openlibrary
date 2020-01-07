@@ -333,7 +333,8 @@ class robotstxt(delegate.page):
     def GET(self):
         web.header('Content-Type', 'text/plain')
         try:
-            data = open('static/robots.txt').read()
+            robots_file = 'norobots.txt' if 'dev' in infogami.config.features else 'robots.txt'
+            data = open('static/' + robots_file).read()
             raise web.HTTPError("200 OK", {}, data)
         except IOError:
             raise web.notfound()

@@ -85,6 +85,9 @@ module.exports = {
         // itself, append .js to each ResourceLoader module entry name.
         filename: '[name].js',
 
+        // This option determines the name of **non-entry** chunk files.
+        chunkFilename: '[name].[contenthash].js',
+
         // Expose the module.exports of each module entry chunk through the global
         // ol (open library)
         library: [ 'ol' ],

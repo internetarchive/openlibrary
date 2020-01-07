@@ -2,6 +2,7 @@ import re
 import web
 import urllib2
 import simplejson
+import requests
 from amazon.api import SearchException
 from infogami import config
 from infogami.utils.view import public
@@ -13,7 +14,7 @@ from openlibrary.catalog.add_book import load
 from openlibrary import accounts
 
 
-BETTERWORLDBOOKS_API_URL = 'http://products.betterworldbooks.com/service.aspx?ItemId='
+BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
 AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
@@ -291,10 +292,8 @@ def _get_betterworldbooks_metadata(isbn):
 
     url = BETTERWORLDBOOKS_API_URL + isbn
     try:
-        req = urllib2.Request(url)
-        f = urllib2.urlopen(req)
-        response = f.read()
-        f.close()
+        r = requests.get(url)
+        response = r.content
         product_url = re.findall("<DetailURLPage>\$(.+)</DetailURLPage>", response)
         new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
         new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
