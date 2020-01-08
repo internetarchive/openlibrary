@@ -2,7 +2,7 @@
 name: Post mortem
 about: Create a report to document an outage or event
 title: ''
-labels: ["Type: Post-Mortem", "Priority: 0"]
+labels: "Type: Post-Mortem, Priority: 0, GJ: Triage Exception"
 assignees: ''
 ---
 
