@@ -313,8 +313,8 @@ class ia_importapi(importapi):
         :return: Edition record
         """
         edition['ocaid'] = identifier
-        edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
+        edition['source_records'] = 'ia:' + identifier
+        edition['cover'] = '{0}/download/{1}/page/title.jpg'.format(IA_BASE_URL, identifier)
         return edition
 
     def get_marc_record(self, identifier):
