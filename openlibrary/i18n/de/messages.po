@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2018-03-15 22:37+0000\n"
-"PO-Revision-Date: 2020-01-02 12:20+1\n"
+"PO-Revision-Date: 2020-01-09 12:34-0500\n"
 "Last-Translator: justcomplaining <justcomplaining@mailbox.org>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
@@ -204,7 +204,7 @@ msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite "
 "the source."
 msgstr ""
-"Wenn Sie informationen von anderer Stelle \"leihen"\, zitieren Sie bitte "
+"Wenn Sie informationen von anderer Stelle \"leihen\", zitieren Sie bitte "
 "Ihre Quelle."
 
 #: edit.html:70
@@ -1508,7 +1508,7 @@ msgid "Created %s"
 msgstr "%s erstellt"
 
 #: history.html:25
-msgid "revisio
+msgid "revision"
 msgstr "Version"
 
 #: history.html:51 openlibrary/templates/history.html:36
@@ -1890,7 +1890,7 @@ msgstr "Etwas anderes probieren?"
 #, python-format
 msgid "%s work"
 msgid_plural "%s works"
-msgstr[0] "&s Werk"
+msgstr[0] "%s Werk"
 msgstr[1] "%s Werke"
 
 #: openlibrary/templates/subjects.html:17 view.html:15
