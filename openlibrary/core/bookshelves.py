@@ -6,7 +6,6 @@ from . import db
 class Bookshelves(object):
 
     PRESET_BOOKSHELVES = {
-        'Remove from current list': -1,
         'Want to Read': 1,
         'Currently Reading': 2,
         'Already Read': 3
