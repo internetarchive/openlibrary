@@ -1,7 +1,6 @@
 """Library for interacting with archive.org.
 """
 
-import cache
 import logging
 import os
 import requests
@@ -10,6 +9,7 @@ import web
 from infogami import config
 from infogami.utils import stats
 
+from openlibrary.core import cache
 from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
