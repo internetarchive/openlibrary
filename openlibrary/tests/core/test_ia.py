@@ -1,16 +1,9 @@
+from StringIO import StringIO
+import urllib2
+
 from openlibrary.core import ia
 
-def test_get_metaxml(monkeypatch, mock_memcache):
-    import StringIO
-    import urllib2
-
-    metadata_json = None
-    def urlopen(url):
-        return StringIO.StringIO(metadata_json)
-
-    monkeypatch.setattr(urllib2, "urlopen", urlopen)
-
-    # test with correct xml
+def test_get_metadata(monkeypatch, mock_memcache):
     metadata_json = """{
         "metadata": {
             "title": "Foo",
@@ -19,7 +12,8 @@ def test_get_metaxml(monkeypatch, mock_memcache):
         }
     }
     """
-    assert ia.get_meta_xml("foo00bar") == {
+    monkeypatch.setattr(urllib2, "urlopen", lambda url: StringIO(metadata_json))
+    assert ia.get_metadata('foo00bar') == {
         "title": "Foo",
         "identifier": "foo00bar",
         "collection": ["printdisabled", "inlibrary"],
@@ -27,6 +21,6 @@ def test_get_metaxml(monkeypatch, mock_memcache):
         "_filenames": []
     }
 
-    # test with metadata errors
-    metadata_json = "{}"
-    assert ia.get_meta_xml("foo02bar") == {}
+def test_get_metadata_empty(monkeypatch, mock_memcache):
+    monkeypatch.setattr(urllib2, "urlopen", lambda url: StringIO("{}"))
+    assert ia.get_metadata('foo02bar') == {}

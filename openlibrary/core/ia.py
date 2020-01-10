@@ -1,14 +1,17 @@
 """Library for interacting with archive.org.
 """
-import os
-import urllib2
-import datetime
-import simplejson
-import web
+
+import cache
 import logging
+import os
+import simplejson
+import urllib2
+import warnings
+import web
+
 from infogami import config
 from infogami.utils import stats
-import cache
+
 from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
@@ -57,6 +60,7 @@ _get_metadata = web.memoize(_get_metadata, expires=60)
 
 def get_meta_xml(itemid):
     # use metadata API instead of parsing meta xml manually
+    warnings.warn('Deprecated, use ia.get_metadata(itemid) instead.', DeprecationWarning)
     return get_metadata(itemid)
 
 
