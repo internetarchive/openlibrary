@@ -12,7 +12,7 @@ def test_get_metadata(monkeypatch, mock_memcache):
         }
     }
     """
-    monkeypatch.setattr(urllib2, "urlopen", lambda url: StringIO(metadata_json))
+    monkeypatch.setattr(urllib2, 'urlopen', lambda url: StringIO(metadata_json))
     assert ia.get_metadata('foo00bar') == {
         "title": "Foo",
         "identifier": "foo00bar",
@@ -22,5 +22,5 @@ def test_get_metadata(monkeypatch, mock_memcache):
     }
 
 def test_get_metadata_empty(monkeypatch, mock_memcache):
-    monkeypatch.setattr(urllib2, "urlopen", lambda url: StringIO("{}"))
+    monkeypatch.setattr(urllib2, 'urlopen', lambda url: StringIO('{}'))
     assert ia.get_metadata('foo02bar') == {}

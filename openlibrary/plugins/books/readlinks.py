@@ -331,7 +331,7 @@ class ReadProcessor:
         self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
                                   for wkey in self.works)
         iaids = sum(self.wkey_to_iaids.values(), [])
-        self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
+        self.iaid_to_meta = dict((iaid, ia.get_metadata(iaid)) for iaid in iaids)
 
         def lookup_iaids(iaids):
             step = 10
