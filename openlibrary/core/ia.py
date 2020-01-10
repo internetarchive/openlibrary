@@ -21,7 +21,9 @@ IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
-def get_item_json(itemid):
+def _get_metadata(itemid):
+    """Returns metadata by querying the archive.org metadata API.
+    """
     itemid = web.safestr(itemid.strip())
     url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
     try:
@@ -33,28 +35,15 @@ def get_item_json(itemid):
         stats.end()
         return {}
 
+# cache the results in memcache for a minute
+_get_metadata = web.memoize(_get_metadata, expires=60)
+
 
 def get_metadata(itemid):
-    item_json = get_item_json(itemid)
+    item_json = _get_metadata(itemid)
     return extract_item_metadata(item_json)
 
 get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
-
-
-def _get_metadata(itemid):
-    """Returns metadata by querying the archive.org metadata API.
-    """
-    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
-    try:
-        stats.begin("archive.org", url=url)
-        text = urllib2.urlopen(url).read()
-        stats.end()
-        return simplejson.loads(text)
-    except (IOError, ValueError):
-        return None
-
-# cache the results in memcache for a minute
-_get_metadata = web.memoize(_get_metadata, expires=60)
 
 
 def extract_item_metadata(item_json):
