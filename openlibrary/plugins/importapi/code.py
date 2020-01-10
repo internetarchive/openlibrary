@@ -118,12 +118,13 @@ class importapi:
 
         try:
             reply = add_book.load(edition)
+            # TODO: If any records have been created, return a 201, otherwise 200
+            return json.dumps(reply)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        return json.dumps(reply)
 
     def reject_non_book_marc(self, marc_record, **kwargs):
-        details = "Item rejected"
+        details = 'Item rejected'
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
