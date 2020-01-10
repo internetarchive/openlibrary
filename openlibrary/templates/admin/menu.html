@@ -11,6 +11,7 @@ $def link(url, title):
 <div class="superNav">
     $:link("/admin", _("Admin Center"))
     | $:link("/admin/people", _("People"))
+    | $:link("/admin/sponsorship", _("Sponsorship"))
     | $:link("/admin/loans", _("Loans"))
     | $:link("/admin/waitinglists", _("Waiting Lists"))
     | $:link("/admin/block", _("Block IPs"))
@@ -21,4 +22,6 @@ $def link(url, title):
     $:link("/admin/graphs", _("Graphs"))
     | $:link("/admin/inspect/store", _("Inspect store"))
     | $:link("/admin/inspect/memcache", _("Inspect memcache"))
+    <strong style="padding: 0px 5px">•</strong>
+    $:link("/admin/status", _("Status"))
 </div>
