@@ -3,7 +3,6 @@
 import os
 import urllib2
 import datetime
-from xml.dom import minidom
 import simplejson
 import web
 import logging
@@ -74,35 +73,6 @@ def process_metadata_dict(metadata):
 def get_meta_xml(itemid):
     # use metadata API instead of parsing meta xml manually
     return get_metadata(itemid)
-
-
-def xml2dict(xml, **defaults):
-    """Converts xml to python dictionary assuming that the xml is not nested.
-
-    To get some tag as a list/set, pass a keyword argument with list/set as value.
-
-        >>> xml2dict('<doc><x>1</x><x>2</x></doc>')
-        {'x': 2}
-        >>> xml2dict('<doc><x>1</x><x>2</x></doc>', x=[])
-        {'x': [1, 2]}
-    """
-    d = defaults
-    dom = minidom.parseString(xml)
-
-    for node in dom.documentElement.childNodes:
-        if node.nodeType == node.TEXT_NODE or len(node.childNodes) == 0:
-            continue
-        else:
-            key = node.tagName
-            value = node.childNodes[0].data
-
-            if key in d and isinstance(d[key], list):
-                d[key].append(value)
-            elif key in d and isinstance(d[key], set):
-                d[key].add(value)
-            else:
-                d[key] = value
-    return d
 
 
 def _get_metadata(itemid):
