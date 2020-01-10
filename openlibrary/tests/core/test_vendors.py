@@ -1,9 +1,6 @@
 import pytest
-import re
-import requests
 from openlibrary.core.vendors import (
     split_amazon_title, clean_amazon_metadata_for_load,
-    _get_betterworldbooks_thirdparty_metadata, BWB_URL,
     betterworldbooks_fmt)
 
 def test_clean_amazon_metadata_for_load_non_ISBN():
@@ -85,13 +82,9 @@ def test_clean_amazon_metadata_for_load_subtitle():
     assert result.get('full_title') == 'Killers of the Flower Moon : The Osage Murders and the Birth of the FBI'
     #TODO: test for, and implement languages
 
-def test_get_betterworldbooks_thirdparty_metadata():
-    import urllib2
-    content = urllib2.urlopen(url=BWB_URL).read()
-    isbn = re.findall('isbn1=\"([0-9]+)\"', content)[0]
-    assert isbn    
-    data = _get_betterworldbooks_thirdparty_metadata(isbn)
-    assert data.get('price_amt')
+
+def test_betterworldbooks_fmt():
+    isbn = '9780393062274'
     bad_data = betterworldbooks_fmt(isbn)
     assert bad_data.get('isbn') == isbn
     assert bad_data.get('price') is None
