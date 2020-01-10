@@ -7,7 +7,8 @@ import simplejson
 import yaml
 
 from infogami.utils import delegate
-from infogami.utils.view import public, render, render_template, add_flash_message, safeint
+from infogami.utils.flash import add_flash_message
+from infogami.utils.view import public, render, render_template, safeint
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
