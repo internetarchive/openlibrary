@@ -98,6 +98,12 @@ def edition_from_item_metadata(itemid, metadata):
         return e
 
 
+def get_cover_url(item_id):
+    """Gets the URL of the archive.org item's title (or cover) page.
+    """
+    return '{0}/download/{1}/page/title.jpg'.format(IA_BASE_URL, item_id)
+
+
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
     url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)

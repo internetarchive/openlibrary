@@ -2,15 +2,14 @@
 """
 
 from infogami.plugins.api.code import add_hook
-from infogami import config
+
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts
-from openlibrary import records
+from openlibrary import accounts, records
 from openlibrary.core import ia
 
 import web
@@ -26,7 +25,6 @@ import import_edition_builder
 from lxml import etree
 import logging
 
-IA_BASE_URL = config.get('ia_base_url')
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
 
@@ -226,18 +224,16 @@ class ia_importapi(importapi):
             return self.error(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
-        marc_record = self.get_marc_record(identifier)
+        marc_record = get_marc_record_from_ia(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
-                return self.error("invalid-marc-record")
-
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                return self.error('invalid-marc-record')
         elif require_marc:
-            return self.error("no-marc-record")
-
+            return self.error('no-marc-record')
         else:
             try:
                 edition_data = self.get_ia_record(metadata)
@@ -246,7 +242,6 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = self.populate_edition_data(edition_data, identifier)
-
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
@@ -307,14 +302,8 @@ class ia_importapi(importapi):
         """
         edition['ocaid'] = identifier
         edition['source_records'] = 'ia:' + identifier
-        edition['cover'] = '{0}/download/{1}/page/title.jpg'.format(IA_BASE_URL, identifier)
+        edition['cover'] = ia.get_cover_url(identifier)
         return edition
-
-    def get_marc_record(self, identifier):
-        try:
-            return get_marc_record_from_ia(identifier)
-        except IOError:
-            return None
 
     def find_edition(self, identifier):
         """
