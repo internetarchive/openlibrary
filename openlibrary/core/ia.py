@@ -71,33 +71,6 @@ def process_metadata_dict(metadata):
     return dict(process_item(k, v) for k, v in metadata.items() if v)
 
 
-def _old_get_meta_xml(itemid):
-    """Returns the contents of meta_xml as JSON.
-    """
-    itemid = web.safestr(itemid.strip())
-    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
-    try:
-        stats.begin('archive.org', url=url)
-        metaxml = urllib2.urlopen(url).read()
-        stats.end()
-    except IOError:
-        logger.error("Failed to download _meta.xml for %s", itemid, exc_info=True)
-        stats.end()
-        return web.storage()
-
-    # archive.org returns html on internal errors.
-    # Checking for valid xml before trying to parse it.
-    if not metaxml.strip().startswith("<?xml"):
-        return web.storage()
-
-    try:
-        defaults = {"collection": [], "external-identifier": []}
-        return web.storage(xml2dict(metaxml, **defaults))
-    except Exception as e:
-        logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
-        return web.storage()
-
-
 def get_meta_xml(itemid):
     # use metadata API instead of parsing meta xml manually
     return get_metadata(itemid)
