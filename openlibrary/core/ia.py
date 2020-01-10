@@ -15,12 +15,13 @@ import six
 
 logger = logging.getLogger('openlibrary.ia')
 
+IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
 def get_item_json(itemid):
     itemid = web.safestr(itemid.strip())
-    url = 'http://archive.org/metadata/%s' % itemid
+    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
     try:
         stats.begin('archive.org', url=url)
         metadata_json = urllib2.urlopen(url).read()
@@ -29,6 +30,34 @@ def get_item_json(itemid):
     except IOError:
         stats.end()
         return {}
+
+
+def get_metadata(itemid):
+    item_json = get_item_json(itemid)
+    return extract_item_metadata(item_json)
+
+get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+
+
+def _get_metadata(itemid):
+    """Returns metadata by querying the archive.org metadata API.
+    """
+    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
+    try:
+        stats.begin("archive.org", url=url)
+        text = urllib2.urlopen(url).read()
+        stats.end()
+        return simplejson.loads(text)
+    except (IOError, ValueError):
+        return None
+
+# cache the results in memcache for a minute
+_get_metadata = web.memoize(_get_metadata, expires=60)
+
+
+def get_meta_xml(itemid):
+    # use metadata API instead of parsing meta xml manually
+    return get_metadata(itemid)
 
 
 def extract_item_metadata(item_json):
@@ -42,13 +71,6 @@ def extract_item_metadata(item_json):
         # remember the filenames to construct download links
         metadata['_filenames'] = [f['name'] for f in files]
     return metadata
-
-
-def get_metadata(itemid):
-    item_json = get_item_json(itemid)
-    return extract_item_metadata(item_json)
-
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
 
 
 def process_metadata_dict(metadata):
@@ -68,27 +90,6 @@ def process_metadata_dict(metadata):
             v = v[0]
         return (k, v)
     return dict(process_item(k, v) for k, v in metadata.items() if v)
-
-
-def get_meta_xml(itemid):
-    # use metadata API instead of parsing meta xml manually
-    return get_metadata(itemid)
-
-
-def _get_metadata(itemid):
-    """Returns metadata by querying the archive.org metadata API.
-    """
-    url = "http://www.archive.org/metadata/%s" % itemid
-    try:
-        stats.begin("archive.org", url=url)
-        text = urllib2.urlopen(url).read()
-        stats.end()
-        return simplejson.loads(text)
-    except (IOError, ValueError):
-        return None
-
-# cache the results in memcache for a minute
-_get_metadata = web.memoize(_get_metadata, expires=60)
 
 
 def locate_item(itemid):
