@@ -4,8 +4,7 @@
 import cache
 import logging
 import os
-import simplejson
-import urllib2
+import requests
 import web
 
 from infogami import config
@@ -28,9 +27,9 @@ def _get_metadata(itemid):
     url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
     try:
         stats.begin('archive.org', url=url)
-        metadata_json = urllib2.urlopen(url).read()
+        metadata = requests.get(url)
         stats.end()
-        return simplejson.loads(metadata_json)
+        return metadata.json()
     except IOError:
         stats.end()
         return {}
@@ -106,12 +105,12 @@ def get_cover_url(item_id):
 
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
-    url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
+    url += '?itemPath=%s&itemId=%s&server=%s' % (item_path, item_id, item_server)
     try:
-        stats.begin("archive.org", url=url)
-        manifest_json = urllib2.urlopen(url).read()
+        stats.begin('archive.org', url=url)
+        manifest = requests.get(url)
         stats.end()
-        return simplejson.loads(manifest_json)
+        return manifest.json()
     except IOError:
         stats.end()
         return {}
@@ -197,7 +196,6 @@ class ItemEdition(dict):
         # items with metadata no_ol_import=true will be not imported
         if metadata.get("no_ol_import", '').lower() == 'true':
             return "no-ol-import"
-
         return "ok"
 
     @classmethod
