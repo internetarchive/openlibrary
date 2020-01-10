@@ -38,7 +38,7 @@ want = [
     '300',  # pagination
     '440', '490', '830'  # series
     ] + [str(i) for i in range(500, 588)] + [  # notes + toc + description
-    #'600', '610', '611', '630', '648', '650', '651', '662',  # subjects
+    # 6XX subjects are extracted separately by get_subjects.subjects_for_work()
     '700', '710', '711', '720',  # contributions
     '246', '730', '740',  # other titles
     '852',  # location
