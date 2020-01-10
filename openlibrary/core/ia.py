@@ -6,7 +6,6 @@ import logging
 import os
 import simplejson
 import urllib2
-import warnings
 import web
 
 from infogami import config
@@ -56,12 +55,6 @@ def _get_metadata(itemid):
 
 # cache the results in memcache for a minute
 _get_metadata = web.memoize(_get_metadata, expires=60)
-
-
-def get_meta_xml(itemid):
-    # use metadata API instead of parsing meta xml manually
-    warnings.warn('Deprecated, use ia.get_metadata(itemid) instead.', DeprecationWarning)
-    return get_metadata(itemid)
 
 
 def extract_item_metadata(item_json):
