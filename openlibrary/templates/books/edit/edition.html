@@ -239,11 +239,11 @@ window.q.push(function() {
         <div class="formElement">
             <div class="label">
                 <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Do different titles appear on the cover, spine, or title page? The individual titles of collections or anthologies may be entered here as well as.")</span>
+                <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
+                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href='/books/OL24923038M'>The 13th Warrior</i></a>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
