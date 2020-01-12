@@ -32,7 +32,7 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('isbn') is None
     assert result.get('isbn_13') == ['9780190906764']
     assert result.get('isbn_10') == [   '0190906766']
-    assert result['identifiers']['amazon'] == ['0190906766']
+    assert result.get('identifiers') is None  # No Amazon id present
     assert result['source_records'] == ['amazon:0190906766']
     assert result['publish_date'] == 'Dec 18, 2018'
     assert result['physical_format'] == 'paperback'
@@ -41,6 +41,15 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('qlt') is None
     assert result.get('offer_summary') is None
 
+def test_clean_amazon_metadata_for_load_NON_ISBN():
+    amazon = {"publishers": ["The Clarendon press"], "price": "$11.00 (used)", "physical_format": "hardcover", "edition": "Reprint", "authors": [{"name": "Gilbert Murray"}], "price_amt": "11.00", "source_records": ["amazon:B0007JAFEA"], "title": "Greek studies", "url": "https://www.amazon.com/dp/B0007JAFEA/?tag=internetarchi-20", "offer_summary": {"total_used": 7, "total_collectible": 0, "amazon_offers": 0, "total_new": 0, "lowest_used": 1100}, "number_of_pages": "4", "cover": "https://images-na.ssl-images-amazon.com/images/I/51Nx44UAzNL.jpg", "languages": ["english"], "publish_date": "1947", "product_group": "Book", "qlt": "used"}
+    result = clean_amazon_metadata_for_load(amazon)
+    assert result['authors'][0]['name'] == 'Gilbert Murray'
+    assert result['title'] == 'Greek studies'
+    for isbn in ('isbn', 'isbn_10', 'isbn_13'):
+        assert result.get(isbn) is None
+    assert result['source_records'] == ['amazon:B0007JAFEA']
+    assert result['identifiers']['amazon'] == ['B0007JAFEA']
 
 amazon_titles = [
         # Original title, title, subtitle
