@@ -3,20 +3,19 @@ from openlibrary.core.vendors import (
     split_amazon_title, clean_amazon_metadata_for_load,
     betterworldbooks_fmt)
 
+
 def test_clean_amazon_metadata_for_load_non_ISBN():
     # results from get_amazon_metadata() -> _serialize_amazon_product()
     # available from /prices?asin=B000KRRIZI
     amazon = {"publishers": ["Dutton"], "languages": [], "price_amt": "74.00", "source_records": ["amazon:B000KRRIZI"], "title": "The Man With the Crimson Box", "url": "https://www.amazon.com/dp/B000KRRIZI/?tag=internetarchi-20", "price": "$74.00 (used)", "number_of_pages": None, "cover": "https://images-na.ssl-images-amazon.com/images/I/31aTq%2BNA1EL.jpg", "qlt": "used", "physical_format": "hardcover", "edition": "First Edition", "publish_date": "1940", "authors": [{"name": "H.S. Keeler"}], "product_group": "Book", "offer_summary": {"total_used": 1, "total_new": 0, "total_collectible": 0, "lowest_used": 7400, "amazon_offers": 0}}
-
     result = clean_amazon_metadata_for_load(amazon)
     # this result is passed to load() from vendors.create_edition_from_amazon_metadata()
     assert isinstance(result['publishers'], list)
     assert result['publishers'][0] == 'Dutton'
     assert result['cover'] == 'https://images-na.ssl-images-amazon.com/images/I/31aTq%2BNA1EL.jpg'
     assert result['authors'][0]['name'] == 'H.S. Keeler'
-    assert result.get('isbn') is None
-    assert result.get('isbn_13') is None
-    assert result.get('isbn_10') is None
+    for isbn in ('isbn', 'isbn_10', 'isbn_13'):
+        assert result.get(isbn) is None
     assert result['identifiers']['amazon'] == ['B000KRRIZI']
     assert result['source_records'] == ['amazon:B000KRRIZI']
     assert result['publish_date'] == '1940'
@@ -41,15 +40,6 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('qlt') is None
     assert result.get('offer_summary') is None
 
-def test_clean_amazon_metadata_for_load_NON_ISBN():
-    amazon = {"publishers": ["The Clarendon press"], "price": "$11.00 (used)", "physical_format": "hardcover", "edition": "Reprint", "authors": [{"name": "Gilbert Murray"}], "price_amt": "11.00", "source_records": ["amazon:B0007JAFEA"], "title": "Greek studies", "url": "https://www.amazon.com/dp/B0007JAFEA/?tag=internetarchi-20", "offer_summary": {"total_used": 7, "total_collectible": 0, "amazon_offers": 0, "total_new": 0, "lowest_used": 1100}, "number_of_pages": "4", "cover": "https://images-na.ssl-images-amazon.com/images/I/51Nx44UAzNL.jpg", "languages": ["english"], "publish_date": "1947", "product_group": "Book", "qlt": "used"}
-    result = clean_amazon_metadata_for_load(amazon)
-    assert result['authors'][0]['name'] == 'Gilbert Murray'
-    assert result['title'] == 'Greek studies'
-    for isbn in ('isbn', 'isbn_10', 'isbn_13'):
-        assert result.get(isbn) is None
-    assert result['source_records'] == ['amazon:B0007JAFEA']
-    assert result['identifiers']['amazon'] == ['B0007JAFEA']
 
 amazon_titles = [
         # Original title, title, subtitle
