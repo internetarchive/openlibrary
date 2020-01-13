@@ -1,10 +1,10 @@
 $def with (isbn)
 $# Template entry point for Better World Books record
 $# e.g. /show-records/bwb:9780521281706
-$var title: $_("Record details of bwb:")$isbn
+$var title: $_("Record details of") bwb:$isbn
 
 <div id="contentHead">
-    <h1>$_("Record details of bwb:") $isbn</h1>
+    <h1>$_("Record details of") bwb:$isbn</h1>
 </div>
 
 <div id="contentBody">
