@@ -1,0 +1,12 @@
+$def with (isbn)
+$# Template entry point for Better World Books record
+$# e.g. /show-records/bwb:9780521281706
+$var title: $_("Record details of bwb:")$isbn
+
+<div id="contentHead">
+    <h1>$_("Record details of bwb:") $isbn</h1>
+</div>
+
+<div id="contentBody">
+    <p>$:_('This record came from') <a href="https://www.betterworldbooks.com/product/detail/$isbn">https://www.betterworldbooks.com/product/detail/$isbn</a>.</p>
+</div>
