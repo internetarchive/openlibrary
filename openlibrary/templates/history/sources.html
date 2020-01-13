@@ -33,9 +33,9 @@ $code:
         elif item.startswith("amazon:"):
             source_name = "amazon.com"
             source_url = "https://www.amazon.com/?tag=" + affiliate_id('amazon')
-	elif item.startswith("bwb:"):
-	    source_name = "Better World Books"
-	    source_url = "https://www.betterworldbooks.com/"
+        elif item.startswith("bwb:"):
+            source_name = "Better World Books"
+            source_url = "https://www.betterworldbooks.com/"
         else:
             source_name = names.get(item, item)
             source_url = "//archive.org/details/" + item
