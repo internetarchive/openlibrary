@@ -76,7 +76,7 @@ def _get_metadata(ia_id):
         if meta:
             meta['collection'] = meta['collection'].split(";")
     else:
-        meta = ia.get_meta_xml(ia_id)
+        meta = ia.get_metadata(ia_id)
     return meta
 
 def preload(entries):
