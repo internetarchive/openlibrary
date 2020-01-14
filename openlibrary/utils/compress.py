@@ -1,7 +1,7 @@
 # incremental zlib compression, written by solrize, August 2009
 import zlib
 
-__doc__ = b"""
+"""
 Compressor object for medium-sized, statistically-similar strings.
 
 The idea is that you have a lot of moderate-sized strings (short email
@@ -57,15 +57,3 @@ class Compressor(object):
         while d.unconsumed_tail:
             t += d.decompress(d.unconsumed_tail)
         return t
-
-def test():
-    c = Compressor(__doc__)
-    test_string = "zlib is a pretty good compression algorithm"
-    ct = c.compress(test_string)
-    # print 'initial length=%d, compressed=%d'% (len(test_string), len(ct))
-    # the above string compresses from 43 bytes to 29 bytes using the
-    # current doc text as compression seed, not bad for such short input.
-    dt = c.decompress(ct)
-    assert dt == test_string
-
-test()
