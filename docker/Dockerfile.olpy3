@@ -2,6 +2,10 @@ from oldev
 
 WORKDIR /openlibrary
 
+RUN add-apt-repository ppa:deadsnakes/ppa \
+    apt-get update \
+    apt-get install python3.8 
+
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
 
 RUN apt-get -qq update && apt-get install -y \
