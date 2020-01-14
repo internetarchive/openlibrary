@@ -55,7 +55,7 @@ class Compressor(object):
         d = self.d_context.copy()
         t = d.decompress(ctext)
         while d.unconsumed_tail:
-            t += d.decompress(d.unconsumed_tail.decode("utf-8"))
+            t += d.decompress(d.unconsumed_tail)
         return t
 
 def test():
