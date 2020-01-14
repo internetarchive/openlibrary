@@ -1,7 +1,7 @@
 # incremental zlib compression, written by solrize, August 2009
 import zlib
 
-__doc__ = """
+__doc__ = b"""
 Compressor object for medium-sized, statistically-similar strings.
 
 The idea is that you have a lot of moderate-sized strings (short email
