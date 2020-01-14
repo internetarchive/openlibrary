@@ -83,15 +83,15 @@ export default class LazyBookCard {
         const cardEl = new LazyBookCard({
             title: isbn,
             loading: true,
-            link: `https://openlibrary.org/isbn/${isbn}`,
+            link: `/isbn/${isbn}`,
         });
 
-        fetch(`https://openlibrary.org/isbn/${isbn}.json`).then(r => r.json())
+        fetch(`/isbn/${isbn}.json`).then(r => r.json())
             .then(editionRecord => {
                 cardEl.updateState({
                     title: editionRecord.title,
                     identifier: isbn,
-                    link: `https://openlibrary.org${editionRecord.key}`,
+                    link: editionRecord.key,
                 });
 
                 if (editionRecord.covers) {
@@ -103,10 +103,10 @@ export default class LazyBookCard {
                     }
                 }
 
-                return fetch(`https://openlibrary.org${editionRecord.works[0].key}.json`).then(r => r.json())
+                return fetch(`${editionRecord.works[0].key}.json`).then(r => r.json())
             }).then(workRecord => {
                 return Promise.all(
-                    workRecord.authors.map(a => `https://openlibrary.org${a.author.key}.json`)
+                    workRecord.authors.map(a => `${a.author.key}.json`)
                         .map(link => fetch(link).then(r => r.json()))
                 );
             }).then(authorRecords => {
@@ -129,6 +129,6 @@ export default class LazyBookCard {
  * @property {string} [title]
  * @property {string} [byline]
  * @property {string} [identifier]
- * @property {boolean} [loading]
+ * @property {boolean} [loading] whether in a loading state
  * @property {boolean} [errored]
  */
