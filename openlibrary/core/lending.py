@@ -8,8 +8,8 @@ import time
 import logging
 import uuid
 import hmac
-import urllib
-import urllib2
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import Request, urlopen
 from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
@@ -202,7 +202,7 @@ def get_random_available_ia_edition():
              "+AND+loans__status__status:AVAILABLE"\
              "&fl=identifier,openlibrary_edition,loans__status__status"\
              "&output=json&rows=1&sort[]=random" % (config_bookreader_host))
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urlopen(url=url, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         return items[0]["openlibrary_edition"]
     except Exception as e:
@@ -222,7 +222,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         limit=limit, page=page, subject=subject, query=query,
         work_id=work_id, _type=_type, sorts=sorts)
     try:
-        request = urllib2.Request(url=url)
+        request = Request(url=url)
 
         # Internet Archive Elastic Search (which powers some of our
         # carousel queries) needs Open Library to forward user IPs so
@@ -230,7 +230,7 @@ def get_available(limit=None, page=1, subject=None, query=None,
         client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
         request.add_header('x-client-id', client_ip)
 
-        content = urllib2.urlopen(request, timeout=config_http_request_timeout).read()
+        content = urlopen(request, timeout=config_http_request_timeout).read()
         items = simplejson.loads(content).get('response', {}).get('docs', [])
         results = {}
         for item in items:
@@ -250,7 +250,7 @@ def get_availability(key, ids):
     """
     url = '%s?%s=%s' % (config_ia_availability_api_v2_url, key, ','.join(ids))
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urlopen(url=url, timeout=config_http_request_timeout).read()
         return simplejson.loads(content).get('responses', {})
     except Exception as e:
         return {'error': 'request_timeout', 'details': str(e)}
@@ -274,7 +274,7 @@ def get_realtime_availability_of_ocaid(ocaid):
         'error': 'error'
     }
     try:
-        content = urllib2.urlopen(url=url, timeout=config_http_request_timeout).read()
+        content = urlopen(url=url, timeout=config_http_request_timeout).read()
         metadata = simplejson.loads(content).get('metadata', {})
         statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
         status = metadata.get('loans__status__status', 'error').lower()
@@ -351,7 +351,7 @@ def is_loaned_out_on_ia(identifier):
     """
     url = "https://archive.org/services/borrow/%s?action=status" % identifier
     try:
-        response = simplejson.loads(urllib2.urlopen(url).read())
+        response = simplejson.loads(urlopen(url).read())
         return response and response.get('checkedout')
     except:
         return None
@@ -724,7 +724,7 @@ class ACS4Item(object):
     def get_data(self):
         url = '%s/item/%s' % (config_loanstatus_url, self.identifier)
         try:
-            return simplejson.loads(urllib2.urlopen(url).read())
+            return simplejson.loads(urlopen(url).read())
         except IOError:
             logger.error("unable to conact BSS server", exc_info=True)
 
@@ -808,10 +808,10 @@ class IA_Lending_API:
         if config_ia_loan_api_developer_key:
             params['developer'] = config_ia_loan_api_developer_key
         params['token'] = config_ia_ol_shared_key
-        payload = urllib.urlencode(params)
+        payload = urlencode(params)
 
         try:
-            jsontext = urllib2.urlopen(config_ia_loan_api_url, payload,
+            jsontext = urlopen(config_ia_loan_api_url, payload,
                                        timeout=config_http_request_timeout).read()
             logger.info("POST response: %s", jsontext)
             return simplejson.loads(jsontext)
