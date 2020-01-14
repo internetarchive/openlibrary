@@ -47,13 +47,13 @@ class Compressor(object):
 
     def compress(self, text):
         c = self.c_context.copy()
-        t = c.compress(text.encode("utf-8"))
+        t = c.compress(text)
         t2 = c.flush(zlib.Z_FINISH)
         return t + t2
 
     def decompress(self, ctext):
         d = self.d_context.copy()
-        t = d.decompress(ctext.decode("utf-8"))
+        t = d.decompress(ctext)
         while d.unconsumed_tail:
             t += d.decompress(d.unconsumed_tail.decode("utf-8"))
         return t
