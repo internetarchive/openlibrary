@@ -1,0 +1,21 @@
+from oldev
+
+WORKDIR /openlibrary
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+
+RUN apt-get -qq update && apt-get install -y \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel
+
+COPY requirements*.txt ./
+RUN pip3 install --disable-pip-version-check -r requirements_test.txt
+
+RUN make git
+
+# Expose Open Library, Infobase, and Coverstore
+EXPOSE 80 7000 8081 3000
+
+# runs as root in order to access su to run as openlibrary and postgres users
+CMD docker/ol-docker-start.sh
