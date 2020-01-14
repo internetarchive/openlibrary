@@ -8,7 +8,7 @@ from infogami.utils import delegate
 
 from openlibrary.plugins import ol_infobase
 
-from mock_infobase import mock_site, MockConnection
+from openlibrary.mocks.mock_infobase import mock_site, MockConnection
 
 @pytest.fixture
 def ol(request):
