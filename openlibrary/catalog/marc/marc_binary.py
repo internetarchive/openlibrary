@@ -1,9 +1,8 @@
-from openlibrary.catalog.marc import fast_parse
 #TODO: Move fast_parse get_tag_lines(), handle_wrapped_lines(), get_all_tag_lines() into this class
-from marc_base import MarcBase, MarcException, BadMARC
 from unicodedata import normalize
 from pymarc import MARC8ToUnicode
-from openlibrary.catalog.marc import mnemonics
+from openlibrary.catalog.marc import fast_parse, mnemonics
+from openlibrary.catalog.marc.marc_base import BadMARC, MarcBase, MarcException
 
 import six
 
