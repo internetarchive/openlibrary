@@ -9,9 +9,9 @@ import logging
 import array
 import memcache
 
-import db
-import config
-from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
+from openlibrary.coverstore import db
+from openlibrary.coverstore import config
+from openlibrary.coverstore.utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
 
 from coverlib import save_image, read_image, read_file
 
