@@ -798,6 +798,7 @@ class search_json(delegate.page):
 
         # backward compatibility
         response['num_found'] = response['numFound']
+        web.header('Content-Type', 'application/json')
         return delegate.RawText(json.dumps(response, indent=True))
 
 def setup():
