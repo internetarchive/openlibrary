@@ -1,4 +1,4 @@
-import Quagga from 'quagga';
+import Quagga from 'quagga';  // barcode scanning library
 import LazyBookCard from './LazyBookCard';
 
 const BOX_STYLE = {color: 'green', lineWidth: 2};
