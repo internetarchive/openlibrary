@@ -1,13 +1,11 @@
 import re
-from collections import defaultdict
 
 from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 
 re_question = re.compile('^\?+$')
-re_lccn = re.compile('([ \dA-Za-z\-]{3}[0-9/-]+).*')
-re_letters = re.compile('[A-Za-z]')
+re_lccn = re.compile('([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
 re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
@@ -628,7 +626,3 @@ def read_edition(rec):
             edition.update(v)
 
     return edition
-
-if __name__ == '__main__':
-    import sys
-    loc = sys.argv[1]
