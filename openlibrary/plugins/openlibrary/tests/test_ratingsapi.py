@@ -2,9 +2,8 @@ from py.test import config
 import web
 import simplejson
 
-import urllib
-import urllib2
 import cookielib
+from six.moves import urllib
 
 from openlibrary.plugins.openlibrary.api import ratings
 from openlibrary import accounts
@@ -23,9 +22,9 @@ class RatingsAPI:
 
         self.cookiejar = cookielib.CookieJar()
 
-        self.opener = urllib2.build_opener()
+        self.opener = urllib.request.build_opener()
         self.opener.add_handler(
-            urllib2.HTTPCookieProcessor(self.cookiejar))
+            urllib.request.HTTPCookieProcessor(self.cookiejar))
 
     def urlopen(self, path, data=None, method=None, headers={}):
         """url open with cookie support."""
@@ -35,13 +34,13 @@ class RatingsAPI:
             else:
                 method = "GET"
 
-        req = urllib2.Request(self.server + path, data=data, headers=headers)
+        req = urllib.request.Request(self.server + path, data=data, headers=headers)
         req.get_method = lambda: method
         return self.opener.open(req)
 
     def login(self):
         data = dict(username=self.username, password=self.password)
-        self.urlopen("/account/login", data=urllib.urlencode(data), method="POST")
+        self.urlopen("/account/login", data=urllib.parse.urlencode(data), method="POST")
 
     def rate_book(self, work_key, data):
         url = '%s/ratings.json' % (work_key)

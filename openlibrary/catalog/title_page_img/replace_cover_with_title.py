@@ -5,13 +5,15 @@ from openlibrary.catalog.utils.query import query, withKey, has_cover
 from subprocess import Popen, PIPE
 import web
 import re
-import urllib
 import sys
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 import socket  # for exceptions
 import httplib
 from time import sleep
+
+from six.moves import urllib
+
 
 re_single_cover = re.compile('^\[(\d+)\]$')
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
@@ -45,7 +47,7 @@ def parse_scandata_xml(f):
     return (cover, title)
 
 def find_title_leaf_et(ia_host, ia_path, url):
-    f = urllib.urlopen(url)
+    f = urllib.request.urlopen(url)
     try:
         return parse_scandata_xml(f)
     except xml.parsers.expat.ExpatError:
@@ -100,10 +102,10 @@ def scandata_zip_test(ia_host, ia_path):
 
 
 def urlread(url):
-    return urllib.urlopen(url).read()
+    return urllib.request.urlopen(url).read()
 
 def post_cover(ol, source_url):
-    param = urllib.urlencode({'olid': ol[3:], 'source_url': source_url})
+    param = urllib.parse.urlencode({'olid': ol[3:], 'source_url': source_url})
     headers = {"Content-type": "application/x-www-form-urlencoded"}
     conn = httplib.HTTPConnection("covers.openlibrary.org", timeout=20)
     conn.request("POST", "/b/upload", param, headers)

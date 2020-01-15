@@ -3,7 +3,6 @@ import re
 import web
 import sys
 import simplejson as json
-from urllib2 import urlopen, URLError
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.importer.db_read import get_mc
 from time import sleep
@@ -11,6 +10,8 @@ from openlibrary.catalog.title_page_img.load import add_cover_image
 from openlibrary.api import OpenLibrary, unmarshal, marshal
 
 import six
+from six.moves.urllib.error import URLError
+from six.moves.urllib.request import urlopen
 
 rc = read_rc()
 ol = OpenLibrary("http://openlibrary.org")

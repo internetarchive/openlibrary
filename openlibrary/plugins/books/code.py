@@ -4,9 +4,8 @@
 import dynlinks
 import readlinks
 
-import urlparse
 import re
-import urllib2
+from six.moves import urllib
 import web
 
 from infogami.infobase import _json as simplejson
@@ -55,10 +54,10 @@ class read_multiget(delegate.page):
         # see https://github.com/benoitc/gunicorn/issues/215
         raw_uri = web.ctx.env.get("RAW_URI")
         if raw_uri:
-            raw_path = urlparse.urlsplit(raw_uri).path
+            raw_path = urllib.parse.urlsplit(raw_uri).path
 
             # handle e.g. '%7C' for '|'
-            decoded_path = urllib2.unquote(raw_path)
+            decoded_path = urllib.parse.unquote(raw_path)
 
             m = self.path_re.match(decoded_path)
             if not len(m.groups()) == 2:

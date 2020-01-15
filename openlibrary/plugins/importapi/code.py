@@ -17,13 +17,15 @@ import web
 import base64
 import json
 import re
-import urllib
 
 import import_opds
 import import_rdf
 import import_edition_builder
 from lxml import etree
 import logging
+
+from six.moves import urllib
+
 
 MARC_LENGTH_POS = 5
 logger = logging.getLogger('openlibrary.importapi')
@@ -552,9 +554,9 @@ class ils_cover_upload:
 
     def build_url(self, url, **params):
         if '?' in url:
-            return url + "&" + urllib.urlencode(params)
+            return url + "&" + urllib.parse.urlencode(params)
         else:
-            return url + "?" + urllib.urlencode(params)
+            return url + "?" + urllib.parse.urlencode(params)
 
     def login(self, authstring):
         if not authstring:

@@ -3,23 +3,25 @@
     >>> server = HTTPServer(port=8090)
     >>> server.request('/hello/world', method='GET').should_return('hello, world!', headers={'content-type': 'text/plain'})
 
-    >>> response = urllib.urlopen('http://0.0.0.0:8090/hello/world')
+    >>> response = urllib.request.urlopen('http://0.0.0.0:8090/hello/world')
     >>> response.read()
     'hello, world!'
     >>> response.info().getheader('Content-Type')
     'text/plain'
 
     >>> server.stop()
-    >>> urllib.urlopen('http://0.0.0.0:8090/hello/world')
+    >>> urllib.request.urlopen('http://0.0.0.0:8090/hello/world')
     Traceback (most recent call last):
     ...
     IOError: [Errno socket error] (61, 'Connection refused')
 """
 from __future__ import print_function
 from web.wsgiserver import CherryPyWSGIServer
-import urllib
 import threading
 import time
+
+from six.moves import urllib
+
 
 class HTTPServer:
     def __init__(self, port=8090):
@@ -45,7 +47,7 @@ class HTTPServer:
         response = Respose()
 
         if isinstance(query, dict):
-            query = urllib.urlencode(query)
+            query = urllib.parse.urlencode(query)
 
         self.mappings[path, method, query] = response
         return response

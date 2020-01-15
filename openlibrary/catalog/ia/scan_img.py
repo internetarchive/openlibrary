@@ -3,10 +3,12 @@ import httplib
 import xml.etree.ElementTree as et
 import xml.parsers.expat
 import socket # for exceptions
-import urllib
 import re
 from openlibrary.catalog.get_ia import urlopen_keep_trying
 from openlibrary.utils.ia import find_item
+
+from six.moves import urllib
+
 
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
 

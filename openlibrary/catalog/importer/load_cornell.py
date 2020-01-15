@@ -3,7 +3,6 @@ import web
 import re
 import httplib
 import sys
-import urllib2
 import simplejson as json
 import openlibrary.catalog.importer.pool as pool
 from openlibrary.catalog.merge.merge_marc import build_marc
@@ -20,6 +19,7 @@ from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal
+from six.moves import urllib
 
 import six
 
@@ -138,7 +138,7 @@ for row in iter:
     except NoMARCXML:
         write_log(ia, when, "no MARCXML")
         continue
-    except urllib2.HTTPError as error:
+    except urllib.error.HTTPError as error:
         write_log(ia, when, "error: HTTPError: " + str(error))
         continue
     if loc is None:

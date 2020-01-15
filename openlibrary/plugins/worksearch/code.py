@@ -1,7 +1,5 @@
 import web
 import re
-import urllib
-import urllib2
 from lxml.etree import XML, XMLSyntaxError
 from infogami.utils import delegate, stats
 from infogami import config
@@ -14,6 +12,9 @@ from openlibrary.utils import url_quote, escape_bracket
 from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
 from unicodedata import normalize
 import logging
+
+from six.moves import urllib
+
 
 ftoken_db = None
 
@@ -172,7 +173,7 @@ def parse_json_from_solr_query(url):
 def execute_solr_query(url):
     stats.begin("solr", url=url)
     try:
-        solr_result = urllib2.urlopen(url, timeout=3)
+        solr_result = urllib.request.urlopen(url, timeout=3)
     except Exception as e:
         logger.exception("Failed solr query")
         return None
@@ -461,7 +462,7 @@ class search(delegate.page):
 
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
-            raise web.seeother('/search/inside?' + urllib.urlencode({'q': i.get('q', '')}))
+            raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
 
         if i.get('ftokens') and ',' not in i.ftokens:
             token = i.ftokens
@@ -696,7 +697,7 @@ class subject_search(delegate.page):
             "sort": "work_count desc"
         }
 
-        solr_select = solr_select_url + "?" + urllib.urlencode(params, 'utf-8')
+        solr_select = solr_select_url + "?" + urllib.parse.urlencode(params, 'utf-8')
         results = run_solr_search(solr_select)
         response = results['response']
 

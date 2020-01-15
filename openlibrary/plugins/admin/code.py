@@ -5,8 +5,6 @@ import sys
 import web
 import subprocess
 import datetime
-import urllib
-import urllib2
 import traceback
 import logging
 import simplejson
@@ -109,7 +107,7 @@ class reload:
             s = web.rstrips(s, "/") + "/_reload"
             yield "<h3>" + s + "</h3>"
             try:
-                response = urllib.urlopen(s).read()
+                response = urllib.request.urlopen(s).read()
                 yield "<p><pre>" + response[:100] + "</pre></p>"
             except:
                 yield "<p><pre>%s</pre></p>" % traceback.format_exc()
@@ -385,7 +383,7 @@ class stats:
 class ipstats:
     def GET(self):
         web.header('Content-Type', 'application/json')
-        json = urllib.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
+        json = urllib.request.urlopen("http://www.archive.org/download/stats/numUniqueIPsOL.json").read()
         return delegate.RawText(json)
 
 class block:
@@ -483,6 +481,10 @@ def get_admin_stats():
     return storify(xstats)
 
 from openlibrary.plugins.upstream import borrow
+
+from six.moves import urllib
+
+
 class loans_admin:
 
     def GET(self):

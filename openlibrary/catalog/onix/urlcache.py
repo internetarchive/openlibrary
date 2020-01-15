@@ -2,9 +2,11 @@ import sys
 import os
 import time
 import shutil
-import urllib
 import traceback
 from fcntl import *
+
+from six.moves import urllib
+
 
 class URLCache:
 	def __init__ (self, dir):
@@ -42,7 +44,7 @@ class URLCache:
 			# having released the lock on the index, suck data
 			# into the temporary file
 			sys.stderr.write ("URLCache: fetching %s\n" % url)
-			net_data = urllib.urlopen (url)
+			net_data = urllib.request.urlopen (url)
 			shutil.copyfileobj (net_data, tmp_data)
 			tmp_data.flush ()
 			os.link (tmp_data_file, data_file)  # the fetch is good: attach it

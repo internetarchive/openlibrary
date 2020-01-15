@@ -6,8 +6,6 @@ import time
 import hmac
 import re
 import simplejson
-import urllib
-import urllib2
 import logging
 
 import web
@@ -31,6 +29,9 @@ from openlibrary.utils import dateutil
 from lxml import etree
 
 import acs4
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.borrow")
 
@@ -86,7 +87,7 @@ class checkout_with_ocaid(delegate.page):
         then redirects user to the canonical OL borrow page.
         """
         i = web.input()
-        params = urllib.urlencode(i)
+        params = urllib.parse.urlencode(i)
         ia_edition = web.ctx.site.get('/books/ia:%s' % ocaid)
         edition = web.ctx.site.get(ia_edition.location)
         url = '%s/x/borrow' % (edition.key)
@@ -130,7 +131,7 @@ class borrow(delegate.page):
             archive_url += '&_autoReadAloud=show'
 
         if i.q:
-            _q = urllib.quote(i.q, safe='')
+            _q = urllib.parse.quote(i.q, safe='')
             archive_url += "#page/-/mode/2up/search/%s" % _q
 
         if availability and availability['status'] == 'open':
@@ -652,7 +653,7 @@ def get_loan_status(resource_id):
 
     url = '%s/is_loaned_out/%s' % (loanstatus_url, resource_id)
     try:
-        response = simplejson.loads(urllib2.urlopen(url).read())
+        response = simplejson.loads(urllib.request.urlopen(url).read())
         if len(response) == 0:
             # No outstanding loans
             return None
@@ -679,7 +680,7 @@ def get_all_loaned_out():
 
     url = '%s/is_loaned_out/' % loanstatus_url
     try:
-        response = simplejson.loads(urllib2.urlopen(url).read())
+        response = simplejson.loads(urllib.request.urlopen(url).read())
         return response
     except IOError:
         raise Exception('Loan status server not available')
@@ -996,7 +997,7 @@ def make_bookreader_auth_link(loan_key, item_id, book_path, ol_host, ia_userid=N
         'iaUserId': ia_userid,
         'iaAuthToken': make_ia_token(ia_userid, READER_AUTH_SECONDS)
     }
-    return auth_link + urllib.urlencode(params)
+    return auth_link + urllib.parse.urlencode(params)
 
 def on_loan_update(loan):
     # update the waiting list and ebook document.

@@ -1,7 +1,9 @@
 from openlibrary.catalog.read_rc import read_rc
-import urllib
 import httplib
 import json
+
+from six.moves import urllib
+
 
 rc = read_rc()
 
@@ -19,7 +21,7 @@ def add_cover_image(ekey, ia):
     cookie =  ';'.join([c.split(';')[0] for c in cookies])
 
     cover_url = 'http://www.archive.org/download/' + ia + '/page/' + ia + '_preview.jpg'
-    body = urllib.urlencode({"url": cover_url})
+    body = urllib.parse.urlencode({"url": cover_url})
     assert ekey.startswith('/books/')
     add_cover_url = 'http://openlibrary.org' + ekey + '/add-cover.json'
     headers = {'Content-type': 'application/x-www-form-urlencoded', 'Cookie': cookie}

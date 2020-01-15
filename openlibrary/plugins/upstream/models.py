@@ -1,7 +1,6 @@
 from __future__ import print_function
 
 import web
-import urllib2
 import simplejson
 import re
 from collections import defaultdict
@@ -27,6 +26,7 @@ import borrow
 import logging
 
 import six
+from six.moves import urllib
 
 
 def follow_redirect(doc):
@@ -709,7 +709,7 @@ class Subject(client.Thing):
 
         try:
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
-            data = urllib2.urlopen(url).read()
+            data = urllib.request.urlopen(url).read()
             cover_ids = simplejson.loads(data)
         except IOError as e:
             print('ERROR in getting cover_ids', str(e), file=web.debug)

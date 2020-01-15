@@ -5,12 +5,14 @@ from openlibrary.catalog.marc import fast_parse, parse
 from infogami import config
 from lxml import etree
 import xml.parsers.expat
-import urllib2
 import os.path
 import socket
 from time import sleep
 import traceback
 from openlibrary.core import ia
+
+from six.moves import urllib
+
 
 IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
@@ -23,12 +25,12 @@ class NoMARCXML(IOError):
 def urlopen_keep_trying(url):
     for i in range(3):
         try:
-            f = urllib2.urlopen(url)
+            f = urllib.request.urlopen(url)
             return f
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             if error.code in (403, 404, 416):
                 raise
-        except urllib2.URLError:
+        except urllib.error.URLError:
             pass
         sleep(2)
 
@@ -143,7 +145,7 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
+    ureq = urllib.request.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
     f = urlopen_keep_trying(ureq)
     data = None
     if f:

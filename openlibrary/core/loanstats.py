@@ -5,13 +5,15 @@ Unlike other parts of openlibrary, this modules talks to the database directly.
 import re
 import time
 import datetime
-import urllib
 import logging
 import simplejson
 import web
 from infogami import config
 from . import inlibrary
 from .. import i18n
+
+from six.moves import urllib
+
 
 logger = logging.getLogger(__name__)
 
@@ -66,10 +68,10 @@ class LoanStats:
 
         logger.info("SOLR query %s", params)
 
-        q = urllib.urlencode(params, doseq=True)
+        q = urllib.parse.urlencode(params, doseq=True)
         url = self.base_url + "/select?" + q
         logger.info("urlopen %s", url)
-        response = urllib.urlopen(url).read()
+        response = urllib.request.urlopen(url).read()
         return simplejson.loads(response)
 
     def solrescape(self, text):

@@ -4,7 +4,6 @@ import web
 import re
 import httplib
 import sys
-import urllib2
 import threading
 import simplejson as json
 from lxml import etree
@@ -32,6 +31,7 @@ from subprocess import Popen, PIPE
 import argparse
 
 import six
+from six.moves import urllib
 
 
 parser = argparse.ArgumentParser(description='scribe loader')
@@ -365,7 +365,7 @@ if __name__ == '__main__':
 
             try:
                 formats = marc_formats(ia, host, path)
-            except urllib2.HTTPError as error:
+            except urllib.error.HTTPError as error:
                 write_log(ia, when, "error: HTTPError: " + str(error))
                 continue
             use_binary = False
@@ -377,7 +377,7 @@ if __name__ == '__main__':
                 use_binary = True
                 try:
                     marc_data = get_marc_ia_data(ia, host, path)
-                except urllib2.HTTPError as error:
+                except urllib.error.HTTPError as error:
                     if error.code == 403:
                         error_marc_403(ia)
                         continue
@@ -424,7 +424,7 @@ if __name__ == '__main__':
                 except NoMARCXML:
                     write_log(ia, when, "no MARCXML")
                     continue
-                except urllib2.HTTPError as error:
+                except urllib.error.HTTPError as error:
                     write_log(ia, when, "error: HTTPError: " + str(error))
                     continue
             if not use_binary and not formats['xml']:

@@ -2,11 +2,13 @@
 
 from __future__ import print_function
 import web
-import urllib2
 from time import time
 import re
 
 from MARC21 import MARC21Record, MARC21HtmlPrint, MARC21Exn
+
+from six.moves import urllib
+
 
 class show_marc:
     def GET(self, record, offset, length):
@@ -24,13 +26,13 @@ class show_marc:
         assert 0 < length < 100000
 
         t0 = time()
-        ureq = urllib2.Request(url,
+        ureq = urllib.request.Request(url,
                                None,
                                {'Range':'bytes=%d-%d'% (r0, r1)},
                                )
 
 
-        result = urllib2.urlopen(ureq).read(100000)
+        result = urllib.request.urlopen(ureq).read(100000)
         # print 'urllib2 got %d bytes (%.3f sec):<p/>'% (len(result), time()-t0)
 
         rec = None

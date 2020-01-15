@@ -2,7 +2,6 @@
 from time import time
 import re
 import simplejson
-import urllib2
 import httplib
 import logging
 
@@ -10,6 +9,9 @@ import web
 from infogami.utils import delegate
 from infogami.utils.view import render_template
 from openlibrary.core.fulltext import fulltext_search
+
+
+from six.moves import urllib
 
 
 RESULTS_PER_PAGE = 20

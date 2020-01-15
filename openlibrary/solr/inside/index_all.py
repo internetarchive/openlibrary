@@ -6,12 +6,12 @@ import re
 import httplib
 from collections import defaultdict
 from socket import socket, AF_INET, SOCK_DGRAM, SOL_UDP, SO_BROADCAST, timeout
-from urllib import urlopen
 from time import sleep, time
 from lxml.etree import Element, tostring
 from unicodedata import normalize
 
 import six
+from six.moves.urllib.request import urlopen
 
 def add_field(doc, name, value):
     field = Element("field", name=name)

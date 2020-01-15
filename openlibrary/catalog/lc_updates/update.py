@@ -1,5 +1,4 @@
 from __future__ import print_function
-from urllib2 import urlopen
 from lxml.html import parse
 from openlibrary.catalog.read_rc import read_rc
 import os
@@ -7,6 +6,9 @@ import sys
 import httplib
 import subprocess
 from time import sleep
+
+from six.moves.urllib.request import urlopen
+
 
 # httplib.HTTPConnection.debuglevel = 1
 

@@ -2,21 +2,23 @@
 
 from __future__ import print_function
 from time import sleep, time
-import urllib
 import web
 import subprocess
 import sys
 from catalog.read_rc import read_rc
+
+from six.moves import urllib
+
 
 rc = read_rc()
 
 def solr_query(q, start=0, rows=None, sort_by="publicdate desc"):
     q += " AND NOT collection:test_collection AND NOT collection:opensource AND NOT collection:microfilm"
 #    q += " AND NOT collection:test_collection AND collection:gutenberg"
-    url = rc['solr_url'] + "?q=%s;%s&wt=json&start=%d" % (urllib.quote(q), urllib.quote_plus(sort_by), start)
+    url = rc['solr_url'] + "?q=%s;%s&wt=json&start=%d" % (urllib.parse.quote(q), urllib.parse.quote_plus(sort_by), start)
     if rows:
         url += "&rows=%d" % rows
-    ret = eval(urllib.urlopen(url).read())
+    ret = eval(urllib.request.urlopen(url).read())
     return ret['response']
 
 def get_books(**args):

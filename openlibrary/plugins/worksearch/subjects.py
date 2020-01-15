@@ -6,13 +6,13 @@ import re
 import simplejson as json
 import logging
 from collections import defaultdict
-import urllib
 import datetime
 
 from infogami import config
 from infogami.plugins.api.code import jsonapi
 from infogami.utils import delegate, stats
 from infogami.utils.view import render, render_template, safeint
+from six.moves import urllib
 
 from openlibrary.core.models import Subject
 from openlibrary.core.lending import add_availability
@@ -408,7 +408,7 @@ def execute_ebook_count_query(q):
     solr_url = root_url % (rows, start, q)
 
     stats.begin("solr", url=solr_url)
-    response = json.load(urllib.urlopen(solr_url))['response']
+    response = json.load(urllib.request.urlopen(solr_url))['response']
     stats.end()
 
     num_found = response['numFound']
@@ -417,7 +417,7 @@ def execute_ebook_count_query(q):
         if start:
             solr_url = root_url % (rows, start, q)
             stats.begin("solr", url=solr_url)
-            response = json.load(urllib.urlopen(solr_url))['response']
+            response = json.load(urllib.request.urlopen(solr_url))['response']
             stats.end()
         for doc in response['docs']:
             for k in doc['edition_key']:

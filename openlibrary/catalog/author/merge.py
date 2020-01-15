@@ -8,9 +8,9 @@ import web
 import re
 import sys
 import codecs
-import urllib
 
 import six
+from six.moves import urllib
 
 sys.path.append('/home/edward/src/olapi')
 from olapi import OpenLibrary, unmarshal, Reference
@@ -18,7 +18,7 @@ from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.utils.query import query_iter
 
 def urlread(url):
-    return urllib.urlopen(url).read()
+    return urllib.request.urlopen(url).read()
 
 def norm(s):
     return normalize('NFC', s)

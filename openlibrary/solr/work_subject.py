@@ -1,10 +1,12 @@
 from __future__ import print_function
 import re
-import urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
 from openlibrary.catalog.importer.db_read import get_mc
 from collections import defaultdict
+
+from six.moves import urllib
+
 
 subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 
@@ -38,7 +40,7 @@ def get_marc_subjects(w):
             print('bad record source:', src)
             print('http://openlibrary.org' + w['key'])
             continue
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print('http://openlibrary.org' + w['key'])
         if not data:

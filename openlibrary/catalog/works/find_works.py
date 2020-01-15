@@ -6,7 +6,6 @@ from __future__ import print_function
 import re
 import sys
 import web
-import urllib2
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
@@ -17,7 +16,6 @@ from collections import defaultdict
 from pprint import pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
-from urllib import urlopen
 from openlibrary.api import OpenLibrary
 from lxml import etree
 from time import sleep, time, strftime
@@ -25,6 +23,8 @@ from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 import simplejson as json
 
 import six
+from six.moves import urllib
+from six.moves.urllib.request import urlopen
 
 
 ol = OpenLibrary("http://openlibrary.org")
@@ -137,7 +137,7 @@ def get_work_title(e, mc):
             print('bad record source:', src)
             print('http://openlibrary.org' + e['key'])
             continue
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print(e['key'])
         if not data:
