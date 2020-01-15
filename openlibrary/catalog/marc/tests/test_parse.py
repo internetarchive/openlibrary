@@ -36,7 +36,7 @@ bin_samples = [
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
 
-class TestParse():
+class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
         expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
@@ -55,6 +55,8 @@ class TestParse():
             assert edition_marc_xml[k] == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
         assert edition_marc_xml == j
 
+
+class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
         expect_filename = "%s/bin_expect/%s" % (test_data, i)
@@ -94,3 +96,16 @@ class TestParse():
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
+
+    def test_wrapped_lines(self):
+        filename = test_data + '/bin_input/wrapped_lines'
+        with open(filename, 'r') as f:
+            rec = MarcBinary(f.read())
+            ret = list(rec.read_fields(['520']))
+            assert len(ret) == 2
+            a, b = ret
+            assert a[0] == '520' and b[0] == '520'
+            a_content = list(a[1].get_all_subfields())[0][1]
+            assert len(a_content) == 2290
+            b_content = list(b[1].get_all_subfields())[0][1]
+            assert len(b_content) == 243

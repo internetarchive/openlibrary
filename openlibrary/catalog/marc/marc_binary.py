@@ -1,20 +1,49 @@
-from openlibrary.catalog.marc import fast_parse
-#TODO: Move fast_parse get_tag_lines(), handle_wrapped_lines(), get_all_tag_lines() into this class
-from marc_base import MarcBase, MarcException, BadMARC
-from unicodedata import normalize
 from pymarc import MARC8ToUnicode
+from unicodedata import normalize
+
+#TODO: Move fast_parse get_tag_lines(), get_all_tag_lines() into this class
 from openlibrary.catalog.marc import mnemonics
+from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_tag_lines
+from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, BadMARC
+
 
 import six
 
 
 marc8 = MARC8ToUnicode(quiet=True)
 
+
 class BadLength(MarcException):
     pass
 
+
 def norm(s):
     return normalize('NFC', six.text_type(s))
+
+
+def handle_wrapped_lines(_iter):
+    """ 
+    Handles wrapped MARC fields, which appear to be multiple
+    fields with the same field number ending with ++
+    Have not found an official spec which describe this.
+    """
+    cur_lines = []
+    cur_tag = None
+    maybe_wrap = False
+    for t, l in _iter:
+        if len(l) > 500 and l.endswith('++\x1e'):
+            assert not cur_tag or cur_tag == t
+            cur_tag = t
+            cur_lines.append(l)
+            continue
+        if cur_lines:
+            yield cur_tag, cur_lines[0][:-3] + ''.join(i[2:-3] for i in cur_lines[1:]) + l[2:]
+            cur_tag = None
+            cur_lines = []
+            continue
+        yield t, l
+    assert not cur_lines
+
 
 class BinaryDataField():
     def __init__(self, rec, line):
@@ -92,7 +121,8 @@ class MarcBinary(MarcBase):
 
     def all_fields(self):
         marc8 = self.leader()[9] != 'a'
-        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_all_tag_lines(self.data)):
+        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
+        #for tag, line in self.handle_wrapped_lines(self.get_all_tag_lines()):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
@@ -105,7 +135,8 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
-        for tag, line in fast_parse.handle_wrapped_lines(fast_parse.get_tag_lines(self.data, want)):
+        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
+        #for tag, line in self.handle_wrapped_lines(self.get_tag_lines(want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):

@@ -10,6 +10,7 @@ from warnings import warn
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
 
+
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
 def translate(bytes_in, leader_says_marc8=False):
@@ -449,6 +450,7 @@ def read_edition(data, accept_electronic=False):
     return edition
 
 def handle_wrapped_lines(iter):
+    warn('Deprecated, use catalog.marc.marc_binary.handle_wrapped_lines() instead.', DeprecationWarning)
     cur_lines = []
     cur_tag = None
     maybe_wrap = False

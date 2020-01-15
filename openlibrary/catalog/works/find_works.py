@@ -1,30 +1,30 @@
 #!/usr/bin/python
-
 # find works and create pages on production
 
 from __future__ import print_function
 import re
+import simplejson as json
 import sys
 import web
-from openlibrary.solr.update_work import update_work, solr_update, update_author
-from openlibrary.catalog.get_ia import get_from_archive, get_data
-from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
-from openlibrary.catalog.utils import cmp, mk_norm
-from openlibrary.catalog.utils.query import query_iter, withKey
-from openlibrary.catalog.read_rc import read_rc
+import urllib2
+
 from collections import defaultdict
-from pprint import pformat
-from openlibrary.catalog.utils.edit import fix_edition
-from openlibrary.catalog.importer.db_read import get_mc
-from openlibrary.api import OpenLibrary
 from lxml import etree
 from time import sleep, time, strftime
+from urllib import urlopen
+
+from openlibrary.api import OpenLibrary
+from openlibrary.catalog.get_ia import get_from_archive, get_data
+from openlibrary.catalog.importer.db_read import get_mc
+from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
-import simplejson as json
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.utils import cmp, mk_norm
+from openlibrary.catalog.utils.edit import fix_edition
+from openlibrary.catalog.utils.query import query_iter, withKey
+from openlibrary.solr.update_work import update_work, solr_update, update_author
 
 import six
-from six.moves import urllib
-from six.moves.urllib.request import urlopen
 
 
 ol = OpenLibrary("http://openlibrary.org")
@@ -137,7 +137,7 @@ def get_work_title(e, mc):
             print('bad record source:', src)
             print('http://openlibrary.org' + e['key'])
             continue
-        except urllib.error.HTTPError as error:
+        except urllib2.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print(e['key'])
         if not data:

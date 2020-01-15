@@ -1,17 +1,20 @@
 from __future__ import print_function
-from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc import fast_parse, parse
-from infogami import config
-from lxml import etree
-import xml.parsers.expat
+
 import os.path
 import socket
-from time import sleep
 import traceback
-from openlibrary.core import ia
+import xml.parsers.expat
+import urllib2
 
-from six.moves import urllib
+from infogami import config
+from lxml import etree
+from time import sleep
+
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import MarcXml
+from openlibrary.catalog.marc.parse import read_edition  # Deprecated import
+from openlibrary.catalog.marc.fast_parse import read_file as fp_read_file  # Deprecated import
+from openlibrary.core import ia
 
 
 IA_BASE_URL = config.get('ia_base_url')
@@ -25,12 +28,12 @@ class NoMARCXML(IOError):
 def urlopen_keep_trying(url):
     for i in range(3):
         try:
-            f = urllib.request.urlopen(url)
+            f = urllib2.urlopen(url)
             return f
-        except urllib.error.HTTPError as error:
+        except urllib2.HTTPError as error:
             if error.code in (403, 404, 416):
                 raise
-        except urllib.error.URLError:
+        except urllib2.URLError:
             pass
         sleep(2)
 
@@ -83,7 +86,7 @@ def get_ia(identifier):
     :rtype: dict
     """
     marc = get_marc_record_from_ia(identifier)
-    return parse.read_edition(marc)
+    return read_edition(marc)
 
 def files(identifier):
     url = item_file_url(identifier, 'files.xml')
@@ -145,7 +148,7 @@ def get_from_archive_bulk(locator):
 
     assert 0 < length < MAX_MARC_LENGTH
 
-    ureq = urllib.request.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
+    ureq = urllib2.Request(url, None, {'Range': 'bytes=%d-%d' % (r0, r1)})
     f = urlopen_keep_trying(ureq)
     data = None
     if f:
@@ -174,7 +177,7 @@ def read_marc_file(part, f, pos=0):
     :rtype: (int, str, str)
     :return: (Next position, Current source_record name, Current single MARC record)
     """
-    for data, int_length in fast_parse.read_file(f):
+    for data, int_length in fp_read_file(f):
         loc = "marc:%s:%d:%d" % (part, pos, int_length)
         pos += int_length
         yield (pos, loc, data)

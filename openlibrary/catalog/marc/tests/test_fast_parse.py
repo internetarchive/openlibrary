@@ -1,18 +1,10 @@
 # -*- coding: UTF-8 -*-
 import os
 import pytest
-from openlibrary.catalog.marc.fast_parse import handle_wrapped_lines, index_fields, get_tag_lines, read_edition
+
+from openlibrary.catalog.marc.fast_parse import index_fields, get_tag_lines, read_edition
 
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
-
-def test_wrapped_lines():
-    data = open(test_data + 'wrapped_lines').read()
-    ret = list(handle_wrapped_lines(get_tag_lines(data, ['520'])))
-    assert len(ret) == 2
-    a, b = ret
-    assert a[0] == '520' and b[0] == '520'
-    assert len(a[1]) == 2295
-    assert len(b[1]) == 248
 
 @pytest.mark.skip
 def test_read_oclc():
