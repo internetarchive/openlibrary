@@ -121,8 +121,7 @@ class MarcBinary(MarcBase):
 
     def all_fields(self):
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
-        #for tag, line in self.handle_wrapped_lines(self.get_all_tag_lines()):
+        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
@@ -135,8 +134,7 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
-        #for tag, line in self.handle_wrapped_lines(self.get_tag_lines(want)):
+        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):

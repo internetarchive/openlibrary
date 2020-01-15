@@ -293,7 +293,7 @@ def add_oclc(edition):
     edition.setdefault('oclc', []).append(oclc)
 
 def index_fields(data, want, check_author=True):
-    warn('Depreacted.', DeprecationWarning)
+    warn('Deprecated.', DeprecationWarning)
     if str(data)[6:8] != 'am': # only want books
         return None
     is_marc8 = data[9] != 'a'
