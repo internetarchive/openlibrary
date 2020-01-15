@@ -2,8 +2,6 @@
     MARC parsing should be done by catalog.marc.parse instead.
 """
 
-from __future__ import print_function
-
 import re
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
@@ -18,17 +16,13 @@ def translate(bytes_in, leader_says_marc8=False):
     """
     Converts MARC8 to unicode
     """
+    warn('Deprecated, use openlibrary.catalog.marc.MarcBinary instead', DeprecationWarning)
     marc8 = MARC8ToUnicode(quiet=True)
-    try:
-        if leader_says_marc8:
-            data = marc8.translate(mnemonics.read(bytes_in))
-        else:
-            data = bytes_in.decode('utf-8')
-        return normalize('NFC', data)
-    except:
-        print(('translate error for:', repr(bytes_in)))
-        print(('marc8:', leader_says_marc8))
-        raise
+    if leader_says_marc8:
+        data = marc8.translate(mnemonics.read(bytes_in))
+    else:
+        data = bytes_in.decode('utf-8')
+    return normalize('NFC', data)
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -41,6 +35,7 @@ re_normalize = re.compile('[^\w ]')
 re_whitespace = re.compile('\s+')
 
 def normalize_str(s):
+    warn('Deprecated.', DeprecationWarning)
     s = re_normalize.sub('', s.strip())
     s = re_whitespace.sub(' ', s)
     return str(s.lower())
@@ -60,22 +55,18 @@ def read_file(f):
     :rtype: (str, int)
     :return: Data, length
     """
+    warn('Deprecated, use catalog.marc.parse instead.', DeprecationWarning)
     buf = None
     while True:
         if buf:
             length = buf[:5]
-            try:
-                int_length = int(length)
-            except:
-                print(repr(buf))
-                raise
+            int_length = int(length)
         else:
             length = f.read(5)
             buf = length
         if length == "":
             break
         if not length.isdigit():
-            print(('not a digit:', repr(length)))
             raise InvalidMarcFile
         int_length = int(length)
         data = buf + f.read(int_length - len(buf))
@@ -122,25 +113,8 @@ class NotBook(Exception):
 class BadDictionary(Exception):
     pass
 
-def read_full_title(line, accept_sound = False, is_marc8=False):
-    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
-    if not accept_sound and v.lower().startswith("[sound"):
-        raise SoundRecording
-    if v.lower().startswith("[graphic") or v.lower().startswith("[cartographic"):
-        raise NotBook
-    title = [v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8)]
-    return ' '.join([t for t in title if t])
-
-def read_short_title(line, is_marc8=False):
-    # DEPRECATED: Triggers UnboundLocalError: local variable 'v' referenced before assignment
-    title = normalize_str(read_full_title(line, is_marc8))[:25].rstrip()
-    if title:
-        return [title]
-    else:
-        return []
-
 def read_title_and_subtitle(data, is_marc8=False):
-    # DEPRECATED, not currently used
+    warn('Deprecated.', DeprecationWarning)
     line = get_first_tag(data, set(['245']))
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
@@ -182,12 +156,10 @@ def read_directory(data):
         raise BadDictionary
     directory = data[24:dir_end]
     if len(directory) % 12 != 0:
-        print('directory is the wrong size')
         # directory is the wrong size
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
-            print(len(directory) / 12)
             raise BadDictionary
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
@@ -292,6 +264,7 @@ def read_isbn(line, is_marc8=False):
     return map(str, tidy_isbn(found))
 
 def read_oclc(line, is_marc8=False):
+    warn("Deprecated, use catalog.marc.parse.read_oclc() instead", DeprecationWarning)
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         m = re_oclc.match(v)
@@ -318,7 +291,7 @@ def add_oclc(edition):
     edition.setdefault('oclc', []).append(oclc)
 
 def index_fields(data, want, check_author=True):
-    # DEPRECATED, has a chance of triggering exception via read_short_title
+    warn('Depreacted.', DeprecationWarning)
     if str(data)[6:8] != 'am': # only want books
         return None
     is_marc8 = data[9] != 'a'
@@ -405,6 +378,7 @@ def read_edition(data, accept_electronic=False):
     :return: Edition representation
     :rtype: dict|None
     """
+    warn('Deprecated, please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)', DeprecationWarning)
     is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \
@@ -469,7 +443,6 @@ def read_edition(data, accept_electronic=False):
     if 'control_number' in edition:
         del edition['control_number']
     if not accept_electronic and tag_006_says_electric and not is_real_book:
-        print('electronic resources')
         return None
 
     return edition
@@ -493,7 +466,7 @@ def handle_wrapped_lines(iter):
     assert not cur_lines
 
 def split_line(s):
-    # TODO: document this function
+    warn('Deprecated, use catalog.marc.parse instead.', DeprecationWarning)
     pos = -1
     marks = []
     while True:
