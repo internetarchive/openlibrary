@@ -22,11 +22,6 @@ def test_bad_marc_line():
     line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
     assert list(get_all_subfields(line, True)) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
 
-def test_index_fields():
-    data = open(test_data + 'ithaca_college_75002321').read()
-    lccn = index_fields(data, ['010'])['lccn'][0]
-    assert lccn == '75002321'
-
 @pytest.mark.skip
 def test_read_oclc():
     # DEPRECATED data was 'oregon_27194315', triggers exception
