@@ -6,7 +6,7 @@ from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 
 re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
+re_lccn = re.compile('([ \dA-Za-z\-]{3}[0-9/-]+).*')
 re_letters = re.compile('[A-Za-z]')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
@@ -59,10 +59,11 @@ def read_lccn(rec):
             m = re_lccn.search(lccn)
             if not m:
                 continue
-            lccn = re_letters.sub('', m.group(1)).strip()
+            lccn = m.group(1).strip()
+            # zero-pad any dashes so the final digit group has size = 6
+            lccn = lccn.replace('-', '0'*(7 - (len(lccn) - lccn.find('-'))))
             if lccn:
                 found.append(lccn)
-
     return found
 
 def remove_duplicates(seq):
