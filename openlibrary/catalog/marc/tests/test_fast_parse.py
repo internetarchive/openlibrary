@@ -1,7 +1,7 @@
 # -*- coding: UTF-8 -*-
 import os
 import pytest
-from openlibrary.catalog.marc.fast_parse import handle_wrapped_lines, index_fields, get_all_subfields, get_tag_lines, translate, read_edition
+from openlibrary.catalog.marc.fast_parse import handle_wrapped_lines, index_fields, get_tag_lines, read_edition
 
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
 
@@ -13,14 +13,6 @@ def test_wrapped_lines():
     assert a[0] == '520' and b[0] == '520'
     assert len(a[1]) == 2295
     assert len(b[1]) == 248
-
-def test_translate():
-    # Convert MARC8 to unicode
-    assert translate('Vieira, Claudio Bara\xe2una,', leader_says_marc8=True) == u'Vieira, Claudio Baraúna,'
-
-def test_bad_marc_line():
-    line = '0 \x1f\xe2aEtude objective des ph\xe2enom\xe1enes neuro-psychiques;\x1e'
-    assert list(get_all_subfields(line, True)) == [(u'á', u'Etude objective des phénomènes neuro-psychiques;')]
 
 @pytest.mark.skip
 def test_read_oclc():

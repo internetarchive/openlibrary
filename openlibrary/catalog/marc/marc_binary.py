@@ -65,9 +65,6 @@ class BinaryDataField():
         return [v for k, v in self.get_subfields(want)]
 
     def get_all_subfields(self):
-        return fast_parse.get_all_subfields(self.line, self.rec.leader()[9] != 'a')
-
-    def get_all_subfields(self):
         for i in self.line[3:-1].split('\x1f'):
             if i:
                 j = self.translate(i)
@@ -78,9 +75,6 @@ class BinaryDataField():
             if k.islower():
                 yield v
 
-#class BinaryIaDataField(BinaryDataField):
-#    def translate(self, data):
-#        return fast_parse.translate(data, bad_ia_charset=True)
 
 class MarcBinary(MarcBase):
     def __init__(self, data):

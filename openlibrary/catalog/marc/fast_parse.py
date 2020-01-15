@@ -138,6 +138,7 @@ def get_raw_subfields(line, want):
             yield i[0], i[1:]
 
 def get_all_subfields(line, is_marc8=False):
+    warn('Deprecated, use catalog.marc.MarcBinary instead', DeprecationWarning)
     for i in line[3:-1].split('\x1f'):
         if i:
             j = translate(i, is_marc8)
