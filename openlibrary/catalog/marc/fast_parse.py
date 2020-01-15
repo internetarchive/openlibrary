@@ -1,10 +1,15 @@
+""" Deprecated module,
+    MARC parsing should be done by catalog.marc.parse instead.
+"""
+
 from __future__ import print_function
-# fast parse for merge
 
 import re
 from pymarc import MARC8ToUnicode
-import mnemonics
 from unicodedata import normalize
+from warnings import warn
+
+from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
 
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
@@ -257,6 +262,7 @@ def read_control_number(line, is_marc8=False):
     return [line[:-1]]
 
 def read_lccn(line, is_marc8=False):
+    warn("Deprecated, use catalog.marc.parse.read_lccn() instead", DeprecationWarning)
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         lccn = v.strip()
@@ -272,6 +278,7 @@ def read_lccn(line, is_marc8=False):
     return found
 
 def read_isbn(line, is_marc8=False):
+    warn("Deprecated, use catalog.marc.parse.read_isbn() instead", DeprecationWarning)
     found = []
     if line.find('\x1f') != -1:
         for k, v in get_raw_subfields(line, ['a', 'z']):
