@@ -35,7 +35,7 @@ some_record, and restored_record being identical to some_record.
 class Compressor(object):
     def __init__(self, seed):
         c = zlib.compressobj(9)
-        d_seed = c.compress(seed)
+        d_seed = c.compress(seed.encode())
         d_seed += c.flush(zlib.Z_SYNC_FLUSH)
         self.c_context = c.copy()
 
@@ -47,7 +47,7 @@ class Compressor(object):
 
     def compress(self, text):
         c = self.c_context.copy()
-        t = c.compress(text)
+        t = c.compress(text.encode())
         t2 = c.flush(zlib.Z_FINISH)
         return t + t2
 
@@ -56,7 +56,7 @@ class Compressor(object):
         t = d.decompress(ctext)
         while d.unconsumed_tail:
             t += d.decompress(d.unconsumed_tail)
-        return t
+        return t.decode()
 
 def test():
     c = Compressor(__doc__)
@@ -66,6 +66,6 @@ def test():
     # the above string compresses from 43 bytes to 29 bytes using the
     # current doc text as compression seed, not bad for such short input.
     dt = c.decompress(ct)
-    assert dt == test_string
+    assert dt == test_string, (dt, test_string)
 
 test()
