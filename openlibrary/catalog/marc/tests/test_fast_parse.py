@@ -27,7 +27,7 @@ def test_index_fields():
     lccn = index_fields(data, ['010'])['lccn'][0]
     assert lccn == '75002321'
 
-@pytest.mark.xfail
+@pytest.mark.skip
 def test_read_oclc():
     # DEPRECATED data was 'oregon_27194315', triggers exception
     for f in ('scrapbooksofmoun03tupp_meta.mrc',):
@@ -37,7 +37,7 @@ def test_read_oclc():
         e = read_edition(data)
         assert 'oclc' in e
 
-@pytest.mark.xfail
+@pytest.mark.skip
 def test_ia_charset():
     # Tests a corrupted unicode MARC record is corrected, does code exist to fix this?
     data = open(test_data + 'histoirereligieu05cr_meta.mrc').read()
