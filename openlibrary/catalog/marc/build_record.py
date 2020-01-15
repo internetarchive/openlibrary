@@ -1,8 +1,11 @@
-from __future__ import print_function
-from fast_parse import *
-from warnings import warn
-from openlibrary.catalog.utils import pick_first_date
+""" This entire module is deprecated,
+    openlibrary.catalog.marc.parse is the preferred module
+"""
+
 import re
+from warnings import warn
+
+from openlibrary.catalog.utils import pick_first_date
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
@@ -43,7 +46,11 @@ want = [
 
 re_series = re.compile('^(.*) series$', re.I)
 
+def deprecated():
+    warn('Deprecated, use corresponding function in openlibrary.catalog.marc.parse instead.',  DeprecationWarning)
+
 def read_lccn(fields):
+    deprecated()
     if '010' not in fields:
         return {}
 
@@ -63,6 +70,7 @@ def read_lccn(fields):
     return {'lccn': found}
 
 def read_isbn(fields):
+    deprecated()
     if '020' not in fields:
         return {}
 
@@ -88,6 +96,7 @@ def read_isbn(fields):
     return ret
 
 def read_oclc(fields):
+    deprecated()
     if '035' not in fields:
         return {}
 
@@ -103,6 +112,7 @@ def read_oclc(fields):
     return {'oclc_number': found } if found else {}
 
 def read_author_person(line):
+    deprecated()
     author = {}
     contents = get_contents(line, ['a', 'b', 'c', 'd'])
     if 'a' not in contents and 'c' not in contents:
@@ -130,13 +140,11 @@ def read_author_person(line):
     return author
 
 def read_authors(fields):
+    deprecated()
     found = []
     author = [tag for tag in fields if tag in ('100', '110', '111')]
     if len(author) == 0:
         return {}
-    if len(author) != 1:
-        for tag in ('100', '110', '111'):
-            print(tag, fields[tag])
     assert len(author) == 1
     if '100' in fields:
         line = fields['100'][0]
@@ -153,6 +161,7 @@ def read_authors(fields):
     return {'authors': [author]} if author else {}
 
 def read_title(fields):
+    deprecated()
     if '245' not in fields:
         return {}
 
@@ -181,6 +190,7 @@ def read_title(fields):
     return edition
 
 def read_lc_classification(fields):
+    deprecated()
     if '050' not in fields:
         return {}
 
@@ -202,6 +212,7 @@ def read_lc_classification(fields):
         return {}
 
 def read_dewey(fields):
+    deprecated()
     if '082' not in fields:
         return {}
     found = []
@@ -210,9 +221,11 @@ def read_dewey(fields):
     return {'dewey_decimal_class': found }
 
 def join_subfield_values(line, subfields):
+    deprecated()
     return ' '.join(get_subfield_values(line, subfields))
 
 def read_work_titles(fields):
+    deprecated()
     found = []
     if '240' in fields:
         for line in fields['240']:
@@ -229,6 +242,7 @@ def read_work_titles(fields):
     return { 'work_titles': found } if found else {}
 
 def read_edition_name(fields):
+    deprecated()
     if '250' not in fields:
         return {}
     found = []
@@ -237,6 +251,7 @@ def read_edition_name(fields):
     return {'edition_name': ' '.join(found)}
 
 def read_publisher(fields):
+    deprecated()
     if '260' not in fields:
         return {}
     publisher = []
@@ -255,6 +270,7 @@ def read_publisher(fields):
     return edition
 
 def read_pagination(fields):
+    deprecated()
     if '300' not in fields:
         return {}
 
@@ -274,6 +290,7 @@ def read_pagination(fields):
     return edition
 
 def read_series(fields):
+    deprecated()
     found = []
     for tag in ('440', '490', '830'):
         if tag not in fields:
@@ -297,6 +314,7 @@ def read_series(fields):
     return {'series': found} if found else {}
 
 def read_contributions(fields):
+    deprecated()
     want = [
         ('700', 'abcde'),
         ('710', 'ab'),
@@ -312,6 +330,7 @@ def read_contributions(fields):
     return { 'contributions': found } if found else {}
 
 def remove_duplicates(seq):
+    deprecated()
     u = []
     for x in seq:
         if x not in u:
@@ -319,6 +338,7 @@ def remove_duplicates(seq):
     return u
 
 def read_subjects(fields):
+    deprecated()
     want = [
         ('600', 'abcd'),
         ('610', 'ab'),
@@ -341,6 +361,7 @@ def read_subjects(fields):
     return {'subjects': found} if found else {}
 
 def read_genres(fields):
+    deprecated()
     found = []
     for tag in '600', '650', '651':
         if tag not in fields:
@@ -350,6 +371,7 @@ def read_genres(fields):
     return { 'genres': remove_duplicates(found) } if found else {}
 
 def read_translation(fields):
+    deprecated()
     tag = '500'
     if tag not in fields:
         return {}
@@ -365,22 +387,20 @@ def read_translation(fields):
     return {}
 
 def read_notes(fields):
+    deprecated()
     found = []
     for tag in range(500,590):
         if tag in (505, 520) or str(tag) not in fields:
             continue
         tag = str(tag)
         for line in fields[tag]:
-            try:
-                x = get_lower_subfields(line)
-            except IndexError:
-                print(repr(line))
-                raise
+            x = get_lower_subfields(line)
             if x:
                 found.append(' '.join(x))
     return {'notes': '\n\n'.join(found)} if found else {}
 
 def read_toc(fields):
+    deprecated()
     if '505' not in fields:
         return {}
 
@@ -423,16 +443,13 @@ def read_toc(fields):
     return { 'table_of_contents': found }
 
 def read_description(fields):
+    deprecated()
     if '520' not in fields:
         return {}
     found = []
     wrap = False
     for line in fields['520']:
         this = get_subfield_values(line, ['a'])
-        if len(this) != 1:
-#            print repr(fields['520'])
-#            print repr(line)
-            print(len(this))
         assert len(this) == 1
         found += this
         if line[-3:-1] == '++':
@@ -442,6 +459,7 @@ def read_description(fields):
     return {'description': "\n\n".join(found) } if found else {}
 
 def read_other_titles(fields):
+    deprecated()
     found = []
 
     if '246' in fields:
@@ -465,6 +483,7 @@ def read_other_titles(fields):
     return {"other_titles": found} if found else {}
 
 def read_location(fields):
+    deprecated()
     if '852' not in fields:
         return {}
     found = []
@@ -473,6 +492,7 @@ def read_location(fields):
     return { 'location': found } if found else {}
 
 def read_url(fields):
+    deprecated()
     if '856' not in fields:
         return {}
     found = []
@@ -481,6 +501,7 @@ def read_url(fields):
     return { 'uri': found } if found else {}
 
 def build_record(data):
+    deprecated()
     fields = {}
     for tag, line in handle_wrapped_lines(get_tag_lines(data, want)):
         fields.setdefault(tag, []).append(line)
