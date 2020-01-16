@@ -2,20 +2,6 @@ $def with (keys, top_books_from_author, formdata=None)
 
 <script type="text/javascript">
 window.q.push(function(){
-    \$('#noMaster').dialog({autoOpen:false,modal:true});
-    \$('#confirmMerge').dialog({
-        autoOpen: false,
-        modal: true,
-        buttons: {
-            "Yes, Merge": function() {
-                \$('#mergeForm').submit();
-                \$(this).parents().find('button').attr('disabled','disabled');
-            },
-            "No, Cancel": function() {
-                \$(this).dialog("close");
-            }
-        }
-    });
     \$('#save').click(function(){
         var n = \$("#mergeForm input[type=radio]:checked").length;
         if (n == 0) {

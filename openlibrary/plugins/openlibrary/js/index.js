@@ -11,7 +11,6 @@ import '../../../../vendor/js/jquery-form/jquery.form.js';
 import '../../../../vendor/js/jquery-autocomplete/jquery.autocomplete-modified.js';
 // unversioned.
 import '../../../../vendor/js/wmd/jquery.wmd.js'
-import { validateEmail, validatePassword } from './account.js';
 import autocompleteInit from './autocomplete';
 // Used only by the openlibrary/templates/books/edit/addfield.html template
 import addNewFieldInit from './add_new_field';
@@ -27,13 +26,14 @@ import * as Browser from './Browser';
 import { commify } from './python';
 import { Subject, urlencode, slice } from './subjects';
 import Template from './template.js';
-// Add $.fn.focusNextInputField, $.fn.ol_confirm_dialog
+// Add $.fn.focusNextInputField
 import { closePopup, truncate, cond } from './utils';
 import initValidate from './validate';
 import '../../../../static/css/js-all.less';
 // polyfill Promise support for IE11
 import Promise from 'promise-polyfill';
-import initDialogs from './dialog';
+import { confirmDialog, initDialogs } from './dialog';
+import initTabs from './tabs.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -73,6 +73,9 @@ jQuery(function () {
     // Live NodeList is cast to static array to avoid infinite loops
     const $carouselElements = $('.carousel--progressively-enhanced');
     initDialogs();
+    // expose ol_confirm_dialog method
+    $.fn.ol_confirm_dialog = confirmDialog;
+    initTabs($('#tabsAddbook,#tabsAddauthor,.tabs:not(.ui-tabs)'));
     initValidate($);
     autocompleteInit($);
     addNewFieldInit($);
@@ -101,8 +104,6 @@ jQuery(function () {
         import(/* webpackChunkName: "graphs" */ './graphs')
             .then((module) => module.init());
     }
-    validateEmail();
-    validatePassword();
     $(document).on('click', '.slide-toggle', function () {
         $(`#${$(this).attr('aria-controls')}`).slideToggle();
     });

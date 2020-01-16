@@ -50,7 +50,7 @@ COPY requirements*.txt ./
 RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
 
 COPY package*.json ./
-RUN npm install && npm install -g less
+RUN npm install
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 

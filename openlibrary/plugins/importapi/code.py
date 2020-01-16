@@ -1,17 +1,15 @@
 """Open Library Import API
 """
-from __future__ import print_function
 
 from infogami.plugins.api.code import add_hook
-from infogami import config
+
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts
-from openlibrary import records
+from openlibrary import accounts, records
 from openlibrary.core import ia
 
 import web
@@ -27,9 +25,8 @@ import import_edition_builder
 from lxml import etree
 import logging
 
-IA_BASE_URL = config.get('ia_base_url')
 MARC_LENGTH_POS = 5
-logger = logging.getLogger("openlibrary.importapi")
+logger = logging.getLogger('openlibrary.importapi')
 
 class DataError(ValueError):
     pass
@@ -72,8 +69,7 @@ def parse_data(data):
             edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
             format = 'marcxml'
         else:
-            print('unrecognized XML format')
-            return None, None
+            raise DataError('unrecognized-XML-format')
     elif data.startswith('{') and data.endswith('}'):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
@@ -103,7 +99,7 @@ class importapi:
             'error': error
         }
         content.update(kwargs)
-        raise web.HTTPError('400 Bad Request', {}, json.dumps(content))
+        raise web.HTTPError('400 Bad Request', data=json.dumps(content))
 
     def POST(self):
         web.header('Content-Type', 'application/json')
@@ -122,12 +118,13 @@ class importapi:
 
         try:
             reply = add_book.load(edition)
+            # TODO: If any records have been created, return a 201, otherwise 200
+            return json.dumps(reply)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        return json.dumps(reply)
 
     def reject_non_book_marc(self, marc_record, **kwargs):
-        details = "Item rejected"
+        details = 'Item rejected'
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
@@ -144,7 +141,7 @@ class ia_importapi(importapi):
     Request Format:
 
         POST /api/import/ia
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -208,45 +205,36 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         # Case 1 - Is this a valid Archive.org item?
-        try:
-            item_json = ia.get_item_json(identifier)
-            item_server = item_json['server']
-            item_path = item_json['dir']
-        except KeyError:
-            return self.error("invalid-ia-identifier", "%s not found" % identifier)
-        metadata = ia.extract_item_metadata(item_json)
+        metadata = ia.get_metadata(identifier)
         if not metadata:
-            return self.error("invalid-ia-identifier")
+            return self.error('invalid-ia-identifier', '%s not found' % identifier)
 
         # Case 2 - Does the item have an openlibrary field specified?
         # The scan operators search OL before loading the book and add the
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
-        if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
+        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
             edition_data = self.get_ia_record(metadata)
-            edition_data["openlibrary"] = metadata["openlibrary"]
+            edition_data['openlibrary'] = metadata['openlibrary']
             edition_data = self.populate_edition_data(edition_data, identifier)
             return self.load_book(edition_data)
 
         # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata,
-                                    item_server=item_server, item_path=item_path)
+        status = ia.get_item_status(identifier, metadata)
         if status != 'ok':
-            return self.error(status, "Prohibited Item")
+            return self.error(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
-        marc_record = self.get_marc_record(identifier)
+        marc_record = get_marc_record_from_ia(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
-                return self.error("invalid-marc-record")
-
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                return self.error('invalid-marc-record')
         elif require_marc:
-            return self.error("no-marc-record")
-
+            return self.error('no-marc-record')
         else:
             try:
                 edition_data = self.get_ia_record(metadata)
@@ -255,7 +243,6 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = self.populate_edition_data(edition_data, identifier)
-
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
@@ -315,15 +302,9 @@ class ia_importapi(importapi):
         :return: Edition record
         """
         edition['ocaid'] = identifier
-        edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
+        edition['source_records'] = 'ia:' + identifier
+        edition['cover'] = ia.get_cover_url(identifier)
         return edition
-
-    def get_marc_record(self, identifier):
-        try:
-            return get_marc_record_from_ia(identifier)
-        except IOError:
-            return None
 
     def find_edition(self, identifier):
         """
@@ -365,7 +346,7 @@ class ils_search:
     Request Format:
 
         POST /api/ils_search
-        Content-type: application/json
+        Content-Type: application/json
         Authorization: Basic base64-of-username:password
 
         {
@@ -424,12 +405,12 @@ class ils_search:
 
     def error(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+        return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def login(self, authstring):
         if not authstring:
@@ -554,7 +535,7 @@ class ils_cover_upload:
             return web.seeother(url)
         else:
             d = json.dumps({ "status" : "error", "reason" : reason})
-            return web.HTTPError("400 Bad Request", {"Content-type": "application/json"}, d)
+            return web.HTTPError("400 Bad Request", {"Content-Type": "application/json"}, d)
 
 
     def success(self, i):
@@ -567,7 +548,7 @@ class ils_cover_upload:
 
     def auth_failed(self, reason):
         d = json.dumps({ "status" : "error", "reason" : reason})
-        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-type": "application/json"}, d)
+        return web.HTTPError("401 Authorization Required", {"WWW-Authenticate": 'Basic realm="http://openlibrary.org"', "Content-Type": "application/json"}, d)
 
     def build_url(self, url, **params):
         if '?' in url:

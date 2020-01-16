@@ -2,13 +2,13 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: "Type: Feature"
+labels: "Type: Feature, State: Backlogged, Needs: Triage"
 assignees: ''
-
 ---
+
 <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->
 
-### Describe the solution you'd like
+### Describe the problem that you'd like solved
 <!-- A clear and concise description of what you want to happen. -->
 
 ### Proposal & Constraints
@@ -18,3 +18,8 @@ assignees: ''
 
 ### Additional context
 <!-- Add any other context or screenshots about the feature request here. -->
+
+### Stakeholders
+<!-- @ tag stakeholders of this bug -->
+
+

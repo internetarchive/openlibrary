@@ -19,7 +19,9 @@ from openlibrary.mocks.mock_ol import ol
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
-    monkeypatch.delattr("requests.sessions.Session.request")
+    def mock_request(*args, **kwargs):
+        raise Warning('Network requests are blocked in the testing environment')
+    monkeypatch.setattr("requests.sessions.Session.request", mock_request)
 
 @pytest.fixture
 def wildcard():

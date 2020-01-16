@@ -101,6 +101,16 @@ docker-compose exec web npm install
 docker-compose exec web npm run build-assets
 ```
 
+## Updating the Docker Image
+Pull the changes into your openlibrary repository: ```git pull```
+
+When pulling down new changes you will need to rebuild the JS/CSS assets:
+```bash
+# build JS/CSS assets:
+docker-compose exec web npm run build-assets
+```
+Note: This is only if you already have an existing docker image, this command is unnecessary the first time you build.
+
 ## Other Commands
 
 ```bash

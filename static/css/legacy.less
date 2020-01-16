@@ -616,8 +616,6 @@ div#content {
 // openlibrary/templates/account/create.html
 // openlibrary/templates/account/email/forgot-ia.html
 // openlibrary/templates/account/email/forgot.html
-// openlibrary/templates/account/email.html
-// openlibrary/templates/account/password.html
 // openlibrary/templates/form.html
 // openlibrary/templates/login.html
 // openlibrary/templates/merge/authors.html
@@ -1840,30 +1838,6 @@ div.addfield {
   }
 }
 
-// openlibrary/templates/type/about/view.html
-#flickr {
-  &_badge_uber_wrapper {
-    a {
-      &:hover,
-      &:link,
-      &:active,
-      &:visited {
-        text-decoration: none !important;
-        background: inherit !important;
-        color: @flickr-brand-blue;
-      }
-    }
-  }
-  &_badge_wrapper {
-    margin: 0 auto;
-    text-align: center;
-    img {
-      display: block;
-      margin: 0 auto 10px;
-    }
-  }
-}
-
 /* CHARTING */
 @import (less) "components/chart.less";
 
@@ -2066,10 +2040,6 @@ div#subjectLists {
     border-right: 1px solid @green-two;
     height: 2.5em;
     padding: 0 10px;
-  }
-  span.activated-check {
-    color: @green;
-    margin-right: 2px;
   }
 }
 

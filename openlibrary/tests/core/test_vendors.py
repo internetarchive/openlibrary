@@ -1,5 +1,7 @@
 import pytest
-from openlibrary.core.vendors import split_amazon_title, clean_amazon_metadata_for_load
+from openlibrary.core.vendors import (
+    split_amazon_title, clean_amazon_metadata_for_load,
+    betterworldbooks_fmt)
 
 def test_clean_amazon_metadata_for_load_non_ISBN():
     # results from get_amazon_metadata() -> _serialize_amazon_product()
@@ -79,6 +81,15 @@ def test_clean_amazon_metadata_for_load_subtitle():
     assert result.get('subtitle') == 'The Osage Murders and the Birth of the FBI'
     assert result.get('full_title') == 'Killers of the Flower Moon : The Osage Murders and the Birth of the FBI'
     #TODO: test for, and implement languages
+
+
+def test_betterworldbooks_fmt():
+    isbn = '9780393062274'
+    bad_data = betterworldbooks_fmt(isbn)
+    assert bad_data.get('isbn') == isbn
+    assert bad_data.get('price') is None
+    assert bad_data.get('price_amt') is None
+    assert bad_data.get('qlt') is None
 
 # Test cases to add:
 # Multiple authors

@@ -40,6 +40,9 @@ SUBJECTS = [
     web.storage(name="subject", key="subjects", prefix="/subjects/", facet="subject_facet", facet_key="subject_key"),
 ]
 
+DEFAULT_RESULTS = 12
+MAX_RESULTS = 1000
+
 class subjects_index(delegate.page):
     path = "/subjects"
 
@@ -88,10 +91,11 @@ class subjects(delegate.page):
 
 class subjects_json(delegate.page):
     path = '(/subjects/[^/]+)'
-    encoding = "json"
+    encoding = 'json'
 
     @jsonapi
     def GET(self, key):
+        web.header('Content-Type', 'application/json')
         # If the key is not in the normalized form, redirect to the normalized form.
         nkey = self.normalize_key(key)
         if nkey != key:
@@ -100,9 +104,13 @@ class subjects_json(delegate.page):
         # Does the key requires any processing before passing using it to query solr?
         key = self.process_key(key)
 
-        i = web.input(offset=0, limit=12, details='false', has_fulltext='true',
+        i = web.input(offset=0, limit=DEFAULT_RESULTS, details='false', has_fulltext='false',
                       sort='editions', available='false')
-
+        i.limit = safeint(i.limit, DEFAULT_RESULTS)
+        i.offset = safeint(i.offset, 0)
+        if i.limit > MAX_RESULTS:
+            msg = json.dumps({'error': 'Specified limit exceeds maximum of %s.' % MAX_RESULTS})
+            raise web.HTTPError('400 Bad Request', data=msg)
 
         filters = {}
         if i.get('has_fulltext') == 'true':
@@ -119,9 +127,6 @@ class subjects_json(delegate.page):
                 if y is not None:
                     filters['publish_year'] = i.published_in
 
-        i.limit = safeint(i.limit, 12)
-        i.offset = safeint(i.offset, 0)
-
         subject_results = get_subject(key, offset=i.offset, limit=i.limit, sort=i.sort,
                                       details=i.details.lower() == 'true', **filters)
         if i.has_fulltext:
@@ -135,51 +140,7 @@ class subjects_json(delegate.page):
         return key
 
 
-class subject_works_json(delegate.page):
-    path = '(/subjects/[^/]+)/works'
-    encoding = "json"
-
-    @jsonapi
-    def GET(self, key):
-        # If the key is not in the normalized form, redirect to the normalized form.
-        nkey = self.normalize_key(key)
-        if nkey != key:
-            raise web.redirect(nkey)
-
-        # Does the key requires any processing before passing using it to query solr?
-        key = self.process_key(key)
-
-        i = web.input(offset=0, limit=12, has_fulltext="false")
-
-        filters = {}
-        if i.get("has_fulltext") == "true":
-            filters["has_fulltext"] = "true"
-
-        if i.get("published_in"):
-            if "-" in i.published_in:
-                begin, end = i.published_in.split("-", 1)
-
-                if safeint(begin, None) is not None and safeint(end, None) is not None:
-                    filters["publish_year"] = (begin, end)
-            else:
-                y = safeint(i.published_in, None)
-                if y is not None:
-                    filters["publish_year"] = i.published_in
-
-        i.limit = safeint(i.limit, 12)
-        i.offset = safeint(i.offset, 0)
-
-        results = get_subject(key, offset=i.offset, limit=i.limit, details=False, **filters)
-        return json.dumps(results)
-
-    def normalize_key(self, key):
-        return key.lower()
-
-    def process_key(self, key):
-        return key
-
-
-def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filters):
+def get_subject(key, details=False, offset=0, sort='editions', limit=DEFAULT_RESULTS, **filters):
     """Returns data related to a subject.
 
     By default, it returns a storage object with key, name, work_count and works.
@@ -255,7 +216,7 @@ def get_subject(key, details=False, offset=0, sort='editions', limit=12, **filte
     return subject_results
 
 class SubjectEngine:
-    def get_subject(self, key, details=False, offset=0, limit=12, sort='first_publish_year desc', **filters):
+    def get_subject(self, key, details=False, offset=0, limit=DEFAULT_RESULTS, sort='first_publish_year desc', **filters):
         meta = self.get_meta(key)
 
         q = self.make_query(key, filters)

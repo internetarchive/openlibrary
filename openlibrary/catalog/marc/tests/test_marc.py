@@ -47,6 +47,7 @@ class MockRecord(MarcBase):
         if tag == self.tag:
             return [self.field]
 
+# TODO: refactor to not use unittest
 class TestMarcParse(unittest.TestCase):
     def test_read_isbn(self):
         data = [

@@ -132,6 +132,8 @@ class work_bookshelves(delegate.page):
     encoding = "json"
 
     def POST(self, work_id):
+        from openlibrary.core.models import Bookshelves
+
         user = accounts.get_current_user()
         i = web.input(edition_id=None, action="add", redir=False, bookshelf_id=None)
         key = i.edition_id if i.edition_id else ('/works/OL%sW' % work_id)
@@ -140,24 +142,25 @@ class work_bookshelves(delegate.page):
             raise web.seeother('/account/login?redirect=%s' % key)
 
         username = user.key.split('/')[2]
-        current_status = models.Bookshelves.get_users_read_status_of_work(username, work_id)
+        current_status = Bookshelves.get_users_read_status_of_work(username, work_id)
 
         try:
             bookshelf_id = int(i.bookshelf_id)
-            if bookshelf_id not in models.Bookshelves.PRESET_BOOKSHELVES.values():
+            shelf_ids = Bookshelves.PRESET_BOOKSHELVES.values()
+            if bookshelf_id != -1 and bookshelf_id not in shelf_ids:
                 raise ValueError
         except ValueError:
             return delegate.RawText(simplejson.dumps({
                 'error': 'Invalid bookshelf'
             }), content_type="application/json")
 
-        if bookshelf_id == current_status:
-            work_bookshelf = models.Bookshelves.remove(
-                username=username, work_id=work_id, bookshelf_id=i.bookshelf_id)
+        if bookshelf_id == current_status or bookshelf_id == -1:
+            work_bookshelf = Bookshelves.remove(
+                username=username, work_id=work_id, bookshelf_id=current_status)
 
         else:
             edition_id = int(i.edition_id.split('/')[2][2:-1]) if i.edition_id else None
-            work_bookshelf = models.Bookshelves.add(
+            work_bookshelf = Bookshelves.add(
                 username=username, bookshelf_id=bookshelf_id,
                 work_id=work_id, edition_id=edition_id)
 

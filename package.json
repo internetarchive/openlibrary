@@ -16,24 +16,24 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/editions-table.js",
+      "path": "static/build/editions-table.*.js",
       "maxSize": "16.7KB"
     },
     {
-      "path": "static/build/graphs.js",
+      "path": "static/build/graphs.*.js",
       "maxSize": "17.2KB"
     },
     {
-      "path": "static/build/markdown-editor.js",
+      "path": "static/build/markdown-editor.*.js",
       "maxSize": "10.5KB"
     },
     {
-      "path": "static/build/carousel.js",
+      "path": "static/build/carousel.*.js",
       "maxSize": "12.1KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "145.8KB"
+      "maxSize": "146.3KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -65,38 +65,39 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "19KB"
+      "maxSize": "19.5KB"
     }
   ],
   "devDependencies": {
     "@babel/core": "7.2.2",
     "@babel/plugin-syntax-dynamic-import": "7.2.0",
     "@babel/preset-env": "7.3.1",
-    "@babel/register": "7.0.0",
-    "babel-eslint": "10.0.2",
+    "@babel/register": "7.7.4",
+    "babel-eslint": "10.0.3",
     "babel-loader": "8.0.5",
-    "bundlesize": "^0.17.2",
+    "bundlesize": "0.18.0",
     "css-loader": "2.1.1",
-    "detect-libc": "^1.0.3",
-    "eslint": "^5.16.0",
-    "jest": "^24.5.0",
-    "jquery": "^1.11.0",
+    "detect-libc": "1.0.3",
+    "eslint": "6.8.0",
+    "jest": "24.9.0",
+    "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
     "jquery-validation": "1.19.1",
-    "less": "^3.8.1",
-    "less-loader": "4.1.0",
-    "node-gyp": "^3.8.0",
-    "prebuild-install": "^5.2.1",
+    "less": "3.10.3",
+    "less-loader": "5.0.0",
+    "less-plugin-clean-css": "1.5.1",
+    "node-gyp": "3.8.0",
+    "prebuild-install": "5.2.1",
     "promise-polyfill": "8.1.3",
     "sinon": "7.3.2",
     "slick-carousel": "1.6.0",
-    "style-loader": "0.23.1",
-    "stylelint": "^9.5.0",
-    "stylelint-declaration-use-variable": "^1.7.0",
+    "style-loader": "1.1.2",
+    "stylelint": "9.5.0",
+    "stylelint-declaration-use-variable": "1.7.0",
     "svgo": "1.1.1",
-    "webpack": "^4.27.1",
-    "webpack-cli": "^3.1.2"
+    "webpack": "4.41.2",
+    "webpack-cli": "3.3.10"
   },
   "jest": {
     "collectCoverageFrom": [

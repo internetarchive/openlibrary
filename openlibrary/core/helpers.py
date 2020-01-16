@@ -2,9 +2,10 @@
 """
 import web
 import simplejson
-import urlparse
 import string
 import re
+
+from six.moves.urllib.parse import urlsplit
 
 import babel
 import babel.core
@@ -66,7 +67,7 @@ def sanitize(html, encoding='utf8'):
 
         if href:
             # add rel=nofollow to all absolute links
-            _, host, _, _, _ = urlparse.urlsplit(href)
+            _, host, _, _, _ = urlsplit(href)
             if host:
                 return 'nofollow'
 

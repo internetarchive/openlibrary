@@ -1,6 +1,7 @@
 $def with (work, book)
 
 $ edition_config = get_edition_config()
+$ is_privileged_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
 
 $def radiobuttons(name, options, value):
     $for v in options:
@@ -46,27 +47,32 @@ $jsdef render_work_field(i, work):
     </div>
 
 $jsdef render_work_autocomplete_item(item):
-    <div class="ac_work" title="Select this work">
-        <div class="cover">
-            $if item.cover_i:
-                <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="Cover of $item.title">
+    $if item.key == "__new__":
+        <div class="ac_work ac_addnew">
+            <span class="action">$_('-- Move to a new work')</span>
         </div>
-        <span class="olid">$item.key.split('/')[2]</span>
-        <span class="name">
-            <span class="title">$item.full_title</span>
-            $if item.first_publish_year:
-            <span class="first_publish_year">($item.first_publish_year)</span>
-        </span>
-        <span class="byline">
-            $if item.author_name:
-                by <span class="authors">${', '.join(item.author_name)}</span>
-        </span>
-        &bull;
-        $if item.edition_count == 1:
-            <span class="edition_count">$item.edition_count edition</span>
-        $else:
-            <span class="edition_count">$item.edition_count editions</span>
-    </div>
+    $else:
+        <div class="ac_work" title="Select this work">
+            <div class="cover">
+                $if item.cover_i:
+                    <img src="https://covers.openlibrary.org/b/id/$(item.cover_i)-M.jpg" alt="Cover of $item.title">
+            </div>
+            <span class="olid">$item.key.split('/')[2]</span>
+            <span class="name">
+                <span class="title">$item.full_title</span>
+                $if item.first_publish_year:
+                <span class="first_publish_year">($item.first_publish_year)</span>
+            </span>
+            <span class="byline">
+                $if item.author_name:
+                    by <span class="authors">${', '.join(item.author_name)}</span>
+            </span>
+            &bull;
+            $if item.edition_count == 1:
+                <span class="edition_count">$item.edition_count edition</span>
+            $else:
+                <span class="edition_count">$item.edition_count editions</span>
+        </div>
 
 <script type="text/javascript">
 window.q.push(function() {
@@ -91,7 +97,11 @@ window.q.push(function() {
     \$("#works").setup_multi_input_autocomplete(
         "input.work-autocomplete",
         render_work_field,
-        { endpoint: "/works/_autocomplete" },
+        {
+            endpoint: "/works/_autocomplete",
+            addnew: $cond(is_privileged_user, 'true', 'false'),
+            new_name: '$_('-- Move to a new work')',
+        },
         {
             minChars: 2,
             max: 11,
@@ -191,7 +201,7 @@ window.q.push(function() {
         <div class="formElement">
             <div class="label">
                 <label for="edition-title">Title</label>
-                <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
+                <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
@@ -229,11 +239,11 @@ window.q.push(function() {
         <div class="formElement">
             <div class="label">
                 <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Perhaps in another language?")</span>
+                <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
+                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href='/books/OL24923038M'>The 13th Warrior</i></a>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
@@ -586,7 +596,7 @@ window.q.push(function() {
             <div class="formElement">
                 <div class="label">
                     <label for="edition--pagination">$_("Pagination?")</label>
-                    <span class="tip">$_("Note the highest number in each pagination pattern.")</span>
+                    <span class="tip">$_("Note the highest number in each pagination pattern.") <a href="/help/faq/editing#physical-object" target="_blank">$_("Help")</a></span>
                 </div>
                 <div class="input">
                     <input name="edition--pagination" type="text" id="edition--pagination" value="$book.pagination"/>

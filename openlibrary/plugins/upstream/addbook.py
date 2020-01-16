@@ -461,8 +461,8 @@ class SaveBookHelper:
     """
     def __init__(self, work, edition):
         """
-        :param openlibrary.plugins.upstream.models.Work or None work: None if editing an orphan edition
-        :param openlibrary.plugins.upstream.models.Edition or None edition: None if just editing work
+        :param openlibrary.plugins.upstream.models.Work|None work: None if editing an orphan edition
+        :param openlibrary.plugins.upstream.models.Edition|None edition: None if just editing work
         """
         self.work = work
         self.edition = edition
@@ -504,13 +504,13 @@ class SaveBookHelper:
 
             if not just_editing_work:
                 # Handle orphaned editions
-                edition_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
-                if self.work is None and edition_work_key is None:
+                new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+                if self.work is None and (new_work_key is None or new_work_key == '__new__'):
                     # i.e. not moving to another work, create empty work
                     self.work = self.new_work(self.edition)
                     edition_data.works = [{'key': self.work.key}]
                     work_data.key = self.work.key
-                elif self.work is not None and edition_work_key is None:
+                elif self.work is not None and new_work_key is None:
                     # we're trying to create an orphan; let's not do that
                     edition_data.works = [{'key': self.work.key}]
 
@@ -519,6 +519,13 @@ class SaveBookHelper:
                 saveutil.save(self.work)
 
         if self.edition and edition_data:
+            # Create a new work if so desired
+            new_work_key = (edition_data.get('works') or [{'key': None}])[0]['key']
+            if new_work_key == "__new__" and self.work is not None:
+                self.work = self.new_work(self.edition)
+                edition_data.works = [{'key': self.work.key}]
+                saveutil.save(self.work)
+
             identifiers = edition_data.pop('identifiers', [])
             self.edition.set_identifiers(identifiers)
 
@@ -547,6 +554,8 @@ class SaveBookHelper:
         work_key = web.ctx.site.new_key('/type/work')
         work = web.ctx.site.new(work_key, {
             'key': work_key,
+            'title': edition.get('title'),
+            'subtitle': edition.get('subtitle'),
             'type': {'key': '/type/work'},
             'covers': edition.get('covers', []),
         })
@@ -645,7 +654,7 @@ class SaveBookHelper:
         """
         Process input data for work.
         :param web.storage work: form data work info
-        :return:
+        :rtype: web.storage
         """
         def read_subject(subjects):
             if not subjects:
@@ -731,10 +740,12 @@ class SaveBookHelper:
                            formdata.edition.works[0].key
 
         if has_edition_work:
-            return formdata.edition.works[0].key == formdata.work.key
+            old_work_key = formdata.work.key
+            new_work_key = formdata.edition.works[0].key
+            return old_work_key == new_work_key
         else:
             # i.e. editing an orphan; so we care about the work
-            return  True
+            return True
 
 
 class book_edit(delegate.page):
@@ -774,7 +785,6 @@ class book_edit(delegate.page):
                 'Something went wrong. Please try again later.')
 
         recap = get_recaptcha()
-
         if recap and not recap.validate():
             return render_template("message.html",
                 'Recaptcha solution was incorrect',
@@ -802,7 +812,10 @@ class book_edit(delegate.page):
                 add_flash_message("info", utils.get_message("flash_book_updated"))
 
             raise web.seeother(edition.url())
-        except (ClientException, ValidationException) as e:
+        except ClientException as e:
+            add_flash_message('error', e.message or e.json)
+            return self.GET(key)
+        except ValidationException as e:
             add_flash_message('error', str(e))
             return self.GET(key)
 

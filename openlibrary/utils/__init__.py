@@ -1,6 +1,6 @@
 """Generic utilities"""
 
-from urllib import quote_plus
+from six.moves.urllib.parse import quote_plus
 import re
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')

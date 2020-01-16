@@ -39,6 +39,7 @@ from openlibrary import accounts
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.utils import mk_norm
 from openlibrary.core import lending
+from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
 from openlibrary.catalog.add_book.merge import try_merge
@@ -119,7 +120,7 @@ def get_title(e):
 def find_matching_work(e):
     """
     Looks for an existing Work representing the new import edition by
-    comparing normalised titles for every work by each author of the current edition.
+    comparing normalized titles for every work by each author of the current edition.
     Returns the first match found, or None.
 
     :param dict e: An OL edition suitable for saving, has a key, and has full Authors with keys
@@ -303,6 +304,20 @@ def update_ia_metadata_for_ol_edition(edition_id):
     return data
 
 
+def normalize_record_isbns(rec):
+    """
+    Returns the Edition import record with all ISBN fields cleaned.
+
+    :param dict rec: Edition import record
+    :rtype: dict
+    :return: A record with cleaned ISBNs in the various possible ISBN locations.
+    """
+    for field in ('isbn_13', 'isbn_10', 'isbn'):
+        if rec.get(field):
+            rec[field] = [normalize_isbn(isbn) for isbn in rec.get(field) if normalize_isbn(isbn)]
+    return rec
+
+
 def isbns_from_record(rec):
     """
     Returns a list of all isbns from the various possible isbn fields.
@@ -311,7 +326,6 @@ def isbns_from_record(rec):
     :rtype: list
     """
     isbns = rec.get('isbn', []) + rec.get('isbn_10', []) + rec.get('isbn_13', [])
-    isbns = [isbn.replace('-', '').strip() for isbn in isbns]
     return isbns
 
 
@@ -528,6 +542,7 @@ def load_data(rec, account=None):
     cover_id = None
     if cover_url:
         cover_id = add_cover(cover_url, ekey, account=account)
+    if cover_id:
         edition['covers'] = [cover_id]
 
     edits = []  # Things (Edition, Work, Authors) to be saved
@@ -575,7 +590,7 @@ def load_data(rec, account=None):
     edition['key'] = ekey
     edits.append(edition)
 
-    web.ctx.site.save_many(edits, 'import new book')
+    web.ctx.site.save_many(edits, comment='import new book', action='add-book')
 
     # Writes back `openlibrary_edition` and `openlibrary_work` to
     # archive.org item after successful import:
@@ -607,6 +622,8 @@ def load(rec, account=None):
         raise RequiredField('source_records')
     if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
+
+    rec = normalize_record_isbns(rec)
 
     edition_pool = build_pool(rec)
     if not edition_pool:
@@ -725,7 +742,7 @@ def load(rec, account=None):
         reply['work']['status'] = 'created' if work_created else 'modified'
         edits.append(w)
     if edits:
-        web.ctx.site.save_many(edits, 'import existing book')
+        web.ctx.site.save_many(edits, comment='import existing book', action='edit-book')
     if 'ocaid' in rec:
         update_ia_metadata_for_ol_edition(match.split('/')[-1])
     return reply
