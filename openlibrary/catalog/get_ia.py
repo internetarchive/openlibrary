@@ -13,7 +13,7 @@ from time import sleep
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
-from openlibrary.catalog.marc.fast_parse import read_file as fp_read_file  # Deprecated import
+from openlibrary.catalog.marc.fast_parse import read_file as fast_read_file  # Deprecated import
 from openlibrary.core import ia
 
 
@@ -177,7 +177,7 @@ def read_marc_file(part, f, pos=0):
     :rtype: (int, str, str)
     :return: (Next position, Current source_record name, Current single MARC record)
     """
-    for data, int_length in fp_read_file(f):
+    for data, int_length in fast_read_file(f):
         loc = "marc:%s:%d:%d" % (part, pos, int_length)
         pos += int_length
         yield (pos, loc, data)
