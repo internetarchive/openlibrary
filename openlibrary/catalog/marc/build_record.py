@@ -29,7 +29,7 @@ want = [
     '035', # oclc
     '050', # lc classification
     '082', # dewey
-    '100', '110', '111', # authors TODO
+    '100', '110', '111', # authors
     '130', '240', # work title
     '245', # title
     '250', # edition
@@ -415,7 +415,6 @@ def read_toc(fields):
                 # http://openlibrary.org/show-marc/marc_miami_univ_ohio/allbibs0036.out:3918815:7321
                 if any(len(i) > 2048 for i in toc_split):
                     toc_split = [i.strip() for i in v.split('; ')]
-                # FIXME:
                 # http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:938969487:3862
                 if any(len(i) > 2048 for i in toc_split):
                     toc_split = [i.strip() for i in v.split(' / ')]
