@@ -153,6 +153,7 @@ def get_subfields(line, want, is_marc8=False):
             yield i[0], translate(i[1:], is_marc8)
 
 def read_directory(data):
+    warn('Deprecated, use catalog.marc.MarcBinary instead.', DeprecationWarning)
     dir_end = data.find('\x1e')
     if dir_end == -1:
         raise BadDictionary
@@ -167,6 +168,7 @@ def read_directory(data):
     return dir_end, iter_dir
 
 def get_tag_line(data, line):
+    warn('Deprecated, use catalog.marc.MarcBinary instead.', DeprecationWarning)
     length = int(line[3:7])
     offset = int(line[7:12])
 
@@ -179,13 +181,30 @@ def get_tag_line(data, line):
             length += data[last:].find('\x1e')
     except IndexError:
         pass
-
     tag_line = data[offset + 1:offset + length + 1]
     if not line[0:2] == '00':
-        # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
         if tag_line[1:8] == '{llig}\x1f':
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
+
+def get_tag_lines(data, want):
+    want = set(want)
+    dir_end, iter_dir = read_directory(data)
+    data = data[dir_end:]
+    return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
+
+def get_all_tag_lines(data):
+    dir_end, iter_dir = read_directory(data)
+    data = data[dir_end:]
+    for line in iter_dir:
+        yield (line[:3], get_tag_line(data, line))
+
+def get_first_tag(data, want): # return first line of wanted tag
+    dir_end, iter_dir = read_directory(data)
+    data = data[dir_end:]
+    for line in iter_dir:
+        if line[:3] in want:
+            return get_tag_line(data, line)
 
 re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
 
@@ -210,26 +229,6 @@ def get_lower_subfields(line, is_marc8=False):
 
 def get_subfield_values(line, want, is_marc8=False):
     return [v for k, v in get_subfields(line, want, is_marc8)]
-
-def get_all_tag_lines(data):
-    dir_end, iter_dir = read_directory(data)
-    data = data[dir_end:]
-    for line in iter_dir:
-        yield (line[:3], get_tag_line(data, line))
-    #return [(line[:3], get_tag_line(data, line)) for line in iter_dir]
-
-def get_first_tag(data, want): # return first line of wanted tag
-    dir_end, iter_dir = read_directory(data)
-    data = data[dir_end:]
-    for line in iter_dir:
-        if line[:3] in want:
-            return get_tag_line(data, line)
-
-def get_tag_lines(data, want):
-    want = set(want)
-    dir_end, iter_dir = read_directory(data)
-    data = data[dir_end:]
-    return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
 def read_control_number(line, is_marc8=False):
     assert line[-1] == '\x1e'

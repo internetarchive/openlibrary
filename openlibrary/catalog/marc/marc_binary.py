@@ -1,9 +1,7 @@
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
 
-#TODO: Move fast_parse get_tag_lines(), get_all_tag_lines() into this class
 from openlibrary.catalog.marc import mnemonics
-from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_tag_lines
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, BadMARC
 
 
@@ -115,13 +113,28 @@ class MarcBinary(MarcBase):
         if len(data) != length:
             raise BadLength("Record length %s does not match reported length %s." % (len(data), length))
         self.data = data
+        self.directory_end = data.find('\x1e')
+        if self.directory_end == -1:
+            raise BadMARC("MARC directory not found")
+
+    def iter_directory(self):
+        data = self.data
+        directory = data[24:self.directory_end]
+        if len(directory) % 12 != 0:
+            # directory is the wrong size
+            # sometimes the leader includes some utf-8 by mistake
+            directory = data[:self.directory_end].decode('utf-8')[24:]
+            if len(directory) % 12 != 0:
+                raise BadMARC("MARC directory invalid length")
+        iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+        return iter_dir
 
     def leader(self):
         return self.data[:24]
 
     def all_fields(self):
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_all_tag_lines(self.data)):
+        for tag, line in handle_wrapped_lines(self.get_all_tag_lines()):
             if tag.startswith('00'):
                 # marc_upei/marc-for-openlibrary-bigset.mrc:78997353:588
                 if tag == '008' and line == '':
@@ -134,7 +147,7 @@ class MarcBinary(MarcBase):
     def read_fields(self, want):
         want = set(want)
         marc8 = self.leader()[9] != 'a'
-        for tag, line in handle_wrapped_lines(get_tag_lines(self.data, want)):
+        for tag, line in handle_wrapped_lines(self.get_tag_lines(want)):
             if tag not in want:
                 continue
             if tag.startswith('00'):
@@ -146,8 +159,36 @@ class MarcBinary(MarcBase):
             else:
                 yield tag, BinaryDataField(self, line)
 
+    def get_all_tag_lines(self):
+        for line in self.iter_directory():
+            yield (line[:3], self.get_tag_line(line))
+
+    def get_tag_lines(self, want):
+        want = set(want)
+        return [(line[:3], self.get_tag_line(line)) for line in self.iter_directory() if line[:3] in want]
+
+    def get_tag_line(self, line):
+        length = int(line[3:7])
+        offset = int(line[7:12])
+        data = self.data[self.directory_end:]
+        # handle off-by-one errors in MARC records
+        try:
+            if data[offset] != '\x1e':
+                offset += data[offset:].find('\x1e')
+            last = offset+length
+            if data[last] != '\x1e':
+                length += data[last:].find('\x1e')
+        except IndexError:
+            pass
+        tag_line = data[offset + 1:offset + length + 1]
+        if not line[0:2] == '00':
+            # marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:636441290:1277
+            if tag_line[1:8] == '{llig}\x1f':
+                tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
+        return tag_line
+
     def decode_field(self, field):
-        return field # noop on MARC binary
+        return field  # noop on MARC binary
 
     def read_isbn(self, f):
         if '\x1f' in f.line:

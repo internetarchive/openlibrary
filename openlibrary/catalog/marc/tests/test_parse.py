@@ -84,28 +84,15 @@ class TestParseMARCBinary:
         assert edition_marc_bin == j
 
     def test_raises_see_also(self):
-        filename = "%s/bin_input/talis_see_also.mrc" % test_data
+        filename = '%s/bin_input/talis_see_also.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = "%s/bin_input/talis_no_title2.mrc" % test_data
+        filename = '%s/bin_input/talis_no_title2.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
-
-    def test_wrapped_lines(self):
-        filename = test_data + '/bin_input/wrapped_lines'
-        with open(filename, 'r') as f:
-            rec = MarcBinary(f.read())
-            ret = list(rec.read_fields(['520']))
-            assert len(ret) == 2
-            a, b = ret
-            assert a[0] == '520' and b[0] == '520'
-            a_content = list(a[1].get_all_subfields())[0][1]
-            assert len(a_content) == 2290
-            b_content = list(b[1].get_all_subfields())[0][1]
-            assert len(b_content) == 243
