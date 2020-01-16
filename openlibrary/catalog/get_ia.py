@@ -12,7 +12,7 @@ from time import sleep
 
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
-from openlibrary.catalog.marc.parse import read_edition  # Deprecated import
+from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.fast_parse import read_file as fp_read_file  # Deprecated import
 from openlibrary.core import ia
 
