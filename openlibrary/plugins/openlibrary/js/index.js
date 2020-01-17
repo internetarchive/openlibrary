@@ -31,7 +31,7 @@ import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
 import initManageCovers from './manageCovers.js';
-import jQueryUI from './jquery-ui';
+import jQueryUI from './jquery-ui/lazy.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
