@@ -16,7 +16,7 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/ui.*.js",
+      "path": "static/build/jquery-ui.*.js",
       "maxSize": "70.5KB"
     },
     {

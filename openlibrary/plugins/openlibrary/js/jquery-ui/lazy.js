@@ -1,7 +1,7 @@
 function init() {
     return import(
-        /* webpackChunkName: "ui" */
-        './ui'
+        /* webpackChunkName: "jquery-ui" */
+        './index.js'
     );
 }
 
