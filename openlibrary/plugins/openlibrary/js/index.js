@@ -31,7 +31,7 @@ import Promise from 'promise-polyfill';
 import { confirmDialog, initDialogs } from './dialog';
 import initTabs from './tabs.js';
 import initManageCovers from './manageCovers.js';
-import jQueryUI from './jquery-ui/lazy.js';
+import initJQueryUI from './jquery-ui/lazy.js';
 
 // Eventually we will export all these to a single global ol, but in the mean time
 // we add them to the window object for backwards compatibility.
@@ -69,14 +69,8 @@ window.Promise = Promise;
 jQuery(function () {
     const $markdownTextAreas = $('textarea.markdown');
     const $carouselElements = $('.carousel--progressively-enhanced');
-    const legacyui = jQueryUI.legacyui();
 
-    $.fn.tabs = legacyui.tabs;
-    $.fn.colorbox = legacyui.colorbox;
-    $.fn.dialog = legacyui.dialog;
-    $.fn.sortable = legacyui.sortable;
-    $.fn.disableSelection = legacyui.disableSelection;
-
+    initJQueryUI($);
     initDialogs();
     // expose ol_confirm_dialog method
     $.fn.ol_confirm_dialog = confirmDialog;

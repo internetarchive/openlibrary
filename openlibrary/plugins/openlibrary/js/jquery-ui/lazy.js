@@ -10,7 +10,7 @@ function init() {
  * load jQuery UI and make the element functional.
  * @param {string} fnName to call when loaded e.g. sortable,tabs,colorbox
  */
-export function placeholder(fnName) {
+function placeholder(fnName) {
     return function () {
         const $this = $(this);
         // only if the selector matches load the additional code and wire it up.
@@ -33,16 +33,14 @@ export function placeholder(fnName) {
  * loaded only when needed. The jQuery UI library is large and on the
  * long term we will aim to phase it out. This allows us to do that while
  * not worrying about JS on the critical path.
- * @return {Object}
+ * @param {jQuery} $
  */
-function legacyui() {
-    return {
+export default function initJQueryUI($) {
+    Object.assign($.fn, {
         tabs: placeholder('tabs'),
         colorbox: placeholder('colorbox'),
         dialog: placeholder('dialog'),
         sortable: placeholder('sortable'),
         disableSelection: placeholder('disableSelection')
-    }
+    });
 }
-
-export default { legacyui };
