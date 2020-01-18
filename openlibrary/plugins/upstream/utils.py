@@ -734,6 +734,10 @@ class Request:
         """
         readable_path = web.ctx.get('readable_path', web.ctx.path) or ''
         query = web.ctx.query or ''
+        if '&' not in query and re.match('^\?sort=', query):
+            query = ''
+        else:
+            query = re.sub('(?<=(\?|&))sort=.*?(&|$)', '', query)
         host = web.ctx.host or ''
         url = (host + readable_path + query)
         return ("https://" + url) if url else ''
