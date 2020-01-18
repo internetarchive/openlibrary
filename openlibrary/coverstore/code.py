@@ -1,7 +1,6 @@
 from __future__ import print_function
 import web
 import simplejson
-import urllib
 import os
 import datetime
 import time
@@ -9,13 +8,11 @@ import logging
 import array
 import memcache
 
-import db
-import config
-from utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
+from six.moves.urllib.request import urlopen
 
-from coverlib import save_image, read_image, read_file
-
-import ratelimit
+from openlibrary.coverstore import config, db, ratelimit
+from openlibrary.coverstore.coverlib import save_image, read_image, read_file
+from openlibrary.coverstore.utils import safeint, rm_f, random_string, ol_things, ol_get, changequery, download
 
 logger = logging.getLogger("coverstore")
 
@@ -165,7 +162,7 @@ def _locate_item(item):
     """Locates the archive.org item in the cluster and returns the server and directory.
     """
     print(time.asctime(), "_locate_item", item, file=web.debug)
-    text = urllib.urlopen("https://archive.org/metadata/" + item).read()
+    text = urlopen("https://archive.org/metadata/" + item).read()
     d = simplejson.loads(text)
     return d['server'], d['dir']
 
@@ -283,7 +280,7 @@ class cover:
     def get_ia_cover_url(self, identifier, size="M"):
         url = "https://archive.org/metadata/%s/metadata" % identifier
         try:
-            jsontext = urllib.urlopen(url).read()
+            jsontext = urlopen(url).read()
             d = simplejson.loads(jsontext).get("result", {})
         except (IOError, ValueError):
             return

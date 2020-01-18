@@ -1,18 +1,18 @@
 """Cover management."""
 from __future__ import print_function
 
+import datetime
+import os
+
 try:
     from PIL import Image
 except ImportError:
     import Image
-import os
-from cStringIO import StringIO
+from six import StringIO
 import web
-import datetime
 
-import config
-import db
-from utils import random_string, rm_f
+from openlibrary.coverstore import config, db
+from openlibrary.coverstore.utils import random_string, rm_f
 
 __all__ = [
     "save_image",
