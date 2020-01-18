@@ -36,7 +36,7 @@ $var title: Lists
             <div class="data">
                 <div class="name">
                     $ owner = list.get_owner()
-                    <a href="$list.key" class="title results">$_('%(listname)s </a> from <a href="$owner.key">%(owner)s</a>', listname=list.name ,owner=owner.displayname)
+                    <a href="$list.key" class="title results">$_('%(listname)s </a> from <a href="$owner.key">%(owner)s</a>', listname=list.name, owner=owner.displayname)
                 </div>
                 <div class="meta">
                     $ msg = ungettext("1 seed", "%(count)d seeds", len(list.seeds))

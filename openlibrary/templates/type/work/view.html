@@ -15,13 +15,13 @@ $var title: $page.title
 
         title = page.title
         if page.subtitle:
-             title = _("%(title)s: %(subtitle)s", title=page.title, subtitle=page.subtitle)
+             title = _("%(title)s: %(subtitle)s", title=title, subtitle=page.subtitle)
         if page.authors:
             title = _("%(title)s by %(authorlist)s", title=title, authorlist=", ".join(a.name or "" for a in page.get_authors()))
         items.append(title)
 
         if page.edition_count:
-            items.append(ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count))
+            items.append(ungettext("1 edition", "%(count)s editions", page.edition_count, count=page.edition_count))
 
         if page.first_publish_year:
             items.append(_("First published in %(year)d", year=page.first_publish_year))
@@ -64,7 +64,7 @@ $var title: $page.title
                 <span itemprop="name">$page.title</span>
             $if page.edition_count:
                 <span class="tools" style="white-space:nowrap;">
-                    <a href="#editions" class="plain brown">$ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count=page.edition_count)</a>
+                    <a href="#editions" class="plain brown">$ungettext("1 edition", "%(count)s editions", page.edition_count, count=page.edition_count)</a>
                 </span>
         </h1>
         <div class="clearfix"></div>
@@ -145,7 +145,7 @@ $var title: $page.title
                                 $if excerpt.pages:
                                     $_("Page") $excerpt.pages,
                                 $if excerpt.author:
-                                    $_("added by %s", '<a href="$excerpt.author.key">$excerpt.author.displayname</a>.')
+                                    $:_("added by %s", '<a href="$excerpt.author.key">$excerpt.author.displayname</a>.')
                                 $else:
                                     $_("added anonymously").
                                 $if excerpt.comment:

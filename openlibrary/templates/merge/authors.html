@@ -48,7 +48,7 @@ $if formdata:
         <div class="note">$_("Please select some authors to merge.")</div>
 
 <ol class="sansserif">
-    <li>$_('Select a &quot;master&quot; record that best represents the author -')
+    <li>$_('Select a "master" record that best represents the author -')
         <input type="radio" name="radio" id="radio" checked="checked"/>
     </li>
     <li>$_('Select author records which should be merged with the master')
@@ -103,14 +103,14 @@ $if formdata:
                     </label>
                     <ul>
                     $for doc in top['books']:
-                        <li><a href="$doc.key" target="new" title="$_('Open in a new window')">$doc.title</a> <span class="smaller">$ungettext('1 edition', '%(count)d editions', $doc.edition_count, doc.edition_count),
+                        <li><a href="$doc.key" target="new" title="$_('Open in a new window')">$doc.title</a> <span class="smaller">$ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count),
                         $if doc.get('first_publish_year'):
-                            <span title="$_('First published in ')">$doc.first_publish_year</span>
+                            <span title="$_('First published in')">$doc.first_publish_year</span>
                         </span></li>
                     </ul>
                 </div>
                 <div class="data count">
-                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("1 work", "%(count)d works", top['total'], top['total'])</a>
+                    <a href="/authors/$k" target="new" title="$_('Visit this author\'s page in a new window')">$ungettext("1 work", "%(count)d works", top['total'], count=top['total'])</a>
                 </div>
             </div>
     </div>

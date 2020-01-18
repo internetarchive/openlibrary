@@ -237,8 +237,8 @@ $if ctx.user and ctx.user.is_admin():
                                  <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
                         <span class="adjust">.</span>
                     $if page.languages:
-                        <br/>$:_('Written in')
-                        <span itemprop="inLanguage">$:thingrepr(page.languages)</span>.
+                        $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
+                        <br/>$:_('Written in %(lang)s')
               </h4>
 
           $if work:

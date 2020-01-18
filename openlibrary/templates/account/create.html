@@ -21,7 +21,8 @@ window.q.push( function(){
 </script>
 
 $if ctx.user:
-    <p>$:_("You are already logged into Open Library as %(user)s.", user='<a href="%(key)s">%(user)s</a>', key=ctx.user.key, user=ctx.user.displayname))</p>
+    $def user_link(): <a href="$ctx.user.key">ctx.user.displayname</a>
+    <p>$:_("You are already logged into Open Library as %(user)s.", user=str(user_link()))</p>
     <p>$:_('If you\'d like to create a new, different Open Library account, you\'ll need to <a href="javascript:;" onclick="document.forms[\'logout\'].submit()">log out</a> and start the signup process afresh.')</p>
 $else:
     <form id="signup" class="olform create validate" name="signup" method="post" action="">

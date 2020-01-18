@@ -71,7 +71,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
     $:macros.databarView(page)
 
-    <h1>$page.get('name', _('name missing'))</h1>
+    <h1>$title</h1>
     <h2 class="author collapse">
     $if page.birth_date or page.death_date:
         $page.birth_date - $page.death_date
@@ -129,7 +129,7 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
         <div class="clearfix"></div>
         <div id="works" class="section">
                 <h2 class="collapse">
-                    $ungettext("%(count)d work", "%(count)d works", books.num_found, count=books.num_found)
+                    $ungettext("1 work", "%(count)d works", books.num_found, count=books.num_found)
                     <span class="count smaller"><a href="/books/add?author=$page.key">$_('Add another?')</a></span>
                 </h2>
                 <p id="books"><span class="tools">

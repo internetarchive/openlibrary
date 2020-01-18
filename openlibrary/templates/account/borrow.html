@@ -45,7 +45,7 @@ $if len(loans) >= 5:
     window.q.push(function(){
         \$("#contentMsg").show();
         \$(".alert span").css({'font-size':'.6875em','color':'#333'})
-        \$(".alert span").text($_("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early."));
+        \$(".alert span").text("$_("You have 5 ebooks out at the moment. That's the limit! You can free up slots by returning books early.")");
     });
     //-->
     </script>
@@ -213,7 +213,7 @@ $else:
                         <div class="smaller" style="padding-top: 5px;">
                             $if delta_hours == 0:
                                 $_("You have less than an hour to borrow it.")
-                            $else::
+                            $else:
                                 $unggettext("You have one more hour to borrow it.", "You have %(hours)d more hours to borrow it.", delta_hours, hours=delta_hours)
                         </div>
                 </td>

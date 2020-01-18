@@ -11,7 +11,7 @@ $def with (list)
             <a href="$list.key" class="results"><b>$list.name</b></a>
         </h3>
         <span class="editions">
-            $ungettext('%(count)d seed','%(count)d seeds', len(list.seeds), count=len(list.seeds))
+            $ungettext('1 seed','%(count)d seeds', len(list.seeds), count=len(list.seeds))
             $if list.last_update:
                 | $_('Last modified %(date)s', date=datestr(list.last_modified))
         </span>

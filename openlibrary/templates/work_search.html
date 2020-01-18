@@ -141,7 +141,7 @@ $ )
             $if k not in sticky:
                 $continue
             $for v in values if isinstance(values, list) else [values]:
-                <input type="hidden" name="$k" value="$v.replace('&quot;', '&quot;')" />
+                <input type="hidden" name="$k" value="$v.replace('"', '&quot;')" />
         </form>
 
         $if param and not error:

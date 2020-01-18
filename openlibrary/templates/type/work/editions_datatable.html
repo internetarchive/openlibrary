@@ -1,7 +1,7 @@
 $def with (page)
 <div class="head">
     <h2>
-    $ungettext("%(count)s edition", "%(count)s editions", page.edition_count, count = page.edition_count)
+    $ungettext("1 edition", "%(count)s editions", page.edition_count, count=page.edition_count)
     $if page.first_publish_year:
         <span class="count">$_("First published in %(year)s", year=page.first_publish_year)</span>
     </h2>

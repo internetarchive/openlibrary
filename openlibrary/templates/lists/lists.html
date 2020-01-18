@@ -2,7 +2,7 @@ $def with (doc, lists)
 
 <div id="contentHead">
     $ header = render_template("lists/header", doc, lists)
-    $var title: _('%(owner)s / Lists', owner=$header.title)
+    $var title: $_('%(owner)s / Lists', owner=header.title)
     $:header
 </div>
 

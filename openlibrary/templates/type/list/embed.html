@@ -100,9 +100,9 @@ $def render_seed_count(seed_count):
                     $elif seed.type == "person":
                         <span class="type people small">$seed.type</span>
                     $elif seed.type == "work":
-                        $ungettext('- %(count) edition', '- %(count)s editions', seed.edition_count,  count=commify(seed.edition_count))$cond(seed.ebook_count, ",")
+                        $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count,  count=commify(seed.edition_count))$cond(seed.ebook_count, ",")
                     $else:
-                        $ungettext('- %(count)s work', '- %(count)s works', seed.work_count, count=$commify(seed.work_count))$cond(seed.ebook_count, ",")
+                        $ungettext('- 1 work', '- %(count)s works', seed.work_count, count=commify(seed.work_count))$cond(seed.ebook_count, ",")
                     </span>
                 </div>
             </div>

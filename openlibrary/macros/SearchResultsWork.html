@@ -35,7 +35,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
       </span>
       <span class="resultPublisher">
         $if doc.edition_count:
-          $ungettext('%(count)d edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)
+          $ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)
           $if doc.first_publish_year:
               $_('- first published in %(year)s', year=doc.first_publish_year)
       </span>

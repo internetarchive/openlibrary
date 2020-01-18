@@ -210,7 +210,7 @@ window.q.push(function(){
                           <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
                           <span class="type small">$seed.type</span>
                         $if seed.type == "edition" and seed.document.get('works'):
-                            $:ungettext('- <a href="$seed.document.works[0].url()">1 edition</a> in catalog', '- <a href="$seed.document.works[0].url()">%(count)s editions</a> in catalog', seed.work_count, count=commify(work_editions_count))
+                            $:ungettext('- <a href="%(url)s">1 edition</a> in catalog', '- <a href="%(url)s">%(count)s editions</a> in catalog', seed.work_count, count=commify(work_editions_count), url=seed.document.works[0].url())
                         $elif seed.type == "work":
                             $ungettext('- 1 edition', '- %(count)s editions', seed.edition_count, count=commify(seed.edition_count))
                         $else:
