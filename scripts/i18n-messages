@@ -24,7 +24,10 @@ def main(cmd):
         message_sources = [
             'openlibrary/plugins/upstream',
             'openlibrary/templates/type/author',
+            'openlibrary/templates/type/doc',
             'openlibrary/templates/type/edition',
+            'openlibrary/templates/type/page',
+            'openlibrary/templates/type/user',
             'openlibrary/templates/type/work',
         ]
         template_dir = 'openlibrary/templates/'
@@ -58,6 +61,8 @@ def main(cmd):
             'LoanStatus.html',
             'SearchResultsWork.html',
             'SocialShare.html',
+            'TypeChanger.html',
+            'UserEditRow.html',
             'WorldcatLink.html',
         ]
         message_sources += [template_dir + template for template in templates]

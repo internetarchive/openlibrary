@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-07 13:30-0500\n"
+"POT-Creation-Date: 2020-01-18 13:45-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -299,8 +299,8 @@ msgstr ""
 msgid "Most Recent"
 msgstr ""
 
-#: add.html:24 advancedsearch.html:17 edit.html:92 nav_head.html:44
-#: search_foot.html:8 search_head.html:8 view.html:149
+#: add.html:24 advancedsearch.html:17 edit.html:20 edit.html:92
+#: nav_head.html:44 search_foot.html:8 search_head.html:8 view.html:149
 msgid "Title"
 msgstr ""
 
@@ -351,6 +351,10 @@ msgstr ""
 
 #: view.html:230
 msgid "Alternative names"
+msgstr ""
+
+#: edit.html:31 edit.html:33
+msgid "Document Body:"
 msgstr ""
 
 #: view.html:159
@@ -500,169 +504,9 @@ msgstr ""
 msgid "ID Numbers"
 msgstr ""
 
-#: edit.html:14
-msgid "Edit List"
-msgstr ""
-
-#: edit.html:25
-msgid "Label"
-msgstr ""
-
-#: edit.html:34 edit.html:54
-msgid "Description"
-msgstr ""
-
-#: embed.html:17 home.html:46 preview.html:23 view.html:32
+#: edit.html:9
 #, python-format
-msgid "1 seed"
-msgid_plural "%(count)d seeds"
-msgstr[0] ""
-msgstr[1] ""
-
-#: embed.html:41 view.html:165
-msgid "Unknown authors"
-msgstr ""
-
-#: embed.html:67
-msgid ""
-"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
-"formats from main book page"
-msgstr ""
-
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: embed.html:69 show.html:34
-msgid "Read"
-msgstr ""
-
-#: embed.html:100
-#, python-format
-msgid "by %(name)s"
-msgstr ""
-
-#: embed.html:113
-#, python-format
-msgid "- %(count) edition"
-msgid_plural "- %(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: embed.html:115
-#, python-format
-msgid "- %(count)s work"
-msgid_plural "- %(count)s works"
-msgstr[0] ""
-msgstr[1] ""
-
-#: exports.html:21 exports.html:41
-msgid "Subscribe"
-msgstr ""
-
-#: exports.html:22 exports.html:42
-#, python-format
-msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
-
-#: exports.html:29
-msgid "Export Not Available"
-msgstr ""
-
-#: exports.html:34
-#, python-format
-msgid "Only lists with up to %s editions can be exported. This one has %s."
-msgstr ""
-
-#: exports.html:36
-#, python-format
-msgid ""
-"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
-"download</a> of the catalog."
-msgstr ""
-
-#: view.html:8
-#, python-format
-msgid "%(name)s | Lists | Open Library"
-msgstr ""
-
-#: lists.html:10 nav_head.html:48 search_head.html:70 view.html:31 view.html:42
-#: view.html:60 widget.html:234
-msgid "Lists"
-msgstr ""
-
-#: view.html:105 view.html:136
-msgid "Yes, I'm sure"
-msgstr ""
-
-#: view.html:123 view.html:145
-msgid "No, cancel"
-msgstr ""
-
-#: view.html:156
-msgid "Remove seed"
-msgstr ""
-
-#: view.html:156
-msgid "Are you sure you want to remove this item from the list?"
-msgstr ""
-
-#: view.html:157
-msgid "Remove Seed"
-msgstr ""
-
-#: view.html:158
-msgid ""
-"You are about the remove the last item in the list. That will delete the "
-"whole list. Are you sure you want to continue?"
-msgstr ""
-
-#: view.html:220
-#, python-format
-msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
-msgid_plural ""
-"- <a href=\"$seed.document.works[0].url()\">%(count)s editions</a> in "
-"catalog"
-msgstr[0] ""
-msgstr[1] ""
-
-#: view.html:222
-#, python-format
-msgid "- 1 edition"
-msgid_plural "- %(count)s editions"
-msgstr[0] ""
-msgstr[1] ""
-
-#: view.html:224
-#, python-format
-msgid "- 1 work"
-msgid_plural "- %(count)s works"
-msgstr[0] ""
-msgstr[1] ""
-
-#: view.html:228 view.html:243
-msgid "Protected DAISY"
-msgstr ""
-
-#: view.html:228
-msgid "Download DAISY eBook for print disabled"
-msgstr ""
-
-#: view.html:232
-msgid "Last updated"
-msgstr ""
-
-#: view.html:240
-msgid "Remove this item?"
-msgstr ""
-
-#: openlibrary/macros/SearchResultsWork.html:60 view.html:247
-msgid "Download DAISY"
-msgstr ""
-
-#: view.html:260
-msgid "List Meta"
-msgstr ""
-
-#: view.html:261
-msgid "Derived from seed metadata"
+msgid "Edit %(title)s"
 msgstr ""
 
 #: edit.html:28
@@ -671,6 +515,10 @@ msgstr ""
 
 #: edit.html:40
 msgid "Display Name"
+msgstr ""
+
+#: edit.html:54
+msgid "Description"
 msgstr ""
 
 #: view.html:20
@@ -692,7 +540,12 @@ msgstr ""
 msgid "admin page"
 msgstr ""
 
-#: books.html:50 view.html:46
+#: books.html:86 lists.html:10 nav_head.html:48 search_head.html:70
+#: view.html:31 view.html:60 widget.html:234
+msgid "Lists"
+msgstr ""
+
+#: books.html:50 books.html:73 view.html:46
 msgid "Reading Log"
 msgstr ""
 
@@ -726,6 +579,7 @@ msgid "First published in %s"
 msgstr ""
 
 #: editions.html:14 editions_datatable.html:13
+#: openlibrary/macros/UserEditRow.html:25
 msgid "Add another"
 msgstr ""
 
@@ -748,6 +602,11 @@ msgstr ""
 
 #: editions_datatable.html:22
 msgid "Edition"
+msgstr ""
+
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: show.html:34
+msgid "Read"
 msgstr ""
 
 #: editions_datatable.html:24
@@ -851,6 +710,86 @@ msgstr ""
 
 #: view.html:184
 msgid "Dewey"
+msgstr ""
+
+#: books.html:15 nav_head.html:84 nav_head.html:85
+msgid "My Books"
+msgstr ""
+
+#: books.html:28
+#, python-format
+msgid "Books %(username)s is reading"
+msgstr ""
+
+#: books.html:29
+#, python-format
+msgid ""
+"%(username)s is reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world what you're reading."
+msgstr ""
+
+#: books.html:31
+#, python-format
+msgid "Books %(username)s wants to read"
+msgstr ""
+
+#: books.html:32
+#, python-format
+msgid ""
+"%(username)s wants to read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and share the books that you'll soon be reading!"
+msgstr ""
+
+#: books.html:34
+#, python-format
+msgid "Books %(username)s has read"
+msgstr ""
+
+#: books.html:35
+#, python-format
+msgid ""
+"%(username)s has read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world about the books that you care about."
+msgstr ""
+
+#: books.html:37
+#, python-format
+msgid "Books %(userdisplayname)s is sponsoring"
+msgstr ""
+
+#: books.html:62
+msgid "Your reading log is currently set to public"
+msgstr ""
+
+#: books.html:65
+msgid "Your reading log is currently set to private"
+msgstr ""
+
+#: books.html:67
+msgid "Manage your privacy settings"
+msgstr ""
+
+#: books.html:74
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr ""
+
+#: books.html:75
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr ""
+
+#: books.html:76
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr ""
+
+#: books.html:81
+msgid "Sponsorships"
+msgstr ""
+
+#: books.html:113
+msgid "No books are on this shelf"
 msgstr ""
 
 #: borrow.html:7 borrow.html:72
@@ -2106,7 +2045,8 @@ msgstr ""
 msgid "This doc was last edited anonymously"
 msgstr ""
 
-#: history.html:20 openlibrary/macros/databarView.html:27
+#: history.html:20 openlibrary/macros/databarView.html:28
+#: openlibrary/macros/databarView.html:30
 msgid "History"
 msgstr ""
 
@@ -2117,7 +2057,7 @@ msgstr ""
 
 #: history.html:31
 #, python-format
-msgid " 1 revision"
+msgid "1 revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] ""
 msgstr[1] ""
@@ -2400,10 +2340,6 @@ msgstr ""
 msgid "Reading Lists"
 msgstr ""
 
-#: nav_head.html:84 nav_head.html:85
-msgid "My Books"
-msgstr ""
-
 #: nav_head.html:88 nav_head.html:126
 msgid "My Loans"
 msgstr ""
@@ -2570,6 +2506,13 @@ msgstr ""
 #, python-format
 msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
 msgstr ""
+
+#: home.html:46 preview.html:23
+#, python-format
+msgid "1 seed"
+msgid_plural "%(count)d seeds"
+msgstr[0] ""
+msgstr[1] ""
 
 #: home.html:48 preview.html:27 snippet.html:20
 #, python-format
@@ -3242,10 +3185,6 @@ msgstr ""
 msgid "Last edited anonymously"
 msgstr ""
 
-#: openlibrary/macros/databarView.html:27
-msgid "View this template's edit history"
-msgstr ""
-
 #: openlibrary/macros/databarWork.html:51
 msgid "Really return this book?"
 msgstr ""
@@ -3306,12 +3245,43 @@ msgstr[1] ""
 msgid "- first published in %(year)s"
 msgstr ""
 
+#: openlibrary/macros/SearchResultsWork.html:60
+msgid "Download DAISY"
+msgstr ""
+
 #: openlibrary/macros/SocialShare.html:11
 msgid "Share this book"
 msgstr ""
 
 #: openlibrary/macros/SocialShare.html:22
 msgid "Embed this book in your website"
+msgstr ""
+
+#: openlibrary/macros/TypeChanger.html:17
+msgid "Page Type"
+msgstr ""
+
+#: openlibrary/macros/TypeChanger.html:19
+msgid "Huh?"
+msgstr ""
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid ""
+"Every piece of Open Library is defined by the type of content it "
+"displays, usually by content definition (e.g. Authors, Editions, Works) "
+"but sometimes by content use (e.g. macro, template, rawtext). Changing "
+"this for an existing page will alter its presentation and the data fields"
+" available for editing its content."
+msgstr ""
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid "Please use caution changing Page Type!"
+msgstr ""
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid ""
+"(Simplest solution: If you aren't sure whether this should be changed, "
+"don't change it.)"
 msgstr ""
 
 #: openlibrary/macros/WorldcatLink.html:10

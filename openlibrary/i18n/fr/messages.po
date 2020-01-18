@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-07 13:30-0500\n"
-"PO-Revision-Date: 2018-03-27 22:28+0200\n"
+"POT-Creation-Date: 2020-01-18 13:45-0500\n"
+"PO-Revision-Date: 2020-01-18 13:47-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
@@ -317,8 +317,8 @@ msgstr "Publication la plus ancienne"
 msgid "Most Recent"
 msgstr "Le plus récent"
 
-#: add.html:24 advancedsearch.html:17 edit.html:92 nav_head.html:44
-#: search_foot.html:8 search_head.html:8 view.html:149
+#: add.html:24 advancedsearch.html:17 edit.html:20 edit.html:92
+#: nav_head.html:44 search_foot.html:8 search_head.html:8 view.html:149
 msgid "Title"
 msgstr "Titre"
 
@@ -374,6 +374,10 @@ msgstr "Ajouter un lien"
 #: view.html:230
 msgid "Alternative names"
 msgstr "Autres noms"
+
+#: edit.html:31 edit.html:33
+msgid "Document Body:"
+msgstr "Corps du document:"
 
 #: view.html:159
 #, python-format
@@ -528,176 +532,10 @@ msgstr "Poids"
 msgid "ID Numbers"
 msgstr "Identifiants"
 
-#: edit.html:14
-msgid "Edit List"
-msgstr "Modifier la liste"
-
-#: edit.html:25
-msgid "Label"
-msgstr "Étiquette"
-
-#: edit.html:34 edit.html:54
-msgid "Description"
-msgstr "Description"
-
-#: embed.html:17 home.html:46 preview.html:23 view.html:32
+#: edit.html:9
 #, python-format
-msgid "1 seed"
-msgid_plural "%(count)d seeds"
-msgstr[0] "1 article"
-msgstr[1] "%(count)d article"
-
-#: embed.html:41 view.html:165
-msgid "Unknown authors"
-msgstr "Auteurs inconnu"
-
-#: embed.html:67
-msgid ""
-"Open in online Book Reader. Downloads available in ePub, DAISY, PDF, TXT "
-"formats from main book page"
-msgstr ""
-"Ouvrir dans Book Reader en ligne. Téléchargements disponibles en ePub, "
-"DAISY, PDF, TXT formats de la page principale du livre"
-
-#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: embed.html:69 show.html:34
-msgid "Read"
-msgstr "Lire"
-
-#: embed.html:100
-#, python-format
-msgid "by %(name)s"
-msgstr " par %(name)s"
-
-#: embed.html:113
-#, python-format
-msgid "- %(count) edition"
-msgid_plural "- %(count)s editions"
-msgstr[0] "- %(count)d édition"
-msgstr[1] "- %(count)d éditions"
-
-#: embed.html:115
-#, python-format
-msgid "- %(count)s work"
-msgid_plural "- %(count)s works"
-msgstr[0] "- %(count)s œuvre"
-msgstr[1] "- %(count)s œuvres"
-
-#: exports.html:21 exports.html:41
-msgid "Subscribe"
-msgstr "Souscrire"
-
-#: exports.html:22 exports.html:42
-#, python-format
-msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
-msgstr ""
-
-#: exports.html:29
-msgid "Export Not Available"
-msgstr "Exportation non disponible"
-
-#: exports.html:34
-#, python-format
-msgid "Only lists with up to %s editions can be exported. This one has %s."
-msgstr "Only lists with up to %s editions can be exported. This one has %s"
-
-#: exports.html:36
-#, python-format
-msgid ""
-"Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
-"download</a> of the catalog."
-msgstr ""
-
-#: view.html:8
-#, python-format
-msgid "%(name)s | Lists | Open Library"
-msgstr "%(name)s | Listes | Open Library"
-
-#: lists.html:10 nav_head.html:48 search_head.html:70 view.html:31 view.html:42
-#: view.html:60 widget.html:234
-msgid "Lists"
-msgstr "Listes"
-
-#: view.html:105 view.html:136
-msgid "Yes, I'm sure"
-msgstr "Oui, je suis sûr"
-
-#: view.html:123 view.html:145
-msgid "No, cancel"
-msgstr "Non, annuler"
-
-#: view.html:156
-msgid "Remove seed"
-msgstr "Supprimer cette article"
-
-#: view.html:156
-msgid "Are you sure you want to remove this item from the list?"
-msgstr "Êtes-vous sûr de vouloir supprimer cette article de la liste?"
-
-#: view.html:157
-msgid "Remove Seed"
-msgstr "Supprimer cette article"
-
-#: view.html:158
-msgid ""
-"You are about the remove the last item in the list. That will delete the "
-"whole list. Are you sure you want to continue?"
-msgstr ""
-"Vous êtes sur le point de supprimer le dernier élément de la liste. Cela "
-"supprimera letoute la liste. Êtes-vous sûr de vouloir continuer?"
-
-#: view.html:220
-#, python-format
-msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
-msgid_plural ""
-"- <a href=\"$seed.document.works[0].url()\">%(count)s editions</a> in "
-"catalog"
-msgstr[0] "- <a href=\"$seed.document.works[0].url()\">1 édition</a> en catalogue"
-msgstr[1] ""
-"- <a href=\"$seed.document.works[0].url()\">%(count)s éditions</a> en "
-"catalogue"
-
-#: view.html:222
-#, python-format
-msgid "- 1 edition"
-msgid_plural "- %(count)s editions"
-msgstr[0] "- 1 édition"
-msgstr[1] "- %(count)s édition"
-
-#: view.html:224
-#, python-format
-msgid "- 1 work"
-msgid_plural "- %(count)s works"
-msgstr[0] "- 1 œuvre"
-msgstr[1] "- %(count)s œuvre"
-
-#: view.html:228 view.html:243
-msgid "Protected DAISY"
-msgstr "DAISY protégé"
-
-#: view.html:228
-msgid "Download DAISY eBook for print disabled"
-msgstr ""
-
-#: view.html:232
-msgid "Last updated"
-msgstr "Dernier modification"
-
-#: view.html:240
-msgid "Remove this item?"
-msgstr "Supprimer cette article?"
-
-#: openlibrary/macros/SearchResultsWork.html:60 view.html:247
-msgid "Download DAISY"
-msgstr "Télécharger DAISY"
-
-#: view.html:260
-msgid "List Meta"
-msgstr "Métadonnées de liste"
-
-#: view.html:261
-msgid "Derived from seed metadata"
-msgstr "Dérivé de métadonnées de l'article"
+msgid "Edit %(title)s"
+msgstr "Modifier %(titre)s"
 
 #: edit.html:28
 msgid "Currently Editing:"
@@ -706,6 +544,10 @@ msgstr "En cours d'édition"
 #: edit.html:40
 msgid "Display Name"
 msgstr "Nom d'affichage"
+
+#: edit.html:54
+msgid "Description"
+msgstr "Description"
 
 #: view.html:20
 #, python-format
@@ -726,7 +568,12 @@ msgstr "Emprunts"
 msgid "admin page"
 msgstr "page admin"
 
-#: books.html:50 view.html:46
+#: books.html:86 lists.html:10 nav_head.html:48 search_head.html:70
+#: view.html:31 view.html:60 widget.html:234
+msgid "Lists"
+msgstr "Listes"
+
+#: books.html:50 books.html:73 view.html:46
 msgid "Reading Log"
 msgstr "Journal de lecture"
 
@@ -764,6 +611,7 @@ msgid "First published in %s"
 msgstr "Première publication en %(year)s"
 
 #: editions.html:14 editions_datatable.html:13
+#: openlibrary/macros/UserEditRow.html:25
 msgid "Add another"
 msgstr "Ajouter une autre"
 
@@ -787,6 +635,11 @@ msgstr "Ajoutez une autre édition de %(worktitle)s"
 #: editions_datatable.html:22
 msgid "Edition"
 msgstr "Édition"
+
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: show.html:34
+msgid "Read"
+msgstr "Lire"
 
 #: editions_datatable.html:24
 msgid "Locate"
@@ -892,6 +745,92 @@ msgstr "Bibliothèque du Congrès"
 #: view.html:184
 msgid "Dewey"
 msgstr "Dewey"
+
+#: books.html:15 nav_head.html:84 nav_head.html:85
+msgid "My Books"
+msgstr "Mes livres"
+
+#: books.html:28
+#, python-format
+msgid "Books %(username)s is reading"
+msgstr "Livres que %(username) lit"
+
+#: books.html:29
+#, python-format
+msgid ""
+"%(username)s is reading %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world what you're reading."
+msgstr ""
+"%(username)s veut lire %(total)d livres. Rejoignez %(username)s "
+"surOpenLibrary.org et partagez les livres que vous allez bientôt lire!"
+
+#: books.html:31
+#, python-format
+msgid "Books %(username)s wants to read"
+msgstr "Livres que %(username)s veut lire"
+
+#: books.html:32
+#, python-format
+msgid ""
+"%(username)s wants to read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and share the books that you'll soon be reading!"
+msgstr ""
+"%(username)s veut lire %(total)d livres. Rejoignez %(username)s "
+"surOpenLibrary.org et partagez les livres que vous allez bientôt lire!"
+
+#: books.html:34
+#, python-format
+msgid "Books %(username)s has read"
+msgstr "Livres que %(username)s a lu"
+
+#: books.html:35
+#, python-format
+msgid ""
+"%(username)s has read %(total)d books. Join %(username)s on "
+"OpenLibrary.org and tell the world about the books that you care about."
+msgstr ""
+"%(username)s a lu %(total)d livres. Rejoignez %(username)s "
+"surOpenLibrary.org et parlez au monde des livres qui vous intéressent."
+
+#: books.html:37
+#, python-format
+msgid "Books %(userdisplayname)s is sponsoring"
+msgstr ""
+
+#: books.html:62
+msgid "Your reading log is currently set to public"
+msgstr "Votre journal de lecture est publique"
+
+#: books.html:65
+msgid "Your reading log is currently set to private"
+msgstr "Votre journal de lecture est privé"
+
+#: books.html:67
+msgid "Manage your privacy settings"
+msgstr "Vos paramètres de confidentialité"
+
+#: books.html:74
+#, python-format
+msgid "Currently Reading (%(count)d)"
+msgstr "En train de lire (%(count)d)"
+
+#: books.html:75
+#, python-format
+msgid "Want to Read (%(count)d)"
+msgstr "Veux lire (%(count)d)"
+
+#: books.html:76
+#, python-format
+msgid "Already Read (%(count)d)"
+msgstr "Déjà lu (%(count)d)"
+
+#: books.html:81
+msgid "Sponsorships"
+msgstr ""
+
+#: books.html:113
+msgid "No books are on this shelf"
+msgstr "Aucun livre n'est sur cette étagèr"
 
 #: borrow.html:7 borrow.html:72
 msgid "Books You've Checked Out"
@@ -2249,7 +2188,8 @@ msgstr "Ce document a été modifié pour la dernière fois par"
 msgid "This doc was last edited anonymously"
 msgstr "Ce document a été modifié pour la dernière fois anonymement"
 
-#: history.html:20 openlibrary/macros/databarView.html:27
+#: history.html:20 openlibrary/macros/databarView.html:28
+#: openlibrary/macros/databarView.html:30
 msgid "History"
 msgstr "Historique"
 
@@ -2260,7 +2200,7 @@ msgstr "%s créé"
 
 #: history.html:31
 #, python-format
-msgid " 1 revision"
+msgid "1 revision"
 msgid_plural "%(count)d revisions"
 msgstr[0] "1 révision"
 msgstr[1] "%(count)d révisions"
@@ -2560,10 +2500,6 @@ msgstr "Plus de genres"
 msgid "Reading Lists"
 msgstr "Listes de lecture"
 
-#: nav_head.html:84 nav_head.html:85
-msgid "My Books"
-msgstr "Mes livres"
-
 #: nav_head.html:88 nav_head.html:126
 msgid "My Loans"
 msgstr "Mes emprunts"
@@ -2730,6 +2666,13 @@ msgstr "Listes actives"
 #, python-format
 msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
 msgstr "%(listname)s </a> de <a href=\"$owner.key\">%(owner)s</a>"
+
+#: home.html:46 preview.html:23
+#, python-format
+msgid "1 seed"
+msgid_plural "%(count)d seeds"
+msgstr[0] "1 article"
+msgstr[1] "%(count)d article"
 
 #: home.html:48 preview.html:27 snippet.html:20
 #, python-format
@@ -3431,10 +3374,6 @@ msgstr "Modifié par <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>
 msgid "Last edited anonymously"
 msgstr "Modifié anonymement"
 
-#: openlibrary/macros/databarView.html:27
-msgid "View this template's edit history"
-msgstr ""
-
 #: openlibrary/macros/databarWork.html:51
 msgid "Really return this book?"
 msgstr "Vraiment rendre ce livre?"
@@ -3500,6 +3439,10 @@ msgstr[1] "%(count)d éditions"
 msgid "- first published in %(year)s"
 msgstr "- première publication en %(year)s"
 
+#: openlibrary/macros/SearchResultsWork.html:60
+msgid "Download DAISY"
+msgstr "Télécharger DAISY"
+
 #: openlibrary/macros/SocialShare.html:11
 msgid "Share this book"
 msgstr "Partager ce livre?"
@@ -3507,6 +3450,41 @@ msgstr "Partager ce livre?"
 #: openlibrary/macros/SocialShare.html:22
 msgid "Embed this book in your website"
 msgstr "Intégrez ce livre dans votre site Web"
+
+#: openlibrary/macros/TypeChanger.html:17
+msgid "Page Type"
+msgstr "Type de page"
+
+#: openlibrary/macros/TypeChanger.html:19
+msgid "Huh?"
+msgstr "Hein?"
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid ""
+"Every piece of Open Library is defined by the type of content it "
+"displays, usually by content definition (e.g. Authors, Editions, Works) "
+"but sometimes by content use (e.g. macro, template, rawtext). Changing "
+"this for an existing page will alter its presentation and the data fields"
+" available for editing its content."
+msgstr ""
+"Chaque élément d'Open Library est défini par le type de contenu "
+"qu'ilaffiche, généralement par définition de contenu (par exemple, "
+"auteurs, éditions, œuvres)mais parfois par utilisation de contenu (par "
+"exemple, macro, modèle, texte brut). Modificationceci pour une page "
+"existante modifiera sa présentation et les champs de donnéesdisponible "
+"pour éditer son contenu."
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid "Please use caution changing Page Type!"
+msgstr "Veuillez faire attention en changeant le type de page!"
+
+#: openlibrary/macros/TypeChanger.html:22
+msgid ""
+"(Simplest solution: If you aren't sure whether this should be changed, "
+"don't change it.)"
+msgstr ""
+"(Solution la plus simple: si vous ne savez pas si cela doit être "
+"modifié,ne le change pas.)"
 
 #: openlibrary/macros/WorldcatLink.html:10
 msgid "Check nearby libraries"
@@ -3519,6 +3497,9 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 # ##########################################################################
 # # Everything below this line is believed to be obsolete and can be deleted
 # # if it's not useful as source material for above.
+#~ msgid "Choose a New Password"
+#~ msgstr "Choisissez un nouveau mot de passe"
+
 #~ msgid "Email already used"
 #~ msgstr "Adresse de courriel déjà utilisée"
 
@@ -3594,9 +3575,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Last modified by"
 #~ msgstr "Dernière modification par"
 
-#~ msgid "Last modified anonymously"
-#~ msgstr "Dernière modification anonyme"
-
 #~ msgid "Your Account"
 #~ msgstr "Votre compte"
 
@@ -3663,12 +3641,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "href=\"/account/password/forgot\">oublié votre mot "
 #~ "de passe</a>?"
 
-#~ msgid "Not Found"
-#~ msgstr "Introuvable"
-
-#~ msgid "%s does not exist"
-#~ msgstr "%s n'existe pas"
-
 #~ msgid "Create it"
 #~ msgstr "Le créer"
 
@@ -3686,9 +3658,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "href=\"http://blog.openlibrary.org/\">visiter notre "
 #~ "blog</a> pour plus d'information sur "
 #~ "l'état du site."
-
-#~ msgid "Permission Denied"
-#~ msgstr "Permission refusée"
 
 #~ msgid ""
 #~ "You may <a "
@@ -4103,15 +4072,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "enfreignant un droit d'auteur seront "
 #~ "supprimés."
 
-#~ msgid "Read all"
-#~ msgstr "Tout lire"
-
-#~ msgid "An anonymous user"
-#~ msgstr "Un utilisateur anonyme"
-
-#~ msgid "Edited without comment"
-#~ msgstr "Modifié sans commentaire"
-
 #~ msgid "Page initiated"
 #~ msgstr "Page crée"
 
@@ -4196,9 +4156,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Go back where I came from"
 #~ msgstr "Revenir d'où je viens"
 
-#~ msgid "By"
-#~ msgstr "Par"
-
 #~ msgid "By <em>unknown author</em>"
 #~ msgstr "Par <em>auteur inconnu</em>"
 
@@ -4221,9 +4178,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgstr ""
 #~ "Autres œuvres par l'auteur non "
 #~ "disponibles par les enregistrements d'édition"
-
-#~ msgid "More by"
-#~ msgstr "Plus par"
 
 #~ msgid "More by this author"
 #~ msgstr "Plus par cet auteur"
@@ -4258,21 +4212,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "This appears in the gray area beneath the splash image."
 #~ msgstr "Cela apparaît dans la zone grise en dessous de l'image d'aperçu."
 
-#~ msgid "Column 1"
-#~ msgstr "Colonne 1"
-
-#~ msgid "This content occupies the first column."
-#~ msgstr "Ce contenu occupe la première collone."
-
-#~ msgid "Column 2"
-#~ msgstr "Colonne 2"
-
-#~ msgid "This content occupies the second column."
-#~ msgstr "Ce contenu occupe la deuxième colonne."
-
-#~ msgid "Column 3"
-#~ msgstr "Colonne 3"
-
 #~ msgid ""
 #~ "...And the third column. (The fourth "
 #~ "column is reserved for site stats.)"
@@ -4293,17 +4232,11 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Currently Editing:"
 #~ msgstr "Modification de:"
 
-#~ msgid "Description"
-#~ msgstr "Description"
-
 #~ msgid "%s has been tending to"
 #~ msgstr "%s a entretenu"
 
 #~ msgid "First published in"
 #~ msgstr "Première publication dans"
-
-#~ msgid "Add another"
-#~ msgstr "Ajouter un autre"
 
 #~ msgid "Versions we know about"
 #~ msgstr "Version que nous connaissons"
@@ -4322,18 +4255,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Add another edition of this book"
 #~ msgstr "Ajouter une autre éditon de ce livre"
-
-#~ msgid "Excerpts"
-#~ msgstr "Extraits"
-
-#~ msgid "Page"
-#~ msgstr "Page"
-
-#~ msgid "added by"
-#~ msgstr "ajouté par"
-
-#~ msgid "added anonymously"
-#~ msgstr "ajouté anonymement"
 
 #~ msgid "Please type in the text or number(s) below."
 #~ msgstr "Recopiez le texte ou les chiffres ci-dessous."
@@ -4404,10 +4325,10 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ " available in ePub, DAISY, PDF, TXT"
 #~ " formats from main book page"
 #~ msgstr ""
-#~ "Ouvrir dans le lecteur en ligne. "
-#~ "Les téléchargements sont possibles au "
-#~ "format ePub, DAISY, PDF et TXT "
-#~ "depuis la page principale du livre"
+#~ "Ouvrir dans Book Reader en ligne. "
+#~ "Téléchargements disponibles en ePub, DAISY,"
+#~ " PDF, TXT formats de la page "
+#~ "principale du livre"
 
 #~ msgid "Search Results"
 #~ msgstr "Résultats de recherche"
@@ -4432,3 +4353,103 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
+
+#~ msgid "Edit List"
+#~ msgstr "Modifier la liste"
+
+#~ msgid "Label"
+#~ msgstr "Étiquette"
+
+#~ msgid "by %(name)s"
+#~ msgstr " par %(name)s"
+
+#~ msgid "Subscribe"
+#~ msgstr "Souscrire"
+
+#~ msgid "Export Not Available"
+#~ msgstr "Exportation non disponible"
+
+#~ msgid "Only lists with up to %s editions can be exported. This one has %s."
+#~ msgstr "Only lists with up to %s editions can be exported. This one has %s"
+
+#~ msgid ""
+#~ "Try removing some seeds for more "
+#~ "focus, or look at <a href=\"%s\">bulk"
+#~ " download</a> of the catalog."
+#~ msgstr ""
+
+#~ msgid "%(name)s | Lists | Open Library"
+#~ msgstr "%(name)s | Listes | Open Library"
+
+#~ msgid "Yes, I'm sure"
+#~ msgstr "Oui, je suis sûr"
+
+#~ msgid "No, cancel"
+#~ msgstr "Non, annuler"
+
+#~ msgid "Remove seed"
+#~ msgstr "Supprimer cette article"
+
+#~ msgid "Are you sure you want to remove this item from the list?"
+#~ msgstr "Êtes-vous sûr de vouloir supprimer cette article de la liste?"
+
+#~ msgid "Remove Seed"
+#~ msgstr "Supprimer cette article"
+
+#~ msgid ""
+#~ "You are about the remove the last"
+#~ " item in the list. That will "
+#~ "delete the whole list. Are you "
+#~ "sure you want to continue?"
+#~ msgstr ""
+#~ "Vous êtes sur le point de "
+#~ "supprimer le dernier élément de la "
+#~ "liste. Cela supprimera letoute la liste."
+#~ " Êtes-vous sûr de vouloir continuer?"
+
+#~ msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
+#~ msgid_plural ""
+#~ "- <a href=\"$seed.document.works[0].url()\">%(count)s "
+#~ "editions</a> in catalog"
+#~ msgstr[0] "- <a href=\"$seed.document.works[0].url()\">1 édition</a> en catalogue"
+#~ msgstr[1] ""
+#~ "- <a href=\"$seed.document.works[0].url()\">%(count)s "
+#~ "éditions</a> en catalogue"
+
+#~ msgid "Protected DAISY"
+#~ msgstr "DAISY protégé"
+
+#~ msgid "Last updated"
+#~ msgstr "Dernier modification"
+
+#~ msgid "Remove this item?"
+#~ msgstr "Supprimer cette article?"
+
+#~ msgid "List Meta"
+#~ msgstr "Métadonnées de liste"
+
+#~ msgid "Derived from seed metadata"
+#~ msgstr "Dérivé de métadonnées de l'article"
+
+#~ msgid ""
+#~ "This user has chosen to publicly "
+#~ "share the books they are <a "
+#~ "href=\"$(page.key)/books/currently-reading\">currently "
+#~ "reading</a>, <a href=\"$(page.key)/books/already-"
+#~ "read\">have already read</a>, and <a "
+#~ "href=\"$(page.key)/books/want-to-read\">want to "
+#~ "read</a>!"
+#~ msgstr ""
+#~ "Cet utilisateur a choisi de partager "
+#~ "publiquement les livres qu'il est "
+#~ "<ahref=\"$(page.key)/books/currently\"> en cours de"
+#~ " lecture </a>, <ahref=\"$(page.key)/books/already-"
+#~ "read\"> ont déjà lu </a>, et "
+#~ "<ahref=\"$(page.key)/books/want-to-read\"> voulez"
+#~ " lire </a>!"
+
+#~ msgid "No edits. Yet."
+#~ msgstr "Pas encore des modifications."
+
+#~ msgid "View this template's edit history"
+#~ msgstr ""
