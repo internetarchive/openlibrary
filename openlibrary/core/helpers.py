@@ -1,8 +1,9 @@
 """Generic helper functions to use in the templates and the webapp.
 """
 import web
+from datetime import datetime
 import simplejson
-import string
+
 import re
 
 from six.moves.urllib.parse import urlsplit
@@ -116,17 +117,17 @@ def safesort(iterable, key=None, reverse=False):
 
 def datestr(then, now=None, lang=None, relative=True):
     """Internationalized version of web.datestr."""
-    if not relative:
-        result = then.strftime("%b %d %Y")
-    else:
-        result = web.datestr(then, now)
-    if not result:
-        return result
-    elif result[0] in string.digits: # eg: 2 milliseconds ago
-        t, message = result.split(' ', 1)
-        return _("%d " + message) % int(t)
-    else:
-        return format_date(then, lang=lang)
+    lang = lang or web.ctx.get('lang') or "en"
+    if relative:
+        if now is None:
+            now = datetime.now()
+        delta = then - now
+        if abs(delta.days) < 4: # Threshold from web.py
+            return babel.dates.format_timedelta(delta,
+                                                add_direction=True,
+                                                locale=_get_babel_locale(lang))
+    return format_date(then, lang=lang)
+
 
 def datetimestr_utc(then):
     return then.strftime("%Y-%m-%dT%H:%M:%SZ")
