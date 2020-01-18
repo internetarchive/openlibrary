@@ -13,17 +13,7 @@ function init() {
 function placeholder(fnName) {
     return function () {
         const $this = $(this);
-        // only if the selector matches load the additional code and wire it up.
-        if ($this.length) {
-            init().then(() => {
-                if (fnName === 'colorbox') {
-                    // set option to open immediately since loading was delayed.
-                    arguments[0].open = true;
-                }
-                // apply it for real now this function has been replaced
-                $this[fnName].apply(this, arguments);
-            });
-        }
+        init().then(() => $.fn[fnName].apply($this || this, arguments));
         return $this;
     };
 }
@@ -36,7 +26,7 @@ function placeholder(fnName) {
  * @param {jQuery} $
  */
 export default function initJQueryUI($) {
-    Object.assign($.fn, {
+    $.fn.extend({
         tabs: placeholder('tabs'),
         colorbox: placeholder('colorbox'),
         dialog: placeholder('dialog'),
