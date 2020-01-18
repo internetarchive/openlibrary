@@ -42,6 +42,7 @@ def main(cmd):
             'publishers',
             'recentchanges',
             'search',  # main search interface
+            'site',
             'account.html',
             'diff.html',
             'history.html',

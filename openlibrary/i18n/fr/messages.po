@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-18 13:45-0500\n"
-"PO-Revision-Date: 2020-01-18 13:47-0500\n"
+"POT-Creation-Date: 2020-01-18 14:34-0500\n"
+"PO-Revision-Date: 2020-01-18 14:40-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
@@ -2120,7 +2120,7 @@ msgstr "Romans policiers"
 msgid "Textbooks"
 msgstr "Manuels scolaires"
 
-#: stats.html:9
+#: around_the_library.html:52 stats.html:9
 msgid "Around the Library"
 msgstr "Autours de la bibliothèque"
 
@@ -2933,7 +2933,7 @@ msgstr "Plus ancien"
 msgid "Newer"
 msgstr "Plus récent"
 
-#: default/message.html:29 edit-book/message.html:29
+#: around_the_library.html:45 default/message.html:29 edit-book/message.html:29
 msgid "opened a new Open Library account!"
 msgstr "nouveau compte Open Library ouvert!"
 
@@ -3034,6 +3034,19 @@ msgid "1 hit"
 msgid_plural "%(count)s hits"
 msgstr[0] "1 résultat"
 msgstr[1] "%(count)s résultats"
+
+#: around_the_library.html:52
+msgid "View all recent changes"
+msgstr "Voir tout changements récents"
+
+#: body.html:31
+msgid "<strong>Together</strong>, let's build an Open Library for the World."
+msgstr ""
+"<strong>Ensemble</strong>, construisons une bibliothèque ouverte pour le monde."
+
+#: neck.html:15
+msgid "Open Library"
+msgstr "Open Library"
 
 #: openlibrary/templates/account.html:16
 msgid "Change Password"

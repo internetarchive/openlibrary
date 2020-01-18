@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-18 13:45-0500\n"
+"POT-Creation-Date: 2020-01-18 14:34-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1979,7 +1979,7 @@ msgstr ""
 msgid "Textbooks"
 msgstr ""
 
-#: stats.html:9
+#: around_the_library.html:52 stats.html:9
 msgid "Around the Library"
 msgstr ""
 
@@ -2762,7 +2762,7 @@ msgstr ""
 msgid "Newer"
 msgstr ""
 
-#: default/message.html:29 edit-book/message.html:29
+#: around_the_library.html:45 default/message.html:29 edit-book/message.html:29
 msgid "opened a new Open Library account!"
 msgstr ""
 
@@ -2863,6 +2863,18 @@ msgid "1 hit"
 msgid_plural "%(count)s hits"
 msgstr[0] ""
 msgstr[1] ""
+
+#: around_the_library.html:52
+msgid "View all recent changes"
+msgstr ""
+
+#: body.html:31
+msgid "<strong>Together</strong>, let's build an Open Library for the World."
+msgstr ""
+
+#: neck.html:15
+msgid "Open Library"
+msgstr ""
 
 #: openlibrary/templates/account.html:16
 msgid "Change Password"
