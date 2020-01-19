@@ -7,7 +7,10 @@ import simplejson as json
 from openlibrary.catalog.load import add_keys
 from copy import deepcopy
 from openlibrary.catalog.merge.index import *
-from urllib import urlopen, urlencode
+
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
+
 
 path = '/1/edward/marc_index/'
 #dbm_fields = ('lccn', 'oclc', 'isbn', 'title')

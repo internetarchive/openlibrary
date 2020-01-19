@@ -1,8 +1,6 @@
 """Handlers for adding and editing books."""
 
 import web
-import urllib
-import urllib2
 import simplejson
 from collections import defaultdict
 from StringIO import StringIO
@@ -31,6 +29,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from . import spamcheck
 
 import six
+from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.book")

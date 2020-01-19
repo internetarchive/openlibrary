@@ -16,12 +16,12 @@ from collections import defaultdict
 from pprint import pformat
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.importer.db_read import get_mc
-import urllib2
 from openlibrary.api import OpenLibrary, Reference
 from lxml import etree
 from time import sleep, time
 
 import six
+from six.moves import urllib
 
 
 rc = read_rc()
@@ -122,7 +122,7 @@ def get_marc_src(e):
 def get_ia_work_title(ia):
     url = 'http://www.archive.org/download/' + ia + '/' + ia + '_marc.xml'
     try:
-        root = etree.parse(urllib2.urlopen(url)).getroot()
+        root = etree.parse(urllib.request.urlopen(url)).getroot()
     except KeyboardInterrupt:
         raise
     except:
@@ -155,7 +155,7 @@ def get_work_title(e):
             print('bad record source:', src)
             print('http://openlibrary.org' + e['key'])
             continue
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print(e['key'])
         if not data:

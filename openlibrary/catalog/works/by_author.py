@@ -12,9 +12,9 @@ from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 
 from catalog.utils.edit import fix_edition
-import urllib
 from olapi import OpenLibrary, Reference
 import olapi
+from six.moves import urllib
 
 import six
 
@@ -36,7 +36,7 @@ set_staging(True)
 
 def withKey(key):
     url = base_url + key + ".json"
-    return urllib.urlopen(url).read()
+    return urllib.request.urlopen(url).read()
 
 def find_new_work_key():
     global work_num

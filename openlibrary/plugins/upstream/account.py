@@ -2,7 +2,6 @@ import web
 import hmac
 import logging
 import random
-import urllib
 import uuid
 import datetime
 import time
@@ -34,6 +33,7 @@ import borrow
 
 
 from six.moves import range
+from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.account")

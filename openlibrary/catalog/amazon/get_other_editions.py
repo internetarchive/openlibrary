@@ -1,10 +1,12 @@
 from __future__ import print_function
 from catalog.read_rc import read_rc
 import web
-import urllib2
 import sys
 import os.path
 from time import time
+
+from six.moves import urllib
+
 
 rc = read_rc()
 web.config.db_parameters = dict(dbn='postgres', db=rc['db'], user=rc['user'], pw=rc['pw'], host=rc['host'])
@@ -24,8 +26,8 @@ for i, row in enumerate(isbn_iter):
         continue
     url = 'http://www.amazon.com/dp/other-editions/' + isbn
     try:
-        page = urllib2.urlopen(url).read()
-    except urllib2.HTTPError as error:
+        page = urllib.request.urlopen(url).read()
+    except urllib.error.HTTPError as error:
         if error.code != 404:
             raise
         page = ''

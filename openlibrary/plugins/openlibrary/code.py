@@ -8,7 +8,6 @@ import web
 import simplejson
 import os
 import sys
-import urllib
 import socket
 import random
 import datetime
@@ -666,13 +665,17 @@ def changequery(query=None, **kw):
     query = dict((k, (map(web.safestr, v) if isinstance(v, list) else web.safestr(v))) for k, v in query.items())
     out = web.ctx.get('readable_path', web.ctx.path)
     if query:
-        out += '?' + urllib.urlencode(query, doseq=True)
+        out += '?' + urllib.parse.urlencode(query, doseq=True)
     return out
 
 # Hack to limit recent changes offset.
 # Large offsets are blowing up the database.
 
 from infogami.core.db import get_recent_changes as _get_recentchanges
+
+from six.moves import urllib
+
+
 @public
 def get_recent_changes(*a, **kw):
     if 'offset' in kw and kw['offset'] > 5000:
@@ -693,7 +696,7 @@ def most_recent_change():
 
 def wget(url):
     try:
-        return urllib.urlopen(url).read()
+        return urllib.request.urlopen(url).read()
     except:
         return ""
 

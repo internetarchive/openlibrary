@@ -1,9 +1,11 @@
 from __future__ import print_function
-import urllib2
 import xml.etree.ElementTree as et
 from MARC21 import MARC21Record
 from MARC21Exn import MARC21Exn
 from time import sleep
+
+from six.moves import urllib
+
 
 archive_url = "http://archive.org/download/"
 
@@ -11,8 +13,8 @@ def urlopen_keep_trying(url):
     while True:
         print(url)
         try:
-            return urllib2.urlopen(url)
-        except urllib2.URLError:
+            return urllib.request.urlopen(url)
+        except urllib.error.URLError:
             pass
         sleep(5)
 
@@ -121,9 +123,9 @@ def check():
 #    pos = 303085246
     part = 'marc_records_scriblio_net/part10.dat'
     pos = 99557594
-#    ureq = urllib2.Request(archive_url + part, None, {'Range':'bytes=%d-%d'% (pos, pos+1000000000)} )
-#    f = urllib2.urlopen(ureq)
-    f = urllib2.urlopen(archive_url + part)
+#    ureq = urllib.request.Request(archive_url + part, None, {'Range':'bytes=%d-%d'% (pos, pos+1000000000)} )
+#    f = urllib.request.urlopen(ureq)
+    f = urllib.request.urlopen(archive_url + part)
 
     i = 0
     total = 0

@@ -1,10 +1,12 @@
 import os
 from types import *
-import urlparse
 from urlcache import URLCache
 import xml.sax
 from xml.sax.handler import *
 import sys
+
+from six.moves import urllib
+
 
 class CachingEntityResolver (EntityResolver):
 	def __init__ (self, parser, dir):
@@ -25,7 +27,7 @@ class CachingEntityResolver (EntityResolver):
 		return src
 
 	def resolveURL (self, sysid, base = ""):
-		url = urlparse.urljoin (base, sysid)
+		url = urllib.parse.urljoin (base, sysid)
 		source = xml.sax.xmlreader.InputSource (url)
 		f = self.cache.get (url)
 		source.setByteStream (f)

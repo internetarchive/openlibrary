@@ -1,7 +1,9 @@
 from __future__ import print_function
 import re
-from urllib2 import urlopen
 from os.path import exists
+
+from six.moves.urllib.request import urlopen
+
 
 # crawl catalogue.nla.gov.au
 

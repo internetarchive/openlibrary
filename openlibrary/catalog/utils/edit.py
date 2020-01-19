@@ -2,12 +2,12 @@ from __future__ import print_function
 import re
 import web
 import json
-import urllib2
 from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.api import unmarshal
 from time import sleep
 
 import six
+from six.moves import urllib
 
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
 re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
@@ -58,7 +58,7 @@ def undelete_author(a, ol):
     key = a['key']
     assert a['type'] == '/type/delete'
     url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
-    prev = unmarshal(json.load(urllib2.urlopen(url)))
+    prev = unmarshal(json.load(urllib.request.urlopen(url)))
     assert prev['type'] == '/type/author'
     ol.save(key, prev, 'undelete author')
 

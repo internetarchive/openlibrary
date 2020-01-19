@@ -19,13 +19,12 @@ __author__ = "Anand Chitipothu <anandology@gmail.com>"
 import os
 import re
 import datetime
-import urllib
-import urllib2
 import simplejson
 import web
 import logging
 
 import six
+from six.moves import urllib
 from six.moves.configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
@@ -51,10 +50,10 @@ class OpenLibrary:
             headers['Cookie'] = self.cookie
 
         try:
-            req = urllib2.Request(url, data, headers)
+            req = urllib.request.Request(url, data, headers)
             req.get_method = lambda: method
-            return urllib2.urlopen(req)
-        except urllib2.HTTPError as e:
+            return urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
@@ -98,7 +97,7 @@ class OpenLibrary:
         try:
             data = simplejson.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
@@ -122,7 +121,7 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
+        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": simplejson.dumps(keys)}))
         return simplejson.loads(response.read())['result']
 
     def save(self, key, data, comment=None):
@@ -194,12 +193,12 @@ class OpenLibrary:
             return unlimited_query(q)
         else:
             q = simplejson.dumps(q)
-            response = self._request("/query.json?" + urllib.urlencode(dict(query=q)))
+            response = self._request("/query.json?" + urllib.parse.urlencode(dict(query=q)))
             return unmarshal(simplejson.loads(response.read()))
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
-        return self._request('/api/import/ia', method='POST', data=urllib.urlencode(data)).read()
+        return self._request('/api/import/ia', method='POST', data=urllib.parse.urlencode(data)).read()
 
 
 def marshal(data):
