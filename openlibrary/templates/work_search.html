@@ -149,10 +149,10 @@ $ )
             $if q_param:
                 $title.append(q_param)
             $if 'has_fulltext' in param:
-                $title.append($_('eBook'))
+                $title.append(_('eBook'))
 
             $if 'public_scan_b' in param:
-                $title.append($_('Classic eBook'))
+                $title.append(_('Classic eBook'))
 
             $if any(header in param for header, label in facet_map):
                 <!-- facet_map: $:facet_map -->

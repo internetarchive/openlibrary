@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-18 18:45-0500\n"
+"POT-Creation-Date: 2020-01-18 19:44-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -275,26 +275,26 @@ msgstr[1] ""
 msgid "Add another?"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:108
-#: openlibrary/templates/work_search.html:110
-#: openlibrary/templates/work_search.html:112
-#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:113
+#: openlibrary/templates/work_search.html:115
+#: openlibrary/templates/work_search.html:117
+#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "Most Editions"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:108
-#: openlibrary/templates/work_search.html:110
-#: openlibrary/templates/work_search.html:112
-#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:113
+#: openlibrary/templates/work_search.html:115
+#: openlibrary/templates/work_search.html:117
+#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "First Published"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:108
-#: openlibrary/templates/work_search.html:110
-#: openlibrary/templates/work_search.html:112
-#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:113
+#: openlibrary/templates/work_search.html:115
+#: openlibrary/templates/work_search.html:117
+#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "Most Recent"
 msgstr ""
@@ -319,19 +319,19 @@ msgid ""
 msgstr ""
 
 #: nav_foot.html:26 openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:123 view.html:137 view.html:192
+#: openlibrary/templates/work_search.html:128 view.html:137 view.html:192
 #: view.html:277
 msgid "Subjects"
 msgstr ""
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:125 view.html:139 view.html:193
+#: openlibrary/templates/work_search.html:130 view.html:139 view.html:193
 #: view.html:279
 msgid "Places"
 msgstr ""
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:124 view.html:138 view.html:194
+#: openlibrary/templates/work_search.html:129 view.html:138 view.html:194
 #: view.html:278
 msgid "People"
 msgstr ""
@@ -418,7 +418,7 @@ msgid "Written in %(lang)s"
 msgstr ""
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:126 view.html:140 view.html:280
+#: openlibrary/templates/work_search.html:131 view.html:140 view.html:280
 msgid "Times"
 msgstr ""
 
@@ -1240,8 +1240,8 @@ msgid ""
 msgstr ""
 
 #: add.html:34 advancedsearch.html:21 edit.html:98 nav_head.html:45
-#: openlibrary/templates/work_search.html:122
-#: openlibrary/templates/work_search.html:202 search_foot.html:9
+#: openlibrary/templates/work_search.html:127
+#: openlibrary/templates/work_search.html:207 search_foot.html:9
 #: search_head.html:9
 msgid "Author"
 msgstr ""
@@ -2307,7 +2307,7 @@ msgstr ""
 
 #: authors.html:48 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
 #: notfound.html:19 openlibrary/templates/subjects.html:27
-#: openlibrary/templates/work_search.html:139 publishers.html:19
+#: openlibrary/templates/work_search.html:144 publishers.html:19
 #: search_head.html:24 subjects.html:34 view.html:176
 msgid "Search"
 msgstr ""
@@ -2369,11 +2369,12 @@ msgstr ""
 msgid "Log out"
 msgstr ""
 
-#: pagination.html:22
+#: openlibrary/macros/Pager.html:27 pagination.html:22
 msgid "Previous"
 msgstr ""
 
-#: openlibrary/templates/history.html:90 pagination.html:37
+#: openlibrary/macros/Pager.html:34 openlibrary/templates/history.html:90
+#: pagination.html:37
 msgid "Next"
 msgstr ""
 
@@ -2385,12 +2386,12 @@ msgstr ""
 msgid "Person"
 msgstr ""
 
-#: advancedsearch.html:41 openlibrary/templates/work_search.html:128
+#: advancedsearch.html:41 openlibrary/templates/work_search.html:133
 #: search_foot.html:14 search_head.html:14
 msgid "Publisher"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:129 search_foot.html:29
+#: openlibrary/templates/work_search.html:134 search_foot.html:29
 msgid "Language"
 msgstr ""
 
@@ -2802,8 +2803,8 @@ msgstr ""
 msgid "Author Search"
 msgstr ""
 
-#: authors.html:37 openlibrary/templates/work_search.html:103
-#: openlibrary/templates/work_search.html:229 subjects.html:27
+#: authors.html:37 openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:234 subjects.html:27
 #, python-format
 msgid "1 hit"
 msgid_plural "%(count)s hits"
@@ -3063,98 +3064,98 @@ msgstr ""
 msgid "who have written the most books on this subject"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:106
+#: openlibrary/templates/work_search.html:111
 msgid "Sorting by"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:108
-#: openlibrary/templates/work_search.html:110
-#: openlibrary/templates/work_search.html:112
-#: openlibrary/templates/work_search.html:114
+#: openlibrary/templates/work_search.html:113
+#: openlibrary/templates/work_search.html:115
+#: openlibrary/templates/work_search.html:117
+#: openlibrary/templates/work_search.html:119
 msgid "Relevance"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:121
+#: openlibrary/templates/work_search.html:126
 msgid "eBook?"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:127
+#: openlibrary/templates/work_search.html:132
 msgid "First published"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:130
+#: openlibrary/templates/work_search.html:135
 msgid "Classic eBooks"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:142
+#: openlibrary/templates/work_search.html:147
 msgid "Everything"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:144
+#: openlibrary/templates/work_search.html:149
 msgid "Ebooks"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:146
+#: openlibrary/templates/work_search.html:151
 msgid "Print Disabled"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:162
+#: openlibrary/templates/work_search.html:167
 msgid "eBook"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:165
+#: openlibrary/templates/work_search.html:170
 msgid "Classic eBook"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:184
+#: openlibrary/templates/work_search.html:189
 msgid "Explore Classic eBooks"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:184
+#: openlibrary/templates/work_search.html:189
 msgid "Only Classic eBooks"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:196
+#: openlibrary/templates/work_search.html:201
 msgid "First published in"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:198
+#: openlibrary/templates/work_search.html:203
 msgid "Written in"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:200
+#: openlibrary/templates/work_search.html:205
 msgid "Published by"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:203
+#: openlibrary/templates/work_search.html:208
 msgid "Click to remove this facet"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:217
+#: openlibrary/templates/work_search.html:222
 msgid "No results found."
 msgstr ""
 
-#: openlibrary/templates/work_search.html:220
+#: openlibrary/templates/work_search.html:225
 msgid "Showing books with similar text to:"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:258
+#: openlibrary/templates/work_search.html:263
 msgid "Zoom In"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:259
+#: openlibrary/templates/work_search.html:264
 msgid "Focus your results using these"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:259
+#: openlibrary/templates/work_search.html:264
 msgid "filters"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:287
+#: openlibrary/templates/work_search.html:292
 msgid "more"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:287
+#: openlibrary/templates/work_search.html:292
 msgid "less"
 msgstr ""
 

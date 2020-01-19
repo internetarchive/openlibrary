@@ -27,5 +27,5 @@ $if pages != 1:
         $else:
             <a href="$changequery(page=p)" class="ChoosePage">$p</a>
     $if page < pages:
-        <a href="$changequery(page=page+1)" class="ChoosePage">Next&nbsp;&gt;</a>
+        <a href="$changequery(page=page+1)" class="ChoosePage">$_('Next')&nbsp;&gt;</a>
     </div>

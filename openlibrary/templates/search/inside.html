@@ -26,7 +26,7 @@ $var title: Search Open Library for $q
             <p class="sansserif red collapse">$_('No hits for: %(query)s', query=escaped_query()) </p>
 
         $else:
-            <p class="search-results-stats">$ungettext('About 1 result found in %(seconds)s', 'About %(count)s results found in %(seconds)s', num_found, count=commify(num_found), seconds="%.2f" % search_time))</p>
+            <p class="search-results-stats">$ungettext('About 1 result found in %(seconds)s', 'About %(count)s results found in %(seconds)s', num_found, count=commify(num_found), seconds="%.2f" % search_time)</p>
 
         $:macros.FulltextResults(q, results, page=page)
 </div>
