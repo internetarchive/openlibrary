@@ -19,7 +19,6 @@ __author__ = "Anand Chitipothu <anandology@gmail.com>"
 import os
 import re
 import datetime
-from ConfigParser import ConfigParser
 import urllib
 import urllib2
 import simplejson
@@ -27,6 +26,7 @@ import web
 import logging
 
 import six
+from six.moves.configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
 
@@ -61,7 +61,7 @@ class OpenLibrary:
         """Login to Open Library with credentials taken from ~/.olrc file.
 
         The ~/.olrc file must be in ini format (format readable by
-        ConfigParser module) and there should be a section with the
+        configparser module) and there should be a section with the
         server name. A sample configuration file may look like this::
 
             [openlibrary.org]
