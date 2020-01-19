@@ -60,7 +60,7 @@ class OpenLibrary:
         """Login to Open Library with credentials taken from ~/.olrc file.
 
         The ~/.olrc file must be in ini format (format readable by
-        ConfigParser module) and there should be a section with the
+        configparser module) and there should be a section with the
         server name. A sample configuration file may look like this::
 
             [openlibrary.org]

@@ -4,7 +4,7 @@ from __future__ import print_function
 import os
 import simplejson
 import glob
-import ConfigParser
+from six.moves.configparser import ConfigParser
 
 import olapi
 import subcommand
@@ -83,7 +83,7 @@ def olget(server, key):
     return thing2data(d)
 
 def get_ol(server):
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     config.read(os.path.expanduser('~/.olrc'))
 
     ol = olapi.OpenLibrary(server)
