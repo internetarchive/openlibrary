@@ -3,7 +3,6 @@
 import web
 from datetime import datetime
 import simplejson
-
 import re
 
 from six.moves.urllib.parse import urlsplit

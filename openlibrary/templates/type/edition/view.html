@@ -238,7 +238,7 @@ $if ctx.user and ctx.user.is_admin():
                         <span class="adjust">.</span>
                     $if page.languages:
                         $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
-                        <br/>$:_('Written in %(lang)s')
+                        <br/>$:_('Written in %(lang)s', lang=lang_span())
               </h4>
 
           $if work:

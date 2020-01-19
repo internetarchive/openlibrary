@@ -39,6 +39,7 @@ def main(cmd):
             'home',    # main site pages, review
             'lib',     # needs review
             'lists',
+            'merge',
             'publishers',
             'recentchanges',
             'search',  # main search interface

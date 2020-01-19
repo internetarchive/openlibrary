@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-18 19:44-0500\n"
-"PO-Revision-Date: 2020-01-18 19:46-0500\n"
+"POT-Creation-Date: 2020-01-18 21:07-0500\n"
+"PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
 "Language-Team: fr <traduc@traduc.org>\n"
@@ -208,9 +208,9 @@ msgstr "Cet auteur est-il connu sous d'autres noms?"
 #: edit.html:91 edit/about.html:21 edit/about.html:35 edit/about.html:49
 #: edit/about.html:63 edit/addfield.html:77 edit/addfield.html:104
 #: edit/addfield.html:113 edit/addfield.html:149 edit/edition.html:151
-#: edit/edition.html:172 edit/edition.html:221 edit/edition.html:253
-#: edit/edition.html:264 edit/edition.html:284 edit/edition.html:359
-#: edit/edition.html:610 edit/excerpts.html:19 edit/web.html:23
+#: edit/edition.html:172 edit/edition.html:220 edit/edition.html:252
+#: edit/edition.html:263 edit/edition.html:283 edit/edition.html:358
+#: edit/edition.html:609 edit/excerpts.html:19 edit/web.html:23
 msgid "For example:"
 msgstr "Par exemple:"
 
@@ -282,10 +282,10 @@ msgstr "Site web"
 msgid "Location"
 msgstr "Emplacement"
 
-#: openlibrary/templates/subjects.html:19 view.html:136
+#: authors.html:117 openlibrary/templates/subjects.html:19 view.html:136
 #, python-format
 msgid "1 work"
-msgid_plural "%(count)s works"
+msgid_plural "%(count)d works"
 msgstr[0] "1 œuvre"
 msgstr[1] "%(count)s œuvres"
 
@@ -293,26 +293,26 @@ msgstr[1] "%(count)s œuvres"
 msgid "Add another?"
 msgstr "Ajouter un autre œuvre?"
 
-#: openlibrary/templates/work_search.html:113
-#: openlibrary/templates/work_search.html:115
-#: openlibrary/templates/work_search.html:117
-#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "Most Editions"
 msgstr "Le plus d'éditions"
 
-#: openlibrary/templates/work_search.html:113
-#: openlibrary/templates/work_search.html:115
-#: openlibrary/templates/work_search.html:117
-#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "First Published"
 msgstr "Publication la plus ancienne"
 
-#: openlibrary/templates/work_search.html:113
-#: openlibrary/templates/work_search.html:115
-#: openlibrary/templates/work_search.html:117
-#: openlibrary/templates/work_search.html:119 view.html:143 view.html:145
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114 view.html:143 view.html:145
 #: view.html:147 view.html:149
 msgid "Most Recent"
 msgstr "Le plus récent"
@@ -341,19 +341,19 @@ msgstr ""
 " </a> de cet auteur?"
 
 #: nav_foot.html:26 openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:128 view.html:137 view.html:192
+#: openlibrary/templates/work_search.html:123 view.html:137 view.html:192
 #: view.html:277
 msgid "Subjects"
 msgstr "Thèmes"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:130 view.html:139 view.html:193
+#: openlibrary/templates/work_search.html:125 view.html:139 view.html:193
 #: view.html:279
 msgid "Places"
 msgstr "Lieux"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:129 view.html:138 view.html:194
+#: openlibrary/templates/work_search.html:124 view.html:138 view.html:194
 #: view.html:278
 msgid "People"
 msgstr "Personnes"
@@ -405,7 +405,7 @@ msgstr "Ajouter un autre édition de "
 msgid "Add another edition"
 msgstr "Ajouter un autre édition"
 
-#: edit/edition.html:294 view.html:195
+#: edit/edition.html:293 view.html:195
 msgid "Contributors"
 msgstr "Contributeurs"
 
@@ -444,7 +444,7 @@ msgid "Written in %(lang)s"
 msgstr "Écrit en %(lang)s"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:131 view.html:140 view.html:280
+#: openlibrary/templates/work_search.html:126 view.html:140 view.html:280
 msgid "Times"
 msgstr "Dates"
 
@@ -505,11 +505,11 @@ msgstr "Traduction de"
 msgid "Translated From"
 msgstr "Traduit de"
 
-#: edit/edition.html:523 view.html:178 view.html:338
+#: edit/edition.html:522 view.html:178 view.html:338
 msgid "Classifications"
 msgstr "Classifications"
 
-#: edit/edition.html:580 view.html:348
+#: edit/edition.html:579 view.html:348
 msgid "The Physical Object"
 msgstr "L'objet physique"
 
@@ -525,7 +525,7 @@ msgstr "Pagination"
 msgid "Number of pages"
 msgstr "Nombre de pages"
 
-#: edit/edition.html:631 view.html:352
+#: edit/edition.html:630 view.html:352
 msgid "Dimensions"
 msgstr "Dimensions"
 
@@ -533,7 +533,7 @@ msgstr "Dimensions"
 msgid "Weight"
 msgstr "Poids"
 
-#: edit/edition.html:449 view.html:359
+#: edit/edition.html:448 view.html:359
 msgid "ID Numbers"
 msgstr "Identifiants"
 
@@ -620,7 +620,7 @@ msgstr "Première publication en %(year)s"
 msgid "Add another"
 msgstr "Ajouter une autre"
 
-#: check.html:33 editions_datatable.html:8
+#: authors.html:110 check.html:33 editions_datatable.html:8
 #: openlibrary/macros/SearchResultsWork.html:42 preview.html:24 view.html:28
 #: view.html:71
 #, python-format
@@ -1130,9 +1130,9 @@ msgstr ""
 "termes d'utilisation dans une autre fenêtre.'>termes d'utilisation</a> "
 "d'Internet Archive."
 
-#: add.html:84 add.html:136 create.html:102 edit/addfield.html:87
-#: edit/addfield.html:133 edit/addfield.html:177 manage.html:65
-#: notifications.html:59 openlibrary/macros/EditButtons.html:23
+#: add.html:84 add.html:136 authors.html:125 create.html:102
+#: edit/addfield.html:87 edit/addfield.html:133 edit/addfield.html:177
+#: manage.html:65 notifications.html:59 openlibrary/macros/EditButtons.html:23
 #: password/reset.html:24 privacy.html:56 widget.html:304
 msgid "Cancel"
 msgstr "Annuler"
@@ -1202,7 +1202,7 @@ msgstr "Paramètres de confidentialité"
 msgid "Yes"
 msgstr "Oui"
 
-#: edit/edition.html:400 privacy.html:46
+#: edit/edition.html:399 privacy.html:46
 msgid "No"
 msgstr "Non"
 
@@ -1340,8 +1340,8 @@ msgstr ""
 "enregistrement."
 
 #: add.html:34 advancedsearch.html:21 edit.html:98 nav_head.html:45
-#: openlibrary/templates/work_search.html:127
-#: openlibrary/templates/work_search.html:207 search_foot.html:9
+#: openlibrary/templates/work_search.html:122
+#: openlibrary/templates/work_search.html:202 search_foot.html:9
 #: search_head.html:9
 msgid "Author"
 msgstr "Auteur"
@@ -1391,8 +1391,8 @@ msgid "Add this book now"
 msgstr "Ajouter ce livre maintenant"
 
 #: add.html:82 edit/addfield.html:85 edit/addfield.html:131
-#: edit/addfield.html:175 edit/edition.html:320 edit/edition.html:484
-#: edit/edition.html:550 edit/excerpts.html:50
+#: edit/addfield.html:175 edit/edition.html:319 edit/edition.html:483
+#: edit/edition.html:549 edit/excerpts.html:50
 msgid "Add"
 msgstr "Ajouter"
 
@@ -1487,6 +1487,16 @@ msgid "Use <b><i>Title: Subtitle</i></b> to add a subtitle."
 msgstr ""
 "Utilisez le format <b><i>Titre: Sous-titre</i></b> pour ajouter un sous-"
 "titre."
+
+#: edit.html:99
+msgid ""
+"You can search by author name (like <em>j k rowling</em>) or by Open "
+"Library ID (like <a href=\"/authors/OL23919A\" "
+"target=\"_blank\"><em>OL23919A</em></a>)."
+msgstr ""
+"Vous pouvez effectuer une recherche par nom d'auteur (comme <em>j k "
+"rowling</em>) ou paridentifiant de Open Library (comme <a href=\" "
+"/auteurs/OL23919A\"target = \"_ blank\"> <em>OL23919A</em> </a>)."
 
 #: edit.html:108
 msgid "What's It About?"
@@ -1659,26 +1669,26 @@ msgstr ""
 "corriger cela ici."
 
 #: edit/edition.html:191
-msgid "You can search by title or by Open Library ID"
-msgstr "Vous pouvez chercher par titre ou identifiant Open Library"
+msgid "You can search by title or by Open Library ID (like"
+msgstr "Vous pouvez chercher par titre ou identifiant Open Library, (comme"
 
-#: edit/edition.html:195
+#: edit/edition.html:194
 msgid "WARNING: Any edits made to the work from this page will be ignored."
 msgstr "ATTENTION: Toute modification de l'œuvre depuis cette page sera ignorées."
 
-#: edit/edition.html:211
+#: edit/edition.html:210
 msgid "There are occasionally title variants amongst editions."
 msgstr "Il y a parfois des variations de titre entre les éditions."
 
-#: edit/edition.html:220
+#: edit/edition.html:219
 msgid "Subtitle"
 msgstr "Sous-titre"
 
-#: edit/edition.html:221
+#: edit/edition.html:220
 msgid "Usually distinguished by different or smaller type."
 msgstr "Habituellement distingué par une fonte différente ou plus petite."
 
-#: edit/edition.html:231
+#: edit/edition.html:230
 msgid ""
 "Use a \"*\" for an indent, a \"|\" to add a column, and line breaks for "
 "new lines. Like this:"
@@ -1686,193 +1696,193 @@ msgstr ""
 "Utilisez un «*» pour l'indentation, un «|» pour ajouter une colonne et un"
 " retour à la ligne pour une nouvelle ligne. Comme ceci:"
 
-#: edit/edition.html:248
+#: edit/edition.html:247
 msgid "Is it known by any other titles?"
 msgstr "Est-elle connue par d'autres titres?"
 
-#: edit/edition.html:249
+#: edit/edition.html:248
 msgid "Perhaps in another language?"
 msgstr "Peut-être dans une autre langue?"
 
-#: edit/edition.html:253
+#: edit/edition.html:252
 msgid "is an alternate title for"
 msgstr "est un autre titre de"
 
-#: edit/edition.html:263
+#: edit/edition.html:262
 msgid "Does this edition have a specific name?"
 msgstr "Cette édition a-t-elle un nom spécifique?"
 
-#: edit/edition.html:283
+#: edit/edition.html:282
 msgid "Any notes about this specific edition?"
 msgstr "Des notes sur cette édition spécifique?"
 
-#: edit/edition.html:284
+#: edit/edition.html:283
 msgid "Anything about the book that may be of interest."
 msgstr "Tout ce qui pourrait être intéressant à propos du livre."
 
-#: edit/edition.html:298
+#: edit/edition.html:297
 msgid "List the people involved"
 msgstr "Liste de personnes impliquées"
 
-#: edit/edition.html:308
+#: edit/edition.html:307
 msgid "Select role"
 msgstr "Choisissez un rôle"
 
-#: edit/edition.html:313
+#: edit/edition.html:312
 msgid "Add a new role"
 msgstr "Ajouter un nouveau rôle"
 
-#: edit/edition.html:333 edit/edition.html:349
+#: edit/edition.html:332 edit/edition.html:348
 msgid "Remove this contributor"
 msgstr "Supprimer ce contributeur"
 
-#: edit/edition.html:358
+#: edit/edition.html:357
 msgid "Is there a By Statement?"
 msgstr "Y a-t-il une déclaration «BY»?"
 
-#: edit/edition.html:374
+#: edit/edition.html:373
 msgid "What language is this edition written in?"
 msgstr "En quelle langue cette édition est-elle écrite?"
 
-#: edit/edition.html:386
+#: edit/edition.html:385
 msgid "Is it a translation of another book?"
 msgstr "Est-ce la traduction d'un autre livre?"
 
-#: edit/edition.html:404
+#: edit/edition.html:403
 msgid "Yes, it's a translation"
 msgstr "Oui, c'est une traduction"
 
-#: edit/edition.html:409
+#: edit/edition.html:408
 msgid "What's the original book?"
 msgstr "Quel est le livre d'origine?"
 
-#: edit/edition.html:418
+#: edit/edition.html:417
 msgid "What language was the original written in?"
 msgstr "En quelle langue l'original est-il écrit?"
 
-#: edit/edition.html:436
+#: edit/edition.html:435
 msgid "Description of this edition"
 msgstr "Description de cette édition"
 
-#: edit/edition.html:437
+#: edit/edition.html:436
 msgid "Only if it's different from the work's description"
 msgstr "Seulement si elle est différente de la description de l'œuvre"
 
-#: edit/edition.html:455
+#: edit/edition.html:454
 msgid "Do you know any identifiers for this edition?"
 msgstr "Connaissez-vous des identifiants de cette édition?"
 
-#: edit/edition.html:456
+#: edit/edition.html:455
 msgid "Like, ISBN?"
 msgstr "Comme, l'ISBN?"
 
-#: edit/edition.html:529
+#: edit/edition.html:528
 msgid "Do you know any classifications of this edition?"
 msgstr "Connaissez-vous des classifications de cette édition?"
 
-#: edit/edition.html:530
+#: edit/edition.html:529
 msgid "Like, Dewey Decimal?"
 msgstr "Comme la classification décimale de Dewey?"
 
-#: edit/edition.html:538
+#: edit/edition.html:537
 msgid "Select one of many..."
 msgstr "Choisissez-en un parmi…"
 
-#: edit/edition.html:543
+#: edit/edition.html:542
 msgid "Add a new classification type"
 msgstr "Ajouter un nouveau type de classification"
 
-#: edit/edition.html:560 edit/edition.html:569
+#: edit/edition.html:559 edit/edition.html:568
 msgid "Remove this classification"
 msgstr "Supprimer cette classification"
 
-#: edit/edition.html:586
+#: edit/edition.html:585
 msgid "What sort of book is it?"
 msgstr "Quelle sorte de livre est-ce?"
 
-#: edit/edition.html:587
+#: edit/edition.html:586
 msgid "Paperback; Hardcover, etc."
 msgstr ""
 "Paperback (broché, couverture pliable) ; Hardcover (relié, couverture "
 "rigide), etc."
 
-#: edit/edition.html:595
+#: edit/edition.html:594
 msgid "How many pages?"
 msgstr "Combien de pages?"
 
-#: edit/edition.html:605
+#: edit/edition.html:604
 msgid "Pagination?"
 msgstr "Pagination?"
 
-#: edit/edition.html:606
+#: edit/edition.html:605
 msgid "Note the highest number in each pagination pattern."
 msgstr "Notez le plus grand numéro de chaque modèle de pagination."
 
-#: edit/edition.html:606 nav_foot.html:42
+#: edit/edition.html:605 nav_foot.html:42
 msgid "Help"
 msgstr "Aide"
 
-#: edit/edition.html:616
+#: edit/edition.html:615
 msgid "How much does the book weigh?"
 msgstr "Combien pèse ce livre?"
 
-#: edit/edition.html:643
+#: edit/edition.html:642
 msgid "Height:"
 msgstr "Hauteur:"
 
-#: edit/edition.html:648
+#: edit/edition.html:647
 msgid "Width:"
 msgstr "Largeur:"
 
-#: edit/edition.html:653
+#: edit/edition.html:652
 msgid "Depth:"
 msgstr "Épaisseur:"
 
-#: edit/edition.html:668 edit/edition.html:682
+#: edit/edition.html:667 edit/edition.html:681
 msgid "Admin Only"
 msgstr "Administrateur uniquement"
 
-#: edit/edition.html:671
+#: edit/edition.html:670
 msgid "Additional Metadata"
 msgstr "Métadonnées supplémentaires"
 
-#: edit/edition.html:685
+#: edit/edition.html:684
 msgid "First sentence"
 msgstr "Première phrase"
 
-#: edit/edition.html:711
+#: edit/edition.html:710
 msgid "Please select a role."
 msgstr "Veuillez sélectionner un rôle."
 
-#: edit/edition.html:715
+#: edit/edition.html:714
 msgid "You need to give this ROLE a name."
 msgstr "Vous devez donner un nom à ce RÔLE."
 
-#: edit/edition.html:728
+#: edit/edition.html:727
 msgid "Please select an identifier."
 msgstr "Veuillez sélectionner un identifiant."
 
-#: edit/edition.html:732
+#: edit/edition.html:731
 msgid "You need to give a value to ID."
 msgstr "Vous devez donner une valeur à cet ID."
 
-#: edit/edition.html:735
+#: edit/edition.html:734
 msgid "ID ids cannot contain whitespace."
 msgstr "Le nom des identifiants ne peut pas contenir d'espace."
 
-#: edit/edition.html:738
+#: edit/edition.html:737
 msgid "ID must be exactly 10 characters [0-9] or X."
 msgstr "L'identifiant doit contenir exactement 10 caractères de 0 à 9 ou X."
 
-#: edit/edition.html:741
+#: edit/edition.html:740
 msgid "ID must be exactly 13 digits [0-9]."
 msgstr "L'identifiant doit contenir exactement 13 caractères de 0 à 9."
 
-#: edit/edition.html:753
+#: edit/edition.html:752
 msgid "Please select a classification."
 msgstr "Veuillez sélectionner une classification."
 
-#: edit/edition.html:758
+#: edit/edition.html:757
 msgid "You need to give a value to CLASS."
 msgstr "Vous devez donner une valeur à cette CLASS."
 
@@ -2317,7 +2327,7 @@ msgstr "Livres"
 msgid "Explore authors"
 msgstr "Explorer des auteurs"
 
-#: nav_foot.html:25 view.html:135
+#: authors.html:81 nav_foot.html:25 view.html:135
 msgid "Authors"
 msgstr "Auteurs"
 
@@ -2467,7 +2477,7 @@ msgstr "Avancé"
 
 #: authors.html:48 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
 #: notfound.html:19 openlibrary/templates/subjects.html:27
-#: openlibrary/templates/work_search.html:144 publishers.html:19
+#: openlibrary/templates/work_search.html:139 publishers.html:19
 #: search_head.html:24 subjects.html:34 view.html:176
 msgid "Search"
 msgstr "Rechercher"
@@ -2546,12 +2556,12 @@ msgstr "Lieu"
 msgid "Person"
 msgstr "Personne"
 
-#: advancedsearch.html:41 openlibrary/templates/work_search.html:133
+#: advancedsearch.html:41 openlibrary/templates/work_search.html:128
 #: search_foot.html:14 search_head.html:14
 msgid "Publisher"
 msgstr "Éditeur"
 
-#: openlibrary/templates/work_search.html:134 search_foot.html:29
+#: openlibrary/templates/work_search.html:129 search_foot.html:29
 msgid "Language"
 msgstr "Langue"
 
@@ -2799,6 +2809,91 @@ msgstr "Créer une nouvelle liste"
 msgid "saving..."
 msgstr "Modification…"
 
+#: authors.html:36 authors.html:39 authors.html:123
+msgid "Merge Authors"
+msgstr "Fusioner des auteurs"
+
+#: authors.html:46
+msgid "No authors selected."
+msgstr "Pas des auteurs sélectionné"
+
+#: authors.html:50
+msgid "Please select a master author record."
+msgstr "Veuillez sélectionner un enregistrement principal d'auteur principal."
+
+#: authors.html:52
+msgid "Please select some authors to merge."
+msgstr "Veuillez sélectionner un des auteurs a fusioner."
+
+#: authors.html:55
+msgid "Select a \"master\" record that best represents the author -"
+msgstr ""
+"Sélectionnez un enregistrement \"maître\" qui représente le mieux "
+"l'auteur -"
+
+#: authors.html:58
+msgid "Select author records which should be merged with the master"
+msgstr ""
+"Sélectionner les enregistrements d'auteur qui doivent être fusionnés avec"
+" le maître"
+
+#: authors.html:62
+msgid "Press MERGE AUTHORS."
+msgstr "Appuyer sur FUSIONNER"
+
+#: authors.html:66
+msgid "No Master record"
+msgstr "Pas de enregistrement principal"
+
+#: authors.html:67
+msgid "You must select a master record to point the duplicates toward."
+msgstr "Vous devez sélectionner un enregistrement maître pour pointer les doublons vers"
+
+#: authors.html:70
+msgid "Please Be Careful..."
+msgstr "S'il vous plaît soyez prudente"
+
+#: authors.html:71
+msgid "<b>Are you sure</b> you want to merge these records?"
+msgstr "<b>Êtes-vous sûr</b> de vouloir fusionner des enregistrements?"
+
+#: authors.html:79
+msgid "Master"
+msgstr ""
+
+#: authors.html:80
+msgid "Merge"
+msgstr "Fusionner"
+
+#: authors.html:110
+msgid "Open in a new window"
+msgstr "Ouvrir dans une nouvelle fenêtre"
+
+#: authors.html:112 openlibrary/templates/work_search.html:196
+msgid "First published in"
+msgstr "Première publication en"
+
+#: authors.html:117
+msgid "Visit this author's page in a new window"
+msgstr "Visitez la page de cet auteur dans une nouvelle fenêtre"
+
+#: editions.html:7 editions.html:10 editions2.html:7
+msgid "Merge Editions"
+msgstr "Fusionner les éditions"
+
+#: editions.html:17
+msgid "No editions selected."
+msgstr "Aucune édition sélectionnée"
+
+#: editions2.html:10
+#, python-format
+msgid "Merging %d editions of"
+msgstr "Fusionner %d les éditions de"
+
+#: history.html:8 history.html:12
+msgid "Merge History"
+msgstr "Historiques des fusionner"
+
 #: notfound.html:10
 msgid "Publishers"
 msgstr "Éditeurs"
@@ -2974,8 +3069,8 @@ msgstr "Fusioner des auteurs"
 msgid "Author Search"
 msgstr "Recherche d'auteur"
 
-#: authors.html:37 openlibrary/templates/work_search.html:108
-#: openlibrary/templates/work_search.html:234 subjects.html:27
+#: authors.html:37 openlibrary/templates/work_search.html:103
+#: openlibrary/templates/work_search.html:229 subjects.html:27
 #, python-format
 msgid "1 hit"
 msgid_plural "%(count)s hits"
@@ -3255,98 +3350,94 @@ msgstr "Auteurs prolifiques"
 msgid "who have written the most books on this subject"
 msgstr "qui a écrit le plus de livres à ce sujet"
 
-#: openlibrary/templates/work_search.html:111
+#: openlibrary/templates/work_search.html:106
 msgid "Sorting by"
 msgstr "Trier par"
 
-#: openlibrary/templates/work_search.html:113
-#: openlibrary/templates/work_search.html:115
-#: openlibrary/templates/work_search.html:117
-#: openlibrary/templates/work_search.html:119
+#: openlibrary/templates/work_search.html:108
+#: openlibrary/templates/work_search.html:110
+#: openlibrary/templates/work_search.html:112
+#: openlibrary/templates/work_search.html:114
 msgid "Relevance"
 msgstr "Pertinence"
 
-#: openlibrary/templates/work_search.html:126
+#: openlibrary/templates/work_search.html:121
 msgid "eBook?"
 msgstr "livre électronique?"
 
-#: openlibrary/templates/work_search.html:132
+#: openlibrary/templates/work_search.html:127
 msgid "First published"
 msgstr "Publication la plus ancienne"
 
-#: openlibrary/templates/work_search.html:135
+#: openlibrary/templates/work_search.html:130
 msgid "Classic eBooks"
 msgstr "Livres électroniques classiques"
 
-#: openlibrary/templates/work_search.html:147
+#: openlibrary/templates/work_search.html:142
 msgid "Everything"
 msgstr "Tout"
 
-#: openlibrary/templates/work_search.html:149
+#: openlibrary/templates/work_search.html:144
 msgid "Ebooks"
 msgstr "Livres électronique"
 
-#: openlibrary/templates/work_search.html:151
+#: openlibrary/templates/work_search.html:146
 msgid "Print Disabled"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:167
+#: openlibrary/templates/work_search.html:162
 msgid "eBook"
 msgstr "Livre électronique"
 
-#: openlibrary/templates/work_search.html:170
+#: openlibrary/templates/work_search.html:165
 msgid "Classic eBook"
 msgstr "Livre électronique classique"
 
-#: openlibrary/templates/work_search.html:189
+#: openlibrary/templates/work_search.html:184
 msgid "Explore Classic eBooks"
 msgstr "Explorer des livres électroniques classiques"
 
-#: openlibrary/templates/work_search.html:189
+#: openlibrary/templates/work_search.html:184
 msgid "Only Classic eBooks"
 msgstr "Seulement livres électroniques classiques"
 
-#: openlibrary/templates/work_search.html:201
-msgid "First published in"
-msgstr "Première publication en"
-
-#: openlibrary/templates/work_search.html:203
+#: openlibrary/templates/work_search.html:198
 msgid "Written in"
 msgstr "Écrit en"
 
-#: openlibrary/templates/work_search.html:205
+#: openlibrary/templates/work_search.html:200
 msgid "Published by"
 msgstr "Publiés par"
 
-#: openlibrary/templates/work_search.html:208
+#: openlibrary/templates/work_search.html:203
 msgid "Click to remove this facet"
 msgstr "Cliquez pour supprimer ce volet"
 
-#: openlibrary/templates/work_search.html:222
+#: openlibrary/templates/work_search.html:217
 msgid "No results found."
 msgstr "Aucun oevres n'a été trouvé."
 
-#: openlibrary/templates/work_search.html:225
+#: openlibrary/templates/work_search.html:220
 msgid "Showing books with similar text to:"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:263
+#: openlibrary/templates/work_search.html:258
 msgid "Zoom In"
 msgstr "Zoomer"
 
-#: openlibrary/templates/work_search.html:264
+#: openlibrary/templates/work_search.html:259
 msgid "Focus your results using these"
 msgstr "Affinez les résultats avec cela"
 
-#: openlibrary/templates/work_search.html:264
+#: openlibrary/templates/work_search.html:259
 msgid "filters"
 msgstr "filtres"
 
-#: openlibrary/templates/work_search.html:292
+#: openlibrary/templates/work_search.html:287
 msgid "more"
 msgstr "plus"
 
-#: openlibrary/templates/work_search.html:292
+#: openlibrary/templates/work_search.html:287
 msgid "less"
 msgstr "moins"
 
