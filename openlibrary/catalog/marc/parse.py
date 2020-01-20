@@ -1,8 +1,9 @@
 import re
-from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
-from get_subjects import subjects_for_work
 from collections import defaultdict
-from marc_base import BadMARC, NoTitle, MarcException
+
+from openlibrary.catalog.marc.get_subjects import subjects_for_work
+from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 
 re_question = re.compile('^\?+$')
 re_lccn = re.compile('(...\d+).*')
