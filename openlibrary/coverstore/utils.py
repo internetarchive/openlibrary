@@ -1,7 +1,5 @@
 """Utilities for coverstore"""
 
-import urllib
-import urllib2
 import socket
 import os
 import mimetypes
@@ -10,6 +8,10 @@ import web
 
 import random
 import string
+
+from six.moves.urllib.parse import splitquery, unquote, unquote_plus
+from six.moves.urllib.parse import urlencode as real_urlencode
+from six.moves.urllib.request import FancyURLopener, Request, urlopen
 
 import config
 import oldb
@@ -20,11 +22,12 @@ except NameError:  # Python 3
     from io import IOBase as file
 
 
-class AppURLopener(urllib.FancyURLopener):
+class AppURLopener(FancyURLopener):
     version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
 
 socket.setdefaulttimeout(10.0)
 urllib._urlopener = AppURLopener()
+
 
 def safeint(value, default=None):
     """
@@ -39,8 +42,10 @@ def safeint(value, default=None):
     except:
         return default
 
+
 def get_ol_url():
     return web.rstrips(config.ol_url, "/")
+
 
 def ol_things(key, value):
     if oldb.is_supported():
@@ -54,13 +59,14 @@ def ol_things(key, value):
         }
         try:
             d = dict(query=simplejson.dumps(query))
-            result = download(get_ol_url() + '/api/things?' + urllib.urlencode(d))
+            result = download(get_ol_url() + '/api/things?' + urlencode(d))
             result = simplejson.loads(result)
             return result['result']
         except IOError:
             import traceback
             traceback.print_exc()
             return []
+
 
 def ol_get(olkey):
     if oldb.is_supported():
@@ -72,11 +78,15 @@ def ol_get(olkey):
         except IOError:
             return None
 
+
 USER_AGENT = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
+
+
 def download(url):
-    req = urllib2.Request(url, headers={'User-Agent': USER_AGENT})
-    r = urllib2.urlopen(req)
+    req = Request(url, headers={'User-Agent': USER_AGENT})
+    r = urlopen(req)
     return r.read()
+
 
 def urldecode(url):
     """
@@ -85,11 +95,12 @@ def urldecode(url):
         >>> urldecode('http://google.com/')
         ('http://google.com/', {})
     """
-    base, query = urllib.splitquery(url)
+    base, query = splitquery(url)
     query = query or ""
     items = [item.split('=', 1) for item in query.split('&') if '=' in item]
-    d = dict((urllib.unquote(k), urllib.unquote_plus(v)) for (k, v) in items)
+    d = dict((unquote(k), unquote_plus(v)) for (k, v) in items)
     return base, d
+
 
 def changequery(url, **kw):
     """
@@ -98,7 +109,8 @@ def changequery(url, **kw):
     """
     base, params = urldecode(url)
     params.update(kw)
-    return base + '?' + urllib.urlencode(params)
+    return base + '?' + urlencode(params)
+
 
 def read_file(path, offset, size, chunk=50*1024):
     """Returns an iterator over file data at specified offset and size.
@@ -118,15 +130,20 @@ def read_file(path, offset, size, chunk=50*1024):
             raise IOError("file truncated")
     f.close()
 
+
 def rm_f(filename):
     try:
         os.remove(filename)
     except OSError:
         pass
 
+
 chars = string.letters + string.digits
+
+
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
+
 
 def urlencode(data):
     """
@@ -141,7 +158,7 @@ def urlencode(data):
             break
 
     if not multipart:
-        return 'application/x-www-form-urlencoded', urllib.urlencode(data)
+        return 'application/x-www-form-urlencoded', real_urlencode(data)
     else:
         # adopted from http://code.activestate.com/recipes/146306/
         def get_content_type(filename):
@@ -171,6 +188,7 @@ def urlencode(data):
         body = CRLF.join(out)
         content_type = 'multipart/form-data; boundary=%s' % BOUNDARY
         return content_type, body
+
 
 if __name__ == "__main__":
     import doctest
