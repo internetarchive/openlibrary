@@ -11,17 +11,15 @@ from openlibrary.core import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
-from openlibrary.core.helpers import private_collection_in
+from openlibrary.core import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.helpers import private_collection_in
+from openlibrary.core.lists.model import ListMixin, Seed
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-
-# relative imports
-from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+from openlibrary.plugins.upstream.utils import get_history
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 
 from six.moves import urllib
 
