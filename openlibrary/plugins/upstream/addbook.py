@@ -21,8 +21,8 @@ from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import utils
-from openlibrary.plugins.upstream.account import as_admin, spamcheck
+from openlibrary.plugins.upstream import spamcheck, utils
+from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 import six
