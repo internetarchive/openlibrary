@@ -3,9 +3,9 @@ import pytest
 import re
 import web
 try:  # newer versions of web.py
-     from web.browser import AppBrowser
- except ImportError:  # older versions of web.py
-     from web import AppBrowser
+    from web.browser import AppBrowser
+except ImportError:  # older versions of web.py
+    from web import AppBrowser
 
 from infogami import config
 from infogami.infobase import client
