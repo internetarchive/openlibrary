@@ -31,7 +31,7 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except ValueError:
+    except (ValueError, TypeError):
         return default
 
 
