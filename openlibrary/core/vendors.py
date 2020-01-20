@@ -1,6 +1,5 @@
 import re
 import web
-import urllib2
 import simplejson
 import requests
 from decimal import Decimal
@@ -13,6 +12,9 @@ from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
 from openlibrary.catalog.add_book import load
 from openlibrary import accounts
+
+from six.moves import urllib
+
 
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
@@ -333,7 +335,7 @@ def _get_betterworldbooks_metadata(isbn):
 
         return betterworldbooks_fmt(isbn, qlt, price)
 
-    except urllib2.HTTPError as e:
+    except urllib.error.HTTPError as e:
         try:
             response = e.read()
         except simplejson.decoder.JSONDecodeError:
@@ -346,7 +348,7 @@ def betterworldbooks_fmt(isbn, qlt=None, price=None):
     :param str isbn:
     :param str qlt: Quality of the book, e.g. "new", "used"
     :param str price: Price of the book as a decimal str, e.g. "4.28"
-    :rtype: dict 
+    :rtype: dict
     """
     price_fmt = "$%s (%s)" % (price, qlt) if price and qlt else None
     return {
