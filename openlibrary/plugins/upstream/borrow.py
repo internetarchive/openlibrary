@@ -12,7 +12,7 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
+from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
 
 from openlibrary.core import stats
@@ -21,7 +21,8 @@ from openlibrary.core import lending
 from openlibrary.core import waitinglist
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
-from openlibrary.utils import dateutil, render_template
+from openlibrary.utils import dateutil
+
 
 from lxml import etree
 
