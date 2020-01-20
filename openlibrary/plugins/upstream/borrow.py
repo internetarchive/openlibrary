@@ -12,10 +12,8 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
+from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
-
-from utils import render_template
 
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
