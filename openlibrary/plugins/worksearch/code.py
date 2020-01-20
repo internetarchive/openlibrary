@@ -803,10 +803,8 @@ class search_json(delegate.page):
         return delegate.RawText(json.dumps(response, indent=True))
 
 def setup():
-    import searchapi
+    from openlibrary.plugins.worksearch import searchapi, subjects
     searchapi.setup()
-
-    from . import subjects
 
     # subjects module needs read_author_facet and solr_select_url.
     # Importing this module to access them will result in circular import.
