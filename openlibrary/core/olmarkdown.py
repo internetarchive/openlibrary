@@ -11,7 +11,7 @@ The custom changes done here to markdown are also reptead in WMD editor,
 the javascript markdown editor used in OL.
 """
 
-import helpers as h
+from openlibrary.core import helpers as h
 import re
 from infogami.utils.markdown import markdown
 
