@@ -1,1 +1,1 @@
-from readableurls import ReadableUrlProcessor
+from openlibrary.core.readableurls import ReadableUrlProcessor
