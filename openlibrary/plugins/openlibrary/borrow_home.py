@@ -11,9 +11,9 @@ from infogami.utils.view import render_template
 
 from openlibrary.core import helpers as h
 from openlibrary.core import inlibrary
+from openlibrary.plugins.openlibrary.libraries import LoanStats
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
-from libraries import LoanStats
 
 class borrow(delegate.page):
     path = "/borrow"
