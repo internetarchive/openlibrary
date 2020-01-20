@@ -51,8 +51,9 @@ def get_homepage():
 
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
+    lang = web.ctx.get("lang", "en")
     return cache.memcache_memoize(
-        get_homepage, "home.homepage", timeout=five_minutes)()
+        get_homepage, "home.homepage." + lang, timeout=five_minutes)()
 
 class home(delegate.page):
     path = "/"
