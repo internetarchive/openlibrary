@@ -1,6 +1,6 @@
 from __future__ import print_function
 import sys
-from cStringIO import StringIO
+from six import StringIO
 from xml.parsers.expat import error as xml_error
 from elementtree import ElementTree
 from types import *
