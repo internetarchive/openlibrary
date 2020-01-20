@@ -18,19 +18,15 @@ from infogami.utils.context import context
 import infogami.core.code as core
 
 from openlibrary import accounts
-from openlibrary.i18n import gettext as _
-from openlibrary.core import helpers as h, lending
-from openlibrary.core.bookshelves import Bookshelves
-from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins import openlibrary as olib
 from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
+from openlibrary.core import helpers as h, lending
+from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.sponsorships import get_sponsored_editions
-
-import forms
-import utils
-import borrow
-
+from openlibrary.i18n import gettext as _
+from openlibrary.plugins import openlibrary as olib
+from openlibrary.plugins.recaptcha import recaptcha
+from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
 from six.moves import urllib
