@@ -4,10 +4,6 @@ import random
 import re
 import xml.etree.ElementTree as etree
 from collections import defaultdict
-try:
-    from UserDict import DictMixin
-except ImportError:
-    from collections.abc import MutableMapping as DictMixin
 
 import babel
 import babel.core
@@ -30,10 +26,11 @@ from openlibrary.plugins.upstream import adapter
 from openlibrary.utils import olmemcache
 from openlibrary.utils.olcompress import OLCompressor
 from six.moves import urllib
+from six.moves.collections_abc import Mapping
 from six.moves.html_parser import HTMLParser
 
 
-class MultiDict(DictMixin):
+class MultiDict(Mapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()

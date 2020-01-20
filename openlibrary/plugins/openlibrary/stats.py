@@ -4,14 +4,13 @@ from __future__ import print_function
 import logging
 import traceback
 
-from openlibrary.core import stats as graphite_stats
-
 import web
 from infogami import config
 from infogami.utils import stats
-import openlibrary.core.stats
 
-import filters as stats_filters
+from openlibrary.core import stats as graphite_stats
+import openlibrary.core.stats
+import openlibrary.plugins.openlibrary.filters as stats_filters
 
 l = logging.getLogger("openlibrary.stats")
 
