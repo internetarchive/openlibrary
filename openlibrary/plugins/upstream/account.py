@@ -9,8 +9,9 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami import config
-from infogami.utils.flash import add_flash_message
-from infogami.utils.view import require_login, render, render_template
+from infogami.utils.view import (
+    require_login, render, render_template, add_flash_message
+)
 
 from infogami.infobase.client import ClientException
 from infogami.utils.context import context

@@ -3,7 +3,7 @@
 import web
 import simplejson
 from collections import defaultdict
-from six import StringIO
+from StringIO import StringIO
 import csv
 import datetime
 
@@ -11,8 +11,7 @@ from infogami import config
 from infogami.core import code as core
 from infogami.core.db import ValidationException
 from infogami.utils import delegate
-from infogami.utils.flash import add_flash_message
-from infogami.utils.view import safeint
+from infogami.utils.view import safeint, add_flash_message
 from infogami.infobase.client import ClientException
 
 from openlibrary.plugins.openlibrary.processors import urlsafe

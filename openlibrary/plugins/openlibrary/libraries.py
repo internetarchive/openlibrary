@@ -5,15 +5,14 @@ import time
 import logging
 import datetime
 import itertools
-from six import StringIO
+from cStringIO import StringIO
 import csv
 import simplejson
 
 import web
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.flash import add_flash_message
-from infogami.utils.view import render_template, public
+from infogami.utils.view import render_template, add_flash_message, public
 from openlibrary.core import inlibrary, statsdb, geo_ip
 from openlibrary import accounts
 from openlibrary.core.iprange import find_bad_ip_ranges
