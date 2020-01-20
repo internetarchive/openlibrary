@@ -1,6 +1,5 @@
 import json
 import requests
-import urllib
 
 from infogami import config
 from openlibrary.core import lending 
@@ -25,7 +24,7 @@ def get_contact_id_by_username(username):
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
     r = requests.get(
         lending.config_ia_civicrm_api.get('url', ''),
-        params=urllib.urlencode(data),
+        params=data,
         headers={
             'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
         })
@@ -50,7 +49,7 @@ def get_sponsorships_by_contact_id(contact_id, isbn=None):
     data['json'] = json.dumps(data['json'])  # flatten the json field as a string
     r = requests.get(
         lending.config_ia_civicrm_api.get('url', ''),
-        params=urllib.urlencode(data),
+        params=data,
         headers={
             'Authorization': 'Basic %s' % lending.config_ia_civicrm_api.get('auth', '')
         })
