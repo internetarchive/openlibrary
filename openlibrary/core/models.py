@@ -7,7 +7,7 @@ import re
 import iptools
 from infogami.infobase import client
 
-import helpers as h
+from openlibrary.core import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts

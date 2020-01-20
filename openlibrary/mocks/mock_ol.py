@@ -3,9 +3,9 @@ import re
 
 import pytest
 import web
-try:
+try:  # newer versions of web.py
     from web.browser import AppBrowser
-except ImportError:
+except ImportError:  # older versions of web.py
     from web import AppBrowser
 
 from infogami import config

@@ -1,12 +1,9 @@
 """Tools for in-library lending.
 """
-import iprange
-import geo_ip
 import web
 
 from infogami.utils import delegate
-
-from openlibrary.core import cache
+from openlibrary.core import cache, geo_ip, iprange
 
 def _get_libraries(site=None):
     """Returns all the libraries each as a dict."""

@@ -3,7 +3,6 @@
 import web
 import simplejson
 from collections import defaultdict
-from six import StringIO
 import csv
 import datetime
 
@@ -29,6 +28,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from . import spamcheck
 
 import six
+from six import StringIO
 from six.moves import urllib
 
 

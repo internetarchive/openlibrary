@@ -1,6 +1,5 @@
 from __future__ import print_function
 import datetime
-import httplib
 import logging
 import os
 import re
@@ -12,15 +11,16 @@ from unicodedata import normalize
 import simplejson as json
 import six
 from six.moves import urllib
+from six.moves.http_client import HTTPConnection
 import web
 from lxml.etree import tostring, Element, SubElement
 
-from data_provider import get_data_provider
 from infogami.infobase.client import ClientException
 from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
+from openlibrary.solr.data_provider import get_data_provider
 from openlibrary.utils.isbn import opposite_isbn
 
 logger = logging.getLogger("openlibrary.solr")
@@ -815,7 +815,7 @@ def solr_update(requests, debug=False, commitWithin=60000):
     :param bool debug:
     :param int commitWithin: Solr commitWithin, in ms
     """
-    h1 = httplib.HTTPConnection(get_solr())
+    h1 = HTTPConnection(get_solr())
     url = 'http://%s/solr/update' % get_solr()
 
     logger.info("POSTing update to %s", url)
