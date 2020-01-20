@@ -1,6 +1,5 @@
 """Utilities for coverstore"""
 
-import socket
 import os
 import mimetypes
 import simplejson
@@ -11,7 +10,7 @@ import string
 
 from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
-from six.moves.urllib.request import FancyURLopener, Request, urlopen
+from six.moves.urllib.request import Request, urlopen
 
 import config
 import oldb
@@ -20,13 +19,6 @@ try:
     file           # Python 2
 except NameError:  # Python 3
     from io import IOBase as file
-
-
-class AppURLopener(FancyURLopener):
-    version = "Mozilla/5.0 (Compatible; coverstore downloader http://covers.openlibrary.org)"
-
-socket.setdefaulttimeout(10.0)
-urllib._urlopener = AppURLopener()
 
 
 def safeint(value, default=None):
@@ -39,7 +31,7 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except:
+    except ValueError:
         return default
 
 
@@ -59,7 +51,7 @@ def ol_things(key, value):
         }
         try:
             d = dict(query=simplejson.dumps(query))
-            result = download(get_ol_url() + '/api/things?' + urlencode(d))
+            result = download(get_ol_url() + '/api/things?' + real_urlencode(d))
             result = simplejson.loads(result)
             return result['result']
         except IOError:
@@ -109,7 +101,7 @@ def changequery(url, **kw):
     """
     base, params = urldecode(url)
     params.update(kw)
-    return base + '?' + urlencode(params)
+    return base + '?' + real_urlencode(params)
 
 
 def read_file(path, offset, size, chunk=50*1024):
