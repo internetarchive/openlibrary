@@ -1,8 +1,9 @@
 """Simple mock utility.
 """
-import urllib
-import urllib2
 from StringIO import StringIO
+
+from six.moves import urllib
+
 
 class Mock:
     def __init__(self):
@@ -21,10 +22,10 @@ class Mock:
         self.calls.append(call)
 
 def monkeypatch_urllib(monkeypatch, url, response_string):
-    """Monkey-patches urllib.urlopen to return the given response
+    """Monkey-patches urllib.request.urlopen to return the given response
     when urlopen is called with the given url.
     """
-    _urlopen = urllib.urlopen
+    _urlopen = urllib.request.urlopen
     given_url = url
 
     def urlopen(url, *a, **kw):
@@ -36,10 +37,10 @@ def monkeypatch_urllib(monkeypatch, url, response_string):
     monkeypatch.setattr(urllib, "urlopen", urlopen)
 
 def monkeypatch_urllib2(monkeypatch, url, response_string):
-    """Monkey-patches urllib2.urlopen to return the given response
+    """Monkey-patches urllib.request.urlopen to return the given response
     when urlopen is called with the given url.
     """
-    _urlopen = urllib2.urlopen
+    _urlopen = urllib.request.urlopen
     given_url = url
 
     def urlopen(url, *a, **kw):

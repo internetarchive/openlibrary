@@ -7,8 +7,6 @@ from UserDict import DictMixin
 from collections import defaultdict
 import re
 import random
-import urllib
-import urllib2
 import xml.etree.ElementTree as etree
 import datetime
 import gzip
@@ -17,6 +15,7 @@ import logging
 from HTMLParser import HTMLParser
 
 import six
+from six.moves import urllib
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -396,7 +395,7 @@ def add_metatag(tag="meta", **attrs):
 def url_quote(text):
     if isinstance(text, six.text_type):
         text = text.encode('utf8')
-    return urllib.quote_plus(text)
+    return urllib.parse.quote_plus(text)
 
 @public
 def entity_decode(text):
@@ -649,7 +648,7 @@ def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.parse(urllib.urlopen(url))
+        tree = etree.parse(urllib.request.urlopen(url))
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
@@ -682,11 +681,11 @@ def get_donation_include(include):
         param += '&ymd=' + web_input.ymd
 
     # Look for presence of cookie indicating banner has been closed
-    opener = urllib2.build_opener()
+    opener = urllib.request.build_opener()
     donation_param = web.cookies().get('donation')
     if donation_param:
         # Append a tuple with the cookie pair (*not* extraneous parentheses!)
-        opener.addheaders.append(('Cookie', urllib.urlencode({'donation': donation_param})))
+        opener.addheaders.append(('Cookie', urllib.parse.urlencode({'donation': donation_param})))
 
     html = ''
     if include == 'true' and "dev" in web.ctx.features:
@@ -699,7 +698,7 @@ def get_donation_include(include):
                 html = """
                 <center>WARNING: Donation banner disabled on prod; see <a href="https://github.com/internetarchive/openlibrary/issues/2853">GitHub #2853</a></center>
                 """ + html
-        except urllib2.URLError:
+        except urllib.error.URLError:
             logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''
     return html

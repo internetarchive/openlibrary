@@ -7,11 +7,13 @@ from openlibrary import config
 import argparse
 import simplejson
 import re
+from six.moves.urllib.request import urlopen
 import sys
-from urllib import urlopen
-from urllib2 import URLError
 from time import time, sleep
 from openlibrary.catalog.works.find_works import find_title_redirects, find_works, get_books, books_query, update_works
+
+from six.moves.urllib.error import URLError
+
 
 parser = argparse.ArgumentParser(description='solr author merge')
 parser.add_argument('--config', default='openlibrary.yml')

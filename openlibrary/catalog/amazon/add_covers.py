@@ -1,6 +1,8 @@
 from __future__ import print_function
-from urllib2 import urlopen
 import simplejson
+
+from six.moves.urllib.request import urlopen
+
 
 base = 'http://ia331526.us.archive.org:7001/openlibrary.org/log/'
 

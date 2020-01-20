@@ -4,7 +4,6 @@ import os
 import pytest
 
 from copy import deepcopy
-from urllib import urlopen
 from collections import defaultdict
 
 from infogami.infobase.core import Text
@@ -17,6 +16,9 @@ from openlibrary.catalog.add_book.merge import try_merge
 from openlibrary.catalog.merge.merge_marc import build_marc
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
+
+
+from six.moves.urllib.request import urlopen
 
 
 def open_test_data(filename):

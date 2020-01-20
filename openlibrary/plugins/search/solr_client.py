@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
 from cStringIO import StringIO
 import os
@@ -12,6 +11,8 @@ from facet_hash import facet_token
 import pdb
 
 import six
+from six.moves.urllib.parse import quote_plus
+from six.moves.urllib.request import urlopen
 
 php_location = "/petabox/setup.inc"
 

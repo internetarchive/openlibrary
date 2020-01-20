@@ -3,7 +3,9 @@
 from __future__ import print_function
 import web
 import web.form as form
-import urllib2
+
+from six.moves import urllib
+
 
 urls = (
     '/', 'index',
@@ -72,7 +74,7 @@ myform = form.Form(
         form.Validator('Must be less than 50000', lambda x:int(x)>50000)))
 
 def start_and_len(file, start, count):
-    f = urllib2.urlopen("http://archive.org/download/bpl_marc/" + file)
+    f = urllib.request.urlopen("http://archive.org/download/bpl_marc/" + file)
     pos = 0
     num = 0
     start_pos = None
@@ -113,8 +115,8 @@ class get:
         web.header("Content-Type","application/octet-stream")
         r0, r1 = offset, offset+length-1
         url = "http://archive.org/download/bpl_marc/" + file
-        ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-        f = urllib2.urlopen(ureq)
+        ureq = urllib.request.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
+        f = urllib.request.urlopen(ureq)
         while True:
             buf = f.read(1024)
             if not buf:

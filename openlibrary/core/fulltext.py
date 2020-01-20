@@ -1,6 +1,4 @@
 
-import urllib
-import urllib2
 import simplejson
 import logging
 
@@ -9,14 +7,17 @@ from infogami import config
 from openlibrary.core.lending import get_availability_of_ocaids
 
 
+from six.moves import urllib
+
+
 def fulltext_search_api(params):
     if not hasattr(config, 'plugin_inside'):
         return {'error': 'Unable to prepare search engine'}
     search_endpoint = config.plugin_inside['search_endpoint']
-    search_select = search_endpoint + '?' + urllib.urlencode(params, 'utf-8')
+    search_select = search_endpoint + '?' + urllib.parse.urlencode(params, 'utf-8')
 
     try:
-        json_data = urllib2.urlopen(search_select, timeout=30).read()
+        json_data = urllib.request.urlopen(search_select, timeout=30).read()
         logger = logging.getLogger("openlibrary.inside")
         logger.debug('URL: ' + search_select)
     except:

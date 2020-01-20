@@ -6,13 +6,12 @@ import os
 import re
 import sys
 import time
-import urllib
-import urllib2
 from collections import defaultdict
 from unicodedata import normalize
 
 import simplejson as json
 import six
+from six.moves import urllib
 import web
 from lxml.etree import tostring, Element, SubElement
 
@@ -45,8 +44,8 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def get_solr():
     """
@@ -1080,7 +1079,7 @@ def get_subject(key):
         'facet.limit': 100
     }
     base_url = 'http://' + get_solr() + '/solr/select'
-    url = base_url + '?' + urllib.urlencode(params)
+    url = base_url + '?' + urllib.parse.urlencode(params)
     result = json.load(urlopen(url))
 
     work_count = result['response']['numFound']

@@ -1,11 +1,13 @@
 """Various web.py application processors used in OL.
 """
 import os
-import urllib
 import web
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
+
+from six.moves import urllib
+
 
 try:
     from booklending_utils.openlibrary import is_exclusion
@@ -44,7 +46,7 @@ class ReadableUrlProcessor:
         #@@ using builtin-server or lighttpd. Thats probably a bug in web.py.
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
+        if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
             raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
 
         web.ctx.readable_path = readable_path

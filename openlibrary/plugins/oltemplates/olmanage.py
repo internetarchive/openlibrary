@@ -2,13 +2,15 @@
 
 from __future__ import print_function
 import os
-import urllib
 import simplejson
 import glob
-import ConfigParser
+from six.moves.configparser import ConfigParser
 
 import olapi
 import subcommand
+
+from six.moves import urllib
+
 
 def to_local_path(path):
     """Convert path on server to local path.
@@ -41,7 +43,7 @@ def to_server_path(path):
         raise ValueError("Unrecognised path: {}".format(path))
 
 def jsonget(url):
-    return simplejson.loads(urllib.urlopen(url).read())
+    return simplejson.loads(urllib.request.urlopen(url).read())
 
 def thing2data(d):
     if d['type']['key'] == '/type/template':
@@ -81,7 +83,7 @@ def olget(server, key):
     return thing2data(d)
 
 def get_ol(server):
-    config = ConfigParser.ConfigParser()
+    config = ConfigParser()
     config.read(os.path.expanduser('~/.olrc'))
 
     ol = olapi.OpenLibrary(server)

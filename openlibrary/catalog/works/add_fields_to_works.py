@@ -1,7 +1,6 @@
 #!/usr/local/bin/python2.5
 from __future__ import print_function
 import sys
-import urllib
 import re
 import codecs
 sys.path.append('/home/edward/src/olapi')
@@ -11,6 +10,7 @@ from collections import defaultdict
 from catalog.read_rc import read_rc
 from catalog.utils.query import query, query_iter, set_staging, base_url
 from catalog.utils import mk_norm, get_title
+from six.moves import urllib
 
 import six
 

@@ -1,7 +1,5 @@
 """Models of various OL objects.
 """
-import urllib
-import urllib2
 import simplejson
 import web
 import re
@@ -25,6 +23,9 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from lists.model import ListMixin, Seed
 from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
+from six.moves import urllib
+
+
 def _get_ol_base_url():
     # Anand Oct 2013
     # Looks like the default value when called from script
@@ -44,7 +45,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib2.urlopen(url).read())
+            d = simplejson.loads(urllib.request.urlopen(url).read())
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -136,7 +137,7 @@ class Thing(client.Thing):
         else:
             u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -914,7 +915,7 @@ class Subject(web.storage):
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u

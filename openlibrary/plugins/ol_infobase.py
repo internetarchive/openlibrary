@@ -4,7 +4,6 @@
 from __future__ import print_function
 import os
 import datetime
-import urllib
 import simplejson
 import logging
 import logging.config
@@ -14,6 +13,7 @@ import re
 import unicodedata
 
 import six
+from six.moves import urllib
 import web
 from infogami.infobase import config, common, server, cache, dbstore
 
@@ -292,7 +292,7 @@ def http_notify(site, old, new):
 
     for url in config.http_listeners:
         try:
-            response = urllib.urlopen(url, json).read()
+            response = urllib.request.urlopen(url, json).read()
             print('http_notify', repr(url), repr(key), repr(response), file=web.debug)
         except:
             print('failed to send http_notify', repr(url), repr(key), file=web.debug)

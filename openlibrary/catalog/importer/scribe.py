@@ -10,12 +10,14 @@ from time import sleep, time
 
 import MySQLdb
 import re
-import urllib2
 import httplib
 import json
 import codecs
 import socket
 import sys
+
+from six.moves import urllib
+
 
 ol = OpenLibrary('http://openlibrary.org/')
 
@@ -164,7 +166,7 @@ def load_book(ia, collections, boxid, scanned=True):
     bad_binary = None
     try:
         formats = marc_formats(ia, host, path)
-    except urllib2.HTTPError as error:
+    except urllib.error.HTTPError as error:
         return
 
     if formats['bin']: # binary MARC
@@ -179,7 +181,7 @@ def load_book(ia, collections, boxid, scanned=True):
         contenttype = 'application/marc'
     elif formats['xml']: # MARC XML
         return # waiting for Raj to fox MARC XML loader
-        marc_data = urllib2.urlopen('http://' + host + path + '/' + ia + '_meta.xml').read()
+        marc_data = urllib.request.urlopen('http://' + host + path + '/' + ia + '_meta.xml').read()
         contenttype = 'text/xml'
     else:
         return

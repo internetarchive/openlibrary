@@ -13,7 +13,9 @@ from catalog.get_ia import get_ia, urlopen_keep_trying
 from catalog.merge.merge_marc import build_marc
 import pool
 import sys
-import urllib2
+
+from six.moves import urllib
+
 
 archive_url = "http://archive.org/download/"
 
@@ -86,7 +88,7 @@ def load():
             loc, rec = get_ia(ia)
         except (KeyboardInterrupt, NameError):
             raise
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             continue
         if loc is None:
             continue

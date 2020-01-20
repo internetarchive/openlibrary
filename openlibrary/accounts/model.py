@@ -9,8 +9,6 @@ import random
 import string
 import simplejson
 import uuid
-import urllib
-import urllib2
 import logging
 
 import lepl.apps.rfc3696
@@ -21,6 +19,9 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -550,12 +551,12 @@ class InternetArchiveAccount(web.storage):
         if test:
             url += "&developer=%s" % test
         try:
-            req = urllib2.Request(url, payload, {
+            req = urllib.request.Request(url, payload, {
                 'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
+            f = urllib.request.urlopen(req)
             response = f.read()
             f.close()
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             try:
                 response = e.read()
             except simplejson.decoder.JSONDecodeError:
@@ -568,14 +569,14 @@ class InternetArchiveAccount(web.storage):
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
         try:
-            req = urllib2.Request(url, headers={
+            req = urllib.request.Request(url, headers={
                 'Content-Type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
-            f = urllib2.urlopen(req)
+            f = urllib.request.urlopen(req)
             response = f.read()
             f.close()
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             try:
                 response = e.read()
             except simplejson.decoder.JSONDecodeError:

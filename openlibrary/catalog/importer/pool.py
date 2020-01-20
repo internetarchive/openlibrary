@@ -1,5 +1,4 @@
 from __future__ import print_function
-from urllib2 import urlopen, Request
 import simplejson as json
 import web
 from openlibrary.catalog.merge.merge_index import add_to_indexes
@@ -9,6 +8,10 @@ from openlibrary.catalog.merge.merge_index import add_to_indexes
 
 import psycopg2
 from openlibrary.catalog.read_rc import read_rc
+
+from six.moves.urllib.request import urlopen, Request
+
+
 conn = psycopg2.connect(database='marc_index', host='ol-db')
 cur = conn.cursor()
 

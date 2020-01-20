@@ -11,7 +11,7 @@ except ImportError:
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate
-from mock_infobase import mock_site, MockConnection
+from openlibrary.mocks.mock_infobase import mock_site, MockConnection
 from openlibrary.plugins import ol_infobase
 
 

@@ -21,8 +21,9 @@ def _compile_translation(po, mo):
         write_mo(f, catalog)
         f.close()
         print('compiled', po, file=web.debug)
-    except:
+    except Exception as e:
         print('failed to compile', po, file=web.debug)
+        raise e
 
 def get_locales():
     return [d for d in os.listdir(root) if os.path.isdir(os.path.join(root, d))]

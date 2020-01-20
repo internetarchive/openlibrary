@@ -1,10 +1,12 @@
 import web
 import re
-from urllib2 import urlopen
 import simplejson as json
 from pprint import pformat
 
 from catalog.utils.query import query_iter
+
+from six.moves.urllib.request import urlopen
+
 
 urls = (
     '/', 'index'

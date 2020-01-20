@@ -25,8 +25,8 @@ A record is loaded by calling the load function.
 import json
 import re
 import six
+from six.moves import urllib
 import unicodedata
-import urllib
 import web
 
 from collections import defaultdict
@@ -230,7 +230,7 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+            res = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
         except IOError:
             sleep(2)
             continue

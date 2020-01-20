@@ -1,9 +1,11 @@
 import web
-import urllib2
 import simplejson as json
 from pprint import pformat
 from time import time
 from catalog.read_rc import read_rc
+
+from six.moves import urllib
+
 
 urls = (
     '/', 'index'
@@ -28,7 +30,7 @@ def read_book_count():
 files = eval(open('files').read())
 
 def server_read(path):
-    return json.load(urllib2.urlopen(base_url + path))
+    return json.load(urllib.request.urlopen(base_url + path))
 
 def progress(archive, part, pos):
     total = 0

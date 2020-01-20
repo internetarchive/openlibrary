@@ -6,6 +6,7 @@ monkey.patch_socket()
 import re
 import httplib
 import json
+from six.moves import urllib
 import sys
 import os
 import codecs
@@ -13,7 +14,6 @@ from openlibrary.utils.ia import find_item
 from time import time
 from collections import defaultdict
 from lxml.etree import Element, tostring, parse, fromstring
-import urllib2
 from unicodedata import normalize
 
 import six
@@ -73,8 +73,8 @@ def use_primary(host):
 def urlread_keep_trying(url):
     for i in range(3):
         try:
-            return urllib2.urlopen(url).read()
-        except urllib2.HTTPError as error:
+            return urllib.request.urlopen(url).read()
+        except urllib.error.HTTPError as error:
             if error.code in (403, 404):
                 #print "404 for '%s'" % url
                 raise
@@ -85,7 +85,7 @@ def urlread_keep_trying(url):
             print('bad status line')
         except httplib.IncompleteRead:
             print('incomplete read')
-        except urllib2.URLError:
+        except urllib.error.URLError:
             pass
         print(url, "failed")
         sleep(2)
@@ -119,7 +119,7 @@ def read_text_from_node(host):
         url = 'http://%s/%s' % (host, path)
         try:
             dir_html = urlread_keep_trying('http://%s/%s' % (host, path))
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             if error.code == 403:
                 print('403 on directory listing for:', ia)
                 dir_html = None
@@ -137,7 +137,7 @@ def read_text_from_node(host):
         url = 'http://%s/~edward/abbyy_to_text.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
         try:
             reply = urlread_keep_trying(url)
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             if error.code != 403:
                 raise
             url = 'http://%s/~edward/abbyy_to_text_p.php?ia=%s&path=%s&file=%s' % (host, ia, path, filename)
@@ -203,7 +203,7 @@ def add_to_item_queue():
         current_book = ia
         if check_for_existing:
             url = 'http://' + solr_host + '/solr/inside/select?indent=on&wt=json&rows=0&q=ia:' + ia
-            num_found = json.load(urllib2.urlopen(url))['response']['numFound']
+            num_found = json.load(urllib.request.urlopen(url))['response']['numFound']
             if num_found != 0:
                 continue
 
@@ -257,7 +257,7 @@ def run_find_item():
         body = None
         if False:
             url = 'http://' + solr_src_host + '/solr/inside/select?wt=json&rows=10&q=ia:' + ia
-            response = json.load(urllib2.urlopen(url))['response']
+            response = json.load(urllib.request.urlopen(url))['response']
             if response['numFound']:
                 doc = response['docs'][0]
                 for doc_lang in ['eng', 'fre', 'deu', 'spa', 'other']:
@@ -271,7 +271,7 @@ def run_find_item():
         if body:
             try:
                 meta_xml = urlread_keep_trying('http://%s%s/%s_meta.xml' % (host, path, ia))
-            except urllib2.HTTPError as error:
+            except urllib.error.HTTPError as error:
                 if error.code != 403:
                     raise
                 print('403 on meta XML for:', ia)

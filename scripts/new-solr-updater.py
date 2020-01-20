@@ -8,11 +8,10 @@ Changes:
 """
 import _init_path
 
+from six.moves import urllib
 import yaml
 import logging
 import json
-import urllib
-import urllib2
 import argparse
 import datetime
 import time
@@ -72,8 +71,8 @@ class InfobaseLog:
             url = "%s/%s?limit=100" % (self.base_url, self.offset)
             logger.debug("Reading log from %s", url)
             try:
-                jsontext = urllib2.urlopen(url).read()
-            except urllib2.URLError as e:
+                jsontext = urllib.request.urlopen(url).read()
+            except urllib.error.URLError as e:
                 logger.error("Failed to open URL %s", url, exc_info=True)
                 if e.args and e.args[0].args == (111, 'Connection refused'):
                     logger.error('make sure infogami server is working, connection refused from %s', url)
