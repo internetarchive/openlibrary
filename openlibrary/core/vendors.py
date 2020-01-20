@@ -1,11 +1,8 @@
 import re
-import web
-import urllib2
 import simplejson
 import requests
 from decimal import Decimal
 from amazon.api import SearchException
-from infogami import config
 from infogami.utils.view import public
 from . import lending, cache, helpers as h
 from openlibrary.utils import dateutil
@@ -314,33 +311,29 @@ def _get_betterworldbooks_metadata(isbn):
     """
 
     url = BETTERWORLDBOOKS_API_URL + isbn
-    try:
-        response = requests.get(url).content
-        new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
-        new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
-        used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
-        used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
+    response = requests.get(url)
+    if response.status_code != requests.codes.ok:
+        return {'error': response.text, 'code': response.status_code}
+    response = response.content
+    new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
+    new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
+    used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
+    used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
 
-        price = qlt = None
+    price = qlt = None
 
-        if used_qty and used_qty[0] and used_qty[0] != '0':
-            price = used_price[0] if used_price else ''
-            qlt = 'used'
+    if used_qty and used_qty[0] and used_qty[0] != '0':
+        price = used_price[0] if used_price else ''
+        qlt = 'used'
 
-        if new_qty and new_qty[0] and new_qty[0] != '0':
-            _price = new_price[0] if new_price else None
-            if _price and (not price or float(_price) < float(price)):
-                price = _price
-                qlt = 'new'
+    if new_qty and new_qty[0] and new_qty[0] != '0':
+        _price = new_price[0] if new_price else None
+        if _price and (not price or float(_price) < float(price)):
+            price = _price
+            qlt = 'new'
 
-        return betterworldbooks_fmt(isbn, qlt, price)
+    return betterworldbooks_fmt(isbn, qlt, price)
 
-    except urllib2.HTTPError as e:
-        try:
-            response = e.read()
-        except simplejson.decoder.JSONDecodeError:
-            return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
 
 def betterworldbooks_fmt(isbn, qlt=None, price=None):
     """Defines a standard interface for returning bwb price info
