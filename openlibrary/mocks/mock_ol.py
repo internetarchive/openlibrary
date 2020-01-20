@@ -34,7 +34,7 @@ class EMail(web.storage):
         """Extracts link from the email message."""
         return re.findall(r"http://[^\s]*", self.message)
 
-class OLBrowser(web.AppBrowser):
+class OLBrowser(web.browser.AppBrowser):
     def get_text(self, e=None, name=None, **kw):
         if name or kw:
             e = self.get_soup().find(name=name, **kw)
