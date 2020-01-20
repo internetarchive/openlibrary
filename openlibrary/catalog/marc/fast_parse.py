@@ -3,8 +3,8 @@ from __future__ import print_function
 
 import re
 from pymarc import MARC8ToUnicode
-import mnemonics
 from unicodedata import normalize
+from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
 
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
