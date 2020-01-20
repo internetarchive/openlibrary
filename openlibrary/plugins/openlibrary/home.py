@@ -2,7 +2,6 @@
 """
 import random
 import web
-import simplejson
 import logging
 
 from infogami.utils import delegate
@@ -10,15 +9,12 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary import accounts
-from openlibrary.core import admin, cache, ia, inlibrary, lending, \
+from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
 from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
-from openlibrary.plugins.openlibrary import lists
 
 
 import six
