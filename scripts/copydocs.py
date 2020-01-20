@@ -15,7 +15,6 @@ from __future__ import print_function
 
 from collections import namedtuple
 
-import _init_path
 import sys
 import os
 import simplejson
@@ -23,6 +22,7 @@ import web
 
 from openlibrary.api import OpenLibrary, marshal, unmarshal
 from optparse import OptionParser
+from scripts import _init_path
 
 import six
 
