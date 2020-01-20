@@ -1,32 +1,37 @@
-import web
-import simplejson
+import datetime
+import logging
+import random
+import re
+import xml.etree.ElementTree as etree
+from collections import defaultdict
+try:
+    from UserDict import DictMixin
+except ImportError:
+    from collections.abc import MutableMapping as DictMixin
+
 import babel
 import babel.core
 import babel.dates
-from UserDict import DictMixin
-from collections import defaultdict
-import re
-import random
-import xml.etree.ElementTree as etree
-import datetime
-import gzip
-import StringIO
-import logging
-from HTMLParser import HTMLParser
-
+import memcache
+import simplejson
 import six
-from six.moves import urllib
-
+import web
 from infogami import config
-from infogami.utils import view, delegate, stats
-from infogami.utils.view import render, get_template, public
-from infogami.utils.macro import macro
+from infogami.infobase.client import Changeset, Thing, storify
+from infogami.utils import delegate, stats, view
 from infogami.utils.context import context
-from infogami.infobase.client import Thing, Changeset, storify
-
+from infogami.utils.macro import macro
+from infogami.utils.view import get_template, public, render
+from openlibrary.core import cache
 from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core import cache, ab
+from openlibrary.core.olmarkdown import OLMarkdown
+from openlibrary.plugins.upstream import adapter
+from openlibrary.utils import olmemcache
+from openlibrary.utils.olcompress import OLCompressor
+from six.moves import urllib
+from six.moves.html_parser import HTMLParser
+
 
 class MultiDict(DictMixin):
     """Ordered Dictionary that can store multiple values.
@@ -494,7 +499,6 @@ def _get_edition_config():
     roles = thing.roles
     return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
 
-from openlibrary.core.olmarkdown import OLMarkdown
 def get_markdown(text, safe_mode=False):
     md = OLMarkdown(source=text, safe_mode=safe_mode)
     view._register_mdx_extensions(md)
@@ -519,10 +523,6 @@ def websafe(text):
         return _websafe(text)
 
 
-from openlibrary.utils.olcompress import OLCompressor
-from openlibrary.utils import olmemcache
-import adapter
-import memcache
 
 class UpstreamMemcacheClient:
     """Wrapper to memcache Client to handle upstream specific conversion and OL specific compression.
