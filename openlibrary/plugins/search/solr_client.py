@@ -1,18 +1,19 @@
 #!/usr/bin/python
 from xml.etree.cElementTree import ElementTree
-from cStringIO import StringIO
 import os
 import re
 from collections import defaultdict
 import cgi
 import web
 import simplejson
-from facet_hash import facet_token
 import pdb
 
 import six
+from six import StringIO
 from six.moves.urllib.parse import quote_plus
 from six.moves.urllib.request import urlopen
+
+from openlibrary.plugins.search.facet_hash import facet_token
 
 php_location = "/petabox/setup.inc"
 
