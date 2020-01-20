@@ -1,7 +1,6 @@
 import re
-from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
-from get_subjects import subjects_for_work
-from collections import defaultdict
+from openlibrary.catalog.utils import pick_first_date, tidy_isbn, remove_trailing_dot, remove_trailing_number_dot
+from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from marc_base import BadMARC, NoTitle, MarcException
 
 re_question = re.compile('^\?+$')

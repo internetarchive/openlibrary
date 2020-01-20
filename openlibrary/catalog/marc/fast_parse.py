@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import re
 from pymarc import MARC8ToUnicode
-import mnemonics
+from openlibrary.catalog.marc import mnemonics
 from unicodedata import normalize
 from openlibrary.catalog.utils import tidy_isbn
 

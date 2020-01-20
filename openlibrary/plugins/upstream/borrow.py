@@ -15,16 +15,13 @@ from infogami.utils import delegate
 from infogami.utils.view import public
 from infogami.infobase.utils import parse_datetime
 
-from utils import render_template
-
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
 from openlibrary.core import waitinglist
-from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
-from openlibrary.utils import dateutil
+from openlibrary.utils import dateutil, render_template
 
 from lxml import etree
 
