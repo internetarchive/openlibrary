@@ -5,6 +5,7 @@ import simplejson
 from collections import defaultdict
 import csv
 import datetime
+import logging
 
 from infogami import config
 from infogami.core import code as core
@@ -18,14 +19,11 @@ from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
-import logging
 
-import utils
-from utils import render_template, fuzzy_find
-
-from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
-from . import spamcheck
+from openlibrary.plugins.upstream import utils
+from openlibrary.plugins.upstream.account import as_admin, spamcheck
+from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 import six
 from six import StringIO
