@@ -2,7 +2,6 @@
 from time import time
 import re
 import simplejson
-import httplib
 import logging
 
 import web
