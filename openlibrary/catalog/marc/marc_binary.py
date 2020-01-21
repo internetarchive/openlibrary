@@ -4,6 +4,7 @@ from unicodedata import normalize
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException, BadMARC
 
+
 import six
 
 
