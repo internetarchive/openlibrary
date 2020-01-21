@@ -208,7 +208,9 @@ def clean_amazon_metadata_for_load(metadata):
             conforming_metadata[k] = metadata[k]
     if metadata.get('source_records'):
         asin = metadata.get('source_records')[0].replace('amazon:', '')
-        conforming_metadata['identifiers'] = {'amazon': [asin]}
+        if asin[0].isalpha():
+            # Only store asin if it provides more information than ISBN
+            conforming_metadata['identifiers'] = {'amazon': [asin]}
     title, subtitle = split_amazon_title(metadata['title'])
     conforming_metadata['title'] = title
     if subtitle:
