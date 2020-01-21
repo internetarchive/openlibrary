@@ -131,7 +131,7 @@ def rm_f(filename):
         pass
 
 
-chars = string.letters + string.digits
+chars = string.ascii_letters + string.digits
 
 
 def random_string(n):
