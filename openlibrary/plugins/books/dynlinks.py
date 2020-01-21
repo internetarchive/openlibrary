@@ -332,7 +332,7 @@ def trim(d):
         >>> trim({"a": "x", "b": "", "c": [], "d": {}})
         {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.iteritems() if v)
+    return dict((k, v) for k, v in d.items() if v)
 
 def get_authors(docs):
     """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.
@@ -356,7 +356,7 @@ def process_result_for_details(result):
         d['details'] = doc
         return d
 
-    author_dict = get_authors(result.values())
+    author_dict = get_authors(list(result.values()))
     return dict((k, f(k, doc)) for k, doc in result.items())
 
 def process_result_for_viewapi(result):
