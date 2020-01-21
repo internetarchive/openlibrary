@@ -205,7 +205,7 @@ def get_work_subjects(w):
         'subject_people': 'person',
     }
 
-    for db_field, solr_field in field_map.iteritems():
+    for db_field, solr_field in field_map.items():
         if not w.get(db_field, None):
             continue
         cur = subjects.setdefault(solr_field, {})
@@ -316,7 +316,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
 
             if 'identifiers' in e:
-                for k, id_list in e['identifiers'].iteritems():
+                for k, id_list in e['identifiers'].items():
                     k_orig = k
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
@@ -431,7 +431,7 @@ class SolrProcessor:
             'subject_people': 'person',
         }
 
-        for db_field, solr_field in field_map.iteritems():
+        for db_field, solr_field in field_map.items():
             if not w.get(db_field, None):
                 continue
             cur = subjects.setdefault(solr_field, {})
@@ -792,8 +792,8 @@ def build_data2(w, editions, authors, ia, duplicates):
     for k in 'person', 'place', 'subject', 'time':
         if k not in subjects:
             continue
-        add_field_list(doc, k, subjects[k].keys())
-        add_field_list(doc, k + '_facet', subjects[k].keys())
+        add_field_list(doc, k, list(subjects[k].keys()))
+        add_field_list(doc, k + '_facet', list(subjects[k].keys()))
         subject_keys = [str_to_key(s) for s in subjects[k].keys()]
         add_field_list(doc, k + '_key', subject_keys)
 
@@ -1470,7 +1470,7 @@ def load_configs(c_host, c_config, c_data_provider='default'):
     load_config(c_config)
 
     global _ia_db
-    if 'ia_db' in config.runtime_config.keys():
+    if 'ia_db' in list(config.runtime_config.keys()):
         _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider

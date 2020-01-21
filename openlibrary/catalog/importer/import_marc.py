@@ -245,7 +245,7 @@ def load_part(archive_id, part, start_pos=0):
 
         match = False
         seen = set()
-        for k, v in edition_pool.iteritems():
+        for k, v in edition_pool.items():
             for edition_key in v:
                 if edition_key in seen:
                     continue

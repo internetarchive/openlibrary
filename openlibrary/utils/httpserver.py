@@ -74,7 +74,7 @@ class Respose:
         self.headers = headers
 
     def __call__(self, start_response):
-        start_response(self.status, self.headers.items())
+        start_response(self.status, list(self.headers.items()))
         return self.data
 
 if __name__ == "__main__":

@@ -125,7 +125,7 @@ for ia, ekeys, done in cur.fetchall():
         if len(uniq) == 0:
             continue
         if len(uniq) == 1:
-            master[k] = editions[uniq.values()[0][0]][k]
+            master[k] = editions[list(uniq.values())[0][0]][k]
             continue
 
         if k == 'covers':

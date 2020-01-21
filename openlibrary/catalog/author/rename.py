@@ -120,14 +120,14 @@ def make_redirect(old, new):
         'location': {'connect': 'update', 'value': new['key'] },
         'type': {'connect': 'update', 'value': '/type/redirect' },
     }
-    for k in old.iterkeys():
+    for k in old.keys():
         if k != 'key':
             q[str(k)] = { 'connect': 'update', 'value': None }
     print(site.write(q, comment='replace with redirect'))
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
-    for k, v in from_author.iteritems():
+    for k, v in from_author.items():
         if k in ('name', 'key'):
             continue
         if k in author:
@@ -138,7 +138,7 @@ def copy_fields(from_author, to_author, name):
 
 def update_author(key, new):
     q = { 'key': key, }
-    for k, v in new.iteritems():
+    for k, v in new.items():
         q[k] = { 'connect': 'update', 'value': v }
     print(site.write(q, comment='fix author name'))
 

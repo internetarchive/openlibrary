@@ -63,7 +63,7 @@ for line in open('dups'):
         continue
     if not any(any('birth_date' in j or 'death_date' in j for j in i[1]) for i in found):
         continue
-    names = dict((k, v) for k, v in names.iteritems() if len(set(i['key'] for i in v)) > 1)
+    names = dict((k, v) for k, v in names.items() if len(set(i['key'] for i in v)) > 1)
     if not names:
         continue
     author_replace = {}

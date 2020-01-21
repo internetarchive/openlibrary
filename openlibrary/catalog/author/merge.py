@@ -25,7 +25,7 @@ def norm(s):
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
-    for k, v in from_author.iteritems():
+    for k, v in from_author.items():
         if k in ('name', 'personal_name', 'key', 'last_modified', 'type', 'id', 'revision'):
             continue
         if k in to_author:
@@ -43,7 +43,7 @@ def test_copy_fields():
 
 def update_author(key, new):
     q = { 'key': key, }
-    for k, v in new.iteritems():
+    for k, v in new.items():
         q[k] = { 'connect': 'update', 'value': v }
     print(ol.write(q, comment='merge author'))
 
@@ -114,7 +114,7 @@ def do_normalize(author_key, best_key, authors):
     need_update = False
     a = ol.get(author_key)
     if author_key == best_key:
-        for k, v in a.items():
+        for k, v in list(a.items()):
             if 'date' in k:
                 m = re_number_dot.search(v)
                 if m:
@@ -129,7 +129,7 @@ def do_normalize(author_key, best_key, authors):
             need_update = True
     else:
         best = ol.get(best_key)
-        author_keys = set(k for k in a.keys() + best.keys() if k not in ('key', 'last_modified', 'type', 'id', 'revision'))
+        author_keys = set(k for k in list(a.keys()) + list(best.keys()) if k not in ('key', 'last_modified', 'type', 'id', 'revision'))
         for k in author_keys:
             if k not in best:
                 v = a[k]

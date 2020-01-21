@@ -27,7 +27,7 @@ class Init:
         self.files = []
 
     def start(self):
-        services = self.services.values()
+        services = list(self.services.values())
 
         for s in services:
             s.start()
@@ -46,7 +46,7 @@ class Init:
             self.stop()
 
     def stop(self):
-        services = self.services.values()
+        services = list(self.services.values())
 
         for s in services:
             s.stop()

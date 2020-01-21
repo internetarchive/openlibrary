@@ -49,7 +49,7 @@ def get_seeds(work):
         people = [_get_subject(s, "person:") for s in work.get("subject_people", [])]
         times = [_get_subject(s, "time:") for s in work.get("subject_times", [])]
         d = dict((s['key'], s) for s in subjects + places + people + times if s is not None)
-        return d.values()
+        return list(d.values())
 
     def get(work):
         yield work['key']

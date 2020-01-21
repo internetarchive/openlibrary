@@ -102,7 +102,7 @@ def build_merged(editions):
                 del e[k]
 
     for e in editions:
-        all_keys.update(e.keys())
+        all_keys.update(list(e.keys()))
 
     for k in 'latest_revision', 'revision', 'created', 'last_modified', 'key', 'type', 'genres':
         if k in all_keys:
@@ -185,7 +185,7 @@ def build_merged(editions):
 
         if len(uniq) == 1:
             #merged[k] = uniq.keys()[0]
-            merged[k] = editions[uniq.values()[0][0]][k]
+            merged[k] = editions[list(uniq.values())[0][0]][k]
             continue
 
         if k == 'covers':
@@ -230,7 +230,7 @@ def merge(ia):
     editions = [ol.get(ekey) for ekey in ekeys]
 
     merged = build_merged(editions)
-    all_keys = merged.keys()
+    all_keys = list(merged.keys())
 
     works = []
 
