@@ -4,9 +4,10 @@ Reader and writer for WARC file format version 0.10.
 http://archive-access.sourceforge.net/warc/warc_file_format-0.10.html
 """
 
-import urllib
-import httplib
 import datetime
+
+from six.moves.http_client import HTTPConnection
+from six.moves.urllib.parse import urlparse
 
 WARC_VERSION = "0.10"
 CRLF = "\r\n"
@@ -14,8 +15,8 @@ CRLF = "\r\n"
 class WARCReader:
     """Reader to read records from a warc file.
 
-    >>> import StringIO
-    >>> f = StringIO.StringIO()
+    >>> from six import StringIO
+    >>> f = StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
     >>> w = WARCWriter(f)
@@ -111,7 +112,7 @@ class HTTPFile:
 
     def read(self, size):
         protocol, host, port, path = self.urlsplit(self.url)
-        conn = httplib.HTTPConnection(host, port)
+        conn = HTTPConnection(host, port)
         headers = {'Range': 'bytes=%d-%d' % (self.offset, self.offset + size - 1)}
         conn.request('GET', path, None, headers)
         response = conn.getresponse()
@@ -123,13 +124,16 @@ class HTTPFile:
         """Splits url into protocol, host, port and path.
 
             >>> f = HTTPFile('')
+            >>> f.urlsplit("http://www.google.com")
+            ('http', 'www.google.com', None, '')
             >>> f.urlsplit("http://www.google.com/search?q=hello")
             ('http', 'www.google.com', None, '/search?q=hello')
+            >>> f.urlsplit("http://www.google.com:80/search?q=hello")
+            ('http', 'www.google.com', 80, '/search?q=hello')
         """
-        protocol, rest = urllib.splittype(url)
-        hostport, path = urllib.splithost(rest)
-        host, port = urllib.splitport(hostport)
-        return protocol, host, port, path
+        p = urlparse(url)
+        fullpath = "?".join((p.path, p.query)) if p.path or p.query else ""
+        return p.scheme, p.hostname, p.port, p.path + fullpath
 
 class WARCHeader:
     r"""WARCHeader class represents the header in the WARC file format.
@@ -219,9 +223,9 @@ class WARCRecord:
 class LazyWARCRecord(WARCRecord):
     """Class to create WARCRecord lazily.
 
-    >>> import StringIO
+    >>> from six import StringIO
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
-    >>> f = StringIO.StringIO(str(r1))
+    >>> f = StringIO(str(r1))
     >>> offset = len(str(r1.get_header()))
     >>> r2 = LazyWARCRecord(f, offset, r1.get_header())
     >>> r1 == r2
@@ -247,8 +251,9 @@ class LazyWARCRecord(WARCRecord):
 class WARCWriter:
     r"""Writes to write warc records to file.
 
-    >>> import re, StringIO
-    >>> f = StringIO.StringIO()
+    >>> import re
+    >>> from six import StringIO
+    >>> f = StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo", creation_date="20080808080808", record_id="record_42")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar", creation_date="20080808090909", record_id="record_43")
     >>> w = WARCWriter(f)
