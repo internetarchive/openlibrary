@@ -3,6 +3,7 @@
 """
 
 import re
+from deprecated import deprecated
 from warnings import warn
 
 from openlibrary.catalog.utils import pick_first_date
@@ -45,15 +46,12 @@ want = [
 ]
 
 re_series = re.compile('^(.*) series$', re.I)
+REASON = 'Use corresponding function in openlibrary.catalog.marc.parse instead.'
 
-def deprecated():
-    warn('Deprecated, use corresponding function in openlibrary.catalog.marc.parse instead.',  DeprecationWarning)
-
+@deprecated(REASON)
 def read_lccn(fields):
-    deprecated()
     if '010' not in fields:
         return {}
-
     found = []
     for line in fields['010']:
         for k, v in get_subfields(line, ['a']):
@@ -69,8 +67,8 @@ def read_lccn(fields):
 
     return {'lccn': found}
 
+@deprecated(REASON)
 def read_isbn(fields):
-    deprecated()
     if '020' not in fields:
         return {}
 
@@ -92,11 +90,10 @@ def read_isbn(fields):
             ret.setdefault('isbn_13', []).append(i)
         else:
             ret.setdefault('isbn_10', []).append(i)
-
     return ret
 
+@deprecated(REASON)
 def read_oclc(fields):
-    deprecated()
     if '035' not in fields:
         return {}
 
@@ -111,8 +108,8 @@ def read_oclc(fields):
                 found.append(oclc)
     return {'oclc_number': found } if found else {}
 
+@deprecated(REASON)
 def read_author_person(line):
-    deprecated()
     author = {}
     contents = get_contents(line, ['a', 'b', 'c', 'd'])
     if 'a' not in contents and 'c' not in contents:
@@ -139,8 +136,8 @@ def read_author_person(line):
         author['fuller_name'] = ' '.join(contents['q'])
     return author
 
+@deprecated(REASON)
 def read_authors(fields):
-    deprecated()
     found = []
     author = [tag for tag in fields if tag in ('100', '110', '111')]
     if len(author) == 0:
@@ -160,8 +157,8 @@ def read_authors(fields):
 
     return {'authors': [author]} if author else {}
 
+@deprecated(REASON)
 def read_title(fields):
-    deprecated()
     if '245' not in fields:
         return {}
 
@@ -189,8 +186,8 @@ def read_title(fields):
         edition["physical_format"] = ' '.join(contents['h'])
     return edition
 
+@deprecated(REASON)
 def read_lc_classification(fields):
-    deprecated()
     if '050' not in fields:
         return {}
 
@@ -211,8 +208,8 @@ def read_lc_classification(fields):
     else:
         return {}
 
+@deprecated(REASON)
 def read_dewey(fields):
-    deprecated()
     if '082' not in fields:
         return {}
     found = []
@@ -220,12 +217,12 @@ def read_dewey(fields):
         found += get_subfield_values(line, ['a'])
     return {'dewey_decimal_class': found }
 
+@deprecated(REASON)
 def join_subfield_values(line, subfields):
-    deprecated()
     return ' '.join(get_subfield_values(line, subfields))
 
+@deprecated(REASON)
 def read_work_titles(fields):
-    deprecated()
     found = []
     if '240' in fields:
         for line in fields['240']:
@@ -241,8 +238,8 @@ def read_work_titles(fields):
 
     return { 'work_titles': found } if found else {}
 
+@deprecated(REASON)
 def read_edition_name(fields):
-    deprecated()
     if '250' not in fields:
         return {}
     found = []
@@ -250,8 +247,8 @@ def read_edition_name(fields):
         found += [v for k, v in get_all_subfields(line)]
     return {'edition_name': ' '.join(found)}
 
+@deprecated(REASON)
 def read_publisher(fields):
-    deprecated()
     if '260' not in fields:
         return {}
     publisher = []
@@ -269,8 +266,8 @@ def read_publisher(fields):
         edition["publish_places"] = publish_place
     return edition
 
+@deprecated(REASON)
 def read_pagination(fields):
-    deprecated()
     if '300' not in fields:
         return {}
 
@@ -289,8 +286,8 @@ def read_pagination(fields):
             edition["number_of_pages"] = max(valid)
     return edition
 
+@deprecated(REASON)
 def read_series(fields):
-    deprecated()
     found = []
     for tag in ('440', '490', '830'):
         if tag not in fields:
@@ -313,8 +310,8 @@ def read_series(fields):
                     found.append(s)
     return {'series': found} if found else {}
 
+@deprecated(REASON)
 def read_contributions(fields):
-    deprecated()
     want = [
         ('700', 'abcde'),
         ('710', 'ab'),
@@ -329,16 +326,16 @@ def read_contributions(fields):
             found.append(join_subfield_values(line, subfields))
     return { 'contributions': found } if found else {}
 
+@deprecated(REASON)
 def remove_duplicates(seq):
-    deprecated()
     u = []
     for x in seq:
         if x not in u:
             u.append(x)
     return u
 
+@deprecated(REASON)
 def read_subjects(fields):
-    deprecated()
     want = [
         ('600', 'abcd'),
         ('610', 'ab'),
@@ -360,8 +357,8 @@ def read_subjects(fields):
 
     return {'subjects': found} if found else {}
 
+@deprecated(REASON)
 def read_genres(fields):
-    deprecated()
     found = []
     for tag in '600', '650', '651':
         if tag not in fields:
@@ -370,8 +367,8 @@ def read_genres(fields):
             found += get_subfield_values(line, ['v'])
     return { 'genres': remove_duplicates(found) } if found else {}
 
+@deprecated(REASON)
 def read_translation(fields):
-    deprecated()
     tag = '500'
     if tag not in fields:
         return {}
@@ -386,8 +383,8 @@ def read_translation(fields):
             return { 'translation_of': m.group(2) }
     return {}
 
+@deprecated(REASON)
 def read_notes(fields):
-    deprecated()
     found = []
     for tag in range(500,590):
         if tag in (505, 520) or str(tag) not in fields:
@@ -399,8 +396,8 @@ def read_notes(fields):
                 found.append(' '.join(x))
     return {'notes': '\n\n'.join(found)} if found else {}
 
+@deprecated(REASON)
 def read_toc(fields):
-    deprecated()
     if '505' not in fields:
         return {}
 
@@ -441,8 +438,8 @@ def read_toc(fields):
             found.append(i)
     return { 'table_of_contents': found }
 
+@deprecated(REASON)
 def read_description(fields):
-    deprecated()
     if '520' not in fields:
         return {}
     found = []
@@ -457,8 +454,8 @@ def read_description(fields):
             wrap = False
     return {'description': "\n\n".join(found) } if found else {}
 
+@deprecated(REASON)
 def read_other_titles(fields):
-    deprecated()
     found = []
 
     if '246' in fields:
@@ -481,8 +478,8 @@ def read_other_titles(fields):
 
     return {"other_titles": found} if found else {}
 
+@deprecated(REASON)
 def read_location(fields):
-    deprecated()
     if '852' not in fields:
         return {}
     found = []
@@ -490,8 +487,8 @@ def read_location(fields):
         found += [v for v in get_subfield_values(line, ['a']) if v]
     return { 'location': found } if found else {}
 
+@deprecated(REASON)
 def read_url(fields):
-    deprecated()
     if '856' not in fields:
         return {}
     found = []
@@ -499,8 +496,8 @@ def read_url(fields):
         found += get_subfield_values(line, ['u'])
     return { 'uri': found } if found else {}
 
+@deprecated(REASON)
 def build_record(data):
-    deprecated()
     fields = {}
     for tag, line in handle_wrapped_lines(get_tag_lines(data, want)):
         fields.setdefault(tag, []).append(line)

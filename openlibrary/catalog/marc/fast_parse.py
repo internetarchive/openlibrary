@@ -3,6 +3,7 @@
 """
 
 import re
+from deprecated import deprecated
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
 from warnings import warn
@@ -13,11 +14,11 @@ from openlibrary.catalog.utils import tidy_isbn
 
 re_real_book = re.compile('(pbk|hardcover|alk[^a-z]paper|cloth)', re.I)
 
+@deprecated('Use openlibrary.catalog.marc.MarcBinary instead.')
 def translate(bytes_in, leader_says_marc8=False):
     """
     Converts MARC8 to unicode
     """
-    warn('Deprecated, use openlibrary.catalog.marc.MarcBinary instead', DeprecationWarning)
     marc8 = MARC8ToUnicode(quiet=True)
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
@@ -35,8 +36,8 @@ re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
 re_normalize = re.compile('[^\w ]')
 re_whitespace = re.compile('\s+')
 
+@deprecated
 def normalize_str(s):
-    warn('Deprecated.', DeprecationWarning)
     s = re_normalize.sub('', s.strip())
     s = re_whitespace.sub(' ', s)
     return str(s.lower())
@@ -47,6 +48,7 @@ max_number_of_pages = 50000
 class InvalidMarcFile(Exception):
     pass
 
+@deprecated('Use catalog.marc.parse instead.')
 def read_file(f):
     """
     Generator which seeks? for start of a MARC record and
@@ -56,7 +58,6 @@ def read_file(f):
     :rtype: (str, int)
     :return: Data, length
     """
-    warn('Deprecated, use catalog.marc.parse instead.', DeprecationWarning)
     buf = None
     while True:
         if buf:
@@ -91,6 +92,7 @@ def read_file(f):
             break
         yield (data, int_length)
 
+@deprecated
 def read_author_person(line, is_marc8=False):
     name = []
     name_and_date = []
@@ -114,8 +116,8 @@ class NotBook(Exception):
 class BadDictionary(Exception):
     pass
 
+@deprecated
 def read_title_and_subtitle(data, is_marc8=False):
-    warn('Deprecated.', DeprecationWarning)
     line = get_first_tag(data, set(['245']))
     contents = get_contents(line, ['a', 'b', 'c', 'h'], is_marc8)
 
@@ -130,6 +132,7 @@ def read_title_and_subtitle(data, is_marc8=False):
         subtitle = ' : '.join([x.strip(' /,;:') for x in contents['b']])
     return (title, subtitle)
 
+@deprecated
 def get_raw_subfields(line, want):
     # no translate
     want = set(want)
@@ -138,13 +141,14 @@ def get_raw_subfields(line, want):
         if i and i[0] in want:
             yield i[0], i[1:]
 
+@deprecated('Use catalog.marc.MarcBinary instead.')
 def get_all_subfields(line, is_marc8=False):
-    warn('Deprecated, use catalog.marc.MarcBinary instead', DeprecationWarning)
     for i in line[3:-1].split('\x1f'):
         if i:
             j = translate(i, is_marc8)
             yield j[0], j[1:]
 
+@deprecated
 def get_subfields(line, want, is_marc8=False):
     want = set(want)
     #assert line[2] == '\x1f'
@@ -152,8 +156,8 @@ def get_subfields(line, want, is_marc8=False):
         if i and i[0] in want:
             yield i[0], translate(i[1:], is_marc8)
 
+@deprecated('Use catalog.marc.MarcBinary instead.')
 def read_directory(data):
-    warn('Deprecated, use catalog.marc.MarcBinary instead.', DeprecationWarning)
     dir_end = data.find('\x1e')
     if dir_end == -1:
         raise BadDictionary
@@ -167,8 +171,8 @@ def read_directory(data):
     iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
     return dir_end, iter_dir
 
+@deprecated('Use catalog.marc.MarcBinary instead.')
 def get_tag_line(data, line):
-    warn('Deprecated, use catalog.marc.MarcBinary instead.', DeprecationWarning)
     length = int(line[3:7])
     offset = int(line[7:12])
 
@@ -187,18 +191,21 @@ def get_tag_line(data, line):
             tag_line = tag_line[0] + u'\uFE20' + tag_line[7:]
     return tag_line
 
+@deprecated
 def get_tag_lines(data, want):
     want = set(want)
     dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
     return [(line[:3], get_tag_line(data, line)) for line in iter_dir if line[:3] in want]
 
+@deprecated
 def get_all_tag_lines(data):
     dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
     for line in iter_dir:
         yield (line[:3], get_tag_line(data, line))
 
+@deprecated
 def get_first_tag(data, want): # return first line of wanted tag
     dir_end, iter_dir = read_directory(data)
     data = data[dir_end:]
@@ -208,6 +215,7 @@ def get_first_tag(data, want): # return first line of wanted tag
 
 re_dates = re.compile('^\(?(\d+-\d*|\d*-\d+)\)?$')
 
+@deprecated
 def get_person_content(line, is_marc8=False):
     contents = {}
     for k, v in get_subfields(line, ['a', 'b', 'c', 'd', 'q'], is_marc8):
@@ -216,26 +224,30 @@ def get_person_content(line, is_marc8=False):
         contents.setdefault(k, []).append(v)
     return contents
 
+@deprecated
 def get_contents(line, want, is_marc8=False):
     contents = {}
     for k, v in get_subfields(line, want, is_marc8):
         contents.setdefault(k, []).append(v)
     return contents
 
+@deprecated
 def get_lower_subfields(line, is_marc8=False):
     if len(line) < 4:
         return [] # http://openlibrary.org/show-marc/marc_university_of_toronto/uoft.marc:2479215:693
     return [translate(i[1:], is_marc8) for i in line[3:-1].split('\x1f') if i and i[0].islower()]
 
+@deprecated
 def get_subfield_values(line, want, is_marc8=False):
     return [v for k, v in get_subfields(line, want, is_marc8)]
 
+@deprecated
 def read_control_number(line, is_marc8=False):
     assert line[-1] == '\x1e'
     return [line[:-1]]
 
+@deprecated('Use catalog.marc.parse.read_lccn() instead.')
 def read_lccn(line, is_marc8=False):
-    warn("Deprecated, use catalog.marc.parse.read_lccn() instead", DeprecationWarning)
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         lccn = v.strip()
@@ -250,8 +262,8 @@ def read_lccn(line, is_marc8=False):
             found.append(lccn)
     return found
 
+@deprecated('Use catalog.marc.parse.read_isbn() instead.')
 def read_isbn(line, is_marc8=False):
-    warn("Deprecated, use catalog.marc.parse.read_isbn() instead", DeprecationWarning)
     found = []
     if line.find('\x1f') != -1:
         for k, v in get_raw_subfields(line, ['a', 'z']):
@@ -264,8 +276,8 @@ def read_isbn(line, is_marc8=False):
             found = [m.group(1)]
     return map(str, tidy_isbn(found))
 
+@deprecated('Use catalog.marc.parse.read_oclc() instead.')
 def read_oclc(line, is_marc8=False):
-    warn("Deprecated, use catalog.marc.parse.read_oclc() instead", DeprecationWarning)
     found = []
     for k, v in get_raw_subfields(line, ['a']):
         m = re_oclc.match(v)
@@ -273,17 +285,21 @@ def read_oclc(line, is_marc8=False):
             found.append(m.group(1))
     return found
 
+@deprecated
 def read_publisher(line, is_marc8=False):
     return [i for i in (v.strip(' /,;:') for k, v in get_subfields(line, ['b'], is_marc8)) if i]
 
+@deprecated
 def read_author_org(line, is_marc8=False):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
+@deprecated
 def read_author_event(line, is_marc8=False):
     name = " ".join(v.strip(' /,;:') for k, v in get_subfields(line, ['a', 'b', 'd', 'n'], is_marc8))
     return [{ 'name': name, 'db_name': name, }]
 
+@deprecated
 def add_oclc(edition):
     if 'control_numer' not in edition:
         return
@@ -291,6 +307,7 @@ def add_oclc(edition):
     assert oclc.isdigit()
     edition.setdefault('oclc', []).append(oclc)
 
+@deprecated
 def index_fields(data, want, check_author=True):
     warn('Deprecated.', DeprecationWarning)
     if str(data)[6:8] != 'am': # only want books
@@ -367,6 +384,7 @@ def index_fields(data, want, check_author=True):
         return None
     return edition
 
+@deprecated('Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml).')
 def read_edition(data, accept_electronic=False):
     """
     DEPRECATED: Please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)
@@ -379,7 +397,6 @@ def read_edition(data, accept_electronic=False):
     :return: Edition representation
     :rtype: dict|None
     """
-    warn('Deprecated, please use openlibrary.catalog.marc.parse.read_edition(MarcBinary|MarcXml)', DeprecationWarning)
     is_marc8 = data[9] != 'a'
     edition = {}
     want = ['001', '003', '006', '008', '010', '020', '035', \
@@ -448,8 +465,8 @@ def read_edition(data, accept_electronic=False):
 
     return edition
 
+@deprecated('Use catalog.marc.marc_binary.handle_wrapped_lines() instead.')
 def handle_wrapped_lines(iter):
-    warn('Deprecated, use catalog.marc.marc_binary.handle_wrapped_lines() instead.', DeprecationWarning)
     cur_lines = []
     cur_tag = None
     maybe_wrap = False
@@ -467,8 +484,8 @@ def handle_wrapped_lines(iter):
         yield t, l
     assert not cur_lines
 
+@deprecated('Use catalog.marc.parse instead.')
 def split_line(s):
-    warn('Deprecated, use catalog.marc.parse instead.', DeprecationWarning)
     pos = -1
     marks = []
     while True:
