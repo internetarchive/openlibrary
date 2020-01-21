@@ -13,7 +13,8 @@ from six.moves.urllib.parse import urlencode as real_urlencode
 from six.moves.urllib.request import Request, urlopen
 
 import config
-import oldb
+
+from openlibrary.coverstore import oldb
 
 try:
     file           # Python 2

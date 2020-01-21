@@ -20,9 +20,9 @@ from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_edi
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
 
-from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-import account
-import borrow
+from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream import borrow
+
 import logging
 
 import six
