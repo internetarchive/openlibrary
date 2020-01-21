@@ -6,7 +6,6 @@ import re
 from deprecated import deprecated
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
-from warnings import warn
 
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
@@ -309,12 +308,10 @@ def add_oclc(edition):
 
 @deprecated
 def index_fields(data, want, check_author=True):
-    warn('Deprecated.', DeprecationWarning)
-    if str(data)[6:8] != 'am': # only want books
+    if str(data)[6:8] != 'am':  # only want books
         return None
     is_marc8 = data[9] != 'a'
     edition = {}
-    # ['006', '010', '020', '035', '245']
     author = {
         '100': 'person',
         '110': 'org',
