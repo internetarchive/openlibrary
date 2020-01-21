@@ -6,12 +6,10 @@ import re
 import simplejson as json
 import sys
 import web
-import urllib2
 
 from collections import defaultdict
 from lxml import etree
 from time import sleep, time, strftime
-from urllib import urlopen
 
 from openlibrary.api import OpenLibrary
 from openlibrary.catalog.get_ia import get_from_archive, get_data
@@ -25,6 +23,8 @@ from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.solr.update_work import update_work, solr_update, update_author
 
 import six
+from six.moves import urllib
+from six.moves.urllib.request import urlopen
 
 
 ol = OpenLibrary("http://openlibrary.org")
@@ -137,7 +137,7 @@ def get_work_title(e, mc):
             print('bad record source:', src)
             print('http://openlibrary.org' + e['key'])
             continue
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print(e['key'])
         if not data:
