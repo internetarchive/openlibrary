@@ -148,9 +148,9 @@ class Edition(models.Edition):
         if not self.get('ocaid', None):
             meta = {}
         else:
-            meta = ia.get_metadata(self.ocaid)
-            meta.setdefault('external-identifier', [])
-            meta.setdefault('collection', [])
+            meta = ia.get_meta_xml(self.ocaid)
+            meta.setdefault("external-identifier", [])
+            meta.setdefault("collection", [])
 
         self._ia_meta_fields = meta
         return self._ia_meta_fields
