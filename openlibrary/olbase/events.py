@@ -84,7 +84,7 @@ class MemcacheInvalidater:
         seed are invalidated.
         """
         docs = changeset['docs'] + changeset['old_docs']
-        rx = web.re_compile("(/people/[^/]*)/lists/OL\d+L")
+        rx = web.re_compile(r"(/people/[^/]*)/lists/OL\d+L")
         for doc in docs:
             match = doc and rx.match(doc['key'])
             if match:

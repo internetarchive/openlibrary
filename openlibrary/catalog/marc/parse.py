@@ -4,14 +4,14 @@ from openlibrary.catalog.marc.get_subjects import subjects_for_work
 from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
 
-re_question = re.compile('^\?+$')
-re_lccn = re.compile('([ \dA-Za-z\-]{3}[\d/-]+).*')
-re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
+re_question = re.compile(r'^\?+$')
+re_lccn = re.compile(r'([ \dA-Za-z\-]{3}[\d/-]+).*')
+re_oclc = re.compile(r'^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
-re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
-re_int = re.compile ('\d{2,}')
-re_number_dot = re.compile('\d{3,}\.$')
-re_bracket_field = re.compile('^\s*(\[.*\])\.?\s*$')
+re_ocn_or_ocm = re.compile(r'^oc[nm]0*(\d+) *$')
+re_int = re.compile(r'\d{2,}')
+re_number_dot = re.compile(r'\d{3,}\.$')
+re_bracket_field = re.compile(r'^\s*(\[.*\])\.?\s*$')
 foc = '[from old catalog]'
 
 def strip_foc(s):

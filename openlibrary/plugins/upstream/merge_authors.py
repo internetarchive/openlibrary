@@ -174,7 +174,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         work_keys_2 = web.ctx.site.things(q)
         return edition_keys + work_keys_1 + work_keys_2
 
-re_whitespace = re.compile('\s+')
+re_whitespace = re.compile(r'\s+')
 def space_squash_and_strip(s):
     return re_whitespace.sub(' ', s).strip()
 

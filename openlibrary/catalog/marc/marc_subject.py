@@ -14,7 +14,7 @@ subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 
 # 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
+re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
@@ -133,7 +133,7 @@ Bad source record: %s
     server.sendmail(msg_from, [msg_to], msg)
     server.quit()
 
-re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_work_subjects(w, do_get_mc=True):
     found = set()
     for e in w['editions']:
