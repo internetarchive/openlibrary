@@ -1,12 +1,11 @@
 import re
+
+from openlibrary.catalog.marc.get_subjects import subjects_for_work
+from openlibrary.catalog.marc.marc_base import BadMARC, NoTitle, MarcException
 from openlibrary.catalog.utils import pick_first_date, tidy_isbn, flip_name, remove_trailing_dot, remove_trailing_number_dot
-from get_subjects import subjects_for_work
-from collections import defaultdict
-from marc_base import BadMARC, NoTitle, MarcException
 
 re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
-re_letters = re.compile('[A-Za-z]')
+re_lccn = re.compile('([ \dA-Za-z\-]{3}[\d/-]+).*')
 re_oclc = re.compile('^\(OCoLC\).*?0*(\d+)')
 re_ocolc = re.compile('^ocolc *$', re.I)
 re_ocn_or_ocm = re.compile('^oc[nm]0*(\d+) *$')
@@ -58,10 +57,11 @@ def read_lccn(rec):
             m = re_lccn.search(lccn)
             if not m:
                 continue
-            lccn = re_letters.sub('', m.group(1)).strip()
+            lccn = m.group(1).strip()
+            # zero-pad any dashes so the final digit group has size = 6
+            lccn = lccn.replace('-', '0'*(7 - (len(lccn) - lccn.find('-'))))
             if lccn:
                 found.append(lccn)
-
     return found
 
 def remove_duplicates(seq):
@@ -409,11 +409,6 @@ def read_description(rec):
     found = []
     for f in fields:
         this = [i for i in f.get_subfield_values(['a']) if i]
-        #if len(this) != 1:
-        #    print f.get_all_subfields()
-        # multiple 'a' subfields
-        # marc_loc_updates/v37.i47.records.utf8:5325207:1062
-        # 520: $aManpower policy;$aNusa Tenggara Barat Province
         found += this
     if found:
         return "\n\n".join(found).strip(' ')
@@ -423,7 +418,6 @@ def read_url(rec):
     for f in rec.get_fields('856'):
         contents = f.get_contents(['3', 'u'])
         if not contents.get('u', []):
-            #print repr(f.ind1(), f.ind2()), list(f.get_all_subfields())
             continue
         if '3' not in contents:
             found += [{ 'url': u.strip(' ') } for u in contents['u']]
@@ -632,7 +626,3 @@ def read_edition(rec):
             edition.update(v)
 
     return edition
-
-if __name__ == '__main__':
-    import sys
-    loc = sys.argv[1]

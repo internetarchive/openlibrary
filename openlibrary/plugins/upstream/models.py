@@ -314,7 +314,7 @@ class Edition(models.Edition):
                         name=id.name,
                         label=id.label,
                         value=v,
-                        url=id.get('url') and id.url.replace('@@@', v))
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')))
 
         for name in names:
             process(name, self[name])

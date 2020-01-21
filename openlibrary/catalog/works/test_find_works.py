@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-from find_works import top_rev_wt, has_dot, freq_dict_top, find_works, get_books, find_works2, build_work_title_map, find_works3, find_work_sort
 from openlibrary.catalog.merge.normalize import normalize
+from openlibrary.catalog.works.find_works import top_rev_wt, has_dot, freq_dict_top, find_works, get_books, find_works2, build_work_title_map, find_works3, find_work_sort
+
 
 def test_has_dot():
     assert has_dot('Magic.')
