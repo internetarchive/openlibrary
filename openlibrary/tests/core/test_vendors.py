@@ -3,20 +3,19 @@ from openlibrary.core.vendors import (
     split_amazon_title, clean_amazon_metadata_for_load,
     betterworldbooks_fmt)
 
+
 def test_clean_amazon_metadata_for_load_non_ISBN():
     # results from get_amazon_metadata() -> _serialize_amazon_product()
     # available from /prices?asin=B000KRRIZI
     amazon = {"publishers": ["Dutton"], "languages": [], "price_amt": "74.00", "source_records": ["amazon:B000KRRIZI"], "title": "The Man With the Crimson Box", "url": "https://www.amazon.com/dp/B000KRRIZI/?tag=internetarchi-20", "price": "$74.00 (used)", "number_of_pages": None, "cover": "https://images-na.ssl-images-amazon.com/images/I/31aTq%2BNA1EL.jpg", "qlt": "used", "physical_format": "hardcover", "edition": "First Edition", "publish_date": "1940", "authors": [{"name": "H.S. Keeler"}], "product_group": "Book", "offer_summary": {"total_used": 1, "total_new": 0, "total_collectible": 0, "lowest_used": 7400, "amazon_offers": 0}}
-
     result = clean_amazon_metadata_for_load(amazon)
     # this result is passed to load() from vendors.create_edition_from_amazon_metadata()
     assert isinstance(result['publishers'], list)
     assert result['publishers'][0] == 'Dutton'
     assert result['cover'] == 'https://images-na.ssl-images-amazon.com/images/I/31aTq%2BNA1EL.jpg'
     assert result['authors'][0]['name'] == 'H.S. Keeler'
-    assert result.get('isbn') is None
-    assert result.get('isbn_13') is None
-    assert result.get('isbn_10') is None
+    for isbn in ('isbn', 'isbn_10', 'isbn_13'):
+        assert result.get(isbn) is None
     assert result['identifiers']['amazon'] == ['B000KRRIZI']
     assert result['source_records'] == ['amazon:B000KRRIZI']
     assert result['publish_date'] == '1940'
@@ -32,7 +31,7 @@ def test_clean_amazon_metadata_for_load_ISBN():
     assert result.get('isbn') is None
     assert result.get('isbn_13') == ['9780190906764']
     assert result.get('isbn_10') == [   '0190906766']
-    assert result['identifiers']['amazon'] == ['0190906766']
+    assert result.get('identifiers') is None  # No Amazon id present
     assert result['source_records'] == ['amazon:0190906766']
     assert result['publish_date'] == 'Dec 18, 2018'
     assert result['physical_format'] == 'paperback'
