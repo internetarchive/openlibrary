@@ -192,7 +192,7 @@ def process(data):
 
     if doc.get('t_end'):
         dt = h.parse_datetime(doc.t_end) - h.parse_datetime(doc.t_start)
-        hours = dt.days * 24 + dt.seconds / 3600
+        hours = dt.days * 24 + dt.seconds // 3600
         solrdoc['duration_hours_i'] = hours
 
     #last_updated = h.parse_datetime(doc.get('t_end') or doc.get('t_start'))

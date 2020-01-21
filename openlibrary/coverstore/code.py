@@ -326,7 +326,7 @@ class cover:
     def get_tar_filename(self, coverid, size):
         """Returns tarfile:offset:size for given coverid.
         """
-        tarindex = coverid / 10000
+        tarindex = coverid // 10000
         index = coverid % 10000
         array_offset, array_size = get_tar_index(tarindex, size)
 

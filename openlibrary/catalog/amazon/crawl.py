@@ -196,7 +196,7 @@ def read_page(params):
         print('no results found')
         return total, set(), []
     grand_total = total
-    pages = (total / page_size) + 1
+    pages = (total // page_size) + 1
     print('total:', total, 'pages:', pages)
 
     cats = get_cats(root)
@@ -226,8 +226,8 @@ def read_page(params):
             params_with_cat = params + ",n:" + str(n)
             root = get_url(params_with_cat)
             cat_total = get_total(root)
-            pages = (cat_total / page_size) + 1
-            print('cat_total:', total, 'pages:', total / page_size)
+            pages = (cat_total // page_size) + 1
+            print('cat_total:', total, 'pages:', total // page_size)
             if cat_total > max_results:
                 print('cat_total (%d) > max results (%d)' % (total, max_results))
     #        assert cat_total <= max_results
@@ -243,7 +243,7 @@ def read_page(params):
                 except PersonalizedBooks:
                     print('WARNING: Personalized Books')
                     break
-                print(repr(n, title, page, cat_total / page_size, len(books), "%.1f%%" % percent(len(books), grand_total)))
+                print(repr(n, title, page, cat_total // page_size, len(books), "%.1f%%" % percent(len(books), grand_total)))
 
     return total, books, cats
 

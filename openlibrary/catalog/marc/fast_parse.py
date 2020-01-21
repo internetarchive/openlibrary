@@ -183,9 +183,9 @@ def read_directory(data):
         # sometimes the leader includes some utf-8 by mistake
         directory = data[:dir_end].decode('utf-8')[24:]
         if len(directory) % 12 != 0:
-            print(len(directory) / 12)
+            print(len(directory) // 12)
             raise BadDictionary
-    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+    iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) // 12))
     return dir_end, iter_dir
 
 def get_tag_line(data, line):
