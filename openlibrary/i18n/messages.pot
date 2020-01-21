@@ -3641,8 +3641,8 @@ msgstr ""
 
 #: admin/permissions.html
 msgid ""
-"This updates  and  fields of /, /works, /books and /authors records in "
-"the database."
+"This updates \"permission\" and \"child_permission\" fields of /, /works,"
+" /books and /authors records in the database."
 msgstr ""
 
 #: admin/solr.html
