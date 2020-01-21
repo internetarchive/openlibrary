@@ -132,8 +132,8 @@ class HTTPFile:
             ('http', 'www.google.com', 80, '/search?q=hello')
         """
         p = urlparse(url)
-        fullpath = "?".join((p.path, p.query)) if p.path or p.query else ""
-        return p.scheme, p.hostname, p.port, p.path + fullpath
+        fullpath = "?".join((p.path, p.query)) if (p.path or p.query) else ""
+        return p.scheme, p.hostname, p.port, fullpath
 
 class WARCHeader:
     r"""WARCHeader class represents the header in the WARC file format.
