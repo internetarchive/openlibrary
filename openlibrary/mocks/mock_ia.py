@@ -10,21 +10,21 @@ def mock_ia(request, monkeypatch):
         from openlibrary.core import ia
 
         def test_ia(mock_ia):
-            assert ia.get_metadata("foo") == {}
+            assert ia.get_meta_xml("foo") == {}
 
-            mock_ia.set_metadata("foo", {"collection": ["a", "b"]})
-            assert ia.get_metadata("foo") == {"collection": ["a", "b"]}
+            mock_ia.set_meta_xml("foo", {"collection": ["a", "b"]})
+            assert ia.get_meta_xml("foo") == {"collection": ["a", "b"]}
     """
-    metadata = {}
+    metaxml = {}
 
     class IA:
-        def set_metadata(self, itemid, meta):
-            metadata[itemid] = meta
+        def set_meta_xml(self, itemid, meta):
+            metaxml[itemid] = meta
 
-        def get_metadata(self, itemid):
-            return metadata.get(itemid, {})
+        def get_meta_xml(self, itemid):
+            return metaxml.get(itemid, {})
 
     mock_ia = IA()
-    monkeypatch.setattr(ia, 'get_metadata', ia.get_metadata)
+    monkeypatch.setattr(ia, "get_meta_xml", ia.get_meta_xml)
 
     return mock_ia

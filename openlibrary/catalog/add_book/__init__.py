@@ -542,7 +542,6 @@ def load_data(rec, account=None):
     cover_id = None
     if cover_url:
         cover_id = add_cover(cover_url, ekey, account=account)
-    if cover_id:
         edition['covers'] = [cover_id]
 
     edits = []  # Things (Edition, Work, Authors) to be saved
