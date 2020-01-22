@@ -44,7 +44,7 @@ class TestSponsorship:
         # Simulating exception / API call failure ...
         monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: {'invalid': 'json'})
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: {'invalid': 'json'})
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == False
         assert matches == []
@@ -52,14 +52,14 @@ class TestSponsorship:
         # Check archive.org promise items, previous sponsorships ...
         monkeypatch.setattr(sponsorships.lending, 'get_work_availability',
                             lambda work_id: mock_availability__need)
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: None)
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: None)
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == False
         assert matches == []
 
         # We need a copy ...
         r = storage({'json': lambda: {"response": 1}})
-        monkeypatch.setattr(sponsorships.requests, 'get', lambda url: r)
+        monkeypatch.setattr(sponsorships.requests, 'get', lambda url, **kwargs: r)
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == True
         assert matches == []
