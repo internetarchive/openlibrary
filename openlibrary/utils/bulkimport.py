@@ -257,7 +257,7 @@ class Reindexer:
         return documents
 
     def delete_earlier_index(self, documents, tables=None):
-        """Remove all prevous entries corresponding to the given documents"""
+        """Remove all previous entries corresponding to the given documents"""
         all_tables = tables or set(r.relname for r in self.db.query(
                 "SELECT relname FROM pg_class WHERE relkind='r'"))
 

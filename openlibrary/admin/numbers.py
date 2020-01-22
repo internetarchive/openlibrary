@@ -228,7 +228,7 @@ def _query_count(db, table, type, property, distinct=False):
 
 def admin_total__ebooks(**kargs):
     # Anand - Dec 2014
-    # The following implementaiton is too slow. Disabling for now.
+    # The following implementation is too slow. Disabling for now.
     return 0
 
     db = kargs['thingdb']

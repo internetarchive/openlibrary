@@ -613,7 +613,7 @@ class Loan(dict):
 
         web.ctx.site.store[self['_key']] = self
 
-        # Inform listers that a loan is creted/updated
+        # Inform listers that a loan is created/updated
         msgbroker.send_message("loan-created", self)
 
     def is_expired(self):

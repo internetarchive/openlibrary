@@ -78,7 +78,7 @@ class MemcacheInvalidater:
         return ["d" + c['key'] for c in changeset['changes']]
 
     def find_lists(self, changeset):
-        """Returns the list entires effected by this change.
+        """Returns the list entries effected by this change.
 
         When a list is modified, the data of the user and the data of each
         seed are invalidated.

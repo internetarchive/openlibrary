@@ -104,7 +104,7 @@ def get_schema():
     return schema
 
 def register_schema():
-    """Register the schema definied in this module as the default schema."""
+    """Register the schema defined in this module as the default schema."""
     dbstore.default_schema = get_schema()
 
 if __name__ == "__main__":
