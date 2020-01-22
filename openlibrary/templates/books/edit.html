@@ -141,7 +141,7 @@ window.q.push( function(){
 
         $:macros.EditButtons(comment=work.comment_)
 
-        $if ctx.user and ctx.user.is_admin():
+        $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             <div class="adminOnly" style="position:absolute;top:20px;right:20px;"><button type="submit" value="$_('Delete Record')" name="_delete" title="$_('Delete this book?')" id="deleteTop">$_("Delete Record")</button></div>
 
     </form>
