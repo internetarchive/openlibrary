@@ -39,7 +39,7 @@ def parse_meta_headers(edition_builder):
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    re_meta = re.compile('HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
+    re_meta = re.compile(r'HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
     for k, v in web.ctx.env.items():
         m = re_meta.match(k)
         if m:
@@ -170,7 +170,7 @@ class ia_importapi(importapi):
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
-            re_bulk_identifier = re.compile("([^/]*)/([^:]*):(\d*):(\d*)")
+            re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)

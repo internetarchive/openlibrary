@@ -51,7 +51,7 @@ def split_key(bib_key):
         value = bib_key
 
     # treat OLxxxM as OLID
-    re_olid = web.re_compile('OL\d+M(@\d+)?')
+    re_olid = web.re_compile(r'OL\d+M(@\d+)?')
     if key is None and re_olid.match(bib_key.upper()):
         key = 'olid'
         value = bib_key.upper()

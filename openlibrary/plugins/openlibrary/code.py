@@ -210,7 +210,7 @@ class addbook(delegate.page):
         return edit().POST(key)
 
 class widget(delegate.page):
-    path = "/(works|books)/(OL\d+[W|M])/widget"
+    path = r"/(works|books)/(OL\d+[W|M])/widget"
 
     def GET(self, _type, olid=None):
         if olid:
@@ -770,7 +770,7 @@ class memory(delegate.page):
 
 
 def is_bot():
-    """Generated on ol-www1 within /var/log/nginx with:
+    r"""Generated on ol-www1 within /var/log/nginx with:
 
     cat access.log | grep -oh "; \w*[bB]ot" | sort --unique | awk '{print tolower($2)}'
     cat access.log | grep -oh "; \w*[sS]pider" | sort --unique | awk '{print tolower($2)}'

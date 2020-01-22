@@ -29,7 +29,7 @@ if hasattr(config, 'plugin_worksearch'):
 
     default_spellcheck_count = config.plugin_worksearch.get('spellcheck_count', 10)
 
-re_author_facet = re.compile('^(OL\d+A) (.*)$')
+re_author_facet = re.compile(r'^(OL\d+A) (.*)$')
 def read_author_facet(af):
     # example input: "OL26783A Leo Tolstoy"
     return re_author_facet.match(af).groups()
@@ -81,7 +81,7 @@ def read_facets(root):
     return facets
 
 
-re_isbn_field = re.compile('^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
+re_isbn_field = re.compile(r'^\s*(?:isbn[:\s]*)?([-0-9X]{9,})\s*$', re.I)
 
 re_author_key = re.compile(r'(OL\d+A)')
 
@@ -103,7 +103,7 @@ def parse_query_fields(q):
     found = [(m.start(), m.end()) for m in re_fields.finditer(q)]
     first = q[:found[0][0]].strip() if found else q.strip()
     if first:
-        yield {'field': 'text', 'value': first.replace(':', '\:')}
+        yield {'field': 'text', 'value': first.replace(':', r'\:')}
     for field_num in range(len(found)):
         op_found = None
         f = found[field_num]
@@ -122,7 +122,7 @@ def parse_query_fields(q):
             isbn = normalize_isbn(v)
             if isbn:
                 v = isbn
-        yield {'field': field_name, 'value': v.replace(':', '\:')}
+        yield {'field': field_name, 'value': v.replace(':', r'\:')}
         if op_found:
             yield {'op': op_found }
 
@@ -145,7 +145,7 @@ def build_q_list(param):
             if isbn:
                 q_list.append('isbn:(%s)' % isbn)
             else:
-                q_list.append(q_param.strip().replace(':', '\:'))
+                q_list.append(q_param.strip().replace(':', r'\:'))
                 use_dismax = True
     else:
         if 'author' in param:
@@ -378,7 +378,7 @@ subject_types = {
     'subjects': 'subject',
 }
 
-re_year_range = re.compile('^(\d{4})-(\d{4})$')
+re_year_range = re.compile(r'^(\d{4})-(\d{4})$')
 
 def work_object(w): # called by works_by_author
     ia = w.get('ia', [])
@@ -413,7 +413,7 @@ def get_facet(facets, f, limit=None):
     return list(web.group(facets[f][:limit * 2] if limit else facets[f], 2))
 
 
-re_olid = re.compile('^OL\d+([AMW])$')
+re_olid = re.compile(r'^OL\d+([AMW])$')
 olid_urls = {'A': 'authors', 'M': 'books', 'W': 'works'}
 
 class search(delegate.page):
@@ -597,7 +597,7 @@ class advancedsearch(delegate.page):
         return template
 
 class merge_author_works(delegate.page):
-    path = "/authors/(OL\d+A)/merge-works"
+    path = r"/authors/(OL\d+A)/merge-works"
     def GET(self, key):
         works = works_by_author(key)
 

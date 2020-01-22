@@ -30,11 +30,11 @@ from six.moves.urllib.request import urlopen
 ol = OpenLibrary("http://openlibrary.org")
 
 re_skip = re.compile(r'\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon|etc)\.$')
-re_work_key = re.compile('^/works/OL(\d+)W$')
+re_work_key = re.compile(r'^/works/OL(\d+)W$')
 re_lang_key = re.compile('^/(?:l|languages)/([a-z]{3})$')
-re_author_key = re.compile('^/(?:a|authors)/(OL\d+A)$')
+re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)$')
 
-re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 
 ns = '{http://www.loc.gov/MARC21/slim}'
 ns_leader = ns + 'leader'
@@ -56,7 +56,7 @@ def get_with_retry(k):
 #set_staging(True)
 
 # sample title: The Dollar Hen (Illustrated Edition) (Dodo Press)
-re_parens = re.compile('^(.*?)(?: \(.+ (?:Edition|Press|Print|Plays|Collection|Publication|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
+re_parens = re.compile(r'^(.*?)(?: \(.+ (?:Edition|Press|Print|Plays|Collection|Publication|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
 
 def top_rev_wt(d):
     d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))

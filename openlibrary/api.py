@@ -256,7 +256,7 @@ def parse_datetime(value):
     if isinstance(value, datetime.datetime):
         return value
     else:
-        tokens = re.split('-|T|:|\.| ', value)
+        tokens = re.split(r'-|T|:|\.| ', value)
         return datetime.datetime(*map(int, tokens))
 
 

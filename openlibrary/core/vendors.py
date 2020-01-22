@@ -17,7 +17,7 @@ from openlibrary import accounts
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
 BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
-AMAZON_FULL_DATE_RE = re.compile('\d{4}-\d\d-\d\d')
+AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 @public
@@ -177,7 +177,7 @@ def split_amazon_title(full_title):
 
     # strip parenthetical blocks wherever they occur
     # can handle 1 level of nesting
-    re_parens_strip = re.compile('\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    re_parens_strip = re.compile(r'\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
     full_title = re.sub(re_parens_strip, '', full_title)
 
     titles = full_title.split(':')
@@ -317,8 +317,8 @@ def _get_betterworldbooks_metadata(isbn):
     try:
         response = requests.get(url).content
         new_qty = re.findall("<TotalNew>([0-9]+)</TotalNew>", response)
-        new_price = re.findall("<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
-        used_price = re.findall("<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
+        new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
+        used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
         used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
 
         price = qlt = None

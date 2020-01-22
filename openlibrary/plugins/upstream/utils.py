@@ -189,7 +189,7 @@ def fuzzy_find(value, options, stopwords=[]):
     if not options:
         return value
 
-    rx = web.re_compile("[-_\.&, ]+")
+    rx = web.re_compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -448,7 +448,7 @@ def parse_toc_row(line):
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', '')
     """
-    RE_LEVEL = web.re_compile("(\**)(.*)")
+    RE_LEVEL = web.re_compile(r"(\**)(.*)")
     level, text = RE_LEVEL.match(line.strip()).groups()
 
     if "|" in text:
@@ -576,7 +576,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile("reverted to revision \d+")
+    re_revert = web.re_compile(r"reverted to revision \d+")
     def is_revert(r):
         return re_revert.match(r.comment or "")
 

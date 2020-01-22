@@ -83,13 +83,13 @@ def test_query_parser_fields():
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'text', 'value': 'flatland\:a romance of many dimensions'},
+        {'field': 'text', 'value': r'flatland\:a romance of many dimensions'},
     ]
     q = 'flatland:a romance of many dimensions'
     assert list(func(q)) == expect
 
     expect = [
-        { 'field': 'title', 'value': 'flatland\:a romance of many dimensions'},
+        { 'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
     ]
     q = 'title:flatland:a romance of many dimensions'
     assert list(func(q)) == expect

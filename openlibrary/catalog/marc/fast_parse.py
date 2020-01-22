@@ -25,15 +25,15 @@ def translate(bytes_in, leader_says_marc8=False):
         data = bytes_in.decode('utf-8')
     return normalize('NFC', data)
 
-re_question = re.compile('^\?+$')
-re_lccn = re.compile('(...\d+).*')
+re_question = re.compile(r'^\?+$')
+re_lccn = re.compile(r'(...\d+).*')
 re_letters_and_bad = re.compile('[A-Za-z\x80-\xff]')
-re_int = re.compile ('\d{2,}')
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
-re_oclc = re.compile ('^\(OCoLC\).*?0*(\d+)')
+re_int = re.compile (r'\d{2,}')
+re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_oclc = re.compile (r'^\(OCoLC\).*?0*(\d+)')
 
-re_normalize = re.compile('[^\w ]')
-re_whitespace = re.compile('\s+')
+re_normalize = re.compile(r'[^\w ]')
+re_whitespace = re.compile(r'\s+')
 
 @deprecated
 def normalize_str(s):

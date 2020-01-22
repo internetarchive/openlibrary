@@ -278,7 +278,7 @@ class Solr_client(object):
             which this function extracts asa a locator and
             a leaf number ('adventsuburbanit00butlrich', 65). """
 
-            g = re.search('(.*)_(\d{4})\.djvu$', page_id)
+            g = re.search(r'(.*)_(\d{4})\.djvu$', page_id)
             a,b = g.group(1,2)
             return a, int(b)
 

@@ -14,7 +14,7 @@ re_large_book = re.compile('large.*book', re.I)
 
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
-re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_marc_source(w):
     found = set()
     for e in w['editions']:
@@ -67,7 +67,7 @@ def flip_place(s):
     return m.group(2) + ' ' + m.group(1) if m else s
 
 # 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
+re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_aspects = re.compile(' [Aa]spects$')
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')

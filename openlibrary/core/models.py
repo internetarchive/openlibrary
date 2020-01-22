@@ -214,7 +214,7 @@ class Edition(Thing):
 
     def get_publish_year(self):
         if self.publish_date:
-            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
     def get_lists(self, limit=50, offset=0, sort=True):
