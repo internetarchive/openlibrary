@@ -208,7 +208,7 @@ class ItemEdition(dict):
 
     @classmethod
     def is_valid_item(cls, itemid, metadata):
-        """Returns True if the item with metadata can be usable as edition
+        """Returns True if the item with metadata can be useable as edition
         in Open Library.
 
         Items that are not book scans, darked or with noindex=true etc. are
@@ -229,8 +229,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represented as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
@@ -249,8 +248,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represented as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if not isinstance(value, list):
                 value = [value]
