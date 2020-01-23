@@ -315,7 +315,7 @@ def make_ia_db(editions_dump_file):
             print >> f, ocaid
             """
             if ocaid:
-                metaxml = ia.get_meta_xml(ocaid)
+                metaxml = ia.get_metadata(ocaid)
                 db[ocaid] = simplejson.dumps(metaxml)
             """
     f.close()
