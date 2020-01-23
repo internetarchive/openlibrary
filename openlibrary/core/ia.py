@@ -47,9 +47,6 @@ def _get_metadata(itemid):
     url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
     return get_api_response(url)
 
-# cache the results in memcache for a minute
-_get_metadata = web.memoize(_get_metadata, expires=60)
-
 
 def get_metadata(itemid):
     item_json = _get_metadata(itemid)
