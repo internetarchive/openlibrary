@@ -29,6 +29,9 @@ RUN apt-get -qq update && apt-get install -y \
     python-psycopg2 \
     python-yaml
 
+# Update pip to at least 9.0
+RUN pip install --upgrade pip==9
+
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
     && apt-get install -y nodejs
