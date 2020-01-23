@@ -1,7 +1,6 @@
 """Library for interacting wih archive.org.
 """
 import os
-import urllib2
 import datetime
 from xml.dom import minidom
 import simplejson
@@ -9,10 +8,11 @@ import web
 import logging
 from infogami import config
 from infogami.utils import stats
-import cache
+from openlibrary.core import cache
 from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
+from six.moves.urllib.request import urlopen
 
 logger = logging.getLogger('openlibrary.ia')
 
@@ -23,7 +23,7 @@ def get_item_json(itemid):
     url = 'http://archive.org/metadata/%s' % itemid
     try:
         stats.begin('archive.org', url=url)
-        metadata_json = urllib2.urlopen(url).read()
+        metadata_json = urlopen(url).read()
         stats.end()
         return simplejson.loads(metadata_json)
     except IOError:
@@ -73,7 +73,7 @@ def _old_get_meta_xml(itemid):
     url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
     try:
         stats.begin('archive.org', url=url)
-        metaxml = urllib2.urlopen(url).read()
+        metaxml = urlopen(url).read()
         stats.end()
     except IOError:
         logger.error("Failed to download _meta.xml for %s", itemid, exc_info=True)
@@ -131,7 +131,7 @@ def _get_metadata(itemid):
     url = "http://www.archive.org/metadata/%s" % itemid
     try:
         stats.begin("archive.org", url=url)
-        text = urllib2.urlopen(url).read()
+        text = urlopen(url).read()
         stats.end()
         return simplejson.loads(text)
     except (IOError, ValueError):
@@ -163,7 +163,7 @@ def get_item_manifest(item_id, item_server, item_path):
     url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
     try:
         stats.begin("archive.org", url=url)
-        manifest_json = urllib2.urlopen(url).read()
+        manifest_json = urlopen(url).read()
         stats.end()
         return simplejson.loads(manifest_json)
     except IOError:
