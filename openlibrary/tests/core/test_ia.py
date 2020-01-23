@@ -9,14 +9,14 @@ def test_xml2dict():
     assert ia.xml2dict("<metadata><x>1</x><x>2</x></metadata>", x=[]) == {"x": ["1", "2"]}
 
 def test_get_metaxml(monkeypatch, mock_memcache):
-    import StringIO
-    import urllib2
+    from six import StringIO
+    import six.moves.urllib.request
 
     metadata_json = None
     def urlopen(url):
-        return StringIO.StringIO(metadata_json)
+        return StringIO(metadata_json)
 
-    monkeypatch.setattr(urllib2, "urlopen", urlopen)
+    monkeypatch.setattr(six.moves.urllib.request, "urlopen", urlopen)
 
     # test with correct xml
     metadata_json = """{
