@@ -10,6 +10,7 @@ import string
 import simplejson
 import uuid
 import logging
+import requests
 
 import lepl.apps.rfc3696
 import web
@@ -22,6 +23,10 @@ from openlibrary.core import stats, helpers
 
 from six.moves import urllib
 
+try:
+    from json.decoder import JSONDecodeError
+except ImportError:
+    JSONDecodeError = ValueError
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -531,7 +536,8 @@ class InternetArchiveAccount(web.storage):
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None,
               xauth_url=None, **data):
         from openlibrary.core import lending
-        url = "%s?op=%s" % (xauth_url or lending.config_ia_xauth_api_url, op)
+        url = xauth_url or lending.config_ia_xauth_api_url
+        params = {'op': op}
         data.update({
             'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
             'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret')
@@ -547,21 +553,14 @@ class InternetArchiveAccount(web.storage):
         if op == 'create' and 'service' in data:
             data['activation-type'] = data.pop('service')
 
-        payload = simplejson.dumps(data)
         if test:
-            url += "&developer=%s" % test
+            params['developer'] = test
+
+        response = requests.post(url, params=params, json=data)
         try:
-            req = urllib.request.Request(url, payload, {
-                'Content-Type': 'application/json'})
-            f = urllib.request.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib.error.HTTPError as e:
-            try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+            return response.json()
+        except JSONDecodeError:
+            return {'error': response.content, 'code': response.status_code}
 
     @classmethod
     def s3auth(cls, access_key, secret_key):
