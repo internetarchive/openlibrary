@@ -51,7 +51,7 @@ RUN pip install --disable-pip-version-check --default-timeout=100 -r requirement
 
 USER openlibrary
 COPY package*.json ./
-RUN npm install
+RUN npm ci
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
