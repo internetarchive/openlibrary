@@ -24,13 +24,10 @@ RUN apt-get -qq update && apt-get install -y \
     screen \
     python-dev \
     python-pip \
-    libgeoip-dev \
-    python-lxml \
-    python-psycopg2 \
-    python-yaml
+    libgeoip-dev
 
-# Update pip to at least 9.0
-RUN pip install --upgrade pip==9
+# Update pip to match production
+RUN pip install --upgrade --disable-pip-version-check pip==19.3.1
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
