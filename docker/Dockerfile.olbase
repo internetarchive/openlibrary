@@ -7,7 +7,7 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary openlibrary \
+  && useradd --no-log-init --system --gid openlibrary --create-home --home /openlibrary openlibrary \
   && useradd --no-log-init --system --gid openlibrary solrupdater
 
 RUN apt-get -qq update && apt-get install -y \
@@ -43,20 +43,20 @@ RUN ln -s /openlibrary/conf/nginx/sites-available/openlibrary.conf /etc/nginx/si
 RUN mkdir -p /var/log/openlibrary /var/lib/openlibrary \
     && chown openlibrary:openlibrary /var/log/openlibrary /var/lib/openlibrary
 
-RUN mkdir /openlibrary && chown openlibrary:openlibrary /openlibrary
 WORKDIR /openlibrary
 
-COPY requirements*.txt ./
+COPY --chown=openlibrary:openlibrary requirements*.txt ./
 RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
 
+USER openlibrary
 COPY package*.json ./
 RUN npm install
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
-USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
+RUN npm update caniuse-lite browserslist
 RUN make
 
 # Expose Open Library and Infobase
