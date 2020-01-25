@@ -30,7 +30,7 @@ RUN apt-get -qq update && apt-get install -y \
 RUN pip install --upgrade --disable-pip-version-check pip==19.3.1
 
 # Install LTS version of node.js
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash - \
     && apt-get install -y nodejs
 
 # enable users to bind to port 80
