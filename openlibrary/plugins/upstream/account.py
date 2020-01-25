@@ -216,6 +216,9 @@ class account_create(delegate.page):
         return page
 
     def get_form(self):
+        """
+        :rtype: forms.RegisterForm
+        """
         f = forms.Register()
         recap = self.get_recap()
         f.has_recaptcha = recap is not None
@@ -233,23 +236,21 @@ class account_create(delegate.page):
         return name in delegate.get_plugins() or "openlibrary.plugins." + name in delegate.get_plugins()
 
     def POST(self):
-        i = web.input('email', 'password', 'username')
-        i.displayname = i.get('displayname') or i.username
+        f = self.get_form()  # type: forms.RegisterForm
 
-        f = self.get_form()
-
-        if f.validates(i):
+        if f.validates(web.input()):
             try:
                 # Create ia_account: require they activate via IA email
                 # and then login to OL. Logging in after activation with
                 # IA credentials will auto create and link OL account.
+                notifications = ['announce-general'] if f.ia_newsletter.checked else []
                 InternetArchiveAccount.create(
-                    screenname=i.username, email=i.email, password=i.password,
-                    verified=False, retries=USERNAME_RETRIES)
-                page = render['account/verify'](username=i.username, email=i.email)
+                    screenname=f.username.value, email=f.email.value, password=f.password.value,
+                    notifications=notifications, verified=False, retries=USERNAME_RETRIES)
+                page = render['account/verify'](username=f.username.value, email=f.email.value)
                 page.v2 = True
                 return page
-            except ValueError as e:
+            except ValueError:
                 f.note = LOGIN_ERRORS['max_retries_exceeded']
 
         page = render['account/create'](f)

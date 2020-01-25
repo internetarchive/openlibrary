@@ -91,8 +91,18 @@ class Password(Input):
 class Checkbox(Input):
     """Checkbox input."""
 
+    @property
+    def checked(self):
+        return self.value is not None
+
     def get_type(self):
         return "checkbox"
+
+    def render(self):
+        if self.value is not None:
+            self.attrs['checked'] = ''
+
+        return Input.render(self)
 
 class Hidden(Input):
     """Hidden input.
