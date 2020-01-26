@@ -67,19 +67,19 @@ $if q and 'error' not in results:
                         return "other"
                 type = find_type()
                 if type == "type_time":
-                    note = '<span class="teal">$_("time")</span>'
+                    note = '<span class="teal">' + _("time") + '</span>'
                 elif type == "type_subject":
-                    note = '<span class="darkgreen">$_("subject")</span>'
+                    note = '<span class="darkgreen">' + _("subject") + '</span>'
                 elif type == "type_place":
-                    note = '<span class="orange">$_("place")</span>'
+                    note = '<span class="orange">' + _("place") + '</span>'
                 elif type == "type_org":
-                    note = '<span class="blue">$_("org")</span>'
+                    note = '<span class="blue">' + _("org") + '</span>'
                 elif type == "type_event":
-                    note = '<span class="grey">$_("event")</span>'
+                    note = '<span class="grey">' + _("event") + '</span>'
                 elif type == "type_person":
-                    note = '<span class="red">$_("person")</span>'
+                    note = '<span class="red">' + _("person") + '</span>'
                 elif type == "type_work":
-                    note = '<span class="black">$_("work")</span>'
+                    note = '<span class="black">' + _("work") + '</span>'
                 else:
                     note = doc['type']
             <span class="count">&nbsp;&nbsp;<b>$ungettext('1 book', '%(count)s books', doc['count'], count=commify(doc['count']))</b>, $:note</span>

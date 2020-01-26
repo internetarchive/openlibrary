@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-18 21:07-0500\n"
+"POT-Creation-Date: 2020-01-25 21:33-0500\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -17,7 +17,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #: account.py:365 account.py:400 password/reset_success.html:10 verify.html:9
 #: verify/activated.html:10 verify/success.html:10
@@ -448,13 +448,13 @@ msgstr "Écrit en %(lang)s"
 msgid "Times"
 msgstr "Dates"
 
-#: view.html:116 view.html:286
-msgid "About the Book"
-msgstr "À propos du livre"
-
-#: view.html:289
+#: view.html:286
 msgid "About the Edition"
 msgstr "À propos de l'édition"
+
+#: view.html:116 view.html:289
+msgid "About the Book"
+msgstr "À propos du livre"
 
 #: view.html:293
 #, python-format
@@ -1677,8 +1677,8 @@ msgid "WARNING: Any edits made to the work from this page will be ignored."
 msgstr "ATTENTION: Toute modification de l'œuvre depuis cette page sera ignorées."
 
 #: edit/edition.html:210
-msgid "There are occasionally title variants amongst editions."
-msgstr "Il y a parfois des variations de titre entre les éditions."
+msgid "Enter the title of this specific edition."
+msgstr "Entrez le titre cette édition spécifique."
 
 #: edit/edition.html:219
 msgid "Subtitle"
@@ -1701,8 +1701,14 @@ msgid "Is it known by any other titles?"
 msgstr "Est-elle connue par d'autres titres?"
 
 #: edit/edition.html:248
-msgid "Perhaps in another language?"
-msgstr "Peut-être dans une autre langue?"
+msgid ""
+"Use this field if the title is different on the cover or spine. If the "
+"edition is a collection or anthology, you may also add the individual "
+"titles of each work here."
+msgstr ""
+"Utilisez ce champ si le titre est différent sur la couverture ou le dos. Si le"
+"l'édition est une collection ou une anthologie, vous pouvez également ajouter l'individu"
+"les titres de chaque oeuvre ici."
 
 #: edit/edition.html:252
 msgid "is an alternate title for"
@@ -2847,7 +2853,9 @@ msgstr "Pas de enregistrement principal"
 
 #: authors.html:67
 msgid "You must select a master record to point the duplicates toward."
-msgstr "Vous devez sélectionner un enregistrement maître pour pointer les doublons vers"
+msgstr ""
+"Vous devez sélectionner un enregistrement maître pour pointer les "
+"doublons vers"
 
 #: authors.html:70
 msgid "Please Be Careful..."
@@ -3081,7 +3089,7 @@ msgstr[1] "%(count)s résultats"
 msgid "No hits"
 msgstr "Aucun résultat"
 
-#: authors.html:66 subjects.html:89
+#: authors.html:66 subjects.html:48 subjects.html:105
 #, python-format
 msgid "1 book"
 msgid_plural "%(count)s books"
@@ -3121,6 +3129,34 @@ msgstr "Recherche d'éditeur"
 #: subjects.html:19
 msgid "Subject Search"
 msgstr "Recherche par sujet"
+
+#: subjects.html:47 subjects.html:90
+msgid "time"
+msgstr "Période"
+
+#: subjects.html:92
+msgid "subject"
+msgstr "Genre"
+
+#: subjects.html:94
+msgid "place"
+msgstr "Lieu"
+
+#: subjects.html:96
+msgid "org"
+msgstr "Organization"
+
+#: subjects.html:98
+msgid "event"
+msgstr "Événement"
+
+#: subjects.html:100
+msgid "person"
+msgstr "Personne"
+
+#: subjects.html:102
+msgid "work"
+msgstr "Œuvre"
 
 #: around_the_library.html:52
 msgid "View all recent changes"
@@ -3465,7 +3501,7 @@ msgstr "Vraiment rendre ce livre?"
 msgid "Buy this book"
 msgstr ""
 
-#: openlibrary/macros/databarWork.html:81
+#: openlibrary/macros/databarWork.html:83
 msgid "External Links"
 msgstr "Liens externe"
 
@@ -3506,6 +3542,10 @@ msgstr "Vous êtes <strong>suivant</strong> sur la liste d'attente"
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr "Vous êtes <strong>#%(spot)d</strong> de %(wlsize)d sur la liste d'attente."
 
+#: openlibrary/macros/Pager.html:26
+msgid "First"
+msgstr "Première"
+
 #: openlibrary/macros/SearchResultsWork.html:35
 msgid "Unknown author"
 msgstr "Auteur inconnu"
@@ -3519,13 +3559,17 @@ msgstr "- première publication en %(year)s"
 msgid "Download DAISY"
 msgstr "Télécharger DAISY"
 
-#: openlibrary/macros/SocialShare.html:11
+#: openlibrary/macros/SocialShare.html:16
 msgid "Share this book"
 msgstr "Partager ce livre?"
 
-#: openlibrary/macros/SocialShare.html:22
+#: openlibrary/macros/SocialShare.html:31
 msgid "Embed this book in your website"
 msgstr "Intégrez ce livre dans votre site Web"
+
+#: openlibrary/macros/SocialShare.html:35
+msgid "Embed"
+msgstr "Intégrer"
 
 #: openlibrary/macros/TypeChanger.html:17
 msgid "Page Type"
@@ -4523,3 +4567,9 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "No edits. Yet."
 #~ msgstr "Pas encore des modifications."
+
+#~ msgid "There are occasionally title variants amongst editions."
+#~ msgstr "Il y a parfois des variations de titre entre les éditions."
+
+#~ msgid "Perhaps in another language?"
+#~ msgstr "Peut-être dans une autre langue?"

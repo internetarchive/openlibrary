@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-18 21:07-0500\n"
+"POT-Creation-Date: 2020-01-25 21:33-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.7.0\n"
 
 #: account.py:365 account.py:400 password/reset_success.html:10 verify.html:9
 #: verify/activated.html:10 verify/success.html:10
@@ -422,12 +422,12 @@ msgstr ""
 msgid "Times"
 msgstr ""
 
-#: view.html:116 view.html:286
-msgid "About the Book"
+#: view.html:286
+msgid "About the Edition"
 msgstr ""
 
-#: view.html:289
-msgid "About the Edition"
+#: view.html:116 view.html:289
+msgid "About the Book"
 msgstr ""
 
 #: view.html:293
@@ -1553,7 +1553,7 @@ msgid "WARNING: Any edits made to the work from this page will be ignored."
 msgstr ""
 
 #: edit/edition.html:210
-msgid "There are occasionally title variants amongst editions."
+msgid "Enter the title of this specific edition."
 msgstr ""
 
 #: edit/edition.html:219
@@ -1575,7 +1575,10 @@ msgid "Is it known by any other titles?"
 msgstr ""
 
 #: edit/edition.html:248
-msgid "Perhaps in another language?"
+msgid ""
+"Use this field if the title is different on the cover or spine. If the "
+"edition is a collection or anthology, you may also add the individual "
+"titles of each work here."
 msgstr ""
 
 #: edit/edition.html:252
@@ -2903,7 +2906,7 @@ msgstr[1] ""
 msgid "No hits"
 msgstr ""
 
-#: authors.html:66 subjects.html:89
+#: authors.html:66 subjects.html:48 subjects.html:105
 #, python-format
 msgid "1 book"
 msgid_plural "%(count)s books"
@@ -2942,6 +2945,34 @@ msgstr ""
 
 #: subjects.html:19
 msgid "Subject Search"
+msgstr ""
+
+#: subjects.html:47 subjects.html:90
+msgid "time"
+msgstr ""
+
+#: subjects.html:92
+msgid "subject"
+msgstr ""
+
+#: subjects.html:94
+msgid "place"
+msgstr ""
+
+#: subjects.html:96
+msgid "org"
+msgstr ""
+
+#: subjects.html:98
+msgid "event"
+msgstr ""
+
+#: subjects.html:100
+msgid "person"
+msgstr ""
+
+#: subjects.html:102
+msgid "work"
 msgstr ""
 
 #: around_the_library.html:52
@@ -3267,7 +3298,7 @@ msgstr ""
 msgid "Buy this book"
 msgstr ""
 
-#: openlibrary/macros/databarWork.html:81
+#: openlibrary/macros/databarWork.html:83
 msgid "External Links"
 msgstr ""
 
@@ -3303,6 +3334,10 @@ msgstr ""
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr ""
 
+#: openlibrary/macros/Pager.html:26
+msgid "First"
+msgstr ""
+
 #: openlibrary/macros/SearchResultsWork.html:35
 msgid "Unknown author"
 msgstr ""
@@ -3316,12 +3351,16 @@ msgstr ""
 msgid "Download DAISY"
 msgstr ""
 
-#: openlibrary/macros/SocialShare.html:11
+#: openlibrary/macros/SocialShare.html:16
 msgid "Share this book"
 msgstr ""
 
-#: openlibrary/macros/SocialShare.html:22
+#: openlibrary/macros/SocialShare.html:31
 msgid "Embed this book in your website"
+msgstr ""
+
+#: openlibrary/macros/SocialShare.html:35
+msgid "Embed"
 msgstr ""
 
 #: openlibrary/macros/TypeChanger.html:17
