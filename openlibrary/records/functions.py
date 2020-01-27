@@ -289,7 +289,7 @@ def create(records):
 # Creation helpers
 def edition_doc_to_things(doc):
     """
-    unpack identifers, classifiers
+    unpack identifiers, classifiers
 
     Process work and author fields if present
     """

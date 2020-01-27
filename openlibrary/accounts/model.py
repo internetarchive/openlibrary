@@ -315,7 +315,7 @@ class OpenLibraryAccount(Account):
                                  Usernames must be unique
             email (unicode) - the login and email of the account
             password (unicode)
-            displayname (unicode) - human readable, changable screenname
+            displayname (unicode) - human readable, changeable screenname
             retries (int) - If the username is unavailable, how many
                             subsequent attempts should be made to find
                             an available username.
@@ -483,7 +483,7 @@ class InternetArchiveAccount(web.storage):
                verified=False, test=None):
         """
         Args:
-            screenname (unicode) - changable human readable archive.org username.
+            screenname (unicode) - changeable human readable archive.org username.
                                    The slug / itemname is generated automatically
                                    from this value.
             email (unicode)

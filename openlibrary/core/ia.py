@@ -1,4 +1,4 @@
-"""Library for interacting wih archive.org.
+"""Library for interacting with archive.org.
 """
 import os
 import urllib2
@@ -254,7 +254,7 @@ class ItemEdition(dict):
 
     @classmethod
     def is_valid_item(cls, itemid, metadata):
-        """Returns True if the item with metadata can be useable as edition
+        """Returns True if the item with metadata can be usable as edition
         in Open Library.
 
         Items that are not book scans, darked or with noindex=true etc. are
@@ -278,7 +278,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+        # sometimes the empty values are represented as {} in metadata API. Avoid them.
         if key in metadata and metadata[key] != {}:
             value = metadata[key]
             if isinstance(value, list):
@@ -298,7 +298,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represneted as {} in metadata API. Avoid them.
+        # sometimes the empty values are represented as {} in metadata API. Avoid them.
         if key in metadata and metadata[key] != {}:
             value = metadata[key]
             if not isinstance(value, list):

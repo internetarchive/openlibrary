@@ -159,7 +159,7 @@ class IPDict:
             self.ip_ranges.setdefault(i, {})[iptools.IpRange(ip_range)] = value
 
     def add_ip_range_text(self, ip_range_text, value):
-        """Adds all ip_ranges from the givem multi-line text and associate
+        """Adds all ip_ranges from the given multi-line text and associate
         each one of them with given value.
 
         See :func:`parse_ip_ranges` for the supported formats in the text.

@@ -9,7 +9,7 @@ import re
 from infogami.utils.view import render
 
 class AttributeList(dict):
-    """List of atributes of input.
+    """List of attributes of input.
 
     >>> a = AttributeList(type='text', name='x', value=20)
     >>> a
