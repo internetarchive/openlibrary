@@ -494,9 +494,11 @@ class search(delegate.page):
         if len(editions):
             raise web.seeother(editions[0])
 
-    def GET(self):
+    def GET(self, subject=None):
         i = web.input(author_key=[], language=[], first_publish_year=[], publisher_facet=[], subject_facet=[], person_facet=[], place_facet=[], time_facet=[], public_scan_b=[])
-
+        if subject:
+            i.subject_facet.append(subject.capitalize())
+            i.setdefault('q', 'subject:%s' % subject)
         # Send to full-text Search Inside if checkbox checked
         if i.get('search-fulltext'):
             raise web.seeother('/search/inside?' + urllib.parse.urlencode({'q': i.get('q', '')}))
