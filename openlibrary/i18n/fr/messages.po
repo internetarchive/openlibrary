@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-25 21:33-0500\n"
+"POT-Creation-Date: 2020-01-27 13:11-0500\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -540,7 +540,7 @@ msgstr "Identifiants"
 #: edit.html:9
 #, python-format
 msgid "Edit %(title)s"
-msgstr "Modifier %(titre)s"
+msgstr "Modifier %(title)s"
 
 #: edit.html:28
 msgid "Currently Editing:"
@@ -573,8 +573,8 @@ msgstr "Emprunts"
 msgid "admin page"
 msgstr "page admin"
 
-#: books.html:86 lists.html:10 nav_head.html:48 search_head.html:70
-#: view.html:31 view.html:60 widget.html:234
+#: books.html:86 home.html:7 home.html:10 lists.html:10 nav_head.html:48
+#: search_head.html:70 view.html:31 view.html:60 widget.html:234
 msgid "Lists"
 msgstr "Listes"
 
@@ -598,11 +598,11 @@ msgstr ""
 msgid "This user has chosen to keep their Reading Log private"
 msgstr "Cet utilisateur a choisi de garder son journal de lecture privé"
 
-#: home.html:61 view.html:61
+#: home.html:63 view.html:61
 msgid "See all"
 msgstr "Voir tout"
 
-#: home.html:60 lists.html:113 view.html:75
+#: home.html:62 lists.html:113 view.html:75
 msgid "Recent Activity"
 msgstr "Activité récente"
 
@@ -1706,9 +1706,9 @@ msgid ""
 "edition is a collection or anthology, you may also add the individual "
 "titles of each work here."
 msgstr ""
-"Utilisez ce champ si le titre est différent sur la couverture ou le dos. Si le"
-"l'édition est une collection ou une anthologie, vous pouvez également ajouter l'individu"
-"les titres de chaque oeuvre ici."
+"Utilisez ce champ si le titre est différent sur la couverture ou le dos. "
+"Si lel'édition est une collection ou une anthologie, vous pouvez "
+"également ajouter l'individules titres de chaque oeuvre ici."
 
 #: edit/edition.html:252
 msgid "is an alternate title for"
@@ -2481,7 +2481,7 @@ msgstr "Genre"
 msgid "Advanced"
 msgstr "Avancé"
 
-#: authors.html:48 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
+#: authors.html:48 home.html:25 inside.html:17 lists.html:17 nav_head.html:54
 #: notfound.html:19 openlibrary/templates/subjects.html:27
 #: openlibrary/templates/work_search.html:139 publishers.html:19
 #: search_head.html:24 subjects.html:34 view.html:176
@@ -2675,28 +2675,60 @@ msgstr[1] "Ce sujet figure sur <strong>%s listes</strong>."
 msgid "Hm. Can't find it."
 msgstr "Hmm. Pas trouvé."
 
-#: home.html:29
+#: home.html:16
+msgid "Create a list of any Subjects, Authors, Works or specific Editions."
+msgstr "Créez une liste de sujets, auteurs, travaux ou éditions spécifiques."
+
+#: home.html:17
+msgid ""
+"Once you've made a list, you can <strong>watch for updates</strong> or "
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or "
+"JSON. See all your lists and any activity using the \"Lists\" link on "
+"your Account page."
+msgstr ""
+"Une fois que vous avez créé une liste, vous pouvez <strong>surveiller les"
+" mises à jour</strong> ou <strong>exporter</strong> toutes les éditions "
+"d'une liste au format HTML, BibTeX ou JSON. Voir toutes vos listes et "
+"toute activité en utilisant le lien \"Listes\" sur votre page de compte."
+
+#: home.html:18
+msgid "Enjoy!"
+msgstr "Prendre plaisir!"
+
+#: home.html:20
+msgid ""
+"For the top 2000+ most requested eBooks in California for the print "
+"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here"
+msgstr ""
+"Pour les 2000+ eBooks pour les aveugles les plus demandés en Californie "
+"<a href=\"../people/sionnac/lists/OL25152L\">cliquez ici"
+
+#: home.html:24
+msgid "Find a list by name"
+msgstr "Trouver une liste par nom"
+
+#: home.html:31
 msgid "Active Lists"
 msgstr "Listes actives"
 
-#: home.html:43
+#: home.html:45
 #, python-format
 msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
 msgstr "%(listname)s </a> de <a href=\"$owner.key\">%(owner)s</a>"
 
-#: home.html:46 preview.html:23 snippet.html:18
+#: home.html:48 preview.html:23 snippet.html:18
 #, python-format
 msgid "1 seed"
 msgid_plural "%(count)d seeds"
 msgstr[0] "1 article"
 msgstr[1] "%(count)d article"
 
-#: home.html:48 preview.html:27 snippet.html:20
+#: home.html:50 preview.html:27 snippet.html:20
 #, python-format
 msgid "Last modified %(date)s"
 msgstr "Dernière modification %(date)s"
 
-#: home.html:54 snippet.html:26
+#: home.html:56 snippet.html:26
 msgid "No description."
 msgstr "Pas de description"
 
@@ -3063,11 +3095,11 @@ msgstr "ISBN"
 
 #: advancedsearch.html:47
 msgid "Full Text Search"
-msgstr ""
+msgstr "Recherche en texte intégral"
 
 #: authors.html:28
 msgid "Is the same author listed twice?"
-msgstr ""
+msgstr "Le même auteur est-il répertorié deux fois?"
 
 #: authors.html:29
 msgid "Merge authors"
@@ -3089,7 +3121,7 @@ msgstr[1] "%(count)s résultats"
 msgid "No hits"
 msgstr "Aucun résultat"
 
-#: authors.html:66 subjects.html:48 subjects.html:105
+#: authors.html:66 subjects.html:89
 #, python-format
 msgid "1 book"
 msgid_plural "%(count)s books"
@@ -3130,31 +3162,31 @@ msgstr "Recherche d'éditeur"
 msgid "Subject Search"
 msgstr "Recherche par sujet"
 
-#: subjects.html:47 subjects.html:90
+#: subjects.html:74
 msgid "time"
 msgstr "Période"
 
-#: subjects.html:92
+#: subjects.html:76
 msgid "subject"
 msgstr "Genre"
 
-#: subjects.html:94
+#: subjects.html:78
 msgid "place"
 msgstr "Lieu"
 
-#: subjects.html:96
+#: subjects.html:80
 msgid "org"
 msgstr "Organization"
 
-#: subjects.html:98
+#: subjects.html:82
 msgid "event"
 msgstr "Événement"
 
-#: subjects.html:100
+#: subjects.html:84
 msgid "person"
 msgstr "Personne"
 
-#: subjects.html:102
+#: subjects.html:86
 msgid "work"
 msgstr "Œuvre"
 
@@ -3532,6 +3564,9 @@ msgid ""
 "<em>Please Note:</em> Only Admins can delete things. <a href=\"/contact\""
 " class=\"blue\">Let us know</a> if there's a problem."
 msgstr ""
+"<em>Remarque:</em> Seuls les administrateurs peuvent supprimer des "
+"éléments. <a href=\"/contact\" class=\"blue\">Faites-nous savoir</a> s'il"
+" y a un problème."
 
 #: openlibrary/macros/LoanStatus.html:63
 msgid "You are <strong>next</strong> on the waiting list"
@@ -3689,12 +3724,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Download a PDF version of"
 #~ msgstr "Télécharger une version PDF de"
 
-#~ msgid "Purchase"
-#~ msgstr "Acheter"
-
-#~ msgid "Last modified by"
-#~ msgstr "Dernière modification par"
-
 #~ msgid "Your Account"
 #~ msgstr "Votre compte"
 
@@ -3839,9 +3868,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "navigateur. La commande curl que vous"
 #~ " utiliseriez est:"
 
-#~ msgid "book"
-#~ msgstr "livre"
-
 #~ msgid ""
 #~ "<span class=\"count hidden\" id=\"chartZoom\"> "
 #~ "<a href=\"javascript:;\" id=\"resetSelection\" "
@@ -3866,15 +3892,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ " sur un année et <span "
 #~ "class=\"fixthis\">nous chargerons les livres "
 #~ "au-dessus</span></a>.</span>"
-
-#~ msgid "book in"
-#~ msgstr "livre dans"
-
-#~ msgid "books in"
-#~ msgstr "livres dans"
-
-#~ msgid "books"
-#~ msgstr "livres"
 
 #~ msgid "Books Published"
 #~ msgstr "Livres publiés"
@@ -4087,17 +4104,11 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "vous intéresse, vous pouvez remplir les"
 #~ " trous!"
 
-#~ msgid "Edit %s"
-#~ msgstr "Modifier %s"
-
 #~ msgid "Does it mention any places?"
 #~ msgstr "Des lieux sont-ils mentionnés?"
 
 #~ msgid "Is it about a certain person? Or, people?"
 #~ msgstr "Ce livre parle-t-il d'une certaine personne? Plusieurs?"
-
-#~ msgid "Note:"
-#~ msgstr "Note:"
 
 #~ msgid ""
 #~ "Any tags, places, people or time "
@@ -4571,5 +4582,3 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "There are occasionally title variants amongst editions."
 #~ msgstr "Il y a parfois des variations de titre entre les éditions."
 
-#~ msgid "Perhaps in another language?"
-#~ msgstr "Peut-être dans une autre langue?"

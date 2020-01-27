@@ -1,21 +1,23 @@
 $def with ()
 
-$var title: Lists
+$var title: $_('Lists')
 
 <div id="contentHead">
-    <h1>Lists</h1>
+    <h1>$_('Lists')</h1>
 </div>
 
 <div id="contentBody">
 
     <div id="description" class="lists-page-cta">
-        <h2>Create a list of any Subjects, Authors, Works or specific Editions.</h2>
-        <p>Once you've made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, <a href="http://www.bibtex.org/">BibTeX</a> or JSON. See all your lists and any activity using the "Lists" link on your Account page. <strong><em>Enjoy!</em></strong></p>
-	<p>For the <strong>top 2000+ most requested print disabled eBooks in California</strong>, <a href="../people/sionnac/lists/OL25152L/Top_1000_Most_Requested_Print_Disabled_eBooks_for_California">click here</a>.</p>
+      <h2>$_('Create a list of any Subjects, Authors, Works or specific Editions.')</h2>
+      <p>$:_('Once you\'ve made a list, you can <strong>watch for updates</strong> or <strong>export</strong> all the editions in a list as HTML, BibTeX or JSON. See all your lists and any activity using the "Lists" link on your Account page.')
+        <strong><em>$_('Enjoy!')</em></strong>
+      </p>
+      <p>$:_('For the top 2000+ most requested eBooks in California for the print disabled <a href="../people/sionnac/lists/OL25152L">click here')</a>.</p>
 
   <form class="siteSearch searchInsideForm" action="/search/lists">
     <input type="text" class="larger" name="q" value=""
-           placeholder="Find a list by name"/>
+           placeholder="$_('Find a list by name')"/>
     <input type="submit" class="generic-button" value="$_('Search')">
   </form>
     </div>
@@ -57,7 +59,5 @@ $var title: Lists
         <span class="tools"><a href="/recentchanges/lists">$_('See all')</a></span>
     </h2>
     $:render_template("lists/activity")
-
-
 
 </div>

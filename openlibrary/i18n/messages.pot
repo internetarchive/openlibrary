@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-25 21:33-0500\n"
+"POT-Creation-Date: 2020-01-27 13:11-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -545,8 +545,8 @@ msgstr ""
 msgid "admin page"
 msgstr ""
 
-#: books.html:86 lists.html:10 nav_head.html:48 search_head.html:70
-#: view.html:31 view.html:60 widget.html:234
+#: books.html:86 home.html:7 home.html:10 lists.html:10 nav_head.html:48
+#: search_head.html:70 view.html:31 view.html:60 widget.html:234
 msgid "Lists"
 msgstr ""
 
@@ -566,11 +566,11 @@ msgstr ""
 msgid "This user has chosen to keep their Reading Log private"
 msgstr ""
 
-#: home.html:61 view.html:61
+#: home.html:63 view.html:61
 msgid "See all"
 msgstr ""
 
-#: home.html:60 lists.html:113 view.html:75
+#: home.html:62 lists.html:113 view.html:75
 msgid "Recent Activity"
 msgstr ""
 
@@ -2315,7 +2315,7 @@ msgstr ""
 msgid "Advanced"
 msgstr ""
 
-#: authors.html:48 home.html:23 inside.html:17 lists.html:17 nav_head.html:54
+#: authors.html:48 home.html:25 inside.html:17 lists.html:17 nav_head.html:54
 #: notfound.html:19 openlibrary/templates/subjects.html:27
 #: openlibrary/templates/work_search.html:139 publishers.html:19
 #: search_head.html:24 subjects.html:34 view.html:176
@@ -2509,28 +2509,54 @@ msgstr[1] ""
 msgid "Hm. Can't find it."
 msgstr ""
 
-#: home.html:29
+#: home.html:16
+msgid "Create a list of any Subjects, Authors, Works or specific Editions."
+msgstr ""
+
+#: home.html:17
+msgid ""
+"Once you've made a list, you can <strong>watch for updates</strong> or "
+"<strong>export</strong> all the editions in a list as HTML, BibTeX or "
+"JSON. See all your lists and any activity using the \"Lists\" link on "
+"your Account page."
+msgstr ""
+
+#: home.html:18
+msgid "Enjoy!"
+msgstr ""
+
+#: home.html:20
+msgid ""
+"For the top 2000+ most requested eBooks in California for the print "
+"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here"
+msgstr ""
+
+#: home.html:24
+msgid "Find a list by name"
+msgstr ""
+
+#: home.html:31
 msgid "Active Lists"
 msgstr ""
 
-#: home.html:43
+#: home.html:45
 #, python-format
 msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
 msgstr ""
 
-#: home.html:46 preview.html:23 snippet.html:18
+#: home.html:48 preview.html:23 snippet.html:18
 #, python-format
 msgid "1 seed"
 msgid_plural "%(count)d seeds"
 msgstr[0] ""
 msgstr[1] ""
 
-#: home.html:48 preview.html:27 snippet.html:20
+#: home.html:50 preview.html:27 snippet.html:20
 #, python-format
 msgid "Last modified %(date)s"
 msgstr ""
 
-#: home.html:54 snippet.html:26
+#: home.html:56 snippet.html:26
 msgid "No description."
 msgstr ""
 
@@ -2906,7 +2932,7 @@ msgstr[1] ""
 msgid "No hits"
 msgstr ""
 
-#: authors.html:66 subjects.html:48 subjects.html:105
+#: authors.html:66 subjects.html:89
 #, python-format
 msgid "1 book"
 msgid_plural "%(count)s books"
@@ -2947,31 +2973,31 @@ msgstr ""
 msgid "Subject Search"
 msgstr ""
 
-#: subjects.html:47 subjects.html:90
+#: subjects.html:74
 msgid "time"
 msgstr ""
 
-#: subjects.html:92
+#: subjects.html:76
 msgid "subject"
 msgstr ""
 
-#: subjects.html:94
+#: subjects.html:78
 msgid "place"
 msgstr ""
 
-#: subjects.html:96
+#: subjects.html:80
 msgid "org"
 msgstr ""
 
-#: subjects.html:98
+#: subjects.html:82
 msgid "event"
 msgstr ""
 
-#: subjects.html:100
+#: subjects.html:84
 msgid "person"
 msgstr ""
 
-#: subjects.html:102
+#: subjects.html:86
 msgid "work"
 msgstr ""
 
