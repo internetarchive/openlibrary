@@ -315,7 +315,7 @@ class ia_importapi(importapi):
         """
         edition['ocaid'] = identifier
         edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format(IA_BASE_URL, identifier)
+        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format('https://archive.org', identifier)
         return edition
 
     def get_marc_record(self, identifier):
