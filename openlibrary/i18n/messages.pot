@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-27 15:02-0500\n"
+"POT-Creation-Date: 2020-01-27 17:23-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -612,7 +612,7 @@ msgid "Edition"
 msgstr ""
 
 #: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: show.html:34
+#: openlibrary/macros/ReadButton.html:13 show.html:34
 msgid "Read"
 msgstr ""
 
@@ -1335,6 +1335,7 @@ msgid "Sponsor"
 msgstr ""
 
 #: custom_carousel.html:39 custom_carousel.html:45
+#: openlibrary/macros/ReadButton.html:9
 msgid "Borrow"
 msgstr ""
 
@@ -3362,6 +3363,18 @@ msgstr ""
 
 #: openlibrary/macros/Pager.html:26
 msgid "First"
+msgstr ""
+
+#: openlibrary/macros/ReadButton.html:10
+msgid "Borrow ebook from Internet Archive"
+msgstr ""
+
+#: openlibrary/macros/ReadButton.html:14
+msgid "Read ebook from Internet Archive"
+msgstr ""
+
+#: openlibrary/macros/ReadButton.html:33
+msgid "Listen"
 msgstr ""
 
 #: openlibrary/macros/SearchResultsWork.html:35

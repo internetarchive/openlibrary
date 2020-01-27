@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-27 15:02-0500\n"
+"POT-Creation-Date: 2020-01-27 17:23-0500\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -644,7 +644,7 @@ msgid "Edition"
 msgstr "Édition"
 
 #: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
-#: show.html:34
+#: openlibrary/macros/ReadButton.html:13 show.html:34
 msgid "Read"
 msgstr "Lire"
 
@@ -1443,6 +1443,7 @@ msgid "Sponsor"
 msgstr ""
 
 #: custom_carousel.html:39 custom_carousel.html:45
+#: openlibrary/macros/ReadButton.html:9
 msgid "Borrow"
 msgstr "Emprunter"
 
@@ -3580,6 +3581,18 @@ msgstr "Vous êtes <strong>#%(spot)d</strong> de %(wlsize)d sur la liste d'atten
 #: openlibrary/macros/Pager.html:26
 msgid "First"
 msgstr "Première"
+
+#: openlibrary/macros/ReadButton.html:10
+msgid "Borrow ebook from Internet Archive"
+msgstr "Emprunter le livre électronique sur Internet Archive"
+
+#: openlibrary/macros/ReadButton.html:14
+msgid "Read ebook from Internet Archive"
+msgstr "Lire le livre électronique de Internet Archive"
+
+#: openlibrary/macros/ReadButton.html:33
+msgid "Listen"
+msgstr "Ecoutez"
 
 #: openlibrary/macros/SearchResultsWork.html:35
 msgid "Unknown author"

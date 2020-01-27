@@ -1,8 +1,14 @@
 $def with(ocaid, borrow=False, listen=False, loan=None)
 
-<!-- FIXME: Not internationalizable. Can't use internal action names as user visible strings!-->
-$ action = "borrow" if (borrow and not loan) else "read"
-$ title = "%s ebook from Internet Archive" % action
+$if (borrow and not loan):
+  $ action = "borrow"
+  $ label = _("Borrow")
+  $ title = _("Borrow ebook from Internet Archive")
+$else:
+  $ action = "read"
+  $ label = _("Read")
+  $ title = _("Read ebook from Internet Archive")
+
 $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
 
 <div class="cta-button-group">
@@ -13,13 +19,13 @@ $ stream_url = "/borrow/ia/%s?ref=ol" % ocaid
        data-ol-link-track="borrow"
      $else:
        data-ol-link-track="read_unrestricted"
-     class="cta-btn cta-btn--available">$action.capitalize()</a>
+     class="cta-btn cta-btn--available">$label</a>
   $if listen:
     <a href="$(stream_url)&_autoReadAloud=show"
        title="$title using Read Aloud"
        data-ol-link-track="CTALink|$(action.capitalize())Listen"
        class="cta-btn cta-btn--available">
       <span class="btn-icon read-aloud"></span>
-      <span class="btn-label">Listen</span>
+      <span class="btn-label">$_('Listen')</span>
     </a>
 </div>

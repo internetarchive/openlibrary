@@ -63,6 +63,7 @@ def main(cmd):
             'FulltextResults.html',
             'LoanStatus.html',
             'Pager.html',
+            'ReadButton.html',
             'SearchResultsWork.html',
             'SocialShare.html',
             'TypeChanger.html',
