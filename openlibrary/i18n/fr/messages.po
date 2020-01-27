@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-27 13:11-0500\n"
+"POT-Creation-Date: 2020-01-27 15:02-0500\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -2713,15 +2713,15 @@ msgstr "Listes actives"
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
-msgstr "%(listname)s </a> de <a href=\"$owner.key\">%(owner)s</a>"
+msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
+msgstr "%(listname)s </a> de <a href=\"%(key)s\">%(owner)s</a>"
 
 #: home.html:48 preview.html:23 snippet.html:18
 #, python-format
 msgid "1 seed"
 msgid_plural "%(count)d seeds"
 msgstr[0] "1 article"
-msgstr[1] "%(count)d article"
+msgstr[1] "%(count)d articles"
 
 #: home.html:50 preview.html:27 snippet.html:20
 #, python-format
@@ -4581,4 +4581,3 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "There are occasionally title variants amongst editions."
 #~ msgstr "Il y a parfois des variations de titre entre les éditions."
-

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-01-27 13:11-0500\n"
+"POT-Creation-Date: 2020-01-27 15:02-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2541,7 +2541,7 @@ msgstr ""
 
 #: home.html:45
 #, python-format
-msgid "%(listname)s </a> from <a href=\"$owner.key\">%(owner)s</a>"
+msgid "%(listname)s </a> from <a href=\"%(key)s\">%(owner)s</a>"
 msgstr ""
 
 #: home.html:48 preview.html:23 snippet.html:18
