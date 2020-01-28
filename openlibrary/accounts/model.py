@@ -23,11 +23,6 @@ from openlibrary.core import stats, helpers
 
 from six.moves import urllib
 
-try:
-    from json.decoder import JSONDecodeError
-except ImportError:
-    JSONDecodeError = ValueError
-
 logger = logging.getLogger("openlibrary.account.model")
 
 def append_random_suffix(text, limit=9999):
@@ -535,6 +530,9 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None,
               xauth_url=None, **data):
+        """
+        See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
+        """
         from openlibrary.core import lending
         url = xauth_url or lending.config_ia_xauth_api_url
         params = {'op': op}
@@ -558,9 +556,11 @@ class InternetArchiveAccount(web.storage):
 
         response = requests.post(url, params=params, json=data)
         try:
+            # This API should always return json, even on error (Unless
+            # the server is down or something :P)
             return response.json()
-        except JSONDecodeError:
-            return {'error': response.content, 'code': response.status_code}
+        except ValueError:
+            return {'error': response.text, 'code': response.status_code}
 
     @classmethod
     def s3auth(cls, access_key, secret_key):
