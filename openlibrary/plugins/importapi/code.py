@@ -76,15 +76,16 @@ def parse_data(data):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
-    else:
+    elif data[:MARC_LENGTH_POS].isdigit():
         #Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
-
         edition = read_edition(rec)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
+    else:
+        raise DataError('unrecognised-import-format')
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
@@ -116,7 +117,7 @@ class importapi:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse import data')
+            return self.error('unknown-error', 'Failed to parse import data')
 
         try:
             reply = add_book.load(edition)
