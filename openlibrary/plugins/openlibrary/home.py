@@ -245,7 +245,7 @@ def format_book_data(book):
         d.cover_url = 'https://archive.org/services/img/%s' % d.ocaid
 
     if d.ocaid:
-        collections = ia.get_meta_xml(d.ocaid).get("collection", [])
+        collections = ia.get_metadata(d.ocaid).get('collection', [])
 
         if 'lendinglibrary' in collections or 'inlibrary' in collections:
             d.borrow_url = book.url("/borrow")

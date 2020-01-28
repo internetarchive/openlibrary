@@ -236,7 +236,7 @@ def monkeypatch_ol(monkeypatch):
     mock.default = []
     monkeypatch.setattr(dynlinks, "ol_get_many", mock)
 
-    monkeypatch.setattr(ia, "get_meta_xml", lambda itemid: web.storage())
+    monkeypatch.setattr(ia, "get_metadata", lambda itemid: web.storage())
 
 def test_query_keys(monkeypatch):
     monkeypatch_ol(monkeypatch)

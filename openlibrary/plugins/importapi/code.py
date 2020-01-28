@@ -2,15 +2,14 @@
 """
 
 from infogami.plugins.api.code import add_hook
-from infogami import config
+
 from openlibrary.plugins.openlibrary.code import can_write
 from openlibrary.catalog.marc.marc_binary import MarcBinary, MarcException
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog import add_book
 from openlibrary.catalog.get_ia import get_marc_record_from_ia, get_from_archive_bulk
-from openlibrary import accounts
-from openlibrary import records
+from openlibrary import accounts, records
 from openlibrary.core import ia
 
 import web
@@ -121,12 +120,13 @@ class importapi:
 
         try:
             reply = add_book.load(edition)
+            # TODO: If any records have been created, return a 201, otherwise 200
+            return json.dumps(reply)
         except add_book.RequiredField as e:
             return self.error('missing-required-field', str(e))
-        return json.dumps(reply)
 
     def reject_non_book_marc(self, marc_record, **kwargs):
-        details = "Item rejected"
+        details = 'Item rejected'
         # Is the item a serial instead of a book?
         marc_leaders = marc_record.leader()
         if marc_leaders[7] == 's':
@@ -207,45 +207,36 @@ class ia_importapi(importapi):
             return json.dumps(result)
 
         # Case 1 - Is this a valid Archive.org item?
-        try:
-            item_json = ia.get_item_json(identifier)
-            item_server = item_json['server']
-            item_path = item_json['dir']
-        except KeyError:
-            return self.error("invalid-ia-identifier", "%s not found" % identifier)
-        metadata = ia.extract_item_metadata(item_json)
+        metadata = ia.get_metadata(identifier)
         if not metadata:
-            return self.error("invalid-ia-identifier")
+            return self.error('invalid-ia-identifier', '%s not found' % identifier)
 
         # Case 2 - Does the item have an openlibrary field specified?
         # The scan operators search OL before loading the book and add the
         # OL key if a match is found. We can trust them and attach the item
         # to that edition.
-        if metadata.get("mediatype") == "texts" and metadata.get("openlibrary"):
+        if metadata.get('mediatype') == 'texts' and metadata.get('openlibrary'):
             edition_data = self.get_ia_record(metadata)
-            edition_data["openlibrary"] = metadata["openlibrary"]
+            edition_data['openlibrary'] = metadata['openlibrary']
             edition_data = self.populate_edition_data(edition_data, identifier)
             return self.load_book(edition_data)
 
         # Case 3 - Can the item be loaded into Open Library?
-        status = ia.get_item_status(identifier, metadata,
-                                    item_server=item_server, item_path=item_path)
+        status = ia.get_item_status(identifier, metadata)
         if status != 'ok':
-            return self.error(status, "Prohibited Item")
+            return self.error(status, 'Prohibited Item %s' % identifier)
 
         # Case 4 - Does this item have a marc record?
-        marc_record = self.get_marc_record(identifier)
+        marc_record = get_marc_record_from_ia(identifier)
         if marc_record:
             self.reject_non_book_marc(marc_record)
             try:
                 edition_data = read_edition(marc_record)
             except MarcException as e:
-                logger.error("failed to read from MARC record %s: %s", identifier, str(e))
-                return self.error("invalid-marc-record")
-
+                logger.error('failed to read from MARC record %s: %s', identifier, str(e))
+                return self.error('invalid-marc-record')
         elif require_marc:
-            return self.error("no-marc-record")
-
+            return self.error('no-marc-record')
         else:
             try:
                 edition_data = self.get_ia_record(metadata)
@@ -254,7 +245,6 @@ class ia_importapi(importapi):
 
         # Add IA specific fields: ocaid, source_records, and cover
         edition_data = self.populate_edition_data(edition_data, identifier)
-
         return self.load_book(edition_data)
 
     def get_ia_record(self, metadata):
@@ -314,15 +304,9 @@ class ia_importapi(importapi):
         :return: Edition record
         """
         edition['ocaid'] = identifier
-        edition['source_records'] = "ia:" + identifier
-        edition['cover'] = "{0}/download/{1}/{1}/page/title.jpg".format('https://archive.org', identifier)
+        edition['source_records'] = 'ia:' + identifier
+        edition['cover'] = ia.get_cover_url(identifier)
         return edition
-
-    def get_marc_record(self, identifier):
-        try:
-            return get_marc_record_from_ia(identifier)
-        except IOError:
-            return None
 
     def find_edition(self, identifier):
         """

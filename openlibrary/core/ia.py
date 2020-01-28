@@ -1,34 +1,59 @@
 """Library for interacting with archive.org.
 """
-import os
-import urllib2
-import datetime
-from xml.dom import minidom
-import simplejson
-import web
+
 import logging
+import os
+import requests
+import web
+
 from infogami import config
 from infogami.utils import stats
-import cache
+
+from openlibrary.core import cache
 from openlibrary.utils.dateutil import date_n_days_ago
 
 import six
 
 logger = logging.getLogger('openlibrary.ia')
 
+IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
-def get_item_json(itemid):
-    itemid = web.safestr(itemid.strip())
-    url = 'http://archive.org/metadata/%s' % itemid
+
+def get_api_response(url):
+    """
+    Makes an API GET request to archive.org, collects stats
+    Returns a JSON dict.
+    :rtype: dict
+    """
+    api_response = {}
+    stats.begin('archive.org', url=url)
     try:
-        stats.begin('archive.org', url=url)
-        metadata_json = urllib2.urlopen(url).read()
-        stats.end()
-        return simplejson.loads(metadata_json)
-    except IOError:
-        stats.end()
-        return {}
+        r = requests.get(url)
+        if r.status_code == requests.codes.ok:
+            api_response = r.json()
+        else:
+            logger.info('%s response received from %s' % (r.status_code, url))
+    except Exception as e:
+        logger.exception('Exception occurred accessing %s.' % url)
+    stats.end()
+    return api_response
+
+
+def _get_metadata(itemid):
+    """Returns metadata by querying the archive.org metadata API.
+    """
+    itemid = web.safestr(itemid.strip())
+    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
+    return get_api_response(url)
+
+
+def get_metadata(itemid):
+    item_json = _get_metadata(itemid)
+    return extract_item_metadata(item_json)
+
+get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+
 
 def extract_item_metadata(item_json):
     metadata = process_metadata_dict(item_json.get('metadata', {}))
@@ -42,11 +67,6 @@ def extract_item_metadata(item_json):
         metadata['_filenames'] = [f['name'] for f in files]
     return metadata
 
-def get_metadata(itemid):
-    item_json = get_item_json(itemid)
-    return extract_item_metadata(item_json)
-
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
 
 def process_metadata_dict(metadata):
     """Process metadata dict to make sure multi-valued fields like
@@ -57,94 +77,22 @@ def process_metadata_dict(metadata):
     non-list cases. This function makes sure the known multi-valued fields are
     always lists.
     """
-    mutlivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
+    multivalued = set(['collection', 'external-identifier', 'isbn', 'subject', 'oclc-id'])
     def process_item(k, v):
-        if k in mutlivalued and not isinstance(v, list):
+        if k in multivalued and not isinstance(v, list):
             v = [v]
-        elif k not in mutlivalued and isinstance(v, list):
+        elif k not in multivalued and isinstance(v, list):
             v = v[0]
         return (k, v)
     return dict(process_item(k, v) for k, v in metadata.items() if v)
 
-def _old_get_meta_xml(itemid):
-    """Returns the contents of meta_xml as JSON.
-    """
-    itemid = web.safestr(itemid.strip())
-    url = 'http://www.archive.org/download/%s/%s_meta.xml' % (itemid, itemid)
-    try:
-        stats.begin('archive.org', url=url)
-        metaxml = urllib2.urlopen(url).read()
-        stats.end()
-    except IOError:
-        logger.error("Failed to download _meta.xml for %s", itemid, exc_info=True)
-        stats.end()
-        return web.storage()
-
-    # archive.org returns html on internal errors.
-    # Checking for valid xml before trying to parse it.
-    if not metaxml.strip().startswith("<?xml"):
-        return web.storage()
-
-    try:
-        defaults = {"collection": [], "external-identifier": []}
-        return web.storage(xml2dict(metaxml, **defaults))
-    except Exception as e:
-        logger.error("Failed to parse metaxml for %s", itemid, exc_info=True)
-        return web.storage()
-
-def get_meta_xml(itemid):
-    # use metadata API instead of parsing meta xml manually
-    return get_metadata(itemid)
-
-def xml2dict(xml, **defaults):
-    """Converts xml to python dictionary assuming that the xml is not nested.
-
-    To get some tag as a list/set, pass a keyword argument with list/set as value.
-
-        >>> xml2dict('<doc><x>1</x><x>2</x></doc>')
-        {'x': 2}
-        >>> xml2dict('<doc><x>1</x><x>2</x></doc>', x=[])
-        {'x': [1, 2]}
-    """
-    d = defaults
-    dom = minidom.parseString(xml)
-
-    for node in dom.documentElement.childNodes:
-        if node.nodeType == node.TEXT_NODE or len(node.childNodes) == 0:
-            continue
-        else:
-            key = node.tagName
-            value = node.childNodes[0].data
-
-            if key in d and isinstance(d[key], list):
-                d[key].append(value)
-            elif key in d and isinstance(d[key], set):
-                d[key].add(value)
-            else:
-                d[key] = value
-
-    return d
-
-def _get_metadata(itemid):
-    """Returns metadata by querying the archive.org metadata API.
-    """
-    url = "http://www.archive.org/metadata/%s" % itemid
-    try:
-        stats.begin("archive.org", url=url)
-        text = urllib2.urlopen(url).read()
-        stats.end()
-        return simplejson.loads(text)
-    except (IOError, ValueError):
-        return None
-
-# cache the results in memcache for a minute
-_get_metadata = web.memoize(_get_metadata, expires=60)
 
 def locate_item(itemid):
     """Returns (hostname, path) for the item.
     """
     d = _get_metadata(itemid)
     return d.get('server'), d.get('dir')
+
 
 def edition_from_item_metadata(itemid, metadata):
     """Converts the item metadata into a form suitable to be used as edition
@@ -158,23 +106,29 @@ def edition_from_item_metadata(itemid, metadata):
         e.add_metadata(metadata)
         return e
 
+
+def get_cover_url(item_id):
+    """Gets the URL of the archive.org item's title (or cover) page.
+    """
+    base_url = '{0}/download/{1}/page/'.format(IA_BASE_URL, item_id)
+    title_response = requests.head(base_url + 'title.jpg', allow_redirects=True)
+    if title_response.status_code == 404:
+        return base_url + 'cover.jpg'
+    return base_url + 'title.jpg'
+
+
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
-    url += "?itemPath=%s&itemId=%s&server=%s" % (item_path, item_id, item_server)
-    try:
-        stats.begin("archive.org", url=url)
-        manifest_json = urllib2.urlopen(url).read()
-        stats.end()
-        return simplejson.loads(manifest_json)
-    except IOError:
-        stats.end()
-        return {}
+    url += '?itemPath=%s&itemId=%s&server=%s' % (item_path, item_id, item_server)
+    return get_api_response(url)
+
 
 def get_item_status(itemid, metadata, **server):
     item_server = server.pop('item_server', None)
     item_path = server.pop('item_path', None)
     return ItemEdition.get_item_status(itemid, metadata, item_server=item_server,
                                        item_path=item_path)
+
 
 class ItemEdition(dict):
     """Class to convert item metadata into edition dict.
@@ -184,8 +138,6 @@ class ItemEdition(dict):
         self.itemid = itemid
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
-        # if not self._is_valid_item(itemid, metadata):
-        #     return None
 
         self.update({
             "key": "/books/ia:" + itemid,
@@ -249,12 +201,11 @@ class ItemEdition(dict):
         # items with metadata no_ol_import=true will be not imported
         if metadata.get("no_ol_import", '').lower() == 'true':
             return "no-ol-import"
-
         return "ok"
 
     @classmethod
     def is_valid_item(cls, itemid, metadata):
-        """Returns True if the item with metadata can be usable as edition
+        """Returns True if the item with metadata can be useable as edition
         in Open Library.
 
         Items that are not book scans, darked or with noindex=true etc. are
@@ -264,22 +215,18 @@ class ItemEdition(dict):
 
     def add_metadata(self, metadata):
         self.metadata = metadata
-
         self.add('title')
         self.add('description', 'description')
         self.add_list('publisher', 'publishers')
-        self.add_list("creator", "author_names")
+        self.add_list('creator', 'author_names')
         self.add('date', 'publish_date')
-
         self.add_isbns()
-        self.add_subjects()
 
     def add(self, key, key2=None):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represented as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
@@ -298,8 +245,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represented as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if not isinstance(value, list):
                 value = [value]
@@ -321,15 +267,6 @@ class ItemEdition(dict):
         if isbn_13:
             self["isbn_13"] = isbn_13
 
-    def add_subjects(self):
-        collections = self.metadata.get("collection", [])
-        mapping = {
-            "inlibrary": "In library",
-            "lendinglibrary": "Lending library"
-        }
-        subjects = [subject for c, subject in mapping.items() if c in collections]
-        if subjects:
-            self['subjects'] = subjects
 
 _ia_db = None
 def get_ia_db(configfile=None):
