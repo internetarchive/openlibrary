@@ -23,7 +23,7 @@ $def with (book)
         $elif book.publishers:
             $(', '.join(['<span itemprop="publisher">%s</span>' % publisher for publisher in book.publishers]))
         $else:
-            <em>Publisher unknown</em>
+            <em>$_('Publisher unknown')</em>
         </span>
     </span>
   </span>

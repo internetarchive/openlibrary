@@ -2,13 +2,12 @@ $def with (doc, lists)
 
 $def render_author():
     $#<!-- Need to insert author photo $:render_template('covers/book_cover_small', doc.works[0]) -->
-    <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
+    <h1>$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.name)</h1>
     <p class="collapse large brown sansserif">
     <!-- Include number of works: ### works -->
     </p>
     <p class="sansserif lightgreen large">
-        $ msg = ungettext("This author is on <strong>%s list</strong>.", "This author is on <strong>%s lists</strong>.", len(lists))
-        $:sprintf(msg, commify(len(lists)))
+        $:ungettext("This author is on <strong>1 list</strong>.", "This author is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_edition():
@@ -20,30 +19,26 @@ $def render_edition():
     </p>
 
     <p class="sansserif lightgreen large">
-        $ msg = ungettext("This is edition is on <strong>%s list</strong>.", "This edition is on <strong>%s lists</strong>.", len(lists))
-        $:sprintf(msg, commify(len(lists)))
+        $:ungettext("This is edition is on <strong>1 list</strong>.", "This edition is on <strong>%(count)s lists</strong>.", len(lists),  count=commify(len(lists)))
     </p>
 
 $def render_work():
-    <h1><a href="$doc.key">$doc.title</a> / Lists</h1>
+    <h1>$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.title)</h1>
     <p class="sansserif lightgreen large">
-        $ msg = ungettext("This work is on <strong>%s list</strong>.", "This work is on <strong>%s lists</strong>.", len(lists))
-        $:sprintf(msg, commify(len(lists)))
+        $:ungettext("This work is on <strong>1 list</strong>.", "This work is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $def render_user():
-    <h1 class="collapse"><a href="$doc.key">$doc.displayname</a> / Lists</h1>
+    <h1 class="collapse">$:_('<a href="$doc.key">%(name)s</a> / Lists', name=doc.displayname)</h1>
     <p class="collapse large brown sansserif">
-        $ msg = ungettext("%s has %s list.", "%s has %s lists.", len(lists))
-        $sprintf(msg, doc.displayname, commify(len(lists)))
+        $ungettext("%(name)s has %(count)s list.", "%(name)s has %(count)s lists.", len(lists), name=doc.displayname, count=commify(len(lists)))
     </p>
 
 $def render_subject():
     <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
 
     <p class="sansserif lightgreen large">
-        $ msg = ungettext("This subject is on <strong>%s list</strong>.", "This subject is on <strong>%s lists</strong>.", len(lists))
-        $:sprintf(msg, commify(len(lists)))
+        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $ type = doc.get("type") and doc.type.key
@@ -69,4 +64,4 @@ $elif type == "/type/user":
     $:render_user()
 
 $else:
-    $var title: Hm. Can't find it.
+    $var title: $_("Hm. Can't find it.")

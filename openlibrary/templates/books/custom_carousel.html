@@ -16,7 +16,7 @@ $def render_carousel_cover(book, lazy):
      $ cover_url = False
   $if book.get('authors'):
     $ author_names = [author.name for author in book.authors]
-    $ byline = ' by ' + ', '.join(author_names)
+    $ byline = _(' by %(name)s', name=', '.join(author_names))
   $else:
     $ byline = ''
     $ author_names = ''
@@ -25,20 +25,20 @@ $def render_carousel_cover(book, lazy):
   $ cta_cls = 'available'
   $if book.get('eligibility', {}).get('is_eligible'):
     $ cta_url = book['eligibility']['sponsor_url']
-    $ cta = 'Sponsor'
+    $ cta = _('Sponsor')
     $ cta_cls = 'sponsor'
   $elif book.get('ocaid'):
     $ modifier = 'borrow-link'
     $ cta_url = '/borrow/ia/%s' % book.ocaid
-    $ cta = 'Borrow'
+    $ cta = _('Borrow')
   $elif book.get('ia') and book.get('public_scan'):
     $ cta_url = "//archive.org/stream/%s?ref=ol"%book.get('ia')
-    $ cta = 'Read'
+    $ cta = _('Read')
   $elif book.get('lending_edition'):
     $ cta_url = "/books/%s/x/borrow"%book.get('lending_edition')
-    $ cta = 'Borrow'
+    $ cta = _('Borrow')
   $else:
-    $ cta = 'Read'
+    $ cta = _('Read')
     $ cta_url = url
 
   $if lazy:

@@ -72,6 +72,7 @@ $def display_identifiers(label, ids, itemprop=None):
         $if (True in all_ids) and (1==len(all_ids)):
             $return
 
+        <!-- FIXME: Identifier names need to be translated (I18N) -->
         <dt>$label</dt>
         <dd class="object" $:cond(itemprop, 'itemprop="%s"' % itemprop, '')>
             $for id in ids:
@@ -97,6 +98,7 @@ $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=descr
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
 $if ctx.user and ctx.user.is_admin():
+  <!-- Don't need to translate admin only buttons (at least initially)-->
   <div class="admin-bar">
     $ work = page.works and page.works[0]
     $if work:
@@ -137,7 +139,8 @@ $if ctx.user and ctx.user.is_admin():
 
     <div class="navEdition sansserif">
         $ edition_count = work.edition_count if work and work.edition_count else 1
-        <a href="$(work.url() if work else '')"><strong>$edition_count edition$("s" if edition_count > 1 else "")</strong></a> of <strong class="booktitle">$truncate(work_title, 60)</strong> found in the catalog.
+        $ url = work.url() if work else ''
+        $:ungettext('<a href="%(url)s"><strong>1 edition</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.','<a href="%(url)s"><strong>%(count)d editions</strong></a> of <strong class="booktitle">%(title)s</strong> found in the catalog.', edition_count, url=url,count=edition_count, title=truncate(work_title, 60))
         $if work:
             <span><a href="/books/add?work=$work.key" title="$_('Add another edition of') $book_title">$_("Add another edition")</a>?</span>
     </div>
@@ -216,11 +219,12 @@ $if ctx.user and ctx.user.is_admin():
 
               <h4 class="publisher">
                     $if page.publish_date or page.publishers or page.publish_places:
-                        Published
+                    <!-- TODO: this handcrafted concatenation will be difficult to internationalize -->
+                    $_('Published')
                         $if page.publish_date:
                             <strong itemprop="datePublished">$page.publish_date</strong>
                         $if page.publishers:
-                            by
+                            $_('by')
                             $for p in page.publishers:
                                 $if "publishers" in ctx.features:
                                     <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')" title="$_('Show for other books from %s', p)">$p</a>$cond(loop.last, "", ", ")
@@ -228,12 +232,13 @@ $if ctx.user and ctx.user.is_admin():
                                     <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
 
                         $if page.publish_places:
-                            in
+                            $_('in')
                             $for p in page.publish_places:
                                  <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
                         <span class="adjust">.</span>
                     $if page.languages:
-                    <br/>Written in <span itemprop="inLanguage">$:thingrepr(page.languages)</span>.
+                        $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
+                        <br/>$:_('Written in %(lang)s', lang=lang_span())
               </h4>
 
           $if work:
@@ -246,10 +251,10 @@ $if ctx.user and ctx.user.is_admin():
                             <a href="/subjects/$prefix$utf8(subject.lower().replace(' ', '_').replace(',',''))">$subject</a>$cond(not loop.last,",","")
                         </span></div>
                     </div>
-            $:render_subjects("Subjects", work.get_subjects())
-            $:render_subjects("People", work.subject_people, prefix="person:")
-            $:render_subjects("Places", work.subject_places, prefix="place:")
-            $:render_subjects("Times", work.subject_times, prefix="time:")
+            $:render_subjects(_("Subjects"), work.get_subjects())
+            $:render_subjects(_("People"), work.subject_people, prefix="person:")
+            $:render_subjects(_("Places"), work.subject_places, prefix="place:")
+            $:render_subjects(_("Times"), work.subject_times, prefix="time:")
 
         </div>
 
@@ -262,8 +267,7 @@ $if ctx.user and ctx.user.is_admin():
             $:sanitize(format(work.description))                  
         $else:
           <p class="workHelp">
-            There's no description for this book yet. Can
-            you <b><a href="$page.url('/edit')#about/about">add one</a></b>?
+            $:_("There's no description for this book yet. Can you <b><a href='%s'>add one</a></b>?",page.url('/edit')+"#about/about")
           </p>
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>
@@ -359,6 +363,7 @@ $if ctx.user and ctx.user.is_admin():
     $:macros.RelatedWorksCarousel(work)
 
     $if ctx.user and ctx.user.is_admin():
+        <!-- Don't need to translate admin only buttons (at least initially)-->
         <div class="small sansserif clearfix"><br/><span class="adminOnly"><a href="$page.url('/borrow_admin')">View loan debugging information</a></span></div>
 
     $:render_template("lib/history", page)

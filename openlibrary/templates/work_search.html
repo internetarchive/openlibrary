@@ -90,7 +90,7 @@ window.q.push(function(){
 $if param and not error and num_found:
     <div id="contentHead">
       $if num_found > 0:
-        <span class="darkgreen"><strong>$commify(num_found) hit$("s" if num_found != 1 else "")</strong></span>
+        <span class="darkgreen"><strong>$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</strong></span>
 &nbsp;
       $if num_found > 1:
         <span class="tools"><img src="/images/icons/icon_sort.png" alt="$_('Sorting by')" width="9" height="11" style="margin-right:10px;"/>
@@ -108,16 +108,16 @@ $if param and not error and num_found:
     </div>
 
 $ facet_map = (
-$    ('has_fulltext', 'eBook?'),
-$    ('author_key', 'Author'),
-$    ('subject_facet', 'Subjects'),
-$    ('person_facet', 'People'),
-$    ('place_facet', 'Places'),
-$    ('time_facet', 'Times'),
-$    ('first_publish_year', 'First published'),
-$    ('publisher_facet', 'Publisher'),
-$    ('language', 'Language'),
-$    ('public_scan_b', 'Classic eBooks'),
+$    ('has_fulltext', _('eBook?')),
+$    ('author_key', _('Author')),
+$    ('subject_facet', _('Subjects')),
+$    ('person_facet', _('People')),
+$    ('place_facet', _('Places')),
+$    ('time_facet', _('Times')),
+$    ('first_publish_year', _('First published')),
+$    ('publisher_facet', _('Publisher')),
+$    ('language', _('Language')),
+$    ('public_scan_b', _('Classic eBooks')),
 $ )
 
 <div id="contentBody">
@@ -129,11 +129,11 @@ $ )
       <button type="submit" class="larger" id="searchsubmit">$_("Search")</button>
       <span class="mode-options">
         <input type="radio" name="mode" value="everything" id="mode-search-everything" class="search-mode">
-        <label for="mode-search-everything">Everything</label>
+        <label for="mode-search-everything">$_('Everything')</label>
         <input type="radio" name="mode" value="ebooks" id="mode-search-ebooks" class="search-mode" $('checked="checked"' if 'has_fulltext' in param else '')>
-        <label for="mode-search-ebooks">Ebooks</label>
+        <label for="mode-search-ebooks">$_('Ebooks')</label>
         <input type="radio" name="mode" value="printdisabled" id="mode-search-printdisabled" class="search-mode">
-        <label for="mode-search-printdisabled">Print Disabled</label>
+        <label for="mode-search-printdisabled">$_('Print Disabled')</label>
       </span>
         $ sticky = set(['author_facet', 'language', 'first_publish_year', 'publisher_facet',  'subject_facet', 'person_facet', 'place_facet', 'time_facet', 'public_scan_b'])
 
@@ -149,10 +149,10 @@ $ )
             $if q_param:
                 $title.append(q_param)
             $if 'has_fulltext' in param:
-                $title.append('eBook')
+                $title.append(_('eBook'))
 
             $if 'public_scan_b' in param:
-                $title.append('Classic eBook')
+                $title.append(_('Classic eBook'))
 
             $if any(header in param for header, label in facet_map):
                 <!-- facet_map: $:facet_map -->
@@ -171,7 +171,7 @@ $ )
                             $fulltext_names.get(k, '')
                         $elif header == 'public_scan_b':
                             $if display == 'true':
-                                <a href="/read" title="Explore Classic eBooks">Only Classic eBooks</a>
+                                <a href="/read" title="$_('Explore Classic eBooks')">$_('Only Classic eBooks')</a>
                             $else:
                                 Classic eBooks hidden
                         $elif header == 'subject_facet':
@@ -183,13 +183,13 @@ $ )
                         $elif header == 'time_facet':
                             <a href="/subjects/time:$display.replace(' ', '_')" title="Explore books about $display" class="facetSubject">$display</a>
                         $elif header == 'first_publish_year':
-                            <span title="First published in">$display</span>
+                            <span title="$_('First published in')">$display</span>
                         $elif header == 'language':
-                            <span title="Written in">$display</span>
+                            <span title="$_('Written in')">$display</span>
                         $elif header == 'publisher_facet':
-                            <span title="Published by">$display</span>
+                            <span title="$_('Published by')">$display</span>
                         $elif header == 'author_key':
-                            <span title="Author">$display</span>
+                            <span title="$_('Author')">$display</span>
                         <span style="padding-right:15px;"><a href="$:del_facet_url(header, k)" title="$_('Click to remove this facet')" class="facetRemove plain red">[x]</a></span>
                 </strong></span></p>
             $var title: ${', '.join(title)} - search
@@ -216,7 +216,7 @@ $ )
           $:macros.FulltextResults(query, results, page=page)
 
     $elif param and not error and len(docs):
-        <div class="shift">$commify(num_found) hit$("s" if num_found != 1 else "")</div>
+        <div class="shift">$ungettext('1 hit', '%(count)s hits', num_found, count=commify(num_found))</div>
         <div class="resultsContainer search-results-container">
         <div id="searchResults">
           <ul class="list-books" id="siteSearch">

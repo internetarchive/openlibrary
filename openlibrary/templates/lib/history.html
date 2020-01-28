@@ -24,7 +24,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ url = changequery(m='history')
 
         $ latest = versions[0]
-        <li class="link inline"><a rel="nofollow" href="$url">$latest.revision $_("revision")$("s" if latest.revision != 1 else "")</a></li>
+        <li class="link inline"><a rel="nofollow" href="$url">$ungettext('1 revision', '%(count)d revisions', latest.revision, count=latest.revision)</a></li>
         </ul>
         $if page.key.startswith("/works") or page.key.startswith("/books") or page.key.startswith("/authors"):
             $if cur_v:
@@ -36,7 +36,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
             $ json = page.key + ".json" + hist_addition
             $ opds = page.key + ".opds" + hist_addition
             <span id="historyTools" class="pageHistory__tools smaller brown sansserif">
-                Download catalog record:
+                $_('Download catalog record:')
                 <a rel="nofollow" href="$rdf">RDF</a>
                 /
                 <a rel="nofollow" href="$json">JSON</a>
@@ -44,7 +44,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                     /
                     <a rel="nofollow" href="$opds">OPDS</a>
                 $if show_wikipedia_citation_link:
-                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="Cite this on Wikipedia" href="javascript:;">Wikipedia citation</a>
+                    | <a aria-controls="wikicode" id="wikilink" class="dialog--open" title="$_('Cite this on Wikipedia')" href="javascript:;">$_('Wikipedia citation')</a>
             </span>
 
             $if show_wikipedia_citation_link:
@@ -54,7 +54,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                           <h2>Wikipedia citation</h2>
                           <a class="dialog--close">&times;<span class="shift">Close</span></a>
                         </div>
-                        <p>Copy and paste this code into your Wikipedia page. <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
+                        <p>$_('Copy and paste this code into your Wikipedia page.') <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
                         <form method="get">
                             <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
                 $for k, v in page.wp_citation_fields.iteritems():
