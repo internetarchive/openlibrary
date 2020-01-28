@@ -1,6 +1,7 @@
 from lxml import etree
-from marc_base import MarcBase, MarcException
 from unicodedata import normalize
+
+from openlibrary.catalog.marc.marc_base import MarcBase, MarcException
 
 import six
 
