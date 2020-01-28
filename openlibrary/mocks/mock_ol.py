@@ -2,11 +2,6 @@ import os
 import pytest
 import re
 import web
-try:  # newer versions of web.py
-    from web.browser import AppBrowser
-except ImportError:  # older versions of web.py
-    from web import AppBrowser
-
 from infogami import config
 from infogami.infobase import client
 from infogami.utils import delegate
@@ -39,11 +34,11 @@ class EMail(web.storage):
         """Extracts link from the email message."""
         return re.findall(r"http://[^\s]*", self.message)
 
-class OLBrowser(AppBrowser):
+class OLBrowser(web.AppBrowser):
     def get_text(self, e=None, name=None, **kw):
         if name or kw:
             e = self.get_soup().find(name=name, **kw)
-        return AppBrowser.get_text(self, e)
+        return web.AppBrowser.get_text(self, e)
 
 class OL:
     """Mock OL object for all tests.
