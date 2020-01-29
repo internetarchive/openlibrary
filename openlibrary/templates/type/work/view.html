@@ -145,7 +145,8 @@ $var title: $page.title
                                 $if excerpt.pages:
                                     $_("Page") $excerpt.pages,
                                 $if excerpt.author:
-                                    $:_("added by %s", '<a href="$excerpt.author.key">$excerpt.author.displayname</a>.')
+                                    $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
+                                    $:(_("added by %s.") % str(excerpt_author_link()).strip())
                                 $else:
                                     $_("added anonymously").
                                 $if excerpt.comment:
