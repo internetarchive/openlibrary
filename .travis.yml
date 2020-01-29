@@ -32,4 +32,6 @@ install:
       pyenv install 2.7.14;
     fi
   - npm install
-script: make test
+script:
+  - make i18n
+  - make test
