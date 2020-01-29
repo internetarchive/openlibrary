@@ -1,19 +1,22 @@
-import web
-import re
+import logging
 from lxml.etree import XML, XMLSyntaxError
+import re
+import simplejson as json
+from unicodedata import normalize
+import web
+
 from infogami.utils import delegate, stats
 from infogami import config
 from infogami.utils.view import render, render_template, safeint
-import simplejson as json
+
 from openlibrary.core.lending import get_availability_of_ocaids, add_availability
 from openlibrary.plugins.openlibrary.processors import urlsafe
 from openlibrary.plugins.inside.code import fulltext_search
 from openlibrary.utils import url_quote, escape_bracket
 from openlibrary.utils.isbn import normalize_isbn, opposite_isbn
-from unicodedata import normalize
-import logging
 
 from six.moves import urllib
+from six.moves.urllib.parse import quote_plus
 
 
 ftoken_db = None
@@ -215,7 +218,7 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
     if q_list:
         if use_dismax:
             q = web.urlquote(' '.join(q_list))
-            solr_select += "&defType=dismax&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10"
+            solr_select += quote_plus("&defType=dismax&qf=text+title^5+author_name^5&bf=sqrt(edition_count)^10")
         else:
             q = web.urlquote(' '.join(q_list + ['_val_:"sqrt(edition_count)"^10']))
         solr_select += "&q=%s" % q
