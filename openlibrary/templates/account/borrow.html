@@ -214,7 +214,7 @@ $else:
                             $if delta_hours == 0:
                                 $_("You have less than an hour to borrow it.")
                             $else:
-                                $unggettext("You have one more hour to borrow it.", "You have %(hours)d more hours to borrow it.", delta_hours, hours=delta_hours)
+                                $ungettext("You have one more hour to borrow it.", "You have %(hours)d more hours to borrow it.", delta_hours, hours=delta_hours)
                         </div>
                 </td>
                 <td class="actions">
