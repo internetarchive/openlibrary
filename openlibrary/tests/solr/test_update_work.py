@@ -1,7 +1,7 @@
 from openlibrary.solr import update_work
 from openlibrary.solr.data_provider import DataProvider
 from openlibrary.solr.update_work import build_data
-from StringIO import StringIO
+from six import StringIO
 
 author_counter = 0
 edition_counter = 0
