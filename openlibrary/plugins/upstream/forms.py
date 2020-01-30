@@ -3,7 +3,7 @@ from infogami.infobase.client import ClientException
 from infogami.core import forms
 
 from openlibrary.i18n import lgettext as _
-from openlibrary.utils.form import Form, Textbox, Password, Hidden, Validator, RegexpValidator
+from openlibrary.utils.form import Form, Textbox, Password, Checkbox, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
 from . import spamcheck
@@ -59,6 +59,7 @@ class RegisterForm(Form):
         Password('password2', description=_('Confirm password'),
             klass='required',
             validators=[vpass, EqualToValidator('password', _("Passwords didn't match."))]),
+        Checkbox('ia_newsletter', description=_("""Send me a monthly newsletter from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library""")),
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)

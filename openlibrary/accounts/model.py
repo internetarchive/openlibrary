@@ -479,21 +479,22 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, retries=0,
-               verified=False, test=None):
+    def create(cls, screenname, email, password, notifications=None,
+               retries=0, verified=False, test=None):
         """
-        Args:
-            screenname (unicode) - changeable human readable archive.org username.
-                                   The slug / itemname is generated automatically
-                                   from this value.
-            email (unicode)
-            password (unicode)
-            retries (int) - If the username is unavailable, how many
-                            subsequent attempts should be made to find
-                            an available username.
+        :param unicode screenname: changable human readable archive.org username.
+            The slug / itemname is generated automatically from this value.
+        :param unicode email:
+        :param unicode password:
+        :param List[Union[Literal['announce-general'], Literal['announce-sf']]] notifications:
+            newsletters to subscribe user to
+        :param int retries: If the username is unavailable, how many
+            subsequent attempts should be made to find an available
+            username.
         """
         email = email.strip().lower()
         screenname = screenname[1:] if screenname[0] == '@' else screenname
+        notifications = notifications or []
 
         if cls.get(email=email):
             raise ValueError('email_registered')
@@ -505,9 +506,9 @@ class InternetArchiveAccount(web.storage):
         attempt = 0
         while True:
             response = cls.xauth(
-                'create', test=test, email=email,
-                password=password, screenname=_screenname,
-                verified=verified, service='openlibrary', notifications=[])
+                'create',
+                email=email, password=password, screenname=_screenname, notifications=notifications,
+                test=test, verified=verified, service='openlibrary')
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
