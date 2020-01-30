@@ -263,15 +263,6 @@ def get_availability_of_editions(ol_edition_ids):
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
 
-def get_edition_ia_metadata(ocaid):
-    url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
-    try:
-        content = urllib.urlopen(url=url, timeout=config_http_request_timeout).read()
-        return simplejson.loads(content).get('metadata', {})
-    except Exception as e:
-        logger.info("BEGIN sync_loan %s", e)
-    return {}
-
 @public
 def add_availability(editions):
     """

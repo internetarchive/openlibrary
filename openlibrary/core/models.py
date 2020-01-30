@@ -25,6 +25,8 @@ from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
 from six.moves import urllib
 
+from .ia import get_metadata_direct
+
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -295,7 +297,7 @@ class Edition(Thing):
         return waitinglist.get_waitinglist_for_book(self.key)
 
     def inject_ia_metadata(self):
-        self.metadata = lending.get_edition_ia_metadata(self.get('ocaid'))
+        self.metadata = get_metadata_direct(self.get('ocaid'), cache=False)
         self.donor = self.metadata.get('donor')
         self.donor_msg = self.metadata.get('donor_msg')
 

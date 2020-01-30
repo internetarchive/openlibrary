@@ -20,16 +20,18 @@ IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
-def get_api_response(url):
+def get_api_response(url, params=None):
     """
     Makes an API GET request to archive.org, collects stats
     Returns a JSON dict.
+    :param str url:
+    :param dict params: url parameters
     :rtype: dict
     """
     api_response = {}
     stats.begin('archive.org', url=url)
     try:
-        r = requests.get(url)
+        r = requests.get(url, params=params)
         if r.status_code == requests.codes.ok:
             api_response = r.json()
         else:
@@ -40,19 +42,22 @@ def get_api_response(url):
     return api_response
 
 
-def _get_metadata(itemid):
-    """Returns metadata by querying the archive.org metadata API.
+def get_metadata_direct(itemid, only_metadata=True, cache=True):
     """
-    itemid = web.safestr(itemid.strip())
-    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
-    return get_api_response(url)
+    Fetches metadata by querying the archive.org metadata API, without local cacheing.
+    :param str itemid:
+    :param bool cache: if false, requests uncached metadata from archive.org
+    :param bool only_metadata: whether to get the metadata without any processing
+    :rtype: dict
+    """
+    url = '%s/metadata/%s' % (IA_BASE_URL, web.safestr(itemid.strip()))
+    params = {}
+    if cache:
+        params['dontcache'] = 1
+    full_json = get_api_response(url, params)
+    return extract_item_metadata(full_json) if only_metadata else full_json
 
-
-def get_metadata(itemid):
-    item_json = _get_metadata(itemid)
-    return extract_item_metadata(item_json)
-
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * 60)
 
 
 def extract_item_metadata(item_json):
@@ -90,7 +95,7 @@ def process_metadata_dict(metadata):
 def locate_item(itemid):
     """Returns (hostname, path) for the item.
     """
-    d = _get_metadata(itemid)
+    d = get_metadata_direct(itemid, only_metadata=False)
     return d.get('server'), d.get('dir')
 
 
