@@ -59,7 +59,7 @@ class RegisterForm(Form):
         Password('password2', description=_('Confirm password'),
             klass='required',
             validators=[vpass, EqualToValidator('password', _("Passwords didn't match."))]),
-        Checkbox('ia_newsletter', description=_("Send me general announcements from the Internet Archive, the non-for-profit that runs Open Library (approx. two per month)"))
+        Checkbox('ia_newsletter', description=_("""Send me a monthly newsletter from the <a href="https://archive.org/">Internet Archive</a>, the non-profit that runs Open Library""")),
     ]
     def __init__(self):
         Form.__init__(self, *self.INPUTS)
