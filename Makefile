@@ -64,6 +64,6 @@ ifndef CONTINUOUS_INTEGRATION
 	$(PYTHON) -m flake8 . --count --exclude=./.*,scripts/20*,vendor*,node_modules/* --exit-zero --max-complexity=10 --max-line-length=$(GITHUB_EDITOR_WIDTH) --statistics
 endif
 
-test: i18n
+test:
 	npm test
 	pytest openlibrary/tests openlibrary/mocks openlibrary/olbase openlibrary/plugins openlibrary/utils openlibrary/catalog openlibrary/coverstore scripts/tests
