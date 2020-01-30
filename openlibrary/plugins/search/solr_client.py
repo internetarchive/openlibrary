@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from xml.etree.cElementTree import ElementTree
-from cStringIO import StringIO
+from six.moves.cStringIO import StringIO
 import os
 import re
 from collections import defaultdict
