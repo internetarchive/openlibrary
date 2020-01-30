@@ -296,27 +296,26 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def inject_ia_metadata(self):
-        self.metadata = get_metadata_direct(self.get('ocaid'), cache=False)
-        self.donor = self.metadata.get('donor')
-        self.donor_msg = self.metadata.get('donor_msg')
+    @property
+    @cache.method_memoize
+    def ia_metadata(self):
+        return get_metadata_direct(self.get('ocaid'), cache=False)
 
-
-        def _set_realtime_availability():
-            statuses = {
-                'available': 'borrow_available',
-                'unavailable': 'borrow_unavailable',
-                'private': 'private',
-                'error': 'error'
-            }
-            status = self.metadata.get('loans__status__status', 'error').lower()
-            self.availability = {
-                'status': statuses[status],
-                'num_waitlist': int(self.metadata.get('loans__status__num_waitlist', 0)),
-                'num_loans': int(self.metadata.get('loans__status__num_loans', 0))
-            }
-        if not self.availability:
-            _set_realtime_availability()
+    @property
+    @cache.method_memoize
+    def availability(self):
+        statuses = {
+            'available': 'borrow_available',
+            'unavailable': 'borrow_unavailable',
+            'private': 'private',
+            'error': 'error'
+        }
+        status = self.ia_metadata.get('loans__status__status', 'error').lower()
+        return {
+            'status': statuses[status],
+            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
+            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+        }
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.

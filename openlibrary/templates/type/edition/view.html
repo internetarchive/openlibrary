@@ -1,7 +1,6 @@
 $def with (page, show_other_editions=False)
 
 $ work = page.works and page.works[0] or None
-$ page.inject_ia_metadata()
 $ ocaid = page.get('ocaid')
 $ book_title = page.get('title', '') if page.title else (work.title if work else '')
 $ work_title = work.title if work else page.get('title', '')
@@ -354,13 +353,14 @@ $if ctx.user and ctx.user.is_admin():
         <div class="editionTools">
             $:macros.databarWork(page, editions_page=True)
 
-            $if page.donor and page.donor_msg:
+            $if 'donor' in page.ia_metadata:
               <div class="Tools read-options">
                 <p class="cta-section-title">Dedication</p>
                 <p>This book generously <a href="/sponsorship">sponsored</a>
-                  by: $page.donor
+                  by: $page.ia_metadata['donor']
                 </p>
-                <p>"$page.donor_msg"</p>
+                $if 'donor_msg' in page.ia_metadata:
+                <p>"$page.ia_metadata['donor_msg']"</p>
               </div>
         </div>
 
