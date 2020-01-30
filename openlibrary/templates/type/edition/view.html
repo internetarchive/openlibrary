@@ -353,15 +353,18 @@ $if ctx.user and ctx.user.is_admin():
         <div class="editionTools">
             $:macros.databarWork(page, editions_page=True)
 
-            $if 'openlibraryscanningteam' in page.ia_metadata.get('collection', []):
+            $if page.sponsorship_data:
               <div class="sponsorship-card">
-              $if 'donor' in page.ia_metadata:
-                $_('This book was generously donated by %(donor)s', donor=page.ia_metadata['donor'])
+              $if page.sponsorship_data.donor:
+                $ donor = page.sponsorship_data.donor
+                $if page.sponsorship_data.donor_account:
+                  $ donor = page.sponsorship_data.donor_account.render_link()
+                $:_('This book was generously donated by %(donor)s', donor=donor)
               $else:
                 $_('This book was generously donated anonymously')
               <hr>
-              $if 'donor_msg' in page.ia_metadata:
-                <q>$page.ia_metadata['donor_msg']</q>
+              $if page.sponsorship_data.donor_msg:
+                <q>$page.sponsorship_data.donor_msg</q>
                 <hr>
               <a href="/sponsorship" class="learn-more">$_("Learn more about Book Sponsorship")</a>
               </div>
