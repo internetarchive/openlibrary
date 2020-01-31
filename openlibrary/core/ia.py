@@ -57,7 +57,7 @@ def get_metadata_direct(itemid, only_metadata=True, cache=True):
     full_json = get_api_response(url, params)
     return extract_item_metadata(full_json) if only_metadata else full_json
 
-get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * 60)
+get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS)
 
 
 def extract_item_metadata(item_json):
