@@ -16,7 +16,7 @@ web.py==0.40; python_version >= '3.0'
 pystatsd==0.1.6
 PyYAML==4.2b4
 eventer==0.1.1
-lepl==5.1.3
+validate_email==1.3
 six==1.13.0
 sixpack-client==1.2.0
 psycopg2==2.8.4
