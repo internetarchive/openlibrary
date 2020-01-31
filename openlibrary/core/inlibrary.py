@@ -3,7 +3,7 @@
 import web
 
 from infogami.utils import delegate
-from openlibrary.core import cache, geo_ip, iprange
+from openlibrary.core import cache, iprange
 
 def _get_libraries(site=None):
     """Returns all the libraries each as a dict."""
@@ -104,17 +104,13 @@ def get_library():
         # try with ip
         lib = d_ip.get(web.ctx.ip)
 
-        # if not try the region
-        if not lib:
-            region = geo_ip.get_region(web.ctx.ip)
-            lib = d_region.get(region)
-
         # if not try the default library
         if not lib:
             lib = _get_default_library()
 
         web.ctx.library = lib and web.ctx.site.new(lib['key'], lib)
     return web.ctx.library
+
 
 def filter_inlibrary():
     """Returns True if the IP of the current request is in the IP range of one of the libraries.
