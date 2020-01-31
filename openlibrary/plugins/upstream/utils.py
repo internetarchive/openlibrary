@@ -10,11 +10,11 @@ import xml.etree.ElementTree as etree
 import datetime
 import gzip
 import logging
-from HTMLParser import HTMLParser
 
 import six
 from six.moves import urllib
 from six.moves.collections_abc import MutableMapping
+from six.moves.html_parser import HTMLParser
 
 from infogami import config
 from infogami.utils import view, delegate, stats
