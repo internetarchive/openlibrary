@@ -2,6 +2,9 @@
     openlibrary.catalog.marc.parse is the preferred module
 """
 
+# Tell the flake8 linter to ignore this deprecated file.
+# flake8: noqa
+
 import re
 from deprecated import deprecated
 from warnings import warn
