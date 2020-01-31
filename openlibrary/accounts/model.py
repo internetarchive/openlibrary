@@ -304,6 +304,9 @@ class Account(web.storage):
             if 'values' in act and 'email' in act['values']:
                 return InternetArchiveAccount.get(email=act['values']['email'])
 
+    def render_link(self):
+        return '<a href="/people/%s">%s</a>' % (self.username, web.net.htmlquote(self.displayname))
+
 class OpenLibraryAccount(Account):
 
     @classmethod
@@ -404,6 +407,9 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_link(cls, link, test=False):
+        """
+        :rtype: OpenLibraryAccount or None
+        """
         ol_accounts = web.ctx.site.store.values(
             type="account", name="internetarchive_itemname", value=link)
         return cls(ol_accounts[0]) if ol_accounts else None

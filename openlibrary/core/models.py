@@ -25,6 +25,9 @@ from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
 from six.moves import urllib
 
+from .ia import get_metadata_direct
+from ..accounts import OpenLibraryAccount
+
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -294,8 +297,42 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def get_realtime_availability(self):
-        return lending.get_realtime_availability_of_ocaid(self.get('ocaid'))
+    @property
+    @cache.method_memoize
+    def ia_metadata(self):
+        ocaid = self.get('ocaid')
+        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
+
+    @property
+    @cache.method_memoize
+    def availability(self):
+        statuses = {
+            'available': 'borrow_available',
+            'unavailable': 'borrow_unavailable',
+            'private': 'private',
+            'error': 'error'
+        }
+        status = self.ia_metadata.get('loans__status__status', 'error').lower()
+        return {
+            'status': statuses[status],
+            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
+            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+        }
+
+    @property
+    @cache.method_memoize
+    def sponsorship_data(self):
+        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
+        if not was_sponsored:
+            return None
+
+        donor = self.ia_metadata.get('donor')
+
+        return web.storage({
+            'donor': donor,
+            'donor_account': OpenLibraryAccount.get_by_link(donor) if donor else None,
+            'donor_msg': self.ia_metadata.get('donor_msg'),
+        })
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.

@@ -10,6 +10,7 @@ $ title = book_title + " " + title_suffix
 $ title_with_site = title + " | Open Library"
 $ meta_cover_url = item_image(page.get_cover_url("L"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
 $ _x = ctx.setdefault('bodyid', 'book')
+
 $var title: $title
 
 $code:
@@ -185,6 +186,7 @@ $if ctx.user and ctx.user.is_admin():
         </div>
 
         <div class="editionAbout">
+
             <div class="book-overview section sansserif">
               <h1 class="work-title" itemprop="name">$book_title</h1>
               $if book_subtitle:
@@ -350,6 +352,22 @@ $if ctx.user and ctx.user.is_admin():
 
         <div class="editionTools">
             $:macros.databarWork(page, editions_page=True)
+
+            $if page.sponsorship_data:
+              <div class="sponsorship-card">
+              $if page.sponsorship_data.donor:
+                $ donor = page.sponsorship_data.donor
+                $if page.sponsorship_data.donor_account:
+                  $ donor = page.sponsorship_data.donor_account.render_link()
+                $:_('This book was generously donated by %(donor)s', donor=donor)
+              $else:
+                $_('This book was generously donated anonymously')
+              <hr>
+              $if page.sponsorship_data.donor_msg:
+                <q>$page.sponsorship_data.donor_msg</q>
+                <hr>
+              <a href="/sponsorship" class="learn-more">$_("Learn more about Book Sponsorship")</a>
+              </div>
         </div>
 
     </div>
