@@ -9,7 +9,6 @@ import random
 import xml.etree.ElementTree as etree
 import datetime
 import gzip
-import StringIO
 import logging
 from HTMLParser import HTMLParser
 
