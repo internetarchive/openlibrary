@@ -15,7 +15,7 @@ from __future__ import print_function
 
 from collections import namedtuple
 
-import _init_path
+from scripts import _init_path
 import sys
 import os
 import simplejson
