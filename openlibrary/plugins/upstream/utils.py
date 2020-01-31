@@ -3,7 +3,6 @@ import simplejson
 import babel
 import babel.core
 import babel.dates
-from UserDict import DictMixin
 from collections import defaultdict
 import re
 import random
@@ -16,6 +15,7 @@ from HTMLParser import HTMLParser
 
 import six
 from six.moves import urllib
+from six.moves.collections_abc import Mapping
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -28,7 +28,7 @@ from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
-class MultiDict(DictMixin):
+class MultiDict(Mapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
