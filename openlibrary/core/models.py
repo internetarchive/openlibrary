@@ -1,30 +1,23 @@
 """Models of various OL objects.
 """
+import iptools
 import simplejson
 import web
-import re
 
-import iptools
 from infogami.infobase import client
 
-#TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
-from openlibrary.utils import extract_numeric_id_from_olid
-from openlibrary.plugins.upstream.utils import get_history
-from openlibrary.core import helpers as h
+from openlibrary.accounts import OpenLibraryAccount
+from openlibrary.core import cache, helpers as h, iprange, inlibrary, loanstats, waitinglist
+from openlibrary.core.ia import get_metadata_direct
 from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.lists.model import ListMixin
 from openlibrary.core.ratings import Ratings
-from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
-
-# relative imports
-from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+from openlibrary.utils import extract_numeric_id_from_olid
+from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 
 from six.moves import urllib
-
-from .ia import get_metadata_direct
-from ..accounts import OpenLibraryAccount
 
 
 def _get_ol_base_url():
@@ -345,7 +338,8 @@ class Edition(Thing):
         return self.get_ia_meta_fields().get("contributor")
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
+        #TODO: fix this. openlibrary.core should not import plugins.
+        from openlibrary.plugins.upstream import borrow
         return borrow.get_edition_loans(self)
 
     def get_ebook_status(self):
@@ -741,15 +735,13 @@ class User(Thing):
         loan = self.get_loan_for(book)
         return loan is not None
 
-    #def can_borrow_edition(edition, _type):
-
-
     def get_loan_for(self, book):
         """Returns the loan object for given book.
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow
+        #TODO: fix this. openlibrary.core should not import plugins.
+        from openlibrary.plugins.upstream import borrow
         loans = borrow.get_loans(self)
         for loan in loans:
             if book.key == loan['book'] or book.ocaid == loan['ocaid']:
@@ -966,6 +958,7 @@ class Subject(web.storage):
             if cover_id:
                 return Image(web.ctx.site, "b", cover_id)
 
+
 def register_models():
     client.register_thing_class(None, Thing) # default
     client.register_thing_class('/type/edition', Edition)
@@ -975,6 +968,7 @@ def register_models():
     client.register_thing_class('/type/list', List)
     client.register_thing_class('/type/library', Library)
     client.register_thing_class('/type/usergroup', UserGroup)
+
 
 def register_types():
     """Register default types for various path patterns used in OL.
