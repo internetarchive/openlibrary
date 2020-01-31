@@ -525,9 +525,9 @@ def websafe(text):
         return _websafe(text)
 
 
+from openlibrary.plugins.upstream import adapter
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
-import adapter
 import memcache
 
 class UpstreamMemcacheClient:
