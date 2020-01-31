@@ -3,7 +3,7 @@
 import web
 import simplejson
 from collections import defaultdict
-from StringIO import StringIO
+from six import StringIO
 import csv
 import datetime
 

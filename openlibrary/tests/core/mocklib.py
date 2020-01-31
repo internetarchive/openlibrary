@@ -1,6 +1,6 @@
 """Simple mock utility.
 """
-from StringIO import StringIO
+from six import StringIO
 
 from six.moves import urllib
 
