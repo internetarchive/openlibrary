@@ -300,7 +300,8 @@ class Edition(Thing):
     @property
     @cache.method_memoize
     def ia_metadata(self):
-        return get_metadata_direct(self.get('ocaid'), cache=False)
+        ocaid = self.get('ocaid')
+        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
 
     @property
     @cache.method_memoize
