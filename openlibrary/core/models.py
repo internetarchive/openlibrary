@@ -7,13 +7,11 @@ import re
 import iptools
 from infogami.infobase import client
 
-import helpers as h
-
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.upstream.utils import get_history
-from openlibrary.core.helpers import private_collection_in
+from openlibrary.core import helpers as h
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
@@ -281,7 +279,7 @@ class Edition(Thing):
         """Private collections are lendable books that should not be
         linked/revealed from OL
         """
-        return private_collection_in(self.get_ia_collections())
+        return h.private_collection_in(self.get_ia_collections())
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
