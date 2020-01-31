@@ -12,7 +12,7 @@ import web
 
 from infogami import config
 from infogami.utils import delegate
-from infogami.utils.view import public
+from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
 
 from utils import render_template
@@ -24,11 +24,10 @@ from openlibrary.core import waitinglist
 from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
 from openlibrary import accounts
+from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 
 from lxml import etree
-
-import acs4
 
 from six.moves import urllib
 
