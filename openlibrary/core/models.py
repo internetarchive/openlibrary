@@ -938,7 +938,6 @@ def register_models():
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
-    client.register_thing_class('/type/library', Library)
     client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
@@ -950,7 +949,6 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
-    types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permission')
