@@ -199,7 +199,7 @@ def tokenize(code):
     tok = PythonTokenizer(code)
     try:
         while True:
-            x = tok.next()
+            x = next(tok)
             begin = x.begin[1]
             if begin > end:
                 yield ' ' * (begin - end)

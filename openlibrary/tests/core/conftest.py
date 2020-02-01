@@ -46,7 +46,7 @@ def sequence(request):
     similar to web.ctx.site.sequence.get_next"""
     t = (x for x in range(100))
     def seq_counter(*largs, **kargs):
-        return t.next()
+        return next(t)
     import web
     # Clean up this mess to mock sequences
     web.ctx = lambda:0

@@ -1,6 +1,6 @@
 #!/usr/bin/python2.5
 from __future__ import print_function
-from catalog.marc.fast_parse import *
+from catalog.marc.fast_parse import get_all_subfields, get_first_tag, read_file
 import sys
 import codecs
 
@@ -10,7 +10,7 @@ for data, length in read_file(open(sys.argv[1])):
     line = get_first_tag(data, set(['500']))
     if not line:
         continue
-    subtag, value = get_all_subfields(line).next()
+    subtag, value = next(get_all_subfields(line))
     if subtag != 'a':
         continue
     if value.startswith("Translation of the author's thesis"):
