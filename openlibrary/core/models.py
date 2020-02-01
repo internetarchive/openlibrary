@@ -4,7 +4,6 @@ import simplejson
 import web
 import re
 
-import iptools
 from infogami.infobase import client
 
 from openlibrary.core import helpers as h
@@ -863,54 +862,6 @@ class List(Thing, ListMixin):
 
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
-
-class Library(Thing):
-    """Library document.
-
-    Each library has a list of IP addresses belongs to that library.
-    """
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def find_bad_ip_ranges(self, text):
-        return iprange.find_bad_ip_ranges(text)
-
-    def parse_ip_ranges(self, text):
-        return iprange.parse_ip_ranges(text)
-
-    def get_ip_range_list(self):
-        """Returns IpRangeList object for the range of IPs of this library.
-        """
-        ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
-        return iptools.IpRangeList(*ranges)
-
-    def has_ip(self, ip):
-        """Return True if the the given ip is part of the library's ip range.
-        """
-        return ip in self.get_ip_range_list()
-
-    def get_branches(self):
-        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
-        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
-        def parse(line):
-            branch = web.storage(zip(columns, line.strip().split("|")))
-
-            # add empty values for missing columns
-            for c in columns:
-                branch.setdefault(c, "")
-
-            try:
-                branch.lat, branch.lon = branch.latlong.split(",", 1)
-            except ValueError:
-                branch.lat = "0"
-                branch.lon = "0"
-            return branch
-        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
-
-    def get_loans_per_day(self, resource_type="total"):
-        name = self.key.split("/")[-1]
-        stats = loanstats.LoanStats(library=name)
-        return stats.get_loans_per_day(resource_type=resource_type)
 
 class UserGroup(Thing):
 
