@@ -11,7 +11,6 @@ sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
 web.load()
 
 from infogami.infobase.infobase import Infobase
-import infogami.infobase.writequery as writequery
 site = Infobase().get_site('openlibrary.org')
 
 re_marc_name = re.compile('^(.*), (.*)$')
@@ -120,7 +119,7 @@ def make_redirect(old, new):
         'location': {'connect': 'update', 'value': new['key'] },
         'type': {'connect': 'update', 'value': '/type/redirect' },
     }
-    for k in old.keys():
+    for k in old:
         if k != 'key':
             q[str(k)] = { 'connect': 'update', 'value': None }
     print(site.write(q, comment='replace with redirect'))

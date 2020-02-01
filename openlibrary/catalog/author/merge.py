@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-from openlibrary.catalog.importer.db_read import withKey, get_things, get_mc
+from openlibrary.catalog.importer.db_read import withKey, get_things
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils import key_int, match_with_bad_chars, pick_best_author, remove_trailing_number_dot
 from unicodedata import normalize
-import web
 import re
 import sys
 import codecs
@@ -129,7 +128,7 @@ def do_normalize(author_key, best_key, authors):
             need_update = True
     else:
         best = ol.get(best_key)
-        author_keys = set(k for k in list(a.keys()) + list(best.keys()) if k not in ('key', 'last_modified', 'type', 'id', 'revision'))
+        author_keys = set(k for k in list(a) + list(best) if k not in ('key', 'last_modified', 'type', 'id', 'revision'))
         for k in author_keys:
             if k not in best:
                 v = a[k]
