@@ -6,7 +6,6 @@ from infogami import config
 from lxml import etree
 import xml.parsers.expat
 import os.path
-import socket
 from time import sleep
 import traceback
 from openlibrary.core import ia
@@ -64,7 +63,7 @@ def get_marc_record_from_ia(identifier):
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         try:
-            root = etree.fromstring(data)
+            root = etree.fromstring(bytes(data, encoding='utf-8'))
             return MarcXml(root)
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
