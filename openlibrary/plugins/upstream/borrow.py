@@ -817,7 +817,7 @@ def user_can_borrow_edition(user, edition, resource_type):
     if user.get_loan_count() >= user_max_loans:
         return False
 
-    realtime_availability = edition.get_realtime_availability()
+    realtime_availability = edition.availability
     availability_status = realtime_availability['status']
     waitlist_size = realtime_availability['num_waitlist']
 

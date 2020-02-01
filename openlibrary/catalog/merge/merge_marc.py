@@ -8,7 +8,7 @@ from openlibrary.catalog.merge.normalize import normalize
 # fields needed for merge process:
 # title_prefix, title, subtitle, isbn, publish_country, lccn, publishers, publish_date, number_of_pages, authors
 
-re_amazon_title_paren = re.compile('^(.*) \([^)]+?\)$')
+re_amazon_title_paren = re.compile(r'^(.*) \([^)]+?\)$')
 
 isbn_match = 85
 

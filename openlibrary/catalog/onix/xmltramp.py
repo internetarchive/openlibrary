@@ -267,7 +267,7 @@ def seed(fileobj):
     return seeder.result
 
 def parse(text):
-    from StringIO import StringIO
+    from six import StringIO
     return seed(StringIO(text))
 
 def load(url):

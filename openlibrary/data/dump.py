@@ -65,7 +65,7 @@ def xopen(path, mode='r'):
         return open(path, mode)
 
 def read_tsv(file, strip=True):
-    """Read a tab seperated file and return an iterator over rows."""
+    """Read a tab separated file and return an iterator over rows."""
     log("reading", file)
     if isinstance(file, six.string_types):
         file = xopen(file)

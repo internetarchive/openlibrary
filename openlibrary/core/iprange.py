@@ -11,7 +11,7 @@ re_range_star = re.compile(r'^(\d+\.\d+)\.(\d+)\s*-\s*(\d+)\.\*$')
 re_three = re.compile(r'^(\d+\.\d+\.\d+)\.$')
 re_four = re.compile(r'^' + four_octet + r'(/\d+)?$')
 re_range_in_last = re.compile(r'^(\d+\.\d+\.\d+)\.(\d+)\s*-\s*(\d+)$')
-re_four_to_four = re.compile('^%s\s*-\s*%s$' % (four_octet, four_octet))
+re_four_to_four = re.compile(r'^%s\s*-\s*%s$' % (four_octet, four_octet))
 
 patterns = (re_four_to_four, re_four, re_range_star, re_three, re_range_in_last)
 
@@ -159,7 +159,7 @@ class IPDict:
             self.ip_ranges.setdefault(i, {})[iptools.IpRange(ip_range)] = value
 
     def add_ip_range_text(self, ip_range_text, value):
-        """Adds all ip_ranges from the givem multi-line text and associate
+        """Adds all ip_ranges from the given multi-line text and associate
         each one of them with given value.
 
         See :func:`parse_ip_ranges` for the supported formats in the text.

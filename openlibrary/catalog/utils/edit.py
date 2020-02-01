@@ -10,7 +10,7 @@ import six
 from six.moves import urllib
 
 re_meta_mrc = re.compile('([^/]+)_(meta|marc).(mrc|xml)')
-re_skip = re.compile('\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
+re_skip = re.compile(r'\b([A-Z]|Co|Dr|Jr|Capt|Mr|Mrs|Ms|Prof|Rev|Revd|Hon)\.$')
 
 db_amazon = web.database(dbn='postgres', db='amazon')
 db_amazon.printing = False

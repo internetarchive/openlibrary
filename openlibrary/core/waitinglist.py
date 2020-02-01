@@ -306,7 +306,7 @@ def update_waitinglist(identifier):
         borrowed=str(not_available).lower(), # store as string "true" or "false"
         wl_size=len(wl))
 
-    # Start storing ebooks/$identifier so that we can handle mutliple editions
+    # Start storing ebooks/$identifier so that we can handle multiple editions
     # with same ocaid more effectively.
     update_ebook('ebooks/' + identifier,
         borrowed=str(not_available).lower(), # store as string "true" or "false"

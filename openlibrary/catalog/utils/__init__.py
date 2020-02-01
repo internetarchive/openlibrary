@@ -14,22 +14,22 @@ except NameError:
 
 
 re_date = map (re.compile, [
-    '(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
-    '(?P<birth_date>\d+\??)-',
-    'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
-    'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
-    '(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
-    '^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
+    r'(?P<birth_date>\d+\??)-(?P<death_date>\d+\??)',
+    r'(?P<birth_date>\d+\??)-',
+    r'b\.? (?P<birth_date>(?:ca\. )?\d+\??)',
+    r'd\.? (?P<death_date>(?:ca\. )?\d+\??)',
+    r'(?P<birth_date>.*\d+.*)-(?P<death_date>.*\d+.*)',
+    r'^(?P<birth_date>[^-]*\d+[^-]+ cent\.[^-]*)$'])
 
 re_ad_bc = re.compile(r'\b(B\.C\.?|A\.D\.?)')
 re_date_fl = re.compile('^fl[., ]')
-re_number_dot = re.compile('\d{2,}[- ]*(\.+)$')
-re_l_in_date = re.compile('(l\d|\dl)')
-re_end_dot = re.compile('[^ .][^ .]\.$', re.UNICODE)
+re_number_dot = re.compile(r'\d{2,}[- ]*(\.+)$')
+re_l_in_date = re.compile(r'(l\d|\dl)')
+re_end_dot = re.compile(r'[^ .][^ .]\.$', re.UNICODE)
 re_marc_name = re.compile('^(.*?),+ (.*)$')
 re_year = re.compile(r'\b(\d{4})\b')
 
-re_brackets = re.compile('^(.+)\[.*?\]$')
+re_brackets = re.compile(r'^(.+)\[.*?\]$')
 
 
 def key_int(rec):

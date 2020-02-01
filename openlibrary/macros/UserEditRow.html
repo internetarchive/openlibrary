@@ -18,7 +18,7 @@ $else:
             <span><input type="text" name="$name#$i" id="$name#$i" value="$v"/></span>
             <span>
                 $if i == len(value) - 1:
-                    <button onClick="add_row('$name')" type="button">Add another</button>
+                    <button onClick="add_row('$name')" type="button">$_('Add another')</button>
             </span>
         </div>
         $ label = ""

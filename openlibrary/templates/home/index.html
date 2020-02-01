@@ -8,19 +8,19 @@ $var title: $_("Welcome to Open Library")
 
   $:render_template("books/custom_carousel", books=get_cached_sponsorable_editions(), title="Books to Sponsor", url="/sponsorship", key="sponsor_books", test=test)
 
-  $:render_template("books/custom_carousel", books=readonline_carousel(), title="Classic Books", url="/read", key="public_domain", test=test)
+  $:render_template("books/custom_carousel", books=readonline_carousel(), title=_('Classic Books'), url="/read", key="public_domain", test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Books We Love", key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Books We Love'), key="staff_picks", query='languageSorter:("English")', subject="openlibrary_staff_picks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Recently Returned", key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Recently Returned'), key="recently_returned", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Romance", key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Romance'), key="romance", query="subject:(romance)", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Kids", key="children", query="subject:(Juvenile Fiction)", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Kids'), key="children", query="subject:(Juvenile Fiction)", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Thrillers", key="thrillers", query="preset:thrillers", sorts=["downloads+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Thrillers'), key="thrillers", query="preset:thrillers", sorts=["downloads+desc"], limit=18, test=test)
 
-  $:render_template("home/custom_ia_carousel", title="Textbooks", key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
+  $:render_template("home/custom_ia_carousel", title=_('Textbooks'), key="textbooks", subject="textbooks", sorts=["loans__status__last_loan_date+desc"], limit=18, test=test)
 
   $:render_template("home/custom_ia_carousel", title="Authors Alliance & MIT Press", key="authorsalliance_mit_press", query="preset:authorsalliance_mitpress", limit=18, test=test)
 

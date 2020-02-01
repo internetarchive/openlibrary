@@ -26,22 +26,18 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
              ($(doc['publish_date']))
          </h3>
       </span>
-      <span class="bookauthor">by
+      <span class="bookauthor">$_('by')
         $if not doc.authors:
-          <em>Unknown author</em>
+          <em>$_('Unknown author')</em>
         $else:
           $for a in doc.authors:
             <a itemprop="author" href="$(a.get('url') or a.get('key') or a.author.get('url') or a.author.key)" class="results">$(a.name or a.author.name)</a>$(',' if not loop.last else '')
       </span>
       <span class="resultPublisher">
         $if doc.edition_count:
-          $commify(doc.edition_count) edition$("s" if doc.edition_count != 1 else "")
+          $ungettext('1 edition', '%(count)d editions', doc.edition_count, count=doc.edition_count)
           $if doc.first_publish_year:
-              - first published in
-              $if doc.get('first_edition'):
-                  <a href="/books/$doc.first_edition">$doc.first_publish_year</a>
-              $else:
-                  $doc.first_publish_year
+              $_('- first published in %(year)s', year=doc.first_publish_year)
       </span>
 
       $if extra:
@@ -57,7 +53,7 @@ $ cover_ids =  [cover for cover in doc.get('covers', []) if cover != -1]
             <span class="actions">
               <span class="image daisy"></span>
             </span>
-            <span class="label">Download DAISY</span>
+            <span class="label">$_('Download DAISY')</span>
           </a>
       $if decorations:
         $# should show reading log status widget if there is one in decorations, or read, or return, or leave waitlist

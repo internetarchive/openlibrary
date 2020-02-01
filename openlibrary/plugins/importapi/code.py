@@ -39,7 +39,7 @@ def parse_meta_headers(edition_builder):
     # we don't yet support augmenting complex fields like author or language
     # string_keys = ['title', 'title_prefix', 'description']
 
-    re_meta = re.compile('HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
+    re_meta = re.compile(r'HTTP_X_ARCHIVE_META(?:\d{2})?_(.*)')
     for k, v in web.ctx.env.items():
         m = re_meta.match(k)
         if m:
@@ -77,15 +77,16 @@ def parse_data(data):
         obj = json.loads(data)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=obj)
         format = 'json'
-    else:
+    elif data[:MARC_LENGTH_POS].isdigit():
         #Marc Binary
         if len(data) < MARC_LENGTH_POS or len(data) != int(data[:MARC_LENGTH_POS]):
             raise DataError('no-marc-record')
         rec = MarcBinary(data)
-
         edition = read_edition(rec)
         edition_builder = import_edition_builder.import_edition_builder(init_dict=edition)
         format = 'marc'
+    else:
+        raise DataError('unrecognised-import-format')
 
     parse_meta_headers(edition_builder)
     return edition_builder.get_dict(), format
@@ -117,7 +118,7 @@ class importapi:
             return self.error(str(e), 'Failed to parse import data')
 
         if not edition:
-            return self.error('unknown_error', 'Failed to parse import data')
+            return self.error('unknown-error', 'Failed to parse import data')
 
         try:
             reply = add_book.load(edition)
@@ -171,7 +172,7 @@ class ia_importapi(importapi):
         # First check whether this is a non-book, bulk-marc item
         if bulk_marc:
             # Get binary MARC by identifier = ocaid/filename:offset:length
-            re_bulk_identifier = re.compile("([^/]*)/([^:]*):(\d*):(\d*)")
+            re_bulk_identifier = re.compile(r"([^/]*)/([^:]*):(\d*):(\d*)")
             try:
                 ocaid, filename, offset, length = re_bulk_identifier.match(identifier).groups()
                 data, next_offset, next_length = get_from_archive_bulk(identifier)

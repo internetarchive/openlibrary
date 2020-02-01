@@ -68,6 +68,24 @@
   // stylelint-enable selector-max-specificity
 }
 
+.sponsorship-card {
+  border-radius: 5px;
+  padding: 10px;
+  border: 2px solid fade(@link-blue, 20%);
+  background: fade(lighten(desaturate(@link-blue, 56%), 67%), 50%);
+  font-size: 0.8em;
+  text-align: center;
+
+  q {
+    display: block;
+    font-style: oblique;
+    text-align: center;
+  }
+
+  hr { background: fade(@link-blue, 35%); }
+  a.learn-more { font-size: 0.9em; }
+}
+
 .Tools .booklinks li {
   list-style: none;
   font-size: 12px;

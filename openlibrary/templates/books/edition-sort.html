@@ -37,7 +37,7 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
         $if book.title:
           <a href="$book.url()">
             $if book.subtitle:
-              $(book.title): $(book.subtitle)
+              $_('%(title)s: %(subtitle)s', title=book.title, subtitle=book.subtitle)
             $else:
               $book.title
           </a>
@@ -49,15 +49,17 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
           $elif book.publish_date:
             $book.publish_date
           $elif book.publishers:
-            Publish date unknown, $(', '.join(book.publishers))
+            $_("Publish date unknown, %s", (', '.join(book.publishers)))
           $else:
-            Publisher unknown
+            $_("Publisher unknown")
         </div>
 
         <div class="format">
+          <!-- TODO: this section is going to be difficult to properly internationalize -->
+          <!-- Formats are store as a raw string -->
           $book.physical_format.replace('[', '').replace(']','')
           $if book.languages:
-            in $', '.join(l.name for l in book.languages)
+            $_('in %(languagelist)s', languagelist=', '.join(l.name for l in book.languages))
           $if book.edition_name:
             - $book.edition_name
         </div>
@@ -94,11 +96,11 @@ $ url = book.get_cover_url("S") or "/images/icons/avatar_book-sm.png"
       <div class="zzzz"></div>
         <div class="links">
           $if oclc_numbers or isbn:
-            <div>Libraries near you:</div>
+            <div>$_('Libraries near you:')</div>
             <ul>
               <li>
                 <a href="$macros.WorldcatUrl(isbn=isbn, oclc_numbers=oclc_numbers)"
-                   title="Look for this edition at WorldCat">WorldCat</a>
+                   title="$_('Look for this edition at WorldCat')">WorldCat</a>
               </li>
               $if isbn:
                 <li><a href="https://labs.library.link/services/borrow/?isbn=$(isbn_10_to_isbn_13(isbn))&embed=True&radius=500&refer=$(book.url(relative=False))">Library.link</a></li>

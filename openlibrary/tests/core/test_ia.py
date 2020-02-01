@@ -9,7 +9,7 @@ def test_get_metadata(monkeypatch, mock_memcache):
         }
     }
 
-    monkeypatch.setattr(ia, '_get_metadata', lambda _id: metadata)
+    monkeypatch.setattr(ia, 'get_api_response', lambda *args: metadata)
     assert ia.get_metadata('foo00bar') == {
         "title": "Foo",
         "identifier": "foo00bar",
@@ -19,5 +19,5 @@ def test_get_metadata(monkeypatch, mock_memcache):
     }
 
 def test_get_metadata_empty(monkeypatch, mock_memcache):
-    monkeypatch.setattr(ia, '_get_metadata', lambda _id: {})
+    monkeypatch.setattr(ia, 'get_api_response', lambda *args: {})
     assert ia.get_metadata('foo02bar') == {}

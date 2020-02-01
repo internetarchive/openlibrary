@@ -270,9 +270,9 @@ def log(*a):
     print(time.asctime(), " ".join(map(str, a)), file=sys.stderr)
 
 def capture_stdout(f):
-    import StringIO
+    from six import StringIO
     def g(*a):
-        stdout, sys.stdout = sys.stdout, StringIO.StringIO()
+        stdout, sys.stdout = sys.stdout, StringIO()
         f(*a)
         out, sys.stdout = sys.stdout.getvalue(), stdout
         return out
