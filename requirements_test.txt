@@ -5,6 +5,7 @@
 -r requirements_common.txt
 flake8==3.7.9
 mockcache==1.0.3; python_version < '3.0'
+https://github.com/lunant/mockcache/archive/914749d0f0b2a9230ab2c8592abe6a67aae461cf.zip; python_version >= '3.0'
 ptvsd==4.3.2
 pytest==4.6.6; python_version < '3.0'
 pytest==5.2.2; python_version >= '3.0'
