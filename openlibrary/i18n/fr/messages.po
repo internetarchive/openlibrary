@@ -1108,7 +1108,7 @@ msgstr ""
 
 #: create.html:67
 msgid "screenname"
-msgstr "Nom d'utilisateur"
+msgstr "nom_dutilisateur"
 
 #: create.html:71
 #, python-format
