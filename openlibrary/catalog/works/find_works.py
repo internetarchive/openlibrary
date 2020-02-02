@@ -2,6 +2,7 @@
 # find works and create pages on production
 
 from __future__ import print_function
+import functools
 import re
 import simplejson as json
 import sys
@@ -59,7 +60,8 @@ def get_with_retry(k):
 re_parens = re.compile(r'^(.*?)(?: \(.+ (?:Edition|Press|Print|Plays|Collection|Publication|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
 
 def top_rev_wt(d):
-    d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
+    #d_sorted = sorted(d.keys(), key=lambda x: x + "-" + str(len(x)), reverse=True)
+    d_sorted = sorted(d.keys(), key=functools.cmp_to_key(lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i))))
     return d_sorted[0]
 
 def books_query(akey): # live version

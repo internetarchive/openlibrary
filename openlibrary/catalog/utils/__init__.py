@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import functools
 import re
 import web
 from unicodedata import normalize
@@ -6,6 +7,7 @@ import openlibrary.catalog.merge.normalize as merge
 
 import six
 
+# TODO This can be deleted when cmp is no longer used
 try:
     cmp = cmp       # Python 2
 except NameError:
@@ -227,7 +229,9 @@ def strip_count(counts):
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(iter(ret.items()), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    # tfm - I think the below is the correct simplificatin to the brute force migration - needs testing
+    #return sorted(ret.items(), key=lambda x: len(x[1], reverse=True)
+    return sorted(iter(ret.items()), key=functools.cmp_to_key(lambda x,y: cmp(len(y[1]), len(x[1]) )))
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
