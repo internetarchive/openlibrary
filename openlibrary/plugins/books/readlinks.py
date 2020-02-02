@@ -111,7 +111,7 @@ class ReadProcessor:
         elif 'inlibrary' in collections:
             if 'In library' not in subjects:
                 status = 'restricted'
-            elif not False: # self.get_inlibrary():
+            elif True: # not self.get_inlibrary(): - Deprecated
                 status = 'restricted'
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
