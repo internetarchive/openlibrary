@@ -360,7 +360,7 @@ def find_work_sort(var):
         # example n: 'magic'
         # example w: {'magic': ['/books/OL1M', ... '/books/OL4M']}
         # example work_titles: {'magic': ['/books/OL1M', '/books/OL3M']}
-        return sum(len(i) for i in w.values() + [var['work_titles'][n]])
+        return sum(len(i) for i in list(w.values()) + [var['work_titles'][n]])
     return sorted([(sum_len(n, w), n, w) for n, w in var['works'].items()])
 
 def find_works(book_iter, existing={}, do_get_mc=True):
