@@ -8,7 +8,6 @@ import re
 
 from six.moves import urllib
 import web
-from openlibrary.core import inlibrary
 from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
@@ -102,25 +101,17 @@ def get_solr_edition_records(iaids):
 class ReadProcessor:
     def __init__(self, options):
         self.options = options
-        self.set_inlibrary = False
-
-    def get_inlibrary(self):
-        if not self.set_inlibrary:
-            self.set_inlibrary = True
-            self.inlibrary = inlibrary.get_library()
-        return self.inlibrary
-
 
     def get_item_status(self, ekey, iaid, collections, subjects):
         if 'lendinglibrary' in collections:
-            if not 'Lending library' in subjects:
+            if 'Lending library' not in subjects:
                 status = 'restricted'
             else:
                 status = 'lendable'
         elif 'inlibrary' in collections:
-            if not 'In library' in subjects:
+            if 'In library' not in subjects:
                 status = 'restricted'
-            elif not self.get_inlibrary():
+            elif not False # self.get_inlibrary():
                 status = 'restricted'
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
@@ -139,7 +130,6 @@ class ReadProcessor:
                 status = 'checked out'
 
         return status
-
 
     def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
         meta = self.iaid_to_meta.get(iaid)

@@ -10,10 +10,8 @@ from infogami.utils import delegate
 from infogami.utils.view import render_template
 
 from openlibrary.core import helpers as h
-from openlibrary.core import inlibrary
 from openlibrary.plugins.worksearch.subjects import SubjectEngine
 
-from libraries import LoanStats
 
 class borrow(delegate.page):
     path = "/borrow"
@@ -58,11 +56,11 @@ class borrow(delegate.page):
             filters['sort'] = sort
 
         subject = get_lending_library(web.ctx.site,
-            offset=i.offset,
-            limit=i.limit,
-            details=i.details.lower() == "true",
-            inlibrary=inlibrary.get_library() is not None,
-            **filters)
+                                      offset=i.offset,
+                                      limit=i.limit,
+                                      details=i.details.lower() == "true",
+                                      inlibrary=False,
+                                      **filters)
         return simplejson.dumps(subject)
 
 class read(delegate.page):
