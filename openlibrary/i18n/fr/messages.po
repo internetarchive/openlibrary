@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-01-27 17:23-0500\n"
+"POT-Creation-Date: 2020-01-28 23:50-0500\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -19,13 +19,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.7.0\n"
 
-#: account.py:365 account.py:400 password/reset_success.html:10 verify.html:9
+#: account.py:353 account.py:388 password/reset_success.html:10 verify.html:9
 #: verify/activated.html:10 verify/success.html:10
 #, python-format
 msgid "Hi, %(user)s"
 msgstr "Bienvenue, %(user)s"
 
-#: account.py:366 account.py:401
+#: account.py:354 account.py:389
 #, python-format
 msgid ""
 "We've sent the verification email to %(email)s. You'll need to read that "
@@ -35,11 +35,11 @@ msgstr ""
 "l'ouvrir et cliquer sur le lien de vérification pour valider votre "
 "adresse."
 
-#: account.py:431
+#: account.py:419
 msgid "Email address is already used."
 msgstr "L'adresse de courriel est déjà utilisée."
 
-#: account.py:432
+#: account.py:420
 msgid ""
 "Your email address couldn't be updated. The specified email address is "
 "already used."
@@ -47,21 +47,21 @@ msgstr ""
 "Votre adresse de courriel n'a pas pu être mise à jour. L'adresse de "
 "courriel spécifiée est déjà utilisée."
 
-#: account.py:436
+#: account.py:424
 msgid "Email verification successful."
 msgstr "Adresse de courriel vérifiée."
 
-#: account.py:437
+#: account.py:425
 msgid ""
 "Your email address has been successfully verified and updated in your "
 "account."
 msgstr "Votre adresse de courriel a été vérifiée et mise à jour dans votre compte."
 
-#: account.py:441
+#: account.py:429
 msgid "Email address couldn't be verified."
 msgstr "L'adresse de courriel n'a pas pu être vérifiée."
 
-#: account.py:442
+#: account.py:430
 msgid ""
 "Your email address couldn't be verified. The verification link seems "
 "invalid."
@@ -69,11 +69,11 @@ msgstr ""
 "Votre adresse de courriel n'a pas pu être vérifiée. Le lien de "
 "vérification semble incorrect."
 
-#: account.py:538 account.py:548
+#: account.py:526 account.py:536
 msgid "Password reset failed."
 msgstr "La mise à jour du mot de passe a échoué."
 
-#: account.py:594 account.py:610
+#: account.py:582 account.py:598
 msgid "Notification preferences have been updated successfully."
 msgstr "Les préférences de notifications ont été mises à jour."
 
@@ -117,31 +117,31 @@ msgstr "Doit contenir entre 3 et 20 caractères"
 msgid "Must be a valid email address"
 msgstr "Doit être une adresse de courriel valide"
 
-#: create.html:42 forms.py:47 forms.py:91
+#: forms.py:47 forms.py:93
 msgid "Your email address"
 msgstr "Votre adresse de courriel"
 
-#: create.html:52 forms.py:50
+#: forms.py:51
 msgid "Choose a screen name"
 msgstr "Choisissez un nom d'utilisateur"
 
-#: forms.py:52
-msgid "Only letters and numbers, please, and at least 3 characters."
+#: forms.py:53
+msgid "Letters and numbers only please, and at least 3 characters."
 msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
 
-#: create.html:63 forms.py:54 forms.py:95
+#: forms.py:56 forms.py:97
 msgid "Choose a password"
 msgstr "Choisissez un mot de passe"
 
-#: create.html:72 forms.py:57
+#: forms.py:59
 msgid "Confirm password"
 msgstr "Confirmez le mot de passe"
 
-#: forms.py:59
+#: forms.py:61
 msgid "Passwords didn't match."
 msgstr "Les mots de passe ne correspondent pas."
 
-#: forms.py:88
+#: forms.py:90
 msgid "Invalid password"
 msgstr "Mot de passe incorrect"
 
@@ -947,6 +947,13 @@ msgstr[1] "Il y a %(count)s personnes devant vous en liste d'attente."
 msgid "You have less than an hour to borrow it."
 msgstr "Vous avez moins d'une heure pour l'emprunter."
 
+#: borrow.html:221
+#, python-format
+msgid "You have one more hour to borrow it."
+msgid_plural "You have %(hours)d more hours to borrow it."
+msgstr[0] "Vous avez encore une heure pour l'emprunter."
+msgstr[1] "Vous avez %(hours)d heures supplémentaires pour l'emprunter."
+
 #: borrow.html:228
 msgid "Borrow Now"
 msgstr "Emprunter maintenant"
@@ -1064,30 +1071,30 @@ msgstr ""
 "d'informations sur la manière de proposer des livres électroniques à "
 "l'aide d'Open Library, <a href=\"/contact\">contactez-nous</a>!"
 
-#: create.html:7
+#: create.html:9
 msgid "Sign Up to Open Library"
 msgstr "S'enregistrer sur Open Library"
 
-#: create.html:10 create.html:100 nav_head.html:115 search_head.html:78
+#: create.html:12 create.html:89 nav_head.html:115 search_head.html:78
 msgid "Sign Up"
 msgstr "S'enregistrer"
 
-#: create.html:12
+#: create.html:14
 msgid "Complete the form below to create a new Internet Archive account."
 msgstr ""
 "Remplissez le formulaire suivant pour créer un nouveau compte Internet "
 "Archive."
 
-#: create.html:13
+#: create.html:15
 msgid "Each field is required"
 msgstr "Tous les champs sont obligatoires"
 
-#: create.html:33 openlibrary/templates/login.html:18
+#: create.html:57 openlibrary/templates/login.html:18
 #, python-format
 msgid "You are already logged into Open Library as %(user)s."
 msgstr "Vous êtes déjà enregistré sur Open Library en tant que %(user)s."
 
-#: create.html:34 openlibrary/templates/login.html:19
+#: create.html:58 openlibrary/templates/login.html:19
 msgid ""
 "If you'd like to create a new, different Open Library account, you'll "
 "need to <a href=\"javascript:;\" "
@@ -1099,19 +1106,16 @@ msgstr ""
 "onclick=\"document.forms['logout'].submit()\">déconnecter</a> et "
 "recommencer l'enregistrement."
 
-#: create.html:53
-msgid "Letters and numbers only please, and at least 3 characters."
-msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
+#: create.html:67
+msgid "screenname"
+msgstr "nom_dutilisateur"
 
-#: create.html:58
-msgid ""
-"Your URL: https://openlibrary.org/people/<span "
-"id=\"userUrl\">screenname</span>"
-msgstr ""
-"Votre URL: https://openlibrary.org/people/<span "
-"id=\"userUrl\">screenname</span>"
+#: create.html:71
+#, python-format
+msgid "Your URL: %s"
+msgstr "Votre URL: %s"
 
-#: create.html:82
+#: create.html:77
 msgid ""
 "If you have security settings or privacy blockers installed, please "
 "disable them to see the reCAPTCHA."
@@ -1119,18 +1123,23 @@ msgstr ""
 "Si vous avez des paramètres de sécurité ou des outils de confidentialité,"
 " désactivez-les pour voir le reCAPTCHA."
 
-#: create.html:92
+#: create.html:81
+msgid "Incorrect. Please try again."
+msgstr ""
+
+#: create.html:85
+#, fuzzy
 msgid ""
-"I acknowledge that my use of Open Library is subject to the Internet "
-"Archive's <a href='//archive.org/about/terms.php' target='_new' "
-"title='Read the Terms of Use in a new browser.'>Terms of Use</a>."
+"By signing up, you agree to the Internet Archive's <a "
+"href='//archive.org/about/terms.php' target='_blank'>Terms of "
+"Service</a>."
 msgstr ""
 "Je reconnais que mon utilisation d'Open Library est soumise aux <a "
 "href='//archive.org/about/terms.php' target='_new' title='Ouvrir les "
 "termes d'utilisation dans une autre fenêtre.'>termes d'utilisation</a> "
 "d'Internet Archive."
 
-#: add.html:84 add.html:136 authors.html:125 create.html:102
+#: add.html:84 add.html:136 authors.html:125 create.html:90
 #: edit/addfield.html:87 edit/addfield.html:133 edit/addfield.html:177
 #: manage.html:65 notifications.html:59 openlibrary/macros/EditButtons.html:23
 #: password/reset.html:24 privacy.html:56 widget.html:304
@@ -2052,7 +2061,11 @@ msgstr "Ajouter une autre image"
 msgid "Finished"
 msgstr "Terminer"
 
-#: comment.html:36
+#: comment.html:26
+msgid "Imported from"
+msgstr ""
+
+#: comment.html:35
 msgid "Edited without comment."
 msgstr "Modifié sans commentaire."
 
@@ -4594,3 +4607,13 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "There are occasionally title variants amongst editions."
 #~ msgstr "Il y a parfois des variations de titre entre les éditions."
+
+#~ msgid "Only letters and numbers, please, and at least 3 characters."
+#~ msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
+
+#~ msgid ""
+#~ "Your URL: https://openlibrary.org/people/<span "
+#~ "id=\"userUrl\">screenname</span>"
+#~ msgstr ""
+#~ "Votre URL: https://openlibrary.org/people/<span "
+#~ "id=\"userUrl\">screenname</span>"
