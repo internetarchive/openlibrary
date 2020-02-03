@@ -679,7 +679,7 @@ def load(rec, account=None):
             w['subjects'] = work_subjects
 
     # Add cover to edition
-    if 'cover' in rec and not e.covers:
+    if 'cover' in rec and not e.get_covers():
         cover_url = rec['cover']
         cover_id = add_cover(cover_url, e.key, account=account)
         if cover_id:
@@ -687,7 +687,7 @@ def load(rec, account=None):
             need_edition_save = True
 
     # Add cover to work, if needed
-    if not w.get('covers') and e.get('covers'):
+    if not w.get('covers') and e.get_covers():
         w['covers'] = [e['covers'][0]]
         need_work_save = True
 
