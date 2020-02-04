@@ -3531,8 +3531,8 @@ msgstr "Modifier cette template"
 #: openlibrary/macros/databarHistory.html:21
 #: openlibrary/macros/databarView.html:24
 #, python-format
-msgid "Last edited by <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>"
-msgstr "Modifié par <a href=\"$author.key\" rel=\"nofollow\">%(authorname)s</a>"
+msgid "Last edited by %(author_link)s"
+msgstr "Modifié par %(author_link)s"
 
 #: openlibrary/macros/databarHistory.html:23
 #: openlibrary/macros/databarView.html:26

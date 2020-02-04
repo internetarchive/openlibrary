@@ -764,6 +764,18 @@ class User(Thing):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
 
+    def render_link(self, cls=None):
+        """
+        Generate an HTML link of this user
+        :param str cls: HTML class to add to the link
+        :rtype: str
+        """
+        extra_attrs = ''
+        if cls:
+            extra_attrs += 'class="%s" ' % cls
+        # Why nofollow?
+        return '<a rel="nofollow" href="%s" %s>%s</a>' % (self.key, extra_attrs, web.net.htmlquote(self.displayname))
+
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
 
