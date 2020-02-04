@@ -1,8 +1,10 @@
 from __future__ import print_function
 
-import web
-import simplejson
+import logging
 import re
+import simplejson
+import web
+
 from collections import defaultdict
 from isbnlib import canonical
 
@@ -16,14 +18,13 @@ from openlibrary.core.models import Image
 from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
+from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream import account
+from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
-
-from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-import account
-import borrow
-import logging
 
 import six
 from six.moves import urllib
@@ -40,6 +41,7 @@ def follow_redirect(doc):
         return web.ctx.site.get(key)
     else:
         return doc
+
 
 class Edition(models.Edition):
 

@@ -15,7 +15,7 @@ from HTMLParser import HTMLParser
 
 import six
 from six.moves import urllib
-from six.moves.collections_abc import Mapping
+from six.moves.collections_abc import MutableMapping
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -28,7 +28,7 @@ from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
-class MultiDict(Mapping):
+class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
@@ -69,6 +69,13 @@ class MultiDict(Mapping):
 
     def __delitem__(self, key):
         self._items = [(k, v) for k, v in self._items if k != key]
+
+    def __iter__(self):
+        for key in self.keys():
+            yield key
+
+    def __len__(self):
+        return len(self.keys())
 
     def getall(self, key):
         return [v for k, v in self._items if k == key]
