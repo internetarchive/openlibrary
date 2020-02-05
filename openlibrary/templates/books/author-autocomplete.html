@@ -1,4 +1,8 @@
-$def with (authors)
+$def with (authors, name_path, dict_path)
+$# :param list[dict] authors: e.g. {name: str, key: str}
+$# :param str name_path: form path for the user-visible author name
+$# :param str dict_path: form path for the author dict
+
 $jsdef render_author_autocomplete_item(item):
     $if item.key == "__new__":
         <div class="ac_author ac_addnew" title="Add a new author">
@@ -27,26 +31,23 @@ $jsdef render_author_autocomplete_item(item):
                 <span class="subject">Subjects: ${', '.join(item.subjects)}</span>
         </div>
 
-$jsdef render_author(i, author):
+$jsdef render_author(name_path, dict_path, i, author):
     <div class="input">
-        <input name="authors--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
-        <input name="work--authors--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
-        <a href="javascript:;" class="remove red plain" title="$_('Remove this author')">[x]</a>&nbsp;
+        <input name="$name_path--$i" class="author author-autocomplete" type="text" id="author-$i" value="$author.name"/>
+        <input name="$dict_path--$i--author--key" type="hidden" id="author-$i-key" value="$author.key" />
+        <a href="javascript:;" class="remove red plain" title="$_('Remove this author')">[&times;]</a>&nbsp;
         <a href="javascript:;" class="add">$_("Add another author?")</a>
     </div>
 
 <div id="authors">
-    $if authors:
-        $for i, author in enumerate(authors):
-            $:render_author(i, author)
-    $else:
-        $:render_author(0, storage(name="", key=""))
+    $for author in (authors or [storage(name="", key="")]):
+        $:render_author(name_path, dict_path, loop.index0, author)
 </div>
 <script type="text/javascript">
 window.q.push( function () {
     \$("#authors").setup_multi_input_autocomplete(
         "input.author-autocomplete",
-        render_author,
+        render_author.bind(null, "$name_path", "$dict_path"),
         {
             endpoint: "/authors/_autocomplete",
             // Don't render "Create new author" if searching by key

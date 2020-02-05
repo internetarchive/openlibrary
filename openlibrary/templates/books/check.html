@@ -1,11 +1,14 @@
 $def with (d, matches)
 
+$# :param web.Storage d: form data
+$# :param list matches:
+
 $var title: $_("Add a book")
 
 <div id="contentHead">
     <h1>$_("Add a Book")</h1>
     <p class="instruct">
-        $:_("One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>.", title=d.title, author=d.author_name)
+        $:_("One moment... It looks like we already have <em>some potential matches</em> for <b>%(title)s</b> by <b>%(author)s</b>.", title=d.title, author=d.author_names[0])
         <br/><br/>
         $_("Rather than creating a duplicate record, please click through the result you think best matches your book.")
     </p>

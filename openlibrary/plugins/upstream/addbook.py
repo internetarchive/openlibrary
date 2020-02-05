@@ -117,6 +117,25 @@ class DocSaveHelper:
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
 
+    def create_authors_from_form_data(self, authors, author_names, _test=False):
+        """
+        Create any __new__ authors in the provided array. Updates the authors dicts _in place_ with the new key
+        :param list[dict] authors: e.g. [{author: {key: '__new__'}}]
+        :param list[str] author_names:
+        :param bool _test:
+        :rtype: bool
+        :return: Whether new author(s) were created
+        """
+        created = False
+        for author_dict, author_name in zip(authors, author_names):
+            if author_dict['author']['key'] == '__new__':
+                created = True
+                if not _test:
+                    doc = new_doc('/type/author', name=author_name)
+                    self.save(doc)
+                    author_dict['author']['key'] = doc.key
+        return created
+
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -141,7 +160,7 @@ class addbook(delegate.page):
         return web.ctx.site.can_write("/books/add")
 
     def POST(self):
-        i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
+        i = web.input(title="", publisher="", publish_date="", id_name="", id_value="", _test="false")
 
         if spamcheck.is_spam(i):
             return render_template("message.html",
@@ -156,20 +175,10 @@ class addbook(delegate.page):
                     'Please <a href="javascript:history.back()">go back</a> and try again.'
                 )
 
-        match = self.find_matches(i)
-
+        i = utils.unflatten(i)
         saveutil = DocSaveHelper()
-
-        if i.author_key == '__new__':
-            if i._test != 'true':
-                a = new_doc('/type/author', name=i.author_name)
-                comment = utils.get_message('comment_new_author')
-                # Save, but don't commit, new author.
-                # It will be committed when the Edition is created below.
-                saveutil.save(a)
-                i.author_key = a.key
-            # since new author is created it must be a new record
-            match = None
+        created_author = saveutil.create_authors_from_form_data(i.authors, i.author_names, _test=i._test == 'true')
+        match = None if created_author else self.find_matches(i)
 
         if i._test == 'true' and not isinstance(match, list):
             if match:
@@ -208,6 +217,7 @@ class addbook(delegate.page):
         """
 
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
+        author_key = i.authors and i.authors[0].author.key
 
         # work is set from the templates/books/check.html page.
         work_key = i.get('work')
@@ -225,7 +235,7 @@ class addbook(delegate.page):
 
         edition = self.try_edition_match(
             title=i.title,
-            author_key=i.author_key,
+            author_key=author_key,
             publisher=i.publisher,
             publish_year=i.publish_year,
             id_name=i.id_name,
@@ -235,9 +245,11 @@ class addbook(delegate.page):
             return edition  # Case 2 or 3 or 4, from add page
 
         solr = get_solr()
-        author_key = i.author_key and i.author_key.split("/")[-1]
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
-        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
+        result = solr.select({
+            'title': i.title,
+            'author_key': author_key.split("/")[-1]
+        }, doc_wrapper=make_work, q_op="AND")
 
         if result.num_found == 0:
             return None  # Case 1, from add page
@@ -263,7 +275,7 @@ class addbook(delegate.page):
         """
         Searches solr for potential edition matches.
 
-        :param str work: work key e.g. /works/OL1234W
+        :param web.Storage work:
         :param str title:
         :param str author_key: e.g. /author/OL1234A
         :param str publisher:
@@ -367,7 +379,7 @@ class addbook(delegate.page):
         # saveutil, and author_key added to i
         work = new_doc("/type/work",
             title=i.title,
-            authors=[{"author": {"key": i.author_key}}]
+            authors=i.authors
         )
 
         edition = self._make_edition(work, i)
@@ -494,11 +506,7 @@ class SaveBookHelper:
         just_editing_work = edition_data is None
         if work_data:
             # Create any new authors that were added
-            for i, author in enumerate(work_data.get("authors") or []):
-                if author['author']['key'] == "__new__":
-                    a = self.new_author(formdata['authors'][i])
-                    author['author']['key'] = a.key
-                    saveutil.save(a)
+            saveutil.create_authors_from_form_data(work_data.get("authors") or [], formdata.get('authors') or [])
 
             if not just_editing_work:
                 # Handle orphaned editions
@@ -549,28 +557,11 @@ class SaveBookHelper:
         :param openlibrary.plugins.upstream.models.Edition edition:
         :rtype: openlibrary.plugins.upstream.models.Work
         """
-        work_key = web.ctx.site.new_key('/type/work')
-        work = web.ctx.site.new(work_key, {
-            'key': work_key,
-            'title': edition.get('title'),
-            'subtitle': edition.get('subtitle'),
-            'type': {'key': '/type/work'},
-            'covers': edition.get('covers', []),
-        })
-        return work
-
-    @staticmethod
-    def new_author(name):
-        """
-        :param str name:
-        :rtype: openlibrary.plugins.upstream.models.Author
-        """
-        key = web.ctx.site.new_key("/type/author")
-        return web.ctx.site.new(key, {
-            "key": key,
-            "type": {"key": "/type/author"},
-            "name": name
-        })
+        return new_doc('/type/work',
+                       title=edition.get('title'),
+                       subtitle=edition.get('subtitle'),
+                       covers=edition.get('covers', []),
+                       )
 
     @staticmethod
     def delete(key, comment=""):

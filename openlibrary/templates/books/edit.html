@@ -95,7 +95,7 @@ window.q.push( function(){
                 <span class="tip">$:_('You can search by author name (like <em>j k rowling</em>) or by Open Library ID (like <a href="/authors/OL23919A" target="_blank"><em>OL23919A</em></a>).')</span>
             </div>
             $ authors = work.authors and [a.author for a in work.authors]
-            $:render_template("books/author-autocomplete", authors)
+            $:render_template("books/author-autocomplete", authors, "authors", "work--authors")
         </div>
     </div>
 
