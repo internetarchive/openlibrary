@@ -79,7 +79,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                 <td class="timestamp"><a rel="nofollow" href="$v.key?v=$v.revision" title="$_('View revision %s', v.revision)">$datestr(v.created)</a></td>
                 <td class="timestamp">
                     $if v.author:
-                        $ author_link = '<a rel="nofollow" href="%s" class="truncate" title="%s">%s</a>' % (v.author.key, v.author.displayname, v.author.displayname)
+                        $ author_link = v.author.render_link(cls="truncate")
                     $elif v.ip and v.ip != "127.0.0.1":
                         $ author_link = '<a rel="nofollow" href="/recentchanges?ip=%s" title="%s">%s</a>' % (v.ip, _('an anonymous user'), v.ip)
                     $else:

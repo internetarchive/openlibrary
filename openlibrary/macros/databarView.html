@@ -17,7 +17,7 @@ $else:
         $else:
             $ author = get_recent_author(page)
         $if author:
-            <div class="brown smaller sansserif">$:_('Last edited by <a href="$author.key" rel="nofollow">%(authorname)s</a>', authorname=author.displayname)</div>
+            <div class="brown smaller sansserif">$:_('Last edited by %(author_link)s', author_link=author.render_link())</div>
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         $if page.url:
