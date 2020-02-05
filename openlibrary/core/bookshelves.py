@@ -11,6 +11,12 @@ class Bookshelves(object):
         'Already Read': 3
     }
 
+    PRESET_BOOKSHELVES_JSON = {
+        'want_to_read': 1,
+        'currently_reading': 2,
+        'already_read': 3,
+    }
+
     @classmethod
     def summary(cls):
         return {
