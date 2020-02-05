@@ -8,7 +8,7 @@
     "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
     "build-assets": "make js && make css",
     "check-bundles": "npm run build-assets && bundlesize",
-    "svg-min": "svgo static/images/**/*.svg && svgo static/images/*.svg",
+    "svg-min": "svgo --config .svgo.yml static/images/**/*.svg static/images/*.svg",
     "lint:fix": "eslint --config .eslintrc.json . --fix && stylelint --syntax less --fix static/css/",
     "lint:js": "eslint --config .eslintrc.json .",
     "test:unit": "jest --testRegex tests/unit/**/test.*.js",
