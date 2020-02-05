@@ -16,7 +16,7 @@ import random
 
 try:
     from pystatsd import Client as StatsClient
-except NameError:
+except ImportError:
     from statsd import StatsClient
 
 from infogami import config
