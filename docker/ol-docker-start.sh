@@ -28,8 +28,10 @@ su postgres -c "/etc/init.d/postgresql start"
 su openlibrary -c "scripts/infobase-server conf/infobase.yml 7000" &
 
 # wait unit postgres is ready, then reindex solr
+# also block until reindexing is completed since later services require psql
+# to be available anyways
 export -f reindex-solr
-su openlibrary -c "until pg_isready; do sleep 5; done && reindex-solr localhost $CONFIG" &
+su openlibrary -c "until pg_isready; do sleep 5; done && reindex-solr localhost $CONFIG"
 
 # solr updater
 su solrupdater -c "python scripts/new-solr-updater.py \
@@ -40,6 +42,9 @@ su solrupdater -c "python scripts/new-solr-updater.py \
 # In dev mode, run the coverstore locally (in the background)
 su openlibrary -c "scripts/coverstore-server $COVER_CONFIG \
     --gunicorn --workers 1 --max-requests 250 --bind :8081" &
+
+su openlibrary -c "scripts/openlibrary-server $CONFIG \
+                      install"
 
 # ol server, running in the foreground to avoid exiting container
 su openlibrary -c "authbind --deep scripts/openlibrary-server $CONFIG \
