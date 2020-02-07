@@ -319,19 +319,6 @@ void insert_into_solr(String index_cmd, Integer cores, String log_file_glob, Str
   dir(env.HOST_SOLR_BUILDER_DIR) {
     sh index_cmd
 
-    // wait for progress files to be created
-    sh 'shopt -s nullglob'
-    waitUntil {
-      script {
-        sh "logfiles=(progress/${log_file_glob})"
-        int progress_files_count = sh(script: 'echo ${#logfiles[@]}', returnStdout: true).trim() as Integer
-        echo "${progress_files_count} progress files created"
-        return progress_files_count == cores
-      }
-    }
-    sh 'shopt -u nullglob'
-
-
     waitUntil {
       script {
         sh(label: 'Progress',
