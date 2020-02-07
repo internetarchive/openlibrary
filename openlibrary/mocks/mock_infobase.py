@@ -107,6 +107,9 @@ class MockSite:
         query.update(kw)
         self.save(query)
         return self.get(key)
+    
+    def can_write(self, key):
+        pass
 
     def _make_changeset(self, timestamp, kind, comment, data, changes, author=None):
         id = len(self.changesets)

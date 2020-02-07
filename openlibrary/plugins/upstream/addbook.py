@@ -22,7 +22,7 @@ from openlibrary import accounts
 import logging
 
 import utils
-from utils import render_template, fuzzy_find
+from .utils import render_template, fuzzy_find
 
 from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
@@ -144,6 +144,10 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
+            if not web.ctx.site.get_user():
+                #TODO: investigate adding flash message
+                # add_flash_message("error", "You must be logged in to add a book.")
+                return web.seeother("/account/login?redirect={}".format(self.path))
             return render_template("permission_denied", "/books/add", "Permission denied to add a book to Open Library.")
 
         i = web.input(work=None, author=None)
@@ -418,7 +422,8 @@ delegate.pages.pop('/addbook', None)
 delegate.pages.pop('/addauthor', None)
 
 
-class addbook(delegate.page):
+class addbook_redirect(delegate.page):
+    path = "/addbook"
     def GET(self):
         raise web.redirect("/books/add")
 
