@@ -2,10 +2,17 @@
 
 This module is imported only if dev_instance is set to True in openlibrary config.
 """
+from importlib import import_module
+import logging
+import sys
 import web
+
 import infogami
 from infogami.utils import delegate
-from openlibrary.core.task import oltask
+# from openlibrary.core.task import oltask
+
+logger = logging.getLogger("openlibrary.plugins.openlibrary.dev_instance")
+
 
 def setup():
     setup_solr_updater()
@@ -20,6 +27,7 @@ def setup():
     # Borrow code tries to find the loan-status by making a URL call
     from openlibrary.plugins.upstream import borrow
     borrow.get_loan_status = lambda resource_id: []
+
 
 class CoverstoreMiddleware:
     """Middleware to delegate all /cover/* requests to coverstore.
@@ -43,12 +51,15 @@ class CoverstoreMiddleware:
         else:
             return self.app(environ, start_response)
 
+
 def ol_query(q):
     return web.ctx.site.things(q, details=True)
+
 
 def ol_get(key):
     d = web.ctx.site.get(key)
     return d and d.dict()
+
 
 def setup_solr_updater():
     from infogami import config
@@ -65,10 +76,13 @@ def setup_solr_updater():
     host = web.lstrips(dev_instance_url, "http://").strip("/")
     set_query_host(host)
 
+
 class is_loaned_out(delegate.page):
     path = "/is_loaned_out/.*"
+
     def GET(self):
         return delegate.RawText("[]", content_type="application/json")
+
 
 class process_ebooks(delegate.page):
     """Hack to add ebooks to store so that books are visible in the returncart.
@@ -94,7 +108,8 @@ class process_ebooks(delegate.page):
         web.ctx.site.store.update(docdict)
         return delegate.RawText("ok\n")
 
-@oltask
+
+# @oltask
 def update_solr(changeset):
     """Updates solr on edit.
     """
@@ -113,6 +128,7 @@ def update_solr(changeset):
             keys.add(doc['key'])
 
     update_work.update_keys(list(keys))
+
 
 @infogami.install_hook
 def add_ol_user():
@@ -142,6 +158,7 @@ def add_ol_user():
         g_admin['members'].append({"key": "/people/openlibrary"})
         web.ctx.site.save(g_admin, "Added openlibrary user to admin usergroup.")
 
+
 @infogami.action
 def load_sample_data():
     """Action to load sample data.
@@ -160,3 +177,79 @@ def load_sample_data():
     comment = "Loaded sample data."
     list_key = "/people/anand/lists/OL1815L"
     env['copy_list'](src, dest, list_key, comment=comment)
+
+
+def start_debugger():
+    """ Attach debugger and immediately break into debugger """
+
+    logger.debug("------------> ATTEMPTING TO ENABLE DEBUGGING <--------------")
+    try:
+        sys.path.append("/usr/local/lib/python2.7/dist-packages")
+        ptvsd = import_module("ptvsd")
+        ptvsd.enable_attach(address=('0.0.0.0', 3000))
+        ptvsd.wait_for_attach()
+        ptvsd.break_into_debugger()
+        sys.path.pop()
+    except Exception as e:
+        logger.error("something bad happened {}".format(str(e)))
+    logger.debug("-----------------> DEBUGGING ENABLED <----------------------")
+
+
+def permission(key, readers, writers, admins):
+    """ Query for permission type \"thing\"s """
+
+    def make_key(value):
+        return {'key': value}
+
+    return {
+        'key': key,
+        'type': {
+            'key': '/type/permission'
+        },
+        'readers': [make_key(readers)],
+        'writers': [make_key(writers)],
+        'admins': [make_key(admins)]
+    }
+
+
+def root_page(key):
+    """ Query for root page type \"thing\" """
+    return {
+        'key': key,
+        'type': {
+            'key': '/type/page'
+        },
+        'permission': {
+            'key': '/permission/restricted'
+        },
+        'child_permission': {
+            'key': '/permission/loggedinusers'
+        }
+    }
+
+
+@infogami.install_hook
+def add_missing_metadata():
+    """ Add missing /permission types and root pages """
+
+    logger.debug("Adding missing permissions")
+    for missing_permission in ["/permission", "/permission/loggedinusers"]:
+        missing_permission_thing = permission(missing_permission, 
+                                              "/usergroup/everyone",
+                                              "/usergroup/admin",
+                                              "/usergroup/admin")
+        web.ctx.site.save(missing_permission_thing)
+    permission_thing = web.ctx.site.get("/permission")
+    if not permission_thing:
+        raise ValueError("permission not created")
+
+    logger.debug("Adding missing root pages")
+    for root in ["/books", "/works", "/authors"]:
+        web.ctx.site.save(root_page(root))
+
+
+@infogami.install_hook
+def add_ol_unpriviliged_user():
+    """ Add unprivileged user for manual testing/debugging """
+
+    pass
