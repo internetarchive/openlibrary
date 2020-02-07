@@ -97,7 +97,7 @@ class Edition(models.Edition):
         return editions[i - 1]
 
     def get_covers(self):
-        return [Image(self._site, 'b', c) for c in self.covers if c > 0]
+        return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
 
     def get_cover(self):
         covers = self.get_covers()
