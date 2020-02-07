@@ -35,3 +35,5 @@ htmlcov
 node_modules/
 .idea/
 venv/
+__pycache__
+.pytest_cache/
