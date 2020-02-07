@@ -7,9 +7,10 @@ import re
 import iptools
 from infogami.infobase import client
 
+import helpers as h
+
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
-from openlibrary.core import helpers as h
 from openlibrary.utils import extract_numeric_id_from_olid
 from openlibrary.plugins.upstream.utils import get_history
 from openlibrary.core.helpers import private_collection_in
