@@ -251,7 +251,7 @@ def add_missing_metadata():
     """
 
     logger.debug("Adding missing permissions")
-    for missing_permission in ["/permission", "/permission/loggedinusers"]:
+    for missing_permission in ("/permission", "/permission/loggedinusers"):
         missing_permission_thing = permission(missing_permission, 
                                               "/usergroup/everyone",
                                               "/usergroup/admin",
@@ -262,7 +262,7 @@ def add_missing_metadata():
         raise ValueError("permission not created")
 
     logger.debug("Adding missing root pages")
-    for root in ["/books", "/works", "/authors"]:
+    for root in ("/books", "/works", "/authors"):
         web.ctx.site.save(root_page(root))
 
 
