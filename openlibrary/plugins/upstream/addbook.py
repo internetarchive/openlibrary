@@ -21,12 +21,11 @@ from openlibrary.i18n import gettext as _
 from openlibrary import accounts
 import logging
 
-from openlibrary.plugins.upstream import utils
+from openlibrary.plugins.upstream import spamcheck, utils
 from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
-from openlibrary.plugins.upstream import spamcheck 
 
 import six
 from six.moves import urllib
