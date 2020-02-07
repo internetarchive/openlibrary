@@ -8,4 +8,5 @@ set -o xtrace  # Display each line before running it
 
 ORPHANS_COUNT=$(time psql -f sql/count-orphans.sql) # ~15min
 RUN_SIG=orphans_1
+touch {logs,progress}/$RUN_SIG.txt
 docker_solr_builder orphans -p progress/$RUN_SIG.txt -l logs/$RUN_SIG.txt

@@ -20,7 +20,7 @@ ITER=1
 for key in $PARTITION; do
   RUN_SIG="${TYPE}s_${ITER}"
   # Create log files so they're acceissble sync for querying
-  touch {progress,logs}/$RUN_SIG.txt
+  touch {logs,progress}/$RUN_SIG.txt
   docker_solr_builder "${TYPE}s" --start-at $key --limit $CHUNK_SIZE -p progress/$RUN_SIG.txt -l logs/$RUN_SIG.txt
   ((ITER++))
   sleep 60
