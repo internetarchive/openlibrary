@@ -20,7 +20,7 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 # relative imports
-from lists.model import ListMixin, Seed
+from openlibrary.core.lists.model import ListMixin, Seed
 from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
 from six.moves import urllib
