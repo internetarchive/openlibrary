@@ -358,7 +358,7 @@ class TestAddBook:
         web.ctx.site = MockSite()
 
     def test_unpermitted_logged_in_user_cannot_add_book(self, monkeypatch):
-        nonlocal = {'render_template_permission_denied': False}
+        _nonlocal = {'render_template_permission_denied': False}
 
         def mock_user():
             return True
@@ -366,7 +366,7 @@ class TestAddBook:
         def mock_render_template(*args):
             if len(args) > 0:
                 denied = (args[0] == "permission_denied")
-                nonlocal['render_template_permission_denied'] = denied
+                _nonlocal['render_template_permission_denied'] = denied
 
         def mock_seeother(*args):
             assert False
@@ -382,10 +382,10 @@ class TestAddBook:
         s = addbook.addbook()
         s.GET()
 
-        assert nonlocal['render_template_permission_denied']
+        assert _nonlocal['render_template_permission_denied']
 
     def test_unpermitted_anonymous_user_cannot_add_book(self, monkeypatch):
-        nonlocal = {'seeother_redirect_login_called_correctly': False}
+        _nonlocal = {'seeother_redirect_login_called_correctly': False}
 
         def mock_anonymous_user():
             return None
@@ -397,7 +397,7 @@ class TestAddBook:
             if len(args) > 0:
                 path = addbook.addbook.path
                 denied = (args[0] == "/account/login?redirect={}".format(path))
-                nonlocal['seeother_redirect_login_called_correctly'] = denied
+                _nonlocal['seeother_redirect_login_called_correctly'] = denied
 
         def mock_can_write(key):
             return False
@@ -410,10 +410,10 @@ class TestAddBook:
         s = addbook.addbook()
         s.GET()
 
-        assert nonlocal['seeother_redirect_login_called_correctly']
+        assert _nonlocal['seeother_redirect_login_called_correctly']
 
     def test_permitted_user_may_add_books(self, monkeypatch):
-        nonlocal = {'render_template_permission_granted': False}
+        _nonlocal = {'render_template_permission_granted': False}
 
         def mock_anonymous_user():
             assert False, "should be unreachable given test setup"
@@ -430,7 +430,7 @@ class TestAddBook:
         def mock_render_template(path_arg, **kwargs):
             #FIXME: this seems silly
             path = addbook.addbook.path[1:]
-            nonlocal['render_template_permission_granted'] = (path == path_arg)
+            _nonlocal['render_template_permission_granted'] = (path == path_arg)
 
         def mock_seeother(*args):
             assert False, "should be unreachable given test setup"
@@ -445,4 +445,4 @@ class TestAddBook:
         s = addbook.addbook()
         s.GET()
 
-        assert nonlocal['render_template_permission_granted']
+        assert _nonlocal['render_template_permission_granted']
