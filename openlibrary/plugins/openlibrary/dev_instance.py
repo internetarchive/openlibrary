@@ -180,7 +180,9 @@ def load_sample_data():
 
 
 def start_debugger():
-    """ Attach debugger and immediately break into debugger """
+    """
+    Attach debugger and immediately break into debugger
+    """
 
     logger.debug("------------> ATTEMPTING TO ENABLE DEBUGGING <--------------")
     try:
@@ -195,8 +197,16 @@ def start_debugger():
     logger.debug("-----------------> DEBUGGING ENABLED <----------------------")
 
 
-def permission(key, readers, writers, admins):
-    """ Query for permission type \"thing\"s """
+def permission(key, reader, writer, admin):
+    """
+    Query for Thing with permission type
+    
+    :param str key: key for new Thing
+    :param str reader: key for usergroup capable of reading 
+    :param str writer: key for usergroup capable of writing 
+    :param str admin: key for admin usergroup
+    :returns: new Thing with type as permission
+    """
 
     def make_key(value):
         return {'key': value}
@@ -206,14 +216,20 @@ def permission(key, readers, writers, admins):
         'type': {
             'key': '/type/permission'
         },
-        'readers': [make_key(readers)],
-        'writers': [make_key(writers)],
-        'admins': [make_key(admins)]
+        'readers': [make_key(reader)],
+        'writers': [make_key(writer)],
+        'admins': [make_key(admin)]
     }
 
 
 def root_page(key):
-    """ Query for root page type \"thing\" """
+    """
+    Query for Thing with page type and permissions required of root pages
+
+    :param key: key for new Thing
+    :returns: Thing with page type and permissions required of root pages
+    """
+
     return {
         'key': key,
         'type': {
@@ -230,7 +246,9 @@ def root_page(key):
 
 @infogami.install_hook
 def add_missing_metadata():
-    """ Add missing /permission types and root pages """
+    """
+    Add missing /permission types and root pages
+    """
 
     logger.debug("Adding missing permissions")
     for missing_permission in ["/permission", "/permission/loggedinusers"]:
@@ -250,6 +268,8 @@ def add_missing_metadata():
 
 @infogami.install_hook
 def add_ol_unpriviliged_user():
-    """ Add unprivileged user for manual testing/debugging """
+    """
+    Add unprivileged user for manual testing/debugging
+    """
 
     pass
