@@ -22,11 +22,11 @@ from openlibrary import accounts
 import logging
 
 import utils
-from .utils import render_template, fuzzy_find
+from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
 
 from account import as_admin
 from openlibrary.plugins.recaptcha import recaptcha
-from . import spamcheck
+from openlibrary.plugins.upstream import spamcheck
 
 import six
 from six.moves import urllib
