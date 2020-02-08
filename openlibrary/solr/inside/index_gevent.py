@@ -256,7 +256,7 @@ def run_find_item():
 
         body = None
         if False:
-            url = 'http://' + solr_src_host + '/solr/inside/select?wt=json&rows=10&q=ia:' + ia
+            url = 'http://' + solr_host + '/solr/inside/select?wt=json&rows=10&q=ia:' + ia
             response = json.load(urllib.request.urlopen(url))['response']
             if response['numFound']:
                 doc = response['docs'][0]
