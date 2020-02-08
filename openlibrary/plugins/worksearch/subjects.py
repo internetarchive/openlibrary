@@ -43,15 +43,6 @@ SUBJECTS = [
 DEFAULT_RESULTS = 12
 MAX_RESULTS = 1000
 
-class subjects_index(delegate.page):
-    path = "/subjects"
-
-    def GET(self):
-        delegate.context.setdefault('bodyid', 'subject')
-        page = render_template("subjects/index.html")
-        page.v2 = True
-        return page
-
 class subjects(delegate.page):
     path = '(/subjects/[^/]+)'
 
