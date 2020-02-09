@@ -97,6 +97,10 @@ class Edition(models.Edition):
         return editions[i - 1]
 
     def get_covers(self):
+        """
+        This methods excludes covers that are -1 or None, which are in the data
+        but should not be.
+        """
         return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
 
     def get_cover(self):
