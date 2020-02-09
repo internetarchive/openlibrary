@@ -77,7 +77,7 @@ class SimpleQueryProcessor:
          (title:world^100 OR author_name:world^15 OR subject:world^10 OR language:world^10)'
     """
     def process(self, query):
-        query = web.utf8(query)
+        query = web.safestr(query)
         tokens = query.split(' ')
         return " ".join(self.process_token(t) for t in tokens if t.strip())
 
