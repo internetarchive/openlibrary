@@ -369,10 +369,8 @@ class bookpage(delegate.page):
 
     path = r'/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
-    def GET(self, key, value, suffix):
+    def GET(self, key, value, suffix=''):
         key = key.lower()
-        suffix = suffix or ''
-
         if key == 'isbn':
             if len(value) == 13:
                 key = 'isbn_13'
@@ -394,18 +392,12 @@ class bookpage(delegate.page):
         if web.ctx.env.get('QUERY_STRING'):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
-        def redirect(key, ext, suffix):
-            if ext:
-                return web.found(key + ext)
-            else:
-                book = web.ctx.site.get(key)
-                return web.found(book.url(suffix))
         q = {'type': '/type/edition', key: value}
 
         result = web.ctx.site.things(q)
 
         if result:
-            raise redirect(result[0], ext, suffix)
+            return web.found(result[0] + ext)
         elif key =='ocaid':
             # Try a range of ocaid alternatives:
             ocaid_alternatives = [
@@ -414,12 +406,11 @@ class bookpage(delegate.page):
             for q in ocaid_alternatives:
                 result = web.ctx.site.things(q)
                 if result:
-                    raise redirect(result[0], ext, suffix)
+                    return web.found(result[0] + ext)
             # If nothing matched, try this as a last resort:
-            raise redirect('/books/ia:' + value, ext, suffix)
+            return web.found('/books/ia:' + value + ext)
         elif key.startswith('isbn'):
             ed_key = create_edition_from_amazon_metadata(value)
-            return "Test: %s" % ed_key
             if ed_key:
                 raise web.seeother(ed_key)
         web.ctx.status = '404 Not Found'
