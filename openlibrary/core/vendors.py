@@ -4,7 +4,7 @@ import requests
 from decimal import Decimal
 from amazon.api import SearchException
 from infogami.utils.view import public
-from . import lending, cache, helpers as h
+from openlibrary.core import lending, cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
@@ -149,7 +149,7 @@ def _get_amazon_metadata(id_, id_type='isbn'):
     kwargs['MerchantId'] = 'Amazon'  # Only affects Offers Response Group, does Amazon sell this directly?
 
     if not lending.amazon_api:
-        raise Exception
+        raise Exception("Open Library is not configured to access Amazon's API")
     product = lending.amazon_api.lookup(**kwargs)
     # sometimes more than one product can be returned, choose first
     if isinstance(product, list):

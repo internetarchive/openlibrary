@@ -410,7 +410,11 @@ class bookpage(delegate.page):
             # If nothing matched, try this as a last resort:
             return web.found('/books/ia:' + value + ext)
         elif key.startswith('isbn'):
-            ed_key = create_edition_from_amazon_metadata(value)
+            try:
+               ed_key = create_edition_from_amazon_metadata(value)
+            except Exception as e:
+                logger.error(e)
+                return e.message
             if ed_key:
                 return web.found(ed_key + ext)
         web.ctx.status = '404 Not Found'
