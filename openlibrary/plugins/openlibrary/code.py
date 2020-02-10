@@ -412,7 +412,7 @@ class bookpage(delegate.page):
         elif key.startswith('isbn'):
             ed_key = create_edition_from_amazon_metadata(value)
             if ed_key:
-                raise web.seeother(ed_key)
+                return web.found(ed_key + ext)
         web.ctx.status = '404 Not Found'
         return render.notfound(web.ctx.path, create=False)
 
