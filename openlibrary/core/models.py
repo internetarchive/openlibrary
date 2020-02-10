@@ -4,7 +4,6 @@ import simplejson
 import web
 import re
 
-import iptools
 from infogami.infobase import client
 
 from openlibrary.core import helpers as h
@@ -19,9 +18,8 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
-# relative imports
 from openlibrary.core.lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+from . import cache, waitinglist
 
 from six.moves import urllib
 
@@ -285,9 +283,8 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return ('lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None)
-            ) and not self.is_in_private_collection()
+        return ('lendinglibrary' in collections
+                and not self.is_in_private_collection())
 
     def can_borrow(self):
         """This method should be deprecated in favor of in_borrowable_collection"""
@@ -864,54 +861,6 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-class Library(Thing):
-    """Library document.
-
-    Each library has a list of IP addresses belongs to that library.
-    """
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def find_bad_ip_ranges(self, text):
-        return iprange.find_bad_ip_ranges(text)
-
-    def parse_ip_ranges(self, text):
-        return iprange.parse_ip_ranges(text)
-
-    def get_ip_range_list(self):
-        """Returns IpRangeList object for the range of IPs of this library.
-        """
-        ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
-        return iptools.IpRangeList(*ranges)
-
-    def has_ip(self, ip):
-        """Return True if the the given ip is part of the library's ip range.
-        """
-        return ip in self.get_ip_range_list()
-
-    def get_branches(self):
-        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
-        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
-        def parse(line):
-            branch = web.storage(zip(columns, line.strip().split("|")))
-
-            # add empty values for missing columns
-            for c in columns:
-                branch.setdefault(c, "")
-
-            try:
-                branch.lat, branch.lon = branch.latlong.split(",", 1)
-            except ValueError:
-                branch.lat = "0"
-                branch.lon = "0"
-            return branch
-        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
-
-    def get_loans_per_day(self, resource_type="total"):
-        name = self.key.split("/")[-1]
-        stats = loanstats.LoanStats(library=name)
-        return stats.get_loans_per_day(resource_type=resource_type)
-
 class UserGroup(Thing):
 
     @classmethod
@@ -987,7 +936,6 @@ def register_models():
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
-    client.register_thing_class('/type/library', Library)
     client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
@@ -999,7 +947,6 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
-    types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permission')
