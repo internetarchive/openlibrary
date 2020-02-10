@@ -236,6 +236,7 @@ pipeline {
                     stage('Decompress the dump') {
                       steps {
                         dir(env.SOLR_DUMP_DIR) {
+                          sh "rm -rf ${env.CUR_SOLR_BACKUP}"
                           sh "mkdir ${env.CUR_SOLR_BACKUP}; tar xzf ${params.SOLR_BACKUP_GZIP} -C ${env.CUR_SOLR_BACKUP}"
                         }
                       }
