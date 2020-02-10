@@ -212,17 +212,6 @@ ul.inner {
         <h3>You</h3>
         <ul>
             <li>You are <a href="$ctx.user.key" title="$ctx.user.key">$ctx.user.displayname</a></li>
-            <li>Your IP is <span class="small">$user_ip</li>
-            <li>
-                $if "inlibrary" in ctx.features:
-                    $ lib = get_library()
-                    $if lib:
-                        In Library: <a href="$lib.key">$lib.name</a>
-                    $else:
-                        <i>You are not in a Library</i>
-                $else:
-                    <i>You are not in a Library</i>
-            </li>
         </ul>
     </div>
 
