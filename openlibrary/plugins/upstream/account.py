@@ -27,10 +27,7 @@ from openlibrary.accounts import (
     audit_accounts, Account, OpenLibraryAccount, InternetArchiveAccount, valid_email)
 from openlibrary.core.sponsorships import get_sponsored_editions
 
-import forms
-import utils
-import borrow
-
+from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
 from six.moves import urllib
