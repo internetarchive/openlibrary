@@ -126,7 +126,7 @@ class MarcBinary(MarcBase):
             directory = data[:self.directory_end].decode('utf-8')[24:]
             if len(directory) % 12 != 0:
                 raise BadMARC("MARC directory invalid length")
-        iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) / 12))
+        iter_dir = (directory[i*12:(i+1)*12] for i in range(len(directory) // 12))
         return iter_dir
 
     def leader(self):
