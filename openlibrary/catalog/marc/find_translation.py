@@ -10,7 +10,7 @@ for data, length in read_file(open(sys.argv[1])):
     line = get_first_tag(data, set(['500']))
     if not line:
         continue
-    subtag, value = get_all_subfields(line).next()
+    subtag, value = next(get_all_subfields(line))
     if subtag != 'a':
         continue
     if value.startswith("Translation of the author's thesis"):

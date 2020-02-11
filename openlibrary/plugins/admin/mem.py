@@ -109,7 +109,7 @@ class _memory_type:
 
 def first(it):
     try:
-        return it.next()
+        return next(it)
     except StopIteration:
         return None
 
