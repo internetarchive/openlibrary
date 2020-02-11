@@ -7,7 +7,7 @@ import xml.parsers.expat
 
 from infogami import config
 from lxml import etree
-from six import ensure_str
+from six import ensure_binary
 from six.moves import urllib
 from time import sleep
 
@@ -68,7 +68,7 @@ def get_marc_record_from_ia(identifier):
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         try:
-            root = etree.fromstring(ensure_str(data))
+            root = etree.fromstring(ensure_binary(data))
             return MarcXml(root)
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
@@ -106,7 +106,8 @@ def files(identifier):
     for i in tree.getroot():
         assert i.tag == 'file'
         name = i.attrib['name']
-        if name == 'wfm_bk_marc' or name.endswith('.mrc') or name.endswith('.marc') or name.endswith('.out') or name.endswith('.dat') or name.endswith('.records.utf8'):
+        if (name == 'wfm_bk_marc' or
+                name.endswith(('.mrc', '.marc', '.out', '.dat', '.records.utf8'))):
             size = i.find('size')
             if size is not None:
                 yield name, int(size.text)
@@ -216,7 +217,7 @@ def marc_formats(identifier, host=None, path=None):
         return has
     data = f.read()
     try:
-        root = etree.fromstring(ensure_str(data))
+        root = etree.fromstring(ensure_binary(data))
     except:
         print(('bad:', repr(data)))
         return has
