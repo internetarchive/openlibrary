@@ -1,9 +1,5 @@
 dist: bionic
 language: python
-addons:
-  apt:
-    packages:
-      - libgeoip-dev
 matrix:
   include:
     - name: “Python 2.7 on xenial”

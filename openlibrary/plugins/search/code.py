@@ -1,6 +1,5 @@
 from __future__ import print_function
 import web
-import stopword
 import pdb
 
 from infogami import utils
@@ -12,15 +11,15 @@ from infogami.plugins.api.code import jsonapi
 
 import re
 import web
-import solr_client
 import time
 import simplejson
 from functools import partial
 from gzip import open as gzopen
-import cPickle
 from collections import defaultdict
 
 import six
+
+from openlibrary.plugins.search import solr_client, stopword
 
 render = template.render
 

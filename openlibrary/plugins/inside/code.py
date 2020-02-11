@@ -1,20 +1,17 @@
-
-from time import time
-import re
-import simplejson
-import httplib
 import logging
+import re
+from time import time
 
+import simplejson
 import web
+
 from infogami.utils import delegate
 from infogami.utils.view import render_template
+
 from openlibrary.core.fulltext import fulltext_search
 
-
-from six.moves import urllib
-
-
 RESULTS_PER_PAGE = 20
+
 
 class search_inside(delegate.page):
 

@@ -20,7 +20,7 @@ import logging
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
-from ..core import inlibrary, ia, helpers as h
+from ..core import ia, helpers as h
 from ..core.ia import get_ia_db
 from ..core.loanstats import LoanStats
 
@@ -30,33 +30,9 @@ logger = logging.getLogger("openlibrary.solr")
 def get_db():
     return web.database(**web.config.db_parameters)
 
+
 def get_document(key):
     return web.ctx.site.get(key)
-
-def is_region(library):
-    return bool(library.lending_region)
-
-def get_region(library):
-    if library.lending_region:
-        return library.lending_region
-
-    # Take column #3 from address. The available columns are:
-    # name, street, city, state, ...
-    try:
-        # Open library of Richmond is really rest of the world
-        if library.addresses and library.key != "/libraries/openlibrary_of_richmond":
-            return library.addresses.split("|")[3]
-    except IndexError:
-        pass
-    return "WORLD"
-
-_libraries = None
-def get_library(key):
-    global _libraries
-    if _libraries is None:
-        _libraries = dict((lib.key, lib) for lib in inlibrary.get_libraries())
-    return _libraries.get(key, None)
-
 
 
 metadata_cache = {}
@@ -148,23 +124,6 @@ class LoanEntry(web.storage):
     def metadata(self):
         return get_metadata(self.get_iaid())
 
-    @property
-    def library(self):
-        key = self.get("library")
-        lib = key and get_library(key)
-        if lib and not is_region(lib):
-            return lib.key.split("/")[-1]
-
-    @property
-    def region(self):
-        key = self.get("library")
-        lib = key and get_library(key)
-        if lib:
-            region =  get_region(lib).lower().strip()
-            # some regions are specified with multiple names.
-            # maintaining this dict to collapse them into single entry.
-            region_aliases = {"california": "ca"}
-            return region_aliases.get(region, region)
 
 def process(data):
     doc = LoanEntry(data)
@@ -184,10 +143,8 @@ def process(data):
         "ia_collections_id": doc.metadata.get("collection", []),
         "sponsor_s": doc.metadata.get("sponsor"),
         "contributor_s": doc.metadata.get("contributor"),
-        "library_s": doc.library,
-        "region_s": doc.region,
         "start_time_dt": doc.t_start + "Z",
-        "start_day_s":doc.t_start.split("T")[0],
+        "start_day_s": doc.t_start.split("T")[0],
     }
 
     if doc.get('t_end'):
@@ -216,9 +173,6 @@ def process(data):
     year = doc.book and doc.book.get_publish_year()
     if year:
         solrdoc['publish_year'] = year
-
-    if "geoip_country" in doc:
-        solrdoc['country_s'] = doc['geoip_country']
 
     # Remove None values
     solrdoc = dict((k, v) for k, v in solrdoc.items() if v is not None)
