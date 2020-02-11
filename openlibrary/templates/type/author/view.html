@@ -56,8 +56,6 @@ $if books and books.works:
 $ description = _("Author of %(book_titles)s", book_titles=book_list_excerpt)
 $putctx("description", description)
 
-$ library = (get_library() if 'inlibrary' in ctx.features else None)
-
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="books.author")
 $add_metatag(property="og:image", content=meta_photo_url)
