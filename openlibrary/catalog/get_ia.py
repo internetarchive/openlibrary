@@ -7,6 +7,7 @@ import xml.parsers.expat
 
 from infogami import config
 from lxml import etree
+from six import ensure_str
 from six.moves import urllib
 from time import sleep
 
@@ -67,7 +68,7 @@ def get_marc_record_from_ia(identifier):
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         try:
-            root = etree.fromstring(data.decode('utf-8'))
+            root = etree.fromstring(ensure_str(data))
             return MarcXml(root)
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
@@ -215,7 +216,7 @@ def marc_formats(identifier, host=None, path=None):
         return has
     data = f.read()
     try:
-        root = etree.fromstring(data.decode('utf-8'))
+        root = etree.fromstring(ensure_str(data))
     except:
         print(('bad:', repr(data)))
         return has
