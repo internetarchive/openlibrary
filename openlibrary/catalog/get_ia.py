@@ -67,7 +67,7 @@ def get_marc_record_from_ia(identifier):
     if marc_xml_filename in filenames:
         data = urlopen_keep_trying(item_base + marc_xml_filename).read()
         try:
-            root = etree.fromstring(data)
+            root = etree.fromstring(data.decode('utf-8'))
             return MarcXml(root)
         except Exception as e:
             print("Unable to read MarcXML: %s" % e)
@@ -215,7 +215,7 @@ def marc_formats(identifier, host=None, path=None):
         return has
     data = f.read()
     try:
-        root = etree.fromstring(data)
+        root = etree.fromstring(data.decode('utf-8'))
     except:
         print(('bad:', repr(data)))
         return has
