@@ -12,9 +12,7 @@ from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
 from six.moves.urllib.request import Request, urlopen
 
-import config
-
-from openlibrary.coverstore import oldb
+from openlibrary.coverstore import config, oldb
 
 try:
     file           # Python 2
