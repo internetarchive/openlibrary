@@ -201,7 +201,7 @@ def format_list_editions(key):
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
-    return (e for e in work.editions if e.ocaid).next()
+    return next((e for e in work.editions if e.ocaid))
 
 def format_work_data(work):
     d = dict(work)
