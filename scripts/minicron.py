@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
 import os
 import sys
 import datetime
 import logging
 import optparse
-import _init_path
+from . import _init_path
 from openlibrary.core import minicron
 
 

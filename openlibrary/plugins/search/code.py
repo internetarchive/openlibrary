@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import absolute_import
 import web
 import pdb
 
@@ -69,7 +70,7 @@ def lookup_ocaid(ocaid):
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
-from collapse import collapse_groups
+from .collapse import collapse_groups
 class fullsearch(delegate.page):
     def POST(self):
         errortext = None
@@ -134,7 +135,7 @@ class fullsearch(delegate.page):
 
     GET = POST
 
-import facet_hash
+from . import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
 class Timestamp(object):

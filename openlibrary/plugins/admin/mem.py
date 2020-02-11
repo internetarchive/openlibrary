@@ -1,6 +1,7 @@
+from __future__ import absolute_import
 from infogami.utils import delegate
 from infogami.utils.view import render, safeint
-import memory
+from . import memory
 import web
 import gc
 

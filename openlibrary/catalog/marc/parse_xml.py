@@ -1,7 +1,8 @@
 from __future__ import print_function
+from __future__ import absolute_import
 from lxml import etree
 import xml.parsers.expat
-from parse import read_edition
+from .parse import read_edition
 from unicodedata import normalize
 
 import six

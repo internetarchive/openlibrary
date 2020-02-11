@@ -1,13 +1,14 @@
 """Spam control using akismet api.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 import socket
 
 # akismet module changes socket default timeout.
 # Undoing it as it might effect other parts of the system.
 timeout = socket.getdefaulttimeout()
 
-from akismet import Akismet
+from .akismet import Akismet
 socket.setdefaulttimeout(timeout)
 import web
 

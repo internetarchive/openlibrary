@@ -1,5 +1,6 @@
 """Subject pages.
 """
+from __future__ import absolute_import
 
 import web
 import re
@@ -228,7 +229,7 @@ class SubjectEngine:
         else:
             kw = {}
 
-        from search import work_search
+        from .search import work_search
         result = work_search(
             q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:

@@ -2,7 +2,8 @@
 """Script to pull templates and macros from an openlibrary instance to repository.
 """
 from __future__ import print_function
-import _init_path
+from __future__ import absolute_import
+from . import _init_path
 
 import os
 import web

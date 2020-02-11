@@ -5,6 +5,7 @@ Usage:
       /olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/ol-solr-indexer.py --config /olsystem/etc/openlibrary.yml --bookmark ol-solr-indexer.bookmark --backward --days 2
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 __author__ = "Giovanni Damiola"
 __copyright__ = "Copyright 2015, Internet Archive"
@@ -12,7 +13,7 @@ __license__ = "AGPL"
 __date__ = "2015-07-29"
 __version__ = "0.1"
 
-import _init_path
+from . import _init_path
 
 import sys
 import os

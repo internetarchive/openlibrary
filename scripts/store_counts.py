@@ -1,9 +1,10 @@
 #!/olsystem/bin/olenv python
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 
-import _init_path
+from . import _init_path
 
 from openlibrary.admin import stats
 

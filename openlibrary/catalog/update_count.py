@@ -1,7 +1,8 @@
-from olwrite import Infogami, add_to_database
+from __future__ import absolute_import
+from .olwrite import Infogami, add_to_database
 import web
 import dbhash
-from read_rc import read_rc
+from .read_rc import read_rc
 import cjson
 import re
 import sys

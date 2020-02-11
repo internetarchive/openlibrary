@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import web
 import json
 import logging
 import datetime
 import time
-import _init_path
+from . import _init_path
 from openlibrary.config import load_config
 from openlibrary.api import OpenLibrary, OLError
 from openlibrary.core.ia import get_candidate_ocaids

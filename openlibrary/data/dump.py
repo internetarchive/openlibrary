@@ -7,6 +7,7 @@ Glossary:
 * idump - Incremental dump. Dump of all revisions created in the given day.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 import sys
 import os
@@ -17,7 +18,7 @@ import simplejson
 import itertools
 import gzip
 
-import db
+from . import db
 
 import six
 
@@ -336,13 +337,13 @@ def main(cmd, args):
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
-        import solr
+        from . import solr
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
-        from sitemap import generate_sitemaps
+        from .sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
     elif cmd == 'htmlindex':
-        from sitemap import generate_html_index
+        from .sitemap import generate_html_index
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)

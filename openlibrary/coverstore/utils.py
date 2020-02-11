@@ -1,4 +1,5 @@
 """Utilities for coverstore"""
+from __future__ import absolute_import
 
 import urllib
 import urllib2
@@ -11,8 +12,8 @@ import web
 import random
 import string
 
-import config
-import oldb
+from . import config
+from . import oldb
 
 try:
     file           # Python 2

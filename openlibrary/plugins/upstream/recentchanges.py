@@ -2,6 +2,7 @@
 
 This should go into infogami.
 """
+from __future__ import absolute_import
 import web
 import simplejson
 import yaml
@@ -11,7 +12,7 @@ from infogami.utils.view import public, render, render_template, add_flash_messa
 from infogami.utils import features
 
 from openlibrary.utils import dateutil
-from utils import get_changes
+from .utils import get_changes
 
 
 @public

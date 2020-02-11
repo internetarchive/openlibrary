@@ -1,5 +1,6 @@
+from __future__ import absolute_import
 import web
-import config
+from . import config
 import datetime
 
 _categories = None

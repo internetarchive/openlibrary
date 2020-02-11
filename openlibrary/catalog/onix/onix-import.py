@@ -1,8 +1,9 @@
+from __future__ import absolute_import
 import web
 import infogami.tdb as tdb
 from infogami.tdb import NotFound, Things, LazyThing
 from items import *
-from onix import parser
+from .onix import parser
 import sys
 import unicodedata
 import re

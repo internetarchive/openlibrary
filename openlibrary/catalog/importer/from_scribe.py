@@ -1,17 +1,18 @@
 from __future__ import print_function
+from __future__ import absolute_import
 import MySQLdb
 from catalog.read_rc import read_rc
 import catalog.marc.fast_parse as fast_parse
 import catalog.marc.parse_xml as parse_xml
 from time import time
-from lang import add_lang
-from olwrite import Infogami
-from load import build_query
-from merge import try_merge
-from db_read import get_things
+from .lang import add_lang
+from .olwrite import Infogami
+from .load import build_query
+from .merge import try_merge
+from .db_read import get_things
 from catalog.get_ia import get_ia, urlopen_keep_trying
 from catalog.merge.merge_marc import build_marc
-import pool
+from . import pool
 import sys
 
 from six.moves import urllib

@@ -1,10 +1,11 @@
+from __future__ import absolute_import
 import os
 import web
 
 from infogami.utils.view import render_template
 from openlibrary.core import admin
 
-import utils
+from . import utils
 
 app = web.auto_application()
 app.add_processor(utils.admin_processor)

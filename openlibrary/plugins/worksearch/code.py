@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import web
 import re
 from lxml.etree import XML, XMLSyntaxError
@@ -803,7 +804,7 @@ class search_json(delegate.page):
         return delegate.RawText(json.dumps(response, indent=True))
 
 def setup():
-    import searchapi
+    from . import searchapi
     searchapi.setup()
 
     from . import subjects

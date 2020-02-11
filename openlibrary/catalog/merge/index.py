@@ -1,4 +1,5 @@
-from normalize import normalize
+from __future__ import absolute_import
+from .normalize import normalize
 from time import time
 import re
 

@@ -1,12 +1,13 @@
 """Handle book cover/author photo upload.
 """
+from __future__ import absolute_import
 import web
 import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
-from utils import get_coverstore_url, render_template
-from models import Image
+from .utils import get_coverstore_url, render_template
+from .models import Image
 from openlibrary import accounts
 
 from six.moves import urllib

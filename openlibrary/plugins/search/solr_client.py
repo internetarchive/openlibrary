@@ -1,4 +1,5 @@
 #!/usr/bin/python
+from __future__ import absolute_import
 from xml.etree.cElementTree import ElementTree
 from six.moves import cStringIO as StringIO
 import os
@@ -7,7 +8,7 @@ from collections import defaultdict
 import cgi
 import web
 import simplejson
-from facet_hash import facet_token
+from .facet_hash import facet_token
 import pdb
 
 import six

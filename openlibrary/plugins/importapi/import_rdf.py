@@ -1,8 +1,9 @@
 """
 OL Import API RDF parser
 """
+from __future__ import absolute_import
 
-import import_edition_builder
+from . import import_edition_builder
 
 import six
 

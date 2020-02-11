@@ -3,6 +3,7 @@ Bibliographic API, but also includes information about loans and other
 editions of the same work that might be available.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import re
 
@@ -16,7 +17,7 @@ from infogami.utils.delegate import register_exception
 from infogami.utils import stats
 from infogami import config
 
-import dynlinks
+from . import dynlinks
 
 
 def key_to_olid(key):

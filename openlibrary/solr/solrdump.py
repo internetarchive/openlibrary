@@ -19,12 +19,13 @@ solr document:
 	documents can be imported to solr after converting to xml.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import json
 import gzip
 import web
 
-from update_work import process_edition_data, process_work_data
+from .update_work import process_edition_data, process_work_data
 
 def process_xwork(doc):
 	"""Process xwork document and yield multiple solr documents.

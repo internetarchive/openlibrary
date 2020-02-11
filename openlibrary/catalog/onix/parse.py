@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 # provides a parser from ONIX files to Open Library items
 
 import re
@@ -10,8 +11,8 @@ import xml.sax
 from xml.sax.handler import *
 from xml.sax.saxutils import prepare_input_source
 
-from thread_utils import AsyncChannel, threaded_generator
-from onix import OnixProduct, OnixHandler, onix_codelists
+from .thread_utils import AsyncChannel, threaded_generator
+from .onix import OnixProduct, OnixHandler, onix_codelists
 
 import six
 

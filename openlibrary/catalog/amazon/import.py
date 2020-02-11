@@ -1,8 +1,9 @@
 from __future__ import print_function
+from __future__ import absolute_import
 import sys
 import re
 import os
-from parse import read_edition
+from .parse import read_edition
 from lxml.html import fromstring
 import catalog.importer.pool as pool
 from catalog.importer.db_read import get_mc, withKey

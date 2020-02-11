@@ -1,4 +1,5 @@
-from db_read import get_things
+from __future__ import absolute_import
+from .db_read import get_things
 
 def get_langs():
     lang = []

@@ -1,8 +1,9 @@
 #!/usr/bin/python2.5
+from __future__ import absolute_import
 import web
 import re
 from catalog.utils.query import query_iter, withKey
-from web_marc_db import search_query, marc_data, esc
+from .web_marc_db import search_query, marc_data, esc
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from catalog.utils import pick_first_date, flip_name, author_dates_match
 from collections import defaultdict

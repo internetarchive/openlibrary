@@ -1,6 +1,7 @@
 """Library to process edition, work and author records and emit (key, property, value) triples that can be combined later for solr indexing.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 import os
 import sys
 import re
@@ -11,7 +12,7 @@ import collections
 import glob
 import itertools
 
-from dump import read_tsv, log
+from .dump import read_tsv, log
 
 def subdict(d, properties):
     return dict((k, v) for k, v in d.iteritems() if k in set(properties))

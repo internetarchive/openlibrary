@@ -2,6 +2,7 @@
 Script to read out data from thingdb and put it in couch so that it
 can be queried by the /admin pages on openlibrary
 """
+from __future__ import absolute_import
 
 
 import os
@@ -11,7 +12,7 @@ import datetime
 import web
 import yaml
 
-import numbers
+from . import numbers
 
 logger = logging.getLogger(__name__)
 

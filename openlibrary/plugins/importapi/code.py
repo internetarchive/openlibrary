@@ -1,5 +1,6 @@
 """Open Library Import API
 """
+from __future__ import absolute_import
 
 from infogami.plugins.api.code import add_hook
 
@@ -18,9 +19,9 @@ import base64
 import json
 import re
 
-import import_opds
-import import_rdf
-import import_edition_builder
+from . import import_opds
+from . import import_rdf
+from . import import_edition_builder
 from lxml import etree
 import logging
 

@@ -1,9 +1,10 @@
 """Library to talk directly to OL database to avoid expensive API calls.
 """
+from __future__ import absolute_import
 import web
 import simplejson
 
-import config
+from . import config
 
 from openlibrary.utils import olmemcache
 

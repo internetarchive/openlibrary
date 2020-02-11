@@ -1,9 +1,10 @@
 from __future__ import print_function
+from __future__ import absolute_import
 # build a merge database from JSON dump
 
 import simplejson
 import re
-from normalize import normalize
+from .normalize import normalize
 from time import time
 
 re_escape = re.compile(r'[\n\r\t\0\\]')

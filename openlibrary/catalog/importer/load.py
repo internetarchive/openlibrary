@@ -1,8 +1,9 @@
 from __future__ import print_function
+from __future__ import absolute_import
 import web
 import re
 import os
-from db_read import withKey
+from .db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
 from openlibrary.catalog.read_rc import read_rc

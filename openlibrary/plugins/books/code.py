@@ -1,8 +1,9 @@
 """Open Library Books API
 """
+from __future__ import absolute_import
 
-import dynlinks
-import readlinks
+from . import dynlinks
+from . import readlinks
 
 import re
 from six.moves import urllib

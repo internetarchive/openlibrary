@@ -1,7 +1,8 @@
+from __future__ import absolute_import
 # build a merge database from JSON dump
 
 import re
-from normalize import normalize
+from .normalize import normalize
 
 def short_title(s):
     return normalize(s)[:25]

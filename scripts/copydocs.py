@@ -12,10 +12,11 @@ This script can also be used to copy books and authors from OL to dev instance.
     ./scripts/copydocs.py /works/OL1098727W?v=2
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
 from collections import namedtuple
 
-import _init_path
+from . import _init_path
 import sys
 import os
 import simplejson

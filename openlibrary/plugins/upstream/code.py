@@ -1,4 +1,5 @@
 """Upstream customizations."""
+from __future__ import absolute_import
 
 import os.path
 import web
@@ -12,17 +13,17 @@ from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 from infogami.utils.context import context
 
-from utils import render_template
+from .utils import render_template
 
 from openlibrary import accounts
 
-import utils
-import addbook
-import models
-import covers
-import borrow
-import recentchanges
-import merge_authors
+from . import utils
+from . import addbook
+from . import models
+from . import covers
+from . import borrow
+from . import recentchanges
+from . import merge_authors
 
 
 if not config.get('coverstore_url'):
@@ -248,7 +249,7 @@ def setup():
     covers.setup()
     merge_authors.setup()
 
-    import data
+    from . import data
     data.setup()
 
     # setup template globals
@@ -269,7 +270,7 @@ def setup():
         "locals": locals
     });
 
-    import jsdef
+    from . import jsdef
     web.template.STATEMENT_NODES["jsdef"] = jsdef.JSDefNode
 
     setup_jquery_urls()

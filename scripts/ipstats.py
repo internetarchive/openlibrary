@@ -5,12 +5,13 @@ Store count of unique IPs per day to infobase by parsing the nginx log files dir
 This file is currently (17 July 2018) run on production using cron.
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from datetime import datetime, timedelta
 import os
 import subprocess
 import web
 import infogami
-import _init_path
+from . import _init_path
 from openlibrary.config import load_config
 
 def run_piped(cmds, stdin=None):

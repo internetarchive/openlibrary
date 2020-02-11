@@ -6,7 +6,8 @@ Changes:
 2013-02-25: First version
 2018-02-11: Use newer config method
 """
-import _init_path
+from __future__ import absolute_import
+from . import _init_path
 
 from six.moves import urllib
 import yaml
