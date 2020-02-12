@@ -216,7 +216,7 @@ def build_query(loc, rec):
             l['key'] = '/languages/dut'
         assert withKey(l['key'])
 
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if k == 'authors':
             book[k] = [import_author(v[0], eastern=east)]
             continue

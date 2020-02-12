@@ -64,7 +64,7 @@ def counts_html(v):
     sep = '<br>' if lens and max(lens) > 20 else ' '
     for i, loc in v:
         count.setdefault(i, []).append(loc)
-    s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    s = sorted(count.items(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
     s = strip_count(s)
     return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), repr(loc), value if value else '<em>empty</em>') for value, loc in s)
 

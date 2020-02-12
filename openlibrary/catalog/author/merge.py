@@ -25,7 +25,7 @@ def norm(s):
 
 def copy_fields(from_author, to_author, name):
     new_fields = { 'name': name, 'personal_name': name }
-    for k, v in from_author.iteritems():
+    for k, v in from_author.items():
         if k in ('name', 'personal_name', 'key', 'last_modified', 'type', 'id', 'revision'):
             continue
         if k in to_author:
@@ -43,7 +43,7 @@ def test_copy_fields():
 
 def update_author(key, new):
     q = { 'key': key, }
-    for k, v in new.iteritems():
+    for k, v in new.items():
         q[k] = { 'connect': 'update', 'value': v }
     print(ol.write(q, comment='merge author'))
 

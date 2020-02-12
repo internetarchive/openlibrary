@@ -440,7 +440,7 @@ def test_lookup4():
     found = name_lookup(fields)
     dates = pick_first_date(v for k, v in fields if k == 'd')
     match = look_for_match(found, dates, False)
-    for k, v in match.iteritems():
+    for k, v in match.items():
         print(k, v)
     match = pick_from_match(match)
     pprint(match)

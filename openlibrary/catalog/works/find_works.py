@@ -397,7 +397,7 @@ def find_works(book_iter, existing={}, do_get_mc=True):
             if norm_subtitle != norm:
                 subtitles[norm_subtitle][subtitle] += 1
         use_subtitle = None
-        for k, v in subtitles.iteritems():
+        for k, v in subtitles.items():
             lc_k = k.strip(' .').lower()
             if lc_k in ('', 'roman') or 'edition' in lc_k:
                 continue
@@ -557,7 +557,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
     best = w['best_match']['key']
     update = []
     subjects_from_existing_works = defaultdict(set)
-    for wkey in w['existing_works'].iterkeys():
+    for wkey in w['existing_works']:
         if wkey == best:
             continue
         existing = get_with_retry(wkey)
@@ -568,7 +568,7 @@ def update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log):
         update.append({'type': '/type/redirect', 'location': best, 'key': wkey})
         work_updated.append(wkey)
 
-    for wkey in w['existing_works'].iterkeys():
+    for wkey in w['existing_works']:
         editions = set(work_to_edition[wkey])
         editions.update(e['key'] for e in w['editions'])
         for ekey in editions:
@@ -718,13 +718,13 @@ def update_works(akey, works, do_updates=False):
     existing_work_with_conflict = defaultdict(set)
 
     for w in works: # 3rd pass
-        for wkey, v in w['existing_works'].iteritems():
+        for wkey, v in w['existing_works'].items():
             if any(title != w['title'] for title in wkey_to_new_title[wkey]):
                 w['has_conflict'] = True
                 existing_work_with_conflict[wkey].add(w['title'])
                 break
 
-    for wkey, v in existing_work_with_conflict.iteritems():
+    for wkey, v in existing_work_with_conflict.items():
         cur_work = work_by_key[wkey]
         existing_titles = defaultdict(int)
         for ekey in work_to_edition[wkey]:
@@ -766,8 +766,8 @@ def update_works(akey, works, do_updates=False):
                 works_updated_this_session.update(updated)
             continue
 
-        assert not any(other_matches(w, wkey) for wkey in w['existing_works'].iterkeys())
-        best_match = max(w['existing_works'].iteritems(), key=lambda i:i[1])[0]
+        assert not any(other_matches(w, wkey) for wkey in w['existing_works'])
+        best_match = max(w['existing_works'].items(), key=lambda i:i[1])[0]
         w['best_match'] = work_by_key[best_match]
         updated = update_work_with_best_match(akey, w, work_to_edition, do_updates, fh_log)
         for wkey in updated:

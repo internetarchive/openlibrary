@@ -38,7 +38,7 @@ def read_short_title(title):
 
 def make_index_fields(rec):
     fields = {}
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if k in ('lccn', 'oclc', 'isbn'):
             fields[k] = v
             continue
@@ -116,7 +116,7 @@ def load():
         e1 = build_marc(rec)
 
         match = False
-        for k, v in edition_pool.iteritems():
+        for k, v in edition_pool.items():
             if k == 'title' and len(v) > 50:
                 continue
             for edition_key in v:

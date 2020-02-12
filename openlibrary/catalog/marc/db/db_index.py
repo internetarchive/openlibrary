@@ -59,7 +59,7 @@ def process_record(pos, loc, data, file_id):
         rec['oclc'] = [i for i in rec['oclc'] if len(i) <= 16]
     if 'lccn' in rec:
         rec['lccn'] = [i for i in rec['lccn'] if len(i) <= 16]
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if 'isbn' != k and any(len(i) > field_size[k] for i in v):
             print(loc)
             print(rec)
@@ -68,7 +68,7 @@ def process_record(pos, loc, data, file_id):
     (f, p, l) = loc[5:].split(':')
     print('\t'.join([str(rec_id), str(file_id), p, l]), file=db_rec)
 
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if not v:
             continue
         for i in v:

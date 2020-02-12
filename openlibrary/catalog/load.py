@@ -41,7 +41,7 @@ def build_query(loc, rec):
     if east:
         print(rec)
 
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if k == 'authors':
             book[k] = [import_author(v[0], eastern=east)]
             continue

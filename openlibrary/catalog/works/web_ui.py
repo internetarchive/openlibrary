@@ -110,7 +110,7 @@ def search(title, author):
     if found_titles:
         print('<h2>Other titles</h2>')
         print('<ul>')
-        for k, v in found_titles.iteritems():
+        for k, v in found_titles.items():
             if k == title:
                 continue
             print('<li><a href="/?title=%s&author=%s">%s</a>' % (k, author, k), end=' ')
@@ -118,7 +118,7 @@ def search(title, author):
         print('</ul>')
 
     extra_isbn = {}
-    for k, v in found_isbn.iteritems():
+    for k, v in found_isbn.items():
         for isbn, note in find_others(k, rc['amazon_other_editions']):
             if note.lower().find('audio') != -1:
                 continue

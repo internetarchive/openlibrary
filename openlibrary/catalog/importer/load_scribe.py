@@ -63,7 +63,7 @@ def read_short_title(title):
 
 def make_index_fields(rec):
     fields = {}
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if k in ('lccn', 'oclc', 'isbn'):
             fields[k] = v
             continue
@@ -461,7 +461,7 @@ if __name__ == '__main__':
 
             match = False
             seen = set()
-            for k, v in edition_pool.iteritems():
+            for k, v in edition_pool.items():
                 for edition_key in v:
                     if edition_key in seen:
                         continue

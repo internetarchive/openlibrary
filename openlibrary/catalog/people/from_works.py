@@ -69,7 +69,7 @@ def read_works():
 
         w = ol.get(work['key'])
         w['subject_people'] = []
-        for p, num in people.iteritems():
+        for p, num in people.items():
             print('  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p)))
             print('     ', p)
             if p in page_marc:
@@ -116,7 +116,7 @@ def from_sample():
         for k, v in marc_alt.items():
             marc_alt_reverse[v].add(k)
 
-        for p, num in people.iteritems():
+        for p, num in people.items():
             if p in page_marc:
                 continue
             obj = build_person_object(p, marc_alt_reverse.get(p, []))

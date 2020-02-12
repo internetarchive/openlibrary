@@ -531,7 +531,7 @@ def read_people(people):
             continue
         d = tuple(v for k, v in p if k=='d')
         by_date[d].add(p)
-#    for k, v in by_date.iteritems():
+#    for k, v in by_date.items():
 #        print len(v), k, v
 
     return dict(found), marc_alt
@@ -549,10 +549,10 @@ def read_file(filename):
         print(w['key'], w['title'])
         print(lines)
         people, marc_alt = read_people(lines)
-#        for p, num in people.iteritems():
+#        for p, num in people.items():
 #            if any(k=='d' for k, v in people):
 #                continue
-        for p, num in people.iteritems():
+        for p, num in people.items():
             print('  %2d %s' % (num, ' '.join("%s: %s" % (k, v) for k, v in p)))
             print('     ', p)
         print()

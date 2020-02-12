@@ -104,7 +104,7 @@ def test_input (input):
 		if n % 100 == 0:
 			warn ("...... read %d records" % n)
 	warn ("ignored:")
-	for (tag,count) in ignored.iteritems ():
+	for (tag,count) in ignored.items ():
 		warn ("\t%d\t%s" % (count, tag))
 	warn ("done.  read %d records" % n)
 

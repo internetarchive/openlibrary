@@ -44,7 +44,7 @@ def build_pool(index_fields): # unused
             if v not in dbm[field]:
                 continue
             pool.setdefault(field, set()).update(dbm[field][v].split(' '))
-    return dict((k, sorted(v)) for k, v in pool.iteritems())
+    return dict((k, sorted(v)) for k, v in pool.items())
 
 def add_to_indexes(record, dbm): # unused
     if 'title' not in record or record['title'] is None:
@@ -113,7 +113,7 @@ if __name__ == '__main__':
         app.run()
     except:
         print("closing dbm files")
-#        for v in dbm.itervalues():
+#        for v in dbm.values():
 #            v.close()
         store_db.close()
         print("closed")

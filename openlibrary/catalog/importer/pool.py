@@ -29,7 +29,7 @@ def build(index_fields):
                 continue
             cur.execute('select k from ' + field + ' where v=%(v)s', {'v': v})
             pool.setdefault(field, set()).update(i[0] for i in cur.fetchall())
-    return dict((k, sorted(v)) for k, v in pool.iteritems())
+    return dict((k, sorted(v)) for k, v in pool.items())
 
 def update(key, q):
     seen = set()
