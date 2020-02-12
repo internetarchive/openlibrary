@@ -25,7 +25,7 @@ class Stats:
 
         try:
             # Last available total count
-            self.total = (x for x in reversed(docs) if total_key in x).next()[total_key]
+            self.total = next((x for x in reversed(docs) if total_key in x))[total_key]
         except (KeyError, StopIteration):
             self.total = ""
 
