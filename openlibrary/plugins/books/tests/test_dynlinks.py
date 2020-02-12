@@ -359,7 +359,7 @@ def test_isbnx(monkeypatch):
     monkeypatch.setattr(web.ctx, "site", site, raising=False)
     json = dynlinks.dynlinks(["isbn:123456789X"], {"format": "json"})
     d = simplejson.loads(json)
-    assert d.keys() == ["isbn:123456789X"]
+    assert list(d) == ["isbn:123456789X"]
 
 def test_dynlinks_ia(monkeypatch):
     monkeypatch_ol(monkeypatch)
