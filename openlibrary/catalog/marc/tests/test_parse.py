@@ -20,6 +20,7 @@ xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     ]
 
 bin_samples = [
+    'bijouorannualofl1828cole_meta.mrc', 'onquietcomedyint00brid_meta.mrc',  # LCCN with leading characters
     'merchantsfromcat00ben_meta.mrc', 'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
     'bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
@@ -35,7 +36,7 @@ bin_samples = [
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
 
-class TestParse():
+class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
         expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
@@ -48,12 +49,14 @@ class TestParse():
         edition_marc_xml = read_edition(rec)
         assert edition_marc_xml
         j = simplejson.load(open(expect_filename))
-        assert j, "Unable to open test data: %s" % expect_filename
-        assert sorted(edition_marc_xml.keys()) == sorted(j.keys())
+        assert j, 'Unable to open test data: %s' % expect_filename
+        assert sorted(edition_marc_xml.keys()) == sorted(j.keys()), 'Processed MARCXML fields do not match expectations in %s' % expect_filename
         for k in edition_marc_xml.keys():
-            assert edition_marc_xml[k] == j[k]
+            assert edition_marc_xml[k] == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
         assert edition_marc_xml == j
 
+
+class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
         expect_filename = "%s/bin_expect/%s" % (test_data, i)
@@ -71,24 +74,24 @@ class TestParse():
             simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
             assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
         j = simplejson.load(open(expect_filename))
-        assert j, "Unable to open test data: %s" % expect_filename
-        assert sorted(edition_marc_bin.keys()) == sorted(j.keys())
+        assert j, 'Unable to open test data: %s' % expect_filename
+        assert sorted(edition_marc_bin.keys()) == sorted(j.keys()), 'Processed binary MARC fields do not match expectations in %s' % expect_filename
         for k in edition_marc_bin.keys():
             if isinstance(j[k], list):
                 for item1, item2 in zip(edition_marc_bin[k], j[k]):
                     assert item1 == item2
-            assert edition_marc_bin[k] == j[k]
+            assert edition_marc_bin[k] == j[k], 'Processed binary MARC values do not match expectations in %s' % expect_filename
         assert edition_marc_bin == j
 
     def test_raises_see_also(self):
-        filename = "%s/bin_input/talis_see_also.mrc" % test_data
+        filename = '%s/bin_input/talis_see_also.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = "%s/bin_input/talis_no_title2.mrc" % test_data
+        filename = '%s/bin_input/talis_no_title2.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):

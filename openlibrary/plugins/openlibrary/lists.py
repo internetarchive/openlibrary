@@ -54,7 +54,7 @@ class lists(delegate.page):
         return render_template("lists/lists.html", doc, lists)
 
 class lists_delete(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/delete"
+    path = r"(/people/\w+/lists/OL\d+L)/delete"
     encoding = "json"
 
     def POST(self, key):
@@ -205,7 +205,7 @@ class lists_yaml(lists_json):
     content_type = "text/yaml"
 
 class list_view_json(delegate.page):
-    path = "(/people/[^/]+/lists/OL\d+L)"
+    path = r"(/people/[^/]+/lists/OL\d+L)"
     encoding = "json"
     content_type = "application/json"
 
@@ -250,7 +250,7 @@ class list_view_yaml(list_view_json):
     content_type = "text/yaml"
 
 class list_seeds(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/seeds"
+    path = r"(/people/\w+/lists/OL\d+L)/seeds"
     encoding = "json"
 
     content_type = "application/json"
@@ -324,7 +324,7 @@ class list_seed_yaml(list_seeds):
 class list_editions(delegate.page):
     """Controller for displaying lists of a seed or lists of a person.
     """
-    path = "(/people/\w+/lists/OL\d+L)/editions"
+    path = r"(/people/\w+/lists/OL\d+L)/editions"
 
     def is_enabled(self):
         return "lists" in web.ctx.features
@@ -347,7 +347,7 @@ class list_editions(delegate.page):
         return render_template("type/list/editions.html", lst, editions)
 
 class list_editions_json(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/editions"
+    path = r"(/people/\w+/lists/OL\d+L)/editions"
     encoding = "json"
 
     content_type = "application/json"
@@ -400,7 +400,7 @@ def make_collection(size, entries, limit, offset):
     return d
 
 class list_subjects_json(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/subjects"
+    path = r"(/people/\w+/lists/OL\d+L)/subjects"
     encoding = "json"
     content_type = "application/json"
 
@@ -444,7 +444,7 @@ class list_editions_yaml(list_subjects_json):
     content_type = 'text/yaml; charset="utf-8"'
 
 class lists_embed(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/embed"
+    path = r"(/people/\w+/lists/OL\d+L)/embed"
 
     def GET(self, key):
         doc = web.ctx.site.get(key)
@@ -453,7 +453,7 @@ class lists_embed(delegate.page):
         return render_template("type/list/embed", doc)
 
 class export(delegate.page):
-    path = "(/people/\w+/lists/OL\d+L)/export"
+    path = r"(/people/\w+/lists/OL\d+L)/export"
 
     def GET(self, key):
         lst = web.ctx.site.get(key)
@@ -493,7 +493,7 @@ class export(delegate.page):
         return doc
 
 class feeds(delegate.page):
-    path = "(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
+    path = r"(/people/[^/]+/lists/OL\d+L)/feeds/(updates).(atom)"
 
     def GET(self, key, name, fmt):
         lst = web.ctx.site.get(key)

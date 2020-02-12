@@ -9,9 +9,8 @@ import random
 import string
 import simplejson
 import uuid
-import urllib
-import urllib2
 import logging
+import requests
 
 import lepl.apps.rfc3696
 import web
@@ -21,6 +20,8 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import ClientException
 
 from openlibrary.core import stats, helpers
+
+from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.account.model")
 
@@ -303,6 +304,9 @@ class Account(web.storage):
             if 'values' in act and 'email' in act['values']:
                 return InternetArchiveAccount.get(email=act['values']['email'])
 
+    def render_link(self):
+        return '<a href="/people/%s">%s</a>' % (self.username, web.net.htmlquote(self.displayname))
+
 class OpenLibraryAccount(Account):
 
     @classmethod
@@ -314,7 +318,7 @@ class OpenLibraryAccount(Account):
                                  Usernames must be unique
             email (unicode) - the login and email of the account
             password (unicode)
-            displayname (unicode) - human readable, changable screenname
+            displayname (unicode) - human readable, changeable screenname
             retries (int) - If the username is unavailable, how many
                             subsequent attempts should be made to find
                             an available username.
@@ -403,6 +407,9 @@ class OpenLibraryAccount(Account):
 
     @classmethod
     def get_by_link(cls, link, test=False):
+        """
+        :rtype: OpenLibraryAccount or None
+        """
         ol_accounts = web.ctx.site.store.values(
             type="account", name="internetarchive_itemname", value=link)
         return cls(ol_accounts[0]) if ol_accounts else None
@@ -478,21 +485,22 @@ class InternetArchiveAccount(web.storage):
             setattr(self, k, kwargs[k])
 
     @classmethod
-    def create(cls, screenname, email, password, retries=0,
-               verified=False, test=None):
+    def create(cls, screenname, email, password, notifications=None,
+               retries=0, verified=False, test=None):
         """
-        Args:
-            screenname (unicode) - changable human readable archive.org username.
-                                   The slug / itemname is generated automatically
-                                   from this value.
-            email (unicode)
-            password (unicode)
-            retries (int) - If the username is unavailable, how many
-                            subsequent attempts should be made to find
-                            an available username.
+        :param unicode screenname: changable human readable archive.org username.
+            The slug / itemname is generated automatically from this value.
+        :param unicode email:
+        :param unicode password:
+        :param List[Union[Literal['announce-general'], Literal['announce-sf']]] notifications:
+            newsletters to subscribe user to
+        :param int retries: If the username is unavailable, how many
+            subsequent attempts should be made to find an available
+            username.
         """
         email = email.strip().lower()
         screenname = screenname[1:] if screenname[0] == '@' else screenname
+        notifications = notifications or []
 
         if cls.get(email=email):
             raise ValueError('email_registered')
@@ -504,9 +512,9 @@ class InternetArchiveAccount(web.storage):
         attempt = 0
         while True:
             response = cls.xauth(
-                'create', test=test, email=email,
-                password=password, screenname=_screenname,
-                verified=verified, service='openlibrary', notifications=[])
+                'create',
+                email=email, password=password, screenname=_screenname, notifications=notifications,
+                test=test, verified=verified, service='openlibrary')
 
             if response.get('success'):
                 ia_account = cls.get(email=email)
@@ -529,8 +537,12 @@ class InternetArchiveAccount(web.storage):
     @classmethod
     def xauth(cls, op, test=None, s3_key=None, s3_secret=None,
               xauth_url=None, **data):
+        """
+        See https://git.archive.org/ia/petabox/tree/master/www/sf/services/xauthn
+        """
         from openlibrary.core import lending
-        url = "%s?op=%s" % (xauth_url or lending.config_ia_xauth_api_url, op)
+        url = xauth_url or lending.config_ia_xauth_api_url
+        params = {'op': op}
         data.update({
             'access': s3_key or lending.config_ia_ol_xauth_s3.get('s3_key'),
             'secret': s3_secret or lending.config_ia_ol_xauth_s3.get('s3_secret')
@@ -546,21 +558,16 @@ class InternetArchiveAccount(web.storage):
         if op == 'create' and 'service' in data:
             data['activation-type'] = data.pop('service')
 
-        payload = simplejson.dumps(data)
         if test:
-            url += "&developer=%s" % test
+            params['developer'] = test
+
+        response = requests.post(url, params=params, json=data)
         try:
-            req = urllib2.Request(url, payload, {
-                'Content-Type': 'application/json'})
-            f = urllib2.urlopen(req)
-            response = f.read()
-            f.close()
-        except urllib2.HTTPError as e:
-            try:
-                response = e.read()
-            except simplejson.decoder.JSONDecodeError:
-                return {'error': e.read(), 'code': e.code}
-        return simplejson.loads(response)
+            # This API should always return json, even on error (Unless
+            # the server is down or something :P)
+            return response.json()
+        except ValueError:
+            return {'error': response.text, 'code': response.status_code}
 
     @classmethod
     def s3auth(cls, access_key, secret_key):
@@ -568,14 +575,14 @@ class InternetArchiveAccount(web.storage):
         from openlibrary.core import lending
         url = lending.config_ia_s3_auth_url
         try:
-            req = urllib2.Request(url, headers={
+            req = urllib.request.Request(url, headers={
                 'Content-Type': 'application/json',
                 'authorization': 'LOW %s:%s' % (access_key, secret_key)
             })
-            f = urllib2.urlopen(req)
+            f = urllib.request.urlopen(req)
             response = f.read()
             f.close()
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             try:
                 response = e.read()
             except simplejson.decoder.JSONDecodeError:

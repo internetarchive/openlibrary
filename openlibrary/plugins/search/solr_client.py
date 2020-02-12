@@ -1,7 +1,6 @@
 #!/usr/bin/python
-from urllib import quote_plus, urlopen
 from xml.etree.cElementTree import ElementTree
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 import os
 import re
 from collections import defaultdict
@@ -12,6 +11,8 @@ from facet_hash import facet_token
 import pdb
 
 import six
+from six.moves.urllib.parse import quote_plus
+from six.moves.urllib.request import urlopen
 
 php_location = "/petabox/setup.inc"
 
@@ -277,7 +278,7 @@ class Solr_client(object):
             which this function extracts asa a locator and
             a leaf number ('adventsuburbanit00butlrich', 65). """
 
-            g = re.search('(.*)_(\d{4})\.djvu$', page_id)
+            g = re.search(r'(.*)_(\d{4})\.djvu$', page_id)
             a,b = g.group(1,2)
             return a, int(b)
 

@@ -1,5 +1,5 @@
 import sys
-from StringIO import StringIO
+from six import StringIO
 import time
 import re
 

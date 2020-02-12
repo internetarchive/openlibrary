@@ -5,7 +5,7 @@
   "pagination": "xviii, 297 p.",
   "title": "Return to laughter", 
   "lccn": [
-    "64-11739"
+    "64011739"
   ], 
   "series": [
     "The Natural history library"

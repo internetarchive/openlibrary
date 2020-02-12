@@ -2,7 +2,7 @@ $def with (blog_posts=None)
 
 <div id="home-resources">
   <div class="head">
-    <h2>About the Project</h2>
+    <h2>$_('About the Project')</h2>
   </div>
 
   <div id="home-about">
@@ -12,13 +12,11 @@ $def with (blog_posts=None)
         <a href="/about" class="small sansserif">$_("More")</a>
       </h3>
       <p id="home-about-mission-desc">
-        Just like Wikipedia, you can contribute new information or corrections to the catalog.
-        You can browse by <a href="/subjects">subjects</a>, <a href="/authors">authors</a> or
-        <a href="/lists">lists</a> members have created. If you love books, why not help build a library?
+        $:_('Just like Wikipedia, you can contribute new information or corrections to the catalog. You can browse by <a href="/subjects">subjects</a>, <a href="/authors">authors</a> or <a href="/lists">lists</a> members have created. If you love books, why not help build a library?')
       </p>
     </div>
     <div class="home-resource-section">
-      <h3 class="collapse"><a href="http://blog.openlibrary.org/" class="header">Latest Blog Posts</a></h3>
+      <h3 class="collapse"><a href="http://blog.openlibrary.org/" class="header">$_('Latest Blog Posts')</a></h3>
       <ul id="olBlog">
         $if blog_posts:
           $for post in blog_posts[:3]:

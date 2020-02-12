@@ -1,4 +1,3 @@
-from __future__ import print_function
 from collections import defaultdict
 import re
 from openlibrary.catalog.utils import remove_trailing_dot, flip_name
@@ -6,7 +5,7 @@ from openlibrary.catalog.utils import remove_trailing_dot, flip_name
 re_flip_name = re.compile('^(.+), ([A-Z].+)$')
 
 # 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
+re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
@@ -31,9 +30,7 @@ def flip_subject(s):
 
 def tidy_subject(s):
     s = s.strip()
-    if len(s) < 2:
-        print(('short subject:', repr(s)))
-    else:
+    if len(s) > 1:
         s = s[0].upper() + s[1:]
     m = re_etc.search(s)
     if m:

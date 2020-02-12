@@ -1,5 +1,6 @@
 #!/usr/bin/python2.5
 from __future__ import print_function
+from six.moves import urllib
 from time import time, sleep
 import openlibrary.catalog.marc.fast_parse as fast_parse
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -7,7 +8,6 @@ import web
 import sys
 import codecs
 import re
-import urllib2
 import httplib
 from openlibrary.catalog.importer import pool
 import simplejson as json
@@ -52,7 +52,7 @@ def get_with_retry(key):
     for i in range(3):
         try:
             return ol.get(key)
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             if error.code != 500:
                 raise
         print('retry save')
@@ -63,13 +63,13 @@ def save_with_retry(key, data, comment):
     for i in range(3):
         try:
             return ol.save(key, data, comment)
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             if error.code != 500:
                 raise
         print('retry save')
         sleep(10)
 
-# urllib2.HTTPError: HTTP Error 500: Internal Server Error
+# urllib.error.HTTPError: HTTP Error 500: Internal Server Error
 
 def percent(a, b):
     return float(a * 100.0) / b
@@ -142,7 +142,7 @@ def undelete_author(a):
     key = a['key']
     assert a['type'] == '/type/delete'
     url = 'http://openlibrary.org' + key + '.json?v=' + str(a['revision'] - 1)
-    prev = unmarshal(json.load(urllib2.urlopen(url)))
+    prev = unmarshal(json.load(urllib.request.urlopen(url)))
     assert prev['type'] == '/type/author'
     save_with_retry(key, prev, 'undelete author')
 

@@ -1,12 +1,12 @@
 """Python library for accessing Solr.
 """
-import urlparse
-import urllib
-import urllib2
 import re
 import web
 import simplejson
 import logging
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.logger")
 
@@ -14,9 +14,9 @@ def urlencode(d, doseq=False):
     """There is a bug in urllib when used with unicode data.
 
         >>> d = {"q": u"\u0C05"}
-        >>> urllib.urlencode(d)
+        >>> urllib.parse.urlencode(d)
         'q=%E0%B0%85'
-        >>> urllib.urlencode(d, doseq=True)
+        >>> urllib.parse.urlencode(d, doseq=True)
         'q=%3F'
 
     This function encodes all the unicode strings in utf-8 before passing them to urllib.
@@ -29,12 +29,12 @@ def urlencode(d, doseq=False):
         else:
             return web.safestr(d)
 
-    return urllib.urlencode(utf8(d), doseq=doseq)
+    return urllib.parse.urlencode(utf8(d), doseq=doseq)
 
 class Solr:
     def __init__(self, base_url):
         self.base_url = base_url
-        self.host = urlparse.urlsplit(self.base_url)[1]
+        self.host = urllib.parse.urlsplit(self.base_url)[1]
 
     def escape(self, query):
         r"""Escape special characters in the query string
@@ -54,7 +54,7 @@ class Solr:
         """Execute a solr query.
 
         query can be a string or a dicitonary. If query is a dictionary, query
-        is constucted by concatinating all the key-value pairs with AND condition.
+        is constructed by concatinating all the key-value pairs with AND condition.
         """
         params = {'wt': 'json'}
 
@@ -85,17 +85,17 @@ class Solr:
                 params['facet.field'].append(name)
 
         # switch to POST request when the payload is too big.
-        # XXX: would it be a good idea to swithc to POST always?
+        # XXX: would it be a good idea to switch to POST always?
         payload = urlencode(params, doseq=True)
         url = self.base_url + "/select"
         if len(payload) < 500:
             url = url + "?" + payload
             logger.info("solr request: %s", url)
-            data = urllib2.urlopen(url, timeout=3).read()
+            data = urllib.request.urlopen(url, timeout=3).read()
         else:
             logger.info("solr request: %s ...", url)
-            request = urllib2.Request(url, payload, {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
-            data = urllib2.urlopen(request, timeout=3).read()
+            request = urllib.request.Request(url, payload, {"Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"})
+            data = urllib.request.urlopen(request, timeout=3).read()
         return self._parse_solr_result(
             simplejson.loads(data),
             doc_wrapper=doc_wrapper,

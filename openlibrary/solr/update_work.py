@@ -6,13 +6,12 @@ import os
 import re
 import sys
 import time
-import urllib
-import urllib2
 from collections import defaultdict
 from unicodedata import normalize
 
 import simplejson as json
 import six
+from six.moves import urllib
 import web
 from lxml.etree import tostring, Element, SubElement
 
@@ -31,7 +30,7 @@ re_author_key = re.compile(r'^/(?:a|authors)/(OL\d+A)')
 re_bad_char = re.compile('[\x01\x0b\x1a-\x1e]')
 re_edition_key = re.compile(r"/books/([^/]+)")
 re_iso_date = re.compile(r'^(\d{4})-\d\d-\d\d$')
-re_solr_field = re.compile('^[-\w]+$', re.U)
+re_solr_field = re.compile(r'^[-\w]+$', re.U)
 re_year = re.compile(r'(\d{4})$')
 
 data_provider = None
@@ -45,8 +44,8 @@ def urlopen(url, data=None):
     headers = {
         'User-Agent': user_agent
     }
-    req = urllib2.Request(url, data, headers)
-    return urllib2.urlopen(req)
+    req = urllib.request.Request(url, data, headers)
+    return urllib.request.urlopen(req)
 
 def get_solr():
     """
@@ -1080,7 +1079,7 @@ def get_subject(key):
         'facet.limit': 100
     }
     base_url = 'http://' + get_solr() + '/solr/select'
-    url = base_url + '?' + urllib.urlencode(params)
+    url = base_url + '?' + urllib.parse.urlencode(params)
     result = json.load(urlopen(url))
 
     work_count = result['response']['numFound']
@@ -1453,7 +1452,7 @@ def solr_escape(query):
     :param str query:
     :rtype: str
     """
-    return re.sub('([\s\-+!()|&{}\[\]^\"~*?:\\\\])', r'\\\1', query)
+    return re.sub(r'([\s\-+!()|&{}\[\]^"~*?:\\])', r'\\\1', query)
 
 def do_updates(keys):
     logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")

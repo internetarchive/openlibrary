@@ -13,7 +13,7 @@ $else:
     <h1>$page.displayname</h1>
     <div class="small sansserif">
     $if page.created:
-        <i>Joined $datestr(page.created)</i>
+        <i>$_('Joined %(date)s', date=datestr(page.created))</i>
     $if ctx.user and ctx.user.key == page.key:
         &bull;
         <a href="$homepath()/account">$_("Settings")</a>
@@ -21,7 +21,7 @@ $else:
         <a href="$homepath()/account/loans">$_("Loans")</a>
     $elif ctx.user and ctx.user.is_admin():
         &bull;
-        <span class="adminOnly"><a href="/admin$page.key">admin page</a></span>
+        <span class="adminOnly"><a href="/admin$page.key">$_('admin page')</a></span>
     $if "lists" in ctx.features and lists:
         &bull;
         <a href="$homepath()$page.key/lists">$_("Lists")</a>
@@ -38,11 +38,12 @@ $else:
 
     $:sanitize(format(page.description))
 
-    <h2>Reading Log</h2>
+
+    <h2>$_('Reading Log')</h2>
     $if settings and settings.get('public_readlog', 'no') == "yes":
-      <p>This user has chosen to publicly share the books they are <a href="$(page.key)/books/currently-reading">currently reading</a>, <a href="$(page.key)/books/already-read">have already read</a>, and <a href="$(page.key)/books/want-to-read">want to read</a>!</p>
+      <p>$:_('This user has chosen to publicly share the books they are <a href="$(page.key)/books/currently-reading">currently reading</a>, <a href="$(page.key)/books/already-read">have already read</a>, and <a href="$(page.key)/books/want-to-read">want to read</a>!')</p>
     $else:
-      <p>This user has chosen to keep their Reading Log private</p>
+      <p>$_('This user has chosen to keep their Reading Log private')</p>
 
     $if "lists" in ctx.features and lists:
         <script type="text/javascript">
@@ -52,8 +53,8 @@ $else:
         });
         </script>
         <div id="listsDisplay">
-            <h2>Lists
-            <span class="sansserif small"><a href="$page.key/lists">See all</a></span>
+            <h2>$_('Lists')
+            <span class="sansserif small"><a href="$page.key/lists">$_('See all')</a></span>
             </h2>
             <div class="mybooks-list--clean mybooks-list">
                 <ul id="listResults">
@@ -67,7 +68,7 @@ $else:
     $if "recentchanges_v2" in ctx.features:
         $ changes = render_template("recentchanges/render", author=page.key, limit=25)
         $if changes.length > 1:
-            <h2>Recent Activity</h2>
+            <h2>$_('Recent Activity')</h2>
             $:changes
         $else:
             <p>$_("No edits. Yet.")</p>

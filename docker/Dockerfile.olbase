@@ -7,7 +7,7 @@ ENV LC_ALL POSIX
 
 # add openlibrary users
 RUN groupadd --system openlibrary \
-  && useradd --no-log-init --system --gid openlibrary openlibrary \
+  && useradd --no-log-init --system --gid openlibrary --create-home openlibrary \
   && useradd --no-log-init --system --gid openlibrary solrupdater
 
 RUN apt-get -qq update && apt-get install -y \
@@ -24,10 +24,10 @@ RUN apt-get -qq update && apt-get install -y \
     screen \
     python-dev \
     python-pip \
-    libgeoip-dev \
-    python-lxml \
-    python-psycopg2 \
-    python-yaml
+    libgeoip-dev
+
+# Update pip to match production (Jan 2020)
+RUN pip install --upgrade --disable-pip-version-check pip==19.3.1
 
 # Install LTS version of node.js
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
@@ -49,12 +49,12 @@ WORKDIR /openlibrary
 COPY requirements*.txt ./
 RUN pip install --disable-pip-version-check --default-timeout=100 -r requirements_common.txt
 
+USER openlibrary
 COPY package*.json ./
 RUN npm install
 
 COPY --chown=openlibrary:openlibrary . /openlibrary
 
-USER openlibrary
 RUN ln -s vendor/infogami/infogami infogami
 # run make to initialize git submodules, build css and js files
 RUN make

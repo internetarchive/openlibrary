@@ -25,8 +25,8 @@ A record is loaded by calling the load function.
 import json
 import re
 import six
+from six.moves import urllib
 import unicodedata
-import urllib
 import web
 
 from collections import defaultdict
@@ -67,7 +67,7 @@ class RequiredField(Exception):
     def __init__(self, f):
         self.f = f
     def __str__(self):
-        return "missing required field: '%s'" % self.f
+        return "missing required field: %s" % self.f
 
 
 # don't use any of these as work titles
@@ -230,7 +230,7 @@ def add_cover(cover_url, ekey, account=None):
     reply = None
     for attempt in range(10):
         try:
-            res = urllib.urlopen(upload_url, urllib.urlencode(params))
+            res = urllib.request.urlopen(upload_url, urllib.parse.urlencode(params))
         except IOError:
             sleep(2)
             continue
@@ -616,10 +616,10 @@ def load(rec, account=None):
     :rtype: dict
     :return: a dict to be converted into a JSON HTTP response, same as load_data()
     """
-    if not rec.get('title'):
-        raise RequiredField('title')
-    if not rec.get('source_records'):
-        raise RequiredField('source_records')
+    required_fields = ['title', 'source_records']  # ['authors', 'publishers', 'publish_date']
+    for field in required_fields:
+        if not rec.get(field):
+            raise RequiredField(field)
     if isinstance(rec['source_records'], six.string_types):
         rec['source_records'] = [rec['source_records']]
 

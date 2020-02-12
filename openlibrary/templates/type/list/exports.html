@@ -5,7 +5,7 @@ $def with (list)
         <ul>
             <li>
                 <span class="icon export"></span>
-                <span class="larger black"><strong>Export</strong></span><br/>
+                <span class="larger black"><strong>$_('Export')</strong></span><br/>
                 As
                 <a rel="nofollow" href="$list.url('/export?format=json')">JSON</a>,
                 <a rel="nofollow" href="$list.url('/export?format=html')">HTML</a>
@@ -14,15 +14,15 @@ $def with (list)
             </li>
             <li>
                 <span class="icon subscribe"></span>
-                <span class="larger black"><strong>Subscribe</strong></span><br/>
-                Watch activity via <a rel="nofollow" href="$list.url('/feeds/updates.atom')">Atom feed</a>
+                <span class="larger black"><strong>$_('Subscribe')</strong></span><br/>
+                $:_('Watch activity via <a rel="nofollow" href="%s">Atom feed</a>', list.url('/feeds/updates.atom'))
             </li>
         </ul>
     $else:
         <ul>
             <li style="padding-bottom:10px;">
                 <span class="icon export"></span>
-                <span class="larger grey"><strong>Export Not Available</strong></span>
+                <span class="larger grey"><strong>$_('Export Not Available')</strong></span>
             </li>
             <li>
                 <span class="icon alert" style="height:115px;"></span>
@@ -34,8 +34,8 @@ $def with (list)
             </li>
             <li>
                 <span class="icon subscribe"></span>
-                <span class="larger black"><strong>Subscribe</strong></span><br/>
-                Watch activity via <a rel="nofollow" href="$list.url('/feeds/updates.atom')">Atom feed</a>
+                <span class="larger black"><strong>$_('Subscribe')</strong></span><br/>
+                $:_('Watch activity via <a rel="nofollow" href="%s">Atom feed</a>', list.url('/feeds/updates.atom'))
             </li>
         </ul>
 </div>

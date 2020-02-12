@@ -1,7 +1,5 @@
 """Models of various OL objects.
 """
-import urllib
-import urllib2
 import simplejson
 import web
 import re
@@ -25,6 +23,12 @@ from openlibrary.core.vendors import create_edition_from_amazon_metadata
 from lists.model import ListMixin, Seed
 from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
 
+from six.moves import urllib
+
+from .ia import get_metadata_direct
+from ..accounts import OpenLibraryAccount
+
+
 def _get_ol_base_url():
     # Anand Oct 2013
     # Looks like the default value when called from script
@@ -44,7 +48,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib2.urlopen(url).read())
+            d = simplejson.loads(urllib.request.urlopen(url).read())
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -136,7 +140,7 @@ class Thing(client.Thing):
         else:
             u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -213,7 +217,7 @@ class Edition(Thing):
 
     def get_publish_year(self):
         if self.publish_date:
-            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
     def get_lists(self, limit=50, offset=0, sort=True):
@@ -293,8 +297,42 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def get_realtime_availability(self):
-        return lending.get_realtime_availability_of_ocaid(self.get('ocaid'))
+    @property
+    @cache.method_memoize
+    def ia_metadata(self):
+        ocaid = self.get('ocaid')
+        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
+
+    @property
+    @cache.method_memoize
+    def availability(self):
+        statuses = {
+            'available': 'borrow_available',
+            'unavailable': 'borrow_unavailable',
+            'private': 'private',
+            'error': 'error'
+        }
+        status = self.ia_metadata.get('loans__status__status', 'error').lower()
+        return {
+            'status': statuses[status],
+            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
+            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+        }
+
+    @property
+    @cache.method_memoize
+    def sponsorship_data(self):
+        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
+        if not was_sponsored:
+            return None
+
+        donor = self.ia_metadata.get('donor')
+
+        return web.storage({
+            'donor': donor,
+            'donor_account': OpenLibraryAccount.get_by_link(donor) if donor else None,
+            'donor_msg': self.ia_metadata.get('donor_msg'),
+        })
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
@@ -914,7 +952,7 @@ class Subject(web.storage):
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u

@@ -153,7 +153,7 @@ class BetterDataProvider(LegacyDataProvider):
     def preload_documents(self, keys):
         identifiers = [k.replace("/books/ia:", "") for k in keys if k.startswith("/books/ia:")]
         #self.preload_ia_items(identifiers)
-        re_key = web.re_compile("/(books|works|authors)/OL\d+[MWA]")
+        re_key = web.re_compile(r"/(books|works|authors)/OL\d+[MWA]")
 
         keys2 = set(k for k in keys if re_key.match(k))
         #keys2.update(k for k in self.ia_redirect_cache.values() if k is not None)

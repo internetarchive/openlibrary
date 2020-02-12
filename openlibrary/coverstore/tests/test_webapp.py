@@ -1,11 +1,13 @@
 import pytest
 import web
 import simplejson
-import urllib
 
 from os import system
 from os.path import abspath, join, dirname, pardir
 from openlibrary.coverstore import config, schema, code, coverlib, utils, archive
+
+from six.moves import urllib
+
 
 static_dir = abspath(join(dirname(__file__), pardir, pardir, pardir, 'static'))
 
@@ -67,7 +69,7 @@ class WebTestCase:
         params = {'id': id}
         if redirect_url:
             params['redirect_url'] = redirect_url
-        b.open('/b/delete', urllib.urlencode(params))
+        b.open('/b/delete', urllib.parse.urlencode(params))
         return b.data
 
     def static_path(self, path):
@@ -104,7 +106,7 @@ class TestWebappWithDB(WebTestCase):
         assert id1 < id2
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-it.png').read()
 
-        b.open('/b/touch', urllib.urlencode({'id': id1}))
+        b.open('/b/touch', urllib.parse.urlencode({'id': id1}))
         assert b.open('/b/olid/OL1M.jpg').read() == open(static_dir + '/logos/logo-en.png').read()
 
     def test_delete(self, setup_db):

@@ -18,14 +18,15 @@ Functions with names other than the these will not be called from the
 main harness. They can be utility functions.
 
 """
-import os
-import time
-import urllib
-import logging
-import tempfile
-import datetime
 import calendar
+import datetime
 import functools
+import logging
+import os
+import tempfile
+import time
+
+from six.moves import urllib
 
 import web
 
@@ -134,7 +135,7 @@ def admin_range__visitors(**kargs):
         sqlitefile = tempfile.mktemp(prefix="sqlite-")
         url = "http://www.archive.org/download/stats/numUniqueIPsOL.sqlite"
         logging.debug("  Downloading '%s'", url)
-        sqlite_contents = urllib.urlopen(url).read()
+        sqlite_contents = urllib.request.urlopen(url).read()
         f = open(sqlitefile, "w")
         f.write(sqlite_contents)
         f.close()
@@ -227,7 +228,7 @@ def _query_count(db, table, type, property, distinct=False):
 
 def admin_total__ebooks(**kargs):
     # Anand - Dec 2014
-    # The following implementaiton is too slow. Disabling for now.
+    # The following implementation is too slow. Disabling for now.
     return 0
 
     db = kargs['thingdb']

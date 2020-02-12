@@ -10,20 +10,17 @@ $def with (list)
                 <span class="resultTitle $cond(is_owner, 'my-list')">
                     $if is_owner:
                         <h3><a href="$list.key">$list.name</a></h3>
-                        <span class="list-owner small grey"> by <a href="$owner.key">You</a></span>
+                        <span class="list-owner small grey"> by <a href="$owner.key">$_('You')</a></span>
                     $else:
                         <h3><a href="$list.key">$list.name</a> </h3>
                         <span class="list-owner small grey"> by  <a href="$owner.key">$owner.displayname</a></span>
 
                     <div class="editions smaller">
-                        $ msg = ungettext("%s seed", "%s seeds", len(list.seeds))
-                        $sprintf(msg,  len(list.seeds)),
-                        $ msg = ungettext("%s edition", "%s editions", list.edition_count)
-                        $sprintf(msg,  commify(list.edition_count))
+                        $ungettext("1 seed", "%(count)d seeds", len(list.seeds), count=len(list.seeds))
+                        $ungettext("1 edition", "%(count)s editions", list.edition_count, count=commify(list.edition_count))
 
                         <span class="lightgreen">
-                          Last modified
-                          $datestr(list.last_modified)
+                          $_('Last modified %(date)s', date=datestr(list.last_modified))
                         </span>
                     </div>
 
@@ -35,7 +32,8 @@ $def with (list)
                     <div class="subjects">
                         $ subjects = list.get_top_subjects(limit=5)
                         $if subjects:
-                            Themes:
+                            <!-- TODO: I18N Needs to be improved for LTR languages -->
+                            $_('Themes:')
                             $for s in subjects[:5]:
                                 <a href="$s.url">$s.title</a>$cond(loop.last, "", ",")
                     </div>

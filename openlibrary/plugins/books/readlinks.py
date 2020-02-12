@@ -4,9 +4,9 @@ editions of the same work that might be available.
 """
 from __future__ import print_function
 import sys
-import urllib
 import re
 
+from six.moves import urllib
 import web
 from openlibrary.core import inlibrary
 from openlibrary.core import ia
@@ -46,7 +46,7 @@ def get_work_iaids(wkey):
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     stats.end()
     print(json_data)
     reply = simplejson.loads(json_data)
@@ -61,7 +61,7 @@ def get_works_iaids(wkeys):
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -75,7 +75,7 @@ def get_eids_for_wids(wids):
     filter = 'edition_key'
     q = '+OR+'.join(wids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -89,7 +89,7 @@ def get_solr_edition_records(iaids):
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []

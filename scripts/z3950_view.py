@@ -3,9 +3,11 @@ from PyZ3950 import zoom
 from lxml import etree
 import sys
 import re
-from urllib import urlopen
 from openlibrary.catalog.marc.html import html_record
 from openlibrary.catalog.marc import xml_to_html
+
+from six.moves.urllib.request import urlopen
+
 
 tree = etree.parse('/petabox/www/petabox/includes/ztargets.xml')
 root = tree.getroot()

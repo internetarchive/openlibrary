@@ -1,11 +1,9 @@
 """Handlers for adding and editing books."""
 
 import web
-import urllib
-import urllib2
 import simplejson
 from collections import defaultdict
-from StringIO import StringIO
+from six import StringIO
 import csv
 import datetime
 
@@ -31,6 +29,7 @@ from openlibrary.plugins.recaptcha import recaptcha
 from . import spamcheck
 
 import six
+from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.book")
@@ -748,7 +747,7 @@ class SaveBookHelper:
 
 
 class book_edit(delegate.page):
-    path = "(/books/OL\d+M)/edit"
+    path = r"(/books/OL\d+M)/edit"
 
     def GET(self, key):
         i = web.input(v=None)
@@ -820,7 +819,7 @@ class book_edit(delegate.page):
 
 
 class work_edit(delegate.page):
-    path = "(/works/OL\d+W)/edit"
+    path = r"(/works/OL\d+W)/edit"
 
     def GET(self, key):
         i = web.input(v=None, _method="GET")
@@ -867,7 +866,7 @@ class work_edit(delegate.page):
 
 
 class author_edit(delegate.page):
-    path = "(/authors/OL\d+A)/edit"
+    path = r"(/authors/OL\d+A)/edit"
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):

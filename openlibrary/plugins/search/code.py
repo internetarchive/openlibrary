@@ -294,7 +294,7 @@ class search_api:
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
                 if (not isinstance(callback, str) or
-                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
+                        not re.match(r'[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 

@@ -5,10 +5,12 @@ from infogami.utils.view import render_template, safeint
 import web
 import simplejson
 import logging
-import urllib
 
 from . import subjects
 from . import search
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 

@@ -1,8 +1,8 @@
 """marc"""
 import re
 
-re_leader = re.compile('^\d{5}.{19}$')
-re_control = re.compile('\d{3} ')
+re_leader = re.compile(r'^\d{5}.{19}$')
+re_control = re.compile(r'\d{3} ')
 re_data = re.compile(r'\d{3} (..) \$')
 
 def is_display_marc(data):

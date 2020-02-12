@@ -1,9 +1,12 @@
 from __future__ import print_function
 import web
 import simplejson as json
-from urllib import urlopen, urlencode
 from time import sleep
 from openlibrary.catalog.read_rc import read_rc
+
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
+
 
 staging = False
 

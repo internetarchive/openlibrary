@@ -14,8 +14,6 @@ Each waiting instance is represented as a document in the store as follows:
 """
 import datetime
 import logging
-import urllib
-import urllib2
 import json
 import web
 from infogami import config
@@ -24,6 +22,9 @@ from . import helpers as h
 from .sendmail import sendmail_with_template
 from . import db
 from . import lending
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.waitinglist")
 
@@ -305,7 +306,7 @@ def update_waitinglist(identifier):
         borrowed=str(not_available).lower(), # store as string "true" or "false"
         wl_size=len(wl))
 
-    # Start storing ebooks/$identifier so that we can handle mutliple editions
+    # Start storing ebooks/$identifier so that we can handle multiple editions
     # with same ocaid more effectively.
     update_ebook('ebooks/' + identifier,
         borrowed=str(not_available).lower(), # store as string "true" or "false"

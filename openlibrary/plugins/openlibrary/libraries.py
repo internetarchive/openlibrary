@@ -5,7 +5,7 @@ import time
 import logging
 import datetime
 import itertools
-from cStringIO import StringIO
+from six.moves import cStringIO as StringIO
 import csv
 import simplejson
 
@@ -178,7 +178,7 @@ class libraries_dashboard(delegate.page):
         return web.ctx.site.new(key, doc)
 
 class pending_libraries(delegate.page):
-    path = "/(libraries/pending-\d+)"
+    path = r"/(libraries/pending-\d+)"
 
     def GET(self, key):
         doc = web.ctx.site.store.get(key)

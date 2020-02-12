@@ -10,9 +10,9 @@ import catalog.merge.amazon as amazon_merge
 from catalog.get_ia import get_from_local, get_ia
 from catalog.merge.merge_marc import build_marc
 import catalog.marc.fast_parse as fast_parse
-import urllib2
 
 import six
+from six.moves import urllib
 
 
 re_amazon = re.compile('^([A-Z0-9]{10}),(\d+):(.*)$', re.S)
@@ -83,7 +83,7 @@ def follow_redirects(key):
 def ia_match(a, ia):
     try:
         loc, rec = get_ia(ia)
-    except urllib2.HTTPError:
+    except urllib.error.HTTPError:
         return False
     if rec is None or 'full_title' not in rec:
         return False

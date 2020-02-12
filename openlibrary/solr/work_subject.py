@@ -1,10 +1,12 @@
 from __future__ import print_function
 import re
-import urllib2
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfield_values, get_subfields, BadDictionary
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
 from openlibrary.catalog.importer.db_read import get_mc
 from collections import defaultdict
+
+from six.moves import urllib
+
 
 subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 
@@ -12,7 +14,7 @@ re_large_book = re.compile('large.*book', re.I)
 
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
-re_ia_marc = re.compile('^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_marc_source(w):
     found = set()
     for e in w['editions']:
@@ -38,7 +40,7 @@ def get_marc_subjects(w):
             print('bad record source:', src)
             print('http://openlibrary.org' + w['key'])
             continue
-        except urllib2.HTTPError as error:
+        except urllib.error.HTTPError as error:
             print('HTTP error:', error.code, error.msg)
             print('http://openlibrary.org' + w['key'])
         if not data:
@@ -65,7 +67,7 @@ def flip_place(s):
     return m.group(2) + ' ' + m.group(1) if m else s
 
 # 'Rhodes, Dan (Fictitious character)'
-re_fictitious_character = re.compile('^(.+), (.+)( \(.* character\))$')
+re_fictitious_character = re.compile(r'^(.+), (.+)( \(.* character\))$')
 re_etc = re.compile('^(.+?)[, .]+etc[, .]?$', re.I)
 re_aspects = re.compile(' [Aa]spects$')
 re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')

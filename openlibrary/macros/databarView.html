@@ -8,7 +8,8 @@ $else:
 <div id="editTools" class="edit">
     $if not page.is_fake_record():
         <div id="editButton">
-            <a class="linkButton larger" href="$edit_url" title="Edit this template" accesskey="e">$_("Edit")</a>
+          <!-- FIXME: accesskey / keyboard shortcut needs i18n -->
+          <a class="linkButton larger" href="$edit_url" title="$_('Edit this template')" accesskey="e">$_("Edit")</a>
         </div>
     <div id="editInfo">
         $if "superfast" in ctx.features:
@@ -16,12 +17,12 @@ $else:
         $else:
             $ author = get_recent_author(page)
         $if author:
-            <div class="brown smaller sansserif">$_("Last edited by") <a href="$author.key" rel="nofollow">$author.displayname</a></div>
+            <div class="brown smaller sansserif">$:_('Last edited by <a href="$author.key" rel="nofollow">%(authorname)s</a>', authorname=author.displayname)</div>
         $else:
             <div class="brown smaller sansserif">$_("Last edited anonymously")</div>
         $if page.url:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$page.url(m='history')" rel="nofollow" title="View this template's edit history">$_('History')</a></div>
         $else:
-            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="View this template's edit history">History</a></div>
+            <div class="smallest gray sansserif">$(page.last_modified and datestr(page.last_modified)) | <a href="$changequery(m='history')" rel="nofollow" title="View this template's edit history">$_('History')</a></div>
     </div>
 </div>
