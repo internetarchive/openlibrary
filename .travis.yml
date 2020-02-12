@@ -10,10 +10,8 @@ jobs:
       python: "2.7"
     - name: “Python 3.8 make lint only”
       python: "3.8"
-      install:
-        - pip install flake8
-        - make lint
-      script: true
+      install: pip install flake8
+      script: make lint
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
