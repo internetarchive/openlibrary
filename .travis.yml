@@ -17,7 +17,7 @@ jobs:
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
-    - python: "3.8"
+    - name: “Python 3.8 on bionic”
 install:
   - pip install flake8
   - make lint
