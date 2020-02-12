@@ -15,6 +15,8 @@ pipeline {
     string(name: 'PARTIAL_IMPORT_SIZE', defaultValue: '', description: 'If set to a number, will only import that many records from the dump (useful for testing!)')
     booleanParam(name: 'REUSE_POSTGRES', defaultValue: false, description: 'If true, assumes a functioning postgres is running/correct')
     booleanParam(name: 'REUSE_SOLRBACKUP', defaultValue: false, description: 'If true, assumes a functioning solr-backup is running/correct')
+    booleanParam(name: 'INTO_SOLR_FROM_DUMP', defaultValue: true, description: 'If true, reindexes dump into solr')
+    booleanParam(name: 'INTO_SOLR_COPY_SUBJECTS', defaultValue: true, description: 'If true, copies subjects into solr')
   }
   environment {
     // The *host* location of Jenkins directory
@@ -204,6 +206,7 @@ pipeline {
         stage('Reindexing') {
           parallel {
             stage('Reindex from ol dump') {
+              when { expression { return params.INTO_SOLR_FROM_DUMP } }
               stages {
                 stage('Insert works & orphaned editions') {
                   steps {
@@ -229,6 +232,7 @@ pipeline {
               }
             }
             stage('Insert subjects from solr backup') {
+              when { expression { return params.INTO_SOLR_COPY_SUBJECTS } }
               stages {
                 stage('Setup solr-backup') {
                   when { expression { return !params.REUSE_SOLRBACKUP } }
