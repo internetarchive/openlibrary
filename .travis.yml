@@ -1,16 +1,23 @@
+os: linux
 dist: bionic
 language: python
-matrix:
+jobs:
   include:
     - name: “Python 2.7 on xenial”
       python: "2.7"
       dist: xenial
     - name: “Python 2.7 on bionic”
       python: "2.7"
+    - name: “Python 3.8 make lint only”
+      python: "3.8"
+      install:
+        - pip install flake8
+        - make lint
+      script: true
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
-    - python: "3.8"
+    - name: “Python 3.8 on bionic”
 install:
   - pip install flake8
   - make lint
