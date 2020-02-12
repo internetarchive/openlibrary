@@ -120,7 +120,7 @@ class TestMarcParse(unittest.TestCase):
                 #'West Indies, British -- Relations -- Great Britain.')
         ]
         for (value, expect) in data:
-            output = list(subjects_for_work(MockRecord('650', value)))
+            output = subjects_for_work(MockRecord('650', value))
             self.assertEqual(expect, output)
 
     def test_read_title(self):
