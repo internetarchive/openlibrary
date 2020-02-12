@@ -80,7 +80,7 @@ class TestParseMARCBinary:
             if isinstance(j[k], list):
                 for item1, item2 in zip(edition_marc_bin[k], j[k]):
                     assert item1 == item2
-            assert list(edition_marc_bin[k]) == j[k], 'Processed binary MARC values do not match expectations in %s' % expect_filename
+            assert edition_marc_bin[k] == j[k], 'Processed binary MARC values do not match expectations in %s' % expect_filename
         assert edition_marc_bin == j
 
     def test_raises_see_also(self):
