@@ -51,8 +51,8 @@ class TestParseMARCXML:
         j = simplejson.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_xml.keys()) == sorted(j.keys()), 'Processed MARCXML fields do not match expectations in %s' % expect_filename
-        for k in edition_marc_xml:
-            assert list(edition_marc_xml[k]) == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
+        for k in edition_marc_xml.keys():
+            assert edition_marc_xml[k] == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
         assert edition_marc_xml == j
 
 
