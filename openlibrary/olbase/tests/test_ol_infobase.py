@@ -8,5 +8,5 @@ class TestOLIndexer:
         both = isbn_10 + isbn_13
         assert indexer.expand_isbns([]) == []
         assert sorted(indexer.expand_isbns(isbn_10)) == both
-        assert indexer.expand_isbns(isbn_13) == both
+        assert sorted(indexer.expand_isbns(isbn_13)) == both
         assert indexer.expand_isbns(both) == both
