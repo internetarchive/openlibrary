@@ -17,11 +17,11 @@ install:
   - make i18n
 jobs:
   include:
-    - script: pytest openlibrary/tests
+    - script: pytest openlibrary/tests  # 32 failed, 131 passed
     - script: pytest openlibrary/mocks
     - script: pytest openlibrary/olbase
-    - script: pytest openlibrary/plugins
+    - script: pytest openlibrary/plugins  # 7 failed, 77 passed
     - script: pytest openlibrary/utils
-    - script: pytest openlibrary/catalog
-    - script: pytest openlibrary/coverstore
+    - script: pytest openlibrary/catalog  # 40 failed, 137 passed
+    - script: pytest openlibrary/coverstore  # 7 failed, 11 passed
     - script: pytest scripts/tests

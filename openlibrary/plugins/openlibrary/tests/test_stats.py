@@ -39,7 +39,7 @@ def test_stats_container():
     ipdata = [{"foo":1}]*100
     s = Stats(ipdata, "foo", "nothing")
     expected_op = [(x, 1) for x in range(0, 140, 5)]
-    assert s.get_counts() == expected_op
+    assert list(s.get_counts()) == expected_op
     assert s.get_summary() == 28
     assert s.total == ""
 
