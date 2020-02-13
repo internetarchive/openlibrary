@@ -222,7 +222,7 @@ def strip_count(counts):
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(ret.items(), key=len(itemgetter(1)))
+    return sorted(ret.items(), key=lambda x: len(x[1]), reverse=True)
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
