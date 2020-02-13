@@ -33,8 +33,6 @@ from six.moves import urllib
 
 logger = logging.getLogger("openlibrary.book")
 
-SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
-
 
 def get_solr():
     base_url = "http://%s/solr" % config.plugin_worksearch.get('solr')
@@ -671,28 +669,7 @@ class SaveBookHelper:
         # ignore empty authors
         work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
 
-        self._prevent_system_subjects_deletion(work)
         return trim_doc(work)
-
-    def _prevent_system_subjects_deletion(self, work):
-        # Allow admins to modify system systems
-        user = accounts.get_current_user()
-        if user and user.is_admin():
-            return
-
-        # Note: work is the new work object from the formdata and self.work is the work doc from the database.
-        old_subjects = self.work and self.work.get("subjects") or []
-
-        # If condition is added to handle the possibility of bad data
-        set_old_subjects = set(s.lower() for s in old_subjects if isinstance(s, six.string_types))
-        set_new_subjects = set(s.lower() for s in work.subjects)
-
-        for s in SYSTEM_SUBJECTS:
-            # if a system subject has been removed
-            if s.lower() in set_old_subjects and s.lower() not in set_new_subjects:
-                work_key = self.work and self.work.key
-                logger.warn("Prevented removal of system subject %r from %s.", s, work_key)
-                work.subjects.append(s)
 
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
