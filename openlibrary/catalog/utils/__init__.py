@@ -167,7 +167,7 @@ def match_with_bad_chars(a, b):
     if a == b:
         return True
     def drop(s):
-        return re_drop.sub('', s)
+        return re_drop.sub('', six.ensure_text(s))
     return drop(a) == drop(b)
 
 def accent_count(s):
@@ -221,13 +221,13 @@ def strip_count(counts):
     for i, j in counts:
         foo.setdefault(i.rstrip('.').lower() if isinstance(i, six.string_types) else i, []).append((i, j))
     ret = {}
-    for k, v in foo.iteritems():
+    for k, v in foo.items():
         m = max(v, key=lambda x: len(x[1]))[0]
         bar = []
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(ret.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    return sorted(ret.items(), key=lambda x: len(x[1]), reverse=True)
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:
