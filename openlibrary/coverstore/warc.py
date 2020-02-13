@@ -5,9 +5,9 @@ http://archive-access.sourceforge.net/warc/warc_file_format-0.10.html
 """
 
 import datetime
-import urllib
 
 from six.moves.http_client import HTTPConnection
+from six.moves.urllib.parse import urlparse
 
 WARC_VERSION = "0.10"
 CRLF = "\r\n"
@@ -124,13 +124,16 @@ class HTTPFile:
         """Splits url into protocol, host, port and path.
 
             >>> f = HTTPFile('')
+            >>> f.urlsplit("http://www.google.com")
+            ('http', 'www.google.com', None, '')
             >>> f.urlsplit("http://www.google.com/search?q=hello")
             ('http', 'www.google.com', None, '/search?q=hello')
+            >>> f.urlsplit("http://www.google.com:80/search?q=hello")
+            ('http', 'www.google.com', 80, '/search?q=hello')
         """
-        protocol, rest = urllib.splittype(url)
-        hostport, path = urllib.splithost(rest)
-        host, port = urllib.splitport(hostport)
-        return protocol, host, port, path
+        p = urlparse(url)
+        fullpath = "?".join((p.path, p.query)) if (p.path or p.query) else ""
+        return p.scheme, p.hostname, p.port, fullpath
 
 class WARCHeader:
     r"""WARCHeader class represents the header in the WARC file format.
