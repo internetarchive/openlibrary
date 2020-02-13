@@ -1,21 +1,17 @@
 os: linux
 dist: bionic
 language: python
+python: "3.8"
 jobs:
   include:
-    - name: “Python 2.7 on xenial”
-      python: "2.7"
-      dist: xenial
-    - name: “Python 2.7 on bionic”
-      python: "2.7"
-    - name: “Python 3.8 make lint only”
-      python: "3.8"
-      install:
-        - pip install flake8
-        - make lint
-      script: true
-    - name: “Python 3.8 on bionic”
-      python: "3.8"
+    - script: pytest openlibrary/tests
+    - script: pytest openlibrary/mocks
+    - script: pytest openlibrary/olbase
+    - script: pytest openlibrary/plugins
+    - script: pytest openlibrary/utils
+    - script: pytest openlibrary/catalog
+    - script: pytest openlibrary/coverstore
+    - script: pytest scripts/tests
   allow_failures:
     - name: “Python 3.8 on bionic”
 install:
@@ -30,6 +26,5 @@ install:
       pyenv install 2.7.14;
     fi
   - npm install
-script:
   - make i18n
-  - make test
+script: true
