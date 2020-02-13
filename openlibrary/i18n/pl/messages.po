@@ -2669,10 +2669,10 @@ msgstr "Baw się dobrze"
 #: home.html:20
 msgid ""
 "For the top 2000+ most requested eBooks in California for the print "
-"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here"
+"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here</a>"
 msgstr ""
 "Aby zobaczyć listę 2000+ najpopularniejszych e-booków w Kalifornii "
-"dla osób z trudnościami w czytaniu druku <a href=\"../people/sionnac/lists/OL25152L\">kliknij tutaj"
+"dla osób z trudnościami w czytaniu druku <a href=\"../people/sionnac/lists/OL25152L\">kliknij tutaj</a>"
 
 #: home.html:24
 msgid "Find a list by name"
