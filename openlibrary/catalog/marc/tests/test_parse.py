@@ -5,7 +5,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
 from lxml import etree
 import os
-import simplejson
+import json
 
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
@@ -48,11 +48,11 @@ class TestParseMARCXML:
         rec = MarcXml(element)
         edition_marc_xml = read_edition(rec)
         assert edition_marc_xml
-        j = simplejson.load(open(expect_filename))
+        j = json.load(open(expect_filename), "rb")
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_xml) == sorted(j), 'Processed MARCXML fields do not match expectations in %s' % expect_filename
         for k in edition_marc_xml:
-            assert sorted(edition_marc_xml[k]) == sorted(j[k]), 'Processed MARCXML values do not match expectations in %s' % expect_filename
+            assert edition_marc_xml[k] == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
         assert edition_marc_xml == j
 
 
@@ -71,9 +71,9 @@ class TestParseMARCBinary:
         assert edition_marc_bin
         if not os.path.exists(expect_filename):
             # Missing test expectations file. Create a template from the input, but fail the current test.
-            simplejson.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
+            json.dump(edition_marc_bin, open(expect_filename, 'w'), indent=2)
             assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
-        j = simplejson.load(open(expect_filename))
+        j = json.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_bin) == sorted(j), 'Processed binary MARC fields do not match expectations in %s' % expect_filename
         for k in edition_marc_bin:
