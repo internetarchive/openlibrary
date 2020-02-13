@@ -14,9 +14,7 @@ jobs:
       script:
         - make lint
         # Run all flake8 tests on modified code
-        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
-            git diff origin/master -U0 | flake8 --diff;
-          fi
+        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then git diff origin/master -U0 | flake8 --diff; fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
