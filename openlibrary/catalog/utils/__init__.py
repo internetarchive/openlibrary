@@ -167,7 +167,7 @@ def match_with_bad_chars(a, b):
     if a == b:
         return True
     def drop(s):
-        return re_drop.sub(b'', s)
+        return re_drop.sub('', six.ensure_text(s))
     return drop(a) == drop(b)
 
 def accent_count(s):
