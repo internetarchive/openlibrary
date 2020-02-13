@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
+from operator import itemgetter
 import re
 import web
 from unicodedata import normalize
 import openlibrary.catalog.merge.normalize as merge
 
 import six
-
-try:
-    cmp = cmp       # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
 
 
 re_date = map (re.compile, [
@@ -227,7 +222,7 @@ def strip_count(counts):
         for i, j in v:
             bar.extend(j)
         ret[m] = bar
-    return sorted(ret.items(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    return sorted(ret.items(), key=len(itemgetter(1)))
 
 def fmt_author(a):
     if 'birth_date' in a or 'death_date' in a:

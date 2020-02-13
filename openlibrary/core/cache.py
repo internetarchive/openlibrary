@@ -83,7 +83,7 @@ class memcache_memoize:
         return prefix + self._random_string(10)
 
     def _random_string(self, n):
-        chars = string.letters + string.digits
+        chars = string.ascii_letters + string.digits
         return "".join(random.choice(chars) for i in range(n))
 
     def __call__(self, *args, **kw):
