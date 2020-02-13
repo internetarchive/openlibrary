@@ -506,4 +506,4 @@ class OLIndexer(_Indexer):
                 s.add(isbn_10_to_isbn_13(isbn))
             else:
                 s.add(isbn_13_to_isbn_10(isbn))
-        return [isbn for isbn in s if isbn is not None]
+        return sorted(isbn for isbn in s if isbn is not None)

@@ -17,7 +17,7 @@ from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from openlibrary.catalog.read_rc import read_rc
-from openlibrary.catalog.utils import cmp, mk_norm
+from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.solr.update_work import update_work, solr_update, update_author
@@ -26,6 +26,11 @@ import six
 from six.moves import urllib
 from six.moves.urllib.request import urlopen
 
+try:
+    cmp = cmp       # Python 2
+except NameError:
+    def cmp(x, y):  # Python 3
+        return (x > y) - (x < y)
 
 ol = OpenLibrary("http://openlibrary.org")
 

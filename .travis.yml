@@ -20,8 +20,8 @@ jobs:
     - name: “Python 2.7 on bionic”
       python: "2.7"
       script: make test
-    - script: pytest -v openlibrary/tests  # 31 failed, 132 passed
+    - script: pytest -v openlibrary/tests  # 28 failed, 135 passed
     - script: pytest -v openlibrary/plugins  # 6 failed, 78 passed
     - script: pytest -v openlibrary/catalog  # 39 failed, 138 passed
-    - script: pytest -v openlibrary/coverstore  # 7 failed, 11 passed
+    - script: pytest -v openlibrary/coverstore  # 8 failed, 10 passed
     - script: pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests
