@@ -26,7 +26,7 @@ def image_dir(tmpdir):
 @pytest.mark.parametrize('prefix, path', image_formats)
 def test_write_image(prefix, path, image_dir):
     """Test writing jpg, gif and png images"""
-    data = open(join(static_dir, path)).read()
+    data = open(join(static_dir, path), "rb").read()
     assert coverlib.write_image(data, prefix) is not None
 
     def _exists(filename):
