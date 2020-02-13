@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 import pytest
-from six import ensure_binary
 
 from openlibrary.catalog import get_ia
 from openlibrary.core import ia
@@ -10,7 +9,7 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary, BadLength, BadMARC
 
 
 def return_test_marc_bin(url):
-    return ensure_binary(return_test_marc_data(url, "bin_input"))
+    return return_test_marc_data(url, "bin_input")
 
 def return_test_marc_xml(url):
     return return_test_marc_data(url, "xml_input")
