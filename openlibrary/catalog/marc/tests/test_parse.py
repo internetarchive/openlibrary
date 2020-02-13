@@ -48,7 +48,7 @@ class TestParseMARCXML:
         rec = MarcXml(element)
         edition_marc_xml = read_edition(rec)
         assert edition_marc_xml
-        j = json.load(open(expect_filename), "rb")
+        j = json.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
         assert sorted(edition_marc_xml) == sorted(j), 'Processed MARCXML fields do not match expectations in %s' % expect_filename
         for k in edition_marc_xml:
