@@ -61,7 +61,7 @@ def write_image(data, prefix):
         os.makedirs(dirname)
     try:
         # save original image
-        f = open(path_prefix + '.jpg', 'w')
+        f = open(path_prefix + '.jpg', 'wb')
         f.write(data)
         f.close()
 
@@ -105,12 +105,12 @@ def read_file(path):
         path, offset, size = path.rsplit(':', 2)
         offset = int(offset)
         size = int(size)
-        f = open(path)
+        f = open(path, 'rb')
         f.seek(offset)
         data = f.read(size)
         f.close()
     else:
-        f = open(path)
+        f = open(path, 'rb')
         data = f.read()
         f.close()
     return data
