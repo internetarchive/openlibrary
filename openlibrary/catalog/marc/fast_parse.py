@@ -6,7 +6,7 @@ import re
 from deprecated import deprecated
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
-from six import ensure_str
+from six import ensure_text
 
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
