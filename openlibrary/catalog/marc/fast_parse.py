@@ -23,7 +23,7 @@ def translate(bytes_in, leader_says_marc8=False):
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
     else:
-        data = ensure_str(bytes_in)
+        data = ensure_text(bytes_in)
     return normalize('NFC', data)
 
 re_question = re.compile(r'^\?+$')

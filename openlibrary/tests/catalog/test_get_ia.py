@@ -19,33 +19,33 @@ def return_test_marc_data(url, test_data_subdir="xml_input"):
     return open(path)
 
 class TestGetIA():
-    bad_marcs = ['1733mmoiresdel00vill', # Binary MARC reports len=734, but actually=742. Has badly converted unicode
-                                         # original unicode converted as if it were MARC8
-                 'dasrmischepriv00rein', # same as zweibchersatir01horauoft, binary representation of unicode interpreted as unicode codepoints
-                 'histoirereligieu05cr', # C3A2 in this file should be single byte MARC8 combining acute 0xE2
-                                         # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'lesabndioeinas00sche', # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
-                 'poganucpeoplethe00stowuoft', # junk / unexpected character at end of publishers in field 260
-                 'scrapbooksofmoun03tupp', # possible extra chars at end of field 505?
-                 'zweibchersatir01horauoft', # leader is unicode, chars '\xc3\x83\xc2\xbc' in mrc should be '\xc3\xbc'
-                                             # original '\xc3\xb3' was converted to '\u00c3\u00b3'
+    bad_marcs = [b'1733mmoiresdel00vill', # Binary MARC reports len=734, but actually=742. Has badly converted unicode
+                                          # original unicode converted as if it were MARC8
+                 b'dasrmischepriv00rein', # same as zweibchersatir01horauoft, binary representation of unicode interpreted as unicode codepoints
+                 b'histoirereligieu05cr', # C3A2 in this file should be single byte MARC8 combining acute 0xE2
+                                          # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
+                 b'lesabndioeinas00sche', # Original MARC8 0xE2 interpreted as u00E2 => \xC3\xA2, leader still MARC8
+                 b'poganucpeoplethe00stowuoft', # junk / unexpected character at end of publishers in field 260
+                 b'scrapbooksofmoun03tupp', # possible extra chars at end of field 505?
+                 b'zweibchersatir01horauoft', # leader is unicode, chars '\xc3\x83\xc2\xbc' in mrc should be '\xc3\xbc'
+                                              # original '\xc3\xb3' was converted to '\u00c3\u00b3'
                 ]
 
-    bin_items = ['0descriptionofta1682unit',
-                 '13dipolarcycload00burk',
-                 'bijouorannualofl1828cole',
-                 'cu31924091184469',
-                 'diebrokeradical400poll',
-                 'engineercorpsofh00sher',
-                 'flatlandromanceo00abbouoft',
-                 'henrywardbeecher00robauoft',
-                 'lincolncentenary00horn',
-                 'livrodostermosh00bragoog',
-                 'mytwocountries1954asto',
-                 'onquietcomedyint00brid',
-                 'secretcodeofsucc00stjo',
-                 'thewilliamsrecord_vol29b',
-                 'warofrebellionco1473unit',
+    bin_items = [b'0descriptionofta1682unit',
+                 b'13dipolarcycload00burk',
+                 b'bijouorannualofl1828cole',
+                 b'cu31924091184469',
+                 b'diebrokeradical400poll',
+                 b'engineercorpsofh00sher',
+                 b'flatlandromanceo00abbouoft',
+                 b'henrywardbeecher00robauoft',
+                 b'lincolncentenary00horn',
+                 b'livrodostermosh00bragoog',
+                 b'mytwocountries1954asto',
+                 b'onquietcomedyint00brid',
+                 b'secretcodeofsucc00stjo',
+                 b'thewilliamsrecord_vol29b',
+                 b'warofrebellionco1473unit',
                 ]
 
     xml_items = ['1733mmoiresdel00vill',     # no <?xml
