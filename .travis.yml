@@ -14,7 +14,7 @@ jobs:
       script:
         - make lint
         # Run all flake8 tests on modified code
-        - git diff --cached -U0 | flake8 --diff
+        - git diff master -U0 | flake8 --diff
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
