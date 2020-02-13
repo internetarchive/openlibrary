@@ -338,8 +338,8 @@ def test_from_marc_fields(mock_site, add_languages):
     assert sorted(edition['subjects']) == [u'Action and adventure films',
                                            u'Cinematography',
                                            u'Miscellanea',
-                                           u'Physics in motion pictures',
                                            u'Physics',
+                                           u'Physics in motion pictures',
                                            u'Popular works',
                                            u'Science fiction films',
                                            u'Special effects']
