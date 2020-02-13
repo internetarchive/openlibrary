@@ -2,18 +2,6 @@ os: linux
 dist: bionic
 language: python
 python: "3.8"
-jobs:
-  include:
-    - script: pytest openlibrary/tests
-    - script: pytest openlibrary/mocks
-    - script: pytest openlibrary/olbase
-    - script: pytest openlibrary/plugins
-    - script: pytest openlibrary/utils
-    - script: pytest openlibrary/catalog
-    - script: pytest openlibrary/coverstore
-    - script: pytest scripts/tests
-  allow_failures:
-    - name: “Python 3.8 on bionic”
 install:
   - pip install flake8
   - make lint
@@ -27,4 +15,13 @@ install:
     fi
   - npm install
   - make i18n
-script: true
+jobs:
+  include:
+    - script: pytest openlibrary/tests
+    - script: pytest openlibrary/mocks
+    - script: pytest openlibrary/olbase
+    - script: pytest openlibrary/plugins
+    - script: pytest openlibrary/utils
+    - script: pytest openlibrary/catalog
+    - script: pytest openlibrary/coverstore
+    - script: pytest scripts/tests
