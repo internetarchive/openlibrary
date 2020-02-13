@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from operator import itemgetter
 import re
 import web
 from unicodedata import normalize

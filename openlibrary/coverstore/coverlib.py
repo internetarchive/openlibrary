@@ -61,7 +61,7 @@ def write_image(data, prefix):
         os.makedirs(dirname)
     try:
         # save original image
-        f = open(path_prefix + '.jpg', 'wb')
+        f = open(path_prefix + '.jpg', 'w')
         f.write(data)
         f.close()
 
