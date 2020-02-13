@@ -6,6 +6,7 @@ import re
 from deprecated import deprecated
 from pymarc import MARC8ToUnicode
 from unicodedata import normalize
+from six import ensure_str
 
 from openlibrary.catalog.marc import mnemonics
 from openlibrary.catalog.utils import tidy_isbn
@@ -22,7 +23,7 @@ def translate(bytes_in, leader_says_marc8=False):
     if leader_says_marc8:
         data = marc8.translate(mnemonics.read(bytes_in))
     else:
-        data = bytes_in.decode('utf-8')
+        data = ensure_str(bytes_in)
     return normalize('NFC', data)
 
 re_question = re.compile(r'^\?+$')
