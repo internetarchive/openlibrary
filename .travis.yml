@@ -13,8 +13,11 @@ jobs:
       install: pip install flake8
       script:
         - make lint
+        - git remote -v
+        - git remote add upstream https://github.com/$TRAVIS_PULL_REQUEST_SLUG
+        - git remote -v
         # Run all flake8 tests on modified code
-        - git diff master -U0 | flake8 --diff
+        - git diff upstream/$TRAVIS_PULL_REQUEST_BRANCH -U0 | flake8 --diff
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
