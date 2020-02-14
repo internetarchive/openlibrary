@@ -11,13 +11,17 @@ import MySQLdb
 from catalog.utils import pick_first_date
 from time import time
 
+conn = None
 re_marc_name = re.compile('^(.*), (.*)$')
 
 def norm(s):
     return normalize('NFC', s)
 
 def get_conn():
-    return MySQLdb.connect(passwd='', user='', use_unicode=True, charset='utf8', db='wiki_people')
+    global conn
+    if not conn:
+        conn = MySQLdb.connect(passwd='', user='', use_unicode=True, charset='utf8', db='wiki_people')
+    return conn
 
 def get_cursor():
     return get_conn().cursor()
