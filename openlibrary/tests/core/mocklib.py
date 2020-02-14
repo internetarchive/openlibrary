@@ -49,4 +49,4 @@ def monkeypatch_urllib2(monkeypatch, url, response_string):
         else:
             return _urlopen(url, *a, **kw)
 
-    monkeypatch.setattr(urllib2, "urlopen", urlopen)
+    monkeypatch.setattr(urllib2, "urlopen", urlopen)  # noqa: F821
