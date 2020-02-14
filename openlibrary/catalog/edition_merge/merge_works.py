@@ -3,7 +3,6 @@ import MySQLdb
 import datetime
 import re
 import sys
-from openlibrary.catalog.utils import cmp
 sys.path.append('/1/src/openlibrary')
 from openlibrary.api import OpenLibrary, Reference
 
@@ -140,7 +139,9 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
     print('  works:', wkeys)
     def work_key_int(wkey):
         return int(re_work_key.match(wkey).group(1))
-    works = sorted(works, cmp=lambda a,b:-cmp(a['number_of_editions'],b['number_of_editions']) or cmp(work_key_int(a['key']), work_key_int(b['key'])))
+    works = sorted(
+        sorted(works, key=lambda x: work_key_int(x["key"])),
+        key=lambda x: x["number_of_editions"], reverse=True)
     print('  titles:', [(w['title'], w['number_of_editions']) for w in works])
     print(author0)
     #print [w['authors'][0]['author'] for w in works]
