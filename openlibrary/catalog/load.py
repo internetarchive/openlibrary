@@ -1,5 +1,10 @@
 from __future__ import print_function
 
+from openlibrary.catalog.importer.load import east_in_by_statement, import_author
+from openlibrary.catalog.infostore import get_site
+
+site = get_site()
+
 type_map = {
     'description': 'text',
     'notes': 'text',
