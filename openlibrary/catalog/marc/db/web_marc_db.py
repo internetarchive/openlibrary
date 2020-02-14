@@ -1,16 +1,15 @@
 from __future__ import print_function
 # lookup MARC records and show details on the web
-from catalog.read_rc import read_rc
-from catalog.get_ia import get_data
-from catalog.marc.build_record import build_record
-from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
-from openlibrary.catalog.utils import cmp
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.get_ia import get_data
+from openlibrary.catalog.marc.build_record import build_record
+from openlibrary.catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 import re
 import sys
 import os.path
 import web
-from catalog.amazon.other_editions import find_others
-from catalog.utils import strip_count
+from openlibrary.catalog.amazon.other_editions import find_others
+from openlibrary.catalog.utils import strip_count
 
 import six
 
@@ -64,7 +63,7 @@ def counts_html(v):
     sep = '<br>' if lens and max(lens) > 20 else ' '
     for i, loc in v:
         count.setdefault(i, []).append(loc)
-    s = sorted(count.iteritems(), cmp=lambda x,y: cmp(len(y[1]), len(x[1]) ))
+    s = sorted(count.items(), key=lambda x: len(x[1]), reverse=True)
     s = strip_count(s)
     return sep.join('<b>%d</b>: <span title="%s">%s</span>' % (len(loc), repr(loc), value if value else '<em>empty</em>') for value, loc in s)
 
@@ -106,7 +105,7 @@ def show_locs(locs, isbn):
     for loc, rec in recs:
         s = loc[:loc.find('/')]
         ret += '<li><a href="http://openlibrary.org/show-marc/%s">%s</a>' % (loc, s)
-        keys.update([k for k in rec.keys()])
+        keys.update([k for k in rec])
         for f in 'uri':
             if f in rec:
                 del rec[f]
