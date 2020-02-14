@@ -2,14 +2,18 @@ from __future__ import print_function
 from openlibrary.catalog.utils.query import query_iter, set_staging, get_mc
 from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfields
+from openlibrary.catalog.read_rc import read_rc
+from openlibrary.api import OpenLibrary
 
 from pprint import pprint
 from identify_people import read_people
 from build_object import build_person_object
-import sys
 from collections import defaultdict
 
 set_staging(True)
+rc = read_rc()
+ol = OpenLibrary("http://openlibrary.org")
+ol.login('ImportBot', rc['ImportBot'])
 
 def work_and_marc():
     i = 0

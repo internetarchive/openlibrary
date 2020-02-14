@@ -6,6 +6,7 @@ from db_read import withKey
 from openlibrary.catalog.utils import flip_name, author_dates_match, key_int
 from openlibrary.catalog.utils.query import query_iter
 from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.importer.db_read import get_versions
 from openlibrary.api import OpenLibrary
 
 rc = read_rc()
