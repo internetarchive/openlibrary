@@ -3,6 +3,7 @@ from __future__ import print_function
 from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.get_ia import get_data
 from openlibrary.catalog.marc.build_record import build_record
+from openlibrary.catalog.marc.db.web_author import db_isbn
 from openlibrary.catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from openlibrary.catalog.utils import cmp
 import re
