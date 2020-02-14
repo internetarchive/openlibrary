@@ -297,6 +297,7 @@ if __name__ == '__main__':
     fh_log = open(load_scribe_log, 'a')
 
     open(config.runtime_config['state_dir'] + '/load_scribe.pid', 'w').write(os.getpid())
+    state_file = config.runtime_config['state_dir'] + '/' + args.state_file
     start = open(state_file).readline()[:-1]
     bad_marc_last_sent = time()
     bad_marc = []
