@@ -204,7 +204,7 @@ class Solr_client(object):
     def isearch(self, query, loc=0):
         # iterator interface to search
         while True:
-            s = search(self, query, start=loc)
+            s = self.search(query, start=loc)
             if len(s) == 0: return
             loc += len(s)
             for y in s:
