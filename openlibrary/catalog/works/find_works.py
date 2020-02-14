@@ -17,7 +17,7 @@ from openlibrary.catalog.importer.db_read import get_mc
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.marc.marc_subject import get_work_subjects, four_types
 from openlibrary.catalog.read_rc import read_rc
-from openlibrary.catalog.utils import cmp, mk_norm
+from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.utils.edit import fix_edition
 from openlibrary.catalog.utils.query import query_iter, withKey
 from openlibrary.solr.update_work import update_work, solr_update, update_author
@@ -59,7 +59,7 @@ def get_with_retry(k):
 re_parens = re.compile(r'^(.*?)(?: \(.+ (?:Edition|Press|Print|Plays|Collection|Publication|Novels|Mysteries|Book Series|Classics Library|Classics|Books)\))+$', re.I)
 
 def top_rev_wt(d):
-    d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
+    d_sorted = sorted(sorted(d, key=len, reverse=True), key=lambda i: d[i], reverse=True)
     return d_sorted[0]
 
 def books_query(akey): # live version

@@ -10,7 +10,7 @@ import web
 from openlibrary.catalog.get_ia import get_from_archive, get_data
 from openlibrary.catalog.marc.fast_parse import get_subfield_values, get_first_tag, get_tag_lines, get_subfields, BadDictionary
 from openlibrary.catalog.utils.query import query_iter, set_staging, query
-from openlibrary.catalog.utils import cmp, mk_norm
+from openlibrary.catalog.utils import mk_norm
 from openlibrary.catalog.read_rc import read_rc
 from collections import defaultdict
 from pprint import pformat
@@ -74,7 +74,7 @@ def update_work_edition(ekey, wkey, use):
     print(ol.save(e['key'], e, 'remove duplicate work page'))
 
 def top_rev_wt(d):
-    d_sorted = sorted(d.keys(), cmp=lambda i, j: cmp(d[j], d[i]) or cmp(len(j), len(i)))
+    d_sorted = sorted(sorted(d, key=len, reverse=True), key=lambda i: d[i], reverse=True)
     return d_sorted[0]
 
 def books_query(akey): # live version
