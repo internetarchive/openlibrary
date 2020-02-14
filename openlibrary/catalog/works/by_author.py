@@ -34,6 +34,9 @@ work_num = 184076
 
 set_staging(True)
 
+def has_dot(s):
+    return s.endswith('.') and not re_skip.search(s)
+
 def withKey(key):
     url = base_url + key + ".json"
     return urllib.request.urlopen(url).read()

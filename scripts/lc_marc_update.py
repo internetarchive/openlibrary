@@ -2,12 +2,10 @@
 
 from __future__ import print_function
 from openlibrary.catalog.importer.scribe import BadImport
-from openlibrary.catalog.read_rc import read_rc
 from openlibrary import config
 from ftplib import FTP
 from time import sleep
 from lxml import etree
-import os
 import sys
 import httplib
 import json
@@ -22,6 +20,9 @@ config.load(config_file)
 c = config.runtime_config['lc_marc_update']
 base_url = 'http://openlibrary.org'
 import_api_url = base_url + '/api/import'
+internal_error = '<Code>InternalError</Code>'
+no_bucket_error = '<Code>NoSuchBucket</Code>'
+
 
 def put_file(con, ia, filename, data):
     print('uploading %s' % filename)

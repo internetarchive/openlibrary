@@ -14,6 +14,8 @@ from six.moves.urllib.request import urlopen
 
 # http://home.us.archive.org/~samuel/abouts3.txt
 
+internal_error = '<Code>InternalError</Code>'
+no_bucket_error = '<Code>NoSuchBucket</Code>'
 rc = read_rc()
 accesskey = rc['s3_accesskey']
 secret = rc['s3_secret']

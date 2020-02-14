@@ -116,6 +116,7 @@ def find_works(books):
 
     title_map = build_work_title_map({}, norm_titles)
 
+    rev_wt = defaultdict(lambda: defaultdict(int))
     works = defaultdict(lambda: defaultdict(list))
     work_titles = defaultdict(list)
     for b in books:
@@ -130,9 +131,9 @@ def find_works(books):
         works[n][title].append(b['key'])
 
     #for k, v in works.items():
-    #    print k
-    #    print '  ', sum(len(i) for i in v.values()), dict(v)
-    #print
+    #    print(k)
+    #    print('  ', sum(len(i) for i in v.values()), dict(v))
+    #print()
 
     works = sorted([(sum(map(len, w.values() + [work_titles[n]])), n, w) for n, w in works.items()])
 
