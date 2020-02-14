@@ -124,11 +124,12 @@ class DocumentLoader:
         result = [{'key': doc['key'], 'revision': doc['revision'], 'id': doc['id']} for doc in documents]
 
         # insert data
+        data = []  # workaround for Python 3's stricter scoping rules
         try:
-            data = [dict(thing_id=doc.pop('id'),
-                         revision=doc['revision'],
-                         data=simplejson.dumps(doc))
-                    for doc in documents]
+            for doc in documents:
+                data.append(dict(thing_id=doc.pop('id'),
+                                 revision=doc['revision'],
+                                 data=simplejson.dumps(doc)))
         except UnicodeDecodeError:
             print(repr(doc))
             raise
