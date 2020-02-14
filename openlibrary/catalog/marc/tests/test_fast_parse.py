@@ -2,7 +2,8 @@
 import os
 import pytest
 
-from openlibrary.catalog.marc.fast_parse import index_fields, get_tag_lines, read_edition
+from openlibrary.catalog.marc.fast_parse import (get_all_subfields, get_tag_lines,
+                                                 index_fields, read_edition)
 
 test_data = "%s/test_data/bin_input/" % os.path.dirname(__file__)
 

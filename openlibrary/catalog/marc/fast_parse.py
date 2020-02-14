@@ -326,7 +326,7 @@ def index_fields(data, want, check_author=True):
         '010': (read_lccn, 'lccn'),
         '020': (read_isbn, 'isbn'),
         '035': (read_oclc, 'oclc'),
-        '245': (read_short_title, 'title'),
+        '245': (read_short_title, 'title'),  # noqa: F821 Deprecated
     }
 
     seen_008 = False
@@ -441,7 +441,7 @@ def read_edition(data, accept_electronic=False):
                 edition.setdefault(key, []).extend(found)
             break
         if tag == '245':
-            edition['full_title'] = read_full_title(line, is_marc8=is_marc8)
+            edition['full_title'] = read_full_title(line, is_marc8=is_marc8)  # noqa: F821 Deprecated
             continue
         if tag == '300':
             for k, v in get_subfields(line, ['a'], is_marc8):
