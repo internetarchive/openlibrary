@@ -9,7 +9,7 @@ from openlibrary.utils.ia import find_item
 
 from six.moves import urllib
 
-
+bad_hosts = set()
 re_remove_xmlns = re.compile(' xmlns="[^"]+"')
 
 def parse_scandata_xml(xml):
