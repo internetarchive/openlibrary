@@ -1,4 +1,3 @@
-from openlibrary import accounts
 from openlibrary.accounts.model import Account, Link
 
 import web
@@ -51,9 +50,7 @@ def get_current_user():
 
 def username_available(cls, username):
     """Returns True if an OL username is available, or False otherwise"""
-    return bool(
-        accounts.find(username=username) or
-        accounts.find(lusername=username))
+    return bool(find(username=username) or find(lusername=username))
 
 
 def find(username=None, lusername=None, email=None):
