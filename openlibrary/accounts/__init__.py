@@ -1,4 +1,5 @@
-from openlibrary.accounts.model import Account, accounts, Link
+from openlibrary import accounts
+from openlibrary.accounts.model import Account, Link
 
 import web
 from infogami.infobase.client import ClientException
