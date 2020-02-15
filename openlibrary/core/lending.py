@@ -18,9 +18,7 @@ from openlibrary.plugins.upstream import acs4
 from openlibrary.utils import dateutil
 from six.moves import urllib
 
-from . import ia
-from . import msgbroker
-from . import helpers as h
+from openlibrary.core import ia, msgbroker, helpers as h
 
 logger = logging.getLogger(__name__)
 

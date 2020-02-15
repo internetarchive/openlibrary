@@ -39,8 +39,8 @@ import logging as Logging
 
 import web
 
-from .functions import massage_search_results, thing_to_doc
-from .matchers import match_functions
+from openlibrary.records.functions import massage_search_results, thing_to_doc
+from openlibrary.records.matchers import match_functions
 
 logger = Logging.getLogger("openlibrary.importapi")
 

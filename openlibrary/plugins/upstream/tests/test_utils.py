@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .. import utils
+from openlibrary.plugins.upstream import utils
 
 def test_url_quote():
     assert utils.url_quote('https://foo bar') == 'https%3A%2F%2Ffoo+bar'

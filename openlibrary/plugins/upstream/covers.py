@@ -5,8 +5,8 @@ import simplejson
 
 from infogami.utils import delegate
 from infogami.utils.view import safeint
-from utils import get_coverstore_url, render_template
-from models import Image
+from openlibrary.plugins.upstream.utils import get_coverstore_url, render_template
+from openlibrary.plugins.upstream.models import Image
 from openlibrary import accounts
 
 from six.moves import urllib

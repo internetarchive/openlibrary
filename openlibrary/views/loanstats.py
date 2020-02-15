@@ -4,12 +4,12 @@ import re
 import web
 from infogami.utils import delegate
 
-from ..utils import dateutil
-from .. import app
-from ..core import cache
-from ..core.bookshelves import Bookshelves
-from ..core.ratings import Ratings
-from ..plugins.admin.code import get_counts
+from openlibrary.utils import dateutil
+from openlibrary import app
+from openlibrary.core import cache
+from openlibrary.core.bookshelves import Bookshelves
+from openlibrary.core.ratings import Ratings
+from openlibrary.plugins.admin.code import get_counts
 
 
 LENDING_TYPES = '(libraries|regions|countries|collections|subjects|format)'

@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import simplejson
 import re
-from normalize import normalize
+from openlibrary.catalog.onix.normalize import normalize
 from time import time
 
 re_escape = re.compile(r'[\n\r\t\0\\]')

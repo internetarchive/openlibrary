@@ -1,7 +1,7 @@
 import random
 import os
 import string
-import warc
+from openlibrary.coverstore import warc
 
 chars = string.letters + string.digits
 def random_string(n):

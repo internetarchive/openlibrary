@@ -4,7 +4,7 @@ Tests the stats gathering systems.
 import calendar
 import datetime
 
-from .. import stats
+from openlibrary.plugins.openlibrary import stats
 from openlibrary.core.admin import Stats
 
 class MockDoc(dict):

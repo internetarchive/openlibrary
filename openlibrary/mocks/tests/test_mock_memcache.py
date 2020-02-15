@@ -1,4 +1,4 @@
-from .. import mock_memcache
+from openlibrary.mocks import mock_memcache
 import memcache
 
 class Test_mock_memcache:

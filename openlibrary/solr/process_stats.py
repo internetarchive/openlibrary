@@ -20,9 +20,9 @@ import logging
 
 from infogami import config
 from openlibrary.solr.solrwriter import SolrWriter
-from ..core import ia, helpers as h
-from ..core.ia import get_ia_db
-from ..core.loanstats import LoanStats
+from openlibrary.solr.core import ia, helpers as h
+from openlibrary.solr.core.ia import get_ia_db
+from openlibrary.solr.core.loanstats import LoanStats
 
 logger = logging.getLogger("openlibrary.solr")
 

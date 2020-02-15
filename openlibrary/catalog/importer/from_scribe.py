@@ -4,14 +4,14 @@ from catalog.read_rc import read_rc
 import catalog.marc.fast_parse as fast_parse
 import catalog.marc.parse_xml as parse_xml
 from time import time
-from lang import add_lang
-from olwrite import Infogami
-from load import build_query
-from merge import try_merge
-from db_read import get_things
-from catalog.get_ia import get_ia, urlopen_keep_trying
-from catalog.merge.merge_marc import build_marc
-import pool
+from openlibrary.catalog.importer.lang import add_lang
+from openlibrary.catalog.importer.olwrite import Infogami
+from openlibrary.catalog.importer.load import build_query
+from openlibrary.catalog.importer.merge import try_merge
+from openlibrary.catalog.importer.db_read import get_things
+from openlibrary.catalog.get_ia import get_ia, urlopen_keep_trying
+from openlibrary.catalog.merge.merge_marc import build_marc
+from openlibrary.catalog.importer import pool
 import sys
 
 from six.moves import urllib

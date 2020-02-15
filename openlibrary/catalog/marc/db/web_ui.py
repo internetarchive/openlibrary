@@ -2,7 +2,7 @@
 from __future__ import print_function
 import random
 import web
-from web_marc_db import search_query, show_locs
+from openlibrary.catalog.marc.db.web_marc_db import search_query, show_locs
 
 # too slow
 #def random_isbn():

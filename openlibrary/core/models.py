@@ -19,12 +19,12 @@ from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
 from openlibrary.core.lists.model import ListMixin, Seed
-from . import cache, waitinglist
+from openlibrary.core import cache, waitinglist
 
 from six.moves import urllib
 
-from .ia import get_metadata_direct
-from ..accounts import OpenLibraryAccount
+from openlibrary.core.ia import get_metadata_direct
+from openlibrary.accounts import OpenLibraryAccount
 
 
 def _get_ol_base_url():
@@ -344,7 +344,7 @@ class Edition(Thing):
         return self.get_ia_meta_fields().get("contributor")
 
     def get_loans(self):
-        from ..plugins.upstream import borrow
+        from openlibrary.plugins.upstream import borrow
         return borrow.get_edition_loans(self)
 
     def get_ebook_status(self):
@@ -748,7 +748,7 @@ class User(Thing):
 
         Returns None if this user hasn't borrowed the given book.
         """
-        from ..plugins.upstream import borrow
+        from openlibrary.plugins.upstream import borrow
         loans = borrow.get_loans(self)
         for loan in loans:
             if book.key == loan['book'] or book.ocaid == loan['ocaid']:

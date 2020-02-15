@@ -15,7 +15,7 @@ see schema.py for more details.
 import logging
 import simplejson
 import datetime
-from .db import get_db
+from openlibrary.core.db import get_db
 
 logger = logging.getLogger("openlibrary.statsdb")
 

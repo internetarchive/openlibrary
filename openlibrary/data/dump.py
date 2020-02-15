@@ -17,7 +17,7 @@ import simplejson
 import itertools
 import gzip
 
-import db
+from openlibrary.data import db
 
 import six
 
@@ -336,13 +336,13 @@ def main(cmd, args):
     elif cmd == 'bsddb':
         make_bsddb(*args, **kwargs)
     elif cmd == "solrdump":
-        import solr
+        from openlibrary.data import solr
         solr.generate_dump(*args, **kwargs)
     elif cmd == 'sitemaps':
-        from sitemap import generate_sitemaps
+        from openlibrary.data.sitemap import generate_sitemaps
         generate_sitemaps(*args, **kwargs)
     elif cmd == 'htmlindex':
-        from sitemap import generate_html_index
+        from openlibrary.sitemap import generate_html_index
         generate_html_index(*args, **kwargs)
     else:
         print("Unknown command:", cmd, file=sys.stderr)

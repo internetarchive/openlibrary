@@ -1,8 +1,7 @@
 """Open Library Books API
 """
 
-import dynlinks
-import readlinks
+from openlibrary.plugins.books import dynlinks, readlinks
 
 import re
 from six.moves import urllib

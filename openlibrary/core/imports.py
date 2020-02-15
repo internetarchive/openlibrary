@@ -6,7 +6,7 @@ import datetime
 import time
 import web
 
-from . import db
+from openlibrary.core import db
 
 logger = logging.getLogger("openlibrary.imports")
 

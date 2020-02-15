@@ -7,8 +7,7 @@ import web
 import simplejson
 import logging
 
-from . import subjects
-from . import search
+from openlibrary.plugins.worksearch import search, subjects
 
 from six.moves import urllib
 
@@ -45,7 +44,7 @@ class index(delegate.page):
     path = "/languages"
 
     def GET(self):
-        from . import search
+        from openlibrary.plugins.worksearch import search
         result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]

@@ -1,5 +1,5 @@
 import web
-import config
+from openlibrary.coverstore import config
 import datetime
 
 _categories = None

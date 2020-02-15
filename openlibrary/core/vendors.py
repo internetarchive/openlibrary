@@ -4,7 +4,7 @@ import requests
 from decimal import Decimal
 from amazon.api import SearchException
 from infogami.utils.view import public
-from . import lending, cache, helpers as h
+from openlibrary.core import lending, cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)

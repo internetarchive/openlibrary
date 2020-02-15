@@ -1,4 +1,4 @@
-from .. import code
+from openlibrary.coverstore import code
 from six.moves import cStringIO as StringIO
 import web
 import datetime

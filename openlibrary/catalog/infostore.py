@@ -3,7 +3,7 @@ import web
 web.config.db_printing = False
 from infogami.infobase import cache
 import infogami
-from read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 
 def get_infobase(rc):
     from infogami.infobase import infobase, dbstore

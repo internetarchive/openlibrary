@@ -24,7 +24,7 @@ import json
 import gzip
 import web
 
-from update_work import process_edition_data, process_work_data
+from openlibrary.solr.update_work import process_edition_data, process_work_data
 
 def process_xwork(doc):
 	"""Process xwork document and yield multiple solr documents.

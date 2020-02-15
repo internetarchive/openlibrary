@@ -1,4 +1,4 @@
-from ..solr import Solr
+from openlibrary.utils.solr import Solr
 
 def test_prepare_select():
     solr = Solr("http://localhost:8983/solr")

@@ -6,8 +6,7 @@ import web
 import simplejson
 import logging
 
-from . import subjects
-from . import search
+from openlibrary.plugins.worksearch import search, subjects
 
 from six.moves import urllib
 

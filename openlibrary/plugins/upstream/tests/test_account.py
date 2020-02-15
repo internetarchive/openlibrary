@@ -1,4 +1,4 @@
-from .. import account
+from openlibrary.plugins.upstream import account
 import web
 import re
 import pytest

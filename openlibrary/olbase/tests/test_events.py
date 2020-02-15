@@ -1,4 +1,4 @@
-from .. import events
+from openlibrary.olbase import events
 
 class TestMemcacheInvalidater:
     def test_seed_to_key(self):

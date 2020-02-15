@@ -10,7 +10,7 @@ usage:
 """
 from __future__ import print_function
 
-from import_edition_builder import import_edition_builder
+from openlibrary.plugins.importapi.import_edition_builder import import_edition_builder
 
 def parse_collection(collection):
     collection_dict = {

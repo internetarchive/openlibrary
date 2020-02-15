@@ -4,7 +4,7 @@ Tests for the services module used by the admin interface.
 
 def test_loader(serviceconfig):
     "Make sure services are loaded"
-    from .. import services
+    from openlibrary.plugins.admin import services
     services = services.load_all(serviceconfig, "http://nagios.url")
     assert len(services.keys()) == 2
     s = sorted(services.keys())

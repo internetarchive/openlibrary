@@ -18,10 +18,8 @@ import json
 import web
 from infogami import config
 from openlibrary.accounts.model import OpenLibraryAccount
-from . import helpers as h
-from .sendmail import sendmail_with_template
-from . import db
-from . import lending
+from openlibrary.core import db, lending, helpers as h
+from openlibrary.core.sendmail import sendmail_with_template
 
 from six.moves import urllib
 

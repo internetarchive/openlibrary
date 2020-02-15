@@ -1,7 +1,7 @@
 """
 Hook to show MARC or other source record details in Open Library.
 """
-from .. import app
+from openlibrary import app
 
 import web
 import re

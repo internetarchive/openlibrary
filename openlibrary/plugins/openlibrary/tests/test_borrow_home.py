@@ -1,4 +1,4 @@
-from .. import borrow_home
+from openlibrary.plugins.openlibrary import borrow_home
 
 class Test_convert_works_to_editions:
 

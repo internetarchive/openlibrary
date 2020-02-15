@@ -228,7 +228,7 @@ class SubjectEngine:
         else:
             kw = {}
 
-        from search import work_search
+        from openlibrary.plugins.worksearch.search import work_search
         result = work_search(
             q, offset=offset, limit=limit, sort=sort, **kw)
         if not result:

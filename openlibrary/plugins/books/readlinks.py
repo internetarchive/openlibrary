@@ -16,7 +16,7 @@ from infogami.utils.delegate import register_exception
 from infogami.utils import stats
 from infogami import config
 
-import dynlinks
+from openlibrary.plugins.books import dynlinks
 
 
 def key_to_olid(key):

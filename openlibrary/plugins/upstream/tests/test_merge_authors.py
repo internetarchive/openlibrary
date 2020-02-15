@@ -3,14 +3,14 @@ import web
 from infogami.infobase import client, common
 from infogami.utils import delegate
 
-from .. import merge_authors
+from openlibrary.plugins.upstream import merge_authors
 
 def setup_module(mod):
     #delegate.fakeload()
 
     # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
     web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
-    from .. import models
+    from openlibrary.plugins.upstream import models
     models.setup()
 
 class MockSite(client.Site):

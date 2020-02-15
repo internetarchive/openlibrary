@@ -6,7 +6,7 @@ from openlibrary.i18n import lgettext as _
 from openlibrary.utils.form import Form, Textbox, Password, Checkbox, Hidden, Validator, RegexpValidator
 from openlibrary import accounts
 from openlibrary.accounts import InternetArchiveAccount
-from . import spamcheck
+from openlibrary.plugins.upstream import spamcheck
 
 def find_account(username=None, lusername=None, email=None):
     return accounts.find(username=username, lusername=lusername, email=email)

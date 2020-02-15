@@ -11,7 +11,7 @@ import collections
 import glob
 import itertools
 
-from dump import read_tsv, log
+from openlibrary.data.dump import read_tsv, log
 
 def subdict(d, properties):
     return dict((k, v) for k, v in d.iteritems() if k in set(properties))

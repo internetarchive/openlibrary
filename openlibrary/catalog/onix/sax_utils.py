@@ -1,6 +1,6 @@
 import os
 from types import *
-from urlcache import URLCache
+from openlibrary.catalog.onix.urlcache import URLCache
 import xml.sax
 from xml.sax.handler import *
 import sys

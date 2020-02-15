@@ -1,4 +1,4 @@
-from .. import dateutil
+from openlibrary.utils import dateutil
 import datetime
 
 def test_parse_date():

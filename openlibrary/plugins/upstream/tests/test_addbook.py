@@ -1,6 +1,6 @@
 """py.test tests for addbook"""
 import web
-from .. import addbook
+from openlibrary.plugins.upstream import addbook
 from openlibrary import accounts
 from openlibrary.mocks.mock_infobase import MockSite
 

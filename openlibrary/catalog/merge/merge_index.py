@@ -1,7 +1,7 @@
 # build a merge database from JSON dump
 
 import re
-from normalize import normalize
+from openlibrary.catalog.onix.normalize import normalize
 
 def short_title(s):
     return normalize(s)[:25]

@@ -2,7 +2,7 @@ import web
 import infogami.tdb as tdb
 from infogami.tdb import NotFound, Things, LazyThing
 from items import *
-from onix import parser
+from openlibrary.catalog.onix.onix import parser
 import sys
 import unicodedata
 import re

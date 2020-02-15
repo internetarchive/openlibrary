@@ -7,7 +7,7 @@ import web
 from infogami import config
 from infogami.utils import stats
 
-from . import cache
+from openlibrary.core import cache
 
 class Stats:
     def __init__(self, docs, key, total_key):

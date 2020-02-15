@@ -11,8 +11,7 @@ import web
 import random
 import string
 
-import config
-import oldb
+from openlibrary.coverstore import config, oldb
 
 try:
     file           # Python 2

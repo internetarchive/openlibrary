@@ -9,7 +9,7 @@ import logging
 import simplejson
 import web
 from infogami import config
-from .. import i18n
+from openlibrary import i18n
 
 from six.moves import urllib
 

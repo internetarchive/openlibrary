@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .. import models
+from openlibrary.plugins.upstream import models
 
 def test_related_subjects():
     subjects = set([
