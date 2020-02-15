@@ -1,5 +1,5 @@
 from openlibrary.accounts.model import (Account, InternetArchiveAccount, Link,
-                                        OpenLibraryAccount, audit_accounts)
+                                        OpenLibraryAccount, audit_accounts, valid_email)
 
 import web
 from infogami.infobase.client import ClientException
