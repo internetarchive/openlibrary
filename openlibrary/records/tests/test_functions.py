@@ -1,7 +1,10 @@
 import pytest
 
-
-from openlibrary.records.functions import doc_to_things, search, create, thing_to_doc, things_to_matches, find_matches_by_isbn, find_matches_by_identifiers, find_matches_by_title_and_publishers, massage_search_results
+from openlibrary.records.functions import (doc_to_things, search, create, thing_to_doc,
+                                           things_to_matches, find_matches_by_isbn,
+                                           find_matches_by_identifiers,
+                                           find_matches_by_title_and_publishers,
+                                           massage_search_results)
 
 
 def populate_infobase(site):

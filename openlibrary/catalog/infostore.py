@@ -1,9 +1,11 @@
 from __future__ import print_function
 import web
-web.config.db_printing = False
 from infogami.infobase import cache
 import infogami
 from openlibrary.catalog.read_rc import read_rc
+
+web.config.db_printing = False
+
 
 def get_infobase(rc):
     from infogami.infobase import infobase, dbstore

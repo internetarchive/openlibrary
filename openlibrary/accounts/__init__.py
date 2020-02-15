@@ -1,4 +1,4 @@
-from openlibrary.accounts.model import * #XXX: Fix this. Import only specific names
+from openlibrary.accounts.model import Account, accounts, Link
 
 import web
 from infogami.infobase.client import ClientException

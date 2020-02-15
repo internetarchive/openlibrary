@@ -3,16 +3,15 @@
 from __future__ import print_function
 import socket
 
-# akismet module changes socket default timeout.
-# Undoing it as it might effect other parts of the system.
-timeout = socket.getdefaulttimeout()
-
-from openlibrary.plugins.akismet.akismet import Akismet
-socket.setdefaulttimeout(timeout)
 import web
 
 from infogami import config
 from infogami.infobase import client
+
+from openlibrary.plugins.akismet.akismet import Akismet
+# akismet module changes socket default timeout.
+# Undoing it as it might effect other parts of the system.
+timeout = socket.getdefaulttimeout()
 
 if config.get('plugin_akismet') is not None:
     api_key = config.plugin_akismet.api_key
@@ -23,6 +22,7 @@ else:
     spamlog = config.get('akismet_log')
     baseurl = config.get('akismet_baseurl')
 
+socket.setdefaulttimeout(timeout)
 blog_url = 'http://' + config.site
 if baseurl:
     Akismet.antispam_baseurl = baseurl
