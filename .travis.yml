@@ -16,7 +16,7 @@ jobs:
         # On pull requests, run all flake8 tests on modified code
         # Also test the entire files for syntax errors, undefined names, etc.
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
-        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]
+        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" || true ]
           then
             git diff origin/master -U0 | flake8 --diff --max-line-length=88
             echo "If the following test fails, please see PR-3040 for suggested fixes."
