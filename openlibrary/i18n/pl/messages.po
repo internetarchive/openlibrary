@@ -2382,7 +2382,7 @@ msgstr "Zaproponuj zmiany"
 
 #: nav_foot.html:46
 msgid "Suggesting Edits"
-msgstr "Proponowanie zmian"
+msgstr "Zaproponuj zmiany"
 
 #: nav_foot.html:58
 msgid ""
