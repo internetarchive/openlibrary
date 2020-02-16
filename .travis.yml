@@ -19,7 +19,9 @@ jobs:
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
             git diff origin/master -U0 | flake8 --diff --max-line-length=88;
             echo "If the following test fails, please see PR-3040 for suggested fixes.";
-            git diff origin/master --name-only | flake8 --select=F821 --show-source --statistics;
+            FILENAMES=git diff origin/master --name-only | tr "\n" ",";
+            echo $FILENAMES;
+            flake8 --select=F821 --show-source --statistics --filename=$FILENAMES;
           fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
