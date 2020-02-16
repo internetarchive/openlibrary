@@ -16,17 +16,11 @@ jobs:
         # On pull requests, run all flake8 tests on modified code
         # Also test the entire files for syntax errors, undefined names, etc.
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
-        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" || true ]
-          then
-            git diff origin/master -U0 | flake8 --diff --max-line-length=88
-            echo "If the following test fails, please see PR-3040 for suggested fixes."
-            FILENAMES=$(git diff origin/master --name-only)
-            echo "aFILENAMES: $FILENAMES"
-            FILENAMES=$(git diff origin/master --name-only | grep '.py')
-            echo "bFILENAMES: $FILENAMES"
-            FILENAMES=$(git diff origin/master --name-only | grep '.py' | tr '\n' ',')
-            echo "FILENAMES: $FILENAMES"
-            flake8 --select=F821 --show-source --statistics --filename=${FILENAMES}
+        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
+            git diff origin/master -U0 | flake8 --diff --max-line-length=88;
+            echo "If the following test fails, please see PR-3040 for suggested fixes.";
+            flake8 --select=F821 --show-source --statistics \
+                   --filename=$(git diff origin/master --name-only | grep '.py' | tr '\n' ',');
           fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
