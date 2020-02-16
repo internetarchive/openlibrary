@@ -177,7 +177,7 @@ msgid ""
 "If you \"borrow\" information from somewhere, please make sure to cite "
 "the source."
 msgstr ""
-"Jeśli \"pożyczasz"\ pewne informacje z innych źródeł, "
+"Jeśli \"pożyczasz\" pewne informacje z innych źródeł, "
 "prosimy o ich podanie."
 
 #: edit.html:64
@@ -357,7 +357,7 @@ msgstr "Okres"
 
 #: view.html:204
 msgid "Links <span class=\"gray small sansserif\">(outside Open Library)"
-msgstr "Linki"
+msgstr "Linki <span class=\"gray small sansserif\">(spoza Open Library)"
 
 #: view.html:223
 msgid "No links yet."
@@ -706,7 +706,7 @@ msgid ""
 "There's no description for this book yet. Can you <b><a "
 "href='%(url)s'>add one</a></b>?"
 msgstr "Ta książka nie ma jeszcze opisu. Czy możesz <b><a "
-"href='%s'>dodać "opis</a></b>?"
+"href='%s'>dodać opis</a></b>?"
 
 #: view.html:120
 msgid "Original languages"
