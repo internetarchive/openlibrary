@@ -17,7 +17,7 @@ def do_run(command: str) -> Tuple[int, str]:
 if __name__ == "__main__":
     returncode, results = do_run("git diff origin/master --name-only")
     filenames = " ".join(
-        ("../" + line.strip()) for line in results.splitlines() if line.endswith(".py")
+        line.strip() for line in results.splitlines() if line.endswith(".py")
     )
     if filenames:
         returncode, results = do_run(
