@@ -16,7 +16,6 @@ jobs:
         # On pull requests, run all flake8 tests on the lines of modified code
         # Also, test the entire modified files for undefined names
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
-        - python undefined_names_in_modified_files.py
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
             git diff origin/master -U0 | flake8 --diff --max-line-length=88;
             python scripts/undefined_names_in_modified_files.py;
