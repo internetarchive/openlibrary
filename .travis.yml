@@ -21,7 +21,10 @@ jobs:
             git diff origin/master -U0 | flake8 --diff --max-line-length=88;
             echo "If the following test fails, please see PR-3040 for suggested fixes.";
             sleep 1;
-            flake8 --select=F821 --show-source --statistics $(git diff origin/master --name-only | grep '.py' | tr '\n' ' ');
+            FILENAMES=$(git diff origin/master --name-only | grep '.py' | tr '\n' ' ')
+            if [ "$FILENAMES" != "" ]; then
+              flake8 --select=F821 --show-source --statistics "$FILENAMES";
+            fi
           fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
