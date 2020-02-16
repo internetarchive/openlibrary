@@ -958,7 +958,7 @@ msgstr "Internet Archive"
 
 #: borrow.html:252
 msgid "eBooks everywhere"
-msgstr "eBooks naokoło"
+msgstr "e-Booki wszędzie"
 
 #: borrow.html:254
 msgid ""
@@ -993,7 +993,7 @@ msgid ""
 "All you need to borrow a book scanned at the Internet Archive is an Open "
 "Library account and Adobe Digital Editions."
 msgstr ""
-"Aby wypożyczyć zeskanowaną książkę na Internet Archive potrzebujesz jedynie "
+"Aby wypożyczyć zeskanowaną książkę z Internet Archive potrzebujesz jedynie "
 "konta na Open Library oraz Adobe Digital Editions."
 
 #: borrow.html:269
@@ -1023,9 +1023,9 @@ msgid ""
 "href=\"/subjects/lending_library\">\"Lending Library\"</a> subject, or "
 "try a <a href=\"/search?subject_facet=Lending%20library\">search</a>."
 msgstr ""
-"Przeszukaj wszystkie dostępne książki <a "
-"href=\"/subjects/lending_library\">\"Lending Library\"</a> o danej tematyce, lub "
-"wypróbuj <a href=\"/search?subject_facet=Lending%20library\">szukaj</a>."
+"Przeszukaj wszystkie dostępne książki z<a "
+"href=\"/subjects/lending_library\">\"Wypożyczalni\"</a> o danej tematyce, lub "
+"wypróbuj <a href=\"/search?subject_facet=Lending%20library\">wyszukiwarkę</a>."
 
 #: borrow.html:280
 msgid "Help/Downloads"
