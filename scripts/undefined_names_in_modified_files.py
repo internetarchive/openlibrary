@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+# Legacy Python sees type hints as syntax errrors.
+# flake8: noqa
+
 import sys
-from subprocess import PIPE, run  # Requires Python >= 3.5
+from subprocess import PIPE, run
 from typing import Tuple
 
 
@@ -9,10 +12,6 @@ def do_run(command: str) -> Tuple[int, str]:
     print("$ {}".format(command))
     completed_process = run(command.split(), stdout=PIPE)
     return completed_process.returncode, completed_process.stdout.decode()
-
-
-def junk():
-    bubba
 
 
 if __name__ == "__main__":
