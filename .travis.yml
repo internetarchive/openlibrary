@@ -19,7 +19,7 @@ jobs:
         - python undefined_names_in_modified_files.py
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
             git diff origin/master -U0 | flake8 --diff --max-line-length=88;
-            python scripts/undefined_names_in_modified_files.py
+            python scripts/undefined_names_in_modified_files.py;
           fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
