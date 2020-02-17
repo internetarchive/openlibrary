@@ -1,7 +1,6 @@
 from __future__ import print_function
 from openlibrary.catalog.utils.query import query_iter, set_staging, get_mc
 from openlibrary.catalog.get_ia import get_data
-from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.marc.fast_parse import get_tag_lines, get_all_subfields, get_subfields
 
 from pprint import pprint
@@ -11,7 +10,6 @@ import sys
 from collections import defaultdict
 
 set_staging(True)
-rc = read_rc()
 
 
 def work_and_marc():
