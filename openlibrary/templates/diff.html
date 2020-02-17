@@ -55,9 +55,9 @@ $def diff_covers(p, a, b):
 $def listdiff(name, a, b):
     $ diffresults = better_diff(a or [], b or [])
     <tr>
-        <td class="diff-header-side" valign="top">$name</td>
+        <td class="diff-header-side" style="vertical-align: top;">$name</td>
         <td colspan="2">
-        <table style="width: 100%">
+        <table style="width: 100%;">
         $for key, ai, a, bi, b in diffresults:
             <tbody class="$key">
             <tr>
@@ -97,8 +97,8 @@ $def diff_display(name, value):
         <thead>
             <tr>
                 <th></th>
-                <th style="width: 40%">$:display_revision(a)</th>
-                <th style="width: 40%">$:display_revision(b)</th>
+                <th style="width: 40%;">$:display_revision(a)</th>
+                <th style="width: 40%;">$:display_revision(b)</th>
             </tr>
         </thead>
         <tbody>

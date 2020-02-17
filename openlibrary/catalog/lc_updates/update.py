@@ -17,6 +17,9 @@ from six.moves.urllib.request import urlopen
 rc = read_rc()
 accesskey = rc['s3_accesskey']
 secret = rc['s3_secret']
+no_bucket_error = '<Code>NoSuchBucket</Code>'
+internal_error = '<Code>InternalError</Code>'
+
 
 def put_file(con, ia, filename):
     print('uploading %s' % filename)
