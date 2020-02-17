@@ -45,11 +45,14 @@ def build_person_object(p, marc_alt):
     return person
 
 def test_consort():
-    line = (('a', u'Elizabeth'), ('c', u'Empress, consort of Franz Joseph, Emperor of Austria'))
+    marc = (('a', u'Elizabeth'),
+            ('c', u'Empress, consort of Franz Joseph, Emperor of Austria'))
     p = build_person_object(marc, [])
     p['name'] == u'Empress Elizabeth, consort of Franz Joseph, Emperor of Austria',
 
-    line = (('a', u'Mary'), ('c', u'Queen, Consort of George V, King of Great Britain'), ('d', u'1867-1953'))
+    marc = (('a', u'Mary'),
+            ('c', u'Queen, Consort of George V, King of Great Britain'),
+            ('d', u'1867-1953'))
     p = build_person_object(marc, [])
     p['name'] == u'Queen Mary, Consort of George V, King of Great Britain'
 
