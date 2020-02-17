@@ -6,6 +6,10 @@ from time import sleep
 
 from six.moves import urllib
 
+try:
+    file           # Python 2
+except NameError:  # Python 3
+    from io import IOBase as file
 
 archive_url = "http://archive.org/download/"
 
