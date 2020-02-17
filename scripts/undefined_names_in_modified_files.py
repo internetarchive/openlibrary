@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Legacy Python sees type hints as syntax errrors.
+# Legacy Python sees type hints as syntax errors.
 # flake8: noqa
 
 import sys
