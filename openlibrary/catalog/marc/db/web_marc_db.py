@@ -4,6 +4,7 @@ from catalog.read_rc import read_rc
 from catalog.get_ia import get_data
 from catalog.marc.build_record import build_record
 from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
+from openlibrary.catalog.read_rc import read_rc
 from openlibrary.catalog.utils import cmp
 import re
 import sys
@@ -18,6 +19,7 @@ import six
 db = web.database(dbn='postgres', db='marc_lookup')
 db.printing = False
 
+rc = read_rc()
 trans = {'&':'amp','<':'lt','>':'gt'}
 re_html_replace = re.compile('([&<>])')
 

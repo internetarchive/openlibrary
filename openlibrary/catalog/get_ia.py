@@ -14,12 +14,14 @@ from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.marc.marc_xml import MarcXml
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.fast_parse import read_file as fast_read_file  # Deprecated import
+from openlibrary.catalog.read_rc import read_rc
 from openlibrary.core import ia
 
 
 IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
+rc = read_rc()
 
 class NoMARCXML(IOError):
     # DEPRECATED, rely on MarcXml to raise exceptions
@@ -228,20 +230,20 @@ def marc_formats(identifier, host=None, path=None):
     return has
 
 def get_from_local(locator):
-    # DEPRECATED, Broken, undefined rc, will raise exception if called
+    # DEPRECATED
     try:
         file, offset, length = locator.split(':')
     except:
         print(('locator:', repr(locator)))
         raise
-    f = open(rc['marc_path'] + '/' + file)  # noqa: F821 DEPRECATED
+    f = open(rc['marc_path'] + '/' + file)
     f.seek(int(offset))
     buf = f.read(int(length))
     f.close()
     return buf
 
 def get_data(loc):
-    # DEPRECATED, Broken, undefined rc, will return None or raise exception if called
+    # DEPRECATED
     try:
         filename, p, l = loc.split(':')
     except ValueError:
@@ -251,7 +253,7 @@ def get_data(loc):
         return None
     if not os.path.exists(marc_path + '/' + filename):
         return None
-    f = open(rc['marc_path'] + '/' + filename)  # noqa: F821 DEPRECATED
+    f = open(rc['marc_path'] + '/' + filename)
     f.seek(int(p))
     buf = f.read(int(l))
     f.close()
