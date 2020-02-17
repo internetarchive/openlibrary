@@ -1,17 +1,17 @@
 from __future__ import print_function
 # lookup MARC records and show details on the web
-from catalog.read_rc import read_rc
-from catalog.get_ia import get_data
-from catalog.marc.build_record import build_record
-from catalog.marc.fast_parse import get_all_subfields, get_tag_lines, get_first_tag, get_subfields
 from openlibrary.catalog.read_rc import read_rc
+from openlibrary.catalog.get_ia import get_data
+from openlibrary.catalog.marc.build_record import build_record
+from openlibrary.catalog.marc.fast_parse import (get_all_subfields, get_first_tag,
+                                                 get_subfields)
 from openlibrary.catalog.utils import cmp
 import re
 import sys
 import os.path
 import web
-from catalog.amazon.other_editions import find_others
-from catalog.utils import strip_count
+from openlibrary.catalog.amazon.other_editions import find_others
+from openlibrary.catalog.utils import strip_count
 
 import six
 
