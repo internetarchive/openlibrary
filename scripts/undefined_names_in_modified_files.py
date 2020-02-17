@@ -23,5 +23,8 @@ if __name__ == "__main__":
         returncode, results = do_run(
             "flake8 --select=F821 --show-source --statistics " + filenames
         )
+        if returncode:
+            print("For suggested fixes, please see "
+                  "https://github.com/internetarchive/openlibrary/pull/3040")
         print(results)
         sys.exit(returncode)
