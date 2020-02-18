@@ -590,7 +590,7 @@ msgid ""
 "href=\"%(username)s/books/want-to-read\">want to read</a>!"
 msgstr ""
 "Cet utilisateur a choisi de partager publiquement les livres qu'il est "
-"<ahref=\"%(username)s/books/currently\"> en cours de lecture </a>, "
+"<a href=\"%(username)s/books/currently\"> en cours de lecture </a>, "
 "<ahref=\"%(username)s/books/already-read\"> ont déjà lu </a>, et "
 "<ahref=\"%(username)s/books/want-to-read\"> voulez lire </a>!"
 
