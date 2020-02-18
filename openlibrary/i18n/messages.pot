@@ -557,9 +557,9 @@ msgstr ""
 #: view.html:48
 msgid ""
 "This user has chosen to publicly share the books they are <a "
-"href=\"$(page.key)/books/currently-reading\">currently reading</a>, <a "
-"href=\"$(page.key)/books/already-read\">have already read</a>, and <a "
-"href=\"$(page.key)/books/want-to-read\">want to read</a>!"
+"href=\"%(username)s/books/currently-reading\">currently reading</a>, <a "
+"href=\"%(username)s/books/already-read\">have already read</a>, and <a "
+"href=\"%(username)s/books/want-to-read\">want to read</a>!"
 msgstr ""
 
 #: view.html:50
