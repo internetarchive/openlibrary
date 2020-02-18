@@ -25,10 +25,10 @@ def monkeypatch_urllib(monkeypatch, url, response_string):
     """Monkey-patches urllib.request.urlopen to return the given response
     when urlopen is called with the given url.
     """
-    try:  # Python 3
-        _urlopen = urllib.request.urlopen
-    except NameError:  # Python 2
+    try:  # Python 2
         _urlopen = urllib2.urlopen
+    except NameError:  # Python 3
+        _urlopen = urllib.request.urlopen
     given_url = url
 
     def urlopen(url, *a, **kw):
@@ -37,7 +37,7 @@ def monkeypatch_urllib(monkeypatch, url, response_string):
         else:
             return _urlopen(url, *a, **kw)
 
-    try:  # Python 3
-        monkeypatch.setattr(urllib.request, "urlopen", urlopen)
-    except NameError:  # Python 2
+    try:  # Python 2
         monkeypatch.setattr(urllib2, "urlopen", urlopen)
+    except NameError:  # Python 3
+        monkeypatch.setattr(urllib.request, "urlopen", urlopen)
