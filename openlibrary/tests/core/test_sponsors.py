@@ -66,4 +66,5 @@ class TestSponsorship:
 
     def qualifies_for_sponsorship(self, monkeypatch):
         # XXX TODO
+        from openlibrary.mocks.mock_infobase import mock_site
         work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
