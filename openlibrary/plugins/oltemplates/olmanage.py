@@ -53,7 +53,7 @@ def thing2data(d):
     if d['type']['key'] == '/type/rawtext':
         return d['body']['value']
     else:
-        raise ValueError("Unrecognised path: {}".format(path))
+        raise ValueError("Unrecognised /type/key: {type[key]}".format(**d))
 
 def update_thing(d, filename):
     data = open(filename).read()
