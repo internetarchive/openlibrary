@@ -22,6 +22,7 @@ IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 
+
 @deprecated('Rely on MarcXml to raise exceptions')
 class NoMARCXML(IOError):
     pass
