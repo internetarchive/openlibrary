@@ -37,3 +37,4 @@ install:
 script:
   - make i18n
   - make test
+  - pytest --doctest-modules || true
