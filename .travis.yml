@@ -40,7 +40,7 @@ script:
   - make test
   - rm /home/travis/build/internetarchive/openlibrary/vendor/infogami/infogami/conftest.py
   - rm /home/travis/build/internetarchive/openlibrary/infogami/infobase/tests/conftest.py
-  - pytest --doctest-modules --ignore-glob='*/scripts/20*'
-                             --ignore-glob='infogami/*'
+  - pytest --doctest-modules --ignore-glob='infogami/*'
                              --ignore-glob='node_modules/*'
-                             --ignore-glob='*/vendor/*' || true
+                             --ignore-glob='scripts/20*'
+                             --ignore-glob='vendor/*' || true
