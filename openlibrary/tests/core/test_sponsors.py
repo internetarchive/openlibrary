@@ -63,7 +63,3 @@ class TestSponsorship:
         dwwi, matches = do_we_want_it(isbn, work_id)
         assert dwwi == True
         assert matches == []
-
-    def qualifies_for_sponsorship(self, monkeypatch):
-        # XXX TODO
-        work = mock_site.quicksave("/works/OL1W", "/type/work", title="Foo")
