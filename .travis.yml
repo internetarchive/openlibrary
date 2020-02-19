@@ -37,4 +37,5 @@ install:
 script:
   - make i18n
   - make test
+  - rm /home/travis/build/internetarchive/openlibrary/vendor/infogami/infogami/conftest.py
   - pytest --doctest-modules --ignore-glob='*/scripts/20*' --ignore-glob='*/vendor/*' || true
