@@ -22,7 +22,7 @@ class html_record():
         >>> hr = html_record("00054This is the leader.Now we are beyond the leader.")
         Traceback (most recent call last):
         ...
-        AssertionError:
+        AssertionError
         >>> # Change " " to "a"...
         >>> hr = html_record("00053Thisais the leader.Now we are beyond the leader.")
         >>> hr.is_marc8
@@ -77,3 +77,9 @@ def test_html_line():
     for tag, input, output in samples:
         expect = '<large>%s</large> <code>%s</code>' % (tag, output)
         assert hr.html_line(tag, input) == expect
+
+
+if __name__ == '__main__':
+    import doctest
+
+    doctest.testmod()
