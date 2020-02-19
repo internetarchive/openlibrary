@@ -37,4 +37,4 @@ install:
 script:
   - make i18n
   - make test
-  - pytest --doctest-modules --ignore-glob='scripts/20*'. --ignore-glob='vendor/*' || true
+  - pytest --doctest-modules --ignore-glob='*/scripts/20*'. --ignore-glob='*/vendor/*' || true
