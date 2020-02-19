@@ -31,6 +31,7 @@ install:
   #   create a legacy Python for npm/node until nodejs/node#25789 is resolved
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
+      pyenv install --list;
       pyenv install 2.7.14;
     fi
   - npm install
@@ -39,4 +40,4 @@ script:
   - make test
   - rm /home/travis/build/internetarchive/openlibrary/vendor/infogami/infogami/conftest.py
   - rm /home/travis/build/internetarchive/openlibrary/infogami/infobase/tests/conftest.py
-  - pytest --doctest-modules --ignore-glob='*/scripts/20*' --ignore-glob='*/vendor/*' || true
+  - pytest --doctest-modules --ignore-glob='*/scripts/20*' --ignore-glob='*/infogami/*'  --ignore-glob='*/vendor/*' || true
