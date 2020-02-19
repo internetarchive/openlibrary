@@ -18,13 +18,15 @@ class html_record():
         '00053This is the leader.'
         >>> hr.is_marc8
         True
-        >>> hr = html_record("00053Thisais the leader.Now we are beyond the leader.")  # "a"
-        >>> hr.is_marc8
-        False
-        >>> hr = html_record("00054This is the leader.Now we are beyond the leader.")  # 53 -> 54
+        >>> # Change "00053" to "00054"...
+        >>> hr = html_record("00054This is the leader.Now we are beyond the leader.")
         Traceback (most recent call last):
         ...
         AssertionError:
+        >>> # Change " " to "a"...
+        >>> hr = html_record("00053Thisais the leader.Now we are beyond the leader.")
+        >>> hr.is_marc8
+        False
         """
         assert len(data) == int(data[:5])
         self.data = data
