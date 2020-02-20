@@ -304,7 +304,7 @@ def main(cmd, args):
     for a in iargs:
         if a.startswith('--'):
             name = a[2:].replace("-", "_")
-            value = iargs.next()
+            value = next(iargs)
             kwargs[name] = value
         else:
             args.append(a)

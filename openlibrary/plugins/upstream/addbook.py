@@ -648,7 +648,7 @@ class SaveBookHelper:
 
             f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
             dedup = set()
-            for s in csv.reader(f, dialect='excel', skipinitialspace=True).next():
+            for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 s = s.decode('utf-8')
                 if s.lower() not in dedup:
                     yield s
