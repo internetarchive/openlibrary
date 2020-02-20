@@ -12,6 +12,8 @@ def test_html_subfields():
         assert hr.html_subfields(input) == output
 
 
+@pytest.mark.xfail(reason='As discussed in #3071, the encoding (marc8 or utf8) is '
+                          'not defined for a single field.  To be fixed by #3057.')
 def test_html_line():
     samples = [
         ('020', '  \x1fa0123456789\x1e', '&nbsp;&nbsp; <b>$a</b>0123456789'),
