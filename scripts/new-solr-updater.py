@@ -36,7 +36,8 @@ def parse_arguments():
     parser.add_argument('-c', '--config')
     parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
     parser.add_argument('--state-file', default="solr-update.state")
-    parser.add_argument('--exclude-edits', help="Don't index edits containing the string anywhere")
+    parser.add_argument('--exclude-edits',
+                        help="Don't index edits containing the string anywhere")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
@@ -58,7 +59,7 @@ class InfobaseLog:
     def __init__(self, hostname, exclude=None):
         """
         :param str hostname:
-        :param str or None exclude: if specified, excludes records that include the string
+        :param str|None exclude: if specified, excludes records that include the string
         """
         self.base_url = 'http://%s/openlibrary.org/log' % hostname
         self.offset = get_default_offset()
