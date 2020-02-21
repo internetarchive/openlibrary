@@ -19,7 +19,7 @@ from collections import defaultdict
 
 import six
 
-from openlibrary.plugins.search import facet_hash, solr_client, stopword
+from openlibrary.plugins.search import facet_hash, solr_client
 from openlibrary.plugins.search.collapse import collapse_groups
 
 render = template.render

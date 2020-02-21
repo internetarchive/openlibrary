@@ -15,7 +15,7 @@ from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
-from scripts import _init_path
+from scripts import _init_path  # noqa: F401
 import sys
 import os
 import simplejson
