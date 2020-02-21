@@ -285,7 +285,7 @@ def get_changes_v2(query, revision=None):
 
     def first(seq, default=None):
         try:
-            return seq.next()
+            return next(seq)
         except StopIteration:
             return default
 

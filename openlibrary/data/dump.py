@@ -129,18 +129,6 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         if status != 0:
             raise Exception("sort failed with status %d" % status)
 
-def pmap(f, tasks):
-    """Run tasks parallelly."""
-    try:
-        from subprocess import Pool
-
-        from multiprocessing import Pool
-        r = pool.map_async(f, tasks, callback=results.append)
-        r.wait() # Wait on the results
-
-    except ImportError:
-        Pool = None
-
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
 
@@ -316,7 +304,7 @@ def main(cmd, args):
     for a in iargs:
         if a.startswith('--'):
             name = a[2:].replace("-", "_")
-            value = iargs.next()
+            value = next(iargs)
             kwargs[name] = value
         else:
             args.append(a)
