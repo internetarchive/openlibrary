@@ -86,19 +86,18 @@ testdata = web.storage({
     }
 })
 
-class TestBasicMergeEngine:
-    def setup_method(self, method):
-        self.engine = merge_authors.BasicMergeEngine()
-        web.ctx.site = MockSite()
 
-    def test_make_redirect_doc(self):
-        assert self.engine.make_redirect_doc("/a", "/b") == {
-            "key": "/a",
-            "type": {"key": "/type/redirect"},
-            "location": "/b"
-        }
+def test_make_redirect_doc():
+    assert merge_authors.make_redirect_doc("/a", "/b") == {
+        "key": "/a",
+        "type": {"key": "/type/redirect"},
+        "location": "/b"
+    }
 
+
+class TestBasicRedirectEngine:
     def test_convert_doc(self):
+        engine = merge_authors.BasicRedirectEngine()
         doc = {
             "key": "/a",
             "type": {"key": "/type/object"},
@@ -117,7 +116,7 @@ class TestBasicMergeEngine:
             }]
         }
 
-        assert self.engine.convert_doc(doc, "/c", ["/b"]) == {
+        assert engine.convert_doc(doc, "/c", ["/b"]) == {
             "key": "/a",
             "type": {"key": "/type/object"},
             "x1": [{"key": "/c"}],
@@ -132,48 +131,55 @@ class TestBasicMergeEngine:
             }]
         }
 
+
+class TestBasicMergeEngine:
     def test_merge_property(self):
-        assert self.engine.merge_property(None, "hello") == "hello"
-        assert self.engine.merge_property("hello", None) == "hello"
-        assert self.engine.merge_property("foo", "bar") == "foo"
-        assert self.engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
-        assert self.engine.merge_property(None, ["bar"]) == ["bar"]
+        engine = merge_authors.BasicMergeEngine(merge_authors.BasicRedirectEngine())
 
-class TestAuthorMergeEngine:
+        assert engine.merge_property(None, "hello") == "hello"
+        assert engine.merge_property("hello", None) == "hello"
+        assert engine.merge_property("foo", "bar") == "foo"
+        assert engine.merge_property(["foo"], ["bar"]) == ["foo", "bar"]
+        assert engine.merge_property(None, ["bar"]) == ["bar"]
+
+
+def test_get_many():
+    web.ctx.site = MockSite()
+    # get_many should handle bad table_of_contents in the edition.
+    edition = {
+        "key": "/books/OL1M",
+        "type": {"key": "/type/edition"},
+        "table_of_contents": [{
+            "type": "/type/text",
+            "value": "foo"
+        }]
+    }
+    type_edition = {
+        "key": "/type/edition",
+        "type": {"key": "/type/type"}
+    }
+    web.ctx.site.add([edition, type_edition])
+
+    t = web.ctx.site.get("/books/OL1M")
+
+    assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
+
+    assert merge_authors.get_many(["/books/OL1M"])[0] == {
+        "key": "/books/OL1M",
+        "type": {"key": "/type/edition"},
+        "table_of_contents": [{
+            "label": "",
+            "level": 0,
+            "pagenum": "",
+            "title": "foo"
+        }]
+    }
+
+
+class TestAuthorRedirectEngine:
     def setup_method(self, method):
-        self.engine = merge_authors.AuthorMergeEngine()
+        self.engine = merge_authors.AuthorRedirectEngine()
         web.ctx.site = MockSite()
-
-    def test_get_many(self):
-        # get_many should handle bad table_of_contents in the edition.
-        edition = {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "table_of_contents": [{
-                "type": "/type/text",
-                "value": "foo"
-            }]
-        }
-        type_edition = {
-            "key": "/type/edition",
-            "type": {"key": "/type/type"}
-        }
-        web.ctx.site.add([edition, type_edition])
-
-        t = web.ctx.site.get("/books/OL1M")
-
-        assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
-
-        assert self.engine.get_many(["/books/OL1M"])[0] == {
-            "key": "/books/OL1M",
-            "type": {"key": "/type/edition"},
-            "table_of_contents": [{
-                "label": "",
-                "level": 0,
-                "pagenum": "",
-                "title": "foo"
-            }]
-        }
 
     def test_fix_edition(self):
         edition = {
@@ -225,6 +231,12 @@ class TestAuthorMergeEngine:
             }],
             "title": "book 1"
         }
+
+
+class TestAuthorMergeEngine:
+    def setup_method(self, method):
+        self.engine = merge_authors.AuthorMergeEngine(merge_authors.AuthorRedirectEngine())
+        web.ctx.site = MockSite()
 
     def test_redirection(self):
         web.ctx.site.add([testdata.a, testdata.b, testdata.c])
@@ -319,6 +331,7 @@ class TestAuthorMergeEngine:
                 "author": {"key": "/authors/a"}
             }]
         }
+
 
 def test_dicthash():
     uniq = merge_authors.uniq

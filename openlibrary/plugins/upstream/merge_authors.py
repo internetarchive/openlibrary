@@ -13,55 +13,108 @@ from openlibrary.utils import uniq, dicthash
 import six
 
 
+def get_many(keys):
+    """
+    :param list of str keys:
+    :rtype: list of dict
+    """
+    def process(doc):
+        # some books have bad table_of_contents. Fix them to avoid failure on save.
+        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
+            doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+        return doc
+
+    return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
+
+
+def make_redirect_doc(key, redirect):
+    return {
+        "key": key,
+        "type": {"key": "/type/redirect"},
+        "location": redirect
+    }
+
+
+class BasicRedirectEngine:
+    """
+    Creates redirects whilst updating backrefs
+    """
+    def make_redirects(self, master, duplicates):
+        # Create the actual redirect objects
+        docs_to_save = [make_redirect_doc(key, master) for key in duplicates]
+
+        # find the references of each duplicate and convert them
+        references = self.find_all_backreferences(duplicates)
+        docs = get_many(references)
+        docs_to_save.extend(self.convert_doc(doc, master, duplicates) for doc in docs)
+        return docs_to_save
+
+    def find_backreferences(self, key):
+        """
+        Returns keys of all the docs which have a reference to the given key.
+        All the subclasses must provide an implementation for this method.
+        """
+        raise NotImplementedError()
+
+    def find_all_backreferences(self, keys):
+        references = set()
+        for key in keys:
+            references.update(self.find_backreferences(key))
+        return list(references)
+
+    def convert_doc(self, doc, master, duplicates):
+        """Converts references to any of the duplicates in the given doc to the master.
+        """
+        if isinstance(doc, dict):
+            if list(doc) == ['key']:
+                key = doc['key']
+                if key in duplicates:
+                    return {"key": master}
+                else:
+                    return doc
+            else:
+                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
+                            in doc.items())
+        elif isinstance(doc, list):
+            values = [self.convert_doc(v, master, duplicates) for v in doc]
+            return uniq(values, key=dicthash)
+        else:
+            return doc
+
+
 class BasicMergeEngine:
     """Generic merge functionality useful for all types of merges.
     """
+
+    def __init__(self, redirect_engine):
+        """
+        :param BasicRedirectEngine redirect_engine:
+        """
+        self.redirect_engine = redirect_engine
+
     def merge(self, master, duplicates):
         docs = self.do_merge(master, duplicates)
         return self.save(docs, master, duplicates)
 
     def do_merge(self, master, duplicates):
-        """Performs the merge and returns the list of docs to save.
+        """
+        Performs the merge and returns the list of docs to save.
+        :param str master: key of master doc
+        :param list of str duplicates: keys of duplicates
+        :rtype: dict
+        :return: Document to save
         """
         docs_to_save = []
+        docs_to_save.extend(self.redirect_engine.make_redirects(master, duplicates))
 
-        # mark all the duplcates as redirects to the master
-        docs_to_save.extend(self.make_redirect_doc(key, master) for key in duplicates)
-
-        # find the references of each duplicate and covert them
-        references = self.find_all_backreferences(duplicates)
-        docs = self.get_many(references)
-        docs_to_save.extend(self.convert_doc(doc, master, duplicates) for doc in docs)
-
-        # finally, merge all the duplicates into the master.
+        # Merge all the duplicates into the master.
         master_doc = web.ctx.site.get(master).dict()
-        dups = self.get_many(duplicates)
+        dups = get_many(duplicates)
         for d in dups:
             master_doc = self.merge_docs(master_doc, d)
 
         docs_to_save.append(master_doc)
         return docs_to_save
-
-    def get_many(self, keys):
-        def process(doc):
-            # some books have bad table_of_contents. Fix them to avoid failure on save.
-            if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
-                doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
-            return doc
-        return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
-
-    def find_all_backreferences(self, duplicates):
-        references = set()
-        for key in duplicates:
-            references.update(self.find_backreferences(key))
-        return list(references)
-
-    def find_backreferences(self, key):
-        """Returns keys of all the docs which have a reference to the given key.
-
-        All the subclasses must provide an implementation for this method.
-        """
-        raise NotImplementedError()
 
     def save(self, docs, master, duplicates):
         """Saves the effected docs because of merge.
@@ -84,31 +137,25 @@ class BasicMergeEngine:
         else:
             return a
 
-    def make_redirect_doc(self, key, redirect):
-        return {
-            "key": key,
-            "type": {"key": "/type/redirect"},
-            "location": redirect
-        }
 
-    def convert_doc(self, doc, master, duplicates):
-        """Converts references to any of the duplicates in the given doc to the master.
-        """
-        if isinstance(doc, dict):
-            if list(doc) == ['key']:
-                key = doc['key']
-                if key in duplicates:
-                    return {"key": master}
-                else:
-                    return doc
-            else:
-                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
-                            in doc.items())
-        elif isinstance(doc, list):
-            values = [self.convert_doc(v, master, duplicates) for v in doc]
-            return uniq(values, key=dicthash)
-        else:
-            return doc
+class AuthorRedirectEngine(BasicRedirectEngine):
+    def find_backreferences(self, key):
+        q = {
+            "type": "/type/edition",
+            "authors": key,
+            "limit": 10000
+        }
+        edition_keys = web.ctx.site.things(q)
+        editions = get_many(edition_keys)
+        work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
+
+        q = {
+            "type": "/type/work",
+            "authors": {"author": {"key": key}},
+            "limit": 10000
+        }
+        work_keys_2 = web.ctx.site.things(q)
+        return edition_keys + work_keys_1 + work_keys_2
 
 
 class AuthorMergeEngine(BasicMergeEngine):
@@ -155,25 +202,6 @@ class AuthorMergeEngine(BasicMergeEngine):
     def _get_memcache(self):
         from openlibrary.plugins.openlibrary import connection
         return connection._memcache
-
-    def find_backreferences(self, key):
-        q = {
-            "type": "/type/edition",
-            "authors": key,
-            "limit": 10000
-        }
-        edition_keys = web.ctx.site.things(q)
-
-        editions = self.get_many(edition_keys)
-        work_keys_1 = [w['key'] for e in editions for w in e.get('works', [])]
-
-        q = {
-            "type": "/type/work",
-            "authors": {"author": {"key": key}},
-            "limit": 10000
-        }
-        work_keys_2 = web.ctx.site.things(q)
-        return edition_keys + work_keys_1 + work_keys_2
 
 
 re_whitespace = re.compile(r'\s+')
@@ -278,12 +306,13 @@ class merge_authors_json(delegate.page):
         master = data['master']
         duplicates = data['duplicates']
 
-        engine = AuthorMergeEngine()
+        engine = AuthorMergeEngine(AuthorRedirectEngine())
         try:
             result = engine.merge(master, duplicates)
         except ClientException as e:
             raise web.badrequest(simplejson.loads(e.json))
         return delegate.RawText(simplejson.dumps(result), content_type="application/json")
+
 
 def setup():
     pass
