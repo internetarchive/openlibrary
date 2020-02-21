@@ -189,14 +189,14 @@ class TestAuthorRedirectEngine:
         }
 
         # edition having duplicate author
-        self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL1A"}],
             "title": "book 1"
         }
 
         # edition not having duplicate author
-        self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
             "title": "book 1"
@@ -213,7 +213,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work having duplicate author
-        self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
@@ -223,7 +223,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work not having duplicate author
-        self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
