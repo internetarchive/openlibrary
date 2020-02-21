@@ -977,7 +977,7 @@ class UpdateRequest:
         node = dict2element(self.doc)
         root = Element("add")
         root.append(node)
-        return tostring(root)
+        return six.ensure_text(tostring(root))
 
     def tojson(self):
         """
