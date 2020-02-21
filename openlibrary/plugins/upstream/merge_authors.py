@@ -45,9 +45,8 @@ class BasicMergeEngine:
     def get_many(self, keys):
         def process(doc):
             # some books have bad table_of_contents. Fix them to avoid failure on save.
-            if doc['type']['key'] == "/type/edition":
-                if 'table_of_contents' in doc:
-                    doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+            if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
+                doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
             return doc
         return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
 
@@ -71,7 +70,7 @@ class BasicMergeEngine:
         """
         raise NotImplementedError()
 
-    def merge_docs(self, master, dup, ignore=[]):
+    def merge_docs(self, master, dup):
         """Merge duplicate doc into master doc.
         """
         keys = set(list(master) + list(dup))
@@ -110,6 +109,7 @@ class BasicMergeEngine:
             return uniq(values, key=dicthash)
         else:
             return doc
+
 
 class AuthorMergeEngine(BasicMergeEngine):
     def merge_docs(self, master, dup):
@@ -175,15 +175,22 @@ class AuthorMergeEngine(BasicMergeEngine):
         work_keys_2 = web.ctx.site.things(q)
         return edition_keys + work_keys_1 + work_keys_2
 
+
 re_whitespace = re.compile(r'\s+')
+
+
 def space_squash_and_strip(s):
     return re_whitespace.sub(' ', s).strip()
+
 
 def name_eq(n1, n2):
     return space_squash_and_strip(n1) == space_squash_and_strip(n2)
 
+
 def fix_table_of_contents(table_of_contents):
-    """Some books have bad table_of_contents. This function converts them in to correct format.
+    """
+    Some books have bad table_of_contents. This function converts them in to correct format.
+    :param typing.List[typing.Union[str, dict]] table_of_contents:
     """
     def row(r):
         if isinstance(r, six.string_types):
@@ -205,8 +212,8 @@ def fix_table_of_contents(table_of_contents):
         r = web.storage(level=level, label=label, title=title, pagenum=pagenum)
         return r
 
-    d = [row(r) for r in table_of_contents]
-    return [row for row in d if any(row.values())]
+    return [row for row in map(row, table_of_contents) if any(row.values())]
+
 
 class merge_authors(delegate.page):
     path = '/authors/merge'
@@ -251,6 +258,7 @@ class merge_authors(delegate.page):
             # redirect to the master. The master will display a progressbar and call the merge_authors_json to trigger the merge.
             master = web.ctx.site.get("/authors/" + i.master)
             raise web.seeother(master.url() + "?merge=true&duplicates=" + ",".join(selected))
+
 
 class merge_authors_json(delegate.page):
     """JSON API for merge authors.
