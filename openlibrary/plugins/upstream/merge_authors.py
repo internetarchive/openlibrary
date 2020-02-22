@@ -13,40 +13,24 @@ from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
 
 
-def get_many(keys):
-    """
-    :param list of str keys:
-    :rtype: list of dict
-    """
-    def process(doc):
-        # some books have bad table_of_contents. Fix them to avoid failure on save.
-        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
-            doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
-        return doc
-
-    return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
-
-
-def make_redirect_doc(key, redirect):
-    return {
-        "key": key,
-        "type": {"key": "/type/redirect"},
-        "location": redirect
-    }
-
-
 class BasicRedirectEngine:
     """
     Creates redirects whilst updating backrefs
     """
     def make_redirects(self, master, duplicates):
+        """
+        :param str master:
+        :param list of str duplicates:
+        :rtype: list of dict
+        """
         # Create the actual redirect objects
         docs_to_save = [make_redirect_doc(key, master) for key in duplicates]
 
         # find the references of each duplicate and convert them
         references = self.find_all_backreferences(duplicates)
         docs = get_many(references)
-        docs_to_save.extend(self.convert_doc(doc, master, duplicates) for doc in docs)
+        docs_to_save.extend(
+            self.update_backreferences(doc, master, duplicates) for doc in docs)
         return docs_to_save
 
     def find_backreferences(self, key):
@@ -62,8 +46,14 @@ class BasicRedirectEngine:
         backrefs = set(ref for key in keys for ref in self.find_backreferences(key))
         return list(backrefs)
 
-    def convert_doc(self, doc, master, duplicates):
-        """Converts references to any of the duplicates in the given doc to the master.
+    def update_backreferences(self, doc, master, duplicates):
+        """
+        Converts references to any of the duplicates in the given doc to the master.
+
+        :param A doc:
+        :param str master:
+        :param list of str duplicates:
+        :rtype: A
         """
         if isinstance(doc, dict):
             if list(doc) == ['key']:
@@ -73,17 +63,19 @@ class BasicRedirectEngine:
                 else:
                     return doc
             else:
-                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
-                            in doc.items())
+                return dict(
+                    (k, self.update_backreferences(v, master, duplicates))
+                    for k, v in doc.items())
         elif isinstance(doc, list):
-            values = [self.convert_doc(v, master, duplicates) for v in doc]
+            values = [self.update_backreferences(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)
         else:
             return doc
 
 
 class BasicMergeEngine:
-    """Generic merge functionality useful for all types of merges.
+    """
+    Generic merge functionality useful for all types of merges.
     """
 
     def __init__(self, redirect_engine):
@@ -247,6 +239,28 @@ def fix_table_of_contents(table_of_contents):
         return r
 
     return [row for row in map(row, table_of_contents) if any(row.values())]
+
+
+def get_many(keys):
+    """
+    :param list of str keys:
+    :rtype: list of dict
+    """
+    def process(doc):
+        # some books have bad table_of_contents. Fix them to avoid failure on save.
+        if doc['type']['key'] == "/type/edition" and 'table_of_contents' in doc:
+            doc['table_of_contents'] = fix_table_of_contents(doc['table_of_contents'])
+        return doc
+
+    return [process(thing.dict()) for thing in web.ctx.site.get_many(list(keys))]
+
+
+def make_redirect_doc(key, redirect):
+    return {
+        "key": key,
+        "type": {"key": "/type/redirect"},
+        "location": redirect
+    }
 
 
 class merge_authors(delegate.page):

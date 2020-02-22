@@ -93,7 +93,8 @@ def test_make_redirect_doc():
 
 
 class TestBasicRedirectEngine:
-    def test_convert_doc(self):
+    def test_update_backreferences(self):
+        engine = BasicRedirectEngine()
         doc = {
             "key": "/a",
             "type": {"key": "/type/object"},
@@ -112,7 +113,7 @@ class TestBasicRedirectEngine:
             }]
         }
 
-        assert BasicRedirectEngine().convert_doc(doc, "/c", ["/b"]) == {
+        assert engine.update_backreferences(doc, "/c", ["/b"]) == {
             "key": "/a",
             "type": {"key": "/type/object"},
             "x1": [{"key": "/c"}],
@@ -183,14 +184,14 @@ class TestAuthorRedirectEngine:
         }
 
         # edition having duplicate author
-        assert self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert self.engine.update_backreferences(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL1A"}],
             "title": "book 1"
         }
 
         # edition not having duplicate author
-        assert self.engine.convert_doc(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert self.engine.update_backreferences(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
             "title": "book 1"
@@ -207,7 +208,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work having duplicate author
-        assert self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert self.engine.update_backreferences(work, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
@@ -217,7 +218,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work not having duplicate author
-        assert self.engine.convert_doc(work, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert self.engine.update_backreferences(work, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
