@@ -7,7 +7,7 @@ def setup_module(mod):
 
     # models module imports openlibrary.code, which imports ol_infobase and that expects db_parameters.
     web.config.db_parameters = dict(dbn="sqlite", db=":memory:")
-    from .. import models
+    from openlibrary.plugins.upstream import models
     models.setup()
 
 class MockSite(client.Site):
@@ -65,7 +65,7 @@ def test_MockSite():
     ])
     assert list(site.docs) == ["a", "b"]
 
-testdata = web.storage({
+TEST_AUTHORS = web.storage({
     "a": {
         "key": "/authors/a",
         "type": {"key": "/type/author"},
@@ -233,7 +233,7 @@ class TestAuthorMergeEngine:
         web.ctx.site = MockSite()
 
     def test_redirection(self):
-        web.ctx.site.add([testdata.a, testdata.b, testdata.c])
+        web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
         self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
 
         # assert redirection
@@ -249,13 +249,13 @@ class TestAuthorMergeEngine:
         }
 
     def test_alternate_names(self):
-        web.ctx.site.add([testdata.a, testdata.b, testdata.c])
+        web.ctx.site.add([TEST_AUTHORS.a, TEST_AUTHORS.b, TEST_AUTHORS.c])
         self.engine.merge("/authors/a", ["/authors/b", "/authors/c"])
         assert web.ctx.site.get("/authors/a").alternate_names == ["b", "c"]
 
     def test_photos(self):
-        a = dict(testdata.a, photos=[1, 2])
-        b = dict(testdata.b, photos=[3, 4])
+        a = dict(TEST_AUTHORS.a, photos=[1, 2])
+        b = dict(TEST_AUTHORS.b, photos=[3, 4])
 
         web.ctx.site.add([a, b])
         self.engine.merge("/authors/a", ["/authors/b"])
@@ -273,8 +273,8 @@ class TestAuthorMergeEngine:
             "url": "http://example.com/b"
         }
 
-        a = dict(testdata.a, links=[link_a])
-        b = dict(testdata.b, links=[link_b])
+        a = dict(TEST_AUTHORS.a, links=[link_a])
+        b = dict(TEST_AUTHORS.b, links=[link_b])
         web.ctx.site.add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
@@ -286,8 +286,8 @@ class TestAuthorMergeEngine:
         the new filed must be copied to the master.
         """
         birth_date = "1910-01-02"
-        a = testdata.a
-        b = dict(testdata.b, birth_date=birth_date)
+        a = TEST_AUTHORS.a
+        b = dict(TEST_AUTHORS.b, birth_date=birth_date)
         web.ctx.site.add([a, b])
 
         self.engine.merge("/authors/a", ["/authors/b"])
@@ -295,8 +295,8 @@ class TestAuthorMergeEngine:
         assert master_birth_date == birth_date
 
     def test_work_authors(self):
-        a = testdata.a
-        b = testdata.b
+        a = TEST_AUTHORS.a
+        b = TEST_AUTHORS.b
         work_b = {
             "key": "/works/OL1W",
             "type": {"key": "/type/work"},
@@ -328,5 +328,15 @@ class TestAuthorMergeEngine:
 
 
 def test_dicthash():
-    a = {"a": 1}
-    assert uniq([a, a], key=dicthash) == [a]
+    assert dicthash({}) == dicthash({})
+    assert dicthash({"a": 1}) == dicthash({"a": 1})
+    assert dicthash({"a": 1, "b": 2}) == dicthash({"b": 2, "a": 1})
+    assert dicthash({}) != dicthash({"a": 1})
+    assert dicthash({"b": 1}) != dicthash({"a": 1})
+
+
+def test_space_squash_and_strip():
+    assert space_squash_and_strip("Hello") == space_squash_and_strip("Hello")
+    assert space_squash_and_strip("Hello") != space_squash_and_strip("hello")
+    assert space_squash_and_strip("") == space_squash_and_strip("")
+    assert space_squash_and_strip("hello world") == space_squash_and_strip("hello    world  ")
