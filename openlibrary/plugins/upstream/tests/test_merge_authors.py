@@ -160,8 +160,6 @@ def test_get_many():
     }
     web.ctx.site.add([edition, type_edition])
 
-    t = web.ctx.site.get("/books/OL1M")
-
     assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
 
     assert merge_authors.get_many(["/books/OL1M"])[0] == {

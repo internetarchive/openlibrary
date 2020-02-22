@@ -53,14 +53,14 @@ class BasicRedirectEngine:
         """
         Returns keys of all the docs which have a reference to the given key.
         All the subclasses must provide an implementation for this method.
+        :param str key: e.g. /works/OL1W
+        :rtype: list of str
         """
         raise NotImplementedError()
 
     def find_all_backreferences(self, keys):
-        references = set()
-        for key in keys:
-            references.update(self.find_backreferences(key))
-        return list(references)
+        backrefs = set(ref for key in keys for ref in self.find_backreferences(key))
+        return list(backrefs)
 
     def convert_doc(self, doc, master, duplicates):
         """Converts references to any of the duplicates in the given doc to the master.
@@ -170,27 +170,33 @@ class AuthorMergeEngine(BasicMergeEngine):
         return master
 
     def save(self, docs, master, duplicates):
-        data = {
-            "master": master,
-            "duplicates": list(duplicates)
+        # There is a bug (#89) due to which old revisions of the docs are being sent to
+        # save. Collecting all the possible information to detect the problem and
+        # saving it in datastore. See that data here:
+        # https://openlibrary.org/admin/inspect/store?type=merge-authors-debug&name=bad_merge&value=true
+        mc = self._get_memcache()
+        debug_doc = {
+            'type': 'merge-authors-debug',
+            'memcache': mc and dict(
+                (k, simplejson.loads(v))
+                for k, v in mc.get_multi([doc['key'] for doc in docs]).items()),
+            'docs': docs,
         }
 
-        # There is a bug (#89) due to which old revisions of the docs are being sent to save.
-        # Collecting all the possible information to detect the problem and saving it in datastore.
-        debug_doc = {}
-        debug_doc['type'] = 'merge-authors-debug'
-        mc = self._get_memcache()
-        debug_doc['memcache'] = mc and dict((k, simplejson.loads(v)) for k, v in mc.get_multi([doc['key'] for doc in docs]).items())
-        debug_doc['docs'] = docs
+        result = web.ctx.site.save_many(
+            docs, comment='merge authors', action="merge-authors",
+            data={
+                "master": master,
+                "duplicates": list(duplicates)
+            })
+        before_revs = dict((doc['key'], doc.get('revision')) for doc in docs)
+        after_revs = dict((row['key'], row['revision']) for row in result)
 
-        result = web.ctx.site.save_many(docs, comment='merge authors', action="merge-authors", data=data)
-
-        docrevs= dict((doc['key'], doc.get('revision')) for doc in docs)
-        revs = dict((row['key'], row['revision']) for row in result)
-
-        # Bad merges are happening when we are getting non-recent docs.
-        # That can be identified by checking difference in the revision numbers before and after save
-        bad_merge = any(revs[k]-docrevs[k] > 1 for k in revs if docrevs[k] is not None)
+        # Bad merges are happening when we are getting non-recent docs. That can be
+        # identified by checking difference in the revision numbers before/after save
+        bad_merge = any(
+            after_revs[key] > before_revs[key] + 1
+            for key in after_revs if before_revs[key] is not None)
 
         debug_doc['bad_merge'] = str(bad_merge).lower()
         debug_doc['result'] = result
@@ -275,10 +281,7 @@ class merge_authors(delegate.page):
         if i.master in selected:
             selected.remove(i.master)
 
-        formdata = web.storage(
-            master=i.master,
-            selected=selected
-        )
+        formdata = web.storage(master=i.master, selected=selected)
 
         if not i.master or len(selected) == 0:
             return render_template("merge/authors", keys, top_books_from_author=top_books_from_author, formdata=formdata)
