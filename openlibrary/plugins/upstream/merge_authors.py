@@ -1,16 +1,16 @@
 """Merge authors.
 """
-import web
 import re
+
 import simplejson
+import six
+import web
+
+from infogami.infobase.client import ClientException
 from infogami.utils import delegate
 from infogami.utils.view import render_template, safeint
-from infogami.infobase.client import ClientException
-
 from openlibrary.plugins.worksearch.code import top_books_from_author
 from openlibrary.utils import uniq, dicthash
-
-import six
 
 
 def get_many(keys):

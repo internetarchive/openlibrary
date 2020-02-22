@@ -1,9 +1,6 @@
-import web
-
 from infogami.infobase import client, common
-from infogami.utils import delegate
+from openlibrary.plugins.upstream.merge_authors import *
 
-from .. import merge_authors
 
 def setup_module(mod):
     #delegate.fakeload()
@@ -33,10 +30,10 @@ class MockSite(client.Site):
         return client.create_thing(self, key, data)
 
     def things(self, query):
-        return self.query_results.get(merge_authors.dicthash(query), [])
+        return self.query_results.get(dicthash(query), [])
 
     def add_query(self, query, result):
-        self.query_results[merge_authors.dicthash(query)] = result
+        self.query_results[dicthash(query)] = result
 
     def get_dict(self, key):
         return self.get(key).dict()
@@ -88,7 +85,7 @@ testdata = web.storage({
 
 
 def test_make_redirect_doc():
-    assert merge_authors.make_redirect_doc("/a", "/b") == {
+    assert make_redirect_doc("/a", "/b") == {
         "key": "/a",
         "type": {"key": "/type/redirect"},
         "location": "/b"
@@ -97,7 +94,6 @@ def test_make_redirect_doc():
 
 class TestBasicRedirectEngine:
     def test_convert_doc(self):
-        engine = merge_authors.BasicRedirectEngine()
         doc = {
             "key": "/a",
             "type": {"key": "/type/object"},
@@ -116,7 +112,7 @@ class TestBasicRedirectEngine:
             }]
         }
 
-        assert engine.convert_doc(doc, "/c", ["/b"]) == {
+        assert BasicRedirectEngine().convert_doc(doc, "/c", ["/b"]) == {
             "key": "/a",
             "type": {"key": "/type/object"},
             "x1": [{"key": "/c"}],
@@ -134,7 +130,7 @@ class TestBasicRedirectEngine:
 
 class TestBasicMergeEngine:
     def test_merge_property(self):
-        engine = merge_authors.BasicMergeEngine(merge_authors.BasicRedirectEngine())
+        engine = BasicMergeEngine(BasicRedirectEngine())
 
         assert engine.merge_property(None, "hello") == "hello"
         assert engine.merge_property("hello", None) == "hello"
@@ -162,7 +158,7 @@ def test_get_many():
 
     assert web.ctx.site.get("/books/OL1M").type.key == "/type/edition"
 
-    assert merge_authors.get_many(["/books/OL1M"])[0] == {
+    assert get_many(["/books/OL1M"])[0] == {
         "key": "/books/OL1M",
         "type": {"key": "/type/edition"},
         "table_of_contents": [{
@@ -176,7 +172,7 @@ def test_get_many():
 
 class TestAuthorRedirectEngine:
     def setup_method(self, method):
-        self.engine = merge_authors.AuthorRedirectEngine()
+        self.engine = AuthorRedirectEngine()
         web.ctx.site = MockSite()
 
     def test_fix_edition(self):
@@ -233,7 +229,7 @@ class TestAuthorRedirectEngine:
 
 class TestAuthorMergeEngine:
     def setup_method(self, method):
-        self.engine = merge_authors.AuthorMergeEngine(merge_authors.AuthorRedirectEngine())
+        self.engine = AuthorMergeEngine(AuthorRedirectEngine())
         web.ctx.site = MockSite()
 
     def test_redirection(self):
@@ -332,8 +328,5 @@ class TestAuthorMergeEngine:
 
 
 def test_dicthash():
-    uniq = merge_authors.uniq
-    dicthash = merge_authors.dicthash
-
     a = {"a": 1}
     assert uniq([a, a], key=dicthash) == [a]
