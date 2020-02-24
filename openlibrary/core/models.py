@@ -283,7 +283,7 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return ('lendinglibrary' in collections
+        return (('lendinglibrary' in collections or 'inlibrary' in collections)
                 and not self.is_in_private_collection())
 
     def can_borrow(self):
