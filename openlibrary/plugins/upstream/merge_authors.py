@@ -215,7 +215,7 @@ def name_eq(n1, n2):
 
 def fix_table_of_contents(table_of_contents):
     """
-    Some books have bad table_of_contents. This function converts them in to correct format.
+    Some books have bad table_of_contents--convert them in to correct format.
     :param typing.List[typing.Union[str, dict]] table_of_contents:
     """
     def row(r):

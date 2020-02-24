@@ -1,5 +1,16 @@
+import web
+
 from infogami.infobase import client, common
-from openlibrary.plugins.upstream.merge_authors import *
+from openlibrary.plugins.upstream.merge_authors import (
+    AuthorMergeEngine,
+    AuthorRedirectEngine,
+    BasicMergeEngine,
+    BasicRedirectEngine,
+    get_many,
+    make_redirect_doc,
+    space_squash_and_strip,
+)
+from openlibrary.utils import dicthash
 
 
 def setup_module(mod):
@@ -64,6 +75,7 @@ def test_MockSite():
         }
     ])
     assert list(site.docs) == ["a", "b"]
+
 
 TEST_AUTHORS = web.storage({
     "a": {
@@ -173,10 +185,10 @@ def test_get_many():
 
 class TestAuthorRedirectEngine:
     def setup_method(self, method):
-        self.engine = AuthorRedirectEngine()
         web.ctx.site = MockSite()
 
     def test_fix_edition(self):
+        update_backreferences = AuthorRedirectEngine().update_backreferences
         edition = {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
@@ -184,20 +196,21 @@ class TestAuthorRedirectEngine:
         }
 
         # edition having duplicate author
-        assert self.engine.update_backreferences(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert update_backreferences(edition, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL1A"}],
             "title": "book 1"
         }
 
         # edition not having duplicate author
-        assert self.engine.update_backreferences(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert update_backreferences(edition, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/books/OL2M",
             "authors": [{"key": "/authors/OL2A"}],
             "title": "book 1"
         }
 
     def test_fix_work(self):
+        update_backreferences = AuthorRedirectEngine().update_backreferences
         work = {
             "key": "/works/OL2W",
             "authors": [{
@@ -208,7 +221,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work having duplicate author
-        assert self.engine.update_backreferences(work, "/authors/OL1A", ["/authors/OL2A"]) == {
+        assert update_backreferences(work, "/authors/OL1A", ["/authors/OL2A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
@@ -218,7 +231,7 @@ class TestAuthorRedirectEngine:
         }
 
         # work not having duplicate author
-        assert self.engine.update_backreferences(work, "/authors/OL1A", ["/authors/OL3A"]) == {
+        assert update_backreferences(work, "/authors/OL1A", ["/authors/OL3A"]) == {
             "key": "/works/OL2W",
             "authors": [{
                 "type": {"key": "/type/author_role"},
@@ -337,7 +350,8 @@ def test_dicthash():
 
 
 def test_space_squash_and_strip():
-    assert space_squash_and_strip("Hello") == space_squash_and_strip("Hello")
-    assert space_squash_and_strip("Hello") != space_squash_and_strip("hello")
-    assert space_squash_and_strip("") == space_squash_and_strip("")
-    assert space_squash_and_strip("hello world") == space_squash_and_strip("hello    world  ")
+    f = space_squash_and_strip
+    assert f("Hello") == f("Hello")
+    assert f("Hello") != f("hello")
+    assert f("") == f("")
+    assert f("hello world") == f("hello    world  ")
