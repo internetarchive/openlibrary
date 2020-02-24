@@ -1,16 +1,16 @@
 <!-- What issue does this PR close? -->
-Closes #3046 Adding the line break for better UI on Recent Changes page
+Closes #
+
 <!-- What does this PR achieve? [feature|hotfix|fix|refactor] -->
-feature
 
 ### Technical
-a <br> tag is used to create a line-break between the div id="contentHead" and  class ="subnav".
+<!-- What should be noted about the implementation? -->
 
 ### Testing
-run the server once and we can see that index.html has a line break in between.
+<!-- Steps for reviewer to reproduce/verify what this PR does/fixes. -->
 
 ### Evidence
 <!-- If this PR touches UI, please post evidence (screenshots) of it behaving correctly. -->
 
 ### Stakeholders
-@aashimgarg
+<!-- @ tag stakeholders of this bug -->
