@@ -7,7 +7,7 @@ from collections import defaultdict
 import cgi
 import web
 import simplejson
-from openlibrary.plugins.search.facet_hash import facet_token
+from facet_hash import facet_token
 import pdb
 
 import six
