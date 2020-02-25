@@ -70,7 +70,6 @@ def lookup_ocaid(ocaid):
     return w
 
 from collapse import collapse_groups
-
 class fullsearch(delegate.page):
     def POST(self):
         errortext = None
