@@ -36,8 +36,7 @@ def parse_arguments():
     parser.add_argument('-c', '--config')
     parser.add_argument('--debugger', action="store_true", help="Wait for a debugger to attach before beginning.")
     parser.add_argument('--state-file', default="solr-update.state")
-    parser.add_argument('--exclude-edits',
-                        help="Don't index edits containing the string anywhere")
+    parser.add_argument('--exclude-edits-containing', help="Don't index matching edits")
     parser.add_argument('--ol-url', default="http://openlibrary.org/")
     parser.add_argument('--socket-timeout', type=int, default=10)
     parser.add_argument('--load-ia-scans', dest="load_ia_scans", action="store_true", default=False)
