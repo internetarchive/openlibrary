@@ -2,7 +2,7 @@
 OL Import API RDF parser
 """
 
-from openlibrary.plugins.importapi import import_edition_builder
+import import_edition_builder
 
 import six
 
