@@ -2,7 +2,7 @@
 OL Import API OPDS parser
 """
 
-import_edition_builder
+import import_edition_builder
 
 import six
 
