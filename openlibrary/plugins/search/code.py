@@ -19,8 +19,7 @@ from collections import defaultdict
 
 import six
 
-from openlibrary.plugins.search import facet_hash, solr_client
-from openlibrary.plugins.search.collapse import collapse_groups
+from openlibrary.plugins.search import solr_client, stopword
 
 render = template.render
 
@@ -70,6 +69,7 @@ def lookup_ocaid(ocaid):
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
 
+from collapse import collapse_groups
 
 class fullsearch(delegate.page):
     def POST(self):
@@ -135,6 +135,7 @@ class fullsearch(delegate.page):
 
     GET = POST
 
+import facet_hash
 facet_token = view.public(facet_hash.facet_token)
 
 class Timestamp(object):
