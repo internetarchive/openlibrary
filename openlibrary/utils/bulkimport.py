@@ -124,15 +124,15 @@ class DocumentLoader:
         result = [{'key': doc['key'], 'revision': doc['revision'], 'id': doc['id']} for doc in documents]
 
         # insert data
-        try:
-            data = []
-            for doc in documents:
+        data = []
+        for doc in documents:
+            try:
                 data.append(dict(thing_id=doc.pop('id'),
                                  revision=doc['revision'],
                                  data=simplejson.dumps(doc)))
-        except UnicodeDecodeError:
-            print(repr(doc))
-            raise
+            except UnicodeDecodeError:
+                print(repr(doc))
+                raise
         self.db.multiple_insert('data', data, seqname=False)
         return result
 
