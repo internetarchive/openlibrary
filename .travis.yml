@@ -1,27 +1,22 @@
 os: linux
-dist: bionic
+dist: xenial
 language: python
 jobs:
   include:
     - name: “Python 2.7 on xenial”
       python: "2.7"
       dist: xenial
-    - name: “Python 2.7 on bionic”
-      python: "2.7"
     - name: “Python 3.8 make lint only”
       python: "3.8"
       install: pip install flake8
       script:
-        - make lint
         # On pull requests, run all flake8 tests on modified code
-        # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
-        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
-            git diff origin/master -U0 | flake8 --diff --max-line-length=88;
-          fi
-    - name: “Python 3.8 on bionic”
+        - make lint-diff
+        - make lint
+    - name: “Python 3.8 on xenial”
       python: "3.8"
   allow_failures:
-    - name: “Python 3.8 on bionic”
+    - name: “Python 3.8 on xenial”
 install:
   - pip install flake8
   - make lint
