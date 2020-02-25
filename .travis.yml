@@ -5,7 +5,6 @@ jobs:
   include:
     - name: “Python 2.7 on xenial”
       python: "2.7"
-      dist: xenial
     - name: “Python 3.8 make lint only”
       python: "3.8"
       install: pip install flake8
