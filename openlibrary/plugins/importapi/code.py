@@ -19,8 +19,9 @@ import base64
 import json
 import re
 
-from openlibrary.plugins.importapi import (import_edition_builder, import_opds,
-                                           import_rdf)
+import import_opds
+import import_rdf
+import import_edition_builder
 from lxml import etree
 import logging
 
