@@ -22,7 +22,7 @@ amazon_api = None
 config_amz_api = None
 
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
-BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?ItemId='
+BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
@@ -406,7 +406,7 @@ def _get_betterworldbooks_metadata(isbn):
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
     used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
-
+    market_price = re.findall(r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>", response)
     price = qlt = None
 
     if used_qty and used_qty[0] and used_qty[0] != '0':
@@ -419,10 +419,12 @@ def _get_betterworldbooks_metadata(isbn):
             price = _price
             qlt = 'new'
 
-    return betterworldbooks_fmt(isbn, qlt, price)
+    market_price = market_price and '$' + market_price[0]
+
+    return betterworldbooks_fmt(isbn, qlt, price, market_price)
 
 
-def betterworldbooks_fmt(isbn, qlt=None, price=None):
+def betterworldbooks_fmt(isbn, qlt=None, price=None, market_price=None):
     """Defines a standard interface for returning bwb price info
 
     :param str isbn:
@@ -434,6 +436,7 @@ def betterworldbooks_fmt(isbn, qlt=None, price=None):
     return {
         'url': BWB_AFFILIATE_LINK % isbn,
         'isbn': isbn,
+        'market_price': market_price,
         'price': price_fmt,
         'price_amt': price,
         'qlt': qlt
