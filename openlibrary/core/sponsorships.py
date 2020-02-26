@@ -206,6 +206,10 @@ def summary():
     STATUSES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
     status_counts = OrderedDict((status, 0) for status in STATUSES)
     for book in items:
+        # Official sponsored items set repub_state -1 at item creation,
+        # bulk sponsorship (item created at time of scanning by ttscribe)
+        # will not be repub_state -1. Thus. books which have repub_state -1
+        # and no price are those we need to digitize:
         if int(book.get('repub_state', -1)) == -1 and not book.get('book_price'):
             book['status'] = STATUSES[0]
             status_counts[STATUSES[0]] += 1
