@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "webpack --watch --mode=development --progress",
     "build-assets:webpack": "NODE_ENV=production webpack --mode=production",
-    "build-assets": "make js && make css",
+    "build-assets": "make js && make css && make components",
     "check-bundles": "npm run build-assets && bundlesize",
     "svg-min": "svgo --config .svgo.yml static/images/**/*.svg static/images/*.svg",
     "lint:fix": "eslint --config .eslintrc.json . --fix && stylelint --syntax less --fix static/css/",
