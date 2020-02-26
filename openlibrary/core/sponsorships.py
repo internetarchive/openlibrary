@@ -177,6 +177,7 @@ def qualifies_for_sponsorship(edition):
     return resp
 
 def get_sponsored_books():
+    """Performs the `ia` query to fetch sponsored books from archive.org"""
     from internetarchive import search_items
     params = {'page': 1, 'rows': 1000}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
