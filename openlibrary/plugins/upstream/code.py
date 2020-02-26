@@ -94,10 +94,10 @@ class library_explorer(delegate.page):
 
 
 class merge_work(delegate.page):
-    path = r"(/works/OL\d+W)/merge"
+    path = "/works/merge"
 
-    def GET(self, key):
-        return "This looks like a good place for a merge UI!"
+    def GET(self, keys):
+        return render_component('MergeUI')
 
     def POST(self, key):
         pass
