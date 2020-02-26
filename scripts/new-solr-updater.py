@@ -261,7 +261,8 @@ def main():
     state_file = args.state_file
     offset = read_state_file(state_file)
 
-    logfile = InfobaseLog(config.get('infobase_server'), exclude=args.exclude_edits)
+    logfile = InfobaseLog(config.get('infobase_server'),
+                          exclude=args.exclude_edits_containing)
     logfile.seek(offset)
 
     solr = Solr()
