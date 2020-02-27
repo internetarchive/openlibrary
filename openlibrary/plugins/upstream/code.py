@@ -16,6 +16,8 @@ from infogami.utils.view import public, safeint, render
 from infogami.utils.view import render_template  # noqa: F401 used for its side effects
 from infogami.utils.context import context
 
+from utils import render_template
+
 from openlibrary import accounts
 
 from openlibrary.plugins.upstream import addbook, covers, merge_authors, models, utils
@@ -96,10 +98,10 @@ class library_explorer(delegate.page):
 class merge_work(delegate.page):
     path = "/works/merge"
 
-    def GET(self, keys):
-        return render_component('MergeUI')
+    def GET(self):
+        return render_template('merge/works')
 
-    def POST(self, key):
+    def POST(self):
         pass
 
 
