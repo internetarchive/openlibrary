@@ -8,11 +8,14 @@ jobs:
       dist: xenial
     - name: “Python 2.7 on bionic”
       python: "2.7"
-    - name: “Python 3.8 make lint only”
+    - name: “Python 3.8 make lint and some pytests”
       python: "3.8"
       install: pip install flake8
       script:
         - make lint
+        - pip install -r requirements_test.txt
+        - pushd vendor/infogami && git pull origin master && popd
+        - pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests
         # On pull requests, run all flake8 tests on modified code
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
