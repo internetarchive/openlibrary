@@ -26,7 +26,7 @@ import six
 
 sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
 import scripts._init_path  # noqa: E402,F401
-from openlibrary.api import OpenLibrary, marshal, unmarshal  # noqa: E402
+from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
 
