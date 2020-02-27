@@ -35,9 +35,10 @@ js:
 
 components: $(COMPONENTS_DIR)/*.vue
 	mkdir --parents $(BUILD)
+	rm -rf $(BUILD)/components
 	for component in $^; do \
 		echo $$component; \
-		npx vue-cli-service build --inline-vue --dest $(BUILD)/components --target wc "$$component"; \
+		npx vue-cli-service build --no-clean --dest $(BUILD)/components --target wc --name "ol-$$(basename $$component .vue)" "$$component"; \
 	done
 
 i18n:

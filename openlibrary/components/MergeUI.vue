@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import MergeTable from './components/MergeTable.vue'
-import { do_merge } from './utils.js';
+import MergeTable from './MergeUI/MergeTable.vue'
+import { do_merge } from './MergeUI/utils.js';
 
 export default {
   name: 'app',

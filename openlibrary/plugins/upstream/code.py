@@ -12,7 +12,7 @@ from infogami.utils import delegate, app, types
 from infogami.utils.view import public, safeint, render
 from infogami.utils.context import context
 
-from utils import render_component
+from utils import render_template
 
 from openlibrary import accounts
 
@@ -54,10 +54,10 @@ del delegate.modes['change_cover']     # delete change_cover mode added by openl
 class merge_work(delegate.page):
     path = "/works/merge"
 
-    def GET(self, keys):
-        return render_component('MergeUI.vue')
+    def GET(self):
+        return render_template('merge/works')
 
-    def POST(self, key):
+    def POST(self):
         pass
 
 @web.memoize

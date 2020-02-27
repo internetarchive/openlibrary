@@ -18,7 +18,7 @@ from six.moves.html_parser import HTMLParser
 
 from infogami import config
 from infogami.utils import view, delegate, stats
-from infogami.utils.view import add_javascript, render, get_template, public
+from infogami.utils.view import render, get_template, public
 from infogami.utils.macro import macro
 from infogami.utils.context import context
 from infogami.infobase.client import Thing, Changeset, storify
@@ -107,21 +107,24 @@ def render_template(name, *a, **kw):
         name = name.rsplit(".", 1)[0]
     return render[name](*a, **kw)
 
+
 @public
-def render_component(name, attrs, json_encode=True):
+def render_component(name, attrs=None, json_encode=True):
     """
     :param str name: Name of the component (excluding extension)
     :param dict attrs: attributes to add to the component element
     """
-    add_javascript('https://unpkg.com/vue')
-    add_javascript('/static/build_components/%s/%s.min.js' % (name, name))
-
+    attrs = attrs or {}
     attrs_str = ''
     for (key, val) in attrs.items():
         if json_encode and isinstance(val, dict) or isinstance(val, list):
             val = simplejson.dumps(val)
         attrs_str += ' %s="%s"' %(key, val.replace('"', "'"))
-    return '<ol-%s %s></ol-%s>' % (name, attrs_str, name)
+
+    html = '<script src="https://unpkg.com/vue"></script>'
+    html += '<script src="/static/build/components/ol-%s.min.js"></script>' % name
+    html += '<ol-merge-u-i %s></ol-merge-u-i>' % attrs_str
+    return html
 
 @public
 def get_error(name, *args):

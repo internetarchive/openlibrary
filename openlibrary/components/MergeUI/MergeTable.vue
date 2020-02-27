@@ -79,7 +79,7 @@ import Vue from "vue";
 import AsyncComputed from "vue-async-computed";
 import MergeRow from "./MergeRow.vue";
 import EditionSnippet from "./EditionSnippet.vue";
-import { merge, get_editions, get_lists, get_bookshelves } from "../utils.js";
+import { merge, get_editions, get_lists, get_bookshelves } from "./utils.js";
 
 Vue.use(AsyncComputed);
 
