@@ -19,6 +19,8 @@ try:
 except NameError:  # Python 3
     from io import IOBase as file
 
+socket.setdefaulttimeout(10.0)
+
 
 def safeint(value, default=None):
     """
