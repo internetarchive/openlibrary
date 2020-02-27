@@ -1,0 +1,17 @@
+#created: '2008-05-01T17:03:36.625922'
+#last_modified: '2009-05-01T04:08:33.535793'
+string_about_us: हमारे बारे में
+string_change_language: भाषा परिवर्तन
+string_contact_us: हमारा सम्पर्क सूत्र
+string_create: निर्माण करें
+string_create_it: इसे निर्मित करें
+string_hello: नमस्ते
+string_history: इतिहास
+string_login: आगम
+string_logout: निर्गम
+string_open_library: मुक्त पुस्तकालय
+string_page_does_not_exist: प्रष्ठ अनुपलब्ध
+string_powered_by_infogami: इन्फ़ोगामी से अनुप्राणित
+string_preferences: वरीयतायें
+string_published_in: मुद्रण हुआ
+string_welcome_user: सुस्वागतम <a href="%s">%s</a>!

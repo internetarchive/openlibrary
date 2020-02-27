@@ -1,5 +1,0 @@
-properties = u'Properties'
-backreferences = u'Back-references'
-name = u'Name'
-is_primitive = u'Is this a primitive type?'
-description = u'Description'

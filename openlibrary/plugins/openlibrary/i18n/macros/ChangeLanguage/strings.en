@@ -1,8 +1,0 @@
-change_language = u'Change Language'
-begin_editing = u'To begin editing the i18n strings,'
-change_language_statement = u'The Open Library interface is comprised of a series of strings that can be translated by users through an innovative wiki interface. You can translate or add any string in one of our available languages. Currently, we support  English, Spanish, and Italian. Help us build Open Library by improving our translations!'
-try_language = u'Open Library Internationalization (i18n) Support'
-change_language_statement3 = u'You can see how any translation looks by selecting it from the pulldown menu below. Please note: At this time, translation is only for the user interface strings and not content.'
-change_language_statement2 = u'Adding a new language is easy. Simply select your language from this list of two-letter ISO country codes, and replace "xx" with it at the end of this URL:'
-click_here = u'click here.'
-change_language_statement4 = u'Click "Create It" and you are ready to begin translating!'

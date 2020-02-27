@@ -1,5 +1,0 @@
-add_new_key = u'A\xf1adir nueva clave'
-add = u'A\xf1adir'
-add_new_language = u'A\xf1adir nuevo idioma'
-i18n_strings = u'i18n cadenas'
-add_new_namespace = u'A\xf1adir nuevo nombre'
