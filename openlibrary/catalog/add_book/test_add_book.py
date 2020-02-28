@@ -10,7 +10,7 @@ from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import add_db_name, build_pool, editions_matched, isbns_from_record, load, RequiredField
-from openlibrary.catalog.add_book.load_book import build_query, InvalidLanguage
+from openlibrary.catalog.add_book.load_book import import_author, build_query, InvalidLanguage
 from openlibrary.catalog.add_book.merge import try_merge
 
 from openlibrary.catalog.merge.merge_marc import build_marc
@@ -49,15 +49,28 @@ def ia_writeback(monkeypatch):
     """
     monkeypatch.setattr(add_book, 'update_ia_metadata_for_ol_edition', lambda olid: {})
 
+def test_import_author_personal_name(monkeypatch):
+    """Name order is only flipped to natural order if 'personal_name' is present.
+    """
+    monkeypatch.setattr(add_book.load_book, 'find_entity', lambda a: None)
+    result = import_author({'personal_name': 'Surname, Firstname', 'name': 'Surname, Firstname'})
+    assert result['name'] == 'Firstname Surname'
+
+def test_import_author_name_only(monkeypatch):
+    monkeypatch.setattr(add_book.load_book, 'find_entity', lambda a: None)
+    result = import_author({'name': 'Surname, Firstname'})
+    assert result['name'] == 'Surname, Firstname'
+
 def test_build_query(add_languages):
     rec = {
         'title': 'magic',
         'languages': ['eng', 'fre'],
-        'authors': [{}],
+        'authors': [{'name': 'Surname, Firstname'}],
         'description': 'test',
     }
     q = build_query(rec)
     assert q['title'] == 'magic'
+    assert q['authors'][0]['name'] == 'Surname, Firstname'
     assert q['description'] == {'type': '/type/text', 'value': 'test'}
     assert q['type'] == {'key': '/type/edition'}
     assert q['languages'] == [{'key': '/languages/eng'}, {'key': '/languages/fre'}]
