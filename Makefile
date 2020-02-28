@@ -55,7 +55,7 @@ reindex-solr:
 	su postgres -c "psql openlibrary -t -c 'select key from thing' | sed 's/ *//' | grep '^/authors/' | PYTHONPATH=$(PWD) xargs python openlibrary/solr/update_work.py -s http://0.0.0.0/ -c conf/openlibrary.yml --data-provider=legacy"
 
 lint-diff:
-	git diff -U0 | $(PYTHON) -m flake8 --diff --max-line-length=88
+	git diff master -U0 | $(PYTHON) -m flake8 --diff --max-line-length=88
 
 lint:
 	# stop the build if there are Python syntax errors or undefined names
