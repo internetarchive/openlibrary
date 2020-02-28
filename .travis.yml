@@ -31,10 +31,8 @@ install:
   - pip install -r requirements_test.txt
   # if Travis is running Python 3, then
   #   refresh the git submodule ./vendor/infogami
-  #   create a legacy Python for npm/node until nodejs/node#25789 is resolved
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
-      pyenv install 2.7.14;
     fi
   - npm install
 script:
