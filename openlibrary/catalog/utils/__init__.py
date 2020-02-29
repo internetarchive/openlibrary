@@ -103,7 +103,9 @@ def fix_l_in_date(date):
         return date
     return re_l_in_date.sub(lambda m:m.group(1).replace('l', '1'), date)
 
+
 re_ca = re.compile(r'ca\.([^ ])')
+
 
 def parse_date(date):
     if re_date_fl.match(date):
@@ -131,7 +133,9 @@ def parse_date(date):
         i['birth_date'] = fix_l_in_date(i['birth_date'])
     return i
 
+
 re_cent = re.compile(r'^[\dl][^-]+ cent\.$')
+
 
 def pick_first_date(dates):
     # this is to handle this case:
