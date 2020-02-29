@@ -13,7 +13,16 @@ function init() {
 function placeholder(fnName) {
     return function () {
         const $this = $(this);
-        init().then(() => $.fn[fnName].apply($this || this, arguments));
+        // various modules call this methods on non-existent elements.
+        // For example the home page doesn't make use of jQuery UI anywhere however without
+        // this check will load jQuery UI.
+        // This can be removed when that's not the case.
+        if ($this.length) {
+            init().then(() => {
+                console.log('loading for', fnName, $this.length, $this );
+                $.fn[fnName].apply($this || this, arguments);
+            });
+        }
         return $this;
     };
 }
