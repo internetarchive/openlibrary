@@ -65,7 +65,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
           </div>
 
 $else:
-  <a href="$page.key" class="cta-btn--missing cta-btn">No ebook available</a>
+  <a href="$page.key" class="cta-btn--missing cta-btn">$_('Not in Library')</a>
   $if page.ia:
     $ daisy_url = "/ia/%s/daisy" % page.ia[0]
     $:macros.daisy(page, url=daisy_url, protected=True, msg=_("Print-disabled access available"))

@@ -85,7 +85,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
       <a href="/sponsorship" target="_blank">Learn More</a>
     </p>
   $else:
-    <a href="$work.key" class="cta-btn cta-btn--missing">No ebook available</a>
+    <a href="$work.key" class="cta-btn cta-btn--missing">$_('Not in Library')</a>
 
 $if ocaid and page.is_access_restricted() and availability_status.startswith('borrow') and editions_page:
   $:macros.BookPreview(ocaid, render_preview_floater)

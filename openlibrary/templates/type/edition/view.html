@@ -254,12 +254,12 @@ $if ctx.user and ctx.user.is_admin():
         </div>
 
         $if page.description or (work and work.description):
-          $if work and work.description:
-            <h3 class="collapse">$_("About the Book")</h3>
-            $:sanitize(format(work.description))        
           $if page.description:
             <h3 class="collapse">$_("About the Edition")</h3>
             $:sanitize(format(page.description))
+          $else:
+            <h3 class="collapse">$_("About the Book")</h3>
+            $:sanitize(format(work.description))                  
         $else:
           <p class="workHelp">
             There's no description for this book yet. Can

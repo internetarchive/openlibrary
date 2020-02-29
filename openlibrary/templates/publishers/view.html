@@ -21,7 +21,7 @@ $ subject_list = [('subjects', 20), ('places', 20), ('people', 10), ('times', 10
 </div>
 
 <div class="contentBody">
-  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + "/works.json", "limit": len(page.works)})
+  $:render_template("books/custom_carousel", books=page.works, key="subjects", load_more={"url": page.key + ".json", "limit": len(page.works)})
 
 	<div class="head">
 	    <h2>

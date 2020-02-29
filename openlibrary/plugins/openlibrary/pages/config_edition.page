@@ -9,12 +9,6 @@
             "label": "Library of Congress"
         },
         {
-            "website": "Library of Congress Online Catalog",
-            "notes": "",
-            "name": "lccn_permalink",
-            "label": "LCCN Permalink"
-        },
-        {
             "website": "http://www.collectionscanada.gc.ca/cip/index-e.html",
             "notes": "",
             "name": "library_and_archives_canada_cataloguing_in_publication",

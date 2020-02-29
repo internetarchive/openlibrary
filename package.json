@@ -16,24 +16,28 @@
   },
   "bundlesize": [
     {
-      "path": "static/build/editions-table.js",
+      "path": "static/build/jquery-ui.*.js",
+      "maxSize": "70.5KB"
+    },
+    {
+      "path": "static/build/editions-table.*.js",
       "maxSize": "16.7KB"
     },
     {
-      "path": "static/build/graphs.js",
+      "path": "static/build/graphs.*.js",
       "maxSize": "17.2KB"
     },
     {
-      "path": "static/build/markdown-editor.js",
+      "path": "static/build/markdown-editor.*.js",
       "maxSize": "10.5KB"
     },
     {
-      "path": "static/build/carousel.js",
+      "path": "static/build/carousel.*.js",
       "maxSize": "12.1KB"
     },
     {
       "path": "static/build/all.js",
-      "maxSize": "146.3KB"
+      "maxSize": "76.0KB"
     },
     {
       "path": "static/build/page-admin.css",
@@ -65,7 +69,7 @@
     },
     {
       "path": "static/build/page-user.css",
-      "maxSize": "19KB"
+      "maxSize": "19.5KB"
     }
   ],
   "devDependencies": {
@@ -78,8 +82,8 @@
     "bundlesize": "0.18.0",
     "css-loader": "2.1.1",
     "detect-libc": "1.0.3",
-    "eslint": "5.16.0",
-    "jest": "24.5.0",
+    "eslint": "6.8.0",
+    "jest": "24.9.0",
     "jquery": "1.11.0",
     "jquery-migrate": "1.2.1",
     "jquery-ui": "1.12.1",
@@ -92,7 +96,7 @@
     "promise-polyfill": "8.1.3",
     "sinon": "7.3.2",
     "slick-carousel": "1.6.0",
-    "style-loader": "1.0.1",
+    "style-loader": "1.1.2",
     "stylelint": "9.5.0",
     "stylelint-declaration-use-variable": "1.7.0",
     "svgo": "1.1.1",

@@ -4,7 +4,15 @@ import os
 import urllib
 import web
 
+from infogami.utils.view import render
 from openlibrary.core import helpers as h
+
+try:
+    from booklending_utils.openlibrary import is_exclusion
+except ImportError:
+    def is_exclusion(obj):
+        """Processor for determining whether records require exclusion"""
+        return False
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and
@@ -47,7 +55,14 @@ class ReadableUrlProcessor:
                     'publishers', 'languages', 'account']
         if out and any(web.ctx.path.startswith('/%s/' % _type) for _type in V2_TYPES):
             out.v2 = True
+
+        # Exclude noindex items
+        if web.ctx.get('exclude'):
+            web.ctx.status = "404 Not Found"
+            return render.notfound(web.ctx.path)
+
         return out
+
 
 def _get_object(site, key):
     """Returns the object with the given key.
@@ -140,16 +155,6 @@ def get_readable_path(site, path, patterns, encoding=None):
 
     thing = _get_object(site, prefix)
 
-    # XXX For a 1-week trial ~Oct 23 2019
-    # if ?edition qualifier present on work url, redirect patron to
-    # "best" representative edition
-    if thing.key.startswith('/works/'):
-        i = web.input(edition="")
-        if i.edition:
-            ed = thing.get_representative_edition()
-            if ed:
-                raise web.seeother(ed)
-
     # get_object may handle redirections.
     if thing:
         prefix = thing.key
@@ -159,6 +164,9 @@ def get_readable_path(site, path, patterns, encoding=None):
         middle = '/' + h.urlsafe(title.strip())
     else:
         middle = ""
+
+    if is_exclusion(thing):
+        web.ctx.exclude = True
 
     prefix = web.safeunicode(prefix)
     middle = web.safeunicode(middle)

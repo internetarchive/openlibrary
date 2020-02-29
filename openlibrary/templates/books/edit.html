@@ -22,12 +22,8 @@ function limitChars(textid, limit, infodiv) {
 };
 window.q.push( function(){
     \$('#excerpt').keyup(function(){limitChars('excerpt', 2000, 'charLimit');});
-    var hash = document.location.hash || "#edition";
-    var tab = hash.split("/")[0]
-    var link = "#" + "link_" + tab.substr(1);
-    var fieldname = ":input" + hash.replace('/', '-');
-
-    \$(link).click();
+    location.hash = location.hash || '#edition';
+    var fieldname = ":input" + location.hash.replace('/', '-');
 
     // input field is enabled only after the tab is selected and that takes some time after clicking the link.
     // wait for 1 sec after clicking the link and focus the input field
@@ -99,7 +95,7 @@ window.q.push( function(){
         </div>
     </div>
 
-        <div id="tabsAddbook">
+        <div id="tabsAddbook" class="autohash">
             <ul>
                 <li><a href="#about" id="link_about">$_("What's It About?")</a></li>
                 <li><a href="#excerpts" id="link_excerpts">$_("Add Excerpts")</a></li>

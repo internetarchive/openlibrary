@@ -689,9 +689,16 @@ def get_donation_include(include):
         opener.addheaders.append(('Cookie', urllib.urlencode({'donation': donation_param})))
 
     html = ''
-    if include == 'true':
+    if include == 'true' and "dev" in web.ctx.features:
         try:
-            html = opener.open(url_banner_source + param, timeout=3).read()
+            html += opener.open(url_banner_source + param, timeout=3).read()
+            # Donation banner is temporarily (Jan 2020) disabled on prod, but available on dev (so that it can be used
+            # for testing). To avoid it appearing like it's working, display a warning if it loads correctly that it's
+            # disabled on prod.
+            if '<div' in html or '<iframe' in html:
+                html = """
+                <center>WARNING: Donation banner disabled on prod; see <a href="https://github.com/internetarchive/openlibrary/issues/2853">GitHub #2853</a></center>
+                """ + html
         except urllib2.URLError:
             logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''

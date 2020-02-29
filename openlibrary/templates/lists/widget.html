@@ -468,10 +468,8 @@ $if ctx.user:
     }
 
     function setup_events() {
-        \$("#create-new-list").click(function() {
-           close_popup();
-           \$.colorbox({inline: true, opacity: "0.5", href: "#addList"});
-        });
+        \$("#create-new-list")
+        .colorbox({inline: true, opacity: "0.5", href: "#addList"});
 
         \$("a.add-to-list").click(function(event) {
             event.preventDefault();

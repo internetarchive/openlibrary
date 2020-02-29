@@ -62,7 +62,9 @@ $if isbn_10 and not asin:
           $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
         </div>
 
-        $:macros.SocialShare(page)
+        $if ctx.get('share_links'):
+          <hr>
+          $:macros.SocialShare(ctx.get('share_links'), request.home + page.key)
 
       </div>
     </div>

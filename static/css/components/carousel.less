@@ -26,6 +26,11 @@
   overflow-x: scroll;
   padding: 10px 20px;
 
+  a,
+  a:link {
+    text-decoration: none;
+  }
+
   &__item {
     float: left;
     height: 100%;
@@ -113,4 +118,42 @@
     overflow: hidden;
   }
 }
+
+@height-blank-cover: 200px;
+.carousel__item__blankcover {
+  position: relative;
+  padding: 33% 10px 10px 10px;
+  text-align: center;
+  background: @lighter-grey;
+  font-size: 1em;
+  color: black;
+  height: @height-blank-cover;
+
+  // White border
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+    border: 2px solid fade(@white, 50%);
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: 10px;
+  }
+
+  &--title {
+    position: relative;
+    font-size: 0.9em;
+  }
+
+  &--authors {
+    position: relative;
+    color: hsl(0,0%,40%);
+    padding: 4px 4px 0;
+    font-size: 0.6875em;
+    font-style: oblique;
+  }
+}
+
 @import (less) "category-item.less";

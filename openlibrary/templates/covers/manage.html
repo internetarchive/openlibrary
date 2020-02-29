@@ -5,14 +5,6 @@ $putctx('robots', 'noindex,nofollow')
 
 <script type="text/javascript">
 window.q.push(function () {
-    \$(".column").sortable({
-        connectWith: '.trash'
-    });
-    \$(".trash").sortable({
-        connectWith: '.column'
-    });
-    \$(".column").disableSelection();
-    \$(".trash").disableSelection();
     \$("#topNotice").hide();
 });
 </script>
@@ -21,7 +13,7 @@ window.q.push(function () {
     $_("You can drag and drop thumbnails to reorder, or into the trash to delete them.")
 </div>
 
-<form class="floatform" action="" method="post">
+<form class="floatform manage-covers-form" action="" method="post">
     <div class="column">
     $for image in images:
         <div class="portlet">
