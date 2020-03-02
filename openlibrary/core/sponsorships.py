@@ -189,7 +189,7 @@ def get_sponsored_books():
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
-    config = dict(general=dict(secure=False))
+    config = {'general': {'secure': False}}
     return search_items(q, fields=fields, params=params, config=config)
 
 
