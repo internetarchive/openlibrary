@@ -29,10 +29,8 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
-  - make lint  # TODO: Move this to scrtip: section after #2951 lands
-before_script:
-  - npm install npm@latest -g
-  - npm install
+  - make lint  # TODO: Move this to script: section after #2951 lands
+before_script: npm install
 script:
   - make i18n
   - make test
