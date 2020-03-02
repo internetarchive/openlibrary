@@ -14,6 +14,7 @@ docker run \
   -v /storage:/storage \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /var/lib/docker/volumes/jenkins-data:/var/lib/docker/volumes/jenkins-data \
+  --restart always \
   --name jenkins \
   jenkinsci/blueocean
 ```
@@ -51,9 +52,9 @@ echo "${DAY_BEFORE_DUMP}:0" > solr-builder.offset
 Create `/etc/supervisor/conf.d/solrbuilder-solrupdater.conf` with:
 ```
 [program:solrbuilder-solrupdater]
-command=/olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/new-solr-updater.py \
-  --config /opt/openlibrary/openlibrary/conf/solrbuilder-openlibrary.yml \
-  --state-file /opt/openlibrary/openlibrary/solr-builder.offset \
+command=/olsystem/bin/olenv python /opt/openlibrary/openlibrary/scripts/new-solr-updater.py
+  --config /opt/openlibrary/openlibrary/conf/solrbuilder-openlibrary.yml
+  --state-file /opt/openlibrary/openlibrary/solr-builder.offset
   --socket-timeout 600
 user=solrupdater
 directory=/opt/openlibrary/openlibrary
@@ -72,3 +73,50 @@ supervisorctl start solrbuilder-solrupdater
 
 - Monitor the logs for solrupdater. It will sometimes get overloading and slow down a lot; restarting it fixes the issues though.
 - 3 weeks of edits takes ~1 week to reindex.
+
+## Deploy
+
+Now that the solr is ready, we can dump its database and import it into the solr on production. Here is the command to do that from OJF
+
+```sh
+time docker run --rm \
+    --volumes-from solr_builder_solr_1 \
+    -v /storage/openlibrary/solr:/backup \
+    ubuntu:xenial \
+    tar czf /backup/solrbuilder-$(date +%Y-%m-%d).tar.gz /var/lib/solr/data
+```
+
+(Last run: 40min/13G with 2020-01 dump)
+
+Copy this dump onto ol-solr0, and there run
+
+```sh
+cd /opt/openlibrary
+# Build Solr
+time sudo docker-compose build --build-arg CONFIG_FILE=solrconfig-prod.xml solr
+
+# Copy file (3min; 2020-03-02 OJF)
+time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
+
+# Restore backup file
+time sudo docker-compose run --no-deps --rm -v $HOME:/backup solr \
+    bash -c "tar xf /backup/solrbuilder-2020-03-02.tar.gz"
+
+# Start the service
+sudo docker-compose up -d --no-deps solr
+```
+
+## Resetting
+
+In order to be able to re-run the job, you need to stop/remove any of the old containers you don't intend to re-use:
+
+```sh
+# "new" solr containers/volumes
+docker rm -f -v solr_builder_solr_1
+
+# DB containers/volumes
+docker rm -f -v solr_builder_db_1 solr_builder_adminer_1
+
+# Solr backup container
+docker rm -v solr_builder_solr-backup_1
+```
