@@ -196,7 +196,8 @@ def get_sponsored_books():
 
 def summary():
     """
-    Provides data model (finances, state-of-process) for the /admin/sponsorship stats page.
+    Provides data model (finances, state-of-process) for the /admin/sponsorship stats
+    page.
 
     Screenshot:
     https://user-images.githubusercontent.com/978325/71494377-b975c880-27fb-11ea-9c95-c0c1bfa78bda.png
