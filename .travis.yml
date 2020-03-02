@@ -12,7 +12,6 @@ jobs:
       python: "3.8"
       before_script: true  # override npm install below
       script:
-        - make lint
         - pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests
         # On pull requests, run all flake8 tests on modified code
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
@@ -30,10 +29,10 @@ install:
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
     fi
+  - make lint  # TODO: Move this to scrtip: section after #2951 lands
 before_script:
   - npm install npm@latest -g
   - npm install
 script:
-  - make lint
   - make i18n
   - make test
