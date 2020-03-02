@@ -3,13 +3,12 @@ from __future__ import division
 import ConfigParser
 import logging
 import time
-import urllib
-import urllib2
 import uuid
 from collections import namedtuple
 
 import psycopg2
-import simplejson
+import requests
+from requests import RequestException
 
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
@@ -132,12 +131,16 @@ class LocalPostgresDataProvider(DataProvider):
 
     @staticmethod
     def _get_lite_metadata(ocaids, rows=1000):
-        url = ''.join(["https://archive.org/advancedsearch.php?",
-                       "q=identifier:(" + urllib.quote(' OR '.join(ocaids)) + ")",
-                       "&fl[]=identifier&fl[]=boxid&fl[]=collection",
-                       "&rows=%d&page=1&output=json&save=yes" % rows])
-        resp_str = urllib2.urlopen(url).read()
-        return simplejson.loads(resp_str)['response']
+        r = requests.get("https://archive.org/advancedsearch.php", params={
+            'q': "identifier:(%s)" % ' OR '.join(ocaids),
+            'rows': rows,
+            'fl': 'identifier,boxid,collection',
+            'page': 1,
+            'output': 'json',
+            'save': 'yes',
+        })
+        r.raise_for_status()
+        return r.json()['response']
 
     def cache_ia_metadata(self, ocaids, batch_size=750):
         """
@@ -149,7 +152,7 @@ class LocalPostgresDataProvider(DataProvider):
             try:
                 for doc in self._get_lite_metadata(b, rows=batch_size)['docs']:
                     self.ia_cache[doc['identifier']] = doc
-            except:
+            except (RequestException, ValueError):
                 logger.error("Error while caching IA", exc_info=True)
 
     def cache_edition_works(self, lo_key, hi_key):
