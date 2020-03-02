@@ -1,7 +1,6 @@
 import glob
 import os
 
-from distutils.core import setup
 from setuptools import setup, find_packages
 from stat import ST_MODE, S_IEXEC, S_ISDIR
 from Cython.Build import cythonize

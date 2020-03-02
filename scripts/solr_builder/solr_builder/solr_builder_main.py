@@ -13,7 +13,7 @@ import simplejson
 
 from openlibrary.core import ia
 from openlibrary.solr.data_provider import DataProvider
-from openlibrary.solr.update_work import load_configs, update_keys, using_cython
+from openlibrary.solr.update_work import load_configs, update_keys
 
 logger = logging.getLogger("openlibrary.solr-builder")
 
@@ -29,7 +29,7 @@ def config_section_to_dict(config_file, section):
     """
     config = ConfigParser.ConfigParser()
     config.read(config_file)
-    result = { key: config.get(section, key) for key in config.options(section) }
+    result = {key: config.get(section, key) for key in config.options(section)}
     return result
 
 
@@ -113,7 +113,8 @@ class LocalPostgresDataProvider(DataProvider):
         :return:
         """
         # Not sure if this name needs to be unique
-        cursor_name = cursor_name or 'solr_builder_server_side_cursor_' + uuid.uuid4().hex
+        cursor_name = cursor_name \
+            or 'solr_builder_server_side_cursor_' + uuid.uuid4().hex
         cur = self._conn.cursor(name=cursor_name)
         cur.itersize = size
         cur.execute(query)
@@ -155,8 +156,10 @@ class LocalPostgresDataProvider(DataProvider):
         q = """
             SELECT works."Key", works."JSON"
             FROM "test" editions
-            INNER JOIN test works ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
-            WHERE editions."Type" = '/type/edition' AND editions."Key" BETWEEN '%s' AND '%s'
+            INNER JOIN test works
+                ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
+            WHERE editions."Type" = '/type/edition'
+                AND editions."Key" BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -164,7 +167,8 @@ class LocalPostgresDataProvider(DataProvider):
         q = """
             SELECT "Key", "JSON"
             FROM "test"
-            WHERE "Type" = '/type/edition' AND "JSON" -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
+            WHERE "Type" = '/type/edition'
+                AND "JSON" -> 'works' -> 0 ->> 'key' BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -172,9 +176,12 @@ class LocalPostgresDataProvider(DataProvider):
         q = """
             SELECT authors."Key", authors."JSON"
             FROM "test" editions
-            INNER JOIN test works ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
-            INNER JOIN test authors ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
-            WHERE editions."Type" = '/type/edition' AND editions."Key" BETWEEN '%s' AND '%s'
+            INNER JOIN test works
+                ON editions."JSON" -> 'works' -> 0 ->> 'key' = works."Key"
+            INNER JOIN test authors
+                ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
+            WHERE editions."Type" = '/type/edition'
+                AND editions."Key" BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
@@ -182,14 +189,16 @@ class LocalPostgresDataProvider(DataProvider):
         q = """
             SELECT authors."Key", authors."JSON"
             FROM "test" works
-            INNER JOIN "test" authors ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
+            INNER JOIN "test" authors
+                ON works."JSON" -> 'authors' -> 0 -> 'author' ->> 'key' = authors."Key"
             WHERE works."Type" = '/type/work' AND works."Key" BETWEEN '%s' AND '%s'
         """ % (lo_key, hi_key)
         self.query_all(q, cache_json=True)
 
     def cache_cached_editions_ia_metadata(self):
         # Limit length of OCAIDs to avoid really long URLs. They just won't be cached.
-        ocaids = [doc['ocaid'] for doc in self.cache.itervalues() if 'ocaid' in doc and len(doc['ocaid']) < 50]
+        ocaids = [doc['ocaid'] for doc in self.cache.itervalues() if
+                  'ocaid' in doc and len(doc['ocaid']) < 50]
         self.cache_ia_metadata(ocaids)
 
     def find_redirects(self, key):
@@ -248,7 +257,8 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     """
 
     :param str job: job to complete. One of 'works', 'orphans', 'authors'
-    :param str or None start_at: key (type-prefixed) to start from as opposed to offset; WAY more efficient since offset
+    :param str or None start_at: key (type-prefixed) to start from as opposed to
+    offset; WAY more efficient since offset
      has to walk through all `offset` rows.
     :param int offset: Use `start_at` if possible.
     :param str or None last_modified: Only import docs modified after this date.
@@ -289,7 +299,8 @@ def build_job_query(job, start_at, offset, last_modified, limit):
     return ' '.join([q_select, q_where, q_order, q_offset, q_limit])
 
 
-def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/openlibrary.yml",
+def main(job, postgres="postgres.ini", ol="http://ol/",
+         ol_config="../../conf/openlibrary.yml",
          start_at=None, offset=0, limit=1, last_modified=None,
          progress=None, log_file=None, log_level=logging.WARN
          ):
@@ -298,7 +309,8 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
     :param str postgres: path to postgres config file
     :param str ol: openlibrary endpoint
     :param str ol_config: path to openlibrary config file
-    :param str or None start_at: key (type-prefixed) to start from as opposed to offset; WAY more efficient since offset
+    :param str or None start_at: key (type-prefixed) to start from as opposed to
+    offset; WAY more efficient since offset
      has to walk through all `offset` rows.
     :param int offset: Use `start_at` if possible.
     :param int limit:
@@ -316,7 +328,8 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
     )
 
     PLogEntry = namedtuple('PLogEntry', [
-        'seen', 'total', 'percent', 'elapsed', 'q_1', 'q_auth', 'q_ia', 'cached', 'ia_cache', 'next'])
+        'seen', 'total', 'percent', 'elapsed', 'q_1', 'q_auth', 'q_ia', 'cached',
+        'ia_cache', 'next'])
 
     class PLog:
         def __init__(self, filename):
@@ -333,11 +346,12 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
             self.last_entry = entry
             if self.filename:
                 with open(progress, 'a') as f:
-                    f.write('\t'.join(self.fmt(k, val) for k, val in entry._asdict().iteritems()))
+                    f.write('\t'.join(
+                        self.fmt(k, val) for k, val in entry._asdict().iteritems()))
                     f.write('\n')
 
-        def update(self, seen=None, total=None, percent=None, elapsed=None, q_1=None, q_auth=None,
-                   cached=None, q_ia=None, ia_cache=None, next=None):
+        def update(self, seen=None, total=None, percent=None, elapsed=None, q_1=None,
+                   q_auth=None, cached=None, q_ia=None, ia_cache=None, next=None):
             """
             :param str or int or None seen:
             :param str or int or None total:
@@ -368,7 +382,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
             if isinstance(val, str):
                 return val
             if k == 'percent':
-                return '%.2f%%' % (100*val)
+                return '%.2f%%' % (100 * val)
             if k in ['elapsed', 'q_1', 'q_auth', 'q_ia']:
                 return '%.2fs' % val
             if isinstance(val, float):
@@ -396,40 +410,50 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
                 f.write('%d (%.2fs)\n' % (count, end - start))
                 f.write('\t'.join(PLogEntry._fields) + '\n')
 
-        plog.log(PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?'))
+        plog.log(
+            PLogEntry(0, count, '0.00%', 0, '?', '?', '?', '?', '?', start_at or '?'))
 
         start = time.time()
         seen = 0
         for batch in db.query_batched(q, size=5000, cache_json=True):
             keys = [x[0] for x in batch]
-            plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?', q_auth='?', q_ia='?')
+            plog.update(next=keys[0], cached=len(db.cache), ia_cache=0, q_1='?',
+                        q_auth='?', q_ia='?')
 
             with LocalPostgresDataProvider(postgres) as db2:
                 key_range = [keys[0], keys[-1]]
 
                 if job == "works":
                     # cache editions
-                    editions_time, _ = simple_timeit(lambda: db2.cache_work_editions(*key_range))
-                    plog.update(q_1=editions_time, cached=len(db.cache) + len(db2.cache))
+                    editions_time, _ = simple_timeit(
+                        lambda: db2.cache_work_editions(*key_range))
+                    plog.update(q_1=editions_time,
+                                cached=len(db.cache) + len(db2.cache))
 
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
+                    ocaids_time, _ = simple_timeit(
+                        lambda: db2.cache_cached_editions_ia_metadata())
                     plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
-                    authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
-                    plog.update(q_auth=authors_time, cached=len(db.cache) + len(db2.cache))
+                    authors_time, _ = simple_timeit(
+                        lambda: db2.cache_work_authors(*key_range))
+                    plog.update(q_auth=authors_time,
+                                cached=len(db.cache) + len(db2.cache))
                 elif job == "orphans":
                     # cache editions' ocaid metadata
-                    ocaids_time, _ = simple_timeit(lambda: db2.cache_cached_editions_ia_metadata())
+                    ocaids_time, _ = simple_timeit(
+                        lambda: db2.cache_cached_editions_ia_metadata())
                     plog.update(q_ia=ocaids_time, ia_cache=len(db2.ia_cache))
 
                     # cache authors
-                    authors_time, _ = simple_timeit(lambda: db2.cache_work_authors(*key_range))
-                    plog.update(q_auth=authors_time, cached=len(db.cache) + len(db2.cache))
+                    authors_time, _ = simple_timeit(
+                        lambda: db2.cache_work_authors(*key_range))
+                    plog.update(q_auth=authors_time,
+                                cached=len(db.cache) + len(db2.cache))
                 elif job == "authors":
-                    # Nothing to cache; update_work.py queries solr directly for each other, and provides no way to
-                    # cache.
+                    # Nothing to cache; update_work.py queries solr directly for each
+                    # other, and provides no way to cache.
                     pass
 
                 # Store in main cache
@@ -441,7 +465,7 @@ def main(job, postgres="postgres.ini", ol="http://ol/", ol_config="../../conf/op
             seen += len(keys)
             plog.update(
                 elapsed=time.time() - start,
-                seen=seen, percent=seen/count,
+                seen=seen, percent=seen / count,
                 cached=len(db.cache), ia_cache=len(db.ia_cache))
 
             db.clear_cache()

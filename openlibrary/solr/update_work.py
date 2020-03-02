@@ -20,7 +20,7 @@ from openlibrary import config
 from openlibrary.catalog.utils.query import set_query_host, base_url as get_ol_base_url
 from openlibrary.core import helpers as h
 from openlibrary.core import ia
-from openlibrary.solr.data_provider import get_data_provider
+from openlibrary.solr.data_provider import get_data_provider, DataProvider
 from openlibrary.utils.isbn import opposite_isbn
 
 logger = logging.getLogger("openlibrary.solr")
@@ -38,8 +38,6 @@ _ia_db = None
 
 solr_host = None
 
-def using_cython():
-    print("NOT USING CYTHON!")
 
 def urlopen(url, data=None):
     version = "%s.%s.%s" % sys.version_info[:3]
@@ -1297,6 +1295,7 @@ def solr_select_work(edition_key):
     if docs:
         return docs[0]['key'] # /works/ prefix is in solr
 
+
 def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     """
     Insert/update the documents with the provided keys in Solr.
@@ -1306,7 +1305,8 @@ def update_keys(keys, commit=True, output_file=None, commit_way_later=False):
     :param str output_file: If specified, will save all update actions to output_file **instead** of sending to Solr.
         Each line will be JSON object.
         FIXME Updates to editions/subjects ignore output_file and will be sent (only) to Solr regardless.
-    :param bool commit_way_later: set to true if you want to add things quickly and add them much later
+    :param bool commit_way_later: set to true if you want to add things quickly and add
+        them much later
     """
     logger.info("BEGIN update_keys")
     commit_way_later_dur = 1000 * 60 * 60 * 24 * 5  # 5 days?
@@ -1511,7 +1511,9 @@ def parse_args():
     parser.add_argument("-o", "--output-file", help="Open Library config file")
     parser.add_argument("--nocommit", action="store_true", help="Don't commit to solr")
     parser.add_argument("--profile", action="store_true", help="Profile this code to identify the bottlenecks")
-    parser.add_argument("--data-provider", default='default', choices=['default', 'legacy'], help="Name of the data provider to use")
+    parser.add_argument("--data-provider", default='default',
+                        choices=['default', 'legacy'],
+                        help="Name of the data provider to use")
 
     return parser.parse_args()
 

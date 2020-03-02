@@ -47,7 +47,7 @@ class DataProvider:
         """
         Returns archive.org metadata for given identifier.
 
-        :param str identifier: Internet Archive identifier (aka ocaid). (ex: anneofisland1920mont)
+        :param str identifier: Internet Archive id (aka ocaid)
         :return:
         :rtype: web.storage or None
         """
@@ -65,7 +65,7 @@ class DataProvider:
 
     def preload_metadata(self, identifiers):
         """
-        :param list of str identifiers: list of Internet Archive identifiers (aka ocaids). (ex: anneofisland1920mont)
+        :param list of str identifiers: list of Internet Archive ids (aka ocaids)
         :return:
         """
         pass
