@@ -176,6 +176,7 @@ def qualifies_for_sponsorship(edition):
     })
     return resp
 
+
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
     from internetarchive import search_items
