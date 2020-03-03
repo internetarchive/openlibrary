@@ -1,4 +1,5 @@
-from urllib import urlencode
+import six
+from six.moves.urllib.parse import urlencode
 
 import web
 import re
@@ -263,7 +264,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         params.append(('sort', sort))
 
     params.append(('wt', param.get('wt', 'standard')))
-
+    params = [(k, v.encode('utf-8') if isinstance(v, six.string_types) else v)
+              for (k, v) in params]
     url = solr_select_url + '?' + urlencode(params)
     solr_result = execute_solr_query(url)
     if solr_result is None:
