@@ -35,6 +35,8 @@ def search_amazon(title='', author=''):
     books by author and/or title.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemSearch.html
 
+    XXX! Broken while migrating from paapi 4.0 to 5.0
+
     :param str title: title of book to search for.
     :param str author: author name of book to search for.
     :return: dict of "results", a list of one or more found books, with metadata.
@@ -49,6 +51,65 @@ def search_amazon(title='', author=''):
     except SearchException:
         data = {'error': 'no results'}
     return data
+
+def _serialize_amazon_product_5(product):
+    """
+    {
+      'price': '$54.06',
+      'price_amt': 5406,
+      'binding': 'Hardcover',
+      'authors': {'Greenfield, Ben': 'Author'},
+      'publication_date': '2020-01-21T00:00:01Z',
+      'dimensions': {
+        'width': [1.7, 'Inches'],
+        'length': [8.5, 'Inches'],
+        'weight': [5.4, 'Pounds'],
+        'height': [10.875, 'Inches']
+       },
+       'publisher': 'Victory Belt Publishing',
+       'source_records': ['amazon:1628603976'],
+       'title': 'Boundless: Upgrade Your Brain, Optimize Your Body & Defy Aging',
+       'url': 'https://www.amazon.com/dp/1628603976/?tag=internetarchi-20',
+       'number_of_pages': 640,
+       'cover': 'https://m.media-amazon.com/images/I/51IT9MV3KqL._AC_.jpg',
+       'languages': {'Original Language': 'English', 'Published': 'English'},
+       'edition_num': '1'
+     }
+    """
+    if not product:
+        return {}  # no match?
+
+    product_info = product.item.item_info.product_info
+    content_info = product.item.item_info.content_info
+    attribution = product.item.item_info.by_line_info
+    dims = product_info.item_dimensions.to_dict()
+    return {
+        'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
+            product.asin, h.affiliate_id('amazon')),
+        'price': '$%s' % product.prices.price,
+        'price_amt': int(100 * product.prices.price),
+        'title': product.title,
+        'cover': product.image_large,
+        'authors': dict(
+            (contrib.name, contrib.role)
+            for contrib in attribution.contributors
+        ),
+        'source_records': ['amazon:%s' % product.asin],
+        'number_of_pages': content_info.pages_count.display_value,
+        'edition_num': content_info.edition.display_value,
+        'publication_date': content_info.publication_date.display_value,
+        'languages': dict(
+            (lang.type, lang.display_value)
+            for lang in content_info.languages.display_values
+            if lang.type.lower() != 'unknown'
+        ),
+        'publisher': product.manufacturer or attribution.brand.display_value,
+        'binding': product.item.item_info.classifications.binding.display_value,
+        'dimensions': dict(
+            (d, [dims[d]['display_value'], dims[d]['unit']])
+            for d in dims
+        )
+    }
 
 
 def _serialize_amazon_product(product):
@@ -141,23 +202,19 @@ def _get_amazon_metadata(id_, id_type='isbn'):
     :rtype: dict or None
     """
 
-    kwargs = {}
     if id_type == 'isbn':
         id_ = normalize_isbn(id_)
-        kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
-    kwargs['ItemId'] = id_
-    kwargs['MerchantId'] = 'Amazon'  # Only affects Offers Response Group, does Amazon sell this directly?
-
-    if not lending.amazon_api:
-        raise Exception("Open Library is not configured to access Amazon's API")
     try:
-        product = lending.amazon_api.lookup(**kwargs)
-    except Exception:
+        if not lending.amazon_api:
+            raise Exception
+        product = lending.amazon_api.get_product(id_)
+        # sometimes more than one product can be returned, choose first
+        if isinstance(product, list):
+            product = product[0]
+    except Exception as e:
         return None
-    # when more than 1 product returned, choose first
-    if isinstance(product, list):
-        product = product[0]
-    return _serialize_amazon_product(product)
+
+    return _serialize_amazon_product_5(product)
 
 
 def split_amazon_title(full_title):

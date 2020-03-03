@@ -8,7 +8,7 @@ import time
 import logging
 import uuid
 import hmac
-from amazon.api import AmazonAPI
+from amazon.paapi import AmazonAPI
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -99,7 +99,7 @@ def setup(config):
     try:
         amazon_api = AmazonAPI(
             config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
+            config_amz_api.id, 'US', throttling=0.9)
     except AttributeError:
         amazon_api = None
 
