@@ -5,6 +5,7 @@ import socket
 import traceback
 import xml.parsers.expat
 
+from deprecated import deprecated
 from infogami import config
 from lxml import etree
 from six.moves import urllib
@@ -21,9 +22,11 @@ IA_BASE_URL = config.get('ia_base_url')
 IA_DOWNLOAD_URL = '%s/download/' % IA_BASE_URL
 MAX_MARC_LENGTH = 100000
 
+
+@deprecated('Rely on MarcXml to raise exceptions')
 class NoMARCXML(IOError):
-    # DEPRECATED, rely on MarcXml to raise exceptions
     pass
+
 
 def urlopen_keep_trying(url):
     for i in range(3):
@@ -37,14 +40,16 @@ def urlopen_keep_trying(url):
             pass
         sleep(2)
 
+
+@deprecated
 def bad_ia_xml(identifier):
-    # DEPRECATED
     if identifier == 'revistadoinstit01paulgoog':
         return False
     # need to handle 404s:
     # http://www.archive.org/details/index1858mary
     loc = "{0}/{0}_marc.xml".format(identifier)
     return '<!--' in urlopen_keep_trying(IA_DOWNLOAD_URL + loc).read()
+
 
 def get_marc_record_from_ia(identifier):
     """
@@ -78,15 +83,16 @@ def get_marc_record_from_ia(identifier):
         data = urlopen_keep_trying(item_base + marc_bin_filename).read()
         return MarcBinary(data)
 
+
+@deprecated('Use get_marc_record_from_ia() above + parse.read_edition()')
 def get_ia(identifier):
     """
-    DEPRECATED: Use get_marc_record_from_ia() above + parse.read_edition()
-
     :param str identifier: ocaid
     :rtype: dict
     """
     marc = get_marc_record_from_ia(identifier)
     return read_edition(marc)
+
 
 def files(identifier):
     url = item_file_url(identifier, 'files.xml')
@@ -112,6 +118,7 @@ def files(identifier):
             else:
                 yield name, None
 
+
 def get_from_archive(locator):
     """
     Gets a single binary MARC record from within an Archive.org
@@ -123,6 +130,7 @@ def get_from_archive(locator):
     """
     data, offset, length = get_from_archive_bulk(locator)
     return data
+
 
 def get_from_archive_bulk(locator):
     """
@@ -167,6 +175,7 @@ def get_from_archive_bulk(locator):
                 next_offset = next_length = None
     return data, next_offset, next_length
 
+
 def read_marc_file(part, f, pos=0):
     """
     Generator to step through bulk MARC data f.
@@ -182,6 +191,7 @@ def read_marc_file(part, f, pos=0):
         pos += int_length
         yield (pos, loc, data)
 
+
 def item_file_url(identifier, ending, host=None, path=None):
     if host and path:
         url = 'http://{}{}/{}_{}'.format(host, path, identifier, ending)
@@ -189,13 +199,13 @@ def item_file_url(identifier, ending, host=None, path=None):
         url = '{0}{1}/{1}_{2}'.format(IA_DOWNLOAD_URL, identifier, ending)
     return url
 
+
+@deprecated
 def get_marc_ia_data(identifier, host=None, path=None):
-    """
-    DEPRECATED
-    """
     url = item_file_url(identifier, 'meta.mrc', host, path)
     f = urlopen_keep_trying(url)
     return f.read() if f else None
+
 
 def marc_formats(identifier, host=None, path=None):
     files = {
@@ -226,33 +236,3 @@ def marc_formats(identifier, host=None, path=None):
         if all(has.values()):
             break
     return has
-
-def get_from_local(locator):
-    # DEPRECATED, Broken, undefined rc, will raise exception if called
-    try:
-        file, offset, length = locator.split(':')
-    except:
-        print(('locator:', repr(locator)))
-        raise
-    f = open(rc['marc_path'] + '/' + file)  # noqa: F821 DEPRECATED
-    f.seek(int(offset))
-    buf = f.read(int(length))
-    f.close()
-    return buf
-
-def get_data(loc):
-    # DEPRECATED, Broken, undefined rc, will return None or raise exception if called
-    try:
-        filename, p, l = loc.split(':')
-    except ValueError:
-        return None
-    marc_path = rc.get('marc_path')
-    if not marc_path:
-        return None
-    if not os.path.exists(marc_path + '/' + filename):
-        return None
-    f = open(rc['marc_path'] + '/' + filename)  # noqa: F821 DEPRECATED
-    f.seek(int(p))
-    buf = f.read(int(l))
-    f.close()
-    return buf

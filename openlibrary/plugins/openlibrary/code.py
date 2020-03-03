@@ -361,12 +361,16 @@ class health(delegate.page):
 
 
 class bookpage(delegate.page):
+    """
+    Load an edition bookpage by identifier: isbn, oclc, lccn, or ia (ocaid).
+    If not found, try to import it by ISBN,
+    otherwise, return a 404.
+    """
+
     path = r'/(isbn|oclc|lccn|ia|ISBN|OCLC|LCCN|IA)/([^/]*)(/.*)?'
 
-    def GET(self, key, value, suffix):
+    def GET(self, key, value, suffix=''):
         key = key.lower()
-        suffix = suffix or ''
-
         if key == 'isbn':
             if len(value) == 13:
                 key = 'isbn_13'
@@ -388,46 +392,33 @@ class bookpage(delegate.page):
         if web.ctx.env.get('QUERY_STRING'):
             ext += '?' + web.ctx.env['QUERY_STRING']
 
-        def redirect(key, ext, suffix):
-            if ext:
-                return web.found(key + ext)
-            else:
-                book = web.ctx.site.get(key)
-                return web.found(book.url(suffix))
-
         q = {'type': '/type/edition', key: value}
-        try:
-            result = web.ctx.site.things(q)
-            if result:
-                raise redirect(result[0], ext, suffix)
-            elif key =='ocaid':
-                q = {'type': '/type/edition', 'source_records': 'ia:' + value}
-                result = web.ctx.site.things(q)
-                if result:
-                    raise redirect(result[0], ext, suffix)
-                q = {'type': '/type/volume', 'ia_id': value}
-                result = web.ctx.site.things(q)
-                if result:
-                    raise redirect(result[0], ext, suffix)
-                else:
-                    raise redirect('/books/ia:' + value, ext, suffix)
-            elif key.startswith('isbn'):
-                ed_key = create_edition_from_amazon_metadata(value)
-                if ed_key:
-                    raise web.seeother(ed_key)
-            web.ctx.status = '404 Not Found'
-            return render.notfound(web.ctx.path, create=False)
-        except web.HTTPError:
-            raise
-        except:
-            if key.startswith('isbn'):
-                ed_key = create_edition_from_amazon_metadata(value)
-                if ed_key:
-                    raise web.seeother(ed_key)
 
-            logger.error('unexpected error', exc_info=True)
-            web.ctx.status = '404 Not Found'
-            return render.notfound(web.ctx.path, create=False)
+        result = web.ctx.site.things(q)
+
+        if result:
+            return web.found(result[0] + ext)
+        elif key =='ocaid':
+            # Try a range of ocaid alternatives:
+            ocaid_alternatives = [
+                    {'type': '/type/edition', 'source_records': 'ia:' + value},
+                    {'type': '/type/volume', 'ia_id': value}]
+            for q in ocaid_alternatives:
+                result = web.ctx.site.things(q)
+                if result:
+                    return web.found(result[0] + ext)
+            # If nothing matched, try this as a last resort:
+            return web.found('/books/ia:' + value + ext)
+        elif key.startswith('isbn'):
+            try:
+               ed_key = create_edition_from_amazon_metadata(value)
+            except Exception as e:
+                logger.error(e)
+                return e.message
+            if ed_key:
+                return web.found(ed_key + ext)
+        web.ctx.status = '404 Not Found'
+        return render.notfound(web.ctx.path, create=False)
 
 
 delegate.media_types['application/rdf+xml'] = 'rdf'

@@ -12,7 +12,7 @@ import uuid
 import logging
 import requests
 
-import lepl.apps.rfc3696
+from validate_email import validate_email
 import web
 
 from infogami import config
@@ -29,7 +29,7 @@ def append_random_suffix(text, limit=9999):
     return '%s%s' % (text, random.randint(0, limit))
 
 def valid_email(email):
-    return lepl.apps.rfc3696.Email()(email)
+    return validate_email(email)
 
 def sendmail(to, msg, cc=None):
     cc = cc or []

@@ -176,33 +176,43 @@ def qualifies_for_sponsorship(edition):
     })
     return resp
 
-def summary():
-    """
-    Provides data model (finances, state-of-process) for the /admin/sponsorship stats page.
 
-    Screenshot:
-    https://user-images.githubusercontent.com/978325/71494377-b975c880-27fb-11ea-9c95-c0c1bfa78bda.png
-    """
+def get_sponsored_books():
+    """Performs the `ia` query to fetch sponsored books from archive.org"""
     from internetarchive import search_items
-    params = {'page': 1, 'rows': 500}
+    params = {'page': 1, 'rows': 1000}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
               'book_price', 'repub_state', 'imagecount', 'title',
               'openlibrary_edition']
+
     q = 'collection:openlibraryscanningteam'
-    config = dict(general=dict(secure=False))
 
     # XXX Note: This `search_items` query requires the `ia` tool (the
     # one installed via virtualenv) to be configured with (scope:all)
     # privileged s3 keys.
-    s = search_items(q, fields=fields, params=params, config=config)
+    config = {'general': {'secure': False}}
+    return search_items(q, fields=fields, params=params, config=config)
 
-    items = list(s)
+
+def summary():
+    """
+    Provides data model (finances, state-of-process) for the /admin/sponsorship stats
+    page.
+
+    Screenshot:
+    https://user-images.githubusercontent.com/978325/71494377-b975c880-27fb-11ea-9c95-c0c1bfa78bda.png
+    """
+    items = list(get_sponsored_books())
 
     # Construct a map of each state of the process to a count of books in that state
     STATUSES = ['Needs purchasing', 'Needs digitizing', 'Needs republishing', 'Complete']
     status_counts = OrderedDict((status, 0) for status in STATUSES)
     for book in items:
-        if not book.get('book_price'):
+        # Official sponsored items set repub_state -1 at item creation,
+        # bulk sponsorship (item created at time of scanning by ttscribe)
+        # will not be repub_state -1. Thus. books which have repub_state -1
+        # and no price are those we need to digitize:
+        if int(book.get('repub_state', -1)) == -1 and not book.get('book_price'):
             book['status'] = STATUSES[0]
             status_counts[STATUSES[0]] += 1
         elif int(book.get('repub_state', -1)) == -1:
