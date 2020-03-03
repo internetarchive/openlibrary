@@ -119,3 +119,22 @@ class TestSubjects:
             data = data.decode('utf-8').encode('raw_unicode_escape')
         rec = MarcBinary(data)
         assert read_subjects(rec) == expected
+
+    def test_four_types_combine(self):
+        subjects = {
+            'subject': {'Science': 2},
+            'event': {'Party': 1}
+        }
+        expect = {
+            'subject': {'Science': 2, 'Party': 1}
+        }
+        assert four_types(subjects) == expect
+
+    def test_four_types_event(self):
+        subjects = {
+            'event': {'Party': 1}
+        }
+        expect = {
+            'subject': {'Party': 1}
+        }
+        assert four_types(subjects) == expect
