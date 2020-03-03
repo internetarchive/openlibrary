@@ -2,11 +2,33 @@ import pytest
 import web
 
 from openlibrary.catalog.add_book.merge import try_merge
+from openlibrary.catalog.add_book import add_db_name, load
+from openlibrary.catalog.merge.merge_marc import build_marc
+
 from openlibrary.core.models import Edition
 from openlibrary.mocks.mock_infobase import MockSite
 
+
+def test_try_merge(mock_site):
+    rec = {
+        'title': 'Test item',
+        'lccn': ['123'],
+        'authors': [{'name': 'Smith, John', 'birth_date': '1980'}],
+        'source_records': ['ia:test_item'],
+    }
+    reply = load(rec)
+    ekey = reply['edition']['key']
+    e = mock_site.get(ekey)
+
+    rec['full_title'] = rec['title']
+    e1 = build_marc(rec)
+    add_db_name(e1)
+    result = try_merge(e1, ekey, e)
+    assert result is True
+
+
 @pytest.mark.skip("This should be tested, but tidy up deprecated methods first.")
-def test_try_merge():
+def test_try_merge_two():
     web.ctx.site = MockSite()
     bpl = {'authors': [{'birth_date': u'1897',
                       'db_name': u'Green, Constance McLaughlin 1897-',
@@ -44,4 +66,3 @@ def test_try_merge():
     web.ctx.site.save_many([existing])
     ed = web.ctx.site.get('/books/OL1M')
     assert try_merge(bpl, '/books/OL1M', ed) is True
-
