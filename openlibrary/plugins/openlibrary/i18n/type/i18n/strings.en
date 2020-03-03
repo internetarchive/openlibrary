@@ -1,7 +1,0 @@
-i18n_strings = u'i18n strings'
-select_translation = u'The following translations are available for this page. Please select the one you would like to edit:'
-available_translations = u'Available Translations'
-add_new_key = u'Add new key'
-add = u'Add'
-add_new_language = u'Add New Language'
-add_new_namespace = u'Add New Namespace'

@@ -4,7 +4,7 @@ import requests
 from decimal import Decimal
 from amazon.api import SearchException
 from infogami.utils.view import public
-from . import lending, cache, helpers as h
+from openlibrary.core import lending, cache, helpers as h
 from openlibrary.utils import dateutil
 from openlibrary.utils.isbn import (
     normalize_isbn, isbn_13_to_isbn_10, isbn_10_to_isbn_13)
@@ -27,11 +27,7 @@ def get_amazon_metadata(id_, id_type='isbn'):
     :rtype: dict or None
     """
 
-    try:
-        if id_:
-            return cached_get_amazon_metadata(id_, id_type=id_type)
-    except Exception:
-        return None
+    return cached_get_amazon_metadata(id_, id_type=id_type)
 
 
 def search_amazon(title='', author=''):
@@ -134,7 +130,7 @@ def _serialize_amazon_product(product):
     return data
 
 
-def _get_amazon_metadata(id_=None, id_type='isbn'):
+def _get_amazon_metadata(id_, id_type='isbn'):
     """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
@@ -151,16 +147,13 @@ def _get_amazon_metadata(id_=None, id_type='isbn'):
         kwargs = {'SearchIndex': 'Books', 'IdType': 'ISBN'}
     kwargs['ItemId'] = id_
     kwargs['MerchantId'] = 'Amazon'  # Only affects Offers Response Group, does Amazon sell this directly?
-    try:
-        if not lending.amazon_api:
-            raise Exception
-        product = lending.amazon_api.lookup(**kwargs)
-        # sometimes more than one product can be returned, choose first
-        if isinstance(product, list):
-            product = product[0]
-    except Exception as e:
-        return None
 
+    if not lending.amazon_api:
+        raise Exception("Open Library is not configured to access Amazon's API")
+    product = lending.amazon_api.lookup(**kwargs)
+    # sometimes more than one product can be returned, choose first
+    if isinstance(product, list):
+        product = product[0]
     return _serialize_amazon_product(product)
 
 

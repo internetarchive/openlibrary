@@ -1,8 +1,0 @@
-username = u'Username'
-remember_me = u'Remember me'
-forgot_password = u'Forgot your username or password?'
-create_new_account = u"Otherwise, <a href='%s'>create a new account</a> -- it just takes a second."
-ol_id = u'Login with Open Library ID'
-login_stmt = u'If you already have an account, log in'
-password = u'Password'
-login = u'Log in'
