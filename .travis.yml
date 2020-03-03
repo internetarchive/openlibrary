@@ -8,11 +8,11 @@ jobs:
       dist: xenial
     - name: “Python 2.7 on bionic”
       python: "2.7"
-    - name: “Python 3.8 make lint only”
+    - name: “Python 3.8 make lint and selected pytests”
       python: "3.8"
-      install: pip install flake8
+      before_script: true  # override npm install below
       script:
-        - make lint
+        - pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests
         # On pull requests, run all flake8 tests on modified code
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
@@ -23,17 +23,14 @@ jobs:
   allow_failures:
     - name: “Python 3.8 on bionic”
 install:
-  - pip install flake8
-  - make lint
   - pip install -r requirements_test.txt
   # if Travis is running Python 3, then
   #   refresh the git submodule ./vendor/infogami
-  #   create a legacy Python for npm/node until nodejs/node#25789 is resolved
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
       pushd vendor/infogami && git pull origin master && popd;
-      pyenv install 2.7.14;
     fi
-  - npm install
+  - make lint  # TODO: Move this to script: section after #2951 lands
+before_script: npm install
 script:
   - make i18n
   - make test

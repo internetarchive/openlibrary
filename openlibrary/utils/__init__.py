@@ -19,7 +19,7 @@ def finddict(dicts, **filters):
         {'x': 1, 'y': 2}
     """
     for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.iteritems())):
+        if (all(d.get(k) == v for k, v in filters.items())):
             return d
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
@@ -50,7 +50,7 @@ def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
     """
     if isinstance(d, dict):
-        return tuple((k, dicthash(v)) for k, v in d.iteritems())
+        return tuple((k, dicthash(v)) for k, v in d.items())
     elif isinstance(d, list):
         return tuple(dicthash(v) for v in d)
     else:
