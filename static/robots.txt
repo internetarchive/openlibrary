@@ -1,6 +1,6 @@
 
 User-agent: *
-Disallow: /user
+Allow: /user
 Allow: /people
 Disallow: /api
 Disallow: /edit
