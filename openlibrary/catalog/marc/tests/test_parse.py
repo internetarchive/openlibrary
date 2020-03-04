@@ -102,10 +102,10 @@ class TestParseMARCBinary:
 class TestParse:
     def test_read_author_person(self):
         xml_author = """
-            <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
-                <subfield code="a">Rein, Wilhelm,</subfield>
-                <subfield code="d">1809-1865</subfield>
-            </datafield>"""
+        <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
+          <subfield code="a">Rein, Wilhelm,</subfield>
+          <subfield code="d">1809-1865</subfield>
+        </datafield>"""
         test_field = DataField(etree.fromstring(xml_author))
         result = read_author_person(test_field)
 

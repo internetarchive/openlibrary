@@ -20,19 +20,38 @@ def add_languages(mock_site):
         })
 
 
-def test_import_author_personal_name(monkeypatch):
-    """Name order is only flipped to natural order if 'personal_name' is present.
-    """
+@pytest.fixture
+def new_import(monkeypatch):
     monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
-    result = import_author({'personal_name': 'Surname, Forename',
-                            'name': 'Surname, Forename'})
+
+
+# These authors will be imported with natural name order
+# The presence of 'personal_name' is what triggers the name swap
+natural_names = [
+     {'name': 'Forename Surname'},
+     {'name': 'Surname, Forename', 'personal_name': 'Surname, Forename'},
+     ]
+
+
+# These authors with be imported with 'name' unchanged
+unchanged_names = [
+     {'name': 'Forename Surname'},
+     {'name': 'Surname, Forename'},
+     {'name': 'Surname, Forename', 'entity_type': 'person'},
+     {'entity_type': 'org', 'name': 'Organisation, Place'},
+     ]
+
+
+@pytest.mark.parametrize('author', natural_names)
+def test_import_author_name_natural_order(author, new_import):
+    result = import_author(author)
     assert result['name'] == 'Forename Surname'
 
 
-def test_import_author_name_only(monkeypatch):
-    monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
-    result = import_author({'name': 'Surname, Forename'})
-    assert result['name'] == 'Surname, Forename'
+@pytest.mark.parametrize('author', natural_names)
+def test_import_author_name_unchanged(author, new_import):
+    result = import_author(author)
+    assert result['name'] == author['name']
 
 
 def test_build_query(add_languages):
