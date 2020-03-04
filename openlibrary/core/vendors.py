@@ -152,7 +152,7 @@ def _get_amazon_metadata(id_, id_type='isbn'):
         raise Exception("Open Library is not configured to access Amazon's API")
     try:
         product = lending.amazon_api.lookup(**kwargs)
-    except Exception as e:
+    except Exception:
         return None
     # when more than 1 product returned, choose first
     if isinstance(product, list):
