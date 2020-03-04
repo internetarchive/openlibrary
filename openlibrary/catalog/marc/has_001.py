@@ -3,7 +3,7 @@ from __future__ import print_function
 from catalog.marc.fast_parse import *
 from catalog.read_rc import read_rc
 from catalog.get_ia import files
-from sources import sources
+from openlibrary.catalog.marc.sources import sources
 import sys
 import os
 

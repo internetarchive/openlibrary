@@ -1,7 +1,7 @@
-from olwrite import Infogami, add_to_database
+from openlibrary.catalog.olwrite import Infogami, add_to_database
 import web
 import dbhash
-from read_rc import read_rc
+from openlibrary.catalog.read_rc import read_rc
 import cjson
 import re
 import sys
