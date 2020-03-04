@@ -1,4 +1,3 @@
-from openlibrary import accounts
 from openlibrary.accounts.model import Account, Link
 
 import web
