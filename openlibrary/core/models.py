@@ -25,7 +25,6 @@ from six.moves import urllib
 
 from .ia import get_metadata_direct
 from ..accounts import OpenLibraryAccount
-from openlibrary.accounts.model import InternetArchiveAccount
 
 
 def _get_ol_base_url():
