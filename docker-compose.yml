@@ -1,10 +1,12 @@
 version: "3"
 services:
   web:
-    image: oldev:latest
+    # image: oldev:latest
+    image: olpy3:latest
     build:
       context: .
-      dockerfile: docker/Dockerfile.oldev
+      # dockerfile: docker/Dockerfile.oldev
+      dockerfile: docker/Dockerfile.olpy3
     ports:
       - 8080:80
       - 7000:7000

@@ -1,4 +1,4 @@
-from openlibrary.catalog.olwrite import Infogami, add_to_database
+from openlibrary.catalog.olwrite import Infogami, add_to_database  # noqa: F401
 import web
 import dbhash
 from openlibrary.catalog.read_rc import read_rc
