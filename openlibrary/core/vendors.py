@@ -160,7 +160,6 @@ def _get_amazon_metadata(id_, id_type='isbn'):
     return _serialize_amazon_product(product)
 
 
-
 def split_amazon_title(full_title):
     """Splits an Amazon title into (title, subtitle),
     strips parenthetical tags.
