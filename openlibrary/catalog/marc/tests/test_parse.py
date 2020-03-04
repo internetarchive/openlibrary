@@ -1,8 +1,9 @@
 import pytest
 
-from openlibrary.catalog.marc.parse import read_author_person, read_edition, NoTitle, SeeAlsoAsTitle
+from openlibrary.catalog.marc.parse import (
+    read_author_person, read_edition, NoTitle, SeeAlsoAsTitle)
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import BadSubtag, BlankTag, DataField, MarcXml
+from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 import os
 import simplejson
@@ -96,6 +97,7 @@ class TestParseMARCBinary:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
+
 
 class TestParse:
     def test_read_author_person(self):
