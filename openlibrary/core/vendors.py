@@ -87,36 +87,36 @@ def _serialize_amazon_product(product):
     item_info = product.raw_info.item_info
     edition_info = item_info.content_info
     attribution = item_info.by_line_info
-    dims = item_info.product_info.item_dimensions.to_dict()
-    edition_id = edition_info.edition and edition_info.edition.display_value
-    publisher = attribution.brand and attribution.brand.display_value
+    price = product.prices and product.prices.price
+    dims = item_info.product_info and item_info.product_info.item_dimensions
     book = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             product.asin, h.affiliate_id('amazon')),
-        'price': product.prices.price.display,
-        'price_amt': int(100 * product.prices.price.value),
+        'source_records': ['amazon:%s' % product.asin],
+        'price': price and price.display,
+        'price_amt': price.value and int(100 * price.value),
         'title': product.title,
-        'cover': product.images.large,
+        'cover': product.images and product.images.large,
         'authors': dict(
             (contrib.name, contrib.role)
             for contrib in attribution.contributors
         ),
-        'publisher': publisher,
-        'source_records': ['amazon:%s' % product.asin],
-        'number_of_pages': edition_info.pages_count.display_value,
-        'edition_num': edition_id,
-        'publication_date': edition_info.publication_date.display_value,
+        'publisher': attribution.brand and attribution.brand.display_value,
+        'number_of_pages': edition_info.pages_count and edition_info.pages_count.display_value,
+        'edition_num': edition_info.edition and edition_info.edition.display_value,
+        'publication_date': edition_info.publication_date and edition_info.publication_date.display_value,
         'languages': dict(
             (lang.type, lang.display_value)
             for lang in edition_info.languages.display_values
             if lang.type.lower() != 'unknown'
         ),
-        'binding': item_info.classifications.binding.display_value,
-        'dimensions': dict(
-            (d, [dims[d]['display_value'], dims[d]['unit']])
+        'binding': item_info.classifications.binding.display_value
+    }
+    if dims:
+        book['dimensions'] = dict(
+            (d, [getattr(dims, d).display_value, getattr(dims, d).unit])
             for d in dims
         )
-    }
     return book
 
 def _get_amazon_metadata(id_, id_type='isbn'):
