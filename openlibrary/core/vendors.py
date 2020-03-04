@@ -2,7 +2,6 @@ import re
 import simplejson
 import requests
 from decimal import Decimal
-from amazon.api import SearchException
 from infogami.utils.view import public
 from openlibrary.core import lending, cache, helpers as h
 from openlibrary.utils import dateutil
@@ -45,15 +44,21 @@ def search_amazon(title='', author=''):
 
     results = lending.amazon_api.search(Title=title, Author=author, SearchIndex='Books')
     data = {'results': []}
-    try:
-        for product in results:
-            data['results'].append(_serialize_amazon_product(product))
-    except SearchException:
-        data = {'error': 'no results'}
+    #try:
+    #    for product in results:
+    #        data['results'].append(_serialize_amazon_product(product))
+    #except SearchException:
+    #    data = {'error': 'no results'}
     return data
 
-def _serialize_amazon_product_5(product):
-    """
+def _serialize_amazon_product(product):
+    """Takes a full Amazon product Advertising API returned AmazonProduct
+    with multiple ResponseGroups, and extracts the data we are interested in.
+
+    :param amazon.api.AmazonProduct product:
+    :return: Amazon metadata for one product
+    :rtype: dict
+
     {
       'price': '$54.06',
       'price_amt': 5406,
@@ -79,117 +84,39 @@ def _serialize_amazon_product_5(product):
     if not product:
         return {}  # no match?
 
-    product_info = product.item.item_info.product_info
-    content_info = product.item.item_info.content_info
-    attribution = product.item.item_info.by_line_info
-    dims = product_info.item_dimensions.to_dict()
-    return {
+    item_info = product.raw_info.item_info
+    edition_info = item_info.content_info
+    attribution = item_info.by_line_info
+    dims = item_info.product_info.item_dimensions.to_dict()
+    edition_id = edition_info.edition and edition_info.edition.display_value
+    book = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             product.asin, h.affiliate_id('amazon')),
-        'price': '$%s' % product.prices.price,
-        'price_amt': int(100 * product.prices.price),
+        'price': product.prices.price.display,
+        'price_amt': int(100 * product.prices.price.value),
         'title': product.title,
-        'cover': product.image_large,
+        'cover': product.images.large,
         'authors': dict(
             (contrib.name, contrib.role)
             for contrib in attribution.contributors
         ),
+        'publisher': attribution.brand.display_value,
         'source_records': ['amazon:%s' % product.asin],
-        'number_of_pages': content_info.pages_count.display_value,
-        'edition_num': content_info.edition.display_value,
-        'publication_date': content_info.publication_date.display_value,
+        'number_of_pages': edition_info.pages_count.display_value,
+        'edition_num': edition_id,
+        'publication_date': edition_info.publication_date.display_value,
         'languages': dict(
             (lang.type, lang.display_value)
-            for lang in content_info.languages.display_values
+            for lang in edition_info.languages.display_values
             if lang.type.lower() != 'unknown'
         ),
-        'publisher': product.manufacturer or attribution.brand.display_value,
-        'binding': product.item.item_info.classifications.binding.display_value,
+        'binding': item_info.classifications.binding.display_value,
         'dimensions': dict(
             (d, [dims[d]['display_value'], dims[d]['unit']])
             for d in dims
         )
     }
-
-
-def _serialize_amazon_product(product):
-    """Takes a full Amazon product Advertising API returned AmazonProduct
-    with multiple ResponseGroups, and extracts the data we are interested in.
-
-    :param amazon.api.AmazonProduct product:
-    :return: Amazon metadata for one product
-    :rtype: dict
-    """
-
-    price_fmt = price = qlt = None
-    used = product._safe_get_element_text('OfferSummary.LowestUsedPrice.Amount')
-    new = product._safe_get_element_text('OfferSummary.LowestNewPrice.Amount')
-
-    # prioritize lower prices and newer, all things being equal
-    if used and new:
-        price, qlt = (used, 'used') if int(used) < int(new) else (new, 'new')
-    # accept whichever is available
-    elif used or new:
-        price, qlt = (used, 'used') if used else (new, 'new')
-
-    if price:
-        price = '{:00,.2f}'.format(int(price)/100.)
-        if qlt:
-            price_fmt = "$%s (%s)" % (price, qlt)
-
-    data = {
-        'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
-            product.asin, h.affiliate_id('amazon')),
-        'price': price_fmt,
-        'price_amt': price,
-        'qlt': qlt,
-        'title': product.title,
-        'authors': [{'name': name} for name in product.authors],
-        'source_records': ['amazon:%s' % product.asin],
-        'number_of_pages': product.pages,
-        'languages': list(product.languages),
-        'cover': product.large_image_url,
-        'product_group': product.product_group,
-    }
-    if product._safe_get_element('OfferSummary') is not None:
-        data['offer_summary'] = {
-            'total_new': int(product._safe_get_element_text('OfferSummary.TotalNew')),
-            'total_used': int(product._safe_get_element_text('OfferSummary.TotalUsed')),
-            'total_collectible': int(product._safe_get_element_text('OfferSummary.TotalCollectible')),
-        }
-        collectible = product._safe_get_element_text('OfferSummary.LowestCollectiblePrice.Amount')
-        if new:
-            data['offer_summary']['lowest_new'] = int(new)
-        if used:
-            data['offer_summary']['lowest_used'] = int(used)
-        if collectible:
-            data['offer_summary']['lowest_collectible'] = int(collectible)
-        amazon_offers = product._safe_get_element_text('Offers.TotalOffers')
-        if amazon_offers:
-            data['offer_summary']['amazon_offers'] = int(amazon_offers)
-
-    if product.publication_date:
-        data['publish_date'] = product._safe_get_element_text('ItemAttributes.PublicationDate')
-        if re.match(AMAZON_FULL_DATE_RE, data['publish_date']):
-            data['publish_date'] = product.publication_date.strftime('%b %d, %Y')
-
-    if product.binding:
-        data['physical_format'] = product.binding.lower()
-    if product.edition:
-        data['edition'] = product.edition
-    if product.publisher:
-        data['publishers'] = [product.publisher]
-    if product.isbn:
-        isbn = product.isbn
-        if len(isbn) == 10:
-            data['isbn_10'] = [isbn]
-            data['isbn_13'] = [isbn_10_to_isbn_13(isbn)]
-        elif len(isbn) == 13:
-            data['isbn_13'] = [isbn]
-            if isbn.startswith('978'):
-                data['isbn_10'] = [isbn_13_to_isbn_10(isbn)]
-    return data
-
+    return book
 
 def _get_amazon_metadata(id_, id_type='isbn'):
     """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
@@ -201,20 +128,17 @@ def _get_amazon_metadata(id_, id_type='isbn'):
     :return: A single book item's metadata, or None.
     :rtype: dict or None
     """
-
     if id_type == 'isbn':
         id_ = normalize_isbn(id_)
+        if len(id_) == 13 and id_.startswith('978'):
+            id_ = isbn_13_to_isbn_10(id_)
     try:
         if not lending.amazon_api:
             raise Exception
         product = lending.amazon_api.get_product(id_)
-        # sometimes more than one product can be returned, choose first
-        if isinstance(product, list):
-            product = product[0]
     except Exception as e:
         return None
-
-    return _serialize_amazon_product_5(product)
+    return _serialize_amazon_product(product)
 
 
 def split_amazon_title(full_title):
