@@ -125,7 +125,7 @@ def qualifies_for_sponsorship(edition):
     edition.isbn = edition.get_isbn13()
     edition.cover = edition.get('covers') and (
         'https://covers.openlibrary.org/b/id/%s-L.jpg' % edition.covers[0])
-    amz_metadata = get_amazon_metadata(edition.isbn) or {}
+    amz_metadata = edition.isbn and get_amazon_metadata(edition.isbn) or {}
     req_fields = ['isbn', 'publishers', 'title', 'publish_date', 'cover', 'number_of_pages']
     edition_data = dict((field, (amz_metadata.get(field) or edition.get(field))) for field in req_fields)
     work = edition.works and edition.works[0]
