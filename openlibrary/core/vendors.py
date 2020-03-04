@@ -89,6 +89,7 @@ def _serialize_amazon_product(product):
     attribution = item_info.by_line_info
     dims = item_info.product_info.item_dimensions.to_dict()
     edition_id = edition_info.edition and edition_info.edition.display_value
+    publisher = attribution.brand and attribution.brand.display_value
     book = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             product.asin, h.affiliate_id('amazon')),
@@ -100,7 +101,7 @@ def _serialize_amazon_product(product):
             (contrib.name, contrib.role)
             for contrib in attribution.contributors
         ),
-        'publisher': attribution.brand.display_value,
+        'publisher': publisher,
         'source_records': ['amazon:%s' % product.asin],
         'number_of_pages': edition_info.pages_count.display_value,
         'edition_num': edition_id,
