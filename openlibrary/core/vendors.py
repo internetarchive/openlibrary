@@ -93,33 +93,36 @@ def _serialize_amazon_product(product):
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             product.asin, h.affiliate_id('amazon')),
         'source_records': ['amazon:%s' % product.asin],
+        'isbn_10': [product.asin],
+        'isbn_13': [isbn_10_to_isbn_13(product.asin)],
         'price': price and price.display,
         'price_amt': price.value and int(100 * price.value),
         'title': product.title,
         'cover': product.images and product.images.large,
-        'authors': dict(
-            (contrib.name, contrib.role)
-            for contrib in attribution.contributors
-        'author': {contrib.name: contrib.role for contrib in attribution.contributors}
-        'publisher': attribution.brand and attribution.brand.display_value,
+        'authors': [{'name': contrib.name, 'role': contrib.role}
+                    for contrib in attribution.contributors],
+        'publishers': attribution.brand and [attribution.brand.display_value],
         'number_of_pages': (edition_info.pages_count and
                             edition_info.pages_count.display_value),
         'edition_num': (edition_info.edition and
                         edition_info.edition.display_value),
-        'publication_date': (edition_info.publication_date and
+        'publish_date': (edition_info.publication_date and
                              edition_info.publication_date.display_value),
-        'languages': dict(
-            (lang.type, lang.display_value)
-            for lang in edition_info.languages.display_values
-            if lang.type.lower() != 'unknown'
+        'languages': (
+            edition_info.languages and
+            list(set(
+                [lang.diplay_value 
+                 for lang in edition_info.languages.display_values
+             ]))
         ),
-        'binding': item_info.classifications.binding.display_value
+        'physical_format': (
+            item_info.classifications and 
+            getattr(item_info.classifications.binding, 'display_value')),
+        'dimensions': dims and {
+            d: [getattr(dims, d).display_value, getattr(dims, d).unit]
+            for d in dims.to_dict()}
     }
-    if dims:
-        book['dimensions'] = dict(
-            (d, [getattr(dims, d).display_value, getattr(dims, d).unit])
-            for d in dims.to_dict()
-        )
+    print(book)
     return book
 
 def _get_amazon_metadata(id_, id_type='isbn'):
