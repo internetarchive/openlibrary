@@ -102,9 +102,12 @@ def _serialize_amazon_product(product):
             for contrib in attribution.contributors
         ),
         'publisher': attribution.brand and attribution.brand.display_value,
-        'number_of_pages': edition_info.pages_count and edition_info.pages_count.display_value,
-        'edition_num': edition_info.edition and edition_info.edition.display_value,
-        'publication_date': edition_info.publication_date and edition_info.publication_date.display_value,
+        'number_of_pages': (edition_info.pages_count and
+                            edition_info.pages_count.display_value),
+        'edition_num': (edition_info.edition and
+                        edition_info.edition.display_value),
+        'publication_date': (edition_info.publication_date and
+                             edition_info.publication_date.display_value),
         'languages': dict(
             (lang.type, lang.display_value)
             for lang in edition_info.languages.display_values
