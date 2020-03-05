@@ -35,7 +35,7 @@ natural_names = [
      ]
 
 
-# These authors with be imported with 'name' unchanged
+# These authors will be imported with 'name' unchanged
 unchanged_names = [
      {'name': 'Forename Surname'},
      {'name': 'Smith, John III, King of Coats, and Bottles',

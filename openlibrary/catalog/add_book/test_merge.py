@@ -5,7 +5,6 @@ from openlibrary.catalog.add_book.merge import try_merge
 from openlibrary.catalog.add_book import add_db_name, load
 from openlibrary.catalog.merge.merge_marc import build_marc
 
-from openlibrary.core.models import Edition
 from openlibrary.mocks.mock_infobase import MockSite
 
 
@@ -27,8 +26,8 @@ def test_try_merge(mock_site):
     assert result is True
 
 
-@pytest.mark.skip("This should be tested, but tidy up deprecated methods first.")
-def test_try_merge_two():
+@pytest.mark.skip('Determine whether add_book.merge.try_merge() is used, then tidy up deprecated.')
+def test_try_merge_full():
     web.ctx.site = MockSite()
     bpl = {'authors': [{'birth_date': u'1897',
                       'db_name': u'Green, Constance McLaughlin 1897-',
