@@ -13,7 +13,7 @@ $ asin = opts.get('asin')
         $else:
           $ bwb_affiliate_url += 'search/results?q=' + page.title
         <a href="$bwb_affiliate_url" title="Look for this edition for sale at Better World Books" target="_blank">Better World Books</a>
-        $if prices:
+        $if prices and isbn:
           <br>
           $ betterworldbooks_metadata = get_betterworldbooks_metadata(isbn)
           $if betterworldbooks_metadata and 'price' in betterworldbooks_metadata and betterworldbooks_metadata['price']:
@@ -24,7 +24,7 @@ $ asin = opts.get('asin')
       <li>
           <a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
           <br>
-          $if prices and not is_bot():
+          $if prices and isbn and not is_bot():
               $ amazon_metadata = get_amazon_metadata(isbn)
               $if amazon_metadata and 'price' in amazon_metadata and amazon_metadata['price']:
                   <span name="price">$(amazon_metadata['price'])</span>
