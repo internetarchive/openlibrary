@@ -120,7 +120,6 @@ def _serialize_amazon_product(product):
             d: [getattr(dims, d).display_value, getattr(dims, d).unit]
             for d in dims.to_dict()}
     }
-    print(book)
     return book
 
 def _get_amazon_metadata(id_, id_type='isbn'):
