@@ -26,7 +26,7 @@ def test_try_merge(mock_site):
     assert result is True
 
 
-@pytest.mark.skip('Determine whether add_book.merge.try_merge() is used, then tidy up deprecated.')
+@pytest.mark.skip('TODO: is add_book.merge.try_merge() used? Tidy up deprecated.')
 def test_try_merge_full():
     web.ctx.site = MockSite()
     bpl = {'authors': [{'birth_date': u'1897',
