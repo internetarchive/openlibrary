@@ -16,7 +16,7 @@ xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
     'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
-    'cu31924091184469', # MARC XML collection record
+    'cu31924091184469',  # MARC XML collection record
     'engineercorpsofh00sher',
     ]
 
@@ -37,6 +37,7 @@ bin_samples = [
     'thewilliamsrecord_vol29b_meta.mrc', '13dipolarcycload00burk_meta.mrc' ]
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
+
 
 class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
