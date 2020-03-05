@@ -111,12 +111,12 @@ def _serialize_amazon_product(product):
         'languages': (
             edition_info.languages and
             list(set(
-                [lang.diplay_value 
+                [lang.diplay_value
                  for lang in edition_info.languages.display_values
              ]))
         ),
         'physical_format': (
-            item_info.classifications and 
+            item_info.classifications and
             getattr(item_info.classifications.binding, 'display_value')),
         'dimensions': dims and {
             d: [getattr(dims, d).display_value, getattr(dims, d).unit]
