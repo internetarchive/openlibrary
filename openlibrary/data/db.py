@@ -150,7 +150,7 @@ def update_docs(docs, comment, author, ip="127.0.0.1"):
     t = db.transaction()
     try:
         docdict = dict((doc.id, doc) for doc in docs)
-        thing_ids = docdict.keys()
+        thing_ids = list(docdict)
 
         # lock the rows in the table
         rows = db.query("SELECT id, key, latest_revision FROM thing where id IN $thing_ids FOR UPDATE", vars=locals())
