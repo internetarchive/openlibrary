@@ -110,10 +110,8 @@ def _serialize_amazon_product(product):
                              edition_info.publication_date.display_value),
         'languages': (
             edition_info.languages and
-            list(set(
-                [lang.diplay_value
-                 for lang in edition_info.languages.display_values
-             ]))
+            list(set(lang.display_value
+                     for lang in edition_info.languages.display_values))
         ),
         'physical_format': (
             item_info.classifications and
