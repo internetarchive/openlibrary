@@ -93,7 +93,7 @@ Copy this dump onto ol-solr0, and there run
 ```sh
 cd /opt/openlibrary
 # Build Solr
-time sudo docker-compose build --build-arg CONFIG_FILE=solrconfig-prod.xml solr
+time sudo docker-compose build --build-arg ENV=prod solr
 
 # Copy file (3min; 2020-03-02 OJF)
 time scp YOU@server.openjournal.foundation:/storage/openlibrary/solr/solrbuilder-2020-03-02.tar.gz ~
