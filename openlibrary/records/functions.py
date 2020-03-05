@@ -221,7 +221,7 @@ def author_to_doc(thing):
     return thing.dict()
 
 
-def thing_to_doc(thing, keys = None):
+def thing_to_doc(thing, keys=None):
     """Converts an infobase 'thing' into an entry that can be used in
     the 'doc' field of the search results.
 

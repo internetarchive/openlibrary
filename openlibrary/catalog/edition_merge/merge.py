@@ -184,7 +184,7 @@ def build_merged(editions):
                 uniq[re_nonword.sub('', repr(e[k]).lower())].append(num)
 
         if len(uniq) == 1:
-            #merged[k] = list(uniq)[0]
+            # merged[k] = list(uniq)[0]
             merged[k] = editions[list(uniq.values())[0][0]][k]
             continue
 
