@@ -100,7 +100,7 @@ def _serialize_amazon_product(product):
         'authors': dict(
             (contrib.name, contrib.role)
             for contrib in attribution.contributors
-        ),
+        'author': {contrib.name: contrib.role for contrib in attribution.contributors}
         'publisher': attribution.brand and attribution.brand.display_value,
         'number_of_pages': (edition_info.pages_count and
                             edition_info.pages_count.display_value),
