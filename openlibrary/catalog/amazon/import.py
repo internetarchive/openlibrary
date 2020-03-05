@@ -2,14 +2,14 @@ from __future__ import print_function
 import sys
 import re
 import os
-from parse import read_edition
+from openlibrary.catalog.parse import read_edition
 from lxml.html import fromstring
-import catalog.importer.pool as pool
-from catalog.importer.db_read import get_mc, withKey
-import catalog.merge.amazon as amazon_merge
-from catalog.get_ia import get_from_local, get_ia
-from catalog.merge.merge_marc import build_marc
-import catalog.marc.fast_parse as fast_parse
+import openlibrary.catalog.importer.pool as pool
+from openlibrary.catalog.importer.db_read import get_mc, withKey
+import openlibrary.catalog.merge.amazon as amazon_merge
+from openlibrary.catalog.get_ia import get_from_local, get_ia
+from openlibrary.catalog.merge.merge_marc import build_marc
+import openlibrary.catalog.marc.fast_parse as fast_parse
 
 import six
 from six.moves import urllib
