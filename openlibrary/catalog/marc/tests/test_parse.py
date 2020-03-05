@@ -79,7 +79,9 @@ class TestParseMARCBinary:
             assert False, 'Expectations file %s not found: template generated in %s. Please review and commit this file.' % (expect_filename, '/bin_expect')
         j = simplejson.load(open(expect_filename))
         assert j, 'Unable to open test data: %s' % expect_filename
-        assert sorted(edition_marc_bin) == sorted(j), 'Processed binary MARC fields do not match expectations in %s' % expect_filename
+        assert sorted(edition_marc_bin) == sorted(j), ('Processed binary MARC fields '
+                                                       'do not match expectations in '
+                                                       '%s' % expect_filename)
         for k in edition_marc_bin:
             if isinstance(j[k], list):
                 for item1, item2 in zip(edition_marc_bin[k], j[k]):
