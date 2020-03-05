@@ -244,34 +244,7 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
 
 
 class Test_From_MARC:
-    def test_from_marc_3(self, mock_site, add_languages):
-        ia = 'treatiseonhistor00dixo'
-        data = open_test_data(ia + '_meta.mrc').read()
-        assert len(data) == int(data[:5])
-        rec = read_edition(MarcBinary(data))
-        rec['source_records'] = ['ia:' + ia]
-        reply = load(rec)
-        assert reply['success'] is True
-        assert reply['edition']['status'] == 'created'
-        e = mock_site.get(reply['edition']['key'])
-        assert e.type.key == '/type/edition'
-
-    def test_from_marc_2(self, mock_site, add_languages):
-        ia = 'roadstogreatness00gall'
-        data = open_test_data(ia + '_meta.mrc').read()
-        assert len(data) == int(data[:5])
-        rec = read_edition(MarcBinary(data))
-        rec['source_records'] = ['ia:' + ia]
-        reply = load(rec)
-        assert reply['success'] is True
-        assert reply['edition']['status'] == 'created'
-        e = mock_site.get(reply['edition']['key'])
-        assert e.type.key == '/type/edition'
-        reply = load(rec)
-        assert reply['success'] is True
-        assert reply['edition']['status'] == 'matched'
-
-    def test_from_marc_1(self, mock_site, add_languages):
+    def test_from_marc_author(self, mock_site, add_languages):
         ia = 'flatlandromanceo00abbouoft'
         marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
 
@@ -285,6 +258,24 @@ class Test_From_MARC:
         assert a.name == 'Edwin Abbott Abbott'
         assert a.birth_date == '1838'
         assert a.death_date == '1926'
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'matched'
+
+    @pytest.mark.parametrize('ia', (
+        'coursepuremath00hardrich',
+        'roadstogreatness00gall',
+        'treatiseonhistor00dixo'))
+    def test_from_marc(self, ia, mock_site, add_languages):
+        data = open_test_data(ia + '_meta.mrc').read()
+        assert len(data) == int(data[:5])
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:' + ia]
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'created'
+        e = mock_site.get(reply['edition']['key'])
+        assert e.type.key == '/type/edition'
         reply = load(rec)
         assert reply['success'] is True
         assert reply['edition']['status'] == 'matched'
@@ -303,7 +294,7 @@ class Test_From_MARC:
         assert a.name == 'Laura K. Egendorf'
         assert a.birth_date == '1973'
 
-    def test_real_example(self, mock_site, add_languages):
+    def test_from_marc_reimport_modifications(self, mock_site, add_languages):
         src = 'v38.i37.records.utf8--16478504-1254'
         marc = MarcBinary(open_test_data(src).read())
         rec = read_edition(marc)
