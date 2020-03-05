@@ -115,7 +115,7 @@ def _serialize_amazon_product(product):
     if dims:
         book['dimensions'] = dict(
             (d, [getattr(dims, d).display_value, getattr(dims, d).unit])
-            for d in dims
+            for d in dims.to_dict()
         )
     return book
 
