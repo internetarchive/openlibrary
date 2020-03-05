@@ -227,13 +227,13 @@ class revert(delegate.mode):
                     else:
                         return value
                 else:
-                    for k in value.keys():
+                    for k in value:
                         value[k] = process(value[k])
                     return value
             else:
                 return value
 
-        for k in thing.keys():
+        for k in thing:
             thing[k] = process(thing[k])
 
         comment = i._comment or "reverted to revision %d" % v

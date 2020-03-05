@@ -23,8 +23,8 @@ def pytest_funcarg__compare_results(request):
                     return False
             return True
 
-        if isinstance(d1, dict) and isinstance(d2, dict) and len(d1.keys()) == len(d2.keys()):
-            for k, v in d1.items():
+        if isinstance(d1, dict) and isinstance(d2, dict) and len(d1) == len(d2):
+            for k,v in d1.iteritems():
                 # compare_results.depth += 1
                 ret = compare_results(d1.get(k), d2.get(k))
                 # print " ==> ",ret, "\n"

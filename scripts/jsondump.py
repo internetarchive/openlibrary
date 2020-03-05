@@ -139,7 +139,7 @@ def help(cmd=None):
         print("List of commands:")
         print()
 
-        for k in sorted(commands.keys()):
+        for k in sorted(commands):
             doc = commands[k].__doc__ or " "
             print("  %-10s\t%s" % (k, doc.splitlines()[0]))
 
@@ -169,7 +169,7 @@ def make_sub(d):
     """
     def f(a):
         return d[a.group(0)]
-    rx = re.compile("|".join(map(re.escape, d.keys())))
+    rx = re.compile("|".join(re.escape(key) for key in d))
     return lambda s: s and rx.sub(f, s)
 
 def invert_dict(d):

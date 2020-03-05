@@ -404,7 +404,7 @@ def facet_counts(result_list, facet_fields):
 
     facets = defaultdict(lambda: defaultdict(int))
     for r in result_list:
-        for k in set(r.keys()) & set(facet_fields):
+        for k in set(r) & set(facet_fields):
             facets_k = facets[k]        # move lookup out of loop for speed
             for x in r[k]:
                 facets_k[x] += 1

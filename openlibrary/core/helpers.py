@@ -244,7 +244,7 @@ def texsafe(text):
     """
     global _texsafe_re
     if _texsafe_re is None:
-        pattern = "[%s]" % re.escape("".join(_texsafe_map.keys()))
+        pattern = "[%s]" % re.escape("".join(list(_texsafe_map)))
         _texsafe_re = re.compile(pattern)
 
     return _texsafe_re.sub(lambda m: _texsafe_map[m.group(0)], text)

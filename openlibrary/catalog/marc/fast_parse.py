@@ -319,7 +319,7 @@ def index_fields(data, want, check_author=True):
     }
 
     if check_author:
-        want += author.keys()
+        want += list(author)
     fields = get_tag_lines(data, ['006', '008', '260'] + want)
     read_tag = {
         '001': (read_control_number, 'control_number'),

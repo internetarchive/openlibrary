@@ -234,7 +234,7 @@ def four_types(i):
     """
     want = {'subject', 'time', 'place', 'person'}
     ret = dict((k, i[k]) for k in want if k in i)
-    for j in (j for j in i.keys() if j not in want):
+    for j in (j for j in i if j not in want):
         for k, v in i[j].items():
             if 'subject' in ret:
                 ret['subject'][k] = ret['subject'].get(k, 0) + v
@@ -792,12 +792,13 @@ def build_data2(w, editions, authors, ia, duplicates):
     for k in 'person', 'place', 'subject', 'time':
         if k not in subjects:
             continue
-        add_field_list(doc, k, subjects[k].keys())
-        add_field_list(doc, k + '_facet', subjects[k].keys())
-        subject_keys = [str_to_key(s) for s in subjects[k].keys()]
+        subjects_k_keys = list(subjects[k])
+        add_field_list(doc, k, subjects_k_keys)
+        add_field_list(doc, k + '_facet', subjects_k_keys)
+        subject_keys = [str_to_key(s) for s in subjects_k_keys]
         add_field_list(doc, k + '_key', subject_keys)
 
-    for k in sorted(identifiers.keys()):
+    for k in sorted(identifiers):
         add_field_list(doc, 'id_' + k, identifiers[k])
 
     if ia_loaded_id:
@@ -1470,7 +1471,7 @@ def load_configs(c_host, c_config, c_data_provider='default'):
     load_config(c_config)
 
     global _ia_db
-    if 'ia_db' in config.runtime_config.keys():
+    if 'ia_db' in config.runtime_config:
         _ia_db = get_ia_db(config.runtime_config['ia_db'])
 
     global data_provider

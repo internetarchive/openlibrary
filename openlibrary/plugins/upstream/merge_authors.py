@@ -74,7 +74,7 @@ class BasicMergeEngine:
     def merge_docs(self, master, dup, ignore=[]):
         """Merge duplicate doc into master doc.
         """
-        keys = set(master.keys() + dup.keys())
+        keys = set(list(master) + list(dup))
         return dict((k, self.merge_property(master.get(k), dup.get(k))) for k in keys)
 
     def merge_property(self, a, b):
@@ -96,7 +96,7 @@ class BasicMergeEngine:
         """Converts references to any of the duplicates in the given doc to the master.
         """
         if isinstance(doc, dict):
-            if len(doc) == 1 and doc.keys() == ['key']:
+            if list(doc) == ['key']:
                 key = doc['key']
                 if key in duplicates:
                     return {"key": master}

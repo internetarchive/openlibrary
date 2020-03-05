@@ -44,7 +44,7 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
             if k in e and not e[k]:
                 del e[k]
     for e in editions:
-        all_keys.update(e.keys())
+        all_keys.update(e)
     for k in 'latest_revision', 'revision', 'created', 'last_modified', 'key', 'type', 'genres':
         if k in all_keys:
             all_keys.remove(k)
@@ -138,8 +138,8 @@ for ia, ekeys, done, unmerge_count in cur.fetchall():
                 uniq[re_nonword.sub('', repr(e[k]).lower())].append(num)
 
         if len(uniq) == 1:
-            merged[k] = uniq.keys()[0]
-            merged[k] = editions[uniq.values()[0][0]][k]
+            merged[k] = list(uniq)[0]
+            merged[k] = editions[list(uniq.values())[0][0]][k]
             continue
 
         if k == 'covers':

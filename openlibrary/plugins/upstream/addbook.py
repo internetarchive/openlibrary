@@ -625,10 +625,10 @@ class SaveBookHelper:
 
         edition = trim_doc(edition)
 
-        if edition.get('physical_dimensions') and edition.physical_dimensions.keys() == ['units']:
+        if list(edition.get('physical_dimensions', [])) == ['units']:
             edition.physical_dimensions = None
 
-        if edition.get('weight') and edition.weight.keys() == ['units']:
+        if list(edition.get('weight', [])) == ['units']:
             edition.weight = None
 
         for k in ['roles', 'identifiers', 'classifications']:
