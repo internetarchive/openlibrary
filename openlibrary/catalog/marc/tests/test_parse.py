@@ -23,6 +23,7 @@ xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
 bin_samples = [
     'bijouorannualofl1828cole_meta.mrc', 'onquietcomedyint00brid_meta.mrc',  # LCCN with leading characters
     'merchantsfromcat00ben_meta.mrc', 'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
+    'equalsign_title.mrc',  # Title ending in '='
     'bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
     'lc_1416500308', 'ocm00400866', 'secretcodeofsucc00stjo_meta.mrc',
