@@ -180,7 +180,7 @@ def qualifies_for_sponsorship(edition):
 def get_sponsored_books():
     """Performs the `ia` query to fetch sponsored books from archive.org"""
     from internetarchive import search_items
-    params = {'page': 1, 'rows': 1000}
+    params = {'page': 1, 'rows': 1000, 'scope': 'all'}
     fields = ['identifier','est_book_price','est_scan_price', 'scan_price',
               'book_price', 'repub_state', 'imagecount', 'title',
               'openlibrary_edition']
