@@ -1,7 +1,7 @@
-from openlibrary.catalog.olwrite import Infogami, add_to_database  # noqa: F401
+from olwrite import Infogami, add_to_database
 import web
 import dbhash
-from openlibrary.catalog.read_rc import read_rc
+from read_rc import read_rc
 import cjson
 import re
 import sys
