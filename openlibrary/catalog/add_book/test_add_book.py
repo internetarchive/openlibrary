@@ -43,6 +43,8 @@ def test_isbns_from_record():
 def test_strip_accents():
     assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
     assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    # It only modifies Unicode Nonspacing Mark characters:
+    assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
 
 
 def test_editions_matched_no_results(mock_site):
