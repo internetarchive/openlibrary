@@ -22,5 +22,5 @@ six==1.13.0
 sixpack-client==1.2.0
 psycopg2==2.8.4
 Pygments==2.4.2
-python-amazon-simple-product-api==2.2.11
+python-amazon-paapi==2.0.1
 isbnlib==3.9.3
