@@ -40,26 +40,45 @@ def setup(config):
 
 
 class AmazonAPI:
-    """Amazon Product Advertising API 5.0 wrapper for Python
-    Creates an instance containing your API credentials.
+    """Amazon Product Advertising API 5.0 wrapper for Python"""
+    RESOURCES = {
+        'all': [
+            getattr(GetItemsResource, v) for v in
+            # Hack: pulls all resource consts from GetItemsResource
+            vars(GetItemsResource).keys() if v.isupper()
+        ],
+        'import': [
+            GetItemsResource.IMAGES_PRIMARY_LARGE,
+            GetItemsResource.ITEMINFO_BYLINEINFO,
+            GetItemsResource.ITEMINFO_CONTENTINFO,
+            GetItemsResource.ITEMINFO_MANUFACTUREINFO,
+            GetItemsResource.ITEMINFO_PRODUCTINFO,
+            GetItemsResource.ITEMINFO_TITLE,
+            GetItemsResource.ITEMINFO_CLASSIFICATIONS,
+            GetItemsResource.OFFERS_LISTINGS_PRICE,
+        ],
+        'prices': [
+            GetItemsResource.OFFERS_LISTINGS_PRICE
+        ]
+    }
 
-    Args:
-        key (string): Your API key.
-        secret (string): Your API secret.
-        tag (string): The tag you want to use for the URL.
-        country (string): Country code.
-        throttling (float, optional): Reduce this value to wait longer
-          between API calls.
-    """
-    # Hack: pulls all resource types from GetItemsResource
-    RESOURCES = [getattr(GetItemsResource, v) for v in
-                 vars(GetItemsResource).keys() if v.isupper()]
 
     def __init__(self, key, secret, tag, host='webservices.amazon.com',
                  region='us-east-1', throttling=0.9):
+        """
+        Creates an instance containing your API credentials.
+
+        :param key (string): affiliate key
+        :param secret (string): affiliate secret
+        :param tag (string): affiliate string
+        :param host (string): which server to query
+        :param region (string): which regional host to query
+        :param throttling (float): Reduce this value to wait longer
+          between API calls.
+        :return: Amazon metadata for one product
+        :rtype: dict
+        """
         self.tag = tag
-        self.host = host
-        self.region = region
         self.throttling = throttling
         self.last_query_time = time.time()
 
@@ -67,7 +86,7 @@ class AmazonAPI:
             access_key=key,
             secret_key=secret,
             host=host,
-            region=self.region)
+            region=region)
 
     def get_product(self, asin, serialize=False, **kwargs):
         products = self.get_products([asin], **kwargs)
@@ -90,11 +109,12 @@ class AmazonAPI:
         self.last_query_time = time.time()
 
         try:
+            _resources = self.RESOURCES[resources] if resources else self.RESOURCES['import']
             request = GetItemsRequest(partner_tag=self.tag,
                                       partner_type=PartnerType.ASSOCIATES,
                                       marketplace=marketplace,
                                       item_ids=item_ids,
-                                      resources=resources or self.RESOURCES,
+                                      resources=_resources,
                                       **kwargs)
             response = self.api.get_items(request)
             products = response.items_result.items
@@ -116,8 +136,8 @@ class AmazonAPI:
         {
           'price': '$54.06',
           'price_amt': 5406,
-          'physical_format': 'Hardcover',
-          'authors': [{'role': 'Author', 'name': 'Guterson, David'}],
+          'physical_format': 'hardcover',
+          'authors': [{'name': 'Guterson, David'}],
           'publish_date': 'Jan 21, 2020',
           #'dimensions': {
           #  'width': [1.7, 'Inches'],
@@ -139,14 +159,17 @@ class AmazonAPI:
         if not product:
             return {}  # no match?
 
-        item_info = product.item_info
-        edition_info = item_info.content_info
-        attribution = item_info.by_line_info
-        price = product.offers.listings and product.offers.listings[0].price
-        dims = item_info.product_info and item_info.product_info.item_dimensions
+        item_info = getattr(product, 'item_info')
+        images = getattr(product, 'images')
+        edition_info = item_info and getattr(item_info, 'content_info')
+        attribution = item_info and getattr(item_info, 'by_line_info')
+        price = (getattr(product, 'offers') and product.offers.listings
+                 and product.offers.listings[0].price)
+        dims = (item_info and item_info.product_info
+                and item_info.product_info.item_dimensions)
 
         try:
-            publish_date = isoparser.parse(
+            publish_date = edition_info and isoparser.parse(
                 edition_info.publication_date.display_value
             ).strftime('%b %d, %Y')
         except Exception:
@@ -160,36 +183,37 @@ class AmazonAPI:
             'isbn_13': [isbn_10_to_isbn_13(product.asin)],
             'price': price and price.display_amount,
             'price_amt': price and price.amount and int(100 * price.amount),
-            'title': item_info.title and item_info.title.display_value,
-            'cover': (product.images and product.images.primary and
-                      product.images.primary.large and
-                      product.images.primary.large.url),
-            'authors': [{'name': contrib.name, 'role': contrib.role}
+            'title': item_info and item_info.title and item_info.title.display_value,
+            'cover': (images and images.primary and images.primary.large and
+                      images.primary.large.url),
+            'authors': attribution and [{'name': contrib.name}
                         for contrib in attribution.contributors],
-            'publishers': attribution.brand and [attribution.brand.display_value],
-            'number_of_pages': (edition_info.pages_count and
+            'publishers': (attribution and attribution.brand and
+                           [attribution.brand.display_value]),
+            'number_of_pages': (edition_info and edition_info.pages_count and
                                 edition_info.pages_count.display_value),
-            'edition_num': (edition_info.edition and
+            'edition_num': (edition_info and edition_info.edition and
                             edition_info.edition.display_value),
             'publish_date': publish_date,
-            'languages': (
-                edition_info.languages and
-                list(set(lang.display_value
-                         for lang in edition_info.languages.display_values))
-            ),
+            #'languages': (
+            #    edition_info.languages and
+            #    list(set(lang.display_value
+            #             for lang in edition_info.languages.display_values))
+            #),
             'physical_format': (
-                item_info.classifications and
-                getattr(item_info.classifications.binding, 'display_value')),
-            'dimensions': dims and {
-                d: [getattr(dims, d).display_value, getattr(dims, d).unit]
-                for d in dims.to_dict() if getattr(dims, d)
-                }
+                item_info and item_info.classifications and
+                getattr(item_info.classifications.binding, 'display_value', '').lower()
+            ),
+            #'dimensions': dims and {
+            #    d: [getattr(dims, d).display_value, getattr(dims, d).unit]
+            #    for d in dims.to_dict() if getattr(dims, d)
+            #    }
         }
         return book
 
 
 @public
-def get_amazon_metadata(id_, id_type='isbn'):
+def get_amazon_metadata(id_, id_type='isbn', resources=None):
     """Main interface to Amazon LookupItem API. Will cache results.
 
     :param str id_: The item id: isbn (10/13), or Amazon ASIN.
@@ -197,8 +221,7 @@ def get_amazon_metadata(id_, id_type='isbn'):
     :return: A single book item's metadata, or None.
     :rtype: dict or None
     """
-
-    return cached_get_amazon_metadata(id_, id_type=id_type)
+    return cached_get_amazon_metadata(id_, id_type=id_type, resources=resources)
 
 
 def search_amazon(title='', author=''):
@@ -216,7 +239,7 @@ def search_amazon(title='', author=''):
     pass
 
 
-def _get_amazon_metadata(id_, id_type='isbn'):
+def _get_amazon_metadata(id_, id_type='isbn', resources=None):
     """Uses the Amazon Product Advertising API ItemLookup operation to locatate a
     specific book by identifier; either 'isbn' or 'asin'.
     https://docs.aws.amazon.com/AWSECommerceService/latest/DG/ItemLookup.html
@@ -233,7 +256,7 @@ def _get_amazon_metadata(id_, id_type='isbn'):
 
     if amazon_api:
         try:
-            return amazon_api.get_product(id_, serialize=True)
+            return amazon_api.get_product(id_, serialize=True, resources=resources)
         except Exception:
             return None
 

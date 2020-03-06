@@ -25,7 +25,7 @@ $ asin = opts.get('asin')
           <a href="$amazon" title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
           <br>
           $if prices and isbn and not is_bot():
-              $ amazon_metadata = get_amazon_metadata(isbn)
+              $ amazon_metadata = get_amazon_metadata(isbn, resources='prices')
               $if amazon_metadata and 'price' in amazon_metadata and amazon_metadata['price']:
                   <span name="price">$(amazon_metadata['price'])</span>
       </li>
