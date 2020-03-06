@@ -109,7 +109,8 @@ class AmazonAPI:
         self.last_query_time = time.time()
 
         try:
-            _resources = self.RESOURCES[resources] if resources else self.RESOURCES['import']
+            _resources = (self.RESOURCES[resources] if resources
+                          else self.RESOURCES['import'])
             request = GetItemsRequest(partner_tag=self.tag,
                                       partner_type=PartnerType.ASSOCIATES,
                                       marketplace=marketplace,
@@ -165,8 +166,6 @@ class AmazonAPI:
         attribution = item_info and getattr(item_info, 'by_line_info')
         price = (getattr(product, 'offers') and product.offers.listings
                  and product.offers.listings[0].price)
-        dims = (item_info and item_info.product_info
-                and item_info.product_info.item_dimensions)
 
         try:
             publish_date = edition_info and isoparser.parse(
@@ -195,19 +194,10 @@ class AmazonAPI:
             'edition_num': (edition_info and edition_info.edition and
                             edition_info.edition.display_value),
             'publish_date': publish_date,
-            #'languages': (
-            #    edition_info.languages and
-            #    list(set(lang.display_value
-            #             for lang in edition_info.languages.display_values))
-            #),
             'physical_format': (
                 item_info and item_info.classifications and
                 getattr(item_info.classifications.binding, 'display_value', '').lower()
             ),
-            #'dimensions': dims and {
-            #    d: [getattr(dims, d).display_value, getattr(dims, d).unit]
-            #    for d in dims.to_dict() if getattr(dims, d)
-            #    }
         }
         return book
 
