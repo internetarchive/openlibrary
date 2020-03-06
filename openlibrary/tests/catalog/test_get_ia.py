@@ -94,9 +94,9 @@ class TestGetIA():
         result = get_ia.get_marc_record_from_ia(item)
         assert isinstance(result, MarcBinary), \
             "%s: expected instanceof MarcBinary, got %s" % (item, type(result))
-        print("%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item,
-                                                     result.leader()[9],
-                                                     result.read_fields(['245']).next()[1].get_all_subfields().next()[1].encode('utf8')))
+        field_245 = next(result.read_fields(['245']))
+        title = next(field_245[1].get_all_subfields())[1].encode('utf8')
+        print("%s:\n\tUNICODE: [%s]\n\tTITLE: %s" % (item, result.leader()[9], title))
 
     @pytest.mark.parametrize('bad_marc', bad_marcs)
     def test_incorrect_length_marcs(self, bad_marc, monkeypatch):

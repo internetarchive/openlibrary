@@ -1,5 +1,5 @@
 from __future__ import print_function
-from sources import sources
+from openlibrary.catalog.marc.sources import sources
 from catalog.marc.fast_parse import index_fields, read_file
 from catalog.get_ia import files
 from catalog.read_rc import read_rc
