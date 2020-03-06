@@ -62,8 +62,8 @@ def _serialize_amazon_product(product):
     {
       'price': '$54.06',
       'price_amt': 5406,
-      'binding': 'Hardcover',
-      'authors': {'Greenfield, Ben': 'Author'},
+      'physical_format': 'Hardcover',
+      'authors': [{'role': 'Author', 'name': 'Guterson, David'}],
       'publication_date': '2020-01-21T00:00:01Z',
       'dimensions': {
         'width': [1.7, 'Inches'],
@@ -71,13 +71,13 @@ def _serialize_amazon_product(product):
         'weight': [5.4, 'Pounds'],
         'height': [10.875, 'Inches']
        },
-       'publisher': 'Victory Belt Publishing',
+       'publishers': ['Victory Belt Publishing'],
        'source_records': ['amazon:1628603976'],
        'title': 'Boundless: Upgrade Your Brain, Optimize Your Body & Defy Aging',
        'url': 'https://www.amazon.com/dp/1628603976/?tag=internetarchi-20',
        'number_of_pages': 640,
        'cover': 'https://m.media-amazon.com/images/I/51IT9MV3KqL._AC_.jpg',
-       'languages': {'Original Language': 'English', 'Published': 'English'},
+       'languages': ['English']
        'edition_num': '1'
      }
     """
@@ -89,6 +89,7 @@ def _serialize_amazon_product(product):
     attribution = item_info.by_line_info
     price = product.prices and product.prices.price
     dims = item_info.product_info and item_info.product_info.item_dimensions
+
     book = {
         'url': "https://www.amazon.com/dp/%s/?tag=%s" % (
             product.asin, h.affiliate_id('amazon')),
