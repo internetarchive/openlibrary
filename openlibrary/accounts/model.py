@@ -57,7 +57,7 @@ def generate_hash(secret_key, text, salt=None):
     salt = salt or hmac.HMAC(secret_key, str(random.random()).encode('utf-8'),
                              hashlib.md5).hexdigest()[:5]
     hash = hmac.HMAC(secret_key, (salt + web.safestr(text)).encode('utf-8'),
-                                  hashlib.md5).hexdigest()
+                     hashlib.md5).hexdigest()
     return '%s$%s' % (salt, hash)
 
 def get_secret_key():
