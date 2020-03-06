@@ -18,6 +18,7 @@ from infogami.infobase.utils import parse_datetime
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
+from openlibrary.core import vendors
 from openlibrary.core import waitinglist
 from openlibrary.core import ab
 from openlibrary.accounts.model import OpenLibraryAccount
@@ -1007,3 +1008,4 @@ def on_loan_delete(loan):
 msgbroker.subscribe("loan-created", on_loan_update)
 msgbroker.subscribe("loan-completed", on_loan_delete)
 lending.setup(config)
+vendors.setup(config)
