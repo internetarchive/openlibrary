@@ -1,7 +1,10 @@
-from openlibrary.catalog.merge.merge_marc import build_marc, attempt_merge
 import web
+from deprecated import deprecated
+from openlibrary.catalog.merge.merge_marc import build_marc, attempt_merge
+
 
 threshold = 875
+
 
 def db_name(a):
     date = None
@@ -11,21 +14,24 @@ def db_name(a):
         date = a.date
     return ' '.join([a['name'], date]) if date else a['name']
 
-# FIXME: badly named. edition_record_equal? (candidate_ed, existing_ed)
-def try_merge(e1, edition_key, existing):
+
+@deprecated('Use editions_match(candidate, existing) instead.')
+def try_merge(candidate, edition_key, existing):
+    return editions_match(candidate, existing)
+
+
+def editions_match(candidate, existing):
     """
     Converts the existing edition into a comparable dict and performs a
     thresholded comparison to decide whether they are the same.
     Used by add_book.load() -> add_book.find_match() to check whether two
     editions match.
 
-    :param dict e1: Output of build_marc(import record candidate)
-    :param str edition_key: edition key of existing
-    :param Thing existing: Edition object to be tested against e1, the object of edition_key
+    :param dict candidate: Output of build_marc(import record candidate)
+    :param Thing existing: Edition object to be tested against candidate
     :rtype: bool
-    :return: Whether e1 is sufficiently the same as the 'existing' edition
+    :return: Whether candidate is sufficiently the same as the 'existing' edition
     """
-
     thing_type = existing.type.key
     if thing_type == '/type/delete':
         return False
@@ -47,4 +53,4 @@ def try_merge(e1, edition_key, existing):
                 assert a['name']
                 rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
     e2 = build_marc(rec2)
-    return attempt_merge(e1, e2, threshold)
+    return attempt_merge(candidate, e2, threshold)
