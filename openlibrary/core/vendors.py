@@ -27,6 +27,7 @@ BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.bett
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
+
 def setup(config):
     global config_amz_api, amazon_api
     config_amz_api = config.get('amazon_api')
@@ -47,13 +48,15 @@ class AmazonAPI:
         secret (string): Your API secret.
         tag (string): The tag you want to use for the URL.
         country (string): Country code.
-        throttling (float, optional): Reduce this value to wait longer between API calls.
+        throttling (float, optional): Reduce this value to wait longer
+          between API calls.
     """
     # Hack: pulls all resource types from GetItemsResource
     RESOURCES = [getattr(GetItemsResource, v) for v in
                  vars(GetItemsResource).keys() if v.isupper()]
 
-    def __init__(self, key, secret, tag, host='webservices.amazon.com', region='us-east-1', throttling=0.9):
+    def __init__(self, key, secret, tag, host='webservices.amazon.com',
+                 region='us-east-1', throttling=0.9):
         self.tag = tag
         self.host = host
         self.region = region
@@ -103,7 +106,8 @@ class AmazonAPI:
     @staticmethod
     def serialize(product):
         """Takes a full Amazon product Advertising API returned AmazonProduct
-        with multiple ResponseGroups, and extracts the data we are interested in.
+        with multiple ResponseGroups, and extracts the data we are
+        interested in.
 
         :param AmazonAPI product:
         :return: Amazon metadata for one product
@@ -130,6 +134,7 @@ class AmazonAPI:
           'languages': ['English']
           'edition_num': '1'
         }
+
         """
         if not product:
             return {}  # no match?
@@ -175,10 +180,10 @@ class AmazonAPI:
             'physical_format': (
                 item_info.classifications and
                 getattr(item_info.classifications.binding, 'display_value')),
-            #'dimensions': dims and {
-            #    d: [getattr(dims, d).display_value, getattr(dims, d).unit]
-            #    for d in dims.to_dict() if getattr(dims, d)
-            #}
+            'dimensions': dims and {
+                d: [getattr(dims, d).display_value, getattr(dims, d).unit]
+                for d in dims.to_dict() if getattr(dims, d)
+                }
         }
         return book
 
