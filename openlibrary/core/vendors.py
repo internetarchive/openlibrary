@@ -232,7 +232,10 @@ def _get_amazon_metadata(id_, id_type='isbn'):
             id_ = isbn_13_to_isbn_10(id_)
 
     if amazon_api:
-        return amazon_api.get_product(id_, serialize=True)
+        try:
+            return amazon_api.get_product(id_, serialize=True)
+        except Exception:
+            return None
 
 
 def split_amazon_title(full_title):
