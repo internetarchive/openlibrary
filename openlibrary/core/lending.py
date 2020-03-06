@@ -8,7 +8,6 @@ import time
 import logging
 import uuid
 import hmac
-from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -60,8 +59,6 @@ config_bookreader_host = None
 config_internal_tests_api_key = None
 config_amz_api = None
 
-amazon_api = None
-
 def setup(config):
     """Initializes this module from openlibrary config.
     """
@@ -69,8 +66,8 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api, \
-        config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
+        config_http_request_timeout, config_ia_availability_api_v1_url, \
+        config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
         config_ia_users_loan_history, config_ia_loan_api_developer_key, \
@@ -94,14 +91,7 @@ def setup(config):
     config_ia_civicrm_api = config.get('ia_civicrm_api')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    config_amz_api = config.get('amazon_api')
 
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
-    except AttributeError:
-        amazon_api = None
 
 def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
