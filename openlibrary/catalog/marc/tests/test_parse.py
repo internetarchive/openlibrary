@@ -11,7 +11,8 @@ import simplejson
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
-xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
+xml_samples = [
+    '39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',

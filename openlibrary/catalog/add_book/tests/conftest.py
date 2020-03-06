@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture
 def add_languages(mock_site):
     languages = [

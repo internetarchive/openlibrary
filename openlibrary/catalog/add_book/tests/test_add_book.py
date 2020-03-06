@@ -357,7 +357,9 @@ class Test_From_MARC:
                                        u'Science fiction films',
                                        u'Popular works']
         # Edition description from 520
-        desc = 'Explains the basic laws of physics, covering such topics as mechanics, forces, and energy, while deconstructing famous scenes and stunts from motion pictures, including "Apollo 13" and "Titanic," to determine if they are possible.'
+        desc = 'Explains the basic laws of physics, covering such topics as mechanics, forces, and energy, '\
+            'while deconstructing famous scenes and stunts from motion pictures, including "Apollo 13" and '\
+            '"Titanic," to determine if they are possible.'
         assert isinstance(edition['description'], Text)
         assert edition['description'] == desc
         # Work description from 520
