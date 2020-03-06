@@ -10,7 +10,6 @@ from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     add_db_name, build_pool, editions_matched, isbns_from_record,
     load, strip_accents, RequiredField)
-from openlibrary.catalog.add_book.test_load_book import add_languages  # noqa: F401
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
