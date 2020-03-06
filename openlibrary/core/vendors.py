@@ -107,7 +107,7 @@ def _serialize_amazon_product(product):
         'edition_num': (edition_info.edition and
                         edition_info.edition.display_value),
         'publish_date': (edition_info.publication_date and
-                             edition_info.publication_date.display_value),
+                         edition_info.publication_date.display_value),
         'languages': (
             edition_info.languages and
             list(set(lang.display_value
@@ -118,7 +118,8 @@ def _serialize_amazon_product(product):
             getattr(item_info.classifications.binding, 'display_value')),
         'dimensions': dims and {
             d: [getattr(dims, d).display_value, getattr(dims, d).unit]
-            for d in dims.to_dict()}
+            for d in dims.to_dict() if getattr(dims, d)
+        }
     }
     return book
 
