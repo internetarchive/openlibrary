@@ -36,9 +36,8 @@ def do_flip(author):
     :param dict author:
     :rtype: None
     """
-    if 'personal_name' not in author:
-        return
-    if author['personal_name'] != author['name']:
+    if 'personal_name' in author and author['personal_name'] != author['name']:
+        # Don't flip names if name is more complex than personal_name (legacy behaviour)
         return
     first_comma = author['name'].find(', ')
     if first_comma == -1:
@@ -52,7 +51,8 @@ def do_flip(author):
         return
     name = flip_name(author['name'])
     author['name'] = name
-    author['personal_name'] = name
+    if 'personal_name' in author:
+        author['personal_name'] = name
 
 
 def pick_from_matches(author, match):
@@ -92,7 +92,7 @@ def find_author(name):
             seen.add(obj['key'])
         return obj
 
-    q = {'type': '/type/author', 'name': name} # FIXME should have no limit
+    q = {'type': '/type/author', 'name': name}  # FIXME should have no limit
     reply = list(web.ctx.site.things(q))
     authors = [web.ctx.site.get(k) for k in reply]
     if any(a.type.key != '/type/author' for a in authors):
@@ -166,7 +166,7 @@ def import_author(author, eastern=False):
         if 'death_date' in author and 'death_date' not in existing:
             new['death_date'] = author['death_date']
         return new
-    if not eastern:
+    if author.get('entity_type') != 'org' and not eastern:
         do_flip(author)
     a = {'type': {'key': '/type/author'}}
     for f in 'name', 'title', 'personal_name', 'birth_date', 'death_date', 'date':

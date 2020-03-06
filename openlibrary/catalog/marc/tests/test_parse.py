@@ -1,8 +1,9 @@
 import pytest
 
-from openlibrary.catalog.marc.parse import read_edition, SeeAlsoAsTitle, NoTitle
+from openlibrary.catalog.marc.parse import (
+    read_author_person, read_edition, NoTitle, SeeAlsoAsTitle)
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
+from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 import os
 import simplejson
@@ -96,3 +97,20 @@ class TestParseMARCBinary:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
+
+
+class TestParse:
+    def test_read_author_person(self):
+        xml_author = """
+        <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
+          <subfield code="a">Rein, Wilhelm,</subfield>
+          <subfield code="d">1809-1865</subfield>
+        </datafield>"""
+        test_field = DataField(etree.fromstring(xml_author))
+        result = read_author_person(test_field)
+
+        # Name order remains unchanged from MARC order
+        assert result['name'] == result['personal_name'] == 'Rein, Wilhelm'
+        assert result['birth_date'] == '1809'
+        assert result['death_date'] == '1865'
+        assert result['entity_type'] == 'person'
