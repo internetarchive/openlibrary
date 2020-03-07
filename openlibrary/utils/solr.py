@@ -23,7 +23,7 @@ def urlencode(d, doseq=False):
     """
     def utf8(d):
         if isinstance(d, dict):
-            return dict((utf8(k), utf8(v)) for k, v in d.iteritems())
+            return dict((utf8(k), utf8(v)) for k, v in d.items())
         elif isinstance(d, list):
             return [utf8(v) for v in d]
         else:

@@ -192,7 +192,7 @@ class Solr_client(object):
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
         for d in m['response']['docs']:
-            for k,vx in d.iteritems():
+            for k, vx in d.items():
                 kfs = k in facet_set
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())

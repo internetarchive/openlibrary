@@ -179,7 +179,7 @@ def import_file(filename):
         #print
 
         seen = set()
-        for k, v in found.iteritems():
+        for k, v in found.items():
             for ekey in v:
                 if ekey in seen:
                     continue

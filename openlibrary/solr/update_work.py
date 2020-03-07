@@ -205,7 +205,7 @@ def get_work_subjects(w):
         'subject_people': 'person',
     }
 
-    for db_field, solr_field in field_map.iteritems():
+    for db_field, solr_field in field_map.items():
         if not w.get(db_field, None):
             continue
         cur = subjects.setdefault(solr_field, {})
@@ -316,7 +316,7 @@ class SolrProcessor:
                 e['public_scan'] = ('lendinglibrary' not in collection) and ('printdisabled' not in collection)
 
             if 'identifiers' in e:
-                for k, id_list in e['identifiers'].iteritems():
+                for k, id_list in e['identifiers'].items():
                     k_orig = k
                     k = k.replace('.', '_').replace(',', '_').replace('(', '').replace(')', '').replace(':', '_').replace('/', '').replace('#', '').lower()
                     m = re_solr_field.match(k)
@@ -431,7 +431,7 @@ class SolrProcessor:
             'subject_people': 'person',
         }
 
-        for db_field, solr_field in field_map.iteritems():
+        for db_field, solr_field in field_map.items():
             if not w.get(db_field, None):
                 continue
             cur = subjects.setdefault(solr_field, {})
