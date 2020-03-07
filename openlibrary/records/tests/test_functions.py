@@ -149,7 +149,7 @@ def test_doc_to_thing_unpack_identifiers(mock_site):
                             "lccn" : ['5678'],
                             "ocaid" : ['90']}}
     things = doc_to_things(doc)
-    for k,v in doc['identifiers'].items():
+    for k, v in doc['identifiers'].items():
         assert things[0][k] == v
 
 
@@ -174,7 +174,7 @@ def test_create(mock_site):
     assert len(work.authors) == 1
     assert work.authors[0].author == "/authors/OL1A"
     # Check edition
-    for k,v in doc['identifiers'].items():
+    for k, v in doc['identifiers'].items():
         assert edition[k] == v
     edition.publisher = "Test publisher"
     # Check author
