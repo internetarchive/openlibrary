@@ -67,9 +67,8 @@ window.q.push(function(){
 
 <form class="floatform" id="addcover-form" name="bookcover" method="post" enctype="multipart/form-data" action="$action">
 
-    <div align="center" style="width:100%;">
-        <div class="centerIt">
-
+    <div class="floatform__body">
+        <div>
             $if doc.type.key == "/type/work":
                 $if doc.get_edition_covers():
                     <div class="formElement">

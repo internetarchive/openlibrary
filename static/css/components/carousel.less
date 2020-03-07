@@ -36,6 +36,17 @@
     height: 100%;
     margin: 0 10px;
     min-height: 1px;
+    overflow: hidden;
+    box-sizing: border-box;
+
+    // :focus state for when selected
+    // e.g. "pick one of existing covers" on change cover.
+    // Is .selected redundant?
+    &:focus,
+    &.selected {
+      border: 5px solid @orange;
+      outline: 0;
+    }
   }
 
   // Modifiers
