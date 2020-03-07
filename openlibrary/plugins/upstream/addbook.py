@@ -141,7 +141,7 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
-            return render_template("permission_denied", "/books/add", "Permission denied to add a book to Open Library.")
+            return web.seeother("/account/login?redirect={}".format(self.path))
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
