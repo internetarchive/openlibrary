@@ -74,7 +74,7 @@ class admin(delegate.page):
 
     GET = POST = delegate
 
-    def is_admin(self, librarians=False):
+    def is_admin(self):
         """Returns True if the current user is in admin usergroup."""
         return context.user and context.user.key in [m.key for m in web.ctx.site.get('/usergroup/admin').members]
 

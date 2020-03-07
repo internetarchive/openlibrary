@@ -7,13 +7,17 @@ from openlibrary.mocks.mock_infobase import MockSite
 def strip_nones(d):
     return dict((k, v) for k, v in d.items() if v is not None)
 
+def mock_user():
+    return type('MockUser', (object,), {
+        'is_admin': lambda slf: False,
+        'is_librarian': lambda slf: False,
+    })()
+
 class TestSaveBookHelper:
     def setup_method(self, method):
         web.ctx.site = MockSite()
 
     def test_authors(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         s = addbook.SaveBookHelper(None, None)
@@ -25,8 +29,6 @@ class TestSaveBookHelper:
         assert f({"authors": [{"type": "/type/author_role"}]}) == {}
 
     def test_editing_orphan_creates_work(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -51,8 +53,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/works/OL1W").title == "Original Edition Title"
 
     def test_never_create_an_orphan(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -83,8 +83,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -109,8 +107,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL1W"
 
     def test_moving_orphan_ignores_work_edits(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -139,8 +135,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
 
     def test_editing_work(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -173,9 +167,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").title == "Original Edition Title"
 
     def test_editing_edition(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
-
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -208,9 +199,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
 
     def test_editing_work_and_edition(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
-
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -243,8 +231,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").title == "Modified Edition Title"
 
     def test_moving_edition(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -276,8 +262,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/books/OL1M").works[0].key == "/works/OL2W"
 
     def test_moving_edition_ignores_changes_to_work(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
@@ -309,9 +293,6 @@ class TestSaveBookHelper:
         assert web.ctx.site.get("/works/OL1W").title == "Original Work Title"
 
     def test_moving_edition_to_new_work(self, monkeypatch):
-        def mock_user():
-            return type('MockUser', (object,), {'is_admin': lambda slf: False})()
-
         monkeypatch.setattr(accounts, "get_current_user", mock_user)
 
         web.ctx.site.save_many([
