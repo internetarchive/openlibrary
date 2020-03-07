@@ -407,7 +407,8 @@ def _get_betterworldbooks_metadata(isbn):
     new_price = re.findall(r"<LowestNewPrice>\$([0-9.]+)</LowestNewPrice>", response)
     used_price = re.findall(r"<LowestUsedPrice>\$([0-9.]+)</LowestUsedPrice>", response)
     used_qty = re.findall("<TotalUsed>([0-9]+)</TotalUsed>", response)
-    market_price = re.findall(r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>", response)
+    market_price = re.findall(r"<LowestMarketPrice>\$([0-9.]+)</LowestMarketPrice>",
+                              response)
     price = qlt = None
 
     if used_qty and used_qty[0] and used_qty[0] != '0':
