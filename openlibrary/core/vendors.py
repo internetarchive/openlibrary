@@ -22,7 +22,8 @@ amazon_api = None
 config_amz_api = None
 
 BETTERWORLDBOOKS_BASE_URL = 'https://betterworldbooks.com'
-BETTERWORLDBOOKS_API_URL = 'https://products.betterworldbooks.com/service.aspx?IncludeAmazon=True&ItemId='
+BETTERWORLDBOOKS_API_URL = ('https://products.betterworldbooks.com/service.aspx?'
+                            'IncludeAmazon=True&ItemId=')
 BWB_AFFILIATE_LINK = 'http://www.anrdoezrs.net/links/{}/type/dlg/http://www.betterworldbooks.com/-id-%s'.format(h.affiliate_id('betterworldbooks'))
 AMAZON_FULL_DATE_RE = re.compile(r'\d{4}-\d\d-\d\d')
 ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
