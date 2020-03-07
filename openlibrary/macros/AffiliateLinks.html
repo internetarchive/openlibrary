@@ -1,7 +1,7 @@
 $def with (page, opts)
 
 $ prices = opts.get('prices')
-$ isbn = opts.get('isbn')
+$ isbn = opts.get('isbn', '')
 $ asin = opts.get('asin', '')
 
 $ bwb_affiliate_url = 'https://www.anrdoezrs.net/links/%s/type/dlg/http://www.betterworldbooks.com/' % affiliate_id('betterworldbooks')
@@ -20,16 +20,19 @@ $ amazon_affiliate_url = 'https://www.amazon.com/dp/%s/?tag=%s'
         $ bwb_affiliate_url += '-id-%s.aspx' % isbn
       $else:
         $ bwb_affiliate_url += 'search/results?q=' + page.title
+
       <a href="$bwb_affiliate_url" title="Look for this edition for sale at Better World Books"
          target="_blank">Better World Books</a>
+
       $if prices and bwb_metadata.get('price'):
         <br>
         <span name="price">$bwb_metadata['price'] - includes shipping</span>
+
     </li>
-    
+
     $if asin or isbn:
       <li class="prices-amazon">
-        <a href="$(amazon_affiliate_url % (asin or isbn, affiliate_id('amazon'))"
+        <a href="$(amazon_affiliate_url % (asin or isbn, affiliate_id('amazon')))"
            title="Look for this edition for sale at Amazon" target="_blank">Amazon</a>
         $if prices and isbn and amz_price:
           <br>
