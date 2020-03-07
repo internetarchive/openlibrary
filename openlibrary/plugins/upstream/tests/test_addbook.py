@@ -7,11 +7,13 @@ from openlibrary.mocks.mock_infobase import MockSite
 def strip_nones(d):
     return dict((k, v) for k, v in d.items() if v is not None)
 
+
 def mock_user():
     return type('MockUser', (object,), {
         'is_admin': lambda slf: False,
         'is_librarian': lambda slf: False,
     })()
+
 
 class TestSaveBookHelper:
     def setup_method(self, method):

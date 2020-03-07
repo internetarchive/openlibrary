@@ -483,7 +483,8 @@ class SaveBookHelper:
         comment = formdata.pop('_comment', '')
 
         user = accounts.get_current_user()
-        delete = user and (user.is_admin() or user.is_librarian()) and formdata.pop('_delete', '')
+        delete = (user and (user.is_admin() or user.is_librarian()) and
+                  formdata.pop('_delete', ''))
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
