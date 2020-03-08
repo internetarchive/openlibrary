@@ -26,7 +26,7 @@ import json
 import re
 
 from six.moves import urllib
-import unicodedata
+import unicodedata as ucd
 import web
 
 from collections import defaultdict
@@ -86,7 +86,7 @@ def strip_accents(s):
         s.encode('ascii')
         return s
     except UnicodeEncodeError:
-        return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
+        return ''.join((c for c in ucd.normalize('NFD', s) if ucd.category(c) != 'Mn'))
 
 
 def normalize(s):
