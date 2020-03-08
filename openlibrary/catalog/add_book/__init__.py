@@ -89,7 +89,9 @@ def strip_accents(s):
         return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 
 
-def normalize(s): # strip non-alphanums and truncate at 25 chars
+def normalize(s):
+    """ Strip non-alphanums and truncate at 25 chars.
+    """
     norm = strip_accents(s).lower()
     norm = norm.replace(' and ', ' ')
     if norm.startswith('the '):
@@ -218,8 +220,8 @@ def add_cover(cover_url, ekey, account=None):
     olid = ekey.split('/')[-1]
     coverstore_url = config.get('coverstore_url').rstrip('/')
     upload_url = coverstore_url + '/b/upload2'
-    if upload_url.startswith("//"):
-        upload_url = "{0}:{1}".format(web.ctx.get('protocol', 'http'), upload_url)
+    if upload_url.startswith('//'):
+        upload_url = '{0}:{1}'.format(web.ctx.get('protocol', 'http'), upload_url)
     user = account or accounts.get_current_user()
     params = {
         'author': user.get('key') or user.get('_key'),
