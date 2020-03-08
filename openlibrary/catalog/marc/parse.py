@@ -198,7 +198,8 @@ def read_title(rec):
             raise NoTitle('No title found from joining subfields.')
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
-        ret['subtitle'] = ' : '.join(remove_trailing_dot(x.strip(STRIP_CHARS)) for x in b_and_p)
+        ret['subtitle'] = ' : '.join(
+                remove_trailing_dot(x.strip(STRIP_CHARS)) for x in b_and_p)
     if 'c' in contents:
         ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
     if 'h' in contents:
