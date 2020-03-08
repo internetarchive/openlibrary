@@ -42,7 +42,7 @@ from openlibrary.core import lending
 from openlibrary.utils.isbn import normalize_isbn
 
 from openlibrary.catalog.add_book.load_book import build_query, east_in_by_statement, import_author, InvalidLanguage
-from openlibrary.catalog.add_book.merge import try_merge
+from openlibrary.catalog.add_book.match import editions_match
 
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
@@ -482,10 +482,10 @@ def find_match(e1, edition_pool):
                 if is_redirect(thing):
                     edition_key = thing['location']
                     # FIXME: this updates edition_key, but leaves thing as redirect,
-                    # which will raise an exception in try_merge()
+                    # which will raise an exception in editions_match()
             if not found:
                 continue
-            if try_merge(e1, edition_key, thing):
+            if editions_match(e1, thing):
                 return edition_key
 
 
