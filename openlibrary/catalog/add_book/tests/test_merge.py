@@ -25,26 +25,30 @@ def test_editions_match_identical_record(mock_site):
 
 @pytest.mark.xfail(reason='This should now pass, but need to examine the thresholds.')
 def test_editions_match_full(mock_site):
-    bpl = {'authors': [{'birth_date': u'1897',
-                      'db_name': u'Green, Constance McLaughlin 1897-',
-                      'entity_type': 'person',
-                      'name': u'Green, Constance McLaughlin',
-                      'personal_name': u'Green, Constance McLaughlin'}],
-         'full_title': u'Eli Whitney and the birth of American technology',
-         'isbn': [u'188674632X'],
-         'normalized_title': u'eli whitney and the birth of american technology',
-         'number_of_pages': 215,
-         'publish_date': '1956',
-         'publishers': [u'HarperCollins', u'[distributed by Talman Pub.]'],
-         'short_title': u'eli whitney and the birth',
-         'source_record_loc': 'bpl101.mrc:0:1226',
-         'titles': [u'Eli Whitney and the birth of American technology',
-                    u'eli whitney and the birth of american technology']}
-    existing = {'authors': [{'birth_date': u'1897',
-                     'db_name': u'Green, Constance McLaughlin 1897-',
-                     'entity_type': 'person',
-                     'name': u'Green, Constance McLaughlin',
-                     'personal_name': u'Green, Constance McLaughlin'}],
+    bpl = {
+        'authors': [
+            {'birth_date': u'1897',
+             'db_name': u'Green, Constance McLaughlin 1897-',
+             'entity_type': 'person',
+             'name': u'Green, Constance McLaughlin',
+             'personal_name': u'Green, Constance McLaughlin'}],
+        'full_title': u'Eli Whitney and the birth of American technology',
+        'isbn': [u'188674632X'],
+        'normalized_title': u'eli whitney and the birth of american technology',
+        'number_of_pages': 215,
+        'publish_date': '1956',
+        'publishers': [u'HarperCollins', u'[distributed by Talman Pub.]'],
+        'short_title': u'eli whitney and the birth',
+        'source_record_loc': 'bpl101.mrc:0:1226',
+        'titles': [u'Eli Whitney and the birth of American technology',
+                   u'eli whitney and the birth of american technology']}
+    existing = {
+        'authors': [
+            {'birth_date': u'1897',
+             'db_name': u'Green, Constance McLaughlin 1897-',
+             'entity_type': 'person',
+             'name': u'Green, Constance McLaughlin',
+             'personal_name': u'Green, Constance McLaughlin'}],
         'full_title': u'Eli Whitney and the birth of American technology.',
         'isbn': [],
         'normalized_title': u'eli whitney and the birth of american technology',
