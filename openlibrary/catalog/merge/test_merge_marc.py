@@ -1,7 +1,8 @@
 import pytest
 from openlibrary.catalog.merge.merge_marc import (
-    attempt_merge, build_marc, build_titles, compare_authors,
-    compare_publisher)
+    build_marc, build_titles,
+    compare_authors, compare_publisher,
+    editions_match)
 
 
 class TestAuthors:
@@ -60,7 +61,7 @@ class TestAuthors:
 
         assert compare_authors(e1, e2) == ('authors', 'exact match', 125)
         threshold = 875
-        assert attempt_merge(e1, e2, threshold) is True
+        assert editions_match(e1, e2, threshold) is True
 
 
 class TestTitles:
@@ -137,7 +138,9 @@ def test_compare_publisher():
 
 
 class TestRecordMatching:
-    def test_match(self):
+    def test_match_without_ISBN(self):
+        # Same year, different publishers
+        # one with ISBN, one without
         bpl = {
             'authors': [
                 {'birth_date': '1897',
@@ -177,11 +180,12 @@ class TestRecordMatching:
 
         assert compare_authors(bpl, lc) == ('authors', 'exact match', 125)
         threshold = 875
-        assert attempt_merge(bpl, lc, threshold) is True
+        assert editions_match(bpl, lc, threshold) is True
 
-    @pytest.mark.skip(reason="Failed because test data authors do not have `db_name`, may be a sign of a real issue. Also fails on threshold.")
-    def test_match2(self):
-        amazon = {
+    def test_match_low_threshold(self):
+        # year is off by < 2 years, counts a little
+        # build_marc() will place all isbn_ types in the 'isbn' field.
+        e1 = build_marc({
             'publishers': ['Collins'],
             'isbn_10': ['0002167530'],
             'number_of_pages': 287,
@@ -194,11 +198,11 @@ class TestRecordMatching:
             'publish_date': '1975',
             'authors': [
                 {'name': 'Stanley Cramp',
-                 'db_name': 'Cramp, Stanley'}]}
+                 'db_name': 'Cramp, Stanley'}]})
 
-        marc = {
-            'publisher': ['Collins'],
-            'isbn_10': [u'0002167530'],
+        e2 = build_marc({
+            'publishers': ['Collins'],
+            'isbn_10': ['0002167530'],
             'short_title': 'seabirds of britain and i',
             'normalized_title': 'seabirds of britain and ireland',
             'full_title': 'seabirds of Britain and Ireland',
@@ -211,8 +215,7 @@ class TestRecordMatching:
                  'entity_type': 'person',
                  'name': u'Cramp, Stanley.',
                  'personal_name': u'Cramp, Stanley.'}],
-            'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'}
-        threshold = 875
-        # build_marc() will place all isbn_ types in the 'isbn' field.
-        # compare_author_fields() expects all authors to have a db_name
-        assert attempt_merge(build_marc(amazon), build_marc(marc), threshold, debug=True)
+            'source_record_loc': 'marc_records_scriblio_net/part08.dat:61449973:855'})
+        threshold = 515
+        assert editions_match(e1, e2, threshold, debug=True)
+        assert editions_match(e1, e2, threshold + 1) is False

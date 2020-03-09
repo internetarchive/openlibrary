@@ -1,6 +1,7 @@
 import web
 from deprecated import deprecated
-from openlibrary.catalog.merge.merge_marc import build_marc, attempt_merge
+from openlibrary.catalog.merge.merge_marc import (
+    build_marc, editions_match as threshold_match)
 
 
 threshold = 875
@@ -53,4 +54,4 @@ def editions_match(candidate, existing):
                 assert a['name']
                 rec2['authors'].append({'name': a['name'], 'db_name': db_name(a)})
     e2 = build_marc(rec2)
-    return attempt_merge(candidate, e2, threshold)
+    return threshold_match(candidate, e2, threshold)
