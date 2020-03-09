@@ -1,56 +1,22 @@
+"""
+    Deprecated tests. These exactly duplicate tests in
+    openlibrary/catalog/merge/test_merge.py, which are
+    preferred to these.
+
+    Additionally test_merge.py nearly matches the code in
+    openlibrary/catalog/merge/test_merge_marc.py, which tests
+    the code actually used, called from
+    openlibrary.catalog.add_book.match
+    Unfortunately test tests of the current code are the weakest.
+"""
+
 import pytest
 from openlibrary.catalog.merge.amazon import (
         attempt_merge,
         compare_authors, compare_publisher,
         full_title, build_titles, compare_title)
 
-def test_compare_authors_by_statement():
-    amazon = {'authors': [u'Alistair Smith', u'Author']}
-    marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
-    assert compare_authors(amazon, marc) == ('authors', 'exact match', 125)
-
-def test_compare_publisher():
-    amazon = { 'publishers': ['foo'] }
-    amazon2 = { 'publishers': ['bar'] }
-    marc = { 'publishers': ['foo'] }
-    marc2 = { 'publishers': ['foo', 'bar'] }
-    assert compare_publisher({}, {}) == ('publishers', 'either missing', 0)
-    assert compare_publisher(amazon, {}) == ('publishers', 'either missing', 0)
-    assert compare_publisher({}, marc) == ('publishers', 'either missing', 0)
-    assert compare_publisher(amazon, marc) == ('publishers', 'match', 100)
-    assert compare_publisher(amazon2, marc) == ('publishers', 'mismatch', -25)
-    assert compare_publisher(amazon2, marc2) == ('publishers', 'match', 100)
-
-def test_full_title():
-    assert full_title({ 'title': 'Hamlet'}) == 'Hamlet'
-    edition = {
-        'title': 'Flatland',
-        'subtitle': 'A Romance of Many Dimensions',
-    }
-    assert full_title(edition) == 'Flatland A Romance of Many Dimensions'
-
-def test_build_titles():
-    a = 'This is a title.'
-    normalized = 'this is a title'
-    result = build_titles(a)
-    assert result['full_title'] == a
-    assert result['short_title'] == normalized
-    assert result['normalized_title'] == normalized
-
-def test_merge_titles():
-    marc = {
-        'title_with_subtitles': 'Spytime : the undoing of James Jesus Angleton : a novel',
-        'title': 'Spytime',
-        'full_title': 'Spytime : the undoing of James Jesus Angleton : a novel',
-    }
-    amazon = {
-        'subtitle': 'The Undoing oF James Jesus Angleton',
-        'title': 'Spytime',
-    }
-    amazon = build_titles(full_title(amazon))
-    marc = build_titles(marc['title_with_subtitles'])
-    assert amazon['short_title'] == marc['short_title']
-    assert compare_title(amazon, marc) == ('full_title', 'contained within other title', 350)
+pytestmark = pytest.mark.skip('Skip Legacy Amazon record matching tests.')
 
 def test_merge_titles2():
     amazon = {'title': u'Sea Birds Britain Ireland'}

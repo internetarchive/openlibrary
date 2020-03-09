@@ -1,5 +1,7 @@
 import pytest
-from openlibrary.catalog.merge.merge_marc import attempt_merge, build_marc, build_titles, compare_authors
+from openlibrary.catalog.merge.merge_marc import (
+    attempt_merge, build_marc, build_titles, compare_authors,
+    compare_publisher)
 
 @pytest.mark.xfail(reason='Taken from openlibrary.catalog.merge.merge.compare_authors -- does not find a match.')
 def test_compare_authors_by_statement():
@@ -21,6 +23,21 @@ def test_compare_authors_by_statement():
     # This expected result taken from the amazon and merge versions of compare_author,
     # Current merge_marc.compare_authors() does not take by_statement into account.
     assert result == ('main', 'exact match', 125)
+
+
+def test_compare_publisher():
+    foo = {'publishers': ['foo']}
+    bar = {'publishers': ['bar']}
+    foo2 = {'publishers': ['foo']}
+    both = {'publishers': ['foo', 'bar']}
+    assert compare_publisher({}, {}) == ('publisher', 'either missing', 0)
+    assert compare_publisher(foo, {}) == ('publisher', 'either missing', 0)
+    assert compare_publisher({}, bar) == ('publisher', 'either missing', 0)
+    assert compare_publisher(foo, foo2) == ('publisher', 'match', 100)
+    assert compare_publisher(foo, bar) == ('publisher', 'mismatch', -25)
+    assert compare_publisher(bar, both) == ('publisher', 'match', 100)
+    assert compare_publisher(both, foo) == ('publisher', 'match', 100)
+
 
 def test_build_titles():
     # Used by build_marc()

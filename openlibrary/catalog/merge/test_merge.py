@@ -17,17 +17,6 @@ def test_compare_authors_by_statement():
     marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
     assert compare_authors(amazon, marc) == ('main', 'exact match', 125)
 
-def test_compare_publisher():
-    amazon = { 'publisher': 'foo' }
-    amazon2 = { 'publisher': 'bar' }
-    marc = { 'publishers': ['foo'] }
-    marc2 = { 'publishers': ['foo', 'bar'] }
-    assert compare_publisher({}, {}) == ('publisher', 'either missing', 0)
-    assert compare_publisher(amazon, {}) == ('publisher', 'either missing', 0)
-    assert compare_publisher({}, marc) == ('publisher', 'either missing', 0)
-    assert compare_publisher(amazon, marc) == ('publisher', 'match', 100)
-    assert compare_publisher(amazon2, marc) == ('publisher', 'mismatch', -25)
-    assert compare_publisher(amazon2, marc2) == ('publisher', 'match', 100)
 
 def test_full_title():
     assert full_title({ 'title': "Hamlet"}) == "Hamlet"
