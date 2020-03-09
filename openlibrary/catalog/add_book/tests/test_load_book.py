@@ -5,22 +5,6 @@ from openlibrary.catalog.add_book.load_book import (
 
 
 @pytest.fixture
-def add_languages(mock_site):
-    languages = [
-        ('eng', 'English'),
-        ('spa', 'Spanish'),
-        ('fre', 'French'),
-        ('yid', 'Yiddish'),
-    ]
-    for code, name in languages:
-        mock_site.save({
-            'key': '/languages/' + code,
-            'name': name,
-            'type': {'key': '/type/language'},
-        })
-
-
-@pytest.fixture
 def new_import(monkeypatch):
     monkeypatch.setattr(load_book, 'find_entity', lambda a: None)
 

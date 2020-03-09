@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import os
 import pytest
 
@@ -6,8 +7,9 @@ from copy import deepcopy
 from infogami.infobase.core import Text
 
 from openlibrary.catalog import add_book
-from openlibrary.catalog.add_book import add_db_name, build_pool, editions_matched, isbns_from_record, load, RequiredField
-from openlibrary.catalog.add_book.test_load_book import add_languages  # noqa: F401
+from openlibrary.catalog.add_book import (
+    add_db_name, build_pool, editions_matched, isbns_from_record,
+    load, strip_accents, RequiredField)
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -36,6 +38,14 @@ def test_isbns_from_record():
     assert '0190906766' in result
     assert len(result) == 2
 
+
+def test_strip_accents():
+    assert strip_accents('Plain ASCII text') == 'Plain ASCII text'
+    assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
+    # It only modifies Unicode Nonspacing Mark characters:
+    assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
+
+
 def test_editions_matched_no_results(mock_site):
     rec = {'title': 'test', 'isbn_13': ['9780190906764'], 'isbn_10': ['0190906766']}
     isbns = isbns_from_record(rec)
@@ -59,9 +69,11 @@ def test_editions_matched(mock_site, add_languages, ia_writeback):
     result = editions_matched(rec, 'isbn_', isbns)
     assert result == ['/books/OL1M']
 
+
 def test_load_without_required_field():
     rec = {'ocaid': 'test item'}
     pytest.raises(RequiredField, load, {'ocaid': 'test_item'})
+
 
 def test_load_test_item(mock_site, add_languages, ia_writeback):
     rec = {
@@ -86,6 +98,7 @@ def test_load_test_item(mock_site, add_languages, ia_writeback):
     assert w.title == 'Test item'
     assert w.type.key == '/type/work'
 
+
 def test_load_with_subjects(mock_site, ia_writeback):
     rec = {
         'ocaid': 'test_item',
@@ -98,6 +111,7 @@ def test_load_with_subjects(mock_site, ia_writeback):
     w = mock_site.get(reply['work']['key'])
     assert w.title == 'Test item'
     assert w.subjects == ['Protected DAISY', 'In library']
+
 
 def test_load_with_new_author(mock_site, ia_writeback):
     rec = {
@@ -160,6 +174,7 @@ def test_load_with_new_author(mock_site, ia_writeback):
     assert len(w.authors) == 1
     assert len(e.authors) == 1
 
+
 def test_load_with_redirected_author(mock_site, add_languages):
     """Test importing existing editions without works
        which have author redirects. A work should be created with
@@ -200,6 +215,7 @@ def test_load_with_redirected_author(mock_site, add_languages):
     w = mock_site.get(reply['work']['key'])
     assert w.authors[0].author.key == '/authors/OL10A'
 
+
 def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     rec = {
         'ocaid': 'test_item',
@@ -225,97 +241,133 @@ def test_duplicate_ia_book(mock_site, add_languages, ia_writeback):
     assert reply['success'] is True
     assert reply['edition']['status'] == 'matched'
 
-def test_from_marc_3(mock_site, add_languages):
-    ia = 'treatiseonhistor00dixo'
-    data = open_test_data(ia + '_meta.mrc').read()
-    assert len(data) == int(data[:5])
-    rec = read_edition(MarcBinary(data))
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'created'
-    e = mock_site.get(reply['edition']['key'])
-    assert e.type.key == '/type/edition'
 
-def test_from_marc_2(mock_site, add_languages):
-    ia = 'roadstogreatness00gall'
-    data = open_test_data(ia + '_meta.mrc').read()
-    assert len(data) == int(data[:5])
-    rec = read_edition(MarcBinary(data))
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'created'
-    e = mock_site.get(reply['edition']['key'])
-    assert e.type.key == '/type/edition'
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
+class Test_From_MARC:
+    def test_from_marc_author(self, mock_site, add_languages):
+        ia = 'flatlandromanceo00abbouoft'
+        marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
 
-def test_from_marc(mock_site, add_languages):
-    ia = 'flatlandromanceo00abbouoft'
-    data = open_test_data(ia + '_meta.mrc').read()
-    assert len(data) == int(data[:5])
-    rec = read_edition(MarcBinary(data))
-    reply = load(rec)
-    assert reply['success'] is True
-    akey1 = reply['authors'][0]['key']
-    a = mock_site.get(akey1)
-    assert a.type.key == '/type/author'
-    assert a.name == 'Edwin Abbott Abbott'
-    assert a.birth_date == '1838'
-    assert a.death_date == '1926'
+        rec = read_edition(marc)
+        rec['source_records'] = ['ia:' + ia]
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'created'
+        a = mock_site.get(reply['authors'][0]['key'])
+        assert a.type.key == '/type/author'
+        assert a.name == 'Edwin Abbott Abbott'
+        assert a.birth_date == '1838'
+        assert a.death_date == '1926'
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'matched'
 
-def test_author_from_700(mock_site, add_languages):
-    ia = 'sexuallytransmit00egen'
-    data = open_test_data(ia + '_meta.mrc').read()
-    rec = read_edition(MarcBinary(data))
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    # author from 700
-    akey = reply['authors'][0]['key']
-    a = mock_site.get(akey)
-    assert a.type.key == '/type/author'
-    assert a.name == 'Laura K. Egendorf'
-    assert a.birth_date == '1973'
+    @pytest.mark.parametrize('ia', (
+        'coursepuremath00hardrich',
+        'roadstogreatness00gall',
+        'treatiseonhistor00dixo'))
+    def test_from_marc(self, ia, mock_site, add_languages):
+        data = open_test_data(ia + '_meta.mrc').read()
+        assert len(data) == int(data[:5])
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:' + ia]
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'created'
+        e = mock_site.get(reply['edition']['key'])
+        assert e.type.key == '/type/edition'
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'matched'
 
-def test_from_marc_fields(mock_site, add_languages):
-    ia = 'isbn_9781419594069'
-    data = open_test_data(ia + '_meta.mrc').read()
-    rec = read_edition(MarcBinary(data))
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    # author from 100
-    assert reply['authors'][0]['name'] == 'Adam Weiner'
+    def test_author_from_700(self, mock_site, add_languages):
+        ia = 'sexuallytransmit00egen'
+        data = open_test_data(ia + '_meta.mrc').read()
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:' + ia]
+        reply = load(rec)
+        assert reply['success'] is True
+        # author from 700
+        akey = reply['authors'][0]['key']
+        a = mock_site.get(akey)
+        assert a.type.key == '/type/author'
+        assert a.name == 'Laura K. Egendorf'
+        assert a.birth_date == '1973'
 
-    edition = mock_site.get(reply['edition']['key'])
-    # Publish place, publisher, & publish date - 260$a, $b, $c
-    assert edition['publishers'][0] == 'Kaplan Publishing'
-    assert edition['publish_date'] == '2007'
-    assert edition['publish_places'][0] == 'New York'
-    # Pagination 300
-    assert edition['number_of_pages'] == 264
-    assert edition['pagination'] == 'viii, 264 p.'
-    # 8 subjects, 650
-    assert len(edition['subjects']) == 8
-    assert edition['subjects'] == [u'Action and adventure films',
-                                   u'Miscellanea',
-                                   u'Physics',
-                                   u'Cinematography',
-                                   u'Special effects',
-                                   u'Physics in motion pictures',
-                                   u'Science fiction films',
-                                   u'Popular works']
-    # Edition description from 520
-    desc = 'Explains the basic laws of physics, covering such topics as mechanics, forces, and energy, while deconstructing famous scenes and stunts from motion pictures, including "Apollo 13" and "Titanic," to determine if they are possible.'
-    assert isinstance(edition['description'], Text)
-    assert edition['description'] == desc
-    # Work description from 520
-    work = mock_site.get(reply['work']['key'])
-    assert isinstance(work['description'], Text)
-    assert work['description'] == desc
+    def test_from_marc_reimport_modifications(self, mock_site, add_languages):
+        src = 'v38.i37.records.utf8--16478504-1254'
+        marc = MarcBinary(open_test_data(src).read())
+        rec = read_edition(marc)
+        rec['source_records'] = ['marc:' + src]
+        reply = load(rec)
+        assert reply['success'] is True
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'matched'
+
+        src = 'v39.i28.records.utf8--5362776-1764'
+        marc = MarcBinary(open_test_data(src).read())
+        rec = read_edition(marc)
+        rec['source_records'] = ['marc:' + src]
+        reply = load(rec)
+        assert reply['success'] is True
+        assert reply['edition']['status'] == 'modified'
+
+    def test_missing_ocaid(self, mock_site, add_languages, ia_writeback):
+        ia = 'descendantsofhug00cham'
+        src = ia + '_meta.mrc'
+        marc = MarcBinary(open_test_data(src).read())
+        rec = read_edition(marc)
+        rec['source_records'] = ['marc:testdata.mrc']
+        reply = load(rec)
+        assert reply['success'] is True
+        rec['source_records'] = ['ia:' + ia]
+        rec['ocaid'] = ia
+        reply = load(rec)
+        assert reply['success'] is True
+        e = mock_site.get(reply['edition']['key'])
+        assert e.ocaid == ia
+        assert 'ia:' + ia in e.source_records
+
+    def test_from_marc_fields(self, mock_site, add_languages):
+        ia = 'isbn_9781419594069'
+        data = open_test_data(ia + '_meta.mrc').read()
+        rec = read_edition(MarcBinary(data))
+        rec['source_records'] = ['ia:' + ia]
+        reply = load(rec)
+        assert reply['success'] is True
+        # author from 100
+        assert reply['authors'][0]['name'] == 'Adam Weiner'
+
+        edition = mock_site.get(reply['edition']['key'])
+        # Publish place, publisher, & publish date - 260$a, $b, $c
+        assert edition['publishers'][0] == 'Kaplan Publishing'
+        assert edition['publish_date'] == '2007'
+        assert edition['publish_places'][0] == 'New York'
+        # Pagination 300
+        assert edition['number_of_pages'] == 264
+        assert edition['pagination'] == 'viii, 264 p.'
+        # 8 subjects, 650
+        assert len(edition['subjects']) == 8
+        assert edition['subjects'] == [u'Action and adventure films',
+                                       u'Miscellanea',
+                                       u'Physics',
+                                       u'Cinematography',
+                                       u'Special effects',
+                                       u'Physics in motion pictures',
+                                       u'Science fiction films',
+                                       u'Popular works']
+        # Edition description from 520
+        desc = ('Explains the basic laws of physics, covering such topics '
+                'as mechanics, forces, and energy, while deconstructing '
+                'famous scenes and stunts from motion pictures, including '
+                '"Apollo 13" and "Titanic," to determine if they are possible.')
+        assert isinstance(edition['description'], Text)
+        assert edition['description'] == desc
+        # Work description from 520
+        work = mock_site.get(reply['work']['key'])
+        assert isinstance(work['description'], Text)
+        assert work['description'] == desc
+
 
 def test_build_pool(mock_site):
     assert build_pool({'title': 'test'}) == {}
@@ -370,6 +422,7 @@ def test_load_multiple(mock_site):
 
     assert ekey1 == ekey2 == ekey4
 
+
 def test_add_db_name():
     authors = [
         {'name': 'Smith, John' },
@@ -389,64 +442,7 @@ def test_add_db_name():
     add_db_name(rec)
     assert rec == {}
 
-def test_from_marc(mock_site, add_languages):
-    ia = 'coursepuremath00hardrich'
-    marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
-    rec = read_edition(marc)
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'created'
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
 
-    ia = 'flatlandromanceo00abbouoft'
-    marc = MarcBinary(open_test_data(ia + '_meta.mrc').read())
-
-    rec = read_edition(marc)
-    rec['source_records'] = ['ia:' + ia]
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'created'
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
-
-def test_real_example(mock_site, add_languages):
-    src = 'v38.i37.records.utf8--16478504-1254'
-    marc = MarcBinary(open_test_data(src).read())
-    rec = read_edition(marc)
-    rec['source_records'] = ['marc:' + src]
-    reply = load(rec)
-    assert reply['success'] is True
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'matched'
-
-    src = 'v39.i28.records.utf8--5362776-1764'
-    marc = MarcBinary(open_test_data(src).read())
-    rec = read_edition(marc)
-    rec['source_records'] = ['marc:' + src]
-    reply = load(rec)
-    assert reply['success'] is True
-    assert reply['edition']['status'] == 'modified'
-
-def test_missing_ocaid(mock_site, add_languages, ia_writeback):
-    ia = 'descendantsofhug00cham'
-    src = ia + '_meta.mrc'
-    marc = MarcBinary(open_test_data(src).read())
-    rec = read_edition(marc)
-    rec['source_records'] = ['marc:testdata.mrc']
-    reply = load(rec)
-    assert reply['success'] is True
-    rec['source_records'] = ['ia:' + ia]
-    rec['ocaid'] = ia
-    reply = load(rec)
-    assert reply['success'] is True
-    e = mock_site.get(reply['edition']['key'])
-    assert e.ocaid == ia
-    assert 'ia:' + ia in e.source_records
 
 def test_extra_author(mock_site, add_languages):
     mock_site.save({
@@ -488,6 +484,7 @@ def test_extra_author(mock_site, add_languages):
     assert reply['success'] is True
     w = mock_site.get(reply['work']['key'])
     assert len(w['authors']) == 1
+
 
 def test_missing_source_records(mock_site, add_languages):
     mock_site.save({
@@ -545,6 +542,7 @@ def test_missing_source_records(mock_site, add_languages):
     assert reply['success'] is True
     e = mock_site.get(reply['edition']['key'])
     assert 'source_records' in e
+
 
 def test_no_extra_author(mock_site, add_languages):
     author = {
