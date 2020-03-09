@@ -1,6 +1,7 @@
 from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_subject import read_subjects, tidy_subject, four_types
+from openlibrary.catalog.marc.get_subjects import (
+    four_types, read_subjects, tidy_subject)
 from collections import defaultdict
 from lxml import etree
 import os

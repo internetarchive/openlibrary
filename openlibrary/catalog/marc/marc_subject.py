@@ -1,13 +1,23 @@
-from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
-from deprecated import deprecated
-import re
+""" This entire module is deprecated,
+    openlibrary.catalog.marc.get_subjects is the preferred module
+"""
+
+# Tell the flake8 linter to ignore this deprecated file.
+# flake8: noqa
 
 from collections import defaultdict
-from openlibrary.catalog.get_ia import get_from_archive, marc_formats, urlopen_keep_trying
-from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.importer.db_read import get_mc
-from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag, BadSubtag
+from deprecated import deprecated
 from lxml import etree
+import re
+
+
+from openlibrary.catalog.importer.db_read import get_mc
+from openlibrary.catalog.get_ia import get_from_archive, marc_formats, urlopen_keep_trying
+from openlibrary.catalog.marc import get_subjects
+from openlibrary.catalog.marc.marc_binary import MarcBinary
+from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag, BadSubtag
+from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
+
 
 subject_fields = set(['600', '610', '611', '630', '648', '650', '651', '662'])
 
@@ -22,40 +32,25 @@ re_place_comma = re.compile('^(.+), (.+)$')
 re_paren = re.compile('[()]')
 
 
+@deprecated('Use openlibrary.catalog.marc.get_subjects.flip_place() instead.')
 def flip_place(s):
-    s = remove_trailing_dot(s)
-    # Whitechapel (London, England)
-    # East End (London, England)
-    # Whitechapel (Londres, Inglaterra)
-    if re_paren.search(s):
-        return s
-    m = re_place_comma.match(s)
-    return m.group(2) + ' ' + m.group(1) if m else s
+    return get_subjects.flip_place(s)
 
 
+@deprecated('Use openlibrary.catalog.marc.get_subjects.flip_subject() instead.')
 def flip_subject(s):
-    m = re_comma.match(s)
-    if m:
-        return m.group(3) + ' ' + m.group(1).lower()+m.group(2)
-    else:
-        return s
+    return get_subjects.flip_subject(s)
 
 
 @deprecated('Use openlibrary.catalog.marc.get_subjects.four_types() instead.')
 def four_types(i):
-    want = set(['subject', 'time', 'place', 'person'])
-    ret = dict((k, i[k]) for k in want if k in i)
-    for j in (j for j in i.keys() if j not in want):
-        for k, v in i[j].items():
-            if 'subject' in ret:
-                ret['subject'][k] = ret['subject'].get(k, 0) + v
-            else:
-                ret['subject'] = {k: v}
-    return ret
+    return get_subjects.four_types(i)
+
 
 archive_url = "http://archive.org/download/"
 
 
+@deprecated
 def load_binary(ia):
     url = archive_url + ia + '/' + ia + '_meta.mrc'
     f = urlopen_keep_trying(url)
@@ -67,6 +62,8 @@ def load_binary(ia):
         return
     return MarcBinary(data)
 
+
+@deprecated
 def load_xml(ia):
     url = archive_url + ia + '/' + ia + '_marc.xml'
     f = urlopen_keep_trying(url)
@@ -75,6 +72,8 @@ def load_xml(ia):
         root = root[0]
     return MarcXml(root)
 
+
+@deprecated
 def subjects_for_work(rec):
     field_map = {
         'subject': 'subjects',
@@ -89,6 +88,8 @@ def subjects_for_work(rec):
 
 re_edition_key = re.compile(r'^/(?:b|books)/(OL\d+M)$')
 
+
+@deprecated
 def get_subjects_from_ia(ia):
     formats = marc_formats(ia)
     if not any(formats.values()):
@@ -103,6 +104,7 @@ def get_subjects_from_ia(ia):
 
 
 re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
+@deprecated
 def get_work_subjects(w, do_get_mc=True):
     found = set()
     for e in w['editions']:
@@ -138,6 +140,8 @@ def get_work_subjects(w, do_get_mc=True):
             subjects.append(get_subjects_from_ia(sr[3:]))
     return combine_subjects(subjects)
 
+
+@deprecated
 def tidy_subject(s):
     s = s.strip()
     if len(s) >= 2:
@@ -154,7 +158,11 @@ def tidy_subject(s):
         return m.group(3) + ' ' + m.group(1) + m.group(2)
     return s
 
+
 re_aspects = re.compile(' [Aa]spects$')
+
+
+@deprecated
 def find_aspects(f):
     cur = [(i, j) for i, j in f.get_subfields('ax')]
     if len(cur) < 2 or cur[0][0] != 'a' or cur[1][0] != 'x':
@@ -168,6 +176,8 @@ def find_aspects(f):
         a = 'the Human body'
     return x + ' of ' + flip_subject(a)
 
+
+@deprecated
 def read_subjects(rec):
     subjects = defaultdict(lambda: defaultdict(int))
     for tag, field in rec.read_fields(subject_fields):
@@ -256,14 +266,14 @@ def read_subjects(rec):
             v = tidy_subject(v)
             if v:
                 subjects['subject'][v] += 1
-
     return dict((k, dict(v)) for k, v in subjects.items())
 
+
+@deprecated
 def combine_subjects(subjects):
     all_subjects = defaultdict(lambda: defaultdict(int))
     for a in subjects:
         for b, c in a.items():
             for d, e in c.items():
                 all_subjects[b][d] += e
-
     return dict((k, dict(v)) for k, v in all_subjects.items())
