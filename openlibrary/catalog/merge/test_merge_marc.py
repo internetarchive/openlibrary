@@ -6,9 +6,11 @@ from openlibrary.catalog.merge.merge_marc import (
 
 
 class TestAuthors:
-    @pytest.mark.xfail(
-        reason=('Taken from openlibrary.catalog.merge.merge.compare_authors'
-                ' -- does not find a match.'))
+    @pytest.mark.xfail(reason=(
+        'This expected result taken from the amazon and '
+        'merge versions of compare_author, '
+        'Current merge_marc.compare_authors() '
+        'does NOT take by_statement into account.'))
     def test_compare_authors_by_statement(self):
         # requires db_name to be present on both records.
         rec1 = {
@@ -19,16 +21,12 @@ class TestAuthors:
         rec2 = {
             'full_title': 'A different Full Title, only matching authors here.',
             'authors': [{
-                'db_name': u'National Gallery (Great Britain)',
-                'name': u'National Gallery (Great Britain)',
+                'db_name': 'National Gallery (Great Britain)',
+                'name': 'National Gallery (Great Britain)',
                 'entity_type': 'org'}],
             'by_statement': 'Alistair Smith.'}
 
         result = compare_authors(build_marc(rec1), build_marc(rec2))
-        # This expected result taken from the amazon and
-        # merge versions of compare_author,
-        # Current merge_marc.compare_authors() does
-        # not take by_statement into account.
         assert result == ('main', 'exact match', 125)
 
     def test_author_contrib(self):

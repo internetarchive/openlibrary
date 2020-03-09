@@ -11,12 +11,6 @@ from openlibrary.catalog.merge.merge import (
     Investigate and clean up!
     """
 
-def test_compare_authors_by_statement():
-    # Not clear how the amazon record gets to be in this format, but that's what the current code works with.`
-    amazon = {'authors': ['Alistair Smith']}
-    marc = {'authors': [{'db_name': u'National Gallery (Great Britain)', 'name': u'National Gallery (Great Britain)', 'entity_type': 'org'}], 'by_statement': 'Alistair Smith.'}
-    assert compare_authors(amazon, marc) == ('main', 'exact match', 125)
-
 
 def test_full_title():
     assert full_title({ 'title': "Hamlet"}) == "Hamlet"
