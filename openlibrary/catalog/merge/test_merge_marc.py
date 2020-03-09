@@ -39,47 +39,47 @@ def test_compare_publisher():
     assert compare_publisher(both, foo) == ('publisher', 'match', 100)
 
 
-def test_build_titles():
-    # Used by build_marc()
-    a = 'This is a title.'
-    normalized = 'this is a title'
-    result = build_titles(a)
-    assert isinstance(result['titles'], list)
-    assert result['full_title'] == a
-    assert result['short_title'] == normalized
-    assert result['normalized_title'] == normalized
-    assert result['titles'] == ['This is a title.', 'this is a title']
+class TestTitles:
+    def test_build_titles(self):
+        # Used by openlibrary.catalog.merge.merge_marc.build_marc()
+        full_title = 'This is a title.'
+        normalized = 'this is a title'
+        result = build_titles(full_title)
+        assert isinstance(result['titles'], list)
+        assert result['full_title'] == full_title
+        assert result['short_title'] == normalized
+        assert result['normalized_title'] == normalized
+        assert result['titles'] == ['This is a title.', 'this is a title']
 
-def test_build_titles_complex():
-    # TODO: There are issues with this method
-    # see https://github.com/internetarchive/openlibrary/issues/2410
-    a = 'A test full title : subtitle (parens).'
-    b = 'A test full title : subtitle (parens)'
-    a_result = build_titles(a)
-    a_titles = a_result['titles']
-    assert a in a_titles
+    def test_build_titles_complex(self):
+        # TODO: There are issues with this method
+        # see https://github.com/internetarchive/openlibrary/issues/2410
+        full_title = 'A test full title : subtitle (parens)'
+        full_title_period = 'A test full title : subtitle (parens).'
+        titles_period = build_titles(full_title_period)['titles']
+        assert full_title_period in titles_period
 
-    b_result = build_titles(b)
-    b_titles = b_result['titles']
-    assert b in b_titles
+        titles = build_titles(full_title)['titles']
+        assert full_title in titles
 
-    common_titles = [
-            'a test full title subtitle (parens)',
-            'test full title subtitle (parens)',
-            ]
-    for title in common_titles:
-        assert title in a_titles
-        assert title in b_titles
+        common_titles = [
+                'a test full title subtitle (parens)',
+                'test full title subtitle (parens)',
+                ]
+        for t in common_titles:
+            assert t in titles
+            assert t in titles_period
 
-    # Missing variations:
-    #assert 'test full title subtitle' in a_titles
-    assert 'test full title subtitle' in b_titles
-    #assert 'a test full title subtitle' in a_titles
-    assert 'a test full title subtitle' in b_titles
+        # Missing variations:
+        #assert 'test full title subtitle' in a_titles
+        assert 'test full title subtitle' in titles
+        #assert 'a test full title subtitle' in a_titles
+        assert 'a test full title subtitle' in titles
 
-    # Check for duplicates:
-    assert len(a_titles) == len(set(a_titles))
-    #assert len(b_titles) == len(set(b_titles))
+        # Check for duplicates:
+        assert len(titles_period) == len(set(titles_period))
+        #assert len(titles) == len(set(titles))
+
 
 def test_build_marc():
     # used in add_book.load() when trying to find an existing edition match
@@ -93,6 +93,7 @@ def test_build_marc():
     assert result['isbn'] == []
     assert result['normalized_title'] == 'a test full title subtitle (parens)'
     assert result['short_title'] == 'a test full title subtitl'
+
 
 def test_author_contrib():
     rec1 = {'authors': [{'db_name': u'Bruner, Jerome S.', 'name': u'Bruner, Jerome S.'}],

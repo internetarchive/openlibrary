@@ -18,17 +18,6 @@ from openlibrary.catalog.merge.amazon import (
 
 pytestmark = pytest.mark.skip('Skip Legacy Amazon record matching tests.')
 
-def test_merge_titles2():
-    amazon = {'title': u'Sea Birds Britain Ireland'}
-    marc = {
-        'title_with_subtitles': u'seabirds of Britain and Ireland',
-        'title': u'seabirds of Britain and Ireland',
-        'full_title': u'The seabirds of Britain and Ireland',
-    }
-    amazon = build_titles(full_title(amazon))
-    marc = build_titles(marc['title_with_subtitles'])
-    assert compare_title(amazon, marc) == ('full_title', 'exact match', 600)
-
 def test_merge():
     amazon = {'publishers': [u'Collins'], 'isbn': ['0002167360'], 'number_of_pages': 120, 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': u'1975', 'authors': [u'David Hamilton', u'Photographer']}
     marc = {'publisher': [u'Collins'], 'isbn': [u'0002167360'], 'short_title': u'souvenirs', 'normalized_title': u'souvenirs', 'full_title': u'Souvenirs', 'titles': [u'Souvenirs', u'souvenirs'], 'publish_date': '1978', 'authors': [{'birth_date': u'1933', 'db_name': u'Hamilton, David 1933-', 'entity_type': 'person', 'name': u'Hamilton, David', 'personal_name': u'Hamilton, David'}], 'source_record_loc': 'marc_records_scriblio_net/part11.dat:155728070:617', 'number_of_pages': 120}
