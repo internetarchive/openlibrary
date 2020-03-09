@@ -26,6 +26,7 @@ jobs:
                 openlibrary/plugins/upstream/tests/test_forms.py \
                 openlibrary/plugins/upstream/tests/test_utils.py \
                 openlibrary/plugins/worksearch/tests/test_worksearch.py \
+                openlibrary/tests/core/test_cache.py \
                 openlibrary/tests/core/test_helpers.py \
                 openlibrary/tests/core/test_i18n.py \
                 openlibrary/tests/core/test_init.py \
@@ -73,7 +74,6 @@ jobs:
         # openlibrary/tests: All failing tests run in allow failures (|| true) mode
         - |
             pytest openlibrary/tests/accounts/test_models.py \
-                openlibrary/tests/core/test_cache.py \
                 openlibrary/tests/core/test_connections.py \
                 openlibrary/tests/core/test_ia.py \
                 openlibrary/tests/solr/test_update_work.py || true
