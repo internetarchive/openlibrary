@@ -32,27 +32,27 @@ class TestAuthors:
     def test_author_contrib(self):
         rec1 = {
             'authors': [
-                {'db_name': u'Bruner, Jerome S.',
-                 'name': u'Bruner, Jerome S.'}],
+                {'db_name': 'Bruner, Jerome S.',
+                 'name': 'Bruner, Jerome S.'}],
             'full_title': 'Contemporary approaches to cognition a symposium held at the University of Colorado.',
             'number_of_pages': 210,
             'publish_country': 'xxu',
             'publish_date': '1957',
-            'publishers': [u'Harvard U.P']}
+            'publishers': ['Harvard U.P']}
 
         rec2 = {
             'authors': [
-                {'db_name': u'University of Colorado (Boulder campus). Dept. of Psychology.',
-                 'name': u'University of Colorado (Boulder campus). Dept. of Psychology.'}],
+                {'db_name': 'University of Colorado (Boulder campus). Dept. of Psychology.',
+                 'name': 'University of Colorado (Boulder campus). Dept. of Psychology.'}],
             'contribs': [
-                {'db_name': u'Bruner, Jerome S.',
-                 'name': u'Bruner, Jerome S.'}],
-            'full_title': u'Contemporary approaches to cognition a symposium held at the University of Colorado',
+                {'db_name': 'Bruner, Jerome S.',
+                 'name': 'Bruner, Jerome S.'}],
+            'full_title': 'Contemporary approaches to cognition a symposium held at the University of Colorado',
             'lccn': ['57012963'],
             'number_of_pages': 210,
             'publish_country': 'mau',
             'publish_date': '1957',
-            'publishers': [u'Harvard University Press']}
+            'publishers': ['Harvard University Press']}
 
         e1 = build_marc(rec1)
         e2 = build_marc(rec2)
