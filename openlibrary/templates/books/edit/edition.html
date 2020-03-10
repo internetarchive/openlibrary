@@ -498,7 +498,7 @@ window.q.push(function() {
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and ctx.user.is_admin()
+                            $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
                             $if id.name == "ocaid" and not admin_user:
                                 <td></td>
                             $else:

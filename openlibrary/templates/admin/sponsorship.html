@@ -59,8 +59,8 @@ $ _x = ctx.setdefault('usergroup', 'admin')
       <th>Total Unscanned Books</th>
       <td>$summary['total_unscanned_books']</td>
       $if ctx.user and ctx.user.is_admin():
-        $ isbns = ','.join([s['identifier'].replace('isbn_', '') for s in summary['books']])
-        <td><a href="https://8882k.csb.app/#isbns=$isbns">Print Slips</a></td>
+        $ isbns = ','.join([s['identifier'].replace('isbn_', '') for s in summary['books'] if s.get('repub_state') == '-1'])
+        <td><a href="https://8882k.csb.app/?isbns=$isbns">Print Slips</a></td>
     </tr>
     <tr>
       <th>Average Scan Cost</th>

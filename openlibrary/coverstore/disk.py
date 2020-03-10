@@ -3,7 +3,7 @@ import os
 import string
 import warc
 
-chars = string.letters + string.digits
+chars = string.ascii_letters + string.digits
 def random_string(n):
     return "".join([random.choice(chars) for i in range(n)])
 
@@ -14,8 +14,8 @@ class Disk:
     >>> _ = os.system("rm -rf test_disk")
     >>> disk = Disk("test_disk")
     >>> f1 = disk.write("hello, world!")
-    >>> f2 = disk.write(string.letters)
-    >>> f3 = disk.write(string.letters)
+    >>> f2 = disk.write(string.ascii_letters)
+    >>> f3 = disk.write(string.ascii_letters)
     >>> disk.read(f1)
     'hello, world!'
     >>> disk.read(f2)
@@ -60,8 +60,8 @@ class WARCDisk:
         >>> _ = os.system("rm -rf test_disk")
         >>> disk = WARCDisk("test_disk", maxsize=200)
         >>> f1 = disk.write("hello, world!")
-        >>> f2 = disk.write(string.letters)
-        >>> f3 = disk.write(string.letters)
+        >>> f2 = disk.write(string.ascii_letters)
+        >>> f3 = disk.write(string.ascii_letters)
         >>> disk.read(f1)
         'hello, world!'
         >>> disk.read(f2)

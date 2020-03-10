@@ -98,7 +98,7 @@ $def display_contributor(c):
 $:macros.Metatags(title=title_with_site, image=meta_cover_url, description=description)
 $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
-$if ctx.user and ctx.user.is_admin():
+$if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
   <!-- Don't need to translate admin only buttons (at least initially)-->
   <div class="admin-bar">
     $ work = page.works and page.works[0]

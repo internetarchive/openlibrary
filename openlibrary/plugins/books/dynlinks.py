@@ -332,7 +332,7 @@ def trim(d):
         >>> trim({"a": "x", "b": "", "c": [], "d": {}})
         {'a': 'x'}
     """
-    return dict((k, v) for k, v in d.iteritems() if v)
+    return dict((k, v) for k, v in d.items() if v)
 
 def get_authors(docs):
     """Returns a dict of author_key to {"key", "...", "name": "..."} for all authors in docs.

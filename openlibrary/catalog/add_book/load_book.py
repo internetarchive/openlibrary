@@ -198,7 +198,7 @@ def build_query(rec):
         'type': { 'key': '/type/edition'},
     }
 
-    for k, v in rec.iteritems():
+    for k, v in rec.items():
         if k == 'authors':
             if v and v[0]:
                 book['authors'] = []

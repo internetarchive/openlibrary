@@ -72,7 +72,7 @@ window.q.push(function(){
             \$("#imagesAdd").html("");
             \$("#imagesManage").html("");
             $if doc.type.key == "/type/work":
-                \$('#imagesAdd').prepend('<div id="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
+                \$('#imagesAdd').prepend('<div class="throbber"><h3>$_("One sec, we\'re searching for covers...")</h3></div>');
             setTimeout(function() {
                 // add iframe to add images
                 add_iframe("#imagesAdd", "$:add_url");
@@ -85,7 +85,7 @@ window.q.push(function(){
             \$("#imagesManage").html("");
         });
     // Add function to close throbber
-    closeThrobber = function() {\$("#throbber").customFadeOut();};
+    closeThrobber = function() {\$(".throbber").customFadeOut();};
 });
 //-->
 </script>

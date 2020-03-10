@@ -103,7 +103,8 @@ class BasicMergeEngine:
                 else:
                     return doc
             else:
-                return dict((k, self.convert_doc(v, master, duplicates)) for k, v in doc.iteritems())
+                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
+                            in doc.items())
         elif isinstance(doc, list):
             values = [self.convert_doc(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)

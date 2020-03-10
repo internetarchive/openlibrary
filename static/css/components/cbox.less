@@ -18,6 +18,16 @@
   > * {
     box-sizing: content-box;
   }
+
+  // In lightboxes for displaying current cover, important the image
+  // is not larger than available space.
+  img {
+    height: auto;
+  }
+  img,
+  iframe {
+    width: 100%;
+  }
 }
 
 #cbox {
@@ -88,10 +98,6 @@
   }
 }
 
-div.imageIntro{
-  margin: 10px;
-}
-
 .dialog--close {
   color: @dark-grey;
   font-size: 1.2em;
@@ -132,6 +138,7 @@ div.coverFloat {
   }
 }
 
+
 /* ADD IMAGE/COVER POP-UP */
 div.floater {
   position: relative;
@@ -165,8 +172,6 @@ div.floater {
   font-family: @lucida_sans_serif-2;
 
   .label {
-    width: 560px;
-    padding-top: 20px;
     label {
       font-size: 1.0em;
       font-family: @lucida_sans_serif-5;
@@ -176,21 +181,14 @@ div.floater {
       font-weight: normal;
     }
   }
-  .input {
-    width: 560px;
-    padding-top: 20px;
-  }
   div#covers.input {
-    width: 560px;
     max-height: 132px;
     overflow: hidden;
-    padding-top: 20px;
     margin-left: -80px;
     text-align: center;
   }
   input[type=text],
   input[type=file] {
-    width: 350px;
     font-size: 1.125em;
     font-family: @lucida_sans_serif-1;
     padding: 3px;
@@ -201,6 +199,22 @@ div.floater {
     width: auto !important;
   }
 }
+
+.floatform__body {
+  text-align: center;
+  width: 100%;
+  position: relative;
+
+  .carousel-section {
+    padding: 0 20px;
+  }
+}
+
+div.imageIntro{
+  margin: 0 0 10px;
+}
+
+
 /* ADD ROLES, ETC. */
 div.floaterAdd {
   position: relative;
@@ -212,11 +226,9 @@ div.floaterAdd {
   }
   form.floatform {
     .input {
-      width: 560px;
       padding-top: 5px;
     }
     .label {
-      width: 560px;
       padding-top: 20px;
       // stylelint-disable-next-line max-nesting-depth
       label {
@@ -227,11 +239,47 @@ div.floaterAdd {
     }
     input[type=text],
     textarea {
-      width: 560px;
       margin-left: 0;
     }
     textarea {
       padding: 3px;
+    }
+  }
+}
+
+@media only screen and (min-width: @width-breakpoint-tablet) {
+  .floatform {
+    div#covers.input,
+    .label,
+    .input {
+      width: 560px;
+      padding-top: 20px;
+    }
+
+    > div {
+      margin: 0 80px;
+      text-align: left;
+    }
+
+    input[type=text],
+    input[type=file] {
+      width: 350px;
+    }
+  }
+
+  div.imageIntro{
+    margin: 10px;
+  }
+
+  .floatform__body > div {
+    margin: 0 80px;
+  }
+  div.floaterAdd {
+    .input,
+    .label,
+    input[type=text],
+    textarea {
+      width: 560px;
     }
   }
 }

@@ -41,10 +41,13 @@ def render_template(name, *a, **kw):
 
 admin_tasks = []
 
-def register_admin_page(path, cls, label=None, visible=True):
+
+def register_admin_page(path, cls, label=None, visible=True, librarians=False):
     label = label or cls.__name__
-    t = web.storage(path=path, cls=cls, label=label, visible=visible)
+    t = web.storage(path=path, cls=cls, label=label,
+                    visible=visible, librarians=librarians)
     admin_tasks.append(t)
+
 
 class admin(delegate.page):
     path = "/admin(?:/.*)?"
@@ -56,10 +59,10 @@ class admin(delegate.page):
         for t in admin_tasks:
             m = web.re_compile('^' + t.path + '$').match(web.ctx.path)
             if m:
-                return self.handle(t.cls, m.groups())
+                return self.handle(t.cls, m.groups(), librarians=t.librarians)
         raise web.notfound()
 
-    def handle(self, cls, args=()):
+    def handle(self, cls, args=(), librarians=False):
         # Use admin theme
         context.bodyid = "admin"
 
@@ -67,7 +70,8 @@ class admin(delegate.page):
         if not m:
             raise web.nomethod(cls=cls)
         else:
-            if self.is_admin():
+            if (self.is_admin() or (librarians and context.user and
+                                    context.user.is_librarian())):
                 return m(*args)
             else:
                 return render.permission_denied(web.ctx.path, "Permission denied.")
@@ -161,9 +165,9 @@ class add_work_to_staff_picks:
             for ocaid in ocaids:
                 results[work_id][ocaid] = create_ol_subjects_for_ocaid(
                     ocaid, subjects=subjects)
-        
+
         return delegate.RawText(simplejson.dumps(results), content_type="application/json")
-                                
+
 
 class sync_ol_ia:
     def GET(self):
@@ -725,7 +729,7 @@ def setup():
     register_admin_page('/admin/logs', show_log, label="")
     register_admin_page('/admin/permissions', permissions, label="")
     register_admin_page('/admin/solr', solr, label="")
-    register_admin_page('/admin/sync', sync_ol_ia, label="")
+    register_admin_page('/admin/sync', sync_ol_ia, label="", librarians=True)
     register_admin_page('/admin/staffpicks', add_work_to_staff_picks, label="")
 
     register_admin_page('/admin/imports', imports_home, label="")

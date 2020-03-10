@@ -675,7 +675,7 @@ api and api.add_hook('new', new)
 def changequery(query=None, **kw):
     if query is None:
         query = web.input(_method='get', _unicode=False)
-    for k, v in kw.iteritems():
+    for k, v in kw.items():
         if v is None:
             query.pop(k, None)
         else:

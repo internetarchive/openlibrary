@@ -164,11 +164,12 @@ def read_work_titles(rec):
     return remove_duplicates(found)
 
 def read_title(rec):
+    STRIP_CHARS = r' /,;:='
     fields = rec.get_fields('245')
     if not fields:
         fields = rec.get_fields('740')
     if not fields:
-        raise NoTitle("No Title found in either 245 or 740 fields.")
+        raise NoTitle('No Title found in either 245 or 740 fields.')
 
 #   example MARC record with multiple titles:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:299505697:862
@@ -182,31 +183,32 @@ def read_title(rec):
 #   MARC record with 245a missing:
 #   http://openlibrary.org/show-marc/marc_western_washington_univ/wwu_bibs.mrc_revrev.mrc:516779055:1304
     if 'a' in contents:
-        title = ' '.join(x.strip(' /,;:') for x in contents['a'])
+        title = ' '.join(x.strip(STRIP_CHARS) for x in contents['a'])
     elif b_and_p:
-        title = b_and_p.pop(0).strip(' /,;:')
+        title = b_and_p.pop(0).strip(STRIP_CHARS)
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:183427199:255
     if title in ('See.', 'See also.'):
-        raise SeeAlsoAsTitle("Title is: %s" % title)
+        raise SeeAlsoAsTitle('Title is: %s' % title)
 # talis_openlibrary_contribution/talis-openlibrary-contribution.mrc:5654086:483
 # scrapbooksofmoun03tupp
     if title is None:
         subfields = list(fields[0].get_all_subfields())
         title = ' '.join(v for k, v in subfields)
-        if not title: # ia:scrapbooksofmoun03tupp
-            raise NoTitle("No title found from joining subfields.")
+        if not title:  # ia:scrapbooksofmoun03tupp
+            raise NoTitle('No title found from joining subfields.')
     ret['title'] = remove_trailing_dot(title)
     if b_and_p:
-        ret["subtitle"] = ' : '.join(remove_trailing_dot(x.strip(' /,;:')) for x in b_and_p)
+        ret['subtitle'] = ' : '.join(
+                remove_trailing_dot(x.strip(STRIP_CHARS)) for x in b_and_p)
     if 'c' in contents:
-        ret["by_statement"] = remove_trailing_dot(' '.join(contents['c']))
+        ret['by_statement'] = remove_trailing_dot(' '.join(contents['c']))
     if 'h' in contents:
         h = ' '.join(contents['h']).strip(' ')
         m = re_bracket_field.match(h)
         if m:
             h = m.group(1)
         assert h
-        ret["physical_format"] = h
+        ret['physical_format'] = h
     return ret
 
 def read_edition_name(rec):

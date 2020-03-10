@@ -141,7 +141,7 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
-            return render_template("permission_denied", "/books/add", "Permission denied to add a book to Open Library.")
+            return web.seeother("/account/login?redirect={}".format(self.path))
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
@@ -483,7 +483,8 @@ class SaveBookHelper:
         comment = formdata.pop('_comment', '')
 
         user = accounts.get_current_user()
-        delete = user and user.is_admin() and formdata.pop('_delete', '')
+        delete = (user and (user.is_admin() or user.is_librarian()) and
+                  formdata.pop('_delete', ''))
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
@@ -674,7 +675,7 @@ class SaveBookHelper:
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and user.is_admin():
+        if user and (user.is_admin() or user.is_librarian()):
             return
 
         # read ocaid from form data
