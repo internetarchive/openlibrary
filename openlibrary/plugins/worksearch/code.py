@@ -145,7 +145,7 @@ def build_q_list(param):
             q_list.extend(i['op'] if 'op' in i else '%s:(%s)' % (i['field'], i['value']) for i in parse_query_fields(q_param))
         else:
             isbn = normalize_isbn(q_param)
-            if isbn:
+            if isbn and len(isbn) in (10, 13):
                 q_list.append('isbn:(%s)' % isbn)
             else:
                 q_list.append(q_param.strip().replace(':', r'\:'))
