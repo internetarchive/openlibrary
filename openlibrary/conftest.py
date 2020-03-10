@@ -1,5 +1,7 @@
 """pytest configutation for openlibrary
 """
+# flake8: noqa
+
 import glob
 import sys
 
@@ -8,19 +10,17 @@ import web
 
 import six
 
-from openlibrary.core import helpers
-from openlibrary.i18n import gettext
-from openlibrary.mocks.mock_ia import mock_ia
-from openlibrary.mocks.mock_infobase import mock_site
-from openlibrary.mocks.mock_memcache import mock_memcache
-from openlibrary.mocks.mock_ol import ol
-
-# sys.path.insert(0, "openlibrary/vendor")  # Enable openlibrary/vendor/infogami to be imported.
-sys.path.insert(0, "../vendor")  # Enable openlibrary/vendor/infogami to be imported.
-sys.path.insert(0, "./vendor")  # Enable openlibrary/vendor/infogami to be imported.
+sys.path.insert(0, "openlibrary/vendor")  # Enable import openlibrary/vendor/infogami
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
+
+from openlibrary.core import helpers
+from openlibrary.i18n import gettext
+from openlibrary.mocks.mock_infobase import mock_site
+from openlibrary.mocks.mock_ia import mock_ia
+from openlibrary.mocks.mock_memcache import mock_memcache
+from openlibrary.mocks.mock_ol import ol
 
 
 @pytest.fixture(autouse=True)
