@@ -12,7 +12,7 @@ jobs:
       python: "3.8"
       before_script: true  # override npm install below
       script:
-        - pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests
+        - source scripts/test-py3.sh
         # On pull requests, run all flake8 tests on modified code
         # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
         - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
