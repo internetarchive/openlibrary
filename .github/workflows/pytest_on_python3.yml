@@ -7,7 +7,7 @@ jobs:
   pytest_on_python3:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v1
       - uses: actions/setup-python@master
       - run: pip install -r requirements_test.txt
       - run: pushd vendor/infogami && git pull origin master && popd
