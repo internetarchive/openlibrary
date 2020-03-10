@@ -9,8 +9,8 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - uses: actions/setup-python@master
-      - pip install -r requirements_test.txt
-      - pushd vendor/infogami && git pull origin master && popd
+      - run: pip install -r requirements_test.txt
+      - run: pushd vendor/infogami && git pull origin master && popd
       - run: |
             pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
                 openlibrary/coverstore/tests/test_code.py \
