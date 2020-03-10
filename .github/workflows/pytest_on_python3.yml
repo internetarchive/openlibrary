@@ -59,7 +59,7 @@ jobs:
         #        openlibrary/tests/catalog/test_get_ia.py \
         #        openlibrary/tests/catalog/test_utils.py || true
         # coverstore: All failing tests run in allow failures (|| true) mode
-        - |
+      - run: |
             pytest openlibrary/coverstore/tests/test_coverstore.py \
                 openlibrary/coverstore/tests/test_doctests.py || true
         # plugins: All failing tests run in allow failures (|| true) mode
