@@ -421,8 +421,7 @@ def _get_betterworldbooks_metadata(isbn):
             price = _price
             qlt = 'new'
 
-    market_price = market_price and '$' + market_price[0]
-
+    market_price = ('$' + market_price[0]) if market_price else None
     return betterworldbooks_fmt(isbn, qlt, price, market_price)
 
 
