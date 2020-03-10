@@ -10,7 +10,9 @@ import web
 
 import six
 
-sys.path.insert(0, "openlibrary/vendor")  # Enable import openlibrary/vendor/infogami
+# sys.path.insert(0, "openlibrary/vendor")  # Enable import openlibrary/vendor/infogami
+sys.path.insert(0, "../vendor")  # Enable import openlibrary/vendor/infogami
+sys.path.insert(0, "./vendor")  # Enable import openlibrary/vendor/infogami
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
