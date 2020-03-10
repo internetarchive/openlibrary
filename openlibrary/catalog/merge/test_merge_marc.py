@@ -34,7 +34,8 @@ class TestAuthors:
             'authors': [
                 {'db_name': 'Bruner, Jerome S.',
                  'name': 'Bruner, Jerome S.'}],
-            'full_title': 'Contemporary approaches to cognition a symposium held at the University of Colorado.',
+            'full_title': ('Contemporary approaches to cognition '
+                           'a symposium held at the University of Colorado.'),
             'number_of_pages': 210,
             'publish_country': 'xxu',
             'publish_date': '1957',
@@ -42,12 +43,15 @@ class TestAuthors:
 
         rec2 = {
             'authors': [
-                {'db_name': 'University of Colorado (Boulder campus). Dept. of Psychology.',
-                 'name': 'University of Colorado (Boulder campus). Dept. of Psychology.'}],
+                {'db_name': ('University of Colorado (Boulder campus). '
+                             'Dept. of Psychology.'),
+                 'name': ('University of Colorado (Boulder campus). '
+                          'Dept. of Psychology.')}],
             'contribs': [
                 {'db_name': 'Bruner, Jerome S.',
                  'name': 'Bruner, Jerome S.'}],
-            'full_title': 'Contemporary approaches to cognition a symposium held at the University of Colorado',
+            'full_title': ('Contemporary approaches to cognition '
+                           'a symposium held at the University of Colorado'),
             'lccn': ['57012963'],
             'number_of_pages': 210,
             'publish_country': 'mau',
