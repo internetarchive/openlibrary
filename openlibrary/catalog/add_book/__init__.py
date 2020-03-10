@@ -47,6 +47,7 @@ from openlibrary.catalog.add_book.match import editions_match
 
 re_normalize = re.compile('[^[:alphanum:] ]', re.U)
 re_lang = re.compile('^/languages/([a-z]{3})$')
+ISBD_UNIT_PUNCT = ' : '  # ISBD cataloging title-unit separator punctuation
 
 
 type_map = {
@@ -118,6 +119,28 @@ def get_title(e):
         return e['title']
     wt = e['work_titles'][0]
     return e['title'] if wt in bad_titles else e['title']
+
+
+def split_subtitle(full_title):
+    """
+    Splits a title into (title, subtitle),
+    strips parenthetical tags. Used for bookseller
+    catalogs which do not pre-separate subtitles.
+
+    :param str full_title:
+    :rtype: (str, str | None)
+    :return: (title, subtitle | None)
+    """
+
+    # strip parenthetical blocks wherever they occur
+    # can handle 1 level of nesting
+    re_parens_strip = re.compile(r'\(([^\)\(]*|[^\(]*\([^\)]*\)[^\)]*)\)')
+    clean_title = re.sub(re_parens_strip, '', full_title)
+
+    titles = clean_title.split(':')
+    subtitle = titles.pop().strip() if len(titles) > 1 else None
+    title = ISBD_UNIT_PUNCT.join([unit.strip() for unit in titles])
+    return (title, subtitle)
 
 
 def find_matching_work(e):
@@ -626,6 +649,13 @@ def load(rec, account=None):
             raise RequiredField(field)
     if not isinstance(rec['source_records'], list):
         rec['source_records'] = [rec['source_records']]
+
+    # Split subtitle if required and not already present
+    if ':' in rec.get('title') and not rec.get('subtitle'):
+        title, subtitle = split_subtitle(rec.get('title'))
+        if subtitle:
+            rec['title'] = title
+            rec['subtitle'] = subtitle
 
     rec = normalize_record_isbns(rec)
 

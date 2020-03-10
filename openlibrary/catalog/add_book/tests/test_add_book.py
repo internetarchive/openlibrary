@@ -9,7 +9,7 @@ from infogami.infobase.core import Text
 from openlibrary.catalog import add_book
 from openlibrary.catalog.add_book import (
     add_db_name, build_pool, editions_matched, isbns_from_record,
-    load, strip_accents, RequiredField)
+    load, split_subtitle, strip_accents, RequiredField)
 
 from openlibrary.catalog.marc.parse import read_edition
 from openlibrary.catalog.marc.marc_binary import MarcBinary
@@ -44,6 +44,41 @@ def test_strip_accents():
     assert strip_accents(u'Des idées napoléoniennes') == 'Des idees napoleoniennes'
     # It only modifies Unicode Nonspacing Mark characters:
     assert strip_accents(u'Bokmål : Standard Østnorsk') == u'Bokmal : Standard Østnorsk'
+
+
+bookseller_titles = [
+    # Original title, title, subtitle
+    ['Test Title', 'Test Title', None],
+    ['Killers of the Flower Moon: The Osage Murders and the Birth of the FBI',
+        'Killers of the Flower Moon',
+        'The Osage Murders and the Birth of the FBI'],
+    ['Pachinko (National Book Award Finalist)',
+        'Pachinko', None],
+    ['Trapped in a Video Game (Book 1) (Volume 1)',
+        'Trapped in a Video Game', None],
+    ["An American Marriage (Oprah's Book Club): A Novel",
+        'An American Marriage', 'A Novel'],
+    ['A Novel (German Edition)',
+        'A Novel', None],
+    [('Vietnam Travel Guide 2019: Ho Chi Minh City - First Journey : '
+      '10 Tips For an Amazing Trip'),
+        'Vietnam Travel Guide 2019 : Ho Chi Minh City - First Journey',
+        '10 Tips For an Amazing Trip'],
+    ['Secrets of Adobe(r) Acrobat(r) 7. 150 Best Practices and Tips (Russian Edition)',
+        'Secrets of Adobe Acrobat 7. 150 Best Practices and Tips', None],
+    [('Last Days at Hot Slit: The Radical Feminism of Andrea Dworkin '
+      '(Semiotext(e) / Native Agents)'),
+        'Last Days at Hot Slit',
+        'The Radical Feminism of Andrea Dworkin'],
+    ['Bloody Times: The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis',
+        'Bloody Times',
+        'The Funeral of Abraham Lincoln and the Manhunt for Jefferson Davis'],
+]
+
+
+@pytest.mark.parametrize('full_title,title,subtitle', bookseller_titles)
+def test_split_subtitle(full_title, title, subtitle):
+    assert split_subtitle(full_title) == (title, subtitle)
 
 
 def test_editions_matched_no_results(mock_site):
