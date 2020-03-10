@@ -15,7 +15,9 @@ from openlibrary.mocks.mock_infobase import mock_site
 from openlibrary.mocks.mock_memcache import mock_memcache
 from openlibrary.mocks.mock_ol import ol
 
-sys.path.insert(0, "openlibrary/vendor")  # Enable openlibrary/vendor/infogami to be imported.
+# sys.path.insert(0, "openlibrary/vendor")  # Enable openlibrary/vendor/infogami to be imported.
+sys.path.insert(0, "../vendor")  # Enable openlibrary/vendor/infogami to be imported.
+sys.path.insert(0, "./vendor")  # Enable openlibrary/vendor/infogami to be imported.
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
