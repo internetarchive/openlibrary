@@ -57,7 +57,7 @@ $ show_wikipedia_citation_link = page.wp_citation_fields
                         <p>$_('Copy and paste this code into your Wikipedia page.') <a href="http://en.wikipedia.org/wiki/Template:Cite#Citing_books" target="_blank" title="Get instructions at Wikipedia in a new window">Need help</a>?</p>
                         <form method="get">
                             <textarea cols="30" rows="20" readonly="readonly" id="wikiselect">{{Citation
-                $for k, v in page.wp_citation_fields.iteritems():
+                $for k, v in page.wp_citation_fields.items():
                    |$k = $v
                 }}</textarea>
                         </form>

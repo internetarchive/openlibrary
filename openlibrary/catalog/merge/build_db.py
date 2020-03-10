@@ -69,7 +69,7 @@ loc_num = 0
 
 def write_map(archive_id, name, d):
     f = open('d/' + archive_id + '_' + name, 'w')
-    for k, v in d.iteritems():
+    for k, v in d.items():
         f.write(k + '\t' + ' '.join([str(i) for i in v]) + '\n')
     f.close()
 

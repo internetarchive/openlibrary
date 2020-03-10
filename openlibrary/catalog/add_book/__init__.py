@@ -356,7 +356,7 @@ def build_pool(rec):
     if isbns:
         pool['isbn'] = set(editions_matched(rec, 'isbn_', isbns))
 
-    return dict((k, list(v)) for k, v in pool.iteritems() if v)
+    return dict((k, list(v)) for k, v in pool.items() if v)
 
 
 def early_exit(rec):
@@ -424,7 +424,7 @@ def find_exact_match(rec, edition_pool):
     :return: edition key
     """
     seen = set()
-    for field, editions in edition_pool.iteritems():
+    for field, editions in edition_pool.items():
         for ekey in editions:
             if ekey in seen:
                 continue
@@ -467,7 +467,7 @@ def find_match(e1, edition_pool):
     :return: None or the edition key '/books/OL...M' of the best edition match for e1 in edition_pool
     """
     seen = set()
-    for k, v in edition_pool.iteritems():
+    for k, v in edition_pool.items():
         for edition_key in v:
             if edition_key in seen:
                 continue

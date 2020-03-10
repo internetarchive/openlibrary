@@ -258,7 +258,7 @@ def _process_data(data):
         if 'type' in data and data['type'] == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 
