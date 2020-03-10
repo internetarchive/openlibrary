@@ -1,21 +1,25 @@
 """pytest configutation for openlibrary
 """
 import glob
+import sys
+
 import pytest
 import web
 
 import six
 
+from openlibrary.core import helpers
+from openlibrary.i18n import gettext
+from openlibrary.mocks.mock_ia import mock_ia
+from openlibrary.mocks.mock_infobase import mock_site
+from openlibrary.mocks.mock_memcache import mock_memcache
+from openlibrary.mocks.mock_ol import ol
+
+sys.path.insert(0, "openlibrary/vendor")  # Enable openlibrary/vendor/infogami to be imported.
 from infogami.infobase.tests.pytest_wildcard import Wildcard
 from infogami.utils import template
 from infogami.utils.view import render_template as infobase_render_template
-from openlibrary.i18n import gettext
-from openlibrary.core import helpers
 
-from openlibrary.mocks.mock_infobase import mock_site
-from openlibrary.mocks.mock_ia import mock_ia
-from openlibrary.mocks.mock_memcache import mock_memcache
-from openlibrary.mocks.mock_ol import ol
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
