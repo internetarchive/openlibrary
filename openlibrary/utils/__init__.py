@@ -1,6 +1,5 @@
 """Generic utilities"""
 
-from six.moves.urllib.parse import quote_plus
 import re
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -8,8 +7,6 @@ to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 def str_to_key(s):
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
-def url_quote(s):
-    return quote_plus(s.encode('utf-8')) if s else ''
 
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.

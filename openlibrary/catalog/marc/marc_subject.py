@@ -1,11 +1,11 @@
-from __future__ import print_function
 from openlibrary.catalog.utils import remove_trailing_dot, remove_trailing_number_dot, flip_name
+from deprecated import deprecated
 import re
+
 from collections import defaultdict
 from openlibrary.catalog.get_ia import get_from_archive, marc_formats, urlopen_keep_trying
 from openlibrary.catalog.marc.marc_binary import MarcBinary
 from openlibrary.catalog.importer.db_read import get_mc
-from openlibrary.catalog.marc.marc_xml import BadSubtag, BlankTag
 from openlibrary.catalog.marc.marc_xml import read_marc_file, MarcXml, BlankTag, BadSubtag
 from lxml import etree
 
@@ -20,6 +20,8 @@ re_comma = re.compile('^([A-Z])([A-Za-z ]+?) *, ([A-Z][A-Z a-z]+)$')
 
 re_place_comma = re.compile('^(.+), (.+)$')
 re_paren = re.compile('[()]')
+
+
 def flip_place(s):
     s = remove_trailing_dot(s)
     # Whitechapel (London, England)
@@ -30,6 +32,7 @@ def flip_place(s):
     m = re_place_comma.match(s)
     return m.group(2) + ' ' + m.group(1) if m else s
 
+
 def flip_subject(s):
     m = re_comma.match(s)
     if m:
@@ -37,6 +40,8 @@ def flip_subject(s):
     else:
         return s
 
+
+@deprecated('Use openlibrary.catalog.marc.get_subjects.four_types() instead.')
 def four_types(i):
     want = set(['subject', 'time', 'place', 'person'])
     ret = dict((k, i[k]) for k in want if k in i)
@@ -50,23 +55,6 @@ def four_types(i):
 
 archive_url = "http://archive.org/download/"
 
-def bad_marc_alert(ia):
-    from pprint import pformat
-    msg_from = 'load_scribe@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad MARC: %s
-
-bad MARC: %s
-
-''' % (msg_from, msg_to, ia, ia)
-
-    import smtplib
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
-    server.quit()
 
 def load_binary(ia):
     url = archive_url + ia + '/' + ia + '_meta.mrc'
@@ -76,7 +64,6 @@ def load_binary(ia):
     if len(data) != int(data[:5]):
         data = data.decode('utf-8').encode('raw_unicode_escape')
     if len(data) != int(data[:5]):
-        bad_marc_alert(ia)
         return
     return MarcBinary(data)
 
@@ -114,24 +101,6 @@ def get_subjects_from_ia(ia):
         rec = load_xml(ia)
     return read_subjects(rec)
 
-def bad_source_record(e, sr):
-    from pprint import pformat
-    import smtplib
-    msg_from = 'marc_subject@archive.org'
-    msg_to = 'edward@archive.org'
-    msg = '''\
-From: %s
-To: %s
-Subject: bad source record: %s
-
-Bad source record: %s
-
-%s
-''' % (msg_from, msg_to, e['key'], sr, pformat(e))
-
-    server = smtplib.SMTP('mail.archive.org')
-    server.sendmail(msg_from, [msg_to], msg)
-    server.quit()
 
 re_ia_marc = re.compile(r'^(?:.*/)?([^/]+)_(marc\.xml|meta\.mrc)(:0:\d+)?$')
 def get_work_subjects(w, do_get_mc=True):
@@ -141,7 +110,6 @@ def get_work_subjects(w, do_get_mc=True):
         if sr:
             for i in sr:
                 if i.endswith('initial import'):
-                    bad_source_record(e, i)
                     continue
                 if i.startswith('ia:') or i.startswith('marc:'):
                     found.add(i)
@@ -153,7 +121,6 @@ def get_work_subjects(w, do_get_mc=True):
                 mc = get_mc('/b/' + m.group(1))
             if mc:
                 if mc.endswith('initial import'):
-                    bad_source_record(e, mc)
                     continue
                 if not mc.startswith('amazon:') and not re_ia_marc.match(mc):
                     found.add('marc:' + mc)
@@ -165,12 +132,7 @@ def get_work_subjects(w, do_get_mc=True):
             loc = sr[5:]
             data = get_from_archive(loc)
             rec = MarcBinary(data)
-            try:
-                subjects.append(read_subjects(rec))
-            except:
-                print(('bad MARC:', loc))
-                print(('data:', repr(data)))
-                raise
+            subjects.append(read_subjects(rec))
         else:
             assert sr.startswith('ia:')
             subjects.append(get_subjects_from_ia(sr[3:]))
@@ -178,9 +140,7 @@ def get_work_subjects(w, do_get_mc=True):
 
 def tidy_subject(s):
     s = s.strip()
-    if len(s) < 2:
-        print(('short subject:', repr(s)))
-    else:
+    if len(s) >= 2:
         s = s[0].upper() + s[1:]
     m = re_etc.search(s)
     if m:
