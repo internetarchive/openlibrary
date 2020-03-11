@@ -37,7 +37,7 @@ def test_write_image(prefix, path, image_dir):
     assert _exists(prefix + '-M.jpg')
     assert _exists(prefix + '-L.jpg')
 
-    assert open(coverlib.find_image_path(prefix + '.jpg') 'rb').read() == data
+    assert open(coverlib.find_image_path(prefix + '.jpg'), 'rb').read() == data
 
 def test_bad_image(image_dir):
     prefix = config.data_root + '/bad'
