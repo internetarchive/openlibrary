@@ -6,6 +6,7 @@ http://archive-access.sourceforge.net/warc/warc_file_format-0.10.html
 
 import datetime
 
+from six import ensure_text
 from six.moves.http_client import HTTPConnection
 from six.moves.urllib.parse import urlparse
 
@@ -41,7 +42,7 @@ class WARCReader:
             if header is None:
                 break
             yield LazyWARCRecord(self._file, self._file.tell(), header)
-            self._file.seek(int(header.data_length.decode('utf-8')), 1)
+            self._file.seek(int(ensure_text(header.data_length)), 1)
             consume_crlf()
             consume_crlf()
 
