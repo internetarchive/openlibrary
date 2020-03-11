@@ -284,7 +284,7 @@ class WARCWriter:
         """Writes a record into the WARC file.
         Assumes that data_length and other attributes are correctly set in record.header.
         """
-        self.file.write(record.get_header().encode('utf-8'))
+        self.file.write(str(record.get_header()).encode('utf-8'))
         offset = self.file.tell()
         self.file.write(record.get_data().encode('utf-8'))
         self.file.write(CRLF.encode('utf-8') + CRLF.encode('utf-8'))
