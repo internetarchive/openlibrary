@@ -278,8 +278,8 @@ def add_availability(items):
         # or lendable edition.
         # Note: guaranteed to be int-able if none None
         US_PD_YEAR = 1923
-        if ('first_publish_year' in item
-                and float(item['first_publish_year'] or '-inf') > US_PD_YEAR):
+        if float(item.get('first_publish_year') or '-inf') > US_PD_YEAR:
+            # Prefer `lending_identifier` over `ia` (push `ia` to bottom)
             possible_fields.remove('ia')
             possible_fields.append('ia')
 
