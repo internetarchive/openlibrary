@@ -42,7 +42,7 @@ class WARCReader:
             if header is None:
                 break
             yield LazyWARCRecord(self._file, self._file.tell(), header)
-            self._file.seek(int(bytes(header.data_length).decode('utf-8')), 1)
+            self._file.seek(int(bytes(header.data_length, 'utf-8').decode('utf-8')), 1)
             consume_crlf()
             consume_crlf()
 
