@@ -10,7 +10,7 @@ from six.moves.http_client import HTTPConnection
 from six.moves.urllib.parse import urlparse
 
 WARC_VERSION = "0.10"
-CRLF = "\r\n"
+CRLF = b"\r\n"
 
 class WARCReader:
     """Reader to read records from a warc file.
@@ -284,7 +284,7 @@ class WARCWriter:
         """Writes a record into the WARC file.
         Assumes that data_length and other attributes are correctly set in record.header.
         """
-        self.file.write(str(record.get_header()))
+        self.file.write(record.get_header())
         offset = self.file.tell()
         self.file.write(record.get_data())
         self.file.write(CRLF + CRLF)

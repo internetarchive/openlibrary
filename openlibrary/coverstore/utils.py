@@ -112,17 +112,15 @@ def read_file(path, offset, size, chunk=50*1024):
         >>> len("".join(read_file('/dev/urandom', 100, 10000)))
         10000
     """
-    f = open(path)
-    f.seek(offset)
-    while size:
-        data = f.read(min(chunk, size))
-        size -= len(data)
-        if data:
-            yield data
-        else:
-            f.close()
-            raise IOError("file truncated")
-    f.close()
+    with open(path, "rb") as f:
+        f.seek(offset)
+        while size:
+            data = f.read(min(chunk, size))
+            size -= len(data)
+            if data:
+                yield data
+            else:
+                raise IOError("file truncated")
 
 
 def rm_f(filename):
