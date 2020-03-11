@@ -17,7 +17,7 @@
   "bundlesize": [
     {
       "path": "static/build/editions-table.*.js",
-      "maxSize": "16.7KB"
+      "maxSize": "16.8KB"
     },
     {
       "path": "static/build/graphs.*.js",

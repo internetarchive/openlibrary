@@ -167,4 +167,16 @@
   }
 }
 
+.slick {
+  // This is a fix for firefox + Librejs
+  // because the slick css passed through js
+  // and librejs is breaking on utf8 chars
+  &-next::before {
+    content: '→' !important;
+  }
+  &-prev::before {
+    content: '←' !important;
+  }
+}
+
 @import (less) "category-item.less";
