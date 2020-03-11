@@ -37,14 +37,14 @@ def test_write_image(prefix, path, image_dir):
     assert _exists(prefix + '-M.jpg')
     assert _exists(prefix + '-L.jpg')
 
-    assert open(coverlib.find_image_path(prefix + '.jpg')).read() == data
+    assert open(coverlib.find_image_path(prefix + '.jpg') 'rb').read() == data
 
 def test_bad_image(image_dir):
     prefix = config.data_root + '/bad'
-    assert coverlib.write_image('', prefix) == None
+    assert coverlib.write_image(b'', prefix) is None
 
     prefix = config.data_root + '/bad'
-    assert coverlib.write_image('not an image', prefix) == None
+    assert coverlib.write_image(b'not an image', prefix) is None
 
 def test_resize_image_aspect_ratio():
     """make sure the aspect-ratio is maintained"""
