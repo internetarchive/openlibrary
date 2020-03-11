@@ -78,18 +78,18 @@ def test_server_image(image_dir):
 
     def do_test(d):
         def serve_image(d, size):
-            return b"".join(coverlib.read_image(d, size))
+            return "".join(str(x) for x in coverlib.read_image(d, size))
 
-        assert serve_image(d, '') == b'main image'
-        assert serve_image(d, None) == b'main image'
+        assert serve_image(d, '') == 'main image'
+        assert serve_image(d, None) == 'main image'
 
-        assert serve_image(d, 'S') == b'S image'
-        assert serve_image(d, 'M') == b'M image'
-        assert serve_image(d, 'L') == b'L image'
+        assert serve_image(d, 'S') == 'S image'
+        assert serve_image(d, 'M') == 'M image'
+        assert serve_image(d, 'L') == 'L image'
 
-        assert serve_image(d, 's') == b'S image'
-        assert serve_image(d, 'm') == b'M image'
-        assert serve_image(d, 'l') == b'L image'
+        assert serve_image(d, 's') == 'S image'
+        assert serve_image(d, 'm') == 'M image'
+        assert serve_image(d, 'l') == 'L image'
 
     # test with regular images
     write('localdisk/a.jpg', b'main image')

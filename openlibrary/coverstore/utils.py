@@ -109,7 +109,7 @@ def changequery(url, **kw):
 def read_file(path, offset, size, chunk=50*1024):
     """Returns an iterator over file data at specified offset and size.
 
-        >>> len("".join(read_file('/dev/urandom', 100, 10000)))
+        >>> len(b"".join(read_file('/dev/urandom', 100, 10000)))
         10000
     """
     with open(path, "rb") as f:
