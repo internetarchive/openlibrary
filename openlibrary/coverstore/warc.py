@@ -62,7 +62,7 @@ class WARCReader:
             creation_date, record_id, content_type, {})
 
         while True:
-            line = self._file.readline()
+            line = self._file.readline().decode('utf-8')
             if line == CRLF:
                 break
             k, v = line.strip().split(':', 1)
