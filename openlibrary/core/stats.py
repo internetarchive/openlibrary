@@ -5,7 +5,10 @@ StatsD client to be used in the application to log various metrics
 
 import logging
 
-from statsd import StatsClient
+try:
+    from pystatsd import Client as StatsClient
+except ImportError:
+    from statsd import StatsClient
 
 from infogami import config
 
@@ -40,7 +43,10 @@ def increment(key, n=1):
     if client:
         l.debug("Incrementing %s"% key)
         for i in range(n):
-            client.incr(key)
+            try:
+                client.increment(key)
+            except AttributeError:
+                client.incr(key)
 
 
 client = create_stats_client()

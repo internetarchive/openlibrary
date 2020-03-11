@@ -22,6 +22,9 @@ config.load(config_file)
 c = config.runtime_config['lc_marc_update']
 base_url = 'http://openlibrary.org'
 import_api_url = base_url + '/api/import'
+internal_error = '<Code>InternalError</Code>'
+no_bucket_error = '<Code>NoSuchBucket</Code>'
+
 
 def put_file(con, ia, filename, data):
     print('uploading %s' % filename)

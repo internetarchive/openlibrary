@@ -15,18 +15,16 @@ from infogami.utils import delegate
 from infogami.utils.view import public, render_template
 from infogami.infobase.utils import parse_datetime
 
-from openlibrary import accounts
-from openlibrary.accounts.model import OpenLibraryAccount
-from openlibrary.core import ab
 from openlibrary.core import stats
 from openlibrary.core import msgbroker
 from openlibrary.core import lending
+from openlibrary.core import vendors
 from openlibrary.core import waitinglist
-
+from openlibrary.core import ab
+from openlibrary.accounts.model import OpenLibraryAccount
+from openlibrary import accounts
 from openlibrary.plugins.upstream import acs4
-
 from openlibrary.utils import dateutil
-
 
 from lxml import etree
 
@@ -817,7 +815,7 @@ def user_can_borrow_edition(user, edition, resource_type):
     if user.get_loan_count() >= user_max_loans:
         return False
 
-    realtime_availability = edition.get_realtime_availability()
+    realtime_availability = edition.availability
     availability_status = realtime_availability['status']
     waitlist_size = realtime_availability['num_waitlist']
 
@@ -1010,3 +1008,4 @@ def on_loan_delete(loan):
 msgbroker.subscribe("loan-created", on_loan_update)
 msgbroker.subscribe("loan-completed", on_loan_delete)
 lending.setup(config)
+vendors.setup(config)

@@ -1,5 +1,0 @@
-properties = u'Propiedades'
-backreferences = u'Volver referencias'
-name = u'Nombre'
-is_primitive = u'\xbfSe trata de un tipo primitivo?'
-description = u'Descripci\xf3n'

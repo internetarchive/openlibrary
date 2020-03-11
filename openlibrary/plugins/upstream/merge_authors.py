@@ -103,7 +103,8 @@ class BasicMergeEngine:
                 else:
                     return doc
             else:
-                return dict((k, self.convert_doc(v, master, duplicates)) for k, v in doc.iteritems())
+                return dict((k, self.convert_doc(v, master, duplicates)) for k, v
+                            in doc.items())
         elif isinstance(doc, list):
             values = [self.convert_doc(v, master, duplicates) for v in doc]
             return uniq(values, key=dicthash)
@@ -174,7 +175,7 @@ class AuthorMergeEngine(BasicMergeEngine):
         work_keys_2 = web.ctx.site.things(q)
         return edition_keys + work_keys_1 + work_keys_2
 
-re_whitespace = re.compile('\s+')
+re_whitespace = re.compile(r'\s+')
 def space_squash_and_strip(s):
     return re_whitespace.sub(' ', s).strip()
 

@@ -65,7 +65,7 @@ def xopen(path, mode='r'):
         return open(path, mode)
 
 def read_tsv(file, strip=True):
-    """Read a tab seperated file and return an iterator over rows."""
+    """Read a tab separated file and return an iterator over rows."""
     log("reading", file)
     if isinstance(file, six.string_types):
         file = xopen(file)
@@ -128,18 +128,6 @@ def sort_dump(dump_file=None, tmpdir="/tmp/", buffer_size="1G"):
         status = os.system("gzip -cd %(fname)s | sort -S%(buffer_size)s -k2,3" % locals())
         if status != 0:
             raise Exception("sort failed with status %d" % status)
-
-def pmap(f, tasks):
-    """Run tasks parallelly."""
-    try:
-        from subprocess import Pool
-
-        from multiprocessing import Pool
-        r = pool.map_async(f, tasks, callback=results.append)
-        r.wait() # Wait on the results
-
-    except ImportError:
-        Pool = None
 
 def generate_dump(cdump_file=None):
     """Generate dump from cdump.
@@ -270,7 +258,7 @@ def _process_data(data):
         if 'type' in data and data['type'] == '/type/datetime':
             data['value'] = data['value'].replace(' ', 'T')
 
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 
@@ -316,7 +304,7 @@ def main(cmd, args):
     for a in iargs:
         if a.startswith('--'):
             name = a[2:].replace("-", "_")
-            value = iargs.next()
+            value = next(iargs)
             kwargs[name] = value
         else:
             args.append(a)

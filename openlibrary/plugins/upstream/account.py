@@ -23,9 +23,7 @@ from openlibrary.accounts import (
 from openlibrary.core import helpers as h, lending
 from openlibrary.core.bookshelves import Bookshelves
 from openlibrary.core.sponsorships import get_sponsored_editions
-from openlibrary.i18n import gettext as _
-from openlibrary.plugins import openlibrary as olib
-from openlibrary.plugins.recaptcha import recaptcha
+
 from openlibrary.plugins.upstream import borrow, forms, utils
 
 from six.moves import range
@@ -212,6 +210,9 @@ class account_create(delegate.page):
         return page
 
     def get_form(self):
+        """
+        :rtype: forms.RegisterForm
+        """
         f = forms.Register()
         recap = self.get_recap()
         f.has_recaptcha = recap is not None
@@ -229,36 +230,22 @@ class account_create(delegate.page):
         return name in delegate.get_plugins() or "openlibrary.plugins." + name in delegate.get_plugins()
 
     def POST(self):
-        i = web.input('email', 'password', 'username', agreement="no")
-        i.displayname = i.get('displayname') or i.username
+        f = self.get_form()  # type: forms.RegisterForm
 
-        f = self.get_form()
-
-        if f.validates(i):
-            if i.agreement == "yes":
-                ia_account = InternetArchiveAccount.get(email=i.email)
-                # Require email to not already be used in IA or OL
-
-                if not ia_account:
-                    # Account doesn't already exist, proceed
-                    try:
-                        # Create ia_account: require they activate via IA email
-                        # and then login to OL. Logging in after activation with
-                        # IA credentials will auto create and link OL account.
-                        ia_account = InternetArchiveAccount.create(
-                            screenname=i.username, email=i.email, password=i.password,
-                            verified=False, retries=USERNAME_RETRIES)
-                        page = render['account/verify'](username=i.username, email=i.email)
-                        page.v2 = True
-                        return page
-                    except ValueError as e:
-                        f.note = LOGIN_ERRORS['max_retries_exceeded']
-                else:
-                    # Account with this email already exists
-                    f.note = LOGIN_ERRORS['email_registered']
-            else:
-                # User did not click terms of service
-                f.note = utils.get_error("account_create_tos_not_selected")
+        if f.validates(web.input()):
+            try:
+                # Create ia_account: require they activate via IA email
+                # and then login to OL. Logging in after activation with
+                # IA credentials will auto create and link OL account.
+                notifications = ['announce-general'] if f.ia_newsletter.checked else []
+                InternetArchiveAccount.create(
+                    screenname=f.username.value, email=f.email.value, password=f.password.value,
+                    notifications=notifications, verified=False, retries=USERNAME_RETRIES)
+                page = render['account/verify'](username=f.username.value, email=f.email.value)
+                page.v2 = True
+                return page
+            except ValueError:
+                f.note = LOGIN_ERRORS['max_retries_exceeded']
 
         page = render['account/create'](f)
         page.v2 = True
@@ -320,6 +307,9 @@ class account_login(delegate.page):
 
     def GET(self):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
+        # Don't set referer on user activation
+        if '//archive.org/account/verify.php' in referer:
+            referer = None
         i = web.input(redirect=referer)
         f = forms.Login()
         f['redirect'].value = i.redirect

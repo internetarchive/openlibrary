@@ -2,7 +2,6 @@
 """
 import random
 import web
-import simplejson
 import logging
 
 from infogami.utils import delegate
@@ -10,15 +9,12 @@ from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary import accounts
-from openlibrary.core import admin, cache, ia, inlibrary, lending, \
+from openlibrary.core import admin, cache, ia, lending, \
     helpers as h
 from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
-from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.upstream.utils import get_blog_feeds
 from openlibrary.plugins.worksearch import search, subjects
-from openlibrary.plugins.openlibrary import lists
 
 
 import six
@@ -55,8 +51,9 @@ def get_homepage():
 
 def get_cached_homepage():
     five_minutes = 5 * dateutil.MINUTE_SECS
+    lang = web.ctx.get("lang", "en")
     return cache.memcache_memoize(
-        get_homepage, "home.homepage", timeout=five_minutes)()
+        get_homepage, "home.homepage." + lang, timeout=five_minutes)()
 
 class home(delegate.page):
     path = "/"
@@ -204,7 +201,7 @@ def format_list_editions(key):
 format_list_editions = cache.memcache_memoize(format_list_editions, "home.format_list_editions", timeout=5*60)
 
 def pick_best_edition(work):
-    return (e for e in work.editions if e.ocaid).next()
+    return next((e for e in work.editions if e.ocaid))
 
 def format_work_data(work):
     d = dict(work)

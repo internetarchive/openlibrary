@@ -11,7 +11,7 @@ This script can also be used to copy books and authors from OL to dev instance.
     ./scripts/copydocs.py /authors/OL113592A
     ./scripts/copydocs.py /works/OL1098727W?v=2
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
@@ -20,11 +20,14 @@ import os
 import simplejson
 import web
 
-from openlibrary.api import OpenLibrary, marshal, unmarshal
 from optparse import OptionParser
 from scripts import _init_path
 
 import six
+
+sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
+import scripts._init_path  # noqa: E402,F401
+from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
 

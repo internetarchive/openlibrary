@@ -1,15 +1,23 @@
 from __future__ import print_function
-
+import web
 import pdb
+
+from infogami import utils
+from infogami.utils import delegate
+from infogami.infobase.client import Thing
+from infogami.utils import view, template
+from infogami import config
+from infogami.plugins.api.code import jsonapi
+
 import re
+import web
 import time
-from collections import defaultdict
+import simplejson
 from functools import partial
 from gzip import open as gzopen
+from collections import defaultdict
 
-import simplejson
 import six
-import web
 from infogami import config, utils
 from infogami.infobase.client import Thing
 from infogami.plugins.api.code import jsonapi
@@ -17,6 +25,9 @@ from infogami.utils import delegate, template, view
 from six.moves import cPickle
 
 from openlibrary.plugins.search import facet_hash, solr_client, stopword
+from openlibrary.plugins.search.collapse import collapse_groups
+
+from openlibrary.plugins.search import facet_hash, solr_client
 from openlibrary.plugins.search.collapse import collapse_groups
 
 render = template.render
@@ -66,6 +77,7 @@ def lookup_ocaid(ocaid):
     assert isinstance(ocat, list), (ocaid,ocat)
     w = web.ctx.site.get(ocat[0]) if ocat else None
     return w
+
 
 class fullsearch(delegate.page):
     def POST(self):
@@ -289,7 +301,7 @@ class search_api:
         def format(val, prettyprint=False, callback=None):
             if callback is not None:
                 if (not isinstance(callback, str) or
-                        not re.match('[a-z][a-z0-9\.]*$', callback, re.I)):
+                        not re.match(r'[a-z][a-z0-9\.]*$', callback, re.I)):
                     val = self.error_val
                     callback = None
 

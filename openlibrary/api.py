@@ -210,7 +210,7 @@ def marshal(data):
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
-        return dict((k, marshal(v)) for k, v in data.iteritems())
+        return dict((k, marshal(v)) for k, v in data.items())
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
@@ -242,7 +242,7 @@ def unmarshal(d):
             else:
                 return d['value']
         else:
-            return dict([(k, unmarshal(v)) for k, v in d.iteritems()])
+            return dict([(k, unmarshal(v)) for k, v in d.items()])
     else:
         return d
 
@@ -256,7 +256,7 @@ def parse_datetime(value):
     if isinstance(value, datetime.datetime):
         return value
     else:
-        tokens = re.split('-|T|:|\.| ', value)
+        tokens = re.split(r'-|T|:|\.| ', value)
         return datetime.datetime(*map(int, tokens))
 
 

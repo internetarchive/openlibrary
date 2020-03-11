@@ -8,7 +8,6 @@ import time
 import logging
 import uuid
 import hmac
-from amazon.api import AmazonAPI
 
 from infogami.utils.view import public
 from infogami.utils import delegate
@@ -60,8 +59,6 @@ config_bookreader_host = None
 config_internal_tests_api_key = None
 config_amz_api = None
 
-amazon_api = None
-
 def setup(config):
     """Initializes this module from openlibrary config.
     """
@@ -69,8 +66,8 @@ def setup(config):
         config_ia_access_secret, config_bookreader_host, \
         config_ia_ol_shared_key, config_ia_ol_xauth_s3, \
         config_internal_tests_api_key, config_ia_loan_api_url, \
-        config_http_request_timeout, config_amz_api, amazon_api, \
-        config_ia_availability_api_v1_url, config_ia_availability_api_v2_url, \
+        config_http_request_timeout, config_ia_availability_api_v1_url, \
+        config_ia_availability_api_v2_url, \
         config_ia_ol_metadata_write_s3, config_ia_xauth_api_url, \
         config_http_request_timeout, config_ia_s3_auth_url, \
         config_ia_users_loan_history, config_ia_loan_api_developer_key, \
@@ -94,14 +91,7 @@ def setup(config):
     config_ia_civicrm_api = config.get('ia_civicrm_api')
     config_internal_tests_api_key = config.get('internal_tests_api_key')
     config_http_request_timeout = config.get('http_request_timeout')
-    config_amz_api = config.get('amazon_api')
 
-    try:
-        amazon_api = AmazonAPI(
-            config_amz_api.key, config_amz_api.secret,
-            config_amz_api.id, MaxQPS=0.9)
-    except AttributeError:
-        amazon_api = None
 
 def get_work_authors_and_related_subjects(work_id):
     if 'env' not in web.ctx:
@@ -262,28 +252,6 @@ def get_availability_of_editions(ol_edition_ids):
     Availability v2 results.
     """
     return get_availability('openlibrary_edition', ol_edition_ids)
-
-@public
-def get_realtime_availability_of_ocaid(ocaid):
-    url = 'https://archive.org/metadata/%s?dontcache=1' % ocaid
-    statuses = {
-        'available': 'borrow_available',
-        'unavailable': 'borrow_unavailable',
-        'private': 'private',
-        'error': 'error'
-    }
-    try:
-        content = urllib.request.urlopen(url=url, timeout=config_http_request_timeout).read()
-        metadata = simplejson.loads(content).get('metadata', {})
-        statuses = {'available': 'borrow_available', 'unavailable': 'borrow_unavailable', 'error': 'error'}
-        status = metadata.get('loans__status__status', 'error').lower()
-        return {
-            'status': statuses[status],
-            'num_waitlist': int(metadata.get('loans__status__num_waitlist', 0)),
-            'num_loans': int(metadata.get('loans__status__num_loans', 0))
-        }
-    except Exception as e:
-        return {'error': 'request_timeout'}
 
 @public
 def add_availability(editions):
@@ -613,7 +581,7 @@ class Loan(dict):
 
         web.ctx.site.store[self['_key']] = self
 
-        # Inform listers that a loan is creted/updated
+        # Inform listers that a loan is created/updated
         msgbroker.send_message("loan-created", self)
 
     def is_expired(self):

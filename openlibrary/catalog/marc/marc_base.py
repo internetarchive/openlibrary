@@ -1,8 +1,8 @@
 import re
 
-re_isbn = re.compile('([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
+re_isbn = re.compile(r'([^ ()]+[\dX])(?: \((?:v\. (\d+)(?: : )?)?(.*)\))?')
 # handle ISBN like: 1402563884c$26.95
-re_isbn_and_price = re.compile('^([-\d]+X?)c\$[\d.]+$')
+re_isbn_and_price = re.compile(r'^([-\d]+X?)c\$[\d.]+$')
 
 class MarcException(Exception):
     # Base MARC exception class

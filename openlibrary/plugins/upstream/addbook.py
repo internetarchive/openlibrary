@@ -3,6 +3,7 @@
 import web
 import simplejson
 from collections import defaultdict
+from six import StringIO
 import csv
 import datetime
 import logging
@@ -19,11 +20,13 @@ from openlibrary.utils import is_author_olid, is_work_olid
 from openlibrary.utils.solr import Solr
 from openlibrary.i18n import gettext as _
 from openlibrary import accounts
+import logging
 
-from openlibrary.plugins.recaptcha import recaptcha
 from openlibrary.plugins.upstream import spamcheck, utils
-from openlibrary.plugins.upstream.account import as_admin
 from openlibrary.plugins.upstream.utils import render_template, fuzzy_find
+
+from openlibrary.plugins.upstream.account import as_admin
+from openlibrary.plugins.recaptcha import recaptcha
 
 import six
 from six import StringIO
@@ -31,8 +34,6 @@ from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.book")
-
-SYSTEM_SUBJECTS = ["Accessible Book", "Lending Library", "In Library", "Protected DAISY"]
 
 
 def get_solr():
@@ -115,6 +116,25 @@ class DocSaveHelper:
         if self.docs:
             web.ctx.site.save_many(self.docs, **kw)
 
+    def create_authors_from_form_data(self, authors, author_names, _test=False):
+        """
+        Create any __new__ authors in the provided array. Updates the authors dicts _in place_ with the new key
+        :param list[dict] authors: e.g. [{author: {key: '__new__'}}]
+        :param list[str] author_names:
+        :param bool _test:
+        :rtype: bool
+        :return: Whether new author(s) were created
+        """
+        created = False
+        for author_dict, author_name in zip(authors, author_names):
+            if author_dict['author']['key'] == '__new__':
+                created = True
+                if not _test:
+                    doc = new_doc('/type/author', name=author_name)
+                    self.save(doc)
+                    author_dict['author']['key'] = doc.key
+        return created
+
 
 class addbook(delegate.page):
     path = "/books/add"
@@ -123,7 +143,7 @@ class addbook(delegate.page):
         """Main user interface for adding a book to Open Library."""
 
         if not self.has_permission():
-            return render_template("permission_denied", "/books/add", "Permission denied to add a book to Open Library.")
+            return web.seeother("/account/login?redirect={}".format(self.path))
 
         i = web.input(work=None, author=None)
         work = i.work and web.ctx.site.get(i.work)
@@ -139,7 +159,7 @@ class addbook(delegate.page):
         return web.ctx.site.can_write("/books/add")
 
     def POST(self):
-        i = web.input(title="", author_name="", author_key="", publisher="", publish_date="", id_name="", id_value="", _test="false")
+        i = web.input(title="", publisher="", publish_date="", id_name="", id_value="", _test="false")
 
         if spamcheck.is_spam(i):
             return render_template("message.html",
@@ -154,20 +174,10 @@ class addbook(delegate.page):
                     'Please <a href="javascript:history.back()">go back</a> and try again.'
                 )
 
-        match = self.find_matches(i)
-
+        i = utils.unflatten(i)
         saveutil = DocSaveHelper()
-
-        if i.author_key == '__new__':
-            if i._test != 'true':
-                a = new_doc('/type/author', name=i.author_name)
-                comment = utils.get_message('comment_new_author')
-                # Save, but don't commit, new author.
-                # It will be committed when the Edition is created below.
-                saveutil.save(a)
-                i.author_key = a.key
-            # since new author is created it must be a new record
-            match = None
+        created_author = saveutil.create_authors_from_form_data(i.authors, i.author_names, _test=i._test == 'true')
+        match = None if created_author else self.find_matches(i)
 
         if i._test == 'true' and not isinstance(match, list):
             if match:
@@ -206,6 +216,7 @@ class addbook(delegate.page):
         """
 
         i.publish_year = i.publish_date and self.extract_year(i.publish_date)
+        author_key = i.authors and i.authors[0].author.key
 
         # work is set from the templates/books/check.html page.
         work_key = i.get('work')
@@ -223,7 +234,7 @@ class addbook(delegate.page):
 
         edition = self.try_edition_match(
             title=i.title,
-            author_key=i.author_key,
+            author_key=author_key,
             publisher=i.publisher,
             publish_year=i.publish_year,
             id_name=i.id_name,
@@ -233,9 +244,11 @@ class addbook(delegate.page):
             return edition  # Case 2 or 3 or 4, from add page
 
         solr = get_solr()
-        author_key = i.author_key and i.author_key.split("/")[-1]
         # Less exact solr search than try_edition_match(), search by supplied title and author only.
-        result = solr.select({'title': i.title, 'author_key': author_key}, doc_wrapper=make_work, q_op="AND")
+        result = solr.select({
+            'title': i.title,
+            'author_key': author_key.split("/")[-1]
+        }, doc_wrapper=make_work, q_op="AND")
 
         if result.num_found == 0:
             return None  # Case 1, from add page
@@ -261,7 +274,7 @@ class addbook(delegate.page):
         """
         Searches solr for potential edition matches.
 
-        :param str work: work key e.g. /works/OL1234W
+        :param web.Storage work:
         :param str title:
         :param str author_key: e.g. /author/OL1234A
         :param str publisher:
@@ -365,7 +378,7 @@ class addbook(delegate.page):
         # saveutil, and author_key added to i
         work = new_doc("/type/work",
             title=i.title,
-            authors=[{"author": {"key": i.author_key}}]
+            authors=i.authors
         )
 
         edition = self._make_edition(work, i)
@@ -472,7 +485,8 @@ class SaveBookHelper:
         comment = formdata.pop('_comment', '')
 
         user = accounts.get_current_user()
-        delete = user and user.is_admin() and formdata.pop('_delete', '')
+        delete = (user and (user.is_admin() or user.is_librarian()) and
+                  formdata.pop('_delete', ''))
 
         formdata = utils.unflatten(formdata)
         work_data, edition_data = self.process_input(formdata)
@@ -492,11 +506,7 @@ class SaveBookHelper:
         just_editing_work = edition_data is None
         if work_data:
             # Create any new authors that were added
-            for i, author in enumerate(work_data.get("authors") or []):
-                if author['author']['key'] == "__new__":
-                    a = self.new_author(formdata['authors'][i])
-                    author['author']['key'] = a.key
-                    saveutil.save(a)
+            saveutil.create_authors_from_form_data(work_data.get("authors") or [], formdata.get('authors') or [])
 
             if not just_editing_work:
                 # Handle orphaned editions
@@ -547,28 +557,11 @@ class SaveBookHelper:
         :param openlibrary.plugins.upstream.models.Edition edition:
         :rtype: openlibrary.plugins.upstream.models.Work
         """
-        work_key = web.ctx.site.new_key('/type/work')
-        work = web.ctx.site.new(work_key, {
-            'key': work_key,
-            'title': edition.get('title'),
-            'subtitle': edition.get('subtitle'),
-            'type': {'key': '/type/work'},
-            'covers': edition.get('covers', []),
-        })
-        return work
-
-    @staticmethod
-    def new_author(name):
-        """
-        :param str name:
-        :rtype: openlibrary.plugins.upstream.models.Author
-        """
-        key = web.ctx.site.new_key("/type/author")
-        return web.ctx.site.new(key, {
-            "key": key,
-            "type": {"key": "/type/author"},
-            "name": name
-        })
+        return new_doc('/type/work',
+                       title=edition.get('title'),
+                       subtitle=edition.get('subtitle'),
+                       covers=edition.get('covers', []),
+                       )
 
     @staticmethod
     def delete(key, comment=""):
@@ -658,7 +651,7 @@ class SaveBookHelper:
 
             f = StringIO(subjects.encode('utf-8')) # no unicode in csv module
             dedup = set()
-            for s in csv.reader(f, dialect='excel', skipinitialspace=True).next():
+            for s in next(csv.reader(f, dialect='excel', skipinitialspace=True)):
                 s = s.decode('utf-8')
                 if s.lower() not in dedup:
                     yield s
@@ -679,33 +672,12 @@ class SaveBookHelper:
         # ignore empty authors
         work.authors = [a for a in work.get('authors', []) if a.get('author', {}).get('key', '').strip()]
 
-        self._prevent_system_subjects_deletion(work)
         return trim_doc(work)
-
-    def _prevent_system_subjects_deletion(self, work):
-        # Allow admins to modify system systems
-        user = accounts.get_current_user()
-        if user and user.is_admin():
-            return
-
-        # Note: work is the new work object from the formdata and self.work is the work doc from the database.
-        old_subjects = self.work and self.work.get("subjects") or []
-
-        # If condition is added to handle the possibility of bad data
-        set_old_subjects = set(s.lower() for s in old_subjects if isinstance(s, six.string_types))
-        set_new_subjects = set(s.lower() for s in work.subjects)
-
-        for s in SYSTEM_SUBJECTS:
-            # if a system subject has been removed
-            if s.lower() in set_old_subjects and s.lower() not in set_new_subjects:
-                work_key = self.work and self.work.key
-                logger.warn("Prevented removal of system subject %r from %s.", s, work_key)
-                work.subjects.append(s)
 
     def _prevent_ocaid_deletion(self, edition):
         # Allow admins to modify ocaid
         user = accounts.get_current_user()
-        if user and user.is_admin():
+        if user and (user.is_admin() or user.is_librarian()):
             return
 
         # read ocaid from form data
@@ -745,7 +717,7 @@ class SaveBookHelper:
 
 
 class book_edit(delegate.page):
-    path = "(/books/OL\d+M)/edit"
+    path = r"(/books/OL\d+M)/edit"
 
     def GET(self, key):
         i = web.input(v=None)
@@ -817,7 +789,7 @@ class book_edit(delegate.page):
 
 
 class work_edit(delegate.page):
-    path = "(/works/OL\d+W)/edit"
+    path = r"(/works/OL\d+W)/edit"
 
     def GET(self, key):
         i = web.input(v=None, _method="GET")
@@ -864,7 +836,7 @@ class work_edit(delegate.page):
 
 
 class author_edit(delegate.page):
-    path = "(/authors/OL\d+A)/edit"
+    path = r"(/authors/OL\d+A)/edit"
 
     def GET(self, key):
         if not web.ctx.site.can_write(key):

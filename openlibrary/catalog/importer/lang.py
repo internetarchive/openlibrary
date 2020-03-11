@@ -1,4 +1,4 @@
-from db_read import get_things
+from openlibrary.catalog.importer.db_read import get_things
 
 def get_langs():
     lang = []

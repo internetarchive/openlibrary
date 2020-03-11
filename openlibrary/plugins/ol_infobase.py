@@ -266,7 +266,7 @@ def get_object_data(site, thing):
             return value
 
     d = thing._get_data()
-    for k, v in d.iteritems():
+    for k, v in d.items():
         # save some space by not expanding type
         if k != 'type':
             d[k] = expand(v)
@@ -391,7 +391,7 @@ def _process_data(data):
     elif isinstance(data, dict):
         if 'key' in data:
             data['key'] = _process_key(data['key'])
-        return dict((k, _process_data(v)) for k, v in data.iteritems())
+        return dict((k, _process_data(v)) for k, v in data.items())
     else:
         return data
 

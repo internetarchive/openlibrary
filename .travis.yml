@@ -1,29 +1,37 @@
+os: linux
 dist: bionic
 language: python
-addons:
-  apt:
-    packages:
-      - libgeoip-dev
-matrix:
+jobs:
   include:
     - name: “Python 2.7 on xenial”
       python: "2.7"
       dist: xenial
     - name: “Python 2.7 on bionic”
       python: "2.7"
+    - name: “Python 3.8 make lint and selected pytests”
+      python: "3.8"
+      before_script: true  # override npm install below
+      script:
+        - source scripts/test-py3.sh
+        # On pull requests, run all flake8 tests on modified code
+        # if clause avoids `fatal: ambiguous argument 'origin/master'` on git push
+        - if [ "$TRAVIS_EVENT_TYPE" == "pull_request" ]; then
+            git diff origin/master -U0 | flake8 --diff --max-line-length=88;
+          fi
     - name: “Python 3.8 on bionic”
       python: "3.8"
   allow_failures:
-    - python: "3.8"
+    - name: “Python 3.8 on bionic”
 install:
-  - pip install flake8
-  - make lint
   - pip install -r requirements_test.txt
   - pushd vendor/infogami && git pull origin master && popd;
   # if Travis is running Python 3, then
-  #   create a legacy Python for npm/node which still only supports Python 2
+  #   refresh the git submodule ./vendor/infogami
   - if [ "$TRAVIS_PYTHON_VERSION" == "3.8" ]; then
-      pyenv install 2.7.14;
+      pushd vendor/infogami && git pull origin master && popd;
     fi
-  - npm install
-script: make test
+  - make lint  # TODO: Move this to script: section after #2951 lands
+before_script: npm install
+script:
+  - make i18n
+  - make test

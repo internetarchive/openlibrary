@@ -24,6 +24,11 @@ def main(cmd):
         message_sources = [
             'openlibrary/plugins/upstream',
             'openlibrary/templates/type/author',
+            'openlibrary/templates/type/doc',
+            'openlibrary/templates/type/edition',
+            'openlibrary/templates/type/page',
+            'openlibrary/templates/type/user',
+            'openlibrary/templates/type/work',
         ]
         template_dir = 'openlibrary/templates/'
         templates = [
@@ -33,9 +38,12 @@ def main(cmd):
             'history', # minimal messaging, but useful
             'home',    # main site pages, review
             'lib',     # needs review
+            'lists',
+            'merge',
             'publishers',
             'recentchanges',
             'search',  # main search interface
+            'site',
             'account.html',
             'diff.html',
             'history.html',
@@ -48,7 +56,19 @@ def main(cmd):
         ]
         macro_dir = 'openlibrary/macros/'
         macros = [
+            'databarHistory.html',
+            'databarView.html',
+            'databarWork.html',
             'EditButtons.html',
+            'FulltextResults.html',
+            'LoanStatus.html',
+            'Pager.html',
+            'ReadButton.html',
+            'SearchResultsWork.html',
+            'SocialShare.html',
+            'TypeChanger.html',
+            'UserEditRow.html',
+            'WorldcatLink.html',
         ]
         message_sources += [template_dir + template for template in templates]
         message_sources += [macro_dir + macro for macro in macros]

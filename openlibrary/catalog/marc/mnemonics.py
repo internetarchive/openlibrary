@@ -3,7 +3,7 @@
 
 import re
 
-re_brace = re.compile('(\{.+?\})', re.U)
+re_brace = re.compile(r'(\{.+?\})', re.U)
 
 mapping = {
  '{00}': '\x00',

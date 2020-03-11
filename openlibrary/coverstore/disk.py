@@ -60,8 +60,8 @@ class WARCDisk:
         >>> _ = os.system("rm -rf test_disk")
         >>> disk = WARCDisk("test_disk", maxsize=200)
         >>> f1 = disk.write("hello, world!")
-        >>> f2 = disk.write(string.letters)
-        >>> f3 = disk.write(string.letters)
+        >>> f2 = disk.write(string.ascii_letters)
+        >>> f3 = disk.write(string.ascii_letters)
         >>> disk.read(f1)
         'hello, world!'
         >>> disk.read(f2)

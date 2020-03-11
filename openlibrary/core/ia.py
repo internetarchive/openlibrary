@@ -20,29 +20,44 @@ IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
 
 
-def _get_metadata(itemid):
-    """Returns metadata by querying the archive.org metadata API.
+def get_api_response(url, params=None):
     """
-    itemid = web.safestr(itemid.strip())
-    url = '%s/metadata/%s' % (IA_BASE_URL, itemid)
+    Makes an API GET request to archive.org, collects stats
+    Returns a JSON dict.
+    :param str url:
+    :param dict params: url parameters
+    :rtype: dict
+    """
+    api_response = {}
+    stats.begin('archive.org', url=url)
     try:
-        stats.begin('archive.org', url=url)
-        metadata = requests.get(url)
-        stats.end()
-        return metadata.json()
-    except IOError:
-        stats.end()
-        return {}
+        r = requests.get(url, params=params)
+        if r.status_code == requests.codes.ok:
+            api_response = r.json()
+        else:
+            logger.info('%s response received from %s' % (r.status_code, url))
+    except Exception as e:
+        logger.exception('Exception occurred accessing %s.' % url)
+    stats.end()
+    return api_response
 
-# cache the results in memcache for a minute
-_get_metadata = web.memoize(_get_metadata, expires=60)
 
+def get_metadata_direct(itemid, only_metadata=True, cache=True):
+    """
+    Fetches metadata by querying the archive.org metadata API, without local cacheing.
+    :param str itemid:
+    :param bool cache: if false, requests uncached metadata from archive.org
+    :param bool only_metadata: whether to get the metadata without any processing
+    :rtype: dict
+    """
+    url = '%s/metadata/%s' % (IA_BASE_URL, web.safestr(itemid.strip()))
+    params = {}
+    if cache:
+        params['dontcache'] = 1
+    full_json = get_api_response(url, params)
+    return extract_item_metadata(full_json) if only_metadata else full_json
 
-def get_metadata(itemid):
-    item_json = _get_metadata(itemid)
-    return extract_item_metadata(item_json)
-
-get_metadata = cache.memcache_memoize(get_metadata, key_prefix='ia.get_metadata', timeout=5*60)
+get_metadata = cache.memcache_memoize(get_metadata_direct, key_prefix='ia.get_metadata', timeout=5 * cache.MINUTE_SECS)
 
 
 def extract_item_metadata(item_json):
@@ -80,7 +95,7 @@ def process_metadata_dict(metadata):
 def locate_item(itemid):
     """Returns (hostname, path) for the item.
     """
-    d = _get_metadata(itemid)
+    d = get_metadata_direct(itemid, only_metadata=False)
     return d.get('server'), d.get('dir')
 
 
@@ -110,14 +125,7 @@ def get_cover_url(item_id):
 def get_item_manifest(item_id, item_server, item_path):
     url = 'https://%s/BookReader/BookReaderJSON.php' % item_server
     url += '?itemPath=%s&itemId=%s&server=%s' % (item_path, item_id, item_server)
-    try:
-        stats.begin('archive.org', url=url)
-        manifest = requests.get(url)
-        stats.end()
-        return manifest.json()
-    except IOError:
-        stats.end()
-        return {}
+    return get_api_response(url)
 
 
 def get_item_status(itemid, metadata, **server):
@@ -135,8 +143,6 @@ class ItemEdition(dict):
         self.itemid = itemid
 
         timestamp = {"type": "/type/datetime", "value": "2010-01-01T00:00:00"}
-        # if not self._is_valid_item(itemid, metadata):
-        #     return None
 
         self.update({
             "key": "/books/ia:" + itemid,
@@ -225,8 +231,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represneted as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if isinstance(value, list):
                 value = [v for v in value if v != {}]
@@ -245,8 +250,7 @@ class ItemEdition(dict):
         metadata = self.metadata
 
         key2 = key2 or key
-        # sometimes the empty values are represented as {} in metadata API. Avoid them.
-        if key in metadata and metadata[key] != {}:
+        if key in metadata and metadata[key]:
             value = metadata[key]
             if not isinstance(value, list):
                 value = [value]

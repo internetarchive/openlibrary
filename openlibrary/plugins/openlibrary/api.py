@@ -83,7 +83,7 @@ class browse(delegate.page):
 
 
 class ratings(delegate.page):
-    path = "/works/OL(\d+)W/ratings"
+    path = r"/works/OL(\d+)W/ratings"
     encoding = "json"
 
     def POST(self, work_id):
@@ -128,8 +128,19 @@ class ratings(delegate.page):
 # not a value tied to this logged in user. This is being used as debugging.
 
 class work_bookshelves(delegate.page):
-    path = "/works/OL(\d+)W/bookshelves"
+    path = r"/works/OL(\d+)W/bookshelves"
     encoding = "json"
+
+    @jsonapi
+    def GET(self, work_id):
+        from openlibrary.core.models import Bookshelves
+
+        result = {'counts': {}}
+        counts = Bookshelves.get_num_users_by_bookshelf_by_work_id(work_id)
+        for (shelf_name, shelf_id) in Bookshelves.PRESET_BOOKSHELVES_JSON.items():
+            result['counts'][shelf_name] = counts.get(shelf_id, 0)
+
+        return simplejson.dumps(result)
 
     def POST(self, work_id):
         from openlibrary.core.models import Bookshelves
@@ -172,7 +183,7 @@ class work_bookshelves(delegate.page):
 
 
 class work_editions(delegate.page):
-    path = "(/works/OL\d+W)/editions"
+    path = r"(/works/OL\d+W)/editions"
     encoding = "json"
 
     def GET(self, key):
@@ -214,7 +225,7 @@ class work_editions(delegate.page):
 
 
 class author_works(delegate.page):
-    path = "(/authors/OL\d+A)/works"
+    path = r"(/authors/OL\d+A)/works"
     encoding = "json"
 
     def GET(self, key):

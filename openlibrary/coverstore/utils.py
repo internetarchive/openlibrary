@@ -6,20 +6,21 @@ import simplejson
 import web
 
 import random
+import socket
 import string
 
 from six.moves.urllib.parse import splitquery, unquote, unquote_plus
 from six.moves.urllib.parse import urlencode as real_urlencode
 from six.moves.urllib.request import Request, urlopen
 
-import config
-
-from openlibrary.coverstore import oldb
+from openlibrary.coverstore import config, oldb
 
 try:
     file           # Python 2
 except NameError:  # Python 3
     from io import IOBase as file
+
+socket.setdefaulttimeout(10.0)
 
 
 def safeint(value, default=None):
@@ -32,7 +33,7 @@ def safeint(value, default=None):
     """
     try:
         return int(value)
-    except (ValueError, TypeError):
+    except (TypeError, ValueError):
         return default
 
 

@@ -1,8 +1,9 @@
 import pytest
 
-from openlibrary.catalog.marc.parse import read_edition, SeeAlsoAsTitle, NoTitle
+from openlibrary.catalog.marc.parse import (
+    read_author_person, read_edition, NoTitle, SeeAlsoAsTitle)
 from openlibrary.catalog.marc.marc_binary import MarcBinary
-from openlibrary.catalog.marc.marc_xml import MarcXml, BadSubtag, BlankTag
+from openlibrary.catalog.marc.marc_xml import DataField, MarcXml
 from lxml import etree
 import os
 import simplejson
@@ -10,17 +11,20 @@ import simplejson
 collection_tag = '{http://www.loc.gov/MARC21/slim}collection'
 record_tag = '{http://www.loc.gov/MARC21/slim}record'
 
-xml_samples = ['39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
+xml_samples = [
+    '39002054008678.yale.edu', 'flatlandromanceo00abbouoft',
     'nybc200247', 'secretcodeofsucc00stjo', 'warofrebellionco1473unit',
     'zweibchersatir01horauoft', 'onquietcomedyint00brid', '00schlgoog',
     '0descriptionofta1682unit', '1733mmoiresdel00vill', '13dipolarcycload00burk',
     'bijouorannualofl1828cole', 'soilsurveyrepor00statgoog', 'diebrokeradical400poll',
-    'cu31924091184469', # MARC XML collection record
+    'cu31924091184469',  # MARC XML collection record
     'engineercorpsofh00sher',
     ]
 
 bin_samples = [
+    'bijouorannualofl1828cole_meta.mrc', 'onquietcomedyint00brid_meta.mrc',  # LCCN with leading characters
     'merchantsfromcat00ben_meta.mrc', 'memoirsofjosephf00fouc_meta.mrc',  # MARC8 encoded with e-acute
+    'equalsign_title.mrc',  # Title ending in '='
     'bpl_0486266893', 'flatlandromanceo00abbouoft_meta.mrc',
     'histoirereligieu05cr_meta.mrc', 'ithaca_college_75002321', 'lc_0444897283',
     'lc_1416500308', 'ocm00400866', 'secretcodeofsucc00stjo_meta.mrc',
@@ -35,7 +39,8 @@ bin_samples = [
 
 test_data = "%s/test_data" % os.path.dirname(__file__)
 
-class TestParse():
+
+class TestParseMARCXML:
     @pytest.mark.parametrize('i', xml_samples)
     def test_xml(self, i):
         expect_filename = "%s/xml_expect/%s_marc.xml" % (test_data, i)
@@ -54,6 +59,8 @@ class TestParse():
             assert edition_marc_xml[k] == j[k], 'Processed MARCXML values do not match expectations in %s' % expect_filename
         assert edition_marc_xml == j
 
+
+class TestParseMARCBinary:
     @pytest.mark.parametrize('i', bin_samples)
     def test_binary(self, i):
         expect_filename = "%s/bin_expect/%s" % (test_data, i)
@@ -81,15 +88,32 @@ class TestParse():
         assert edition_marc_bin == j
 
     def test_raises_see_also(self):
-        filename = "%s/bin_input/talis_see_also.mrc" % test_data
+        filename = '%s/bin_input/talis_see_also.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(SeeAlsoAsTitle):
             read_edition(rec)
 
     def test_raises_no_title(self):
-        filename = "%s/bin_input/talis_no_title2.mrc" % test_data
+        filename = '%s/bin_input/talis_no_title2.mrc' % test_data
         with open(filename, 'r') as f:
             rec = MarcBinary(f.read())
         with pytest.raises(NoTitle):
             read_edition(rec)
+
+
+class TestParse:
+    def test_read_author_person(self):
+        xml_author = """
+        <datafield xmlns="http://www.loc.gov/MARC21/slim" tag="100" ind1="1" ind2="0">
+          <subfield code="a">Rein, Wilhelm,</subfield>
+          <subfield code="d">1809-1865</subfield>
+        </datafield>"""
+        test_field = DataField(etree.fromstring(xml_author))
+        result = read_author_person(test_field)
+
+        # Name order remains unchanged from MARC order
+        assert result['name'] == result['personal_name'] == 'Rein, Wilhelm'
+        assert result['birth_date'] == '1809'
+        assert result['death_date'] == '1865'
+        assert result['entity_type'] == 'person'

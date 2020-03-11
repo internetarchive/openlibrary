@@ -453,7 +453,7 @@ class MigrationMiddleware(ConnectionMiddleware):
         elif isinstance(data, dict):
             if 'key' in data:
                 data['key'] = self._process_key(data['key'])
-            return dict((k, self._process(v)) for k, v in data.iteritems())
+            return dict((k, self._process(v)) for k, v in data.items())
         else:
             return data
 

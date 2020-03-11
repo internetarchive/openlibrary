@@ -1,9 +1,9 @@
+from lxml import etree
 from unicodedata import normalize
 
-import six
-from lxml import etree
-
 from openlibrary.catalog.marc.marc_base import MarcBase, MarcException
+
+import six
 
 data_tag = '{http://www.loc.gov/MARC21/slim}datafield'
 control_tag = '{http://www.loc.gov/MARC21/slim}controlfield'

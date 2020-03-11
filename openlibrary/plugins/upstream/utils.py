@@ -1,36 +1,34 @@
-import datetime
-import logging
-import random
-import re
-import xml.etree.ElementTree as etree
-from collections import defaultdict
-
+import web
+import simplejson
 import babel
 import babel.core
 import babel.dates
-import memcache
-import simplejson
+from collections import defaultdict
+import re
+import random
+import xml.etree.ElementTree as etree
+import datetime
+import gzip
+import logging
+
 import six
-import web
-from infogami import config
-from infogami.infobase.client import Changeset, Thing, storify
-from infogami.utils import delegate, stats, view
-from infogami.utils.context import context
-from infogami.utils.macro import macro
-from infogami.utils.view import get_template, public, render
-from openlibrary.core import cache
-from openlibrary.core.helpers import commify, parse_datetime
-from openlibrary.core.middleware import GZipMiddleware
-from openlibrary.core.olmarkdown import OLMarkdown
-from openlibrary.plugins.upstream import adapter
-from openlibrary.utils import olmemcache
-from openlibrary.utils.olcompress import OLCompressor
 from six.moves import urllib
-from six.moves.collections_abc import Mapping
+from six.moves.collections_abc import MutableMapping
 from six.moves.html_parser import HTMLParser
 
+from infogami import config
+from infogami.utils import view, delegate, stats
+from infogami.utils.view import render, get_template, public
+from infogami.utils.macro import macro
+from infogami.utils.context import context
+from infogami.infobase.client import Thing, Changeset, storify
 
-class MultiDict(Mapping):
+from openlibrary.core.helpers import commify, parse_datetime
+from openlibrary.core.middleware import GZipMiddleware
+from openlibrary.core import cache, ab
+
+# TODO: Does this need to be Mutable?
+class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
@@ -71,6 +69,13 @@ class MultiDict(Mapping):
 
     def __delitem__(self, key):
         self._items = [(k, v) for k, v in self._items if k != key]
+
+    def __iter__(self):
+        for key in self.keys():
+            yield key
+
+    def __len__(self):
+        return len(self.keys())
 
     def getall(self, key):
         return [v for k, v in self._items if k == key]
@@ -191,7 +196,7 @@ def fuzzy_find(value, options, stopwords=[]):
     if not options:
         return value
 
-    rx = web.re_compile("[-_\.&, ]+")
+    rx = web.re_compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -281,7 +286,7 @@ def get_changes_v2(query, revision=None):
 
     def first(seq, default=None):
         try:
-            return seq.next()
+            return next(seq)
         except StopIteration:
             return default
 
@@ -450,7 +455,7 @@ def parse_toc_row(line):
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', '')
     """
-    RE_LEVEL = web.re_compile("(\**)(.*)")
+    RE_LEVEL = web.re_compile(r"(\**)(.*)")
     level, text = RE_LEVEL.match(line.strip()).groups()
 
     if "|" in text:
@@ -496,6 +501,7 @@ def _get_edition_config():
     roles = thing.roles
     return web.storage(classifications=classifications, identifiers=identifiers, roles=roles)
 
+from openlibrary.core.olmarkdown import OLMarkdown
 def get_markdown(text, safe_mode=False):
     md = OLMarkdown(source=text, safe_mode=safe_mode)
     view._register_mdx_extensions(md)
@@ -520,6 +526,10 @@ def websafe(text):
         return _websafe(text)
 
 
+from openlibrary.plugins.upstream import adapter
+from openlibrary.utils.olcompress import OLCompressor
+from openlibrary.utils import olmemcache
+import memcache
 
 class UpstreamMemcacheClient:
     """Wrapper to memcache Client to handle upstream specific conversion and OL specific compression.
@@ -573,7 +583,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile("reverted to revision \d+")
+    re_revert = web.re_compile(r"reverted to revision \d+")
     def is_revert(r):
         return re_revert.match(r.comment or "")
 

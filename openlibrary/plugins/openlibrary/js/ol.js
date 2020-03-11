@@ -394,21 +394,19 @@ export function initBorrowAndReadLinks() {
 }
 
 export function initPreviewButton() {
-    /**
-     * Colorbox modal + iframe for Book Preview Button
-     */
+    // Colorbox modal + iframe for Book Preview Button
     $('.cta-btn--preview').colorbox({
         width: '100%',
         maxWidth: '640px',
         inline: true,
         opacity: '0.5',
-        href: '#bookPreview'
-    })
-
-    $('.lazyIframe').show(function(){
-        // Find the iframes within our newly-visible element
-        const $iframe = $(this).find('iframe');
-        // Set their src attribute to the value of data-src
-        $iframe.prop('src', $iframe.data('src'));
+        href: '#bookPreview',
+        onOpen() {
+            const $iframe = $('#bookPreview iframe');
+            $iframe.prop('src', $iframe.data('src'));
+        },
+        onCleanup() {
+            $('#bookPreview iframe').prop('src', '');
+        },
     });
 }

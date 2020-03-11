@@ -1,8 +1,10 @@
 from __future__ import print_function
 
-import web
-import simplejson
+import logging
 import re
+import simplejson
+import web
+
 from collections import defaultdict
 from isbnlib import canonical
 
@@ -16,14 +18,13 @@ from openlibrary.core.models import Image
 from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
+from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream import account
+from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
-
-from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-from openlibrary.plugins.upstream import borrow
-
-import logging
 
 import six
 from six.moves import urllib
@@ -40,6 +41,7 @@ def follow_redirect(doc):
         return web.ctx.site.get(key)
     else:
         return doc
+
 
 class Edition(models.Edition):
 
@@ -95,7 +97,11 @@ class Edition(models.Edition):
         return editions[i - 1]
 
     def get_covers(self):
-        return [Image(self._site, 'b', c) for c in self.covers if c > 0]
+        """
+        This methods excludes covers that are -1 or None, which are in the data
+        but should not be.
+        """
+        return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
 
     def get_cover(self):
         covers = self.get_covers()
@@ -314,7 +320,7 @@ class Edition(models.Edition):
                         name=id.name,
                         label=id.label,
                         value=v,
-                        url=id.get('url') and id.url.replace('@@@', v))
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')))
 
         for name in names:
             process(name, self[name])

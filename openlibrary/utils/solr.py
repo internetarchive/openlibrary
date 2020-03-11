@@ -23,7 +23,7 @@ def urlencode(d, doseq=False):
     """
     def utf8(d):
         if isinstance(d, dict):
-            return dict((utf8(k), utf8(v)) for k, v in d.iteritems())
+            return dict((utf8(k), utf8(v)) for k, v in d.items())
         elif isinstance(d, list):
             return [utf8(v) for v in d]
         else:
@@ -54,7 +54,7 @@ class Solr:
         """Execute a solr query.
 
         query can be a string or a dicitonary. If query is a dictionary, query
-        is constucted by concatinating all the key-value pairs with AND condition.
+        is constructed by concatinating all the key-value pairs with AND condition.
         """
         params = {'wt': 'json'}
 
@@ -85,7 +85,7 @@ class Solr:
                 params['facet.field'].append(name)
 
         # switch to POST request when the payload is too big.
-        # XXX: would it be a good idea to swithc to POST always?
+        # XXX: would it be a good idea to switch to POST always?
         payload = urlencode(params, doseq=True)
         url = self.base_url + "/select"
         if len(payload) < 500:

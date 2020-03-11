@@ -44,7 +44,7 @@ $if isbn_10 and not asin:
         <script type="text/javascript">
           window.q.push(function() {
             \$('.return-book').submit(function(event) {
-              if (!confirm("Really return this book?")) {
+              if (!confirm("$_('Really return this book?')")) {
                 event.preventDefault();
               }
             });
@@ -58,7 +58,7 @@ $if isbn_10 and not asin:
 
         <hr>
         <div class="cta-section">
-          <p class="cta-section-title">Buy this book</p>
+          <p class="cta-section-title">$_('Buy this book')</p>
           $:macros.AffiliateLinks(page, {'isbn': isbn_13, 'asin': asin, 'prices': prices})
         </div>
 
@@ -76,7 +76,7 @@ $if links:
   <div id="external-links">
     <h3 class="header">
       <span class="icon download"></span>
-      <span class="head">External Links</span>
+      <span class="head">$_('External Links')</span>
     </h3>
     <div class="panel">
       <ul class="booklinks sansserif">

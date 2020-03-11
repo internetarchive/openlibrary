@@ -1,11 +1,13 @@
 #!/usr/bin/python
 from xml.etree.cElementTree import ElementTree
+from six.moves import cStringIO as StringIO
 import os
 import re
 from collections import defaultdict
 import cgi
 import web
 import simplejson
+from openlibrary.plugins.search.facet_hash import facet_token
 import pdb
 
 import six
@@ -77,7 +79,7 @@ class SimpleQueryProcessor:
          (title:world^100 OR authors:world^15 OR subjects:world^10 OR language:world^10 OR text:world^1 OR fulltext:world^1)'
     """
     def process(self, query):
-        query = web.utf8(query)
+        query = web.safestr(query)
         tokens = query.split(' ')
         return " ".join(self.process_token(t) for t in tokens)
 
@@ -193,7 +195,7 @@ class Solr_client(object):
                                              rows=1, wt='json'))
         facet_set = set(facet_list)
         for d in m['response']['docs']:
-            for k,vx in d.iteritems():
+            for k, vx in d.items():
                 kfs = k in facet_set
                 # if not kfs: continue
                 vvx = {str:(vx,), list:vx}.get(type(vx),())
@@ -201,16 +203,6 @@ class Solr_client(object):
                     if facet_token(k,v) == token:
                         return (k,v)
         return None
-
-    def isearch(self, query, loc=0):
-        # iterator interface to search
-        while True:
-            s = search(self, query, start=loc)
-            if len(s) == 0: return
-            loc += len(s)
-            for y in s:
-                if not y.startswith('OCA/'):
-                    yield y
 
     def search(self, query, **params):
         # advanced search: directly post a Solr search which uses fieldnames etc.
@@ -279,7 +271,7 @@ class Solr_client(object):
             which this function extracts asa a locator and
             a leaf number ('adventsuburbanit00butlrich', 65). """
 
-            g = re.search('(.*)_(\d{4})\.djvu$', page_id)
+            g = re.search(r'(.*)_(\d{4})\.djvu$', page_id)
             a,b = g.group(1,2)
             return a, int(b)
 

@@ -1,4 +1,4 @@
-from normalize import normalize
+from openlibrary.catalog.merge.normalize import normalize
 from time import time
 import re
 
