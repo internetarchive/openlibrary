@@ -18,10 +18,6 @@ from gzip import open as gzopen
 from collections import defaultdict
 
 import six
-from infogami import config, utils
-from infogami.infobase.client import Thing
-from infogami.plugins.api.code import jsonapi
-from infogami.utils import delegate, template, view
 from six.moves import cPickle
 
 from openlibrary.plugins.search import facet_hash, solr_client, stopword
