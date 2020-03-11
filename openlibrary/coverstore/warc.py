@@ -15,8 +15,8 @@ CRLF = "\r\n"
 class WARCReader:
     """Reader to read records from a warc file.
 
-    >>> from six import StringIO
-    >>> f = StringIO()
+    >>> from io import BytesIO
+    >>> f = BytesIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
     >>> w = WARCWriter(f)
