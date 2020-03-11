@@ -78,7 +78,7 @@ def test_server_image(image_dir):
 
     def do_test(d):
         def serve_image(d, size):
-            return "".join(str(x) for x in coverlib.read_image(d, size))
+            return "".join(coverlib.read_image(d, size).decode('utf-8'))
 
         assert serve_image(d, '') == 'main image'
         assert serve_image(d, None) == 'main image'

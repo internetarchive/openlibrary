@@ -10,7 +10,7 @@ from six.moves.http_client import HTTPConnection
 from six.moves.urllib.parse import urlparse
 
 WARC_VERSION = "0.10"
-CRLF = b"\r\n"
+CRLF = "\r\n"
 
 class WARCReader:
     """Reader to read records from a warc file.
