@@ -22,7 +22,7 @@ class WARCReader:
     >>> w = WARCWriter(f)
     >>> _ = w.write(r1)
     >>> _ = w.write(r2)
-    >>> f.seek(0)
+    >>> _ = f.seek(0)
     >>> reader = WARCReader(f)
     >>> records = list(reader.read())
     >>> records == [r1, r2]
