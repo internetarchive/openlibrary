@@ -88,8 +88,12 @@ def resize_image(image, size):
     """Resizes image to specified size while making sure that aspect ratio is maintained."""
     # from PIL
     x, y = image.size
-    if x > size[0]: y = max(y * size[0] // x, 1); x = size[0]
-    if y > size[1]: x = max(x * size[1] // y, 1); y = size[1]
+    if x > size[0]:
+        y = max(y * size[0] // x, 1)
+        x = size[0]
+    if y > size[1]:
+        x = max(x * size[1] // y, 1)
+        y = size[1]
     size = x, y
 
     return image.resize(size, Image.ANTIALIAS)
