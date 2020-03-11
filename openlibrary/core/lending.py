@@ -254,25 +254,45 @@ def get_availability_of_editions(ol_edition_ids):
     return get_availability('openlibrary_edition', ol_edition_ids)
 
 @public
-def add_availability(editions):
+def add_availability(items):
     """
-    Adds API v2 'availability' key to editions, e.g. for work's editions table
-    :param list of dict editions:
+    Adds API v2 'availability' key to dicts
+    :param list of dict items: items with fields containing ocaids
     :rtype: list of dict
     """
-    def get_ocaid(ed):
-        if ed.get('ocaid') or ed.get('identifier') or ed.get('ia'):
-            return ed.get('ocaid') or ed.get('identifier') or (
-                ed['ia'][0] if isinstance(ed['ia'], list) else ed['ia'])
+    def get_ocaid(item):
+        possible_fields = [
+            'ocaid',  # In editions
+            'identifier',  # In ?? not editions/works/solr
+            'ia',  # In solr work records and worksearch get_docs
+            'lending_identifier',  # In solr works records + worksearch get_doc
+        ]
+        # SOLR WORK RECORDS ONLY:
+        # If public domain, prioritize ia over lending_identifier (i.e. prefer freely
+        # readable over borrowable)
+        # HACK: Obviously this isn't a good test for public domain, but none of the
+        # fields we store in solr can accurately tell us if a work is public domain.
+        # Long term solution is a full reindex, but this will work in the vast majority
+        # of cases for now
+        # Note: guaranteed to be int-able if none None
+        if ('first_publish_year' in item
+                and float(item['first_publish_year'] or '-inf') > 1923):
+            possible_fields.remove('ia')
+            possible_fields.append('ia')
 
-    ocaids = [get_ocaid(ed) for ed in editions]
-    ocaids = [ocaid for ocaid in ocaids if ocaid]
+        for field in possible_fields:
+            if item.get(field):
+                return item[field][0] if isinstance(item[field], list) else item[field]
+
+    ocaids = [ocaid for ocaid in map(get_ocaid, items) if ocaid]
     availabilities = get_availability_of_ocaids(ocaids)
-    for ed in editions:
-        ocaid = get_ocaid(ed)
-        success = ocaid and availabilities.get(ocaid)
-        ed['availability'] = availabilities.get(ocaid) if success else {'status': 'error'}
-    return editions
+    for item in items:
+        ocaid = get_ocaid(item)
+        if ocaid and availabilities.get(ocaid):
+            item['availability'] = availabilities.get(ocaid)
+        else:
+            item['availability'] = {'status': 'error'}
+    return items
 
 @public
 def get_availability_of_ocaid(ocaid):
