@@ -61,9 +61,8 @@ def write_image(data, prefix):
         os.makedirs(dirname)
     try:
         # save original image
-        f = open(path_prefix + '.jpg', 'w')
-        f.write(data)
-        f.close()
+        with open(path_prefix + '.jpg', 'wb') as f:
+            f.write(data)
 
         img = Image.open(StringIO(data))
         if img.mode != 'RGB':
