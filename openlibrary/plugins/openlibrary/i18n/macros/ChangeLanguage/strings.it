@@ -1,8 +1,0 @@
-change_language = u'Cambia lingua:'
-begin_editing = u'Per iniziare a modificare il i18n stringhe,'
-change_language_statement = u'Apri la Biblioteca interfaccia \xe8 composta da una serie di stringhe, che possono essere tradotti dagli utenti attraverso un innovativo interfaccia wiki. Si pu\xf2 tradurre o aggiungere qualsiasi stringa in una delle nostre lingue disponibili. Al momento, il sostegno italiano, inglese, spagnolo e italiano. Aiutaci a costruire Biblioteca Aperta da migliorare la nostra traduzione!'
-try_language = u'Prova la Biblioteca Aperta in un linguaggio diverso'
-change_language_statement3 = u"\xc8 possibile vedere come qualsiasi traduzione appare selezionando dal menu a discesa sotto. Attenzione: In questo momento, la traduzione \xe8 solo per l'interfaccia utente, e non stringhe di contenuto."
-change_language_statement2 = u'Aggiunta di un nuovo linguaggio \xe8 semplice. \xc8 sufficiente selezionare il paese da questo elenco di due lettere del codice ISO del paese, e di sostituire "xx" con essa, alla fine di questo URL:'
-click_here = u'clicca qui.'
-change_language_statement4 = u'Fare clic su "Crea \'" e siete pronti per iniziare a tradurre!'

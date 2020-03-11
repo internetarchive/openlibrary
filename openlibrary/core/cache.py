@@ -83,13 +83,13 @@ class memcache_memoize:
         return prefix + self._random_string(10)
 
     def _random_string(self, n):
-        chars = string.letters + string.digits
+        chars = string.ascii_letters + string.digits
         return "".join(random.choice(chars) for i in range(n))
 
     def __call__(self, *args, **kw):
         """Memoized function call.
 
-        Returns the cached value when avaiable. Computes and adds the result
+        Returns the cached value when available. Computes and adds the result
         to memcache when not available. Updates asynchronously after timeout.
         """
         _cache = kw.pop("_cache", None)
@@ -515,7 +515,7 @@ class PrefixKeyFunc:
             return a
 
     def json_encode(self, value):
-        """simplejson.dumps without extra spaces and consistant ordering of dictionary keys.
+        """simplejson.dumps without extra spaces and consistent ordering of dictionary keys.
 
         memcache doesn't like spaces in the key.
         """

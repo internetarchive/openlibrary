@@ -1,11 +1,13 @@
 """Various web.py application processors used in OL.
 """
 import os
-import urllib
 import web
 
 from infogami.utils.view import render
 from openlibrary.core import helpers as h
+
+from six.moves import urllib
+
 
 try:
     from booklending_utils.openlibrary import is_exclusion
@@ -16,7 +18,7 @@ except ImportError:
 
 class ReadableUrlProcessor:
     """Open Library code works with urls like /books/OL1M and
-    /books/OL1M/edit. This processor seemlessly changes the urls to
+    /books/OL1M/edit. This processor seamlessly changes the urls to
     /books/OL1M/title and /books/OL1M/title/edit.
 
     The changequery function is also customized to support this.
@@ -41,10 +43,10 @@ class ReadableUrlProcessor:
         real_path, readable_path = get_readable_path(web.ctx.site, web.ctx.path, self.patterns, encoding=web.ctx.encoding)
 
         #@@ web.ctx.path is either quoted or unquoted depends on whether the application is running
-        #@@ using builtin-server or lighttpd. Thats probably a bug in web.py.
+        #@@ using builtin-server or lighttpd. That is probably a bug in web.py.
         #@@ take care of that case here till that is fixed.
         # @@ Also, the redirection must be done only for GET requests.
-        if readable_path != web.ctx.path and readable_path != urllib.quote(web.utf8(web.ctx.path)) and web.ctx.method == "GET":
+        if readable_path != web.ctx.path and readable_path != urllib.parse.quote(web.safestr(web.ctx.path)) and web.ctx.method == "GET":
             raise web.redirect(web.safeunicode(readable_path) + web.safeunicode(web.ctx.query))
 
         web.ctx.readable_path = readable_path

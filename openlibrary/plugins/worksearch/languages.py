@@ -1,15 +1,17 @@
 """Language pages
 """
-from __future__ import print_function
+
 from infogami.utils import delegate, stats
 from infogami.utils.view import render_template, safeint
 import web
 import simplejson
 import logging
-import urllib
 
 from . import subjects
 from . import search
+
+from six.moves import urllib
+
 
 logger = logging.getLogger("openlibrary.worksearch")
 
@@ -38,18 +40,6 @@ class languages_json(subjects.subjects_json):
     def process_key(self, key):
         return key.replace("_", " ")
 
-class language_works_json(subjects.subject_works_json):
-    path = '(/languages/[^/]+)/works'
-    encoding = "json"
-
-    def is_enabled(self):
-        return "languages" in web.ctx.features
-
-    def normalize_key(self, key):
-        return key
-
-    def process_key(self, key):
-        return key.replace("_", " ")
 
 class index(delegate.page):
     path = "/languages"
@@ -59,7 +49,6 @@ class index(delegate.page):
         result = search.get_solr().select('*:*', rows=0, facets=['language'], facet_limit=500)
         languages = [web.storage(name=get_language_name(row.value), key='/languages/' + row.value, count=row.count)
                     for row in result['facets']['language']]
-        print(languages[:10], file=web.debug)
         page = render_template("languages/index", languages)
         page.v2 = True
         return page

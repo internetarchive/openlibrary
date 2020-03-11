@@ -354,23 +354,21 @@ export function initReadingListFeature() {
     /* eslint-disable no-unused-vars */
     // success function receives data on successful request
     $(document).on('change', '.reading-log-lite select', function(e) {
-        var self = this;
-        var form = $(self).closest('form');
-        var remove = $(self).children('option').filter(':selected').text().toLowerCase() === 'remove';
-        var url = $(form).attr('action');
+        const $self = $(this);
+
+        // On /account/books/want-to-read avoid a page reload by sending the
+        // new shelf to the server and removing the associated item.
+        // Note that any change to this select will result in the book changing
+        // shelf.
         $.ajax({
-            url: url,
+            url: $self.closest('form').attr('action'),
             type: 'POST',
             data: {
-                bookshelf_id: $(self).val()
+                bookshelf_id: $self.val()
             },
             datatype: 'json',
-            success: function(data) {
-                if (remove) {
-                    $(self).closest('.searchResultItem').remove();
-                } else {
-                    location.reload();
-                }
+            success: function() {
+                $self.closest('.searchResultItem').remove();
             }
         });
         e.preventDefault();
@@ -396,21 +394,19 @@ export function initBorrowAndReadLinks() {
 }
 
 export function initPreviewButton() {
-    /**
-     * Colorbox modal + iframe for Book Preview Button
-     */
+    // Colorbox modal + iframe for Book Preview Button
     $('.cta-btn--preview').colorbox({
         width: '100%',
         maxWidth: '640px',
         inline: true,
         opacity: '0.5',
-        href: '#bookPreview'
-    })
-
-    $('.lazyIframe').show(function(){
-        // Find the iframes within our newly-visible element
-        const $iframe = $(this).find('iframe');
-        // Set their src attribute to the value of data-src
-        $iframe.prop('src', $iframe.data('src'));
+        href: '#bookPreview',
+        onOpen() {
+            const $iframe = $('#bookPreview iframe');
+            $iframe.prop('src', $iframe.data('src'));
+        },
+        onCleanup() {
+            $('#bookPreview iframe').prop('src', '');
+        },
     });
 }

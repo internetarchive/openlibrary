@@ -2,42 +2,42 @@ $def with (stats=None)
 $if stats:
     <div id="home-stats">
       <div class="head">
-        <h2 class="inline">Around the Library</h2>
-        <p class="inline sansserif large collapse">&nbsp;Here's what's happened over the last 28 days. More <a href="/recentchanges">recent changes</a>.</p>
+        <h2 class="inline">$_('Around the Library')</h2>
+        <p class="inline sansserif large collapse">&nbsp;$:_("Here's what's happened over the last 28 days. More <a href=\"/recentchanges\">recent changes</a>").</p>
       </div>
 
       <div id="home-stats-charts">
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='//archive.org/stats';" title="See all visitors to OpenLibrary.org">
+          <div class="chartShow" onClick="window.location.href='//archive.org/stats';" title="$_('See all visitors to OpenLibrary.org')">
             <div id="visitors-graph" style="width:150px;height:60px;"></div>
-            <a href="//archive.org/stats" title="See all visitors to OpenLibrary.org"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">Unique Visitors</span></a>
+            <a href="//archive.org/stats" title="$_('See all visitors to OpenLibrary.org')"><span class="ticks">$:commify(stats["visitors"].get_summary(28))</span><span class="label">$_('Unique Visitors')</span></a>
           </div>
         </div>
 
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="How many new Open Library members have we welcomed?">
+          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="$_('How many new Open Library members have we welcomed?')">
             <div id="members-graph" style="width:150px;height:60px;"></div>
-            <a href="/recentchanges" title="How many new Open Library members have we welcomed?"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">New Members</span></a>
+            <a href="/recentchanges" title="$_('How many new Open Library members have we welcomed?')"><span class="ticks">$:commify(stats["members"].get_summary(28))</span><span class="label">$_('New Members')</span></a>
           </div>
         </div>
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="People are constantly updating the catalog">
+          <div class="chartShow" onClick="window.location.href='/recentchanges';" title="$_('People are constantly updating the catalog')">
             <div id="edits-graph" style="width:150px;height:60px;"></div>
-            <a href="/recentchanges" title="People are constantly updating the catalog"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">Catalog Edits</span></a>
+            <a href="/recentchanges" title="$_('People are constantly updating the catalog')"><span class="ticks">$:commify(stats["human_edits"].get_summary(28))</span><span class="label">$_('Catalog Edits')</span></a>
           </div>
         </div>
 
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='/lists';" title="Members can create Lists">
+          <div class="chartShow" onClick="window.location.href='/lists';" title="$_('Members can create Lists')">
             <div id="lists-graph" style="width:150px;height:60px;"></div>
-            <a href="/lists" title="Members can create Lists"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">Lists Created</span></a>
+            <a href="/lists" title="$_('Members can create Lists')"><span class="ticks">$:commify(stats["lists"].get_summary(28))</span><span class="label">$_('Lists Created')</span></a>
           </div>
         </div>
 
         <div class="statschart">
-          <div class="chartShow" onClick="window.location.href='/borrow';" title="We're a library, so we lend books, too">
+          <div class="chartShow" onClick="window.location.href='/borrow';" title="$_('We\'re a library, so we lend books, too')">
             <div id="ebooks-graph" style="width:150px;height:60px;"></div>
-            <a href="/borrow" title="We're a library, so we lend books, too"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">eBooks Borrowed</span></a>
+            <a href="/borrow" title="$_('We\'re a library, so we lend books, too')"><span class="ticks">$:commify(stats["loans"].get_summary(28))</span><span class="label">$_('eBooks Borrowed')</span></a>
           </div>
         </div>
       </div>

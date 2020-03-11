@@ -3,7 +3,7 @@
 see compress module for details.
 """
 
-from compress import Compressor
+from openlibrary.utils.compress import Compressor
 
 # using 4 random records from OL seed
 

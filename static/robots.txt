@@ -1,7 +1,5 @@
 
 User-agent: *
-Disallow: /user
-Disallow: /people
 Disallow: /api
 Disallow: /edit
 Disallow: /search
@@ -11,5 +9,4 @@ Sitemap: https://openlibrary.org/static/sitemaps/siteindex.xml.gz
 
 User-agent: Baiduspider
 Crawl-delay: 0.5
-
 

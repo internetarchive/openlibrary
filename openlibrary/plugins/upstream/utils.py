@@ -3,20 +3,18 @@ import simplejson
 import babel
 import babel.core
 import babel.dates
-from UserDict import DictMixin
 from collections import defaultdict
 import re
 import random
-import urllib
-import urllib2
 import xml.etree.ElementTree as etree
 import datetime
 import gzip
-import StringIO
 import logging
-from HTMLParser import HTMLParser
 
 import six
+from six.moves import urllib
+from six.moves.collections_abc import MutableMapping
+from six.moves.html_parser import HTMLParser
 
 from infogami import config
 from infogami.utils import view, delegate, stats
@@ -29,7 +27,7 @@ from openlibrary.core.helpers import commify, parse_datetime
 from openlibrary.core.middleware import GZipMiddleware
 from openlibrary.core import cache, ab
 
-class MultiDict(DictMixin):
+class MultiDict(MutableMapping):
     """Ordered Dictionary that can store multiple values.
 
         >>> d = MultiDict()
@@ -70,6 +68,13 @@ class MultiDict(DictMixin):
 
     def __delitem__(self, key):
         self._items = [(k, v) for k, v in self._items if k != key]
+
+    def __iter__(self):
+        for key in self.keys():
+            yield key
+
+    def __len__(self):
+        return len(self.keys())
 
     def getall(self, key):
         return [v for k, v in self._items if k == key]
@@ -190,7 +195,7 @@ def fuzzy_find(value, options, stopwords=[]):
     if not options:
         return value
 
-    rx = web.re_compile("[-_\.&, ]+")
+    rx = web.re_compile(r"[-_\.&, ]+")
 
     # build word frequency
     d = defaultdict(list)
@@ -280,7 +285,7 @@ def get_changes_v2(query, revision=None):
 
     def first(seq, default=None):
         try:
-            return seq.next()
+            return next(seq)
         except StopIteration:
             return default
 
@@ -396,7 +401,7 @@ def add_metatag(tag="meta", **attrs):
 def url_quote(text):
     if isinstance(text, six.text_type):
         text = text.encode('utf8')
-    return urllib.quote_plus(text)
+    return urllib.parse.quote_plus(text)
 
 @public
 def entity_decode(text):
@@ -449,7 +454,7 @@ def parse_toc_row(line):
         >>> f("1.1 | Apple")
         (0, '1.1', 'Apple', '')
     """
-    RE_LEVEL = web.re_compile("(\**)(.*)")
+    RE_LEVEL = web.re_compile(r"(\**)(.*)")
     level, text = RE_LEVEL.match(line.strip()).groups()
 
     if "|" in text:
@@ -520,9 +525,9 @@ def websafe(text):
         return _websafe(text)
 
 
+from openlibrary.plugins.upstream import adapter
 from openlibrary.utils.olcompress import OLCompressor
 from openlibrary.utils import olmemcache
-import adapter
 import memcache
 
 class UpstreamMemcacheClient:
@@ -577,7 +582,7 @@ def _get_recent_changes():
             return False
 
     # ignore reverts
-    re_revert = web.re_compile("reverted to revision \d+")
+    re_revert = web.re_compile(r"reverted to revision \d+")
     def is_revert(r):
         return re_revert.match(r.comment or "")
 
@@ -649,7 +654,7 @@ def _get_blog_feeds():
     url = "http://blog.openlibrary.org/feed/"
     try:
         stats.begin("get_blog_feeds", url=url)
-        tree = etree.parse(urllib.urlopen(url))
+        tree = etree.parse(urllib.request.urlopen(url))
     except Exception:
         # Handle error gracefully.
         logging.getLogger("openlibrary").error("Failed to fetch blog feeds", exc_info=True)
@@ -682,17 +687,24 @@ def get_donation_include(include):
         param += '&ymd=' + web_input.ymd
 
     # Look for presence of cookie indicating banner has been closed
-    opener = urllib2.build_opener()
+    opener = urllib.request.build_opener()
     donation_param = web.cookies().get('donation')
     if donation_param:
         # Append a tuple with the cookie pair (*not* extraneous parentheses!)
-        opener.addheaders.append(('Cookie', urllib.urlencode({'donation': donation_param})))
+        opener.addheaders.append(('Cookie', urllib.parse.urlencode({'donation': donation_param})))
 
     html = ''
-    if include == 'true':
+    if include == 'true' and "dev" in web.ctx.features:
         try:
-            html = opener.open(url_banner_source + param, timeout=3).read()
-        except urllib2.URLError:
+            html += opener.open(url_banner_source + param, timeout=3).read()
+            # Donation banner is temporarily (Jan 2020) disabled on prod, but available on dev (so that it can be used
+            # for testing). To avoid it appearing like it's working, display a warning if it loads correctly that it's
+            # disabled on prod.
+            if '<div' in html or '<iframe' in html:
+                html = """
+                <center>WARNING: Donation banner disabled on prod; see <a href="https://github.com/internetarchive/openlibrary/issues/2853">GitHub #2853</a></center>
+                """ + html
+        except urllib.error.URLError:
             logging.getLogger("openlibrary").error('Could not load donation banner')
             return ''
     return html

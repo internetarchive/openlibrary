@@ -1,15 +1,12 @@
 """Models of various OL objects.
 """
-import urllib
-import urllib2
 import simplejson
 import web
 import re
 
-import iptools
 from infogami.infobase import client
 
-import helpers as h
+from openlibrary.core import helpers as h
 
 #TODO: fix this. openlibrary.core should not import plugins.
 from openlibrary import accounts
@@ -21,9 +18,14 @@ from openlibrary.core.ratings import Ratings
 from openlibrary.utils.isbn import to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.core.vendors import create_edition_from_amazon_metadata
 
-# relative imports
-from lists.model import ListMixin, Seed
-from . import db, cache, iprange, inlibrary, loanstats, waitinglist, lending
+from openlibrary.core.lists.model import ListMixin, Seed
+from . import cache, waitinglist
+
+from six.moves import urllib
+
+from .ia import get_metadata_direct
+from ..accounts import OpenLibraryAccount
+
 
 def _get_ol_base_url():
     # Anand Oct 2013
@@ -44,7 +46,7 @@ class Image:
         if url.startswith("//"):
             url = "http:" + url
         try:
-            d = simplejson.loads(urllib2.urlopen(url).read())
+            d = simplejson.loads(urllib.request.urlopen(url).read())
             d['created'] = h.parse_datetime(d['created'])
             if d['author'] == 'None':
                 d['author'] = None
@@ -136,7 +138,7 @@ class Thing(client.Thing):
         else:
             u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -213,7 +215,7 @@ class Edition(Thing):
 
     def get_publish_year(self):
         if self.publish_date:
-            m = web.re_compile("(\d\d\d\d)").search(self.publish_date)
+            m = web.re_compile(r"(\d\d\d\d)").search(self.publish_date)
             return m and int(m.group(1))
 
     def get_lists(self, limit=50, offset=0, sort=True):
@@ -281,9 +283,8 @@ class Edition(Thing):
 
     def in_borrowable_collection(self):
         collections = self.get_ia_collections()
-        return ('lendinglibrary' in collections or
-            ('inlibrary' in collections and inlibrary.get_library() is not None)
-            ) and not self.is_in_private_collection()
+        return (('lendinglibrary' in collections or 'inlibrary' in collections)
+                and not self.is_in_private_collection())
 
     def can_borrow(self):
         """This method should be deprecated in favor of in_borrowable_collection"""
@@ -293,8 +294,42 @@ class Edition(Thing):
         """Returns list of records for all users currently waiting for this book."""
         return waitinglist.get_waitinglist_for_book(self.key)
 
-    def get_realtime_availability(self):
-        return lending.get_realtime_availability_of_ocaid(self.get('ocaid'))
+    @property
+    @cache.method_memoize
+    def ia_metadata(self):
+        ocaid = self.get('ocaid')
+        return get_metadata_direct(ocaid, cache=False) if ocaid else {}
+
+    @property
+    @cache.method_memoize
+    def availability(self):
+        statuses = {
+            'available': 'borrow_available',
+            'unavailable': 'borrow_unavailable',
+            'private': 'private',
+            'error': 'error'
+        }
+        status = self.ia_metadata.get('loans__status__status', 'error').lower()
+        return {
+            'status': statuses[status],
+            'num_waitlist': int(self.ia_metadata.get('loans__status__num_waitlist', 0)),
+            'num_loans': int(self.ia_metadata.get('loans__status__num_loans', 0))
+        }
+
+    @property
+    @cache.method_memoize
+    def sponsorship_data(self):
+        was_sponsored = 'openlibraryscanningteam' in self.ia_metadata.get('collection', [])
+        if not was_sponsored:
+            return None
+
+        donor = self.ia_metadata.get('donor')
+
+        return web.storage({
+            'donor': donor,
+            'donor_account': OpenLibraryAccount.get_by_link(donor) if donor else None,
+            'donor_msg': self.ia_metadata.get('donor_msg'),
+        })
 
     def get_waitinglist_size(self, ia=False):
         """Returns the number of people on waiting list to borrow this book.
@@ -726,6 +761,18 @@ class User(Thing):
         return "<User: %s>" % repr(self.key)
     __str__ = __repr__
 
+    def render_link(self, cls=None):
+        """
+        Generate an HTML link of this user
+        :param str cls: HTML class to add to the link
+        :rtype: str
+        """
+        extra_attrs = ''
+        if cls:
+            extra_attrs += 'class="%s" ' % cls
+        # Why nofollow?
+        return '<a rel="nofollow" href="%s" %s>%s</a>' % (self.key, extra_attrs, web.net.htmlquote(self.displayname))
+
 class List(Thing, ListMixin):
     """Class to represent /type/list objects in OL.
 
@@ -814,54 +861,6 @@ class List(Thing, ListMixin):
     def __repr__(self):
         return "<List: %s (%r)>" % (self.key, self.name)
 
-class Library(Thing):
-    """Library document.
-
-    Each library has a list of IP addresses belongs to that library.
-    """
-    def url(self, suffix="", **params):
-        return self.get_url(suffix, **params)
-
-    def find_bad_ip_ranges(self, text):
-        return iprange.find_bad_ip_ranges(text)
-
-    def parse_ip_ranges(self, text):
-        return iprange.parse_ip_ranges(text)
-
-    def get_ip_range_list(self):
-        """Returns IpRangeList object for the range of IPs of this library.
-        """
-        ranges = list(self.parse_ip_ranges(self.ip_ranges or ""))
-        return iptools.IpRangeList(*ranges)
-
-    def has_ip(self, ip):
-        """Return True if the the given ip is part of the library's ip range.
-        """
-        return ip in self.get_ip_range_list()
-
-    def get_branches(self):
-        # Library Name | Street | City | State | Zip | Country | Telephone | Website | Lat, Long
-        columns = ["name", "street", "city", "state", "zip", "country", "telephone", "website", "latlong"]
-        def parse(line):
-            branch = web.storage(zip(columns, line.strip().split("|")))
-
-            # add empty values for missing columns
-            for c in columns:
-                branch.setdefault(c, "")
-
-            try:
-                branch.lat, branch.lon = branch.latlong.split(",", 1)
-            except ValueError:
-                branch.lat = "0"
-                branch.lon = "0"
-            return branch
-        return [parse(line) for line in self.addresses.splitlines() if line.strip()]
-
-    def get_loans_per_day(self, resource_type="total"):
-        name = self.key.split("/")[-1]
-        stats = loanstats.LoanStats(library=name)
-        return stats.get_loans_per_day(resource_type=resource_type)
-
 class UserGroup(Thing):
 
     @classmethod
@@ -914,7 +913,7 @@ class Subject(web.storage):
     def url(self, suffix="", relative=True, **params):
         u = self.key + suffix
         if params:
-            u += '?' + urllib.urlencode(params)
+            u += '?' + urllib.parse.urlencode(params)
         if not relative:
             u = _get_ol_base_url() + u
         return u
@@ -937,7 +936,6 @@ def register_models():
     client.register_thing_class('/type/author', Author)
     client.register_thing_class('/type/user', User)
     client.register_thing_class('/type/list', List)
-    client.register_thing_class('/type/library', Library)
     client.register_thing_class('/type/usergroup', UserGroup)
 
 def register_types():
@@ -949,7 +947,6 @@ def register_types():
     types.register_type('^/books/[^/]*$', '/type/edition')
     types.register_type('^/works/[^/]*$', '/type/work')
     types.register_type('^/languages/[^/]*$', '/type/language')
-    types.register_type('^/libraries/[^/]*$', '/type/library')
 
     types.register_type('^/usergroup/[^/]*$', '/type/usergroup')
     types.register_type('^/permission/[^/]*$', '/type/permission')

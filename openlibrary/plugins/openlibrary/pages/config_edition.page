@@ -650,7 +650,7 @@
             "url": "https://www.abebooks.de/servlet/BookDetailsPL?bi=@@@",
             "website": "https://www.abebooks.de",
             "notes": "",
-            "name": "abebooks,de",
+            "name": "abebooks.de",
             "label": "Abebooks.de"
         },
         {
@@ -687,7 +687,7 @@
             "label": "Biblioth\u00e8que nationale de France (BnF)"
         },
         {
-            "url": "https://tools.wmflabs.org/reasonator/?q=@@@",
+            "url": "https://www.wikidata.org/wiki/@@@",
             "website": "https://wikidata.org",
             "notes": "",
             "name": "wikidata",

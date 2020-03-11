@@ -14,8 +14,8 @@ CRLF = "\r\n"
 class WARCReader:
     """Reader to read records from a warc file.
 
-    >>> import StringIO
-    >>> f = StringIO.StringIO()
+    >>> from six import StringIO
+    >>> f = StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
     >>> w = WARCWriter(f)
@@ -219,9 +219,9 @@ class WARCRecord:
 class LazyWARCRecord(WARCRecord):
     """Class to create WARCRecord lazily.
 
-    >>> import StringIO
+    >>> from six import StringIO
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo bar", creation_date="20080808080808", record_id="record_42")
-    >>> f = StringIO.StringIO(str(r1))
+    >>> f = StringIO(str(r1))
     >>> offset = len(str(r1.get_header()))
     >>> r2 = LazyWARCRecord(f, offset, r1.get_header())
     >>> r1 == r2
@@ -247,8 +247,9 @@ class LazyWARCRecord(WARCRecord):
 class WARCWriter:
     r"""Writes to write warc records to file.
 
-    >>> import re, StringIO
-    >>> f = StringIO.StringIO()
+    >>> import re
+    >>> from six import StringIO
+    >>> f = StringIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo", creation_date="20080808080808", record_id="record_42")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar", creation_date="20080808090909", record_id="record_43")
     >>> w = WARCWriter(f)

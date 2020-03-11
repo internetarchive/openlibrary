@@ -4,11 +4,10 @@ editions of the same work that might be available.
 """
 from __future__ import print_function
 import sys
-import urllib
 import re
 
+from six.moves import urllib
 import web
-from openlibrary.core import inlibrary
 from openlibrary.core import ia
 from openlibrary.core import helpers
 from openlibrary.api import OpenLibrary
@@ -46,7 +45,7 @@ def get_work_iaids(wkey):
     q = 'key:' + wkey
     stats.begin('solr', url=wkey)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     stats.end()
     print(json_data)
     reply = simplejson.loads(json_data)
@@ -61,7 +60,7 @@ def get_works_iaids(wkeys):
     filter = 'ia'
     q = '+OR+'.join(['key:' + wkey for wkey in wkeys])
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -75,7 +74,7 @@ def get_eids_for_wids(wids):
     filter = 'edition_key'
     q = '+OR+'.join(wids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json&fq=type:work" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -89,7 +88,7 @@ def get_solr_edition_records(iaids):
     filter = 'title'
     q = '+OR+'.join('ia:' + id for id in iaids)
     solr_select = solr_select_url + "?version=2.2&q.op=AND&q=%s&rows=10&fl=key,%s&qt=standard&wt=json" % (q, filter)
-    json_data = urllib.urlopen(solr_select).read()
+    json_data = urllib.request.urlopen(solr_select).read()
     reply = simplejson.loads(json_data)
     if reply['response']['numFound'] == 0:
         return []
@@ -102,25 +101,17 @@ def get_solr_edition_records(iaids):
 class ReadProcessor:
     def __init__(self, options):
         self.options = options
-        self.set_inlibrary = False
-
-    def get_inlibrary(self):
-        if not self.set_inlibrary:
-            self.set_inlibrary = True
-            self.inlibrary = inlibrary.get_library()
-        return self.inlibrary
-
 
     def get_item_status(self, ekey, iaid, collections, subjects):
         if 'lendinglibrary' in collections:
-            if not 'Lending library' in subjects:
+            if 'Lending library' not in subjects:
                 status = 'restricted'
             else:
                 status = 'lendable'
         elif 'inlibrary' in collections:
-            if not 'In library' in subjects:
+            if 'In library' not in subjects:
                 status = 'restricted'
-            elif not self.get_inlibrary():
+            elif True: # not self.get_inlibrary(): - Deprecated
                 status = 'restricted'
                 if self.options.get('debug_items'):
                     status = 'restricted - not inlib'
@@ -139,7 +130,6 @@ class ReadProcessor:
                 status = 'checked out'
 
         return status
-
 
     def get_readitem(self, iaid, orig_iaid, orig_ekey, wkey, status, publish_date):
         meta = self.iaid_to_meta.get(iaid)
@@ -331,7 +321,7 @@ class ReadProcessor:
         self.wkey_to_iaids = dict((wkey, get_work_iaids(wkey)[:iaid_limit])
                                   for wkey in self.works)
         iaids = sum(self.wkey_to_iaids.values(), [])
-        self.iaid_to_meta = dict((iaid, ia.get_meta_xml(iaid)) for iaid in iaids)
+        self.iaid_to_meta = dict((iaid, ia.get_metadata(iaid)) for iaid in iaids)
 
         def lookup_iaids(iaids):
             step = 10

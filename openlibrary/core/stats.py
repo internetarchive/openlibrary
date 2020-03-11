@@ -14,7 +14,10 @@ import logging
 import socket
 import random
 
-from pystatsd import Client
+try:
+    from pystatsd import Client as StatsClient
+except ImportError:
+    from statsd import StatsClient
 
 from infogami import config
 
@@ -28,7 +31,7 @@ def create_stats_client(cfg = config):
         stats_server = cfg.get("admin", {}).get("statsd_server",None)
         if stats_server:
             host, port = stats_server.rsplit(":", 1)
-            return Client(host, port)
+            return StatsClient(host, port)
         else:
             logger.critical("Couldn't find statsd_server section in config")
             return False
@@ -49,7 +52,10 @@ def increment(key, n=1):
     if client:
         l.debug("Incrementing %s"% key)
         for i in range(n):
-            client.increment(key)
+            try:
+                client.increment(key)
+            except AttributeError:
+                client.incr(key)
 
 
 client = create_stats_client()

@@ -192,14 +192,6 @@ li {
       }
     }
   }
-  &.selected {
-    img {
-      border: 5px solid @orange;
-      &:hover {
-        border: 5px solid @orange;
-      }
-    }
-  }
 }
 
 caption,
@@ -1738,22 +1730,6 @@ div.narrow {
   }
 }
 
-// openlibrary/templates/covers/change.html
-div#throbber {
-  position: absolute;
-  width: 220px;
-  height: 19px;
-  top: 280px;
-  left: 210px;
-  text-align: center;
-  background-color: transparent;
-  background-image: url(/images/ajax-loader-bar.gif);
-  background-repeat: no-repeat;
-  h3 {
-    margin-top: 35px;
-  }
-}
-
 div.pop {
   // openlibrary/templates/covers/add.html
   // openlibrary/templates/books/edit/addfield.html
@@ -2040,10 +2016,6 @@ div#subjectLists {
     border-right: 1px solid @green-two;
     height: 2.5em;
     padding: 0 10px;
-  }
-  span.activated-check {
-    color: @green;
-    margin-right: 2px;
   }
 }
 

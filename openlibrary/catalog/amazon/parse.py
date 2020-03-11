@@ -602,7 +602,7 @@ def edition_to_ol(edition):
     else:
         print('publisher missing')
 
-    for k, v in ol.iteritems():
+    for k, v in ol.items():
         if isinstance(v, six.string_types) and v[-1] == '(':
             pprint(edition)
             print(('ends with "(":', repr(k, v)))

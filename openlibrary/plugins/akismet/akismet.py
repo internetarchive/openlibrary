@@ -39,10 +39,13 @@ Whatever you pass in, will replace the *Python Interface by Fuzzyman* part.
 from __future__ import print_function
 import os
 import sys
-import urllib2
-from urllib import urlencode
 
+from six.moves.urllib.parse import urlencode
 import socket
+
+from six.moves import urllib
+
+
 if hasattr(socket, 'setdefaulttimeout'):
     # Set the default timeout on sockets to 5 seconds
     socket.setdefaulttimeout(5)
@@ -96,10 +99,10 @@ class Akismet(object):
     def _safeRequest(self, url, data, headers):
         print("_safeRequest", url)
         try:
-            req = urllib2.Request(url, data, headers)
-            h = urllib2.urlopen(req)
+            req = urllib.request.Request(url, data, headers)
+            h = urllib.request.urlopen(req)
             resp = h.read()
-        except (urllib2.HTTPError, urllib2.URLError, IOError) as e:
+        except (urllib.error.HTTPError, urllib.error.URLError, IOError) as e:
             raise AkismetError(str(e))
         return resp
 

@@ -4,8 +4,6 @@ from collections import defaultdict
 import datetime
 import re
 import time
-import urllib
-import urllib2
 
 import simplejson
 import web
@@ -21,6 +19,7 @@ from openlibrary.core import cache
 from openlibrary.plugins.worksearch.search import get_solr
 
 import six
+from six.moves import urllib
 
 
 logger = logging.getLogger("openlibrary.lists.model")

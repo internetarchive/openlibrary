@@ -19,14 +19,13 @@ __author__ = "Anand Chitipothu <anandology@gmail.com>"
 import os
 import re
 import datetime
-from ConfigParser import ConfigParser
-import urllib
-import urllib2
 import simplejson
 import web
 import logging
 
 import six
+from six.moves import urllib
+from six.moves.configparser import ConfigParser
 
 logger = logging.getLogger("openlibrary.api")
 
@@ -51,17 +50,17 @@ class OpenLibrary:
             headers['Cookie'] = self.cookie
 
         try:
-            req = urllib2.Request(url, data, headers)
+            req = urllib.request.Request(url, data, headers)
             req.get_method = lambda: method
-            return urllib2.urlopen(req)
-        except urllib2.HTTPError as e:
+            return urllib.request.urlopen(req)
+        except urllib.error.HTTPError as e:
             raise OLError(e)
 
     def autologin(self, section=None):
         """Login to Open Library with credentials taken from ~/.olrc file.
 
         The ~/.olrc file must be in ini format (format readable by
-        ConfigParser module) and there should be a section with the
+        configparser module) and there should be a section with the
         server name. A sample configuration file may look like this::
 
             [openlibrary.org]
@@ -98,7 +97,7 @@ class OpenLibrary:
         try:
             data = simplejson.dumps(dict(username=username, password=password))
             response = self._request('/account/login', method='POST', data=data, headers=headers)
-        except urllib2.HTTPError as e:
+        except urllib.error.HTTPError as e:
             response = e
 
         if 'Set-Cookie' in response.headers:
@@ -122,7 +121,7 @@ class OpenLibrary:
             return self._get_many(keys)
 
     def _get_many(self, keys):
-        response = self._request("/api/get_many?" + urllib.urlencode({"keys": simplejson.dumps(keys)}))
+        response = self._request("/api/get_many?" + urllib.parse.urlencode({"keys": simplejson.dumps(keys)}))
         return simplejson.loads(response.read())['result']
 
     def save(self, key, data, comment=None):
@@ -194,12 +193,12 @@ class OpenLibrary:
             return unlimited_query(q)
         else:
             q = simplejson.dumps(q)
-            response = self._request("/query.json?" + urllib.urlencode(dict(query=q)))
+            response = self._request("/query.json?" + urllib.parse.urlencode(dict(query=q)))
             return unmarshal(simplejson.loads(response.read()))
 
     def import_ocaid(self, ocaid, require_marc=True):
         data = {'identifier': ocaid, 'require_marc': 'true' if require_marc else 'false'}
-        return self._request('/api/import/ia', method='POST', data=urllib.urlencode(data)).read()
+        return self._request('/api/import/ia', method='POST', data=urllib.parse.urlencode(data)).read()
 
 
 def marshal(data):
@@ -211,7 +210,7 @@ def marshal(data):
     if isinstance(data, list):
         return [marshal(d) for d in data]
     elif isinstance(data, dict):
-        return dict((k, marshal(v)) for k, v in data.iteritems())
+        return dict((k, marshal(v)) for k, v in data.items())
     elif isinstance(data, datetime.datetime):
         return {"type": "/type/datetime", "value": data.isoformat()}
     elif isinstance(data, Text):
@@ -243,7 +242,7 @@ def unmarshal(d):
             else:
                 return d['value']
         else:
-            return dict([(k, unmarshal(v)) for k, v in d.iteritems()])
+            return dict([(k, unmarshal(v)) for k, v in d.items()])
     else:
         return d
 
@@ -257,7 +256,7 @@ def parse_datetime(value):
     if isinstance(value, datetime.datetime):
         return value
     else:
-        tokens = re.split('-|T|:|\.| ', value)
+        tokens = re.split(r'-|T|:|\.| ', value)
         return datetime.datetime(*map(int, tokens))
 
 

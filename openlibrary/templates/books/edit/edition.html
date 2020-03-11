@@ -181,11 +181,10 @@ window.q.push(function() {
                 <label for="edition--works--$0">$_("What work is this an edition of?")</label>
                 <span class="tip">
                     $_("Sometimes editions can be associated with the wrong work. You can correct that here.")
-                    $_("You can search by title or by Open Library ID")
-                    ($("like")
+                    $_("You can search by title or by Open Library ID (like")
                     <a href="/works/OL262757W" target="_blank"><em>OL262757W</em></a>).
                     <br/>
-                    $:_("WARNING: Any edits made to the work from this page will be ignored.")
+                    $_("WARNING: Any edits made to the work from this page will be ignored.")
                 </span>
             </div>
             <div id="works">
@@ -201,7 +200,7 @@ window.q.push(function() {
         <div class="formElement">
             <div class="label">
                 <label for="edition-title">Title</label>
-                <span class="tip">$_("There are occasionally title variants amongst editions.")</span>
+                <span class="tip">$_("Enter the title of this specific edition.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--title" id="edition-title" value="$book.title"/>
@@ -239,11 +238,11 @@ window.q.push(function() {
         <div class="formElement">
             <div class="label">
                 <label for="edition-title_other">$_("Is it known by any other titles?")</label>
-                <span class="tip">$_("Perhaps in another language?")</span>
+                <span class="tip">$_("Use this field if the title is different on the cover or spine. If the edition is a collection or anthology, you may also add the individual titles of each work here.")</span>
             </div>
             <div class="input">
                 <input type="text" name="edition--other_titles--0" id="edition-title_other" value="$(book.other_titles and book.other_titles[0])"/>
-                <div class="tip">$_("For example:") <i>Der Zauberberg</i> $_("is an alternate title for") <i>The Magic Mountain</i>.</div>
+                <div class="tip">$_("For example:") <i>Eaters of the Dead</i> $_("is an alternate title for") <i><a href='/books/OL24923038M'>The 13th Warrior</i></a>.</div>
             </div>
             $if book.other_titles and len(book.other_titles) > 1:
                 $for i, t in enumerate(book.other_titles):
@@ -499,7 +498,7 @@ window.q.push(function() {
                                 <input type="hidden" name="edition--identifiers--${i}--value" value="$id.value"/>
                             </td>
                             $# Disable removing ocaid for regular users.
-                            $ admin_user = ctx.user and ctx.user.is_admin()
+                            $ admin_user = ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian())
                             $if id.name == "ocaid" and not admin_user:
                                 <td></td>
                             $else:

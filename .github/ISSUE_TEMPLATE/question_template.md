@@ -2,7 +2,7 @@
 name: Question
 about: Propose an answerable question
 title: ''
-labels: ["Type: Question", "State: Backlogged", "Needs: Triage"]
+labels: "Type: Question, State: Backlogged, Needs: Triage"
 assignees: ''
 ---
 

@@ -3,7 +3,6 @@
   "pagination": "6 v.",
   "subtitle": "compos\u00e9e sur les documents in\u00e9didts et authentiques",
   "title": "Histoire religieuse, politique et litt\u00e9raire de la Compagnie de J\u00e9sus",
-  "notes": "STH Library: has vols. 2-6 only.",
   "languages": ["fre"],
   "publishers": [
     "Librarie Religieuse Mellier Fr\u00e8res",

@@ -1,6 +1,5 @@
 """Generic utilities"""
 
-from urllib import quote_plus
 import re
 
 to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
@@ -8,8 +7,6 @@ to_drop = set(''';/?:@&=+$,<>#%"{}|\\^[]`\n\r''')
 def str_to_key(s):
     return ''.join(c if c != ' ' else '_' for c in s.lower() if c not in to_drop)
 
-def url_quote(s):
-    return quote_plus(s.encode('utf-8')) if s else ''
 
 def finddict(dicts, **filters):
     """Find a dictionary that matches given filter conditions.
@@ -19,7 +16,7 @@ def finddict(dicts, **filters):
         {'x': 1, 'y': 2}
     """
     for d in dicts:
-        if (all(d.get(k) == v for k, v in filters.iteritems())):
+        if (all(d.get(k) == v for k, v in filters.items())):
             return d
 
 re_solr_range = re.compile(r'\[.+\bTO\b.+\]', re.I)
@@ -50,7 +47,7 @@ def dicthash(d):
     """Dictionaries are not hashable. This function converts dictionary into nested tuples, so that it can hashed.
     """
     if isinstance(d, dict):
-        return tuple((k, dicthash(v)) for k, v in d.iteritems())
+        return tuple((k, dicthash(v)) for k, v in d.items())
     elif isinstance(d, list):
         return tuple(dicthash(v) for v in d)
     else:

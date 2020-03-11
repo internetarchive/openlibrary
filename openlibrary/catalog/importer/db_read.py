@@ -1,9 +1,11 @@
 from __future__ import print_function
 import web
 import simplejson as json
-from urllib import urlopen, urlencode
 from time import sleep
-from openlibrary.catalog.read_rc import read_rc
+
+from six.moves.urllib.parse import urlencode
+from six.moves.urllib.request import urlopen
+
 
 staging = False
 
@@ -56,6 +58,13 @@ def get_things(q):
     return read_from_url(url)
 
 def get_mc(key):
+    """
+    Get Machine Comment.
+    Used by:
+      openlibrary/catalog/utils/edit.py
+      openlibrary/catalog/marc/marc_subject.py
+      openlibrary/solr/work_subject.py
+    """
     found = list(db.query('select v from machine_comment where k=$key', {'key': key}))
     return found[0].v if found else None
 

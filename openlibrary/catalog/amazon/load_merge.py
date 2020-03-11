@@ -2,7 +2,9 @@ from __future__ import print_function
 from time import time
 from catalog.marc.MARC21 import MARC21Record
 from catalog.marc.parse import pick_first_date
-import urllib2
+
+from six.moves import urllib
+
 
 entity_fields = ('name', 'birth_date', 'death_date', 'date')
 
@@ -33,8 +35,8 @@ def get_from_archive(locator):
 
     assert 0 < length < 100000
 
-    ureq = urllib2.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
-    result = urllib2.urlopen(ureq).read(100000)
+    ureq = urllib.request.Request(url, None, {'Range':'bytes=%d-%d'% (r0, r1)},)
+    result = urllib.request.urlopen(ureq).read(100000)
     rec = MARC21Record(result)
     return rec
 

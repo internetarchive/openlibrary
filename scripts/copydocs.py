@@ -11,20 +11,22 @@ This script can also be used to copy books and authors from OL to dev instance.
     ./scripts/copydocs.py /authors/OL113592A
     ./scripts/copydocs.py /works/OL1098727W?v=2
 """
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from collections import namedtuple
 
-import _init_path
 import sys
 import os
 import simplejson
 import web
 
-from openlibrary.api import OpenLibrary, marshal, unmarshal
 from optparse import OptionParser
 
 import six
+
+sys.path.insert(0, ".")  # Enable scripts/copydocs.py to be run.
+import scripts._init_path  # noqa: E402,F401
+from openlibrary.api import OpenLibrary, marshal  # noqa: E402
 
 __version__ = "0.2"
 
@@ -280,7 +282,7 @@ def copy_list(src, dest, list_key, comment):
         elif seed['type'] == 'work':
             keys.add(seed['url'])
         elif seed['type'] == 'subject':
-            doc = jsonget(seed['url'] + "/works.json")
+            doc = jsonget(seed['url'] + '.json')
             keys.update(w['key'] for w in doc['works'])
 
     seeds = get_list_seeds(list_key)

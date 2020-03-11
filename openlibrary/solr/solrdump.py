@@ -5,7 +5,7 @@ Glossary:
 
 xwork document:
 
-	A dictionary contains all informatation about a work. It contains the following fields.
+	A dictionary contains all information about a work. It contains the following fields.
 
 	work - The work document
 	editions - The list of edition documents belong to the work

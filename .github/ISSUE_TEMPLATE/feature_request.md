@@ -2,9 +2,8 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: ["Type: Feature", "State: Backlogged", "Needs: Triage"]
+labels: "Type: Feature, State: Backlogged, Needs: Triage"
 assignees: ''
-
 ---
 
 <!-- A clear and concise description of what the problem is. Ex. I'm always frustrated when [...] -->

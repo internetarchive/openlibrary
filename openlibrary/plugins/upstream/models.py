@@ -1,9 +1,10 @@
 from __future__ import print_function
 
-import web
-import urllib2
-import simplejson
+import logging
 import re
+import simplejson
+import web
+
 from collections import defaultdict
 from isbnlib import canonical
 
@@ -17,16 +18,16 @@ from openlibrary.core.models import Image
 from openlibrary.core import lending
 
 from openlibrary.plugins.search.code import SearchProcessor
+from openlibrary.plugins.upstream.utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
+from openlibrary.plugins.upstream import account
+from openlibrary.plugins.upstream import borrow
 from openlibrary.plugins.worksearch.code import works_by_author, sorted_work_editions
+
 from openlibrary.utils.isbn import isbn_10_to_isbn_13, isbn_13_to_isbn_10
 from openlibrary.utils.solr import Solr
 
-from utils import get_coverstore_url, MultiDict, parse_toc, get_edition_config
-import account
-import borrow
-import logging
-
 import six
+from six.moves import urllib
 
 
 def follow_redirect(doc):
@@ -40,6 +41,7 @@ def follow_redirect(doc):
         return web.ctx.site.get(key)
     else:
         return doc
+
 
 class Edition(models.Edition):
 
@@ -95,7 +97,11 @@ class Edition(models.Edition):
         return editions[i - 1]
 
     def get_covers(self):
-        return [Image(self._site, 'b', c) for c in self.covers if c > 0]
+        """
+        This methods excludes covers that are -1 or None, which are in the data
+        but should not be.
+        """
+        return [Image(self._site, 'b', c) for c in self.covers if c and c > 0]
 
     def get_cover(self):
         covers = self.get_covers()
@@ -148,9 +154,9 @@ class Edition(models.Edition):
         if not self.get('ocaid', None):
             meta = {}
         else:
-            meta = ia.get_meta_xml(self.ocaid)
-            meta.setdefault("external-identifier", [])
-            meta.setdefault("collection", [])
+            meta = ia.get_metadata(self.ocaid)
+            meta.setdefault('external-identifier', [])
+            meta.setdefault('collection', [])
 
         self._ia_meta_fields = meta
         return self._ia_meta_fields
@@ -314,7 +320,7 @@ class Edition(models.Edition):
                         name=id.name,
                         label=id.label,
                         value=v,
-                        url=id.get('url') and id.url.replace('@@@', v))
+                        url=id.get('url') and id.url.replace('@@@', v.replace(' ', '')))
 
         for name in names:
             process(name, self[name])
@@ -709,7 +715,7 @@ class Subject(client.Thing):
 
         try:
             url = '%s/b/query?cmd=ids&olid=%s' % (get_coverstore_url(), ",".join(olids))
-            data = urllib2.urlopen(url).read()
+            data = urllib.request.urlopen(url).read()
             cover_ids = simplejson.loads(data)
         except IOError as e:
             print('ERROR in getting cover_ids', str(e), file=web.debug)
