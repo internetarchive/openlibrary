@@ -209,7 +209,8 @@ def run_solr_query(param = {}, rows=100, page=1, sort=None, spellcheck_count=Non
         ('fl', ','.join(fields or [
             'key', 'author_name', 'author_key', 'title', 'subtitle', 'edition_count',
             'ia', 'has_fulltext', 'first_publish_year', 'cover_i', 'cover_edition_key',
-            'public_scan_b', 'lending_edition_s', 'ia_collection_s'])),
+            'public_scan_b', 'lending_edition_s', 'lending_identifier_s',
+            'ia_collection_s'])),
         ('fq', 'type:work'),
         ('q.op', 'AND'),
         ('start', offset),
@@ -361,7 +362,8 @@ def get_doc(doc): # called from work_search template
         has_fulltext = (doc.find("bool[@name='has_fulltext']").text == 'true'),
         public_scan = ((e_public_scan.text == 'true') if e_public_scan is not None else (e_ia is not None)),
         lending_edition = (e_lending_edition.text if e_lending_edition is not None else None),
-        lending_identifier = (e_lending_identifier and e_lending_identifier.text),
+        lending_identifier=(
+            e_lending_identifier.text if e_lending_identifier is not None else None),
         collections = collections,
         authors = authors,
         first_publish_year = first_pub,
