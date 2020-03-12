@@ -231,7 +231,7 @@ function initAvailability() {
                                 if (work.status === 'open' || work.status === 'borrow_available') {
                                     $(cta).append(`<a href="/books/${work.openlibrary_edition}/x/borrow" ` +
                                                   'class="cta-btn cta-btn--available" ' +
-                                                  `data-ol-link-track="CTAClick|Borrow">${
+                                                  `data-ol-link-track="CTAClick|${work.status === 'open' ? 'Read' : ' Borrow'}">${
                                                       work.status === 'open' ? 'Read' : ' Borrow'
                                                   }</a>`);
                                 } else if (work.status === 'borrow_unavailable') {
