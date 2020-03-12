@@ -7,14 +7,14 @@ $ page_size = 50
 $ meta_cover_url = None # Add metatag for image at end of this template, if a cover image is present
 $ meta_description = title
 $if list.description:
-    $ meta_description = meta_description + ": " + list.description
+    $ meta_description = _("%(title)s: %(description)s", title=title, description=list.description)
 
 $var title: $list.name
 
 $add_metatag(property="twitter:card", content="summary")
 $add_metatag(property="twitter:site", content="@openlibrary")
 $add_metatag(property="twitter:title", content=title_with_site)
-$add_metatag(property="twitter:description", content="$_('View the list on Open Library.')")
+$add_metatag(property="twitter:description", content= _("View the list on Open Library."))
 
 $add_metatag(property="og:title", content=title_with_site)
 $add_metatag(property="og:type", content="website")
@@ -98,7 +98,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            $_("Yes, I'm sure"): function() {
                 var list_key = $:json_encode(list.key);
                 var seed_id = "#" + \$(this).data("seed-id");
                 var seed = \$(seed_id).find("span.seed-key").html();
@@ -116,7 +116,7 @@ window.q.push(function(){
                     \$("#remove-seed-dialog").addClass('hidden');
                 });
             },
-            "$_('No, cancel')": function() {
+            $_('No, cancel'): function() {
                 \$(this).dialog("close");
                 \$("#remove-seed-dialog").addClass('hidden');
             }
@@ -129,7 +129,7 @@ window.q.push(function(){
         modal: true,
         resizable: false,
         buttons: {
-            "$_('Yes, I\'m sure')": function() {
+            $_("Yes, I'm sure"): function() {
                 var list_key = $:json_encode(list.key);
                 var _this = this;
 
@@ -138,7 +138,7 @@ window.q.push(function(){
                     window.location.reload();
                 });
             },
-            "$_('No, cancel')": function() {
+            $_('No, cancel'): function() {
                 \$(this).dialog("close");
             }
         }
@@ -205,7 +205,7 @@ window.q.push(function(){
                                     $ authors = seed.document.works[0].get_authors()
                                 $else:
                                     $ authors = seed.document.get_authors()
-                            <div class="author">by $:render_authors(authors)</div>
+                            <div class="author">$:_('by %(name)s', name=render_authors(authors))</div>
                         <span class="meta">
                           <!-- FIXME: I18N using internal seed.type directly for display is not internationalizable -->
                           <span class="type small">$seed.type</span>
@@ -222,8 +222,7 @@ window.q.push(function(){
 
                         $if seed.last_update:
                             <span class="time">
-                                $_('Last updated')
-                                <span>$datestr(seed.last_update)</span>
+                                $:_('Last updated <span>%(date)s</span>', date=datestr(seed.last_update))
                             </span>
                     </span>
                 </span>
@@ -250,7 +249,7 @@ window.q.push(function(){
 
         $:render_template("type/list/exports", list)
 
-        <h3 class="collapse">$_('List Meta')</h3>
+        <h3 class="collapse">$_('List Metadata')</h3>
         <div class="smaller lightgreen sansserif">$_('Derived from seed metadata')</div>
         <br/>
 
@@ -266,10 +265,10 @@ window.q.push(function(){
 
         $ subjects = list.get_subjects()
 
-        $:render_subjects("Subjects", subjects.subjects)
-        $:render_subjects("People", subjects.people)
-        $:render_subjects("Places", subjects.places)
-        $:render_subjects("Times", subjects.times)
+        $:render_subjects(_("Subjects"), subjects.subjects)
+        $:render_subjects(_("People"), subjects.people)
+        $:render_subjects(_("Places"), subjects.places)
+        $:render_subjects(_("Times"), subjects.times)
     </div>
 
     <div class="clearfix"></div>

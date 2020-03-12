@@ -27,7 +27,7 @@ $def with (list)
             <li>
                 <span class="icon alert" style="height:115px;"></span>
                 <span class="smaller grey">
-                $_("Only lists with up to %s editions can be exported. This one has %s.", commify(10000), commify(list.edition_count))
+                $_("Only lists with up to %(max)s editions can be exported. This one has %s(count).", max=commify(10000), count=commify(list.edition_count))
                 <br/><br/>
                 $:_('Try removing some seeds for more focus, or look at <a href="%s">bulk download</a> of the catalog.', "/data#bulk_download")
                 </span><br />&nbsp;

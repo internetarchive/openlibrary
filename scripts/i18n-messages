@@ -26,6 +26,7 @@ def main(cmd):
             'openlibrary/templates/type/author',
             'openlibrary/templates/type/doc',
             'openlibrary/templates/type/edition',
+            'openlibrary/templates/type/list',
             'openlibrary/templates/type/page',
             'openlibrary/templates/type/user',
             'openlibrary/templates/type/work',

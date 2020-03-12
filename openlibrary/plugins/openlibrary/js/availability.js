@@ -134,6 +134,7 @@ function initAvailability() {
                                 .attr('href', `/borrow/ia/${book_ocaid}`);
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--available').addClass(btnClassName)
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Borrow');
                             // since we've found an available edition to
@@ -151,6 +152,7 @@ function initAvailability() {
                                 .attr('title', 'Join waitlist');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('cta-btn--unavailable').addClass(btnClassName);
+                            // FIXME: Hardcoded English text!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Join Waitlist');
                             delete books[book_key];
@@ -168,6 +170,7 @@ function initAvailability() {
                                 .removeClass('borrow-link');
                             $(`${selector}[data-key=${book_key}]`)
                                 .addClass('check-book-availability').addClass(btnClassName);
+                            // FIXME: This is not translatable!
                             $(`${selector}[data-key=${book_key}]`)
                                 .text('Check Availability');
                             delete books[book_key];
