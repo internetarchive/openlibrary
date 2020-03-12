@@ -34,7 +34,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
 
   $elif (availability_status == 'borrow_unavailable'):
     $if waiting_loan:
-        <span data-ol-link-track="leave_waitlist">
+        <span data-ol-link-track="CTAClick|LeaveWaitlist">
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="leave-waitlist waitinglist-form">
             <input type="hidden" name="action" value="leave-waitinglist"/>
             <input type="submit" class="cta-btn cta-btn--missing" id="unwaitlist_ebook" value="Leave Waitlist"/>
@@ -49,7 +49,7 @@ $if availability_status in ['open', 'borrow_available', 'borrow_unavailable']:
         </div>
 
     $else:
-        <span class="borrow_unavailable" data-ol-link-track="borrow_unavailable">
+        <span class="borrow_unavailable" data-ol-link-track="CTAClick|JoinWaitlist">
           <form method="POST" action="$(read_link)?action=join-waitinglist" class="join-waitlist waitinglist-form">
             <input type="hidden" name="action" value="join-waitinglist"/>
             <button type="submit" class="cta-btn cta-btn--unavailable" id="waitlist_ebook">
