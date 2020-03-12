@@ -231,15 +231,15 @@ function initAvailability() {
                                 if (work.status === 'open' || work.status === 'borrow_available') {
                                     $(cta).append(`<a href="/books/${work.openlibrary_edition}/x/borrow" ` +
                                                   'class="cta-btn cta-btn--available" ' +
-                                                  `data-ol-link-track="${work.status}">${
-                                                      work.status === 'open' ? 'Read' : ' Borrow'
+                                                  `data-ol-link-track="CTAClick|${work.status === 'open' ? 'Read' : 'Borrow'}">${
+                                                      work.status === 'open' ? 'Read' : 'Borrow'
                                                   }</a>`);
                                 } else if (work.status === 'borrow_unavailable') {
                                     $(cta).append(`${'<form method="POST" ' +
                                                   'action="/books/'}${work.openlibrary_edition}/x/borrow?action=join-waitinglist" ` +
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
-                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="${work.status}">` +
+                                                  '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">' +
                                                   `Join Waitlist${
                                                       work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
                                                   }</button></form>${

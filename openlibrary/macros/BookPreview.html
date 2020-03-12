@@ -2,7 +2,8 @@ $def with (ocaid, render_floater=True)
 $# :param str ocaid:
 $# :param bool render_floater: whether to render the floater's HTML
 
-<a class="cta-btn cta-btn--shell cta-btn--preview" href="#bookPreview">$_('Preview')</a>
+<a class="cta-btn cta-btn--shell cta-btn--preview"
+   data-ol-link-track="CTAClick|Preview" href="#bookPreview">$_('Preview')</a>
 
 $if render_floater:
   <div class="hidden">
@@ -10,7 +11,7 @@ $if render_floater:
       <div class="book-preview">
         <div class="floaterHead">
           <h2>$_('Preview Book')</h2>
-          <a class="dialog--close" data-key="book_preview" data-ol-link-track="book_preview"
+          <a class="dialog--close" data-key="book_preview"
              title="$_('Close')">&times;<span class="shift">$_("Close")</span></a>
         </div>
         <div class="iframe-container">
