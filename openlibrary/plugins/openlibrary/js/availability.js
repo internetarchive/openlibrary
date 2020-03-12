@@ -239,7 +239,7 @@ function initAvailability() {
                                                   'action="/books/'}${work.openlibrary_edition}/x/borrow?action=join-waitinglist" ` +
                                                   'class="join-waitlist waitinglist-form">' +
                                                   '<input type="hidden" name="action" value="join-waitinglist">' +
-                                                  `<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">` +
+                                                  '<button type="submit" class="cta-btn cta-btn--unavailable" data-ol-link-track="CTAClick|JoinWaitlist">' +
                                                   `Join Waitlist${
                                                       work.num_waitlist !== '0' ? ` <span class="cta-btn__badge">${work.num_waitlist}</span>` : ''
                                                   }</button></form>${
