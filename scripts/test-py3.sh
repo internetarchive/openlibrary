@@ -5,6 +5,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/coverstore/tests/test_webapp.py \
     openlibrary/plugins/admin/tests/test_services.py \
     openlibrary/plugins/books/tests/test_doctests.py \
+    openlibrary/plugins/books/tests/test_dynlinks.py \
     openlibrary/plugins/importapi/tests/test_code_ils.py \
     openlibrary/plugins/importapi/tests/test_import_edition_builder.py \
     openlibrary/plugins/openlibrary/tests/test_borrow_home.py \
@@ -12,6 +13,7 @@ pytest openlibrary/mocks openlibrary/olbase openlibrary/utils scripts/tests \
     openlibrary/plugins/upstream/tests/test_account.py \
     openlibrary/plugins/upstream/tests/test_addbook.py \
     openlibrary/plugins/upstream/tests/test_forms.py \
+    openlibrary/plugins/upstream/tests/test_merge_authors.py \
     openlibrary/plugins/upstream/tests/test_utils.py \
     openlibrary/plugins/worksearch/tests/test_worksearch.py \
     openlibrary/tests/core/test_cache.py \
@@ -55,10 +57,9 @@ pytest openlibrary/coverstore/tests/test_coverstore.py \
     openlibrary/coverstore/tests/test_doctests.py || true
 
 # plugins: All failing tests run in allow failures (|| true) mode
-pytest openlibrary/plugins/books/tests/test_dynlinks.py \
+pytest \
     openlibrary/plugins/openlibrary/tests/test_home.py \
     openlibrary/plugins/openlibrary/tests/test_stats.py \
-    openlibrary/plugins/upstream/tests/test_merge_authors.py \
     openlibrary/plugins/upstream/tests/test_related_carousels.py || true
 
 # openlibrary/tests: All failing tests run in allow failures (|| true) mode
