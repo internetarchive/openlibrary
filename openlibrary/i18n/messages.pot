@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 00:36-0400\n"
+"POT-Creation-Date: 2020-03-13 01:01-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2791,9 +2791,10 @@ msgid "Enjoy!"
 msgstr ""
 
 #: home.html:20
+#, python-format
 msgid ""
 "For the top 2000+ most requested eBooks in California for the print "
-"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here"
+"disabled <a href=\"%(url)s\">click here</a>."
 msgstr ""
 
 #: home.html:24

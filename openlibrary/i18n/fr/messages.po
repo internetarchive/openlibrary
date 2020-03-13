@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-13 00:36-0400\n"
+"POT-Creation-Date: 2020-03-13 01:01-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -2944,7 +2944,7 @@ msgstr[1] "%(name)s avez %(count)s listes."
 msgid "This subject is on <strong>1 list</strong>."
 msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] "Ce sujet figure sur <strong>1 liste</strong>."
-msgstr[1] "Ce sujet figure sur <strong>%s listes</strong>."
+msgstr[1] "Ce sujet figure sur <strong>%(count)s listes</strong>."
 
 #: header.html:86
 msgid "Hm. Can't find it."
@@ -2971,12 +2971,13 @@ msgid "Enjoy!"
 msgstr "Prendre plaisir!"
 
 #: home.html:20
+#, python-format
 msgid ""
 "For the top 2000+ most requested eBooks in California for the print "
-"disabled <a href=\"../people/sionnac/lists/OL25152L\">click here"
+"disabled <a href=\"%(url)s\">click here</a>."
 msgstr ""
 "Pour les 2000+ eBooks pour les aveugles les plus demandés en Californie "
-"<a href=\"../people/sionnac/lists/OL25152L\">cliquez ici"
+"<a href=\"%(url)\">cliquez ici</a>."
 
 #: home.html:24
 msgid "Find a list by name"
@@ -4737,6 +4738,32 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "<u>Or</u></span>, paste in a URL to an image if it's on the web."
 #~ msgstr "<u>Ou</u></span>, collez une URL vers l'image si elle est sur le web."
 
+#~ msgid "Are you sure you want to remove this item from the list?"
+#~ msgstr "Êtes-vous sûr de vouloir supprimer cette article de la liste?"
+
+#~ msgid "Remove Seed"
+#~ msgstr "Supprimer cette article"
+
+#~ msgid ""
+#~ "You are about the remove the last"
+#~ " item in the list. That will "
+#~ "delete the whole list. Are you "
+#~ "sure you want to continue?"
+#~ msgstr ""
+#~ "Vous êtes sur le point de "
+#~ "supprimer le dernier élément de la "
+#~ "liste. Cela supprimera letoute la liste."
+#~ " Êtes-vous sûr de vouloir continuer?"
+
+#~ msgid "- <a href=\"$seed.document.works[0].url()\">1 edition</a> in catalog"
+#~ msgid_plural ""
+#~ "- <a href=\"$seed.document.works[0].url()\">%(count)s "
+#~ "editions</a> in catalog"
+#~ msgstr[0] "- <a href=\"$seed.document.works[0].url()\">1 édition</a> en catalogue"
+#~ msgstr[1] ""
+#~ "- <a href=\"$seed.document.works[0].url()\">%(count)s "
+#~ "éditions</a> en catalogue"
+
 #~ msgid ""
 #~ "This user has chosen to publicly "
 #~ "share the books they are <a "
@@ -4779,66 +4806,3 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ " pour ce livre. Pouvez-vous <b><a "
 #~ "href='%s'> en ajouter un?</a></b>"
 
-#~ msgid "First published in %s"
-#~ msgstr "Première publication en %(year)s"
-
-#~ msgid "By"
-#~ msgstr "par"
-
-#~ msgid "Page"
-#~ msgstr "De la page"
-
-#~ msgid "added by %s"
-#~ msgstr "Ajouteé par %s"
-
-#~ msgid "(outside Open Library)"
-#~ msgstr "(au dehors d'Open Library)"
-
-#~ msgid "%d book"
-#~ msgid_plural "%d books"
-#~ msgstr[0] "%d livre"
-#~ msgstr[1] "%d livres"
-
-#~ msgid "Imported from"
-#~ msgstr ""
-
-#~ msgid "Created %s"
-#~ msgstr "%s créé"
-
-#~ msgid "Science"
-#~ msgstr "Science"
-
-#~ msgid "Biographies"
-#~ msgstr "Biographies"
-
-#~ msgid "Sci-Fi"
-#~ msgstr "Science-fiction"
-
-#~ msgid "Fantasy"
-#~ msgstr "Fantasy"
-
-#~ msgid "More Subjects"
-#~ msgstr "Plus de genres"
-
-#~ msgid "Reading Lists"
-#~ msgstr "Listes de lecture"
-
-#~ msgid "%s work"
-#~ msgid_plural "%s works"
-#~ msgstr[0] "%s œuvre"
-#~ msgstr[1] "%s œuvres"
-
-#~ msgid "%s ebook"
-#~ msgid_plural "%s ebooks"
-#~ msgstr[0] "%s livre électronique"
-#~ msgstr[1] "%s livres électroniques"
-
-#~ msgid "%s book"
-#~ msgid_plural "%s books"
-#~ msgstr[0] "%s livre"
-#~ msgstr[1] "%s livres"
-
-#~ msgid "%s edition"
-#~ msgid_plural "%s editions"
-#~ msgstr[0] "%s édition"
-#~ msgstr[1] "%s éditions"
