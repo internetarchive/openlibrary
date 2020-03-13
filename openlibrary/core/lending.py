@@ -130,8 +130,8 @@ def compose_ia_url(limit=None, page=1, subject=None, query=None, work_id=None,
     (backed by archive.org search, so we don't have to send users to
     archive.org to see more books)
     """
-    from openlibrary.core.search import PRESET_QUERIES
-    query = PRESET_QUERIES.get(query, query)
+    from openlibrary.core.ia import IAEditionSearch
+    query = IAEditionSearch.PRESET_QUERIES(query, query)
     q = 'openlibrary_work:(*)'
 
     # If we don't provide an openlibrary_subject and no collection is
