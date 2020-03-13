@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-12 22:31-0400\n"
+"POT-Creation-Date: 2020-03-13 00:36-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -176,7 +176,7 @@ msgstr "Champ obligatoire"
 msgid "About"
 msgstr "À propos"
 
-#: edit.html:44 edit.html:110 view.html:171
+#: edit.html:44 edit.html:110
 msgid "Links"
 msgstr "Liens"
 
@@ -237,7 +237,7 @@ msgstr "Supprimer l'enregistrement"
 msgid "name missing"
 msgstr "nom manquant"
 
-#: view.html:12 view.html:47
+#: view.html:11 view.html:47
 #, python-format
 msgid "%(page_title)s | Open Library"
 msgstr "%(page_title)s | Open Library"
@@ -251,7 +251,7 @@ msgstr "Auteur de %(book_titles)s"
 msgid "Merging Authors..."
 msgstr "Fusion d'auteurs en cours..."
 
-#: view.html:92
+#: editions2.html:31 view.html:92
 msgid "Duplicates"
 msgstr "Doublons"
 
@@ -289,7 +289,8 @@ msgstr "Site web"
 msgid "Location"
 msgstr "Emplacement"
 
-#: authors.html:117 openlibrary/templates/subjects.html:19 view.html:134
+#: authors.html:117 openlibrary/templates/subjects.html:19 view.html:17
+#: view.html:134
 #, python-format
 msgid "1 work"
 msgid_plural "%(count)d works"
@@ -348,20 +349,20 @@ msgstr ""
 " </a> de cet auteur?"
 
 #: nav_foot.html:27 nav_head.html:72 openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:123 view.html:137 view.html:190
-#: view.html:278 view.html:279
+#: openlibrary/templates/work_search.html:123 view.html:136 view.html:190
+#: view.html:279
 msgid "Subjects"
 msgstr "Thèmes"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:125 view.html:139 view.html:191
-#: view.html:280 view.html:281
+#: openlibrary/templates/work_search.html:125 view.html:138 view.html:191
+#: view.html:281
 msgid "Places"
 msgstr "Lieux"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:124 view.html:138 view.html:192
-#: view.html:279 view.html:280
+#: openlibrary/templates/work_search.html:124 view.html:137 view.html:192
+#: view.html:280
 msgid "People"
 msgstr "Personnes"
 
@@ -404,7 +405,7 @@ msgstr[1] ""
 "<a href=\"%(url)s\"><strong>%(count)d éditions</strong></a> de <strong "
 "class=\"booktitle\">%(title)s</strong> trouvé dans le catalogue."
 
-#: editions.html:14 view.html:162
+#: view.html:162
 msgid "Add another edition of"
 msgstr "Ajouter un autre édition de "
 
@@ -430,29 +431,30 @@ msgstr "Publiés"
 
 #: view.html:248
 #, python-format
-msgid "Show for other books from %s"
-msgstr "Montrer les autres livres de %s"
+msgid "Show other books from %(publisher)s"
+msgstr "Montrer les autres livres de %(publisher)s"
 
 #: view.html:250
-msgid "Search for other books from"
-msgstr "Chercher d'autres livres de"
+#, python-format
+msgid "Search for other books from %(publisher)s"
+msgstr "Chercher d'autres livres de %(publisher)s"
 
 #: view.html:253
 msgid "in"
 msgstr "en"
 
 #: view.html:255
-msgid "Search for subjects about"
-msgstr "Chercher à propos de"
+#, python-format
+msgid "Search for subjects about %(place)s"
+msgstr "Chercher à propos de %(place)s"
 
 #: view.html:263
 #, python-format
-msgid "Written in %(lang)s"
-msgstr "Écrit en %(lang)s"
+msgid "Written in %(language)s"
+msgstr "Écrit en %(language)s"
 
 #: openlibrary/templates/subjects.html:9
-#: openlibrary/templates/work_search.html:126 view.html:140 view.html:281
-#: view.html:282
+#: openlibrary/templates/work_search.html:126 view.html:139 view.html:282
 msgid "Times"
 msgstr "Dates"
 
@@ -460,20 +462,20 @@ msgstr "Dates"
 msgid "About the Edition"
 msgstr "À propos de l'édition"
 
-#: view.html:116 view.html:291
+#: view.html:115 view.html:291
 msgid "About the Book"
 msgstr "À propos du livre"
 
-#: view.html:295
+#: view.html:107 view.html:295
 #, python-format
 msgid ""
-"There's no description for this book yet. Can you <b><a href='%s'>add "
-"one</a></b>?"
+"There's no description for this book yet. Can you <b><a "
+"href='%(url)s'>add one</a></b>?"
 msgstr ""
 "Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
 "href='%s'> en ajouter un?</a></b>"
 
-#: view.html:113 view.html:298
+#: view.html:112 view.html:298
 msgid "First Sentence"
 msgstr "Première phrase"
 
@@ -513,7 +515,7 @@ msgstr "Traduction de"
 msgid "Translated From"
 msgstr "Traduit de"
 
-#: edit/edition.html:522 view.html:183 view.html:340
+#: edit/edition.html:522 view.html:182 view.html:340
 msgid "Classifications"
 msgstr "Classifications"
 
@@ -798,6 +800,12 @@ msgstr "Emprunts"
 msgid "admin page"
 msgstr "page admin"
 
+#: books.html:86 home.html:7 home.html:10 lists.html:10 nav_head.html:48
+#: nav_head.html:73 search_head.html:70 view.html:31 view.html:60
+#: widget.html:234
+msgid "Lists"
+msgstr "Listes"
+
 #: books.html:50 books.html:73 view.html:46
 msgid "Reading Log"
 msgstr "Journal de lecture"
@@ -831,29 +839,56 @@ msgstr "Activité récente"
 msgid "No edits. Yet."
 msgstr "Pas encore des modifications."
 
-#: editions.html:11
+#: editions.html:11 editions_datatable.html:10
 #, python-format
-msgid "First published in %s"
+msgid "First published in %(year)s"
 msgstr "Première publication en %(year)s"
+
+#: editions.html:14
+#, python-format
+msgid "Add another edition of %(work)s"
+msgstr "Ajoutez une autre édition de %(work)s"
 
 #: editions.html:14 editions_datatable.html:13
 #: openlibrary/macros/UserEditRow.html:25
 msgid "Add another"
 msgstr "Ajouter une autre"
 
+#: editions.html:17
+msgid "Merge duplicates"
+msgstr "Fusionner les oublons"
+
+#: editions.html:27
+#, python-format
+msgid "Cover of: %(title)s"
+msgstr "Couverture de %(title)s"
+
+#: editions.html:36
+msgid "Publish date unknown"
+msgstr "Date de publication inconnue"
+
+#: edition-sort.html:58 editions.html:38 works-show.html:30
+msgid "Publisher unknown"
+msgstr "Éditeur inconnu"
+
+#: editions.html:43
+msgid "Title missing"
+msgstr "Titre manquant"
+
+#: editions.html:47
+#, python-format
+msgid "in %(language)s"
+msgstr "en %(language)s"
+
 #: authors.html:110 check.html:36 editions_datatable.html:8
-#: openlibrary/macros/SearchResultsWork.html:42 preview.html:24 view.html:28
-#: view.html:71
+#: openlibrary/macros/SearchResultsWork.html:42
+#: openlibrary/templates/subjects.html:128 preview.html:24 view.html:27
+#: view.html:70 view.html:161
 #, python-format
 msgid "1 edition"
 msgid_plural "%(count)s editions"
 msgstr[0] "1 édition"
 msgstr[1] "%(count)s édition"
-
-#: editions_datatable.html:10
-#, python-format
-msgid "First published in %(year)s"
-msgstr "Première publication en %(year)s"
 
 #: editions_datatable.html:13
 #, python-format
@@ -872,100 +907,95 @@ msgstr "Localiser"
 msgid "Merge editions"
 msgstr "Fusionner les éditions"
 
-#: edition-sort.html:44 view.html:22
+#: edition-sort.html:44 view.html:21
 #, python-format
 msgid "%(title)s: %(subtitle)s"
 msgstr "%(title)s: %(subtitle)s"
 
-#: view.html:24
+#: view.html:23
 #, python-format
 msgid "%(title)s by %(authorlist)s"
 msgstr "%(title)s par %(authorlist)s"
 
-#: check.html:38 view.html:31
+#: check.html:38 view.html:30
 #, python-format
 msgid "First published in %(year)d"
 msgstr "Première publication en %(year)d"
 
-#: view.html:35
+#: view.html:34
 #, python-format
 msgid "Subjects: %(subjectlist)s"
 msgstr "Sujets: %(subjectlist)s"
 
-#: view.html:37
+#: view.html:36
 #, python-format
 msgid "Places: %(placelist)s"
 msgstr "Places: %(placelist)s"
 
-#: view.html:39
+#: view.html:38
 #, python-format
 msgid "People: %(peoplelist)s"
 msgstr "Gens: %(peoplelist)s"
 
-#: view.html:41
+#: view.html:40
 #, python-format
 msgid "Times: %(timelist)s"
 msgstr "Dates: %(timelist)s"
 
-#: view.html:58
+#: view.html:57
 msgid "Add to Staff Picks"
 msgstr "Ajouter à la liste \"Staff Picks\""
 
-#: view.html:77
-msgid "By"
-msgstr "par"
+#: view.html:76
+#, python-format
+msgid "By %(author_list)s"
+msgstr "par %(authorlist)s"
 
-#: view.html:79
+#: view.html:78
 msgid "By <em>unknown author</em>"
-msgstr "Auteur inconnu"
+msgstr "Par <em>auteur inconnu</em>"
 
-#: view.html:83
+#: view.html:82
 msgid "Go to the editions section to read or download ebooks"
 msgstr "Accédez à la section des éditions pour lire ou télécharger des ebooks"
 
-#: view.html:108
-#, python-format
-msgid ""
-"There's no description for this book yet. Can you <b><a "
-"href='%(url)s'>add one</a></b>?"
-msgstr ""
-"Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
-"href='%s'> en ajouter un?</a></b>"
-
-#: view.html:120
+#: view.html:119
 msgid "Original languages"
 msgstr "Langues d'origine"
 
-#: view.html:144
+#: view.html:143
 msgid "Excerpts"
 msgstr "Extraits"
 
-#: view.html:153
-msgid "Page"
-msgstr "De la page"
-
-#: view.html:160
+#: view.html:152
 #, python-format
-msgid "added by %s."
-msgstr "ajouteé par %s"
+msgid "Page %(page)s"
+msgstr "Page %(page)s"
 
-#: view.html:162
-msgid "added anonymously"
-msgstr "ajouteé anonymement"
+#: view.html:159
+#, python-format
+msgid "added by %(author_links)s."
+msgstr "Modifié par %(author_link)s."
 
-#: view.html:171
-msgid "(outside Open Library)"
-msgstr "(au dehors d'Open Library)"
+#: view.html:161
+msgid "added anonymously."
+msgstr "Ajouteé anonymement."
 
-#: view.html:174
+#: view.html:170
+msgid "Links <span class=\"gray small sansserif\">outside Open Library</span>"
+msgstr ""
+"Liens <span class=\"gray small sansserif\">(en dehors d'Open "
+"Library)</span>"
+
+#: view.html:173
 msgid "Wikipedia"
 msgstr "Wikipédia"
 
-#: view.html:186
+#: view.html:185
 msgid "Library of Congress"
 msgstr "Bibliothèque du Congrès"
 
-#: view.html:189
+#: view.html:188
 msgid "Dewey"
 msgstr "Dewey"
 
@@ -1076,8 +1106,9 @@ msgid "1 Current Loan"
 msgstr "1 emprunt en cours"
 
 #: borrow.html:85
-msgid "Current Loans"
-msgstr "emprunts en cours"
+#, python-format
+msgid "%(count)d Current Loans"
+msgstr "%(count)d emprunts en cours"
 
 #: borrow.html:87
 msgid "Loan Expires"
@@ -1106,6 +1137,42 @@ msgstr "Télécharger maintenant"
 msgid "Return via<br/>Adobe Digital Editions"
 msgstr "Retour via<br/>Adobe Digital Editions"
 
+#: borrow.html:140
+msgid "How To Return eBooks through Adobe Digital Editions"
+msgstr ""
+
+#: borrow.html:142
+msgid "Open Adobe Digital Editions"
+msgstr "Ouvrir Adobe Digital Editions"
+
+#: borrow.html:143
+msgid "Click the Library icon at the upper left corner"
+msgstr "Cliquez sur l'icône Bibliothèque dans le coin supérieur gauche"
+
+#: borrow.html:144
+msgid "Move your mouse over the cover of the eBook you wish to return"
+msgstr ""
+"Déplacez votre souris sur la couverture de l'eBook que vous souhaitez "
+"retourner"
+
+#: borrow.html:145
+msgid "Find the arrow at the upper left of the cover and open the eBook menu"
+msgstr ""
+"Trouvez la flèche en haut à gauche de la couverture et ouvrez le menu "
+"eBook"
+
+#: borrow.html:146
+msgid "Click \"Return Borrowed Item\""
+msgstr ""
+
+#: borrow.html:147
+msgid "Click \"Return\" to confirm"
+msgstr ""
+
+#: borrow.html:148
+msgid "Done!"
+msgstr "Fini!"
+
 #: borrow.html:153
 msgid "Books You're Waiting For"
 msgstr "Livres que vous attendez"
@@ -1126,12 +1193,13 @@ msgstr ""
 "Voulez-vous vraiment supprimer les <strong>%(title)s</strong> de votre "
 "liste?"
 
-#: borrow.html:176
+#: authors.html:66 borrow.html:176 openlibrary/templates/subjects.html:95
+#: subjects.html:89 view.html:131
 #, python-format
-msgid "%d book"
-msgid_plural "%d books"
-msgstr[0] "%d livre"
-msgstr[1] "%d livres"
+msgid "1 book"
+msgid_plural "%(count)d books"
+msgstr[0] "1 livre"
+msgstr[1] "%(count)s livres"
 
 #: borrow.html:178
 msgid "Status"
@@ -1143,10 +1211,10 @@ msgstr "Actions sur l'emprunt"
 
 #: borrow.html:201
 #, python-format
-msgid "Waiting for %d day"
-msgid_plural "Waiting for %d days"
-msgstr[0] "En attente depuis %d jour"
-msgstr[1] "En attente depuis %d jours"
+msgid "Waiting for 1 day"
+msgid_plural "Waiting for %(count)d days"
+msgstr[0] "En attente depuis 1 jour"
+msgstr[1] "En attente depuis %(count)d jours"
 
 #: borrow.html:208
 msgid "You are the next person to receive this book."
@@ -1681,22 +1749,23 @@ msgstr ""
 #: edit.html:72
 #, python-format
 msgid ""
-"<p class=\"alert thanks\">We already know about <b>%s</b>, but not the "
-"<b>%s %s edition</b>. Thanks! Do you know any more about this "
-"edition?</p>"
+"<p class=\"alert thanks\">We already know about <b>%(work_title)s</b>, "
+"but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know "
+"any more about this edition?</p>"
 msgstr ""
-"<p class=\"alert thanks\">Nous connaissons déjà <b>%s</b>, mais pas "
-"l'<b>édition %s %s</b>. Merci! Que connaissez-vous de plus sur cette "
-"édition?</p>"
+"<p class=\"alert thanks\">Nous connaissons déjà <b>%(work_title)s</b>, "
+"mais pas l'<b>édition %(year)s %(publisher)s</b>. Merci! Que connaissez-"
+"vous de plus sur cette édition?</p>"
 
 #: edit.html:75
 #, python-format
 msgid ""
-"<p class=\"alert info\">We already know about the <b>%s %s edition</b> of"
-" <b>%s</b>, but please, tell us more!</p>"
+"<p class=\"alert info\">We already know about the <b>%(year)s "
+"%(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us "
+"more!</p>"
 msgstr ""
-"<p class=\"alert info\">Nous connaissons déjà l'<b>édition %s %s</b> de "
-"<b>%s</b> mais dites-nous en plus!</p>"
+"<p class=\"alert info\">Nous connaissons déjà l'<b>édition %(year)s "
+"%(publisher)s</b> de <b>%(work_title)s</b> mais dites-nous en plus!</p>"
 
 #: edit.html:77
 msgid "Editing..."
@@ -1732,27 +1801,23 @@ msgstr "Supprimer ce livre?"
 
 #: edition-sort.html:56
 #, python-format
-msgid "Publish date unknown, %s"
-msgstr "Date de publication inconnue, %s"
-
-#: edition-sort.html:58 works-show.html:30
-msgid "Publisher unknown"
-msgstr "Éditeur inconnu"
+msgid "Publish date unknown, %(publisher)s"
+msgstr "Date de publication inconnue, %(publisher)s"
 
 #: edition-sort.html:66
 #, python-format
 msgid "in %(languagelist)s"
 msgstr "en %(languagelist)s"
 
-#: edition-sort.html:92 openlibrary/macros/LoanStatus.html:91
+#: edition-sort.html:93 openlibrary/macros/LoanStatus.html:91
 msgid "Not in Library"
 msgstr "Pas dans la bibliothèque"
 
-#: edition-sort.html:103
+#: edition-sort.html:104
 msgid "Libraries near you:"
 msgstr "Bibliothèques près de chez vous:"
 
-#: edition-sort.html:107
+#: edition-sort.html:108
 msgid "Look for this edition at WorldCat"
 msgstr "Recherchez cette édition sur WorldCat"
 
@@ -2272,7 +2337,13 @@ msgid "Finished"
 msgstr "Terminer"
 
 #: comment.html:26
-msgid "Imported from"
+#, python-format
+msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
+msgstr ""
+
+#: comment.html:28
+#, python-format
+msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
 msgstr ""
 
 #: comment.html:35
@@ -2428,15 +2499,15 @@ msgstr "Ce document a été modifié pour la dernière fois par"
 msgid "This doc was last edited anonymously"
 msgstr "Ce document a été modifié pour la dernière fois anonymement"
 
-#: history.html:20 openlibrary/macros/databarView.html:28
-#: openlibrary/macros/databarView.html:30
+#: history.html:20 openlibrary/macros/databarView.html:29
+#: openlibrary/macros/databarView.html:31
 msgid "History"
 msgstr "Historique"
 
 #: history.html:24
 #, python-format
-msgid "Created %s"
-msgstr "%s créé"
+msgid "Created %(date)s"
+msgstr "Créé le %(date)s"
 
 #: history.html:31
 #, python-format
@@ -2472,13 +2543,13 @@ msgstr "un utilisateur anonyme"
 
 #: history.html:94
 #, python-format
-msgid "Created by %s"
-msgstr "Créé par %s"
+msgid "Created by %(user)s"
+msgstr "Créé par %(user)s"
 
 #: history.html:96
 #, python-format
-msgid "Edited by %s"
-msgstr "Modifié par %s"
+msgid "Edited by %(user)s"
+msgstr "Modifié par %(user)s"
 
 #: markdown.html:16
 msgid ""
@@ -2871,7 +2942,7 @@ msgstr[1] "%(name)s avez %(count)s listes."
 #: header.html:59
 #, python-format
 msgid "This subject is on <strong>1 list</strong>."
-msgid_plural "This subject is on <strong>%s lists</strong>."
+msgid_plural "This subject is on <strong>%(count)s lists</strong>."
 msgstr[0] "Ce sujet figure sur <strong>1 liste</strong>."
 msgstr[1] "Ce sujet figure sur <strong>%s listes</strong>."
 
@@ -3094,7 +3165,7 @@ msgstr "S'il vous plaît soyez prudente"
 msgid "<b>Are you sure</b> you want to merge these records?"
 msgstr "<b>Êtes-vous sûr</b> de vouloir fusionner des enregistrements?"
 
-#: authors.html:79
+#: authors.html:79 editions2.html:23
 msgid "Master"
 msgstr ""
 
@@ -3124,8 +3195,16 @@ msgstr "Aucune édition sélectionnée"
 
 #: editions2.html:10
 #, python-format
-msgid "Merging %d editions of"
-msgstr "Fusionner %d les éditions de"
+msgid "Merging %(count)d editions of"
+msgstr "Fusionner %(count)d les éditions de"
+
+#: editions2.html:43
+msgid "Merge Preview"
+msgstr ""
+
+#: editions2.html:45
+msgid "Please review the merged values before saving."
+msgstr ""
 
 #: history.html:8 history.html:12
 msgid "Merge History"
@@ -3137,26 +3216,19 @@ msgstr "Éditeurs"
 
 #: notfound.html:13
 #, python-format
-msgid "We couldn't find any books published by %s."
-msgstr "Nous n'avons trouvé aucun livre publié par %s."
+msgid "We couldn't find any books published by %(publisher)s."
+msgstr "Nous n'avons trouvé aucun livre publié par %(publisher)s."
 
 #: notfound.html:15
 msgid "Try something else?"
 msgstr "Essayez autre chose?"
 
-#: view.html:17
-#, python-format
-msgid "%s work"
-msgid_plural "%s works"
-msgstr[0] "%s œuvre"
-msgstr[1] "%s œuvres"
-
 #: view.html:19
 #, python-format
-msgid "%s ebook"
-msgid_plural "%s ebooks"
-msgstr[0] "%s livre électronique"
-msgstr[1] "%s livres électroniques"
+msgid "1 ebook"
+msgid_plural "%(count)s ebooks"
+msgstr[0] "1 ebook"
+msgstr[1] "%(count)s ebookss"
 
 #: openlibrary/templates/subjects.html:44 view.html:32
 msgid "Publishing History"
@@ -3214,13 +3286,6 @@ msgstr "Aucun sujet n'a été trouvé."
 msgid "See more books by, and learn about, this author"
 msgstr "Voir plus de livres de cet auteur et en apprendre plus"
 
-#: openlibrary/templates/subjects.html:95 publishers.html:29 view.html:131
-#, python-format
-msgid "%s book"
-msgid_plural "%s books"
-msgstr[0] "%s livre"
-msgstr[1] "%s livres"
-
 #: view.html:136
 msgid "published most by this publisher"
 msgstr "surtout publiés par cet éditeur"
@@ -3228,13 +3293,6 @@ msgstr "surtout publiés par cet éditeur"
 #: openlibrary/templates/subjects.html:126 view.html:159
 msgid "Get more information about this publisher"
 msgstr "Voir plus d'informations sur cet éditeur"
-
-#: openlibrary/templates/subjects.html:128 view.html:161
-#, python-format
-msgid "%s edition"
-msgid_plural "%s editions"
-msgstr[0] "%s édition"
-msgstr[1] "%s éditions"
 
 #: header.html:31 index.html:7 index.html:13
 msgid "Recent Changes"
@@ -3317,13 +3375,6 @@ msgstr[1] "%(count)s résultats"
 #: authors.html:39
 msgid "No hits"
 msgstr "Aucun résultat"
-
-#: authors.html:66 subjects.html:89
-#, python-format
-msgid "1 book"
-msgid_plural "%(count)s books"
-msgstr[0] "%(count)s livre"
-msgstr[1] "%(count)s livres"
 
 #: authors.html:76
 #, python-format
@@ -3429,8 +3480,8 @@ msgstr "Voir"
 msgid "or"
 msgstr "ou"
 
-#: openlibrary/macros/databarHistory.html:16
-#: openlibrary/macros/databarView.html:16 openlibrary/templates/account.html:21
+#: openlibrary/macros/databarHistory.html:17
+#: openlibrary/macros/databarView.html:17 openlibrary/templates/account.html:21
 msgid "Edit"
 msgstr "Modifier"
 
@@ -3557,8 +3608,8 @@ msgstr ""
 
 #: openlibrary/templates/notfound.html:7
 #, python-format
-msgid "%s is not found"
-msgstr "%s introuvable"
+msgid "%(path)s is not found"
+msgstr "%(path)s introuvable"
 
 #: openlibrary/templates/notfound.html:14
 msgid "404 - Page Not Found"
@@ -3566,12 +3617,16 @@ msgstr "404 — Page introuvable"
 
 #: openlibrary/templates/notfound.html:18
 #, python-format
-msgid "%s does not exist."
-msgstr "%s n'existe pas."
+msgid "%(path)s does not exist."
+msgstr "%(path)s n'existe pas."
 
 #: openlibrary/templates/notfound.html:22
 msgid "Create it?"
 msgstr "Le créer?"
+
+#: openlibrary/templates/notfound.html:26
+msgid "Looking for a template/macro?"
+msgstr ""
 
 #: openlibrary/templates/permission_denied.html:10
 msgid "Permission denied."
@@ -3715,14 +3770,14 @@ msgstr "moins"
 msgid "Edit this template"
 msgstr "Modifier cette template"
 
-#: openlibrary/macros/databarHistory.html:21
-#: openlibrary/macros/databarView.html:24
+#: openlibrary/macros/databarHistory.html:22
+#: openlibrary/macros/databarView.html:25
 #, python-format
 msgid "Last edited by %(author_link)s"
 msgstr "Modifié par %(author_link)s"
 
-#: openlibrary/macros/databarHistory.html:23
-#: openlibrary/macros/databarView.html:26
+#: openlibrary/macros/databarHistory.html:24
+#: openlibrary/macros/databarView.html:27
 msgid "Last edited anonymously"
 msgstr "Modifié anonymement"
 
@@ -4707,3 +4762,83 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 
 #~ msgid "Only letters and numbers, please, and at least 3 characters."
 #~ msgstr "Uniquement des lettres et des chiffres, et au moins 3 caractères."
+
+#~ msgid ""
+#~ "Your URL: https://openlibrary.org/people/<span "
+#~ "id=\"userUrl\">screenname</span>"
+#~ msgstr ""
+#~ "Votre URL: https://openlibrary.org/people/<span "
+#~ "id=\"userUrl\">screenname</span>"
+
+#~ msgid ""
+#~ "There's no description for this book "
+#~ "yet. Can you <b><a href='%s'>add "
+#~ "one</a></b>?"
+#~ msgstr ""
+#~ "Il n'y a pas encore de description"
+#~ " pour ce livre. Pouvez-vous <b><a "
+#~ "href='%s'> en ajouter un?</a></b>"
+
+#~ msgid "First published in %s"
+#~ msgstr "Première publication en %(year)s"
+
+#~ msgid "By"
+#~ msgstr "par"
+
+#~ msgid "Page"
+#~ msgstr "De la page"
+
+#~ msgid "added by %s"
+#~ msgstr "Ajouteé par %s"
+
+#~ msgid "(outside Open Library)"
+#~ msgstr "(au dehors d'Open Library)"
+
+#~ msgid "%d book"
+#~ msgid_plural "%d books"
+#~ msgstr[0] "%d livre"
+#~ msgstr[1] "%d livres"
+
+#~ msgid "Imported from"
+#~ msgstr ""
+
+#~ msgid "Created %s"
+#~ msgstr "%s créé"
+
+#~ msgid "Science"
+#~ msgstr "Science"
+
+#~ msgid "Biographies"
+#~ msgstr "Biographies"
+
+#~ msgid "Sci-Fi"
+#~ msgstr "Science-fiction"
+
+#~ msgid "Fantasy"
+#~ msgstr "Fantasy"
+
+#~ msgid "More Subjects"
+#~ msgstr "Plus de genres"
+
+#~ msgid "Reading Lists"
+#~ msgstr "Listes de lecture"
+
+#~ msgid "%s work"
+#~ msgid_plural "%s works"
+#~ msgstr[0] "%s œuvre"
+#~ msgstr[1] "%s œuvres"
+
+#~ msgid "%s ebook"
+#~ msgid_plural "%s ebooks"
+#~ msgstr[0] "%s livre électronique"
+#~ msgstr[1] "%s livres électroniques"
+
+#~ msgid "%s book"
+#~ msgid_plural "%s books"
+#~ msgstr[0] "%s livre"
+#~ msgstr[1] "%s livres"
+
+#~ msgid "%s edition"
+#~ msgid_plural "%s editions"
+#~ msgstr[0] "%s édition"
+#~ msgstr[1] "%s éditions"

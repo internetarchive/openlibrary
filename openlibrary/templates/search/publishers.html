@@ -22,8 +22,7 @@ $def with (q, result)
                 <a href="$p.key">$p.name</a>
 
                 <span class="count">
-                    $ pattern = ungettext("%s book", "%s books", p.count)
-                    <b>$sprintf(pattern, commify(p.count))</b>
+                    <b>ungettext("1 book", "%(count)s books", p.count, count=commify(p.count))</b>
                 </span>
             </li>
     </ul>

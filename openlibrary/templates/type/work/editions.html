@@ -4,13 +4,13 @@ $def with (page)
     <h2>
     $commify(page.edition_count) editions
     $if page.first_publish_year:
-        <span class="count">$_("First published in %s", page.first_publish_year)</span>
+        <span class="count">$_("First published in %(year)s", year=page.first_publish_year)</span>
     -
     <span class="count">
-        <a href="/books/add?work=$page.key" title="$_('Add another edition of') $page.title">$_("Add another")</a>
+        <a href="/books/add?work=$page.key" title="$_('Add another edition of %(work)s', work=page.title)">$_("Add another")</a>
     </span>
 
-    | <span class="count fixthis"><a href="#">Merge duplicates</a>
+    | <span class="count fixthis"><a href="#">$_("Merge duplicates")</a>
     </h2>
 </div>
 
@@ -18,7 +18,7 @@ $def render_edition():
     <td class="book">
         <span class="hidden count"></span>
         <div class="cover">
-            <a href="$book.url()"><img src="$url" alt="Cover of: $book.title" title="Cover of: $book.title"/></a>
+            <a href="$book.url()"><img src="$url" alt="$_('Cover of: %(title)s', title=book.title)" title="$_('Cover of: %(title)s', title=book.title)"/></a>
         </div>
         <div class="title">
             <div class="published">
@@ -27,18 +27,18 @@ $def render_edition():
             $elif book.publish_date:
                 $book.publish_date
             $elif book.publishers:
-                <em>Publish date unknown</em>, $(', '.join(book.publishers))
+                <em>$_('Publish date unknown')</em>, $(', '.join(book.publishers))
             $else:
-                <em>Publisher unknown</em>
+                <em>$_('Publisher unknown')</em>
             </div>
             $if book.title:
                 <a href="$book.url()">$book.title</a><br/>
             $else:
-                <a href="$book.url()"><em>Title missing</em></a><br/>
+                <a href="$book.url()"><em>$_('Title missing')</em></a><br/>
             <div class="format">
                 $book.physical_format.replace('[', '').replace(']','')
                 $if book.languages:
-                    in $', '.join(l.name for l in book.languages)
+                    $_('in %(language)s', language=$', '.join(l.name for l in book.languages))
             $if book.edition_name:
                 -
                 $book.edition_name

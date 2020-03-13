@@ -229,18 +229,18 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
                             $_('by')
                             $for p in page.publishers:
                                 $if "publishers" in ctx.features:
-                                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')" title="$_('Show for other books from %s', p)">$p</a>$cond(loop.last, "", ", ")
+                                    <a itemprop="publisher" href="/publishers/$p.replace(' ', '_')" title="$_('Show other books from %(publisher)s', publisher=p)">$p</a>$cond(loop.last, "", ", ")
                                 $else:
-                                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from') $p">$p</a>$cond(loop.last, "", ", ")
+                                    <a itemprop="publisher" href="/search?publisher_facet=$p.replace('&','%26')" title="$_('Search for other books from %(publisher)s', publisher=p)">$p</a>$cond(loop.last, "", ", ")
 
                         $if page.publish_places:
                             $_('in')
                             $for p in page.publish_places:
-                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about') $p">$p</a>$cond(loop.last, "", ", ")
+                                 <a href="/search/subjects?q=$p.replace('&','%26')" title="$_('Search for subjects about %(place)s', place=p)">$p</a>$cond(loop.last, "", ", ")
                         <span class="adjust">.</span>
                     $if page.languages:
                         $def lang_span(): <span itemprop="inLanguage">$:thingrepr(page.languages)</span>
-                        <br/>$:_('Written in %(lang)s', lang=lang_span())
+                        <br/>$:_('Written in %(language)s', language=lang_span())
               </h4>
 
           $if work:
@@ -269,7 +269,7 @@ $if ctx.user and (ctx.user.is_admin() or ctx.user.is_librarian()):
             $:sanitize(format(work.description))                  
         $else:
           <p class="workHelp">
-            $:_("There's no description for this book yet. Can you <b><a href='%s'>add one</a></b>?",page.url('/edit')+"#about/about")
+            $:_("There's no description for this book yet. Can you <b><a href='%(url)s'>add one</a></b>?", url=page.url('/edit')+"#about/about")
           </p>
         $if page.first_sentence:
             <h3 class="collapse">$_("First Sentence")</h3>

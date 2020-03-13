@@ -4,7 +4,6 @@ $ title = page.title
 $var title: $page.title
 
 
-  $ title_with_site = title + " | Open Library"
   $ title_with_site = _("%(page_title)s | Open Library", page_title=title)
   $ meta_cover_url = item_image(page.get_cover_url("M"), default="https://openlibrary.org/images/icons/avatar_book-sm.png")
   $ bodyid = ctx.get('bodyid', 'user')
@@ -70,7 +69,7 @@ $var title: $page.title
         <div class="clearfix"></div>
         $if page.authors:
             $ author_list = ', '.join('<a href="%s" itemprop="author">%s</a>' % (a.url(), a.name) for a in page.get_authors())
-            <div class="work"><span class="editions">$_("By") $:author_list</span></div>
+            <div class="work"><span class="editions">$:_("By %(author_list)s", author_list=author_list)</span></div>
         $else:
             <div class="work"><span class="editions">$:_("By <em>unknown author</em>")</span></div>
 
@@ -143,12 +142,12 @@ $var title: $page.title
                             </div>
                             <div class="attribution">
                                 $if excerpt.pages:
-                                    $_("Page") $excerpt.pages,
+                                    $_("Page %(page)s", page=excerpt.pages),
                                 $if excerpt.author:
                                     $def excerpt_author_link(): <a href="$excerpt.author.key">$excerpt.author.displayname</a>
-                                    $:(_("added by %s.") % str(excerpt_author_link()).strip())
+                                    $:_("added by %(author_links)s.", author_link=str(excerpt_author_link()).strip()))
                                 $else:
-                                    $_("added anonymously").
+                                    $_("added anonymously.")
                                 $if excerpt.comment:
                                     "<em>$excerpt.comment</em>"
                             </div>
@@ -157,7 +156,7 @@ $var title: $page.title
 
             $if page.links or (page.wikipedia and page.wikipedia.startswith("http")):
                 <div class="section">
-                    <h3>$_("Links") <span class="gray small sansserif">$_("(outside Open Library)")</span></h3>
+                    <h3>$_('Links <span class="gray small sansserif">outside Open Library</span>')</h3>
                     <ul class="booklinks sansserif">
                     $if page.wikipedia and page.wikipedia.startswith("http"):
                         <li><a href="$page.wikipedia">$_('Wikipedia')</a></li>

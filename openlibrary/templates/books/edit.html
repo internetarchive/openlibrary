@@ -65,10 +65,10 @@ window.q.push( function(){
             note = _('<p class="alert thanks">Thank you for adding that book! Any more information you could provide would be wonderful!</p>')
         elif mode == "new_edition":
             title = _("Add a little more?")
-            note = _('<p class="alert thanks">We already know about <b>%s</b>, but not the <b>%s %s edition</b>. Thanks! Do you know any more about this edition?</p>', work.title, edition.publish_date, "; ".join(edition.publishers))
+            note = _('<p class="alert thanks">We already know about <b>%(work_title)s</b>, but not the <b>%(year)s %(publisher)s edition</b>. Thanks! Do you know any more about this edition?</p>', work_title=work.title, year=edition.publish_date, publisher="; ".join(edition.publishers))
         elif mode == "existing_record":
             title = _("Add a little more?")
-            note = _('<p class="alert info">We already know about the <b>%s %s edition</b> of <b>%s</b>, but please, tell us more!</p>', edition.publish_date, "; ".join(edition.publishers), work.title)
+            note = _('<p class="alert info">We already know about the <b>%(year)s %(publisher)s edition</b> of <b>%(work_title)s</b>, but please, tell us more!</p>', year=edition.publish_date, publisher="; ".join(edition.publishers), work_title=work.title)
         else:
             title = _("Editing...")
             note = ""

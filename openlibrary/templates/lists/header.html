@@ -38,7 +38,7 @@ $def render_subject():
     <h1><a href="$doc.key">$doc.name</a> / Lists</h1>
 
     <p class="sansserif lightgreen large">
-        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%s lists</strong>.", len(lists), count=commify(len(lists)))
+        $:ungettext("This subject is on <strong>1 list</strong>.", "This subject is on <strong>%(count)s lists</strong>.", len(lists), count=commify(len(lists)))
     </p>
 
 $ type = doc.get("type") and doc.type.key
