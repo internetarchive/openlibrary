@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-13 01:12-0400\n"
+"POT-Creation-Date: 2020-03-13 01:56-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -331,7 +331,7 @@ msgid "Title"
 msgstr "Titre"
 
 #: view.html:152
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Showing all works by author. Would you like to see <a "
 "href=\"%(url)s\">only ebooks</a>?"
@@ -340,13 +340,13 @@ msgstr ""
 "href=\"%(url)s\"> uniquement des livres électroniques</a>?"
 
 #: view.html:154
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "Showing ebooks only. Would you like to see <a "
 "href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
-"Affichage des ebooks uniquement. Aimeriez-vous voir <a href=\"%(url)s\"> tout"
-" </a> de cet auteur?"
+"Affichage des ebooks uniquement. Aimeriez-vous voir <a href=\"%(url)s\"> "
+"tout </a> de cet auteur?"
 
 #: nav_foot.html:27 nav_head.html:72 openlibrary/templates/subjects.html:9
 #: openlibrary/templates/work_search.html:123 view.html:136 view.html:190
@@ -1809,7 +1809,8 @@ msgstr "Date de publication inconnue, %(publisher)s"
 msgid "in %(languagelist)s"
 msgstr "en %(languagelist)s"
 
-#: edition-sort.html:93 openlibrary/macros/LoanStatus.html:91
+#: edition-sort.html:93 openlibrary/macros/AvailabilityButton.html:73
+#: openlibrary/macros/LoanStatus.html:93
 msgid "Not in Library"
 msgstr "Pas dans la bibliothèque"
 
@@ -3766,6 +3767,29 @@ msgstr "plus"
 msgid "less"
 msgstr "moins"
 
+#: openlibrary/macros/AvailabilityButton.html:50
+msgid "You're <strong>next</strong> in line"
+msgstr "Vous êtes <strong>suivant</strong> sur la liste d'attente"
+
+#: openlibrary/macros/AvailabilityButton.html:52
+#, python-format
+msgid "There is <strong>#1</strong> reader ahead of you"
+msgid_plural "There are <strong>#%(count)d</strong> readers ahead of you"
+msgstr[0] "Il y a <strong>#1</strong> lecteur devant vous"
+msgstr[1] "Il y a <strong>#%(count)d</strong> lecteurss devant vous"
+
+#: openlibrary/macros/AvailabilityButton.html:60
+msgid "Join Waitlist"
+msgstr "Rejoindre la liste d'attente"
+
+#: openlibrary/macros/AvailabilityButton.html:68
+msgid "Be first in line!"
+msgstr "Soyez le premier en ligne!"
+
+#: openlibrary/macros/AvailabilityButton.html:76
+msgid "Print-disabled access available"
+msgstr "Accès pour malvoyants disponible"
+
 #: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16
 msgid "Edit this template"
@@ -3788,7 +3812,7 @@ msgstr "Vraiment rendre ce livre?"
 
 #: openlibrary/macros/databarWork.html:65
 msgid "Buy this book"
-msgstr ""
+msgstr "Achetez ce livre"
 
 #: openlibrary/macros/databarWork.html:83
 msgid "External Links"
@@ -3833,6 +3857,30 @@ msgstr "Vous êtes <strong>suivant</strong> sur la liste d'attente"
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
 msgstr "Vous êtes <strong>#%(spot)d</strong> de %(wlsize)d sur la liste d'attente."
+
+#: openlibrary/macros/LoanStatus.html:68
+msgid "Leave waiting list"
+msgstr "Quitter la liste d'attente"
+
+#: openlibrary/macros/LoanStatus.html:73
+#, python-format
+msgid "Readers waiting for this title: %(count)d"
+msgstr "Lecteurs en attente de ce titre: %(count)d"
+
+#: openlibrary/macros/LoanStatus.html:87
+msgid "Sponsor eBook"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:89
+#, python-format
+msgid ""
+"We don’t have this book yet. You can add it to our Lending Library with a"
+" %(price)s tax deductible donation."
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:90
+msgid "Learn More"
+msgstr "Apprendre encore plus"
 
 #: openlibrary/macros/Pager.html:26
 msgid "First"

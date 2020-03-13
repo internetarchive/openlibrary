@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 01:12-0400\n"
+"POT-Creation-Date: 2020-03-13 01:56-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1679,7 +1679,8 @@ msgstr ""
 msgid "in %(languagelist)s"
 msgstr ""
 
-#: edition-sort.html:93 openlibrary/macros/LoanStatus.html:91
+#: edition-sort.html:93 openlibrary/macros/AvailabilityButton.html:73
+#: openlibrary/macros/LoanStatus.html:93
 msgid "Not in Library"
 msgstr ""
 
@@ -3547,6 +3548,29 @@ msgstr ""
 msgid "less"
 msgstr ""
 
+#: openlibrary/macros/AvailabilityButton.html:50
+msgid "You're <strong>next</strong> in line"
+msgstr ""
+
+#: openlibrary/macros/AvailabilityButton.html:52
+#, python-format
+msgid "There is <strong>#1</strong> reader ahead of you"
+msgid_plural "There are <strong>#%(count)d</strong> readers ahead of you"
+msgstr[0] ""
+msgstr[1] ""
+
+#: openlibrary/macros/AvailabilityButton.html:60
+msgid "Join Waitlist"
+msgstr ""
+
+#: openlibrary/macros/AvailabilityButton.html:68
+msgid "Be first in line!"
+msgstr ""
+
+#: openlibrary/macros/AvailabilityButton.html:76
+msgid "Print-disabled access available"
+msgstr ""
+
 #: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16
 msgid "Edit this template"
@@ -3605,6 +3629,30 @@ msgstr ""
 #: openlibrary/macros/LoanStatus.html:64
 #, python-format
 msgid "You are <strong>#%(spot)d</strong> of %(wlsize)d on the waiting list."
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:68
+msgid "Leave waiting list"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:73
+#, python-format
+msgid "Readers waiting for this title: %(count)d"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:87
+msgid "Sponsor eBook"
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:89
+#, python-format
+msgid ""
+"We don’t have this book yet. You can add it to our Lending Library with a"
+" %(price)s tax deductible donation."
+msgstr ""
+
+#: openlibrary/macros/LoanStatus.html:90
+msgid "Learn More"
 msgstr ""
 
 #: openlibrary/macros/Pager.html:26
