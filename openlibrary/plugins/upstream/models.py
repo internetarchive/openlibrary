@@ -621,6 +621,12 @@ class Work(models.Work):
 
     @staticmethod
     def filter_problematic_subjects(subjects, filter_unicode=True):
+        def is_ascii(s):
+            try:
+                return s.isascii()
+            except AttributeError:
+                return all(ord(c) < 128 for c in s)
+
         blacklist = ['accessible_book', 'protected_daisy',
                      'in_library', 'overdrive', 'large_type_books',
                      'internet_archive_wishlist', 'fiction',
@@ -636,14 +642,14 @@ class Work(models.Work):
             subject = subject.replace('_', ' ')
             if (_subject not in blacklist and
                 (not filter_unicode or (
-                    subject.replace(' ', '').isalnum() and 
-                    not isinstance(subject, six.text_type))) and
+                    subject.replace(' ', '').isalnum() and
+                    is_ascii(subject))) and
                 all([char not in subject for char in blacklist_chars])):
                 ok_subjects.append(subject)
         return ok_subjects        
 
     def get_related_books_subjects(self, filter_unicode=True):
-        return self.filter_problematic_subjects(self.get_subjects())
+        return self.filter_problematic_subjects(self.get_subjects(), filter_unicode)
 
     def get_representative_edition(self):
         """When we have confidence we can direct patrons to the best edition
