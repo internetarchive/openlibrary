@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 01:56-0400\n"
+"POT-Creation-Date: 2020-03-13 02:21-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2731,9 +2731,9 @@ msgstr ""
 msgid "Your Profile"
 msgstr ""
 
-#: header.html:11 header.html:38 header.html:47
+#: header.html:11 header.html:24 header.html:38 header.html:47 header.html:56
 #, python-format
-msgid "<a href=\"$doc.key\">%(name)s</a> / Lists"
+msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
 msgstr ""
 
 #: header.html:16
@@ -2759,7 +2759,7 @@ msgstr[1] ""
 
 #: header.html:49
 #, python-format
-msgid "%(name)s has %(count)s list."
+msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
 msgstr[0] ""
 msgstr[1] ""

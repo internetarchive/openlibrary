@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-13 01:56-0400\n"
+"POT-Creation-Date: 2020-03-13 02:21-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -2907,10 +2907,10 @@ msgstr "Chercher dans les livres électroniques"
 msgid "Your Profile"
 msgstr "Votre profil"
 
-#: header.html:11 header.html:38 header.html:47
+#: header.html:11 header.html:24 header.html:38 header.html:47 header.html:56
 #, python-format
-msgid "<a href=\"$doc.key\">%(name)s</a> / Lists"
-msgstr "<a href=\"$doc.key\">%(name)s</a> / Listes"
+msgid "<a href=\"%(href)s\">%(name)s</a> / Lists"
+msgstr "<a href=\"%(href)s\">%(name)s</a> / Listes"
 
 #: header.html:16
 #, python-format
@@ -2935,9 +2935,9 @@ msgstr[1] "Cet œuvre est sur <strong>%(count)s listes</strong>."
 
 #: header.html:49
 #, python-format
-msgid "%(name)s has %(count)s list."
+msgid "%(name)s has 1 list."
 msgid_plural "%(name)s has %(count)s lists."
-msgstr[0] "%(name)s avez %(count)s liste."
+msgstr[0] "%(name)s avez 1 liste."
 msgstr[1] "%(name)s avez %(count)s listes."
 
 #: header.html:59
@@ -4825,8 +4825,8 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "publiquement les livres qu'il est "
 #~ "<ahref=\"$(page.key)/books/currently\"> en cours de"
 #~ " lecture </a>, <ahref=\"$(page.key)/books/already-"
-#~ "read\"> ont déjà lu </a>, et "
-#~ "<ahref=\"$(page.key)/books/want-to-read\"> voulez"
+#~ "read\"> ont déjà lu </a>, et <a"
+#~ " href=\"$(page.key)/books/want-to-read\"> voulez"
 #~ " lire </a>!"
 
 #~ msgid "No edits. Yet."
@@ -4853,4 +4853,3 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "Il n'y a pas encore de description"
 #~ " pour ce livre. Pouvez-vous <b><a "
 #~ "href='%s'> en ajouter un?</a></b>"
-
