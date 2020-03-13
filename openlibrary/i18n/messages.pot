@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-12 17:39-0400\n"
+"POT-Creation-Date: 2020-03-12 22:31-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -622,31 +622,36 @@ msgid_plural "- %(count)s works"
 msgstr[0] ""
 msgstr[1] ""
 
-#: exports.html:12
+#: exports.html:30
 msgid "Export"
 msgstr ""
 
-#: exports.html:21 exports.html:41
+#: exports.html:31
+#, python-format
+msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
+msgstr ""
+
+#: exports.html:35 exports.html:55
 msgid "Subscribe"
 msgstr ""
 
-#: exports.html:22 exports.html:42
+#: exports.html:36 exports.html:56
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
 msgstr ""
 
-#: exports.html:29
+#: exports.html:43
 msgid "Export Not Available"
 msgstr ""
 
-#: exports.html:34
+#: exports.html:48
 #, python-format
 msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
 "%s(count)."
 msgstr ""
 
-#: exports.html:36
+#: exports.html:50
 #, python-format
 msgid ""
 "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-12 17:39-0400\n"
+"POT-Creation-Date: 2020-03-12 22:31-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -652,24 +652,29 @@ msgid_plural "- %(count)s works"
 msgstr[0] "1 œuvre"
 msgstr[1] "%(count)s œuvres"
 
-#: exports.html:12
+#: exports.html:30
 msgid "Export"
 msgstr "Exporter"
 
-#: exports.html:21 exports.html:41
+#: exports.html:31
+#, python-format
+msgid "as %(json_link)s, %(html_link)s, or %(bibtex_link)s"
+msgstr "au format %(json_link)s, %(html_link)s, ou %(bibtex_link)s"
+
+#: exports.html:35 exports.html:55
 msgid "Subscribe"
 msgstr "S'abonner"
 
-#: exports.html:22 exports.html:42
+#: exports.html:36 exports.html:56
 #, python-format
 msgid "Watch activity via <a rel=\"nofollow\" href=\"%s\">Atom feed</a>"
 msgstr "Regardez l'activité via le <a rel=\"nofollow\" href=\"%s\">flux Atom</a>"
 
-#: exports.html:29
+#: exports.html:43
 msgid "Export Not Available"
 msgstr "Exportation non disponible"
 
-#: exports.html:34
+#: exports.html:48
 #, python-format
 msgid ""
 "Only lists with up to %(max)s editions can be exported. This one has "
@@ -678,7 +683,7 @@ msgstr ""
 "Seules les listes contenant jusqu'à %(max) éditions peuvent être "
 "exportées. Celui-ci a %(count)s."
 
-#: exports.html:36
+#: exports.html:50
 #, python-format
 msgid ""
 "Try removing some seeds for more focus, or look at <a href=\"%s\">bulk "
