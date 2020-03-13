@@ -37,6 +37,7 @@ def render_template(request):
     # load all globals.
     web.template.Template.globals["_"] = gettext
     web.template.Template.globals.update(helpers.helpers)
+    web.template.ALLOWED_AST_NODES.append('Constant')
 
     web.ctx.env = web.storage()
     web.ctx.headers = []
