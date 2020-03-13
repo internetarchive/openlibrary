@@ -20,6 +20,8 @@ class WARCReader:
     >>> f = BytesIO()
     >>> r1 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "foo")
     >>> r2 = WARCRecord("resource", "subject_uri", "image/jpeg", {"hello": "world"}, "bar")
+    >>> str(r2)
+    'WARCRecord()'
     >>> w = WARCWriter(f)
     >>> _ = w.write(r1)
     >>> _ = w.write(r2)
@@ -59,7 +61,7 @@ class WARCReader:
         tokens = line.strip().split()
         warc_id, data_length, record_type, subject_uri, creation_date, record_id, content_type = tokens
         header = WARCHeader(warc_id,
-            int(data_length), record_type, subject_uri,
+            data_length, record_type, subject_uri,
             creation_date, record_id, content_type, {})
 
         while True:
