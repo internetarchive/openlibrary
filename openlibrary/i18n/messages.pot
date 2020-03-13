@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 01:01-0400\n"
+"POT-Creation-Date: 2020-03-13 01:12-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -315,15 +315,15 @@ msgstr ""
 #: view.html:152
 #, python-format
 msgid ""
-"Showing all works by author. Would you like to see <a href=%(url)s>only "
-"ebooks</a>?"
+"Showing all works by author. Would you like to see <a "
+"href=\"%(url)s\">only ebooks</a>?"
 msgstr ""
 
 #: view.html:154
 #, python-format
 msgid ""
-"Showing ebooks only. Would you like to see <a href=%(url)s>everything</a>"
-" by this author?"
+"Showing ebooks only. Would you like to see <a "
+"href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
 
 #: nav_foot.html:27 nav_head.html:72 openlibrary/templates/subjects.html:9

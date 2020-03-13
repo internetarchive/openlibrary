@@ -145,9 +145,9 @@ $set_share_links(url=request.canonical_url, title=title, view_context=ctx)
 
                 <p>
                   $if input(mode="everything").mode == "everything":
-                    $:_('Showing all works by author. Would you like to see <a href=%(url)s>only ebooks</a>?', url=changequery(mode='ebook'))
+                    $:_('Showing all works by author. Would you like to see <a href="%(url)s">only ebooks</a>?', url=changequery(mode='ebook'))
                   $else:
-                    $:_('Showing ebooks only. Would you like to see <a href=%(url)s>everything</a> by this author?', url=changequery(mode='everything'))
+                    $:_('Showing ebooks only. Would you like to see <a href="%(url)s">everything</a> by this author?', url=changequery(mode='everything'))
                 </p>
 
                 $:macros.Pager(page=safeint(query_param('page'), default=1), num_found=books.num_found)
