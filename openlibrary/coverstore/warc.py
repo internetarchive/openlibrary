@@ -42,7 +42,7 @@ class WARCReader:
             if header is None:
                 break
             yield LazyWARCRecord(self._file, self._file.tell(), header)
-            self._file.seek(int(bytes(header.data_length, 'utf-8').decode('utf-8')), 1)
+            self._file.seek(int(header.data_length), 1)
             consume_crlf()
             consume_crlf()
 
@@ -59,7 +59,7 @@ class WARCReader:
         tokens = line.strip().split()
         warc_id, data_length, record_type, subject_uri, creation_date, record_id, content_type = tokens
         header = WARCHeader(warc_id,
-            data_length, record_type, subject_uri,
+            int(data_length), record_type, subject_uri,
             creation_date, record_id, content_type, {})
 
         while True:
