@@ -3,6 +3,7 @@
 
 import logging
 import requests
+import simplejson
 import six
 import os
 import web
@@ -27,45 +28,45 @@ class IAEditionSearch:
     AVAILABILITY_STATUS = 'loans__status__status'
     RESPONSE_FIELDS = 'fl[]'
     VALID_SORTS = [
-        '__random', '__sort', 'addeddate', 'avg_rating', 'call_number',
-        'createdate', 'creatorSorter', 'creatorSorterRaw', 'date',
-        'downloads', 'foldoutcount', 'headerImage', 'identifier',
-        'identifierSorter', 'imagecount', 'indexdate',
-        'item_size', 'languageSorter', 'licenseurl', 'mediatype',
-        'mediatypeSorter', 'month', 'nav_order', 'num_reviews',
-        'programSorter', 'publicdate', 'reviewdate', 'stars',
-        'titleSorter', 'titleSorterRaw', 'week',  'year',
+        '__random', '__sort', 'addeddate', 'avg_rating',
+        'call_number', 'createdate', 'creatorSorter',
+        'creatorSorterRaw', 'date', 'downloads', 'foldoutcount',
+        'headerImage', 'identifier', 'identifierSorter', 'imagecount',
+        'indexdate', 'item_size', 'languageSorter', 'licenseurl',
+        'mediatype', 'mediatypeSorter', 'month', 'nav_order',
+        'num_reviews', 'programSorter', 'publicdate', 'reviewdate',
+        'stars', 'titleSorter', 'titleSorterRaw', 'week', 'year',
         'loans__status__last_loan_date'
     ]
 
     PRESET_QUERIES = {
         'preset:thrillers': (
             'creator:('
-              '"Clancy, Tom" OR "King, Stephen" OR "Clive Cussler" OR '
-              '"Cussler, Clive" OR "Dean Koontz" OR "Koontz, Dean" OR '
-              '"Higgins, Jack"'
+            ' "Clancy, Tom" OR "King, Stephen" OR "Clive Cussler" OR '
+            ' "Cussler, Clive" OR "Dean Koontz" OR "Koontz, Dean" OR '
+            ' "Higgins, Jack"'
             ') AND '
             '!publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND '
             'languageSorter:"English"'
         ),
         'preset:children': (
             'creator:('
-              '"parish, Peggy" OR "avi" OR "Dahl, Roald" OR "ahlberg, allan" OR '
-              '"Seuss, Dr" OR "Carle, Eric" OR "Pilkey, Dav"'
+            ' "parish, Peggy" OR "avi" OR "Dahl, Roald" OR "ahlberg, allan" OR '
+            ' "Seuss, Dr" OR "Carle, Eric" OR "Pilkey, Dav"'
             ') OR title:"goosebumps"'
         ),
         'preset:comics': (
             'subject:"comics" OR '
             'creator:('
-              '"Gary Larson" OR "Larson, Gary" OR "Charles M Schulz" OR '
-              '"Schulz, Charles M" OR "Jim Davis" OR "Davis, Jim" OR '
-              '"Bill Watterson" OR "Watterson, Bill" OR "Lee, Stan"'
+            ' "Gary Larson" OR "Larson, Gary" OR "Charles M Schulz" OR '
+            ' "Schulz, Charles M" OR "Jim Davis" OR "Davis, Jim" OR '
+            ' "Bill Watterson" OR "Watterson, Bill" OR "Lee, Stan"'
             ')'
         ),
         'preset:authorsalliance_mitpress': (
             '(!loans__status__status:UNAVAILABLE) AND ('
-              'openlibrary_subject:("authorsalliance" OR "mitpress") OR '
-              'collection:(mitpress) OR publisher:(MIT Press)'
+            ' openlibrary_subject:("authorsalliance" OR "mitpress") OR '
+            ' collection:(mitpress) OR publisher:(MIT Press)'
             ')'
         )
     }
@@ -125,8 +126,10 @@ class IAEditionSearch:
             if isinstance(sorts, list):
                 # compare against field with +asc/desc suffix rm'd
                 # e.g: date, not date+asc or date+desc
-                return [sort.replace('+', ' ') for sort in sorts
-                    if sort.split('+')[0] in cls.VALID_SORTS]
+                return [
+                    sort.replace('+', ' ') for sort in sorts
+                    if sort.split('+')[0] in cls.VALID_SORTS
+                ]
 
     @classmethod
     def _expand_api_query(cls, query):
@@ -177,7 +180,6 @@ class IAEditionSearch:
         :rtype: str
         :return: a url for humans to view this query on archive.org
         """
-        from openlibrary.core import lending
         _sort = sorts[0] if sorts else ''
         if ' desc' in _sort:
             _sort = '-' + _sort.split(' ')[0]
@@ -205,11 +207,11 @@ class IAEditionSearch:
             response = urllib2.urlopen(
                 request, timeout=h.http_request_timeout()).read()
             return simplejson.loads(response).get('response', {})
-        except Exception as e:
+        except Exception:
             return []
 
     @classmethod
-    def _add_availability_to_edition(edition, item_index):
+    def _add_availability_to_edition(cls, edition, item_index):
         """
         To avoid a 2nd network call to `lending.add_availability`
         reconstruct availability info ad-hoc from archive.org

@@ -198,9 +198,7 @@ class Thing(client.Thing):
 
 
 class Edition(Thing):
-    """Class to represent /type/edition objects in OL.
-    """
-
+    """Class to represent /type/edition objects in OL."""
 
     @staticmethod
     def canonicalize(edition):
@@ -222,7 +220,7 @@ class Edition(Thing):
 
             if edition.ocaid:
                 return '%s/services/img/%s' % (
-                    lending.config_ia_domain, edition.ocaid)
+                    h.ia_domain(), edition.ocaid)
 
             return h.default_imageurl()
 

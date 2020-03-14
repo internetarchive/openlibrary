@@ -213,7 +213,8 @@ def format_work_data(work):
                         zip(work['author_key'], work['author_name'])]
 
     if 'cover_edition_key' in work:
-        d['cover_url'] = get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+        d['cover_url'] = ("%s/b/olid/%s-M.jpg" % (
+            get_coverstore_url(), work['cover_edition_key']))
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d

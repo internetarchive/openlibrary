@@ -1,5 +1,4 @@
 from openlibrary.core import ia
-from infogami import config
 
 
 def test_get_metadata(monkeypatch, mock_memcache):
