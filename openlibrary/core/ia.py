@@ -2,22 +2,235 @@
 """
 
 import logging
-import os
 import requests
+import six
+import os
 import web
 
 from infogami import config
 from infogami.utils import stats
 
 from openlibrary.core import cache
+from openlibrary.core import helpers as h
 from openlibrary.utils.dateutil import date_n_days_ago
 
-import six
 
 logger = logging.getLogger('openlibrary.ia')
 
 IA_BASE_URL = config.get('ia_base_url')
 VALID_READY_REPUB_STATES = ['4', '19', '20', '22']
+
+
+class IAEditionSearch:
+
+    MAX_LIMIT = 20
+    AVAILABILITY_STATUS = 'loans__status__status'
+    RESPONSE_FIELDS = 'fl[]'
+    VALID_SORTS = [
+        '__random', '__sort', 'addeddate', 'avg_rating', 'call_number',
+        'createdate', 'creatorSorter', 'creatorSorterRaw', 'date',
+        'downloads', 'foldoutcount', 'headerImage', 'identifier',
+        'identifierSorter', 'imagecount', 'indexdate',
+        'item_size', 'languageSorter', 'licenseurl', 'mediatype',
+        'mediatypeSorter', 'month', 'nav_order', 'num_reviews',
+        'programSorter', 'publicdate', 'reviewdate', 'stars',
+        'titleSorter', 'titleSorterRaw', 'week',  'year',
+        'loans__status__last_loan_date'
+    ]
+
+    PRESET_QUERIES = {
+        'preset:thrillers': (
+            'creator:('
+              '"Clancy, Tom" OR "King, Stephen" OR "Clive Cussler" OR '
+              '"Cussler, Clive" OR "Dean Koontz" OR "Koontz, Dean" OR '
+              '"Higgins, Jack"'
+            ') AND '
+            '!publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND '
+            'languageSorter:"English"'
+        ),
+        'preset:children': (
+            'creator:('
+              '"parish, Peggy" OR "avi" OR "Dahl, Roald" OR "ahlberg, allan" OR '
+              '"Seuss, Dr" OR "Carle, Eric" OR "Pilkey, Dav"'
+            ') OR title:"goosebumps"'
+        ),
+        'preset:comics': (
+            'subject:"comics" OR '
+            'creator:('
+              '"Gary Larson" OR "Larson, Gary" OR "Charles M Schulz" OR '
+              '"Schulz, Charles M" OR "Jim Davis" OR "Davis, Jim" OR '
+              '"Bill Watterson" OR "Watterson, Bill" OR "Lee, Stan"'
+            ')'
+        ),
+        'preset:authorsalliance_mitpress': (
+            '(!loans__status__status:UNAVAILABLE) AND ('
+              'openlibrary_subject:("authorsalliance" OR "mitpress") OR '
+              'collection:(mitpress) OR publisher:(MIT Press)'
+            ')'
+        )
+    }
+
+    @classmethod
+    def get(cls, query='', sorts=None, page=1, limit=None):
+        """This method allows Open Library to fetch editions from its catalog
+        by using the Archive.org Advanced Search as the querying
+        mechanism. This is advantageous because Archive.org has the
+        latest book availability information.
+        Retrieves a list of available editions (one per work) on Open
+        Library using the archive.org advancedsearch API. Is used in such
+        components as IABookCarousel to retrieve a list of unique
+        available books.
+        :param str query: an elasticsearch archive.org  advancedsearch query
+        :param list sorts: a list of ES strs for sorting
+        :param page int: which page to start on
+        :param limit int: limit results per page (default cls.MAX_LIMIT)
+        :rtype: list of dict representation of editions
+        :returns:
+        """
+        from openlibrary.core.models import Edition
+        q = cls._expand_api_query(query)
+        sorts = cls._normalize_sorts(sorts)
+        params = cls._clean_params(q=q, sorts=sorts, page=page, limit=limit)
+        url = cls._compose_advancedsearch_url(**params)
+        response = cls._request(url)
+        items = response.get('docs', [])
+        item_index = cls._index_items_by_ocaid(items)
+        editions = web.ctx.site.get_many([
+            '/books/%s' % item['openlibrary_edition']
+            for item in item_index.values()
+        ])
+        canonical_editions = [
+            Edition.canonicalize(
+                cls._add_availability_to_edition(edition, item_index)
+            ).dict() for edition in editions
+        ]
+
+        return {
+            'editions': canonical_editions,
+            'advancedsearch_url': url,
+            'browse_url': cls._compose_browsable_url(q, sorts),
+            'params': params
+        }
+
+    @classmethod
+    def _normalize_sorts(cls, sorts):
+        """_request requires sorts to be a list of valid sort options.
+        Discard invalid sorts and marshal to list.
+        XXX broken for encoding of + -> %2B in +ASC, +DESC
+        """
+        if sorts:
+            # If it's a string, split and turn to list
+            if isinstance(sorts, six.string_types):
+                sorts = sorts.split(',')
+            if isinstance(sorts, list):
+                # compare against field with +asc/desc suffix rm'd
+                # e.g: date, not date+asc or date+desc
+                return [sort.replace('+', ' ') for sort in sorts
+                    if sort.split('+')[0] in cls.VALID_SORTS]
+
+    @classmethod
+    def _expand_api_query(cls, query):
+        """Expands short / more easily cacheable preset queries
+        and fixes query to ensure only text archive.org items
+        are returned having openlibrary_work
+        :param str query: preset query or regular IA query
+        :rtype: str
+        """
+        # Expand preset queries
+        if query in cls.PRESET_QUERIES:
+            query = cls.PRESET_QUERIES[query]
+
+        q = 'mediatype:texts AND !noindex:* AND openlibrary_work:(*)'
+        # Add availability if none present (e.g. borrowable only)
+        if cls.AVAILABILITY_STATUS not in query:
+            q += ' AND %s:AVAILABLE' % cls.AVAILABILITY_STATUS
+        return q if not query else q + " AND " + query
+
+    @classmethod
+    def _clean_params(cls, q='', sorts=None, page=1, limit=None):
+        _limit = limit or cls.MAX_LIMIT
+        return {
+            'q': q,
+            'page': page,
+            'rows': min(_limit, cls.MAX_LIMIT),
+            'sort[]': sorts or '',
+            cls.RESPONSE_FIELDS: [
+                'identifier', cls.AVAILABILITY_STATUS, 'openlibrary_edition',
+                'openlibrary_work'
+            ],
+            'output': 'json'
+        }
+
+    @classmethod
+    def _compose_advancedsearch_url(cls, **params):
+        import urllib
+        return 'http://%s/advancedsearch.php?%s' % (
+            h.bookreader_host() or 'archive.org', urllib.urlencode(params, doseq=True))
+
+    @classmethod
+    def _compose_browsable_url(cls, query, sorts=None):
+        """If the client wants to explore this query in the browser, it will
+        have to be converted to user a human readable version of the
+        advancedsearch API
+        :param str query:
+        :param list sorts:
+        :rtype: str
+        :return: a url for humans to view this query on archive.org
+        """
+        from openlibrary.core import lending
+        _sort = sorts[0] if sorts else ''
+        if ' desc' in _sort:
+            _sort = '-' + _sort.split(' ')[0]
+        elif ' asc' in _sort:
+            _sort = _sort.split(' ')[0]
+        return '%s/search.php?query=%s&sort=%s' % (
+            h.ia_domain(), query, _sort)
+
+    @classmethod
+    def _request(cls, url):
+        """
+        Hits archive.org advancedsearch.php API, returns matching items
+        :param str url:
+        :rtype: dict
+        :return: the `response` content of the advancesearch
+        """
+        try:
+            import urllib2  # to port to requests
+            request = urllib2.Request(url)
+            # Internet Archive Elastic Search (which powers some of our
+            # carousel queries) needs Open Library to forward user IPs so
+            # we can attribute requests to end-users
+            client_ip = web.ctx.env.get('HTTP_X_FORWARDED_FOR', 'ol-internal')
+            request.add_header('x-client-id', client_ip)
+            response = urllib2.urlopen(
+                request, timeout=h.http_request_timeout()).read()
+            return simplejson.loads(response).get('response', {})
+        except Exception as e:
+            return []
+
+    @classmethod
+    def _add_availability_to_edition(edition, item_index):
+        """
+        To avoid a 2nd network call to `lending.add_availability`
+        reconstruct availability info ad-hoc from archive.org
+        advancedsearch results
+        """
+        item = item_index[edition.ocaid]
+        availability_status = (
+            ('borrow_%s' % item[cls.AVAILABILITY_STATUS].lower())
+            if item.get(cls.AVAILABILITY_STATUS) else 'open')
+        edition['availability'] = {
+            'status': availability_status,
+            'identifier': item.get('identifier', ''),
+            'openlibrary_edition': item.get('openlibrary_edition', ''),
+            'openlibrary_work': item.get('openlibrary_work', '')
+        }
+        return edition
+
+    @staticmethod
+    def _index_items_by_ocaid(items):
+        return dict((item['identifier'], item) for item in items)
+
 
 
 def get_api_response(url, params=None):

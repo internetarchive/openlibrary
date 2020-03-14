@@ -1,8 +1,10 @@
-from __future__ import print_function
 import unittest
-from openlibrary.plugins.worksearch.code import read_facets, sorted_work_editions, parse_query_fields, escape_bracket, run_solr_query, get_doc, build_q_list, escape_colon, parse_search_response
+from openlibrary.plugins.worksearch.code import (
+    read_facets, sorted_work_editions, parse_query_fields,
+    escape_bracket, get_doc, build_q_list,
+    escape_colon, parse_search_response
+)
 from lxml import etree
-from infogami import config
 
 def test_escape_bracket():
     assert escape_bracket('foo') == 'foo'
@@ -50,7 +52,6 @@ def test_query_parser_fields():
 
     expect = [{'field': 'text', 'value': 'query here'}]
     q = 'query here'
-    print(q)
     assert list(func(q)) == expect
 
     expect = [
@@ -83,13 +84,13 @@ def test_query_parser_fields():
     assert list(func(q)) == expect
 
     expect = [
-        {'field': 'text', 'value': r'flatland\:a romance of many dimensions'},
+        {'field': 'text', 'value': 'flatland\:a romance of many dimensions'},
     ]
     q = 'flatland:a romance of many dimensions'
     assert list(func(q)) == expect
 
     expect = [
-        { 'field': 'title', 'value': r'flatland\:a romance of many dimensions'},
+        { 'field': 'title', 'value': 'flatland\:a romance of many dimensions'},
     ]
     q = 'title:flatland:a romance of many dimensions'
     assert list(func(q)) == expect
@@ -102,16 +103,6 @@ def test_query_parser_fields():
     q = 'authors:Kim Harrison OR authors:Lynsay Sands'
     assert list(func(q)) == expect
 
-#     def test_public_scan(lf):
-#         param = {'subject_facet': ['Lending library']}
-#         (reply, solr_select, q_list) = run_solr_query(param, rows = 10, spellcheck_count = 3)
-#         print solr_select
-#         print q_list
-#         print reply
-#         root = etree.XML(reply)
-#         docs = root.find('result')
-#         for doc in docs:
-#             assert get_doc(doc).public_scan == False
 
 def test_get_doc():
     sample_doc = etree.fromstring('''<doc>
@@ -152,4 +143,3 @@ def test_parse_search_response():
     expect = {'error': 'This is an error'}
     assert parse_search_response(test_input) == expect
     assert parse_search_response('{"aaa": "bbb"}') == {'aaa': 'bbb'}
-

@@ -196,9 +196,59 @@ class Thing(client.Thing):
             "l": self._get_lists_cached(),
         }
 
+
 class Edition(Thing):
     """Class to represent /type/edition objects in OL.
     """
+
+
+    @staticmethod
+    def canonicalize(edition):
+        """
+        Ensures `ocaid` property, normalizes `authors` as array, sets cover_url
+
+        :param dict or web.storage edition:
+        :rtype: Edition
+        """
+        work = edition.works and edition.works[0]
+
+        def _get_cover_url(edition, work):
+            ol_covers = (
+                doc.get_cover().url('M') for doc in [edition, work]
+                if doc and doc.get_cover()
+            )
+            if ol_covers:
+                return next(ol_covers)
+
+            if edition.ocaid:
+                return '%s/services/img/%s' % (
+                    lending.config_ia_domain, edition.ocaid)
+
+            return h.default_imageurl()
+
+        def _get_ocaid(edition):
+            if edition.get('ocaid'):
+                return edition.ocaid
+            if edition.get('ia'):
+                if isinstance(edition.ia, list):
+                    return edition.ia[0]
+                return edition.ia
+            if edition.availability:
+                return edition.availability.identifier
+
+        # Use ocaid as canonical internet archive identifier
+        edition.ocaid = _get_ocaid(edition)
+
+        # Ensure author is set
+        edition.authors = [web.storage(key=a.key, name=a.name or None) for a in
+                           (work or edition).get_authors()]
+
+        # Get bookcover from edition, or work, IA fallback, or default
+        edition.cover_url = _get_cover_url(edition, work)
+
+        return edition
+
+
     def url(self, suffix="", **params):
         return self.get_url(suffix, **params)
 

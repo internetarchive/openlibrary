@@ -3,30 +3,26 @@
 import random
 import web
 import logging
+import six
 
 from infogami.utils import delegate
 from infogami.utils.view import render_template, public
 from infogami.infobase.client import storify
 from infogami import config
 
-from openlibrary.core import admin, cache, ia, lending, \
-    helpers as h
+from openlibrary.core import admin
+from openlibrary.core import cache
+from openlibrary.core import lending
+from openlibrary.core import ia
+from openlibrary.core.helpers import get_coverstore_url
 from openlibrary.core.sponsorships import get_sponsorable_editions
 from openlibrary.utils import dateutil
 from openlibrary.plugins.upstream.utils import get_blog_feeds
-from openlibrary.plugins.worksearch import search, subjects
-
-
-import six
+from openlibrary.plugins.worksearch import search
+from openlibrary.plugins.worksearch import subjects
 
 
 logger = logging.getLogger("openlibrary.home")
-
-CAROUSELS_PRESETS = {
-    'preset:thrillers': '(creator:"Clancy, Tom" OR creator:"King, Stephen" OR creator:"Clive Cussler" OR creator:("Cussler, Clive") OR creator:("Dean Koontz") OR creator:("Koontz, Dean") OR creator:("Higgins, Jack")) AND !publisher:"Pleasantville, N.Y. : Reader\'s Digest Association" AND languageSorter:"English"',
-    'preset:comics': '(subject:"comics" OR creator:("Gary Larson") OR creator:("Larson, Gary") OR creator:("Charles M Schulz") OR creator:("Schulz, Charles M") OR creator:("Jim Davis") OR creator:("Davis, Jim") OR creator:("Bill Watterson") OR creator:("Watterson, Bill") OR creator:("Lee, Stan"))',
-    'preset:authorsalliance_mitpress': '(openlibrary_subject:(authorsalliance) OR collection:(mitpress) OR publisher:(MIT Press) OR openlibrary_subject:(mitpress)) AND (!loans__status__status:UNAVAILABLE)'
-}
 
 
 def get_homepage():
@@ -83,9 +79,7 @@ def get_ia_carousel_books(query=None, subject=None, work_id=None, sorts=None,
     if 'env' not in web.ctx:
         delegate.fakeload()
 
-    elif query in CAROUSELS_PRESETS:
-        query = CAROUSELS_PRESETS[query]
-
+    query = ia.IAEditionSearch.PRESET_QUERIES.get(query, query)
     limit = limit or lending.DEFAULT_IA_RESULTS
     books = lending.get_available(limit=limit, subject=subject, work_id=work_id,
                                   _type=_type, sorts=sorts, query=query)
@@ -219,7 +213,7 @@ def format_work_data(work):
                         zip(work['author_key'], work['author_name'])]
 
     if 'cover_edition_key' in work:
-        d['cover_url'] = h.get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
+        d['cover_url'] = get_coverstore_url() + "/b/olid/%s-M.jpg" % work['cover_edition_key']
 
     d['read_url'] = "//archive.org/stream/" + work['ia'][0]
     return d
