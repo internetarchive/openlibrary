@@ -39,7 +39,7 @@ $if user_loan:
   $ return_url = page.url().rsplit('/', 1)[0] + '/do_return/borrow'
   <form action="$return_url" method="post" class="waitinglist-form return-book">
     <input type="hidden" name="action" value="return" />
-    <input type="submit" value="#_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
+    <input type="submit" value="$_('Return eBook')" class="cta-btn cta-btn--available" id="return_ebook"/>
   </form>
 
 $elif editions_page and ocaid and not page.ia_metadata:
@@ -73,7 +73,7 @@ $elif (availability_status == 'borrow_unavailable'):
       $if wlsize:
         $_("Readers waiting for this title: %(count)d", count=wlsize)
       $else:
-        $(_"You'll be next in line.")
+        $_("You'll be next in line.")
     </p>
     <form method="POST" action="$borrow_link" class="join-waitlist waitinglist-form">
       <input type="hidden" name="action" value="join-waitinglist"/>
@@ -88,7 +88,7 @@ $elif (not page.get('ocaid') or page.is_access_restricted()) and editions_page:
        class="cta-btn cta-btn--sponsor"
        data-ol-link-track="CTAClick|Sponsor">$_('Sponsor eBook')</a>
     <p>
-      $_("We don’t have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=$sponsorship['price']['total_price_display'])
+      $_("We don’t have this book yet. You can add it to our Lending Library with a %(price)s tax deductible donation.", price=sponsorship['price']['total_price_display'])
       <a href="/sponsorship" target="_blank">$_('Learn More')</a>
     </p>
   $else:

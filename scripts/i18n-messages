@@ -53,14 +53,17 @@ def main(cmd):
             'notfound.html',
             'permission_denied.html',
             'subjects.html',
+            'widget.html',
             'work_search.html',
         ]
         macro_dir = 'openlibrary/macros/'
         macros = [
             'AvailabilityButton.html',
+            'BookPreview.html',
             'databarHistory.html',
             'databarView.html',
             'databarWork.html',
+            'DownloadOptions.html',
             'EditButtons.html',
             'FulltextResults.html',
             'LoanStatus.html',

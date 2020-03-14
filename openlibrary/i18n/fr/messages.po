@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: traduc@traduc.org\n"
-"POT-Creation-Date: 2020-03-13 02:21-0400\n"
+"POT-Creation-Date: 2020-03-13 19:44-0400\n"
 "PO-Revision-Date: 2020-01-18 20:35-0500\n"
 "Last-Translator: Julien Lepiller <julien@lepiller.eu>\n"
 "Language: fr\n"
@@ -251,6 +251,10 @@ msgstr "Auteur de %(book_titles)s"
 msgid "Merging Authors..."
 msgstr "Fusion d'auteurs en cours..."
 
+#: view.html:91
+msgid "In progress..."
+msgstr "En cours..."
+
 #: editions2.html:31 view.html:92
 msgid "Duplicates"
 msgstr "Doublons"
@@ -301,6 +305,10 @@ msgstr[1] "%(count)s œuvres"
 msgid "Add another?"
 msgstr "Ajouter un autre œuvre?"
 
+#: openlibrary/templates/work_search.html:106 view.html:139
+msgid "Sorting by"
+msgstr "Trier par"
+
 #: openlibrary/templates/work_search.html:108
 #: openlibrary/templates/work_search.html:110
 #: openlibrary/templates/work_search.html:112
@@ -345,8 +353,8 @@ msgid ""
 "Showing ebooks only. Would you like to see <a "
 "href=\"%(url)s\">everything</a> by this author?"
 msgstr ""
-"Affichage des ebooks uniquement. Aimeriez-vous voir <a href=\"%(url)s\"> "
-"tout </a> de cet auteur?"
+"Affichage des livres électroniques uniquement. Aimeriez-vous voir <a "
+"href=\"%(url)s\"> tout </a> de cet auteur?"
 
 #: nav_foot.html:27 nav_head.html:72 openlibrary/templates/subjects.html:9
 #: openlibrary/templates/work_search.html:123 view.html:136 view.html:190
@@ -376,7 +384,7 @@ msgstr "Liens <span class=\"gray small sansserif\">(en dehors d'Open Library)"
 
 #: view.html:221
 msgid "No links yet."
-msgstr "Pas encore de liens"
+msgstr "Pas encore de liens."
 
 #: view.html:221
 msgid "Add one"
@@ -405,13 +413,14 @@ msgstr[1] ""
 "<a href=\"%(url)s\"><strong>%(count)d éditions</strong></a> de <strong "
 "class=\"booktitle\">%(title)s</strong> trouvé dans le catalogue."
 
-#: view.html:162
-msgid "Add another edition of"
-msgstr "Ajouter un autre édition de "
+#: editions.html:14 editions_datatable.html:13 view.html:162
+#, python-format
+msgid "Add another edition of %(work)s"
+msgstr "Ajoutez une autre édition de %(work)s"
 
 #: view.html:162
-msgid "Add another edition"
-msgstr "Ajouter un autre édition"
+msgid "Add another edition?"
+msgstr "Ajouter un autre édition ?"
 
 #: edit/edition.html:293 view.html:196
 msgid "Contributors"
@@ -473,7 +482,7 @@ msgid ""
 "href='%(url)s'>add one</a></b>?"
 msgstr ""
 "Il n'y a pas encore de description pour ce livre. Pouvez-vous <b><a "
-"href='%s'> en ajouter un?</a></b>"
+"href='%(url)s'> en ajouter un?</a></b>"
 
 #: view.html:112 view.html:298
 msgid "First Sentence"
@@ -844,11 +853,6 @@ msgstr "Pas encore des modifications."
 msgid "First published in %(year)s"
 msgstr "Première publication en %(year)s"
 
-#: editions.html:14
-#, python-format
-msgid "Add another edition of %(work)s"
-msgstr "Ajoutez une autre édition de %(work)s"
-
 #: editions.html:14 editions_datatable.html:13
 #: openlibrary/macros/UserEditRow.html:25
 msgid "Add another"
@@ -890,14 +894,15 @@ msgid_plural "%(count)s editions"
 msgstr[0] "1 édition"
 msgstr[1] "%(count)s édition"
 
-#: editions_datatable.html:13
-#, python-format
-msgid "Add another edition of %(worktitle)s"
-msgstr "Ajoutez une autre édition de %(worktitle)s"
-
 #: editions_datatable.html:22
 msgid "Edition"
 msgstr "Édition"
+
+#: custom_carousel.html:42 custom_carousel.html:47 editions_datatable.html:23
+#: openlibrary/macros/ReadButton.html:13 openlibrary/templates/widget.html:33
+#: show.html:34
+msgid "Read"
+msgstr "Lire"
 
 #: editions_datatable.html:24
 msgid "Locate"
@@ -914,8 +919,8 @@ msgstr "%(title)s: %(subtitle)s"
 
 #: view.html:23
 #, python-format
-msgid "%(title)s by %(authorlist)s"
-msgstr "%(title)s par %(authorlist)s"
+msgid "%(title)s by %(author)s"
+msgstr "%(title)s par %(author)s"
 
 #: check.html:38 view.html:30
 #, python-format
@@ -948,15 +953,15 @@ msgstr "Ajouter à la liste \"Staff Picks\""
 
 #: view.html:76
 #, python-format
-msgid "By %(author_list)s"
-msgstr "par %(authorlist)s"
+msgid "By %(author)s"
+msgstr "par %(author)s"
 
 #: view.html:78
 msgid "By <em>unknown author</em>"
 msgstr "Par <em>auteur inconnu</em>"
 
 #: view.html:82
-msgid "Go to the editions section to read or download ebooks"
+msgid "Go to the editions section to read or download ebooks."
 msgstr "Accédez à la section des éditions pour lire ou télécharger des ebooks"
 
 #: view.html:119
@@ -974,8 +979,8 @@ msgstr "Page %(page)s"
 
 #: view.html:159
 #, python-format
-msgid "added by %(author_links)s."
-msgstr "Modifié par %(author_link)s."
+msgid "added by %(authorlink)s."
+msgstr "Modifié par %(authorlink)s."
 
 #: view.html:161
 msgid "added anonymously."
@@ -1139,7 +1144,7 @@ msgstr "Retour via<br/>Adobe Digital Editions"
 
 #: borrow.html:140
 msgid "How To Return eBooks through Adobe Digital Editions"
-msgstr ""
+msgstr "Comment renvoyer des livres électroniques via Adobe Digital Editions"
 
 #: borrow.html:142
 msgid "Open Adobe Digital Editions"
@@ -1734,6 +1739,11 @@ msgstr " par %(name)s"
 msgid "Sponsor"
 msgstr ""
 
+#: custom_carousel.html:39 custom_carousel.html:45
+#: openlibrary/macros/ReadButton.html:9 openlibrary/templates/widget.html:38
+msgid "Borrow"
+msgstr "Emprunter"
+
 #: edit.html:68 edit.html:71 edit.html:74
 msgid "Add a little more?"
 msgstr "En dire un peu plus?"
@@ -2305,7 +2315,8 @@ msgid "Cover Guidelines"
 msgstr "Conseils pour les couvertures"
 
 #: author_photo.html:20 book_cover.html:39 book_cover_single_edition.html:34
-#: book_cover_work.html:30 change.html:107 markdown.html:12 widget.html:281
+#: book_cover_work.html:30 change.html:107 markdown.html:12
+#: openlibrary/macros/BookPreview.html:19 widget.html:281
 msgid "Close"
 msgstr "Fermer"
 
@@ -2340,12 +2351,14 @@ msgstr "Terminer"
 #: comment.html:26
 #, python-format
 msgid "Imported from %(source)s  <a href=\"%(url)s\">%(type)s record</a>."
-msgstr ""
+msgstr "Importé de %(source)s <a href=\"%(url)s\">l'enregistrement %(type)s</a>."
 
 #: comment.html:28
 #, python-format
 msgid "Found a <a href=\"%(url)s\">matching record</a> from %(source)s."
 msgstr ""
+"<a href=\"%(url)s\">Enregistrement correspondant</a> trouvé dans "
+"%(source)s."
 
 #: comment.html:35
 msgid "Edited without comment."
@@ -2643,6 +2656,7 @@ msgstr "Explorer des thèmes"
 
 #: advancedsearch.html:7 advancedsearch.html:10 advancedsearch.html:15
 #: nav_foot.html:28 nav_head.html:19 nav_head.html:95
+#: openlibrary/templates/work_search.html:116
 msgid "Advanced Search"
 msgstr "Recherche avancée"
 
@@ -3314,7 +3328,7 @@ msgstr "Qui"
 
 #: openlibrary/templates/history.html:32 render.html:33 updated_records.html:30
 msgid "Comment"
-msgstr ""
+msgstr "Commentaire"
 
 #: render.html:61
 msgid "Older"
@@ -3676,9 +3690,38 @@ msgstr "Auteurs prolifiques"
 msgid "who have written the most books on this subject"
 msgstr "qui a écrit le plus de livres à ce sujet"
 
-#: openlibrary/templates/work_search.html:106
-msgid "Sorting by"
-msgstr "Trier par"
+#: openlibrary/templates/widget.html:33
+#, python-format
+msgid "Read \"%(title)s\""
+msgstr "Lire \"%(title)s\""
+
+#: openlibrary/templates/widget.html:38
+#, python-format
+msgid "Borrow \"%(title)s\""
+msgstr "Emprunter \"%(title)s\""
+
+#: openlibrary/templates/widget.html:44
+#, python-format
+msgid "Join waitlist for &quot;%(title)s&quot;"
+msgstr "Rejoindre la liste d'attente pour &quot;%(title)s&quot;"
+
+#: openlibrary/macros/AvailabilityButton.html:60
+#: openlibrary/templates/widget.html:44
+msgid "Join Waitlist"
+msgstr "Rejoindre la liste d'attente"
+
+#: openlibrary/templates/widget.html:48
+#, python-format
+msgid "Learn more about &quot;%(title)s&quot; at OpenLibrary"
+msgstr "En savoir plus sur &quot;%(title)s&quot; à OpenLibrary"
+
+#: openlibrary/macros/LoanStatus.html:90 openlibrary/templates/widget.html:48
+msgid "Learn More"
+msgstr "Apprendre encore plus"
+
+#: openlibrary/templates/widget.html:50
+msgid "on "
+msgstr "sur "
 
 #: openlibrary/templates/work_search.html:108
 #: openlibrary/templates/work_search.html:110
@@ -3698,6 +3741,10 @@ msgstr "Publication la plus ancienne"
 #: openlibrary/templates/work_search.html:130
 msgid "Classic eBooks"
 msgstr "Livres électroniques classiques"
+
+#: openlibrary/templates/work_search.html:137
+msgid "Keywords"
+msgstr "Mot-clé"
 
 #: openlibrary/templates/work_search.html:142
 msgid "Everything"
@@ -3759,11 +3806,28 @@ msgstr "Affinez les résultats avec cela"
 msgid "filters"
 msgstr "filtres"
 
-#: openlibrary/templates/work_search.html:287
+#: openlibrary/templates/work_search.html:283
+msgid "yes"
+msgstr "oui"
+
+#: openlibrary/templates/work_search.html:285
+msgid "no"
+msgstr "non"
+
+#: openlibrary/templates/work_search.html:286
+msgid "Filter results for ebook availability"
+msgstr "Filtrer les résultats pour la disponibilité des livres électroniques"
+
+#: openlibrary/templates/work_search.html:288
+#, python-format
+msgid "Filter results for %(facet)s"
+msgstr "Filtrer les résultats pour %(facet)ss"
+
+#: openlibrary/templates/work_search.html:291
 msgid "more"
 msgstr "plus"
 
-#: openlibrary/templates/work_search.html:287
+#: openlibrary/templates/work_search.html:291
 msgid "less"
 msgstr "moins"
 
@@ -3778,10 +3842,6 @@ msgid_plural "There are <strong>#%(count)d</strong> readers ahead of you"
 msgstr[0] "Il y a <strong>#1</strong> lecteur devant vous"
 msgstr[1] "Il y a <strong>#%(count)d</strong> lecteurss devant vous"
 
-#: openlibrary/macros/AvailabilityButton.html:60
-msgid "Join Waitlist"
-msgstr "Rejoindre la liste d'attente"
-
 #: openlibrary/macros/AvailabilityButton.html:68
 msgid "Be first in line!"
 msgstr "Soyez le premier en ligne!"
@@ -3789,6 +3849,18 @@ msgstr "Soyez le premier en ligne!"
 #: openlibrary/macros/AvailabilityButton.html:76
 msgid "Print-disabled access available"
 msgstr "Accès pour malvoyants disponible"
+
+#: openlibrary/macros/BookPreview.html:10
+msgid "Preview"
+msgstr "Prévisualisation"
+
+#: openlibrary/macros/BookPreview.html:17
+msgid "Preview Book"
+msgstr "Aperçu du livre"
+
+#: openlibrary/macros/BookPreview.html:30
+msgid "See more about this book on Archive.org"
+msgstr "En savoir plus sur ce livre sur Archive.org"
 
 #: openlibrary/macros/databarHistory.html:16
 #: openlibrary/macros/databarView.html:16
@@ -3817,6 +3889,50 @@ msgstr "Achetez ce livre"
 #: openlibrary/macros/databarWork.html:83
 msgid "External Links"
 msgstr "Liens externe"
+
+#: openlibrary/macros/DownloadOptions.html:17
+msgid "Download Options"
+msgstr "Options de télécharger"
+
+#: openlibrary/macros/DownloadOptions.html:20
+msgid "Download a PDF from Internet Archive"
+msgstr "Télécharger un PDF à partir d'Internet Archive"
+
+#: openlibrary/macros/DownloadOptions.html:20
+msgid "PDF"
+msgstr ""
+
+#: openlibrary/macros/DownloadOptions.html:22
+msgid "Download a text version from Internet Archive"
+msgstr "Téléchargez une version texte d'Internet Archive"
+
+#: openlibrary/macros/DownloadOptions.html:22
+msgid "Plain text"
+msgstr "Texte brut"
+
+#: openlibrary/macros/DownloadOptions.html:24
+msgid "Download an ePub from Internet Archive"
+msgstr "Téléchargez le livre électronique depuis Internet Archive"
+
+#: openlibrary/macros/DownloadOptions.html:24
+msgid "ePub"
+msgstr ""
+
+#: openlibrary/macros/DownloadOptions.html:26
+msgid "Download a MOBI file from Internet Archive"
+msgstr "Téléchargez un fichier MOBI à partir d'Internet Archive"
+
+#: openlibrary/macros/DownloadOptions.html:26
+msgid "MOBI"
+msgstr ""
+
+#: openlibrary/macros/DownloadOptions.html:27
+msgid "Download open DAISY from Internet Archive (print-disabled format)"
+msgstr ""
+
+#: openlibrary/macros/DownloadOptions.html:27
+msgid "DAISY"
+msgstr ""
 
 #: openlibrary/macros/EditButtons.html:9
 msgid "Please, leave a short note about what you changed:"
@@ -3849,6 +3965,10 @@ msgstr ""
 "éléments. <a href=\"/contact\" class=\"blue\">Faites-nous savoir</a> s'il"
 " y a un problème."
 
+#: openlibrary/macros/LoanStatus.html:46
+msgid "Return eBook"
+msgstr "Retourner livre electronique"
+
 #: openlibrary/macros/LoanStatus.html:62
 msgid "You are <strong>next</strong> on the waiting list"
 msgstr "Vous êtes <strong>suivant</strong> sur la liste d'attente"
@@ -3867,6 +3987,10 @@ msgstr "Quitter la liste d'attente"
 msgid "Readers waiting for this title: %(count)d"
 msgstr "Lecteurs en attente de ce titre: %(count)d"
 
+#: openlibrary/macros/LoanStatus.html:75
+msgid "You'll be next in line."
+msgstr "Vous serez le prochain dans la file."
+
 #: openlibrary/macros/LoanStatus.html:87
 msgid "Sponsor eBook"
 msgstr ""
@@ -3877,10 +4001,6 @@ msgid ""
 "We don’t have this book yet. You can add it to our Lending Library with a"
 " %(price)s tax deductible donation."
 msgstr ""
-
-#: openlibrary/macros/LoanStatus.html:90
-msgid "Learn More"
-msgstr "Apprendre encore plus"
 
 #: openlibrary/macros/Pager.html:26
 msgid "First"
@@ -3977,12 +4097,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ msgid "Edit Summary (briefly describe the changes you have made):"
 #~ msgstr "Résumé des changements (décrivez brièvement vous changements):"
 
-#~ msgid "Preview"
-#~ msgstr "Prévisualisation"
-
-#~ msgid "Delete"
-#~ msgstr "Supprimer"
-
 #~ msgid ""
 #~ "Except where otherwise noted, content on"
 #~ " this site is licensed under a "
@@ -4078,15 +4192,6 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "Cette URL n'a pas l'air de "
 #~ "fonctionner. Veuillez vous assurer qu'il "
 #~ "s'agit bien d'un fichier d'image."
-
-#~ msgid "Currently viewing the history for"
-#~ msgstr "Vous regardez l'historique de"
-
-#~ msgid "Â¿QuÃ©?"
-#~ msgstr "Quoi?"
-
-#~ msgid "View MARC"
-#~ msgstr "Voir le MARC"
 
 #~ msgid ""
 #~ "We've noted the error and will "
@@ -4853,3 +4958,10 @@ msgstr "Consultez WorldCat pour une édition près de chez vous"
 #~ "Il n'y a pas encore de description"
 #~ " pour ce livre. Pouvez-vous <b><a "
 #~ "href='%s'> en ajouter un?</a></b>"
+
+#~ msgid "Add another edition of"
+#~ msgstr "Ajouter un autre édition de "
+
+#~ msgid "Add another edition of %(worktitle)s"
+#~ msgstr "Ajoutez une autre édition de %(worktitle)s"
+
