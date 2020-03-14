@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Open Library VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2020-03-13 19:44-0400\n"
+"POT-Creation-Date: 2020-03-13 20:13-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -773,9 +773,9 @@ msgstr ""
 msgid "admin page"
 msgstr ""
 
-#: books.html:86 home.html:7 home.html:10 lists.html:10 nav_head.html:48
-#: nav_head.html:73 search_head.html:70 view.html:31 view.html:60
-#: widget.html:234
+#: books.html:86 home.html:7 home.html:10 index.html:40 lists.html:10
+#: nav_head.html:48 nav_head.html:73 search_head.html:70 view.html:31
+#: view.html:60 widget.html:234
 msgid "Lists"
 msgstr ""
 
@@ -3113,6 +3113,30 @@ msgstr ""
 msgid "Recent Changes"
 msgstr ""
 
+#: index.html:34
+msgid "Author Merges"
+msgstr ""
+
+#: index.html:35
+msgid "Books Added"
+msgstr ""
+
+#: index.html:36
+msgid "Covers Added"
+msgstr ""
+
+#: index.html:57
+msgid "By Humans"
+msgstr ""
+
+#: index.html:58
+msgid "By Bots"
+msgstr ""
+
+#: index.html:59 openlibrary/templates/work_search.html:142
+msgid "Everything"
+msgstr ""
+
 #: openlibrary/templates/history.html:30 render.html:30 updated_records.html:28
 msgid "When"
 msgstr ""
@@ -3525,10 +3549,6 @@ msgstr ""
 msgid "Keywords"
 msgstr ""
 
-#: openlibrary/templates/work_search.html:142
-msgid "Everything"
-msgstr ""
-
 #: openlibrary/templates/work_search.html:144
 msgid "Ebooks"
 msgstr ""
@@ -3551,6 +3571,14 @@ msgstr ""
 
 #: openlibrary/templates/work_search.html:184
 msgid "Only Classic eBooks"
+msgstr ""
+
+#: openlibrary/templates/work_search.html:188
+#: openlibrary/templates/work_search.html:190
+#: openlibrary/templates/work_search.html:192
+#: openlibrary/templates/work_search.html:194
+#, python-format
+msgid "Explore books about %(subject)s"
 msgstr ""
 
 #: openlibrary/templates/work_search.html:198
